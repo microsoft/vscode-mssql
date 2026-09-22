@@ -33,6 +33,7 @@ import {
     DevContainerPrerequisites,
     DevContainerTarget,
     DevContainerTemplateOption,
+    OverviewExtensionId,
     PrerequisiteStatus,
 } from "../../../../sharedInterfaces/overview";
 import { DialogShell } from "./dialogShell";
@@ -211,7 +212,8 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
     const {
         openLink,
         checkPrerequisites,
-        installDevContainersExtension,
+        openExtension,
+        onPrerequisitesChanged,
         addDevContainerConfiguration,
         getDevContainerTemplateOptions,
         getDevContainerTarget,
@@ -360,13 +362,9 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
         void refresh();
     }, [refresh]);
 
-    const install = async () => {
-        setPrerequisites((current) => ({
-            ...current,
-            devContainersExtension: PrerequisiteStatus.Checking,
-        }));
-        setPrerequisites(await installDevContainersExtension());
-    };
+    // Installing happens outside the dialog -- on the extension's page, or Docker's installer --
+    // so the extension reports the change when it notices rather than waiting for Recheck.
+    useEffect(() => onPrerequisitesChanged(setPrerequisites), [onPrerequisitesChanged]);
 
     const renderStatus = (status: PrerequisiteStatus) => {
         switch (status) {
@@ -547,7 +545,7 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                                 <Button
                                     size="small"
                                     onClick={() => openLink(overviewLinks.dockerDesktop)}>
-                                    {loc.installDocker}
+                                    {loc.install}
                                 </Button>
                             ) : (
                                 renderStatus(prerequisites.docker)
@@ -564,7 +562,11 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                                 </Text>
                             </div>
                             {prerequisites.devContainersExtension === PrerequisiteStatus.Missing ? (
-                                <Button size="small" onClick={() => void install()}>
+                                <Button
+                                    size="small"
+                                    onClick={() =>
+                                        openExtension(OverviewExtensionId.DevContainers)
+                                    }>
                                     {loc.install}
                                 </Button>
                             ) : (

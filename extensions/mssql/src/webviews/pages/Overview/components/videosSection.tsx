@@ -12,8 +12,8 @@ import { locConstants } from "../../../common/locConstants";
 import { useOverviewActions } from "../useOverviewActions";
 
 const videoThumbnails: Record<VideoCard["thumbnail"], string> = {
-    copilotSql: require("../../../../../images/overview/videos/copilot-sql.webp"),
     whatsNew: require("../../../../../images/overview/videos/whats-new.webp"),
+    gettingStarted: require("../../../../../images/overview/videos/getting-started.webp"),
     aiReadyApp: require("../../../../../images/overview/videos/ai-ready-app.webp"),
 };
 
@@ -78,32 +78,29 @@ const useStyles = makeStyles({
         backgroundColor: "rgba(0, 0, 0, 0.68)",
         boxShadow: tokens.shadow8,
     },
-    duration: {
-        position: "absolute",
-        right: tokens.spacingHorizontalXS,
-        bottom: tokens.spacingVerticalXS,
-        padding: `1px ${tokens.spacingHorizontalXXS}`,
-        borderRadius: tokens.borderRadiusSmall,
-        color: tokens.colorNeutralForegroundInverted,
-        backgroundColor: "rgba(0, 0, 0, 0.78)",
-        fontSize: tokens.fontSizeBase100,
-        fontWeight: tokens.fontWeightSemibold,
-        lineHeight: tokens.lineHeightBase100,
-    },
     meta: {
         display: "flex",
         flexDirection: "column",
-        gap: tokens.spacingVerticalXXS,
+        gap: tokens.spacingVerticalXS,
         // No card frame to sit inside any more, so the text lines up with the thumbnail edge.
-        paddingTop: tokens.spacingVerticalS,
+        paddingTop: tokens.spacingVerticalM,
     },
     title: {
+        color: tokens.colorNeutralForeground1,
         fontWeight: tokens.fontWeightSemibold,
-        fontSize: tokens.fontSizeBase200,
+        fontSize: tokens.fontSizeBase300,
+        lineHeight: tokens.lineHeightBase300,
+        // Two lines at most, so a long title does not push its subtitle out of line with the
+        // cards beside it.
+        display: "-webkit-box",
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical",
+        overflow: "hidden",
     },
     subtitle: {
-        color: tokens.colorNeutralForeground3,
+        color: tokens.colorNeutralForeground2,
         fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase200,
     },
     note: {
         display: "flex",
@@ -128,7 +125,6 @@ const VideoThumbnail = ({ video }: { video: VideoCard }) => {
             <span className={classes.playIcon}>
                 <Play20Filled />
             </span>
-            <span className={classes.duration}>{video.duration}</span>
         </span>
     );
 };

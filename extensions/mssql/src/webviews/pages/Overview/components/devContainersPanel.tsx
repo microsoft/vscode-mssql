@@ -15,6 +15,7 @@ import {
 } from "@fluentui/react-components";
 import { Box20Regular, Open16Regular } from "@fluentui/react-icons";
 import { useState } from "react";
+import { GithubMark16Regular } from "../../../common/icons/fluentIcons";
 
 import {
     DevContainerTemplate,
@@ -140,7 +141,7 @@ export const DevContainersPanel = () => {
                                 event.preventDefault();
                                 openLink(getTemplateSourceUrl(template));
                             }}>
-                            <Open16Regular />
+                            <GithubMark16Regular />
                         </Link>
                     </div>
                 ))}

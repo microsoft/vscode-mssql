@@ -16,6 +16,7 @@ import { OverviewWebviewController } from "../../src/controllers/overviewWebview
 import { RecentSqlFilesStore, ResolvedRecentSqlFile } from "../../src/models/recentSqlFilesStore";
 import { AgentPluginsInstaller } from "../../src/agentPlugins/agentPluginsInstaller";
 import {
+    DevContainerPrerequisitesChangedNotification,
     DevContainerTemplateId,
     OverviewOpenSource,
     PrerequisiteStatus,
@@ -182,6 +183,38 @@ suite("Overview Webview Controller", () => {
 
         // vscode.extensions.getExtension is stubbed to return undefined for every id.
         expect(prerequisites.devContainersExtension).to.equal(PrerequisiteStatus.Missing);
+    });
+
+    test("tells the setup dialog when a prerequisite changes outside the page", async () => {
+        controller = createController();
+        controller["_lastPrerequisites"] = {
+            docker: PrerequisiteStatus.Missing,
+            devContainersExtension: PrerequisiteStatus.Missing,
+        };
+        const notify = sandbox.stub(controller, "sendNotification").resolves();
+        // State pushes share the channel, so only the prerequisite notifications are counted.
+        const prerequisiteNotifications = () =>
+            notify
+                .getCalls()
+                .filter(
+                    (call) => call.args[0] === DevContainerPrerequisitesChangedNotification.type,
+                )
+                .map((call) => call.args[1]);
+
+        // Installed from its page in the Extensions view.
+        (vscode.extensions.getExtension as sinon.SinonStub).returns({});
+        await controller["publishPrerequisites"]();
+
+        expect(prerequisiteNotifications()).to.deep.equal([
+            {
+                docker: PrerequisiteStatus.Missing,
+                devContainersExtension: PrerequisiteStatus.Ready,
+            },
+        ]);
+
+        // Nothing moved since, so there is nothing to tell.
+        await controller["publishPrerequisites"]();
+        expect(prerequisiteNotifications()).to.have.length(1);
     });
 
     test("does not copy any template files when conflict resolution is canceled", async () => {

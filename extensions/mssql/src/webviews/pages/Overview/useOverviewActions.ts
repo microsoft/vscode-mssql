@@ -18,8 +18,10 @@ import {
     InstallAgentSkillsPluginRequest,
     ManageAgentSkillsPluginRequest,
     OpenPromptInChatRequest,
-    InstallDevContainersExtensionRequest,
+    DevContainerPrerequisitesChangedNotification,
+    OpenExtensionRequest,
     OpenFolderRequest,
+    OverviewExtensionId,
     OverviewTelemetryEvent,
     ReopenInContainerRequest,
     SendOverviewTelemetryRequest,
@@ -152,9 +154,22 @@ export function useOverviewActions() {
         [extensionRpc],
     );
 
-    const installDevContainersExtension = useCallback(
-        (): Promise<DevContainerPrerequisites> =>
-            extensionRpc.sendRequest(InstallDevContainersExtensionRequest.type, undefined),
+    const openExtension = useCallback(
+        (extensionId: OverviewExtensionId) => {
+            void extensionRpc.sendRequest(OpenExtensionRequest.type, { extensionId });
+        },
+        [extensionRpc],
+    );
+
+    /** Subscribes to prerequisite changes found outside the page; returns the unsubscribe. */
+    const onPrerequisitesChanged = useCallback(
+        (handler: (prerequisites: DevContainerPrerequisites) => void) => {
+            const subscription = extensionRpc.onNotification(
+                DevContainerPrerequisitesChangedNotification.type,
+                handler,
+            );
+            return () => subscription.dispose();
+        },
         [extensionRpc],
     );
 
@@ -184,7 +199,8 @@ export function useOverviewActions() {
             showLog,
             reopenInContainer,
             checkPrerequisites,
-            installDevContainersExtension,
+            openExtension,
+            onPrerequisitesChanged,
             setShowChangelogOnUpdate,
         }),
         [
@@ -205,7 +221,8 @@ export function useOverviewActions() {
             showLog,
             reopenInContainer,
             checkPrerequisites,
-            installDevContainersExtension,
+            openExtension,
+            onPrerequisitesChanged,
             setShowChangelogOnUpdate,
         ],
     );

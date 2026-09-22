@@ -23,10 +23,9 @@ import { Fragment } from "react";
 
 import { formatShortcut } from "../../ShortcutsConfiguration/shortcutKeyboardUtils";
 import { locConstants } from "../../../common/locConstants";
-import { overviewLinks } from "../overviewContent";
 import { useOverviewActions } from "../useOverviewActions";
 import { useOverviewSelector } from "../overviewSelector";
-import { OverviewActionId } from "../../../../sharedInterfaces/overview";
+import { OverviewActionId, OverviewExtensionId } from "../../../../sharedInterfaces/overview";
 import { WebviewAction } from "../../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
@@ -155,7 +154,7 @@ interface ShortcutsDialogProps {
 export const ShortcutsDialog = ({ onDismiss }: ShortcutsDialogProps) => {
     const classes = useStyles();
     const loc = locConstants.overview;
-    const { openLink, runAction } = useOverviewActions();
+    const { openExtension, runAction } = useOverviewActions();
     const commandShortcuts = useOverviewSelector((state) => state.commandShortcuts);
     const shortcutLabels = locConstants.shortcutsConfiguration.webviewShortcutLabels;
     const resultPaneShortcuts = [
@@ -217,13 +216,10 @@ export const ShortcutsDialog = ({ onDismiss }: ShortcutsDialogProps) => {
                         <MessageBar className={classes.keymapNote} intent="info">
                             <MessageBarBody>
                                 {loc.shortcutsKeymapPrefix}{" "}
-                                <Link
-                                    href={overviewLinks.keymapExtension}
-                                    title={overviewLinks.keymapExtension}
-                                    onClick={(event) => {
-                                        event.preventDefault();
-                                        openLink(overviewLinks.keymapExtension);
-                                    }}>
+                                {/* No href: the webview host opens any http link it sees clicked,
+                                    preventDefault or not, which put the Marketplace in a browser
+                                    beside the extension's page in the Extensions view. */}
+                                <Link onClick={() => openExtension(OverviewExtensionId.Keymap)}>
                                     {loc.shortcutsKeymapLink}
                                 </Link>
                             </MessageBarBody>

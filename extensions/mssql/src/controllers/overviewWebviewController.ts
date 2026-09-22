@@ -32,8 +32,10 @@ import {
     ManageAgentSkillsPluginRequest,
     OpenPromptInChatRequest,
     OpenPromptInChatRequestParams,
-    InstallDevContainersExtensionRequest,
+    DevContainerPrerequisitesChangedNotification,
+    OpenExtensionRequest,
     OpenFolderRequest,
+    OverviewExtensionId,
     OverviewOpenSource,
     OverviewTelemetryEvent,
     ReopenInContainerRequest,
@@ -74,7 +76,7 @@ import * as os from "os";
 import { randomUUID } from "crypto";
 
 /** Identifier of the Dev Containers extension that owns dev container configuration. */
-const DEV_CONTAINERS_EXTENSION_ID = "ms-vscode-remote.remote-containers";
+const DEV_CONTAINERS_EXTENSION_ID = OverviewExtensionId.DevContainers;
 
 /**
  * The Dev Containers extension's own "Add Dev Container Configuration Files..." command. It takes
@@ -333,6 +335,12 @@ export class OverviewWebviewController extends WebviewPanelController<
     /** The in-flight agent skills install. */
     private _agentSkillsActivity: ActivityObject | undefined;
 
+    /**
+     * What the setup dialog was last told about its prerequisites. Unset until the dialog first
+     * asks, so a page that never opened it never spends a Docker check on it.
+     */
+    private _lastPrerequisites: DevContainerPrerequisites | undefined;
+
     /** Sequence number of the newest recent-file refresh; see refreshRecentFiles. */
     private _recentFilesRequest = 0;
 
@@ -370,8 +378,8 @@ export class OverviewWebviewController extends WebviewPanelController<
                 title: Overview.OverviewDocumentTitle,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
-                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "rocket_dark.svg"),
-                    light: vscode.Uri.joinPath(context.extensionUri, "media", "rocket_light.svg"),
+                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "compass_dark.svg"),
+                    light: vscode.Uri.joinPath(context.extensionUri, "media", "compass_light.svg"),
                 },
             },
         );
@@ -414,6 +422,34 @@ export class OverviewWebviewController extends WebviewPanelController<
         void this.refreshAgentSkillsState();
 
         void this.refreshWorkspaceState();
+
+        // Installing Dev Containers happens on its page in the Extensions view, outside this one,
+        // so the dialog is told when it lands rather than waiting for a Recheck.
+        this.registerDisposable(
+            vscode.extensions.onDidChange(() => {
+                if (
+                    this._lastPrerequisites &&
+                    this._lastPrerequisites.devContainersExtension !==
+                        this.checkDevContainersExtension()
+                ) {
+                    void this.publishPrerequisites();
+                }
+            }),
+        );
+
+        // Docker Desktop installs outside VS Code and announces nothing, so a missing Docker is
+        // re-checked when the user comes back to the window -- the moment they are likely done.
+        this.registerDisposable(
+            vscode.window.onDidChangeWindowState((windowState) => {
+                if (
+                    windowState.focused &&
+                    this.panel.visible &&
+                    this._lastPrerequisites?.docker === PrerequisiteStatus.Missing
+                ) {
+                    void this.publishPrerequisites();
+                }
+            }),
+        );
 
         // Closing the page mid-flow is the abandonment we most want to see, so an activity that
         // is still open when the panel goes away is closed out rather than left dangling.
@@ -488,6 +524,7 @@ export class OverviewWebviewController extends WebviewPanelController<
 
         this.onRequest(CheckDevContainerPrerequisitesRequest.type, async () => {
             const prerequisites = await this.getDevContainerPrerequisites();
+            this._lastPrerequisites = prerequisites;
             this._devContainerActivity?.update({
                 additionalProps: {
                     step: "prerequisitesChecked",
@@ -498,26 +535,24 @@ export class OverviewWebviewController extends WebviewPanelController<
             return prerequisites;
         });
 
-        this.onRequest(InstallDevContainersExtensionRequest.type, async () => {
+        this.onRequest(OpenExtensionRequest.type, async (params) => {
+            // Only the extensions the page links to, rather than any id the webview names.
+            if (!Object.values(OverviewExtensionId).includes(params?.extensionId)) {
+                return;
+            }
             try {
-                await vscode.commands.executeCommand(
-                    "workbench.extensions.installExtension",
-                    DEV_CONTAINERS_EXTENSION_ID,
-                );
+                await vscode.commands.executeCommand("extension.open", params.extensionId);
             } catch (error) {
-                this.logger.error("Failed to install the Dev Containers extension", error);
-                return this.getDevContainerPrerequisites();
+                this.logger.error(`Failed to open extension ${params.extensionId}`, error);
+                return;
             }
 
-            sendActionEvent(
-                TelemetryViews.OverviewPage,
-                TelemetryActions.InstallDevContainersExtension,
-            );
-
-            return {
-                docker: await this.checkDocker(),
-                devContainersExtension: await this.waitForDevContainersExtension(),
-            };
+            if (params.extensionId === OverviewExtensionId.DevContainers) {
+                sendActionEvent(
+                    TelemetryViews.OverviewPage,
+                    TelemetryActions.InstallDevContainersExtension,
+                );
+            }
         });
 
         this.onRequest(InstallAgentSkillsPluginRequest.type, async (params) => {
@@ -776,7 +811,7 @@ export class OverviewWebviewController extends WebviewPanelController<
                 );
                 if (choice === install) {
                     await vscode.commands.executeCommand(
-                        "workbench.extensions.installExtension",
+                        "extension.open",
                         DEV_CONTAINERS_EXTENSION_ID,
                     );
                 }
@@ -1561,36 +1596,22 @@ export class OverviewWebviewController extends WebviewPanelController<
         }
     }
 
-    /**
-     * Waits for a freshly installed extension to show up in the registry. `installExtension`
-     * resolves before the extension host has re-registered it, so reading the registry straight
-     * after the command reports the extension as missing on a perfectly good install.
-     */
-    private async waitForDevContainersExtension(timeoutMs = 20000): Promise<PrerequisiteStatus> {
-        if (this.checkDevContainersExtension() === PrerequisiteStatus.Ready) {
-            return PrerequisiteStatus.Ready;
+    /** Re-checks the prerequisites and tells the setup dialog when any of them moved. */
+    private async publishPrerequisites(): Promise<void> {
+        const prerequisites = await this.getDevContainerPrerequisites();
+        const previous = this._lastPrerequisites;
+        if (
+            this.isDisposed ||
+            (previous?.docker === prerequisites.docker &&
+                previous?.devContainersExtension === prerequisites.devContainersExtension)
+        ) {
+            return;
         }
-
-        return new Promise<PrerequisiteStatus>((resolve) => {
-            let settled = false;
-            const finish = (status: PrerequisiteStatus) => {
-                if (settled) {
-                    return;
-                }
-                settled = true;
-                clearTimeout(timer);
-                changeSubscription.dispose();
-                resolve(status);
-            };
-
-            const changeSubscription = vscode.extensions.onDidChange(() => {
-                if (this.checkDevContainersExtension() === PrerequisiteStatus.Ready) {
-                    finish(PrerequisiteStatus.Ready);
-                }
-            });
-
-            const timer = setTimeout(() => finish(this.checkDevContainersExtension()), timeoutMs);
-        });
+        this._lastPrerequisites = prerequisites;
+        await this.sendNotification(
+            DevContainerPrerequisitesChangedNotification.type,
+            prerequisites,
+        );
     }
 
     private checkDevContainersExtension(): PrerequisiteStatus {

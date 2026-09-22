@@ -32,7 +32,6 @@ export const overviewLinks = {
     // the live page, which is the failure the edit-data link ran into.
     objectExplorerDocumentation: "https://aka.ms/vscode-mssql-docs#object-explorer-filtering",
     queryResultsDocumentation: "https://aka.ms/vscode-mssql-docs#query-results-pane",
-    keymapExtension: "https://aka.ms/vscode-mssql-keymap",
 } as const;
 
 export interface PromptCard {
@@ -192,8 +191,7 @@ export interface VideoCard {
     id: string;
     title: string;
     subtitle: string;
-    thumbnail: "copilotSql" | "whatsNew" | "aiReadyApp";
-    duration: string;
+    thumbnail: "whatsNew" | "gettingStarted" | "aiReadyApp";
     url: string;
 }
 
@@ -201,19 +199,17 @@ export function getVideoCards(): VideoCard[] {
     const loc = locConstants.overview;
     return [
         {
-            id: "copilotSql",
-            title: loc.videoDataExposedTitle,
-            subtitle: loc.videoDataExposedSubtitle,
-            thumbnail: "copilotSql",
-            duration: "12:18",
-            url: overviewLinks.landingPageVideo1,
-        },
-        {
             id: "whatsNew",
             title: loc.videoWhatsNewTitle,
             subtitle: loc.videoWhatsNewSubtitle,
             thumbnail: "whatsNew",
-            duration: "21:58",
+            url: overviewLinks.landingPageVideo1,
+        },
+        {
+            id: "gettingStarted",
+            title: loc.videoGettingStartedTitle,
+            subtitle: loc.videoGettingStartedSubtitle,
+            thumbnail: "gettingStarted",
             url: overviewLinks.landingPageVideo2,
         },
         {
@@ -221,7 +217,6 @@ export function getVideoCards(): VideoCard[] {
             title: loc.videoVsCodeLiveTitle,
             subtitle: loc.videoVsCodeLiveSubtitle,
             thumbnail: "aiReadyApp",
-            duration: "1:20:17",
             url: overviewLinks.landingPageVideo3,
         },
     ];

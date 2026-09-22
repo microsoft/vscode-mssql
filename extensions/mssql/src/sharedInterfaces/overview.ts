@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-jsonrpc";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { ChangelogActionId, ChangelogWebviewState } from "./changelog";
 
 /**
@@ -224,13 +224,30 @@ export namespace CheckDevContainerPrerequisitesRequest {
     );
 }
 
+/** Extensions the page links to, opened on their page in the Extensions view. */
+export enum OverviewExtensionId {
+    DevContainers = "ms-vscode-remote.remote-containers",
+    Keymap = "ms-mssql.mssql-database-management-keymap",
+}
+
 /**
- * Installs the Dev Containers extension and waits for it to register, answering with the
- * prerequisite status once it has settled.
+ * Opens an extension's page in the Extensions view, where the user installs it themselves. The
+ * page learns of the install through DevContainerPrerequisitesChangedNotification, not the reply.
  */
-export namespace InstallDevContainersExtensionRequest {
-    export const type = new RequestType<void, DevContainerPrerequisites, void>(
-        "overview/installDevContainersExtension",
+export namespace OpenExtensionRequest {
+    export const type = new RequestType<{ extensionId: OverviewExtensionId }, void, void>(
+        "overview/openExtension",
+    );
+}
+
+/**
+ * Pushed when a prerequisite may have changed outside the page -- an extension installed from the
+ * Extensions view, or Docker installed while VS Code was in the background -- so the setup dialog
+ * does not wait on the user to press Recheck.
+ */
+export namespace DevContainerPrerequisitesChangedNotification {
+    export const type = new NotificationType<DevContainerPrerequisites>(
+        "overview/devContainerPrerequisitesChanged",
     );
 }
 

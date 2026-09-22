@@ -4331,7 +4331,6 @@ export class LocConstants {
             prerequisiteDockerDescription: l10n.t("Required for running containers."),
             prerequisiteDevContainers: l10n.t("Dev Containers extension"),
             prerequisiteDevContainersDescription: l10n.t("Enables working with dev containers."),
-            installDocker: l10n.t("Install Docker"),
             // Matches the Dev Containers extension's own wording for this situation.
             openFolderToCreateConfiguration: l10n.t(
                 "Open a folder to create the configuration files in first.",
@@ -4364,10 +4363,12 @@ export class LocConstants {
             learnMoreAboutTemplate: l10n.t("Learn more about this template"),
 
             videos: l10n.t("Videos"),
-            videoDataExposedTitle: l10n.t("Use GitHub Copilot with SQL"),
-            videoDataExposedSubtitle: l10n.t("Build AI-ready SQL solutions in VS Code"),
             videoWhatsNewTitle: l10n.t("Explore what's new in the MSSQL extension"),
-            videoWhatsNewSubtitle: l10n.t("Query Profiler, migration tools, and more"),
+            videoWhatsNewSubtitle: l10n.t("Agent skills, SQL formatter, and landing page"),
+            videoGettingStartedTitle: l10n.t(
+                "Getting started with the MSSQL extension in 5 minutes",
+            ),
+            videoGettingStartedSubtitle: l10n.t("Connect to your database & run your first query"),
             videoVsCodeLiveTitle: l10n.t("Build an AI-ready app"),
             videoVsCodeLiveSubtitle: l10n.t(
                 "GitHub Copilot, Schema Designer, and Data API Builder",

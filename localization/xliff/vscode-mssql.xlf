@@ -461,6 +461,9 @@
     <trans-unit id="++CODE++3103e52eb1cd4493724fc1943e3393990216fd4e6a6acb67f2934322b70fa5a6">
       <source xml:lang="en">Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.</source>
     </trans-unit>
+    <trans-unit id="++CODE++f09bb63d5fa0008059d5d8caadbffdf76d4b1f70698c862f2d055b06abee9e34">
+      <source xml:lang="en">Agent skills, SQL formatter, and landing page</source>
+    </trans-unit>
     <trans-unit id="++CODE++b19e02e9502bbe5ac59dff4b2d4160768a4a7b8feff5693e5769613562290a45">
       <source xml:lang="en">Alias</source>
     </trans-unit>
@@ -1063,9 +1066,6 @@
     </trans-unit>
     <trans-unit id="++CODE++f09f2ef63ff8e6478605e27ddb62e430842fc235f9047b2634b076fe929771e6">
       <source xml:lang="en">Build &amp; ship</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a9720701dd651e50c54e627f09f34a68879632b3c48bc0856c267f46ed74c2f5">
-      <source xml:lang="en">Build AI-ready SQL solutions in VS Code</source>
     </trans-unit>
     <trans-unit id="++CODE++64d5072bf4262a316002cc3ca229a06b9cfb0b98a5bfae93402cc978bef5f53b">
       <source xml:lang="en">Build APIs with GitHub Copilot</source>
@@ -1868,6 +1868,9 @@
     <trans-unit id="++CODE++c629f4154b93588541a43212104dda942f74b6b1c384f17ed00ccd062e649fb4">
       <source xml:lang="en">Connect to server {0}?</source>
       <note>{0} is the server name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3bf44a3d550e2e150a6438ddabb5616351a52eaca337122166dd963db31a8dca">
+      <source xml:lang="en">Connect to your database &amp; run your first query</source>
     </trans-unit>
     <trans-unit id="++CODE++ea9acac28e2644caf0dd7884eec71c1a92d541701276abf4acd5de8d04aa8af9">
       <source xml:lang="en">Connect to {0}</source>
@@ -4838,6 +4841,9 @@
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
     </trans-unit>
+    <trans-unit id="++CODE++fd3de1df58e0359434b048c93f9c81d995c274b3324feac5914da2b4a87373e4">
+      <source xml:lang="en">Getting started with the MSSQL extension in 5 minutes</source>
+    </trans-unit>
     <trans-unit id="++CODE++8b4079e3f24ee61b62917b7334fe2278bdcfbc3f354e431a30e6940c7e702683">
       <source xml:lang="en">Git repository URL</source>
     </trans-unit>
@@ -7327,9 +7333,6 @@
     </trans-unit>
     <trans-unit id="++CODE++6b0b8551d35dd7933f41fecf2942fc2219011291443e24b6c7b25988db65c159">
       <source xml:lang="en">Query Profiler Session Status</source>
-    </trans-unit>
-    <trans-unit id="++CODE++bd440b9663d8e83ef5c1bc42e0d60fbd5f565b7f914e7b9a3c5ab98793056f87">
-      <source xml:lang="en">Query Profiler, migration tools, and more</source>
     </trans-unit>
     <trans-unit id="++CODE++4f58606c7930b151acf10d33a17f526a14ad630d7cdce1351e798d73c0ae225d">
       <source xml:lang="en">Query Profiler: No session</source>
@@ -10066,9 +10069,6 @@
     </trans-unit>
     <trans-unit id="++CODE++0c6ca6448ea705b7f78c38755ccb2a269fc8330838886aa3603085f462cb49b0">
       <source xml:lang="en">Use Database API Builder to generate a backend data API directly from your schema, exposing REST, GraphQL, or MCP endpoints.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++25056ff5e51f422295bea5ef1c1af927c307638f44666ea5bd7be6ed7e3bd33b">
-      <source xml:lang="en">Use GitHub Copilot with SQL</source>
     </trans-unit>
     <trans-unit id="++CODE++b5561dc4caff598b3f5a9190b224cd34587621b1d44cb0f024a6308777d211df">
       <source xml:lang="en">Use Microsoft Entra ID authentication to provision and connect to this database.</source>
