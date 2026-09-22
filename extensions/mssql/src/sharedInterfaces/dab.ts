@@ -781,7 +781,7 @@ export namespace Dab {
      * The designer decides which column types it will expose based on what the
      * engine supports, so the container and the CLI must not drift apart.
      */
-    export const DAB_ENGINE_VERSION = "2.1.3-rc";
+    export const DAB_ENGINE_VERSION = "2.1.4-rc";
 
     /**
      * DAB container image from Microsoft Container Registry.
