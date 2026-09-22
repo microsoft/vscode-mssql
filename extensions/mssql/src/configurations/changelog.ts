@@ -248,21 +248,6 @@ export const changelogConfig: ChangelogWebviewState = {
             ],
         },
     ],
-    event: {
-        mainTitle: "SQLCON EU",
-        secondaryTitle: "Microsoft SQL\nCOMMUNITY CONFERENCE",
-        location: { name: "BARCELONA", timezone: "+02:00" },
-        date: "2026-09-28",
-        endDate: "2026-10-01",
-        actionButton: {
-            text: locConstants.Changelog.sqlconEuRegister,
-            url: "https://aka.ms/sqlconeu?ocid=sqlconeu_vscode_inproduct_azdata",
-        },
-        description: [
-            locConstants.Changelog.sqlconEuDescription1,
-            locConstants.Changelog.sqlconEuDescription2,
-        ],
-        codeSnippets: ["VSCODE200"],
-    },
+    event: undefined,
     version: vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown",
 };
