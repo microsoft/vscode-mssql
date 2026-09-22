@@ -735,7 +735,9 @@ export const AgentSkillsPanel = () => {
                         (skillsLoadFailed ? pack.skillCount : undefined)
                     }
                     isInstalled={
-                        pack.id === "azure-sql" ? hasAgentSkillsPlugin : hasMigrationSkillsPlugin
+                        pack.id === "microsoft-sql"
+                            ? hasAgentSkillsPlugin
+                            : hasMigrationSkillsPlugin
                     }
                     isInstalling={isInstalling}
                     isInstallTarget={installingPackId === pack.id}

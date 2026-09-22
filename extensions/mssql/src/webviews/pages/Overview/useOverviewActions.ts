@@ -63,7 +63,7 @@ export function useOverviewActions() {
 
     /** Resolves once the install has finished, whether or not it succeeded. */
     const installAgentSkillsPlugin = useCallback(
-        (pluginName: "azure-sql" | "sql-migration") =>
+        (pluginName: "microsoft-sql" | "microsoft-sql-migration") =>
             extensionRpc.sendRequest(InstallAgentSkillsPluginRequest.type, { pluginName }),
         [extensionRpc],
     );
@@ -74,7 +74,7 @@ export function useOverviewActions() {
     );
 
     const manageAgentSkillsPlugin = useCallback(
-        (pluginName: "azure-sql" | "sql-migration") =>
+        (pluginName: "microsoft-sql" | "microsoft-sql-migration") =>
             extensionRpc.sendRequest(ManageAgentSkillsPluginRequest.type, { pluginName }),
         [extensionRpc],
     );

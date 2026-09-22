@@ -315,7 +315,7 @@ export namespace AddDevContainerConfigurationRequest {
 }
 
 export interface AgentSkillsPluginRequestParams {
-    pluginName: "azure-sql" | "sql-migration";
+    pluginName: "microsoft-sql" | "microsoft-sql-migration";
 }
 
 /** Installs the selected plugin from the SQL agent skills marketplace. */

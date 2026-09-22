@@ -4991,6 +4991,7 @@
     "Walkthroughs": "Walkthroughs",
     "Dev containers": "Dev containers",
     "Microsoft": "Microsoft",
+    "Microsoft SQL": "Microsoft SQL",
     "Plugin": "Plugin",
     "Plugin · Includes 1 skill": "Plugin · Includes 1 skill",
     "Plugin · Includes {0} skills/{0} is the number of skills the plugin bundles": {
@@ -5001,7 +5002,7 @@
     "Manage plugin": "Manage plugin",
     "Installing...": "Installing...",
     "Give GitHub Copilot Azure SQL expertise to help you connect your app, design schemas, write queries, add vector search, and troubleshoot database issues.": "Give GitHub Copilot Azure SQL expertise to help you connect your app, design schemas, write queries, add vector search, and troubleshoot database issues.",
-    "SQL Server to Azure migration": "SQL Server to Azure migration",
+    "Microsoft SQL migration": "Microsoft SQL migration",
     "Let GitHub Copilot guide your migration from assessment through validation — recommend a target and method, build the prerequisite plan, size the Azure SQL SKU, run the migration, and validate the data afterwards.": "Let GitHub Copilot guide your migration from assessment through validation — recommend a target and method, build the prerequisite plan, size the Azure SQL SKU, run the migration, and validate the data afterwards.",
     "Repository": "Repository",
     "View skills": "View skills",

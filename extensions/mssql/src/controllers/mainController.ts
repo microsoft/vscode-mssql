@@ -2721,7 +2721,10 @@ export default class MainController implements vscode.Disposable {
      */
     private initializeAgentPlugins(): void {
         this._agentPluginsInstaller = new AgentPluginsInstaller(this._context);
-        this._migrationSkillsInstaller = new AgentPluginsInstaller(this._context, "sql-migration");
+        this._migrationSkillsInstaller = new AgentPluginsInstaller(
+            this._context,
+            "microsoft-sql-migration",
+        );
         // Best effort. An unreachable network, a bad archive or a filesystem failure leaves the
         // installed copy alone, so it is logged rather than allowed to reject out of activation.
         void this._agentPluginsInstaller.checkForUpdates().catch((error) => {

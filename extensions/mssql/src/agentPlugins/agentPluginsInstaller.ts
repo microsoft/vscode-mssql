@@ -13,18 +13,22 @@ import { ILogger } from "../sharedInterfaces/logger";
 import { logger as baseLogger } from "../models/logger";
 import { AgentSkillGroup, AgentSkillSummary } from "../sharedInterfaces/overview";
 
-/** GitHub repository that ships the Azure SQL agent skills, as `owner/repo`. */
+/** GitHub repository that ships the Microsoft SQL agent skills, as `owner/repo`. */
 const SKILLS_REPO_OWNER = "aasimkhan30";
-const SKILLS_REPO_NAME = "azure-sql-skills";
-const SKILLS_PLUGIN_NAME = "azure-sql";
+const SKILLS_REPO_NAME = "microsoft-sql";
+const SKILLS_PLUGIN_NAME = "microsoft-sql";
+const LEGACY_PLUGIN_NAMES = {
+    "microsoft-sql": "azure-sql",
+    "microsoft-sql-migration": "sql-migration",
+} as const;
 /** Branch the skills are published from. */
 const SKILLS_REF = "main";
 
 const SKILLS_REPOSITORY_URL =
     `https://github.com/${SKILLS_REPO_OWNER}/${SKILLS_REPO_NAME}` as const;
 const SKILL_COLLECTIONS = [
-    { id: "azure-sql", title: "Azure SQL Database" },
-    { id: "sql-migration", title: "SQL Server to Azure migration" },
+    { id: "microsoft-sql", title: "Microsoft SQL" },
+    { id: "microsoft-sql-migration", title: "Microsoft SQL migration" },
 ] as const;
 
 /**
@@ -72,7 +76,7 @@ export class RemoteWindowUnsupportedError extends Error {
 }
 
 /**
- * Downloads the Azure SQL agent skills and registers them with VS Code.
+ * Downloads the Microsoft SQL agent skills and registers them with VS Code.
  *
  * The skills are fetched as a source archive into the extension's global storage rather than
  * bundled into the VSIX, so they track the repository instead of the release cadence. They are
@@ -91,7 +95,7 @@ export class AgentPluginsInstaller {
 
     constructor(
         private readonly _context: vscode.ExtensionContext,
-        private readonly _pluginName: "azure-sql" | "sql-migration" = "azure-sql",
+        private readonly _pluginName: "microsoft-sql" | "microsoft-sql-migration" = "microsoft-sql",
     ) {}
 
     /**
@@ -426,20 +430,32 @@ export class AgentPluginsInstaller {
     }
 
     private async register(): Promise<void> {
+        const legacyKey = vscode.Uri.joinPath(
+            this._context.globalStorageUri,
+            "agentSkills",
+            LEGACY_PLUGIN_NAMES[this._pluginName],
+        ).fsPath;
+        let removedLegacyRegistration = false;
         await AgentPluginsInstaller.mutateSettings(async () => {
             const key = this.pluginRoot.fsPath;
             const locations = this.readUserPluginLocations();
-            if (locations[key] === true) {
+            if (locations[key] === true && !(legacyKey in locations)) {
                 return;
             }
+            const updated = { ...locations, [key]: true };
+            removedLegacyRegistration = legacyKey in updated;
+            delete updated[legacyKey];
             await vscode.workspace
                 .getConfiguration()
-                .update(
-                    PLUGIN_LOCATIONS_SETTING,
-                    { ...locations, [key]: true },
-                    vscode.ConfigurationTarget.Global,
-                );
+                .update(PLUGIN_LOCATIONS_SETTING, updated, vscode.ConfigurationTarget.Global);
         });
+        if (removedLegacyRegistration) {
+            // The old root is ours. Remove it only after the replacement is registered, so a
+            // failed install leaves the old plugin working and a successful one has no duplicate.
+            await fs.rm(legacyKey, { recursive: true, force: true }).catch((error) => {
+                this._logger.warn(`Could not remove the old agent plugin copy: ${error}`);
+            });
+        }
     }
 
     private async unregister(): Promise<void> {

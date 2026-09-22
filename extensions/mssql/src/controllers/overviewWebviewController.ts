@@ -112,7 +112,7 @@ const MANAGE_PLUGINS_COMMAND = "workbench.action.chat.managePlugins";
 const AGENT_PLUGINS_FILTER = "@agentPlugins";
 
 /** Source the agent skills are installed from, reported with the install telemetry. */
-const AGENT_SKILLS_PLUGIN_SOURCE = "aasimkhan30/azure-sql-skills";
+const AGENT_SKILLS_PLUGIN_SOURCE = "aasimkhan30/microsoft-sql";
 
 /** A staged template file and the resolved place in the workspace it will be written. */
 interface TemplateFileDestination {
@@ -1535,7 +1535,7 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     private installerFor(params: AgentSkillsPluginRequestParams): AgentPluginsInstaller {
-        return params.pluginName === "sql-migration"
+        return params.pluginName === "microsoft-sql-migration"
             ? this._migrationSkillsInstaller
             : this._agentSkillsInstaller;
     }

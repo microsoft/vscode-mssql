@@ -88,9 +88,9 @@ suite("Agent Plugins Installer", () => {
         expect(await installer.isInstalled()).to.equal(true);
     });
 
-    test("tracks Azure SQL and migration plugin installations independently", async () => {
-        const migration = new AgentPluginsInstaller(context, "sql-migration");
-        expect(migration.pluginName).to.equal("sql-migration");
+    test("tracks Microsoft SQL and migration plugin installations independently", async () => {
+        const migration = new AgentPluginsInstaller(context, "microsoft-sql-migration");
+        expect(migration.pluginName).to.equal("microsoft-sql-migration");
         expect(migration.pluginRoot.fsPath).to.not.equal(installer.pluginRoot.fsPath);
 
         const manifestDir = path.join(migration.pluginRoot.fsPath, ".claude-plugin");
@@ -103,8 +103,36 @@ suite("Agent Plugins Installer", () => {
         expect(userLocations).to.deep.equal({ [migration.pluginRoot.fsPath]: true });
     });
 
+    test("replaces a registered legacy plugin without disturbing other plugin locations", async () => {
+        for (const [pluginName, oldName] of [
+            ["microsoft-sql", "azure-sql"],
+            ["microsoft-sql-migration", "sql-migration"],
+        ] as const) {
+            const current = new AgentPluginsInstaller(context, pluginName);
+            const oldRoot = path.join(storageDir, "agentSkills", oldName);
+            await fs.mkdir(path.join(oldRoot, ".claude-plugin"), { recursive: true });
+            await fs.writeFile(path.join(oldRoot, ".claude-plugin", "plugin.json"), "{}");
+            await fs.mkdir(path.join(current.pluginRoot.fsPath, ".claude-plugin"), {
+                recursive: true,
+            });
+            await fs.writeFile(
+                path.join(current.pluginRoot.fsPath, ".claude-plugin", "plugin.json"),
+                "{}",
+            );
+            userLocations = { [oldRoot]: true, "/another/plugin": true };
+
+            await current.install();
+
+            expect(userLocations).to.deep.equal({
+                [current.pluginRoot.fsPath]: true,
+                "/another/plugin": true,
+            });
+            expect(await fs.readdir(path.join(storageDir, "agentSkills"))).to.not.include(oldName);
+        }
+    });
+
     test("serializes registrations from both plugins so neither setting is lost", async () => {
-        const migration = new AgentPluginsInstaller(context, "sql-migration");
+        const migration = new AgentPluginsInstaller(context, "microsoft-sql-migration");
         let releaseFirstWrite!: () => void;
         let firstWriteStarted!: () => void;
         const firstWrite = new Promise<void>((resolve) => (releaseFirstWrite = resolve));
@@ -136,13 +164,13 @@ suite("Agent Plugins Installer", () => {
     });
 
     test("extracts the selected plugin from a marketplace archive", async () => {
-        const migration = new AgentPluginsInstaller(context, "sql-migration");
+        const migration = new AgentPluginsInstaller(context, "microsoft-sql-migration");
         const archiveSource = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-marketplace-"));
         try {
-            for (const name of ["azure-sql", "sql-migration"]) {
+            for (const name of ["microsoft-sql", "microsoft-sql-migration"]) {
                 const manifestDir = path.join(
                     archiveSource,
-                    "azure-sql-skills-main",
+                    "microsoft-sql-main",
                     "plugins",
                     name,
                     ".claude-plugin",
@@ -152,7 +180,7 @@ suite("Agent Plugins Installer", () => {
             }
             const archivePath = path.join(archiveSource, "marketplace.tar.gz");
             await tar.c({ gzip: true, file: archivePath, cwd: archiveSource }, [
-                "azure-sql-skills-main",
+                "microsoft-sql-main",
             ]);
             sandbox
                 .stub(
@@ -176,7 +204,7 @@ suite("Agent Plugins Installer", () => {
                     "utf8",
                 ),
             );
-            expect(manifest.name).to.equal("sql-migration");
+            expect(manifest.name).to.equal("microsoft-sql-migration");
             expect(await installer.isInstalled()).to.equal(false);
         } finally {
             await fs.rm(archiveSource, { recursive: true, force: true });
@@ -314,15 +342,15 @@ suite("Agent Plugins Installer", () => {
                 "",
                 "| Skill | What it does |",
                 "| --- | --- |",
-                url.includes("/sql-migration/")
+                url.includes("/microsoft-sql-migration/")
                     ? "| `recommend-migration-path` | Recommends a migration path. |"
-                    : "| `connect-node` | Connect a **Node.js** application using `mssql`. |",
+                    : "| `connect-from-typescript-and-node` | Connect a **Node.js** application using `mssql`. |",
                 "",
                 "---",
                 "",
                 "| Skill | Install command |",
                 "| --- | --- |",
-                "| **connect-node** | `duplicate outside the catalog` |",
+                "| **connect-from-typescript-and-node** | `duplicate outside the catalog` |",
             ].join("\n"),
         }));
 
@@ -331,26 +359,26 @@ suite("Agent Plugins Installer", () => {
 
         expect(first).to.deep.equal([
             {
-                id: "azure-sql",
-                title: "Azure SQL Database",
+                id: "microsoft-sql",
+                title: "Microsoft SQL",
                 skills: [
                     {
-                        id: "connect-node",
+                        id: "connect-from-typescript-and-node",
                         description: "Connect a Node.js application using mssql.",
                         repositoryUrl:
-                            "https://github.com/aasimkhan30/azure-sql-skills/blob/main/plugins/azure-sql/skills/connect-node/SKILL.md",
+                            "https://github.com/aasimkhan30/microsoft-sql/blob/main/plugins/microsoft-sql/skills/connect-from-typescript-and-node/SKILL.md",
                     },
                 ],
             },
             {
-                id: "sql-migration",
-                title: "SQL Server to Azure migration",
+                id: "microsoft-sql-migration",
+                title: "Microsoft SQL migration",
                 skills: [
                     {
                         id: "recommend-migration-path",
                         description: "Recommends a migration path.",
                         repositoryUrl:
-                            "https://github.com/aasimkhan30/azure-sql-skills/blob/main/plugins/sql-migration/skills/recommend-migration-path/SKILL.md",
+                            "https://github.com/aasimkhan30/microsoft-sql/blob/main/plugins/microsoft-sql-migration/skills/recommend-migration-path/SKILL.md",
                     },
                 ],
             },

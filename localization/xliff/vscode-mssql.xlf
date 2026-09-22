@@ -5859,8 +5859,14 @@
     <trans-unit id="++CODE++e61384c6682ddc6334bc27e7ff7910666e979c089f0b764e40debf9bddf56fc4">
       <source xml:lang="en">Microsoft Fabric integration</source>
     </trans-unit>
+    <trans-unit id="++CODE++37a030ea6da8310fdf7a80444a8422c23a11db46259cb36e5efcde0c3731f719">
+      <source xml:lang="en">Microsoft SQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
       <source xml:lang="en">Microsoft SQL Server License Agreement</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6f67c6b7d976471e27e4a2b1e9094af6edcf507ddaf858d7dffd4ad4c1a78ed9">
+      <source xml:lang="en">Microsoft SQL migration</source>
     </trans-unit>
     <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
       <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don&apos;t share any personal data or confidential/proprietary content.</source>
@@ -7968,9 +7974,6 @@
     </trans-unit>
     <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
       <source xml:lang="en">SQL Server port number</source>
-    </trans-unit>
-    <trans-unit id="++CODE++5f84c9e8eddf33cdc618850ac599bad8f45bd6c7fd5a1aef765fdf24f7c2f550">
-      <source xml:lang="en">SQL Server to Azure migration</source>
     </trans-unit>
     <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
       <source xml:lang="en">SQL Server {0} - latest</source>
