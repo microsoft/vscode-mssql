@@ -14,17 +14,18 @@ import { logger as baseLogger } from "../models/logger";
 import { AgentSkillGroup, AgentSkillSummary } from "../sharedInterfaces/overview";
 
 /** GitHub repository that ships the Azure SQL agent skills, as `owner/repo`. */
-const SKILLS_REPO_OWNER = "microsoft";
-const SKILLS_REPO_NAME = "azure-sql-database-container";
+const SKILLS_REPO_OWNER = "aasimkhan30";
+const SKILLS_REPO_NAME = "azure-sql-skills";
+const SKILLS_PLUGIN_NAME = "azure-sql";
 /** Branch the skills are published from. */
 const SKILLS_REF = "main";
 
 const SKILLS_REPOSITORY_URL =
     `https://github.com/${SKILLS_REPO_OWNER}/${SKILLS_REPO_NAME}` as const;
-const SKILLS_README_URL =
-    `https://raw.githubusercontent.com/${SKILLS_REPO_OWNER}/${SKILLS_REPO_NAME}/${SKILLS_REF}/skills/README.md` as const;
-/** Heading the collection is listed under in the README. */
-const SKILLS_COLLECTION_TITLE = "Azure SQL Database container";
+const SKILL_COLLECTIONS = [
+    { id: "azure-sql", title: "Azure SQL Database" },
+    { id: "sql-migration", title: "SQL Server to Azure migration" },
+] as const;
 
 /**
  * Setting VS Code discovers agent plugins from. Each key is a plugin root directory and the
@@ -86,19 +87,34 @@ export class AgentPluginsInstaller {
     private _operation: Promise<boolean> | undefined;
     private _catalog: Promise<AgentSkillGroup[]> | undefined;
 
-    constructor(private readonly _context: vscode.ExtensionContext) {}
+    constructor(
+        private readonly _context: vscode.ExtensionContext,
+        private readonly _pluginName: "azure-sql" | "sql-migration" = "azure-sql",
+    ) {}
 
     /**
      * Plugin name as its manifest declares it, which is what the Extensions view matches a
-     * `@agentPlugins` search term against. The repository and the manifest use the same name.
+     * `@agentPlugins` search term against.
      */
     public get pluginName(): string {
-        return SKILLS_REPO_NAME;
+        return this._pluginName;
     }
 
     /** Directory the skills are extracted to, and the value registered as a plugin root. */
     public get pluginRoot(): vscode.Uri {
-        return vscode.Uri.joinPath(this._context.globalStorageUri, "agentSkills", SKILLS_REPO_NAME);
+        return vscode.Uri.joinPath(this._context.globalStorageUri, "agentSkills", this._pluginName);
+    }
+
+    private get installedShaKey(): string {
+        return this._pluginName === SKILLS_PLUGIN_NAME
+            ? STATE_INSTALLED_SHA
+            : `${STATE_INSTALLED_SHA}/${this._pluginName}`;
+    }
+
+    private get lastCheckKey(): string {
+        return this._pluginName === SKILLS_PLUGIN_NAME
+            ? STATE_LAST_CHECK_MS
+            : `${STATE_LAST_CHECK_MS}/${this._pluginName}`;
     }
 
     /** Current shipped skills listed by the repository. */
@@ -168,8 +184,8 @@ export class AgentPluginsInstaller {
 
             const sha = await this.downloadInto(this.pluginRoot);
             await this.register();
-            await this._context.globalState.update(STATE_INSTALLED_SHA, sha);
-            await this._context.globalState.update(STATE_LAST_CHECK_MS, Date.now());
+            await this._context.globalState.update(this.installedShaKey, sha);
+            await this._context.globalState.update(this.lastCheckKey, Date.now());
             this._logger.info(`Installed agent skills at ${sha ?? "an unknown revision"}.`);
             return true;
         });
@@ -187,7 +203,7 @@ export class AgentPluginsInstaller {
             return false;
         }
 
-        const lastCheck = this._context.globalState.get<number>(STATE_LAST_CHECK_MS) ?? 0;
+        const lastCheck = this._context.globalState.get<number>(this.lastCheckKey) ?? 0;
         // A clock moved backwards would otherwise wedge this until the original due time.
         const elapsed = Date.now() - lastCheck;
         if (!force && elapsed >= 0 && elapsed < UPDATE_CHECK_INTERVAL_MS) {
@@ -198,19 +214,19 @@ export class AgentPluginsInstaller {
             const latest = await this.fetchLatestSha();
             // Record the attempt either way, so an unreachable network retries tomorrow rather
             // than on every activation.
-            await this._context.globalState.update(STATE_LAST_CHECK_MS, Date.now());
+            await this._context.globalState.update(this.lastCheckKey, Date.now());
             if (!latest) {
                 return false;
             }
 
-            const current = this._context.globalState.get<string>(STATE_INSTALLED_SHA);
+            const current = this._context.globalState.get<string>(this.installedShaKey);
             if (current === latest) {
                 return false;
             }
 
             this._logger.info(`Agent skills moved from ${current ?? "unknown"} to ${latest}.`);
             await this.downloadInto(this.pluginRoot);
-            await this._context.globalState.update(STATE_INSTALLED_SHA, latest);
+            await this._context.globalState.update(this.installedShaKey, latest);
             // Re-assert the registration in case the path changed shape underneath us.
             await this.register();
             return true;
@@ -237,7 +253,7 @@ export class AgentPluginsInstaller {
             "agentSkills",
             ".staging",
         );
-        const stagingDir = path.join(stagingRoot.fsPath, `download-${Date.now()}`);
+        const stagingDir = path.join(stagingRoot.fsPath, `download-${randomUUID()}`);
         const archivePath = path.join(stagingDir, "skills.tar.gz");
         const extractDir = path.join(stagingDir, "extracted");
 
@@ -258,11 +274,12 @@ export class AgentPluginsInstaller {
             // cannot write outside this directory.
             await tar.x({ file: archivePath, cwd: extractDir, strip: 1 });
 
-            if (!(await this.hasPluginManifest(extractDir))) {
+            const pluginDir = path.join(extractDir, "plugins", this._pluginName);
+            if (!(await this.hasPluginManifest(pluginDir))) {
                 throw new Error("The downloaded archive does not look like an agent plugin.");
             }
 
-            await this.replaceDirectory(extractDir, destination.fsPath);
+            await this.replaceDirectory(pluginDir, destination.fsPath);
             return sha;
         } finally {
             await fs.rm(stagingDir, { recursive: true, force: true }).catch(() => undefined);
@@ -358,27 +375,24 @@ export class AgentPluginsInstaller {
 
     private async fetchSkillsCatalog(): Promise<AgentSkillGroup[]> {
         const client = new VscodeHttpClient({ logger: this._logger });
-        const response = await client.get<string>(SKILLS_README_URL, {
-            timeoutMs: CATALOG_REQUEST_TIMEOUT_MS,
-        });
-
-        if (!response.ok) {
-            throw new Error(
-                `Loading the Azure SQL skills catalog failed with status ${response.status}`,
-            );
-        }
-
-        const skills = parseSkillsCatalog(response.data);
-        if (skills.length === 0) {
-            throw new Error("The Azure SQL skills catalog contained no shipped skills.");
-        }
-        return [
-            {
-                id: SKILLS_REPO_NAME,
-                title: SKILLS_COLLECTION_TITLE,
-                skills,
-            },
-        ];
+        return Promise.all(
+            SKILL_COLLECTIONS.map(async ({ id, title }) => {
+                const readmeUrl = `https://raw.githubusercontent.com/${SKILLS_REPO_OWNER}/${SKILLS_REPO_NAME}/${SKILLS_REF}/plugins/${id}/README.md`;
+                const response = await client.get<string>(readmeUrl, {
+                    timeoutMs: CATALOG_REQUEST_TIMEOUT_MS,
+                });
+                if (!response.ok) {
+                    throw new Error(
+                        `Loading the ${title} skills catalog failed with status ${response.status}`,
+                    );
+                }
+                const skills = parseSkillsCatalog(response.data, id);
+                if (skills.length === 0) {
+                    throw new Error(`The ${title} skills catalog contained no shipped skills.`);
+                }
+                return { id, title, skills };
+            }),
+        );
     }
 
     /** Whether an extracted copy exists at the plugin root. */
@@ -475,7 +489,10 @@ const SKILL_NAME_CELL = /^(?:\*\*|`)([a-z0-9][a-z0-9._-]*)(?:\*\*|`)$/i;
  * rows that matching the whole document lists every skill twice and adds three headings that
  * are not skills at all.
  */
-export function parseSkillsCatalog(markdown: string): AgentSkillSummary[] {
+export function parseSkillsCatalog(
+    markdown: string,
+    pluginName = SKILLS_PLUGIN_NAME,
+): AgentSkillSummary[] {
     const lines = markdown.replace(/\r\n/g, "\n").split("\n");
     const headingIndex = lines.findIndex((line) => SKILLS_TABLE_HEADING.test(line));
     if (headingIndex < 0) {
@@ -517,7 +534,7 @@ export function parseSkillsCatalog(markdown: string): AgentSkillSummary[] {
                 .replace(/`([^`]+)`/g, "$1")
                 .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
                 .trim(),
-            repositoryUrl: `${SKILLS_REPOSITORY_URL}/blob/${SKILLS_REF}/skills/${name}/SKILL.md`,
+            repositoryUrl: `${SKILLS_REPOSITORY_URL}/blob/${SKILLS_REF}/plugins/${pluginName}/skills/${name}/SKILL.md`,
         });
     }
     return skills;

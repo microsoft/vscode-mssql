@@ -11,6 +11,7 @@ import { Common, Overview } from "../constants/locConstants";
 import {
     AddDevContainerConfigurationRequest,
     AddDevContainerConfigurationRequestParams,
+    AgentSkillsPluginRequestParams,
     DevContainerTemplateId,
     OpenRecentSqlFileRequest,
     OpenRecentSqlFileRequestParams,
@@ -111,7 +112,7 @@ const MANAGE_PLUGINS_COMMAND = "workbench.action.chat.managePlugins";
 const AGENT_PLUGINS_FILTER = "@agentPlugins";
 
 /** Source the agent skills are installed from, reported with the install telemetry. */
-const AGENT_SKILLS_PLUGIN_SOURCE = "microsoft/azure-sql-database-container";
+const AGENT_SKILLS_PLUGIN_SOURCE = "aasimkhan30/azure-sql-skills";
 
 /** A staged template file and the resolved place in the workspace it will be written. */
 interface TemplateFileDestination {
@@ -340,6 +341,7 @@ export class OverviewWebviewController extends WebviewPanelController<
 
     /** Sequence number of the newest agent skills refresh; see refreshAgentSkillsState. */
     private _agentSkillsRequest = 0;
+    private readonly _migrationSkillsInstaller: AgentPluginsInstaller;
 
     /**
      * Template metadata by registry id. Reading it is a registry fetch, and the dialog asks every
@@ -373,6 +375,8 @@ export class OverviewWebviewController extends WebviewPanelController<
                 },
             },
         );
+
+        this._migrationSkillsInstaller = new AgentPluginsInstaller(context, "sql-migration");
 
         void this.refreshRecentFiles();
 
@@ -451,6 +455,7 @@ export class OverviewWebviewController extends WebviewPanelController<
             isInDevContainer: vscode.env.remoteName === DEV_CONTAINER_REMOTE_NAME,
             // Resolved asynchronously right after construction; see refreshAgentSkillsState.
             hasAgentSkillsPlugin: false,
+            hasMigrationSkillsPlugin: false,
             openWhatsNewRequest: options.openWhatsNew === true ? 1 : 0,
             showChangelogOnUpdate: OverviewWebviewController.shouldShowChangelogOnUpdate(),
         };
@@ -517,16 +522,22 @@ export class OverviewWebviewController extends WebviewPanelController<
             };
         });
 
-        this.onRequest(InstallAgentSkillsPluginRequest.type, async () => {
+        this.onRequest(InstallAgentSkillsPluginRequest.type, async (params) => {
+            const installer = this.installerFor(params);
             this._agentSkillsActivity?.end(ActivityStatus.Canceled);
             this._agentSkillsActivity = startActivity(
                 TelemetryViews.OverviewPage,
                 TelemetryActions.InstallAgentSkills,
-                { additionalProps: { source: AGENT_SKILLS_PLUGIN_SOURCE } },
+                {
+                    additionalProps: {
+                        source: AGENT_SKILLS_PLUGIN_SOURCE,
+                        plugin: installer.pluginName,
+                    },
+                },
             );
 
             try {
-                await this._agentSkillsInstaller.install();
+                await installer.install();
                 this._agentSkillsActivity?.end(ActivityStatus.Succeeded);
             } catch (error) {
                 const remoteUnsupported = error instanceof RemoteWindowUnsupportedError;
@@ -552,7 +563,8 @@ export class OverviewWebviewController extends WebviewPanelController<
             }
         });
 
-        this.onRequest(ManageAgentSkillsPluginRequest.type, async () => {
+        this.onRequest(ManageAgentSkillsPluginRequest.type, async (params) => {
+            const installer = this.installerFor(params);
             // The Extensions view matches this term against a plugin's name, description and
             // marketplace (agentPluginsView.ts, `show`). For a plugin installed from a local
             // folder, as ours is, `marketplace` comes from `fromMarketplace` and is undefined,
@@ -560,12 +572,10 @@ export class OverviewWebviewController extends WebviewPanelController<
             // in neither, so searching for it would select nothing. `name` resolves to the
             // manifest name, which is what identifies the plugin here.
             //
-            // Once this ships through a marketplace, `marketplace` holds the repository URL and
-            // becomes the more precise term, since a name can collide and a URL cannot.
             try {
                 await vscode.commands.executeCommand(
                     EXTENSIONS_SEARCH_COMMAND,
-                    `${AGENT_PLUGINS_FILTER} ${this._agentSkillsInstaller.pluginName}`,
+                    `${AGENT_PLUGINS_FILTER} ${installer.pluginName}`,
                 );
             } catch (error) {
                 // Both are internal workbench commands, so a rename in a future VS Code lands
@@ -1516,11 +1526,20 @@ export class OverviewWebviewController extends WebviewPanelController<
         // writes: an earlier `false` landing after the install's `true` would leave freshly
         // installed skills showing as missing.
         const request = ++this._agentSkillsRequest;
-        const hasAgentSkillsPlugin = await this._agentSkillsInstaller.isInstalled();
+        const [hasAgentSkillsPlugin, hasMigrationSkillsPlugin] = await Promise.all([
+            this._agentSkillsInstaller.isInstalled(),
+            this._migrationSkillsInstaller.isInstalled(),
+        ]);
         if (this.isDisposed || request !== this._agentSkillsRequest) {
             return;
         }
-        this.updateState({ ...this.state, hasAgentSkillsPlugin });
+        this.updateState({ ...this.state, hasAgentSkillsPlugin, hasMigrationSkillsPlugin });
+    }
+
+    private installerFor(params: AgentSkillsPluginRequestParams): AgentPluginsInstaller {
+        return params.pluginName === "sql-migration"
+            ? this._migrationSkillsInstaller
+            : this._agentSkillsInstaller;
     }
 
     private async getDevContainerPrerequisites(): Promise<DevContainerPrerequisites> {

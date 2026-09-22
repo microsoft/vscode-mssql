@@ -344,10 +344,7 @@ interface SkillPackCardProps {
     skillCount: number | undefined;
     isInstalled: boolean;
     isInstalling: boolean;
-    /**
-     * Whether this is the pack whose Install button was pressed. The packs share one install,
-     * so without it every card would open its prompts on someone else's click.
-     */
+    /** Whether this is the pack whose Install button was pressed. */
     isInstallTarget: boolean;
     copiedPromptId: string | undefined;
     onInstall: () => void;
@@ -610,11 +607,11 @@ export const AgentSkillsPanel = () => {
         sendTelemetry,
     } = useOverviewActions();
     const hasAgentSkillsPlugin = useOverviewSelector((state) => state.hasAgentSkillsPlugin);
+    const hasMigrationSkillsPlugin = useOverviewSelector((state) => state.hasMigrationSkillsPlugin);
     // Downloading takes a moment, so the button has to say something between the click and the
     // state arriving, or it reads as having done nothing.
     const [isInstalling, setIsInstalling] = useState(false);
-    // Which card's Install button started the install in flight, so only that card reacts when
-    // it finishes. One install covers every pack, so nothing else distinguishes them.
+    // Which card's Install button started the install in flight.
     const [installingPackId, setInstallingPackId] = useState<string | undefined>(undefined);
     const [copiedId, setCopiedId] = useState<string | undefined>(undefined);
     const [skillsDialogPack, setSkillsDialogPack] = useState<AgentSkillPack | undefined>(undefined);
@@ -634,10 +631,10 @@ export const AgentSkillsPanel = () => {
     useEffect(() => () => clearTimeout(copyResetRef.current), []);
 
     const startInstall = useCallback(
-        (packId: string) => {
+        (packId: AgentSkillPack["id"]) => {
             setInstallingPackId(packId);
             setIsInstalling(true);
-            void installAgentSkillsPlugin().finally(() => setIsInstalling(false));
+            void installAgentSkillsPlugin(packId).finally(() => setIsInstalling(false));
         },
         [installAgentSkillsPlugin],
     );
@@ -681,11 +678,6 @@ export const AgentSkillsPanel = () => {
         void loadSkills();
     }, [loadSkills]);
 
-    const liveSkillCount = useMemo(
-        () => skillGroups?.reduce((total, group) => total + group.skills.length, 0),
-        [skillGroups],
-    );
-
     const openSkills = useCallback(
         (pack: AgentSkillPack) => {
             setSkillsDialogPack(pack);
@@ -705,13 +697,18 @@ export const AgentSkillsPanel = () => {
                     pack={pack}
                     // Falls back to the authored count only when the catalog cannot be reached,
                     // so the card never shows a number the dialog will contradict.
-                    skillCount={liveSkillCount ?? (skillsLoadFailed ? pack.skillCount : undefined)}
-                    isInstalled={hasAgentSkillsPlugin}
+                    skillCount={
+                        skillGroups?.find((group) => group.id === pack.id)?.skills.length ??
+                        (skillsLoadFailed ? pack.skillCount : undefined)
+                    }
+                    isInstalled={
+                        pack.id === "azure-sql" ? hasAgentSkillsPlugin : hasMigrationSkillsPlugin
+                    }
                     isInstalling={isInstalling}
                     isInstallTarget={installingPackId === pack.id}
                     copiedPromptId={copiedId}
                     onInstall={() => startInstall(pack.id)}
-                    onManage={() => void manageAgentSkillsPlugin()}
+                    onManage={() => void manageAgentSkillsPlugin(pack.id)}
                     onOpenSkills={openSkills}
                     onCopyPrompt={copyPrompt}
                     onOpenPromptInChat={openInChat}
@@ -755,7 +752,11 @@ export const AgentSkillsPanel = () => {
                             </MessageBar>
                         </div>
                     ) : skillGroups ? (
-                        <SkillsCatalog groups={skillGroups} />
+                        <SkillsCatalog
+                            groups={skillGroups.filter(
+                                (group) => group.id === skillsDialogPack?.id,
+                            )}
+                        />
                     ) : undefined}
                 </DialogShell>
             </Dialog>

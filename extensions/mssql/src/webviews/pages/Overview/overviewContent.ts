@@ -20,11 +20,8 @@ export const overviewLinks = {
     discussions: "https://aka.ms/vscode-mssql-discussions",
     devHub: "https://aka.ms/azuresql-hub",
     devContainersQuickstart: "https://aka.ms/vscode-mssql-devcontainers-quickstart",
-    // Placeholder repositories. Both skill packs are published from the Database Systems
-    // AgentSkills repository, which is not public yet, so the card links, the install and
-    // the skills list all point at this sample collection until that repository ships.
-    skillsRepository: "https://github.com/microsoft/azure-sql-database-container",
-    migrationSkillsRepository: "https://github.com/microsoft/azure-sql-database-container",
+    skillsRepository: "https://github.com/aasimkhan30/azure-sql-skills",
+    migrationSkillsRepository: "https://github.com/aasimkhan30/azure-sql-skills",
     // Template source links are built by appending a path to this, so it stays a real GitHub
     // URL rather than the aka.ms/vscode-mssql-devcontainers-repo alias, which cannot be extended.
     devContainersRepository: "https://github.com/microsoft/azuresql-devcontainers",
@@ -49,7 +46,7 @@ export interface PromptCard {
 
 /** A published collection of agent skills, shown as one card on the Build tab. */
 export interface AgentSkillPack {
-    id: string;
+    id: "azure-sql" | "sql-migration";
     name: string;
     /**
      * Number of skills the plugin bundles, from its definition. Only used when the live catalog

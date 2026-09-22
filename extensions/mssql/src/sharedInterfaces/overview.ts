@@ -108,11 +108,10 @@ export interface OverviewWebviewState {
     hasDevContainerConfig: boolean;
     /** Whether this window is already running inside a dev container. */
     isInDevContainer: boolean;
-    /**
-     * Whether the Azure SQL agent skills plugin is installed. Read from the chat plugin
-     * marketplaces setting, which VS Code writes when a marketplace plugin is installed.
-     */
+    /** Whether the Azure SQL plugin is present and registered in `chat.pluginLocations`. */
     hasAgentSkillsPlugin: boolean;
+    /** Whether the SQL migration plugin is present and registered in `chat.pluginLocations`. */
+    hasMigrationSkillsPlugin: boolean;
 }
 
 /** Reducers (actions that change state) the Overview controller supports. */
@@ -315,12 +314,15 @@ export namespace AddDevContainerConfigurationRequest {
     >("overview/addDevContainerConfiguration");
 }
 
-/**
- * Hands VS Code its own plugin install flow with the Azure SQL skills source pre-filled. The
- * install itself, including the trust prompt, is VS Code's.
- */
+export interface AgentSkillsPluginRequestParams {
+    pluginName: "azure-sql" | "sql-migration";
+}
+
+/** Installs the selected plugin from the SQL agent skills marketplace. */
 export namespace InstallAgentSkillsPluginRequest {
-    export const type = new RequestType<void, void, void>("overview/installAgentSkillsPlugin");
+    export const type = new RequestType<AgentSkillsPluginRequestParams, void, void>(
+        "overview/installAgentSkillsPlugin",
+    );
 }
 
 export interface OpenPromptInChatRequestParams {
@@ -337,7 +339,9 @@ export namespace OpenPromptInChatRequest {
 
 /** Reveals the installed plugin in the Extensions view so the user can manage it. */
 export namespace ManageAgentSkillsPluginRequest {
-    export const type = new RequestType<void, void, void>("overview/manageAgentSkillsPlugin");
+    export const type = new RequestType<AgentSkillsPluginRequestParams, void, void>(
+        "overview/manageAgentSkillsPlugin",
+    );
 }
 
 /** Loads the current shipped-skill catalog from the Azure SQL Skills repository. */

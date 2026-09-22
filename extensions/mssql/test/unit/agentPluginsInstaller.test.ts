@@ -9,6 +9,7 @@ import * as os from "os";
 import * as path from "path";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
+import * as tar from "tar";
 import * as vscode from "vscode";
 import { createHttpHeaders } from "extension-toolkit/base";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
@@ -27,6 +28,7 @@ suite("Agent Plugins Installer", () => {
     let sandbox: sinon.SinonSandbox;
     let storageDir: string;
     let installer: AgentPluginsInstaller;
+    let context: vscode.ExtensionContext;
     let globalStateValues: Record<string, unknown>;
     /** Stands in for the user scope of `chat.pluginLocations`. */
     let userLocations: Record<string, boolean> | undefined;
@@ -56,7 +58,7 @@ suite("Agent Plugins Installer", () => {
             update: updateStub,
         } as unknown as vscode.WorkspaceConfiguration);
 
-        installer = new AgentPluginsInstaller({
+        context = {
             globalStorageUri: vscode.Uri.file(storageDir),
             globalState: {
                 get: (key: string, fallback?: unknown) =>
@@ -66,7 +68,8 @@ suite("Agent Plugins Installer", () => {
                     return Promise.resolve();
                 },
             },
-        } as unknown as vscode.ExtensionContext);
+        } as unknown as vscode.ExtensionContext;
+        installer = new AgentPluginsInstaller(context);
     });
 
     teardown(async () => {
@@ -83,6 +86,69 @@ suite("Agent Plugins Installer", () => {
         userLocations = { [installer.pluginRoot.fsPath]: true };
 
         expect(await installer.isInstalled()).to.equal(true);
+    });
+
+    test("tracks Azure SQL and migration plugin installations independently", async () => {
+        const migration = new AgentPluginsInstaller(context, "sql-migration");
+        expect(migration.pluginName).to.equal("sql-migration");
+        expect(migration.pluginRoot.fsPath).to.not.equal(installer.pluginRoot.fsPath);
+
+        const manifestDir = path.join(migration.pluginRoot.fsPath, ".claude-plugin");
+        await fs.mkdir(manifestDir, { recursive: true });
+        await fs.writeFile(path.join(manifestDir, "plugin.json"), "{}");
+        await migration.install();
+
+        expect(await migration.isInstalled()).to.equal(true);
+        expect(await installer.isInstalled()).to.equal(false);
+        expect(userLocations).to.deep.equal({ [migration.pluginRoot.fsPath]: true });
+    });
+
+    test("extracts the selected plugin from a marketplace archive", async () => {
+        const migration = new AgentPluginsInstaller(context, "sql-migration");
+        const archiveSource = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-marketplace-"));
+        try {
+            for (const name of ["azure-sql", "sql-migration"]) {
+                const manifestDir = path.join(
+                    archiveSource,
+                    "azure-sql-skills-main",
+                    "plugins",
+                    name,
+                    ".claude-plugin",
+                );
+                await fs.mkdir(manifestDir, { recursive: true });
+                await fs.writeFile(path.join(manifestDir, "plugin.json"), JSON.stringify({ name }));
+            }
+            const archivePath = path.join(archiveSource, "marketplace.tar.gz");
+            await tar.c({ gzip: true, file: archivePath, cwd: archiveSource }, [
+                "azure-sql-skills-main",
+            ]);
+            sandbox
+                .stub(
+                    migration as unknown as { fetchLatestSha: () => Promise<string | undefined> },
+                    "fetchLatestSha",
+                )
+                .resolves(undefined);
+            sandbox
+                .stub(VscodeHttpClient.prototype, "downloadToPath")
+                .callsFake(async (_url, target) => {
+                    await fs.copyFile(archivePath, target);
+                    return { status: 200 } as Awaited<
+                        ReturnType<VscodeHttpClient["downloadToPath"]>
+                    >;
+                });
+
+            expect(await migration.install()).to.equal(true);
+            const manifest = JSON.parse(
+                await fs.readFile(
+                    path.join(migration.pluginRoot.fsPath, ".claude-plugin", "plugin.json"),
+                    "utf8",
+                ),
+            );
+            expect(manifest.name).to.equal("sql-migration");
+            expect(await installer.isInstalled()).to.equal(false);
+        } finally {
+            await fs.rm(archiveSource, { recursive: true, force: true });
+        }
     });
 
     test("reports not installed when the user deleted the folder, and clears the stale path", async () => {
@@ -206,17 +272,19 @@ suite("Agent Plugins Installer", () => {
 
     test("loads, parses, and caches the shipped skills catalog", async () => {
         const getStub = sandbox.stub(VscodeHttpClient.prototype, "get");
-        getStub.resolves({
+        getStub.callsFake(async (url: string) => ({
             ok: true,
             status: 200,
             statusText: "OK",
             headers: createHttpHeaders(),
             data: [
-                "## What's in this collection",
+                "## Skills (57)",
                 "",
                 "| Skill | What it does |",
                 "| --- | --- |",
-                "| **connect-node** | Connect a **Node.js** application using `mssql`. |",
+                url.includes("/sql-migration/")
+                    ? "| `recommend-migration-path` | Recommends a migration path. |"
+                    : "| `connect-node` | Connect a **Node.js** application using `mssql`. |",
                 "",
                 "---",
                 "",
@@ -224,27 +292,39 @@ suite("Agent Plugins Installer", () => {
                 "| --- | --- |",
                 "| **connect-node** | `duplicate outside the catalog` |",
             ].join("\n"),
-        });
+        }));
 
         const first = await installer.getSkillsCatalog();
         const second = await installer.getSkillsCatalog();
 
         expect(first).to.deep.equal([
             {
-                id: "azure-sql-database-container",
-                title: "Azure SQL Database container",
+                id: "azure-sql",
+                title: "Azure SQL Database",
                 skills: [
                     {
                         id: "connect-node",
                         description: "Connect a Node.js application using mssql.",
                         repositoryUrl:
-                            "https://github.com/microsoft/azure-sql-database-container/blob/main/skills/connect-node/SKILL.md",
+                            "https://github.com/aasimkhan30/azure-sql-skills/blob/main/plugins/azure-sql/skills/connect-node/SKILL.md",
+                    },
+                ],
+            },
+            {
+                id: "sql-migration",
+                title: "SQL Server to Azure migration",
+                skills: [
+                    {
+                        id: "recommend-migration-path",
+                        description: "Recommends a migration path.",
+                        repositoryUrl:
+                            "https://github.com/aasimkhan30/azure-sql-skills/blob/main/plugins/sql-migration/skills/recommend-migration-path/SKILL.md",
                     },
                 ],
             },
         ]);
         expect(second).to.equal(first);
-        expect(getStub).to.have.been.calledOnce;
+        expect(getStub).to.have.been.calledTwice;
     });
 
     test("restores the installed copy when the staged copy cannot be moved into place", async () => {
@@ -377,6 +457,6 @@ suite("Agent Plugins Installer", () => {
             expect(thrown).to.be.instanceOf(Error);
         }
 
-        expect(getStub).to.have.callCount(2);
+        expect(getStub).to.have.callCount(4);
     });
 });

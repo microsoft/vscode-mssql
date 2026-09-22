@@ -2720,6 +2720,11 @@ export default class MainController implements vscode.Disposable {
         void this._agentPluginsInstaller.checkForUpdates().catch((error) => {
             this._logger.error("Checking for agent skill updates failed", error);
         });
+        void new AgentPluginsInstaller(this._context, "sql-migration")
+            .checkForUpdates()
+            .catch((error) => {
+                this._logger.error("Checking for migration skill updates failed", error);
+            });
     }
 
     /**
