@@ -201,6 +201,9 @@ export class OverviewWebviewController extends WebviewPanelController<
     /** Sequence number of the newest recent-file refresh; see refreshRecentFiles. */
     private _recentFilesRequest = 0;
 
+    /** Sequence number of the newest workspace-state refresh; see refreshWorkspaceState. */
+    private _workspaceStateRequest = 0;
+
     constructor(
         context: vscode.ExtensionContext,
         private _recentSqlFilesStore: RecentSqlFilesStore,
@@ -245,11 +248,14 @@ export class OverviewWebviewController extends WebviewPanelController<
 
         // Neither deleting the folder nor repointing the registration announces itself, and
         // either one means the skills are no longer ours to claim as installed, so the check is
-        // simply re-run whenever the user comes back to this page.
+        // simply re-run whenever the user comes back to this page. A tracked SQL file can be
+        // deleted or moved while the page is hidden without the store hearing about it, so the
+        // list is re-resolved on the way back in for the same reason.
         this.registerDisposable(
             this.panel.onDidChangeViewState(() => {
                 if (this.panel.visible) {
                     void this.refreshAgentSkillsState();
+                    void this.refreshRecentFiles();
                 }
             }),
         );
@@ -601,11 +607,15 @@ export class OverviewWebviewController extends WebviewPanelController<
         if (this.isDisposed) {
             return;
         }
+        // Folder changes and the configuration watcher both start these, and resolving stats the
+        // filesystem, so two can be in flight at once and finish out of order. Only the newest
+        // writes, which keeps a slow check of the old folder from describing the new one.
+        const request = ++this._workspaceStateRequest;
         const folders = vscode.workspace.workspaceFolders ?? [];
         const hasWorkspaceFolder = folders.length > 0;
         const hasDevContainerConfig = await this.findDevContainerConfig(folders);
 
-        if (this.isDisposed) {
+        if (this.isDisposed || request !== this._workspaceStateRequest) {
             return;
         }
         this.updateState({ ...this.state, hasWorkspaceFolder, hasDevContainerConfig });
@@ -721,7 +731,9 @@ export class OverviewWebviewController extends WebviewPanelController<
             throw new Error("The Dev Containers CLI did not report any template files.");
         }
 
-        const stagingRoot = path.resolve(stagingDirectory);
+        // Resolved through its own symlinks, so the containment check below compares like with
+        // like: on macOS the temporary directory itself sits under a symlinked /var.
+        const stagingRoot = fs.realpathSync(path.resolve(stagingDirectory));
         return result.files.map((file) => {
             if (typeof file !== "string" || file.length === 0 || file.includes("\0")) {
                 throw new Error("The Dev Containers CLI returned an invalid template file path.");
@@ -735,6 +747,20 @@ export class OverviewWebviewController extends WebviewPanelController<
                 sourcePath === stagingRoot ||
                 !sourcePath.startsWith(`${stagingRoot}${path.sep}`)
             ) {
+                throw new Error(`Template file path escapes the staging directory: ${file}`);
+            }
+
+            // The check above is lexical, and `lstat` only describes the last component, so
+            // neither notices a symlinked *parent*: for `link/file`, reading it follows `link`
+            // first, which a template can point anywhere on the machine. Resolving every
+            // component and re-checking containment is what actually confines the read.
+            let realSource: string;
+            try {
+                realSource = fs.realpathSync(sourcePath);
+            } catch {
+                throw new Error(`Template file path could not be resolved: ${file}`);
+            }
+            if (!realSource.startsWith(`${stagingRoot}${path.sep}`)) {
                 throw new Error(`Template file path escapes the staging directory: ${file}`);
             }
 

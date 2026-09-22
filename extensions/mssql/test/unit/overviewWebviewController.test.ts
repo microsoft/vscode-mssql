@@ -246,6 +246,36 @@ suite("Overview Webview Controller", () => {
         expect(await fs.promises.readFile(tasksPath, "utf8")).to.equal("template tasks");
     });
 
+    test("rejects a template file reached through a symlinked parent directory", async () => {
+        const workspaceRoot = await createTemporaryDirectory("mssql-overview-symlink-");
+        const outside = await createTemporaryDirectory("mssql-overview-outside-");
+        await fs.promises.writeFile(path.join(outside, "secret.txt"), "not the template's to give");
+        sandbox
+            .stub(vscode.workspace, "workspaceFolders")
+            .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+        controller = createController();
+
+        // The path stays inside the staging root lexically, and its last component is a real
+        // file, so neither the prefix check nor lstat on that component objects. Only resolving
+        // `link` catches that the read lands outside the staging tree.
+        sandbox
+            .stub(controller as unknown as Record<string, unknown>, "findDevContainersCli")
+            .returns("/fake/devContainersSpecCLI.js");
+        sandbox
+            .stub(controller as unknown as Record<string, unknown>, "runDevContainersCli")
+            .callsFake(async (_cliPath: string, args: string[]) => {
+                const stagingDirectory = args[args.indexOf("--workspace-folder") + 1];
+                await fs.promises.symlink(outside, path.join(stagingDirectory, "link"), "dir");
+                return `${JSON.stringify({ files: ["link/secret.txt"] })}\n`;
+            });
+
+        const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
+
+        expect(result.applied).to.equal(false);
+        expect(result.error).to.match(/escapes the staging directory/);
+        expect(fs.existsSync(path.join(workspaceRoot, "link", "secret.txt"))).to.be.false;
+    });
+
     suite("post-update trigger", () => {
         const LAST_VERSION_KEY = "changelog/lastChangeLogVersion";
 
