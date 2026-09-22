@@ -4,19 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Text, Tooltip, makeStyles, tokens } from "@fluentui/react-components";
-import { Document16Regular } from "@fluentui/react-icons";
+import { Clock20Regular, Document16Regular } from "@fluentui/react-icons";
 
-import { SectionHeading } from "./sectionHeading";
+import { SidePanel } from "./sidePanel";
 import { locConstants } from "../../../common/locConstants";
 import { useOverviewActions } from "../useOverviewActions";
 import { useOverviewSelector } from "../overviewSelector";
 
 const useStyles = makeStyles({
-    root: {
-        display: "flex",
-        flexDirection: "column",
-        gap: tokens.spacingVerticalS,
-    },
     list: {
         display: "flex",
         flexDirection: "column",
@@ -78,8 +73,7 @@ export const RecentFilesSection = () => {
     const recentFiles = useOverviewSelector((state) => state.recentFiles);
 
     return (
-        <section className={classes.root}>
-            <SectionHeading>{loc.recentFiles}</SectionHeading>
+        <SidePanel title={loc.recentFiles} icon={<Clock20Regular />}>
             {recentFiles.length === 0 ? (
                 <Text className={classes.empty}>{loc.noRecentFiles}</Text>
             ) : (
@@ -102,6 +96,6 @@ export const RecentFilesSection = () => {
                     ))}
                 </div>
             )}
-        </section>
+        </SidePanel>
     );
 };

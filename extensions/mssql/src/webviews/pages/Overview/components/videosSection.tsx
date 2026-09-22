@@ -29,22 +29,21 @@ const useStyles = makeStyles({
         gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
         gap: tokens.spacingHorizontalM,
     },
+    // Secondary to the Build column above it, so the thumbnail carries the card and the frame
+    // around it goes away rather than competing with the skill cards for weight.
     card: {
         display: "flex",
         flexDirection: "column",
         textAlign: "left",
         padding: 0,
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: tokens.borderRadiusLarge,
-        backgroundColor: tokens.colorNeutralBackground1,
+        backgroundColor: "transparent",
         color: "inherit",
         textDecorationLine: "none",
         fontFamily: "inherit",
         fontSize: "inherit",
-        overflow: "hidden",
         cursor: "pointer",
         ":hover": {
-            border: `1px solid ${tokens.colorNeutralStroke1}`,
+            backgroundColor: tokens.colorNeutralBackground1Hover,
         },
         ":focus-visible": {
             outline: `2px solid ${tokens.colorStrokeFocus2}`,
@@ -53,6 +52,8 @@ const useStyles = makeStyles({
     },
     thumbnail: {
         position: "relative",
+        borderRadius: tokens.borderRadiusMedium,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
         aspectRatio: "16 / 9",
         backgroundColor: tokens.colorNeutralBackground3,
         display: "flex",
@@ -93,7 +94,8 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: tokens.spacingVerticalXXS,
-        padding: tokens.spacingVerticalM,
+        // No card frame to sit inside any more, so the text lines up with the thumbnail edge.
+        paddingTop: tokens.spacingVerticalS,
     },
     title: {
         fontWeight: tokens.fontWeightSemibold,

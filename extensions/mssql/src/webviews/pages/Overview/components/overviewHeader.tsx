@@ -5,6 +5,8 @@
 
 import { Checkbox, Text, makeStyles, tokens } from "@fluentui/react-components";
 
+import { ActionRow } from "./actionRow";
+import { VersionBadge } from "../../../common/versionBadge";
 import { locConstants } from "../../../common/locConstants";
 import { useOverviewActions } from "../useOverviewActions";
 import { useOverviewSelector } from "../overviewSelector";
@@ -12,16 +14,23 @@ import { useOverviewSelector } from "../overviewSelector";
 const extensionIcon = require("../../../../../images/extensionIcon.png");
 
 const useStyles = makeStyles({
+    // Identity and the primary actions are one banded region: the actions are what the header is
+    // for, and sitting them below a rule made them read as an unrelated toolbar.
     root: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "18px",
+        paddingBottom: "18px",
+        borderBottomWidth: "1px",
+        borderBottomStyle: "solid",
+        borderBottomColor: tokens.colorNeutralStroke2,
+    },
+    identity: {
         display: "flex",
         // The icon aligns to the top of the title block rather than the block's centre.
         alignItems: "flex-start",
         gap: "14px",
         flexWrap: "wrap",
-        paddingBottom: "18px",
-        borderBottomWidth: "1px",
-        borderBottomStyle: "solid",
-        borderBottomColor: tokens.colorNeutralStroke2,
     },
     icon: {
         width: "40px",
@@ -47,15 +56,11 @@ const useStyles = makeStyles({
         fontWeight: tokens.fontWeightSemibold,
         lineHeight: "28px",
     },
-    version: {
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: "11px",
-        color: tokens.colorNeutralForeground3,
-        backgroundColor: tokens.colorNeutralBackground3,
-        padding: "3px 8px",
-        borderRadius: tokens.borderRadiusMedium,
-    },
     subtitle: {
+        color: tokens.colorNeutralForeground3,
+    },
+    publisher: {
+        fontSize: tokens.fontSizeBase200,
         color: tokens.colorNeutralForeground3,
     },
     preference: {
@@ -76,24 +81,26 @@ export const OverviewHeader = () => {
 
     return (
         <header className={classes.root}>
-            <img className={classes.icon} src={extensionIcon} alt="" />
-            <div className={classes.titles}>
-                <div className={classes.titleRow}>
-                    <Text as="h1" className={classes.title}>
-                        {loc.title}
-                    </Text>
-                    {extensionVersion && (
-                        <span className={classes.version}>{loc.version(extensionVersion)}</span>
-                    )}
+            <div className={classes.identity}>
+                <img className={classes.icon} src={extensionIcon} alt="" />
+                <div className={classes.titles}>
+                    <div className={classes.titleRow}>
+                        <Text as="h1" className={classes.title}>
+                            {loc.title}
+                        </Text>
+                        {extensionVersion && <VersionBadge version={extensionVersion} />}
+                    </div>
+                    <Text className={classes.subtitle}>{loc.subtitle}</Text>
+                    <Text className={classes.publisher}>{loc.extensionPublisher}</Text>
                 </div>
-                <Text className={classes.subtitle}>{loc.subtitle}</Text>
+                <Checkbox
+                    className={classes.preference}
+                    checked={showChangelogOnUpdate}
+                    label={loc.showReleaseNotesAfterUpdates}
+                    onChange={(_event, data) => setShowChangelogOnUpdate(data.checked === true)}
+                />
             </div>
-            <Checkbox
-                className={classes.preference}
-                checked={showChangelogOnUpdate}
-                label={loc.showReleaseNotesAfterUpdates}
-                onChange={(_event, data) => setShowChangelogOnUpdate(data.checked === true)}
-            />
+            <ActionRow />
         </header>
     );
 };

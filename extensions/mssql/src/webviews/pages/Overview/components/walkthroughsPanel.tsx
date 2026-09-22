@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, tokens } from "@fluentui/react-components";
+import { Text, makeStyles, tokens } from "@fluentui/react-components";
 import { DatabasePlugConnected20Regular, Flow20Regular } from "@fluentui/react-icons";
 import { ReactNode, useState } from "react";
 
@@ -22,6 +22,15 @@ const walkthroughIcons: Partial<Record<WalkthroughId, ReactNode>> = {
 };
 
 const useStyles = makeStyles({
+    root: {
+        display: "flex",
+        flexDirection: "column",
+        gap: tokens.spacingVerticalM,
+    },
+    // Matches the other two tabs, which both say what they are before showing their cards.
+    intro: {
+        color: tokens.colorNeutralForeground3,
+    },
     grid: {
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
@@ -56,19 +65,22 @@ export const WalkthroughsPanel = () => {
     ];
 
     return (
-        <div className={classes.grid}>
-            {cards.map((card) => (
-                <ActionCard
-                    key={card.id}
-                    icon={walkthroughIcons[card.id]}
-                    title={card.title}
-                    description={card.description}
-                    onClick={() => {
-                        sendTelemetry(OverviewTelemetryEvent.WalkthroughOpened, card.id);
-                        setActiveWalkthrough(card.id);
-                    }}
-                />
-            ))}
+        <div className={classes.root}>
+            <Text className={classes.intro}>{loc.walkthroughsIntro}</Text>
+            <div className={classes.grid}>
+                {cards.map((card) => (
+                    <ActionCard
+                        key={card.id}
+                        icon={walkthroughIcons[card.id]}
+                        title={card.title}
+                        description={card.description}
+                        onClick={() => {
+                            sendTelemetry(OverviewTelemetryEvent.WalkthroughOpened, card.id);
+                            setActiveWalkthrough(card.id);
+                        }}
+                    />
+                ))}
+            </div>
 
             {activeWalkthrough && (
                 <WalkthroughDialog

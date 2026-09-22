@@ -20,6 +20,7 @@ import {
     DevContainerPrerequisites,
     GetAgentSkillsCatalogRequest,
     InstallAgentSkillsPluginRequest,
+    ManageAgentSkillsPluginRequest,
     OpenPromptInChatRequest,
     OpenPromptInChatRequestParams,
     InstallDevContainersExtensionRequest,
@@ -81,11 +82,19 @@ const DEV_CONTAINERS_REOPEN_COMMAND = "remote-containers.reopenInContainer";
  */
 const overviewTelemetryActions: Partial<Record<OverviewTelemetryEvent, TelemetryActions>> = {
     [OverviewTelemetryEvent.PromptCopied]: TelemetryActions.PromptCopied,
-    [OverviewTelemetryEvent.PromptViewed]: TelemetryActions.PromptViewed,
     [OverviewTelemetryEvent.PromptOpenedInChat]: TelemetryActions.PromptOpenedInChat,
     [OverviewTelemetryEvent.WalkthroughOpened]: TelemetryActions.WalkthroughOpened,
     [OverviewTelemetryEvent.DiscoverCardOpened]: TelemetryActions.DiscoverCardOpened,
 };
+
+/**
+ * Opens the Extensions view on a search term. Internal workbench commands rather than API, the
+ * same footing as `chat.pluginLocations` which the install already depends on.
+ */
+const EXTENSIONS_SEARCH_COMMAND = "workbench.extensions.search";
+/** Filter the Extensions view uses to list agent plugins, with no search term. */
+const MANAGE_PLUGINS_COMMAND = "workbench.action.chat.managePlugins";
+const AGENT_PLUGINS_FILTER = "@agentPlugins";
 
 /** Source the agent skills are installed from, reported with the install telemetry. */
 const AGENT_SKILLS_PLUGIN_SOURCE = "microsoft/azure-sql-database-container";
@@ -126,7 +135,7 @@ const RECENT_FILE_LIMIT = 5;
 /** Global state key recording the version whose release notes have already been shown. */
 const GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY = "changelog/lastChangeLogVersion";
 
-/** How the Welcome page was opened, which decides whether it greets the user with release notes. */
+/** How the page was opened, which decides whether it greets the user with release notes. */
 export interface OverviewOpenOptions {
     /** Opens the What's new drawer straight away; set only by the post-update trigger. */
     openWhatsNew?: boolean;
@@ -142,10 +151,6 @@ const actionCommands: Record<OverviewActionId, { command: string; args?: unknown
     [OverviewActionId.RunQuery]: { command: constants.cmdNewQuery },
     [OverviewActionId.OpenSqlFile]: { command: "workbench.action.files.openFile" },
     [OverviewActionId.ExecuteQuery]: { command: constants.cmdRunQuery },
-    // Reveals the SQL Server container so the user can pick a database for the next step.
-    [OverviewActionId.FocusConnections]: {
-        command: "workbench.view.extension.objectExplorer",
-    },
     [OverviewActionId.OpenCopilotChat]: { command: constants.cmdOpenGithubChat },
     [OverviewActionId.NewDeployment]: { command: constants.cmdDeployNewDatabase },
     // Passing a deployment type skips the chooser page and opens that wizard directly.
@@ -417,6 +422,35 @@ export class OverviewWebviewController extends WebviewPanelController<
             } finally {
                 this._agentSkillsActivity = undefined;
                 await this.refreshAgentSkillsState();
+            }
+        });
+
+        this.onRequest(ManageAgentSkillsPluginRequest.type, async () => {
+            // The Extensions view matches this term against a plugin's name, description and
+            // marketplace (agentPluginsView.ts, `show`). For a plugin installed from a local
+            // folder, as ours is, `marketplace` comes from `fromMarketplace` and is undefined,
+            // and `description` is the label of the install directory -- the repository URL is
+            // in neither, so searching for it would select nothing. `name` resolves to the
+            // manifest name, which is what identifies the plugin here.
+            //
+            // Once this ships through a marketplace, `marketplace` holds the repository URL and
+            // becomes the more precise term, since a name can collide and a URL cannot.
+            try {
+                await vscode.commands.executeCommand(
+                    EXTENSIONS_SEARCH_COMMAND,
+                    `${AGENT_PLUGINS_FILTER} ${this._agentSkillsInstaller.pluginName}`,
+                );
+            } catch (error) {
+                // Both are internal workbench commands, so a rename in a future VS Code lands
+                // here rather than as an error the user has to read.
+                this.logger.warn(
+                    `Could not open the plugin in the Extensions view: ${
+                        error instanceof Error ? error.message : String(error)
+                    }`,
+                );
+                await vscode.commands
+                    .executeCommand(MANAGE_PLUGINS_COMMAND)
+                    .then(undefined, () => undefined);
             }
         });
 
@@ -1054,7 +1088,7 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * After an extension update, greets the user with the Welcome page and its release notes.
+     * After an extension update, greets the user with the Getting Started page and its release notes.
      * Runs at most once per version, and only while the user has left the setting on.
      */
     public static async showWelcomeOnExtensionUpdate(context: vscode.ExtensionContext) {

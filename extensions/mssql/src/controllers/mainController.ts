@@ -453,8 +453,8 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommandWithArgs(Constants.cmdOpenOverview);
             this._event.on(Constants.cmdOpenOverview, async (args: unknown) => {
-                // Invoked from the Welcome node's context menu this receives the tree item, so the
-                // options are shape-checked rather than trusted.
+                // Invoked from the Getting Started node's context menu this receives the
+                // tree item, so the options are shape-checked rather than trusted.
                 const options =
                     typeof args === "object" && args !== null ? (args as OverviewOpenOptions) : {};
                 const openWhatsNew = options.openWhatsNew === true;
@@ -1591,8 +1591,8 @@ export default class MainController implements vscode.Disposable {
                 setOverviewVisibility(true),
             ),
             // Delegates rather than duplicating the open logic; it exists purely so the node's
-            // context menu can be labelled "Open" instead of "Open Welcome". It carries the
-            // node's own source, since this is the same node being opened a second way.
+            // context menu can be labelled "Open" rather than repeating the page name. It
+            // carries the node's own source, since this is the same node opened a second way.
             vscode.commands.registerCommand(Constants.cmdOpenOverviewFromNode, () =>
                 vscode.commands.executeCommand(Constants.cmdOpenOverview, {
                     source: OverviewOpenSource.TreeNode,

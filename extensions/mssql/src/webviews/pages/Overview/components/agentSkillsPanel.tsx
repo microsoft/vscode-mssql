@@ -16,11 +16,12 @@ import {
     DialogSurface,
     DialogTitle,
     Input,
+    Link,
     MessageBar,
-    MessageBarActions,
     MessageBarBody,
     Spinner,
     Text,
+    Tooltip,
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
@@ -30,11 +31,19 @@ import {
     ChevronDown16Regular,
     ChevronRight16Regular,
     Copy16Regular,
-    Open16Regular,
     Search16Regular,
     TextBulletListSquare16Regular,
 } from "@fluentui/react-icons";
-import { ComponentType, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    ComponentType,
+    ReactElement,
+    SVGProps,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 
 import {
     AgentSkillGroup,
@@ -42,7 +51,7 @@ import {
     OverviewTelemetryEvent,
 } from "../../../../sharedInterfaces/overview";
 import { AgentSkillsIcon } from "../../../common/icons/agentSkills";
-import { GithubCopilot16Regular } from "../../../common/icons/fluentIcons";
+import { GithubCopilot16Regular, GithubMark16Regular } from "../../../common/icons/fluentIcons";
 import { SqlMigrationIcon } from "../../../common/icons/sqlMigration";
 import { locConstants } from "../../../common/locConstants";
 import { AgentSkillPack, PromptCard, getAgentSkillPacks } from "../overviewContent";
@@ -55,7 +64,7 @@ const COPY_FEEDBACK_MS = 2000;
 /** Above this many skills, scrolling the list stops being a practical way to find one. */
 const FILTER_THRESHOLD = 10;
 
-const packIcons: Record<AgentSkillPack["icon"], ComponentType> = {
+const packIcons: Record<AgentSkillPack["icon"], ComponentType<SVGProps<SVGSVGElement>>> = {
     agentSkills: AgentSkillsIcon,
     sqlMigration: SqlMigrationIcon,
 };
@@ -66,13 +75,17 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: tokens.spacingVerticalM,
     },
+    // The cards used to start straight after the tabs, which left no answer to "what are these?".
+    intro: {
+        color: tokens.colorNeutralForeground3,
+    },
     card: {
         display: "flex",
         flexDirection: "column",
-        padding: "16px",
-        borderRadius: "10px",
+        padding: "18px",
+        borderRadius: tokens.borderRadiusLarge,
         border: `1px solid ${tokens.colorNeutralStroke2}`,
-        backgroundColor: tokens.colorNeutralBackground1,
+        backgroundColor: tokens.colorNeutralBackground2,
         transition: "border-color 120ms ease",
         ":hover": {
             borderTopColor: tokens.colorNeutralStroke1,
@@ -83,8 +96,9 @@ const useStyles = makeStyles({
     },
     cardHeader: {
         display: "flex",
-        alignItems: "center",
-        gap: "12px",
+        // The tile tops out with the title rather than centring against the whole text block.
+        alignItems: "flex-start",
+        gap: "14px",
         "@media (max-width: 700px)": {
             alignItems: "flex-start",
             flexWrap: "wrap",
@@ -94,12 +108,13 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        width: "36px",
-        height: "36px",
+        width: "48px",
+        height: "48px",
         flexShrink: 0,
-        borderRadius: "8px",
-        backgroundColor: tokens.colorBrandBackground2,
-        color: tokens.colorBrandForeground2,
+        borderRadius: "12px",
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        backgroundColor: tokens.colorNeutralBackground3,
+        color: tokens.colorNeutralForeground1,
     },
     cardTitles: {
         flexGrow: 1,
@@ -119,24 +134,14 @@ const useStyles = makeStyles({
     installAction: {
         flexShrink: 0,
     },
-    // Reads as a state, not as a button that has stopped working, which is how a disabled
-    // primary button reads once the skills are in place.
-    installedBadge: {
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "6px",
-        flexShrink: 0,
-        padding: "5px 10px",
-        borderRadius: tokens.borderRadiusMedium,
-        border: `1px solid ${tokens.colorPaletteGreenBorder1}`,
-        backgroundColor: tokens.colorPaletteGreenBackground1,
+    // Keeps the installed state legible now that the label says Manage rather than Installed.
+    installedIcon: {
         color: tokens.colorPaletteGreenForeground1,
-        fontSize: tokens.fontSizeBase200,
-        fontWeight: tokens.fontWeightSemibold,
     },
     description: {
-        margin: "10px 0 0",
-        maxWidth: "760px",
+        margin: "8px 0 0",
+        // Holds the measure the mockup wraps at, rather than stretching to the card's width.
+        maxWidth: "520px",
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase300,
         color: tokens.colorNeutralForeground2,
@@ -144,13 +149,21 @@ const useStyles = makeStyles({
     cardActions: {
         display: "flex",
         alignItems: "center",
-        gap: tokens.spacingHorizontalXXS,
-        marginTop: "14px",
-        paddingTop: "10px",
-        borderTopWidth: "1px",
-        borderTopStyle: "solid",
-        borderTopColor: tokens.colorNeutralStroke3,
+        gap: tokens.spacingHorizontalM,
+        marginTop: "16px",
         flexWrap: "wrap",
+    },
+    cardLink: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+        fontSize: tokens.fontSizeBase200,
+    },
+    cardLinkDivider: {
+        width: "1px",
+        height: "14px",
+        flexShrink: 0,
+        backgroundColor: tokens.colorNeutralStroke2,
     },
     // Pushed to the trailing edge so the disclosure reads as the card's own control rather than
     // as a third link.
@@ -159,9 +172,6 @@ const useStyles = makeStyles({
     },
     prompts: {
         marginTop: tokens.spacingVerticalM,
-    },
-    promptNotice: {
-        marginBottom: tokens.spacingVerticalM,
     },
     promptGrid: {
         display: "grid",
@@ -176,9 +186,9 @@ const useStyles = makeStyles({
         flexDirection: "column",
         alignItems: "flex-start",
         padding: "12px 14px",
-        borderRadius: "8px",
+        borderRadius: tokens.borderRadiusMedium,
         border: `1px solid ${tokens.colorNeutralStroke2}`,
-        backgroundColor: tokens.colorNeutralBackground2,
+        backgroundColor: tokens.colorNeutralBackground1,
         transition: "border-color 120ms ease",
         ":hover": {
             borderTopColor: tokens.colorNeutralStroke1,
@@ -227,26 +237,6 @@ const useStyles = makeStyles({
     },
     promptAction: {
         whiteSpace: "nowrap",
-    },
-    promptDialog: {
-        maxWidth: "620px",
-    },
-    promptDialogDescription: {
-        display: "block",
-        marginBottom: tokens.spacingVerticalM,
-        color: tokens.colorNeutralForeground3,
-    },
-    // The prompt is meant to be read and copied verbatim, so it keeps its own wrapping.
-    promptDialogText: {
-        margin: 0,
-        padding: tokens.spacingVerticalM,
-        borderRadius: tokens.borderRadiusMedium,
-        backgroundColor: tokens.colorNeutralBackground3,
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: tokens.fontSizeBase200,
-        lineHeight: tokens.lineHeightBase300,
-        whiteSpace: "pre-wrap",
-        overflowWrap: "anywhere",
     },
     skillsDialog: {
         width: "min(760px, calc(100vw - 32px))",
@@ -302,6 +292,7 @@ const useStyles = makeStyles({
         listStyleType: "none",
     },
     skillItem: {
+        padding: `${tokens.spacingVerticalS} 0`,
         borderBottomWidth: "1px",
         borderBottomStyle: "solid",
         borderBottomColor: tokens.colorNeutralStroke3,
@@ -309,69 +300,73 @@ const useStyles = makeStyles({
             borderBottomStyle: "none",
         },
     },
-    // The whole row is the target, so a skill and its description are one thing to click rather
-    // than a link with loose text underneath it.
-    skillRow: {
-        display: "block",
-        width: "100%",
-        height: "auto",
-        padding: "10px 12px",
-        borderRadius: tokens.borderRadiusMedium,
-        fontWeight: tokens.fontWeightRegular,
-        textAlign: "left",
-        whiteSpace: "normal",
-    },
-    skillRowBody: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "3px",
-        width: "100%",
-        minWidth: 0,
-    },
-    skillRowName: {
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-    },
+    // The name carries the link on its own, so the row needs no trailing icon to say it opens
+    // somewhere: the colour and the underline on hover already do.
     skillName: {
         fontFamily: tokens.fontFamilyMonospace,
         fontSize: tokens.fontSizeBase300,
         fontWeight: tokens.fontWeightSemibold,
-        color: tokens.colorNeutralForeground1,
-    },
-    skillOpenIcon: {
-        flexShrink: 0,
-        color: tokens.colorNeutralForeground3,
+        textAlign: "left",
     },
     skillDescription: {
+        display: "block",
+        marginTop: "3px",
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase300,
         color: tokens.colorNeutralForeground2,
     },
 });
 
+/**
+ * Explains why a prompt action does nothing until the pack is installed.
+ *
+ * The control it wraps uses `disabledFocusable` rather than `disabled`, so it still takes hover
+ * and focus and can say why: a plain disabled button is silent to both a pointer and a screen
+ * reader, which is the whole reason the banner used to be there.
+ */
+const PromptAction = ({
+    isInstalled,
+    children,
+}: {
+    isInstalled: boolean;
+    children: ReactElement;
+}) =>
+    isInstalled ? (
+        children
+    ) : (
+        <Tooltip
+            content={locConstants.overview.promptsNeedSkills}
+            relationship="description"
+            withArrow>
+            {children}
+        </Tooltip>
+    );
+
 interface SkillPackCardProps {
     pack: AgentSkillPack;
+    /** Live count once the catalog resolves; undefined while it is still being fetched. */
+    skillCount: number | undefined;
     isInstalled: boolean;
     isInstalling: boolean;
     copiedPromptId: string | undefined;
     onInstall: () => void;
+    onManage: () => void;
     onOpenSkills: (pack: AgentSkillPack) => void;
     onCopyPrompt: (card: PromptCard) => void;
     onOpenPromptInChat: (card: PromptCard) => void;
-    onViewPrompt: (card: PromptCard) => void;
 }
 
 const SkillPackCard = ({
     pack,
+    skillCount,
     isInstalled,
     isInstalling,
     copiedPromptId,
     onInstall,
+    onManage,
     onOpenSkills,
     onCopyPrompt,
     onOpenPromptInChat,
-    onViewPrompt,
 }: SkillPackCardProps) => {
     const classes = useStyles();
     const loc = locConstants.overview;
@@ -388,13 +383,23 @@ const SkillPackCard = ({
                 </span>
                 <div className={classes.cardTitles}>
                     <div className={classes.name}>{pack.name}</div>
-                    <div className={classes.meta}>{loc.agentSkillsMeta(pack.publisher)}</div>
+                    <div className={classes.meta}>
+                        {skillCount === undefined
+                            ? loc.agentSkillsPlugin
+                            : loc.agentSkillsMeta(skillCount)}
+                    </div>
+                    <Text className={classes.description}>{pack.description}</Text>
                 </div>
                 {isInstalled ? (
-                    <span className={classes.installedBadge}>
-                        <CheckmarkCircle16Filled />
-                        {loc.agentSkillsInstalled}
-                    </span>
+                    // Once it is in, the useful thing to offer is the Extensions view entry that
+                    // can disable or remove it, rather than a badge with nothing behind it.
+                    <Button
+                        appearance="secondary"
+                        className={classes.installAction}
+                        icon={<CheckmarkCircle16Filled className={classes.installedIcon} />}
+                        onClick={onManage}>
+                        {loc.manageAgentSkillsPlugin}
+                    </Button>
                 ) : (
                     <Button
                         appearance="primary"
@@ -406,22 +411,19 @@ const SkillPackCard = ({
                     </Button>
                 )}
             </div>
-            <Text className={classes.description}>{pack.description}</Text>
             <div className={classes.cardActions}>
-                <Button
-                    appearance="subtle"
-                    size="small"
-                    icon={<Open16Regular />}
-                    onClick={() => openLink(pack.repositoryUrl)}>
-                    {loc.agentSkillsRepository}
-                </Button>
-                <Button
-                    appearance="subtle"
-                    size="small"
-                    icon={<TextBulletListSquare16Regular />}
-                    onClick={() => onOpenSkills(pack)}>
+                <Link as="button" className={classes.cardLink} onClick={() => onOpenSkills(pack)}>
+                    <TextBulletListSquare16Regular />
                     {loc.viewAgentSkills}
-                </Button>
+                </Link>
+                <span className={classes.cardLinkDivider} aria-hidden="true" />
+                <Link
+                    as="button"
+                    className={classes.cardLink}
+                    onClick={() => openLink(pack.repositoryUrl)}>
+                    <GithubMark16Regular />
+                    {loc.agentSkillsRepository}
+                </Link>
                 <Button
                     appearance="subtle"
                     size="small"
@@ -436,30 +438,6 @@ const SkillPackCard = ({
 
             {arePromptsOpen && (
                 <div className={classes.prompts} id={promptsId}>
-                    {!isInstalled && (
-                        <MessageBar intent="info" className={classes.promptNotice}>
-                            <MessageBarBody>
-                                {loc.agentSkillsNotInstalled(pack.name)}
-                            </MessageBarBody>
-                            <MessageBarActions>
-                                <Button
-                                    size="small"
-                                    disabled={isInstalling}
-                                    icon={
-                                        isInstalling ? (
-                                            <Spinner size="tiny" />
-                                        ) : (
-                                            <GithubCopilot16Regular />
-                                        )
-                                    }
-                                    onClick={onInstall}>
-                                    {isInstalling
-                                        ? loc.agentSkillsInstalling
-                                        : loc.addToGitHubCopilot}
-                                </Button>
-                            </MessageBarActions>
-                        </MessageBar>
-                    )}
                     <div className={classes.promptGrid}>
                         {pack.prompts.map((card) => (
                             <div key={card.id} className={classes.promptCard}>
@@ -469,37 +447,36 @@ const SkillPackCard = ({
                                     {card.description}
                                 </Text>
                                 <div className={classes.promptFooter}>
-                                    <Button
-                                        appearance="primary"
-                                        size="small"
-                                        className={classes.promptAction}
-                                        icon={<GithubCopilot16Regular />}
-                                        onClick={() => onOpenPromptInChat(card)}>
-                                        {loc.openPromptInCopilot}
-                                    </Button>
-                                    <Button
-                                        appearance="subtle"
-                                        size="small"
-                                        className={classes.promptAction}
-                                        icon={
-                                            copiedPromptId === card.id ? (
-                                                <Checkmark16Regular />
-                                            ) : (
-                                                <Copy16Regular />
-                                            )
-                                        }
-                                        onClick={() => onCopyPrompt(card)}>
-                                        {copiedPromptId === card.id
-                                            ? loc.promptCopied
-                                            : loc.copyPrompt}
-                                    </Button>
-                                    <Button
-                                        appearance="subtle"
-                                        size="small"
-                                        className={classes.promptAction}
-                                        onClick={() => onViewPrompt(card)}>
-                                        {loc.view}
-                                    </Button>
+                                    <PromptAction isInstalled={isInstalled}>
+                                        <Button
+                                            appearance="primary"
+                                            size="small"
+                                            className={classes.promptAction}
+                                            disabledFocusable={!isInstalled}
+                                            icon={<GithubCopilot16Regular />}
+                                            onClick={() => onOpenPromptInChat(card)}>
+                                            {loc.openPromptInCopilot}
+                                        </Button>
+                                    </PromptAction>
+                                    <PromptAction isInstalled={isInstalled}>
+                                        <Button
+                                            appearance="subtle"
+                                            size="small"
+                                            className={classes.promptAction}
+                                            disabledFocusable={!isInstalled}
+                                            icon={
+                                                copiedPromptId === card.id ? (
+                                                    <Checkmark16Regular />
+                                                ) : (
+                                                    <Copy16Regular />
+                                                )
+                                            }
+                                            onClick={() => onCopyPrompt(card)}>
+                                            {copiedPromptId === card.id
+                                                ? loc.promptCopied
+                                                : loc.copyPrompt}
+                                        </Button>
+                                    </PromptAction>
                                 </div>
                             </div>
                         ))}
@@ -519,19 +496,14 @@ const SkillList = ({ skills }: { skills: AgentSkillSummary[] }) => {
         <ul className={classes.skillList}>
             {skills.map((skill) => (
                 <li key={skill.id} className={classes.skillItem}>
-                    <Button
-                        appearance="subtle"
-                        className={classes.skillRow}
+                    <Link
+                        as="button"
+                        className={classes.skillName}
                         title={loc.viewSkillSource}
                         onClick={() => openLink(skill.repositoryUrl)}>
-                        <span className={classes.skillRowBody}>
-                            <span className={classes.skillRowName}>
-                                <span className={classes.skillName}>{skill.id}</span>
-                                <Open16Regular className={classes.skillOpenIcon} />
-                            </span>
-                            <span className={classes.skillDescription}>{skill.description}</span>
-                        </span>
-                    </Button>
+                        {skill.id}
+                    </Link>
+                    <Text className={classes.skillDescription}>{skill.description}</Text>
                 </li>
             ))}
         </ul>
@@ -619,13 +591,17 @@ const SkillsCatalog = ({ groups }: { groups: AgentSkillGroup[] }) => {
 export const AgentSkillsPanel = () => {
     const classes = useStyles();
     const loc = locConstants.overview;
-    const { getAgentSkillsCatalog, installAgentSkillsPlugin, openPromptInChat, sendTelemetry } =
-        useOverviewActions();
+    const {
+        getAgentSkillsCatalog,
+        installAgentSkillsPlugin,
+        manageAgentSkillsPlugin,
+        openPromptInChat,
+        sendTelemetry,
+    } = useOverviewActions();
     const hasAgentSkillsPlugin = useOverviewSelector((state) => state.hasAgentSkillsPlugin);
     // Downloading takes a moment, so the button has to say something between the click and the
     // state arriving, or it reads as having done nothing.
     const [isInstalling, setIsInstalling] = useState(false);
-    const [viewedPrompt, setViewedPrompt] = useState<PromptCard | undefined>(undefined);
     const [copiedId, setCopiedId] = useState<string | undefined>(undefined);
     const [skillsDialogPack, setSkillsDialogPack] = useState<AgentSkillPack | undefined>(undefined);
     const [skillGroups, setSkillGroups] = useState<AgentSkillGroup[] | undefined>(undefined);
@@ -668,14 +644,6 @@ export const AgentSkillsPanel = () => {
         [openPromptInChat, sendTelemetry],
     );
 
-    const viewPrompt = useCallback(
-        (card: PromptCard) => {
-            sendTelemetry(OverviewTelemetryEvent.PromptViewed, card.id);
-            setViewedPrompt(card);
-        },
-        [sendTelemetry],
-    );
-
     const loadSkills = useCallback(async () => {
         setIsLoadingSkills(true);
         setSkillsLoadFailed(false);
@@ -687,6 +655,18 @@ export const AgentSkillsPanel = () => {
             setIsLoadingSkills(false);
         }
     }, [getAgentSkillsCatalog]);
+
+    // The cards state a real number, so the catalog is loaded with the page rather than only
+    // when the dialog opens. It is the same request either way and the installer caches it for
+    // the window, so this costs one README fetch and keeps the card and the dialog in agreement.
+    useEffect(() => {
+        void loadSkills();
+    }, [loadSkills]);
+
+    const liveSkillCount = useMemo(
+        () => skillGroups?.reduce((total, group) => total + group.skills.length, 0),
+        [skillGroups],
+    );
 
     const openSkills = useCallback(
         (pack: AgentSkillPack) => {
@@ -700,18 +680,22 @@ export const AgentSkillsPanel = () => {
 
     return (
         <div className={classes.root}>
+            <Text className={classes.intro}>{loc.agentSkillsIntro}</Text>
             {packs.map((pack) => (
                 <SkillPackCard
                     key={pack.id}
                     pack={pack}
+                    // Falls back to the authored count only when the catalog cannot be reached,
+                    // so the card never shows a number the dialog will contradict.
+                    skillCount={liveSkillCount ?? (skillsLoadFailed ? pack.skillCount : undefined)}
                     isInstalled={hasAgentSkillsPlugin}
                     isInstalling={isInstalling}
                     copiedPromptId={copiedId}
                     onInstall={startInstall}
+                    onManage={() => void manageAgentSkillsPlugin()}
                     onOpenSkills={openSkills}
                     onCopyPrompt={copyPrompt}
                     onOpenPromptInChat={openInChat}
-                    onViewPrompt={viewPrompt}
                 />
             ))}
 
@@ -755,59 +739,6 @@ export const AgentSkillsPanel = () => {
                     </DialogBody>
                 </DialogSurface>
             </Dialog>
-
-            {viewedPrompt && (
-                <Dialog
-                    open
-                    onOpenChange={(_event, data) => !data.open && setViewedPrompt(undefined)}>
-                    <DialogSurface className={classes.promptDialog}>
-                        <DialogBody>
-                            <DialogTitle>{viewedPrompt.title}</DialogTitle>
-                            <DialogContent>
-                                <Text className={classes.promptDialogDescription}>
-                                    {viewedPrompt.description}
-                                </Text>
-                                <pre className={classes.promptDialogText}>
-                                    {viewedPrompt.prompt}
-                                </pre>
-                            </DialogContent>
-                            <DialogActions>
-                                <Button
-                                    appearance="secondary"
-                                    className={classes.dialogAction}
-                                    onClick={() => setViewedPrompt(undefined)}>
-                                    {locConstants.common.close}
-                                </Button>
-                                <Button
-                                    appearance="secondary"
-                                    className={classes.dialogAction}
-                                    icon={
-                                        copiedId === viewedPrompt.id ? (
-                                            <Checkmark16Regular />
-                                        ) : (
-                                            <Copy16Regular />
-                                        )
-                                    }
-                                    onClick={() => copyPrompt(viewedPrompt)}>
-                                    {copiedId === viewedPrompt.id
-                                        ? loc.promptCopied
-                                        : loc.copyPrompt}
-                                </Button>
-                                <Button
-                                    appearance="primary"
-                                    className={classes.dialogAction}
-                                    icon={<GithubCopilot16Regular />}
-                                    onClick={() => {
-                                        openInChat(viewedPrompt);
-                                        setViewedPrompt(undefined);
-                                    }}>
-                                    {loc.openPromptInCopilot}
-                                </Button>
-                            </DialogActions>
-                        </DialogBody>
-                    </DialogSurface>
-                </Dialog>
-            )}
         </div>
     );
 };

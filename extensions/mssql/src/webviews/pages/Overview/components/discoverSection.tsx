@@ -7,13 +7,14 @@ import { makeStyles, tokens } from "@fluentui/react-components";
 import { useEffect, useState } from "react";
 import {
     CompassNorthwest20Regular,
+    Glance20Regular,
     Keyboard20Regular,
     Sparkle20Regular,
     Star20Regular,
 } from "@fluentui/react-icons";
 
 import { ActionCard } from "./actionCard";
-import { SectionHeading } from "./sectionHeading";
+import { SidePanel } from "./sidePanel";
 import { locConstants } from "../../../common/locConstants";
 import { overviewLinks } from "../overviewContent";
 import { OverviewTelemetryEvent } from "../../../../sharedInterfaces/overview";
@@ -25,15 +26,12 @@ import { WhatsNewDrawer } from "./whatsNewDrawer";
 import { WalkthroughId, getWalkthrough } from "../walkthroughContent";
 
 const useStyles = makeStyles({
-    root: {
-        display: "flex",
-        flexDirection: "column",
-        gap: tokens.spacingVerticalS,
-    },
+    // The panel border groups these, so the rows themselves carry none and sit flush.
     list: {
         display: "flex",
         flexDirection: "column",
-        gap: tokens.spacingVerticalS,
+        marginLeft: `calc(-1 * ${tokens.spacingHorizontalXS})`,
+        marginRight: `calc(-1 * ${tokens.spacingHorizontalXS})`,
     },
 });
 
@@ -63,28 +61,31 @@ export const DiscoverSection = () => {
     }, [openWhatsNewRequest]);
 
     return (
-        <section className={classes.root}>
-            <SectionHeading>{loc.discover}</SectionHeading>
+        <SidePanel title={loc.discover} icon={<Glance20Regular />}>
             <div className={classes.list}>
                 <ActionCard
+                    appearance="row"
                     icon={<CompassNorthwest20Regular />}
                     title={loc.exploreFeaturesTitle}
                     description={loc.exploreFeaturesDescription}
                     onClick={() => openCard("exploreFeatures", () => setIsExploreOpen(true))}
                 />
                 <ActionCard
+                    appearance="row"
                     icon={<Keyboard20Regular />}
                     title={loc.keyboardShortcutsTitle}
                     description={loc.keyboardShortcutsDescription}
                     onClick={() => openCard("keyboardShortcuts", () => setIsShortcutsOpen(true))}
                 />
                 <ActionCard
+                    appearance="row"
                     icon={<Star20Regular />}
                     title={loc.whatsNewTitle}
                     description={loc.whatsNewDescription(extensionVersion)}
                     onClick={() => openCard("whatsNew", () => setIsWhatsNewOpen(true))}
                 />
                 <ActionCard
+                    appearance="row"
                     icon={<Sparkle20Regular />}
                     title={loc.devHubTitle}
                     description={loc.devHubDescription}
@@ -100,6 +101,6 @@ export const DiscoverSection = () => {
             )}
             {isShortcutsOpen && <ShortcutsDialog onDismiss={() => setIsShortcutsOpen(false)} />}
             {isWhatsNewOpen && <WhatsNewDrawer onDismiss={() => setIsWhatsNewOpen(false)} />}
-        </section>
+        </SidePanel>
     );
 };

@@ -233,7 +233,6 @@ export enum TelemetryActions {
     /** The whole dev container setup flow, from picking a template to reopening in it. */
     DevContainerSetup = "DevContainerSetup",
     PromptCopied = "PromptCopied",
-    PromptViewed = "PromptViewed",
     PromptOpenedInChat = "PromptOpenedInChat",
     WalkthroughOpened = "WalkthroughOpened",
     DiscoverCardOpened = "DiscoverCardOpened",

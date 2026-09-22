@@ -142,8 +142,9 @@ export const ActionRow = () => {
                 </MenuPopover>
             </Menu>
 
+            {/* Quieter than the three beside it: reopening a file is a fallback, not a start. */}
             <Button
-                appearance="secondary"
+                appearance="subtle"
                 icon={<FolderOpen20Regular />}
                 onClick={() => runAction(OverviewActionId.OpenSqlFile)}>
                 {loc.openSqlFile}

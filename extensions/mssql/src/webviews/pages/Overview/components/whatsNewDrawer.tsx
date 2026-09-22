@@ -28,6 +28,7 @@ import {
 } from "../../../../sharedInterfaces/changelog";
 import { OverviewActionId } from "../../../../sharedInterfaces/overview";
 import { locConstants } from "../../../common/locConstants";
+import { VersionBadge } from "../../../common/versionBadge";
 import { useOverviewActions } from "../useOverviewActions";
 import { useOverviewSelector } from "../overviewSelector";
 
@@ -70,14 +71,6 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         gap: "10px",
-    },
-    version: {
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: "11px",
-        color: tokens.colorNeutralForeground3,
-        backgroundColor: tokens.colorNeutralBackground3,
-        padding: "3px 8px",
-        borderRadius: tokens.borderRadiusMedium,
     },
     drawerBody: {
         flex: 1,
@@ -254,11 +247,7 @@ export const WhatsNewDrawer = ({ onDismiss }: WhatsNewDrawerProps) => {
                             <Star20Filled />
                         </span>
                         {loc.whatsNewTitle}
-                        {changelog?.version && (
-                            <span className={classes.version}>
-                                {loc.version(changelog.version)}
-                            </span>
-                        )}
+                        {changelog?.version && <VersionBadge version={changelog.version} />}
                     </span>
                 </DrawerHeaderTitle>
             </DrawerHeader>

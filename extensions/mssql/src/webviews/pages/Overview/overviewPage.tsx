@@ -5,7 +5,6 @@
 
 import { makeStyles, mergeClasses, tokens } from "@fluentui/react-components";
 
-import { ActionRow } from "./components/actionRow";
 import { BuildSection } from "./components/buildSection";
 import { DiscoverSection } from "./components/discoverSection";
 import { EventBanner } from "./components/eventBanner";
@@ -50,8 +49,12 @@ const useStyles = makeStyles({
         minWidth: 0,
     },
     buildColumn: {
-        // The action row sits tighter to Build than the gap between later sections.
-        gap: tokens.spacingVerticalL,
+        gap: tokens.spacingVerticalXXL,
+    },
+    // Each rail panel draws its own border, so they need less air between them than the build
+    // column's sections, which are separated by whitespace alone.
+    railColumn: {
+        gap: tokens.spacingVerticalM,
     },
 });
 
@@ -65,11 +68,10 @@ export const OverviewPage = () => {
                 <OverviewHeader />
                 <div className={classes.columns}>
                     <div className={mergeClasses(classes.column, classes.buildColumn)}>
-                        <ActionRow />
                         <BuildSection />
                         <VideosSection />
                     </div>
-                    <div className={classes.column}>
+                    <div className={mergeClasses(classes.column, classes.railColumn)}>
                         <RecentFilesSection />
                         <DiscoverSection />
                         <ResourcesSection />

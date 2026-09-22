@@ -142,7 +142,7 @@ function formatEventDateRange(eventData: ChangelogEvent): string {
 }
 
 /**
- * Promotional banner for an upcoming community event, shown above the Welcome page header until
+ * Promotional banner for an upcoming community event, shown above the Getting Started header until
  * the event passes or the user dismisses it. Content comes from the shared changelog config.
  */
 export const EventBanner = () => {

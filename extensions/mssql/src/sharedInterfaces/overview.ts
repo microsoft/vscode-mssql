@@ -22,7 +22,6 @@ export enum OverviewActionId {
     NewNotebook = "newNotebook",
     NewTable = "newTable",
     ExecuteQuery = "executeQuery",
-    FocusConnections = "focusConnections",
     OpenCopilotChat = "openCopilotChat",
     OpenShortcutsConfiguration = "openShortcutsConfiguration",
     OpenChangelog = "openChangelog",
@@ -190,7 +189,7 @@ export namespace InstallDevContainersExtensionRequest {
     );
 }
 
-/** How the user reached the Welcome page. */
+/** How the user reached the Getting Started page. */
 export enum OverviewOpenSource {
     TreeNode = "treeNode",
     CommandPalette = "commandPalette",
@@ -204,8 +203,6 @@ export enum OverviewOpenSource {
 export enum OverviewTelemetryEvent {
     /** A prompt card's prompt was copied. */
     PromptCopied = "promptCopied",
-    /** A prompt card's prompt was opened in the dialog. */
-    PromptViewed = "promptViewed",
     /** A prompt card's prompt was handed to Copilot Chat. */
     PromptOpenedInChat = "promptOpenedInChat",
     /** A walkthrough was opened. */
@@ -276,6 +273,11 @@ export namespace OpenPromptInChatRequest {
     export const type = new RequestType<OpenPromptInChatRequestParams, void, void>(
         "overview/openPromptInChat",
     );
+}
+
+/** Reveals the installed plugin in the Extensions view so the user can manage it. */
+export namespace ManageAgentSkillsPluginRequest {
+    export const type = new RequestType<void, void, void>("overview/manageAgentSkillsPlugin");
 }
 
 /** Loads the current shipped-skill catalog from the Azure SQL Skills repository. */

@@ -5,6 +5,7 @@
 
 import { Link, Text, makeStyles, tokens } from "@fluentui/react-components";
 import {
+    BookQuestionMark20Regular,
     Bug20Regular,
     Chat20Regular,
     Document20Regular,
@@ -14,21 +15,19 @@ import {
 } from "@fluentui/react-icons";
 import { ReactNode } from "react";
 
-import { SectionHeading } from "./sectionHeading";
+import { SidePanel } from "./sidePanel";
 import { locConstants } from "../../../common/locConstants";
 import { overviewLinks } from "../overviewContent";
 import { useOverviewActions } from "../useOverviewActions";
 
 const useStyles = makeStyles({
-    root: {
-        display: "flex",
-        flexDirection: "column",
-        gap: tokens.spacingVerticalM,
-    },
     group: {
         display: "flex",
         flexDirection: "column",
         gap: tokens.spacingVerticalXS,
+        ":not(:first-of-type)": {
+            marginTop: tokens.spacingVerticalS,
+        },
     },
     groupLabel: {
         color: tokens.colorNeutralForeground3,
@@ -98,10 +97,9 @@ export const ResourcesSection = () => {
     );
 
     return (
-        <section className={classes.root}>
-            <SectionHeading>{loc.resourcesAndFeedback}</SectionHeading>
+        <SidePanel title={loc.resourcesAndFeedback} icon={<BookQuestionMark20Regular />}>
             {renderGroup(loc.resources, resources)}
             {renderGroup(loc.feedback, feedback)}
-        </section>
+        </SidePanel>
     );
 };

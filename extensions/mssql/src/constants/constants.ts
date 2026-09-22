@@ -157,8 +157,8 @@ export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenOverview = "mssql.openOverview";
 /**
- * Opens the Welcome page from its Object Explorer node. Menu items take their label from the
- * command, so this exists only to read as "Open" next to the node rather than "Open Welcome".
+ * Opens the Getting Started page from its Object Explorer node. Menu items take their label from the
+ * command, so this exists only to read as "Open" next to the node rather than the full title.
  */
 export const cmdOpenOverviewFromNode = "mssql.objectExplorer.openOverview";
 export const cmdHideOverviewInObjectExplorer = "mssql.hideOverviewInObjectExplorer";

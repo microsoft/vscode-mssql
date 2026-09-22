@@ -3589,7 +3589,7 @@ export class AzureDataStudioMigration {
 
 export class Overview {
     public static OverviewDocumentTitle = l10n.t("SQL Server (mssql)");
-    public static OverviewTreeNodeLabel = l10n.t("Welcome");
+    public static OverviewTreeNodeLabel = l10n.t("Getting Started");
     public static OverviewTreeNodeDescription = l10n.t("Connect, build, and learn");
     public static AddDevContainerConfigurationFailed = (error: string) =>
         l10n.t({

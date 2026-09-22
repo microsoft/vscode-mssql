@@ -88,6 +88,14 @@ export class AgentPluginsInstaller {
 
     constructor(private readonly _context: vscode.ExtensionContext) {}
 
+    /**
+     * Plugin name as its manifest declares it, which is what the Extensions view matches a
+     * `@agentPlugins` search term against. The repository and the manifest use the same name.
+     */
+    public get pluginName(): string {
+        return SKILLS_REPO_NAME;
+    }
+
     /** Directory the skills are extracted to, and the value registered as a plugin root. */
     public get pluginRoot(): vscode.Uri {
         return vscode.Uri.joinPath(this._context.globalStorageUri, "agentSkills", SKILLS_REPO_NAME);

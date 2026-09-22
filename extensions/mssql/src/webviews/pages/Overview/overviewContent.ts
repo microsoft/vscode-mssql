@@ -30,8 +30,11 @@ export const overviewLinks = {
     devContainersRepository: "https://github.com/microsoft/azuresql-devcontainers",
     dockerDesktop: "https://aka.ms/vscode-mssql-docker-desktop",
     copilotDocumentation: "https://aka.ms/vscode-mssql-copilot-docs",
-    // Placeholder until step-specific Microsoft Learn destinations are available.
-    copilotWalkthroughDocumentation: "https://learn.microsoft.com/",
+    // The alias covers the page, and its redirect carries no fragment of its own, so the
+    // section anchor survives it. Both the alias target and the anchor were checked against
+    // the live page, which is the failure the edit-data link ran into.
+    objectExplorerDocumentation: "https://aka.ms/vscode-mssql-docs#object-explorer-filtering",
+    queryResultsDocumentation: "https://aka.ms/vscode-mssql-docs#query-results-pane",
     keymapExtension: "https://aka.ms/vscode-mssql-keymap",
 } as const;
 
@@ -48,7 +51,11 @@ export interface PromptCard {
 export interface AgentSkillPack {
     id: string;
     name: string;
-    publisher: string;
+    /**
+     * Number of skills the plugin bundles, from its definition. Only used when the live catalog
+     * cannot be reached, so an offline page still says something rather than nothing.
+     */
+    skillCount: number;
     /** Glyph shown in the card's tile; the panel maps it to a component. */
     icon: "agentSkills" | "sqlMigration";
     description: string;
@@ -64,7 +71,7 @@ export function getAgentSkillPacks(): AgentSkillPack[] {
         {
             id: "azure-sql",
             name: loc.agentSkillsName,
-            publisher: loc.agentSkillsPublisher,
+            skillCount: 57,
             icon: "agentSkills",
             description: loc.agentSkillsDescription,
             repositoryUrl: overviewLinks.skillsRepository,
@@ -102,7 +109,7 @@ export function getAgentSkillPacks(): AgentSkillPack[] {
         {
             id: "sql-migration",
             name: loc.migrationSkillsName,
-            publisher: loc.agentSkillsPublisher,
+            skillCount: 12,
             icon: "sqlMigration",
             description: loc.migrationSkillsDescription,
             repositoryUrl: overviewLinks.migrationSkillsRepository,

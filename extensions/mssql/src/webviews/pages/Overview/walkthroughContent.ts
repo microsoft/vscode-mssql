@@ -21,6 +21,10 @@ const dataApiBuilderImage = require("../../../../images/walkthroughs/buildApp/da
 const runAppImage = require("../../../../images/walkthroughs/buildApp/run-app.gif");
 
 const copilotAgentModeImage = require("../../../../images/walkthroughs/copilot/agent-mode.gif");
+const copilotAskModeImage = require("../../../../images/walkthroughs/copilot/ask-mode.gif");
+const copilotExplainImage = require("../../../../images/walkthroughs/copilot/explain.gif");
+const copilotSchemaDesignerImage = require("../../../../images/walkthroughs/copilot/schema-designer.gif");
+const copilotDataApiBuilderImage = require("../../../../images/walkthroughs/copilot/dab.gif");
 
 const featureImages: Partial<Record<string, string>> = {
     schemaDesigner: require("../../../../images/walkthroughs/features/schema-designer.gif"),
@@ -40,6 +44,21 @@ const featureImages: Partial<Record<string, string>> = {
 
 const mssqlDocsBase = "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql";
 const mssqlOverviewDocs = `${mssqlDocsBase}/mssql-extension-visual-studio-code`;
+
+/**
+ * Microsoft Learn destination for each Copilot walkthrough step.
+ *
+ * Aliased rather than written out, so the walkthrough survives the docs being reorganised: the
+ * mode pages sit beside the mssql section rather than under it, and composing them from the
+ * mssql base is what pointed all four of these at 404s. Every alias was resolved against the
+ * live site.
+ */
+const copilotStepDocumentationUrls = {
+    agentMode: "https://aka.ms/vscode-mssql-copilot-agent-mode",
+    askMode: "https://aka.ms/vscode-mssql-copilot-ask-mode",
+    schemaDesigner: "https://aka.ms/vscode-mssql-schema-designer-copilot-docs",
+    dataApiBuilder: "https://aka.ms/vscode-mssql-data-api-builder",
+};
 
 /**
  * Microsoft Learn destination for each entry in the Explore features gallery.
@@ -203,7 +222,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
             return {
                 id,
                 title: loc.walkthroughConnectTitle,
-                subtitle: loc.walkthroughConnectSubtitle,
+                subtitle: loc.walkthroughConnectDescription,
                 kind: "steps",
                 steps: [
                     {
@@ -221,8 +240,8 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         title: loc.wtConnectStep2Title,
                         description: loc.wtConnectStep2Description,
                         action: {
-                            label: loc.wtConnectStep2Action,
-                            actionId: OverviewActionId.FocusConnections,
+                            label: loc.walkthroughLearnMoreAction,
+                            url: overviewLinks.objectExplorerDocumentation,
                         },
                         image: objectExplorerImage,
                     },
@@ -244,8 +263,8 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                             isMac() ? "Cmd+Shift+E" : "Ctrl+Shift+E",
                         ),
                         action: {
-                            label: loc.wtConnectStep4Action,
-                            actionId: OverviewActionId.NewQuery,
+                            label: loc.walkthroughLearnMoreAction,
+                            url: overviewLinks.queryResultsDocumentation,
                         },
                         image: resultsGridImage,
                     },
@@ -256,7 +275,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
             return {
                 id,
                 title: loc.walkthroughAppTitle,
-                subtitle: loc.walkthroughAppSubtitle,
+                subtitle: loc.walkthroughAppDescription,
                 kind: "steps",
                 steps: [
                     {
@@ -331,7 +350,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
             return {
                 id,
                 title: loc.walkthroughCopilotTitle,
-                subtitle: loc.walkthroughCopilotSubtitle,
+                subtitle: loc.walkthroughCopilotDescription,
                 kind: "steps",
                 steps: [
                     {
@@ -340,7 +359,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         description: loc.wtCopilotStep1Description,
                         action: {
                             label: loc.walkthroughLearnMoreAction,
-                            url: overviewLinks.copilotWalkthroughDocumentation,
+                            url: copilotStepDocumentationUrls.agentMode,
                         },
                         image: copilotAgentModeImage,
                     },
@@ -350,17 +369,15 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         description: loc.wtCopilotStep2Description,
                         action: {
                             label: loc.walkthroughLearnMoreAction,
-                            url: overviewLinks.copilotWalkthroughDocumentation,
+                            url: copilotStepDocumentationUrls.askMode,
                         },
+                        image: copilotAskModeImage,
                     },
                     {
                         id: "fixExplain",
                         title: loc.wtCopilotStep3Title,
                         description: loc.wtCopilotStep3Description,
-                        action: {
-                            label: loc.walkthroughLearnMoreAction,
-                            url: overviewLinks.copilotWalkthroughDocumentation,
-                        },
+                        image: copilotExplainImage,
                     },
                     {
                         id: "schemaDesignerCopilot",
@@ -368,8 +385,9 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         description: loc.wtCopilotStep4Description,
                         action: {
                             label: loc.walkthroughLearnMoreAction,
-                            url: overviewLinks.copilotWalkthroughDocumentation,
+                            url: copilotStepDocumentationUrls.schemaDesigner,
                         },
+                        image: copilotSchemaDesignerImage,
                     },
                     {
                         id: "dataApiBuilderCopilot",
@@ -377,8 +395,9 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         description: loc.wtCopilotStep5Description,
                         action: {
                             label: loc.walkthroughLearnMoreAction,
-                            url: overviewLinks.copilotWalkthroughDocumentation,
+                            url: copilotStepDocumentationUrls.dataApiBuilder,
                         },
+                        image: copilotDataApiBuilderImage,
                     },
                 ],
             };

@@ -26,6 +26,7 @@ import {
 } from "../../../sharedInterfaces/changelog";
 import { getActionIcon } from "../../common/icons/iconUtils";
 import { locConstants } from "../../common/locConstants";
+import { VersionBadge } from "../../common/versionBadge";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useChangelogSelector } from "./changelogSelector";
 
@@ -98,17 +99,6 @@ const useStyles = makeStyles({
         lineHeight: "24px",
         letterSpacing: "-0.01em",
         color: "var(--vscode-foreground)",
-    },
-    // Matches the version chip on the Welcome page header and in its What's new drawer.
-    versionBadge: {
-        display: "inline-flex",
-        alignItems: "center",
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: "11px",
-        color: tokens.colorNeutralForeground3,
-        backgroundColor: tokens.colorNeutralBackground3,
-        padding: "3px 8px",
-        borderRadius: tokens.borderRadiusMedium,
     },
     layout: {
         display: "grid",
@@ -597,7 +587,7 @@ export const ChangelogPage = () => {
                                 <h1 className={classes.headerTitle}>
                                     {locConstants.changelog.pageTitle}
                                 </h1>
-                                <span className={classes.versionBadge}>{`v${version}`}</span>
+                                <VersionBadge version={version} />
                             </div>
                         </div>
                     </div>

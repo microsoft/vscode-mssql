@@ -20,6 +20,6 @@ export class OverviewTreeNode extends vscode.TreeItem {
             command: Constants.cmdOpenOverview,
             arguments: [{ source: OverviewOpenSource.TreeNode }],
         };
-        this.iconPath = new vscode.ThemeIcon("rocket");
+        this.iconPath = new vscode.ThemeIcon("compass");
     }
 }

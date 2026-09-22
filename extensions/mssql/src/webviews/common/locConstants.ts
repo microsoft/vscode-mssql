@@ -3987,26 +3987,35 @@ export class LocConstants {
 
             build: l10n.t("Build"),
             agentSkillsTab: l10n.t("Agent skills"),
+            agentSkillsIntro: l10n.t(
+                "Add specialized skills to GitHub Copilot to help you work with SQL Server and Azure SQL.",
+            ),
+            walkthroughsIntro: l10n.t(
+                "Short guided tours that set up a working example, one step at a time.",
+            ),
             walkthroughsTab: l10n.t("Walkthroughs"),
             devContainersTab: l10n.t("Dev containers"),
 
+            extensionPublisher: l10n.t("Microsoft"),
             agentSkillsName: l10n.t("Azure SQL Skills"),
-            agentSkillsPublisher: l10n.t("Microsoft"),
-            agentSkillsMeta: (publisher: string) =>
-                l10n.t({
-                    message: "Agent skills · {0}",
-                    args: [publisher],
-                    comment: ["{0} is the publisher of the agent skill collection"],
-                }),
+            agentSkillsPlugin: l10n.t("Plugin"),
+            agentSkillsMeta: (count: number) =>
+                count === 1
+                    ? l10n.t("Plugin · Includes 1 skill")
+                    : l10n.t({
+                          message: "Plugin · Includes {0} skills",
+                          args: [count],
+                          comment: ["{0} is the number of skills the plugin bundles"],
+                      }),
             addToGitHubCopilot: l10n.t("Add to GitHub Copilot"),
-            agentSkillsInstalled: l10n.t("Installed"),
+            manageAgentSkillsPlugin: l10n.t("Manage plugin"),
             agentSkillsInstalling: l10n.t("Installing..."),
             agentSkillsDescription: l10n.t(
-                "Add curated Azure SQL guidance for connecting applications, designing schemas, using vector search, and diagnosing database problems.",
+                "Give GitHub Copilot Azure SQL expertise to help you connect your app, design schemas, write queries, add vector search, and troubleshoot database issues.",
             ),
             migrationSkillsName: l10n.t("SQL Server to Azure Migration Skills"),
             migrationSkillsDescription: l10n.t(
-                "Add guidance for moving SQL Server to Azure: recommend a target and method, build the prerequisite plan, size the Azure SQL SKU, run the migration, and validate the data afterwards.",
+                "Let GitHub Copilot guide your migration from assessment through validation — recommend a target and method, build the prerequisite plan, size the Azure SQL SKU, run the migration, and validate the data afterwards.",
             ),
             agentSkillsRepository: l10n.t("Repository"),
             viewAgentSkills: l10n.t("View skills"),
@@ -4038,17 +4047,12 @@ export class LocConstants {
                           ],
                       }),
             tryThesePrompts: l10n.t("Try these prompts"),
-            agentSkillsNotInstalled: (name: string) =>
-                l10n.t({
-                    message:
-                        "For best results, add {0} to GitHub Copilot before using these prompts.",
-                    args: [name],
-                    comment: ["{0} is the name of the agent skill collection"],
-                }),
+            promptsNeedSkills: l10n.t(
+                "For best results, install plugin before using these prompts.",
+            ),
             copyPrompt: l10n.t("Copy"),
             promptCopied: l10n.t("Copied"),
             openPromptInCopilot: l10n.t("Open in Copilot"),
-            view: l10n.t("View"),
 
             // Azure SQL prompt cards.
             promptTagConnect: l10n.t("Connect"),
@@ -4200,7 +4204,6 @@ export class LocConstants {
                 }),
 
             // "Connect & run your first query"
-            walkthroughConnectSubtitle: l10n.t("From zero to a result set in a few steps."),
             wtConnectStep1Title: l10n.t("Create a connection"),
             wtConnectStep1Description: l10n.t(
                 "Open the Connection dialog and connect to your SQL database",
@@ -4210,7 +4213,6 @@ export class LocConstants {
             wtConnectStep2Description: l10n.t(
                 "Explore your databases, tables, views, and stored procedures in the Object Explorer.",
             ),
-            wtConnectStep2Action: l10n.t("Open Connections"),
             wtConnectStep3Title: l10n.t("Open a new query"),
             wtConnectStep3Description: l10n.t(
                 "Open a new SQL editor and start writing queries with IntelliSense",
@@ -4222,15 +4224,11 @@ export class LocConstants {
                     "Execute with Run (or {0}) and sort, filter, and export the results grid.",
                     runShortcut,
                 ),
-            wtConnectStep4Action: l10n.t("Open the query editor"),
 
             // "Build & connect an app"
             walkthroughAppTitle: l10n.t("Build & connect an app"),
             walkthroughAppDescription: l10n.t(
-                "Schema Designer to Data API Builder to connect your app.",
-            ),
-            walkthroughAppSubtitle: l10n.t(
-                "Go from a schema to a running data layer your app can call.",
+                "Build a database-backed app from setup to API and running.",
             ),
             wtAppLocalContainerTitle: l10n.t("Create a local container"),
             wtAppLocalContainerDescription: l10n.t(
@@ -4259,42 +4257,39 @@ export class LocConstants {
             ),
 
             // "GitHub Copilot for SQL"
-            walkthroughCopilotSubtitle: l10n.t(
-                "Schema-aware chat and agent mode, scoped to your database.",
-            ),
             wtCopilotStep1Title: l10n.t("Agent mode"),
             wtCopilotStep1Description: l10n.t(
-                "Use GitHub Copilot agent mode to connect to your database, explore its schema, and run queries through MSSQL tools with your approval.",
+                "Delegate multi-step database tasks to Copilot, from connecting to databases and exploring schemas to running queries and making changes.",
             ),
-            wtCopilotStep2Title: l10n.t("@mssql Ask mode"),
+            wtCopilotStep2Title: l10n.t("Ask mode"),
             wtCopilotStep2Description: l10n.t(
-                "Ask @mssql questions about your connected database and generate SQL with schema-aware suggestions in GitHub Copilot Ask mode.",
+                "Ask questions about your connected database, generate queries, and understand schemas or database objects using natural language using the @mssql command.",
             ),
-            wtCopilotStep3Title: l10n.t("Fix / Explain"),
+            wtCopilotStep3Title: l10n.t("Query quick actions"),
             wtCopilotStep3Description: l10n.t(
-                "Use GitHub Copilot to suggest fixes for SQL errors or explain what your query does in natural language.",
+                "Explain, fix, or analyze query performance directly from the SQL editor with GitHub Copilot.",
             ),
-            wtCopilotStep4Title: l10n.t("Schema Designer with GitHub Copilot"),
+            wtCopilotStep4Title: l10n.t("Schema designer"),
             wtCopilotStep4Description: l10n.t(
-                "Describe the tables and relationships you need in Schema Designer chat, then review the proposed changes on the canvas before publishing to your database.",
+                "Visualize and design your database with natural language, while GitHub Copilot turns your requests into tables, relationships, and schema changes.",
             ),
-            wtCopilotStep5Title: l10n.t("Data API Builder with GitHub Copilot"),
+            wtCopilotStep5Title: l10n.t("Data API Builder"),
             wtCopilotStep5Description: l10n.t(
-                "Use natural language in Data API Builder chat to choose tables, set CRUD permissions, and configure REST, GraphQL, or MCP endpoints. Review the generated configuration before deploying.",
+                "Create REST, GraphQL, and MCP endpoints from your database using natural language in Data API Builder.",
             ),
             walkthroughLearnMoreAction: l10n.t("Learn more"),
 
             walkthroughConnectTitle: l10n.t("Connect & run your first query"),
             walkthroughConnectDescription: l10n.t(
-                "Connection dialog, Object Explorer, and the results grid.",
+                "Get familiar with the core database experience in the MSSQL extension.",
             ),
             walkthroughCopilotTitle: l10n.t("GitHub Copilot for SQL"),
             walkthroughCopilotDescription: l10n.t(
-                "Chat, agent mode, and schema-aware suggestions.",
+                "Explore AI-assisted SQL development, from queries to schemas and data APIs.",
             ),
 
             devContainersDescription: l10n.t(
-                "Preconfigured local dev environment - a containerized Azure SQL database plus your language stack, ready to code in minutes. No local install required.",
+                "Launch a preconfigured code template with a local SQL container and your app stack, giving you everything needed to start developing locally.",
             ),
             devContainerDotNet: l10n.t(".NET + Azure SQL"),
             devContainerDotNetAspire: l10n.t(".NET Aspire + Azure SQL"),
