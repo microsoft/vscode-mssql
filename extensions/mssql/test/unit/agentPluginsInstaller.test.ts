@@ -278,6 +278,37 @@ suite("Agent Plugins Installer", () => {
         expect(siblings.filter((entry) => entry.includes(".old-"))).to.be.empty;
     });
 
+    test("leaves nothing behind when a first install cannot be moved into place", async () => {
+        const staging = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-agent-staging-"));
+        await fs.mkdir(path.join(staging, ".claude-plugin"), { recursive: true });
+        await fs.writeFile(path.join(staging, ".claude-plugin", "plugin.json"), "{}");
+
+        // Nothing is installed yet, so there is no backup to restore. A cross-filesystem copy
+        // can still create part of the destination before failing, and a half-copied tree that
+        // happens to carry a manifest would otherwise read as a working plugin.
+        sandbox.stub(fs, "rename").rejects(new Error("cross-device"));
+        sandbox.stub(fs, "cp").callsFake(async () => {
+            await fs.mkdir(path.join(installer.pluginRoot.fsPath, ".claude-plugin"), {
+                recursive: true,
+            });
+            await fs.writeFile(
+                path.join(installer.pluginRoot.fsPath, ".claude-plugin", "plugin.json"),
+                "{}",
+            );
+            throw new Error("out of space");
+        });
+
+        let thrown: unknown;
+        try {
+            await installer["replaceDirectory"](staging, installer.pluginRoot.fsPath);
+        } catch (error) {
+            thrown = error;
+        }
+
+        expect(thrown).to.be.instanceOf(Error);
+        expect(await installer["isPluginPresent"]()).to.equal(false);
+    });
+
     test("reads only the first skills table, whatever separates the sections", () => {
         // The collection README follows its catalog with an install table whose rows repeat every
         // skill name, and an authoring table whose first column is prose. Neither is a skill, and

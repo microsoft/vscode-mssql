@@ -277,9 +277,12 @@ export class AgentPluginsInstaller {
         try {
             await this.moveInto(source, destination);
         } catch (error) {
+            // A copy that failed part way leaves debris, and it is cleared whether or not there
+            // is a backup: with one it would block the restore rename, and without one -- a
+            // first install -- a half-copied tree that happens to include a manifest reads as a
+            // working plugin to `isPluginPresent`, which would then register a broken install.
+            await fs.rm(destination, { recursive: true, force: true }).catch(() => undefined);
             if (hasBackup) {
-                // A copy that failed part way leaves debris the restore cannot rename over.
-                await fs.rm(destination, { recursive: true, force: true }).catch(() => undefined);
                 await fs.rename(backup, destination).catch(() => undefined);
             }
             throw error;

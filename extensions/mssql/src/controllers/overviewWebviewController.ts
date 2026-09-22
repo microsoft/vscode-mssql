@@ -204,6 +204,9 @@ export class OverviewWebviewController extends WebviewPanelController<
     /** Sequence number of the newest workspace-state refresh; see refreshWorkspaceState. */
     private _workspaceStateRequest = 0;
 
+    /** Sequence number of the newest agent skills refresh; see refreshAgentSkillsState. */
+    private _agentSkillsRequest = 0;
+
     constructor(
         context: vscode.ExtensionContext,
         private _recentSqlFilesStore: RecentSqlFilesStore,
@@ -938,8 +941,13 @@ export class OverviewWebviewController extends WebviewPanelController<
         if (this.isDisposed) {
             return;
         }
+        // Started from construction, from every reveal, and from the end of an install, and
+        // `isInstalled` reads the filesystem and the settings, so these overlap. Only the newest
+        // writes: an earlier `false` landing after the install's `true` would leave freshly
+        // installed skills showing as missing.
+        const request = ++this._agentSkillsRequest;
         const hasAgentSkillsPlugin = await this._agentSkillsInstaller.isInstalled();
-        if (this.isDisposed) {
+        if (this.isDisposed || request !== this._agentSkillsRequest) {
             return;
         }
         this.updateState({ ...this.state, hasAgentSkillsPlugin });
