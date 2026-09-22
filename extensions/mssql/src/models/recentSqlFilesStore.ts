@@ -62,6 +62,14 @@ export class RecentSqlFilesStore implements vscode.Disposable {
                 void this.recordOpen(document);
             }),
         );
+
+        // The event does not replay, and opening a SQL file is the usual way the extension
+        // activates, so the document that caused it would otherwise be the one file missing
+        // from the list -- and with a full history nothing goes looking for it.
+        const active = vscode.window.activeTextEditor?.document;
+        if (active) {
+            void this.recordOpen(active);
+        }
     }
 
     /**

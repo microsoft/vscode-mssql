@@ -89,6 +89,14 @@ export const DeploymentStartPage = () => {
             return;
         }
 
+        // Initialization failed, which includes a type the extension has no wizard for. The
+        // selection has to be released or the chooser it falls back to is inert: every card
+        // goes through handleDeploymentTypeSelected, which ignores clicks while one is pending.
+        if (deploymentTypeState?.loadState === ApiStatus.Error) {
+            setPendingDeploymentType(undefined);
+            return;
+        }
+
         if (
             pendingDeploymentType === DeploymentType.LocalContainers &&
             isLocalContainersStateReady(deploymentTypeState)

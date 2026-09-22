@@ -179,6 +179,49 @@ suite("Recent SQL Files Store", () => {
         ]);
     });
 
+    test("records the SQL file already open when registration happens", async () => {
+        // onDidOpenTextDocument does not replay, and opening a SQL file is what activates the
+        // extension, so without this the file that caused activation is the one file missing.
+        sandbox
+            .stub(vscode.window, "activeTextEditor")
+            .value({ document: createDocument("/work/already-open.sql") });
+        const openEvent = new vscode.EventEmitter<vscode.TextDocument>();
+        sandbox.stub(vscode.workspace, "onDidOpenTextDocument").value(openEvent.event);
+
+        try {
+            store.register();
+            // register() starts the write without awaiting it.
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            existingFiles.set("/work/already-open.sql", 1_000);
+            const files = await store.getRecentFiles(5);
+            expect(files.map((file) => file.fsPath)).to.include("/work/already-open.sql");
+        } finally {
+            openEvent.dispose();
+            store.dispose();
+        }
+    });
+
+    test("does not record a non-SQL active editor at registration", async () => {
+        sandbox
+            .stub(vscode.window, "activeTextEditor")
+            .value({ document: createDocument("/work/notes.md", "markdown") });
+        const openEvent = new vscode.EventEmitter<vscode.TextDocument>();
+        sandbox.stub(vscode.workspace, "onDidOpenTextDocument").value(openEvent.event);
+
+        try {
+            store.register();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            existingFiles.set("/work/notes.md", 1_000);
+            const files = await store.getRecentFiles(5);
+            expect(files.map((file) => file.fsPath)).to.not.include("/work/notes.md");
+        } finally {
+            openEvent.dispose();
+            store.dispose();
+        }
+    });
+
     test("announces a change once a newly opened file is recorded", async () => {
         const listener = sinon.stub();
         const subscription = store.onDidChange(listener);

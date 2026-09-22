@@ -135,6 +135,7 @@ import { SqlMoveToSchemaProvider } from "../languageservice/sqlMoveToSchemaProvi
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { OverviewOpenOptions, OverviewWebviewController } from "./overviewWebviewController";
+import { OverviewOpenSource } from "../sharedInterfaces/overview";
 import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
 import { AgentPluginsInstaller } from "../agentPlugins/agentPluginsInstaller";
 import { DeploymentType, isDeploymentType } from "../sharedInterfaces/deployment";
@@ -1590,9 +1591,12 @@ export default class MainController implements vscode.Disposable {
                 setOverviewVisibility(true),
             ),
             // Delegates rather than duplicating the open logic; it exists purely so the node's
-            // context menu can be labelled "Open" instead of "Open Welcome".
+            // context menu can be labelled "Open" instead of "Open Welcome". It carries the
+            // node's own source, since this is the same node being opened a second way.
             vscode.commands.registerCommand(Constants.cmdOpenOverviewFromNode, () =>
-                vscode.commands.executeCommand(Constants.cmdOpenOverview),
+                vscode.commands.executeCommand(Constants.cmdOpenOverview, {
+                    source: OverviewOpenSource.TreeNode,
+                }),
             ),
         );
 
