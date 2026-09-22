@@ -90,6 +90,20 @@ const overviewTelemetryActions: Partial<Record<OverviewTelemetryEvent, Telemetry
 /** Source the agent skills are installed from, reported with the install telemetry. */
 const AGENT_SKILLS_PLUGIN_SOURCE = "microsoft/azure-sql-database-container";
 
+/** A staged template file and the resolved place in the workspace it will be written. */
+interface TemplateFileDestination {
+    /** Path relative to the staging root and to the workspace folder, as the CLI reported it. */
+    relativePath: string;
+    /** Directory the file lands in, with every component that already exists resolved. */
+    directory: string;
+    fileName: string;
+}
+
+/** Where a staged template file is written, built from its resolved directory. */
+function templateFileUri(destination: TemplateFileDestination): vscode.Uri {
+    return vscode.Uri.file(path.join(destination.directory, destination.fileName));
+}
+
 /** `vscode.env.remoteName` when the window is attached to a dev container. */
 const DEV_CONTAINER_REMOTE_NAME = "dev-container";
 
@@ -683,10 +697,8 @@ export class OverviewWebviewController extends WebviewPanelController<
             ]);
 
             const files = this.parseAppliedTemplateFiles(output, stagingDirectory);
-            const conflictChoices = await this.getTemplateFileConflictChoices(
-                workspaceFolder.uri,
-                files,
-            );
+            const destinations = await this.resolveTemplateDestinations(workspaceFolder.uri, files);
+            const conflictChoices = await this.getTemplateFileConflictChoices(destinations);
             if (!conflictChoices) {
                 this.logger.info("Dev container setup canceled while resolving file conflicts.");
                 return {
@@ -697,12 +709,7 @@ export class OverviewWebviewController extends WebviewPanelController<
                 };
             }
 
-            await this.copyTemplateFiles(
-                stagingDirectory,
-                workspaceFolder.uri,
-                files,
-                conflictChoices,
-            );
+            await this.copyTemplateFiles(stagingDirectory, destinations, conflictChoices);
             await this.refreshWorkspaceState();
             return { applied: true, usedPicker: false };
         } catch (error) {
@@ -776,6 +783,45 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
+     * Works out where each staged file lands, with every existing path component resolved.
+     *
+     * `Uri.joinPath` is lexical, so a symlinked parent inside the workspace -- a `.vscode` that
+     * points at a dotfiles repository, say -- is followed when the file is written, and a
+     * template chooses the paths. Resolving each component that already exists, and checking the
+     * result is still under the workspace, is what keeps the write inside the folder the user
+     * picked. This is a check rather than a sandbox: a link swapped in afterwards would still be
+     * followed, which needs local write access during the copy.
+     */
+    private async resolveTemplateDestinations(
+        workspaceFolder: vscode.Uri,
+        files: string[],
+    ): Promise<TemplateFileDestination[]> {
+        const workspaceRoot = await fs.promises.realpath(workspaceFolder.fsPath);
+        const destinations: TemplateFileDestination[] = [];
+
+        for (const relativePath of files) {
+            const segments = relativePath.split("/");
+            let directory = workspaceRoot;
+            for (const segment of segments.slice(0, -1)) {
+                const child = path.join(directory, segment);
+                // A component that does not exist yet cannot be a link to anywhere.
+                directory = await fs.promises.realpath(child).catch(() => child);
+                if (!directory.startsWith(`${workspaceRoot}${path.sep}`)) {
+                    throw new Error(
+                        `Template file path escapes the workspace folder: ${relativePath}`,
+                    );
+                }
+            }
+            destinations.push({
+                relativePath,
+                directory,
+                fileName: segments[segments.length - 1],
+            });
+        }
+        return destinations;
+    }
+
+    /**
      * Collects a decision for every destination that already exists before any workspace files are
      * changed.
      *
@@ -784,13 +830,12 @@ export class OverviewWebviewController extends WebviewPanelController<
      * file.
      */
     private async getTemplateFileConflictChoices(
-        workspaceFolder: vscode.Uri,
-        files: string[],
+        destinations: TemplateFileDestination[],
     ): Promise<Map<string, "skip" | "overwrite"> | undefined> {
         const conflicts: string[] = [];
-        for (const file of files) {
-            if (await this.conflictsWithExistingFile(workspaceFolder, file)) {
-                conflicts.push(file);
+        for (const destination of destinations) {
+            if (await this.conflictsWithExistingFile(destination)) {
+                conflicts.push(destination.relativePath);
             }
         }
 
@@ -840,12 +885,10 @@ export class OverviewWebviewController extends WebviewPanelController<
      * proceeding silently would risk overwriting a file the provider could not inspect.
      */
     private async conflictsWithExistingFile(
-        workspaceFolder: vscode.Uri,
-        file: string,
+        destination: TemplateFileDestination,
     ): Promise<boolean> {
-        const destination = vscode.Uri.joinPath(workspaceFolder, ...file.split("/"));
         try {
-            await vscode.workspace.fs.stat(destination);
+            await vscode.workspace.fs.stat(templateFileUri(destination));
             return true;
         } catch (error) {
             return !(error instanceof vscode.FileSystemError) || error.code !== "FileNotFound";
@@ -859,26 +902,24 @@ export class OverviewWebviewController extends WebviewPanelController<
      */
     private async copyTemplateFiles(
         stagingDirectory: string,
-        workspaceFolder: vscode.Uri,
-        files: string[],
+        destinations: TemplateFileDestination[],
         conflictChoices: ReadonlyMap<string, "skip" | "overwrite">,
     ): Promise<void> {
-        for (const file of files) {
-            const conflictChoice = conflictChoices.get(file);
+        for (const entry of destinations) {
+            const conflictChoice = conflictChoices.get(entry.relativePath);
             if (conflictChoice === "skip") {
                 continue;
             }
-            const segments = file.split("/");
-            const destination = vscode.Uri.joinPath(workspaceFolder, ...segments);
-            const destinationDirectory = vscode.Uri.joinPath(
-                workspaceFolder,
-                ...segments.slice(0, -1),
+            // Built from the resolved directory, so what was checked for containment is what is
+            // written rather than a lexical path that could follow a link somewhere else.
+            const destination = templateFileUri(entry);
+            const destinationDirectory = vscode.Uri.file(entry.directory);
+            const temporaryDestination = vscode.Uri.file(
+                path.join(entry.directory, `.${entry.fileName}.vscode-mssql-${randomUUID()}.tmp`),
             );
-            const temporaryDestination = vscode.Uri.joinPath(
-                destinationDirectory,
-                `.${segments.at(-1)}.vscode-mssql-${randomUUID()}.tmp`,
+            const contents = await fs.promises.readFile(
+                path.join(stagingDirectory, ...entry.relativePath.split("/")),
             );
-            const contents = await fs.promises.readFile(path.join(stagingDirectory, ...segments));
 
             await vscode.workspace.fs.createDirectory(destinationDirectory);
             try {

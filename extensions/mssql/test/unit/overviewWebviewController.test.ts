@@ -276,6 +276,25 @@ suite("Overview Webview Controller", () => {
         expect(fs.existsSync(path.join(workspaceRoot, "link", "secret.txt"))).to.be.false;
     });
 
+    test("refuses to write a template file through a symlinked workspace directory", async () => {
+        const workspaceRoot = await createTemporaryDirectory("mssql-overview-writelink-");
+        const outside = await createTemporaryDirectory("mssql-overview-writeout-");
+        // A workspace whose `.vscode` points elsewhere. Joining the destination lexically and
+        // writing it follows the link, putting a template file outside the chosen folder.
+        await fs.promises.symlink(outside, path.join(workspaceRoot, ".vscode"), "dir");
+        sandbox
+            .stub(vscode.workspace, "workspaceFolders")
+            .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+        controller = createController();
+        stubTemplateApplication({ ".vscode/tasks.json": "template tasks" });
+
+        const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
+
+        expect(result.applied).to.equal(false);
+        expect(result.error).to.match(/escapes the workspace folder/);
+        expect(fs.existsSync(path.join(outside, "tasks.json"))).to.be.false;
+    });
+
     suite("post-update trigger", () => {
         const LAST_VERSION_KEY = "changelog/lastChangeLogVersion";
 
@@ -446,12 +465,11 @@ suite("Overview Webview Controller", () => {
 
         let copyError: unknown;
         try {
-            await controller["copyTemplateFiles"](
-                stagingRoot,
+            const destinations = await controller["resolveTemplateDestinations"](
                 vscode.Uri.file(workspaceRoot),
                 [relativePath],
-                new Map(),
             );
+            await controller["copyTemplateFiles"](stagingRoot, destinations, new Map());
         } catch (error) {
             copyError = error;
         }
