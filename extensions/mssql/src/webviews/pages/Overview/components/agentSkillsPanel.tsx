@@ -413,6 +413,7 @@ const SkillPackCard = ({
     }, [isInstalled, isInstallTarget]);
     const promptsId = `${pack.id}-prompts`;
     const PackIcon = packIcons[pack.icon];
+    const isThisInstalling = isInstalling && isInstallTarget;
 
     return (
         <div className={classes.card}>
@@ -444,9 +445,11 @@ const SkillPackCard = ({
                         appearance="primary"
                         className={classes.installAction}
                         disabled={isInstalling}
-                        icon={isInstalling ? <Spinner size="tiny" /> : <GithubCopilot16Regular />}
+                        icon={
+                            isThisInstalling ? <Spinner size="tiny" /> : <GithubCopilot16Regular />
+                        }
                         onClick={onInstall}>
-                        {isInstalling ? loc.agentSkillsInstalling : loc.addToGitHubCopilot}
+                        {isThisInstalling ? loc.agentSkillsInstalling : loc.addToGitHubCopilot}
                     </Button>
                 )}
             </div>
