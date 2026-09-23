@@ -684,7 +684,8 @@ export class ConnectionConfig implements IConnectionConfig {
             const connectionDisplayName = getConnectionDisplayName(profile);
             const connectionString = String(rawProfile["connectionString"] ?? "");
             const loggerConnectionString = ["password", "pwd", "access token"].some(
-                (sensitiveKey) => connectionString.includes(sensitiveKey),
+                (sensitiveKey) =>
+                    connectionString.toLowerCase().includes(sensitiveKey.toLowerCase()),
             )
                 ? LocalizedConstants.Connection.ConnectionStringContainsSecrets
                 : connectionString;
