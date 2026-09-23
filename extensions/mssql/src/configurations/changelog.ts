@@ -15,7 +15,6 @@ export const changelogConfig: ChangelogWebviewState = {
             {
                 title: locConstants.Changelog.sqlFormatterTitle,
                 description: locConstants.Changelog.sqlFormatterDescription,
-                isPreview: true,
                 actions: [
                     {
                         label: locConstants.Changelog.learnMore,
