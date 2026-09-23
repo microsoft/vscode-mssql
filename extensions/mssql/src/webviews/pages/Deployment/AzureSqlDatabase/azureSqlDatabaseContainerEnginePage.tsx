@@ -34,6 +34,7 @@ import { locConstants } from "../../../common/locConstants";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { DeploymentStepCard } from "../deploymentStepCard";
 import { ContainerEngineInstallOptions } from "./containerEngineInstallOptions";
+import { ContainerDeploymentError } from "./containerDeploymentError";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -273,7 +274,10 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
         return (
             <MessageBar intent="error">
                 <MessageBarBody>
-                    {locConstants.azureSqlDatabase.containerEngineDetectionFailed} {detectionError}
+                    <ContainerDeploymentError
+                        message={locConstants.azureSqlDatabase.containerEngineDetectionFailed}
+                        fullErrorText={detectionError}
+                    />
                 </MessageBarBody>
             </MessageBar>
         );
@@ -346,7 +350,20 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
                             key={prerequisite}
                             status={statuses[prerequisite] ?? ApiStatus.NotStarted}
                             title={getStepTitle(prerequisite)}>
-                            {errors[prerequisite]}
+                            {statuses[prerequisite] === ApiStatus.Error && (
+                                <ContainerDeploymentError
+                                    message={
+                                        prerequisite === ContainerEnginePrerequisite.Running
+                                            ? locConstants.azureSqlDatabase.containerEngineNotRunning(
+                                                  engineName,
+                                              )
+                                            : locConstants.azureSqlDatabase.containerEngineCheckFailed(
+                                                  engineName,
+                                              )
+                                    }
+                                    fullErrorText={errors[prerequisite]}
+                                />
+                            )}
                         </DeploymentStepCard>
                     ))}
                     {hasFailedPrerequisite && (

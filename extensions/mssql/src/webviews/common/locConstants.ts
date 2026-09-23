@@ -2906,6 +2906,9 @@ export class LocConstants {
     public get azureSqlContainer() {
         return {
             sqlLogin: l10n.t("SQL Login"),
+            entraMfa: l10n.t("Microsoft Entra ID - Universal with MFA support"),
+            entraDefault: l10n.t("Microsoft Entra ID - Default"),
+            entraServicePrincipal: l10n.t("Microsoft Entra ID - Service Principal"),
             authenticationTooltip: l10n.t("The developer container uses SQL Login authentication."),
             userNameTooltip: l10n.t(
                 "The built-in administrator login for the developer container.",
@@ -2936,6 +2939,7 @@ export class LocConstants {
             termsAndConditions: l10n.t("Terms & Conditions"),
             termsTooltip: l10n.t("You must accept the container license terms to continue."),
             validationFailed: l10n.t("Unable to validate the container configuration."),
+            provisioningFailed: l10n.t("Container deployment failed."),
             settingUpContainer: (containerName: string) =>
                 l10n.t({
                     message: "Setting up {0}...",
@@ -2957,8 +2961,6 @@ export class LocConstants {
             connectingToContainerDescription: l10n.t(
                 "Connecting to your Azure SQL Database developer container.",
             ),
-            showErrorDetails: l10n.t("Show error details"),
-            hideErrorDetails: l10n.t("Hide error details"),
         };
     }
 
@@ -2970,7 +2972,7 @@ export class LocConstants {
                 "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
             ),
             chooseDeploymentOption: l10n.t("Choose how to run Azure SQL Database"),
-            localContainer: l10n.t("Local container"),
+            localContainer: l10n.t("Local container (Preview)"),
             localContainerDescription: l10n.t(
                 "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.",
             ),
@@ -2979,7 +2981,7 @@ export class LocConstants {
                 "Try Azure SQL Database at no cost with the free tier offer — a fully managed cloud database, ready for your app, ORM, or migration tools.",
             ),
             localContainerTbd: l10n.t("TBD"),
-            localContainerWizardTitle: l10n.t("New Azure SQL Database - Container"),
+            localContainerWizardTitle: l10n.t("(Preview) New Azure SQL Database - Container"),
             developerContainer: l10n.t("Azure SQL Database developer container"),
             paasAlignedLocalDevelopment: l10n.t("PaaS-aligned local development"),
             paasAlignedLocalDevelopmentDescription: l10n.t(
@@ -3013,6 +3015,18 @@ export class LocConstants {
             engineNotDetected: l10n.t("Engine not detected"),
             selectContainerEngine: l10n.t("Select a container engine"),
             containerEngineDetectionFailed: l10n.t("Container engine detection failed."),
+            containerEngineNotRunning: (engine: string) =>
+                l10n.t({
+                    message: "Unable to connect to {0}. Make sure it is running and retry.",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
+            containerEngineCheckFailed: (engine: string) =>
+                l10n.t({
+                    message: "Unable to verify {0}. Check its configuration and retry.",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
             noContainerEngineFound: l10n.t("No container engine found"),
             installContainerEngineToContinue: l10n.t("Install a container engine to continue"),
             installContainerEngineDescription: l10n.t(

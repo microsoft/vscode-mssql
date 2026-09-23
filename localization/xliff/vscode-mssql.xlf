@@ -65,6 +65,9 @@
     <trans-unit id="++CODE++130aea5a0d1dd689e85fedca3a2c57e179d4a58d3e7d62875e2bf25799c0762f">
       <source xml:lang="en">(Command completed successfully)</source>
     </trans-unit>
+    <trans-unit id="++CODE++07fabb68044c3242380f6f542e565ce78bbab7b2f7a9b7407dba1821179d3cfb">
+      <source xml:lang="en">(Preview) New Azure SQL Database - Container</source>
+    </trans-unit>
     <trans-unit id="++CODE++10901a1c32c7ff27302839dda36a950d6b522c7ca85b8d9605112601a8a392f9">
       <source xml:lang="en">(current)</source>
     </trans-unit>
@@ -2020,6 +2023,9 @@
     </trans-unit>
     <trans-unit id="++CODE++69f2cb7dd2107d62b752a7de5d918a0b657147558a767c02175920d2b510a997">
       <source xml:lang="en">Container Settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8c5db61c12be42335ff46beb93cc83ae5686c04239ee29893e1bb734ffff12d2">
+      <source xml:lang="en">Container deployment failed.</source>
     </trans-unit>
     <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
       <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
@@ -4773,9 +4779,6 @@
     <trans-unit id="++CODE++4baf7a099b1735625d09c0b739ab0661d25b8db0dd3f09330f6521bd686f66fe">
       <source xml:lang="en">Hide endpoints</source>
     </trans-unit>
-    <trans-unit id="++CODE++cdb8d2c65b3734b73bc3c3204084521cd57a8ba692291c0c405e0611150fce39">
-      <source xml:lang="en">Hide error details</source>
-    </trans-unit>
     <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
       <source xml:lang="en">Hide full error message</source>
     </trans-unit>
@@ -5441,8 +5444,8 @@
     <trans-unit id="++CODE++44fe2df974d8b80786309f264819c59c4f54ef54e4c1ae57b1dd7983d08b6ba5">
       <source xml:lang="en">Local clone path</source>
     </trans-unit>
-    <trans-unit id="++CODE++804758176edec5d21ab94ef98b248b7f028ff350fc05b26d7e8345d563c3aac1">
-      <source xml:lang="en">Local container</source>
+    <trans-unit id="++CODE++361bad9f7864ba91d621aa931828237741303dc125d67ac76c81ea7b3001090b">
+      <source xml:lang="en">Local container (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
       <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
@@ -5635,6 +5638,15 @@
     </trans-unit>
     <trans-unit id="++CODE++eda567f3ec45bd45068c5e275d9a4acdcf64217bc5c76c47427cda124aa7bed3">
       <source xml:lang="en">Microsoft Entra ID</source>
+    </trans-unit>
+    <trans-unit id="++CODE++38f5548da28a6b04c103d4d706e5780e7e8a961c59c9230d47e390224573a379">
+      <source xml:lang="en">Microsoft Entra ID - Default</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56c4bcec7516f042864b2f7040ffcf8ca9552aad186f4ab50eec57a70dae35ef">
+      <source xml:lang="en">Microsoft Entra ID - Service Principal</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6288bf172611fb82a8e833bee7f42ed6a1cc9cdb507fffe068ba6d1b54f3e48">
+      <source xml:lang="en">Microsoft Entra ID - Universal with MFA support</source>
     </trans-unit>
     <trans-unit id="++CODE++4cca27a3569729f8e3fa178db33f438eaa136c7491a5c3d26c807c876a02c292">
       <source xml:lang="en">Microsoft Entra Id</source>
@@ -5849,9 +5861,6 @@
     </trans-unit>
     <trans-unit id="++CODE++18fdd549b2ed367ac0c74cbec1214644728515b30edbcb78e7d322757a7c8359">
       <source xml:lang="en">New</source>
-    </trans-unit>
-    <trans-unit id="++CODE++34b295e0cf2e8c47fab47719090079fb6a2cc95f37b7b39a6bbea401782ff1f5">
-      <source xml:lang="en">New Azure SQL Database - Container</source>
     </trans-unit>
     <trans-unit id="++CODE++47fcb7ca194ec7de1be8ea7b91df9b1e51e273673b6410255e55f48fe0061598">
       <source xml:lang="en">New Azure SQL logical server (Preview)</source>
@@ -8465,9 +8474,6 @@
     <trans-unit id="++CODE++b16fe7caa99853b93586ff9f7c883be10c62c4d1cedd735733ae1a3435b09a99">
       <source xml:lang="en">Show endpoints</source>
     </trans-unit>
-    <trans-unit id="++CODE++0f426198083a75e268e343589397e45b362da5e2f096ca8345dcb6f36e0934ce">
-      <source xml:lang="en">Show error details</source>
-    </trans-unit>
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>
     </trans-unit>
@@ -9510,6 +9516,10 @@
       <note>{0} is the token expiration time
 {1} is the current time</note>
     </trans-unit>
+    <trans-unit id="++CODE++228b3a68247cc2b415352af6f2b877f677eed15f0e7ec636bd4b12485e37501d">
+      <source xml:lang="en">Unable to connect to {0}. Make sure it is running and retry.</source>
+      <note>{0} is the name of a container engine</note>
+    </trans-unit>
     <trans-unit id="++CODE++0749eac937735a54efbd2572de25232bb773c43b1ed6b2407da37b6235f20410">
       <source xml:lang="en">Unable to construct connection: {0}</source>
     </trans-unit>
@@ -9565,6 +9575,10 @@
     </trans-unit>
     <trans-unit id="++CODE++a38bee0d6e2500966d3b6a21896c9f5dedaf92acdfa83ed3ba50a4a1850670d4">
       <source xml:lang="en">Unable to validate the container configuration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++124ca56333c7f32c616c30516bbaebdd39e4cc4821f247c3d4df5b9419ec9a0a">
+      <source xml:lang="en">Unable to verify {0}. Check its configuration and retry.</source>
+      <note>{0} is the name of a container engine</note>
     </trans-unit>
     <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
       <source xml:lang="en">Unavailable for backups to existing files</source>

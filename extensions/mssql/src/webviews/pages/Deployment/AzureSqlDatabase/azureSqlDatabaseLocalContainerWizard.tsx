@@ -6,7 +6,7 @@
 import { makeStyles, MessageBar, MessageBarBody, Text } from "@fluentui/react-components";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Wizard, WizardPageDefinition } from "../../../common/wizard";
-import { DockerIcon } from "../../../common/icons/docker";
+import azureSqlContainerIcon from "../../../media/azureSqlContainer.svg";
 import { locConstants } from "../../../common/locConstants";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { AzureSqlDatabaseLocalContainerInfoPage } from "./azureSqlDatabaseLocalContainerInfoPage";
@@ -29,6 +29,8 @@ import { useDeploymentSelector } from "../deploymentSelector";
 import { AzureSqlDatabaseContainerFormPage } from "./azureSqlDatabaseContainerFormPage";
 import { getSqlPasswordValidationError } from "../../../../utils/sqlStringUtils";
 import { AzureSqlDatabaseContainerProvisioningPage } from "./azureSqlDatabaseContainerProvisioningPage";
+import { ContainerDeploymentError } from "./containerDeploymentError";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     placeholder: {
@@ -67,14 +69,19 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
     const [containerEngine, setContainerEngine] = useState<ContainerEngine>();
     const [detectedEngineCount, setDetectedEngineCount] = useState<number>();
     const [arePrerequisitesReady, setArePrerequisitesReady] = useState(false);
-    const [isProvisioningComplete, setIsProvisioningComplete] = useState(false);
+    const [provisioningStatus, setProvisioningStatus] = useState(ApiStatus.NotStarted);
     const [isPortValidating, setIsPortValidating] = useState(false);
     const [isLoadingDefaults, setIsLoadingDefaults] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
     const portEditedRef = useRef(false);
     const handlePrerequisitesReadyChange = useCallback((isReady: boolean) => {
         setArePrerequisitesReady(isReady);
     }, []);
     const handleCancel = useCallback(async () => {
+        if (isCancelling) {
+            return;
+        }
+        setIsCancelling(true);
         try {
             await extensionRpc.sendRequest(AzureSqlDatabaseRequests.CancelContainerProvisioning);
         } catch (error) {
@@ -82,7 +89,7 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
         } finally {
             context?.dispose();
         }
-    }, [context, extensionRpc]);
+    }, [context, extensionRpc, isCancelling]);
 
     useEffect(() => {
         if (!arePrerequisitesReady || !containerEngine) {
@@ -220,7 +227,10 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
                     {validationError && (
                         <MessageBar intent="error">
                             <MessageBarBody>
-                                {locConstants.azureSqlContainer.validationFailed} {validationError}
+                                <ContainerDeploymentError
+                                    message={locConstants.azureSqlContainer.validationFailed}
+                                    fullErrorText={validationError}
+                                />
                             </MessageBarBody>
                         </MessageBar>
                     )}
@@ -268,19 +278,20 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
         },
         {
             id: "local-container-provisioning",
-            title: locConstants.azureSqlDatabase.developerContainer,
+            title: locConstants.localContainers.settingUp,
             render: () =>
                 containerEngine ? (
                     <AzureSqlDatabaseContainerProvisioningPage
                         engine={containerEngine}
                         form={form}
-                        onComplete={setIsProvisioningComplete}
+                        onStatusChange={setProvisioningStatus}
                     />
                 ) : (
                     placeholderPage()
                 ),
-            canGoBack: false,
-            canGoNext: isProvisioningComplete,
+            canGoBack: provisioningStatus === ApiStatus.Error,
+            canGoNext: provisioningStatus === ApiStatus.Loaded,
+            onPrevious: () => setProvisioningStatus(ApiStatus.NotStarted),
             onNext: () => {
                 context.dispose();
                 return false;
@@ -290,10 +301,11 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
 
     return (
         <Wizard
-            icon={<DockerIcon aria-hidden="true" />}
+            icon={<img src={azureSqlContainerIcon} alt="" aria-hidden="true" />}
             title={locConstants.azureSqlDatabase.localContainerWizardTitle}
             pages={pages}
             onCancel={() => void handleCancel()}
+            isCancelling={isCancelling}
             maxContentWidth="wide"
         />
     );

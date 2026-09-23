@@ -30,6 +30,7 @@ import {
     getSqlPasswordValidationError,
     SqlPasswordValidationError,
 } from "../../../../utils/sqlStringUtils";
+import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
 
 const useStyles = makeStyles({
     form: {
@@ -136,8 +137,21 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
                     loc.authenticationTooltip,
                 )}
                 required>
-                <Dropdown size="small" value={loc.sqlLogin} selectedOptions={["SqlLogin"]} disabled>
-                    <Option value="SqlLogin">{loc.sqlLogin}</Option>
+                <Dropdown
+                    size="small"
+                    value={loc.sqlLogin}
+                    selectedOptions={[AuthenticationType.SqlLogin]}
+                    disabled={disabled}>
+                    <Option value={AuthenticationType.SqlLogin}>{loc.sqlLogin}</Option>
+                    <Option value={AuthenticationType.AzureMFA} disabled>
+                        {loc.entraMfa}
+                    </Option>
+                    <Option value={AuthenticationType.ActiveDirectoryDefault} disabled>
+                        {loc.entraDefault}
+                    </Option>
+                    <Option value={AuthenticationType.ActiveDirectoryServicePrincipal} disabled>
+                        {loc.entraServicePrincipal}
+                    </Option>
                 </Dropdown>
             </Field>
             <Field label={label(locConstants.azureSqlDatabase.userName, loc.userNameTooltip)}>

@@ -4394,6 +4394,9 @@
     "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.": "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.",
     "Smart performance": "Smart performance",
     "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
+    "Microsoft Entra ID - Universal with MFA support": "Microsoft Entra ID - Universal with MFA support",
+    "Microsoft Entra ID - Default": "Microsoft Entra ID - Default",
+    "Microsoft Entra ID - Service Principal": "Microsoft Entra ID - Service Principal",
     "The developer container uses SQL Login authentication.": "The developer container uses SQL Login authentication.",
     "The built-in administrator login for the developer container.": "The built-in administrator login for the developer container.",
     "Use 8–128 characters with characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.": "Use 8–128 characters with characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.",
@@ -4407,6 +4410,7 @@
     "(optional)": "(optional)",
     "You must accept the container license terms to continue.": "You must accept the container license terms to continue.",
     "Unable to validate the container configuration.": "Unable to validate the container configuration.",
+    "Container deployment failed.": "Container deployment failed.",
     "Setting up {0}.../{0} is the container name": {
         "message": "Setting up {0}...",
         "comment": ["{0} is the container name"]
@@ -4415,18 +4419,16 @@
     "Creating and starting your Azure SQL Database container.": "Creating and starting your Azure SQL Database container.",
     "Readying the container for connections.": "Readying the container for connections.",
     "Connecting to your Azure SQL Database developer container.": "Connecting to your Azure SQL Database developer container.",
-    "Show error details": "Show error details",
-    "Hide error details": "Hide error details",
     "Loading Azure SQL Database...": "Loading Azure SQL Database...",
     "Create an Azure SQL Database": "Create an Azure SQL Database",
     "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.": "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
     "Choose how to run Azure SQL Database": "Choose how to run Azure SQL Database",
-    "Local container": "Local container",
+    "Local container (Preview)": "Local container (Preview)",
     "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.": "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.",
     "Free": "Free",
     "Try Azure SQL Database at no cost with the free tier offer — a fully managed cloud database, ready for your app, ORM, or migration tools.": "Try Azure SQL Database at no cost with the free tier offer — a fully managed cloud database, ready for your app, ORM, or migration tools.",
     "TBD": "TBD",
-    "New Azure SQL Database - Container": "New Azure SQL Database - Container",
+    "(Preview) New Azure SQL Database - Container": "(Preview) New Azure SQL Database - Container",
     "Azure SQL Database developer container": "Azure SQL Database developer container",
     "PaaS-aligned local development": "PaaS-aligned local development",
     "Build and test against the Azure SQL Database developer container so what runs locally matches what runs in Azure—no surprises at deploy time.": "Build and test against the Azure SQL Database developer container so what runs locally matches what runs in Azure—no surprises at deploy time.",
@@ -4447,6 +4449,14 @@
     "Engine not detected": "Engine not detected",
     "Select a container engine": "Select a container engine",
     "Container engine detection failed.": "Container engine detection failed.",
+    "Unable to connect to {0}. Make sure it is running and retry./{0} is the name of a container engine": {
+        "message": "Unable to connect to {0}. Make sure it is running and retry.",
+        "comment": ["{0} is the name of a container engine"]
+    },
+    "Unable to verify {0}. Check its configuration and retry./{0} is the name of a container engine": {
+        "message": "Unable to verify {0}. Check its configuration and retry.",
+        "comment": ["{0} is the name of a container engine"]
+    },
     "No container engine found": "No container engine found",
     "Install a container engine to continue": "Install a container engine to continue",
     "The local database runs inside a container, so you'll need a container engine. Docker is pre-selected as a common default; any of the options below will work. Install one to continue.": "The local database runs inside a container, so you'll need a container engine. Docker is pre-selected as a common default; any of the options below will work. Install one to continue.",

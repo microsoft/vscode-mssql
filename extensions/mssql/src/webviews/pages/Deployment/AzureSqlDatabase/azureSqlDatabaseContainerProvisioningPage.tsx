@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Badge, Button, Link, makeStyles } from "@fluentui/react-components";
+import { Badge, Button, makeStyles } from "@fluentui/react-components";
 import { Desktop20Regular } from "@fluentui/react-icons";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -24,6 +24,7 @@ import { ConnectToDatabaseCard } from "../connectToDatabaseCard";
 import { DeploymentStepCard } from "../deploymentStepCard";
 import { WhatsNextCard } from "../whatsNextCard";
 import { getContainerEngineDisplayName } from "./azureSqlDatabaseContainerEnginePage";
+import { ContainerDeploymentError } from "./containerDeploymentError";
 
 const provisioningSteps = [
     AzureSqlContainerProvisioningStep.PullImage,
@@ -50,12 +51,7 @@ const useStyles = makeStyles({
         fontWeight: 600,
     },
     errorDetails: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
         paddingTop: "8px",
-        whiteSpace: "pre-wrap",
-        overflowWrap: "anywhere",
     },
     retryButton: {
         alignSelf: "flex-start",
@@ -69,13 +65,13 @@ const useStyles = makeStyles({
 interface ProvisioningPageProps {
     engine: ContainerEngine;
     form: AzureSqlContainerForm;
-    onComplete: (complete: boolean) => void;
+    onStatusChange: (status: ApiStatus) => void;
 }
 
 export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPageProps> = ({
     engine,
     form,
-    onComplete,
+    onStatusChange,
 }) => {
     const classes = useStyles();
     const { extensionRpc } = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
@@ -91,7 +87,6 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
     const [attempt, setAttempt] = useState(0);
     const [error, setError] = useState<string>();
     const [fullErrorText, setFullErrorText] = useState<string>();
-    const [showErrorDetails, setShowErrorDetails] = useState(false);
     const [connectionString, setConnectionString] = useState<string>();
     const runs = useRef(new Map<string, Promise<AzureSqlContainerProvisioningResult>>());
     const statusesRef = useRef(statuses);
@@ -99,7 +94,7 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
 
     useEffect(() => {
         if (currentStepIndex >= provisioningSteps.length) {
-            onComplete(true);
+            onStatusChange(ApiStatus.Loaded);
             return;
         }
 
@@ -111,7 +106,8 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
                 engine,
                 step,
                 form,
-                retry: statusesRef.current[step] === ApiStatus.Error,
+                // Re-entering from configuration must restart with the current form, not cached results.
+                retry: currentStepIndex === 0 || statusesRef.current[step] === ApiStatus.Error,
             });
             runs.current.set(runKey, run);
         }
@@ -120,8 +116,7 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
         setStatuses((current) => ({ ...current, [step]: ApiStatus.Loading }));
         setError(undefined);
         setFullErrorText(undefined);
-        setShowErrorDetails(false);
-        onComplete(false);
+        onStatusChange(ApiStatus.Loading);
 
         const runStep = async () => {
             try {
@@ -133,6 +128,7 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
                     setStatuses((current) => ({ ...current, [step]: ApiStatus.Error }));
                     setError(result.error);
                     setFullErrorText(result.fullErrorText);
+                    onStatusChange(ApiStatus.Error);
                     return;
                 }
                 setStatuses((current) => ({ ...current, [step]: ApiStatus.Loaded }));
@@ -143,9 +139,11 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
             } catch (requestError) {
                 if (!cancelled) {
                     setStatuses((current) => ({ ...current, [step]: ApiStatus.Error }));
-                    setError(
+                    setError(locConstants.azureSqlContainer.provisioningFailed);
+                    setFullErrorText(
                         requestError instanceof Error ? requestError.message : String(requestError),
                     );
+                    onStatusChange(ApiStatus.Error);
                 }
             }
         };
@@ -154,7 +152,7 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
         return () => {
             cancelled = true;
         };
-    }, [attempt, currentStepIndex, engine, extensionRpc, form, onComplete]);
+    }, [attempt, currentStepIndex, engine, extensionRpc, form, onStatusChange]);
 
     const failedStep = provisioningSteps.find((step) => statuses[step] === ApiStatus.Error);
     const stepContent = {
@@ -193,19 +191,12 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
                     status={statuses[step]}
                     title={stepContent[step].title}>
                     {stepContent[step].description}
-                    {step === failedStep && error && (
+                    {step === failedStep && (
                         <div className={classes.errorDetails}>
-                            <span>{error}</span>
-                            {fullErrorText && (
-                                <>
-                                    <Link onClick={() => setShowErrorDetails((shown) => !shown)}>
-                                        {showErrorDetails
-                                            ? locConstants.azureSqlContainer.hideErrorDetails
-                                            : locConstants.azureSqlContainer.showErrorDetails}
-                                    </Link>
-                                    {showErrorDetails && <span>{fullErrorText}</span>}
-                                </>
-                            )}
+                            <ContainerDeploymentError
+                                message={error ?? locConstants.azureSqlContainer.provisioningFailed}
+                                fullErrorText={fullErrorText}
+                            />
                         </div>
                     )}
                 </DeploymentStepCard>
