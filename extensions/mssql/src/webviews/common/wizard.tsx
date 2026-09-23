@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ReactNode, useEffect, useMemo, useState } from "react";
-import { Button, makeStyles } from "@fluentui/react-components";
+import { Button, makeStyles, Spinner } from "@fluentui/react-components";
 import { ArrowLeft20Regular, ArrowRight20Regular } from "@fluentui/react-icons";
 import { DialogPageShellContentWidth } from "./dialogPageShell";
 import { WizardPageShell } from "./wizardPageShell";
@@ -52,6 +52,7 @@ export interface WizardProps {
     title: string;
     pages: WizardPageDefinition[];
     onCancel: () => void;
+    isCancelling?: boolean;
     maxContentWidth?: DialogPageShellContentWidth;
     initialPageId?: string;
 }
@@ -61,6 +62,7 @@ export const Wizard = ({
     title,
     pages,
     onCancel,
+    isCancelling = false,
     maxContentWidth = "medium",
     initialPageId,
 }: WizardProps) => {
@@ -172,7 +174,16 @@ export const Wizard = ({
             footerStart={
                 <div className={classes.footerGroup}>
                     {showCancel && (
-                        <Button appearance="secondary" onClick={onCancel}>
+                        <Button
+                            appearance="secondary"
+                            disabled={isCancelling}
+                            aria-busy={isCancelling}
+                            icon={
+                                isCancelling ? (
+                                    <Spinner size="tiny" aria-hidden="true" />
+                                ) : undefined
+                            }
+                            onClick={onCancel}>
                             {locConstants.common.cancel}
                         </Button>
                     )}
@@ -184,7 +195,7 @@ export const Wizard = ({
                     {hasPreviousAction && (
                         <Button
                             appearance="secondary"
-                            disabled={!canGoBack}
+                            disabled={isCancelling || !canGoBack}
                             onClick={() => void goPrevious()}>
                             <span className={classes.footerButtonContent}>
                                 <ArrowLeft20Regular />
@@ -194,7 +205,7 @@ export const Wizard = ({
                     )}
                     <Button
                         appearance="primary"
-                        disabled={!isPageValid || !canGoNext}
+                        disabled={isCancelling || !isPageValid || !canGoNext}
                         onClick={() => void goNext()}>
                         <span className={classes.footerButtonContent}>
                             <span>{nextLabel}</span>

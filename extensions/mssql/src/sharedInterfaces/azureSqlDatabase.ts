@@ -9,6 +9,7 @@ import { IDialogProps } from "./connectionDialog";
 import { FirewallRuleSpec } from "./firewallRule";
 import { KnownFreeLimitExhaustionBehavior, KnownSampleName, Server } from "@azure/arm-sql";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
+import { RequestType } from "vscode-jsonrpc";
 
 /**
  * Ordered list of Azure component names used for cascading load/reset.
@@ -29,10 +30,140 @@ export const AzureSqlDatabaseLinks = {
         "https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tiers-sql-database-vcore",
     createQuickstart:
         "https://learn.microsoft.com/en-us/azure/azure-sql/database/single-database-create-quickstart",
+    developerContainerOverview:
+        "https://microsoft.github.io/azure-sql-database-container/what-is-the-container.html",
+    developerContainerDevContainers:
+        "https://learn.microsoft.com/en-us/azure/azure-sql/database/local-dev-experience-dev-containers?view=azuresql",
+    developerContainerConfiguration:
+        "https://microsoft.github.io/azure-sql-database-container/getting-started.html",
+    dockerDesktop: "https://www.docker.com/products/docker-desktop/",
+    podmanDesktop: "https://podman-desktop.io/downloads",
+    rancherDesktop: "https://rancherdesktop.io/",
+    appleContainer: "https://github.com/apple/container/releases",
+    wslContainers: "https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers",
     connectQuerySsms:
         "https://learn.microsoft.com/en-us/azure/azure-sql/database/connect-query-ssms",
     azureSqlDocs: "https://learn.microsoft.com/en-us/azure/azure-sql/database/",
 } as const;
+
+export enum ContainerEngine {
+    Docker = "docker",
+    Podman = "podman",
+    Containerd = "containerd",
+    AppleContainer = "appleContainer",
+    WslContainer = "wslContainer",
+}
+
+export enum ContainerEnginePrerequisite {
+    Installation = "installation",
+    Running = "running",
+    Configuration = "configuration",
+}
+
+export function getContainerEnginePrerequisites(
+    engine: ContainerEngine,
+): ContainerEnginePrerequisite[] {
+    const prerequisites = [
+        ContainerEnginePrerequisite.Installation,
+        ContainerEnginePrerequisite.Running,
+    ];
+
+    return engine === ContainerEngine.Docker
+        ? [...prerequisites, ContainerEnginePrerequisite.Configuration]
+        : prerequisites;
+}
+
+export interface ContainerEnginePrerequisiteResult {
+    success: boolean;
+    error?: string;
+}
+
+export interface AzureSqlContainerForm {
+    password: string;
+    savePassword: boolean;
+    profileName: string;
+    groupId: string;
+    containerName: string;
+    port: string;
+    hostname: string;
+    acceptEula: boolean;
+}
+
+export type AzureSqlContainerFormErrors = Partial<Record<keyof AzureSqlContainerForm, string>>;
+
+export enum AzureSqlContainerProvisioningStep {
+    PullImage = "pullImage",
+    CreateContainer = "createContainer",
+    WaitForReady = "waitForReady",
+    Connect = "connect",
+}
+
+export interface AzureSqlContainerProvisioningResult {
+    success: boolean;
+    error?: string;
+    fullErrorText?: string;
+    connectionString?: string;
+}
+
+export namespace AzureSqlDatabaseRequests {
+    export const PrepareContainerForm = new RequestType<
+        AzureSqlContainerForm,
+        { form: AzureSqlContainerForm; errors: AzureSqlContainerFormErrors },
+        void
+    >("deployment/prepareAzureSqlContainerForm");
+
+    export const ValidateContainerForm = new RequestType<
+        AzureSqlContainerForm,
+        AzureSqlContainerFormErrors,
+        void
+    >("deployment/validateAzureSqlContainerForm");
+
+    export const ValidateContainerPort = new RequestType<
+        { engine: ContainerEngine; port: string },
+        string | undefined,
+        void
+    >("deployment/validateAzureSqlContainerPort");
+
+    export const GenerateContainerName = new RequestType<void, string, void>(
+        "deployment/generateAzureSqlContainerName",
+    );
+
+    export const GenerateContainerPort = new RequestType<
+        { engine: ContainerEngine; startPort: number },
+        number,
+        void
+    >("deployment/generateAzureSqlContainerPort");
+
+    export const DetectContainerEngines = new RequestType<
+        void,
+        Record<ContainerEngine, ContainerEnginePrerequisiteResult>,
+        void
+    >("deployment/detectContainerEngines");
+
+    export const CheckContainerEnginePrerequisite = new RequestType<
+        {
+            engine: ContainerEngine;
+            prerequisite: ContainerEnginePrerequisite;
+        },
+        ContainerEnginePrerequisiteResult,
+        void
+    >("deployment/checkContainerEnginePrerequisite");
+
+    export const RunContainerProvisioningStep = new RequestType<
+        {
+            engine: ContainerEngine;
+            step: AzureSqlContainerProvisioningStep;
+            form: AzureSqlContainerForm;
+            retry?: boolean;
+        },
+        AzureSqlContainerProvisioningResult,
+        void
+    >("deployment/runAzureSqlContainerProvisioningStep");
+
+    export const CancelContainerProvisioning = new RequestType<void, void, void>(
+        "deployment/cancelAzureSqlContainerProvisioning",
+    );
+}
 
 export class AzureSqlDatabaseState
     implements
