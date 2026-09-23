@@ -11,25 +11,84 @@ import * as vscode from "vscode";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger as baseLogger } from "../models/logger";
-import { AgentSkillGroup, AgentSkillSummary } from "../sharedInterfaces/overview";
+import {
+    AGENT_SKILL_PLUGINS,
+    AgentSkillGroup,
+    AgentSkillPluginName,
+    AgentSkillSummary,
+} from "../sharedInterfaces/overview";
 
-/** GitHub repository that ships the Microsoft SQL agent skills, as `owner/repo`. */
-const SKILLS_REPO_OWNER = "aasimkhan30";
-const SKILLS_REPO_NAME = "microsoft-sql";
-const SKILLS_PLUGIN_NAME = "microsoft-sql";
-const LEGACY_PLUGIN_NAMES = {
-    "microsoft-sql": "azure-sql",
-    "microsoft-sql-migration": "sql-migration",
-} as const;
+/** GitHub repository the skills are served from, as `owner/repo`. */
+interface SkillsSource {
+    owner: string;
+    name: string;
+}
+
+/**
+ * Short link the skills are resolved through.
+ *
+ * It redirects to the repository that ships them, and every other URL here -- the archive, the
+ * revision, the catalog READMEs and the source links -- is derived from whatever it resolves to.
+ * Repointing the link moves all of them together, so the copy that gets installed and the copy
+ * the links describe cannot drift apart.
+ */
+const SKILLS_SOURCE_ALIAS = "https://aka.ms/aasim-vscode-mssql-skills-repo";
+
+/**
+ * Repository used when the short link cannot be resolved -- offline, proxied, or repointed at
+ * something that is not a GitHub repository.
+ *
+ * The repository the skills ship from, which is where the link is meant to end up. It is named
+ * here rather than tracking whatever the link points at today, so a window that cannot reach
+ * the link still asks the right place instead of failing outright.
+ */
+const FALLBACK_SKILLS_SOURCE: SkillsSource = { owner: "microsoft", name: "microsoft-sql" };
+
+/** Owner and repository names GitHub accepts, so a parsed target cannot smuggle a path. */
+const REPOSITORY_SEGMENT = /^[A-Za-z0-9._-]+$/;
+
+/**
+ * Reads a GitHub repository root, or `undefined` for anything else.
+ *
+ * The host and the shape are both checked because aka.ms answers an unknown name with its own
+ * search page rather than a 404. Without this, a mistyped or retired link would resolve to
+ * whatever happened to answer and be downloaded as though it were the skills.
+ */
+function parseRepositorySource(target: string): SkillsSource | undefined {
+    let url: URL;
+    try {
+        url = new URL(target);
+    } catch {
+        return undefined;
+    }
+    if (url.protocol !== "https:" || url.hostname !== "github.com") {
+        return undefined;
+    }
+
+    const segments = url.pathname.split("/").filter((segment) => segment.length > 0);
+    if (segments.length !== 2) {
+        return undefined;
+    }
+    const [owner, repository] = segments;
+    const name = repository.endsWith(".git") ? repository.slice(0, -4) : repository;
+    if (!REPOSITORY_SEGMENT.test(owner) || !REPOSITORY_SEGMENT.test(name)) {
+        return undefined;
+    }
+    return { owner, name };
+}
+
 /** Branch the skills are published from. */
 const SKILLS_REF = "main";
 
-const SKILLS_REPOSITORY_URL =
-    `https://github.com/${SKILLS_REPO_OWNER}/${SKILLS_REPO_NAME}` as const;
-const SKILL_COLLECTIONS = [
-    { id: "microsoft-sql", title: "Microsoft SQL" },
+/** Repository root for a resolved source. Paths are appended to this. */
+function repositoryUrl(source: SkillsSource): string {
+    return `https://github.com/${source.owner}/${source.name}`;
+}
+/** Titles for the collections in {@link AGENT_SKILL_PLUGINS}, used to name them in errors. */
+const SKILL_COLLECTIONS: readonly { id: AgentSkillPluginName; title: string }[] = [
+    { id: "microsoft-sql-vscode", title: "Microsoft SQL for Visual Studio Code" },
     { id: "microsoft-sql-migration", title: "Microsoft SQL migration" },
-] as const;
+];
 
 /**
  * Setting VS Code discovers agent plugins from. Each key is a plugin root directory and the
@@ -49,6 +108,7 @@ const STATE_LAST_CHECK_MS = "overview/agentSkills.lastCheckMs";
 const SHA_REQUEST_TIMEOUT_MS = 15_000;
 const DOWNLOAD_TIMEOUT_MS = 120_000;
 const CATALOG_REQUEST_TIMEOUT_MS = 15_000;
+const RESOLVE_REQUEST_TIMEOUT_MS = 15_000;
 
 /**
  * Files that mark a directory as an agent plugin root. VS Code accepts both its own
@@ -92,10 +152,11 @@ export class AgentPluginsInstaller {
     private readonly _logger: ILogger = baseLogger.withPrefix("AgentPluginsInstaller");
     private _operation: Promise<boolean> | undefined;
     private _catalog: Promise<AgentSkillGroup[]> | undefined;
+    private _source: Promise<SkillsSource> | undefined;
 
     constructor(
         private readonly _context: vscode.ExtensionContext,
-        private readonly _pluginName: "microsoft-sql" | "microsoft-sql-migration" = "microsoft-sql",
+        private readonly _pluginName: AgentSkillPluginName = AGENT_SKILL_PLUGINS[0],
     ) {}
 
     /**
@@ -112,15 +173,63 @@ export class AgentPluginsInstaller {
     }
 
     private get installedShaKey(): string {
-        return this._pluginName === SKILLS_PLUGIN_NAME
-            ? STATE_INSTALLED_SHA
-            : `${STATE_INSTALLED_SHA}/${this._pluginName}`;
+        return `${STATE_INSTALLED_SHA}/${this._pluginName}`;
     }
 
     private get lastCheckKey(): string {
-        return this._pluginName === SKILLS_PLUGIN_NAME
-            ? STATE_LAST_CHECK_MS
-            : `${STATE_LAST_CHECK_MS}/${this._pluginName}`;
+        return `${STATE_LAST_CHECK_MS}/${this._pluginName}`;
+    }
+
+    /**
+     * Repository the short link currently points at.
+     *
+     * The redirect is read rather than followed, so the target is inspected before anything is
+     * fetched from it. Resolved once per instance: the archive, the revision check, the catalog
+     * and the source links all read the same answer, which is what keeps them describing one
+     * repository for as long as the window lives.
+     *
+     * A failure resolves to {@link FALLBACK_SKILLS_SOURCE} and is deliberately not cached, so a
+     * window that started offline picks the real target up on a later attempt rather than being
+     * pinned to the fallback until it is reloaded.
+     */
+    private resolveSource(): Promise<SkillsSource> {
+        if (!this._source) {
+            this._source = this.readAliasTarget().then((source) => {
+                if (source === FALLBACK_SKILLS_SOURCE) {
+                    this._source = undefined;
+                }
+                return source;
+            });
+        }
+        return this._source;
+    }
+
+    private async readAliasTarget(): Promise<SkillsSource> {
+        try {
+            const response = await new VscodeHttpClient({ logger: this._logger }).get(
+                SKILLS_SOURCE_ALIAS,
+                { maxRedirects: 0, timeoutMs: RESOLVE_REQUEST_TIMEOUT_MS },
+            );
+            const target = response.headers.get("location");
+            const source = target ? parseRepositorySource(target) : undefined;
+            if (!source) {
+                this._logger.warn(
+                    `${SKILLS_SOURCE_ALIAS} did not resolve to a GitHub repository` +
+                        `${target ? ` (${target})` : ""}; using ` +
+                        `${FALLBACK_SKILLS_SOURCE.owner}/${FALLBACK_SKILLS_SOURCE.name}.`,
+                );
+                return FALLBACK_SKILLS_SOURCE;
+            }
+            return source;
+        } catch (error) {
+            // Offline, proxied or rate limited. The fallback keeps the page usable.
+            this._logger.debug(
+                `Could not resolve ${SKILLS_SOURCE_ALIAS}: ${
+                    error instanceof Error ? error.message : String(error)
+                }`,
+            );
+            return FALLBACK_SKILLS_SOURCE;
+        }
     }
 
     /** Current shipped skills listed by the repository. */
@@ -265,8 +374,9 @@ export class AgentPluginsInstaller {
 
         await fs.mkdir(extractDir, { recursive: true });
         try {
+            const source = await this.resolveSource();
             const url =
-                `https://codeload.github.com/${SKILLS_REPO_OWNER}/${SKILLS_REPO_NAME}` +
+                `https://codeload.github.com/${source.owner}/${source.name}` +
                 `/tar.gz/refs/heads/${SKILLS_REF}`;
             const result = await new VscodeHttpClient().downloadToPath(url, archivePath, {
                 timeoutMs: DOWNLOAD_TIMEOUT_MS,
@@ -359,7 +469,8 @@ export class AgentPluginsInstaller {
 
     /** Latest commit on the published branch, or undefined when it cannot be determined. */
     private async fetchLatestSha(): Promise<string | undefined> {
-        const url = `https://api.github.com/repos/${SKILLS_REPO_OWNER}/${SKILLS_REPO_NAME}/commits/${SKILLS_REF}`;
+        const source = await this.resolveSource();
+        const url = `https://api.github.com/repos/${source.owner}/${source.name}/commits/${SKILLS_REF}`;
         try {
             // This media type answers with the bare commit SHA rather than the full commit.
             const response = await new VscodeHttpClient().get<string>(url, {
@@ -381,9 +492,13 @@ export class AgentPluginsInstaller {
 
     private async fetchSkillsCatalog(): Promise<AgentSkillGroup[]> {
         const client = new VscodeHttpClient({ logger: this._logger });
+        // Resolved once for the whole catalog, so both collections and every link in them
+        // describe the same repository even if the short link were repointed mid-flight.
+        const source = await this.resolveSource();
+        const repository = repositoryUrl(source);
         return Promise.all(
             SKILL_COLLECTIONS.map(async ({ id, title }) => {
-                const readmeUrl = `https://raw.githubusercontent.com/${SKILLS_REPO_OWNER}/${SKILLS_REPO_NAME}/${SKILLS_REF}/plugins/${id}/README.md`;
+                const readmeUrl = `https://raw.githubusercontent.com/${source.owner}/${source.name}/${SKILLS_REF}/plugins/${id}/README.md`;
                 const response = await client.get<string>(readmeUrl, {
                     timeoutMs: CATALOG_REQUEST_TIMEOUT_MS,
                 });
@@ -392,11 +507,16 @@ export class AgentPluginsInstaller {
                         `Loading the ${title} skills catalog failed with status ${response.status}`,
                     );
                 }
-                const skills = parseSkillsCatalog(response.data, id);
+                const skills = parseSkillsCatalog(response.data, id, repository);
                 if (skills.length === 0) {
                     throw new Error(`The ${title} skills catalog contained no shipped skills.`);
                 }
-                return { id, title, skills };
+                return {
+                    id,
+                    title,
+                    skills,
+                    repositoryUrl: `${repository}/tree/${SKILLS_REF}/plugins/${id}`,
+                };
             }),
         );
     }
@@ -429,33 +549,22 @@ export class AgentPluginsInstaller {
         return locations[this.pluginRoot.fsPath] === true;
     }
 
+    /** Adds this plugin root to the setting, leaving every other entry in it untouched. */
     private async register(): Promise<void> {
-        const legacyKey = vscode.Uri.joinPath(
-            this._context.globalStorageUri,
-            "agentSkills",
-            LEGACY_PLUGIN_NAMES[this._pluginName],
-        ).fsPath;
-        let removedLegacyRegistration = false;
         await AgentPluginsInstaller.mutateSettings(async () => {
             const key = this.pluginRoot.fsPath;
             const locations = this.readUserPluginLocations();
-            if (locations[key] === true && !(legacyKey in locations)) {
+            if (locations[key] === true) {
                 return;
             }
-            const updated = { ...locations, [key]: true };
-            removedLegacyRegistration = legacyKey in updated;
-            delete updated[legacyKey];
             await vscode.workspace
                 .getConfiguration()
-                .update(PLUGIN_LOCATIONS_SETTING, updated, vscode.ConfigurationTarget.Global);
+                .update(
+                    PLUGIN_LOCATIONS_SETTING,
+                    { ...locations, [key]: true },
+                    vscode.ConfigurationTarget.Global,
+                );
         });
-        if (removedLegacyRegistration) {
-            // The old root is ours. Remove it only after the replacement is registered, so a
-            // failed install leaves the old plugin working and a successful one has no duplicate.
-            await fs.rm(legacyKey, { recursive: true, force: true }).catch((error) => {
-                this._logger.warn(`Could not remove the old agent plugin copy: ${error}`);
-            });
-        }
     }
 
     private async unregister(): Promise<void> {
@@ -519,7 +628,8 @@ const SKILL_NAME_CELL = /^(?:\*\*|`)([a-z0-9][a-z0-9._-]*)(?:\*\*|`)$/i;
  */
 export function parseSkillsCatalog(
     markdown: string,
-    pluginName = SKILLS_PLUGIN_NAME,
+    pluginName: AgentSkillPluginName = AGENT_SKILL_PLUGINS[0],
+    repository = repositoryUrl(FALLBACK_SKILLS_SOURCE),
 ): AgentSkillSummary[] {
     const lines = markdown.replace(/\r\n/g, "\n").split("\n");
     const headingIndex = lines.findIndex((line) => SKILLS_TABLE_HEADING.test(line));
@@ -562,7 +672,7 @@ export function parseSkillsCatalog(
                 .replace(/`([^`]+)`/g, "$1")
                 .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
                 .trim(),
-            repositoryUrl: `${SKILLS_REPOSITORY_URL}/blob/${SKILLS_REF}/plugins/${pluginName}/skills/${name}/SKILL.md`,
+            repositoryUrl: `${repository}/blob/${SKILLS_REF}/plugins/${pluginName}/skills/${name}/SKILL.md`,
         });
     }
     return skills;

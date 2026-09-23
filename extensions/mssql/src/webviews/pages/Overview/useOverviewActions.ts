@@ -6,6 +6,7 @@
 import { useCallback, useMemo } from "react";
 import {
     AddDevContainerConfigurationRequest,
+    AgentSkillPluginName,
     DevContainerTemplateId,
     CheckDevContainerPrerequisitesRequest,
     DevContainerPrerequisites,
@@ -65,7 +66,7 @@ export function useOverviewActions() {
 
     /** Resolves once the install has finished, whether or not it succeeded. */
     const installAgentSkillsPlugin = useCallback(
-        (pluginName: "microsoft-sql" | "microsoft-sql-migration") =>
+        (pluginName: AgentSkillPluginName) =>
             extensionRpc.sendRequest(InstallAgentSkillsPluginRequest.type, { pluginName }),
         [extensionRpc],
     );
@@ -76,7 +77,7 @@ export function useOverviewActions() {
     );
 
     const manageAgentSkillsPlugin = useCallback(
-        (pluginName: "microsoft-sql" | "microsoft-sql-migration") =>
+        (pluginName: AgentSkillPluginName) =>
             extensionRpc.sendRequest(ManageAgentSkillsPluginRequest.type, { pluginName }),
         [extensionRpc],
     );

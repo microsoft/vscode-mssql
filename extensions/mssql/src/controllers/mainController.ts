@@ -135,7 +135,11 @@ import { SqlMoveToSchemaProvider } from "../languageservice/sqlMoveToSchemaProvi
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { OverviewOpenOptions, OverviewWebviewController } from "./overviewWebviewController";
-import { OverviewOpenSource } from "../sharedInterfaces/overview";
+import {
+    AGENT_SKILL_PLUGINS,
+    AgentSkillPluginName,
+    OverviewOpenSource,
+} from "../sharedInterfaces/overview";
 import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
 import { AgentPluginsInstaller } from "../agentPlugins/agentPluginsInstaller";
 import { DeploymentType, isDeploymentType } from "../sharedInterfaces/deployment";
@@ -180,8 +184,7 @@ export default class MainController implements vscode.Disposable {
     private _queryHistoryProvider: QueryHistoryProvider;
     private _overviewController: OverviewWebviewController | undefined;
     private _recentSqlFilesStore: RecentSqlFilesStore;
-    private _agentPluginsInstaller: AgentPluginsInstaller;
-    private _migrationSkillsInstaller: AgentPluginsInstaller;
+    private _agentPluginsInstallers: ReadonlyMap<AgentSkillPluginName, AgentPluginsInstaller>;
     private _backgroundTaskLogContentProvider: BackgroundTaskLogContentProvider;
     private _backgroundTasksProvider: BackgroundTasksProvider;
     private _scriptingService: ScriptingService;
@@ -468,8 +471,7 @@ export default class MainController implements vscode.Disposable {
                     this._overviewController = new OverviewWebviewController(
                         this._context,
                         this._recentSqlFilesStore,
-                        this._agentPluginsInstaller,
-                        this._migrationSkillsInstaller,
+                        this._agentPluginsInstallers,
                         { openWhatsNew, source: options.source },
                     );
                 } else if (openWhatsNew) {
@@ -2720,19 +2722,19 @@ export default class MainController implements vscode.Disposable {
      * not awaited: a slow or unreachable network must not hold up activation.
      */
     private initializeAgentPlugins(): void {
-        this._agentPluginsInstaller = new AgentPluginsInstaller(this._context);
-        this._migrationSkillsInstaller = new AgentPluginsInstaller(
-            this._context,
-            "microsoft-sql-migration",
+        this._agentPluginsInstallers = new Map(
+            AGENT_SKILL_PLUGINS.map((plugin) => [
+                plugin,
+                new AgentPluginsInstaller(this._context, plugin),
+            ]),
         );
         // Best effort. An unreachable network, a bad archive or a filesystem failure leaves the
         // installed copy alone, so it is logged rather than allowed to reject out of activation.
-        void this._agentPluginsInstaller.checkForUpdates().catch((error) => {
-            this._logger.error("Checking for agent skill updates failed", error);
-        });
-        void this._migrationSkillsInstaller.checkForUpdates().catch((error) => {
-            this._logger.error("Checking for migration skill updates failed", error);
-        });
+        for (const [plugin, installer] of this._agentPluginsInstallers) {
+            void installer.checkForUpdates().catch((error) => {
+                this._logger.error(`Checking for ${plugin} skill updates failed`, error);
+            });
+        }
     }
 
     /**

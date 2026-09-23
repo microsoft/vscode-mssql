@@ -11,7 +11,6 @@ import { Common, Overview } from "../constants/locConstants";
 import {
     AddDevContainerConfigurationRequest,
     AddDevContainerConfigurationRequestParams,
-    AgentSkillsPluginRequestParams,
     DevContainerTemplateId,
     OpenRecentSqlFileRequest,
     OpenRecentSqlFileRequestParams,
@@ -51,6 +50,8 @@ import {
     RunChangelogActionFromOverviewRequest,
     RunOverviewActionRequest,
     CommandShortcut,
+    AGENT_SKILL_PLUGINS,
+    AgentSkillPluginName,
 } from "../sharedInterfaces/overview";
 import {
     ActivityObject,
@@ -120,8 +121,13 @@ const EXTENSIONS_SEARCH_COMMAND = "workbench.extensions.search";
 const MANAGE_PLUGINS_COMMAND = "workbench.action.chat.managePlugins";
 const AGENT_PLUGINS_FILTER = "@agentPlugins";
 
-/** Source the agent skills are installed from, reported with the install telemetry. */
-const AGENT_SKILLS_PLUGIN_SOURCE = "aasimkhan30/microsoft-sql";
+/**
+ * Source the agent skills are installed from, reported with the install telemetry.
+ *
+ * The short link rather than a repository, because the repository is whatever the link resolves
+ * to at install time -- naming one here would report a guess.
+ */
+const AGENT_SKILLS_PLUGIN_SOURCE = "aka.ms/aasim-vscode-mssql-skills-repo";
 
 /** A staged template file and the resolved place in the workspace it will be written. */
 interface TemplateFileDestination {
@@ -372,8 +378,7 @@ export class OverviewWebviewController extends WebviewPanelController<
     constructor(
         context: vscode.ExtensionContext,
         private _recentSqlFilesStore: RecentSqlFilesStore,
-        private _agentSkillsInstaller: AgentPluginsInstaller,
-        private _migrationSkillsInstaller: AgentPluginsInstaller,
+        private _agentSkillsInstallers: ReadonlyMap<AgentSkillPluginName, AgentPluginsInstaller>,
         options: OverviewOpenOptions = {},
     ) {
         super(
@@ -498,8 +503,7 @@ export class OverviewWebviewController extends WebviewPanelController<
             hasDevContainerConfig: false,
             isInDevContainer: vscode.env.remoteName === DEV_CONTAINER_REMOTE_NAME,
             // Resolved asynchronously right after construction; see refreshAgentSkillsState.
-            hasAgentSkillsPlugin: false,
-            hasMigrationSkillsPlugin: false,
+            installedAgentSkillPlugins: {},
             openWhatsNewRequest: options.openWhatsNew === true ? 1 : 0,
             showChangelogOnUpdate: OverviewWebviewController.shouldShowChangelogOnUpdate(),
         };
@@ -564,7 +568,7 @@ export class OverviewWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(InstallAgentSkillsPluginRequest.type, async (params) => {
-            const installer = this.installerFor(params);
+            const installer = this.installerFor(params.pluginName);
             this._agentSkillsActivity?.end(ActivityStatus.Canceled);
             this._agentSkillsActivity = startActivity(
                 TelemetryViews.OverviewPage,
@@ -605,7 +609,7 @@ export class OverviewWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(ManageAgentSkillsPluginRequest.type, async (params) => {
-            const installer = this.installerFor(params);
+            const installer = this.installerFor(params.pluginName);
             sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.ManageAgentSkills, {
                 additionalProps: { plugin: installer.pluginName },
             });
@@ -636,7 +640,9 @@ export class OverviewWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(GetAgentSkillsCatalogRequest.type, async () => {
-            return this._agentSkillsInstaller.getSkillsCatalog();
+            // The catalog covers every collection in the repository rather than one plugin, so
+            // any installer answers it and the result is shared.
+            return this.installerFor(AGENT_SKILL_PLUGINS[0]).getSkillsCatalog();
         });
 
         this.onRequest(
@@ -1612,20 +1618,28 @@ export class OverviewWebviewController extends WebviewPanelController<
         // writes: an earlier `false` landing after the install's `true` would leave freshly
         // installed skills showing as missing.
         const request = ++this._agentSkillsRequest;
-        const [hasAgentSkillsPlugin, hasMigrationSkillsPlugin] = await Promise.all([
-            this._agentSkillsInstaller.isInstalled(),
-            this._migrationSkillsInstaller.isInstalled(),
-        ]);
+        const installed = await Promise.all(
+            AGENT_SKILL_PLUGINS.map(
+                async (plugin) => [plugin, await this.installerFor(plugin).isInstalled()] as const,
+            ),
+        );
         if (this.isDisposed || request !== this._agentSkillsRequest) {
             return;
         }
-        this.updateState({ ...this.state, hasAgentSkillsPlugin, hasMigrationSkillsPlugin });
+        this.updateState({
+            ...this.state,
+            installedAgentSkillPlugins: Object.fromEntries(installed),
+        });
     }
 
-    private installerFor(params: AgentSkillsPluginRequestParams): AgentPluginsInstaller {
-        return params.pluginName === "microsoft-sql-migration"
-            ? this._migrationSkillsInstaller
-            : this._agentSkillsInstaller;
+    private installerFor(pluginName: AgentSkillPluginName): AgentPluginsInstaller {
+        const installer = this._agentSkillsInstallers.get(pluginName);
+        if (!installer) {
+            // Every name in AGENT_SKILL_PLUGINS gets an installer at construction, so this can
+            // only mean the map was built from a different set.
+            throw new Error(`No agent skills installer registered for ${pluginName}.`);
+        }
+        return installer;
     }
 
     private async getDevContainerPrerequisites(): Promise<DevContainerPrerequisites> {

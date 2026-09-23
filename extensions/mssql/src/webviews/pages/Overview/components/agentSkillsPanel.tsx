@@ -371,8 +371,18 @@ const PromptAction = ({
 
 interface SkillPackCardProps {
     pack: AgentSkillPack;
-    /** Live count once the catalog resolves; undefined while it is still being fetched. */
+    /**
+     * Number of skills in the collection, from the catalog. Undefined until it resolves, and
+     * when it cannot be reached -- the card then names no number rather than an authored guess
+     * the dialog would go on to contradict.
+     */
     skillCount: number | undefined;
+    /**
+     * Where the card opens the collection. Comes from the catalog once it resolves, so the card
+     * and the per-skill links describe the same repository; the authored link stands in until
+     * then, and when the catalog cannot be reached.
+     */
+    repositoryUrl: string;
     isInstalled: boolean;
     isInstalling: boolean;
     /** Whether this is the pack whose Install button was pressed. */
@@ -388,6 +398,7 @@ interface SkillPackCardProps {
 const SkillPackCard = ({
     pack,
     skillCount,
+    repositoryUrl,
     isInstallTarget,
     isInstalled,
     isInstalling,
@@ -462,7 +473,7 @@ const SkillPackCard = ({
                 <Link
                     as="button"
                     className={classes.cardLink}
-                    onClick={() => openLink(pack.repositoryUrl)}>
+                    onClick={() => openLink(repositoryUrl)}>
                     <GithubMark16Regular />
                     {loc.agentSkillsRepository}
                 </Link>
@@ -642,8 +653,7 @@ export const AgentSkillsPanel = () => {
         openPromptInChat,
         sendTelemetry,
     } = useOverviewActions();
-    const hasAgentSkillsPlugin = useOverviewSelector((state) => state.hasAgentSkillsPlugin);
-    const hasMigrationSkillsPlugin = useOverviewSelector((state) => state.hasMigrationSkillsPlugin);
+    const installedPlugins = useOverviewSelector((state) => state.installedAgentSkillPlugins);
     // Downloading takes a moment, so the button has to say something between the click and the
     // state arriving, or it reads as having done nothing.
     const [isInstalling, setIsInstalling] = useState(false);
@@ -657,12 +667,6 @@ export const AgentSkillsPanel = () => {
     const copyResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const packs = useMemo(() => getAgentSkillPacks(), []);
-
-    useEffect(() => {
-        if (hasAgentSkillsPlugin) {
-            setIsInstalling(false);
-        }
-    }, [hasAgentSkillsPlugin]);
 
     useEffect(() => () => clearTimeout(copyResetRef.current), []);
 
@@ -731,17 +735,12 @@ export const AgentSkillsPanel = () => {
                 <SkillPackCard
                     key={pack.id}
                     pack={pack}
-                    // Falls back to the authored count only when the catalog cannot be reached,
-                    // so the card never shows a number the dialog will contradict.
-                    skillCount={
-                        skillGroups?.find((group) => group.id === pack.id)?.skills.length ??
-                        (skillsLoadFailed ? pack.skillCount : undefined)
+                    skillCount={skillGroups?.find((group) => group.id === pack.id)?.skills.length}
+                    repositoryUrl={
+                        skillGroups?.find((group) => group.id === pack.id)?.repositoryUrl ??
+                        pack.repositoryUrl
                     }
-                    isInstalled={
-                        pack.id === "microsoft-sql"
-                            ? hasAgentSkillsPlugin
-                            : hasMigrationSkillsPlugin
-                    }
+                    isInstalled={installedPlugins[pack.id] ?? false}
                     isInstalling={isInstalling}
                     isInstallTarget={installingPackId === pack.id}
                     copiedPromptId={copiedId}

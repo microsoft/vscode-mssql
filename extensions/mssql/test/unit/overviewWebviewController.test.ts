@@ -20,6 +20,7 @@ import {
     DevContainerTemplateId,
     OverviewOpenSource,
     PrerequisiteStatus,
+    AGENT_SKILL_PLUGINS,
 } from "../../src/sharedInterfaces/overview";
 import * as constants from "../../src/constants/constants";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
@@ -69,14 +70,20 @@ suite("Overview Webview Controller", () => {
                 getRecentFiles: recentFilesStub,
                 onDidChange: storeChangeEvent.event,
             } as unknown as RecentSqlFilesStore,
-            {
-                isInstalled: agentSkillsInstalledStub,
-                install: agentSkillsInstallStub,
-            } as unknown as AgentPluginsInstaller,
-            {
-                isInstalled: sinon.stub().resolves(false),
-                install: sinon.stub().resolves(true),
-            } as unknown as AgentPluginsInstaller,
+            new Map(
+                AGENT_SKILL_PLUGINS.map((plugin) => [
+                    plugin,
+                    plugin === AGENT_SKILL_PLUGINS[0]
+                        ? ({
+                              isInstalled: agentSkillsInstalledStub,
+                              install: agentSkillsInstallStub,
+                          } as unknown as AgentPluginsInstaller)
+                        : ({
+                              isInstalled: sinon.stub().resolves(false),
+                              install: sinon.stub().resolves(true),
+                          } as unknown as AgentPluginsInstaller),
+                ]),
+            ),
         );
         observeWebviewReady(created);
         return created;

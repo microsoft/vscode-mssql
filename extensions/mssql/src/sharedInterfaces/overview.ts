@@ -108,10 +108,12 @@ export interface OverviewWebviewState {
     hasDevContainerConfig: boolean;
     /** Whether this window is already running inside a dev container. */
     isInDevContainer: boolean;
-    /** Whether the Azure SQL plugin is present and registered in `chat.pluginLocations`. */
-    hasAgentSkillsPlugin: boolean;
-    /** Whether the SQL migration plugin is present and registered in `chat.pluginLocations`. */
-    hasMigrationSkillsPlugin: boolean;
+    /**
+     * Which plugins are present and registered in `chat.pluginLocations`, keyed by plugin name.
+     * A plugin is absent from the map until its first check completes, which is why the entries
+     * are optional rather than defaulted to false.
+     */
+    installedAgentSkillPlugins: Partial<Record<AgentSkillPluginName, boolean>>;
 }
 
 /** Reducers (actions that change state) the Overview controller supports. */
@@ -124,6 +126,17 @@ export interface OverviewLinkRequestParams {
     url: string;
 }
 
+/**
+ * Agent skill plugins the extension installs, named exactly as their manifests are -- the name
+ * is the directory in the repository, the folder installed under global storage, and what the
+ * Extensions view matches an `@agentPlugins` search against, so the three cannot be spelled
+ * differently. Everything that needs the set derives it from here.
+ */
+export const AGENT_SKILL_PLUGINS = ["microsoft-sql-vscode", "microsoft-sql-migration"] as const;
+
+/** One of {@link AGENT_SKILL_PLUGINS}. */
+export type AgentSkillPluginName = (typeof AGENT_SKILL_PLUGINS)[number];
+
 /** A shipped skill displayed in the Azure SQL Skills catalog. */
 export interface AgentSkillSummary {
     id: string;
@@ -133,9 +146,11 @@ export interface AgentSkillSummary {
 
 /** A repository-defined group of shipped Azure SQL skills. */
 export interface AgentSkillGroup {
-    id: string;
+    id: AgentSkillPluginName;
     title: string;
     skills: AgentSkillSummary[];
+    /** The collection on the resolved source, opened from the card. */
+    repositoryUrl: string;
 }
 
 /** Opens an external URL in the user's browser. */
@@ -334,7 +349,7 @@ export namespace AddDevContainerConfigurationRequest {
 }
 
 export interface AgentSkillsPluginRequestParams {
-    pluginName: "microsoft-sql" | "microsoft-sql-migration";
+    pluginName: AgentSkillPluginName;
 }
 
 /** Installs the selected plugin from the SQL agent skills marketplace. */

@@ -13,6 +13,7 @@ import * as tar from "tar";
 import * as vscode from "vscode";
 import { createHttpHeaders } from "extension-toolkit/base";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
+import { AGENT_SKILL_PLUGINS } from "../../src/sharedInterfaces/overview";
 import {
     AgentPluginsInstaller,
     parseSkillsCatalog,
@@ -23,6 +24,8 @@ const { expect } = chai;
 chai.use(sinonChai);
 
 const PLUGIN_LOCATIONS = "chat.pluginLocations";
+/** The key the default installer throttles its update check with. */
+const LAST_CHECK_KEY = `overview/agentSkills.lastCheckMs/${AGENT_SKILL_PLUGINS[0]}`;
 
 suite("Agent Plugins Installer", () => {
     let sandbox: sinon.SinonSandbox;
@@ -103,15 +106,9 @@ suite("Agent Plugins Installer", () => {
         expect(userLocations).to.deep.equal({ [migration.pluginRoot.fsPath]: true });
     });
 
-    test("replaces a registered legacy plugin without disturbing other plugin locations", async () => {
-        for (const [pluginName, oldName] of [
-            ["microsoft-sql", "azure-sql"],
-            ["microsoft-sql-migration", "sql-migration"],
-        ] as const) {
+    test("registers each plugin without disturbing other plugin locations", async () => {
+        for (const pluginName of AGENT_SKILL_PLUGINS) {
             const current = new AgentPluginsInstaller(context, pluginName);
-            const oldRoot = path.join(storageDir, "agentSkills", oldName);
-            await fs.mkdir(path.join(oldRoot, ".claude-plugin"), { recursive: true });
-            await fs.writeFile(path.join(oldRoot, ".claude-plugin", "plugin.json"), "{}");
             await fs.mkdir(path.join(current.pluginRoot.fsPath, ".claude-plugin"), {
                 recursive: true,
             });
@@ -119,7 +116,8 @@ suite("Agent Plugins Installer", () => {
                 path.join(current.pluginRoot.fsPath, ".claude-plugin", "plugin.json"),
                 "{}",
             );
-            userLocations = { [oldRoot]: true, "/another/plugin": true };
+            // Somebody else owns this entry; registering must leave it exactly as it is.
+            userLocations = { "/another/plugin": true };
 
             await current.install();
 
@@ -127,7 +125,6 @@ suite("Agent Plugins Installer", () => {
                 [current.pluginRoot.fsPath]: true,
                 "/another/plugin": true,
             });
-            expect(await fs.readdir(path.join(storageDir, "agentSkills"))).to.not.include(oldName);
         }
     });
 
@@ -188,9 +185,20 @@ suite("Agent Plugins Installer", () => {
                     "fetchLatestSha",
                 )
                 .resolves(undefined);
+            // Answered with a repository other than the fallback, so the assertion below shows
+            // the archive URL following the short link rather than a constant.
+            sandbox.stub(VscodeHttpClient.prototype, "get").resolves({
+                ok: false,
+                status: 301,
+                statusText: "Moved Permanently",
+                headers: createHttpHeaders({ location: "https://github.com/contoso/sql-skills" }),
+                data: "",
+            });
+            let archiveUrl: string | undefined;
             sandbox
                 .stub(VscodeHttpClient.prototype, "downloadToPath")
-                .callsFake(async (_url, target) => {
+                .callsFake(async (url, target) => {
+                    archiveUrl = String(url);
                     await fs.copyFile(archivePath, target);
                     return { status: 200 } as Awaited<
                         ReturnType<VscodeHttpClient["downloadToPath"]>
@@ -205,6 +213,9 @@ suite("Agent Plugins Installer", () => {
                 ),
             );
             expect(manifest.name).to.equal("microsoft-sql-migration");
+            expect(archiveUrl).to.equal(
+                "https://codeload.github.com/contoso/sql-skills/tar.gz/refs/heads/main",
+            );
             expect(await installer.isInstalled()).to.equal(false);
         } finally {
             await fs.rm(archiveSource, { recursive: true, force: true });
@@ -256,18 +267,18 @@ suite("Agent Plugins Installer", () => {
     test("skips the update check when the skills are not installed", async () => {
         // A user who removed the skills is never quietly given them back.
         expect(await installer.checkForUpdates()).to.equal(false);
-        expect(globalStateValues["overview/agentSkills.lastCheckMs"]).to.equal(undefined);
+        expect(globalStateValues[LAST_CHECK_KEY]).to.equal(undefined);
     });
 
     test("skips the update check within a day of the last one", async () => {
         await createPluginOnDisk();
         userLocations = { [installer.pluginRoot.fsPath]: true };
         const lastCheck = Date.now() - 60 * 60 * 1000;
-        globalStateValues["overview/agentSkills.lastCheckMs"] = lastCheck;
+        globalStateValues[LAST_CHECK_KEY] = lastCheck;
 
         expect(await installer.checkForUpdates()).to.equal(false);
         // Untouched, so the next check still falls due a day after the original one.
-        expect(globalStateValues["overview/agentSkills.lastCheckMs"]).to.equal(lastCheck);
+        expect(globalStateValues[LAST_CHECK_KEY]).to.equal(lastCheck);
     });
 
     suite("remote windows", () => {
@@ -359,32 +370,37 @@ suite("Agent Plugins Installer", () => {
 
         expect(first).to.deep.equal([
             {
-                id: "microsoft-sql",
-                title: "Microsoft SQL",
+                id: "microsoft-sql-vscode",
+                title: "Microsoft SQL for Visual Studio Code",
+                repositoryUrl:
+                    "https://github.com/microsoft/microsoft-sql/tree/main/plugins/microsoft-sql-vscode",
                 skills: [
                     {
                         id: "connect-from-typescript-and-node",
                         description: "Connect a Node.js application using mssql.",
                         repositoryUrl:
-                            "https://github.com/aasimkhan30/microsoft-sql/blob/main/plugins/microsoft-sql/skills/connect-from-typescript-and-node/SKILL.md",
+                            "https://github.com/microsoft/microsoft-sql/blob/main/plugins/microsoft-sql-vscode/skills/connect-from-typescript-and-node/SKILL.md",
                     },
                 ],
             },
             {
                 id: "microsoft-sql-migration",
                 title: "Microsoft SQL migration",
+                repositoryUrl:
+                    "https://github.com/microsoft/microsoft-sql/tree/main/plugins/microsoft-sql-migration",
                 skills: [
                     {
                         id: "recommend-migration-path",
                         description: "Recommends a migration path.",
                         repositoryUrl:
-                            "https://github.com/aasimkhan30/microsoft-sql/blob/main/plugins/microsoft-sql-migration/skills/recommend-migration-path/SKILL.md",
+                            "https://github.com/microsoft/microsoft-sql/blob/main/plugins/microsoft-sql-migration/skills/recommend-migration-path/SKILL.md",
                     },
                 ],
             },
         ]);
         expect(second).to.equal(first);
-        expect(getStub).to.have.been.calledTwice;
+        // The resolve attempt, then one README per collection.
+        expect(getStub).to.have.been.calledThrice;
     });
 
     test("restores the installed copy when the staged copy cannot be moved into place", async () => {
@@ -517,6 +533,46 @@ suite("Agent Plugins Installer", () => {
             expect(thrown).to.be.instanceOf(Error);
         }
 
-        expect(getStub).to.have.callCount(4);
+        // Per attempt: the resolve, then both READMEs. A resolve that fell back is not cached,
+        // so the retry asks again rather than staying pinned to the fallback.
+        expect(getStub).to.have.callCount(6);
+    });
+
+    test("ignores a short link that does not resolve to a GitHub repository", async () => {
+        // aka.ms answers an unknown name with its own search page, which arrives as a redirect to
+        // a perfectly healthy URL rather than a 404. Following it would fetch that page as though
+        // it were the skills, so an unrecognised target falls back to the known repository.
+        const getStub = sandbox.stub(VscodeHttpClient.prototype, "get");
+        getStub.onFirstCall().resolves({
+            ok: false,
+            status: 302,
+            statusText: "Found",
+            headers: createHttpHeaders({
+                location: "https://www.bing.com/?ref=aka&shorturl=mistyped-link",
+            }),
+            data: "",
+        });
+        getStub.resolves({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: createHttpHeaders(),
+            data: [
+                "## Skills (1)",
+                "",
+                "| Skill | What it does |",
+                "| --- | --- |",
+                "| `azure-sql` | Orients an agent. |",
+            ].join("\n"),
+        });
+
+        const [group] = await installer.getSkillsCatalog();
+
+        expect(group.repositoryUrl).to.equal(
+            "https://github.com/microsoft/microsoft-sql/tree/main/plugins/microsoft-sql-vscode",
+        );
+        expect(group.skills[0].repositoryUrl).to.equal(
+            "https://github.com/microsoft/microsoft-sql/blob/main/plugins/microsoft-sql-vscode/skills/azure-sql/SKILL.md",
+        );
     });
 });
