@@ -42,6 +42,9 @@ import {
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
+import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
+import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
+import { startStsDiagListener, stopStsDiagListener } from "./diagnostics/stsDiagListener";
 import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
 import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
@@ -50,6 +53,11 @@ import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
 import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
 import { sqlDatabaseProjectsExtensionId } from "./constants/constants";
+import {
+    PrivatePreviewContextKey,
+    PrivatePreviewFeature,
+    previewService,
+} from "./previews/previewService";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -59,6 +67,37 @@ let activation: MssqlActivation | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     initializeExtensionToolkit();
+
+    const debugConsoleActiveAtActivation = previewService.isPrivatePreviewEnabled(
+        PrivatePreviewFeature.DebugConsole,
+    );
+    const sessionDiagnosticsActiveAtActivation = previewService.isPrivatePreviewEnabled(
+        PrivatePreviewFeature.SessionDiagnostics,
+    );
+    void vscode.commands.executeCommand(
+        "setContext",
+        PrivatePreviewContextKey.DebugConsoleActive,
+        debugConsoleActiveAtActivation,
+    );
+    void vscode.commands.executeCommand(
+        "setContext",
+        PrivatePreviewContextKey.SessionDiagnosticsActive,
+        sessionDiagnosticsActiveAtActivation,
+    );
+
+    if (debugConsoleActiveAtActivation || sessionDiagnosticsActiveAtActivation) {
+        // Install before the first activation marker so enabled session capture
+        // includes the complete activation lifecycle.
+        const diagnosticsManager = new DiagnosticsManager(context, {
+            debugConsoleActiveAtActivation,
+            sessionDiagnosticsActiveAtActivation,
+        });
+        context.subscriptions.push(diagnosticsManager);
+        if (debugConsoleActiveAtActivation) {
+            registerDebugConsole(context, diagnosticsManager);
+        }
+    }
+
     Perf.setActivationState("activating");
     Perf.marker("mssql.activate.begin", "begin");
 
@@ -139,6 +178,17 @@ class MssqlActivation {
         // Exposed for testing purposes
         vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
         registerSqlDataPlane(context);
+
+        // Start before SQL Tools Service spawns so the child inherits the
+        // diagnostics endpoint and token. The listener only accepts bounded,
+        // authenticated local batches and emits classified metadata.
+        if (
+            Perf.enabled ||
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.DebugConsole) ||
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SessionDiagnostics)
+        ) {
+            await startStsDiagListener();
+        }
         await controller.activate();
 
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
@@ -208,6 +258,7 @@ class MssqlActivation {
     }
 
     async deactivate(): Promise<void> {
+        stopStsDiagListener();
         if (controller) {
             await controller.deactivate();
             controller.dispose();
