@@ -22,6 +22,8 @@ import {
     PrerequisiteStatus,
 } from "../../src/sharedInterfaces/overview";
 import * as constants from "../../src/constants/constants";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
+import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
 import { observeWebviewReady, stubTelemetry, stubWebviewPanel } from "./utils";
 
 const { expect } = chai;
@@ -215,6 +217,13 @@ suite("Overview Webview Controller", () => {
         // Nothing moved since, so there is nothing to tell.
         await controller["publishPrerequisites"]();
         expect(prerequisiteNotifications()).to.have.length(1);
+
+        // The extension went from missing to ready, which is counted as an install.
+        const installs = (telemetry.sendActionEvent as sinon.SinonStub)
+            .getCalls()
+            .filter((call) => call.args[1] === TelemetryActions.PrerequisiteInstalled)
+            .map((call) => call.args[2]?.additionalProps);
+        expect(installs).to.deep.equal([{ prerequisite: "devContainersExtension" }]);
     });
 
     test("does not copy any template files when conflict resolution is canceled", async () => {

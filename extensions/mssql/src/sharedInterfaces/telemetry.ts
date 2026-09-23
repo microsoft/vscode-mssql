@@ -237,8 +237,13 @@ export enum TelemetryActions {
     PromptOpenedInChat = "PromptOpenedInChat",
     WalkthroughOpened = "WalkthroughOpened",
     DiscoverCardOpened = "DiscoverCardOpened",
-    InstallDevContainersExtension = "InstallDevContainersExtension",
+    /** An extension's page was opened in the Extensions view, before any install. */
+    OpenExtensionPage = "OpenExtensionPage",
+    /** A dev container prerequisite went from missing to ready while the page was open. */
+    PrerequisiteInstalled = "PrerequisiteInstalled",
+    RecheckPrerequisites = "RecheckPrerequisites",
     InstallAgentSkills = "InstallAgentSkills",
+    ManageAgentSkills = "ManageAgentSkills",
     AddDevContainerConfiguration = "AddDevContainerConfiguration",
     OnRequest = "OnRequest",
     CancelQuery = "CancelQuery",

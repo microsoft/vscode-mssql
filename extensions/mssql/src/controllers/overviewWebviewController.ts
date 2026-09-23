@@ -102,6 +102,7 @@ const overviewTelemetryActions: Partial<Record<OverviewTelemetryEvent, Telemetry
     [OverviewTelemetryEvent.PromptOpenedInChat]: TelemetryActions.PromptOpenedInChat,
     [OverviewTelemetryEvent.WalkthroughOpened]: TelemetryActions.WalkthroughOpened,
     [OverviewTelemetryEvent.DiscoverCardOpened]: TelemetryActions.DiscoverCardOpened,
+    [OverviewTelemetryEvent.PrerequisitesRechecked]: TelemetryActions.RecheckPrerequisites,
 };
 
 /**
@@ -524,7 +525,7 @@ export class OverviewWebviewController extends WebviewPanelController<
 
         this.onRequest(CheckDevContainerPrerequisitesRequest.type, async () => {
             const prerequisites = await this.getDevContainerPrerequisites();
-            this._lastPrerequisites = prerequisites;
+            this.recordPrerequisites(prerequisites);
             this._devContainerActivity?.update({
                 additionalProps: {
                     step: "prerequisitesChecked",
@@ -547,12 +548,10 @@ export class OverviewWebviewController extends WebviewPanelController<
                 return;
             }
 
-            if (params.extensionId === OverviewExtensionId.DevContainers) {
-                sendActionEvent(
-                    TelemetryViews.OverviewPage,
-                    TelemetryActions.InstallDevContainersExtension,
-                );
-            }
+            // Opening the page is not an install; PrerequisiteInstalled reports the one that lands.
+            sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.OpenExtensionPage, {
+                additionalProps: { extensionId: params.extensionId },
+            });
         });
 
         this.onRequest(InstallAgentSkillsPluginRequest.type, async (params) => {
@@ -598,6 +597,9 @@ export class OverviewWebviewController extends WebviewPanelController<
 
         this.onRequest(ManageAgentSkillsPluginRequest.type, async (params) => {
             const installer = this.installerFor(params);
+            sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.ManageAgentSkills, {
+                additionalProps: { plugin: installer.pluginName },
+            });
             // The Extensions view matches this term against a plugin's name, description and
             // marketplace (agentPluginsView.ts, `show`). For a plugin installed from a local
             // folder, as ours is, `marketplace` comes from `fromMarketplace` and is undefined,
@@ -1629,11 +1631,38 @@ export class OverviewWebviewController extends WebviewPanelController<
         ) {
             return;
         }
-        this._lastPrerequisites = prerequisites;
+        this.recordPrerequisites(prerequisites);
         await this.sendNotification(
             DevContainerPrerequisitesChangedNotification.type,
             prerequisites,
         );
+    }
+
+    /**
+     * Remembers what the dialog was told and reports any prerequisite that went from missing to
+     * ready -- an install the user did outside the page, found by Recheck or by the auto-detect.
+     * The reverse is an uninstall or a stopped Docker engine, and is not counted.
+     */
+    private recordPrerequisites(prerequisites: DevContainerPrerequisites): void {
+        const previous = this._lastPrerequisites;
+        this._lastPrerequisites = prerequisites;
+        for (const prerequisite of ["docker", "devContainersExtension"] as const) {
+            if (
+                previous?.[prerequisite] === PrerequisiteStatus.Missing &&
+                prerequisites[prerequisite] === PrerequisiteStatus.Ready
+            ) {
+                sendActionEvent(
+                    TelemetryViews.OverviewPage,
+                    TelemetryActions.PrerequisiteInstalled,
+                    {
+                        additionalProps: { prerequisite },
+                    },
+                );
+                this._devContainerActivity?.update({
+                    additionalProps: { step: "prerequisiteInstalled", prerequisite },
+                });
+            }
+        }
     }
 
     private checkDevContainersExtension(): PrerequisiteStatus {

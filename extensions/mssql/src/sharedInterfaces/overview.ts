@@ -273,6 +273,8 @@ export enum OverviewTelemetryEvent {
     DiscoverCardOpened = "discoverCardOpened",
     /** A dev container template was chosen, before its prerequisites are checked. */
     DevContainerTemplateSelected = "devContainerTemplateSelected",
+    /** Recheck was pressed in the dev container setup dialog. */
+    PrerequisitesRechecked = "prerequisitesRechecked",
 }
 
 export interface SendOverviewTelemetryRequestParams {

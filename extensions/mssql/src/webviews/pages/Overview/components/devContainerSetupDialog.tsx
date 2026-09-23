@@ -34,6 +34,7 @@ import {
     DevContainerTarget,
     DevContainerTemplateOption,
     OverviewExtensionId,
+    OverviewTelemetryEvent,
     PrerequisiteStatus,
 } from "../../../../sharedInterfaces/overview";
 import { DialogShell } from "./dialogShell";
@@ -214,6 +215,7 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
         checkPrerequisites,
         openExtension,
         onPrerequisitesChanged,
+        sendTelemetry,
         addDevContainerConfiguration,
         getDevContainerTemplateOptions,
         getDevContainerTarget,
@@ -529,7 +531,13 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                                 appearance="subtle"
                                 icon={<ArrowClockwise16Regular />}
                                 disabled={isChecking}
-                                onClick={() => void refresh()}>
+                                onClick={() => {
+                                    sendTelemetry(
+                                        OverviewTelemetryEvent.PrerequisitesRechecked,
+                                        template.id,
+                                    );
+                                    void refresh();
+                                }}>
                                 {loc.recheck}
                             </Button>
                         </div>
