@@ -27,6 +27,7 @@ import {
     resolveRefactorLogTarget,
 } from "./refactorLog";
 import { SqlProjectsService } from "../services/sqlProjectsService";
+import { SqlProjectFileCache } from "./sqlProjectFileCache";
 import { getLogger } from "../models/logger";
 
 const logger = getLogger("SqlMoveToSchemaProvider");
@@ -80,7 +81,10 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
 
     private readonly _sqlProjectsService: SqlProjectsService;
 
-    constructor(sqlProjectsService?: SqlProjectsService) {
+    constructor(
+        private readonly _sqlProjectFiles: SqlProjectFileCache,
+        sqlProjectsService?: SqlProjectsService,
+    ) {
         this._sqlProjectsService =
             sqlProjectsService ?? new SqlProjectsService(SqlToolsServerClient.instance);
     }
@@ -88,8 +92,8 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
     /**
      * Registers the provider and its backing command. Returns disposables for the caller to track.
      */
-    public static register(): vscode.Disposable[] {
-        const provider = new SqlMoveToSchemaProvider();
+    public static register(sqlProjectFiles: SqlProjectFileCache): vscode.Disposable[] {
+        const provider = new SqlMoveToSchemaProvider(sqlProjectFiles);
         return [
             vscode.languages.registerCodeActionsProvider({ language: "sql" }, provider, {
                 providedCodeActionKinds: SqlMoveToSchemaProvider.providedCodeActionKinds,
@@ -110,7 +114,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
         range: vscode.Range | vscode.Selection,
     ): Promise<vscode.CodeAction[]> {
-        if (!(await isInSqlProject(document.uri.fsPath))) {
+        if (!(await isInSqlProject(document.uri.fsPath, this._sqlProjectFiles))) {
             return [];
         }
         const position = range.start;
@@ -135,7 +139,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
         position: vscode.Position,
     ): Promise<void> {
-        if (!(await isInSqlProject(document.uri.fsPath))) {
+        if (!(await isInSqlProject(document.uri.fsPath, this._sqlProjectFiles))) {
             void vscode.window.showInformationMessage(loc.moveToSchemaOnlyInProjectFiles);
             return;
         }
@@ -282,7 +286,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
     ): Promise<RefactorLogTarget | undefined> {
         try {
-            const refactorTarget = await resolveRefactorLogTarget(document);
+            const refactorTarget = await resolveRefactorLogTarget(document, this._sqlProjectFiles);
             if (!refactorTarget) {
                 void vscode.window.showErrorMessage(loc.moveToSchemaOnlyInProjectFiles);
                 return undefined;

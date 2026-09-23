@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { readRefactorLogPath } from "../publishProject/projectUtils";
 import { SqlSymbolRenameTextEdit } from "../models/contracts/languageService";
+import { SqlProjectFileCache } from "./sqlProjectFileCache";
 
 /** Returns true if `c` is a SQL word character (A-Z, a-z, 0-9, or underscore). */
 function isSqlWordChar(c: string): boolean {
@@ -135,10 +136,13 @@ export function getSqlIdentifierRange(
 
 /**
  * Returns true if `filePath` lives under the directory of any `.sqlproj` file currently in the
- * workspace. Uses VS Code's cached file index — no directory walks.
+ * workspace.
  */
-export async function isInSqlProject(filePath: string): Promise<boolean> {
-    const sqlprojFiles = await vscode.workspace.findFiles("**/*.sqlproj");
+export async function isInSqlProject(
+    filePath: string,
+    sqlProjectFiles: SqlProjectFileCache,
+): Promise<boolean> {
+    const sqlprojFiles = await sqlProjectFiles.getFiles();
     const normalizedFile = path.normalize(filePath);
     return sqlprojFiles.some((projUri) => {
         const projDir = path.normalize(path.dirname(projUri.fsPath));
@@ -181,10 +185,11 @@ export interface RefactorLogTarget {
  */
 export async function resolveRefactorLogTarget(
     document: vscode.TextDocument,
+    sqlProjectFiles: SqlProjectFileCache,
 ): Promise<RefactorLogTarget | undefined> {
     // Find the .sqlproj that owns the file.
     // Pick the most-specific (deepest) match to handle nested project structures.
-    const sqlprojFiles = await vscode.workspace.findFiles("**/*.sqlproj");
+    const sqlprojFiles = await sqlProjectFiles.getFiles();
     const normalizedDocPath = path.normalize(document.uri.fsPath);
     const sqlprojUri = sqlprojFiles
         .filter((projUri) => {

@@ -11,6 +11,7 @@ import * as chai from "chai";
 import * as vscode from "vscode";
 import { SqlSymbolRenameProvider } from "../../src/languageservice/sqlSymbolRenameProvider";
 import { SqlMoveToSchemaProvider } from "../../src/languageservice/sqlMoveToSchemaProvider";
+import { SqlProjectFileCache } from "../../src/languageservice/sqlProjectFileCache";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import {
     ListProjectSchemasRequest,
@@ -94,12 +95,14 @@ function makeDocument(
 suite("SqlSymbolRenameProvider Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let provider: SqlSymbolRenameProvider;
+    let sqlProjectFiles: SqlProjectFileCache;
     let findFilesStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        provider = new SqlSymbolRenameProvider();
+        sqlProjectFiles = new SqlProjectFileCache();
+        provider = new SqlSymbolRenameProvider(sqlProjectFiles);
 
         // Default: no .sqlproj files found
         findFilesStub = sandbox.stub(vscode.workspace, "findFiles").resolves([]);
@@ -111,6 +114,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
     });
 
     teardown(() => {
+        sqlProjectFiles.dispose();
         sandbox.restore();
     });
 
@@ -615,6 +619,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
 suite("SqlMoveToSchemaProvider Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let provider: SqlMoveToSchemaProvider;
+    let sqlProjectFiles: SqlProjectFileCache;
     let findFilesStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
@@ -624,7 +629,8 @@ suite("SqlMoveToSchemaProvider Tests", () => {
         sandbox = sinon.createSandbox();
         messageBoxes = stubMessageBoxes(sandbox);
         showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
-        provider = new SqlMoveToSchemaProvider();
+        sqlProjectFiles = new SqlProjectFileCache();
+        provider = new SqlMoveToSchemaProvider(sqlProjectFiles);
         findFilesStub = sandbox.stub(vscode.workspace, "findFiles").resolves([]);
         sendRequestStub = sandbox
             .stub(SqlToolsServerClient.instance, "sendRequest")
@@ -632,6 +638,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
     });
 
     teardown(() => {
+        sqlProjectFiles.dispose();
         sandbox.restore();
     });
 
@@ -860,7 +867,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                         success: true,
                         errorMessage: "",
                     });
-                    provider = new SqlMoveToSchemaProvider(sqlProjectsServiceStub);
+                    provider = new SqlMoveToSchemaProvider(sqlProjectFiles, sqlProjectsServiceStub);
 
                     sendRequestStub
                         .withArgs(ListProjectSchemasRequest.type)
