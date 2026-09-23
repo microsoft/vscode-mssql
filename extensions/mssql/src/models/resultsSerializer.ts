@@ -148,16 +148,16 @@ export default class ResultsSerializer {
                 saveResultsParams.includeHeaders = saveConfigCsv.includeHeaders;
             }
         }
-        if (saveConfigExcel.freezeHeaderRow !== undefined) {
+        if (saveConfigExcel?.freezeHeaderRow !== undefined) {
             saveResultsParams.freezeHeaderRow = saveConfigExcel.freezeHeaderRow;
         }
-        if (saveConfigExcel.boldHeaderRow !== undefined) {
+        if (saveConfigExcel?.boldHeaderRow !== undefined) {
             saveResultsParams.boldHeaderRow = saveConfigExcel.boldHeaderRow;
         }
-        if (saveConfigExcel.autoFilterHeaderRow !== undefined) {
+        if (saveConfigExcel?.autoFilterHeaderRow !== undefined) {
             saveResultsParams.autoFilterHeaderRow = saveConfigExcel.autoFilterHeaderRow;
         }
-        if (saveConfigExcel.autoSizeColumns !== undefined) {
+        if (saveConfigExcel?.autoSizeColumns !== undefined) {
             saveResultsParams.autoSizeColumns = saveConfigExcel.autoSizeColumns;
         }
         return saveResultsParams;
