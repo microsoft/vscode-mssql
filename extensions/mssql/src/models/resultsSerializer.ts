@@ -138,10 +138,14 @@ export default class ResultsSerializer {
         let saveResultsParams = new Contracts.SaveResultsAsExcelRequestParams();
 
         // if user entered config, set options
-        if (saveConfigExcel) {
-            if (saveConfigExcel.includeHeaders !== undefined) {
-                saveResultsParams.includeHeaders = saveConfigExcel.includeHeaders;
+        if (saveConfigExcel?.includeHeaders !== undefined) {
+            saveResultsParams.includeHeaders = saveConfigExcel.includeHeaders;
+        } else {
+            const saveConfigCsv = config.get<{ includeHeaders?: boolean }>(Constants.configSaveAsCsv);
+            if (saveConfigCsv?.includeHeaders !== undefined) {
+                saveResultsParams.includeHeaders = saveConfigCsv.includeHeaders;
             }
+        }
             if (saveConfigExcel.freezeHeaderRow !== undefined) {
                 saveResultsParams.freezeHeaderRow = saveConfigExcel.freezeHeaderRow;
             }
