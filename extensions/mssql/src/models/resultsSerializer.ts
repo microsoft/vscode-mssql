@@ -135,18 +135,12 @@ export default class ResultsSerializer {
             autoSizeColumns?: boolean;
         }>(Constants.configSaveAsExcel);
 
-        let saveConfigCsv = config.get<{
-            includeHeaders?: boolean;
-        }>(Constants.configSaveAsCsv);
-
         let saveResultsParams = new Contracts.SaveResultsAsExcelRequestParams();
 
         // if user entered config, set options
         if (saveConfigExcel) {
             if (saveConfigExcel.includeHeaders !== undefined) {
                 saveResultsParams.includeHeaders = saveConfigExcel.includeHeaders;
-            } else if (saveConfigCsv && saveConfigCsv.includeHeaders !== undefined) {
-                saveResultsParams.includeHeaders = saveConfigCsv.includeHeaders;
             }
             if (saveConfigExcel.freezeHeaderRow !== undefined) {
                 saveResultsParams.freezeHeaderRow = saveConfigExcel.freezeHeaderRow;
@@ -159,10 +153,6 @@ export default class ResultsSerializer {
             }
             if (saveConfigExcel.autoSizeColumns !== undefined) {
                 saveResultsParams.autoSizeColumns = saveConfigExcel.autoSizeColumns;
-            }
-        } else if (saveConfigCsv) {
-            if (saveConfigCsv.includeHeaders !== undefined) {
-                saveResultsParams.includeHeaders = saveConfigCsv.includeHeaders;
             }
         }
         return saveResultsParams;

@@ -10096,6 +10096,15 @@
     </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
+    <trans-unit id="mssql.saveAsExcel.autoFilterHeaderRow">
+      <source xml:lang="en">**Used when column headers are enabled.** When true, enable auto filtering on the header row when saving results as an Excel file</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsExcel.freezeHeaderRow">
+      <source xml:lang="en">**Used when column headers are enabled.** When true, freeze the header row when saving results as an Excel file</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsExcel.boldHeaderRow">
+      <source xml:lang="en">**Used when column headers are enabled.** When true, make the header row bold when saving results as an Excel file</source>
+    </trans-unit>
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
@@ -10121,112 +10130,6 @@
       <source xml:lang="en">Allow external language content to use file paths.</source>
     </trans-unit>
     <trans-unit id="mssql.format.options.allowExternalLibraryPaths">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Allow external library content to use file paths.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineInsertTargetsList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineInsertSourcesList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format INSERT sources as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineSelectElementsList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format SELECT columns as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineSetClauseItems">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format SET clause items as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineViewColumnsList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format VIEW columns as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineWherePredicatesList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format WHERE predicates as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.indentSetClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.indentViewBody">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Indent VIEW bodies.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.spaceBetweenDataTypeAndParameters">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.spaceBetweenParametersInDataType">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.keywordCasing">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Keyword casing style.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.numNewlinesAfterStatement">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place AS on its own line.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineFormattedIndexDefinition">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeJoinClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before JOIN clauses.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeFromClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the FROM clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeGroupByClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the GROUP BY clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeHavingClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the HAVING clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOffsetClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the OFFSET clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOrderByClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the ORDER BY clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOutputClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the OUTPUT clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeWhereClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the WHERE clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeWindowClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the WINDOW clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeCloseParenthesisInMultilineList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the closing parenthesis of a multiline list.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOpenParenthesisInMultilineList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the opening parenthesis of a multiline list.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newlineFormattedCheckConstraint">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place the CHECK clause of a constraint on its own line.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.preserveComments">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Preserve comments during formatting.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.sqlEngineType">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.sqlVersion">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.</source>
-    </trans-unit>
-    <trans-unit id="mssql.saveAsExcel.autoFilterHeaderRow">
-      <source xml:lang="en">**Used when column headers are enabled.** When true, enable auto filtering on the header row when saving results as an Excel file</source>
-    </trans-unit>
-    <trans-unit id="mssql.saveAsExcel.freezeHeaderRow">
-      <source xml:lang="en">**Used when column headers are enabled.** When true, freeze the header row when saving results as an Excel file</source>
-    </trans-unit>
-    <trans-unit id="mssql.saveAsExcel.boldHeaderRow">
-      <source xml:lang="en">**Used when column headers are enabled.** When true, make the header row bold when saving results as an Excel file</source>
-    </trans-unit>
-    <trans-unit id="mssql.addObjectExplorer">
-      <source xml:lang="en">Add Connection</source>
-    </trans-unit>
-    <trans-unit id="mssql.connectionGroups.create">
-      <source xml:lang="en">Add Connection Group</source>
-    </trans-unit>
-    <trans-unit id="mssql.addAadAccount">
-      <source xml:lang="en">Add Microsoft Entra Account</source>
       <source xml:lang="en">Allow external library content to use file paths.</source>
     </trans-unit>
     <trans-unit id="mssql.deviceCode.description">
