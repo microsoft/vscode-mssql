@@ -77,6 +77,15 @@ suite("SqlProjectFileCache Tests", () => {
         expect(await cache.getFiles()).to.deep.equal([]);
     });
 
+    test("ignores .sqlproj changes under node_modules", async () => {
+        await cache.getFiles();
+        onDidCreate.fire(vscode.Uri.file("/project/node_modules/pkg/vendor.sqlproj"));
+        onDidDelete.fire(vscode.Uri.file("/project/node_modules/pkg/vendor.sqlproj"));
+        await cache.getFiles();
+
+        expect(findFilesStub).to.have.been.calledOnce;
+    });
+
     test("rescans after the workspace folders change", async () => {
         await cache.getFiles();
         onDidChangeWorkspaceFolders.fire({ added: [], removed: [] });

@@ -29,8 +29,8 @@ export class SqlProjectFileCache implements vscode.Disposable {
         );
         this._disposables.push(
             watcher,
-            watcher.onDidCreate(() => this.invalidate()),
-            watcher.onDidDelete(() => this.invalidate()),
+            watcher.onDidCreate((uri) => this.invalidateFor(uri)),
+            watcher.onDidDelete((uri) => this.invalidateFor(uri)),
             vscode.workspace.onDidChangeWorkspaceFolders(() => this.invalidate()),
         );
     }
@@ -52,6 +52,13 @@ export class SqlProjectFileCache implements vscode.Disposable {
 
     public invalidate(): void {
         this._files = undefined;
+    }
+
+    /** Invalidates for a watcher event, ignoring files the lookup excludes anyway. */
+    private invalidateFor(uri: vscode.Uri): void {
+        if (!uri.path.split("/").includes("node_modules")) {
+            this.invalidate();
+        }
     }
 
     public dispose(): void {

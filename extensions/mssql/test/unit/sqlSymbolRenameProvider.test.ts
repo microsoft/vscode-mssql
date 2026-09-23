@@ -95,17 +95,17 @@ function makeDocument(
 suite("SqlSymbolRenameProvider Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let provider: SqlSymbolRenameProvider;
-    let sqlProjectFiles: SqlProjectFileCache;
-    let findFilesStub: sinon.SinonStub;
+    let sqlProjectFiles: sinon.SinonStubbedInstance<SqlProjectFileCache>;
+    let getSqlProjectFilesStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        sqlProjectFiles = new SqlProjectFileCache();
+        sqlProjectFiles = sandbox.createStubInstance(SqlProjectFileCache);
         provider = new SqlSymbolRenameProvider(sqlProjectFiles);
 
         // Default: no .sqlproj files found
-        findFilesStub = sandbox.stub(vscode.workspace, "findFiles").resolves([]);
+        getSqlProjectFilesStub = sqlProjectFiles.getFiles.resolves([]);
 
         // Default: sendRequest returns undefined (no rename result)
         sendRequestStub = sandbox
@@ -114,14 +114,13 @@ suite("SqlSymbolRenameProvider Tests", () => {
     });
 
     teardown(() => {
-        sqlProjectFiles.dispose();
         sandbox.restore();
     });
 
     // -------------------------------------------------------------------------
     suite("prepareRename", () => {
         test("rejects when file is not inside any SQL project", async () => {
-            findFilesStub.resolves([]); // no .sqlproj in workspace
+            getSqlProjectFilesStub.resolves([]); // no .sqlproj in workspace
 
             const doc = makeDocument(sandbox, { fsPath: path.join(path.sep, "other", "file.sql") });
 
@@ -138,7 +137,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
 
         test("rejects when cursor is not on a word", async () => {
             const projUri = vscode.Uri.file(defaultProjFile);
-            findFilesStub.resolves([projUri]);
+            getSqlProjectFilesStub.resolves([projUri]);
 
             const doc = makeDocument(sandbox, { fsPath: defaultSqlFile });
             (doc.getWordRangeAtPosition as sinon.SinonStub).returns(undefined);
@@ -156,7 +155,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
 
         test("returns range and placeholder for plain identifier", async () => {
             const projUri = vscode.Uri.file(defaultProjFile);
-            findFilesStub.resolves([projUri]);
+            getSqlProjectFilesStub.resolves([projUri]);
 
             const range = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 7));
             const doc = makeDocument(sandbox, {
@@ -172,7 +171,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
 
         test("strips outer brackets from bracket-quoted identifier", async () => {
             const projUri = vscode.Uri.file(defaultProjFile);
-            findFilesStub.resolves([projUri]);
+            getSqlProjectFilesStub.resolves([projUri]);
 
             const range = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 9));
             const doc = makeDocument(sandbox, {
@@ -211,7 +210,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
 
         test("throws renameOnlyInProjectFiles when STS returns no result", async () => {
             const projUri = vscode.Uri.file(defaultProjFile);
-            findFilesStub.resolves([projUri]);
+            getSqlProjectFilesStub.resolves([projUri]);
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves(undefined);
 
             const doc = makeDocument(sandbox);
@@ -228,7 +227,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
 
         test("wraps sendRequest rejection with renameRequestFailed message", async () => {
             const projUri = vscode.Uri.file(defaultProjFile);
-            findFilesStub.resolves([projUri]);
+            getSqlProjectFilesStub.resolves([projUri]);
             const originalError = new Error("STS connection failed");
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).rejects(originalError);
 
@@ -246,7 +245,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
 
         test("falls back to single-file rename when STS returns empty changes", async () => {
             const projUri = vscode.Uri.file(defaultProjFile);
-            findFilesStub.resolves([projUri]);
+            getSqlProjectFilesStub.resolves([projUri]);
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
                 changes: {},
                 elementName: "MyTable",
@@ -275,7 +274,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
 
         test("builds WorkspaceEdit from multi-file STS response", async () => {
             const projUri = vscode.Uri.file(defaultProjFile);
-            findFilesStub.resolves([projUri]);
+            getSqlProjectFilesStub.resolves([projUri]);
             const fileAUri = vscode.Uri.file(path.join(projectDir, "a.sql")).toString();
             const fileBUri = vscode.Uri.file(path.join(projectDir, "b.sql")).toString();
 
@@ -327,7 +326,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
 
         test("sends correct params to STS", async () => {
             const projUri = vscode.Uri.file(defaultProjFile);
-            findFilesStub.resolves([projUri]);
+            getSqlProjectFilesStub.resolves([projUri]);
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
                 changes: {},
                 elementName: "col",
@@ -357,7 +356,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
 
         test("returns empty WorkspaceEdit when STS returns warning message and user cancels", async () => {
             const projUri = vscode.Uri.file(defaultProjFile);
-            findFilesStub.resolves([projUri]);
+            getSqlProjectFilesStub.resolves([projUri]);
             const fileUri = vscode.Uri.file(defaultSqlFile).toString();
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
                 changes: {
@@ -392,7 +391,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
 
         test("applies edits when STS returns warning message and user confirms", async () => {
             const projUri = vscode.Uri.file(defaultProjFile);
-            findFilesStub.resolves([projUri]);
+            getSqlProjectFilesStub.resolves([projUri]);
             const fileUri = vscode.Uri.file(defaultSqlFile).toString();
             sendRequestStub.withArgs(SqlSymbolRenameRequest.type).resolves({
                 changes: {
@@ -487,7 +486,7 @@ suite("SqlSymbolRenameProvider Tests", () => {
             replaceSpy = sandbox.spy(vscode.WorkspaceEdit.prototype, "replace");
             openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
             // The .sqlproj that owns the renamed file.
-            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            getSqlProjectFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
         });
 
         test("creates a new .refactorlog and registers it when none exists", async () => {
@@ -619,8 +618,8 @@ suite("SqlSymbolRenameProvider Tests", () => {
 suite("SqlMoveToSchemaProvider Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let provider: SqlMoveToSchemaProvider;
-    let sqlProjectFiles: SqlProjectFileCache;
-    let findFilesStub: sinon.SinonStub;
+    let sqlProjectFiles: sinon.SinonStubbedInstance<SqlProjectFileCache>;
+    let getSqlProjectFilesStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let showQuickPickStub: sinon.SinonStub;
@@ -629,16 +628,15 @@ suite("SqlMoveToSchemaProvider Tests", () => {
         sandbox = sinon.createSandbox();
         messageBoxes = stubMessageBoxes(sandbox);
         showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
-        sqlProjectFiles = new SqlProjectFileCache();
+        sqlProjectFiles = sandbox.createStubInstance(SqlProjectFileCache);
         provider = new SqlMoveToSchemaProvider(sqlProjectFiles);
-        findFilesStub = sandbox.stub(vscode.workspace, "findFiles").resolves([]);
+        getSqlProjectFilesStub = sqlProjectFiles.getFiles.resolves([]);
         sendRequestStub = sandbox
             .stub(SqlToolsServerClient.instance, "sendRequest")
             .resolves(undefined);
     });
 
     teardown(() => {
-        sqlProjectFiles.dispose();
         sandbox.restore();
     });
 
@@ -654,7 +652,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
         });
 
         test("returns Move to Schema action when in project and cursor is on an identifier", async () => {
-            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            getSqlProjectFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
             const doc = makeMoveDocument(sandbox, { lineText: "SELECT [MyTable]" });
             const actions = await provider.provideCodeActions(
                 doc,
@@ -677,7 +675,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
         });
 
         test("shows message when the project has no schemas", async () => {
-            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            getSqlProjectFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
             sendRequestStub.withArgs(ListProjectSchemasRequest.type).resolves({ schemas: [] });
             const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
             await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
@@ -687,7 +685,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
         });
 
         test("shows error when ListProjectSchemasRequest throws", async () => {
-            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            getSqlProjectFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
             sendRequestStub
                 .withArgs(ListProjectSchemasRequest.type)
                 .rejects(new Error("STS error"));
@@ -699,7 +697,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
         });
 
         test("returns early without sending move request when user cancels QuickPick", async () => {
-            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            getSqlProjectFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
             sendRequestStub
                 .withArgs(ListProjectSchemasRequest.type)
                 .resolves({ schemas: ["dbo", "hr"] });
@@ -724,7 +722,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
             ].join("\n");
 
             setup(() => {
-                findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+                getSqlProjectFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
                 showQuickPickStub.resolves({ label: "hr" });
                 sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
                 openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
