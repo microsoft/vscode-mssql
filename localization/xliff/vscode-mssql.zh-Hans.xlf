@@ -41,7 +41,7 @@
       <trans-unit id="++CODE++c26b1146c9d287a920127ddcb75095ae182431588de7ea9b182d8ccb5c37de06">
         <source xml:lang="en">'{0}' is a system database, so it isn't tracked in the Fabric Database Hub.</source>
         <note>{0} is the name of the system database, such as 'master'</note>
-        <target state="new">'{0}' is a system database, so it isn't tracked in the Fabric Database Hub.</target>
+        <target state="translated">'{0}' 是系统数据库，因此不会在 Fabric 数据库中心内进行跟踪。</target>
       </trans-unit>
       <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
         <source xml:lang="en">'{0}' started.</source>
@@ -14618,7 +14618,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.openInFabricDatabaseHub">
         <source xml:lang="en">Review health in Database Hub (Preview)</source>
-        <target state="new">Review health in Database Hub (Preview)</target>
+        <target state="translated">在数据库中心(预览版)中查看运行状况</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query</source>
@@ -14858,7 +14858,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricPortalUriBase">
         <source xml:lang="en">Sovereign cloud equivalent for `https://app.fabric.microsoft.com/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://app.fabric.microsoft.com/`</target>
+        <target state="translated">`https://app.fabric.microsoft.com/` 的主权云等效项</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.sqlEndpoint">
         <source xml:lang="en">Sovereign cloud equivalent for `https://database.windows.net/`</source>
