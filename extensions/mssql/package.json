@@ -2558,7 +2558,7 @@
                 "mssql.saveAsExcel.includeHeaders": {
                     "type": "boolean",
                     "description": "%mssql.saveAsExcel.includeHeaders%",
-                    "default": true,
+                    "default": null,
                     "scope": "resource"
                 },
                 "mssql.saveAsExcel.freezeHeaderRow": {

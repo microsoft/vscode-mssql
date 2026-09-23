@@ -138,7 +138,7 @@ export default class ResultsSerializer {
         let saveResultsParams = new Contracts.SaveResultsAsExcelRequestParams();
 
         // if user entered config, set options
-        if (saveConfigExcel?.includeHeaders !== undefined) {
+        if (typeof saveConfigExcel?.includeHeaders === "boolean") {
             saveResultsParams.includeHeaders = saveConfigExcel.includeHeaders;
         } else {
             const saveConfigCsv = config.get<{ includeHeaders?: boolean }>(
