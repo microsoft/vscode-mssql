@@ -23,7 +23,11 @@ import {
 } from "../../src/sharedInterfaces/overview";
 import * as constants from "../../src/constants/constants";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
-import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
+import {
+    ActivityObject,
+    ActivityStatus,
+    TelemetryActions,
+} from "../../src/sharedInterfaces/telemetry";
 import { observeWebviewReady, stubTelemetry, stubWebviewPanel } from "./utils";
 
 const { expect } = chai;
@@ -85,8 +89,7 @@ suite("Overview Webview Controller", () => {
         sandbox.stub(vscode.window, "createWebviewPanel").returns(stubWebviewPanel(sandbox));
         sandbox.stub(vscode.extensions, "getExtension").returns(undefined);
         // Keep prerequisite checks from shelling out to a real Docker install.
-        sandbox.stub(dockerUtils, "checkDockerInstallation").resolves({ success: false });
-        sandbox.stub(dockerUtils, "checkEngine").resolves({ success: false });
+        sandbox.stub(dockerUtils, "execDockerCommand").rejects(new Error("docker not running"));
 
         recentFiles = [];
         recentFilesStub = sinon.stub().callsFake(() => Promise.resolve(recentFiles));
@@ -185,6 +188,30 @@ suite("Overview Webview Controller", () => {
 
         // vscode.extensions.getExtension is stubbed to return undefined for every id.
         expect(prerequisites.devContainersExtension).to.equal(PrerequisiteStatus.Missing);
+    });
+
+    test("reports Docker ready only when docker info succeeds", async () => {
+        controller = createController();
+        const execDocker = dockerUtils.execDockerCommand as sinon.SinonStub;
+
+        expect(await controller["checkDocker"]()).to.equal(PrerequisiteStatus.Missing);
+
+        execDocker.resolves("");
+        expect(await controller["checkDocker"]()).to.equal(PrerequisiteStatus.Ready);
+        expect(execDocker).to.have.been.calledWithMatch({ command: "docker", args: ["info"] });
+    });
+
+    test("closes an unfinished setup activity when the page is closed", () => {
+        controller = createController();
+        const end = sinon.stub();
+        controller["_devContainerActivity"] = { end } as unknown as ActivityObject;
+
+        controller.dispose();
+
+        expect(end).to.have.been.calledOnceWith(ActivityStatus.Canceled, {
+            additionalProps: { reason: "pageClosed" },
+        });
+        controller = undefined;
     });
 
     test("tells the setup dialog when a prerequisite changes outside the page", async () => {

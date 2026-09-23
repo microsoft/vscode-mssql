@@ -36,6 +36,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
         textAlign: "left",
         padding: 0,
+        border: "none",
         backgroundColor: "transparent",
         color: "inherit",
         textDecorationLine: "none",
@@ -139,34 +140,27 @@ export const VideosSection = () => {
             <SectionHeading>{loc.videos}</SectionHeading>
             <div className={classes.grid}>
                 {getVideoCards().map((video) => (
-                    <a
+                    <button
+                        type="button"
                         key={video.id}
-                        href={video.url}
                         title={video.url}
                         className={classes.card}
-                        onClick={(event) => {
-                            event.preventDefault();
-                            openLink(video.url);
-                        }}>
+                        onClick={() => openLink(video.url)}>
                         <VideoThumbnail video={video} />
                         <span className={classes.meta}>
                             <Text className={classes.title}>{video.title}</Text>
                             <Text className={classes.subtitle}>{video.subtitle}</Text>
                         </span>
-                    </a>
+                    </button>
                 ))}
             </div>
             <div className={classes.note}>
                 <Text size={200}>{loc.seeFullPlaylistPrefix}</Text>
                 <span>
                     <Link
-                        href={overviewLinks.youTubeChannel}
                         title={overviewLinks.youTubeChannel}
                         className={classes.playlistLink}
-                        onClick={(event) => {
-                            event.preventDefault();
-                            openLink(overviewLinks.youTubeChannel);
-                        }}>
+                        onClick={() => openLink(overviewLinks.youTubeChannel)}>
                         {loc.youtube}
                     </Link>
                     .

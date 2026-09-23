@@ -94,6 +94,12 @@ const DEV_CONTAINERS_REOPEN_COMMAND = "remote-containers.reopenInContainer";
 const DEV_CONTAINERS_OPEN_FOLDER_COMMAND = "remote-containers.openFolder";
 
 /**
+ * Longest a Dev Containers CLI run may take. Applying a template fetches it from ghcr.io, so this
+ * allows for a slow network while still ending a fetch that will never answer.
+ */
+const DEV_CONTAINERS_CLI_TIMEOUT_MS = 2 * 60 * 1000;
+
+/**
  * Telemetry action each in-page event is reported as. Partial because the events that open a
  * flow are handled as activities instead of single actions.
  */
@@ -454,8 +460,11 @@ export class OverviewWebviewController extends WebviewPanelController<
 
         // Closing the page mid-flow is the abandonment we most want to see, so an activity that
         // is still open when the panel goes away is closed out rather than left dangling.
+        // onDisposed rather than panel.onDidDispose: the base class disposes this controller from
+        // its own panel.onDidDispose listener, which removes a listener registered here before
+        // the panel event reaches it.
         this.registerDisposable(
-            this.panel.onDidDispose(() => {
+            this.onDisposed(() => {
                 this._devContainerActivity?.end(ActivityStatus.Canceled, {
                     additionalProps: { reason: "pageClosed" },
                 });
@@ -1548,11 +1557,27 @@ export class OverviewWebviewController extends WebviewPanelController<
      * Dev Containers extension does locally. That keeps this working for users with no `node`
      * on their PATH.
      */
-    private runDevContainersCli(cliPath: string, args: string[]): Promise<string> {
+    private runDevContainersCli(
+        cliPath: string,
+        args: string[],
+        timeoutMs = DEV_CONTAINERS_CLI_TIMEOUT_MS,
+    ): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             const child = spawn(process.argv[0], [cliPath, ...args], {
                 env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" },
             });
+
+            // Offline or behind a proxy, the registry fetch can hang with no output, leaving the
+            // dialog spinning. The process is also killed with the page rather than outliving it.
+            const timer = setTimeout(() => {
+                child.kill();
+                reject(new Error(`Dev Containers CLI timed out after ${timeoutMs / 1000}s`));
+            }, timeoutMs);
+            const pageClosed = this.onDisposed(() => child.kill());
+            const settle = () => {
+                clearTimeout(timer);
+                pageClosed.dispose();
+            };
 
             let stderr = "";
             let stdout = "";
@@ -1562,8 +1587,12 @@ export class OverviewWebviewController extends WebviewPanelController<
             child.stderr?.on("data", (chunk) => {
                 stderr += String(chunk);
             });
-            child.on("error", reject);
+            child.on("error", (error) => {
+                settle();
+                reject(error);
+            });
             child.on("close", (code) => {
+                settle();
                 if (code === 0) {
                     resolve(stdout);
                 } else {
@@ -1606,16 +1635,16 @@ export class OverviewWebviewController extends WebviewPanelController<
         };
     }
 
+    /**
+     * Docker is ready when `docker info` succeeds, which needs both the CLI and a running engine.
+     * Not the Local Containers `checkEngine`: that one is specific to SQL Server images, prompts
+     * on Windows to switch to Linux containers, and rejects architectures dev containers support.
+     */
     private async checkDocker(): Promise<PrerequisiteStatus> {
         try {
-            const installed = await dockerUtils.checkDockerInstallation();
-            if (!installed.success) {
-                return PrerequisiteStatus.Missing;
-            }
-            const engine = await dockerUtils.checkEngine();
-            return engine.success ? PrerequisiteStatus.Ready : PrerequisiteStatus.Missing;
-        } catch (error) {
-            this.logger.error("Failed to check Docker prerequisites", error);
+            await dockerUtils.execDockerCommand(dockerUtils.COMMANDS.CHECK_DOCKER_RUNNING());
+            return PrerequisiteStatus.Ready;
+        } catch {
             return PrerequisiteStatus.Missing;
         }
     }

@@ -134,26 +134,18 @@ export const DevContainersPanel = () => {
                             <Text className={classes.cardName}>{template.name}</Text>
                         </button>
                         <Link
-                            href={getTemplateSourceUrl(template)}
                             title={getTemplateSourceUrl(template)}
                             aria-label={loc.viewOnGitHub}
-                            onClick={(event) => {
-                                event.preventDefault();
-                                openLink(getTemplateSourceUrl(template));
-                            }}>
+                            onClick={() => openLink(getTemplateSourceUrl(template))}>
                             <GithubMark16Regular />
                         </Link>
                     </div>
                 ))}
             </div>
             <Link
-                href={overviewLinks.devContainersQuickstart}
                 title={overviewLinks.devContainersQuickstart}
                 className={classes.learnMore}
-                onClick={(event) => {
-                    event.preventDefault();
-                    openLink(overviewLinks.devContainersQuickstart);
-                }}>
+                onClick={() => openLink(overviewLinks.devContainersQuickstart)}>
                 {loc.devContainersLearnMore}
                 <Open16Regular />
             </Link>

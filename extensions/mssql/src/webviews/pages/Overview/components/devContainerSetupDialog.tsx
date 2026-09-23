@@ -203,6 +203,16 @@ interface DevContainerSetupDialogProps {
     onDismiss: () => void;
 }
 
+const CHECKING_PREREQUISITES: DevContainerPrerequisites = {
+    docker: PrerequisiteStatus.Checking,
+    devContainersExtension: PrerequisiteStatus.Checking,
+};
+
+const MISSING_PREREQUISITES: DevContainerPrerequisites = {
+    docker: PrerequisiteStatus.Missing,
+    devContainersExtension: PrerequisiteStatus.Missing,
+};
+
 /**
  * Guided setup for a dev container template: verifies the prerequisites, then hands off to the
  * Dev Containers extension to scaffold the configuration.
@@ -228,9 +238,9 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
     const [applyFailed, setApplyFailed] = useState(false);
     const [hasFileConflict, setHasFileConflict] = useState(false);
     const [usedPicker, setUsedPicker] = useState(false);
-    // The request reports what it wrote, so the step does not hang on "not found" if the
-    // folder-watching state lags behind.
-    const [applied, setApplied] = useState(false);
+    // The folder and options the template was last written with. Stepping back and changing
+    // either makes the written configuration stale, so it is compared rather than kept as a flag.
+    const [appliedChoice, setAppliedChoice] = useState<string | undefined>(undefined);
     // Reported by the apply, so the final button opens the folder that was actually written
     // rather than whatever the field happens to show afterwards.
     const [appliedTarget, setAppliedTarget] = useState<string | undefined>(undefined);
@@ -350,14 +360,25 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
         };
     }, [getDevContainerTemplateOptions, template.id]);
 
-    const checking = (): DevContainerPrerequisites => ({
-        docker: PrerequisiteStatus.Checking,
-        devContainersExtension: PrerequisiteStatus.Checking,
-    });
+    // Bumped by every check and every pushed change, so only the newest answer is shown: a slow
+    // Docker check must not overwrite an install the extension reported after it started.
+    const prerequisitesRequest = useRef(0);
 
     const refresh = useCallback(async () => {
-        setPrerequisites(checking());
-        setPrerequisites(await checkPrerequisites());
+        const request = ++prerequisitesRequest.current;
+        setPrerequisites(CHECKING_PREREQUISITES);
+        let result: DevContainerPrerequisites | undefined;
+        try {
+            result = await checkPrerequisites();
+        } catch {
+            result = undefined;
+        }
+        if (request !== prerequisitesRequest.current) {
+            return;
+        }
+        // A failed or empty answer shows as missing, which leaves Recheck enabled; staying on
+        // "Checking" would disable it with nothing left to finish.
+        setPrerequisites(result && typeof result === "object" ? result : MISSING_PREREQUISITES);
     }, [checkPrerequisites]);
 
     useEffect(() => {
@@ -366,7 +387,14 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
 
     // Installing happens outside the dialog -- on the extension's page, or Docker's installer --
     // so the extension reports the change when it notices rather than waiting for Recheck.
-    useEffect(() => onPrerequisitesChanged(setPrerequisites), [onPrerequisitesChanged]);
+    useEffect(
+        () =>
+            onPrerequisitesChanged((changed) => {
+                prerequisitesRequest.current++;
+                setPrerequisites(changed);
+            }),
+        [onPrerequisitesChanged],
+    );
 
     const renderStatus = (status: PrerequisiteStatus) => {
         switch (status) {
@@ -403,8 +431,8 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
         prerequisites.docker === PrerequisiteStatus.Ready &&
         prerequisites.devContainersExtension === PrerequisiteStatus.Ready;
 
-    // A configuration in a different workspace root says nothing about the selected target.
-    const configReady = applied;
+    const choice = JSON.stringify({ targetPath, selectedOptions });
+    const configReady = appliedChoice === choice;
 
     // Spins while the CLI runs, then settles on what the run actually reported: the request
     // answers with what it wrote, and the controller re-checks the folder before replying.
@@ -433,7 +461,9 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
             setApplyFailed(result.error !== undefined);
             setHasFileConflict(result.conflict === true);
             setUsedPicker(result.usedPicker);
-            setApplied(result.applied);
+            setAppliedChoice(
+                result.applied ? JSON.stringify({ targetPath, selectedOptions }) : undefined,
+            );
         } catch {
             // A rejected request (the fallback command or the RPC itself failing) would otherwise
             // leave the step with no error and no Retry button, stranding the flow.
@@ -472,13 +502,9 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                         {/* Left of the buttons, where it stays reachable without competing
                             with the action the dialog is asking for. */}
                         <Link
-                            href={getTemplateSourceUrl(template)}
                             title={getTemplateSourceUrl(template)}
                             className={classes.learnMore}
-                            onClick={(event) => {
-                                event.preventDefault();
-                                openLink(getTemplateSourceUrl(template));
-                            }}>
+                            onClick={() => openLink(getTemplateSourceUrl(template))}>
                             {loc.learnMoreAboutTemplate}
                             <Open16Regular />
                         </Link>
@@ -749,7 +775,7 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                                             : loc.stepAddConfigurationFailed
                                         : loc.stepAddConfigurationDescription}
                                 </Text>
-                                {applied && opensNewFolder && appliedTarget && (
+                                {configReady && opensNewFolder && appliedTarget && (
                                     <Text className={classes.rowDescription}>{appliedTarget}</Text>
                                 )}
                                 {usedPicker && (
