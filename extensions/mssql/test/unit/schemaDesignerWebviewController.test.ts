@@ -16,6 +16,8 @@ import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schema
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { Dab } from "../../src/sharedInterfaces/dab";
 import type { IDabMetadataService } from "../../src/dab/dabMetadataService";
+import { DabConfigStore } from "../../src/dab/dabConfigStore";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
 import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
@@ -28,6 +30,7 @@ import {
 import {
     observeWebviewReady,
     stubExtensionContext,
+    stubTelemetry,
     stubUserSurvey,
     stubWebviewPanel,
     stubWebviewConnectionRpc,
@@ -45,6 +48,7 @@ suite("SchemaDesignerWebviewController tests", () => {
     let mockPanel: vscode.WebviewPanel;
     let requestHandlers: Map<string, (params: any) => Promise<any>>;
     let notificationHandlers: Map<string, (params: any) => void>;
+    let sendActionEventStub: sinon.SinonStub;
 
     const connectionString = "Server=localhost;Database=testdb;";
     const accessToken = "test-token";
@@ -90,6 +94,7 @@ suite("SchemaDesignerWebviewController tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        sendActionEventStub = stubTelemetry(sandbox).sendActionEvent;
         mockContext = stubExtensionContext(sandbox);
         stubUserSurvey(sandbox);
         mockMainController = sandbox.createStubInstance(MainController);
@@ -1696,6 +1701,80 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(result.success).to.be.false;
             expect(result.error).to.be.a("string");
             expect(showErrorStub).to.have.been.calledOnce;
+        });
+    });
+
+    suite("DAB deployment telemetry", () => {
+        test("reports a successful tracked action using only bounded properties", async () => {
+            const ctrl = createController();
+            ctrl["_serverName"] = "private-server";
+            const store = sandbox.createStubInstance(DabConfigStore);
+            store.getDeployments.resolves([
+                {
+                    id: "private-deployment-id",
+                    target: Dab.DabDeploymentTarget.DabCli,
+                    name: "private-container-name",
+                    port: 5000,
+                    apiTypes: [],
+                    configHash: "private-config-hash",
+                    createdUtc: "2026-01-01T00:00:00Z",
+                    deployedUtc: "2026-01-01T00:00:00Z",
+                },
+            ]);
+            ctrl["_dabConfigStore"] = store as unknown as DabConfigStore;
+
+            const result = await ctrl["withTrackedDabDeployment"](
+                "private-deployment-id",
+                TelemetryActions.StartDabDeployment,
+                async () => ({ success: true }),
+            );
+
+            expect(result.success).to.be.true;
+            expect(sendActionEventStub).to.have.been.calledWithExactly(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.StartDabDeployment,
+                { additionalProps: { target: "dabCli", outcome: "success" } },
+            );
+            expect(JSON.stringify(sendActionEventStub.lastCall.args)).to.not.contain("private-");
+        });
+
+        test("reports action failure without its error text or deployment ID", async () => {
+            const ctrl = createController();
+            ctrl["_serverName"] = "private-server";
+            const store = sandbox.createStubInstance(DabConfigStore);
+            store.getDeployments.resolves([
+                {
+                    id: "private-deployment-id",
+                    target: Dab.DabDeploymentTarget.Docker,
+                    name: "private-container-name",
+                    port: 5000,
+                    apiTypes: [],
+                    configHash: "private-config-hash",
+                    createdUtc: "2026-01-01T00:00:00Z",
+                    deployedUtc: "2026-01-01T00:00:00Z",
+                },
+            ]);
+            ctrl["_dabConfigStore"] = store as unknown as DabConfigStore;
+
+            const result = await ctrl["withTrackedDabDeployment"](
+                "private-deployment-id",
+                TelemetryActions.StopDabDeployment,
+                async () => ({ success: false, error: "private-error-text" }),
+            );
+
+            expect(result.success).to.be.false;
+            expect(sendActionEventStub).to.have.been.calledWithExactly(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.StopDabDeployment,
+                {
+                    additionalProps: {
+                        target: "docker",
+                        outcome: "failure",
+                        reason: "operationFailed",
+                    },
+                },
+            );
+            expect(JSON.stringify(sendActionEventStub.lastCall.args)).to.not.contain("private-");
         });
     });
 
