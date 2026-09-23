@@ -2401,6 +2401,8 @@ export class StatusBar {
     public static notConnectedTooltip = l10n.t("Click to connect to a database");
     public static connectingLabel = l10n.t("Connecting");
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
+    public static sqlCmdModeOnLabel = l10n.t("SQLCMD: On");
+    public static sqlCmdModeOffLabel = l10n.t("SQLCMD: Off");
 }
 
 export class Connection {

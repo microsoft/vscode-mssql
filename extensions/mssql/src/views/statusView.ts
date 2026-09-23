@@ -445,7 +445,9 @@ export default class StatusView implements vscode.Disposable {
     public sqlCmdModeChanged(fileUri: string, isSqlCmd?: boolean): void {
         let bar = this.getStatusBar(fileUri);
         bar.isSqlCmd = isSqlCmd ?? bar.isSqlCmd;
-        bar.sqlCmdMode.text = bar.isSqlCmd ? "SQLCMD: On" : "SQLCMD: Off";
+        bar.sqlCmdMode.text = bar.isSqlCmd
+            ? LocalizedConstants.StatusBar.sqlCmdModeOnLabel
+            : LocalizedConstants.StatusBar.sqlCmdModeOffLabel;
         bar.sqlCmdMode.command = Constants.cmdToggleSqlCmd;
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
     }

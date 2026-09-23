@@ -361,7 +361,9 @@ suite("Status View Tests", () => {
             statusView.sqlCmdModeChanged(fileUri);
 
             expect(statusView.getSqlCmdMode(fileUri)).to.equal(false);
-            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal("SQLCMD: Off");
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                LocalizedConstants.StatusBar.sqlCmdModeOffLabel,
+            );
             expect(getConfigValueStub).to.have.been.calledWith(Constants.configSqlCmdMode, false);
         });
 
@@ -377,7 +379,9 @@ suite("Status View Tests", () => {
             statusView.setNotConnected(fileUri);
 
             expect(statusView.getSqlCmdMode(fileUri)).to.equal(true);
-            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal("SQLCMD: On");
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                LocalizedConstants.StatusBar.sqlCmdModeOnLabel,
+            );
             expect(statusView.getSqlCmdMode("file:///other-workspace/query.sql")).to.equal(false);
         });
 
@@ -398,7 +402,9 @@ suite("Status View Tests", () => {
 
                 expect(statusView.getSqlCmdMode(fileUri)).to.equal(isSqlCmd);
                 expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
-                    isSqlCmd ? "SQLCMD: On" : "SQLCMD: Off",
+                    isSqlCmd
+                        ? LocalizedConstants.StatusBar.sqlCmdModeOnLabel
+                        : LocalizedConstants.StatusBar.sqlCmdModeOffLabel,
                 );
             });
         }

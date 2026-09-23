@@ -7481,6 +7481,12 @@
     <trans-unit id="++CODE++a7e5c26c01b7c6e199165e627138d104755d24adb0ac611e42bc8b6787b7216c">
       <source xml:lang="en">SQLCMD variable name &apos;{0}&apos; cannot contain whitespace</source>
     </trans-unit>
+    <trans-unit id="++CODE++39c9ef4bd84eb6ddd9f5c378fa89815fcac712d62a25d50f1e062c22beae53e4">
+      <source xml:lang="en">SQLCMD: Off</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e1a0d1ae14cd440c5c230fd6b80917303a6b0a2d78528b22b2d763c8ac3d855b">
+      <source xml:lang="en">SQLCMD: On</source>
+    </trans-unit>
     <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
       <source xml:lang="en">SVG</source>
     </trans-unit>
