@@ -373,14 +373,22 @@ export default class SqlDocumentService implements vscode.Disposable {
             this._statusview?.getSqlCmdMode(docUri) &&
             !uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(doc.uri)
         ) {
-            await SqlToolsServerClient.instance.sendNotification(
-                LanguageFlavorChangedNotification.type,
-                {
-                    uri: docUri,
-                    language: "sqlcmd",
-                    flavor: Constants.mssqlProviderName,
-                },
-            );
+            try {
+                await SqlToolsServerClient.instance.sendNotification(
+                    LanguageFlavorChangedNotification.type,
+                    {
+                        uri: docUri,
+                        language: "sqlcmd",
+                        flavor: Constants.mssqlProviderName,
+                    },
+                );
+            } catch (error) {
+                this._logger.warn(
+                    "Failed to initialize SQLCMD language mode",
+                    { uri: docUri },
+                    error,
+                );
+            }
         }
 
         // Disable last-active auto-connect when any coordinating SQL extension is present.

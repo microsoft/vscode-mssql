@@ -492,6 +492,61 @@ suite("SqlOutputProvider Tests using mocks", () => {
             expect(statusView.sqlCmdModeChanged).to.have.been.calledWith(uri, true);
         });
 
+        test("shares pending SQLCMD initialization with a concurrent toggle", async () => {
+            statusView.getSqlCmdMode.withArgs(uri).returns(true);
+            const optionsRequest = new Deferred<void>();
+            client.sendRequest
+                .withArgs(QueryExecuteOptionsRequest.type)
+                .returns(optionsRequest.promise);
+
+            const creation = contentProvider.createQueryRunner(statusViewInstance, uri, "Query");
+            const toggle = contentProvider
+                .createQueryRunner(statusViewInstance, uri, "Query")
+                .then(async (runner) => {
+                    await contentProvider.toggleSqlCmd(uri);
+                    return runner;
+                });
+
+            expect(contentProvider.getQueryRunner(uri)).to.equal(undefined);
+            optionsRequest.resolve();
+            const [runner, toggledRunner] = await Promise.all([creation, toggle]);
+
+            expect(toggledRunner).to.equal(runner);
+            expect(contentProvider.getQueryRunner(uri)).to.equal(runner);
+            expect(runner.isSqlCmd).to.equal(false);
+            expect(statusView.getSqlCmdMode(uri)).to.equal(false);
+            expect(client.sendRequest).to.have.been.calledWith(QueryExecuteOptionsRequest.type, {
+                ownerUri: uri,
+                options: { options: { isSqlCmdMode: false } },
+            });
+        });
+
+        test("allows retrying after shared SQLCMD initialization fails", async () => {
+            statusView.getSqlCmdMode.withArgs(uri).returns(true);
+            const error = new Error("SQLCMD initialization failed");
+            client.sendRequest.withArgs(QueryExecuteOptionsRequest.type).rejects(error);
+
+            const results = await Promise.allSettled([
+                contentProvider.createQueryRunner(statusViewInstance, uri, "Query"),
+                contentProvider.createQueryRunner(statusViewInstance, uri, "Query"),
+            ]);
+
+            for (const result of results) {
+                expect(result).to.deep.equal({ status: "rejected", reason: error });
+            }
+            expect(contentProvider.getQueryRunner(uri)).to.equal(undefined);
+
+            client.sendRequest.withArgs(QueryExecuteOptionsRequest.type).resolves();
+            const runner = await contentProvider.createQueryRunner(
+                statusViewInstance,
+                uri,
+                "Query",
+            );
+
+            expect(contentProvider.getQueryRunner(uri)).to.equal(runner);
+            expect(runner.isSqlCmd).to.equal(true);
+        });
+
         test("retains a manual SQLCMD override when reusing or replacing the runner", async () => {
             statusView.getSqlCmdMode.withArgs(uri).returns(true);
             const runner = await contentProvider.createQueryRunner(

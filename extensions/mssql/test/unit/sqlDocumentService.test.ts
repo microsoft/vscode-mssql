@@ -557,6 +557,29 @@ suite("SqlDocumentService Tests", () => {
             expect(connectionManager.connect).to.not.have.been.called;
         });
 
+        test("logs a failed SQLCMD notification and continues auto-connect", async () => {
+            const error = new Error("Language notification failed");
+            sqlToolsClient.sendNotification.rejects(error);
+            const warn = sandbox.stub(sqlDocumentService["_logger"], "warn");
+            const connection = { server: "localhost", database: "testdb" } as IConnectionInfo;
+            sqlDocumentService["_lastActiveConnectionInfo"] = connection;
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: sandbox.stub().returns(Constants.NewEditorConnectionBehavior.TransferActive),
+            } as unknown as vscode.WorkspaceConfiguration);
+
+            await openSqlDocumentAfterSaveOrRenameDelay(document);
+
+            expect(warn).to.have.been.calledWithExactly(
+                "Failed to initialize SQLCMD language mode",
+                { uri: document.uri.toString() },
+                error,
+            );
+            expect(connectionManager.connect).to.have.been.calledWithExactly(
+                document.uri.toString(),
+                connection,
+            );
+        });
+
         test("keeps the default language mode when SQLCMD is off", async () => {
             statusView.getSqlCmdMode.returns(false);
 
