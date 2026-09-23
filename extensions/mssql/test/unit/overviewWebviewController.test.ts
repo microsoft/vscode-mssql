@@ -358,6 +358,35 @@ suite("Overview Webview Controller", () => {
         expect(fs.existsSync(path.join(outside, "tasks.json"))).to.be.false;
     });
 
+    test("refuses to write through a dangling workspace symlink", async () => {
+        const workspaceRoot = await createTemporaryDirectory("mssql-overview-brokenlink-");
+        const outsideParent = await createTemporaryDirectory("mssql-overview-outside-");
+        const outside = path.join(outsideParent, "missing");
+        await fs.promises.symlink(outside, path.join(workspaceRoot, ".vscode"), "dir");
+        sandbox
+            .stub(vscode.workspace, "workspaceFolders")
+            .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+        controller = createController();
+        stubTemplateApplication({ ".vscode/tasks.json": "template tasks" });
+
+        const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
+
+        expect(result.applied).to.equal(false);
+        expect(fs.existsSync(path.join(outside, "tasks.json"))).to.be.false;
+    });
+
+    test("accepts nested template destinations under a filesystem-root workspace", async () => {
+        controller = createController();
+        const root = path.parse(process.cwd()).root;
+
+        const destinations = await controller["resolveTemplateDestinations"](
+            vscode.Uri.file(root),
+            ["mssql-overview-new/nested/tasks.json"],
+        );
+
+        expect(destinations[0].directory).to.equal(path.join(root, "mssql-overview-new", "nested"));
+    });
+
     suite("post-update trigger", () => {
         const LAST_VERSION_KEY = "changelog/lastChangeLogVersion";
 

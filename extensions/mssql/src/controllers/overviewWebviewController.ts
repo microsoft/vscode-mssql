@@ -1183,9 +1183,31 @@ export class OverviewWebviewController extends WebviewPanelController<
                     continue;
                 }
                 const child = path.join(directory, segment);
-                // A component that does not exist yet cannot be a link to anywhere.
-                directory = await fs.promises.realpath(child).catch(() => child);
-                if (!directory.startsWith(`${workspaceRoot}${path.sep}`)) {
+                try {
+                    directory = await fs.promises.realpath(child);
+                } catch (error) {
+                    // A missing component is safe to create, but realpath also reports ENOENT
+                    // for a dangling symlink. lstat distinguishes the two cases.
+                    let isMissing = false;
+                    try {
+                        await fs.promises.lstat(child);
+                    } catch (statError) {
+                        if ((statError as NodeJS.ErrnoException).code !== "ENOENT") {
+                            throw statError;
+                        }
+                        isMissing = true;
+                    }
+                    if (!isMissing) {
+                        throw error;
+                    }
+                    directory = child;
+                }
+                const relativeDirectory = path.relative(workspaceRoot, directory);
+                if (
+                    relativeDirectory === ".." ||
+                    relativeDirectory.startsWith(`..${path.sep}`) ||
+                    path.isAbsolute(relativeDirectory)
+                ) {
                     throw new Error(
                         `Template file path escapes the workspace folder: ${relativePath}`,
                     );
