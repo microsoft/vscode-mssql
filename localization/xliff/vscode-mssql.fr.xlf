@@ -2403,6 +2403,12 @@ Cette opération supprimera le conteneur et sa connexion de VS Code.</target>
         <source xml:lang="en">Connection</source>
         <target state="translated">Connexion</target>
       </trans-unit>
+      <trans-unit id="++CODE++ca2dabddc14f86e23e67b73c13a2a7cdbe2207116666e122934712564be8844c">
+        <source xml:lang="en">Connection '{0}' was deleted because its 'connectionString' property was removed and no 'server' property was defined. Removed connection string: '{1}'.</source>
+        <note>{0} is the connection display name
+{1} is the connection string that was removed</note>
+        <target state="new">Connection '{0}' was deleted because its 'connectionString' property was removed and no 'server' property was defined. Removed connection string: '{1}'.</target>
+      </trans-unit>
       <trans-unit id="++CODE++6c916d6a3ffb6e0c85ad115ae2e1f277af1bc76f11a7267fd818b798a796b26a">
         <source xml:lang="en">Connection Authentication</source>
         <target state="translated">Authentification de la connexion</target>
@@ -2518,6 +2524,10 @@ Cette opération supprimera le conteneur et sa connexion de VS Code.</target>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">La chaîne de connexion est requise</target>
+      </trans-unit>
+      <trans-unit id="++CODE++941ba2c30164e4b1bddefd1a3eaea788f03328be07f2fec3b63d8b416c9156dd">
+        <source xml:lang="en">Connection string redacted due to containing authentication secrets</source>
+        <target state="new">Connection string redacted due to containing authentication secrets</target>
       </trans-unit>
       <trans-unit id="++CODE++fb8d3f9bd43cabe4c37397705e459f16b67ee8c01ea4c4f23371fac86d720bf7">
         <source xml:lang="en">Connection test succeeded</source>
@@ -11593,6 +11603,12 @@ Requête : {2}</target>
       <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
         <source xml:lang="en">Text tab - displays SQL text data</source>
         <target state="translated">Onglet de texte : affiche les données de texte SQL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd4cd1ebcce84a342f8bfad9435dafc4703f350e443812adf3724485e42d6894">
+        <source xml:lang="en">The 'connectionString' property was removed from connection '{0}'. Removed connection string: '{1}'.</source>
+        <note>{0} is the connection display name
+{1} is the connection string that was removed</note>
+        <target state="new">The 'connectionString' property was removed from connection '{0}'. Removed connection string: '{1}'.</target>
       </trans-unit>
       <trans-unit id="++CODE++ad21b866cd78c8e2444ffe9593f592e88ed2fa82e200191a85e10725a0e321a7">
         <source xml:lang="en">The .NET SDK cannot be located. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK location in settings if already installed.</source>
