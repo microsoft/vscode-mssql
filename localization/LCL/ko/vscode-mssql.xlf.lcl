@@ -22105,6 +22105,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c26b1146c9d287a920127ddcb75095ae182431588de7ea9b182d8ccb5c37de06" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA['{0}' is a system database, so it isn't tracked in the Fabric Database Hub.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA['{0}'은(는) 시스템 데이터베이스이므로 Fabric 데이터베이스 허브에서 추적하지 않습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add Column]]></Val>
@@ -29959,6 +29968,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.customEnvironment.fabricPortalUriBase" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sovereign cloud equivalent for `https://app.fabric.microsoft.com/`]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[`https://app.fabric.microsoft.com/`에 해당하는 소버린 클라우드]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.customEnvironment.fabricScopeUriBase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`]]></Val>
@@ -31500,6 +31518,15 @@
           <Val><![CDATA[Open Execution Plan File]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[실행 계획 파일 열기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.openInFabricDatabaseHub" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Review health in Database Hub (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터베이스 허브(미리 보기)에서 상태 검토]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
