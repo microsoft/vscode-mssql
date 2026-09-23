@@ -2738,7 +2738,7 @@ export default class MainController implements vscode.Disposable {
      */
     private async onToggleSqlCmd(): Promise<void> {
         const uri = Utils.getActiveTextEditorUri();
-        if (!uri) {
+        if (!uri || !Utils.isEditingSqlFile()) {
             vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return;
         }
