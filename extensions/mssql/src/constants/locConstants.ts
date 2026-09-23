@@ -2440,6 +2440,36 @@ export class Connection {
         });
     };
 
+    public static connectionStringPropertyRemoved = (
+        connectionDisplayName: string,
+        connectionString: string,
+    ) => {
+        return l10n.t({
+            message:
+                "The 'connectionString' property was removed from connection '{0}'. Removed connection string: '{1}'.",
+            args: [connectionDisplayName, connectionString],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection string that was removed",
+            ],
+        });
+    };
+
+    public static connectionDeletedAfterConnectionStringRemoval = (
+        connectionDisplayName: string,
+        connectionString: string,
+    ) => {
+        return l10n.t({
+            message:
+                "Connection '{0}' was deleted because its 'connectionString' property was removed and no 'server' property was defined. Removed connection string: '{1}'.",
+            args: [connectionDisplayName, connectionString],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection string that was removed",
+            ],
+        });
+    };
+
     public static orphanedConnectionGroupsWarning = (groupNames: string) => {
         return l10n.t({
             message:
@@ -2545,6 +2575,9 @@ export class Connection {
             comment: ["{0} is the account ID", "{1} is the tenant ID"],
         });
     };
+    public static ConnectionStringContainsSecrets = l10n.t(
+        "Connection string redacted due to containing authentication secrets",
+    );
 }
 
 export class MssqlChatAgent {

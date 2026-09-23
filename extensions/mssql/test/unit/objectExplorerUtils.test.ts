@@ -246,25 +246,6 @@ suite("Object Explorer Utils Tests", () => {
         expect(result).to.equal("testParentUri");
     });
 
-    test("should return connection string without password if present", () => {
-        // Setup
-        const profile: IConnectionProfile = {
-            connectionString: "Server=myServer;Database=myDb;User Id=myUser;Password=myPassword;",
-            server: "server",
-            database: "database",
-            authenticationType: Constants.sqlAuthentication,
-            user: "user",
-            profileName: "profile",
-            id: "id",
-        } as IConnectionProfile;
-
-        // Execute
-        const result = ObjectExplorerUtils.getNodeUriFromProfile(profile);
-
-        // Verify - should include all parts except the password
-        expect(result).to.equal("Server=myServer;Database=myDb;User Id=myUser;");
-    });
-
     test("should create URI for SQL authentication without connection string", () => {
         // Setup
         const profile: IConnectionProfile = {

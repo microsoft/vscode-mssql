@@ -49,7 +49,6 @@ export class ConnectionCredentials implements IConnectionInfo {
     public multipleActiveResultSets: boolean | undefined;
     public packetSize: number | undefined;
     public typeSystemVersion: string | undefined;
-    public connectionString: string | undefined;
     public containerName: string | undefined;
 
     /**
@@ -63,7 +62,6 @@ export class ConnectionCredentials implements IConnectionInfo {
         if ((credentials as IConnectionProfile).id) {
             details.options["id"] = (credentials as IConnectionProfile).id;
         }
-        details.options["connectionString"] = credentials.connectionString;
         details.options["server"] = credentials.server;
         if (credentials.port && details.options["server"].indexOf(",") === -1) {
             // Port is appended to the server name in a connection string
@@ -118,7 +116,6 @@ export class ConnectionCredentials implements IConnectionInfo {
         const options = connDetails.options || {};
 
         const connInfo: IConnectionInfo = {
-            connectionString: options["connectionString"],
             server: options["server"],
             port: options["server"]?.includes(",")
                 ? parseInt(options["server"].split(",")[1])

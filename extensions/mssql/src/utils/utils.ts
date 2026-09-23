@@ -84,11 +84,9 @@ export function getNonce(): string {
 
 export class CancelError extends Error {}
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isIConnectionInfo(connectionInfo: any): connectionInfo is IConnectionInfo {
-    return (
-        (connectionInfo && connectionInfo.server && connectionInfo.authenticationType) ||
-        connectionInfo.connectionString
-    );
+    return connectionInfo && connectionInfo.server && connectionInfo.authenticationType;
 }
 
 /**

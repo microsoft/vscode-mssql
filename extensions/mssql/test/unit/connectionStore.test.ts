@@ -20,7 +20,7 @@ import {
 } from "../../src/models/interfaces";
 import { MatchScore } from "../../src/models/utils";
 import { Deferred } from "../../src/protocol";
-import { azureAuthConn, sqlAuthConn, connStringConn } from "./utils.test";
+import { azureAuthConn, sqlAuthConn } from "./utils.test";
 import { createStubLogger, stubExtensionContext } from "./utils";
 
 suite("ConnectionStore Tests", () => {
@@ -81,23 +81,10 @@ suite("ConnectionStore Tests", () => {
             testDatabase,
             testUser,
             ConnectionStore.CRED_MRU_USER,
-            false, // isConnectionString
         );
 
         expect(credentialId).to.equal(
             "Microsoft.SqlTools|itemtype:Mru|server:localhost|db:TestDb|user:testUser",
-        );
-
-        credentialId = ConnectionStore.formatCredentialId(
-            testServer,
-            testDatabase,
-            testUser,
-            undefined, // itemType
-            true, // isConnectionString
-        );
-
-        expect(credentialId).to.equal(
-            "Microsoft.SqlTools|itemtype:Profile|server:localhost|db:TestDb|user:testUser|isConnectionString:true",
         );
 
         credentialId = ConnectionStore.formatCredentialId(testServer, testDatabase);
@@ -126,7 +113,6 @@ suite("ConnectionStore Tests", () => {
             .resolves([
                 sqlAuthConn as IConnectionProfileWithSource,
                 azureAuthConn as IConnectionProfileWithSource,
-                connStringConn as IConnectionProfileWithSource,
             ]);
 
         let match = await connectionStore.findMatchingProfile(azureAuthConn);

@@ -12,6 +12,7 @@ import { uuid } from "../utils/utils";
 import { AccountStore } from "../azure/accountStore";
 import { AzureAuthType } from "./contracts/azure";
 import { ConfigTarget } from "../connectionconfig/connectionconfig";
+import { IConnectionInfo } from "vscode-mssql";
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -32,7 +33,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     declare public accountId: string;
     declare public tenantId: string;
 
-    constructor(connectionCredentials?: ConnectionCredentials) {
+    constructor(connectionCredentials?: IConnectionInfo) {
         super();
         if (connectionCredentials) {
             this.accountId = connectionCredentials.accountId;
@@ -57,12 +58,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         return false;
     }
 
-    // Assumption: having connection string or server + profile name indicates all requirements were met
+    // Assumption: having a server and the required authentication fields indicates all requirements were met
     public isValidProfile(): boolean {
-        if (this.connectionString) {
-            return true;
-        }
-
         if (this.authenticationType) {
             if (
                 this.authenticationType === AuthenticationTypes[AuthenticationTypes.Integrated] ||

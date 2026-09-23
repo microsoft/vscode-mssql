@@ -44,43 +44,6 @@ suite("ConnectionCardUtils", () => {
         );
     });
 
-    test("redacts secret connection string values from keys", () => {
-        const firstConnection: IConnectionDialogProfile = {
-            ...baseConnection,
-            connectionString:
-                "Server=server-a;Database=db-a;Password=supersecret;Access Token=token-one;Encrypt=True;",
-        };
-        const secondConnection: IConnectionDialogProfile = {
-            ...baseConnection,
-            connectionString:
-                "Server=server-a;Database=db-a;Password=anothersecret;Access Token=token-two;Encrypt=True;",
-        };
-
-        const firstKey = getConnectionCardKey(firstConnection);
-        const secondKey = getConnectionCardKey(secondConnection);
-
-        expect(firstKey).to.equal(secondKey);
-        expect(firstKey).to.contain("Password=<redacted>");
-        expect(firstKey).to.contain("Access Token=<redacted>");
-        expect(firstKey).to.not.contain("supersecret");
-        expect(firstKey).to.not.contain("token-one");
-    });
-
-    test("keeps non-secret connection string differences in keys", () => {
-        const firstConnection: IConnectionDialogProfile = {
-            ...baseConnection,
-            connectionString: "Server=server-a;Database=db-a;Encrypt=True;",
-        };
-        const secondConnection: IConnectionDialogProfile = {
-            ...baseConnection,
-            connectionString: "Server=server-a;Database=db-a;Encrypt=False;",
-        };
-
-        expect(getConnectionCardKey(firstConnection)).to.not.equal(
-            getConnectionCardKey(secondConnection),
-        );
-    });
-
     test("changes the list key when the ordered recent connections change", () => {
         const firstConnection: IConnectionDialogProfile = {
             ...baseConnection,
