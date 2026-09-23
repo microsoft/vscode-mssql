@@ -141,23 +141,24 @@ export default class ResultsSerializer {
         if (saveConfigExcel?.includeHeaders !== undefined) {
             saveResultsParams.includeHeaders = saveConfigExcel.includeHeaders;
         } else {
-            const saveConfigCsv = config.get<{ includeHeaders?: boolean }>(Constants.configSaveAsCsv);
+            const saveConfigCsv = config.get<{ includeHeaders?: boolean }>(
+                Constants.configSaveAsCsv,
+            );
             if (saveConfigCsv?.includeHeaders !== undefined) {
                 saveResultsParams.includeHeaders = saveConfigCsv.includeHeaders;
             }
         }
-            if (saveConfigExcel.freezeHeaderRow !== undefined) {
-                saveResultsParams.freezeHeaderRow = saveConfigExcel.freezeHeaderRow;
-            }
-            if (saveConfigExcel.boldHeaderRow !== undefined) {
-                saveResultsParams.boldHeaderRow = saveConfigExcel.boldHeaderRow;
-            }
-            if (saveConfigExcel.autoFilterHeaderRow !== undefined) {
-                saveResultsParams.autoFilterHeaderRow = saveConfigExcel.autoFilterHeaderRow;
-            }
-            if (saveConfigExcel.autoSizeColumns !== undefined) {
-                saveResultsParams.autoSizeColumns = saveConfigExcel.autoSizeColumns;
-            }
+        if (saveConfigExcel.freezeHeaderRow !== undefined) {
+            saveResultsParams.freezeHeaderRow = saveConfigExcel.freezeHeaderRow;
+        }
+        if (saveConfigExcel.boldHeaderRow !== undefined) {
+            saveResultsParams.boldHeaderRow = saveConfigExcel.boldHeaderRow;
+        }
+        if (saveConfigExcel.autoFilterHeaderRow !== undefined) {
+            saveResultsParams.autoFilterHeaderRow = saveConfigExcel.autoFilterHeaderRow;
+        }
+        if (saveConfigExcel.autoSizeColumns !== undefined) {
+            saveResultsParams.autoSizeColumns = saveConfigExcel.autoSizeColumns;
         }
         return saveResultsParams;
     }
