@@ -7,16 +7,17 @@
 
 ### What's new in 1.46.0
 
+- Released the new SQL formatter as generally available (GA), giving users more formatting options and greater control over T-SQL style and layout.
+- Added a new MSSQL Overview page (Preview) to make it easier to get started
 - Added optional sound notifications when query execution completes, so long-running queries can notify you when they finish
-- Improved Query Results with clickable error line numbers, preserved `PRINT` output when batch messages are hidden, visible leading and repeated spaces, resizable row numbers, and smoother grid rendering and scrolling
-- Added object filters to Schema Compare and improved its reliability and responsiveness when selecting changes, comparing projects, and reviewing confirmation details
+- Fixed issues in the Query Results where error numbers could not be clicked to jump to the problematic T-SQL, and where `PRINT` statements in result-less batches may not be visible
+- Added object filters to Schema Compare to group changes by object type
 - Added saved filters to Object Explorer and fixed nodes that could remain stuck on "Loading..." after a filter was applied
-- Moved local, Azure, and Fabric database provisioning into background tasks so deployments can continue after the deployment dialog is closed
 - Improved Data API Builder with persistent deployment configurations, tracked deployments, a CLI deployment target, and support for exposing `vector` and `json` columns through the UI and GitHub Copilot tools
 - Improved Flat File Import by retaining column settings after failures, loading schemas from the selected database, and making data type selection more reliable
-- Fixed copied connections so their database dropdown loads while preserving the copied database selection
-- Fixed Edit Data row and cell revert actions, including clearing the dirty state when a value is restored to its original value
+- Fixed an issue in Table Explorer's editor where changes might appear as unsaved after data was restored to its original values.
 - Added the Copy As submenu to SQL Notebook result grids for copying selections as CSV, JSON, `INSERT INTO`, or `IN` clause values
+- Merged SQL Database Projects and Data Workspace extension functionality into the main MSSQL extension.
 
 ## Version 1.45.1
 
