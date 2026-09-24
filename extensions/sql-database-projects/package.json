@@ -2,7 +2,7 @@
     "name": "sql-database-projects-vscode",
     "displayName": "SQL Database Projects",
     "description": "Enables users to develop and publish database schemas for MSSQL Databases",
-    "version": "1.7.2",
+    "version": "1.8.0",
     "publisher": "ms-mssql",
     "mssqlRuntime": true,
     "preview": false,
