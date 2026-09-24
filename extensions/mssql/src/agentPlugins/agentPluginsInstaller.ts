@@ -164,7 +164,9 @@ export class AgentSkillsDownloads {
             SKILLS_SOURCE_ALIAS,
             { maxRedirects: 0, timeoutMs: RESOLVE_REQUEST_TIMEOUT_MS },
         );
-        const target = response.headers.get("location");
+        // Only a redirect's location names the target; a proxy or error page can carry one too.
+        const isRedirect = response.status >= 300 && response.status < 400;
+        const target = isRedirect ? response.headers.get("location") : undefined;
         const source = target ? parseRepositorySource(target) : undefined;
         if (!source) {
             throw new Error(

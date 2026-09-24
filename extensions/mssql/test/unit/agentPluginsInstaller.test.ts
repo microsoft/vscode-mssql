@@ -548,6 +548,26 @@ suite("Agent Plugins Installer", () => {
         expect(getStub).to.have.been.calledOnce;
     });
 
+    test("ignores a location header on a response that is not a redirect", async () => {
+        const getStub = sandbox.stub(VscodeHttpClient.prototype, "get").resolves({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: createHttpHeaders({ location: "https://github.com/contoso/sql-skills" }),
+            data: "",
+        });
+
+        let thrown: unknown;
+        try {
+            await installer.getSkillsCatalog();
+        } catch (error) {
+            thrown = error;
+        }
+
+        expect(thrown).to.be.instanceOf(Error);
+        expect(getStub).to.have.been.calledOnce;
+    });
+
     test("does not clear the registration while an update is swapping the folder", async () => {
         await createPluginOnDisk();
         userLocations = { [installer.pluginRoot.fsPath]: true };
