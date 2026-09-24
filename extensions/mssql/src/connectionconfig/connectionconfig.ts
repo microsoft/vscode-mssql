@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import lodash from "lodash";
+import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
-import * as vscode from "vscode";
 import { uuid } from "../utils/utils";
 import { createServiceIdentifier } from "extension-toolkit/base";
 import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
@@ -524,7 +525,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         // ensure profile has a config source set
         if (profile.configSource === undefined) {
-            profile.configSource = ConfigurationTarget.Global;
+            profile.configSource = this.resolveConnectionConfigSource(profile);
             modified = true;
         }
 
@@ -849,8 +850,8 @@ export class ConnectionConfig implements IConnectionConfig {
         ]);
 
         // Write to the specified target, or to all targets if none specified
-        if (target && groupedProfiles.get(target)) {
-            const targetProfiles = groupedProfiles.get(target);
+        if (target !== undefined) {
+            const targetProfiles = groupedProfiles.get(target) ?? [];
             await this.persistConnectionsForTarget(targetProfiles, target);
         } else {
             for (const configTarget of targetsToUpdate) {
@@ -867,8 +868,17 @@ export class ConnectionConfig implements IConnectionConfig {
         const cleanedProfiles = profiles.map((profile) => {
             const cleanedProfile = { ...profile };
             delete cleanedProfile.configSource;
+
             return cleanedProfile;
         });
+
+        const existingProfiles = this.getArrayFromSettings<IConnectionProfile>(
+            Constants.connectionsArrayName,
+            target,
+        );
+        if (lodash.isEqual(existingProfiles, cleanedProfiles)) {
+            return;
+        }
 
         await vscode.workspace
             .getConfiguration(Constants.extensionName)
