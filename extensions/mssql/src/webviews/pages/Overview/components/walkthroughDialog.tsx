@@ -218,9 +218,7 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
             return;
         }
         if (step.action.actionId) {
-            // An in-product action needs the editor, which this modal is covering.
             runAction(step.action.actionId);
-            onDismiss();
         }
     };
 
