@@ -61,6 +61,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         // Main controller is used to connect to the container after creation
         public mainController: MainController,
         initialConnectionGroup?: string,
+        initialDeploymentType?: DeploymentType,
     ) {
         super(context, DEPLOYMENT_VIEW_ID, DEPLOYMENT_VIEW_ID, new DeploymentWebviewState(), {
             title: newDeployment,
@@ -70,14 +71,18 @@ export class DeploymentWebviewController extends FormWebviewController<
                 light: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
             },
         });
-        void this.initialize(initialConnectionGroup);
+        void this.initialize(initialConnectionGroup, initialDeploymentType);
     }
 
-    private async initialize(initialConnectionGroup?: string) {
+    private async initialize(
+        initialConnectionGroup?: string,
+        initialDeploymentType?: DeploymentType,
+    ) {
         // If an initial connection group was provided, try to pre-populate the form state
         if (initialConnectionGroup) {
             this.state.formState.groupId = initialConnectionGroup;
         }
+        this.state.initialDeploymentType = initialDeploymentType;
         this.state.connectionGroupOptions =
             await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
         this.registerRpcHandlers();
@@ -113,6 +118,17 @@ export class DeploymentWebviewController extends FormWebviewController<
                     this.logger,
                     selectedGroupId,
                 );
+            } else {
+                // A deployment type with no wizard behind it yet. Everything below reads the
+                // state this block was meant to produce, so carrying on would dereference
+                // `undefined` and take the webview down. The start page only advances once the
+                // state for its chosen type is ready, so returning here leaves the user on the
+                // chooser instead.
+                this.logger.error(
+                    `No deployment wizard is implemented for deployment type ${payload.deploymentType}.`,
+                );
+                state.deploymentTypeState.loadState = ApiStatus.Error;
+                return state;
             }
 
             // Capture the initial deployment specific state in the overall controller's state
