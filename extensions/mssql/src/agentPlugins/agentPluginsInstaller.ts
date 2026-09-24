@@ -24,14 +24,12 @@ interface SkillsSource {
 }
 
 /**
- * It redirects to the repository that ships them, and every other URL here -- the archive, the
+ * The short link redirects to the repository that ships the skills, and every other URL here -- the archive, the
  * revision, the catalog READMEs and the source links -- is derived from whatever it resolves to.
  * Repointing the link moves all of them together, so the copy that gets installed and the copy
  * the links describe cannot drift apart.
  */
 const SKILLS_SOURCE_ALIAS = "https://aka.ms/vscode-mssql-skills-repo";
-
-const FALLBACK_SKILLS_SOURCE: SkillsSource = { owner: "microsoft", name: "microsoft-sql" };
 
 /**
  * One owner or repository name GitHub accepts, e.g. `microsoft` or `microsoft-sql`, so a parsed
@@ -148,47 +146,33 @@ export class AgentSkillsDownloads {
      * and the source links all read the same answer, which is what keeps them describing one
      * repository for as long as the window lives.
      *
-     * A failure resolves to {@link FALLBACK_SKILLS_SOURCE} and is deliberately not cached, so a
-     * window that started offline picks the real target up on a later attempt rather than being
-     * pinned to the fallback until it is reloaded.
+     * A failure is not cached, so a window that started offline resolves the link on a later
+     * attempt rather than failing until it is reloaded.
      */
     public resolveSource(): Promise<SkillsSource> {
         if (!this._source) {
-            this._source = this.readAliasTarget().then((source) => {
-                if (source === FALLBACK_SKILLS_SOURCE) {
-                    this._source = undefined;
-                }
-                return source;
+            this._source = this.readAliasTarget().catch((error) => {
+                this._source = undefined;
+                throw error;
             });
         }
         return this._source;
     }
 
     private async readAliasTarget(): Promise<SkillsSource> {
-        try {
-            const response = await new VscodeHttpClient({ logger: this._logger }).get(
-                SKILLS_SOURCE_ALIAS,
-                { maxRedirects: 0, timeoutMs: RESOLVE_REQUEST_TIMEOUT_MS },
+        const response = await new VscodeHttpClient({ logger: this._logger }).get(
+            SKILLS_SOURCE_ALIAS,
+            { maxRedirects: 0, timeoutMs: RESOLVE_REQUEST_TIMEOUT_MS },
+        );
+        const target = response.headers.get("location");
+        const source = target ? parseRepositorySource(target) : undefined;
+        if (!source) {
+            throw new Error(
+                `${SKILLS_SOURCE_ALIAS} did not resolve to a GitHub repository` +
+                    `${target ? ` (${target})` : ""}.`,
             );
-            const target = response.headers.get("location");
-            const source = target ? parseRepositorySource(target) : undefined;
-            if (!source) {
-                this._logger.warn(
-                    `${SKILLS_SOURCE_ALIAS} did not resolve to a GitHub repository` +
-                        `${target ? ` (${target})` : ""}; using ` +
-                        `${FALLBACK_SKILLS_SOURCE.owner}/${FALLBACK_SKILLS_SOURCE.name}.`,
-                );
-                return FALLBACK_SKILLS_SOURCE;
-            }
-            return source;
-        } catch (error) {
-            this._logger.debug(
-                `Could not resolve ${SKILLS_SOURCE_ALIAS}: ${
-                    error instanceof Error ? error.message : String(error)
-                }`,
-            );
-            return FALLBACK_SKILLS_SOURCE;
         }
+        return source;
     }
 
     /**
@@ -213,9 +197,9 @@ export class AgentSkillsDownloads {
     }
 
     private async readLatestSha(): Promise<string | undefined> {
-        const source = await this.resolveSource();
-        const url = `https://api.github.com/repos/${source.owner}/${source.name}/commits/${SKILLS_REF}`;
         try {
+            const source = await this.resolveSource();
+            const url = `https://api.github.com/repos/${source.owner}/${source.name}/commits/${SKILLS_REF}`;
             // This media type answers with the bare commit SHA rather than the full commit.
             const response = await new VscodeHttpClient().get<string>(url, {
                 headers: { Accept: "application/vnd.github.sha" },
@@ -667,8 +651,8 @@ const SKILL_NAME_CELL = /^(?:\*\*|`)([a-z0-9][a-z0-9._-]*)(?:\*\*|`)$/i;
  */
 export function parseSkillsCatalog(
     markdown: string,
-    pluginName: AgentSkillPluginName = AGENT_SKILL_PLUGINS[0],
-    repository = repositoryUrl(FALLBACK_SKILLS_SOURCE),
+    pluginName: AgentSkillPluginName,
+    repository: string,
 ): AgentSkillSummary[] {
     // CRLF line endings, normalized to LF before splitting.
     const lines = markdown.replace(/\r\n/g, "\n").split("\n");

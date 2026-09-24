@@ -329,10 +329,14 @@ suite("Agent Plugins Installer", () => {
     test("loads, parses, and caches the shipped skills catalog", async () => {
         const getStub = sandbox.stub(VscodeHttpClient.prototype, "get");
         getStub.callsFake(async (url: string) => ({
-            ok: true,
-            status: 200,
-            statusText: "OK",
-            headers: createHttpHeaders(),
+            ok: !url.startsWith("https://aka.ms/"),
+            status: url.startsWith("https://aka.ms/") ? 301 : 200,
+            statusText: "",
+            headers: createHttpHeaders(
+                url.startsWith("https://aka.ms/")
+                    ? { location: "https://github.com/contoso/sql-skills" }
+                    : {},
+            ),
             data: [
                 "## Skills (57)",
                 "",
@@ -357,26 +361,26 @@ suite("Agent Plugins Installer", () => {
             {
                 id: "microsoft-sql-vscode",
                 repositoryUrl:
-                    "https://github.com/microsoft/microsoft-sql/tree/main/plugins/microsoft-sql-vscode",
+                    "https://github.com/contoso/sql-skills/tree/main/plugins/microsoft-sql-vscode",
                 skills: [
                     {
                         id: "connect-from-typescript-and-node",
                         description: "Connect a Node.js application using mssql.",
                         repositoryUrl:
-                            "https://github.com/microsoft/microsoft-sql/blob/main/plugins/microsoft-sql-vscode/skills/connect-from-typescript-and-node/SKILL.md",
+                            "https://github.com/contoso/sql-skills/blob/main/plugins/microsoft-sql-vscode/skills/connect-from-typescript-and-node/SKILL.md",
                     },
                 ],
             },
             {
                 id: "microsoft-sql-migration",
                 repositoryUrl:
-                    "https://github.com/microsoft/microsoft-sql/tree/main/plugins/microsoft-sql-migration",
+                    "https://github.com/contoso/sql-skills/tree/main/plugins/microsoft-sql-migration",
                 skills: [
                     {
                         id: "recommend-migration-path",
                         description: "Recommends a migration path.",
                         repositoryUrl:
-                            "https://github.com/microsoft/microsoft-sql/blob/main/plugins/microsoft-sql-migration/skills/recommend-migration-path/SKILL.md",
+                            "https://github.com/contoso/sql-skills/blob/main/plugins/microsoft-sql-migration/skills/recommend-migration-path/SKILL.md",
                     },
                 ],
             },
@@ -471,6 +475,8 @@ suite("Agent Plugins Installer", () => {
                 "| --- | --- | --- |",
                 "| **1. Instructions** | when the skill triggers | The happy path. |",
             ].join("\n"),
+            "microsoft-sql-vscode",
+            "https://github.com/owner/repo",
         );
 
         expect(skills.map((skill) => skill.id)).to.deep.equal(["connect-node", "read-plan"]);
@@ -489,6 +495,8 @@ suite("Agent Plugins Installer", () => {
                 "",
                 "## Install",
             ].join("\n"),
+            "microsoft-sql-migration",
+            "https://github.com/owner/repo",
         );
 
         expect(skills.map((skill) => skill.id)).to.deep.equal([
@@ -512,17 +520,14 @@ suite("Agent Plugins Installer", () => {
             expect(thrown).to.be.instanceOf(Error);
         }
 
-        // Per attempt: the resolve, then both READMEs. A resolve that fell back is not cached,
-        // so the retry asks again rather than staying pinned to the fallback.
-        expect(getStub).to.have.callCount(6);
+        // One failed resolve per attempt: the failure is not cached, so the retry asks again.
+        expect(getStub).to.have.callCount(2);
     });
 
-    test("ignores a short link that does not resolve to a GitHub repository", async () => {
-        // aka.ms answers an unknown name with its own search page, which arrives as a redirect to
-        // a perfectly healthy URL rather than a 404. Following it would fetch that page as though
-        // it were the skills, so an unrecognised target falls back to the known repository.
-        const getStub = sandbox.stub(VscodeHttpClient.prototype, "get");
-        getStub.onFirstCall().resolves({
+    test("rejects a short link that does not resolve to a GitHub repository", async () => {
+        // aka.ms answers an unknown name with a redirect to its own search page rather than a 404,
+        // so the target is checked before anything is fetched from it.
+        const getStub = sandbox.stub(VscodeHttpClient.prototype, "get").resolves({
             ok: false,
             status: 302,
             statusText: "Found",
@@ -531,28 +536,16 @@ suite("Agent Plugins Installer", () => {
             }),
             data: "",
         });
-        getStub.resolves({
-            ok: true,
-            status: 200,
-            statusText: "OK",
-            headers: createHttpHeaders(),
-            data: [
-                "## Skills (1)",
-                "",
-                "| Skill | What it does |",
-                "| --- | --- |",
-                "| `azure-sql` | Orients an agent. |",
-            ].join("\n"),
-        });
 
-        const [group] = await installer.getSkillsCatalog();
+        let thrown: unknown;
+        try {
+            await installer.getSkillsCatalog();
+        } catch (error) {
+            thrown = error;
+        }
 
-        expect(group.repositoryUrl).to.equal(
-            "https://github.com/microsoft/microsoft-sql/tree/main/plugins/microsoft-sql-vscode",
-        );
-        expect(group.skills[0].repositoryUrl).to.equal(
-            "https://github.com/microsoft/microsoft-sql/blob/main/plugins/microsoft-sql-vscode/skills/azure-sql/SKILL.md",
-        );
+        expect(thrown).to.be.instanceOf(Error);
+        expect(getStub).to.have.been.calledOnce;
     });
 
     test("does not clear the registration while an update is swapping the folder", async () => {
