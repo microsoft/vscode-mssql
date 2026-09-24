@@ -353,15 +353,15 @@
     <trans-unit id="++CODE++72d975d00b2a6ec753bd80833252852de2c69720c3bbcd404493650cb4cdca41">
       <source xml:lang="en">Add filters to modify the SQL query</source>
     </trans-unit>
-    <trans-unit id="++CODE++eb5fa8eda3652255e1ed76fdcbbdff29061c399cdf557b0d393085e3c354d278">
-      <source xml:lang="en">Add indexed vector search using Azure SQL&apos;s native vector capabilities.</source>
-    </trans-unit>
     <trans-unit id="++CODE++7c0d6c25e58caa429d8df44b1266a82eff13a7fe9f477b164863aea8a9acc658">
       <source xml:lang="en">Add my client IP ({0})</source>
       <note>{0} is the IP address of the client</note>
     </trans-unit>
     <trans-unit id="++CODE++119f58d6a58b3f47f5c837a12f2f47a5201453288fc7ec0267e5886c2deba6e9">
       <source xml:lang="en">Add my subnet IP range</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c605ac4a3b3beceff40b59c0761cf72cf1e16c26d47d8f96a53b4ea678eed401">
+      <source xml:lang="en">Add native vector search and verify the index is used</source>
     </trans-unit>
     <trans-unit id="++CODE++cf502b3a94444bf574bf8c1ca17b7ba9f954543af389a62e0eeca0ec3faa08f3">
       <source xml:lang="en">Add new column</source>
@@ -371,6 +371,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e891f9e2ee7ea16cb59e0300e28e862e02117c23fab36f0eefe9cbec2520e74f">
       <source xml:lang="en">Add reference</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d48a4c818cd03cbe407e0c2feabec124c5a21e1dd62613713e4149072c6b06e9">
+      <source xml:lang="en">Add semantic search to one of my tables using the database&apos;s native vector support, after checking this engine supports it. Store the embeddings and write the similarity query. Then give me a check I can run that proves the query, exactly as the app runs it, uses the vector index, and that fails loudly if it ever falls back to scanning.</source>
     </trans-unit>
     <trans-unit id="++CODE++419a6a835f7a02b24021d1de3d33b7aa4b8dcd405b5ada92a062b20f4f0f0f8a">
       <source xml:lang="en">Add specialized skills to GitHub Copilot to help you work with SQL Server and Azure SQL.</source>
@@ -392,12 +395,6 @@
     </trans-unit>
     <trans-unit id="++CODE++dcc475b31b6d6d1bc68eede1badaf4b6af93c3683fe3a25ae08c8544b572e7fa">
       <source xml:lang="en">Add to workspace</source>
-    </trans-unit>
-    <trans-unit id="++CODE++638fa6131268fff5cb2508bef634c4421e1e6111e2651483a1453f542b4265e8">
-      <source xml:lang="en">Add vector search to this table and make it use the index</source>
-    </trans-unit>
-    <trans-unit id="++CODE++591974aaca8469a696debf9257e9c56ce57b38e29b3142c5cda53f493c99d6b3">
-      <source xml:lang="en">Add vector search to this table using Azure SQL&apos;s native VECTOR type and VECTOR_DISTANCE. Store the embeddings, write the similarity query, then show me how to confirm it is using a vector index rather than scanning the whole table.</source>
     </trans-unit>
     <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
       <source xml:lang="en">Added</source>
@@ -807,6 +804,9 @@
     <trans-unit id="++CODE++70d2e37ffe6556af0cba5c43fa55ab55f9235530987956b396745510a5d4d471">
       <source xml:lang="en">Auto-scroll enabled</source>
     </trans-unit>
+    <trans-unit id="++CODE++f9dcbb55deba4b9fc8f81c4045718a29cb9b7481508475edb9d52eb869b303a9">
+      <source xml:lang="en">Automate</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0">
       <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
     </trans-unit>
@@ -1088,14 +1088,23 @@
     <trans-unit id="++CODE++13c21cbf0c8262d9afe95473cca56d822ff75f02ee7857e032bad6473fbd73ec">
       <source xml:lang="en">Build a database-backed app from setup to API and running.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9a13713cc7404b365d0a2b0cf7d9b8b03e908836a20ef308d597a3e3bcc3a309">
+      <source xml:lang="en">Build a persistence layer in its own schema, with migrations safe to re-run.</source>
+    </trans-unit>
     <trans-unit id="++CODE++75b3413e271841585d3319f0608aef1923c61d737b219530dd8de5459def7aa7">
       <source xml:lang="en">Build an AI-ready app</source>
+    </trans-unit>
+    <trans-unit id="++CODE++04280a4be30504353c032cabeb7df69e957da11bbe79acf8f88dd3441e715940">
+      <source xml:lang="en">Build an Azure Function app that reacts whenever a row in one of my tables is inserted or updated, plus an HTTP endpoint that adds rows to that table. Run it locally against my database and prove both work: show the reaction firing for a change you make, and show what happens when a new row&apos;s key already exists.</source>
     </trans-unit>
     <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
       <source xml:lang="en">Build failed with exit code {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++826d02f44b0b73307289256833824e9adbe8e6be6379095d214e84d814b95183">
       <source xml:lang="en">Build failed. Check output pane for more details. {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bb58800ec91d1ccd8fc4f138bc7f5d65dc2dab9fd3a00222f1fb478036140092">
+      <source xml:lang="en">Build the persistence layer for this app: tables for its entities, ordered migrations that are safe to re-run, and the data access code it calls. Keep the app&apos;s tables, migration history and locks in their own schema, and run migrations only against the app&apos;s database. Make sure a migration can never report success while leaving something that fails later.</source>
     </trans-unit>
     <trans-unit id="++CODE++83786570b57c8ba630ba1a34a6392b74bd535658df4105674f535468e8bf66a3">
       <source xml:lang="en">Build with AI using GitHub Copilot</source>
@@ -1791,9 +1800,6 @@
     <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
       <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
     </trans-unit>
-    <trans-unit id="++CODE++aa49da8fc6c28ccd6528e40cce959eb1cf6e3a093cde3302f3f009345bf76078">
-      <source xml:lang="en">Configure a Node.js application to use secure Microsoft Entra authentication.</source>
-    </trans-unit>
     <trans-unit id="++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71">
       <source xml:lang="en">Configure and customize Azure SQL Databases</source>
     </trans-unit>
@@ -1839,14 +1845,8 @@
     <trans-unit id="++CODE++0e65cf5077295cb9c747c8444e19e9f9c8c5b82d37158c24cf1ece7c84dd746b">
       <source xml:lang="en">Connect and manage database connections</source>
     </trans-unit>
-    <trans-unit id="++CODE++0fb7fb11dc215a93d89a9b060c696149f590b9accdd0747896fee613fb7755eb">
-      <source xml:lang="en">Connect my Node app to Azure SQL Database without a password</source>
-    </trans-unit>
     <trans-unit id="++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da">
       <source xml:lang="en">Connect the active SQL document to a database</source>
-    </trans-unit>
-    <trans-unit id="++CODE++869b13cbc90dee1872ef01380429d9064aee528e808257ce990b87602d1da8da">
-      <source xml:lang="en">Connect this Node.js app to Azure SQL Database using Microsoft Entra authentication instead of a SQL login. Wire up the connection so it works both on my machine and from the deployed app, and make sure no database password ends up in the repository or in configuration.</source>
     </trans-unit>
     <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
       <source xml:lang="en">Connect to Database</source>
@@ -3001,9 +3001,6 @@
     </trans-unit>
     <trans-unit id="++CODE++64dd65edfeaabd10a5a0f29816332bf82ca9c7b7056182a29f9e1d987cbaf016">
       <source xml:lang="en">Diagnose</source>
-    </trans-unit>
-    <trans-unit id="++CODE++18e5d8a52d65ad0cc95f446e6db7b7a52e00baf59e7f6b7c4e05e396027b6a5b">
-      <source xml:lang="en">Diagnose serverless resume behavior and make the application resilient to it.</source>
     </trans-unit>
     <trans-unit id="++CODE++babe24f1687d8f696f010c9dab1cdc17cea284045f0cef8dab2ed2c4cd5eac9e">
       <source xml:lang="en">Different database, different server</source>
@@ -5144,9 +5141,6 @@
     <trans-unit id="++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba">
       <source xml:lang="en">Insert selected query-editor text using {arg}. If you don&apos;t use the placeholder, selected text is automatically appended to the end of the query.</source>
     </trans-unit>
-    <trans-unit id="++CODE++5c255cf5434e54023b2deea5fbcb9c1be9311c9cbaacb84ab4f46506aa7e2da9">
-      <source xml:lang="en">Inspect the current project and build its Azure SQL persistence layer.</source>
-    </trans-unit>
     <trans-unit id="++CODE++569ca49f4aaf7846e952c1d4aeca72febd0b79fa1c4f9db08fd3127551218572">
       <source xml:lang="en">Install</source>
     </trans-unit>
@@ -5688,9 +5682,6 @@
     <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
       <source xml:lang="en">Logs copied to clipboard</source>
     </trans-unit>
-    <trans-unit id="++CODE++2ac0b7c1c6ae7cf3f2794887e38d7bd0f31a83f7b2d1be7f59ddfcaf02dd7920">
-      <source xml:lang="en">Look at this project and build its Azure SQL persistence layer: design tables for the entities it already has, add ordered migration scripts that are safe to re-run, and generate the data access code the app calls. Run the migrations against the application database, never against master.</source>
-    </trans-unit>
     <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
       <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
     </trans-unit>
@@ -6057,9 +6048,6 @@
     </trans-unit>
     <trans-unit id="++CODE++c26ee0e4b915257d995cffde4cc7b77a97c1e0cfa544836fdcb28329d1dc749a">
       <source xml:lang="en">Mutation</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3f0cef497990f152bfa80f26e6ff1ac87eacfc2e40bcb0bdf6685287a9e15503">
-      <source xml:lang="en">My first query after an idle period fails with error 40613 against Azure SQL Database. Explain what the serverless tier is doing when that happens, then change this app&apos;s connection and retry handling so the resume is absorbed instead of surfacing as a failed request.</source>
     </trans-unit>
     <trans-unit id="++CODE++4f597d21c43ad4296c13690ad65aaff476273a489afc5e5d6f91073de96baf9b">
       <source xml:lang="en">MyProfilerSession</source>
@@ -6664,6 +6652,9 @@
     </trans-unit>
     <trans-unit id="++CODE++53dbddd7bcdf5a51afae1447f034e76d78722d20c1d6d62002c00e19f68ea9b2">
       <source xml:lang="en">On Update Action</source>
+    </trans-unit>
+    <trans-unit id="++CODE++77f4b6cbb91f6e89511bceef7c078a47075e4ad04a2a4c903cbf2b6f2a1c90c3">
+      <source xml:lang="en">One of my app&apos;s endpoints got slow. Find the database queries behind it, work out why they&apos;re slow, and show the evidence. Tell me what the database didn&apos;t record that you&apos;d need. Don&apos;t change anything yet.</source>
     </trans-unit>
     <trans-unit id="++CODE++2d763983a073bc87ca923bb655d5bf3537e7afaaf07ef5f21a8a814550e24413">
       <source xml:lang="en">One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.</source>
@@ -7866,6 +7857,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f1f7fb149510b3345e622785a8ef9a6d79fe17a9521268307fd6a9e32668494b">
+      <source xml:lang="en">Run an Azure Function whenever a row in my table changes</source>
     </trans-unit>
     <trans-unit id="++CODE++0ab80ab98d7d16f11e736faff60edd6bc2b3d343621580f76a97d7055a675509">
       <source xml:lang="en">Run and iterate</source>
@@ -9100,6 +9094,9 @@
     <trans-unit id="++CODE++6549c4671adc57fc8e91f8f954ddc90c5afa351bdac948dc76c0a1bdc604d3bc">
       <source xml:lang="en">Storage Account is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++c7b8b06aab73c64f55558b47032bc9bd5e482199d0a16a1b479549141010ba8a">
+      <source xml:lang="en">Store embeddings, write the similarity query, and catch silent full-table scans.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c3d80b4555b5cc4db38060d13360c4a25eb2324a33e2301b7af68c423a06a187">
       <source xml:lang="en">Stored Procedure</source>
     </trans-unit>
@@ -9828,6 +9825,9 @@
     <trans-unit id="++CODE++3018218f5b66be1c5027fdc1d75389f30f30ac7cfa00c77c3453790d8830dc9a">
       <source xml:lang="en">Total rows to fetch:</source>
     </trans-unit>
+    <trans-unit id="++CODE++46d981a71762418a844ace6d52c63bc4bc1c1c72e858b3a933b9041d3a303fbb">
+      <source xml:lang="en">Trace the queries behind a slow endpoint and find the cause, with evidence.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c7363102b16228ab96af90a6f97d1ab569d452b23341820a7070e0dd8ddb859b">
       <source xml:lang="en">Transaction Log</source>
     </trans-unit>
@@ -10353,8 +10353,8 @@
     <trans-unit id="++CODE++e665368a7ddcbfc0773b209b289d596aa211d1746b8da0a3802464ede446cc70">
       <source xml:lang="en">Where the project will be created.</source>
     </trans-unit>
-    <trans-unit id="++CODE++da3243e9a2ab47b9642a1eaab484b40a2e47d33ca3804503d5b0756589bcbe58">
-      <source xml:lang="en">Why does my first query after idle fail with 40613</source>
+    <trans-unit id="++CODE++f8d9319c3b029ab680834f0ad04e6fe566f3500828d6968ef7e420813be503c6">
+      <source xml:lang="en">Why did this endpoint get slow?</source>
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -10364,6 +10364,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8746aa4543652187c8719dbebc36f0609e31bbc53b14ed2ca12b0207c9e79345">
       <source xml:lang="en">Windows Authentication</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8fd327e952b1908d7b6e1208d2d1fe2af7a479232accca6c08eebc9c8bb8094e">
+      <source xml:lang="en">Wire up a SQL trigger and an HTTP endpoint, verified locally against your data.</source>
     </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>

@@ -63,13 +63,6 @@ export function getAgentSkillPacks(): AgentSkillPack[] {
             repositoryUrl: overviewLinks.skillsRepository,
             prompts: [
                 {
-                    id: "connectNodePasswordless",
-                    tag: loc.promptTagConnect,
-                    title: loc.promptConnectNodeTitle,
-                    description: loc.promptConnectNodeDescription,
-                    prompt: loc.promptConnectNodeBody,
-                },
-                {
                     id: "scaffoldAppDataLayer",
                     tag: loc.promptTagBuild,
                     title: loc.promptScaffoldAppTitle,
@@ -84,11 +77,18 @@ export function getAgentSkillPacks(): AgentSkillPack[] {
                     prompt: loc.promptVectorSearchBody,
                 },
                 {
-                    id: "diagnose40613",
+                    id: "sqlTriggerFunction",
+                    tag: loc.promptTagAutomate,
+                    title: loc.promptSqlTriggerFunctionTitle,
+                    description: loc.promptSqlTriggerFunctionDescription,
+                    prompt: loc.promptSqlTriggerFunctionBody,
+                },
+                {
+                    id: "diagnoseSlowEndpoint",
                     tag: loc.promptTagDiagnose,
-                    title: loc.promptError40613Title,
-                    description: loc.promptError40613Description,
-                    prompt: loc.promptError40613Body,
+                    title: loc.promptSlowEndpointTitle,
+                    description: loc.promptSlowEndpointDescription,
+                    prompt: loc.promptSlowEndpointBody,
                 },
             ],
         },

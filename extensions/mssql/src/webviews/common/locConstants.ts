@@ -4063,31 +4063,31 @@ export class LocConstants {
             promptCopied: l10n.t("Copied"),
             openPromptInCopilot: l10n.t("Open in Copilot"),
 
-            promptTagConnect: l10n.t("Connect"),
             promptTagBuild: l10n.t("Build"),
             promptTagAi: l10n.t("AI"),
+            promptTagAutomate: l10n.t("Automate"),
             promptTagDiagnose: l10n.t("Diagnose"),
-            promptConnectNodeTitle: l10n.t(
-                "Connect my Node app to Azure SQL Database without a password",
-            ),
-            promptConnectNodeDescription: l10n.t(
-                "Configure a Node.js application to use secure Microsoft Entra authentication.",
-            ),
             promptScaffoldAppTitle: l10n.t(
                 "Scaffold the schema, migrations, and data layer for this app",
             ),
             promptScaffoldAppDescription: l10n.t(
-                "Inspect the current project and build its Azure SQL persistence layer.",
+                "Build a persistence layer in its own schema, with migrations safe to re-run.",
             ),
             promptVectorSearchTitle: l10n.t(
-                "Add vector search to this table and make it use the index",
+                "Add native vector search and verify the index is used",
             ),
             promptVectorSearchDescription: l10n.t(
-                "Add indexed vector search using Azure SQL's native vector capabilities.",
+                "Store embeddings, write the similarity query, and catch silent full-table scans.",
             ),
-            promptError40613Title: l10n.t("Why does my first query after idle fail with 40613"),
-            promptError40613Description: l10n.t(
-                "Diagnose serverless resume behavior and make the application resilient to it.",
+            promptSqlTriggerFunctionTitle: l10n.t(
+                "Run an Azure Function whenever a row in my table changes",
+            ),
+            promptSqlTriggerFunctionDescription: l10n.t(
+                "Wire up a SQL trigger and an HTTP endpoint, verified locally against your data.",
+            ),
+            promptSlowEndpointTitle: l10n.t("Why did this endpoint get slow?"),
+            promptSlowEndpointDescription: l10n.t(
+                "Trace the queries behind a slow endpoint and find the cause, with evidence.",
             ),
 
             promptTagAssess: l10n.t("Assess"),
@@ -4111,17 +4111,17 @@ export class LocConstants {
                 "Verify the target is complete, healthy, and ready for application traffic.",
             ),
 
-            promptConnectNodeBody: l10n.t(
-                "Connect this Node.js app to Azure SQL Database using Microsoft Entra authentication instead of a SQL login. Wire up the connection so it works both on my machine and from the deployed app, and make sure no database password ends up in the repository or in configuration.",
-            ),
             promptScaffoldAppBody: l10n.t(
-                "Look at this project and build its Azure SQL persistence layer: design tables for the entities it already has, add ordered migration scripts that are safe to re-run, and generate the data access code the app calls. Run the migrations against the application database, never against master.",
+                "Build the persistence layer for this app: tables for its entities, ordered migrations that are safe to re-run, and the data access code it calls. Keep the app's tables, migration history and locks in their own schema, and run migrations only against the app's database. Make sure a migration can never report success while leaving something that fails later.",
             ),
             promptVectorSearchBody: l10n.t(
-                "Add vector search to this table using Azure SQL's native VECTOR type and VECTOR_DISTANCE. Store the embeddings, write the similarity query, then show me how to confirm it is using a vector index rather than scanning the whole table.",
+                "Add semantic search to one of my tables using the database's native vector support, after checking this engine supports it. Store the embeddings and write the similarity query. Then give me a check I can run that proves the query, exactly as the app runs it, uses the vector index, and that fails loudly if it ever falls back to scanning.",
             ),
-            promptError40613Body: l10n.t(
-                "My first query after an idle period fails with error 40613 against Azure SQL Database. Explain what the serverless tier is doing when that happens, then change this app's connection and retry handling so the resume is absorbed instead of surfacing as a failed request.",
+            promptSqlTriggerFunctionBody: l10n.t(
+                "Build an Azure Function app that reacts whenever a row in one of my tables is inserted or updated, plus an HTTP endpoint that adds rows to that table. Run it locally against my database and prove both work: show the reaction firing for a change you make, and show what happens when a new row's key already exists.",
+            ),
+            promptSlowEndpointBody: l10n.t(
+                "One of my app's endpoints got slow. Find the database queries behind it, work out why they're slow, and show the evidence. Tell me what the database didn't record that you'd need. Don't change anything yet.",
             ),
             promptAssessMigrationBody: l10n.t(
                 "Assess my database for migration to Azure SQL. Analyze its configuration, compatibility, dependencies, and workload characteristics. Identify blockers, warnings, and changes required for migration, and recommend the best-fit Azure SQL target with evidence. Give me a clear readiness summary and the actions I should take before migrating.",
