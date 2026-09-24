@@ -293,6 +293,7 @@
     "mssql.openExecutionPlanFile": "Open Execution Plan File",
     "mssql.enableExperimentalFeatures.description": "Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
     "mssql.legacySetting.deprecationMessage": "This setting will be removed in a future release.",
+    "mssql.sqlCmdMode.description": "Enable SQLCMD mode by default for new query editors. Use the Toggle SQLCMD Mode command to change the mode for an individual editor.",
     "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane.",
     "mssql.query.playCompletionSound.description": "Play a sound after a query finishes executing.",
     "mssql.query.completionSoundFile.description": "The path to a custom WAV file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 400 KB.",

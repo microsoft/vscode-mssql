@@ -347,6 +347,7 @@ export const configQueryCompletionSoundFile = "query.completionSoundFile";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
 export const configUseMsalEntraMfaAuth = "mssql.useMsalEntraMfaAuth";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
+export const configSqlCmdMode = "mssql.sqlCmdMode";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizingMode = "resultsGrid.autoSizeColumnsMode";

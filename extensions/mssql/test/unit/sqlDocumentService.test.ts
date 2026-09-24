@@ -15,6 +15,10 @@ import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+import { LanguageFlavorChangedNotification } from "../../src/models/contracts/languageService";
+import StatusView from "../../src/views/statusView";
+import * as extension from "../../src/extension";
+import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
 import { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../../src/models/interfaces";
@@ -39,6 +43,7 @@ suite("SqlDocumentService Tests", () => {
     let sqlDocumentService: SqlDocumentService;
     let docUri: string;
     let docUriCallback: string;
+    let sqlToolsClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
@@ -98,9 +103,9 @@ suite("SqlDocumentService Tests", () => {
             has: sandbox.stub().returns(false),
             delete: sandbox.stub(),
         };
-        sandbox.stub(SqlToolsServerClient, "instance").value({
-            diagnosticCollection: mockDiagnosticCollection,
-        });
+        sqlToolsClient = sandbox.createStubInstance(SqlToolsServerClient);
+        sandbox.stub(sqlToolsClient, "diagnosticCollection").get(() => mockDiagnosticCollection);
+        sandbox.stub(SqlToolsServerClient, "instance").value(sqlToolsClient);
 
         setupConnectionManagerMocks(connectionManager);
     });
@@ -519,6 +524,107 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.onDidOpenTextDocument(notebookCellDoc);
 
         expect(connectionManager.onDidOpenTextDocument).to.not.have.been.called;
+    });
+
+    suite("SQLCMD language mode on open", () => {
+        let statusView: sinon.SinonStubbedInstance<StatusView>;
+
+        setup(() => {
+            statusView = sandbox.createStubInstance(StatusView);
+            sqlDocumentService["_statusview"] = statusView;
+            statusView.getSqlCmdMode.returns(true);
+        });
+
+        test("enables SQLCMD for the opened document even when another editor is active", async () => {
+            const openedDocument = mockTextDocument("file:///opened.sql");
+            sandbox.stub(vscode.window, "activeTextEditor").value({
+                document: mockTextDocument("file:///active.sql"),
+            } as vscode.TextEditor);
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: sandbox.stub().returns(Constants.NewEditorConnectionBehavior.None),
+            } as unknown as vscode.WorkspaceConfiguration);
+
+            await openSqlDocumentAfterSaveOrRenameDelay(openedDocument);
+
+            expect(sqlToolsClient.sendNotification).to.have.been.calledWithExactly(
+                LanguageFlavorChangedNotification.type,
+                {
+                    uri: openedDocument.uri.toString(),
+                    language: "sqlcmd",
+                    flavor: Constants.mssqlProviderName,
+                },
+            );
+            expect(connectionManager.connect).to.not.have.been.called;
+        });
+
+        test("logs a failed SQLCMD notification and continues auto-connect", async () => {
+            const error = new Error("Language notification failed");
+            sqlToolsClient.sendNotification.rejects(error);
+            const warn = sandbox.stub(sqlDocumentService["_logger"], "warn");
+            const connection = { server: "localhost", database: "testdb" } as IConnectionInfo;
+            sqlDocumentService["_lastActiveConnectionInfo"] = connection;
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: sandbox.stub().returns(Constants.NewEditorConnectionBehavior.TransferActive),
+            } as unknown as vscode.WorkspaceConfiguration);
+
+            await openSqlDocumentAfterSaveOrRenameDelay(document);
+
+            expect(warn).to.have.been.calledWithExactly(
+                "Failed to initialize SQLCMD language mode",
+                { uri: document.uri.toString() },
+                error,
+            );
+            expect(connectionManager.connect).to.have.been.calledWithExactly(
+                document.uri.toString(),
+                connection,
+            );
+        });
+
+        test("keeps the default language mode when SQLCMD is off", async () => {
+            statusView.getSqlCmdMode.returns(false);
+
+            await openSqlDocumentAfterSaveOrRenameDelay(document);
+
+            expect(sqlToolsClient.sendNotification).to.not.have.been.called;
+        });
+
+        test("does not initialize SQLCMD for a document closed during the open delay", async () => {
+            const openedDocument = {
+                ...mockTextDocument("file:///closed.sql"),
+                isClosed: false,
+            };
+            const clock = sandbox.useFakeTimers();
+            try {
+                const opening = sqlDocumentService.onDidOpenTextDocument(openedDocument);
+                sandbox.stub(openedDocument, "isClosed").value(true);
+                await clock.tickAsync(500);
+                await opening;
+
+                expect(statusView.getSqlCmdMode).to.not.have.been.called;
+                expect(sqlToolsClient.sendNotification).to.not.have.been.called;
+            } finally {
+                clock.restore();
+            }
+        });
+
+        test("does not override the language mode transferred during save or rename", async () => {
+            sqlDocumentService["_newUriFromRenameOrSave"].add(document.uri.toString());
+
+            await openSqlDocumentAfterSaveOrRenameDelay(document);
+
+            expect(sqlToolsClient.sendNotification).to.not.have.been.called;
+        });
+
+        test("does not change the language mode for a coordinating extension's document", async () => {
+            const coordinator = sandbox.createStubInstance(UriOwnershipCoordinator);
+            coordinator.isOwnedByCoordinatingExtension.returns(true);
+            coordinator.getCoordinatingExtensions.returns([]);
+            sandbox.stub(extension, "uriOwnershipCoordinator").value(coordinator);
+
+            await openSqlDocumentAfterSaveOrRenameDelay(document);
+
+            expect(sqlToolsClient.sendNotification).to.not.have.been.called;
+        });
     });
 
     test("newQuery should call the new query method", async () => {
@@ -1053,7 +1159,7 @@ suite("SqlDocumentService Tests", () => {
             });
 
             expect(mockLanguageFlavorChanged).to.have.been.calledOnce;
-            expect(mockSqlCmdModeChanged).to.have.been.calledOnceWith(sinon.match.string, false);
+            expect(mockSqlCmdModeChanged).to.have.been.calledOnceWithExactly(sinon.match.string);
         });
     });
 

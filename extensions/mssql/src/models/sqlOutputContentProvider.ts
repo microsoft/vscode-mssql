@@ -55,6 +55,7 @@ function getSelectionSummaryDisplayText(text?: string): string | undefined {
 
 export class SqlOutputContentProvider {
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
+    private _sqlCmdInitializationPromises: Map<string, Promise<boolean>> = new Map();
     private _queryResultWebviewController: QueryResultWebviewController;
     private _actualPlanStatuses: string[] = [];
     // One execution slot per editor URI. The token identifies the run that owns the slot so a
@@ -628,9 +629,25 @@ export class SqlOutputContentProvider {
             queryRunner = existingRunner;
             queryRunner.resetHasCompleted();
         } else {
+            const pendingInitialization = this._sqlCmdInitializationPromises.get(uri);
+            if (pendingInitialization) {
+                await pendingInitialization;
+                // The first caller registers the runner synchronously after initialization.
+                return this.getQueryRunner(uri);
+            }
+
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
+            if (statusView.getSqlCmdMode(uri)) {
+                const initialization = queryRunner.toggleSqlCmd();
+                this._sqlCmdInitializationPromises.set(uri, initialization);
+                try {
+                    await initialization;
+                } finally {
+                    this._sqlCmdInitializationPromises.delete(uri);
+                }
+            }
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
                 this.updateWebviewState(queryRunner.uri, {

@@ -41,6 +41,7 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
+import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
 
 chai.use(sinonChai);
 
@@ -162,6 +163,56 @@ suite("MainController Tests", function () {
         await controller.onManageProfiles();
 
         expect(connectionManager.onManageProfiles).to.have.been.called;
+    });
+
+    suite("Toggle SQLCMD Mode", () => {
+        let outputContentProvider: sinon.SinonStubbedInstance<SqlOutputContentProvider>;
+
+        setup(() => {
+            outputContentProvider = sandbox.createStubInstance(SqlOutputContentProvider);
+            mainController["_outputContentProvider"] = outputContentProvider;
+        });
+
+        test("warns without creating a query runner when no editor is active", async () => {
+            sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
+
+            await mainController["onToggleSqlCmd"]();
+
+            expect(messageBoxes.showWarningMessage).to.have.been.calledWith(
+                LocalizedConstants.msgOpenSqlFile,
+            );
+            expect(outputContentProvider.createQueryRunner).not.to.have.been.called;
+            expect(outputContentProvider.toggleSqlCmd).not.to.have.been.called;
+        });
+
+        test("warns without creating a query runner when the editor language is not SQL", async () => {
+            sandbox
+                .stub(vscode.window, "activeTextEditor")
+                .value(createMockTextEditor("file:///test/query.sql", "plaintext"));
+
+            await mainController["onToggleSqlCmd"]();
+
+            expect(messageBoxes.showWarningMessage).to.have.been.calledWith(
+                LocalizedConstants.msgOpenSqlFile,
+            );
+            expect(outputContentProvider.createQueryRunner).not.to.have.been.called;
+            expect(outputContentProvider.toggleSqlCmd).not.to.have.been.called;
+        });
+
+        test("creates a query runner and toggles SQLCMD for an active SQL editor", async () => {
+            const uri = "file:///test/query.sql";
+            sandbox.stub(vscode.window, "activeTextEditor").value(createMockTextEditor(uri));
+
+            await mainController["onToggleSqlCmd"]();
+
+            expect(messageBoxes.showWarningMessage).not.to.have.been.called;
+            expect(outputContentProvider.createQueryRunner).to.have.been.calledWith(
+                mainController["_statusview"],
+                uri,
+                "query.sql",
+            );
+            expect(outputContentProvider.toggleSqlCmd).to.have.been.calledWith(uri);
+        });
     });
 
     suite("Delete Container", () => {

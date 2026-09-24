@@ -21,6 +21,7 @@ import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
 import { logger } from "../models/logger";
+import { LanguageFlavorChangedNotification } from "../models/contracts/languageService";
 
 /**
  * Time to wait after opening a document to check if it's the
@@ -367,6 +368,29 @@ export default class SqlDocumentService implements vscode.Disposable {
             return;
         }
 
+        if (
+            !doc.isClosed &&
+            this._statusview?.getSqlCmdMode(docUri) &&
+            !uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(doc.uri)
+        ) {
+            try {
+                await SqlToolsServerClient.instance.sendNotification(
+                    LanguageFlavorChangedNotification.type,
+                    {
+                        uri: docUri,
+                        language: "sqlcmd",
+                        flavor: Constants.mssqlProviderName,
+                    },
+                );
+            } catch (error) {
+                this._logger.warn(
+                    "Failed to initialize SQLCMD language mode",
+                    { uri: docUri },
+                    error,
+                );
+            }
+        }
+
         // Disable last-active auto-connect when any coordinating SQL extension is present.
         if ((uriOwnershipCoordinator?.getCoordinatingExtensions().length ?? 0) > 0) {
             this._logger.debug(
@@ -613,7 +637,7 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         // Update status views
         this._statusview?.languageFlavorChanged(documentKey, Constants.mssqlProviderName);
-        this._statusview?.sqlCmdModeChanged(documentKey, false);
+        this._statusview?.sqlCmdModeChanged(documentKey);
         this._logger.debug("Initialized status view state for new query document", {
             uri: documentKey,
         });

@@ -18,6 +18,11 @@ import sinonChai from "sinon-chai";
 import { ISelectionData } from "../../src/models/interfaces";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import QueryRunner from "../../src/controllers/queryRunner";
+import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
+import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+import { QueryExecuteOptionsRequest } from "../../src/models/contracts/queryExecute";
+import { LanguageFlavorChangedNotification } from "../../src/models/contracts/languageService";
+import { Deferred } from "../../src/protocol";
 import store from "../../src/queryResult/singletonStore";
 import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
 
@@ -422,6 +427,159 @@ suite("SqlOutputProvider Tests using mocks", () => {
     test("toggleSqlCmd should do nothing if no queryRunner exists", async () => {
         let result = await contentProvider.toggleSqlCmd("test_uri");
         expect(result).to.be.false;
+    });
+
+    suite("SQLCMD defaults", () => {
+        const uri = "file:///sqlcmd-test/query.sql";
+        let client: sinon.SinonStubbedInstance<SqlToolsServerClient>;
+
+        setup(() => {
+            client = sandbox.createStubInstance(SqlToolsServerClient);
+            client.sendRequest.resolves();
+            client.sendNotification.resolves();
+            sandbox.stub(SqlToolsServerClient, "instance").get(() => client);
+            const notificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
+            sandbox.stub(QueryNotificationHandler, "instance").get(() => notificationHandler);
+            statusView.getSqlCmdMode.returns(false);
+            statusView.sqlCmdModeChanged.callsFake((fileUri, isSqlCmd) => {
+                if (isSqlCmd !== undefined) {
+                    statusView.getSqlCmdMode.withArgs(fileUri).returns(isSqlCmd);
+                }
+            });
+        });
+
+        test("leaves a new runner in SQL mode when the default is off", async () => {
+            const runner = await contentProvider.createQueryRunner(
+                statusViewInstance,
+                uri,
+                "Query",
+            );
+
+            expect(runner.isSqlCmd).to.equal(false);
+            expect(client.sendRequest).to.not.have.been.calledWith(QueryExecuteOptionsRequest.type);
+            expect(client.sendNotification).to.not.have.been.calledWith(
+                LanguageFlavorChangedNotification.type,
+            );
+        });
+
+        test("applies the SQLCMD default before query execution", async () => {
+            statusView.getSqlCmdMode.withArgs(uri).returns(true);
+            const optionsRequest = new Deferred<void>();
+            client.sendRequest
+                .withArgs(QueryExecuteOptionsRequest.type)
+                .returns(optionsRequest.promise);
+            const runQuery = sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
+
+            const execution = contentProvider.runQuery(statusViewInstance, uri, undefined, "Query");
+            await new Promise<void>((resolve) => setImmediate(resolve));
+
+            expect(runQuery).to.not.have.been.called;
+            expect(contentProvider.getQueryRunner(uri)).to.equal(undefined);
+            expect(client.sendRequest).to.have.been.calledWith(QueryExecuteOptionsRequest.type, {
+                ownerUri: uri,
+                options: { options: { isSqlCmdMode: true } },
+            });
+
+            optionsRequest.resolve();
+            await execution;
+
+            expect(contentProvider.getQueryRunner(uri).isSqlCmd).to.equal(true);
+            expect(runQuery).to.have.been.called;
+            expect(client.sendNotification).to.have.been.calledWith(
+                LanguageFlavorChangedNotification.type,
+                { uri, language: "sqlcmd", flavor: Constants.mssqlProviderName },
+            );
+            expect(statusView.sqlCmdModeChanged).to.have.been.calledWith(uri, true);
+        });
+
+        test("shares pending SQLCMD initialization with a concurrent toggle", async () => {
+            statusView.getSqlCmdMode.withArgs(uri).returns(true);
+            const optionsRequest = new Deferred<void>();
+            client.sendRequest
+                .withArgs(QueryExecuteOptionsRequest.type)
+                .returns(optionsRequest.promise);
+
+            const creation = contentProvider.createQueryRunner(statusViewInstance, uri, "Query");
+            const toggle = contentProvider
+                .createQueryRunner(statusViewInstance, uri, "Query")
+                .then(async (runner) => {
+                    await contentProvider.toggleSqlCmd(uri);
+                    return runner;
+                });
+
+            expect(contentProvider.getQueryRunner(uri)).to.equal(undefined);
+            optionsRequest.resolve();
+            const [runner, toggledRunner] = await Promise.all([creation, toggle]);
+
+            expect(toggledRunner).to.equal(runner);
+            expect(contentProvider.getQueryRunner(uri)).to.equal(runner);
+            expect(runner.isSqlCmd).to.equal(false);
+            expect(statusView.getSqlCmdMode(uri)).to.equal(false);
+            expect(client.sendRequest).to.have.been.calledWith(QueryExecuteOptionsRequest.type, {
+                ownerUri: uri,
+                options: { options: { isSqlCmdMode: false } },
+            });
+        });
+
+        test("allows retrying after shared SQLCMD initialization fails", async () => {
+            statusView.getSqlCmdMode.withArgs(uri).returns(true);
+            const error = new Error("SQLCMD initialization failed");
+            client.sendRequest.withArgs(QueryExecuteOptionsRequest.type).rejects(error);
+
+            const results = await Promise.allSettled([
+                contentProvider.createQueryRunner(statusViewInstance, uri, "Query"),
+                contentProvider.createQueryRunner(statusViewInstance, uri, "Query"),
+            ]);
+
+            for (const result of results) {
+                expect(result).to.deep.equal({ status: "rejected", reason: error });
+            }
+            expect(contentProvider.getQueryRunner(uri)).to.equal(undefined);
+
+            client.sendRequest.withArgs(QueryExecuteOptionsRequest.type).resolves();
+            const runner = await contentProvider.createQueryRunner(
+                statusViewInstance,
+                uri,
+                "Query",
+            );
+
+            expect(contentProvider.getQueryRunner(uri)).to.equal(runner);
+            expect(runner.isSqlCmd).to.equal(true);
+        });
+
+        test("retains a manual SQLCMD override when reusing or replacing the runner", async () => {
+            statusView.getSqlCmdMode.withArgs(uri).returns(true);
+            const runner = await contentProvider.createQueryRunner(
+                statusViewInstance,
+                uri,
+                "Query",
+            );
+            await contentProvider.toggleSqlCmd(uri);
+            sandbox.stub(runner, "resetQueryRunner").resolves();
+            client.sendRequest.resetHistory();
+
+            const reused = await contentProvider.createQueryRunner(
+                statusViewInstance,
+                uri,
+                "Query",
+            );
+
+            expect(reused).to.equal(runner);
+            expect(reused.isSqlCmd).to.equal(false);
+            expect(client.sendRequest).to.not.have.been.calledWith(QueryExecuteOptionsRequest.type);
+
+            sandbox.stub(runner, "dispose").resolves();
+            await contentProvider.cleanupRunner(uri);
+            const replacement = await contentProvider.createQueryRunner(
+                statusViewInstance,
+                uri,
+                "Query",
+            );
+
+            expect(replacement).to.not.equal(runner);
+            expect(replacement.isSqlCmd).to.equal(false);
+            expect(client.sendRequest).to.not.have.been.calledWith(QueryExecuteOptionsRequest.type);
+        });
     });
 
     test("Test queryResultsMap getters and setters", () => {

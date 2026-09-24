@@ -1354,6 +1354,8 @@
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",
     "Connection error": "Connection error",
+    "SQLCMD: On": "SQLCMD: On",
+    "SQLCMD: Off": "SQLCMD: Off",
     "Connecting to {0}.../{0} is the connection display name": {
         "message": "Connecting to {0}...",
         "comment": ["{0} is the connection display name"]

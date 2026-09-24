@@ -2066,6 +2066,12 @@
                     "description": "%mssql.useMsalEntraMfaAuth.description%",
                     "scope": "application"
                 },
+                "mssql.sqlCmdMode": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.sqlCmdMode.description%",
+                    "scope": "resource"
+                },
                 "mssql.openQueryResultsInTabByDefault": {
                     "type": "boolean",
                     "default": false,
