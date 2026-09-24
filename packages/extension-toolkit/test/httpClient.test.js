@@ -86,6 +86,39 @@ suite("HttpClient", () => {
                 Authorization: `Bearer ${token}`,
             });
         });
+
+        test("returns a redirect unfollowed when maxRedirects is 0", async () => {
+            // A caller that validates where a short link points reads the redirect's location
+            // itself; following it would fetch the target before the caller could check it.
+            const send = mock.method(httpClient, "send", async () => ({
+                data: "",
+                status: 301,
+                statusText: "Moved Permanently",
+                headers: { location: "https://github.com/owner/repo" },
+            }));
+
+            const result = await httpClient.get("https://aka.ms/short-link", {
+                maxRedirects: 0,
+            });
+
+            assert.equal(send.mock.calls[0].arguments[1].maxRedirects, 0);
+            assert.equal(result.status, 301);
+            assert.equal(result.ok, false);
+            assert.equal(result.headers.get("location"), "https://github.com/owner/repo");
+        });
+
+        test("leaves the redirect limit to the transport when maxRedirects is unset", async () => {
+            const send = mock.method(httpClient, "send", async () => ({
+                data: "",
+                status: 200,
+                statusText: "OK",
+                headers: {},
+            }));
+
+            await httpClient.get("https://api.example.com/data");
+
+            assert.equal(send.mock.calls[0].arguments[1].maxRedirects, undefined);
+        });
     });
 
     suite("postJson", () => {
@@ -218,6 +251,29 @@ suite("HttpClient", () => {
                 { downloadedBytes: 0, totalBytes: undefined, percentage: undefined },
             ]);
             assert.equal(destroy.mock.callCount(), 1);
+        });
+
+        test("forwards maxRedirects to the download request", async () => {
+            const responseStream = new PassThrough();
+            mock.method(responseStream, "destroy", () => responseStream);
+            const send = mock.method(httpClient, "send", async () => ({
+                data: responseStream,
+                status: 302,
+                statusText: "Found",
+                headers: { location: "https://example.com/elsewhere" },
+            }));
+
+            const result = await httpClient.downloadToFileDescriptor(
+                "https://download.example.com/file",
+                123,
+                { maxRedirects: 0 },
+            );
+
+            const config = send.mock.calls[0].arguments[1];
+            assert.equal(config.maxRedirects, 0);
+            assert.equal(config.responseType, "stream");
+            assert.equal(result.status, 302);
+            assert.equal(result.ok, false);
         });
 
         test("opens and closes path destinations", async () => {
