@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 1.8.0
+
+- Release date: September 23, 2026
+- Release status: GA
+
+### What's new in 1.8.0
+
+- Core SQL Database Projects functionality has moved into the main **SQL Server (mssql)** extension. The SQL Database Projects extension is preserved for compatibility.
+
 ## Version 1.7.0
 
 - Release date: August 19, 2026

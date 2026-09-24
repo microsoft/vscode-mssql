@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { DeploymentContext } from "./deploymentStateProvider";
 import { useDeploymentSelector } from "./deploymentSelector";
 import { Button, makeStyles, Text } from "@fluentui/react-components";
@@ -40,6 +40,7 @@ export const DeploymentStartPage = () => {
     const errorMessage = useDeploymentSelector((s) => s.errorMessage);
     const deploymentType = useDeploymentSelector((s) => s.deploymentType);
     const deploymentTypeState = useDeploymentSelector((s) => s.deploymentTypeState);
+    const initialDeploymentType = useDeploymentSelector((s) => s.initialDeploymentType);
     const [activeDeploymentType, setActiveDeploymentType] = useState<DeploymentType>();
     const [pendingDeploymentType, setPendingDeploymentType] = useState<DeploymentType>();
 
@@ -65,8 +66,33 @@ export const DeploymentStartPage = () => {
         );
     };
 
+    const hasAutoSelected = useRef(false);
+
+    // Guarded so a user going Back is not bounced forward again.
+    useEffect(() => {
+        if (
+            hasAutoSelected.current ||
+            initialDeploymentType === undefined ||
+            loadState !== ApiStatus.Loaded ||
+            !context
+        ) {
+            return;
+        }
+        hasAutoSelected.current = true;
+        setPendingDeploymentType(initialDeploymentType);
+        context.initializeDeploymentSpecifics(initialDeploymentType);
+    }, [context, initialDeploymentType, loadState]);
+
     useEffect(() => {
         if (pendingDeploymentType === undefined || deploymentType !== pendingDeploymentType) {
+            return;
+        }
+
+        // Initialization failed, which includes a type the extension has no wizard for. The
+        // selection has to be released or the chooser it falls back to is inert: every card
+        // goes through handleDeploymentTypeSelected, which ignores clicks while one is pending.
+        if (deploymentTypeState?.loadState === ApiStatus.Error) {
+            setPendingDeploymentType(undefined);
             return;
         }
 

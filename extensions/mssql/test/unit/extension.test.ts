@@ -12,7 +12,7 @@ import { IExtension } from "vscode-mssql";
 import MainController from "../../src/controllers/mainController";
 import * as Extension from "../../src/extension";
 import { stubExtensionContext } from "./utils";
-import { ChangelogWebviewController } from "../../src/controllers/changelogWebviewController";
+import { OverviewWebviewController } from "../../src/controllers/overviewWebviewController";
 import * as LocalizationCache from "../../src/controllers/localizationCache";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { UserSurvey } from "../../src/nps/userSurvey";
@@ -71,7 +71,7 @@ suite("Extension API Tests", () => {
         sandbox.stub(vscode.commands, "registerCommand").returns(disposable);
         sandbox.stub(vscode.extensions, "getExtension").returns(undefined);
         sandbox.stub(vscode.chat, "createChatParticipant").returns(chatParticipant);
-        sandbox.stub(ChangelogWebviewController, "showChangelogOnExtensionUpdate").resolves();
+        sandbox.stub(OverviewWebviewController, "showWelcomeOnExtensionUpdate").resolves();
         sandbox.stub(LocalizationCache, "initializeWebviewLocalizationCache").returns();
         sandbox.stub(IconUtils, "initialize").returns();
         sandbox.stub(UserSurvey, "createInstance").returns();

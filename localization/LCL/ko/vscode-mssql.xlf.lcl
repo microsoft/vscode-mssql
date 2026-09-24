@@ -274,6 +274,9 @@
       <Item ItemId=";bundle.++CODE++025b2c9cebc8d4e8ce463364bc4906b4c1d91cf3176080d240db88df9057713a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 작업을 수행하면 이 데이터베이스의 엔터티, 작업, 열 및 고급 설정이 모두 삭제되고 현재 스키마를 기준으로 다시 작성됩니다. Copilot에서 적용한 변경 내용도 삭제됩니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -523,6 +526,9 @@
       <Item ItemId=";bundle.++CODE++045d71b1a3454db180c918941024e788e68689e951e9d51ea41f3283ed5b7666" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[A name for this deployment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 배포의 이름]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1735,6 +1741,9 @@
       <Item ItemId=";bundle.++CODE++0e5682bd6846b320b3c20b7e81d3a887e9e0edea8e3e12ff1a42d650d166cf6c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to download the Data API builder CLI. Please check your network connection.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 CLI를 다운로드하지 못했습니다. 네트워크 연결을 확인하십시오.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2092,6 +2101,9 @@
       <Item ItemId=";bundle.++CODE++10ec47f707e2ceda7f9f3ba5115bfd4c906b40f01260a2005ef4dc82206a2f07" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The Data API builder configuration is not valid.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 구성이 유효하지 않습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2440,6 +2452,9 @@
       <Item ItemId=";bundle.++CODE++14999af228be42ee1b1416c75be3e2e2679235dd464d1419388e8053829b70ef" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Getting Data API builder ready]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기를 준비하는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2545,6 +2560,9 @@
       <Item ItemId=";bundle.++CODE++1535db1c91172380e70396d4a07899000757727b521ac651eb91dbcaee2460e4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Runs Data API builder in a container on this machine, published on a local port.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 컴퓨터의 컨테이너에서 데이터 API 작성기를 실행하고 로컬 포트에 게시합니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3145,6 +3163,9 @@
       <Item ItemId=";bundle.++CODE++1a187c0bb776eac7a356f6623badf4084f701ae47f405cfc74374c79fbf44ddb" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The container {0} will be stopped and removed, and its endpoints will stop responding.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[컨테이너 {0}이(가) 중지되고 제거됩니다. 해당 엔드포인트는 더 이상 응답하지 않습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4240,6 +4261,9 @@
       <Item ItemId=";bundle.++CODE++23e40a67c278a8a66cd5a8bbc80182380a6c7b33b291e7c68d50504637dc5d17" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Redeploying {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 재배포 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4381,6 +4405,9 @@
       <Item ItemId=";bundle.++CODE++2503b01003bcd3cc049b9e4f273e2bcffeefa91ce4a71ad31fa4a74f01d6856a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Update and start]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[업데이트하고 시작]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4783,6 +4810,9 @@
       <Item ItemId=";bundle.++CODE++291afc74d5a450bbd0b7f7b0113afdab45aa05c5cad2bea333ca7bc4b177cadb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reset the configuration to the defaults for this schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 스키마의 구성을 기본값으로 다시 설정]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5563,6 +5593,9 @@
       <Item ItemId=";bundle.++CODE++2fffa807cb6b4bd34f3fc8bf567ebcb2aed34f84dbe187fe16c7a2102150b6b5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking .NET runtime]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[.NET 런타임을 확인하는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5956,6 +5989,9 @@
       <Item ItemId=";bundle.++CODE++3354da6f24cc9e0b4acf2080b9856a0ee5c185787090822b133a1c34effcd3dd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Local Docker container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[로컬 Docker 컨테이너]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6538,6 +6574,9 @@
       <Item ItemId=";bundle.++CODE++395d24fb8fa72b65bf141f8edf73f77594688b9c3cee265c680809003f46ada9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Starting Data API builder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기를 시작하는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6625,6 +6664,9 @@
       <Item ItemId=";bundle.++CODE++3a5c6f7694e6b79d4a4b5f16765912115902c0d08963fba6a8cc8258318c8a42" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Run with the Data API builder CLI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 CLI로 실행]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6829,6 +6871,9 @@
       <Item ItemId=";bundle.++CODE++3c26053c4678fe4e3f992866121ffa0360ca6b3ab11b54e65f7bc7c89ce9f36b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run 'az login', then run this step again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기가 데이터베이스에 로그인하지 못했습니다. 이 확장은 Azure CLI를 사용해 별도로 로그인합니다. 'az login'을 실행한 후 이 단계를 다시 실행하세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6952,12 +6997,18 @@
       <Item ItemId=";bundle.++CODE++3d7fd045c1fc29ea67f5662af12d1583f91b038b1ad04078a4b52d3ff49a3291" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Preparing container settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[컨테이너 설정을 준비하는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++3da3d1bf74778c00be7d4094e931f49f5fc1d9532d1dbc01d55a2ca34921984c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to write the Data API builder configuration file.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 구성 파일을 쓰지 못했습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7009,6 +7060,9 @@
       <Item ItemId=";bundle.++CODE++3db74f2a8f6102d4675b34a023b195df9cebec8b629b14fa62d57849a49bb7cc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reset DAB configuration?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[DAB 구성을 다시 설정할까요?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7807,6 +7861,9 @@
       <Item ItemId=";bundle.++CODE++44b0a413f8d05eb0ef3f3d9fed2fd83c57f36fb8d949d4bbf51ec80a24ccf64a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This will run Data API builder as a local process, exposing {0} APIs based on your configuration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이렇게 하면 데이터 API 작성기가 로컬 프로세스로 실행되고, 구성에 따라 {0} API가 노출됩니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7867,6 +7924,9 @@
       <Item ItemId=";bundle.++CODE++45084af75704dd211915415afc4cd6d35c552ebe62bfbfe314688f5cfa972df2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to stop the DAB container.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[DAB 컨테이너를 중지하지 못했습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7891,6 +7951,9 @@
       <Item ItemId=";bundle.++CODE++453a0d1fc294fdc5b40419b3f4e8a2071c86012533d6e5787d71b21c740a3cb5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[컨테이너는 Windows 세션 외부에서 실행되므로 Windows 인증을 사용할 수 없습니다. 대신 데이터 API 작성기 CLI를 사용하여 배포하세요. CLI는 사용자 계정으로 실행됩니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8671,6 +8734,9 @@
       <Item ItemId=";bundle.++CODE++4b322ab456c5f1d7a9a9be01df5778e65771785eab5f5f93637487f24f24793d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The Data API builder CLI exited with code {0}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 CLI가 코드 {0}과(와) 함께 종료되었습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8731,6 +8797,9 @@
       <Item ItemId=";bundle.++CODE++4baf7a099b1735625d09c0b739ab0661d25b8db0dd3f09330f6521bd686f66fe" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hide endpoints]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[엔드포인트 숨기기]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9331,6 +9400,9 @@
       <Item ItemId=";bundle.++CODE++50ccae2402463062c4e42c7c9ec72243a183ba61fc2f56c3e41bc7ef605acbcd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose where to run Data API builder for this database.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 데이터베이스에서 데이터 API 작성기를 실행할 위치를 선택하세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9526,6 +9598,9 @@
       <Item ItemId=";bundle.++CODE++529233139a7f825a4fdb76f61d8ce0507228a61b913494424f04710930da9e0f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data API builder CLI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 CLI]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9937,6 +10012,9 @@
       <Item ItemId=";bundle.++CODE++56fd12d1814f45e445ae980300dfd1116341d74906f20c1a15a33e850468adbc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The Data API builder engine did not answer in time.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 엔진이 제시간에 응답하지 않았습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10420,6 +10498,9 @@
       <Item ItemId=";bundle.++CODE++5ad473588c959848c56bd2257ed21db4d4125cffd27edd2d3b6582f7afce2253" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading deployments]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[배포를 로드하는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10561,6 +10642,9 @@
       <Item ItemId=";bundle.++CODE++5c17965622983d7609326136700351ac959d559bc092c37d288ff42c8fb4a6ab" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to start the Data API builder engine.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 엔진을 시작하지 못했습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10801,6 +10885,9 @@
       <Item ItemId=";bundle.++CODE++5e03ca0d91206dd95d88a9ecb660ec409ec2794c296c6e68c1fa420c0d2dc41a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Preparing deployment settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[배포 설정을 준비하는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11122,6 +11209,9 @@
       <Item ItemId=";bundle.++CODE++610d2469ca9f85e91ba3c5aff68859fe46b822e0477dd30a07e4b26c3c7ecaa1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Resolving a runtime that can run the CLI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[CLI를 실행할 수 있는 런타임을 확인하는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11182,6 +11272,9 @@
       <Item ItemId=";bundle.++CODE++61f87c003e1cd80e47b70c628e2f057439b9839b1e65f7e896ade78f455fd463" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The Data API builder CLI is not available. Run the prerequisite checks again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 CLI를 사용할 수 없습니다. 필수 구성 요소 검사를 다시 실행하세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11719,6 +11812,9 @@
       <Item ItemId=";bundle.++CODE++66b868d316fac9d2254207e43df9118377a95ef7e35d136c357498e0637d5871" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking engine readiness]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[엔진 준비 상태를 확인하는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11887,6 +11983,9 @@
       <Item ItemId=";bundle.++CODE++68d329969e77edfb8153e6ca614c82e901435d0d3def01bb59341fd555d821e0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Getting Data API builder CLI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 CLI를 가져오는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11920,6 +12019,9 @@
       <Item ItemId=";bundle.++CODE++6917f5e712a4993af96c63563bb6f77689af01cea41fdd4bad4708e3f2749d8b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deployed {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 배포됨]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12151,6 +12253,9 @@
       <Item ItemId=";bundle.++CODE++6afdf49d00bde2bc467f3cec19bb85b59741fbf80180c91ea58de6599f494046" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Container no longer exists]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[컨테이너가 더 이상 존재하지 않음]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12238,6 +12343,9 @@
       <Item ItemId=";bundle.++CODE++6b6502c5e24875e7e79fd9b5bece6a2d06188effd61f5578718cf5f2fb7a9c22" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 CLI를 실행하는 데 필요한 .NET 런타임을 찾을 수 없습니다. .NET을 설치한 후 다시 시도하세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12325,6 +12433,9 @@
       <Item ItemId=";bundle.++CODE++6be4a48af21f057f95228c735626f18c8bc96d306afa6ab163770f2f5c73265f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Replace this container with a new one on the same name and port, running your current configuration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[현재 구성을 실행하는 새 컨테이너로 이 컨테이너를 교체하세요. 새 컨테이너는 동일한 이름과 포트를 사용해야 합니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12700,6 +12811,9 @@
       <Item ItemId=";bundle.++CODE++6f1737dd338b7ed6e377799ecdaaeae637e31c51c9641edf808353790312c58e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Downloading and unpacking the CLI package]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[CLI 패키지를 다운로드하고 압축을 푸는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13471,6 +13585,9 @@
       <Item ItemId=";bundle.++CODE++757ab980fc6aa23039b078034c46f53beac4388f316bc8e98c9770a87e6d5ad9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This deployment no longer exists]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 배포는 더 이상 존재하지 않습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13684,12 +13801,18 @@
       <Item ItemId=";bundle.++CODE++7771f1f8f1ff048b4107e7d29f178ba80d2db1e9ba0afc744097ea074cb3b01c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Config changed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[구성 변경]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++777bc7ace9ef9cd24f40d697d603c4ca07ebd13f76c7ce9148fa0df315e2c5ef" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deployment settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[배포 설정]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14308,6 +14431,9 @@
       <Item ItemId=";bundle.++CODE++7d461990f839b0bf2ac4825e909940b31fbe37f7b1da2ee5a4091bfb27cf40cb" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}의 엔진이 중지되고 생성된 구성이 제거됩니다. 해당 엔드포인트는 더 이상 응답하지 않습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14341,6 +14467,9 @@
       <Item ItemId=";bundle.++CODE++7d5c5022125c3e8297cfd53b8df2ecd886e783e6179acd8054c68c60b155ca71" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The Data API builder engine did not become ready within the timeout period.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 엔진이 제한 시간 내에 준비되지 않았습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14500,6 +14629,9 @@
       <Item ItemId=";bundle.++CODE++7eb5af92e49c32f0e22097bda3e39b3b9b3bcdeb80d5c278b5d74504b96c2beb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Status unavailable]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[상태를 알 수 없음]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15091,6 +15223,9 @@
       <Item ItemId=";bundle.++CODE++842a4697fd0dddaa2ffb9e593abdfcc1963640b7e3b28eb5e5ae1624a18eaf46" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deployments]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[배포]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16780,6 +16915,9 @@
       <Item ItemId=";bundle.++CODE++954dec32386b912be138accf36de060517dcc00ae06dd2f4b243aa7233170cad" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to prepare the Data API builder CLI.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 CLI를 준비하지 못했습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16831,12 +16969,18 @@
       <Item ItemId=";bundle.++CODE++958bd39b8c9507522a7a8e9591f1b534ef96708d873950c0ad91d4db1a452473" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Back to deployments]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[배포로 돌아가기]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++95afd13ac532a72eaf92176d5ea81e5376d8bd0e10586bdf2221118633550f86" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Read the active Data API builder configuration with mssql_dab operation 'get_state' before applying changes.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[변경 내용을 적용하기 전에 mssql_dab 작업 'get_state'를 사용하여 활성 데이터 API 작성기 구성을 읽으세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17617,6 +17761,9 @@
       <Item ItemId=";bundle.++CODE++9c6060316cb89a17616309dfa9b9ce524f7fdd29639b433015ba722294337b51" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete deployment?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[배포를 삭제하시겠습니까?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18226,6 +18373,9 @@
       <Item ItemId=";bundle.++CODE++a1a823de4d28a66950b1dbb93d476d8244e0d54ef2936f008ab33d4a82f51d82" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Download .NET]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[.NET 다운로드]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18916,6 +19066,9 @@
       <Item ItemId=";bundle.++CODE++a7e07c22703de9d73d67247e3b0aa4c39c469d01e09bbb67c033dccb76ed9d60" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deployed at {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}에 배포됨]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -19291,6 +19444,9 @@
       <Item ItemId=";bundle.++CODE++ab81702157ab7c569f837c5ed0b5ec4318ae26021c2ab425c920c69bb3e6c56d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This deployment is not serving requests. Start it to bring its endpoints back.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 배포는 요청을 처리하지 않습니다. 엔드포인트가 다시 응답하도록 배포를 시작하세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -19936,6 +20092,9 @@
       <Item ItemId=";bundle.++CODE++b16fe7caa99853b93586ff9f7c883be10c62c4d1cedd735733ae1a3435b09a99" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show endpoints]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[엔드포인트 표시]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20779,6 +20938,9 @@
       <Item ItemId=";bundle.++CODE++b84c66ad40ee1cc20942fe07d1bad88916d0a664bb3f5688ab8a84a0ab5e3cf3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Validating configuration]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[구성 유효성을 검사하는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21649,6 +21811,9 @@
       <Item ItemId=";bundle.++CODE++bf0c5eefb35a2a14ae8ea5fa2d7747fff0157874c2640e9a31397ed840b8d5b3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Configuration no longer exists]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[구성이 더 이상 존재하지 않습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21936,6 +22101,15 @@
           <Val><![CDATA[Invalid connection string: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[잘못된 연결 문자열: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c26b1146c9d287a920127ddcb75095ae182431588de7ea9b182d8ccb5c37de06" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA['{0}' is a system database, so it isn't tracked in the Fabric Database Hub.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA['{0}'은(는) 시스템 데이터베이스이므로 Fabric 데이터베이스 허브에서 추적하지 않습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22372,6 +22546,9 @@
       <Item ItemId=";bundle.++CODE++c61a041f6ca5abff2c94cefc531083c11d3f3b2af7131fb9640dda59a551e289" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[.NET 런타임이 필요합니다. 이 확장은 데이터 API 작성기 CLI를 다운로드하고 CLI에 사용할 런타임을 확인합니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -23197,6 +23374,9 @@
       <Item ItemId=";bundle.++CODE++ce29b7f85b9eaf7dac52e625accb4b0cb56a856ebe9a9de9a09b613b6d978dca" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Up to date]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[최신]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -23221,6 +23401,9 @@
       <Item ItemId=";bundle.++CODE++ce5d55bb752536f83184e27b9bbd84d15f4fe753e2551472518d8f0e68fb80a5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The .NET runtime has not been resolved yet. Run the prerequisite checks again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[.NET 런타임이 아직 확인되지 않았습니다. 필수 구성 요소 검사를 다시 실행하세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -23362,6 +23545,9 @@
       <Item ItemId=";bundle.++CODE++cf8c3297ab7628d786643eac5519083798d99ceb941e12a143010e0a54baaa32" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Its container has been removed. Redeploy to create it again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[컨테이너가 제거되었습니다. 다시 배포하여 구성을 만드세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -23683,6 +23869,9 @@
       <Item ItemId=";bundle.++CODE++d2b1116f23fecfb0a2b5846b774cd71210432457a65afd58eb782b5f122280f3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start the container to use these endpoints.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 엔드포인트를 사용하려면 컨테이너를 시작하세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -24427,6 +24616,9 @@
       <Item ItemId=";bundle.++CODE++d90dacedab33faee6e7e3d4aec2d222b63b231958e052de1a3f5a55ffc80c982" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data API builder is running!]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기가 실행 중입니다!]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -24541,12 +24733,18 @@
       <Item ItemId=";bundle.++CODE++d9e5e69540871a387c5d20d2ae4ad26a58613e40b8f16e0712ec3c0dcc7ff96a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a deployment target]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[배포 대상 선택]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++d9f4fe3d6486cd5830be1c0cb68d7b2505057e7bc665c6e0503b8a005ec0cf5d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Port {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[포트 {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -25939,6 +26137,9 @@
       <Item ItemId=";bundle.++CODE++e50ad98d51d6c665dad03d3a770a4c3346d6e449ff0c88ad895cd9f03c045684" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Launching the engine process]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[엔진 프로세스를 시작하는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -25972,6 +26173,9 @@
       <Item ItemId=";bundle.++CODE++e559ae2c187c6c6dcbc066101d69ec2aa61464cb16175cdb622287b2e8b5c153" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[포트 {0}을(를) 더 이상 사용할 수 없으므로 {1}을(를) 해당 포트에 다시 배포할 수 없습니다. 포트를 비우거나 다른 포트에 새 배포를 만드세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -26059,6 +26263,9 @@
       <Item ItemId=";bundle.++CODE++e640a89ce8e350fd9cdd83c32a3ab2ccdeeca996218a760b548091330dc62179" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기가 데이터베이스에 연결하지 못했습니다. 서버가 실행 중이고 연결이 여전히 작동하는지 확인한 후 이 단계를 다시 실행하세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -26272,6 +26479,9 @@
       <Item ItemId=";bundle.++CODE++e83dea6df0d276f8e91bea5268c2287724da6e27b8e9419218d698b8cc09a460" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No deployments yet]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[배포 없음]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -26404,6 +26614,9 @@
       <Item ItemId=";bundle.++CODE++e962c61e868414967e841ebed66902435177a9fbb216e0742a075e682a47eb73" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Configuration has changed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[구성 변경됨]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -26770,12 +26983,18 @@
       <Item ItemId=";bundle.++CODE++ec959d6a5a283eaa094720f71457b35ef140f83d240d53d757000a127ff78889" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Container {0} no longer exists.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[컨테이너 {0}이(가) 더 이상 존재하지 않습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++ec9bd65d522eb7ea1df233fd4d1d793a112679dbf05cd753e77dd65f5adc38ce" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to start the DAB container.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[DAB 컨테이너를 시작하지 못했습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -26899,6 +27118,9 @@
       <Item ItemId=";bundle.++CODE++ed7fa7e173cd1f99f4403bd77fd717d26cdffa2216341e208fa2c5f7ac0d5d53" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking the generated configuration]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[생성된 구성을 확인하는 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -26986,6 +27208,9 @@
       <Item ItemId=";bundle.++CODE++ee4c77e2b3b6bfaa712c2e2e3b1416127bc738993ca7f8b09b42e6a179bde808" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Redeploy]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[다시 배포]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -27199,6 +27424,9 @@
       <Item ItemId=";bundle.++CODE++f061aeddb83c8408d0337ec848124627bcfd74121e26578ef57e345af463cdd0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Its generated configuration has been removed. Redeploy to create it again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[생성된 구성이 제거되었습니다. 다시 배포하여 구성을 만드세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -27412,6 +27640,9 @@
       <Item ItemId=";bundle.++CODE++f26f1d9a3c097de8f5554d8ac33c7a0103d627cd3af000dde8bc6ef696ecea8e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The Data API builder engine did not start.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기 엔진이 시작되지 않았습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -28426,6 +28657,9 @@
       <Item ItemId=";bundle.++CODE++fc99f6bfe5e11ec996bb6edec67dd66123056685de26c34d516169c667267486" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 API 작성기는 {0}용 빌드를 게시하지 않으므로 이 컴퓨터에서 직접 실행할 수 없습니다. 대신 컨테이너에 배포해 보세요.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -29730,6 +29964,15 @@
           <Val><![CDATA[Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA['.datawarehouse.fabric.microsoft.com'에 해당하는 소버린 클라우드(선행 점 포함)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.customEnvironment.fabricPortalUriBase" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sovereign cloud equivalent for `https://app.fabric.microsoft.com/`]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[`https://app.fabric.microsoft.com/`에 해당하는 소버린 클라우드]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -31275,6 +31518,15 @@
           <Val><![CDATA[Open Execution Plan File]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[실행 계획 파일 열기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.openInFabricDatabaseHub" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Review health in Database Hub (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터베이스 허브(미리 보기)에서 상태 검토]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

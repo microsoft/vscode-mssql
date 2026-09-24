@@ -30,7 +30,6 @@ suite("ChangePasswordService", () => {
     const credentials: IConnectionInfo = {
         server: "test-server",
         user: "test-user",
-        connectionString: "Server=test-server;User ID=test-user;",
     } as IConnectionInfo;
 
     setup(() => {

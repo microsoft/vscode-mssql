@@ -1229,6 +1229,14 @@ export class FirewallRule {
 }
 
 export class Azure {
+    public static systemDatabaseNotInFabricDatabaseHub(databaseName: string): string {
+        return l10n.t({
+            message: "'{0}' is a system database, so it isn't tracked in the Fabric Database Hub.",
+            args: [databaseName],
+            comment: ["{0} is the name of the system database, such as 'master'"],
+        });
+    }
+
     public static unableToAcquireEntraTokenFromVsCode(accountDisplayName: string): string {
         return l10n.t({
             message:
@@ -2432,6 +2440,36 @@ export class Connection {
         });
     };
 
+    public static connectionStringPropertyRemoved = (
+        connectionDisplayName: string,
+        connectionString: string,
+    ) => {
+        return l10n.t({
+            message:
+                "The 'connectionString' property was removed from connection '{0}'. Removed connection string: '{1}'.",
+            args: [connectionDisplayName, connectionString],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection string that was removed",
+            ],
+        });
+    };
+
+    public static connectionDeletedAfterConnectionStringRemoval = (
+        connectionDisplayName: string,
+        connectionString: string,
+    ) => {
+        return l10n.t({
+            message:
+                "Connection '{0}' was deleted because its 'connectionString' property was removed and no 'server' property was defined. Removed connection string: '{1}'.",
+            args: [connectionDisplayName, connectionString],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection string that was removed",
+            ],
+        });
+    };
+
     public static orphanedConnectionGroupsWarning = (groupNames: string) => {
         return l10n.t({
             message:
@@ -2537,6 +2575,9 @@ export class Connection {
             comment: ["{0} is the account ID", "{1} is the tenant ID"],
         });
     };
+    public static ConnectionStringContainsSecrets = l10n.t(
+        "Connection string redacted due to containing authentication secrets",
+    );
 }
 
 export class MssqlChatAgent {
@@ -3353,6 +3394,10 @@ export class SearchDatabase {
 
     public static failedToEstablishConnection = l10n.t("Failed to establish connection");
 
+    public static noConnectionAvailable = l10n.t(
+        "Connect to a server in Object Explorer or open a connected query editor to search database objects.",
+    );
+
     public static typeTable = l10n.t("Table");
     public static typeView = l10n.t("View");
     public static typeStoredProcedure = l10n.t("Stored Procedure");
@@ -3585,6 +3630,43 @@ export class AzureDataStudioMigration {
     public static groupNotSelectedWillBeMovedToRootWarning = l10n.t(
         "This connection's group has not been selected, so this connection will be imported to the root.",
     );
+}
+
+export class Overview {
+    public static OverviewDocumentTitle = l10n.t("SQL Server (mssql)");
+    public static OverviewTreeNodeLabel = l10n.t("Getting Started");
+    public static OverviewTreeNodeDescription = l10n.t("Connect, build, and learn");
+    public static DevContainerTemplateFileConflict = (relativePath: string) =>
+        l10n.t({
+            message: "The template file '{0}' already exists. What would you like to do?",
+            args: [relativePath],
+            comment: ["{0} is a file path relative to the workspace folder."],
+        });
+    public static DevContainerTemplateFileConflictDetail = (remaining: number) =>
+        l10n.t({
+            message: "Including this one, {0} of the template's files already exist here.",
+            args: [remaining],
+            comment: ["{0} is the number of conflicting files left to decide on."],
+        });
+    public static SkipTemplateFile = l10n.t("Skip");
+    public static OverwriteTemplateFile = l10n.t("Overwrite");
+    public static OverwriteAllTemplateFiles = l10n.t("Overwrite All");
+    public static InstallAgentSkillsFailed = l10n.t(
+        "Could not install the selected agent skills. Check your network connection and try again.",
+    );
+    public static InstallAgentSkillsRemoteUnsupported = l10n.t(
+        "Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.",
+    );
+    public static DevContainersExtensionRequired = l10n.t(
+        "The Dev Containers extension is required to reopen this folder in a container.",
+    );
+    public static InstallDevContainersExtension = l10n.t("Install");
+    public static SelectDevContainerFolder = l10n.t("Select Folder");
+    public static ShortcutExecuteQuery = l10n.t("Execute query");
+    public static ShortcutConnect = l10n.t("Connect");
+    public static ShortcutDisconnect = l10n.t("Disconnect");
+    public static ShortcutFocusObjectExplorer = l10n.t("Focus on Object Explorer");
+    public static ShortcutCopyObjectName = l10n.t("Copy object name");
 }
 
 export class Changelog {

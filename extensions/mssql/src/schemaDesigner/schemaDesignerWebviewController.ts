@@ -50,6 +50,12 @@ function isCopilotChatInstalled(): boolean {
     return !!vscode.extensions.getExtension("github.copilot-chat");
 }
 
+function dabTelemetryTarget(target: Dab.DabDeploymentTarget): string {
+    return target === Dab.DabDeploymentTarget.Docker || target === Dab.DabDeploymentTarget.DabCli
+        ? target
+        : "unknown";
+}
+
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
 const DAB_CONFIG_FILE_EXTENSION = "json";
 /** Idle period before an edited DAB config is written to global storage. */
@@ -631,17 +637,34 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
         // DAB deployment request handlers
         this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
+            const target = payload.target ?? Dab.DabDeploymentTarget.Docker;
+            const telemetryTarget = dabTelemetryTarget(target);
+            const mode = payload.deploymentId
+                ? Dab.DabDeploymentMode.Redeploy
+                : Dab.DabDeploymentMode.Create;
             const deploymentStepActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.RunDabDeploymentStep,
                 {
                     additionalProps: {
-                        step: payload.step.toString(),
+                        step: Dab.DabDeploymentStepOrder[payload.step] ?? "unknown",
+                        target: telemetryTarget,
+                        mode,
+                        entryPoint:
+                            payload.entryPoint === Dab.DabDeploymentEntryPoint.Standalone ||
+                            payload.entryPoint === Dab.DabDeploymentEntryPoint.Deployments
+                                ? payload.entryPoint
+                                : "unknown",
+                        phase:
+                            telemetryTarget === "unknown"
+                                ? "unknown"
+                                : Dab.isDabPrerequisiteStep(target, payload.step)
+                                  ? "prerequisite"
+                                  : "deployment",
                     },
                 },
             );
-            const targetSupport =
-                this.resolveDabTargetSupport()[payload.target ?? Dab.DabDeploymentTarget.Docker];
+            const targetSupport = this.resolveDabTargetSupport()[target];
             if (!targetSupport?.isSupported) {
                 const message =
                     targetSupport?.reason ?? LocConstants.SchemaDesigner.dabDeploymentNotSupported;
@@ -654,7 +677,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     error: message,
                 };
             }
-            const target = payload.target ?? Dab.DabDeploymentTarget.Docker;
             try {
                 const connectionInfo = this.connectionString
                     ? {
@@ -699,6 +721,15 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                             payload.params,
                             payload.config,
                             payload.deploymentId,
+                        );
+                    }
+                    if (Dab.isFinalDabDeploymentStep(target, payload.step)) {
+                        sendActionEvent(
+                            TelemetryViews.SchemaDesigner,
+                            TelemetryActions.FinishDabDeployment,
+                            {
+                                additionalProps: { target: telemetryTarget, mode },
+                            },
                         );
                     }
                     deploymentStepActivity.end(ActivityStatus.Succeeded);
@@ -746,6 +777,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         this.onRequest(Dab.DeleteDeploymentRequest.type, async (payload) => {
             return this.withTrackedDabDeployment(
                 payload.deploymentId,
+                TelemetryActions.DeleteDabDeployment,
                 async (store, key, record) => {
                     const result = await this.tearDownDabDeployment(store, key, record);
                     if (!result.success) {
@@ -753,24 +785,23 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     }
 
                     await store.removeDeployment(key, record.id);
-                    sendActionEvent(
-                        TelemetryViews.SchemaDesigner,
-                        TelemetryActions.DeleteDabDeployment,
-                    );
                     return { success: true };
                 },
             );
         });
 
         this.onRequest(Dab.StartDeploymentContainerRequest.type, async (payload) => {
-            return this.withTrackedDabDeployment(payload.deploymentId, async (store, key, record) =>
-                this.startTrackedDabDeployment(store, key, record),
+            return this.withTrackedDabDeployment(
+                payload.deploymentId,
+                TelemetryActions.StartDabDeployment,
+                async (store, key, record) => this.startTrackedDabDeployment(store, key, record),
             );
         });
 
         this.onRequest(Dab.StopDeploymentContainerRequest.type, async (payload) => {
             return this.withTrackedDabDeployment(
                 payload.deploymentId,
+                TelemetryActions.StopDabDeployment,
                 async (store, key, record) => {
                     if (record.target !== Dab.DabDeploymentTarget.DabCli) {
                         return this._dabService.stopContainer(record.name);
@@ -790,8 +821,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(Dab.PrepareRedeploymentRequest.type, async (payload) => {
-            return this.withTrackedDabDeployment(payload.deploymentId, async (store, key, record) =>
-                this.prepareDabRedeployment(store, key, record),
+            return this.withTrackedDabDeployment(
+                payload.deploymentId,
+                TelemetryActions.RedeployDabDeployment,
+                async (store, key, record) => this.prepareDabRedeployment(store, key, record),
             );
         });
 
@@ -1561,6 +1594,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
      */
     private async withTrackedDabDeployment<T extends Dab.DeploymentActionResponse>(
         deploymentId: string,
+        telemetryAction: TelemetryActions,
         action: (
             store: DabConfigStore,
             key: DabStoreKey,
@@ -1570,25 +1604,52 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         const store = this._dabConfigStore;
         const key = this.dabStoreKey;
         if (!store || !key) {
+            sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                additionalProps: {
+                    target: "unknown",
+                    outcome: "failure",
+                    reason: "storeUnavailable",
+                },
+            });
             return {
                 success: false,
                 error: LocConstants.LocalContainers.dabDeploymentStoreUnavailable,
             };
         }
 
+        let telemetryTarget = "unknown";
         try {
             const record = (await store.getDeployments(key)).find(
                 (deployment) => deployment.id === deploymentId,
             );
             if (!record) {
+                sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                    additionalProps: { target: "unknown", outcome: "failure", reason: "notFound" },
+                });
                 return {
                     success: false,
                     error: LocConstants.LocalContainers.dabDeploymentNotFound,
                 };
             }
 
-            return await action(store, key, record);
+            telemetryTarget = dabTelemetryTarget(record.target);
+            const result = await action(store, key, record);
+            sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                additionalProps: {
+                    target: telemetryTarget,
+                    outcome: result.success ? "success" : "failure",
+                    ...(result.success ? {} : { reason: "operationFailed" }),
+                },
+            });
+            return result;
         } catch (error) {
+            sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                additionalProps: {
+                    target: telemetryTarget,
+                    outcome: "failure",
+                    reason: "exception",
+                },
+            });
             this.logger.error(`DAB deployment action failed: ${getErrorMessage(error)}`);
             return { success: false, error: getErrorMessage(error) };
         }
@@ -1632,9 +1693,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             return portUnavailableError;
         }
 
-        sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.RedeployDabDeployment, {
-            additionalProps: { target: record.target },
-        });
         return {
             success: true,
             params: { containerName: record.name, port: record.port },

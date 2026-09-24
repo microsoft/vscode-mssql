@@ -30,6 +30,10 @@ export class SaveResultsAsJsonRequestParams extends SaveResultsRequestParams {
 
 export class SaveResultsAsExcelRequestParams extends SaveResultsRequestParams {
     includeHeaders: boolean = true;
+    freezeHeaderRow: boolean = false;
+    boldHeaderRow: boolean = false;
+    autoFilterHeaderRow: boolean = false;
+    autoSizeColumns: boolean = false;
 }
 
 export class SaveResultsAsInsertRequestParams extends SaveResultsRequestParams {

@@ -5,22 +5,17 @@
 
 import { Changelog } from "../constants/locConstants";
 import {
-    ChangelogActionId,
-    ChangelogDontShowAgainRequest,
     ChangelogLinkRequest,
     ChangelogLinkRequestParams,
     ChangelogWebviewState,
-    CloseChangelogRequest,
     RunChangelogActionRequest,
 } from "../sharedInterfaces/changelog";
 import { WebviewPanelController } from "./webviewPanelController";
 import * as vscode from "vscode";
 import { changelogConfig } from "../configurations/changelog";
-import * as constants from "../constants/constants";
+import { resolveChangelogAction } from "../configurations/changelogActions";
 import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-
-const GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY = "changelog/lastChangeLogVersion";
 
 export class ChangelogWebviewController extends WebviewPanelController<
     ChangelogWebviewState,
@@ -55,36 +50,7 @@ export class ChangelogWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(RunChangelogActionRequest.type, async (action) => {
-            let command: string;
-            let args: unknown[] = [];
-            switch (action) {
-                case ChangelogActionId.OpenShortcutsConfiguration:
-                    command = constants.cmdOpenShortcutsConfiguration;
-                    break;
-                case ChangelogActionId.DeployNewDatabase:
-                    command = constants.cmdDeployNewDatabase;
-                    break;
-                case ChangelogActionId.CreateNotebook:
-                    command = constants.cmdNotebooksCreate;
-                    break;
-                case ChangelogActionId.OpenAzureDataStudioMigration:
-                    command = constants.cmdOpenAzureDataStudioMigration;
-                    break;
-                case ChangelogActionId.OpenDacpacDialog:
-                    command = constants.cmdDacpacDialog;
-                    break;
-                case ChangelogActionId.OpenMssqlWalkthrough:
-                    command = "workbench.action.openWalkthrough";
-                    args = [`${constants.extensionId}#mssql.getStarted`];
-                    break;
-                case ChangelogActionId.OpenCopilotWalkthrough:
-                    command = "workbench.action.openWalkthrough";
-                    args = ["GitHub.copilot-chat#copilotWelcome"];
-                    break;
-                default:
-                    throw new Error("Unknown changelog action");
-            }
-
+            const { command, args } = resolveChangelogAction(action);
             await vscode.commands.executeCommand(command, ...args);
             sendActionEvent(TelemetryViews.ChangelogPage, TelemetryActions.ExecuteCommand, {
                 additionalProps: {
@@ -92,53 +58,5 @@ export class ChangelogWebviewController extends WebviewPanelController<
                 },
             });
         });
-
-        this.onRequest(CloseChangelogRequest.type, async () => {
-            this.panel.dispose();
-            sendActionEvent(TelemetryViews.ChangelogPage, TelemetryActions.CloseChangelog);
-        });
-
-        this.onRequest(ChangelogDontShowAgainRequest.type, async () => {
-            // Update configuration to not show changelog on update
-            await vscode.workspace
-                .getConfiguration()
-                .update(
-                    constants.configShowChangelogOnUpdate,
-                    false,
-                    vscode.ConfigurationTarget.Global,
-                );
-            this.panel.dispose();
-            sendActionEvent(TelemetryViews.ChangelogPage, TelemetryActions.ChangelogDontShowAgain);
-        });
-    }
-
-    public static async showChangelogOnExtensionUpdate(context: vscode.ExtensionContext) {
-        const globalState = context?.globalState;
-        if (!globalState) {
-            return;
-        }
-
-        const lastChangeLogVersion = globalState.get(GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY);
-
-        const currentVersion = vscode.extensions.getExtension(constants.extensionId)?.packageJSON
-            .version;
-
-        const isShownOnCurrentVersion = lastChangeLogVersion === currentVersion;
-
-        if (!isShownOnCurrentVersion && this.shouldShowChangelogOnUpdate()) {
-            await vscode.commands.executeCommand(constants.cmdOpenChangelog);
-            await globalState.update(GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY, currentVersion);
-        }
-    }
-
-    /**
-     * Determines whether to show the changelog on update based on user settings.
-     * @returns A promise that resolves to true if the changelog should be shown, false otherwise.
-     */
-    public static shouldShowChangelogOnUpdate() {
-        const vscodeConfig = vscode.workspace.getConfiguration();
-        const configValues = vscodeConfig.inspect<boolean>(constants.configShowChangelogOnUpdate);
-
-        return configValues?.globalValue ?? configValues?.defaultValue ?? true;
     }
 }

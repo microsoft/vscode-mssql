@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.46.0",
+    "version": "1.47.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -587,13 +587,38 @@
                     "when": "view == objectExplorer",
                     "title": "%mssql.shortcutsConfiguration.open%",
                     "group": "navigation"
+                },
+                {
+                    "command": "mssql.showOverviewInObjectExplorer",
+                    "when": "view == objectExplorer && !mssql.overviewVisible",
+                    "group": "1_overview"
                 }
             ],
             "view/item/context": [
                 {
+                    "command": "mssql.objectExplorer.openOverview",
+                    "when": "view == objectExplorer && viewItem == overview",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "mssql.hideOverviewInObjectExplorer",
+                    "when": "view == objectExplorer && viewItem == overview",
+                    "group": "navigation@2"
+                },
+                {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
-                    "when": "view == azureResourceGroups && viewItem =~ /\\b(SqlServers|SqlDatabases)\\b/",
+                    "when": "view == azureResourceGroups && viewItem =~ /\\bazureResource\\b/ && viewItem =~ /\\b(SqlServers|SqlDatabases)\\b/",
                     "group": "1_MSSQL_primary@0"
+                },
+                {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view =~ /azureResourceGroups|azureFocusView/ && viewItem =~ /\\bSqlDatabases\\b/",
+                    "group": "1_MSSQL_primary@1"
+                },
+                {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view == vscode-fabric.view.workspace && viewItem =~ /ItemSQLDatabase/",
+                    "group": "5@11.5"
                 },
                 {
                     "command": "mssql.addObjectExplorer",
@@ -949,6 +974,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.viewBackgroundTaskLogs",
                     "when": "false"
                 },
@@ -1150,6 +1179,21 @@
                 },
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.openOverview"
+                },
+                {
+                    "command": "mssql.objectExplorer.openOverview",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.hideOverviewInObjectExplorer",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.showOverviewInObjectExplorer",
                     "when": "false"
                 }
             ],
@@ -1753,6 +1797,26 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.openOverview",
+                "title": "%mssql.openOverview%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorer.openOverview",
+                "title": "%mssql.objectExplorer.openOverview%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.hideOverviewInObjectExplorer",
+                "title": "%mssql.hideOverviewInObjectExplorer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.showOverviewInObjectExplorer",
+                "title": "%mssql.showOverviewInObjectExplorer%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.profiler.launchFromObjectExplorer",
                 "title": "%mssql.profiler.launchFromObjectExplorer%",
                 "category": "MS SQL"
@@ -1805,6 +1869,11 @@
             {
                 "command": "mssql.openInMssqlExtensionFromAzureResources",
                 "title": "%mssql.openInMssqlExtensionFromAzureResources%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openInFabricDatabaseHub",
+                "title": "%mssql.openInFabricDatabaseHub%",
                 "category": "MS SQL"
             },
             {
@@ -2553,6 +2622,36 @@
                         "Latin-1 (ISO 8859-1)",
                         "ISO 8859-1"
                     ],
+                    "scope": "resource"
+                },
+                "mssql.saveAsExcel.includeHeaders": {
+                    "type": "boolean",
+                    "description": "%mssql.saveAsExcel.includeHeaders%",
+                    "default": null,
+                    "scope": "resource"
+                },
+                "mssql.saveAsExcel.freezeHeaderRow": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.saveAsExcel.freezeHeaderRow%",
+                    "default": false,
+                    "scope": "resource"
+                },
+                "mssql.saveAsExcel.boldHeaderRow": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.saveAsExcel.boldHeaderRow%",
+                    "default": false,
+                    "scope": "resource"
+                },
+                "mssql.saveAsExcel.autoFilterHeaderRow": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.saveAsExcel.autoFilterHeaderRow%",
+                    "default": false,
+                    "scope": "resource"
+                },
+                "mssql.saveAsExcel.autoSizeColumns": {
+                    "type": "boolean",
+                    "description": "%mssql.saveAsExcel.autoSizeColumns%",
+                    "default": false,
                     "scope": "resource"
                 },
                 "mssql.copyIncludeHeaders": {
@@ -3392,6 +3491,13 @@
                                 "null"
                             ],
                             "description": "%mssql.customEnvironment.fabricScopeUriBase%"
+                        },
+                        "fabricPortalUriBase": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "%mssql.customEnvironment.fabricPortalUriBase%"
                         },
                         "fabricSqlDbDnsSuffix": {
                             "type": [
