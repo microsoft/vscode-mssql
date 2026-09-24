@@ -4314,10 +4314,8 @@ export class LocConstants {
             // Says what the folder is for without promising it exists yet: with nothing open,
             // this is a folder that gets created when the template is applied.
             templateLocationDescription: l10n.t("Where the project will be created."),
-            templateLocationCurrentWorkspace: l10n.t("The folder you have open."),
             browse: l10n.t("Browse..."),
             templateOptions: l10n.t("Options"),
-            templateOption: l10n.t("Version"),
             templateOptionDefault: (value: string) =>
                 l10n.t({
                     message: "{0} (default)",
@@ -4328,10 +4326,6 @@ export class LocConstants {
             prerequisiteDockerDescription: l10n.t("Required for running containers."),
             prerequisiteDevContainers: l10n.t("Dev Containers extension"),
             prerequisiteDevContainersDescription: l10n.t("Enables working with dev containers."),
-            // Matches the Dev Containers extension's own wording for this situation.
-            openFolderToCreateConfiguration: l10n.t(
-                "Open a folder to create the configuration files in first.",
-            ),
             openFolder: l10n.t("Open Folder"),
             devContainerConfigFound: l10n.t(
                 "The workspace already has a dev container configuration.",
@@ -4350,7 +4344,6 @@ export class LocConstants {
             stepAddConfigurationDescription: l10n.t(
                 "Writes this template's .devcontainer files into the current workspace.",
             ),
-            stepAddConfigurationAction: l10n.t("Add"),
 
             recheck: l10n.t("Recheck"),
             prerequisiteReady: l10n.t("Ready"),

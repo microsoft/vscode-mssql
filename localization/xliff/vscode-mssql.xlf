@@ -2310,10 +2310,6 @@
     <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
       <source xml:lang="en">Cost</source>
     </trans-unit>
-    <trans-unit id="++CODE++f87978420d372a8698d03cf461b25e3e8955b1214fefafbc2db7b0875f1617b6">
-      <source xml:lang="en">Could not add the dev container configuration: {0}</source>
-      <note>{0} is the underlying error message.</note>
-    </trans-unit>
     <trans-unit id="++CODE++ca12a489ee27330e29481a6063c5aca387cf6eca3843f7731f588826b61b0d85">
       <source xml:lang="en">Could not build project. Error retrieving files needed to build.</source>
     </trans-unit>
@@ -6720,9 +6716,6 @@
     <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
       <source xml:lang="en">Open XML</source>
     </trans-unit>
-    <trans-unit id="++CODE++f58b856f576241374df708104fe5fc2d55cd2afcffec2002f0e2eaa8ed2286cb">
-      <source xml:lang="en">Open a folder to create the configuration files in first.</source>
-    </trans-unit>
     <trans-unit id="++CODE++7af6fe25b1792e301b2d3d472a89341e618f0f5a5773462eabd1803541c911a5">
       <source xml:lang="en">Open a new SQL editor and start writing queries with IntelliSense</source>
     </trans-unit>
@@ -9500,9 +9493,6 @@
       <source xml:lang="en">The first value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-    </trans-unit>
-    <trans-unit id="++CODE++1c7b23826d561699e1b7b56c493bcc09737bb927f818809157740be6519c63f3">
-      <source xml:lang="en">The folder you have open.</source>
     </trans-unit>
     <trans-unit id="++CODE++9f0bbf0f3fc1ec45ca02debcaf080ecd6f40e8a11bae6e0189136badee4946a7">
       <source xml:lang="en">The following workspace or workspace folder connections are missing the &apos;id&apos; property and are being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it. &#10;&#10; {0}</source>

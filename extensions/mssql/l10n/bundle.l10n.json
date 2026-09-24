@@ -1944,10 +1944,6 @@
     "SQL Server (mssql)": "SQL Server (mssql)",
     "Getting Started": "Getting Started",
     "Connect, build, and learn": "Connect, build, and learn",
-    "Could not add the dev container configuration: {0}/{0} is the underlying error message.": {
-        "message": "Could not add the dev container configuration: {0}",
-        "comment": ["{0} is the underlying error message."]
-    },
     "The template file '{0}' already exists. What would you like to do?/{0} is a file path relative to the workspace folder.": {
         "message": "The template file '{0}' already exists. What would you like to do?",
         "comment": ["{0} is a file path relative to the workspace folder."]
@@ -5149,7 +5145,6 @@
     "Create a new project folder": "Create a new project folder",
     "Sets the project up somewhere else and opens it": "Sets the project up somewhere else and opens it",
     "Where the project will be created.": "Where the project will be created.",
-    "The folder you have open.": "The folder you have open.",
     "{0} (default)/{0} is a template option value, such as a version number": {
         "message": "{0} (default)",
         "comment": ["{0} is a template option value, such as a version number"]
@@ -5158,7 +5153,6 @@
     "Required for running containers.": "Required for running containers.",
     "Dev Containers extension": "Dev Containers extension",
     "Enables working with dev containers.": "Enables working with dev containers.",
-    "Open a folder to create the configuration files in first.": "Open a folder to create the configuration files in first.",
     "Open Folder": "Open Folder",
     "The workspace already has a dev container configuration.": "The workspace already has a dev container configuration.",
     "Open VS Code in container": "Open VS Code in container",

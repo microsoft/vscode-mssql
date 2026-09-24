@@ -615,8 +615,12 @@ export class OverviewWebviewController extends WebviewPanelController<
             OpenPromptInChatRequest.type,
             async (params: OpenPromptInChatRequestParams) => {
                 // Opens the chat view with the prompt entered but not sent, so the user can add
-                // the specifics their project needs before Copilot acts on it.
-                await vscode.commands.executeCommand(constants.cmdOpenGithubChat, params.prompt);
+                // the specifics their project needs before Copilot acts on it. A plain string
+                // query is submitted immediately; isPartialQuery only fills the input.
+                await vscode.commands.executeCommand(constants.cmdOpenGithubChat, {
+                    query: params.prompt,
+                    isPartialQuery: true,
+                });
             },
         );
 

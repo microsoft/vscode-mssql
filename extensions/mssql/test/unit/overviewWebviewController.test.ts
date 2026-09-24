@@ -19,6 +19,7 @@ import {
     DevContainerPrerequisitesChangedNotification,
     DevContainerTemplateId,
     InstallAgentSkillsPluginRequest,
+    OpenPromptInChatRequest,
     OverviewOpenSource,
     PrerequisiteStatus,
     AGENT_SKILL_PLUGINS,
@@ -1143,6 +1144,27 @@ suite("Overview Webview Controller", () => {
 
         expect(copyError).to.be.instanceOf(Error);
         expect(await fs.promises.readFile(destination, "utf8")).to.equal("user tasks");
+    });
+
+    test("opens a prompt in chat without sending it", async () => {
+        const requestHandlers = new Map<string, (params: unknown) => Promise<unknown>>();
+        sandbox
+            .stub(OverviewWebviewController.prototype, "onRequest")
+            .callsFake((type, handler) => {
+                requestHandlers.set(type.method, (params) =>
+                    Promise.resolve(handler(params as never, undefined as never)),
+                );
+            });
+        controller = createController();
+
+        await requestHandlers.get(OpenPromptInChatRequest.type.method)!({
+            prompt: "Connect my Node.js app",
+        });
+
+        expect(vscode.commands.executeCommand).to.have.been.calledWith(
+            constants.cmdOpenGithubChat,
+            { query: "Connect my Node.js app", isPartialQuery: true },
+        );
     });
 
     test("reports each plugin's install against its own activity", async () => {

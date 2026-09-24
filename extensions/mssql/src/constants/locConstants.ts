@@ -3599,12 +3599,6 @@ export class Overview {
     public static OverviewDocumentTitle = l10n.t("SQL Server (mssql)");
     public static OverviewTreeNodeLabel = l10n.t("Getting Started");
     public static OverviewTreeNodeDescription = l10n.t("Connect, build, and learn");
-    public static AddDevContainerConfigurationFailed = (error: string) =>
-        l10n.t({
-            message: "Could not add the dev container configuration: {0}",
-            args: [error],
-            comment: ["{0} is the underlying error message."],
-        });
     public static DevContainerTemplateFileConflict = (relativePath: string) =>
         l10n.t({
             message: "The template file '{0}' already exists. What would you like to do?",
