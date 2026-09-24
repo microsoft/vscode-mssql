@@ -365,7 +365,6 @@ export default class MainController implements vscode.Disposable {
                 if (args instanceof ConnectionGroupNode) {
                     initialConnectionGroup = args.connectionGroup?.id;
                 } else if (isDeploymentType(args?.deploymentType)) {
-                    // Callers that already know the deployment type skip the chooser page.
                     // Anything else falls through to the chooser rather than being handed on: the
                     // deployment controller keys its type-specific state off this value, so an
                     // unknown one leaves that state undefined.
@@ -465,8 +464,6 @@ export default class MainController implements vscode.Disposable {
                     typeof args === "object" && args !== null ? (args as OverviewOpenOptions) : {};
                 const openWhatsNew = options.openWhatsNew === true;
 
-                // The Overview page is a singleton: reopening it reveals the existing panel
-                // rather than stacking duplicates of a welcome page.
                 if (!this._overviewController || this._overviewController.isDisposed) {
                     this._overviewController = new OverviewWebviewController(
                         this._context,
@@ -475,7 +472,6 @@ export default class MainController implements vscode.Disposable {
                         { openWhatsNew, source: options.source },
                     );
                 } else if (openWhatsNew) {
-                    // An already-open page keeps its state, so the drawer is opened explicitly.
                     this._overviewController.openWhatsNew();
                 }
                 this._overviewController.revealToForeground();
@@ -1598,9 +1594,6 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(Constants.cmdShowOverviewInObjectExplorer, () =>
                 setOverviewVisibility(true),
             ),
-            // Delegates rather than duplicating the open logic; it exists purely so the node's
-            // context menu can be labelled "Open" rather than repeating the page name. It
-            // carries the node's own source, since this is the same node opened a second way.
             vscode.commands.registerCommand(Constants.cmdOpenOverviewFromNode, () =>
                 vscode.commands.executeCommand(Constants.cmdOpenOverview, {
                     source: OverviewOpenSource.TreeNode,
@@ -2705,9 +2698,6 @@ export default class MainController implements vscode.Disposable {
         return sections.length > 0 ? sections.join("\n") : undefined;
     }
 
-    /**
-     * Starts tracking recently opened SQL files for the Overview page.
-     */
     private initializeRecentSqlFiles(): void {
         this._recentSqlFilesStore = new RecentSqlFilesStore(this._context);
         this._recentSqlFilesStore.register();
@@ -2715,8 +2705,6 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Prepares the agent skills installer and refreshes an installed copy.
-     *
      * The check is throttled to once a day inside the installer, so running it on every
      * activation costs nothing on the activations that fall inside that window. It is deliberately
      * not awaited: a slow or unreachable network must not hold up activation.

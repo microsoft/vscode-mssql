@@ -4063,7 +4063,6 @@ export class LocConstants {
             promptCopied: l10n.t("Copied"),
             openPromptInCopilot: l10n.t("Open in Copilot"),
 
-            // Azure SQL prompt cards.
             promptTagConnect: l10n.t("Connect"),
             promptTagBuild: l10n.t("Build"),
             promptTagAi: l10n.t("AI"),
@@ -4091,7 +4090,6 @@ export class LocConstants {
                 "Diagnose serverless resume behavior and make the application resilient to it.",
             ),
 
-            // Migration prompt cards.
             promptTagAssess: l10n.t("Assess"),
             promptTagPlan: l10n.t("Plan"),
             promptTagSize: l10n.t("Size"),
@@ -4117,7 +4115,6 @@ export class LocConstants {
                 "Reconcile the source and target tables without changing either side.",
             ),
 
-            // Prompt bodies handed to an agent verbatim and copied to the clipboard.
             promptConnectNodeBody: l10n.t(
                 "Connect this Node.js app to Azure SQL Database using Microsoft Entra authentication instead of a SQL login. Wire up the connection so it works both on my machine and from the deployed app, and make sure no database password ends up in the repository or in configuration.",
             ),
@@ -4143,10 +4140,8 @@ export class LocConstants {
                 "The migration target is online. Validate it against the source without changing data, schema or configuration on either side: compare the user table inventory and the exact row counts for every mapped table, and report the tables that do not reconcile.",
             ),
 
-            // Walkthrough media placeholder, pending the recorded walkthrough.
             walkthroughMediaAlt: l10n.t("Animated walkthrough of MSSQL features in VS Code"),
 
-            // "Explore features" gallery
             exploreFeaturesSubtitle: l10n.t(
                 "A tour of what the extension can do, grouped by what you want to accomplish.",
             ),
@@ -4204,7 +4199,6 @@ export class LocConstants {
                 "Use Database API Builder to generate a backend data API directly from your schema, exposing REST, GraphQL, or MCP endpoints.",
             ),
 
-            // Walkthrough dialog chrome
             stepOfTotal: (step: number, total: number) =>
                 l10n.t({
                     message: "Step {0} of {1}",
@@ -4212,7 +4206,6 @@ export class LocConstants {
                     comment: ["{0} is the current step number", "{1} is the total step count"],
                 }),
 
-            // "Connect & run your first query"
             wtConnectStep1Title: l10n.t("Create a connection"),
             wtConnectStep1Description: l10n.t(
                 "Open the Connection dialog and connect to your SQL database",
@@ -4234,7 +4227,6 @@ export class LocConstants {
                     runShortcut,
                 ),
 
-            // "Build & connect an app"
             walkthroughAppTitle: l10n.t("Build & connect an app"),
             walkthroughAppDescription: l10n.t(
                 "Build a database-backed app from setup to API and running.",
@@ -4265,7 +4257,6 @@ export class LocConstants {
                 "Run your app against the API and keep refining the schema as you go.",
             ),
 
-            // "GitHub Copilot for SQL"
             wtCopilotStep1Title: l10n.t("Agent mode"),
             wtCopilotStep1Description: l10n.t(
                 "Delegate multi-step database tasks to Copilot, from connecting to databases and exploring schemas to running queries and making changes.",
@@ -4304,7 +4295,6 @@ export class LocConstants {
             devContainerDotNetAspire: l10n.t(".NET Aspire + Azure SQL"),
             devContainerNode: l10n.t("Node.js + Azure SQL"),
             devContainerPython: l10n.t("Python + Azure SQL"),
-            // The stack each template sets up, shown under its name in the setup dialog.
             devContainerDotNetSubtitle: l10n.t("Dev container \u00b7 C# \u00b7 .NET"),
             devContainerDotNetAspireSubtitle: l10n.t("Dev container \u00b7 C# \u00b7 Aspire"),
             devContainerNodeSubtitle: l10n.t("Dev container \u00b7 JavaScript \u00b7 Node.js"),
@@ -4327,8 +4317,6 @@ export class LocConstants {
             templateLocationCurrentWorkspace: l10n.t("The folder you have open."),
             browse: l10n.t("Browse..."),
             templateOptions: l10n.t("Options"),
-            // The template supplies its own label for each option, such as ".NET version:". This
-            // is the fallback for one that does not, and for the control's accessible name.
             templateOption: l10n.t("Version"),
             templateOptionDefault: (value: string) =>
                 l10n.t({

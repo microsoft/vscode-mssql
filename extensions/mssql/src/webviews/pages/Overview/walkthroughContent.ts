@@ -46,12 +46,7 @@ const mssqlDocsBase = "https://learn.microsoft.com/sql/tools/visual-studio-code-
 const mssqlOverviewDocs = `${mssqlDocsBase}/mssql-extension-visual-studio-code`;
 
 /**
- * Microsoft Learn destination for each Copilot walkthrough step.
- *
- * Aliased rather than written out, so the walkthrough survives the docs being reorganised: the
- * mode pages sit beside the mssql section rather than under it, and composing them from the
- * mssql base is what pointed all four of these at 404s. Every alias was resolved against the
- * live site.
+ * Aliased rather than written out, so the walkthrough survives the docs being reorganised.
  */
 const copilotStepDocumentationUrls = {
     agentMode: "https://aka.ms/vscode-mssql-copilot-agent-mode",
@@ -61,10 +56,8 @@ const copilotStepDocumentationUrls = {
 };
 
 /**
- * Microsoft Learn destination for each entry in the Explore features gallery.
- *
  * These are registered aka.ms aliases rather than Learn URLs, so a page that moves is retargeted
- * without shipping the extension -- several of these have moved once already.
+ * without shipping the extension.
  */
 const featureDocumentationUrls: Record<string, string> = {
     schemaDesigner: "https://aka.ms/vscode-mssql-schema-designer-docs",
@@ -84,7 +77,6 @@ const featureDocumentationUrls: Record<string, string> = {
     dataApiBuilder: "https://aka.ms/vscode-mssql-data-api-builder",
 };
 
-/** Identifies a walkthrough so a card can open the matching dialog. */
 export enum WalkthroughId {
     Connect = "connect",
     App = "app",
@@ -93,14 +85,12 @@ export enum WalkthroughId {
 }
 
 /**
- * A step's call to action. Steps whose real entry point needs a database selected have no
- * action of their own; their description says where to find it instead.
+ * Steps whose real entry point needs a database selected have no action of their own; their
+ * description says where to find it instead.
  */
 export interface WalkthroughStepAction {
     label: string;
-    /** Command to run, for in-product actions. */
     actionId?: OverviewActionId;
-    /** External URL, for documentation. */
     url?: string;
 }
 
@@ -109,9 +99,7 @@ export interface WalkthroughStep {
     title: string;
     description: string;
     action?: WalkthroughStepAction;
-    /** Screenshot for the step. Steps without one fall back to the media placeholder. */
     image?: string;
-    /** Gallery grouping. Present only in gallery walkthroughs; drives the nav headings. */
     category?: string;
 }
 
@@ -127,7 +115,6 @@ export interface Walkthrough {
     steps: WalkthroughStep[];
 }
 
-/** Builds the flat, category-tagged entry list for the Explore features gallery. */
 function getFeatureGallery(): WalkthroughStep[] {
     const loc = locConstants.overview;
     const groups: { category: string; items: [string, string, string][] }[] = [

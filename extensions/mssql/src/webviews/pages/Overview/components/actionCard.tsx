@@ -31,7 +31,6 @@ const useStyles = makeStyles({
             outlineOffset: "1px",
         },
     },
-    // Flush navigation row inside a panel that already draws the boundary.
     row: {
         padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalS}`,
         borderTopColor: "transparent",
@@ -41,10 +40,6 @@ const useStyles = makeStyles({
         backgroundColor: "transparent",
         alignItems: "center",
         ":hover": {
-            // Not `colorNeutralBackground1Hover`: the webview's theme bridge remaps that to the
-            // dropdown background, which in light themes is the same colour as the panel behind
-            // this row. As a card the border carried the hover, but a row has none, so there was
-            // nothing left to see. This is the colour VS Code hovers its own list rows with.
             backgroundColor: tokens.colorSubtleBackgroundHover,
             borderTopColor: "transparent",
             borderRightColor: "transparent",
@@ -66,7 +61,6 @@ const useStyles = makeStyles({
         marginTop: 0,
         color: tokens.colorNeutralForeground2,
     },
-    // Signals that the row goes somewhere, which a bordered card does not need to say.
     chevron: {
         display: "flex",
         flexShrink: 0,
@@ -93,17 +87,13 @@ interface ActionCardProps {
     icon: ReactNode;
     title: string;
     description?: string;
-    /**
-     * `card` stands on its own in the page. `row` sits inside a panel that already draws the
-     * boundary, so it drops its border and gains a chevron to read as navigation.
-     */
     appearance?: "card" | "row";
     onClick: () => void;
 }
 
 /**
- * Clickable card used by the Walkthroughs and Discover sections. Rendered as a button so it is
- * reachable by keyboard and announced as an action rather than as static text.
+ * Rendered as a button so it is reachable by keyboard and announced as an action rather than as
+ * static text.
  */
 export const ActionCard = ({
     icon,

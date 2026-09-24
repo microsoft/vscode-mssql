@@ -41,7 +41,6 @@ export const BuildSection = () => {
     const classes = useStyles();
     const loc = locConstants.overview;
     const [selectedTab, setSelectedTab] = useState<BuildTab>("agentSkills");
-    // Already attached to a dev container: there is nothing left to set up.
     const isInDevContainer = useOverviewSelector((state) => state.isInDevContainer);
 
     return (
@@ -54,9 +53,6 @@ export const BuildSection = () => {
                 <Tab value="walkthroughs">{loc.walkthroughsTab}</Tab>
                 {!isInDevContainer && <Tab value="devContainers">{loc.devContainersTab}</Tab>}
             </TabList>
-            {/* Hidden rather than unmounted: switching tabs used to throw away everything a
-                panel was holding -- which prompt groups were expanded, the skills filter, the
-                catalog it had already fetched -- and rebuild it on the way back. */}
             <div className={classes.panel}>
                 <div className={classes.tabPanel} hidden={selectedTab !== "agentSkills"}>
                     <AgentSkillsPanel />

@@ -115,8 +115,6 @@ export const DevContainersPanel = () => {
 
             <div className={classes.grid}>
                 {getDevContainerTemplates().map((template) => (
-                    // No folder open is no longer a reason to disable these: the dialog
-                    // asks where the project should go, and creates it.
                     <div key={template.id} className={classes.card}>
                         <button
                             type="button"

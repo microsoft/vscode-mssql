@@ -61,7 +61,6 @@ export const ActionRow = () => {
                 {loc.addConnection}
             </Button>
 
-            {/* Deploy: the button opens the deployment page; the menu jumps straight to one type. */}
             <Menu positioning="below-end">
                 <MenuTrigger disableButtonEnhancement>
                     {(triggerProps: MenuButtonProps) => (
@@ -116,7 +115,6 @@ export const ActionRow = () => {
                 </MenuPopover>
             </Menu>
 
-            {/* New query: the button opens a blank SQL document; the menu offers a notebook. */}
             <Menu positioning="below-end">
                 <MenuTrigger disableButtonEnhancement>
                     {(triggerProps: MenuButtonProps) => (
@@ -142,7 +140,6 @@ export const ActionRow = () => {
                 </MenuPopover>
             </Menu>
 
-            {/* Quieter than the three beside it: reopening a file is a fallback, not a start. */}
             <Button
                 appearance="subtle"
                 icon={<FolderOpen20Regular />}

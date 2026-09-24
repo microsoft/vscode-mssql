@@ -6,7 +6,6 @@
 import { AgentSkillPluginName, DevContainerTemplateId } from "../../../sharedInterfaces/overview";
 import { locConstants } from "../../common/locConstants";
 
-/** External destinations linked from the Overview page. */
 export const overviewLinks = {
     youTubeChannel: "https://aka.ms/vscode-mssql-demos",
     landingPageVideo1: "https://aka.ms/vscode-mssql-landing-page-video1",
@@ -31,8 +30,7 @@ export const overviewLinks = {
     dockerDesktop: "https://aka.ms/vscode-mssql-docker-desktop",
     copilotDocumentation: "https://aka.ms/vscode-mssql-copilot-docs",
     // The alias covers the page, and its redirect carries no fragment of its own, so the
-    // section anchor survives it. Both the alias target and the anchor were checked against
-    // the live page, which is the failure the edit-data link ran into.
+    // section anchor survives it.
     objectExplorerDocumentation: "https://aka.ms/vscode-mssql-docs#object-explorer-filtering",
     queryResultsDocumentation: "https://aka.ms/vscode-mssql-docs#query-results-pane",
 } as const;
@@ -42,20 +40,15 @@ export interface PromptCard {
     tag: string;
     title: string;
     description: string;
-    /** Text copied to the clipboard, handed to an agent verbatim. */
     prompt: string;
 }
 
-/** A published collection of agent skills, shown as one card on the Build tab. */
 export interface AgentSkillPack {
     id: AgentSkillPluginName;
     name: string;
-    /** Glyph shown in the card's tile; the panel maps it to a component. */
     icon: "agentSkills" | "sqlMigration";
     description: string;
-    /** Source repository, opened from the card. */
     repositoryUrl: string;
-    /** Starter prompts the pack's skills answer well. */
     prompts: PromptCard[];
 }
 
@@ -142,9 +135,7 @@ export function getAgentSkillPacks(): AgentSkillPack[] {
 export interface DevContainerTemplate {
     id: DevContainerTemplateId;
     name: string;
-    /** The stack behind the name, shown under the title in the setup dialog. */
     subtitle: string;
-    /** Folder under the azuresql-devcontainers repository that holds the template. */
     repositoryFolder: string;
 }
 
@@ -178,7 +169,6 @@ export function getDevContainerTemplates(): DevContainerTemplate[] {
     ];
 }
 
-/** URL of a template's source on GitHub. */
 export function getTemplateSourceUrl(template: DevContainerTemplate): string {
     return `${overviewLinks.devContainersRepository}/tree/main/src/${template.repositoryFolder}`;
 }

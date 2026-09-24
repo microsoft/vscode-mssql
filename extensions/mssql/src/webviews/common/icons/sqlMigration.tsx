@@ -7,13 +7,9 @@ import { tokens } from "@fluentui/react-components";
 import React from "react";
 
 /**
- * Glyph for the SQL migration skills card: two brackets with an arrow crossing between them.
- *
- * Unlike the single-colour glyphs, this one does not inherit `currentColor`. The arrow carries
- * the meaning -- something moving from the source to the target -- so it keeps the brand colour
- * while the brackets stay neutral, which is the contrast the artwork was drawn with. Both are
- * theme tokens rather than the literal `#202020` and `#006CBF`, so the neutral half stays legible
- * on a dark background.
+ * Unlike the single-colour glyphs, this one does not inherit `currentColor`. Both are theme
+ * tokens rather than the literal `#202020` and `#006CBF`, so the neutral half stays legible on a
+ * dark background.
  */
 export const SqlMigrationIcon = Object.assign(
     React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGElement>>((props, ref) => {

@@ -26,7 +26,6 @@ import { WhatsNewDrawer } from "./whatsNewDrawer";
 import { WalkthroughId, getWalkthrough } from "../walkthroughContent";
 
 const useStyles = makeStyles({
-    // The panel border groups these, so the rows themselves carry none and sit flush.
     list: {
         display: "flex",
         flexDirection: "column",
@@ -47,7 +46,6 @@ export const DiscoverSection = () => {
     const extensionVersion = useOverviewSelector((state) => state.extensionVersion);
     const [isExploreOpen, setIsExploreOpen] = useState(false);
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-    // Opened for the user after an extension update; a page they opened themselves starts closed.
     const openWhatsNewRequest = useOverviewSelector((state) => state.openWhatsNewRequest);
     const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(openWhatsNewRequest > 0);
 

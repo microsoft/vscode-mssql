@@ -33,8 +33,6 @@ import { useOverviewActions } from "../useOverviewActions";
 import { useOverviewSelector } from "../overviewSelector";
 
 const useStyles = makeStyles({
-    // Shell styling follows the DAB entity settings drawer: VS Code surfaces for the header and
-    // footer, editorGroup borders as separators, and body padding owned by the inner scroller.
     drawer: {
         width: "min(460px, 96vw)",
         maxWidth: "calc(100vw - 32px)",
@@ -145,8 +143,6 @@ const useStyles = makeStyles({
     secondaryAccordion: {
         flexShrink: 0,
     },
-    // Without this the panel is a plain block, so its cards touch each other while the primary
-    // cards above them are spaced by the body's gap. Same rhythm on both lists.
     secondaryPanel: {
         display: "flex",
         flexDirection: "column",
@@ -176,10 +172,6 @@ interface WhatsNewDrawerProps {
     onDismiss: () => void;
 }
 
-/**
- * The release-note entries the Changelog page shows, presented as a side drawer on the Overview
- * page. Content comes from the shared changelog configuration, not a second copy.
- */
 export const WhatsNewDrawer = ({ onDismiss }: WhatsNewDrawerProps) => {
     const classes = useStyles();
     const loc = locConstants.overview;
@@ -281,7 +273,6 @@ export const WhatsNewDrawer = ({ onDismiss }: WhatsNewDrawerProps) => {
                         title={loc.openLinkTooltip(loc.whatsNewAllReleaseNotes)}
                         className={classes.footerLink}
                         onClick={() => {
-                            // Opens the full Changelog webview rather than an external page.
                             runAction(OverviewActionId.OpenChangelog);
                             onDismiss();
                         }}>

@@ -231,15 +231,12 @@ export enum TelemetryActions {
     RunChangelogAction = "RunChangelogAction",
     ReopenInContainer = "ReopenInContainer",
     OverviewPageOpened = "OverviewPageOpened",
-    /** The whole dev container setup flow, from picking a template to reopening in it. */
     DevContainerSetup = "DevContainerSetup",
     PromptCopied = "PromptCopied",
     PromptOpenedInChat = "PromptOpenedInChat",
     WalkthroughOpened = "WalkthroughOpened",
     DiscoverCardOpened = "DiscoverCardOpened",
-    /** An extension's page was opened in the Extensions view, before any install. */
     OpenExtensionPage = "OpenExtensionPage",
-    /** A dev container prerequisite went from missing to ready while the page was open. */
     PrerequisiteInstalled = "PrerequisiteInstalled",
     RecheckPrerequisites = "RecheckPrerequisites",
     InstallAgentSkills = "InstallAgentSkills",

@@ -53,10 +53,8 @@ import { AgentSkillPack, PromptCard, getAgentSkillPacks } from "../overviewConte
 import { useOverviewActions } from "../useOverviewActions";
 import { useOverviewSelector } from "../overviewSelector";
 
-/** How long the copy button acknowledges a copy before returning to its resting label. */
 const COPY_FEEDBACK_MS = 2000;
 
-/** Above this many skills, scrolling the list stops being a practical way to find one. */
 const FILTER_THRESHOLD = 10;
 
 const packIcons: Record<AgentSkillPack["icon"], ComponentType<SVGProps<SVGSVGElement>>> = {
@@ -70,7 +68,6 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: tokens.spacingVerticalM,
     },
-    // The cards used to start straight after the tabs, which left no answer to "what are these?".
     intro: {
         color: tokens.colorNeutralForeground3,
     },
@@ -91,7 +88,6 @@ const useStyles = makeStyles({
     },
     cardHeader: {
         display: "flex",
-        // The tile tops out with the title rather than centring against the whole text block.
         alignItems: "flex-start",
         gap: "14px",
         "@media (max-width: 700px)": {
@@ -129,13 +125,11 @@ const useStyles = makeStyles({
     installAction: {
         flexShrink: 0,
     },
-    // Keeps the installed state legible now that the label says Manage rather than Installed.
     installedIcon: {
         color: tokens.colorPaletteGreenForeground1,
     },
     description: {
         margin: "8px 0 0",
-        // Holds the measure the mockup wraps at, rather than stretching to the card's width.
         maxWidth: "520px",
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase300,
@@ -160,8 +154,6 @@ const useStyles = makeStyles({
         flexShrink: 0,
         backgroundColor: tokens.colorNeutralStroke2,
     },
-    // Pushed to the trailing edge so the disclosure reads as the card's own control rather than
-    // as a third link.
     promptToggle: {
         marginInlineStart: "auto",
     },
@@ -253,8 +245,6 @@ const useStyles = makeStyles({
         justifyContent: "center",
         minHeight: "140px",
     },
-    // Held above the scrolling list: with 57 skills the count and the filter are the controls
-    // you reach for once you are already well down the list.
     skillsToolbar: {
         display: "flex",
         alignItems: "center",
@@ -295,8 +285,6 @@ const useStyles = makeStyles({
             borderBottomStyle: "none",
         },
     },
-    // The name carries the link on its own, so the row needs no trailing icon to say it opens
-    // somewhere: the colour and the underline on hover already do.
     skillName: {
         fontFamily: tokens.fontFamilyMonospace,
         fontSize: tokens.fontSizeBase300,
@@ -317,7 +305,6 @@ const useStyles = makeStyles({
     },
 });
 
-/** Highlights every literal, case-insensitive occurrence of the current filter. */
 const highlightSkillSearch = (value: string, filter: string, className: string): ReactNode => {
     const search = filter.trim().toLowerCase();
     if (!search) {
@@ -344,11 +331,6 @@ const highlightSkillSearch = (value: string, filter: string, className: string):
 
 interface SkillPackCardProps {
     pack: AgentSkillPack;
-    /**
-     * Number of skills in the collection, from the catalog. Undefined until it resolves, and
-     * when it cannot be reached -- the card then names no number rather than an authored guess
-     * the dialog would go on to contradict.
-     */
     skillCount: number | undefined;
     /**
      * Where the card opens the collection. Comes from the catalog once it resolves, so the card
@@ -358,7 +340,6 @@ interface SkillPackCardProps {
     repositoryUrl: string;
     isInstalled: boolean;
     isInstalling: boolean;
-    /** Whether this is the pack whose Install button was pressed. */
     isInstallTarget: boolean;
     copiedPromptId: string | undefined;
     onInstall: () => void;
@@ -419,8 +400,6 @@ const SkillPackCard = ({
                     <Text className={classes.description}>{pack.description}</Text>
                 </div>
                 {isInstalled ? (
-                    // Once it is in, the useful thing to offer is the Extensions view entry that
-                    // can disable or remove it, rather than a badge with nothing behind it.
                     <Button
                         appearance="secondary"
                         className={classes.installAction}
@@ -546,7 +525,6 @@ const SkillsCatalog = ({
     packs,
 }: {
     groups: AgentSkillGroup[];
-    /** Localized collection names, keyed by the plugin each group belongs to. */
     packs: AgentSkillPack[];
 }) => {
     const classes = useStyles();
@@ -601,8 +579,6 @@ const SkillsCatalog = ({
                 {shown === 0 ? (
                     <Text className={classes.skillsEmpty}>{loc.agentSkillsNoMatches}</Text>
                 ) : filtered.length === 1 ? (
-                    // One collection is the common case, and an accordion wrapped around the only
-                    // group is a click that never reveals anything new.
                     <SkillList skills={filtered[0].skills} filter={filter} />
                 ) : (
                     <Accordion
@@ -641,10 +617,7 @@ export const AgentSkillsPanel = () => {
         sendTelemetry,
     } = useOverviewActions();
     const installedPlugins = useOverviewSelector((state) => state.installedAgentSkillPlugins);
-    // Downloading takes a moment, so the button has to say something between the click and the
-    // state arriving, or it reads as having done nothing.
     const [isInstalling, setIsInstalling] = useState(false);
-    // Which card's Install button started the install in flight.
     const [installingPackId, setInstallingPackId] = useState<string | undefined>(undefined);
     const [copiedId, setCopiedId] = useState<string | undefined>(undefined);
     const [skillsDialogPack, setSkillsDialogPack] = useState<AgentSkillPack | undefined>(undefined);
@@ -698,9 +671,9 @@ export const AgentSkillsPanel = () => {
         }
     }, [getAgentSkillsCatalog]);
 
-    // The cards state a real number, so the catalog is loaded with the page rather than only
-    // when the dialog opens. It is the same request either way and the installer caches it for
-    // the window, so this costs one README fetch and keeps the card and the dialog in agreement.
+    // The cards show the skill count, so the catalog is loaded with the page rather than only
+    // when the dialog opens. The installer caches it for the window, so the dialog reuses the
+    // same result and the card and the dialog agree.
     useEffect(() => {
         void loadSkills();
     }, [loadSkills]);

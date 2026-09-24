@@ -76,33 +76,26 @@ import * as fs from "fs";
 import * as os from "os";
 import { randomUUID } from "crypto";
 
-/** Identifier of the Dev Containers extension that owns dev container configuration. */
 const DEV_CONTAINERS_EXTENSION_ID = OverviewExtensionId.DevContainers;
 
-/**
- * The Dev Containers extension's own "Add Dev Container Configuration Files..." command. It takes
- * no arguments and always opens its own picker, which lists the upstream templates rather than
- * ours, so it is only a fallback for when the bundled CLI cannot be found.
- */
 const DEV_CONTAINERS_CREATE_CONFIG_COMMAND = "remote-containers.createDevContainerFile";
 
-/** The extension's command to rebuild and reattach the window inside the container. */
 const DEV_CONTAINERS_REOPEN_COMMAND = "remote-containers.reopenInContainer";
 /**
- * Opens a given folder in its dev container. Passing the folder is what distinguishes this from
- * the command's own picker: with no argument it asks the user to choose one.
+ * Passing the folder is what distinguishes this from the command's own picker: with no argument
+ * it asks the user to choose one.
  */
 const DEV_CONTAINERS_OPEN_FOLDER_COMMAND = "remote-containers.openFolder";
 
 /**
- * Longest a Dev Containers CLI run may take. Applying a template fetches it from ghcr.io, so this
- * allows for a slow network while still ending a fetch that will never answer.
+ * Applying a template fetches it from ghcr.io, so this allows for a slow network while still
+ * ending a fetch that will never answer.
  */
 const DEV_CONTAINERS_CLI_TIMEOUT_MS = 2 * 60 * 1000;
 
 /**
- * Telemetry action each in-page event is reported as. Partial because the events that open a
- * flow are handled as activities instead of single actions.
+ * Partial because the events that open a flow are handled as activities instead of single
+ * actions.
  */
 const overviewTelemetryActions: Partial<Record<OverviewTelemetryEvent, TelemetryActions>> = {
     [OverviewTelemetryEvent.PromptCopied]: TelemetryActions.PromptCopied,
@@ -113,49 +106,39 @@ const overviewTelemetryActions: Partial<Record<OverviewTelemetryEvent, Telemetry
 };
 
 /**
- * Opens the Extensions view on a search term. Internal workbench commands rather than API, the
- * same footing as `chat.pluginLocations` which the install already depends on.
+ * Internal workbench commands rather than API, the same footing as `chat.pluginLocations` which
+ * the install already depends on.
  */
 const EXTENSIONS_SEARCH_COMMAND = "workbench.extensions.search";
-/** Filter the Extensions view uses to list agent plugins, with no search term. */
 const MANAGE_PLUGINS_COMMAND = "workbench.action.chat.managePlugins";
 const AGENT_PLUGINS_FILTER = "@agentPlugins";
 
 /**
- * Source the agent skills are installed from, reported with the install telemetry.
- *
  * The short link rather than a repository, because the repository is whatever the link resolves
  * to at install time -- naming one here would report a guess.
  */
 const AGENT_SKILLS_PLUGIN_SOURCE = "aka.ms/vscode-mssql-skills-repo";
 
-/** A staged template file and the resolved place in the workspace it will be written. */
 interface TemplateFileDestination {
-    /** Path relative to the staging root and to the workspace folder, as the CLI reported it. */
     relativePath: string;
-    /** Directory the file lands in, with every component that already exists resolved. */
     directory: string;
     fileName: string;
 }
 
-/** A folder the dev container flow created, and the topmost of its parents it also created. */
 interface CreatedFolder {
     path: string;
     root: string;
 }
 
-/** Where a staged template file is written, built from its resolved directory. */
 function templateFileUri(destination: TemplateFileDestination): vscode.Uri {
     return vscode.Uri.file(path.join(destination.directory, destination.fileName));
 }
 
-/** `vscode.env.remoteName` when the window is attached to a dev container. */
 const DEV_CONTAINER_REMOTE_NAME = "dev-container";
 
 /**
- * Relative path to the dev container spec CLI the Dev Containers extension bundles. This is an
- * implementation detail of that extension rather than a supported API, so its absence is handled
- * by falling back to {@link DEV_CONTAINERS_CREATE_CONFIG_COMMAND}.
+ * This is an implementation detail of that extension rather than a supported API, so its absence
+ * is handled by falling back to {@link DEV_CONTAINERS_CREATE_CONFIG_COMMAND}.
  */
 const DEV_CONTAINERS_CLI_RELATIVE_PATH = path.join("dist", "spec-node", "devContainersSpecCLI.js");
 
@@ -165,30 +148,19 @@ const DEV_CONTAINERS_CLI_RELATIVE_PATH = path.join("dist", "spec-node", "devCont
  */
 const DEV_CONTAINER_CONFIG_GLOB = "{**/.devcontainer/devcontainer.json,**/.devcontainer.json}";
 
-/**
- * Marker the Dev Containers extension drops beside a configuration it is holding on a folder's
- * behalf, naming the folder that configuration belongs to.
- */
 const DEV_CONTAINER_MARKER_FILE = ".devcontainer-internal.json";
 
-/** The same two locations as concrete relative paths, for a direct existence check. */
 const DEV_CONTAINER_CONFIG_PATHS = [[".devcontainer", "devcontainer.json"], [".devcontainer.json"]];
 
-/** Most recent SQL files shown in the Overview page's right rail. */
 const RECENT_FILE_LIMIT = 5;
 
-/** Global state key recording the version whose release notes have already been shown. */
 const GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY = "changelog/lastChangeLogVersion";
 
-/** How the page was opened, which decides whether it greets the user with release notes. */
 export interface OverviewOpenOptions {
-    /** Opens the What's new drawer straight away; set only by the post-update trigger. */
     openWhatsNew?: boolean;
-    /** How the page was reached, recorded once when it opens. */
     source?: OverviewOpenSource;
 }
 
-/** Maps an Overview action to the command it runs, plus any fixed arguments. */
 const actionCommands: Record<OverviewActionId, { command: string; args?: unknown[] }> = {
     [OverviewActionId.AddConnection]: { command: constants.cmdAddObjectExplorer },
     // "New query" opens a blank SQL document rather than running the active editor.
@@ -219,10 +191,6 @@ const actionCommands: Record<OverviewActionId, { command: string; args?: unknown
     [OverviewActionId.OpenChangelog]: { command: constants.cmdOpenChangelog },
 };
 
-/**
- * Repository folders backing each dev container template, used to open the template's source
- * when the user asks to learn more about it.
- */
 const templateRepositoryFolders: Record<DevContainerTemplateId, string> = {
     [DevContainerTemplateId.DotNet]: "dotnet",
     [DevContainerTemplateId.DotNetAspire]: "dotnet-aspire",
@@ -239,8 +207,6 @@ function templateRegistryId(templateId: DevContainerTemplateId): string {
 }
 
 /**
- * Reads the folder a stored configuration belongs to out of its marker file.
- *
  * The extension writes a JSON object behind a line comment that swallows the object's own
  * opening brace, so the file only parses under a comment-tolerant reader. Rather than depend on
  * one, the single field that matters is matched directly; the captured literal is handed to
@@ -248,6 +214,8 @@ function templateRegistryId(templateId: DevContainerTemplateId): string {
  * once and by the same rules that wrote them.
  */
 function readMarkerRootFolder(contents: string): string | undefined {
+    // Matches `"rootFolder": "<JSON string>"` and captures the quoted literal with its escapes,
+    // e.g. `"rootFolder": "C:\\src\\app"` captures `"C:\\src\\app"`.
     const match = /"rootFolder"\s*:\s*("(?:[^"\\]|\\.)*")/.exec(contents);
     if (!match) {
         return undefined;
@@ -260,11 +228,6 @@ function readMarkerRootFolder(contents: string): string | undefined {
     }
 }
 
-/**
- * First free `<parent>/<name>`, adding `-2`, `-3` and so on rather than proposing a folder that
- * already has something in it. Gives up after a bounded number of tries so a parent full of
- * matching names cannot spin.
- */
 async function uniqueFolderPath(parent: string, name: string): Promise<string> {
     for (let suffix = 1; suffix <= 100; suffix++) {
         const candidate = path.join(parent, suffix > 1 ? `${name}-${suffix}` : name);
@@ -279,8 +242,6 @@ async function uniqueFolderPath(parent: string, name: string): Promise<string> {
 }
 
 /**
- * Pulls the renderable options out of a template's metadata document.
- *
  * The document comes from the registry, so every field is checked rather than assumed. The spec
  * gives string options either an `enum` (a closed list) or `proposals` (suggestions, with custom
  * values allowed); only the listed values are offered here, which is also what lets the applied
@@ -310,7 +271,6 @@ function parseTemplateOptions(metadata: unknown): DevContainerTemplateOption[] {
         const values = (Array.isArray(listed) ? listed : []).filter(
             (entry): entry is string => typeof entry === "string",
         );
-        // One value is not a choice, so it gets no control and keeps its default.
         if (values.length < 2) {
             continue;
         }
@@ -333,7 +293,6 @@ function parseTemplateOptions(metadata: unknown): DevContainerTemplateOption[] {
     return options;
 }
 
-/** Projects a resolved file into the shape the Overview page renders. */
 function toRecentSqlFile(file: ResolvedRecentSqlFile): RecentSqlFile {
     return {
         fsPath: file.fsPath,
@@ -353,34 +312,27 @@ export class OverviewWebviewController extends WebviewPanelController<
      */
     private _devContainerActivity: ActivityObject | undefined;
 
-    /** The in-flight agent skills install for each plugin. */
     private _agentSkillsActivities = new Map<AgentSkillPluginName, ActivityObject>();
 
     /**
-     * What the setup dialog was last told about its prerequisites. Unset until the dialog first
-     * asks, so a page that never opened it never spends a Docker check on it.
+     * Unset until the dialog first asks, so a page that never opened it never spends a Docker
+     * check on it.
      */
     private _lastPrerequisites: DevContainerPrerequisites | undefined;
 
-    /** Sequence number of the newest recent-file refresh; see refreshRecentFiles. */
     private _recentFilesRequest = 0;
 
-    /** Sequence number of the newest workspace-state refresh; see refreshWorkspaceState. */
     private _workspaceStateRequest = 0;
 
-    /** Sequence number of the newest agent skills refresh; see refreshAgentSkillsState. */
     private _agentSkillsRequest = 0;
 
     /**
-     * Template metadata by registry id. Reading it is a registry fetch, and the dialog asks every
-     * time it opens, so the answer is kept for the life of the page.
+     * Reading it is a registry fetch, and the dialog asks every time it opens, so the answer is
+     * kept for the life of the page.
      */
     private _templateOptions = new Map<string, DevContainerTemplateOption[]>();
 
-    /**
-     * Parent folder the user last scaffolded into, so the second template does not start from
-     * the home folder again. Global rather than per-workspace: the flow runs with no workspace.
-     */
+    /** Global rather than per-workspace: the flow runs with no workspace. */
     private static readonly _lastTargetParentKey = "mssql.overview.devContainerTargetParent";
 
     constructor(
@@ -417,8 +369,6 @@ export class OverviewWebviewController extends WebviewPanelController<
             }),
         );
 
-        // Registered on the controller so the listener dies with the panel rather than
-        // accumulating one per panel on the extension context.
         this.registerDisposable(
             vscode.workspace.onDidChangeWorkspaceFolders(() => void this.refreshWorkspaceState()),
         );
@@ -514,17 +464,14 @@ export class OverviewWebviewController extends WebviewPanelController<
             changelog: changelogConfig,
             commandShortcuts: OverviewWebviewController.getCommandShortcuts(),
             hasWorkspaceFolder: (vscode.workspace.workspaceFolders?.length ?? 0) > 0,
-            // Resolved asynchronously right after construction; see refreshWorkspaceState.
             hasDevContainerConfig: false,
             isInDevContainer: vscode.env.remoteName === DEV_CONTAINER_REMOTE_NAME,
-            // Resolved asynchronously right after construction; see refreshAgentSkillsState.
             installedAgentSkillPlugins: {},
             openWhatsNewRequest: options.openWhatsNew === true ? 1 : 0,
             showChangelogOnUpdate: OverviewWebviewController.shouldShowChangelogOnUpdate(),
         };
     }
 
-    /** Opens the What's new drawer on a page that is already showing. */
     public openWhatsNew(): void {
         // Increment rather than set: the drawer may have been opened and dismissed already, and a
         // repeated identical value would not re-render the webview.
@@ -639,7 +586,6 @@ export class OverviewWebviewController extends WebviewPanelController<
             // and `description` is the label of the install directory -- the repository URL is
             // in neither, so searching for it would select nothing. `name` resolves to the
             // manifest name, which is what identifies the plugin here.
-            //
             try {
                 await vscode.commands.executeCommand(
                     EXTENSIONS_SEARCH_COMMAND,
@@ -678,7 +624,6 @@ export class OverviewWebviewController extends WebviewPanelController<
             SendOverviewTelemetryRequest.type,
             async (params: SendOverviewTelemetryRequestParams) => {
                 if (params.event === OverviewTelemetryEvent.DevContainerTemplateSelected) {
-                    // Starts the setup flow the later steps report against.
                     this._devContainerActivity?.end(ActivityStatus.Canceled);
                     this._devContainerActivity = startActivity(
                         TelemetryViews.OverviewPage,
@@ -817,7 +762,6 @@ export class OverviewWebviewController extends WebviewPanelController<
                 if (result.applied) {
                     this._devContainerActivity?.update({ additionalProps: props });
                 } else {
-                    // Nothing was written, so the flow stops here rather than reaching a container.
                     // The CLI's message is deliberately not passed: it embeds the workspace path,
                     // and passing it would leave the send one boolean away from reporting it.
                     this._devContainerActivity?.endFailed(
@@ -888,8 +832,8 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Commands surfaced in the keyboard shortcuts dialog, in display order. Their chords come
-     * from the extension's contributed keybindings rather than being restated here.
+     * Their chords come from the extension's contributed keybindings rather than being restated
+     * here.
      */
     private static readonly shortcutCommands: { command: string; label: string }[] = [
         { command: constants.cmdRunQuery, label: Overview.ShortcutExecuteQuery },
@@ -917,13 +861,10 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Loads the recent SQL file list and pushes it to the webview. Resolving the list touches the
-     * filesystem, so it runs after the initial state is sent rather than blocking construction.
+     * Resolving the list touches the filesystem, so it runs after the initial state is sent rather
+     * than blocking construction.
      */
     private async refreshRecentFiles(): Promise<void> {
-        // Now that every store change starts one of these, two can be in flight at once, and
-        // resolving stats the filesystem so they can finish out of order. Only the newest request
-        // writes, which keeps a slow earlier scan from replacing the list with an older one.
         const request = ++this._recentFilesRequest;
         const files = await this._recentSqlFilesStore.getRecentFiles(RECENT_FILE_LIMIT);
         if (this.isDisposed || request !== this._recentFilesRequest) {
@@ -932,7 +873,6 @@ export class OverviewWebviewController extends WebviewPanelController<
         this.updateState({ ...this.state, recentFiles: files.map(toRecentSqlFile) });
     }
 
-    /** Re-resolves the folder-dependent state the Dev containers tab keys off. */
     private async refreshWorkspaceState(): Promise<void> {
         if (this.isDisposed) {
             return;
@@ -960,13 +900,8 @@ export class OverviewWebviewController extends WebviewPanelController<
                 try {
                     await vscode.workspace.fs.stat(vscode.Uri.joinPath(folder.uri, ...segments));
                     return true;
-                } catch {
-                    // Not present at this location; try the next.
-                }
+                } catch {}
             }
-            // A configuration can also sit outside the folder, which is the option the Dev
-            // Containers extension offers to keep it out of source control. Missing it told
-            // users with a working dev container that they had none.
             if (await this.findUserDataDevContainerConfig(folder.uri.fsPath)) {
                 return true;
             }
@@ -975,8 +910,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Where the Dev Containers extension keeps configurations held on a folder's behalf.
-     *
      * An extension's storage is private to it and VS Code exposes no path for another one, so
      * this is derived from ours: every extension's folder is a sibling under `globalStorage`.
      */
@@ -989,8 +922,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Looks for a configuration the Dev Containers extension is holding for this folder.
-     *
      * It names each one after the folder's last path segment, with `-2`, `-3` and so on when
      * two folders share a name, and tells them apart by a marker file recording which folder
      * the configuration belongs to. That layout is the extension's own rather than an API, so
@@ -1005,12 +936,12 @@ export class OverviewWebviewController extends WebviewPanelController<
         try {
             entries = await fs.promises.readdir(store);
         } catch {
-            // No configuration has ever been stored this way on this machine.
             return false;
         }
 
         for (const entry of entries) {
-            // `<name>` or `<name>-2`; anything else belongs to a different folder.
+            // `<name>` or `<name>-<n>`; anything else belongs to a different folder. The regex
+            // matches an all-digit suffix, e.g. "2" in "app-2".
             const suffix = entry.startsWith(`${folderName}-`)
                 ? entry.slice(folderName.length + 1)
                 : undefined;
@@ -1026,16 +957,12 @@ export class OverviewWebviewController extends WebviewPanelController<
                 if (readMarkerRootFolder(marker) === folderPath) {
                     return true;
                 }
-            } catch {
-                // No marker, or unreadable: not a configuration we can attribute to this folder.
-            }
+            } catch {}
         }
         return false;
     }
 
     /**
-     * Writes the chosen template's configuration into the open folder.
-     *
      * The Dev Containers extension exposes no way to apply a named template — its command takes no
      * arguments and always opens a picker listing the upstream templates rather than ours — so this
      * drives the spec CLI the extension bundles, the same way the extension drives it. If that CLI
@@ -1135,11 +1062,11 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Reads the CLI's result and validates every returned path before it is used as a source or a
-     * workspace destination. Templates are untrusted external input, so absolute paths, traversal,
-     * symlinks, and non-files are rejected.
+     * Templates are untrusted external input, so absolute paths, traversal, symlinks, and non-files
+     * are rejected.
      */
     private parseAppliedTemplateFiles(output: string, stagingDirectory: string): string[] {
+        // Splits on LF or CRLF line endings.
         const resultLine = output
             .split(/\r?\n/)
             .map((line) => line.trim())
@@ -1158,10 +1085,6 @@ export class OverviewWebviewController extends WebviewPanelController<
                 throw new Error("The Dev Containers CLI returned an invalid template file path.");
             }
 
-            // Collapsed before anything is built from it: the CLI reports its files as
-            // `./.gitattributes`, and carrying that `.` through left a path segment that is
-            // the directory it starts from, which the containment check below reads as an
-            // escape. Normalizing also folds away any `..` before the checks see the path.
             const normalized = path.posix.normalize(file.replaceAll("\\", "/"));
             const sourcePath = path.resolve(stagingRoot, normalized);
             if (
@@ -1196,8 +1119,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Works out where each staged file lands, with every existing path component resolved.
-     *
      * `Uri.joinPath` is lexical, so a symlinked parent inside the workspace -- a `.vscode` that
      * points at a dotfiles repository, say -- is followed when the file is written, and a
      * template chooses the paths. Resolving each component that already exists, and checking the
@@ -1216,9 +1137,6 @@ export class OverviewWebviewController extends WebviewPanelController<
             const segments = relativePath.split("/");
             let directory = workspaceRoot;
             for (const segment of segments.slice(0, -1)) {
-                // Paths arrive normalized, so these are already gone; skipped rather than
-                // trusted, because a "." would resolve to the directory it starts from and
-                // read as an escape from it.
                 if (segment === "" || segment === ".") {
                     continue;
                 }
@@ -1263,9 +1181,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Collects a decision for every destination that already exists before any workspace files are
-     * changed.
-     *
      * Every conflict is found first so the prompt can say how many are left and offer Overwrite
      * All, which a template that collides on most of its files otherwise turns into one modal per
      * file.
@@ -1320,8 +1235,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Whether the template would land on something already in the workspace.
-     *
      * Any stat error other than a definite not-found result counts as a conflict, because
      * proceeding silently would risk overwriting a file the provider could not inspect.
      */
@@ -1337,9 +1250,9 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Copies staged template files without permitting replacement. The final rename asks the
-     * workspace filesystem provider for an exclusive destination unless the user explicitly chose
-     * Overwrite for that file. This also closes the race between conflict prompting and the write.
+     * The final rename asks the workspace filesystem provider for an exclusive destination unless
+     * the user explicitly chose Overwrite for that file. This also closes the race between conflict
+     * prompting and the write.
      */
     private async copyTemplateFiles(
         stagingDirectory: string,
@@ -1379,8 +1292,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Proposes where a template should go.
-     *
      * Every open folder is offered, so a multi-root window does not silently take the first.
      * With nothing open this is a new folder named after the template, under the last used parent.
      */
@@ -1403,9 +1314,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Turns the requested path into a folder that exists, which is what the containment checks
-     * downstream resolve against.
-     *
      * The path comes from the page, so it is required to be absolute and to be a directory: a
      * relative path would resolve against whatever the extension host's working directory
      * happens to be, and a file would make every destination under it nonsense.
@@ -1426,10 +1334,6 @@ export class OverviewWebviewController extends WebviewPanelController<
             throw new Error(`Dev container folder is not an absolute path: ${resolved}`);
         }
 
-        // Recorded so a failed apply can take back the folders it made. Without it, every
-        // attempt that got this far left an empty directory behind -- and the next proposal
-        // stepped past it, so retrying walked up `dotnet`, `dotnet-2`, `dotnet-3`. A recursive
-        // mkdir answers with the first folder it had to create, which is the top of that chain.
         const firstCreated = await fs.promises.mkdir(resolved, { recursive: true });
         const stats = await fs.promises.stat(resolved);
         if (!stats.isDirectory()) {
@@ -1442,8 +1346,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Takes back the folders this run created, when nothing ended up in them.
-     *
      * Walks up from the target to the first folder the run had to create, so the parents a
      * recursive mkdir made go too. `rmdir` rather than a recursive delete, and only for folders
      * we made: it fails on a directory with anything in it, so a partial write or a folder the
@@ -1469,7 +1371,6 @@ export class OverviewWebviewController extends WebviewPanelController<
         }
     }
 
-    /** True when the target is one of the folders open in this window. */
     private isOpenWorkspaceFolder(target: vscode.Uri): boolean {
         return (vscode.workspace.workspaceFolders ?? []).some(
             (folder) => folder.uri.fsPath === target.fsPath,
@@ -1486,8 +1387,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Remembers where the user scaffolded, so the next template starts from the same place.
-     *
      * Only for a folder they chose: remembering the parent of a workspace they already had open
      * would propose its siblings, which has nothing to do with where they keep new projects.
      */
@@ -1502,10 +1401,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Reads the options a template declares, keeping only what the dialog can render: string
-     * options with more than one suggested value. A single-valued option is not a choice, and
-     * booleans and free-form strings have no control here yet.
-     *
      * Failure is reported as "no options" rather than as an error. This is a registry fetch, so
      * it is unavailable offline, and the template still applies with its defaults -- losing the
      * dropdown is a smaller cost than losing the flow.
@@ -1533,7 +1428,7 @@ export class OverviewWebviewController extends WebviewPanelController<
             ]);
             // The CLI writes its banner to stderr and the document to stdout, but it is read the
             // same way the apply output is: the last non-empty line, so a stray line cannot
-            // break the parse.
+            // break the parse. The split matches LF or CRLF line endings.
             const line = output
                 .split(/\r?\n/)
                 .map((entry) => entry.trim())
@@ -1555,8 +1450,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     /**
-     * Narrows what the page asked for to what the template actually declares.
-     *
      * The values are substituted into the template's files, so they are checked against the
      * template's own list rather than trusted: an unknown key or an unlisted value is dropped and
      * that option keeps its default.
@@ -1580,7 +1473,6 @@ export class OverviewWebviewController extends WebviewPanelController<
         return resolved;
     }
 
-    /** Resolves the bundled spec CLI, or undefined when the extension no longer ships it there. */
     private findDevContainersCli(): string | undefined {
         const extension = vscode.extensions.getExtension(DEV_CONTAINERS_EXTENSION_ID);
         if (!extension) {
@@ -1640,7 +1532,6 @@ export class OverviewWebviewController extends WebviewPanelController<
         });
     }
 
-    /** Re-runs the agent skills check and pushes the result to the page. */
     private async refreshAgentSkillsState(): Promise<void> {
         if (this.isDisposed) {
             return;
@@ -1667,8 +1558,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     private installerFor(pluginName: AgentSkillPluginName): AgentPluginsInstaller {
         const installer = this._agentSkillsInstallers.get(pluginName);
         if (!installer) {
-            // Every name in AGENT_SKILL_PLUGINS gets an installer at construction, so this can
-            // only mean the map was built from a different set.
             throw new Error(`No agent skills installer registered for ${pluginName}.`);
         }
         return installer;
@@ -1695,7 +1584,6 @@ export class OverviewWebviewController extends WebviewPanelController<
         }
     }
 
-    /** Re-checks the prerequisites and tells the setup dialog when any of them moved. */
     private async publishPrerequisites(): Promise<void> {
         const prerequisites = await this.getDevContainerPrerequisites();
         const previous = this._lastPrerequisites;
@@ -1713,11 +1601,6 @@ export class OverviewWebviewController extends WebviewPanelController<
         );
     }
 
-    /**
-     * Remembers what the dialog was told and reports any prerequisite that went from missing to
-     * ready -- an install the user did outside the page, found by Recheck or by the auto-detect.
-     * The reverse is an uninstall or a stopped Docker engine, and is not counted.
-     */
     private recordPrerequisites(prerequisites: DevContainerPrerequisites): void {
         const previous = this._lastPrerequisites;
         this._lastPrerequisites = prerequisites;
@@ -1746,10 +1629,6 @@ export class OverviewWebviewController extends WebviewPanelController<
             : PrerequisiteStatus.Missing;
     }
 
-    /**
-     * After an extension update, greets the user with the Getting Started page and its release notes.
-     * Runs at most once per version, and only while the user has left the setting on.
-     */
     public static async showWelcomeOnExtensionUpdate(context: vscode.ExtensionContext) {
         const globalState = context?.globalState;
         if (!globalState) {
@@ -1772,10 +1651,6 @@ export class OverviewWebviewController extends WebviewPanelController<
         }
     }
 
-    /**
-     * Whether release notes should greet the user after an update. A user who has never touched
-     * the setting gets the contributed default.
-     */
     public static shouldShowChangelogOnUpdate(): boolean {
         const vscodeConfig = vscode.workspace.getConfiguration();
         const configValues = vscodeConfig.inspect<boolean>(constants.configShowChangelogOnUpdate);

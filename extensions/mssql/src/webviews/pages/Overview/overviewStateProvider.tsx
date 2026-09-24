@@ -23,7 +23,6 @@ const OverviewStateProvider: React.FC<OverviewProviderProps> = ({ children }) =>
     return <OverviewContext.Provider value={{ extensionRpc }}>{children}</OverviewContext.Provider>;
 };
 
-/** Access the Overview page's RPC channel to the extension. */
 export function useOverviewContext(): OverviewReactProvider {
     const context = useContext(OverviewContext);
     if (!context) {

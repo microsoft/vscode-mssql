@@ -76,7 +76,6 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
     },
     nav: {
-        // The feature gallery is long; the rail scrolls rather than stretching the dialog.
         overflowY: "auto",
         overflowX: "hidden",
         minHeight: 0,
@@ -170,10 +169,6 @@ interface WalkthroughDialogProps {
     onDismiss: () => void;
 }
 
-/**
- * In-page walkthrough: a step list on the left, and the selected step's copy, call to action
- * and screenshot on the right.
- */
 export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogProps) => {
     const classes = useStyles();
     const loc = locConstants.overview;
@@ -219,8 +214,6 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
             return;
         }
         if (step.action.url) {
-            // Documentation opens in the browser, beside VS Code rather than over it, so the
-            // walkthrough stays up: the reader comes back to carry on from the same step.
             openLink(step.action.url);
             return;
         }

@@ -8,24 +8,17 @@ import * as Constants from "../constants/constants";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "./logger";
 
-/** Key under which the most-recently-opened SQL file list is persisted. */
 const GLOBAL_STATE_RECENT_SQL_FILES_KEY = "overview/recentSqlFiles";
 
-/** Upper bound on the persisted list, independent of how many a caller asks for. */
 const MAX_TRACKED_FILES = 50;
 
-/** Cap on the workspace scan used to seed the list before any file has been opened. */
 const MAX_WORKSPACE_SCAN = 50;
 
-/** One entry in the recently-opened SQL file list. */
 interface RecentSqlFileEntry {
-    /** Filesystem path of the file. */
     fsPath: string;
-    /** Epoch milliseconds the file was last opened. */
     openedAtMs: number;
 }
 
-/** A recent SQL file resolved for display. */
 export interface ResolvedRecentSqlFile {
     fsPath: string;
     /** Epoch milliseconds this file was last opened, or last modified when only scanned. */
@@ -33,33 +26,20 @@ export interface ResolvedRecentSqlFile {
 }
 
 /**
- * Tracks the SQL files the user has opened, most recent first.
- *
- * VS Code exposes no public API for its own "recently opened" list, so the extension keeps its
- * own. Until the user has opened a SQL file the list is empty, so reads top it up with SQL files
- * already in the workspace, newest by modified time — which keeps the Overview page useful on a
- * first run instead of showing an empty section.
+ * VS Code exposes no public API for its own "recently opened" list, so the extension keeps its own.
  */
 export class RecentSqlFilesStore implements vscode.Disposable {
     private _disposables: vscode.Disposable[] = [];
     private _logger: ILogger = logger.withPrefix("RecentSqlFilesStore");
-    /** Serializes the read/modify/write in `recordOpen`. See the comment there. */
     private _writeQueue: Promise<void> = Promise.resolve();
     private _onDidChange = new vscode.EventEmitter<void>();
-    /** The workspace scan in flight, shared by reads that overlap it. */
     private _workspaceScan: Promise<ResolvedRecentSqlFile[]> | undefined;
 
-    /**
-     * Fires after a newly opened SQL file has been recorded, so a page already showing the list
-     * can refresh instead of holding the snapshot it read when it opened.
-     */
     public readonly onDidChange = this._onDidChange.event;
 
     constructor(private _context: vscode.ExtensionContext) {}
 
     /**
-     * Starts recording the SQL files the user works in.
-     *
      * Keyed off the active editor rather than `onDidOpenTextDocument`, which also fires whenever
      * any extension reads a file with `openTextDocument` -- a project build or a language
      * feature resolving references -- and would push the user's own files out of the list.
@@ -89,8 +69,7 @@ export class RecentSqlFilesStore implements vscode.Disposable {
     }
 
     /**
-     * Records a document open if it is a SQL file on disk. Untitled and virtual documents are
-     * skipped: they have no path to reopen later.
+     * Untitled and virtual documents are skipped: they have no path to reopen later.
      */
     public async recordOpen(document: vscode.TextDocument): Promise<void> {
         if (document.languageId !== Constants.languageId || document.uri.scheme !== "file") {
@@ -118,16 +97,12 @@ export class RecentSqlFilesStore implements vscode.Disposable {
         this._onDidChange.fire();
     }
 
-    /**
-     * Returns up to `limit` recent SQL files that still exist on disk, most recent first.
-     */
     public async getRecentFiles(limit: number): Promise<ResolvedRecentSqlFile[]> {
         const tracked = await this.resolveTrackedFiles(limit);
         if (tracked.length >= limit) {
             return tracked;
         }
 
-        // Not enough history yet — fill the remainder from the workspace.
         const seen = new Set(tracked.map((file) => file.fsPath));
         const scanned = await this.scanWorkspaceFiles();
         for (const file of scanned) {
@@ -150,7 +125,6 @@ export class RecentSqlFilesStore implements vscode.Disposable {
         );
     }
 
-    /** Drops tracked files that have since been deleted or moved. */
     private async resolveTrackedFiles(limit: number): Promise<ResolvedRecentSqlFile[]> {
         const resolved: ResolvedRecentSqlFile[] = [];
         for (const entry of this.readEntries()) {
@@ -165,8 +139,6 @@ export class RecentSqlFilesStore implements vscode.Disposable {
     }
 
     /**
-     * SQL files in the open workspace, most recently modified first.
-     *
      * A burst of opens -- a restored editor layout -- asks for this once per file, so reads
      * that overlap one scan share it rather than each globbing the workspace.
      */

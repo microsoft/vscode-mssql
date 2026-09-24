@@ -14,8 +14,6 @@ import { useOverviewSelector } from "../overviewSelector";
 const extensionIcon = require("../../../../../images/extensionIcon.png");
 
 const useStyles = makeStyles({
-    // Identity and the primary actions are one banded region: the actions are what the header is
-    // for, and sitting them below a rule made them read as an unrelated toolbar.
     root: {
         display: "flex",
         flexDirection: "column",
@@ -27,7 +25,6 @@ const useStyles = makeStyles({
     },
     identity: {
         display: "flex",
-        // The icon aligns to the top of the title block rather than the block's centre.
         alignItems: "flex-start",
         gap: "14px",
         flexWrap: "wrap",
@@ -49,7 +46,6 @@ const useStyles = makeStyles({
         gap: "10px",
     },
     title: {
-        // <h1> carries a browser default margin that would dwarf the 3px gap above.
         marginTop: 0,
         marginBottom: 0,
         fontSize: "22px",
@@ -64,7 +60,6 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
     },
     preference: {
-        // Pushed opposite the title block, and aligned to the title rather than the subtitle.
         marginLeft: "auto",
         alignSelf: "center",
         fontSize: tokens.fontSizeBase200,

@@ -7,7 +7,6 @@ import { Text, makeStyles, tokens } from "@fluentui/react-components";
 
 const useStyles = makeStyles({
     heading: {
-        // <h2> carries a browser default margin that would fight the flex gaps around it.
         marginTop: 0,
         marginBottom: 0,
         fontSize: "14px",
@@ -17,7 +16,6 @@ const useStyles = makeStyles({
     },
 });
 
-/** Small uppercase label that opens each Overview section. */
 export const SectionHeading = ({ children }: { children: string }) => {
     const classes = useStyles();
     return (

@@ -18,15 +18,12 @@ import {
     AgentSkillSummary,
 } from "../sharedInterfaces/overview";
 
-/** GitHub repository the skills are served from, as `owner/repo`. */
 interface SkillsSource {
     owner: string;
     name: string;
 }
 
 /**
- * Short link the skills are resolved through.
- *
  * It redirects to the repository that ships them, and every other URL here -- the archive, the
  * revision, the catalog READMEs and the source links -- is derived from whatever it resolves to.
  * Repointing the link moves all of them together, so the copy that gets installed and the copy
@@ -34,22 +31,15 @@ interface SkillsSource {
  */
 const SKILLS_SOURCE_ALIAS = "https://aka.ms/vscode-mssql-skills-repo";
 
-/**
- * Repository used when the short link cannot be resolved -- offline, proxied, or repointed at
- * something that is not a GitHub repository.
- *
- * The repository the skills ship from, which is where the link is meant to end up. It is named
- * here rather than tracking whatever the link points at today, so a window that cannot reach
- * the link still asks the right place instead of failing outright.
- */
 const FALLBACK_SKILLS_SOURCE: SkillsSource = { owner: "microsoft", name: "microsoft-sql" };
 
-/** Owner and repository names GitHub accepts, so a parsed target cannot smuggle a path. */
+/**
+ * One owner or repository name GitHub accepts, e.g. `microsoft` or `microsoft-sql`, so a parsed
+ * target cannot smuggle a path.
+ */
 const REPOSITORY_SEGMENT = /^[A-Za-z0-9._-]+$/;
 
 /**
- * Reads a GitHub repository root, or `undefined` for anything else.
- *
  * The host and the shape are both checked because aka.ms answers an unknown name with its own
  * search page rather than a 404. Without this, a mistyped or retired link would resolve to
  * whatever happened to answer and be downloaded as though it were the skills.
@@ -77,44 +67,37 @@ function parseRepositorySource(target: string): SkillsSource | undefined {
     return { owner, name };
 }
 
-/** Branch the skills are published from. */
 const SKILLS_REF = "main";
 
-/** Repository root for a resolved source. Paths are appended to this. */
 function repositoryUrl(source: SkillsSource): string {
     return `https://github.com/${source.owner}/${source.name}`;
 }
 
 /**
- * Setting VS Code discovers agent plugins from. Each key is a plugin root directory and the
- * value enables it. Writing it registers the skills without an install prompt, and VS Code
- * re-reads it immediately, so no window reload is needed.
+ * Each key is a plugin root directory and the value enables it. Writing it registers the skills
+ * without an install prompt, and VS Code re-reads it immediately, so no window reload is needed.
  */
 const PLUGIN_LOCATIONS_SETTING = "chat.pluginLocations";
 
-/** How long an installed copy is trusted before the upstream revision is checked again. */
 const UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
-/** Revision currently on disk, and when upstream was last asked about it. */
 const STATE_INSTALLED_SHA = "overview/agentSkills.sha";
 const STATE_LAST_CHECK_MS = "overview/agentSkills.lastCheckMs";
 
 /**
- * How long one revision answer is reused. Both plugins check at activation, and this keeps that
- * to one call against GitHub's unauthenticated limit rather than one per plugin.
+ * Both plugins check at activation, and this keeps that to one call against GitHub's
+ * unauthenticated limit rather than one per plugin.
  */
 const LATEST_SHA_REUSE_MS = 60 * 1000;
 
-/** Network budget. The archive is ~1 MB, so these are generous. */
 const SHA_REQUEST_TIMEOUT_MS = 15_000;
 const DOWNLOAD_TIMEOUT_MS = 120_000;
 const CATALOG_REQUEST_TIMEOUT_MS = 15_000;
 const RESOLVE_REQUEST_TIMEOUT_MS = 15_000;
 
 /**
- * Files that mark a directory as an agent plugin root. VS Code accepts both its own
- * (`.plugin`) and the Claude (`.claude-plugin`) layouts, so any one of these is enough to
- * treat an extracted copy as usable.
+ * VS Code accepts both its own (`.plugin`) and the Claude (`.claude-plugin`) layouts, so any one of
+ * these is enough to treat an extracted copy as usable.
  */
 const PLUGIN_MANIFEST_CANDIDATES = [
     path.join(".plugin", "plugin.json"),
@@ -126,8 +109,8 @@ const PLUGIN_MANIFEST_CANDIDATES = [
 ];
 
 /**
- * Thrown when an install is attempted from a window whose extension host is remote. Distinguished
- * from a download failure so the caller can explain what to do rather than offering a retry.
+ * Distinguished from a download failure so the caller can explain what to do rather than offering a
+ * retry.
  */
 export class RemoteWindowUnsupportedError extends Error {
     constructor() {
@@ -136,20 +119,16 @@ export class RemoteWindowUnsupportedError extends Error {
     }
 }
 
-/** Directory downloads and extractions are staged in, beside the plugin roots. */
 function stagingRoot(context: vscode.ExtensionContext): string {
     return vscode.Uri.joinPath(context.globalStorageUri, "agentSkills", ".staging").fsPath;
 }
 
-/** A downloaded archive and the installers still extracting from it. */
 interface SharedArchive {
     path: Promise<string>;
     users: number;
 }
 
 /**
- * The network work every plugin installer in a window shares.
- *
  * Every collection ships from one repository, so the short link, the latest revision and the
  * archive are the same answer for each plugin. Asking once per window rather than once per
  * plugin keeps activation to one revision call against GitHub's unauthenticated limit, and
@@ -164,8 +143,6 @@ export class AgentSkillsDownloads {
     constructor(private readonly _context: vscode.ExtensionContext) {}
 
     /**
-     * Repository the short link currently points at.
-     *
      * The redirect is read rather than followed, so the target is inspected before anything is
      * fetched from it. Resolved once per window: the archive, the revision check, the catalog
      * and the source links all read the same answer, which is what keeps them describing one
@@ -205,7 +182,6 @@ export class AgentSkillsDownloads {
             }
             return source;
         } catch (error) {
-            // Offline, proxied or rate limited. The fallback keeps the page usable.
             this._logger.debug(
                 `Could not resolve ${SKILLS_SOURCE_ALIAS}: ${
                     error instanceof Error ? error.message : String(error)
@@ -216,8 +192,6 @@ export class AgentSkillsDownloads {
     }
 
     /**
-     * Latest commit on the published branch, or undefined when it cannot be determined.
-     *
      * An answer is reused for {@link LATEST_SHA_REUSE_MS}, so plugins checking together share
      * one request. A failure is not reused, so the next check asks again.
      */
@@ -248,9 +222,9 @@ export class AgentSkillsDownloads {
                 timeoutMs: SHA_REQUEST_TIMEOUT_MS,
             });
             const sha = typeof response.data === "string" ? response.data.trim() : undefined;
+            // A 40-character hex commit SHA, e.g. "3f2a9c...e71b".
             return sha && /^[0-9a-f]{40}$/i.test(sha) ? sha : undefined;
         } catch (error) {
-            // Offline, proxied or rate limited. The caller keeps whatever is already installed.
             this._logger.debug(
                 `Could not read the agent skills revision: ${
                     error instanceof Error ? error.message : String(error)
@@ -261,12 +235,8 @@ export class AgentSkillsDownloads {
     }
 
     /**
-     * Runs `use` against a downloaded source archive for `sha`, or the branch head when the
-     * revision is unknown.
-     *
-     * Callers that overlap share one download, and the archive is deleted once the last of them
-     * is done with it. Pinning the download to the revision also means the copy extracted is the
-     * one the recorded revision names, even if the branch moves in between.
+     * Pinning the download to the revision also means the copy extracted is the one the recorded
+     * revision names, even if the branch moves in between.
      */
     public async withArchive<T>(
         sha: string | undefined,
@@ -316,8 +286,6 @@ export class AgentSkillsDownloads {
 }
 
 /**
- * Downloads the Microsoft SQL agent skills and registers them with VS Code.
- *
  * The skills are fetched as a source archive into the extension's global storage rather than
  * bundled into the VSIX, so they track the repository instead of the release cadence. They are
  * registered by writing {@link PLUGIN_LOCATIONS_SETTING}, which is a documented setting the user
@@ -347,7 +315,6 @@ export class AgentPluginsInstaller {
         return this._pluginName;
     }
 
-    /** Directory the skills are extracted to, and the value registered as a plugin root. */
     public get pluginRoot(): vscode.Uri {
         return vscode.Uri.joinPath(this._context.globalStorageUri, "agentSkills", this._pluginName);
     }
@@ -360,7 +327,6 @@ export class AgentPluginsInstaller {
         return `${STATE_LAST_CHECK_MS}/${this._pluginName}`;
     }
 
-    /** Current shipped skills listed by the repository. */
     public getSkillsCatalog(): Promise<AgentSkillGroup[]> {
         if (!this._catalog) {
             this._catalog = this.fetchSkillsCatalog().catch((error) => {
@@ -373,8 +339,6 @@ export class AgentPluginsInstaller {
     }
 
     /**
-     * Whether this window can install the skills at all.
-     *
      * This extension runs in the workspace, so in a remote window -- a dev container, SSH or WSL
      * -- its storage is on the remote machine while `chat.pluginLocations` is read by the local
      * workbench against the local filesystem. Installing there would download into the container
@@ -386,8 +350,6 @@ export class AgentPluginsInstaller {
     }
 
     /**
-     * Whether the skills are both present on disk and registered with VS Code.
-     *
      * Either half can disappear on its own: the user can delete the folder, and VS Code's plugin
      * view removes the setting entry. A registration pointing at a missing folder is cleared here
      * so it cannot linger as a broken plugin path.
@@ -419,8 +381,6 @@ export class AgentPluginsInstaller {
     }
 
     /**
-     * Installs the skills, reusing a copy that is already on disk.
-     *
      * Re-registering an intact copy is the common case when the user removed the plugin through
      * VS Code's UI, which clears the setting but leaves the files, so that path skips the network
      * entirely.
@@ -447,11 +407,8 @@ export class AgentPluginsInstaller {
     }
 
     /**
-     * Refreshes the installed copy when upstream has moved, at most once every
-     * {@link UPDATE_CHECK_INTERVAL_MS}.
-     *
      * Only runs for an install that is still intact, so a user who removed the skills is never
-     * silently given them back. Returns whether files were replaced.
+     * silently given them back.
      */
     public async checkForUpdates(force = false): Promise<boolean> {
         if (!(await this.isInstalled())) {
@@ -482,7 +439,6 @@ export class AgentPluginsInstaller {
             this._logger.info(`Agent skills moved from ${current ?? "unknown"} to ${latest}.`);
             await this.downloadInto(this.pluginRoot, latest);
             await this._context.globalState.update(this.installedShaKey, latest);
-            // Re-assert the registration in case the path changed shape underneath us.
             await this.register();
             return true;
         });
@@ -496,8 +452,6 @@ export class AgentPluginsInstaller {
     }
 
     /**
-     * Extracts the source archive for `sha` and swaps this plugin into `destination`.
-     *
      * Extraction happens in a sibling temporary directory so a failed or partial download never
      * replaces a working copy.
      */
@@ -523,8 +477,6 @@ export class AgentPluginsInstaller {
     }
 
     /**
-     * Moves `source` onto `destination`.
-     *
      * The copy already there is moved aside rather than deleted, and put back if the staged copy
      * cannot be installed. Deleting first would mean a failure on both the rename and the copy
      * leaves the user with no skills at all and a registration that the next {@link isInstalled}
@@ -554,7 +506,6 @@ export class AgentPluginsInstaller {
         }
     }
 
-    /** Renames an existing directory out of the way. False when there was nothing to move. */
     private async moveAside(directory: string, backup: string): Promise<boolean> {
         try {
             await fs.rename(directory, backup);
@@ -570,9 +521,8 @@ export class AgentPluginsInstaller {
     }
 
     /**
-     * Puts the staged copy in place. A rename is preferred, but it fails across filesystems and
-     * can be refused on Windows while a file in the old copy is still open, so a recursive copy
-     * backs it up.
+     * A rename is preferred, but it fails across filesystems and can be refused on Windows while a
+     * file in the old copy is still open, so a recursive copy backs it up.
      */
     private async moveInto(source: string, destination: string): Promise<void> {
         try {
@@ -617,7 +567,6 @@ export class AgentPluginsInstaller {
         );
     }
 
-    /** Whether an extracted copy exists at the plugin root. */
     private async isPluginPresent(): Promise<boolean> {
         return this.hasPluginManifest(this.pluginRoot.fsPath);
     }
@@ -627,16 +576,12 @@ export class AgentPluginsInstaller {
             try {
                 await fs.access(path.join(root, candidate));
                 return true;
-            } catch {
-                // Try the next layout.
-            }
+            } catch {}
         }
         return false;
     }
 
     /**
-     * Whether the plugin root is registered in the user's settings.
-     *
      * Only the user scope is consulted, since that is the only scope written here; a workspace
      * entry belongs to whoever added it.
      */
@@ -645,7 +590,6 @@ export class AgentPluginsInstaller {
         return locations[this.pluginRoot.fsPath] === true;
     }
 
-    /** Adds this plugin root to the setting, leaving every other entry in it untouched. */
     private async register(): Promise<void> {
         await AgentPluginsInstaller.mutateSettings(async () => {
             const key = this.pluginRoot.fsPath;
@@ -689,8 +633,6 @@ export class AgentPluginsInstaller {
     }
 
     /**
-     * The user-scope value of the setting.
-     *
      * `get` would return the value merged across every scope, and writing that back to the user
      * scope would copy workspace entries into the user's settings.
      */
@@ -702,7 +644,10 @@ export class AgentPluginsInstaller {
     }
 }
 
-/** Heading the shipped skills are tabulated under. */
+/**
+ * Heading the shipped skills are tabulated under, e.g. `## What's in this collection` or
+ * `### Skills`.
+ */
 const SKILLS_TABLE_HEADING = /^#{2,3}\s+(?:What.s in this collection|Skills\b)/i;
 
 /**
@@ -715,8 +660,6 @@ const SKILLS_TABLE_HEADING = /^#{2,3}\s+(?:What.s in this collection|Skills\b)/i
 const SKILL_NAME_CELL = /^(?:\*\*|`)([a-z0-9][a-z0-9._-]*)(?:\*\*|`)$/i;
 
 /**
- * Reads the shipped skills out of a collection README.
- *
  * Only the first table under the skills heading is read. The same README goes on to tabulate
  * per-skill install commands and the authoring standard, and those rows look enough like skill
  * rows that matching the whole document lists every skill twice and adds three headings that
@@ -727,6 +670,7 @@ export function parseSkillsCatalog(
     pluginName: AgentSkillPluginName = AGENT_SKILL_PLUGINS[0],
     repository = repositoryUrl(FALLBACK_SKILLS_SOURCE),
 ): AgentSkillSummary[] {
+    // CRLF line endings, normalized to LF before splitting.
     const lines = markdown.replace(/\r\n/g, "\n").split("\n");
     const headingIndex = lines.findIndex((line) => SKILLS_TABLE_HEADING.test(line));
     if (headingIndex < 0) {
@@ -738,7 +682,6 @@ export function parseSkillsCatalog(
     let inTable = false;
 
     for (const line of lines.slice(headingIndex + 1)) {
-        // The next section starts, so the table -- if there was one -- is over.
         if (line.startsWith("#")) {
             break;
         }
@@ -746,7 +689,6 @@ export function parseSkillsCatalog(
             if (inTable) {
                 break;
             }
-            // Prose between the heading and the table.
             continue;
         }
         inTable = true;
@@ -764,8 +706,11 @@ export function parseSkillsCatalog(
         skills.push({
             id: name,
             description: cells[1]
+                // Bold markers, e.g. "**Note**" -> "Note".
                 .replace(/\*\*/g, "")
+                // Inline code, e.g. "`sqlcmd`" -> "sqlcmd".
                 .replace(/`([^`]+)`/g, "$1")
+                // Links, e.g. "[docs](https://example.com)" -> "docs".
                 .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
                 .trim(),
             repositoryUrl: `${repository}/blob/${SKILLS_REF}/plugins/${pluginName}/skills/${name}/SKILL.md`,

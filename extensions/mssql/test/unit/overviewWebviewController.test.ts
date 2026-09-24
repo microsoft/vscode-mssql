@@ -35,7 +35,6 @@ import { observeWebviewReady, stubTelemetry, stubWebviewPanel } from "./utils";
 const { expect } = chai;
 chai.use(sinonChai);
 
-/** Lets the controller's asynchronous recent-file refresh settle. */
 function waitForRecentFiles(): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, 0));
 }
@@ -58,7 +57,6 @@ suite("Overview Webview Controller", () => {
                 extensionUri: vscode.Uri.parse("file:///extension"),
                 extensionPath: "extension",
                 globalStorageUri: vscode.Uri.file(globalStorageRoot),
-                // Backs the remembered parent folder for dev container scaffolding.
                 globalState: {
                     get: (key: string) => globalStateValues.get(key),
                     update: (key: string, value: unknown) => {
@@ -96,7 +94,6 @@ suite("Overview Webview Controller", () => {
         sandbox.stub(utils, "getNonce").returns("test-nonce");
         sandbox.stub(vscode.window, "createWebviewPanel").returns(stubWebviewPanel(sandbox));
         sandbox.stub(vscode.extensions, "getExtension").returns(undefined);
-        // Keep prerequisite checks from shelling out to a real Docker install.
         sandbox.stub(dockerUtils, "execDockerCommand").rejects(new Error("docker not running"));
 
         recentFiles = [];
@@ -183,7 +180,6 @@ suite("Overview Webview Controller", () => {
 
         controller = createController();
 
-        // The list is loaded asynchronously so construction never blocks on the filesystem.
         expect(controller.state.recentFiles).to.deep.equal([]);
     });
 
@@ -192,7 +188,6 @@ suite("Overview Webview Controller", () => {
 
         const prerequisites = await controller["getDevContainerPrerequisites"]();
 
-        // vscode.extensions.getExtension is stubbed to return undefined for every id.
         expect(prerequisites.devContainersExtension).to.equal(PrerequisiteStatus.Missing);
     });
 
@@ -227,7 +222,6 @@ suite("Overview Webview Controller", () => {
             devContainersExtension: PrerequisiteStatus.Missing,
         };
         const notify = sandbox.stub(controller, "sendNotification").resolves();
-        // State pushes share the channel, so only the prerequisite notifications are counted.
         const prerequisiteNotifications = () =>
             notify
                 .getCalls()
@@ -236,7 +230,6 @@ suite("Overview Webview Controller", () => {
                 )
                 .map((call) => call.args[1]);
 
-        // Installed from its page in the Extensions view.
         (vscode.extensions.getExtension as sinon.SinonStub).returns({});
         await controller["publishPrerequisites"]();
 
@@ -247,11 +240,9 @@ suite("Overview Webview Controller", () => {
             },
         ]);
 
-        // Nothing moved since, so there is nothing to tell.
         await controller["publishPrerequisites"]();
         expect(prerequisiteNotifications()).to.have.length(1);
 
-        // The extension went from missing to ready, which is counted as an install.
         const installs = (telemetry.sendActionEvent as sinon.SinonStub)
             .getCalls()
             .filter((call) => call.args[1] === TelemetryActions.PrerequisiteInstalled)
@@ -312,7 +303,6 @@ suite("Overview Webview Controller", () => {
             applied: true,
             usedPicker: false,
             targetPath: workspaceRoot,
-            // Written into the folder already open, so nothing has to be opened afterwards.
             opensNewFolder: false,
         });
         expect(await fs.promises.readFile(tasksPath, "utf8")).to.equal("user tasks");
@@ -345,7 +335,6 @@ suite("Overview Webview Controller", () => {
             applied: true,
             usedPicker: false,
             targetPath: workspaceRoot,
-            // Written into the folder already open, so nothing has to be opened afterwards.
             opensNewFolder: false,
         });
         expect(await fs.promises.readFile(tasksPath, "utf8")).to.equal("template tasks");
@@ -377,6 +366,8 @@ suite("Overview Webview Controller", () => {
         const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
 
         expect(result.applied).to.equal(false);
+        // Matches the staging containment error, e.g.
+        // "Template file path escapes the staging directory: link/secret.txt".
         expect(result.error).to.match(/escapes the staging directory/);
         expect(fs.existsSync(path.join(workspaceRoot, "link", "secret.txt"))).to.be.false;
     });
@@ -396,6 +387,8 @@ suite("Overview Webview Controller", () => {
         const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
 
         expect(result.applied).to.equal(false);
+        // Matches the workspace containment error, e.g.
+        // "Template file path escapes the workspace folder: .vscode/tasks.json".
         expect(result.error).to.match(/escapes the workspace folder/);
         expect(fs.existsSync(path.join(outside, "tasks.json"))).to.be.false;
     });
@@ -432,10 +425,6 @@ suite("Overview Webview Controller", () => {
     suite("post-update trigger", () => {
         const LAST_VERSION_KEY = "changelog/lastChangeLogVersion";
 
-        /**
-         * A context whose global state is a plain map, plus the extension version and the
-         * setting the trigger gates on.
-         */
         function stubUpdateEnvironment(options: {
             lastShownVersion?: string;
             currentVersion?: string;
@@ -498,8 +487,6 @@ suite("Overview Webview Controller", () => {
             await OverviewWebviewController.showWelcomeOnExtensionUpdate(context);
 
             expect(vscode.commands.executeCommand).to.not.have.been.called;
-            // The version stays unrecorded, so turning the setting back on still shows the
-            // notes for this version rather than silently skipping it.
             expect(update).to.not.have.been.called;
         });
     });
@@ -533,7 +520,6 @@ suite("Overview Webview Controller", () => {
             applied: true,
             usedPicker: false,
             targetPath: workspaceRoot,
-            // Written into the folder already open, so nothing has to be opened afterwards.
             opensNewFolder: false,
         });
         expect(prompt).to.have.been.calledOnce;
@@ -583,7 +569,6 @@ suite("Overview Webview Controller", () => {
             applied: true,
             usedPicker: false,
             targetPath: workspaceRoot,
-            // Written into the folder already open, so nothing has to be opened afterwards.
             opensNewFolder: false,
         });
         expect(
@@ -626,7 +611,6 @@ suite("Overview Webview Controller", () => {
             );
         }
 
-        /** The storage folder holding both extensions' directories as siblings. */
         async function createStorageParent(): Promise<string> {
             const parent = await createTemporaryDirectory("mssql-overview-storage-");
             globalStorageRoot = path.join(parent, "ms-mssql.mssql");
@@ -666,7 +650,6 @@ suite("Overview Webview Controller", () => {
         test("ignores a configuration belonging to a different folder", async () => {
             const workspaceRoot = await createTemporaryDirectory("mssql-overview-other-");
             const storageParent = await createStorageParent();
-            // Same last path segment, different folder: the marker is what tells them apart.
             await storeUserDataConfig(
                 storageParent,
                 path.basename(workspaceRoot),
@@ -694,7 +677,6 @@ suite("Overview Webview Controller", () => {
                 .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
             controller = createController();
 
-            // Nothing in the folder itself, so the old check said there was no dev container.
             const found = await controller["findDevContainerConfig"]([
                 { index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) },
             ] as vscode.WorkspaceFolder[]);
@@ -716,7 +698,6 @@ suite("Overview Webview Controller", () => {
             expect(target.workspaceFolders).to.deep.equal([
                 { name: "workspace", path: workspaceRoot },
             ]);
-            // The other option is proposed too, so choosing it needs no second round trip.
             expect(target.newFolderPath).to.be.a("string").and.not.equal(workspaceRoot);
         });
 
@@ -728,7 +709,6 @@ suite("Overview Webview Controller", () => {
 
             const target = await controller["getDevContainerTarget"](DevContainerTemplateId.DotNet);
 
-            // Named after the template's own folder, so the four templates do not collide.
             expect(target.newFolderPath).to.equal(path.join(parent, "dotnet"));
             expect(target.workspaceFolders).to.deep.equal([]);
         });
@@ -799,7 +779,6 @@ suite("Overview Webview Controller", () => {
 
             expect(result.applied).to.be.true;
             expect(result.targetPath).to.equal(destination);
-            // Nothing is open, so this is a folder the user will have to be taken to.
             expect(result.opensNewFolder).to.be.true;
             expect(
                 await fs.promises.readFile(
@@ -828,8 +807,6 @@ suite("Overview Webview Controller", () => {
             );
 
             expect(result.applied).to.be.false;
-            // Otherwise every failed attempt leaves an empty folder, and the next proposal
-            // steps past it: dotnet, dotnet-2, dotnet-3.
             expect(
                 await fs.promises
                     .stat(destination)
@@ -846,7 +823,6 @@ suite("Overview Webview Controller", () => {
             sandbox
                 .stub(controller as unknown as Record<string, unknown>, "findDevContainersCli")
                 .returns("/fake/devContainersSpecCLI.js");
-            // Fails before the CLI runs, which used to skip the cleanup entirely.
             sandbox.stub(fs.promises, "mkdtemp").rejects(new Error("no space left"));
 
             const result = await controller["applyDevContainerTemplate"](
@@ -856,7 +832,6 @@ suite("Overview Webview Controller", () => {
             );
 
             expect(result.applied).to.be.false;
-            // Both folders the recursive mkdir made are gone, and the one that was there stays.
             expect(await fs.promises.readdir(parent)).to.deep.equal([]);
         });
 
@@ -898,7 +873,6 @@ suite("Overview Webview Controller", () => {
                 "relative/path",
             );
 
-            // A relative path would resolve against the extension host's working directory.
             expect(result.applied).to.be.false;
             expect(result.error).to.contain("absolute");
         });
@@ -961,15 +935,12 @@ suite("Overview Webview Controller", () => {
                 DevContainerTemplateId.DotNet,
             );
 
-            // The siblings of a folder they already had open say nothing about where they keep
-            // new projects.
             expect(globalStateValues.has("mssql.overview.devContainerTargetParent")).to.be.false;
             expect(result.opensNewFolder).to.be.false;
         });
     });
 
     suite("template options", () => {
-        /** Stubs the metadata call with a document shaped like the registry's own. */
         function stubTemplateMetadata(metadata: unknown): sinon.SinonStub {
             sandbox
                 .stub(controller as unknown as Record<string, unknown>, "findDevContainersCli")
@@ -991,7 +962,7 @@ suite("Overview Webview Controller", () => {
                     },
                     // One value is not a choice.
                     onlyOne: { type: "string", proposals: ["sole"], default: "sole" },
-                    // Booleans have no control in the dialog yet.
+                    // Booleans get no control in the dialog.
                     installAzd: { type: "boolean", default: true },
                     // A closed list is offered the same way a suggested one is.
                     edition: { type: "string", enum: ["developer", "express"] },
@@ -1010,7 +981,6 @@ suite("Overview Webview Controller", () => {
                     values: ["10.0-noble", "8.0-noble"],
                 },
                 {
-                    // No description, so the key stands in as the label.
                     id: "edition",
                     label: "edition",
                     defaultValue: "developer",
@@ -1051,8 +1021,6 @@ suite("Overview Webview Controller", () => {
                 DevContainerTemplateId.DotNet,
             );
 
-            // Applying with defaults still works, so an unreadable registry costs the dropdown
-            // rather than the flow.
             expect(options).to.deep.equal([]);
         });
 
@@ -1086,7 +1054,6 @@ suite("Overview Webview Controller", () => {
                 DevContainerTemplateId.DotNet,
                 {
                     imageVariant: "8.0-noble",
-                    // Not declared by the template.
                     somethingElse: "value",
                 },
             );
@@ -1106,8 +1073,6 @@ suite("Overview Webview Controller", () => {
                 },
             });
 
-            // The values are substituted into the template's files, so an unlisted one is
-            // refused rather than passed through; the option keeps its default.
             const resolved = await controller["resolveTemplateOptions"](
                 DevContainerTemplateId.DotNet,
                 { imageVariant: "$(whoami)" },
@@ -1222,7 +1187,6 @@ suite("Overview Webview Controller", () => {
         await waitForRecentFiles();
         expect(controller.state.recentFiles).to.deep.equal([]);
 
-        // A page left open has to follow later opens rather than keep its first snapshot.
         recentFiles = [{ fsPath: "/work/reports/new.sql", timestampMs: 5_000 }];
         storeChangeEvent.fire();
         await waitForRecentFiles();
@@ -1263,7 +1227,6 @@ suite("Overview Webview Controller", () => {
         const afterFirst = controller.state.openWhatsNewRequest;
         controller.openWhatsNew();
 
-        // A boolean would stay `true` here and the webview would see no change.
         expect(afterFirst).to.equal(1);
         expect(controller.state.openWhatsNewRequest).to.equal(2);
     });
@@ -1271,7 +1234,6 @@ suite("Overview Webview Controller", () => {
     suite("showWelcomeOnExtensionUpdate", () => {
         const currentVersion = "1.99.0";
 
-        /** Builds a context whose globalState reports `storedVersion` as last greeted. */
         function stubContext(storedVersion: string | undefined) {
             const update = sinon.stub().resolves();
             const context = {
@@ -1283,7 +1245,6 @@ suite("Overview Webview Controller", () => {
             return { context, update };
         }
 
-        /** Points the setting's resolved value at `enabled`. */
         function stubChangelogSetting(enabled: boolean | undefined) {
             sandbox.stub(vscode.workspace, "getConfiguration").returns({
                 inspect: () => ({ globalValue: enabled, defaultValue: true }),
@@ -1306,7 +1267,6 @@ suite("Overview Webview Controller", () => {
                 constants.cmdOpenOverview,
                 { openWhatsNew: true, source: OverviewOpenSource.PostUpdate },
             );
-            // Recorded so the greeting is shown at most once per version.
             expect(update).to.have.been.calledOnceWithExactly(
                 "changelog/lastChangeLogVersion",
                 currentVersion,
@@ -1334,7 +1294,6 @@ suite("Overview Webview Controller", () => {
         });
 
         test("greets a user who has never touched the setting", async () => {
-            // No global value set, so the contributed default applies.
             stubChangelogSetting(undefined);
             const { context } = stubContext("1.98.0");
 

@@ -27,7 +27,6 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: tokens.spacingVerticalM,
     },
-    // Matches the other two tabs, which both say what they are before showing their cards.
     intro: {
         color: tokens.colorNeutralForeground3,
     },

@@ -24,8 +24,6 @@ const useStyles = makeStyles({
     surface: {
         padding: 0,
     },
-    // DialogBody is a 3-column grid with an 8px gap, which is what confined the bands to a
-    // subset of the columns. Stacking the regions removes the placement entirely.
     body: {
         display: "flex",
         flexDirection: "column",
@@ -61,7 +59,6 @@ const useStyles = makeStyles({
         gap: "2px",
         minWidth: 0,
     },
-    // Monospace so the technologies read as a spec line rather than a sentence.
     subtitle: {
         fontFamily: tokens.fontFamilyMonospace,
         fontSize: tokens.fontSizeBase200,
@@ -95,30 +92,16 @@ const useStyles = makeStyles({
 });
 
 interface DialogShellProps {
-    /** Shown in the header band, beside the close button. */
     title: ReactNode;
-    /** Sits left of the title, naming what kind of thing the dialog is about. */
     icon?: ReactNode;
-    /** Second line under the title, for the specifics behind it. */
     subtitle?: ReactNode;
-    /** Closing from the header's own button; the surrounding Dialog owns the open state. */
     onDismiss: () => void;
-    /** Footer buttons, in reading order. */
     actions: ReactNode;
     children: ReactNode;
-    /** Sizing for the surface. The shell sets no width, since each dialog needs its own. */
     className?: string;
-    /** Applied alongside the content band, for a dialog that scrolls its own region. */
     contentClassName?: string;
 }
 
-/**
- * A dialog with banded header and footer regions: the title and close button on one ground, the
- * actions on another, and the content between them.
- *
- * Shared rather than restyled per dialog because the bands are what make two dialogs opened from
- * the same page read as the same thing -- which they had already stopped doing.
- */
 export const DialogShell = ({
     title,
     icon,

@@ -29,12 +29,10 @@ const useStyles = makeStyles({
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
-        // Only separates the header from the columns; the header carries its own bottom rule.
         gap: tokens.spacingVerticalL,
     },
     columns: {
         display: "grid",
-        // The learn rail keeps a readable fixed width; the build column absorbs the rest.
         gridTemplateColumns: "minmax(0, 1fr) 300px",
         gap: tokens.spacingHorizontalXXXL,
         alignItems: "start",
@@ -51,8 +49,6 @@ const useStyles = makeStyles({
     buildColumn: {
         gap: tokens.spacingVerticalXXL,
     },
-    // Each rail panel draws its own border, so they need less air between them than the build
-    // column's sections, which are separated by whitespace alone.
     railColumn: {
         gap: tokens.spacingVerticalM,
     },

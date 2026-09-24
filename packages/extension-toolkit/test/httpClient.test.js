@@ -88,8 +88,6 @@ suite("HttpClient", () => {
         });
 
         test("returns a redirect unfollowed when maxRedirects is 0", async () => {
-            // A caller that validates where a short link points reads the redirect's location
-            // itself; following it would fetch the target before the caller could check it.
             const send = mock.method(httpClient, "send", async () => ({
                 data: "",
                 status: 301,

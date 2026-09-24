@@ -7,8 +7,8 @@ import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { ChangelogActionId, ChangelogWebviewState } from "./changelog";
 
 /**
- * Actions on the Overview page that map to an extension command. Kept as an enum rather than
- * raw command ids so the webview never has to know about command naming.
+ * Kept as an enum rather than raw command ids so the webview never has to know about command
+ * naming.
  */
 export enum OverviewActionId {
     AddConnection = "addConnection",
@@ -27,7 +27,6 @@ export enum OverviewActionId {
     OpenChangelog = "openChangelog",
 }
 
-/** Dev container templates offered under Build → Dev containers. */
 export enum DevContainerTemplateId {
     DotNet = "dotnet",
     DotNetAspire = "dotnetAspire",
@@ -35,39 +34,26 @@ export enum DevContainerTemplateId {
     Python = "python",
 }
 
-/** Result of a single dev container prerequisite check. */
 export enum PrerequisiteStatus {
-    /** Not checked yet. */
     Unknown = "unknown",
-    /** A check is currently running. */
     Checking = "checking",
-    /** The prerequisite is installed and usable. */
     Ready = "ready",
-    /** The prerequisite is missing or unusable. */
     Missing = "missing",
 }
 
-/**
- * Prerequisites the guided dev container setup verifies before it can add a configuration.
- */
 export interface DevContainerPrerequisites {
     docker: PrerequisiteStatus;
     devContainersExtension: PrerequisiteStatus;
 }
 
-/** A recently opened SQL file, projected for display on the Overview page. */
 export interface RecentSqlFile {
-    /** Filesystem path; also the identity used to reopen the file. */
     fsPath: string;
-    /** File name with extension, e.g. "revenue-by-region.sql". */
     fileName: string;
     /** Epoch milliseconds the file was last opened, or last modified if never opened here. */
     timestampMs: number;
 }
 
-/** A contributed command keybinding, resolved for display. */
 export interface CommandShortcut {
-    /** Human-readable command name. */
     label: string;
     /** Windows and Linux chord, e.g. "ctrl+shift+e". */
     windows: string;
@@ -75,15 +61,10 @@ export interface CommandShortcut {
     mac: string;
 }
 
-/** State for the Overview webview. */
 export interface OverviewWebviewState {
-    /** Extension version shown beside the title, e.g. "1.46.0". */
     extensionVersion: string;
-    /** Recently opened SQL files, newest first. */
     recentFiles: RecentSqlFile[];
-    /** Release-note content for the What's new dialog; the same entries the Changelog page shows. */
     changelog: ChangelogWebviewState;
-    /** Command keybindings contributed by the extension, for the shortcuts dialog. */
     commandShortcuts: CommandShortcut[];
     /**
      * Request generation for the What's new drawer. 0 means no request; each post-update trigger
@@ -92,31 +73,18 @@ export interface OverviewWebviewState {
      * themselves starts at 0.
      */
     openWhatsNewRequest: number;
-    /** Current value of the `mssql.showChangelogOnUpdate` setting, shown as a header checkbox. */
     showChangelogOnUpdate: boolean;
-    /**
-     * Whether a folder is open. A dev container configuration can only be written into an open
-     * folder, so the templates are unavailable until there is one.
-     */
     hasWorkspaceFolder: boolean;
-    /**
-     * Whether the open folder already has a dev container configuration, in which case the useful
-     * action is reopening in it rather than scaffolding another one.
-     */
     hasDevContainerConfig: boolean;
-    /** Whether this window is already running inside a dev container. */
     isInDevContainer: boolean;
     /**
-     * Which plugins are present and registered in `chat.pluginLocations`, keyed by plugin name.
      * A plugin is absent from the map until its first check completes, which is why the entries
      * are optional rather than defaulted to false.
      */
     installedAgentSkillPlugins: Partial<Record<AgentSkillPluginName, boolean>>;
 }
 
-/** Reducers (actions that change state) the Overview controller supports. */
 export interface OverviewReducers {
-    /** Persists the `mssql.showChangelogOnUpdate` setting from the header checkbox. */
     setShowChangelogOnUpdate: { value: boolean };
 }
 
@@ -125,54 +93,45 @@ export interface OverviewLinkRequestParams {
 }
 
 /**
- * Agent skill plugins the extension installs, named exactly as their manifests are -- the name
- * is the directory in the repository, the folder installed under global storage, and what the
+ * Agent skill plugins the extension installs, named exactly as their manifests are -- the name is
+ * the directory in the repository, the folder installed under global storage, and what the
  * Extensions view matches an `@agentPlugins` search against, so the three cannot be spelled
- * differently. Everything that needs the set derives it from here.
+ * differently.
  */
 export const AGENT_SKILL_PLUGINS = ["microsoft-sql-vscode", "microsoft-sql-migration"] as const;
 
-/** One of {@link AGENT_SKILL_PLUGINS}. */
 export type AgentSkillPluginName = (typeof AGENT_SKILL_PLUGINS)[number];
 
-/** A shipped skill displayed in the Azure SQL Skills catalog. */
 export interface AgentSkillSummary {
     id: string;
     description: string;
     repositoryUrl: string;
 }
 
-/** A repository-defined group of shipped Azure SQL skills. */
 export interface AgentSkillGroup {
     id: AgentSkillPluginName;
     skills: AgentSkillSummary[];
-    /** The collection on the resolved source, opened from the card. */
     repositoryUrl: string;
 }
 
-/** Opens an external URL in the user's browser. */
 export namespace OverviewLinkRequest {
     export const type = new RequestType<OverviewLinkRequestParams, void, void>("overview/openLink");
 }
 
-/** Runs the extension command mapped to an {@link OverviewActionId}. */
 export namespace RunOverviewActionRequest {
     export const type = new RequestType<OverviewActionId, void, void>("overview/runAction");
 }
 
 export interface OpenRecentSqlFileRequestParams {
-    /** {@link RecentSqlFile.fsPath} of the file to open. */
     fsPath: string;
 }
 
-/** Opens a recently used SQL file in the editor. */
 export namespace OpenRecentSqlFileRequest {
     export const type = new RequestType<OpenRecentSqlFileRequestParams, void, void>(
         "overview/openRecentSqlFile",
     );
 }
 
-/** Runs the command behind a What's new entry's action. */
 export namespace RunChangelogActionFromOverviewRequest {
     export const type = new RequestType<ChangelogActionId, void, void>(
         "overview/runChangelogAction",
@@ -182,8 +141,8 @@ export namespace RunChangelogActionFromOverviewRequest {
 export interface AddDevContainerConfigurationRequestParams {
     templateId: DevContainerTemplateId;
     /**
-     * Folder the template is written into. Created when it does not exist yet, which is what
-     * lets the flow run with no folder open. Defaults to the open folder when omitted.
+     * Created when it does not exist yet, which is what lets the flow run with no folder open.
+     * Defaults to the open folder when omitted.
      */
     targetPath?: string;
     /**
@@ -195,19 +154,15 @@ export interface AddDevContainerConfigurationRequestParams {
 }
 
 /**
- * One value a dev container template lets the caller choose, narrowed to what the dialog renders.
- *
  * Templates may declare boolean and free-form string options too; only string options with more
  * than one suggested value are worth a control, so the controller filters the rest out.
  */
 export interface DevContainerTemplateOption {
     /** The option's key in the template, passed back as a `--template-args` field. */
     id: string;
-    /** The template's own label for it, such as ".NET version:". */
     label: string;
-    /** Value applied when the user chooses nothing. Always one of {@link values}. */
+    /** Always one of {@link values}. */
     defaultValue: string;
-    /** Values the template suggests, in the order it lists them. */
     values: string[];
 }
 
@@ -216,8 +171,6 @@ export interface GetDevContainerTemplateOptionsRequestParams {
 }
 
 /**
- * Reads the options a template declares, so the dialog can offer them before scaffolding.
- *
  * Answers with an empty list when the metadata cannot be read -- it is a registry fetch, and an
  * offline user should still be able to apply the template with its defaults.
  */
@@ -229,22 +182,20 @@ export namespace GetDevContainerTemplateOptionsRequest {
     >("overview/getDevContainerTemplateOptions");
 }
 
-/** Re-runs the dev container prerequisite checks and reports where each one stands. */
 export namespace CheckDevContainerPrerequisitesRequest {
     export const type = new RequestType<void, DevContainerPrerequisites, void>(
         "overview/checkDevContainerPrerequisites",
     );
 }
 
-/** Extensions the page links to, opened on their page in the Extensions view. */
 export enum OverviewExtensionId {
     DevContainers = "ms-vscode-remote.remote-containers",
     Keymap = "ms-mssql.mssql-database-management-keymap",
 }
 
 /**
- * Opens an extension's page in the Extensions view, where the user installs it themselves. The
- * page learns of the install through DevContainerPrerequisitesChangedNotification, not the reply.
+ * The page learns of the install through DevContainerPrerequisitesChangedNotification, not the
+ * reply.
  */
 export namespace OpenExtensionRequest {
     export const type = new RequestType<{ extensionId: OverviewExtensionId }, void, void>(
@@ -263,7 +214,6 @@ export namespace DevContainerPrerequisitesChangedNotification {
     );
 }
 
-/** How the user reached the Getting Started page. */
 export enum OverviewOpenSource {
     TreeNode = "treeNode",
     CommandPalette = "commandPalette",
@@ -271,31 +221,22 @@ export enum OverviewOpenSource {
 }
 
 /**
- * Things worth counting that happen inside the page. A closed set, so telemetry never carries a
- * free-form string out of the webview.
+ * A closed set, so telemetry never carries a free-form string out of the webview.
  */
 export enum OverviewTelemetryEvent {
-    /** A prompt card's prompt was copied. */
     PromptCopied = "promptCopied",
-    /** A prompt card's prompt was handed to Copilot Chat. */
     PromptOpenedInChat = "promptOpenedInChat",
-    /** A walkthrough was opened. */
     WalkthroughOpened = "walkthroughOpened",
-    /** A Discover card was opened: explore, shortcuts, what's new, or the dev hub. */
     DiscoverCardOpened = "discoverCardOpened",
-    /** A dev container template was chosen, before its prerequisites are checked. */
     DevContainerTemplateSelected = "devContainerTemplateSelected",
-    /** Recheck was pressed in the dev container setup dialog. */
     PrerequisitesRechecked = "prerequisitesRechecked",
 }
 
 export interface SendOverviewTelemetryRequestParams {
     event: OverviewTelemetryEvent;
-    /** Stable id of what the event was about, taken from the page's own content. */
     target?: string;
 }
 
-/** Reports an in-page event. The extension owns the mapping to a telemetry action. */
 export namespace SendOverviewTelemetryRequest {
     export const type = new RequestType<SendOverviewTelemetryRequestParams, void, void>(
         "overview/sendTelemetry",
@@ -303,8 +244,6 @@ export namespace SendOverviewTelemetryRequest {
 }
 
 /**
- * Reveals the extension's output channel.
- *
  * The dialog reports that scaffolding failed without the underlying message, which names paths
  * and is not localized. This is how the user reaches the reason behind that.
  */
@@ -312,14 +251,11 @@ export namespace ShowOverviewLogRequest {
     export const type = new RequestType<void, void, void>("overview/showLog");
 }
 
-/** Opens VS Code's folder picker, so a dev container configuration has somewhere to go. */
 export namespace OpenFolderRequest {
     export const type = new RequestType<void, void, void>("overview/openFolder");
 }
 
-/** Outcome of scaffolding a dev container configuration. */
 export interface AddDevContainerConfigurationResult {
-    /** Whether a configuration was written into the folder. */
     applied: boolean;
     /**
      * True when the chosen template could not be applied directly and the Dev Containers
@@ -328,15 +264,11 @@ export interface AddDevContainerConfigurationResult {
     usedPicker: boolean;
     /** True when setup was canceled while resolving an existing template file. */
     conflict?: boolean;
-    /** Failure reason, when the configuration could not be written. */
     error?: string;
-    /** Folder the configuration was written into, when one was. */
     targetPath?: string;
-    /** True when {@link targetPath} is not a folder currently open in the window. */
     opensNewFolder?: boolean;
 }
 
-/** Writes the chosen template's configuration into the open folder. */
 export namespace AddDevContainerConfigurationRequest {
     export const type = new RequestType<
         AddDevContainerConfigurationRequestParams,
@@ -349,7 +281,6 @@ export interface AgentSkillsPluginRequestParams {
     pluginName: AgentSkillPluginName;
 }
 
-/** Installs the selected plugin from the SQL agent skills marketplace. */
 export namespace InstallAgentSkillsPluginRequest {
     export const type = new RequestType<AgentSkillsPluginRequestParams, void, void>(
         "overview/installAgentSkillsPlugin",
@@ -357,25 +288,21 @@ export namespace InstallAgentSkillsPluginRequest {
 }
 
 export interface OpenPromptInChatRequestParams {
-    /** Text handed to Copilot Chat verbatim, the same text Copy puts on the clipboard. */
     prompt: string;
 }
 
-/** Opens Copilot Chat with a prompt card's prompt already entered. */
 export namespace OpenPromptInChatRequest {
     export const type = new RequestType<OpenPromptInChatRequestParams, void, void>(
         "overview/openPromptInChat",
     );
 }
 
-/** Reveals the installed plugin in the Extensions view so the user can manage it. */
 export namespace ManageAgentSkillsPluginRequest {
     export const type = new RequestType<AgentSkillsPluginRequestParams, void, void>(
         "overview/manageAgentSkillsPlugin",
     );
 }
 
-/** Loads the current shipped-skill catalog from the Azure SQL Skills repository. */
 export namespace GetAgentSkillsCatalogRequest {
     export const type = new RequestType<void, AgentSkillGroup[], void>(
         "overview/getAgentSkillsCatalog",
@@ -384,22 +311,19 @@ export namespace GetAgentSkillsCatalogRequest {
 
 export interface ReopenInContainerRequestParams {
     /**
-     * Folder to open in a container. A single open folder can reattach the current window;
-     * another folder, or a selected root from a multi-root workspace, opens directly.
+     * A single open folder can reattach the current window; another folder, or a selected root from
+     * a multi-root workspace, opens directly.
      */
     folderPath?: string;
 }
 
-/** Rebuilds and reattaches the window inside the folder's dev container. */
 export namespace ReopenInContainerRequest {
     export const type = new RequestType<ReopenInContainerRequestParams, void, void>(
         "overview/reopenInContainer",
     );
 }
 
-/** The places a template could be written, for the dialog to offer as a choice. */
 export interface DevContainerTarget {
-    /** Open folders in display order. The user chooses one when the window has multiple roots. */
     workspaceFolders: { name: string; path: string }[];
     /**
      * A folder that does not exist yet, named after the template under the parent last used.
@@ -412,10 +336,6 @@ export interface GetDevContainerTargetRequestParams {
     templateId: DevContainerTemplateId;
 }
 
-/**
- * Proposes where a template should go: any open folder, or a new folder named after the template
- * under the last place the user chose.
- */
 export namespace GetDevContainerTargetRequest {
     export const type = new RequestType<
         GetDevContainerTargetRequestParams,
@@ -425,11 +345,9 @@ export namespace GetDevContainerTargetRequest {
 }
 
 export interface BrowseForDevContainerTargetRequestParams {
-    /** Folder the picker opens on, usually whatever the field currently shows. */
     currentPath?: string;
 }
 
-/** Opens VS Code's folder picker, answering with the chosen path or undefined if dismissed. */
 export namespace BrowseForDevContainerTargetRequest {
     export const type = new RequestType<
         BrowseForDevContainerTargetRequestParams,

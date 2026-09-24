@@ -122,7 +122,6 @@ const useStyles = makeStyles({
     },
 });
 
-/** Splits a chord such as "ctrl+shift+e" into display keys. */
 function toKeys(chord: string): string[] {
     return formatShortcut(chord)
         .split("+")
@@ -148,9 +147,6 @@ interface ShortcutsDialogProps {
     onDismiss: () => void;
 }
 
-/**
- * Read-only summary of the extension's default command shortcuts.
- */
 export const ShortcutsDialog = ({ onDismiss }: ShortcutsDialogProps) => {
     const classes = useStyles();
     const loc = locConstants.overview;
@@ -216,9 +212,6 @@ export const ShortcutsDialog = ({ onDismiss }: ShortcutsDialogProps) => {
                         <MessageBar className={classes.keymapNote} intent="info">
                             <MessageBarBody>
                                 {loc.shortcutsKeymapPrefix}{" "}
-                                {/* No href: the webview host opens any http link it sees clicked,
-                                    preventDefault or not, which put the Marketplace in a browser
-                                    beside the extension's page in the Extensions view. */}
                                 <Link onClick={() => openExtension(OverviewExtensionId.Keymap)}>
                                     {loc.shortcutsKeymapLink}
                                 </Link>

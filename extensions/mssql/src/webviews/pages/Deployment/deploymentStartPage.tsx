@@ -68,8 +68,7 @@ export const DeploymentStartPage = () => {
 
     const hasAutoSelected = useRef(false);
 
-    // Callers that already chose a deployment type open straight into its wizard; the chooser
-    // page is skipped entirely. Guarded so a user going Back is not bounced forward again.
+    // Guarded so a user going Back is not bounced forward again.
     useEffect(() => {
         if (
             hasAutoSelected.current ||

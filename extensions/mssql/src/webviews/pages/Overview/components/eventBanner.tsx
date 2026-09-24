@@ -108,7 +108,6 @@ function isEventOver(eventData: ChangelogEvent): boolean {
         return false;
     }
 
-    // expires at 11:59PM on the last day of the event
     const expiresAt = new Date(
         `${eventData.endDate ?? eventData.date}T23:59:00${eventData.location?.timezone ?? "+00:00"}`,
     );
@@ -129,22 +128,15 @@ function formatEventDateRange(eventData: ChangelogEvent): string {
 
     if (start.getUTCFullYear() === end.getUTCFullYear()) {
         if (start.getUTCMonth() === end.getUTCMonth()) {
-            // Ex: "Sept 27 - 29, 2026"
             return `${monthFmt.format(start)} ${start.getUTCDate()} - ${end.getUTCDate()}, ${end.getUTCFullYear()}`;
         } else {
-            // Ex: "Sept 27 - Oct 3, 2026"
             return `${monthDayFmt.format(start)} - ${fullFmt.format(end)}`;
         }
     } else {
-        // Ex: "Sept 27, 2026 - Jan 10, 2027"
         return `${fullFmt.format(start)} - ${fullFmt.format(end)}`;
     }
 }
 
-/**
- * Promotional banner for an upcoming community event, shown above the Getting Started header until
- * the event passes or the user dismisses it. Content comes from the shared changelog config.
- */
 export const EventBanner = () => {
     const classes = useStyles();
     const { openLink } = useOverviewActions();
@@ -155,19 +147,16 @@ export const EventBanner = () => {
         return null;
     }
 
-    /**
-     * Splits on {x} tokens, keeping the delimiters as their own parts so each can be swapped for
-     * a styled snippet while the surrounding text renders as-is.
-     */
     const renderDescriptionWithSnippets = (text: string, snippets: string[]): React.ReactNode[] => {
+        // Matches `{n}` placeholders such as "{0}"; the capture group keeps them in the result.
         const parts = text.split(/(\{\d+\})/g);
 
         return parts.map((part, idx) => {
+            // Matches a part that is exactly one placeholder, e.g. "{1}", capturing its index.
             const match = /^\{(\d+)\}$/.exec(part);
 
             if (match) {
                 const snippet = snippets[Number(match[1])];
-                // If the index is out of range, fall through and render as plain text.
                 if (snippet !== undefined) {
                     return (
                         <span key={idx} className={classes.codeSnippet}>

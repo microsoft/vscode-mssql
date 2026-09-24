@@ -29,8 +29,6 @@ const useStyles = makeStyles({
         gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
         gap: tokens.spacingHorizontalM,
     },
-    // Secondary to the Build column above it, so the thumbnail carries the card and the frame
-    // around it goes away rather than competing with the skill cards for weight.
     card: {
         display: "flex",
         flexDirection: "column",
@@ -83,7 +81,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: tokens.spacingVerticalXS,
-        // No card frame to sit inside any more, so the text lines up with the thumbnail edge.
         paddingTop: tokens.spacingVerticalM,
     },
     title: {
@@ -91,8 +88,6 @@ const useStyles = makeStyles({
         fontWeight: tokens.fontWeightSemibold,
         fontSize: tokens.fontSizeBase300,
         lineHeight: tokens.lineHeightBase300,
-        // Two lines at most, so a long title does not push its subtitle out of line with the
-        // cards beside it.
         display: "-webkit-box",
         WebkitLineClamp: 2,
         WebkitBoxOrient: "vertical",

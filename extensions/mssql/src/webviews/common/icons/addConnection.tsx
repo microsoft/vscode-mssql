@@ -8,7 +8,6 @@ import React from "react";
 /**
  * The Add Connection glyph used by the Object Explorer view title, redrawn to inherit
  * `currentColor` so it works on primary buttons and in every theme.
- * Source: media/addNewConnection_{light,dark}.svg
  */
 export const AddConnectionIcon = Object.assign(
     React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGElement>>((props, ref) => {

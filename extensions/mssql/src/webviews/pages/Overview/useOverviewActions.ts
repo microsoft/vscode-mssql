@@ -36,10 +36,6 @@ import {
 import { ChangelogActionId } from "../../../sharedInterfaces/changelog";
 import { useOverviewContext } from "./overviewStateProvider";
 
-/**
- * The Overview page's side-effecting operations, wrapped so components call intent-named
- * functions rather than assembling RPC requests themselves.
- */
 export function useOverviewActions() {
     const { extensionRpc } = useOverviewContext();
 
@@ -64,7 +60,6 @@ export function useOverviewActions() {
         [extensionRpc],
     );
 
-    /** Resolves once the install has finished, whether or not it succeeded. */
     const installAgentSkillsPlugin = useCallback(
         (pluginName: AgentSkillPluginName) =>
             extensionRpc.sendRequest(InstallAgentSkillsPluginRequest.type, { pluginName }),
@@ -87,7 +82,6 @@ export function useOverviewActions() {
         [extensionRpc],
     );
 
-    /** Reports an in-page event. Fire and forget: telemetry never blocks an interaction. */
     const sendTelemetry = useCallback(
         (event: OverviewTelemetryEvent, target?: string) => {
             void extensionRpc.sendRequest(SendOverviewTelemetryRequest.type, { event, target });
@@ -162,7 +156,6 @@ export function useOverviewActions() {
         [extensionRpc],
     );
 
-    /** Subscribes to prerequisite changes found outside the page; returns the unsubscribe. */
     const onPrerequisitesChanged = useCallback(
         (handler: (prerequisites: DevContainerPrerequisites) => void) => {
             const subscription = extensionRpc.onNotification(

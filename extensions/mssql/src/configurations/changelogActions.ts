@@ -6,16 +6,11 @@
 import * as constants from "../constants/constants";
 import { ChangelogActionId } from "../sharedInterfaces/changelog";
 
-/** The command a changelog entry's action runs, plus any fixed arguments. */
 export interface ChangelogCommand {
     command: string;
     args: unknown[];
 }
 
-/**
- * Maps a changelog action to its command. Shared by the Changelog webview and the Overview
- * page's What's new dialog, which render the same entries.
- */
 export function resolveChangelogAction(action: ChangelogActionId): ChangelogCommand {
     switch (action) {
         case ChangelogActionId.OpenShortcutsConfiguration:

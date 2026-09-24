@@ -447,12 +447,10 @@ export class ObjectExplorerService {
         return nodeList;
     }
 
-    /** Gets the Overview shortcut shown at the top of the Connections root. */
     private getOverviewNodes(): OverviewTreeNode[] {
         return this._isOverviewVisible ? [new OverviewTreeNode()] : [];
     }
 
-    /** Controls whether the Overview shortcut is included in the Connections root. */
     public setOverviewVisibility(isVisible: boolean): void {
         this._isOverviewVisible = isVisible;
     }

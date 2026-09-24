@@ -44,7 +44,6 @@ import { useOverviewActions } from "../useOverviewActions";
 
 const useStyles = makeStyles({
     surface: {
-        // Wide enough that the prerequisite rows and the action buttons stay on one line each.
         maxWidth: "620px",
     },
     // A grid rather than the radio group's own column, so every option gets the height of the
@@ -54,8 +53,6 @@ const useStyles = makeStyles({
         gridAutoRows: "1fr",
         gap: tokens.spacingVerticalS,
     },
-    // Each location is a card the whole width of the dialog, so the choice reads as two options
-    // rather than two lines of text with a control in front of them.
     choice: {
         borderRadius: tokens.borderRadiusMedium,
         border: `1px solid ${tokens.colorNeutralStroke2}`,
@@ -68,7 +65,6 @@ const useStyles = makeStyles({
         border: `1px solid ${tokens.colorCompoundBrandStroke}`,
         backgroundColor: tokens.colorNeutralBackground1Selected,
     },
-    // The radio's own label is replaced, so it has to carry the two-line block itself.
     choiceRadio: {
         width: "100%",
         alignItems: "flex-start",
@@ -174,8 +170,6 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
         fontSize: tokens.fontSizeBase200,
     },
-    // Sits in the footer band: the auto margin is what holds it left while the buttons stay
-    // right, without the band having to know it is there.
     learnMore: {
         display: "inline-flex",
         alignItems: "center",
@@ -190,7 +184,6 @@ function optionControlId(option: DevContainerTemplateOption): string {
     return `dev-container-option-${option.id}`;
 }
 
-/** Marks the template's own default, so the choice on offer is legible without opening the list. */
 function optionText(option: DevContainerTemplateOption, value: string | undefined): string {
     const selected = value ?? option.defaultValue;
     return selected === option.defaultValue
@@ -213,10 +206,6 @@ const MISSING_PREREQUISITES: DevContainerPrerequisites = {
     devContainersExtension: PrerequisiteStatus.Missing,
 };
 
-/**
- * Guided setup for a dev container template: verifies the prerequisites, then hands off to the
- * Dev Containers extension to scaffold the configuration.
- */
 export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSetupDialogProps) => {
     const classes = useStyles();
     const loc = locConstants.overview;
@@ -245,8 +234,6 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
     // rather than whatever the field happens to show afterwards.
     const [appliedTarget, setAppliedTarget] = useState<string | undefined>(undefined);
     const [opensNewFolder, setOpensNewFolder] = useState(false);
-    // Prerequisites are only meaningful while this dialog is open, so they stay local to it
-    // rather than being pushed through the page's shared state.
     const [prerequisites, setPrerequisites] = useState<DevContainerPrerequisites>({
         docker: PrerequisiteStatus.Unknown,
         devContainersExtension: PrerequisiteStatus.Unknown,
@@ -264,22 +251,13 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
     const [selectedWorkspacePath, setSelectedWorkspacePath] = useState<string | undefined>();
     const [newFolderPath, setNewFolderPath] = useState("");
     const [prefersWorkspace, setPrefersWorkspace] = useState(true);
-    // Both proposals are fetched when the dialog opens. Until they land the sections show a
-    // spinner rather than a partial answer -- one radio that quietly becomes two, or no
-    // version control at all where one is about to appear.
     const [isLoadingTarget, setIsLoadingTarget] = useState(true);
     const [isLoadingOptions, setIsLoadingOptions] = useState(true);
 
-    /**
-     * Derived rather than stored, so the selection can never name an option that is not on
-     * offer: preferring a workspace while there is none left the group with nothing selected
-     * and no path field, which is a dialog the user cannot get out of.
-     */
     const usesWorkspace =
         prefersWorkspace &&
         workspaceFolders.some((folder) => folder.path === selectedWorkspacePath);
 
-    /** Whichever of the two is currently chosen; empty until the proposal arrives. */
     const targetPath = usesWorkspace ? selectedWorkspacePath : newFolderPath;
 
     useEffect(() => {
@@ -296,9 +274,6 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
             if (canceled) {
                 return;
             }
-            // Read defensively rather than stored as it arrives: an unhandled request answers
-            // with null, and a field read straight off that answer took the whole dialog down.
-            // Empty paths simply leave Next disabled until one is typed or browsed to.
             const folders = Array.isArray(proposed?.workspaceFolders)
                 ? proposed.workspaceFolders.filter(
                       (folder): folder is { name: string; path: string } =>
@@ -310,7 +285,6 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
             setNewFolderPath(
                 typeof proposed?.newFolderPath === "string" ? proposed.newFolderPath : "",
             );
-            // The folder already open is the obvious answer whenever there is one.
             setPrefersWorkspace(folders.length > 0);
             setIsLoadingTarget(false);
         })();
@@ -321,13 +295,9 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
 
     const browse = async () => {
         const chosen = await browseForDevContainerTarget(targetPath);
-        // Dismissing the picker answers with nothing, which arrives as null rather than
-        // undefined -- JSON has no undefined -- so the type is what gets checked, not the
-        // value. Storing the null is what took the page down.
         if (typeof chosen !== "string" || chosen.length === 0) {
             return;
         }
-        // Browsing is how the second option is filled in, so it also selects it.
         setNewFolderPath(chosen);
         setPrefersWorkspace(false);
     };
@@ -335,17 +305,12 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
     useEffect(() => {
         let canceled = false;
         void (async () => {
-            // Same reason as the folder picker: a request that answers with nothing hands back
-            // null, and this one is iterated immediately below. A request that fails outright
-            // costs the dropdown, never the flow -- the template applies with its defaults.
             let options: DevContainerTemplateOption[] = [];
             try {
                 options = (await getDevContainerTemplateOptions(template.id)) ?? [];
             } catch {
                 options = [];
             }
-            // The dialog is dismissable while this is in flight, and the template cannot change
-            // under it, so a late answer is simply dropped.
             if (canceled) {
                 return;
             }
@@ -385,8 +350,6 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
         void refresh();
     }, [refresh]);
 
-    // Installing happens outside the dialog -- on the extension's page, or Docker's installer --
-    // so the extension reports the change when it notices rather than waiting for Recheck.
     useEffect(
         () =>
             onPrerequisitesChanged((changed) => {
@@ -434,8 +397,6 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
     const choice = JSON.stringify({ targetPath, selectedOptions });
     const configReady = appliedChoice === choice;
 
-    // Spins while the CLI runs, then settles on what the run actually reported: the request
-    // answers with what it wrote, and the controller re-checks the folder before replying.
     const configStatus = isApplying
         ? PrerequisiteStatus.Checking
         : configReady
@@ -499,8 +460,6 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                 onDismiss={onDismiss}
                 actions={
                     <>
-                        {/* Left of the buttons, where it stays reachable without competing
-                            with the action the dialog is asking for. */}
                         <Link
                             title={getTemplateSourceUrl(template)}
                             className={classes.learnMore}
@@ -538,7 +497,6 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                                     className={classes.actionButton}
                                     disabled={!configReady || isApplying}
                                     onClick={() => {
-                                        // Reopening reloads the window, tearing down this dialog.
                                         reopenInContainer(appliedTarget);
                                         onDismiss();
                                     }}>
@@ -682,8 +640,6 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                             </RadioGroup>
                         )}
 
-                        {/* Below the options rather than inside one, so choosing between them is
-                            a choice between two cards of the same size. */}
                         {!isLoadingTarget && !usesWorkspace && (
                             <div className={classes.option}>
                                 <Label

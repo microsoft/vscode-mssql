@@ -8,7 +8,6 @@ import * as Constants from "../../constants/constants";
 import { Overview } from "../../constants/locConstants";
 import { OverviewOpenSource } from "../../sharedInterfaces/overview";
 
-/** Opens the Overview page from the root of the Connections view. */
 export class OverviewTreeNode extends vscode.TreeItem {
     constructor() {
         super(Overview.OverviewTreeNodeLabel, vscode.TreeItemCollapsibleState.None);

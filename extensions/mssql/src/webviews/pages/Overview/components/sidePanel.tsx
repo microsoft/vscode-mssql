@@ -26,7 +26,6 @@ const useStyles = makeStyles({
         flexShrink: 0,
         color: tokens.colorNeutralForeground3,
     },
-    // <h2> carries a browser default margin that would fight the flex gaps around it.
     heading: {
         marginTop: 0,
         marginBottom: 0,
@@ -43,13 +42,6 @@ interface SidePanelProps {
     children: ReactNode;
 }
 
-/**
- * One bordered container in the right rail.
- *
- * The rail's sections used to be headings with content beneath them, which left them reading as
- * loose text floating in the page rather than as three separate things to look at. The border is
- * what separates them; everything inside stays flat.
- */
 export const SidePanel = ({ title, icon, children }: SidePanelProps) => {
     const classes = useStyles();
     return (

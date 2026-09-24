@@ -32,10 +32,6 @@ export class DeploymentWebviewState
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
     deploymentType: DeploymentType = DeploymentType.LocalContainers;
-    /**
-     * When set, the webview skips the deployment-type chooser and opens straight into this
-     * type's wizard. Used by callers that already know which deployment the user picked.
-     */
     initialDeploymentType?: DeploymentType;
     dialog: IDialogProps | undefined;
     deploymentTypeState: DeploymentTypeState = {} as DeploymentTypeState;
@@ -145,9 +141,9 @@ export enum DeploymentType {
 }
 
 /**
- * Whether a value is one of the deployment types. The deploy command takes its arguments from
- * whatever invokes it -- a menu, another extension, the command palette -- so a value arriving
- * that way is checked against the enum rather than only against `number`.
+ * The deploy command takes its arguments from whatever invokes it -- a menu, another extension,
+ * the command palette -- so a value arriving that way is checked against the enum rather than
+ * only against `number`.
  */
 export function isDeploymentType(value: unknown): value is DeploymentType {
     return typeof value === "number" && DeploymentType[value] !== undefined;

@@ -25,7 +25,6 @@ const { expect } = chai;
 chai.use(sinonChai);
 
 const PLUGIN_LOCATIONS = "chat.pluginLocations";
-/** The key the default installer throttles its update check with. */
 const LAST_CHECK_KEY = `overview/agentSkills.lastCheckMs/${AGENT_SKILL_PLUGINS[0]}`;
 
 suite("Agent Plugins Installer", () => {
@@ -34,11 +33,9 @@ suite("Agent Plugins Installer", () => {
     let installer: AgentPluginsInstaller;
     let context: vscode.ExtensionContext;
     let globalStateValues: Record<string, unknown>;
-    /** Stands in for the user scope of `chat.pluginLocations`. */
     let userLocations: Record<string, boolean> | undefined;
     let updateStub: sinon.SinonStub;
 
-    /** Writes a manifest so the plugin root looks like a real extracted plugin. */
     async function createPluginOnDisk(): Promise<void> {
         const manifestDir = path.join(installer.pluginRoot.fsPath, ".claude-plugin");
         await fs.mkdir(manifestDir, { recursive: true });
@@ -117,7 +114,6 @@ suite("Agent Plugins Installer", () => {
                 path.join(current.pluginRoot.fsPath, ".claude-plugin", "plugin.json"),
                 "{}",
             );
-            // Somebody else owns this entry; registering must leave it exactly as it is.
             userLocations = { "/another/plugin": true };
 
             await current.install();
@@ -219,13 +215,10 @@ suite("Agent Plugins Installer", () => {
     });
 
     test("reports not installed when the user deleted the folder, and clears the stale path", async () => {
-        // The registration outlives the files, which would otherwise leave VS Code pointed at a
-        // plugin path that no longer resolves.
         userLocations = { [installer.pluginRoot.fsPath]: true };
 
         expect(await installer.isInstalled()).to.equal(false);
         expect(updateStub).to.have.been.calledOnce;
-        // Nothing else was registered, so the setting is removed rather than left as `{}`.
         expect(userLocations).to.equal(undefined);
     });
 
@@ -261,7 +254,6 @@ suite("Agent Plugins Installer", () => {
     });
 
     test("skips the update check when the skills are not installed", async () => {
-        // A user who removed the skills is never quietly given them back.
         expect(await installer.checkForUpdates()).to.equal(false);
         expect(globalStateValues[LAST_CHECK_KEY]).to.equal(undefined);
     });
@@ -273,12 +265,10 @@ suite("Agent Plugins Installer", () => {
         globalStateValues[LAST_CHECK_KEY] = lastCheck;
 
         expect(await installer.checkForUpdates()).to.equal(false);
-        // Untouched, so the next check still falls due a day after the original one.
         expect(globalStateValues[LAST_CHECK_KEY]).to.equal(lastCheck);
     });
 
     suite("remote windows", () => {
-        /** Makes the window look like a dev container, where the extension host is remote. */
         function stubRemoteWindow(): void {
             sandbox.stub(vscode.env, "remoteName").value("dev-container");
         }
@@ -332,7 +322,6 @@ suite("Agent Plugins Installer", () => {
         await installer.install();
 
         const [registered] = Object.keys(userLocations ?? {});
-        // VS Code resolves a bare relative key against the workspace folders instead.
         expect(path.isAbsolute(registered)).to.equal(true);
         expect(registered).to.equal(installer.pluginRoot.fsPath);
     });
@@ -405,9 +394,6 @@ suite("Agent Plugins Installer", () => {
         const staging = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-agent-staging-"));
         await fs.writeFile(path.join(staging, "marker.txt"), "staged install");
 
-        // The first rename moves the working copy aside, the second tries to put the staged copy
-        // in place. Failing the second and the copy fallback is the case that used to lose the
-        // installation outright, because the working copy had already been deleted by then.
         const realRename = fs.rename;
         const rename = sandbox.stub(fs, "rename");
         rename.callsFake(realRename);
@@ -423,7 +409,6 @@ suite("Agent Plugins Installer", () => {
 
         expect(thrown).to.be.instanceOf(Error);
         expect(await fs.readFile(marker, "utf8")).to.equal("working install");
-        // Nothing is left behind for the next update to trip over.
         const siblings = await fs.readdir(path.dirname(installer.pluginRoot.fsPath));
         expect(siblings.filter((entry) => entry.includes(".old-"))).to.be.empty;
     });
@@ -571,8 +556,6 @@ suite("Agent Plugins Installer", () => {
     });
 
     test("does not clear the registration while an update is swapping the folder", async () => {
-        // An update moves the installed copy aside before the new one lands. A page refresh in
-        // that window used to read the missing folder as deleted and unregister the plugin.
         await createPluginOnDisk();
         userLocations = { [installer.pluginRoot.fsPath]: true };
 
@@ -662,7 +645,6 @@ suite("Agent Plugins Installer", () => {
                     globalStateValues[`overview/agentSkills.sha/${current.pluginName}`],
                 ).to.equal(sha);
             }
-            // Pinned to the revision it records, and fetched once for both plugins.
             expect(downloadUrls).to.deep.equal([
                 `https://codeload.github.com/contoso/sql-skills/tar.gz/${sha}`,
             ]);
@@ -670,7 +652,6 @@ suite("Agent Plugins Installer", () => {
                 .getCalls()
                 .filter((call) => String(call.args[0]).startsWith("https://api.github.com/"));
             expect(revisionCalls).to.have.lengthOf(1);
-            // The shared archive is removed once both plugins are done with it.
             const staging = path.join(storageDir, "agentSkills", ".staging");
             expect(await fs.readdir(staging).catch(() => [])).to.be.empty;
         } finally {

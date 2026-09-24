@@ -16,7 +16,6 @@ suite("Recent SQL Files Store", () => {
     let sandbox: sinon.SinonSandbox;
     let store: RecentSqlFilesStore;
     let globalStateValues: Record<string, unknown>;
-    /** Paths the stubbed filesystem reports as existing, with their modified time. */
     let existingFiles: Map<string, number>;
     /**
      * When set, persistence settles on a later turn of the event loop instead of immediately,
@@ -138,7 +137,6 @@ suite("Recent SQL Files Store", () => {
             ]);
 
         const files = await store.getRecentFiles(5);
-        // The opened file leads and is not repeated by the scan; the rest sort by modified time.
         expect(files.map((file) => file.fsPath)).to.deep.equal([
             "/work/opened.sql",
             "/work/new.sql",
@@ -203,8 +201,6 @@ suite("Recent SQL Files Store", () => {
     });
 
     test("records the SQL file the user switches to", async () => {
-        // Keyed off the editor rather than document opens, which other extensions trigger by
-        // reading files in the background.
         sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
         const activeEditorEvent = new vscode.EventEmitter<vscode.TextEditor | undefined>();
         sandbox.stub(vscode.window, "onDidChangeActiveTextEditor").value(activeEditorEvent.event);
@@ -273,11 +269,9 @@ suite("Recent SQL Files Store", () => {
 
         try {
             await store.recordOpen(createDocument("/work/opened.sql"));
-            // Fired after persistence, so a listener that re-reads sees the new entry.
             expect(listener).to.have.been.calledOnce;
 
             await store.recordOpen(createDocument("/work/untitled.sql", "sql", "untitled"));
-            // Skipped documents are not recorded, so there is nothing to announce.
             expect(listener).to.have.been.calledOnce;
         } finally {
             subscription.dispose();

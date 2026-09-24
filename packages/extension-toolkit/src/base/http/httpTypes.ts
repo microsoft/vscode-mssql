@@ -26,8 +26,8 @@ export interface IHttpRequestOptions {
     readonly timeoutMs?: number;
 
     /**
-     * Maximum number of redirects to follow. `0` returns the redirect itself, so its `location`
-     * header can be inspected instead of followed. Defaults to the transport's own limit.
+     * `0` returns the redirect itself, so its `location` header can be inspected instead of
+     * followed. Defaults to the transport's own limit.
      */
     readonly maxRedirects?: number;
 }

@@ -5,7 +5,6 @@
 
 import React from "react";
 
-/** Glyph for the Azure SQL skills card. Inherits `currentColor` so the tile can tint it. */
 export const AgentSkillsIcon = Object.assign(
     React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGElement>>((props, ref) => {
         const { fill = "currentColor", className, style, ...rest } = props;
