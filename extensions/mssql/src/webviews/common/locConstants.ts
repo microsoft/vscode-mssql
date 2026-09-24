@@ -4092,27 +4092,23 @@ export class LocConstants {
 
             promptTagAssess: l10n.t("Assess"),
             promptTagPlan: l10n.t("Plan"),
-            promptTagSize: l10n.t("Size"),
+            promptTagMigrate: l10n.t("Migrate"),
             promptTagValidate: l10n.t("Validate"),
-            promptMigrationPathTitle: l10n.t("Which Azure target should this SQL Server move to?"),
-            promptMigrationPathDescription: l10n.t(
-                "Pre-select candidate targets and migration methods before any assessment data exists.",
+            promptAssessMigrationTitle: l10n.t("Assess my database for migration to Azure SQL"),
+            promptAssessMigrationDescription: l10n.t(
+                "Discover migration blockers, compatibility issues, and the best-fit Azure SQL target.",
             ),
-            promptMigrationPrerequisitesTitle: l10n.t(
-                "What has to be ready before I run this migration?",
+            promptPlanMigrationTitle: l10n.t("Create a migration plan for my database"),
+            promptPlanMigrationDescription: l10n.t(
+                "Turn assessment findings into an actionable, safe migration plan.",
             ),
-            promptMigrationPrerequisitesDescription: l10n.t(
-                "Turn a chosen migration path into a sourced prerequisite checklist.",
+            promptMigrateDatabaseTitle: l10n.t("Migrate my database to Azure SQL"),
+            promptMigrateDatabaseDescription: l10n.t(
+                "Execute the migration, monitor progress, and surface anything that needs attention.",
             ),
-            promptSkuSizingTitle: l10n.t("Size an Azure SQL SKU from this server's performance"),
-            promptSkuSizingDescription: l10n.t(
-                "Collect performance data from an on-premises server and recommend a SKU.",
-            ),
-            promptValidateMigrationTitle: l10n.t(
-                "Validate the data now that the migration is done",
-            ),
+            promptValidateMigrationTitle: l10n.t("Validate my migration before I cut over"),
             promptValidateMigrationDescription: l10n.t(
-                "Reconcile the source and target tables without changing either side.",
+                "Verify the target is complete, healthy, and ready for application traffic.",
             ),
 
             promptConnectNodeBody: l10n.t(
@@ -4127,17 +4123,17 @@ export class LocConstants {
             promptError40613Body: l10n.t(
                 "My first query after an idle period fails with error 40613 against Azure SQL Database. Explain what the serverless tier is doing when that happens, then change this app's connection and retry handling so the resume is absorbed instead of surfacing as a failed request.",
             ),
-            promptMigrationPathBody: l10n.t(
-                "I want to move a SQL Server estate to Azure and have no assessment data yet. Ask me the discovery questions you need, then recommend the candidate Azure targets and migration methods that fit, the blockers that would rule each one out, and the evidence I still have to collect. Treat the recommendation as provisional until assessment tooling confirms it.",
+            promptAssessMigrationBody: l10n.t(
+                "Assess my database for migration to Azure SQL. Analyze its configuration, compatibility, dependencies, and workload characteristics. Identify blockers, warnings, and changes required for migration, and recommend the best-fit Azure SQL target with evidence. Give me a clear readiness summary and the actions I should take before migrating.",
             ),
-            promptMigrationPrerequisitesBody: l10n.t(
-                "I have chosen a migration path for this SQL Server. Build the prerequisite plan for it: what has to be in place on the source, on the target and on the network before I execute, plus a readiness summary I can hand to a partner. Ask me only the questions this path actually needs.",
+            promptPlanMigrationBody: l10n.t(
+                "Using my assessment results, create an end-to-end migration plan for the recommended Azure SQL target. Resolve or account for identified blockers and dependencies, choose an appropriate migration approach, and define the sequence of steps from preparation through cutover. Include prerequisites, validation checkpoints, rollback considerations, and anything I need to address before starting the migration.",
             ),
-            promptSkuSizingBody: l10n.t(
-                "This is an on-premises SQL Server instance. Collect performance data from it and recommend an Azure SQL SKU sized from that data, not from a guess. Tell me what the collection needs before it starts and how long it should run to be representative.",
+            promptMigrateDatabaseBody: l10n.t(
+                "Migrate my database to the selected Azure SQL target using the migration plan. Validate prerequisites before starting, configure the migration, move the required schema and data, and monitor its progress. Surface errors, warnings, or conditions that could affect the migration or cutover, and don't proceed past a critical failure without telling me what needs to be fixed.",
             ),
             promptValidateMigrationBody: l10n.t(
-                "The migration target is online. Validate it against the source without changing data, schema or configuration on either side: compare the user table inventory and the exact row counts for every mapped table, and report the tables that do not reconcile.",
+                "Validate the migrated Azure SQL database before cutover. Check that the expected schema and data were migrated successfully, identify discrepancies or migration errors, and verify that the target is ready for application connectivity. Give me a clear go or no-go recommendation, show the evidence behind it, and provide remediation steps for anything that still needs attention.",
             ),
 
             walkthroughMediaAlt: l10n.t("Animated walkthrough of MSSQL features in VS Code"),
