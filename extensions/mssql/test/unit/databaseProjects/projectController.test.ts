@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { expect } from "chai";
+import * as chai from "chai";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
 import * as dataworkspace from "dataworkspace";
 import * as vscodeMssql from "vscode-mssql";
 import * as baselines from "./baselines/baselines";
@@ -28,12 +29,15 @@ import { ProjectRootTreeItem } from "../../../src/databaseProjects/models/tree/p
 import { FolderNode, FileNode } from "../../../src/databaseProjects/models/tree/fileFolderTreeItem";
 import { BaseProjectTreeItem } from "../../../src/databaseProjects/models/tree/baseTreeItem";
 import { ImportDataModel } from "../../../src/databaseProjects/models/api/import";
-import { ItemType, SqlTargetPlatform } from "../../../src/databaseProjects/sqldbproj";
+import { EntryType, ItemType, SqlTargetPlatform } from "../../../src/databaseProjects/sqldbproj";
 import {
     FileProjectEntry,
     SqlProjectReferenceProjectEntry,
 } from "../../../src/databaseProjects/models/projectEntry";
 import { SqlProjects } from "../../../src/constants/locConstants";
+
+chai.use(sinonChai);
+const { expect } = chai;
 
 let testContext: TestContext;
 const templatesPath = testUtils.getTemplatesRootPath();
@@ -75,6 +79,97 @@ suite("ProjectsController", function (): void {
                 expect(openProjectStub.calledOnceWithExactly(projectFilePath, false, true)).to.be
                     .true;
                 expect(scripts).to.deep.equal([vscode.Uri.file(scriptPath).fsPath]);
+            });
+
+            test("Should find files across projects and open the selected file", async function (): Promise<void> {
+                const firstProjectUri = vscode.Uri.file("C:\\test\\First\\First.sqlproj");
+                const secondProjectUri = vscode.Uri.file("C:\\test\\Second\\Second.sqlproj");
+                const tableUri = vscode.Uri.file("C:\\test\\First\\dbo\\Tables\\Customer.sql");
+                const profileUri = vscode.Uri.file("C:\\test\\Second\\Publish\\Local.publish.xml");
+                sandbox
+                    .stub(utils, "getSqlProjectsInWorkspace")
+                    .resolves([firstProjectUri, secondProjectUri]);
+                const openProjectStub = sandbox.stub(Project, "openProject");
+                openProjectStub.onFirstCall().resolves({
+                    projectFileName: "First",
+                    sqlObjectScripts: [
+                        new FileProjectEntry(tableUri, "dbo\\Tables\\Customer.sql", EntryType.File),
+                    ],
+                    preDeployScripts: [],
+                    postDeployScripts: [],
+                    noneDeployScripts: [],
+                    publishProfiles: [],
+                } as Project);
+                openProjectStub.onSecondCall().resolves({
+                    projectFileName: "Second",
+                    sqlObjectScripts: [],
+                    preDeployScripts: [],
+                    postDeployScripts: [],
+                    noneDeployScripts: [],
+                    publishProfiles: [
+                        new FileProjectEntry(
+                            profileUri,
+                            "Publish\\Local.publish.xml",
+                            EntryType.File,
+                        ),
+                    ],
+                } as Project);
+                const showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick").resolves({
+                    label: "Customer.sql",
+                    fileSystemUri: tableUri,
+                    projectFileUri: firstProjectUri,
+                } as vscode.QuickPickItem & {
+                    fileSystemUri: vscode.Uri;
+                    projectFileUri: vscode.Uri;
+                });
+                const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
+                const revealProjectItemStub = sandbox.stub().resolves(true);
+                sandbox.stub(utils, "getDataWorkspaceExtensionApi").returns({
+                    revealProjectItem: revealProjectItemStub,
+                } as unknown as dataworkspace.IExtension);
+                sandbox.stub(vscode.workspace, "createFileSystemWatcher").returns({
+                    dispose: sandbox.stub(),
+                } as unknown as vscode.FileSystemWatcher);
+                sandbox.stub(vscode.workspace, "onDidCloseTextDocument").returns({
+                    dispose: sandbox.stub(),
+                });
+                const projController = new ProjectsController(testContext.outputChannel);
+
+                await projController.findFile();
+
+                expect(openProjectStub).to.have.been.calledTwice;
+                const items = await showQuickPickStub.firstCall.args[0];
+                expect(items).to.have.length(2);
+                expect(items[0]).to.include({
+                    label: "Customer.sql",
+                    description: "dbo/Tables — First",
+                });
+                expect((items[0].iconPath as vscode.ThemeIcon).id).to.equal("file-code");
+                expect(items[0].detail).to.be.undefined;
+                expect((items[1].iconPath as vscode.ThemeIcon).id).to.equal("cloud-upload");
+                expect(showQuickPickStub.firstCall.args[1]).to.include({
+                    matchOnDescription: true,
+                    matchOnDetail: true,
+                });
+                expect(executeCommandStub).to.have.been.calledWithExactly(
+                    constants.vscodeOpenCommand,
+                    tableUri,
+                );
+                expect(revealProjectItemStub).to.have.been.calledWithExactly(
+                    firstProjectUri,
+                    tableUri,
+                );
+            });
+
+            test("Should not open a file when file search is cancelled", async function (): Promise<void> {
+                sandbox.stub(utils, "getSqlProjectsInWorkspace").resolves([]);
+                sandbox.stub(vscode.window, "showQuickPick").resolves(undefined);
+                const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
+                const projController = new ProjectsController(testContext.outputChannel);
+
+                await projController.findFile();
+
+                expect(executeCommandStub).not.to.have.been.called;
             });
 
             test("Should create new sqlproj file with correct specified target platform", async function (): Promise<void> {

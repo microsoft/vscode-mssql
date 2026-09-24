@@ -24,12 +24,16 @@ export class WorkspaceTreeDataProvider
     dropMimeTypes = ["application/vnd.code.tree.workspacetreedataprovider"];
     dragMimeTypes = ["application/vnd.code.tree.workspacetreedataprovider"];
 
+    private readonly _treeView: vscode.TreeView<WorkspaceTreeItem>;
+    private _rootItems: WorkspaceTreeItem[] = [];
+    private _wrappedItems = new WeakMap<object, WorkspaceTreeItem>();
+
     constructor(private _workspaceService: IWorkspaceService) {
         this._workspaceService.onDidWorkspaceProjectsChange(() => {
             return this.refresh();
         });
 
-        vscode.window.createTreeView("dataworkspace.views.main", {
+        this._treeView = vscode.window.createTreeView("dataworkspace.views.main", {
             canSelectMany: false,
             treeDataProvider: this,
             dragAndDropController: this,
@@ -46,6 +50,8 @@ export class WorkspaceTreeDataProvider
     async refresh(): Promise<void> {
         Logger.log(`Refreshing projects tree`);
         await this._workspaceService.getProjectsInWorkspace(undefined, true);
+        this._rootItems = [];
+        this._wrappedItems = new WeakMap<object, WorkspaceTreeItem>();
         this._onDidChangeTreeData?.fire();
     }
 
@@ -56,15 +62,7 @@ export class WorkspaceTreeDataProvider
     async getChildren(element?: WorkspaceTreeItem | undefined): Promise<WorkspaceTreeItem[]> {
         if (element) {
             const items = await element.treeDataProvider.getChildren(element.element);
-            return items
-                ? items.map(
-                      (item) =>
-                          <WorkspaceTreeItem>{
-                              treeDataProvider: element.treeDataProvider,
-                              element: item,
-                          },
-                  )
-                : [];
+            return items ? items.map((item) => this.wrapItem(element.treeDataProvider, item)) : [];
         } else {
             // if the element is undefined return the project tree items
             Logger.log(`Calling getProjectsInWorkspace() from getChildren()`);
@@ -100,10 +98,7 @@ export class WorkspaceTreeDataProvider
                     }
                     const children = await treeDataProvider.getChildren(element);
                     children?.forEach((child) => {
-                        treeItems.push({
-                            treeDataProvider: treeDataProvider,
-                            element: child,
-                        });
+                        treeItems.push(this.wrapItem(treeDataProvider, child));
                     });
                 } catch (e) {
                     errorMessages.push({ project: project, errorMessage: getErrorMessage(e) });
@@ -137,8 +132,62 @@ export class WorkspaceTreeDataProvider
                 );
             }
 
+            this._rootItems = treeItems;
             return treeItems;
         }
+    }
+
+    async getParent(element: WorkspaceTreeItem): Promise<WorkspaceTreeItem | undefined> {
+        const parent = await element.treeDataProvider.getParent?.(element.element);
+        return parent ? this.wrapItem(element.treeDataProvider, parent) : undefined;
+    }
+
+    /** Reveals an item even when its ancestor folders have not been expanded. */
+    async revealProjectItem(projectFile: vscode.Uri, item: vscode.Uri): Promise<boolean> {
+        await vscode.commands.executeCommand("dataworkspace.views.main.focus");
+
+        if (this._rootItems.length === 0) {
+            await this.getChildren();
+        }
+
+        const projectRoot = this._rootItems.find(
+            (root) => root.element.projectFileUri?.fsPath === projectFile.fsPath,
+        );
+        const projectTreeDataProvider = projectRoot?.treeDataProvider as
+            | (vscode.TreeDataProvider<any> & {
+                  findItem?(item: vscode.Uri): vscode.ProviderResult<any>;
+              })
+            | undefined;
+        const projectItem = await projectTreeDataProvider?.findItem?.(item);
+
+        if (!projectTreeDataProvider || !projectItem) {
+            return false;
+        }
+
+        await this._treeView.reveal(this.wrapItem(projectTreeDataProvider, projectItem), {
+            select: true,
+            focus: true,
+            expand: true,
+        });
+        return true;
+    }
+
+    private wrapItem(
+        treeDataProvider: vscode.TreeDataProvider<any>,
+        element: any,
+    ): WorkspaceTreeItem {
+        if (typeof element === "object" && element !== null) {
+            const existing = this._wrappedItems.get(element);
+            if (existing) {
+                return existing;
+            }
+
+            const wrapped = { treeDataProvider, element };
+            this._wrappedItems.set(element, wrapped);
+            return wrapped;
+        }
+
+        return { treeDataProvider, element };
     }
 
     private incrementProjectTypeMetric(typeMetric: Record<string, number>, projectUri: vscode.Uri) {

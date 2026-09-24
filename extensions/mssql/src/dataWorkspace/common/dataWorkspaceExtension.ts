@@ -15,9 +15,13 @@ import {
     isValidFilenameCharacter,
     sanitizeStringForFilename,
 } from "./pathUtilsHelper";
+import { WorkspaceTreeDataProvider } from "./workspaceTreeDataProvider";
 
 export class DataWorkspaceExtension implements IExtension {
-    constructor(private workspaceService: WorkspaceService) {}
+    constructor(
+        private workspaceService: WorkspaceService,
+        private workspaceTreeDataProvider: WorkspaceTreeDataProvider,
+    ) {}
 
     getProjectsInWorkspace(ext?: string, refreshFromDisk?: boolean): Promise<vscode.Uri[]> {
         return this.workspaceService.getProjectsInWorkspace(ext, refreshFromDisk);
@@ -33,6 +37,10 @@ export class DataWorkspaceExtension implements IExtension {
 
     refreshProjectsTree(): void {
         this.workspaceService.refreshProjectsTree();
+    }
+
+    revealProjectItem(projectFile: vscode.Uri, item: vscode.Uri): Promise<boolean> {
+        return this.workspaceTreeDataProvider.revealProjectItem(projectFile, item);
     }
 
     get defaultProjectSaveLocation(): vscode.Uri | undefined {

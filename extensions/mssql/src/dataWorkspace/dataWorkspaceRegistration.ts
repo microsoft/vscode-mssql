@@ -86,5 +86,5 @@ export function registerDataWorkspace(
         ),
     );
 
-    return new DataWorkspaceExtension(workspaceService);
+    return new DataWorkspaceExtension(workspaceService, workspaceTreeDataProvider);
 }

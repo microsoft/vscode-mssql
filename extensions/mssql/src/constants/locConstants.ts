@@ -5512,6 +5512,10 @@ export class SqlProjects {
 
     public static projectsOutputChannel = l10n.t("Database Projects");
 
+    public static findFileTitle = l10n.t("Find File in Database Projects");
+
+    public static findFilePlaceholder = l10n.t("Search by file name, path, or project");
+
     public static Install: string = l10n.t("Install");
 
     public static DoNotAskAgain: string = l10n.t("Don't Ask Again");

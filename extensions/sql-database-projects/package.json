@@ -83,6 +83,14 @@
                 }
             }
         ],
+        "keybindings": [
+            {
+                "command": "sqlDatabaseProjects.findFile",
+                "key": "ctrl+f",
+                "mac": "cmd+f",
+                "when": "focusedView == dataworkspace.views.main"
+            }
+        ],
         "commands": [
             {
                 "command": "sqlDatabaseProjects.newScript",
@@ -245,6 +253,12 @@
                 "command": "sqlDatabaseProjects.openDocumentation",
                 "title": "%sqlDatabaseProjects.openDocumentation%",
                 "category": "%sqlDatabaseProjects.displayName%"
+            },
+            {
+                "command": "sqlDatabaseProjects.findFile",
+                "title": "%sqlDatabaseProjects.findFile%",
+                "category": "%sqlDatabaseProjects.displayName%",
+                "icon": "$(search)"
             }
         ],
         "submenus": [
@@ -256,6 +270,11 @@
         ],
         "menus": {
             "view/title": [
+                {
+                    "command": "sqlDatabaseProjects.findFile",
+                    "when": "view == dataworkspace.views.main",
+                    "group": "navigation@1"
+                },
                 {
                     "command": "sqlDatabaseProjects.createProjectFromDatabase",
                     "when": "view == dataworkspace.views.main",

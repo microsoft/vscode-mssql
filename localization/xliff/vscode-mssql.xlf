@@ -4579,6 +4579,9 @@
     <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
       <source xml:lang="en">Find</source>
     </trans-unit>
+    <trans-unit id="++CODE++42af6a08749637b661d7673a57e520b362b73fba41c61d645bd40d992f426733">
+      <source xml:lang="en">Find File in Database Projects</source>
+    </trans-unit>
     <trans-unit id="++CODE++664d6cdf0494d6e50579257917eb2ad1b6aa7534db584c3368f24b47c08cdc22">
       <source xml:lang="en">Find Next</source>
     </trans-unit>
@@ -8276,6 +8279,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
       <source xml:lang="en">Search Workspaces</source>
+    </trans-unit>
+    <trans-unit id="++CODE++835fe744506efdec82aceb836376bcd5d0208201907accc16550edc325218947">
+      <source xml:lang="en">Search by file name, path, or project</source>
     </trans-unit>
     <trans-unit id="++CODE++00ab6658a4f12b6a8c605e0b8f0f7c9f1a29294670b38a100a26715170b4fc71">
       <source xml:lang="en">Search by object name or type (e.g. t:&lt;name&gt;, v:, f:, or sp:)</source>

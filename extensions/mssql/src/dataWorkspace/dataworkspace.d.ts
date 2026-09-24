@@ -39,6 +39,12 @@ declare module "dataworkspace" {
         refreshProjectsTree(): void;
 
         /**
+         * Reveals and selects a project item in the Projects view.
+         * @returns true when the item was found and revealed
+         */
+        revealProjectItem(projectFile: vscode.Uri, item: vscode.Uri): Promise<boolean>;
+
+        /**
          * Returns the default location to save projects
          */
         defaultProjectSaveLocation: vscode.Uri | undefined;
@@ -89,7 +95,7 @@ declare module "dataworkspace" {
          * Gets the tree data provider for the given project file
          * @param projectFile The Uri of the project file
          */
-        getProjectTreeDataProvider(projectFile: vscode.Uri): Promise<vscode.TreeDataProvider<any>>;
+        getProjectTreeDataProvider(projectFile: vscode.Uri): Promise<IProjectTreeDataProvider>;
 
         /**
          *
@@ -131,6 +137,13 @@ declare module "dataworkspace" {
          * @param target
          */
         moveFile?(projectUri: vscode.Uri, source: any, target: WorkspaceTreeItem): Promise<void>;
+    }
+
+    /**
+     * Tree data provider with optional support for locating an item that has not been expanded yet.
+     */
+    export interface IProjectTreeDataProvider extends vscode.TreeDataProvider<any> {
+        findItem?(item: vscode.Uri): vscode.ProviderResult<any>;
     }
 
     /**

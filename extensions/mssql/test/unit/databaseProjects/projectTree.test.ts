@@ -18,6 +18,7 @@ import {
 import { ProjectRootTreeItem } from "../../../src/databaseProjects/models/tree/projectTreeItem";
 import { DatabaseProjectItemType } from "../../../src/databaseProjects/common/constants";
 import { EntryType } from "../../../src/databaseProjects/sqldbproj";
+import { SqlDatabaseProjectTreeViewProvider } from "../../../src/databaseProjects/controllers/databaseProjectTreeViewProvider";
 
 suite("Project Tree tests", function (): void {
     test("Should correctly order tree nodes by type, then by name", function (): void {
@@ -120,6 +121,27 @@ suite("Project Tree tests", function (): void {
             DatabaseProjectItemType.sqlObjectScript,
             DatabaseProjectItemType.sqlObjectScript,
         ]);
+    });
+
+    test("Should find a nested file and return its parent chain", function (): void {
+        const root = os.platform() === "win32" ? "Z:\\" : "/";
+        const proj = new Project(vscode.Uri.file(`${root}TestProj.sqlproj`).fsPath);
+        proj.folders.push(proj.createFileProjectEntry("dbo", EntryType.Folder));
+        proj.folders.push(proj.createFileProjectEntry("dbo/Tables", EntryType.Folder));
+        const fileEntry = proj.createFileProjectEntry("dbo/Tables/Customer.sql", EntryType.File);
+        proj.sqlObjectScripts.push(fileEntry);
+        const provider = new SqlDatabaseProjectTreeViewProvider();
+        provider.load([proj]);
+
+        const file = provider.findItem(fileEntry.fsUri);
+        const tablesFolder = file && provider.getParent(file);
+        const schemaFolder = tablesFolder && provider.getParent(tablesFolder);
+        const project = schemaFolder && provider.getParent(schemaFolder);
+
+        expect(file?.friendlyName).to.equal("Customer.sql");
+        expect(tablesFolder?.friendlyName).to.equal("Tables");
+        expect(schemaFolder?.friendlyName).to.equal("dbo");
+        expect(project).to.be.instanceOf(ProjectRootTreeItem);
     });
 
     test("Should be able to parse windows relative path as platform safe path", function (): void {
