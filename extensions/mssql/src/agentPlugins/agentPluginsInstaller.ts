@@ -32,7 +32,7 @@ interface SkillsSource {
  * Repointing the link moves all of them together, so the copy that gets installed and the copy
  * the links describe cannot drift apart.
  */
-const SKILLS_SOURCE_ALIAS = "https://aka.ms/aasim-vscode-mssql-skills-repo";
+const SKILLS_SOURCE_ALIAS = "https://aka.ms/vscode-mssql-skills-repo";
 
 /**
  * Repository used when the short link cannot be resolved -- offline, proxied, or repointed at
@@ -84,11 +84,6 @@ const SKILLS_REF = "main";
 function repositoryUrl(source: SkillsSource): string {
     return `https://github.com/${source.owner}/${source.name}`;
 }
-/** Titles for the collections in {@link AGENT_SKILL_PLUGINS}, used to name them in errors. */
-const SKILL_COLLECTIONS: readonly { id: AgentSkillPluginName; title: string }[] = [
-    { id: "microsoft-sql-vscode", title: "Microsoft SQL for Visual Studio Code" },
-    { id: "microsoft-sql-migration", title: "Microsoft SQL migration" },
-];
 
 /**
  * Setting VS Code discovers agent plugins from. Each key is a plugin root directory and the
@@ -103,6 +98,12 @@ const UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 /** Revision currently on disk, and when upstream was last asked about it. */
 const STATE_INSTALLED_SHA = "overview/agentSkills.sha";
 const STATE_LAST_CHECK_MS = "overview/agentSkills.lastCheckMs";
+
+/**
+ * How long one revision answer is reused. Both plugins check at activation, and this keeps that
+ * to one call against GitHub's unauthenticated limit rather than one per plugin.
+ */
+const LATEST_SHA_REUSE_MS = 60 * 1000;
 
 /** Network budget. The archive is ~1 MB, so these are generous. */
 const SHA_REQUEST_TIMEOUT_MS = 15_000;
@@ -135,56 +136,38 @@ export class RemoteWindowUnsupportedError extends Error {
     }
 }
 
+/** Directory downloads and extractions are staged in, beside the plugin roots. */
+function stagingRoot(context: vscode.ExtensionContext): string {
+    return vscode.Uri.joinPath(context.globalStorageUri, "agentSkills", ".staging").fsPath;
+}
+
+/** A downloaded archive and the installers still extracting from it. */
+interface SharedArchive {
+    path: Promise<string>;
+    users: number;
+}
+
 /**
- * Downloads the Microsoft SQL agent skills and registers them with VS Code.
+ * The network work every plugin installer in a window shares.
  *
- * The skills are fetched as a source archive into the extension's global storage rather than
- * bundled into the VSIX, so they track the repository instead of the release cadence. They are
- * registered by writing {@link PLUGIN_LOCATIONS_SETTING}, which is a documented setting the user
- * can see and revert -- VS Code's own plugin view removes the entry the same way.
- *
- * Nothing here is authoritative about "installed": the folder can be deleted and the setting can
- * be cleared independently, so {@link isInstalled} checks both and repairs the mismatch.
+ * Every collection ships from one repository, so the short link, the latest revision and the
+ * archive are the same answer for each plugin. Asking once per window rather than once per
+ * plugin keeps activation to one revision call against GitHub's unauthenticated limit, and
+ * downloads the archive once when both plugins update together.
  */
-export class AgentPluginsInstaller {
-    /** Both plugin instances write the same user setting, so their edits share one queue. */
-    private static _settingsOperation: Promise<void> = Promise.resolve();
-    private readonly _logger: ILogger = baseLogger.withPrefix("AgentPluginsInstaller");
-    private _operation: Promise<boolean> | undefined;
-    private _catalog: Promise<AgentSkillGroup[]> | undefined;
+export class AgentSkillsDownloads {
+    private readonly _logger: ILogger = baseLogger.withPrefix("AgentSkillsDownloads");
     private _source: Promise<SkillsSource> | undefined;
+    private _latestSha: { promise: Promise<string | undefined>; expiresAt: number } | undefined;
+    private readonly _archives = new Map<string, SharedArchive>();
 
-    constructor(
-        private readonly _context: vscode.ExtensionContext,
-        private readonly _pluginName: AgentSkillPluginName = AGENT_SKILL_PLUGINS[0],
-    ) {}
-
-    /**
-     * Plugin name as its manifest declares it, which is what the Extensions view matches a
-     * `@agentPlugins` search term against.
-     */
-    public get pluginName(): string {
-        return this._pluginName;
-    }
-
-    /** Directory the skills are extracted to, and the value registered as a plugin root. */
-    public get pluginRoot(): vscode.Uri {
-        return vscode.Uri.joinPath(this._context.globalStorageUri, "agentSkills", this._pluginName);
-    }
-
-    private get installedShaKey(): string {
-        return `${STATE_INSTALLED_SHA}/${this._pluginName}`;
-    }
-
-    private get lastCheckKey(): string {
-        return `${STATE_LAST_CHECK_MS}/${this._pluginName}`;
-    }
+    constructor(private readonly _context: vscode.ExtensionContext) {}
 
     /**
      * Repository the short link currently points at.
      *
      * The redirect is read rather than followed, so the target is inspected before anything is
-     * fetched from it. Resolved once per instance: the archive, the revision check, the catalog
+     * fetched from it. Resolved once per window: the archive, the revision check, the catalog
      * and the source links all read the same answer, which is what keeps them describing one
      * repository for as long as the window lives.
      *
@@ -192,7 +175,7 @@ export class AgentPluginsInstaller {
      * window that started offline picks the real target up on a later attempt rather than being
      * pinned to the fallback until it is reloaded.
      */
-    private resolveSource(): Promise<SkillsSource> {
+    public resolveSource(): Promise<SkillsSource> {
         if (!this._source) {
             this._source = this.readAliasTarget().then((source) => {
                 if (source === FALLBACK_SKILLS_SOURCE) {
@@ -230,6 +213,151 @@ export class AgentPluginsInstaller {
             );
             return FALLBACK_SKILLS_SOURCE;
         }
+    }
+
+    /**
+     * Latest commit on the published branch, or undefined when it cannot be determined.
+     *
+     * An answer is reused for {@link LATEST_SHA_REUSE_MS}, so plugins checking together share
+     * one request. A failure is not reused, so the next check asks again.
+     */
+    public fetchLatestSha(): Promise<string | undefined> {
+        const now = Date.now();
+        if (!this._latestSha || now >= this._latestSha.expiresAt) {
+            const entry = {
+                promise: this.readLatestSha().then((sha) => {
+                    if (!sha && this._latestSha === entry) {
+                        this._latestSha = undefined;
+                    }
+                    return sha;
+                }),
+                expiresAt: now + LATEST_SHA_REUSE_MS,
+            };
+            this._latestSha = entry;
+        }
+        return this._latestSha.promise;
+    }
+
+    private async readLatestSha(): Promise<string | undefined> {
+        const source = await this.resolveSource();
+        const url = `https://api.github.com/repos/${source.owner}/${source.name}/commits/${SKILLS_REF}`;
+        try {
+            // This media type answers with the bare commit SHA rather than the full commit.
+            const response = await new VscodeHttpClient().get<string>(url, {
+                headers: { Accept: "application/vnd.github.sha" },
+                timeoutMs: SHA_REQUEST_TIMEOUT_MS,
+            });
+            const sha = typeof response.data === "string" ? response.data.trim() : undefined;
+            return sha && /^[0-9a-f]{40}$/i.test(sha) ? sha : undefined;
+        } catch (error) {
+            // Offline, proxied or rate limited. The caller keeps whatever is already installed.
+            this._logger.debug(
+                `Could not read the agent skills revision: ${
+                    error instanceof Error ? error.message : String(error)
+                }`,
+            );
+            return undefined;
+        }
+    }
+
+    /**
+     * Runs `use` against a downloaded source archive for `sha`, or the branch head when the
+     * revision is unknown.
+     *
+     * Callers that overlap share one download, and the archive is deleted once the last of them
+     * is done with it. Pinning the download to the revision also means the copy extracted is the
+     * one the recorded revision names, even if the branch moves in between.
+     */
+    public async withArchive<T>(
+        sha: string | undefined,
+        use: (archivePath: string) => Promise<T>,
+    ): Promise<T> {
+        const ref = sha ?? `refs/heads/${SKILLS_REF}`;
+        let archive = this._archives.get(ref);
+        if (!archive) {
+            archive = { path: this.downloadArchive(ref), users: 0 };
+            this._archives.set(ref, archive);
+        }
+        archive.users++;
+        try {
+            return await use(await archive.path);
+        } finally {
+            archive.users--;
+            if (archive.users === 0) {
+                this._archives.delete(ref);
+                await archive.path
+                    .then((archivePath) =>
+                        fs.rm(path.dirname(archivePath), { recursive: true, force: true }),
+                    )
+                    .catch(() => undefined);
+            }
+        }
+    }
+
+    private async downloadArchive(ref: string): Promise<string> {
+        const directory = path.join(stagingRoot(this._context), `download-${randomUUID()}`);
+        const archivePath = path.join(directory, "skills.tar.gz");
+        await fs.mkdir(directory, { recursive: true });
+        try {
+            const source = await this.resolveSource();
+            const url = `https://codeload.github.com/${source.owner}/${source.name}/tar.gz/${ref}`;
+            const result = await new VscodeHttpClient().downloadToPath(url, archivePath, {
+                timeoutMs: DOWNLOAD_TIMEOUT_MS,
+            });
+            if (result.status < 200 || result.status >= 300) {
+                throw new Error(`Downloading the agent skills failed with status ${result.status}`);
+            }
+            return archivePath;
+        } catch (error) {
+            await fs.rm(directory, { recursive: true, force: true }).catch(() => undefined);
+            throw error;
+        }
+    }
+}
+
+/**
+ * Downloads the Microsoft SQL agent skills and registers them with VS Code.
+ *
+ * The skills are fetched as a source archive into the extension's global storage rather than
+ * bundled into the VSIX, so they track the repository instead of the release cadence. They are
+ * registered by writing {@link PLUGIN_LOCATIONS_SETTING}, which is a documented setting the user
+ * can see and revert -- VS Code's own plugin view removes the entry the same way.
+ *
+ * Nothing here is authoritative about "installed": the folder can be deleted and the setting can
+ * be cleared independently, so {@link isInstalled} checks both and repairs the mismatch.
+ */
+export class AgentPluginsInstaller {
+    /** Both plugin instances write the same user setting, so their edits share one queue. */
+    private static _settingsOperation: Promise<void> = Promise.resolve();
+    private readonly _logger: ILogger = baseLogger.withPrefix("AgentPluginsInstaller");
+    private _operation: Promise<unknown> = Promise.resolve();
+    private _catalog: Promise<AgentSkillGroup[]> | undefined;
+
+    constructor(
+        private readonly _context: vscode.ExtensionContext,
+        private readonly _pluginName: AgentSkillPluginName = AGENT_SKILL_PLUGINS[0],
+        private readonly _downloads: AgentSkillsDownloads = new AgentSkillsDownloads(_context),
+    ) {}
+
+    /**
+     * Plugin name as its manifest declares it, which is what the Extensions view matches a
+     * `@agentPlugins` search term against.
+     */
+    public get pluginName(): string {
+        return this._pluginName;
+    }
+
+    /** Directory the skills are extracted to, and the value registered as a plugin root. */
+    public get pluginRoot(): vscode.Uri {
+        return vscode.Uri.joinPath(this._context.globalStorageUri, "agentSkills", this._pluginName);
+    }
+
+    private get installedShaKey(): string {
+        return `${STATE_INSTALLED_SHA}/${this._pluginName}`;
+    }
+
+    private get lastCheckKey(): string {
+        return `${STATE_LAST_CHECK_MS}/${this._pluginName}`;
     }
 
     /** Current shipped skills listed by the repository. */
@@ -270,13 +398,24 @@ export class AgentPluginsInstaller {
         }
         const present = await this.isPluginPresent();
         const registered = this.isRegistered();
-
-        if (registered && !present) {
-            this._logger.info("Agent skills folder is gone; clearing the stale plugin location.");
-            await this.unregister();
-            return false;
+        if (!registered || present) {
+            return present && registered;
         }
-        return present && registered;
+
+        // An update moves the folder aside while it swaps the new copy in, so a missing folder
+        // is only trusted once any update in flight has finished.
+        return this.runExclusive(async () => {
+            if (await this.isPluginPresent()) {
+                return this.isRegistered();
+            }
+            if (this.isRegistered()) {
+                this._logger.info(
+                    "Agent skills folder is gone; clearing the stale plugin location.",
+                );
+                await this.unregister();
+            }
+            return false;
+        });
     }
 
     /**
@@ -297,7 +436,8 @@ export class AgentPluginsInstaller {
                 return true;
             }
 
-            const sha = await this.downloadInto(this.pluginRoot);
+            const sha = await this._downloads.fetchLatestSha();
+            await this.downloadInto(this.pluginRoot, sha);
             await this.register();
             await this._context.globalState.update(this.installedShaKey, sha);
             await this._context.globalState.update(this.lastCheckKey, Date.now());
@@ -326,7 +466,7 @@ export class AgentPluginsInstaller {
         }
 
         return this.runExclusive(async () => {
-            const latest = await this.fetchLatestSha();
+            const latest = await this._downloads.fetchLatestSha();
             // Record the attempt either way, so an unreachable network retries tomorrow rather
             // than on every activation.
             await this._context.globalState.update(this.lastCheckKey, Date.now());
@@ -340,7 +480,7 @@ export class AgentPluginsInstaller {
             }
 
             this._logger.info(`Agent skills moved from ${current ?? "unknown"} to ${latest}.`);
-            await this.downloadInto(this.pluginRoot);
+            await this.downloadInto(this.pluginRoot, latest);
             await this._context.globalState.update(this.installedShaKey, latest);
             // Re-assert the registration in case the path changed shape underneath us.
             await this.register();
@@ -349,56 +489,36 @@ export class AgentPluginsInstaller {
     }
 
     /** Serializes install and update work so two callers cannot extract over each other. */
-    private async runExclusive(work: () => Promise<boolean>): Promise<boolean> {
-        const pending = (this._operation ?? Promise.resolve(false)).then(work, work);
-        this._operation = pending.catch(() => false);
+    private runExclusive<T>(work: () => Promise<T>): Promise<T> {
+        const pending = this._operation.then(work, work);
+        this._operation = pending.catch(() => undefined);
         return pending;
     }
 
     /**
-     * Downloads the source archive and swaps it into `destination`.
+     * Extracts the source archive for `sha` and swaps this plugin into `destination`.
      *
      * Extraction happens in a sibling temporary directory so a failed or partial download never
-     * replaces a working copy. Returns the resolved revision, when the API could supply one.
+     * replaces a working copy.
      */
-    private async downloadInto(destination: vscode.Uri): Promise<string | undefined> {
-        const sha = await this.fetchLatestSha();
-        const stagingRoot = vscode.Uri.joinPath(
-            this._context.globalStorageUri,
-            "agentSkills",
-            ".staging",
-        );
-        const stagingDir = path.join(stagingRoot.fsPath, `download-${randomUUID()}`);
-        const archivePath = path.join(stagingDir, "skills.tar.gz");
-        const extractDir = path.join(stagingDir, "extracted");
-
+    private async downloadInto(destination: vscode.Uri, sha: string | undefined): Promise<void> {
+        const extractDir = path.join(stagingRoot(this._context), `extract-${randomUUID()}`);
         await fs.mkdir(extractDir, { recursive: true });
         try {
-            const source = await this.resolveSource();
-            const url =
-                `https://codeload.github.com/${source.owner}/${source.name}` +
-                `/tar.gz/refs/heads/${SKILLS_REF}`;
-            const result = await new VscodeHttpClient().downloadToPath(url, archivePath, {
-                timeoutMs: DOWNLOAD_TIMEOUT_MS,
-            });
-            if (result.status < 200 || result.status >= 300) {
-                throw new Error(`Downloading the agent skills failed with status ${result.status}`);
-            }
-
             // GitHub archives nest everything under `<repo>-<ref>/`, which `strip` removes.
             // `tar` refuses absolute and parent-relative entries by default, so an archive
             // cannot write outside this directory.
-            await tar.x({ file: archivePath, cwd: extractDir, strip: 1 });
+            await this._downloads.withArchive(sha, (archivePath) =>
+                tar.x({ file: archivePath, cwd: extractDir, strip: 1 }),
+            );
 
             const pluginDir = path.join(extractDir, "plugins", this._pluginName);
             if (!(await this.hasPluginManifest(pluginDir))) {
                 throw new Error("The downloaded archive does not look like an agent plugin.");
             }
-
             await this.replaceDirectory(pluginDir, destination.fsPath);
-            return sha;
         } finally {
-            await fs.rm(stagingDir, { recursive: true, force: true }).catch(() => undefined);
+            await fs.rm(extractDir, { recursive: true, force: true }).catch(() => undefined);
         }
     }
 
@@ -467,53 +587,29 @@ export class AgentPluginsInstaller {
         }
     }
 
-    /** Latest commit on the published branch, or undefined when it cannot be determined. */
-    private async fetchLatestSha(): Promise<string | undefined> {
-        const source = await this.resolveSource();
-        const url = `https://api.github.com/repos/${source.owner}/${source.name}/commits/${SKILLS_REF}`;
-        try {
-            // This media type answers with the bare commit SHA rather than the full commit.
-            const response = await new VscodeHttpClient().get<string>(url, {
-                headers: { Accept: "application/vnd.github.sha" },
-                timeoutMs: SHA_REQUEST_TIMEOUT_MS,
-            });
-            const sha = typeof response.data === "string" ? response.data.trim() : undefined;
-            return sha && /^[0-9a-f]{40}$/i.test(sha) ? sha : undefined;
-        } catch (error) {
-            // Offline, proxied or rate limited. The caller keeps whatever is already installed.
-            this._logger.debug(
-                `Could not read the agent skills revision: ${
-                    error instanceof Error ? error.message : String(error)
-                }`,
-            );
-            return undefined;
-        }
-    }
-
     private async fetchSkillsCatalog(): Promise<AgentSkillGroup[]> {
         const client = new VscodeHttpClient({ logger: this._logger });
         // Resolved once for the whole catalog, so both collections and every link in them
         // describe the same repository even if the short link were repointed mid-flight.
-        const source = await this.resolveSource();
+        const source = await this._downloads.resolveSource();
         const repository = repositoryUrl(source);
         return Promise.all(
-            SKILL_COLLECTIONS.map(async ({ id, title }) => {
+            AGENT_SKILL_PLUGINS.map(async (id) => {
                 const readmeUrl = `https://raw.githubusercontent.com/${source.owner}/${source.name}/${SKILLS_REF}/plugins/${id}/README.md`;
                 const response = await client.get<string>(readmeUrl, {
                     timeoutMs: CATALOG_REQUEST_TIMEOUT_MS,
                 });
                 if (!response.ok) {
                     throw new Error(
-                        `Loading the ${title} skills catalog failed with status ${response.status}`,
+                        `Loading the ${id} skills catalog failed with status ${response.status}`,
                     );
                 }
                 const skills = parseSkillsCatalog(response.data, id, repository);
                 if (skills.length === 0) {
-                    throw new Error(`The ${title} skills catalog contained no shipped skills.`);
+                    throw new Error(`The ${id} skills catalog contained no shipped skills.`);
                 }
                 return {
                     id,
-                    title,
                     skills,
                     repositoryUrl: `${repository}/tree/${SKILLS_REF}/plugins/${id}`,
                 };

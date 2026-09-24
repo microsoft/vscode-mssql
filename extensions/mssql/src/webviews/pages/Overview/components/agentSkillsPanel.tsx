@@ -16,7 +16,6 @@ import {
     MessageBarBody,
     Spinner,
     Text,
-    Tooltip,
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
@@ -31,7 +30,6 @@ import {
 } from "@fluentui/react-icons";
 import {
     ComponentType,
-    ReactElement,
     ReactNode,
     SVGProps,
     useCallback,
@@ -344,31 +342,6 @@ const highlightSkillSearch = (value: string, filter: string, className: string):
     return parts;
 };
 
-/**
- * Explains why a prompt action does nothing until the pack is installed.
- *
- * The control it wraps uses `disabledFocusable` rather than `disabled`, so it still takes hover
- * and focus and can say why: a plain disabled button is silent to both a pointer and a screen
- * reader, which is the whole reason the banner used to be there.
- */
-const PromptAction = ({
-    isInstalled,
-    children,
-}: {
-    isInstalled: boolean;
-    children: ReactElement;
-}) =>
-    isInstalled ? (
-        children
-    ) : (
-        <Tooltip
-            content={locConstants.overview.promptsNeedSkills}
-            relationship="description"
-            withArrow>
-            {children}
-        </Tooltip>
-    );
-
 interface SkillPackCardProps {
     pack: AgentSkillPack;
     /**
@@ -413,6 +386,10 @@ const SkillPackCard = ({
     const loc = locConstants.overview;
     const { openLink } = useOverviewActions();
     const [arePromptsOpen, setArePromptsOpen] = useState(false);
+    // Says why the prompt actions do nothing until the pack is installed. They use
+    // `disabledFocusable` rather than `disabled`, so they still take hover and focus and the
+    // native tooltip can show.
+    const promptActionHint = isInstalled ? undefined : loc.promptsNeedSkills;
     // Opened on the transition into installed, not whenever the pack happens to be installed:
     // a card that arrives already installed stays closed, and so does one the user collapsed.
     const wasInstalled = useRef(isInstalled);
@@ -473,6 +450,7 @@ const SkillPackCard = ({
                 <Link
                     as="button"
                     className={classes.cardLink}
+                    title={repositoryUrl}
                     onClick={() => openLink(repositoryUrl)}>
                     <GithubMark16Regular />
                     {loc.agentSkillsRepository}
@@ -500,36 +478,34 @@ const SkillPackCard = ({
                                     {card.description}
                                 </Text>
                                 <div className={classes.promptFooter}>
-                                    <PromptAction isInstalled={isInstalled}>
-                                        <Button
-                                            appearance="primary"
-                                            size="small"
-                                            className={classes.promptAction}
-                                            disabledFocusable={!isInstalled}
-                                            icon={<GithubCopilot16Regular />}
-                                            onClick={() => onOpenPromptInChat(card)}>
-                                            {loc.openPromptInCopilot}
-                                        </Button>
-                                    </PromptAction>
-                                    <PromptAction isInstalled={isInstalled}>
-                                        <Button
-                                            appearance="subtle"
-                                            size="small"
-                                            className={classes.promptAction}
-                                            disabledFocusable={!isInstalled}
-                                            icon={
-                                                copiedPromptId === card.id ? (
-                                                    <Checkmark16Regular />
-                                                ) : (
-                                                    <Copy16Regular />
-                                                )
-                                            }
-                                            onClick={() => onCopyPrompt(card)}>
-                                            {copiedPromptId === card.id
-                                                ? loc.promptCopied
-                                                : loc.copyPrompt}
-                                        </Button>
-                                    </PromptAction>
+                                    <Button
+                                        appearance="primary"
+                                        size="small"
+                                        className={classes.promptAction}
+                                        disabledFocusable={!isInstalled}
+                                        title={promptActionHint}
+                                        icon={<GithubCopilot16Regular />}
+                                        onClick={() => onOpenPromptInChat(card)}>
+                                        {loc.openPromptInCopilot}
+                                    </Button>
+                                    <Button
+                                        appearance="subtle"
+                                        size="small"
+                                        className={classes.promptAction}
+                                        disabledFocusable={!isInstalled}
+                                        title={promptActionHint}
+                                        icon={
+                                            copiedPromptId === card.id ? (
+                                                <Checkmark16Regular />
+                                            ) : (
+                                                <Copy16Regular />
+                                            )
+                                        }
+                                        onClick={() => onCopyPrompt(card)}>
+                                        {copiedPromptId === card.id
+                                            ? loc.promptCopied
+                                            : loc.copyPrompt}
+                                    </Button>
                                 </div>
                             </div>
                         ))}
@@ -565,7 +541,14 @@ const SkillList = ({ skills, filter }: { skills: AgentSkillSummary[]; filter: st
     );
 };
 
-const SkillsCatalog = ({ groups }: { groups: AgentSkillGroup[] }) => {
+const SkillsCatalog = ({
+    groups,
+    packs,
+}: {
+    groups: AgentSkillGroup[];
+    /** Localized collection names, keyed by the plugin each group belongs to. */
+    packs: AgentSkillPack[];
+}) => {
     const classes = useStyles();
     const loc = locConstants.overview;
     const [filter, setFilter] = useState("");
@@ -629,7 +612,11 @@ const SkillsCatalog = ({ groups }: { groups: AgentSkillGroup[] }) => {
                         {filtered.map((group) => (
                             <AccordionItem key={group.id} value={group.id}>
                                 <AccordionHeader>
-                                    {`${group.title} (${group.skills.length})`}
+                                    {loc.agentSkillsGroupHeader(
+                                        packs.find((pack) => pack.id === group.id)?.name ??
+                                            group.id,
+                                        group.skills.length,
+                                    )}
                                 </AccordionHeader>
                                 <AccordionPanel>
                                     <SkillList skills={group.skills} filter={filter} />
@@ -790,6 +777,7 @@ export const AgentSkillsPanel = () => {
                         </div>
                     ) : skillGroups ? (
                         <SkillsCatalog
+                            packs={packs}
                             groups={skillGroups.filter(
                                 (group) => group.id === skillsDialogPack?.id,
                             )}

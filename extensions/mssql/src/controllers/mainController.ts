@@ -141,7 +141,7 @@ import {
     OverviewOpenSource,
 } from "../sharedInterfaces/overview";
 import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
-import { AgentPluginsInstaller } from "../agentPlugins/agentPluginsInstaller";
+import { AgentPluginsInstaller, AgentSkillsDownloads } from "../agentPlugins/agentPluginsInstaller";
 import { DeploymentType, isDeploymentType } from "../sharedInterfaces/deployment";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
@@ -2722,10 +2722,13 @@ export default class MainController implements vscode.Disposable {
      * not awaited: a slow or unreachable network must not hold up activation.
      */
     private initializeAgentPlugins(): void {
+        // One set of downloads for every plugin: they ship from the same repository, so the
+        // revision check and the archive are shared rather than fetched once per plugin.
+        const downloads = new AgentSkillsDownloads(this._context);
         this._agentPluginsInstallers = new Map(
             AGENT_SKILL_PLUGINS.map((plugin) => [
                 plugin,
-                new AgentPluginsInstaller(this._context, plugin),
+                new AgentPluginsInstaller(this._context, plugin, downloads),
             ]),
         );
         // Best effort. An unreachable network, a bad archive or a filesystem failure leaves the

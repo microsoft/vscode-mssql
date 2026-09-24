@@ -61,8 +61,6 @@ export interface RecentSqlFile {
     fsPath: string;
     /** File name with extension, e.g. "revenue-by-region.sql". */
     fileName: string;
-    /** Containing folder, shown as secondary text to disambiguate same-named files. */
-    folderLabel: string;
     /** Epoch milliseconds the file was last opened, or last modified if never opened here. */
     timestampMs: number;
 }
@@ -147,7 +145,6 @@ export interface AgentSkillSummary {
 /** A repository-defined group of shipped Azure SQL skills. */
 export interface AgentSkillGroup {
     id: AgentSkillPluginName;
-    title: string;
     skills: AgentSkillSummary[];
     /** The collection on the resolved source, opened from the card. */
     repositoryUrl: string;

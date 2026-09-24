@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Text, Tooltip, makeStyles, tokens } from "@fluentui/react-components";
+import { Text, makeStyles, tokens } from "@fluentui/react-components";
 import { Clock20Regular, Document16Regular } from "@fluentui/react-icons";
 
 import { SidePanel } from "./sidePanel";
@@ -51,15 +51,6 @@ const useStyles = makeStyles({
             textDecoration: "underline",
         },
     },
-    folder: {
-        color: tokens.colorNeutralForeground3,
-        fontSize: tokens.fontSizeBase200,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-        flexShrink: 0,
-        maxWidth: "40%",
-    },
     empty: {
         color: tokens.colorNeutralForeground3,
         fontSize: tokens.fontSizeBase200,
@@ -79,20 +70,17 @@ export const RecentFilesSection = () => {
             ) : (
                 <div className={classes.list}>
                     {recentFiles.map((file) => (
-                        <Tooltip key={file.fsPath} content={file.fsPath} relationship="description">
-                            <button
-                                type="button"
-                                className={classes.item}
-                                onClick={() => openRecentSqlFile(file.fsPath)}>
-                                <span className={classes.itemIcon}>
-                                    <Document16Regular />
-                                </span>
-                                <span className={classes.fileName}>{file.fileName}</span>
-                                {file.folderLabel && (
-                                    <span className={classes.folder}>{file.folderLabel}</span>
-                                )}
-                            </button>
-                        </Tooltip>
+                        <button
+                            key={file.fsPath}
+                            type="button"
+                            title={file.fsPath}
+                            className={classes.item}
+                            onClick={() => openRecentSqlFile(file.fsPath)}>
+                            <span className={classes.itemIcon}>
+                                <Document16Regular />
+                            </span>
+                            <span className={classes.fileName}>{file.fileName}</span>
+                        </button>
                     ))}
                 </div>
             )}

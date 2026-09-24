@@ -180,13 +180,13 @@ suite("Recent SQL Files Store", () => {
     });
 
     test("records the SQL file already open when registration happens", async () => {
-        // onDidOpenTextDocument does not replay, and opening a SQL file is what activates the
-        // extension, so without this the file that caused activation is the one file missing.
+        // onDidChangeActiveTextEditor does not replay, and opening a SQL file is what activates
+        // the extension, so without this the file that caused activation is the one missing.
         sandbox
             .stub(vscode.window, "activeTextEditor")
             .value({ document: createDocument("/work/already-open.sql") });
-        const openEvent = new vscode.EventEmitter<vscode.TextDocument>();
-        sandbox.stub(vscode.workspace, "onDidOpenTextDocument").value(openEvent.event);
+        const openEvent = new vscode.EventEmitter<vscode.TextEditor | undefined>();
+        sandbox.stub(vscode.window, "onDidChangeActiveTextEditor").value(openEvent.event);
 
         try {
             store.register();
@@ -202,13 +202,36 @@ suite("Recent SQL Files Store", () => {
         }
     });
 
+    test("records the SQL file the user switches to", async () => {
+        // Keyed off the editor rather than document opens, which other extensions trigger by
+        // reading files in the background.
+        sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
+        const activeEditorEvent = new vscode.EventEmitter<vscode.TextEditor | undefined>();
+        sandbox.stub(vscode.window, "onDidChangeActiveTextEditor").value(activeEditorEvent.event);
+        existingFiles.set("/work/switched-to.sql", 1_000);
+
+        try {
+            store.register();
+            activeEditorEvent.fire({
+                document: createDocument("/work/switched-to.sql"),
+            } as unknown as vscode.TextEditor);
+            activeEditorEvent.fire(undefined);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            const files = await store.getRecentFiles(5);
+            expect(files[0]?.fsPath).to.equal("/work/switched-to.sql");
+        } finally {
+            activeEditorEvent.dispose();
+        }
+    });
+
     test("logs a background persistence failure instead of rejecting from registration", async () => {
         const failure = new Error("storage unavailable");
         sandbox
             .stub(vscode.window, "activeTextEditor")
             .value({ document: createDocument("/work/already-open.sql") });
-        const openEvent = new vscode.EventEmitter<vscode.TextDocument>();
-        sandbox.stub(vscode.workspace, "onDidOpenTextDocument").value(openEvent.event);
+        const openEvent = new vscode.EventEmitter<vscode.TextEditor | undefined>();
+        sandbox.stub(vscode.window, "onDidChangeActiveTextEditor").value(openEvent.event);
         sandbox.stub(store, "recordOpen").rejects(failure);
         const logError = sandbox.stub(store["_logger"], "error");
 
@@ -228,8 +251,8 @@ suite("Recent SQL Files Store", () => {
         sandbox
             .stub(vscode.window, "activeTextEditor")
             .value({ document: createDocument("/work/notes.md", "markdown") });
-        const openEvent = new vscode.EventEmitter<vscode.TextDocument>();
-        sandbox.stub(vscode.workspace, "onDidOpenTextDocument").value(openEvent.event);
+        const openEvent = new vscode.EventEmitter<vscode.TextEditor | undefined>();
+        sandbox.stub(vscode.window, "onDidChangeActiveTextEditor").value(openEvent.event);
 
         try {
             store.register();

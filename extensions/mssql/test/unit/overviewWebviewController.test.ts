@@ -18,6 +18,7 @@ import { AgentPluginsInstaller } from "../../src/agentPlugins/agentPluginsInstal
 import {
     DevContainerPrerequisitesChangedNotification,
     DevContainerTemplateId,
+    InstallAgentSkillsPluginRequest,
     OverviewOpenSource,
     PrerequisiteStatus,
     AGENT_SKILL_PLUGINS,
@@ -147,7 +148,7 @@ suite("Overview Webview Controller", () => {
             });
     }
 
-    test("projects recent SQL files into state with file and folder labels", async () => {
+    test("projects recent SQL files into state with their file names", async () => {
         recentFiles = [
             { fsPath: "/work/reports/revenue-by-region.sql", timestampMs: 2_000 },
             { fsPath: "/work/tuning/index-tuning.sql", timestampMs: 1_000 },
@@ -160,13 +161,11 @@ suite("Overview Webview Controller", () => {
             {
                 fsPath: "/work/reports/revenue-by-region.sql",
                 fileName: "revenue-by-region.sql",
-                folderLabel: "reports",
                 timestampMs: 2_000,
             },
             {
                 fsPath: "/work/tuning/index-tuning.sql",
                 fileName: "index-tuning.sql",
-                folderLabel: "tuning",
                 timestampMs: 1_000,
             },
         ]);
@@ -839,6 +838,28 @@ suite("Overview Webview Controller", () => {
             ).to.be.false;
         });
 
+        test("takes back the parent folders it created along with the target", async () => {
+            const parent = await createTemporaryDirectory("mssql-overview-discard-parents-");
+            const destination = path.join(parent, "new", "dotnet");
+            sandbox.stub(vscode.workspace, "workspaceFolders").value(undefined);
+            controller = createController();
+            sandbox
+                .stub(controller as unknown as Record<string, unknown>, "findDevContainersCli")
+                .returns("/fake/devContainersSpecCLI.js");
+            // Fails before the CLI runs, which used to skip the cleanup entirely.
+            sandbox.stub(fs.promises, "mkdtemp").rejects(new Error("no space left"));
+
+            const result = await controller["applyDevContainerTemplate"](
+                DevContainerTemplateId.DotNet,
+                {},
+                destination,
+            );
+
+            expect(result.applied).to.be.false;
+            // Both folders the recursive mkdir made are gone, and the one that was there stays.
+            expect(await fs.promises.readdir(parent)).to.deep.equal([]);
+        });
+
         test("leaves a folder the user already had, even when the apply fails", async () => {
             const parent = await createTemporaryDirectory("mssql-overview-keep-");
             const destination = path.join(parent, "existing");
@@ -1157,6 +1178,43 @@ suite("Overview Webview Controller", () => {
 
         expect(copyError).to.be.instanceOf(Error);
         expect(await fs.promises.readFile(destination, "utf8")).to.equal("user tasks");
+    });
+
+    test("reports each plugin's install against its own activity", async () => {
+        const requestHandlers = new Map<string, (params: unknown) => Promise<unknown>>();
+        sandbox
+            .stub(OverviewWebviewController.prototype, "onRequest")
+            .callsFake((type, handler) => {
+                requestHandlers.set(type.method, (params) =>
+                    Promise.resolve(handler(params as never, undefined as never)),
+                );
+            });
+        const activities: { end: sinon.SinonStub; endFailed: sinon.SinonStub }[] = [];
+        sandbox.stub(telemetry, "startActivity").callsFake((_view, action) => {
+            const activity = { end: sinon.stub(), endFailed: sinon.stub(), update: sinon.stub() };
+            if (action === TelemetryActions.InstallAgentSkills) {
+                activities.push(activity);
+            }
+            return activity as unknown as ActivityObject;
+        });
+        let finishFirstInstall!: () => void;
+        agentSkillsInstallStub.callsFake(
+            () => new Promise<boolean>((resolve) => (finishFirstInstall = () => resolve(true))),
+        );
+        controller = createController();
+        const install = requestHandlers.get(InstallAgentSkillsPluginRequest.type.method)!;
+
+        // The second plugin's install starts and finishes while the first is still running.
+        const first = install({ pluginName: AGENT_SKILL_PLUGINS[0] });
+        await install({ pluginName: AGENT_SKILL_PLUGINS[1] });
+        finishFirstInstall();
+        await first;
+
+        expect(activities).to.have.lengthOf(2);
+        for (const activity of activities) {
+            expect(activity.end).to.have.been.calledOnceWith(ActivityStatus.Succeeded);
+            expect(activity.endFailed).to.not.have.been.called;
+        }
     });
 
     test("refreshes the recent file list when the store records a new open", async () => {

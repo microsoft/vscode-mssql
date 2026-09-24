@@ -4046,6 +4046,15 @@ export class LocConstants {
                               "{0} is the number of agent skills available in the repository",
                           ],
                       }),
+            agentSkillsGroupHeader: (name: string, count: number) =>
+                l10n.t({
+                    message: "{0} ({1})",
+                    args: [name, count],
+                    comment: [
+                        "{0} is the name of a collection of agent skills",
+                        "{1} is the number of skills listed in that collection",
+                    ],
+                }),
             tryThesePrompts: l10n.t("Try these prompts"),
             promptsNeedSkills: l10n.t(
                 "For best results, install plugin before using these prompts.",

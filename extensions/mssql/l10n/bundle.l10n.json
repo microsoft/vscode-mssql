@@ -5023,6 +5023,13 @@
         "message": "{0} skills",
         "comment": ["{0} is the number of agent skills available in the repository"]
     },
+    "{0} ({1})/{0} is the name of a collection of agent skills{1} is the number of skills listed in that collection": {
+        "message": "{0} ({1})",
+        "comment": [
+            "{0} is the name of a collection of agent skills",
+            "{1} is the number of skills listed in that collection"
+        ]
+    },
     "Try these prompts": "Try these prompts",
     "For best results, install plugin before using these prompts.": "For best results, install plugin before using these prompts.",
     "Open in Copilot": "Open in Copilot",

@@ -127,7 +127,7 @@ const AGENT_PLUGINS_FILTER = "@agentPlugins";
  * The short link rather than a repository, because the repository is whatever the link resolves
  * to at install time -- naming one here would report a guess.
  */
-const AGENT_SKILLS_PLUGIN_SOURCE = "aka.ms/aasim-vscode-mssql-skills-repo";
+const AGENT_SKILLS_PLUGIN_SOURCE = "aka.ms/vscode-mssql-skills-repo";
 
 /** A staged template file and the resolved place in the workspace it will be written. */
 interface TemplateFileDestination {
@@ -136,6 +136,12 @@ interface TemplateFileDestination {
     /** Directory the file lands in, with every component that already exists resolved. */
     directory: string;
     fileName: string;
+}
+
+/** A folder the dev container flow created, and the topmost of its parents it also created. */
+interface CreatedFolder {
+    path: string;
+    root: string;
 }
 
 /** Where a staged template file is written, built from its resolved directory. */
@@ -153,8 +159,11 @@ const DEV_CONTAINER_REMOTE_NAME = "dev-container";
  */
 const DEV_CONTAINERS_CLI_RELATIVE_PATH = path.join("dist", "spec-node", "devContainersSpecCLI.js");
 
-/** Config file names that mark a folder as already having a dev container. */
-const DEV_CONTAINER_CONFIG_GLOB = "{.devcontainer/devcontainer.json,.devcontainer.json}";
+/**
+ * Config file names that mark a folder as already having a dev container. A string glob is
+ * matched against the file's absolute path, so each location needs the leading `**` to match.
+ */
+const DEV_CONTAINER_CONFIG_GLOB = "{**/.devcontainer/devcontainer.json,**/.devcontainer.json}";
 
 /**
  * Marker the Dev Containers extension drops beside a configuration it is holding on a folder's
@@ -329,7 +338,6 @@ function toRecentSqlFile(file: ResolvedRecentSqlFile): RecentSqlFile {
     return {
         fsPath: file.fsPath,
         fileName: path.basename(file.fsPath),
-        folderLabel: path.basename(path.dirname(file.fsPath)),
         timestampMs: file.timestampMs,
     };
 }
@@ -345,8 +353,8 @@ export class OverviewWebviewController extends WebviewPanelController<
      */
     private _devContainerActivity: ActivityObject | undefined;
 
-    /** The in-flight agent skills install. */
-    private _agentSkillsActivity: ActivityObject | undefined;
+    /** The in-flight agent skills install for each plugin. */
+    private _agentSkillsActivities = new Map<AgentSkillPluginName, ActivityObject>();
 
     /**
      * What the setup dialog was last told about its prerequisites. Unset until the dialog first
@@ -399,9 +407,14 @@ export class OverviewWebviewController extends WebviewPanelController<
         void this.refreshRecentFiles();
 
         // The store keeps recording opens after this panel was built, so follow it rather than
-        // showing the snapshot taken when the page opened.
+        // showing the snapshot taken when the page opened. Only while the page is on screen:
+        // resolving can scan the workspace, and revealing the page refreshes the list anyway.
         this.registerDisposable(
-            this._recentSqlFilesStore.onDidChange(() => void this.refreshRecentFiles()),
+            this._recentSqlFilesStore.onDidChange(() => {
+                if (this.panel.visible) {
+                    void this.refreshRecentFiles();
+                }
+            }),
         );
 
         // Registered on the controller so the listener dies with the panel rather than
@@ -474,10 +487,12 @@ export class OverviewWebviewController extends WebviewPanelController<
                     additionalProps: { reason: "pageClosed" },
                 });
                 this._devContainerActivity = undefined;
-                this._agentSkillsActivity?.end(ActivityStatus.Canceled, {
-                    additionalProps: { reason: "pageClosed" },
-                });
-                this._agentSkillsActivity = undefined;
+                for (const activity of this._agentSkillsActivities.values()) {
+                    activity.end(ActivityStatus.Canceled, {
+                        additionalProps: { reason: "pageClosed" },
+                    });
+                }
+                this._agentSkillsActivities.clear();
             }),
         );
 
@@ -569,8 +584,10 @@ export class OverviewWebviewController extends WebviewPanelController<
 
         this.onRequest(InstallAgentSkillsPluginRequest.type, async (params) => {
             const installer = this.installerFor(params.pluginName);
-            this._agentSkillsActivity?.end(ActivityStatus.Canceled);
-            this._agentSkillsActivity = startActivity(
+            // Keyed by plugin, so installing one does not close out the other's activity, and
+            // each outcome is reported against the install it belongs to.
+            this._agentSkillsActivities.get(params.pluginName)?.end(ActivityStatus.Canceled);
+            const activity = startActivity(
                 TelemetryViews.OverviewPage,
                 TelemetryActions.InstallAgentSkills,
                 {
@@ -580,16 +597,17 @@ export class OverviewWebviewController extends WebviewPanelController<
                     },
                 },
             );
+            this._agentSkillsActivities.set(params.pluginName, activity);
 
             try {
                 await installer.install();
-                this._agentSkillsActivity?.end(ActivityStatus.Succeeded);
+                activity.end(ActivityStatus.Succeeded);
             } catch (error) {
                 const remoteUnsupported = error instanceof RemoteWindowUnsupportedError;
                 if (!remoteUnsupported) {
                     this.logger.error("Failed to install the agent skills", error);
                 }
-                this._agentSkillsActivity?.endFailed(
+                activity.endFailed(
                     error instanceof Error ? error : undefined,
                     false,
                     undefined,
@@ -603,7 +621,9 @@ export class OverviewWebviewController extends WebviewPanelController<
                         : Overview.InstallAgentSkillsFailed,
                 );
             } finally {
-                this._agentSkillsActivity = undefined;
+                if (this._agentSkillsActivities.get(params.pluginName) === activity) {
+                    this._agentSkillsActivities.delete(params.pluginName);
+                }
                 await this.refreshAgentSkillsState();
             }
         });
@@ -1027,7 +1047,7 @@ export class OverviewWebviewController extends WebviewPanelController<
         targetPath?: string,
     ): Promise<AddDevContainerConfigurationResult> {
         let target: vscode.Uri;
-        let createdTarget: boolean;
+        let createdTarget: CreatedFolder | undefined;
         try {
             ({ uri: target, created: createdTarget } = await this.prepareDevContainerTarget(
                 templateId,
@@ -1048,16 +1068,17 @@ export class OverviewWebviewController extends WebviewPanelController<
             this.logger.warn(
                 "Dev Containers CLI not found in the extension; falling back to its template picker.",
             );
-            await this.discardCreatedTarget(target, createdTarget);
+            await this.discardCreatedTarget(createdTarget);
             await vscode.commands.executeCommand(DEV_CONTAINERS_CREATE_CONFIG_COMMAND);
             return { applied: false, usedPicker: true };
         }
 
-        const stagingDirectory = await fs.promises.mkdtemp(
-            path.join(os.tmpdir(), "vscode-mssql-devcontainer-"),
-        );
-
+        let stagingDirectory: string | undefined;
         try {
+            // Inside the try, so a failure here still takes back the folder made above.
+            stagingDirectory = await fs.promises.mkdtemp(
+                path.join(os.tmpdir(), "vscode-mssql-devcontainer-"),
+            );
             const output = await this.runDevContainersCli(cliPath, [
                 "templates",
                 "apply",
@@ -1079,7 +1100,7 @@ export class OverviewWebviewController extends WebviewPanelController<
             const conflictChoices = await this.getTemplateFileConflictChoices(destinations);
             if (!conflictChoices) {
                 this.logger.info("Dev container setup canceled while resolving file conflicts.");
-                await this.discardCreatedTarget(target, createdTarget);
+                await this.discardCreatedTarget(createdTarget);
                 return {
                     applied: false,
                     usedPicker: false,
@@ -1099,7 +1120,7 @@ export class OverviewWebviewController extends WebviewPanelController<
             };
         } catch (error) {
             this.logger.error("Failed to apply the dev container template", error);
-            await this.discardCreatedTarget(target, createdTarget);
+            await this.discardCreatedTarget(createdTarget);
             // Reported inline in the dialog rather than as a toast, so it sits with the step.
             return {
                 applied: false,
@@ -1107,7 +1128,9 @@ export class OverviewWebviewController extends WebviewPanelController<
                 error: error instanceof Error ? error.message : String(error),
             };
         } finally {
-            await fs.promises.rm(stagingDirectory, { recursive: true, force: true });
+            if (stagingDirectory) {
+                await fs.promises.rm(stagingDirectory, { recursive: true, force: true });
+            }
         }
     }
 
@@ -1390,7 +1413,7 @@ export class OverviewWebviewController extends WebviewPanelController<
     private async prepareDevContainerTarget(
         templateId: DevContainerTemplateId,
         targetPath: string | undefined,
-    ): Promise<{ uri: vscode.Uri; created: boolean }> {
+    ): Promise<{ uri: vscode.Uri; created: CreatedFolder | undefined }> {
         const requested = targetPath?.trim();
         let resolved = requested;
         if (!resolved) {
@@ -1403,37 +1426,46 @@ export class OverviewWebviewController extends WebviewPanelController<
             throw new Error(`Dev container folder is not an absolute path: ${resolved}`);
         }
 
-        // Recorded so a failed apply can take back the folder it made. Without it, every
+        // Recorded so a failed apply can take back the folders it made. Without it, every
         // attempt that got this far left an empty directory behind -- and the next proposal
-        // stepped past it, so retrying walked up `dotnet`, `dotnet-2`, `dotnet-3`.
-        const existed = await fs.promises
-            .stat(resolved)
-            .then(() => true)
-            .catch(() => false);
-
-        await fs.promises.mkdir(resolved, { recursive: true });
+        // stepped past it, so retrying walked up `dotnet`, `dotnet-2`, `dotnet-3`. A recursive
+        // mkdir answers with the first folder it had to create, which is the top of that chain.
+        const firstCreated = await fs.promises.mkdir(resolved, { recursive: true });
         const stats = await fs.promises.stat(resolved);
         if (!stats.isDirectory()) {
             throw new Error(`Dev container folder is not a directory: ${resolved}`);
         }
-        return { uri: vscode.Uri.file(resolved), created: !existed };
+        return {
+            uri: vscode.Uri.file(resolved),
+            created: firstCreated ? { path: resolved, root: firstCreated } : undefined,
+        };
     }
 
     /**
-     * Takes back a folder this run created, when nothing ended up in it.
+     * Takes back the folders this run created, when nothing ended up in them.
      *
-     * `rmdir` rather than a recursive delete, and only for a folder we made: it fails on a
-     * directory with anything in it, so a partial write or a folder the user already had is
-     * left alone rather than being cleaned up on their behalf.
+     * Walks up from the target to the first folder the run had to create, so the parents a
+     * recursive mkdir made go too. `rmdir` rather than a recursive delete, and only for folders
+     * we made: it fails on a directory with anything in it, so a partial write or a folder the
+     * user already had is left alone rather than being cleaned up on their behalf.
      */
-    private async discardCreatedTarget(target: vscode.Uri, created: boolean): Promise<void> {
+    private async discardCreatedTarget(created: CreatedFolder | undefined): Promise<void> {
         if (!created) {
             return;
         }
-        try {
-            await fs.promises.rmdir(target.fsPath);
-        } catch {
-            // Not empty, or already gone: either way there is nothing safe to remove.
+        let directory = created.path;
+        for (;;) {
+            try {
+                await fs.promises.rmdir(directory);
+            } catch {
+                // Not empty, or already gone: either way there is nothing safe to remove.
+                return;
+            }
+            const relative = path.relative(created.root, directory);
+            if (relative === "" || relative.startsWith("..") || path.isAbsolute(relative)) {
+                return;
+            }
+            directory = path.dirname(directory);
         }
     }
 

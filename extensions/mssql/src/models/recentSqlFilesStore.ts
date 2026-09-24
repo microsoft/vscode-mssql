@@ -46,6 +46,8 @@ export class RecentSqlFilesStore implements vscode.Disposable {
     /** Serializes the read/modify/write in `recordOpen`. See the comment there. */
     private _writeQueue: Promise<void> = Promise.resolve();
     private _onDidChange = new vscode.EventEmitter<void>();
+    /** The workspace scan in flight, shared by reads that overlap it. */
+    private _workspaceScan: Promise<ResolvedRecentSqlFile[]> | undefined;
 
     /**
      * Fires after a newly opened SQL file has been recorded, so a page already showing the list
@@ -55,11 +57,19 @@ export class RecentSqlFilesStore implements vscode.Disposable {
 
     constructor(private _context: vscode.ExtensionContext) {}
 
-    /** Starts recording SQL file opens. */
+    /**
+     * Starts recording the SQL files the user works in.
+     *
+     * Keyed off the active editor rather than `onDidOpenTextDocument`, which also fires whenever
+     * any extension reads a file with `openTextDocument` -- a project build or a language
+     * feature resolving references -- and would push the user's own files out of the list.
+     */
     public register(): void {
         this._disposables.push(
-            vscode.workspace.onDidOpenTextDocument((document) => {
-                this.recordOpenInBackground(document);
+            vscode.window.onDidChangeActiveTextEditor((editor) => {
+                if (editor) {
+                    this.recordOpenInBackground(editor.document);
+                }
             }),
         );
 
@@ -154,8 +164,22 @@ export class RecentSqlFilesStore implements vscode.Disposable {
         return resolved;
     }
 
-    /** SQL files in the open workspace, most recently modified first. */
-    private async scanWorkspaceFiles(): Promise<ResolvedRecentSqlFile[]> {
+    /**
+     * SQL files in the open workspace, most recently modified first.
+     *
+     * A burst of opens -- a restored editor layout -- asks for this once per file, so reads
+     * that overlap one scan share it rather than each globbing the workspace.
+     */
+    private scanWorkspaceFiles(): Promise<ResolvedRecentSqlFile[]> {
+        if (!this._workspaceScan) {
+            this._workspaceScan = this.readWorkspaceFiles().finally(() => {
+                this._workspaceScan = undefined;
+            });
+        }
+        return this._workspaceScan;
+    }
+
+    private async readWorkspaceFiles(): Promise<ResolvedRecentSqlFile[]> {
         if (!vscode.workspace.workspaceFolders?.length) {
             return [];
         }

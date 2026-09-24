@@ -10675,6 +10675,11 @@
 {1} is the completion percent
 {2} is the task message</note>
     </trans-unit>
+    <trans-unit id="++CODE++f9ee8fab2ea9181b38b62bb3ecb7abcaeeaf33b3958d2a82ed5b5bb6b024bda1">
+      <source xml:lang="en">{0} ({1})</source>
+      <note>{0} is the name of a collection of agent skills
+{1} is the number of skills listed in that collection</note>
+    </trans-unit>
     <trans-unit id="++CODE++60f820e33dc2ebb9ace1ef9c084e6b0ce9c75e159edf59e955aa68a7b304783b">
       <source xml:lang="en">{0} / {1}</source>
       <note>{0} is the one-based position of the selected schema difference

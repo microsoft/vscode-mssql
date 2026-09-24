@@ -16,6 +16,7 @@ import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { AGENT_SKILL_PLUGINS } from "../../src/sharedInterfaces/overview";
 import {
     AgentPluginsInstaller,
+    AgentSkillsDownloads,
     parseSkillsCatalog,
     RemoteWindowUnsupportedError,
 } from "../../src/agentPlugins/agentPluginsInstaller";
@@ -179,12 +180,7 @@ suite("Agent Plugins Installer", () => {
             await tar.c({ gzip: true, file: archivePath, cwd: archiveSource }, [
                 "microsoft-sql-main",
             ]);
-            sandbox
-                .stub(
-                    migration as unknown as { fetchLatestSha: () => Promise<string | undefined> },
-                    "fetchLatestSha",
-                )
-                .resolves(undefined);
+            sandbox.stub(AgentSkillsDownloads.prototype, "fetchLatestSha").resolves(undefined);
             // Answered with a repository other than the fallback, so the assertion below shows
             // the archive URL following the short link rather than a constant.
             sandbox.stub(VscodeHttpClient.prototype, "get").resolves({
@@ -371,7 +367,6 @@ suite("Agent Plugins Installer", () => {
         expect(first).to.deep.equal([
             {
                 id: "microsoft-sql-vscode",
-                title: "Microsoft SQL for Visual Studio Code",
                 repositoryUrl:
                     "https://github.com/microsoft/microsoft-sql/tree/main/plugins/microsoft-sql-vscode",
                 skills: [
@@ -385,7 +380,6 @@ suite("Agent Plugins Installer", () => {
             },
             {
                 id: "microsoft-sql-migration",
-                title: "Microsoft SQL migration",
                 repositoryUrl:
                     "https://github.com/microsoft/microsoft-sql/tree/main/plugins/microsoft-sql-migration",
                 skills: [
@@ -574,5 +568,113 @@ suite("Agent Plugins Installer", () => {
         expect(group.skills[0].repositoryUrl).to.equal(
             "https://github.com/microsoft/microsoft-sql/blob/main/plugins/microsoft-sql-vscode/skills/azure-sql/SKILL.md",
         );
+    });
+
+    test("does not clear the registration while an update is swapping the folder", async () => {
+        // An update moves the installed copy aside before the new one lands. A page refresh in
+        // that window used to read the missing folder as deleted and unregister the plugin.
+        await createPluginOnDisk();
+        userLocations = { [installer.pluginRoot.fsPath]: true };
+
+        let releaseUpdate!: () => void;
+        let markMovedAside!: () => void;
+        const updateHeld = new Promise<void>((resolve) => (releaseUpdate = resolve));
+        const movedAside = new Promise<void>((resolve) => (markMovedAside = resolve));
+        const aside = `${installer.pluginRoot.fsPath}.aside`;
+        const update = installer["runExclusive"](async () => {
+            await fs.rename(installer.pluginRoot.fsPath, aside);
+            markMovedAside();
+            await updateHeld;
+            await fs.rename(aside, installer.pluginRoot.fsPath);
+            return true;
+        });
+
+        await movedAside;
+        const installed = installer.isInstalled();
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        releaseUpdate();
+        await update;
+
+        expect(await installed).to.equal(true);
+        expect(updateStub).to.not.have.been.called;
+        expect(userLocations).to.deep.equal({ [installer.pluginRoot.fsPath]: true });
+    });
+
+    test("shares one revision check and one archive across plugins updating together", async () => {
+        const archiveSource = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-shared-archive-"));
+        try {
+            for (const name of AGENT_SKILL_PLUGINS) {
+                const manifestDir = path.join(
+                    archiveSource,
+                    "microsoft-sql-main",
+                    "plugins",
+                    name,
+                    ".claude-plugin",
+                );
+                await fs.mkdir(manifestDir, { recursive: true });
+                await fs.writeFile(path.join(manifestDir, "plugin.json"), JSON.stringify({ name }));
+            }
+            const archivePath = path.join(archiveSource, "marketplace.tar.gz");
+            await tar.c({ gzip: true, file: archivePath, cwd: archiveSource }, [
+                "microsoft-sql-main",
+            ]);
+
+            const sha = "a".repeat(40);
+            const getStub = sandbox
+                .stub(VscodeHttpClient.prototype, "get")
+                .callsFake(async (url: string) => ({
+                    ok: !url.startsWith("https://aka.ms/"),
+                    status: url.startsWith("https://aka.ms/") ? 301 : 200,
+                    statusText: "",
+                    headers: createHttpHeaders(
+                        url.startsWith("https://aka.ms/")
+                            ? { location: "https://github.com/contoso/sql-skills" }
+                            : {},
+                    ),
+                    data: url.startsWith("https://api.github.com/") ? sha : "",
+                }));
+            const downloadUrls: string[] = [];
+            sandbox
+                .stub(VscodeHttpClient.prototype, "downloadToPath")
+                .callsFake(async (url, target) => {
+                    downloadUrls.push(String(url));
+                    await fs.copyFile(archivePath, target);
+                    return { status: 200 } as Awaited<
+                        ReturnType<VscodeHttpClient["downloadToPath"]>
+                    >;
+                });
+
+            const downloads = new AgentSkillsDownloads(context);
+            const installers = AGENT_SKILL_PLUGINS.map(
+                (name) => new AgentPluginsInstaller(context, name, downloads),
+            );
+            await Promise.all(installers.map((current) => current.install()));
+
+            for (const current of installers) {
+                const manifest = JSON.parse(
+                    await fs.readFile(
+                        path.join(current.pluginRoot.fsPath, ".claude-plugin", "plugin.json"),
+                        "utf8",
+                    ),
+                );
+                expect(manifest.name).to.equal(current.pluginName);
+                expect(
+                    globalStateValues[`overview/agentSkills.sha/${current.pluginName}`],
+                ).to.equal(sha);
+            }
+            // Pinned to the revision it records, and fetched once for both plugins.
+            expect(downloadUrls).to.deep.equal([
+                `https://codeload.github.com/contoso/sql-skills/tar.gz/${sha}`,
+            ]);
+            const revisionCalls = getStub
+                .getCalls()
+                .filter((call) => String(call.args[0]).startsWith("https://api.github.com/"));
+            expect(revisionCalls).to.have.lengthOf(1);
+            // The shared archive is removed once both plugins are done with it.
+            const staging = path.join(storageDir, "agentSkills", ".staging");
+            expect(await fs.readdir(staging).catch(() => [])).to.be.empty;
+        } finally {
+            await fs.rm(archiveSource, { recursive: true, force: true });
+        }
     });
 });

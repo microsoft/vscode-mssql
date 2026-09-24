@@ -23,10 +23,8 @@ export const overviewLinks = {
     // Stand-ins until the catalog resolves: the cards then open the collection on whatever
     // repository the short link pointed at, which is also where their skills were installed
     // from. These only show while that is in flight, or when it cannot be reached.
-    //
-    // TEMP link -- swap for a vscode-mssql-skills-repo one before this merges.
-    skillsRepository: "https://aka.ms/aasim-vscode-mssql-skills-repo",
-    migrationSkillsRepository: "https://aka.ms/aasim-vscode-mssql-skills-repo",
+    skillsRepository: "https://aka.ms/vscode-mssql-skills-repo",
+    migrationSkillsRepository: "https://aka.ms/vscode-mssql-skills-repo",
     // Template source links are built by appending a path to this, so it stays a real GitHub
     // URL rather than the aka.ms/vscode-mssql-devcontainers-repo alias, which cannot be extended.
     devContainersRepository: "https://github.com/microsoft/azuresql-devcontainers",
