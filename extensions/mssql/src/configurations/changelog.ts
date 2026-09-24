@@ -13,9 +13,14 @@ export const changelogConfig: ChangelogWebviewState = {
         title: locConstants.Changelog.mainContentTitle,
         entries: [
             {
+                title: locConstants.Changelog.gettingStartedPageTitle,
+                description: locConstants.Changelog.gettingStartedPageDescription,
+                isPreview: true,
+            },
+            {
                 title: locConstants.Changelog.sqlFormatterTitle,
                 description: locConstants.Changelog.sqlFormatterDescription,
-                isPreview: true,
+                isPreview: false,
                 actions: [
                     {
                         label: locConstants.Changelog.learnMore,
