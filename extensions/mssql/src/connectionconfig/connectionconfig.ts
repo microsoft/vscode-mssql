@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import lodash from "lodash";
+import { isEqual } from "lodash";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -876,7 +876,7 @@ export class ConnectionConfig implements IConnectionConfig {
             Constants.connectionsArrayName,
             target,
         );
-        if (lodash.isEqual(existingProfiles, cleanedProfiles)) {
+        if (isEqual(existingProfiles, cleanedProfiles)) {
             return;
         }
 
