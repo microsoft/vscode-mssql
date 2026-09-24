@@ -4063,81 +4063,77 @@ export class LocConstants {
             promptCopied: l10n.t("Copied"),
             openPromptInCopilot: l10n.t("Open in Copilot"),
 
-            promptTagConnect: l10n.t("Connect"),
             promptTagBuild: l10n.t("Build"),
             promptTagAi: l10n.t("AI"),
+            promptTagAutomate: l10n.t("Automate"),
             promptTagDiagnose: l10n.t("Diagnose"),
-            promptConnectNodeTitle: l10n.t(
-                "Connect my Node app to Azure SQL Database without a password",
-            ),
-            promptConnectNodeDescription: l10n.t(
-                "Configure a Node.js application to use secure Microsoft Entra authentication.",
-            ),
             promptScaffoldAppTitle: l10n.t(
                 "Scaffold the schema, migrations, and data layer for this app",
             ),
             promptScaffoldAppDescription: l10n.t(
-                "Inspect the current project and build its Azure SQL persistence layer.",
+                "Build a persistence layer in its own schema, with migrations safe to re-run.",
             ),
             promptVectorSearchTitle: l10n.t(
-                "Add vector search to this table and make it use the index",
+                "Add native vector search and verify the index is used",
             ),
             promptVectorSearchDescription: l10n.t(
-                "Add indexed vector search using Azure SQL's native vector capabilities.",
+                "Store embeddings, write the similarity query, and catch silent full-table scans.",
             ),
-            promptError40613Title: l10n.t("Why does my first query after idle fail with 40613"),
-            promptError40613Description: l10n.t(
-                "Diagnose serverless resume behavior and make the application resilient to it.",
+            promptSqlTriggerFunctionTitle: l10n.t(
+                "Run an Azure Function whenever a row in my table changes",
+            ),
+            promptSqlTriggerFunctionDescription: l10n.t(
+                "Wire up a SQL trigger and an HTTP endpoint, verified locally against your data.",
+            ),
+            promptSlowEndpointTitle: l10n.t("Why did this endpoint get slow?"),
+            promptSlowEndpointDescription: l10n.t(
+                "Trace the queries behind a slow endpoint and find the cause, with evidence.",
             ),
 
             promptTagAssess: l10n.t("Assess"),
             promptTagPlan: l10n.t("Plan"),
-            promptTagSize: l10n.t("Size"),
+            promptTagMigrate: l10n.t("Migrate"),
             promptTagValidate: l10n.t("Validate"),
-            promptMigrationPathTitle: l10n.t("Which Azure target should this SQL Server move to?"),
-            promptMigrationPathDescription: l10n.t(
-                "Pre-select candidate targets and migration methods before any assessment data exists.",
+            promptAssessMigrationTitle: l10n.t("Assess my database for migration to Azure SQL"),
+            promptAssessMigrationDescription: l10n.t(
+                "Discover migration blockers, compatibility issues, and the best-fit Azure SQL target.",
             ),
-            promptMigrationPrerequisitesTitle: l10n.t(
-                "What has to be ready before I run this migration?",
+            promptPlanMigrationTitle: l10n.t("Create a migration plan for my database"),
+            promptPlanMigrationDescription: l10n.t(
+                "Turn assessment findings into an actionable, safe migration plan.",
             ),
-            promptMigrationPrerequisitesDescription: l10n.t(
-                "Turn a chosen migration path into a sourced prerequisite checklist.",
+            promptMigrateDatabaseTitle: l10n.t("Migrate my database to Azure SQL"),
+            promptMigrateDatabaseDescription: l10n.t(
+                "Execute the migration, monitor progress, and surface anything that needs attention.",
             ),
-            promptSkuSizingTitle: l10n.t("Size an Azure SQL SKU from this server's performance"),
-            promptSkuSizingDescription: l10n.t(
-                "Collect performance data from an on-premises server and recommend a SKU.",
-            ),
-            promptValidateMigrationTitle: l10n.t(
-                "Validate the data now that the migration is done",
-            ),
+            promptValidateMigrationTitle: l10n.t("Validate my migration before I cut over"),
             promptValidateMigrationDescription: l10n.t(
-                "Reconcile the source and target tables without changing either side.",
+                "Verify the target is complete, healthy, and ready for application traffic.",
             ),
 
-            promptConnectNodeBody: l10n.t(
-                "Connect this Node.js app to Azure SQL Database using Microsoft Entra authentication instead of a SQL login. Wire up the connection so it works both on my machine and from the deployed app, and make sure no database password ends up in the repository or in configuration.",
-            ),
             promptScaffoldAppBody: l10n.t(
-                "Look at this project and build its Azure SQL persistence layer: design tables for the entities it already has, add ordered migration scripts that are safe to re-run, and generate the data access code the app calls. Run the migrations against the application database, never against master.",
+                "Build the persistence layer for this app: tables for its entities, ordered migrations that are safe to re-run, and the data access code it calls. Keep the app's tables, migration history and locks in their own schema, and run migrations only against the app's database. Make sure a migration can never report success while leaving something that fails later.",
             ),
             promptVectorSearchBody: l10n.t(
-                "Add vector search to this table using Azure SQL's native VECTOR type and VECTOR_DISTANCE. Store the embeddings, write the similarity query, then show me how to confirm it is using a vector index rather than scanning the whole table.",
+                "Add semantic search to one of my tables using the database's native vector support, after checking this engine supports it. Store the embeddings and write the similarity query. Then give me a check I can run that proves the query, exactly as the app runs it, uses the vector index, and that fails loudly if it ever falls back to scanning.",
             ),
-            promptError40613Body: l10n.t(
-                "My first query after an idle period fails with error 40613 against Azure SQL Database. Explain what the serverless tier is doing when that happens, then change this app's connection and retry handling so the resume is absorbed instead of surfacing as a failed request.",
+            promptSqlTriggerFunctionBody: l10n.t(
+                "Build an Azure Function app that reacts whenever a row in one of my tables is inserted or updated, plus an HTTP endpoint that adds rows to that table. Run it locally against my database and prove both work: show the reaction firing for a change you make, and show what happens when a new row's key already exists.",
             ),
-            promptMigrationPathBody: l10n.t(
-                "I want to move a SQL Server estate to Azure and have no assessment data yet. Ask me the discovery questions you need, then recommend the candidate Azure targets and migration methods that fit, the blockers that would rule each one out, and the evidence I still have to collect. Treat the recommendation as provisional until assessment tooling confirms it.",
+            promptSlowEndpointBody: l10n.t(
+                "One of my app's endpoints got slow. Find the database queries behind it, work out why they're slow, and show the evidence. Tell me what the database didn't record that you'd need. Don't change anything yet.",
             ),
-            promptMigrationPrerequisitesBody: l10n.t(
-                "I have chosen a migration path for this SQL Server. Build the prerequisite plan for it: what has to be in place on the source, on the target and on the network before I execute, plus a readiness summary I can hand to a partner. Ask me only the questions this path actually needs.",
+            promptAssessMigrationBody: l10n.t(
+                "Assess my database for migration to Azure SQL. Analyze its configuration, compatibility, dependencies, and workload characteristics. Identify blockers, warnings, and changes required for migration, and recommend the best-fit Azure SQL target with evidence. Give me a clear readiness summary and the actions I should take before migrating.",
             ),
-            promptSkuSizingBody: l10n.t(
-                "This is an on-premises SQL Server instance. Collect performance data from it and recommend an Azure SQL SKU sized from that data, not from a guess. Tell me what the collection needs before it starts and how long it should run to be representative.",
+            promptPlanMigrationBody: l10n.t(
+                "Using my assessment results, create an end-to-end migration plan for the recommended Azure SQL target. Resolve or account for identified blockers and dependencies, choose an appropriate migration approach, and define the sequence of steps from preparation through cutover. Include prerequisites, validation checkpoints, rollback considerations, and anything I need to address before starting the migration.",
+            ),
+            promptMigrateDatabaseBody: l10n.t(
+                "Migrate my database to the selected Azure SQL target using the migration plan. Validate prerequisites before starting, configure the migration, move the required schema and data, and monitor its progress. Surface errors, warnings, or conditions that could affect the migration or cutover, and don't proceed past a critical failure without telling me what needs to be fixed.",
             ),
             promptValidateMigrationBody: l10n.t(
-                "The migration target is online. Validate it against the source without changing data, schema or configuration on either side: compare the user table inventory and the exact row counts for every mapped table, and report the tables that do not reconcile.",
+                "Validate the migrated Azure SQL database before cutover. Check that the expected schema and data were migrated successfully, identify discrepancies or migration errors, and verify that the target is ready for application connectivity. Give me a clear go or no-go recommendation, show the evidence behind it, and provide remediation steps for anything that still needs attention.",
             ),
 
             walkthroughMediaAlt: l10n.t("Animated walkthrough of MSSQL features in VS Code"),
