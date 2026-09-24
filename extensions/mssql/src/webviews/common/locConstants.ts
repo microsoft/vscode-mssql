@@ -3643,15 +3643,6 @@ export class LocConstants {
                 "New to MSSQL extension? Check out our quick-start guide.",
             ),
             previewBadge: l10n.t("Preview"),
-            footerText: (version: string) =>
-                l10n.t({
-                    message:
-                        "You are seeing this message because you updated the MSSQL extension to version {0}.",
-                    args: [version],
-                    comment: ["{0} is the version number of the MSSQL extension"],
-                }),
-            dontShowAgain: l10n.t("Don't show this again"),
-            close: l10n.t("Close"),
         };
     }
 
@@ -3968,6 +3959,466 @@ export class LocConstants {
             couldNotLoadRestorePlan: l10n.t("Could not load restore plan"),
             chooseBackupFile: l10n.t("Please choose a backup file to load restore plan"),
             chooseBlob: l10n.t("Please choose a blob to load restore plan"),
+        };
+    }
+
+    public get overview() {
+        return {
+            title: l10n.t("SQL Server (mssql)"),
+            subtitle: l10n.t("Connect a database, start from a template, or learn something new."),
+            version: (version: string) =>
+                l10n.t({
+                    message: "v{0}",
+                    args: [version],
+                    comment: ["{0} is the extension version, e.g. 1.46.0"],
+                }),
+            showReleaseNotesAfterUpdates: l10n.t("Show release notes after updates"),
+            addConnection: l10n.t("Add connection"),
+            deploy: l10n.t("Deploy"),
+            moreDeployOptions: l10n.t("More deploy options"),
+            newLocalContainer: l10n.t("Local SQL Server container"),
+            newFabricDatabase: l10n.t("SQL database in Fabric"),
+            newAzureSqlDatabase: l10n.t("Azure SQL Database"),
+            freeTag: l10n.t("Free"),
+            moreNewOptions: l10n.t("More new options"),
+            newQuery: l10n.t("New query"),
+            newNotebook: l10n.t("New SQL Notebook"),
+            openSqlFile: l10n.t("Open SQL file..."),
+
+            build: l10n.t("Build"),
+            agentSkillsTab: l10n.t("Agent skills"),
+            agentSkillsIntro: l10n.t(
+                "Add specialized skills to GitHub Copilot to help you work with SQL Server and Azure SQL.",
+            ),
+            walkthroughsIntro: l10n.t(
+                "Short guided tours that set up a working example, one step at a time.",
+            ),
+            walkthroughsTab: l10n.t("Walkthroughs"),
+            devContainersTab: l10n.t("Dev containers"),
+
+            extensionPublisher: l10n.t("Microsoft"),
+            agentSkillsName: l10n.t("Microsoft SQL"),
+            agentSkillsPlugin: l10n.t("Plugin"),
+            agentSkillsMeta: (count: number) =>
+                count === 1
+                    ? l10n.t("Plugin · Includes 1 skill")
+                    : l10n.t({
+                          message: "Plugin · Includes {0} skills",
+                          args: [count],
+                          comment: ["{0} is the number of skills the plugin bundles"],
+                      }),
+            addToGitHubCopilot: l10n.t("Add to GitHub Copilot"),
+            manageAgentSkillsPlugin: l10n.t("Manage plugin"),
+            agentSkillsInstalling: l10n.t("Installing..."),
+            agentSkillsDescription: l10n.t(
+                "Give GitHub Copilot Azure SQL expertise to help you connect your app, design schemas, write queries, add vector search, and troubleshoot database issues.",
+            ),
+            migrationSkillsName: l10n.t("Microsoft SQL migration"),
+            migrationSkillsDescription: l10n.t(
+                "Let GitHub Copilot guide your migration from assessment through validation — recommend a target and method, build the prerequisite plan, size the Azure SQL SKU, run the migration, and validate the data afterwards.",
+            ),
+            agentSkillsRepository: l10n.t("Repository"),
+            viewAgentSkills: l10n.t("View skills"),
+            agentSkillsLoading: l10n.t("Loading skills..."),
+            agentSkillsLoadFailed: l10n.t(
+                "The skills list couldn't be loaded from GitHub. Check your connection and try again.",
+            ),
+            retry: l10n.t("Retry"),
+            agentSkillsFilterPlaceholder: l10n.t("Filter skills"),
+            agentSkillsFilterMatches: (shown: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} skills",
+                    args: [shown, total],
+                    comment: [
+                        "{0} is the number of skills matching the filter",
+                        "{1} is the total number of skills in the collection",
+                    ],
+                }),
+            agentSkillsNoMatches: l10n.t("No skills match that filter."),
+            viewSkillSource: l10n.t("Open this skill on GitHub"),
+            agentSkillsCount: (count: number) =>
+                count === 1
+                    ? l10n.t("1 skill")
+                    : l10n.t({
+                          message: "{0} skills",
+                          args: [count],
+                          comment: [
+                              "{0} is the number of agent skills available in the repository",
+                          ],
+                      }),
+            agentSkillsGroupHeader: (name: string, count: number) =>
+                l10n.t({
+                    message: "{0} ({1})",
+                    args: [name, count],
+                    comment: [
+                        "{0} is the name of a collection of agent skills",
+                        "{1} is the number of skills listed in that collection",
+                    ],
+                }),
+            tryThesePrompts: l10n.t("Try these prompts"),
+            promptsNeedSkills: l10n.t(
+                "For best results, install plugin before using these prompts.",
+            ),
+            copyPrompt: l10n.t("Copy"),
+            promptCopied: l10n.t("Copied"),
+            openPromptInCopilot: l10n.t("Open in Copilot"),
+
+            promptTagConnect: l10n.t("Connect"),
+            promptTagBuild: l10n.t("Build"),
+            promptTagAi: l10n.t("AI"),
+            promptTagDiagnose: l10n.t("Diagnose"),
+            promptConnectNodeTitle: l10n.t(
+                "Connect my Node app to Azure SQL Database without a password",
+            ),
+            promptConnectNodeDescription: l10n.t(
+                "Configure a Node.js application to use secure Microsoft Entra authentication.",
+            ),
+            promptScaffoldAppTitle: l10n.t(
+                "Scaffold the schema, migrations, and data layer for this app",
+            ),
+            promptScaffoldAppDescription: l10n.t(
+                "Inspect the current project and build its Azure SQL persistence layer.",
+            ),
+            promptVectorSearchTitle: l10n.t(
+                "Add vector search to this table and make it use the index",
+            ),
+            promptVectorSearchDescription: l10n.t(
+                "Add indexed vector search using Azure SQL's native vector capabilities.",
+            ),
+            promptError40613Title: l10n.t("Why does my first query after idle fail with 40613"),
+            promptError40613Description: l10n.t(
+                "Diagnose serverless resume behavior and make the application resilient to it.",
+            ),
+
+            promptTagAssess: l10n.t("Assess"),
+            promptTagPlan: l10n.t("Plan"),
+            promptTagSize: l10n.t("Size"),
+            promptTagValidate: l10n.t("Validate"),
+            promptMigrationPathTitle: l10n.t("Which Azure target should this SQL Server move to?"),
+            promptMigrationPathDescription: l10n.t(
+                "Pre-select candidate targets and migration methods before any assessment data exists.",
+            ),
+            promptMigrationPrerequisitesTitle: l10n.t(
+                "What has to be ready before I run this migration?",
+            ),
+            promptMigrationPrerequisitesDescription: l10n.t(
+                "Turn a chosen migration path into a sourced prerequisite checklist.",
+            ),
+            promptSkuSizingTitle: l10n.t("Size an Azure SQL SKU from this server's performance"),
+            promptSkuSizingDescription: l10n.t(
+                "Collect performance data from an on-premises server and recommend a SKU.",
+            ),
+            promptValidateMigrationTitle: l10n.t(
+                "Validate the data now that the migration is done",
+            ),
+            promptValidateMigrationDescription: l10n.t(
+                "Reconcile the source and target tables without changing either side.",
+            ),
+
+            promptConnectNodeBody: l10n.t(
+                "Connect this Node.js app to Azure SQL Database using Microsoft Entra authentication instead of a SQL login. Wire up the connection so it works both on my machine and from the deployed app, and make sure no database password ends up in the repository or in configuration.",
+            ),
+            promptScaffoldAppBody: l10n.t(
+                "Look at this project and build its Azure SQL persistence layer: design tables for the entities it already has, add ordered migration scripts that are safe to re-run, and generate the data access code the app calls. Run the migrations against the application database, never against master.",
+            ),
+            promptVectorSearchBody: l10n.t(
+                "Add vector search to this table using Azure SQL's native VECTOR type and VECTOR_DISTANCE. Store the embeddings, write the similarity query, then show me how to confirm it is using a vector index rather than scanning the whole table.",
+            ),
+            promptError40613Body: l10n.t(
+                "My first query after an idle period fails with error 40613 against Azure SQL Database. Explain what the serverless tier is doing when that happens, then change this app's connection and retry handling so the resume is absorbed instead of surfacing as a failed request.",
+            ),
+            promptMigrationPathBody: l10n.t(
+                "I want to move a SQL Server estate to Azure and have no assessment data yet. Ask me the discovery questions you need, then recommend the candidate Azure targets and migration methods that fit, the blockers that would rule each one out, and the evidence I still have to collect. Treat the recommendation as provisional until assessment tooling confirms it.",
+            ),
+            promptMigrationPrerequisitesBody: l10n.t(
+                "I have chosen a migration path for this SQL Server. Build the prerequisite plan for it: what has to be in place on the source, on the target and on the network before I execute, plus a readiness summary I can hand to a partner. Ask me only the questions this path actually needs.",
+            ),
+            promptSkuSizingBody: l10n.t(
+                "This is an on-premises SQL Server instance. Collect performance data from it and recommend an Azure SQL SKU sized from that data, not from a guess. Tell me what the collection needs before it starts and how long it should run to be representative.",
+            ),
+            promptValidateMigrationBody: l10n.t(
+                "The migration target is online. Validate it against the source without changing data, schema or configuration on either side: compare the user table inventory and the exact row counts for every mapped table, and report the tables that do not reconcile.",
+            ),
+
+            walkthroughMediaAlt: l10n.t("Animated walkthrough of MSSQL features in VS Code"),
+
+            exploreFeaturesSubtitle: l10n.t(
+                "A tour of what the extension can do, grouped by what you want to accomplish.",
+            ),
+            featureGroupDesignSchema: l10n.t("Design schema"),
+            featureGroupAddEditData: l10n.t("Add & edit data"),
+            featureGroupQueryAnalyze: l10n.t("Query & analyze"),
+            featureGroupMoveProtect: l10n.t("Move & protect data"),
+            featureGroupBuildShip: l10n.t("Build & ship"),
+            featureSchemaDesignerTitle: l10n.t("Schema Designer"),
+            featureSchemaDesignerDescription: l10n.t(
+                "Use the Schema Designer to visualize your app's tables and relationships, and to add, edit, or delete them.",
+            ),
+            featureTableDesignerTitle: l10n.t("Table Designer"),
+            featureTableDesignerDescription: l10n.t(
+                "Create and manage tables with a visual interface",
+            ),
+            featureEditDataTitle: l10n.t("Edit Data"),
+            featureEditDataDescription: l10n.t(
+                "Browse and modify table data inline without writing T-SQL",
+            ),
+            featureImportFlatFileTitle: l10n.t("Import flat file"),
+            featureImportFlatFileDescription: l10n.t(
+                "Import flat files (CSV, TXT) as new database tables using a guided wizard",
+            ),
+            featureQueryEditorTitle: l10n.t("Query Editor"),
+            featureQueryEditorDescription: l10n.t("Write T-SQL with IntelliSense."),
+            featureQueryPlansTitle: l10n.t("Query Plans"),
+            featureQueryPlansDescription: l10n.t(
+                "Analyze execution plans with interactive node navigation",
+            ),
+            featureQueryProfilerTitle: l10n.t("Query Profiler"),
+            featureQueryProfilerDescription: l10n.t(
+                "Real-time database activity monitoring with Extended Events",
+            ),
+            featureNotebooksTitle: l10n.t("SQL Notebooks"),
+            featureNotebooksDescription: l10n.t(
+                "Jupyter-based SQL notebooks with rich results and IntelliSense.",
+            ),
+            featureDacpacTitle: l10n.t("DACPAC / BACPAC"),
+            featureDacpacDescription: l10n.t(
+                "Deploy, extract, import, and export DACPAC and BACPAC files",
+            ),
+            featureBackupRestoreTitle: l10n.t("Backup & restore"),
+            featureBackupRestoreDescription: l10n.t("Back up and restore SQL Server databases"),
+            featureSchemaCompareTitle: l10n.t("Schema Compare"),
+            featureSchemaCompareDescription: l10n.t(
+                "Compare and synchronize schemas between databases or DACPACs",
+            ),
+            featureSqlProjectsTitle: l10n.t("SQL Projects"),
+            featureSqlProjectsDescription: l10n.t(
+                "Build, publish with the visual Publish Dialog, and analyze SQL projects with Code Analysis",
+            ),
+            featureDataApiBuilderTitle: l10n.t("Data API Builder"),
+            featureDataApiBuilderDescription: l10n.t(
+                "Use Database API Builder to generate a backend data API directly from your schema, exposing REST, GraphQL, or MCP endpoints.",
+            ),
+
+            stepOfTotal: (step: number, total: number) =>
+                l10n.t({
+                    message: "Step {0} of {1}",
+                    args: [step, total],
+                    comment: ["{0} is the current step number", "{1} is the total step count"],
+                }),
+
+            wtConnectStep1Title: l10n.t("Create a connection"),
+            wtConnectStep1Description: l10n.t(
+                "Open the Connection dialog and connect to your SQL database",
+            ),
+            wtConnectStep1Action: l10n.t("Open Connection dialog"),
+            wtConnectStep2Title: l10n.t("Explore in Object Explorer"),
+            wtConnectStep2Description: l10n.t(
+                "Explore your databases, tables, views, and stored procedures in the Object Explorer.",
+            ),
+            wtConnectStep3Title: l10n.t("Open a new query"),
+            wtConnectStep3Description: l10n.t(
+                "Open a new SQL editor and start writing queries with IntelliSense",
+            ),
+            wtConnectStep3Action: l10n.t("New query"),
+            wtConnectStep4Title: l10n.t("Run and read results"),
+            wtConnectStep4Description: (runShortcut: string) =>
+                l10n.t(
+                    "Execute with Run (or {0}) and sort, filter, and export the results grid.",
+                    runShortcut,
+                ),
+
+            walkthroughAppTitle: l10n.t("Build & connect an app"),
+            walkthroughAppDescription: l10n.t(
+                "Build a database-backed app from setup to API and running.",
+            ),
+            wtAppLocalContainerTitle: l10n.t("Create a local container"),
+            wtAppLocalContainerDescription: l10n.t(
+                "Create a local SQL Server container for your app.",
+            ),
+            wtAppLocalContainerAction: l10n.t("Create local container"),
+            wtAppCreateDatabaseTitle: l10n.t("Create a database"),
+            wtAppCreateDatabaseDescription: l10n.t(
+                "Create a database on your local SQL Server instance.",
+            ),
+            wtAppStep1Title: l10n.t("Design your schema"),
+            wtAppStep1Description: l10n.t(
+                "Use the Schema Designer to model tables and relationships for your app.",
+            ),
+            wtAppEditDataTitle: l10n.t("Add and edit data"),
+            wtAppEditDataDescription: l10n.t(
+                "Add and edit rows in your tables using the Edit Data grid.",
+            ),
+            wtAppStep2Title: l10n.t("Generate a data API"),
+            wtAppStep2Description: l10n.t(
+                "Point Data API Builder at your tables to expose REST and GraphQL endpoints.",
+            ),
+            wtAppStep4Title: l10n.t("Run and iterate"),
+            wtAppStep4Description: l10n.t(
+                "Run your app against the API and keep refining the schema as you go.",
+            ),
+
+            wtCopilotStep1Title: l10n.t("Agent mode"),
+            wtCopilotStep1Description: l10n.t(
+                "Delegate multi-step database tasks to Copilot, from connecting to databases and exploring schemas to running queries and making changes.",
+            ),
+            wtCopilotStep2Title: l10n.t("Ask mode"),
+            wtCopilotStep2Description: l10n.t(
+                "Ask questions about your connected database, generate queries, and understand schemas or database objects using natural language using the @mssql command.",
+            ),
+            wtCopilotStep3Title: l10n.t("Query quick actions"),
+            wtCopilotStep3Description: l10n.t(
+                "Explain, fix, or analyze query performance directly from the SQL editor with GitHub Copilot.",
+            ),
+            wtCopilotStep4Title: l10n.t("Schema designer"),
+            wtCopilotStep4Description: l10n.t(
+                "Visualize and design your database with natural language, while GitHub Copilot turns your requests into tables, relationships, and schema changes.",
+            ),
+            wtCopilotStep5Title: l10n.t("Data API Builder"),
+            wtCopilotStep5Description: l10n.t(
+                "Create REST, GraphQL, and MCP endpoints from your database using natural language in Data API Builder.",
+            ),
+            walkthroughLearnMoreAction: l10n.t("Learn more"),
+
+            walkthroughConnectTitle: l10n.t("Connect & run your first query"),
+            walkthroughConnectDescription: l10n.t(
+                "Get familiar with the core database experience in the MSSQL extension.",
+            ),
+            walkthroughCopilotTitle: l10n.t("GitHub Copilot for SQL"),
+            walkthroughCopilotDescription: l10n.t(
+                "Explore AI-assisted SQL development, from queries to schemas and data APIs.",
+            ),
+
+            devContainersDescription: l10n.t(
+                "Launch a preconfigured code template with a local SQL container and your app stack, giving you everything needed to start developing locally.",
+            ),
+            devContainerDotNet: l10n.t(".NET + Azure SQL"),
+            devContainerDotNetAspire: l10n.t(".NET Aspire + Azure SQL"),
+            devContainerNode: l10n.t("Node.js + Azure SQL"),
+            devContainerPython: l10n.t("Python + Azure SQL"),
+            devContainerDotNetSubtitle: l10n.t("Dev container \u00b7 C# \u00b7 .NET"),
+            devContainerDotNetAspireSubtitle: l10n.t("Dev container \u00b7 C# \u00b7 Aspire"),
+            devContainerNodeSubtitle: l10n.t("Dev container \u00b7 JavaScript \u00b7 Node.js"),
+            devContainerPythonSubtitle: l10n.t("Dev container \u00b7 Python"),
+            devContainersLearnMore: l10n.t("Learn more about dev containers for Azure SQL"),
+            viewOnGitHub: l10n.t("View on GitHub"),
+
+            prerequisites: l10n.t("Prerequisites"),
+            showLog: l10n.t("Show log"),
+            templateLocation: l10n.t("Location"),
+            locationWorkspace: l10n.t("Add configuration to the current workspace"),
+            locationWorkspaceDescription: l10n.t(
+                "Shares the configuration with others through source control",
+            ),
+            locationNewFolder: l10n.t("Create a new project folder"),
+            locationNewFolderDescription: l10n.t("Sets the project up somewhere else and opens it"),
+            // Says what the folder is for without promising it exists yet: with nothing open,
+            // this is a folder that gets created when the template is applied.
+            templateLocationDescription: l10n.t("Where the project will be created."),
+            browse: l10n.t("Browse..."),
+            templateOptions: l10n.t("Options"),
+            templateOptionDefault: (value: string) =>
+                l10n.t({
+                    message: "{0} (default)",
+                    args: [value],
+                    comment: ["{0} is a template option value, such as a version number"],
+                }),
+            prerequisiteDocker: l10n.t("Docker Desktop"),
+            prerequisiteDockerDescription: l10n.t("Required for running containers."),
+            prerequisiteDevContainers: l10n.t("Dev Containers extension"),
+            prerequisiteDevContainersDescription: l10n.t("Enables working with dev containers."),
+            openFolder: l10n.t("Open Folder"),
+            devContainerConfigFound: l10n.t(
+                "The workspace already has a dev container configuration.",
+            ),
+            openVsCodeInContainer: l10n.t("Open VS Code in container"),
+            openInContainerHint: l10n.t(
+                "Opening builds the container and reloads this window inside it.",
+            ),
+            devContainerSetUpSteps: l10n.t("Set up"),
+            stepAddConfigurationFailed: l10n.t("Could not write the configuration."),
+            stepAddConfigurationConflict: l10n.t("Setup was canceled. No files were overwritten."),
+            stepAddConfigurationPicker: l10n.t(
+                "Opened the Dev Containers extension's template picker instead.",
+            ),
+            stepAddConfiguration: l10n.t("Dev container configuration"),
+            stepAddConfigurationDescription: l10n.t(
+                "Writes this template's .devcontainer files into the current workspace.",
+            ),
+
+            recheck: l10n.t("Recheck"),
+            prerequisiteReady: l10n.t("Ready"),
+            prerequisiteMissing: l10n.t("Not found"),
+            prerequisiteChecking: l10n.t("Checking..."),
+            install: l10n.t("Install"),
+            learnMoreAboutTemplate: l10n.t("Learn more about this template"),
+
+            videos: l10n.t("Videos"),
+            videoWhatsNewTitle: l10n.t("Explore what's new in the MSSQL extension"),
+            videoWhatsNewSubtitle: l10n.t("Agent skills, SQL formatter, and landing page"),
+            videoGettingStartedTitle: l10n.t(
+                "Getting started with the MSSQL extension in 5 minutes",
+            ),
+            videoGettingStartedSubtitle: l10n.t("Connect to your database & run your first query"),
+            videoVsCodeLiveTitle: l10n.t("Build an AI-ready app"),
+            videoVsCodeLiveSubtitle: l10n.t(
+                "GitHub Copilot, Schema Designer, and Data API Builder",
+            ),
+            seeFullPlaylistPrefix: l10n.t("See the full playlist on"),
+            youtube: l10n.t("YouTube"),
+            openLinkTooltip: (label: string) =>
+                l10n.t({
+                    message: "Open {0}",
+                    args: [label],
+                    comment: ["{0} is the label of the link destination"],
+                }),
+
+            recentFiles: l10n.t("Recent SQL files"),
+            noRecentFiles: l10n.t("SQL files you open will show up here."),
+
+            discover: l10n.t("Discover"),
+            exploreFeaturesTitle: l10n.t("Explore features"),
+            exploreFeaturesDescription: l10n.t(
+                "A tour of what the extension can do, grouped by task.",
+            ),
+            keyboardShortcutsTitle: l10n.t("Keyboard shortcuts"),
+            shortcutsIntro: l10n.t(
+                "These are the default MSSQL extension keyboard shortcuts, for Command Palette commands and the query results pane. Customize any of them in Shortcuts Configuration.",
+            ),
+            shortcutsCommand: l10n.t("Command"),
+            shortcutsWindowsLinux: l10n.t("Windows / Linux"),
+            shortcutsMacOs: l10n.t("macOS"),
+            shortcutsQueryResultsPane: l10n.t("Query Results Pane"),
+            shortcutsNavigateResultGrids: l10n.t("Navigate result grids"),
+            shortcutsKeymapPrefix: l10n.t(
+                "Prefer Azure Data Studio or SSMS-style shortcuts? Install the",
+            ),
+            shortcutsKeymapLink: l10n.t("MSSQL Database Management Keymap extension."),
+            openShortcutsConfiguration: l10n.t("Open Shortcuts Configuration"),
+            whatsNewGotIt: l10n.t("Got it"),
+            whatsNewAllReleaseNotes: l10n.t("See all release notes"),
+            preview: l10n.t("Preview"),
+            keyboardShortcutsDescription: l10n.t(
+                "Default shortcuts for commands and the results grid.",
+            ),
+            whatsNewTitle: l10n.t("What's new"),
+            whatsNewDescription: (version: string) =>
+                l10n.t({
+                    message: "Highlights from recent releases - v{0}.",
+                    args: [version],
+                    comment: ["{0} is the extension version, e.g. 1.46.0"],
+                }),
+            devHubTitle: l10n.t("Azure SQL Dev Hub"),
+            devHubDescription: l10n.t("Learning paths, tutorials, samples, and community."),
+
+            resourcesAndFeedback: l10n.t("Resources & feedback"),
+            resources: l10n.t("Resources"),
+            feedback: l10n.t("Feedback"),
+            watchDemos: l10n.t("Watch demos on YouTube"),
+            viewRoadmap: l10n.t("View the roadmap"),
+            readDocs: l10n.t("Read the docs on Microsoft Learn"),
+            reportBug: l10n.t("Report a bug"),
+            requestFeature: l10n.t("Request a feature"),
+            joinDiscussions: l10n.t("Join the discussions"),
         };
     }
 }

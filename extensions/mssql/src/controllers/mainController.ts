@@ -134,6 +134,15 @@ import { SqlSymbolRenameProvider } from "../languageservice/sqlSymbolRenameProvi
 import { SqlMoveToSchemaProvider } from "../languageservice/sqlMoveToSchemaProvider";
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
+import { OverviewOpenOptions, OverviewWebviewController } from "./overviewWebviewController";
+import {
+    AGENT_SKILL_PLUGINS,
+    AgentSkillPluginName,
+    OverviewOpenSource,
+} from "../sharedInterfaces/overview";
+import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
+import { AgentPluginsInstaller, AgentSkillsDownloads } from "../agentPlugins/agentPluginsInstaller";
+import { DeploymentType, isDeploymentType } from "../sharedInterfaces/deployment";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
 import { ILogger } from "../sharedInterfaces/logger";
@@ -157,6 +166,8 @@ import {
 import { AzureResourcesExtensionIntegration } from "../integration/azureResourcesIntegration";
 import { FabricDatabaseHubIntegration } from "../integration/fabricDatabaseHubIntegration";
 
+const overviewVisibilityStorageKey = "overviewVisibility";
+
 /**
  * The main controller class that initializes the extension
  */
@@ -171,6 +182,9 @@ export default class MainController implements vscode.Disposable {
     private _sqlDocumentService: SqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
     private _queryHistoryProvider: QueryHistoryProvider;
+    private _overviewController: OverviewWebviewController | undefined;
+    private _recentSqlFilesStore: RecentSqlFilesStore;
+    private _agentPluginsInstallers: ReadonlyMap<AgentSkillPluginName, AgentPluginsInstaller>;
     private _backgroundTaskLogContentProvider: BackgroundTaskLogContentProvider;
     private _backgroundTasksProvider: BackgroundTasksProvider;
     private _scriptingService: ScriptingService;
@@ -347,10 +361,16 @@ export default class MainController implements vscode.Disposable {
             this.registerCommandWithArgs(Constants.cmdDeployNewDatabase);
             this._event.on(Constants.cmdDeployNewDatabase, (args?: any) => {
                 let initialConnectionGroup: string | undefined;
-                if (args && args instanceof ConnectionGroupNode) {
+                let initialDeploymentType: DeploymentType | undefined;
+                if (args instanceof ConnectionGroupNode) {
                     initialConnectionGroup = args.connectionGroup?.id;
+                } else if (isDeploymentType(args?.deploymentType)) {
+                    // Anything else falls through to the chooser rather than being handed on: the
+                    // deployment controller keys its type-specific state off this value, so an
+                    // unknown one leaves that state undefined.
+                    initialDeploymentType = args.deploymentType;
                 }
-                this.onDeployNewDatabase(initialConnectionGroup);
+                this.onDeployNewDatabase(initialConnectionGroup, initialDeploymentType);
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -435,6 +455,26 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdOpenChangelog, async () => {
                 const changelogController = new ChangelogWebviewController(this._context);
                 await changelogController.revealToForeground();
+            });
+            this.registerCommandWithArgs(Constants.cmdOpenOverview);
+            this._event.on(Constants.cmdOpenOverview, async (args: unknown) => {
+                // Invoked from the Getting Started node's context menu this receives the
+                // tree item, so the options are shape-checked rather than trusted.
+                const options =
+                    typeof args === "object" && args !== null ? (args as OverviewOpenOptions) : {};
+                const openWhatsNew = options.openWhatsNew === true;
+
+                if (!this._overviewController || this._overviewController.isDisposed) {
+                    this._overviewController = new OverviewWebviewController(
+                        this._context,
+                        this._recentSqlFilesStore,
+                        this._agentPluginsInstallers,
+                        { openWhatsNew, source: options.source },
+                    );
+                } else if (openWhatsNew) {
+                    this._overviewController.openWhatsNew();
+                }
+                this._overviewController.revealToForeground();
             });
             this.registerCommand(Constants.cmdOpenAzureDataStudioMigration);
             this._event.on(Constants.cmdOpenAzureDataStudioMigration, async () => {
@@ -690,6 +730,8 @@ export default class MainController implements vscode.Disposable {
 
             this.initializeQueryHistory();
             this.initializeBackgroundTasks();
+            this.initializeRecentSqlFiles();
+            this.initializeAgentPlugins();
 
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
@@ -1525,6 +1567,39 @@ export default class MainController implements vscode.Disposable {
         // Register the object explorer tree provider
         this._objectExplorerProvider =
             objectExplorerProvider ?? new ObjectExplorerProvider(this._connectionMgr);
+
+        const isOverviewVisible =
+            this._context.globalState.get<boolean>(overviewVisibilityStorageKey, true) ?? true;
+        this._objectExplorerProvider.setOverviewVisibility(isOverviewVisible);
+        await vscode.commands.executeCommand(
+            "setContext",
+            Constants.overviewVisibleContextKey,
+            isOverviewVisible,
+        );
+
+        const setOverviewVisibility = async (isVisible: boolean): Promise<void> => {
+            await this._context.globalState.update(overviewVisibilityStorageKey, isVisible);
+            await vscode.commands.executeCommand(
+                "setContext",
+                Constants.overviewVisibleContextKey,
+                isVisible,
+            );
+            this._objectExplorerProvider.setOverviewVisibility(isVisible);
+        };
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdHideOverviewInObjectExplorer, () =>
+                setOverviewVisibility(false),
+            ),
+            vscode.commands.registerCommand(Constants.cmdShowOverviewInObjectExplorer, () =>
+                setOverviewVisibility(true),
+            ),
+            vscode.commands.registerCommand(Constants.cmdOpenOverviewFromNode, () =>
+                vscode.commands.executeCommand(Constants.cmdOpenOverview, {
+                    source: OverviewOpenSource.TreeNode,
+                }),
+            ),
+        );
 
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,
@@ -2623,6 +2698,36 @@ export default class MainController implements vscode.Disposable {
         return sections.length > 0 ? sections.join("\n") : undefined;
     }
 
+    private initializeRecentSqlFiles(): void {
+        this._recentSqlFilesStore = new RecentSqlFilesStore(this._context);
+        this._recentSqlFilesStore.register();
+        this._context.subscriptions.push(this._recentSqlFilesStore);
+    }
+
+    /**
+     * The check is throttled to once a day inside the installer, so running it on every
+     * activation costs nothing on the activations that fall inside that window. It is deliberately
+     * not awaited: a slow or unreachable network must not hold up activation.
+     */
+    private initializeAgentPlugins(): void {
+        // One set of downloads for every plugin: they ship from the same repository, so the
+        // revision check and the archive are shared rather than fetched once per plugin.
+        const downloads = new AgentSkillsDownloads(this._context);
+        this._agentPluginsInstallers = new Map(
+            AGENT_SKILL_PLUGINS.map((plugin) => [
+                plugin,
+                new AgentPluginsInstaller(this._context, plugin, downloads),
+            ]),
+        );
+        // Best effort. An unreachable network, a bad archive or a filesystem failure leaves the
+        // installed copy alone, so it is logged rather than allowed to reject out of activation.
+        for (const [plugin, installer] of this._agentPluginsInstallers) {
+            void installer.checkForUpdates().catch((error) => {
+                this._logger.error(`Checking for ${plugin} skill updates failed`, error);
+            });
+        }
+    }
+
     /**
      * Initializes the Query History commands
      */
@@ -2946,13 +3051,17 @@ export default class MainController implements vscode.Disposable {
         return true;
     }
 
-    public onDeployNewDatabase(initialConnectionGroup?: string): void {
+    public onDeployNewDatabase(
+        initialConnectionGroup?: string,
+        initialDeploymentType?: DeploymentType,
+    ): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
         const reactPanel = new DeploymentWebviewController(
             this._context,
             this,
             initialConnectionGroup,
+            initialDeploymentType,
         );
         reactPanel.revealToForeground();
     }

@@ -223,7 +223,7 @@ export class WebviewRpc<Reducers> {
         return this.connection.sendNotification(type, params as RequestParam<P>);
     }
 
-    public onNotification<P>(type: NotificationType<P>, handler: (params: P) => void): void {
-        this.connection.onNotification(type, handler);
+    public onNotification<P>(type: NotificationType<P>, handler: (params: P) => void): Disposable {
+        return this.connection.onNotification(type, handler);
     }
 }
