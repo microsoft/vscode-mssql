@@ -15,7 +15,6 @@ export const changelogConfig: ChangelogWebviewState = {
             {
                 title: locConstants.Changelog.sqlFormatterTitle,
                 description: locConstants.Changelog.sqlFormatterDescription,
-                isPreview: true,
                 actions: [
                     {
                         label: locConstants.Changelog.learnMore,
@@ -248,21 +247,6 @@ export const changelogConfig: ChangelogWebviewState = {
             ],
         },
     ],
-    event: {
-        mainTitle: "SQLCON EU",
-        secondaryTitle: "Microsoft SQL\nCOMMUNITY CONFERENCE",
-        location: { name: "BARCELONA", timezone: "+02:00" }, // keep timezone in UTC offset format "+HH:MM"
-        date: "2026-09-28", // keep YYYY-MM-DD format; front-end will "prettify" it
-        endDate: "2026-10-01",
-        actionButton: {
-            text: locConstants.Changelog.sqlconEuRegister,
-            url: "https://aka.ms/sqlconeu?ocid=sqlconeu_vscode_inproduct_azdata",
-        },
-        description: [
-            locConstants.Changelog.sqlconEuDescription1,
-            locConstants.Changelog.sqlconEuDescription2,
-        ],
-        codeSnippets: ["VSCODE200"],
-    },
+    event: undefined,
     version: vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown",
 };
