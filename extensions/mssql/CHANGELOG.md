@@ -9,7 +9,7 @@
 
 - Released the new SQL formatter as generally available (GA), giving users more formatting options and greater control over T-SQL style and layout
 - Added a new MSSQL Getting Started page (Preview) to make it easier to start using the extension with one-click MSSQL Agent skills installation, dev container templates, walkthrough, and learning resources
-- Added the ability to save filters in the Object Explorer Filters dialog, and fixed an issue where Object Explorer entries could could remain stuck on "Loading..." after a filter was applied
+- Added the ability to save filters in the Object Explorer Filters dialog, and fixed an issue where Object Explorer entries could remain stuck on "Loading..." after a filter was applied
 - Added optional sound notifications when query execution completes, so long-running queries can notify you when they finish. Enable with `mssql.query.playCompletionSound` and choose a custom .wav file by setting `mssql.query.completionSoundFile`
 - Fixed issues in the Query Results where error numbers could not be clicked to jump to the problematic T-SQL, and where `PRINT` statements in result-less batches may not be visible
 - Added object filters to Schema Compare to group changes by object type
