@@ -73,7 +73,10 @@ import {
     autoSizeFluentResultGridColumnByContent,
     getFluentResultGridColumnResizeDoubleClickTarget,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridColumnAutosize";
-import { isFluentResultGridResizeHandleEvent } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridHeaderController";
+import {
+    isFluentResultGridResizeHandleEvent,
+    updateFluentResultGridHeaderButtonStates,
+} from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridHeaderController";
 import { FluentResultGridSelectionModel } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSelectionModel";
 import { dispatchFluentResultGridSelectionChange } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSlickLifecycle";
 import { createFluentResultGridDataView } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridDataView";
@@ -196,6 +199,78 @@ suite("Fluent Result Grid", () => {
                 } as unknown as MouseEvent),
             ).to.equal(false);
             expect(isFluentResultGridResizeHandleEvent(undefined)).to.equal(false);
+        });
+
+        test("publishes sort and filter state on data column headers", () => {
+            function createHeader() {
+                const attributes = new Map<string, string>();
+                const sortClasses = new Set<string>();
+                const filterClasses = new Set<string>();
+                const classList = (classes: Set<string>) => ({
+                    add: (...tokens: string[]) => tokens.forEach((token) => classes.add(token)),
+                    remove: (...tokens: string[]) =>
+                        tokens.forEach((token) => classes.delete(token)),
+                    toggle: (token: string, force?: boolean) => {
+                        if (force ?? !classes.has(token)) {
+                            classes.add(token);
+                            return true;
+                        }
+                        classes.delete(token);
+                        return false;
+                    },
+                });
+                const node = {
+                    querySelector: (selector: string) => ({
+                        classList: classList(
+                            selector === ".slick-header-sortbutton" ? sortClasses : filterClasses,
+                        ),
+                    }),
+                    setAttribute: (name: string, value: string) => attributes.set(name, value),
+                } as unknown as HTMLElement;
+                return { attributes, filterClasses, node, sortClasses };
+            }
+
+            const headers = [createHeader(), createHeader()];
+
+            const grid = {
+                getColumns: sandbox
+                    .stub()
+                    .returns([
+                        { id: FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID },
+                        { id: "0" },
+                        { id: "1" },
+                    ]),
+                getColumnIndex: sandbox
+                    .stub()
+                    .callsFake((columnId: string) => (columnId === "0" ? 1 : 2)),
+                getHeaderColumn: sandbox
+                    .stub()
+                    .callsFake((columnIndex: number) => headers[columnIndex - 1].node),
+            } as unknown as SlickGrid;
+
+            updateFluentResultGridHeaderButtonStates({
+                grid,
+                filters: { "0": { columnDef: "0", filterValues: ["red"] } },
+                sort: { columnId: "0", direction: SortProperties.ASC },
+            });
+
+            expect(headers[0].attributes.get("data-sort-direction")).to.equal("asc");
+            expect(headers[0].attributes.get("data-filtered")).to.equal("true");
+            expect(headers[0].sortClasses).to.contain("sorted-asc");
+            expect(headers[0].filterClasses).to.contain("filtered");
+            expect(headers[1].attributes.get("data-sort-direction")).to.equal("none");
+            expect(headers[1].attributes.get("data-filtered")).to.equal("false");
+
+            updateFluentResultGridHeaderButtonStates({
+                grid,
+                filters: {},
+                sort: { columnId: "1", direction: SortProperties.DESC },
+            });
+
+            expect(headers[0].attributes.get("data-sort-direction")).to.equal("none");
+            expect(headers[0].attributes.get("data-filtered")).to.equal("false");
+            expect(headers[1].attributes.get("data-sort-direction")).to.equal("desc");
+            expect(headers[1].sortClasses).to.contain("sorted-desc");
         });
 
         test("retains column definitions when a result update contains the same schema", () => {
