@@ -3212,8 +3212,8 @@
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
     </trans-unit>
-    <trans-unit id="++CODE++61f0fc093740e10abe99cc55ac92c5124c8c033677c3a5a106b05f54bf6468cc">
-      <source xml:lang="en">Easily start using the extension with one-click MSSQL Agent skills installation, dev container templates, walkthrough, and learning resources.</source>
+    <trans-unit id="++CODE++2f7514a7052124c11a8ce6b0e1142e55c5cca7611f0cf9d28bb94e5dcecbc07a">
+      <source xml:lang="en">Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.</source>
     </trans-unit>
     <trans-unit id="++CODE++a05ece881012991a79aaf2cbbba9d6e11e35d05ed66f547dfaae931a8d9e50af">
       <source xml:lang="en">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</source>
