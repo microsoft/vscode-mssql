@@ -1,5 +1,24 @@
 # Change Log
 
+## Version 1.46.0
+
+- Release date: September 28, 2026
+- Release status: GA
+
+### What's new in 1.46.0
+
+- Released the new SQL formatter as generally available (GA), giving users more formatting options and greater control over T-SQL style and layout
+- Added a new MSSQL Getting Started page (Preview) to make it easier to start using the extension with one-click MSSQL Agent skills installation, dev container templates, walkthrough, and learning resources
+- Added the ability to save filters in the Object Explorer Filters dialog, and fixed an issue where Object Explorer entries could remain stuck on "Loading..." after a filter was applied
+- Added optional sound notifications when query execution completes, so long-running queries can notify you when they finish. Enable with `mssql.query.playCompletionSound` and choose a custom .wav file by setting `mssql.query.completionSoundFile`
+- Fixed issues in the Query Results where error numbers could not be clicked to jump to the problematic T-SQL, and where `PRINT` statements in result-less batches may not be visible
+- Added object filters to Schema Compare to group changes by object type
+- Improved Data API Builder with persistent deployment configurations, tracked deployments, a CLI deployment target, and support for exposing `vector` and `json` columns through the UI and GitHub Copilot
+- Improved the performance and reliability of Schema Compare
+- Fixed an issue where Flat File Import would not retain column settings after failures, and improved reliability of data type selection
+- Fixed an issue in the Edit Table Data dialog where changes might appear as unsaved after data was restored to its original values
+- Added the "Copy as" submenu to SQL Notebook result grids for copying selections as CSV, JSON, `INSERT INTO`, or `IN` clause values
+
 ## Version 1.45.1
 
 - Release date: August 26, 2026
