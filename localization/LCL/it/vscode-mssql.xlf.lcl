@@ -16849,6 +16849,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++941ba2c30164e4b1bddefd1a3eaea788f03328be07f2fec3b63d8b416c9156dd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection string redacted due to containing authentication secrets]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Stringa di connessione redatta perché contiene segreti di autenticazione]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Retry]]></Val>
@@ -23002,6 +23011,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ca2dabddc14f86e23e67b73c13a2a7cdbe2207116666e122934712564be8844c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection '{0}' was deleted because its 'connectionString' property was removed and no 'server' property was defined. Removed connection string: '{1}'.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Il '{0}' di connessione è stato eliminato perché la relativa proprietà 'connectionString' è stata rimossa e non è stata definita alcuna proprietà 'server'. Rimosso stringa di connessione: '{1}'.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Selection]]></Val>
@@ -28731,6 +28749,15 @@
           <Val><![CDATA[Copy as JSON]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Copia come JSON]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fd4cd1ebcce84a342f8bfad9435dafc4703f350e443812adf3724485e42d6894" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The 'connectionString' property was removed from connection '{0}'. Removed connection string: '{1}'.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La proprietà 'connectionString' è stata rimossa dal '{0}' di connessione. Rimosso stringa di connessione: '{1}'.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
