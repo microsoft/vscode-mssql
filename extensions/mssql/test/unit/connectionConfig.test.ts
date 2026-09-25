@@ -880,6 +880,85 @@ suite("ConnectionConfig Tests", () => {
                 expect(savedWorkspace[0]).to.not.have.property("configSource");
             });
 
+            test("addConnection infers configSource using the existing ID", async () => {
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "existing",
+                        groupId: ConnectionConfig.ROOT_GROUP_ID,
+                        server: "workspace",
+                        authenticationType: "Integrated",
+                        profileName: "Old Name",
+                    } as IConnectionProfile,
+                ]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                await connConfig.addConnection({
+                    id: "existing",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    server: "workspace",
+                    authenticationType: "Integrated",
+                    profileName: "Updated Name",
+                } as IConnectionProfile);
+
+                const workspaceConnections = getStoredConnections(ConfigurationTarget.Workspace);
+                const globalConnections = getStoredConnections(ConfigurationTarget.Global);
+
+                expect(workspaceConnections).to.have.lengthOf(1);
+                expect(workspaceConnections[0].profileName).to.equal("Updated Name");
+                expect(globalConnections).to.have.lengthOf(0);
+            });
+
+            test("removeConnection only updates the profile's config source", async () => {
+                const globalProfile = {
+                    id: "global-profile",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    server: "global",
+                    authenticationType: "Integrated",
+                    profileName: "Global Profile",
+                } as IConnectionProfile;
+                const workspaceProfile = {
+                    id: "workspace-profile",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    server: "workspace",
+                    authenticationType: "Integrated",
+                    profileName: "Workspace Profile",
+                } as IConnectionProfile;
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [globalProfile]);
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [workspaceProfile]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                const removed = await connConfig.removeConnection(workspaceProfile);
+
+                expect(removed).to.be.true;
+                expect(getStoredConnections(ConfigurationTarget.Global)).to.deep.equal([
+                    globalProfile,
+                ]);
+                expect(getStoredConnections(ConfigurationTarget.Workspace)).to.deep.equal([]);
+            });
+
+            test("addConnection skips writing an unchanged profile", async () => {
+                const profile = {
+                    id: "existing",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    server: "global",
+                    authenticationType: "Integrated",
+                    profileName: "Existing Profile",
+                } as IConnectionProfile;
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [profile]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                updateConfigurationStub.resetHistory();
+
+                await connConfig.addConnection({ ...profile });
+
+                expect(updateConfigurationStub).to.not.have.been.called;
+            });
+
             test("updateConnection infers configSource using the existing ID", async () => {
                 mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
                     {
