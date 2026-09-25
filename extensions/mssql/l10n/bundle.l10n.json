@@ -2029,6 +2029,8 @@
     "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.": "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
     "Use discount code {0} to save €200 on registration.": "Use discount code {0} to save €200 on registration.",
     "Register": "Register",
+    "MSSQL Getting Started Page": "MSSQL Getting Started Page",
+    "Easily start using the extension with one-click MSSQL Agent skills installation, dev container templates, walkthrough, and learning resources.": "Easily start using the extension with one-click MSSQL Agent skills installation, dev container templates, walkthrough, and learning resources.",
     "Failed to launch profiler: {0}/{0} is the error message": {
         "message": "Failed to launch profiler: {0}",
         "comment": ["{0} is the error message"]
