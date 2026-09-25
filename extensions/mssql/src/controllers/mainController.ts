@@ -2024,33 +2024,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdFlatFileImport,
-                async (node: ConnectionNode) => {
-                    const connectionUri = this.connectionManager.getUriForConnection(
-                        node.connectionProfile,
-                    );
-
-                    const databases = await this.connectionManager.listDatabases(connectionUri);
-
-                    // If no databases found, show error message and return early
-                    if (databases.length === 0) {
-                        void vscode.window.showErrorMessage(
-                            LocalizedConstants.FlatFileImport.noDatabasesFoundToImportInto,
-                        );
-                        return;
-                    }
-
-                    const database = ObjectExplorerUtils.getDatabaseName(node);
-
-                    const flatFileImportDialog = new FlatFileImportWebviewController(
-                        this._context,
-                        SqlToolsServerClient.instance,
-                        this.connectionManager,
-                        node.connectionProfile,
-                        node.sessionId,
-                        database,
-                    );
-                    flatFileImportDialog.revealToForeground();
-                },
+                async (node?: TreeNodeInfo) => this.onFlatFileImport(node),
             ),
         );
 
@@ -3550,6 +3524,45 @@ export default class MainController implements vscode.Disposable {
         );
 
         schemaCompareWebView.revealToForeground();
+    }
+
+    public async onFlatFileImport(node?: TreeNodeInfo): Promise<void> {
+        if (!node) {
+            const profiles = await this.connectionManager.connectionStore.getPickListItems();
+            const profile = await this.connectionManager.connectionUI.promptForConnection(profiles);
+            if (!profile) {
+                return;
+            }
+
+            node = await this.createObjectExplorerSession(profile);
+            if (!node) {
+                return;
+            }
+        }
+
+        const connectionUri = this.connectionManager.getUriForConnection(node.connectionProfile);
+
+        const databases = await this.connectionManager.listDatabases(connectionUri);
+
+        // If no databases found, show error message and return early
+        if (databases.length === 0) {
+            void vscode.window.showErrorMessage(
+                LocalizedConstants.FlatFileImport.noDatabasesFoundToImportInto,
+            );
+            return;
+        }
+
+        const database = ObjectExplorerUtils.getDatabaseName(node);
+
+        const flatFileImportDialog = new FlatFileImportWebviewController(
+            this._context,
+            SqlToolsServerClient.instance,
+            this.connectionManager,
+            node.connectionProfile,
+            node.sessionId,
+            database,
+        );
+        flatFileImportDialog.revealToForeground();
     }
 
     public async onTableExplorer(node?: any): Promise<void> {
