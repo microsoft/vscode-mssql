@@ -3735,7 +3735,7 @@ export class Changelog {
     public static sqlconEuRegister = l10n.t("Register");
     public static gettingStartedPageTitle = l10n.t("MSSQL Getting Started Page");
     public static gettingStartedPageDescription = l10n.t(
-        "Easily start using the extension with one-click MSSQL Agent skills installation, dev container templates, walkthrough, and learning resources.",
+        "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",
     );
 }
 
