@@ -9,6 +9,7 @@ import {
     containerConnectionRetryDelayMs,
     defaultPortNumber,
     localhost,
+    MAX_PORT_NUMBER,
     sa,
     sqlAuthentication,
 } from "../constants/constants";
@@ -373,15 +374,17 @@ export async function validateDockerConnectionProfile(
     return state;
 }
 
+export function isValidPortNumber(port: string): boolean {
+    return /^\d+$/.test(port) && Number(port) >= 1 && Number(port) <= MAX_PORT_NUMBER;
+}
+
 export async function validatePort(port: string): Promise<boolean> {
     // No port chosen
     if (!port) return true;
 
+    if (!isValidPortNumber(port)) return false;
+
     const portNumber = Number(port);
-
-    // Check if portNumber is a valid number
-    if (isNaN(portNumber) || portNumber <= 0) return false;
-
     const newPort = await dockerUtils.findAvailablePort(portNumber);
     return newPort === portNumber;
 }

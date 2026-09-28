@@ -20,13 +20,7 @@ import { DeploymentWebviewController } from "./deploymentWebviewController";
 import { validateSqlServerPassword } from "./sqlServerContainer";
 import { AzureSqlContainer } from "../constants/locConstants";
 import * as dockerUtils from "../docker/dockerUtils";
-import {
-    defaultPortNumber,
-    localhost,
-    MAX_PORT_NUMBER,
-    sa,
-    sqlAuthentication,
-} from "../constants/constants";
+import { defaultPortNumber, localhost, sa, sqlAuthentication } from "../constants/constants";
 import { IConnectionProfile } from "../models/interfaces";
 import MainController from "../controllers/mainController";
 import { Deferred } from "../protocol";
@@ -38,6 +32,7 @@ import {
 import { DeploymentType } from "../sharedInterfaces/deployment";
 import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
 import {
+    isValidPortNumber,
     validatePort,
     waitForContainerConnection,
     waitForContainerDelay,
@@ -75,6 +70,7 @@ const azureSqlContainerDeployments = new WeakMap<
 interface PrerequisiteCommand {
     executable: string;
     args: string[];
+    env?: NodeJS.ProcessEnv;
 }
 
 const prerequisiteCommands: Record<
@@ -162,13 +158,18 @@ export function registerAzureSqlRpcHandlers(
 
     deploymentController.onRequest(
         AzureSqlDatabaseRequests.ValidateContainerPort,
-        async ({ engine, port }) => validateAzureSqlContainerPort(engine, port),
+        async ({ port }) => {
+            if (port && !isValidPortNumber(port)) {
+                return AzureSqlContainer.invalidPort;
+            }
+            return (await validatePort(port)) ? undefined : AzureSqlContainer.portInUse;
+        },
     );
 
     deploymentController.onRequest(
         AzureSqlDatabaseRequests.GenerateContainerPort,
-        async ({ engine, startPort }) => {
-            const port = await findAvailableAzureSqlContainerPort(engine, startPort);
+        async ({ startPort = defaultPortNumber }) => {
+            const port = await dockerUtils.findAvailablePort(startPort);
             if (port <= 0) {
                 throw new Error(AzureSqlContainer.portDetectionFailed);
             }
@@ -219,27 +220,6 @@ export function registerAzureSqlRpcHandlers(
     );
 }
 
-export async function findAvailableAzureSqlContainerPort(
-    _engine: ContainerEngine,
-    startPort = defaultPortNumber,
-): Promise<number> {
-    return dockerUtils.findAvailablePort(startPort);
-}
-
-export async function validateAzureSqlContainerPort(
-    _engine: ContainerEngine,
-    port: string,
-): Promise<string | undefined> {
-    if (!port) {
-        return undefined;
-    }
-    if (!/^\d+$/.test(port) || Number(port) < 1 || Number(port) > MAX_PORT_NUMBER) {
-        return AzureSqlContainer.invalidPort;
-    }
-
-    return (await validatePort(port)) ? undefined : AzureSqlContainer.portInUse;
-}
-
 export async function prepareAzureSqlContainerForm(
     form: AzureSqlContainerForm,
 ): Promise<{ form: AzureSqlContainerForm; errors: AzureSqlContainerFormErrors }> {
@@ -252,12 +232,12 @@ export async function prepareAzureSqlContainerForm(
         } else {
             portError = AzureSqlContainer.portDetectionFailed;
         }
-    } else {
-        portError = await validateAzureSqlContainerPort(ContainerEngine.Docker, preparedForm.port);
     }
     const errors = validateAzureSqlContainerForm(preparedForm);
     if (portError) {
         errors.port = portError;
+    } else if (form.port && !errors.port && !(await validatePort(preparedForm.port))) {
+        errors.port = AzureSqlContainer.portInUse;
     }
     return { form: preparedForm, errors };
 }
@@ -421,7 +401,7 @@ export function validateAzureSqlContainerForm(
     if (passwordError) {
         errors.password = passwordError;
     }
-    if (!/^\d+$/.test(form.port) || Number(form.port) < 1 || Number(form.port) > 65535) {
+    if (!isValidPortNumber(form.port)) {
         errors.port = AzureSqlContainer.invalidPort;
     }
     if (form.containerName && !/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(form.containerName)) {
@@ -535,7 +515,7 @@ function getRunArguments(engine: ContainerEngine, form: AzureSqlContainerForm): 
         "-e",
         "ACCEPT_EULA=Y",
         "-e",
-        `MSSQL_SA_PASSWORD=${form.password}`,
+        "MSSQL_SA_PASSWORD",
         "-p",
         `${form.port}:1433`,
     );
@@ -559,10 +539,13 @@ export function getAzureSqlContainerProvisioningCommand(
             step === AzureSqlContainerProvisioningStep.PullImage
                 ? getPullArguments(engine)
                 : getRunArguments(engine, form),
+        ...(step === AzureSqlContainerProvisioningStep.CreateContainer
+            ? { env: { MSSQL_SA_PASSWORD: form.password } }
+            : {}),
     };
 }
 
-async function executeContainerEngineCommand(
+export async function executeContainerEngineCommand(
     command: PrerequisiteCommand,
     timeout: number,
     signal?: AbortSignal,
@@ -572,6 +555,8 @@ async function executeContainerEngineCommand(
         windowsHide: true,
         maxBuffer: 10 * 1024 * 1024,
         signal,
+        // Inherit credentials by name without exposing their values in the command line.
+        env: command.env ? { ...process.env, ...command.env } : undefined,
     });
 }
 
@@ -629,6 +614,7 @@ async function addAzureSqlContainerConnection(
         password: form.password,
         savePassword: form.savePassword,
         emptyPasswordInput: false,
+        // Default to SQL Login until Entra authentication is added in a follow-up PR.
         authenticationType: sqlAuthentication,
         user: sa,
         trustServerCertificate: true,

@@ -5,13 +5,11 @@
 
 import {
     Checkbox,
-    Dropdown,
     Field,
     InfoLabel,
     Input,
     Link,
     makeStyles,
-    Option,
     tokens,
 } from "@fluentui/react-components";
 import { useContext } from "react";
@@ -30,7 +28,6 @@ import {
     getSqlPasswordValidationError,
     SqlPasswordValidationError,
 } from "../../../../utils/sqlStringUtils";
-import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
 
 const useStyles = makeStyles({
     form: {
@@ -131,29 +128,7 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
 
     return (
         <div className={classes.form}>
-            <Field
-                label={label(
-                    locConstants.azureSqlDatabase.authenticationType,
-                    loc.authenticationTooltip,
-                )}
-                required>
-                <Dropdown
-                    size="small"
-                    value={loc.sqlLogin}
-                    selectedOptions={[AuthenticationType.SqlLogin]}
-                    disabled={disabled}>
-                    <Option value={AuthenticationType.SqlLogin}>{loc.sqlLogin}</Option>
-                    <Option value={AuthenticationType.AzureMFA} disabled>
-                        {loc.entraMfa}
-                    </Option>
-                    <Option value={AuthenticationType.ActiveDirectoryDefault} disabled>
-                        {loc.entraDefault}
-                    </Option>
-                    <Option value={AuthenticationType.ActiveDirectoryServicePrincipal} disabled>
-                        {loc.entraServicePrincipal}
-                    </Option>
-                </Dropdown>
-            </Field>
+            {/* SQL Login is the default; Entra authentication options will be added in a follow-up PR. */}
             <Field label={label(locConstants.azureSqlDatabase.userName, loc.userNameTooltip)}>
                 <Input size="small" value="sa" readOnly />
             </Field>

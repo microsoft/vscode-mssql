@@ -8,20 +8,20 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import {
     defaultAzureSqlContainerName,
-    findAvailableAzureSqlContainerPort,
     generateAzureSqlContainerName,
     getAzureSqlContainerProvisioningCommand,
+    executeContainerEngineCommand,
     prepareAzureSqlContainerForm,
     registerAzureSqlRpcHandlers,
     runAzureSqlContainerDeployment,
     runAzureSqlContainerProvisioningStep,
-    validateAzureSqlContainerPort,
     validateAzureSqlContainerForm,
 } from "../../src/deployment/azureSqlHelpers";
 import {
     AzureSqlContainerForm,
     AzureSqlContainerFormErrors,
     AzureSqlContainerProvisioningStep,
+    AzureSqlDatabaseRequests,
     ContainerEngine,
 } from "../../src/sharedInterfaces/azureSqlDatabase";
 import { AzureSqlContainer } from "../../src/constants/locConstants";
@@ -36,6 +36,7 @@ import {
 } from "../../src/constants/constants";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import { BackgroundTaskState } from "../../src/backgroundTasks/backgroundTasksService";
+import { CancellationToken } from "vscode-jsonrpc";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -61,6 +62,13 @@ suite("Azure SQL container configuration", () => {
         hostname: "",
         acceptEula: true,
     });
+
+    const getPortValidationHandler = () => {
+        const controller = sandbox.createStubInstance(DeploymentWebviewController);
+        registerAzureSqlRpcHandlers(controller);
+        return controller.onRequest.withArgs(AzureSqlDatabaseRequests.ValidateContainerPort)
+            .firstCall.args[1];
+    };
 
     test("accepts the default configuration with a valid password and accepted terms", () => {
         expect(validateAzureSqlContainerForm(validForm())).to.deep.equal({});
@@ -101,24 +109,40 @@ suite("Azure SQL container configuration", () => {
             .withArgs(1433)
             .resolves(1434);
 
-        expect(await findAvailableAzureSqlContainerPort(ContainerEngine.Podman, 1433)).to.equal(
-            1434,
-        );
+        const controller = sandbox.createStubInstance(DeploymentWebviewController);
+        registerAzureSqlRpcHandlers(controller);
+        const generatePort = controller.onRequest.withArgs(
+            AzureSqlDatabaseRequests.GenerateContainerPort,
+        ).firstCall.args[1];
+        expect(
+            await generatePort(
+                { engine: ContainerEngine.Podman, startPort: 1433 },
+                CancellationToken.None,
+            ),
+        ).to.equal(1434);
         expect(findAvailablePort).to.have.been.calledOnceWithExactly(1433);
     });
 
     test("rejects a manually selected port that is already in use", async () => {
         sandbox.stub(dockerUtils, "findAvailablePort").withArgs(1433).resolves(1434);
 
-        expect(await validateAzureSqlContainerPort(ContainerEngine.Docker, "1433")).to.equal(
-            AzureSqlContainer.portInUse,
-        );
+        expect(
+            await getPortValidationHandler()(
+                { engine: ContainerEngine.Docker, port: "1433" },
+                CancellationToken.None,
+            ),
+        ).to.equal(AzureSqlContainer.portInUse);
     });
 
     test("accepts a manually selected port that is available", async () => {
         sandbox.stub(dockerUtils, "findAvailablePort").withArgs(1434).resolves(1434);
 
-        expect(await validateAzureSqlContainerPort(ContainerEngine.Docker, "1434")).to.be.undefined;
+        expect(
+            await getPortValidationHandler()(
+                { engine: ContainerEngine.Docker, port: "1434" },
+                CancellationToken.None,
+            ),
+        ).to.be.undefined;
     });
 
     test("allocates a blank port at submission and uses it in the run command", async () => {
@@ -169,7 +193,29 @@ suite("Azure SQL container configuration", () => {
 
     test("allows a blank port for automatic selection without probing during editing", async () => {
         const findAvailablePort = sandbox.stub(dockerUtils, "findAvailablePort");
-        expect(await validateAzureSqlContainerPort(ContainerEngine.Docker, "")).to.be.undefined;
+        expect(
+            await getPortValidationHandler()(
+                { engine: ContainerEngine.Docker, port: "" },
+                CancellationToken.None,
+            ),
+        ).to.be.undefined;
+        expect(findAvailablePort).not.to.have.been.called;
+    });
+
+    test("reports malformed ports without probing availability during editing or submission", async () => {
+        const findAvailablePort = sandbox.stub(dockerUtils, "findAvailablePort");
+        const validatePort = getPortValidationHandler();
+        for (const port of ["0", "65536", "-1", "1.5", "1e3", "abc", " "]) {
+            expect(
+                await validatePort(
+                    { engine: ContainerEngine.Docker, port },
+                    CancellationToken.None,
+                ),
+            ).to.equal(AzureSqlContainer.invalidPort);
+            expect(
+                (await prepareAzureSqlContainerForm({ ...validForm(), port })).errors.port,
+            ).to.equal(AzureSqlContainer.invalidPort);
+        }
         expect(findAvailablePort).not.to.have.been.called;
     });
 
@@ -210,14 +256,70 @@ suite("Azure SQL container configuration", () => {
                 "-e",
                 "ACCEPT_EULA=Y",
                 "-e",
-                `MSSQL_SA_PASSWORD=${form.password}`,
+                "MSSQL_SA_PASSWORD",
                 "-p",
                 "14330:1433",
                 "--hostname",
                 form.hostname,
                 "sqldbpreview-dpgaeqhmgphzd4bk.azurecr.io/azure-sql/db-dev:latest",
             ],
+            env: { MSSQL_SA_PASSWORD: form.password },
         });
+    });
+
+    for (const engine of Object.values(ContainerEngine)) {
+        test(`passes the SA password through the environment, not arguments, for ${engine}`, () => {
+            const form = { ...validForm(), password: "Example '\"$&=123!\n" };
+            const command = getAzureSqlContainerProvisioningCommand(
+                engine,
+                AzureSqlContainerProvisioningStep.CreateContainer,
+                form,
+            );
+
+            expect(command.args).to.include("MSSQL_SA_PASSWORD");
+            expect(command.args.join(" ")).not.to.include(form.password);
+            expect(command.args.some((arg) => arg.startsWith("MSSQL_SA_PASSWORD="))).to.be.false;
+            expect(command.env).to.deep.equal({ MSSQL_SA_PASSWORD: form.password });
+            expect(
+                getAzureSqlContainerProvisioningCommand(
+                    engine,
+                    AzureSqlContainerProvisioningStep.PullImage,
+                    form,
+                ),
+            ).not.to.have.property("env");
+        });
+    }
+
+    test("forwards the password to the child without changing the parent environment", async () => {
+        sandbox.stub(process, "env").value({
+            ...process.env,
+            MSSQL_SA_PASSWORD: "parent-value",
+            MSSQL_CONTAINER_ENV_TEST: "inherited-value",
+        });
+        const form = { ...validForm(), password: "Example '\"$&=123!\n" };
+        const command = getAzureSqlContainerProvisioningCommand(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.CreateContainer,
+            form,
+        );
+        const result = await executeContainerEngineCommand(
+            {
+                executable: process.execPath,
+                args: [
+                    "-e",
+                    "process.stdout.write(JSON.stringify({ password: process.env.MSSQL_SA_PASSWORD, inherited: process.env.MSSQL_CONTAINER_ENV_TEST }))",
+                ],
+                env: { ...command.env, ELECTRON_RUN_AS_NODE: "1" },
+            },
+            15_000,
+        );
+
+        expect(JSON.parse(result.stdout)).to.deep.equal({
+            password: form.password,
+            inherited: "inherited-value",
+        });
+        expect(process.env.MSSQL_SA_PASSWORD).to.equal("parent-value");
+        expect(command.env).to.deep.equal({ MSSQL_SA_PASSWORD: form.password });
     });
 
     test("does not create a connection when provisioning is canceled", async () => {

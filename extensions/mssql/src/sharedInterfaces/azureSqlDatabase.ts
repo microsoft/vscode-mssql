@@ -25,25 +25,24 @@ export const AZURE_SQL_DB_COMPONENT_ORDER = [
 
 /** Centralized Azure SQL documentation URLs used across wizard pages. */
 export const AzureSqlDatabaseLinks = {
-    freeOffer: "https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer",
+    freeOffer: "https://learn.microsoft.com/azure/azure-sql/database/free-offer",
     serviceTiers:
-        "https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tiers-sql-database-vcore",
+        "https://learn.microsoft.com/azure/azure-sql/database/service-tiers-sql-database-vcore",
     createQuickstart:
-        "https://learn.microsoft.com/en-us/azure/azure-sql/database/single-database-create-quickstart",
+        "https://learn.microsoft.com/azure/azure-sql/database/single-database-create-quickstart",
     developerContainerOverview:
         "https://microsoft.github.io/azure-sql-database-container/what-is-the-container.html",
     developerContainerDevContainers:
-        "https://learn.microsoft.com/en-us/azure/azure-sql/database/local-dev-experience-dev-containers?view=azuresql",
+        "https://learn.microsoft.com/azure/azure-sql/database/local-dev-experience-dev-containers?view=azuresql",
     developerContainerConfiguration:
         "https://microsoft.github.io/azure-sql-database-container/getting-started.html",
     dockerDesktop: "https://www.docker.com/products/docker-desktop/",
     podmanDesktop: "https://podman-desktop.io/downloads",
     rancherDesktop: "https://rancherdesktop.io/",
     appleContainer: "https://github.com/apple/container/releases",
-    wslContainers: "https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers",
-    connectQuerySsms:
-        "https://learn.microsoft.com/en-us/azure/azure-sql/database/connect-query-ssms",
-    azureSqlDocs: "https://learn.microsoft.com/en-us/azure/azure-sql/database/",
+    wslContainers: "https://learn.microsoft.com/windows/wsl/tutorials/wsl-containers",
+    connectQuerySsms: "https://learn.microsoft.com/azure/azure-sql/database/connect-query-ssms",
+    azureSqlDocs: "https://learn.microsoft.com/azure/azure-sql/database/",
 } as const;
 
 export enum ContainerEngine {
