@@ -76,6 +76,7 @@ export const publicAzureProviderSettings: IProviderSettings = {
     fabric: {
         fabricApiUriBase: "https://api.fabric.microsoft.com/v1/",
         fabricScopeUriBase: "https://analysis.windows.net/powerbi/api/",
+        fabricPortalUriBase: "https://app.fabric.microsoft.com/",
         sqlDbDnsSuffix: ".database.fabric.microsoft.com",
         dataWarehouseDnsSuffix: ".datawarehouse.fabric.microsoft.com",
     },
@@ -130,6 +131,7 @@ const usGovernmentCloudProviderSettings: IProviderSettings = {
     fabric: {
         fabricApiUriBase: undefined,
         fabricScopeUriBase: undefined,
+        fabricPortalUriBase: undefined,
         sqlDbDnsSuffix: undefined,
         dataWarehouseDnsSuffix: undefined,
     },
@@ -184,6 +186,7 @@ const chinaCloudProviderSettings: IProviderSettings = {
     fabric: {
         fabricApiUriBase: undefined,
         fabricScopeUriBase: undefined,
+        fabricPortalUriBase: undefined,
         sqlDbDnsSuffix: undefined,
         dataWarehouseDnsSuffix: undefined,
     },
@@ -207,6 +210,7 @@ interface MssqlEnvironmentAdditions {
     keyVaultEndpoint?: string;
     fabricApiUriBase?: string;
     fabricScopeUriBase?: string;
+    fabricPortalUriBase?: string;
     fabricSqlDbDnsSuffix?: string;
     fabricDataWarehouseDnsSuffix?: string;
     dynamicsCrmDnsSuffix?: string;
@@ -269,6 +273,7 @@ function getCustomCloudProviderSettings(): IProviderSettings {
         fabric: {
             fabricApiUriBase: customCloud.fabricApiUriBase,
             fabricScopeUriBase: customCloud.fabricScopeUriBase,
+            fabricPortalUriBase: customCloud.fabricPortalUriBase,
             sqlDbDnsSuffix: customCloud.fabricSqlDbDnsSuffix,
             dataWarehouseDnsSuffix: customCloud.fabricDataWarehouseDnsSuffix,
         },

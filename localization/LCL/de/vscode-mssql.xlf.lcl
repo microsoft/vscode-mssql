@@ -22105,6 +22105,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c26b1146c9d287a920127ddcb75095ae182431588de7ea9b182d8ccb5c37de06" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA['{0}' is a system database, so it isn't tracked in the Fabric Database Hub.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Bei „{0}“ handelt es sich um eine Systemdatenbank, die daher nicht im Fabric-Datenbankhub nachverfolgt wird.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add Column]]></Val>
@@ -29959,6 +29968,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.customEnvironment.fabricPortalUriBase" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sovereign cloud equivalent for `https://app.fabric.microsoft.com/`]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sovereign Cloud-Äquivalent für `https://app.fabric.microsoft.com/`]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.customEnvironment.fabricScopeUriBase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`]]></Val>
@@ -31500,6 +31518,15 @@
           <Val><![CDATA[Open Execution Plan File]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ausführungsplandatei öffnen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.openInFabricDatabaseHub" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Review health in Database Hub (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Datenbankintegrität im Datenbank-Hub überprüfen (Vorschau)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

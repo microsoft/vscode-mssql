@@ -3789,14 +3789,6 @@ class Changelog {
     );
     static mssqlWalkthrough = vscode_1.l10n.t("MSSQL - VS Code walkthrough");
     static copilotWalkthrough = vscode_1.l10n.t("GitHub Copilot - VS Code walkthrough");
-    // Event banner
-    static sqlconEuDescription1 = vscode_1.l10n.t(
-        "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
-    );
-    static sqlconEuDescription2 = vscode_1.l10n.t(
-        "Use discount code {0} to save €200 on registration.",
-    );
-    static sqlconEuRegister = vscode_1.l10n.t("Register");
 }
 exports.Changelog = Changelog;
 class Profiler {

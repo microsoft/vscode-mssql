@@ -297,11 +297,6 @@ declare module "vscode-mssql" {
         typeSystemVersion: string | undefined;
 
         /**
-         * Gets or sets the connection string to use for this connection.
-         */
-        connectionString: string | undefined;
-
-        /**
          * Gets or sets the name of the connection's container; undefined if the
          * connection is not hosted by a container
          */
@@ -1020,6 +1015,8 @@ declare module "vscode-mssql" {
         fabric: {
             fabricApiUriBase: string;
             fabricScopeUriBase: string;
+            /** Base URI of the Fabric portal, used to build links into Fabric workloads. */
+            fabricPortalUriBase: string | undefined;
             sqlDbDnsSuffix: string;
             dataWarehouseDnsSuffix: string;
         };
@@ -1327,7 +1324,7 @@ declare module "vscode-mssql" {
         deploymentOptions: DeploymentOptions;
     }
 
-    export interface ValidateStreamingJobResult extends ResultStatus { }
+    export interface ValidateStreamingJobResult extends ResultStatus {}
 
     export interface ParseTSqlScriptResult {
         containsCreateTableStatement: boolean;
