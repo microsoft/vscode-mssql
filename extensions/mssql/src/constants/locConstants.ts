@@ -1775,6 +1775,55 @@ export class QueryResult {
     );
 }
 
+export class AzureSqlContainer {
+    public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
+    public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
+    public static portInUse = l10n.t("This port is already in use. Choose a different port.");
+    public static portDetectionFailed = l10n.t(
+        "Unable to find an available container port. Check that Docker is running and try again.",
+    );
+    public static invalidContainerName = l10n.t(
+        "Container names must start with a letter or number and contain only letters, numbers, underscores, periods, or hyphens.",
+    );
+    public static invalidHostname = l10n.t("Enter a valid hostname.");
+    public static acceptTerms = l10n.t("Accept the terms and conditions to continue.");
+    public static selectConnectionGroup = l10n.t("Select a connection group.");
+    public static pullImageFailed = l10n.t(
+        "Failed to pull the Azure SQL Database container image. Sign in to the private registry with your preview credentials, then retry.",
+    );
+    public static createContainerFailed = l10n.t(
+        "Failed to create and start the Azure SQL Database container.",
+    );
+    public static containerNotReady = l10n.t(
+        "The Azure SQL Database container did not become ready for connections within five minutes.",
+    );
+    public static connectContainerFailed = l10n.t(
+        "The container started, but the extension could not create its database connection.",
+    );
+    public static provisioningTaskSucceeded = (containerName: string) =>
+        l10n.t({
+            message: "Azure SQL Database container '{0}' was provisioned successfully.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static provisioningTaskFailed = (containerName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Azure SQL Database container '{0}': {1}",
+            args: [containerName, error],
+            comment: ["{0} is the container name", "{1} is the error message"],
+        });
+    public static provisioningTaskCanceled = (containerName: string) =>
+        l10n.t({
+            message: "Provisioning Azure SQL Database container '{0}' was canceled.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static pullingContainerImage = l10n.t("Pulling container image");
+    public static creatingContainer = l10n.t("Creating container");
+    public static settingUpContainer = l10n.t("Setting up container");
+    public static connectingToContainer = l10n.t("Connecting to container");
+}
+
 export class LocalContainers {
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({
@@ -3394,6 +3443,10 @@ export class SearchDatabase {
 
     public static failedToEstablishConnection = l10n.t("Failed to establish connection");
 
+    public static noConnectionAvailable = l10n.t(
+        "Connect to a server in Object Explorer or open a connected query editor to search database objects.",
+    );
+
     public static typeTable = l10n.t("Table");
     public static typeView = l10n.t("View");
     public static typeStoredProcedure = l10n.t("Stored Procedure");
@@ -3628,6 +3681,43 @@ export class AzureDataStudioMigration {
     );
 }
 
+export class Overview {
+    public static OverviewDocumentTitle = l10n.t("SQL Server (mssql)");
+    public static OverviewTreeNodeLabel = l10n.t("Getting Started");
+    public static OverviewTreeNodeDescription = l10n.t("Connect, build, and learn");
+    public static DevContainerTemplateFileConflict = (relativePath: string) =>
+        l10n.t({
+            message: "The template file '{0}' already exists. What would you like to do?",
+            args: [relativePath],
+            comment: ["{0} is a file path relative to the workspace folder."],
+        });
+    public static DevContainerTemplateFileConflictDetail = (remaining: number) =>
+        l10n.t({
+            message: "Including this one, {0} of the template's files already exist here.",
+            args: [remaining],
+            comment: ["{0} is the number of conflicting files left to decide on."],
+        });
+    public static SkipTemplateFile = l10n.t("Skip");
+    public static OverwriteTemplateFile = l10n.t("Overwrite");
+    public static OverwriteAllTemplateFiles = l10n.t("Overwrite All");
+    public static InstallAgentSkillsFailed = l10n.t(
+        "Could not install the selected agent skills. Check your network connection and try again.",
+    );
+    public static InstallAgentSkillsRemoteUnsupported = l10n.t(
+        "Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.",
+    );
+    public static DevContainersExtensionRequired = l10n.t(
+        "The Dev Containers extension is required to reopen this folder in a container.",
+    );
+    public static InstallDevContainersExtension = l10n.t("Install");
+    public static SelectDevContainerFolder = l10n.t("Select Folder");
+    public static ShortcutExecuteQuery = l10n.t("Execute query");
+    public static ShortcutConnect = l10n.t("Connect");
+    public static ShortcutDisconnect = l10n.t("Disconnect");
+    public static ShortcutFocusObjectExplorer = l10n.t("Focus on Object Explorer");
+    public static ShortcutCopyObjectName = l10n.t("Copy object name");
+}
+
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");
@@ -3729,6 +3819,10 @@ export class Changelog {
         "Use discount code {0} to save €200 on registration.",
     );
     public static sqlconEuRegister = l10n.t("Register");
+    public static gettingStartedPageTitle = l10n.t("MSSQL Getting Started Page");
+    public static gettingStartedPageDescription = l10n.t(
+        "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",
+    );
 }
 
 export class Profiler {

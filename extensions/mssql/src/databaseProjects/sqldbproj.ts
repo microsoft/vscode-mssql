@@ -301,5 +301,5 @@ export enum SqlTargetPlatform {
     sqlEdge = "Azure SQL Edge",
     sqlDwServerless = "Azure Synapse Serverless SQL Pool",
     sqlDwUnified = "Synapse Data Warehouse in Microsoft Fabric",
-    sqlDbFabric = "SQL database in Fabric (preview)",
+    sqlDbFabric = "SQL database in Fabric",
 }

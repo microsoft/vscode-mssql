@@ -32,6 +32,7 @@ export class DeploymentWebviewState
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
     deploymentType: DeploymentType = DeploymentType.LocalContainers;
+    initialDeploymentType?: DeploymentType;
     dialog: IDialogProps | undefined;
     deploymentTypeState: DeploymentTypeState = {} as DeploymentTypeState;
     formState: DeploymentFormState = {} as DeploymentFormState;
@@ -137,6 +138,15 @@ export enum DeploymentType {
     FabricProvisioning = 1,
     AzureSqlDatabase = 2,
     DevContainer = 3,
+}
+
+/**
+ * The deploy command takes its arguments from whatever invokes it -- a menu, another extension,
+ * the command palette -- so a value arriving that way is checked against the enum rather than
+ * only against `number`.
+ */
+export function isDeploymentType(value: unknown): value is DeploymentType {
+    return typeof value === "number" && DeploymentType[value] !== undefined;
 }
 
 export interface DeploymentFormItemSpec

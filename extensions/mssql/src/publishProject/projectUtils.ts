@@ -50,7 +50,7 @@ export const enum SqlTargetPlatform {
     sqlDW = "Azure Synapse SQL Pool",
     sqlDwServerless = "Azure Synapse Serverless SQL Pool",
     sqlDwUnified = "Synapse Data Warehouse in Microsoft Fabric",
-    sqlDbFabric = "SQL database in Fabric (preview)",
+    sqlDbFabric = "SQL database in Fabric",
 }
 
 /**

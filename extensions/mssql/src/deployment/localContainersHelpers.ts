@@ -9,6 +9,7 @@ import {
     containerConnectionRetryDelayMs,
     defaultPortNumber,
     localhost,
+    MAX_PORT_NUMBER,
     sa,
     sqlAuthentication,
 } from "../constants/constants";
@@ -373,15 +374,17 @@ export async function validateDockerConnectionProfile(
     return state;
 }
 
+export function isValidPortNumber(port: string): boolean {
+    return /^\d+$/.test(port) && Number(port) >= 1 && Number(port) <= MAX_PORT_NUMBER;
+}
+
 export async function validatePort(port: string): Promise<boolean> {
     // No port chosen
     if (!port) return true;
 
+    if (!isValidPortNumber(port)) return false;
+
     const portNumber = Number(port);
-
-    // Check if portNumber is a valid number
-    if (isNaN(portNumber) || portNumber <= 0) return false;
-
     const newPort = await dockerUtils.findAvailablePort(portNumber);
     return newPort === portNumber;
 }
@@ -417,36 +420,10 @@ export async function addContainerConnection(
     } as unknown as IConnectionProfile;
 
     const connectionManager = mainController.connectionManager;
-    const probeUri = `${connection.server}/${dockerProfile.containerName}/deployment`;
-    for (let attempt = 0; attempt < containerConnectionMaxAttempts; attempt++) {
-        try {
-            const connected = await connectionManager.connect(probeUri, connection, {
-                shouldHandleErrors: false,
-            });
-            if (connected) {
-                break;
-            }
-        } catch {
-            // Retry while SQL Server finishes initializing authentication.
-        }
-
-        if (attempt + 1 === containerConnectionMaxAttempts) {
-            return { success: false };
-        }
-
-        if (attempt + 1 < containerConnectionMaxAttempts) {
-            await new Promise((resolve) =>
-                setTimeout(resolve, containerConnectionRetryDelayMs * Math.pow(2, attempt)),
-            );
-        }
-    }
-
-    try {
-        await connectionManager.disconnect(probeUri);
-    } catch (error) {
-        dockerUtils.dockerLogger.warn(
-            `Failed to disconnect container readiness probe: ${getErrorMessage(error)}`,
-        );
+    if (
+        !(await waitForContainerConnection(connection, dockerProfile.containerName, mainController))
+    ) {
+        return { success: false };
     }
 
     try {
@@ -462,6 +439,70 @@ export async function addContainerConnection(
     } catch (error) {
         return { success: false, fullErrorText: getErrorMessage(error) };
     }
+}
+
+export async function waitForContainerConnection(
+    connection: IConnectionProfile,
+    containerName: string,
+    mainController: MainController,
+    signal?: AbortSignal,
+): Promise<boolean> {
+    const connectionManager = mainController.connectionManager;
+    const probeUri = `${connection.server}/${containerName}/deployment`;
+    for (let attempt = 0; attempt < containerConnectionMaxAttempts; attempt++) {
+        if (signal?.aborted) {
+            return false;
+        }
+        try {
+            const connected = await connectionManager.connect(probeUri, connection, {
+                shouldHandleErrors: false,
+            });
+            if (connected) {
+                break;
+            }
+        } catch {
+            // Retry while SQL Server finishes initializing authentication.
+        }
+
+        if (attempt + 1 === containerConnectionMaxAttempts) {
+            return false;
+        }
+
+        if (attempt + 1 < containerConnectionMaxAttempts) {
+            await waitForContainerDelay(
+                containerConnectionRetryDelayMs * Math.pow(2, attempt),
+                signal,
+            );
+        }
+    }
+
+    try {
+        await connectionManager.disconnect(probeUri);
+    } catch (error) {
+        dockerUtils.dockerLogger.warn(
+            `Failed to disconnect container readiness probe: ${getErrorMessage(error)}`,
+        );
+    }
+
+    return !signal?.aborted;
+}
+
+export async function waitForContainerDelay(
+    milliseconds: number,
+    signal?: AbortSignal,
+): Promise<void> {
+    if (signal?.aborted) {
+        return;
+    }
+    await new Promise<void>((resolve) => {
+        const finish = () => {
+            clearTimeout(timeout);
+            signal?.removeEventListener("abort", finish);
+            resolve();
+        };
+        const timeout = setTimeout(finish, milliseconds);
+        signal?.addEventListener("abort", finish, { once: true });
+    });
 }
 
 export function setLocalContainersFormComponents(
