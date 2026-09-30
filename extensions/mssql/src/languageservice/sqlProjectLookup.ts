@@ -61,17 +61,24 @@ export class SqlProjectLookup implements ISqlProjectLookup, vscode.Disposable {
         }
 
         const key = fileUri.toString();
-        let result = this._cache.get(key);
-        if (!result) {
-            result = this.requestProjectForFile(fileUri.fsPath).catch((err) => {
-                // Don't cache failures, e.g. when the service isn't ready yet
-                this._cache.delete(key);
-                logger.error(`Failed to find the project for ${fileUri.fsPath}: ${err}`);
-                return undefined;
-            });
-            this._cache.set(key, result);
+        const cached = this._cache.get(key);
+        if (cached) {
+            return cached;
         }
-        return result;
+
+        const request: Promise<vscode.Uri | undefined> = this.requestProjectForFile(
+            fileUri.fsPath,
+        ).catch((err) => {
+            // Don't cache failures, e.g. when the service isn't ready yet. Only remove this request's
+            // entry: the cache may have been cleared and repopulated since it started.
+            if (this._cache.get(key) === request) {
+                this._cache.delete(key);
+            }
+            logger.error(`Failed to find the project for ${fileUri.fsPath}: ${err}`);
+            return undefined;
+        });
+        this._cache.set(key, request);
+        return request;
     }
 
     public dispose(): void {

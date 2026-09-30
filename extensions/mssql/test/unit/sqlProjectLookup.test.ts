@@ -56,10 +56,12 @@ suite("SqlProjectLookup Tests", () => {
         expect(findProjectForFileStub).to.have.been.calledWith(sqlFileUri.fsPath);
     });
 
-    test("returns undefined when the file is not in a project", async () => {
+    test("returns undefined when the file is not in a project, and caches that answer", async () => {
         findProjectForFileStub.resolves({ success: true, errorMessage: "", isLoaded: false });
 
         expect(await lookup.findProjectForFile(sqlFileUri)).to.be.undefined;
+        expect(await lookup.findProjectForFile(sqlFileUri)).to.be.undefined;
+        expect(findProjectForFileStub).to.have.been.calledOnce;
     });
 
     test("does not ask the service about untitled documents or non-.sql files", async () => {
@@ -93,6 +95,25 @@ suite("SqlProjectLookup Tests", () => {
         documentClosed.fire({ uri: sqlFileUri } as vscode.TextDocument);
         await lookup.findProjectForFile(sqlFileUri);
 
+        expect(findProjectForFileStub).to.have.been.calledTwice;
+    });
+
+    test("a failure from before the cache was cleared doesn't evict the newer answer", async () => {
+        let rejectFirst!: (err: Error) => void;
+        findProjectForFileStub.onFirstCall().returns(
+            new Promise((_resolve, reject) => {
+                rejectFirst = reject;
+            }),
+        );
+
+        const staleRequest = lookup.findProjectForFile(sqlFileUri);
+        sqlprojCreated.fire(vscode.Uri.file(projectPath));
+        expect((await lookup.findProjectForFile(sqlFileUri))?.fsPath).to.equal(projectPath);
+
+        rejectFirst(new Error("service not ready"));
+        expect(await staleRequest).to.be.undefined;
+
+        expect((await lookup.findProjectForFile(sqlFileUri))?.fsPath).to.equal(projectPath);
         expect(findProjectForFileStub).to.have.been.calledTwice;
     });
 
