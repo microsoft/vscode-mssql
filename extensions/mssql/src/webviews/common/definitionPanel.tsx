@@ -98,11 +98,12 @@ export interface ScriptTabProps {
 
 export interface DefinitionPanelProps<TCustomTabId extends string = never> {
     activeTab?: DefinitionTabIdentifier<TCustomTabId>;
-    scriptTab: ScriptTabProps;
+    scriptTab?: ScriptTabProps;
     customTabs?: DefinitionPanelCustomTab<TCustomTabId>[];
     setActiveTab?: (tab: DefinitionTabIdentifier<TCustomTabId>) => void;
     onClose?: () => void;
     onPanelVisibilityChange?: (isVisible: boolean) => void;
+    defaultSize?: number;
 }
 
 function getScriptTab(
@@ -171,16 +172,20 @@ const DefinitionPanelInner = <TCustomTabId extends string = never>(
         setActiveTab,
         onClose,
         onPanelVisibilityChange,
+        defaultSize,
     }: DefinitionPanelProps<TCustomTabId>,
     ref: React.ForwardedRef<DefinitionPanelController>,
 ): ReactElement => {
     const classes = useStyles();
     const panelRef = useRef<ImperativePanelHandle | null>(null);
     const tabs: DefinitionPanelCustomTab<DefinitionTabIdentifier<TCustomTabId>>[] = [
-        getScriptTab(scriptTab, classes.definitionPanelScriptTab),
+        ...(scriptTab ? [getScriptTab(scriptTab, classes.definitionPanelScriptTab)] : []),
         ...customTabs,
     ];
-    const selectedTab: DefinitionTabIdentifier<TCustomTabId> = activeTab ?? SCRIPT_TAB_ID;
+    if (tabs.length === 0) {
+        throw new Error("DefinitionPanel requires at least one tab");
+    }
+    const selectedTab: DefinitionTabIdentifier<TCustomTabId> = activeTab ?? tabs[0].id;
     const activeTabDefinition = tabs.find((tab) => tab.id === selectedTab) ?? tabs[0];
     const [expandCollapseButtonLabel, setExpandCollapseButtonLabel] = useState<string>(
         locConstants.tableDesigner.maximizePanelSize,
@@ -223,6 +228,7 @@ const DefinitionPanelInner = <TCustomTabId extends string = never>(
     return (
         <Panel
             collapsible
+            defaultSize={defaultSize}
             minSize={MINIMUMPANEL_SIZE}
             ref={panelRef}
             onResize={(size) => {

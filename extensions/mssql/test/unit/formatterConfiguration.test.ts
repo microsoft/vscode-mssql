@@ -34,22 +34,39 @@ const expectedFormatterDefaults: Record<string, boolean | number | string> = {
     allowExternalLanguagePaths: true,
     allowExternalLibraryPaths: true,
     asKeywordOnOwnLine: true,
+    builtInFunctionCasing: "preserve",
+    clauseBodyAlignment: "aligned",
+    columnAliasStyle: "asKeyword",
+    commaPlacement: "trailing",
+    leadingCommaSpaceCount: 1,
+    identifierBracketing: "preserve",
+    identifierCasing: "preserve",
     keywordCasing: "uppercase",
     preserveComments: true,
     indentSetClause: false,
     indentViewBody: false,
+    multilineGroupByElementsList: false,
+    multilineHavingPredicatesList: true,
     multilineInsertSourcesList: true,
     multilineInsertTargetsList: true,
+    multilineInValuesList: false,
+    multilineNestedFunctionCalls: false,
+    multilineOrderByElementsList: false,
+    multilinePartitionByElementsList: false,
+    multilineProcedureParametersList: false,
     multilineSelectElementsList: true,
     multilineSetClauseItems: true,
     multilineViewColumnsList: true,
     multilineWherePredicatesList: true,
+    multilineWithOptionsList: false,
+    newLineAfterJoinKeyword: true,
     newLineBeforeCloseParenthesisInMultilineList: true,
     newLineBeforeFromClause: true,
     newLineBeforeGroupByClause: true,
     newLineBeforeHavingClause: true,
     newLineBeforeJoinClause: true,
     newLineBeforeOffsetClause: true,
+    newLineBeforeOnClause: true,
     newLineBeforeOpenParenthesisInMultilineList: false,
     newLineBeforeOrderByClause: true,
     newLineBeforeOutputClause: true,
@@ -57,9 +74,13 @@ const expectedFormatterDefaults: Record<string, boolean | number | string> = {
     newLineBeforeWindowClause: true,
     newlineFormattedCheckConstraint: false,
     newLineFormattedIndexDefinition: false,
+    numNewlinesAfterBatches: 1,
+    numNewlinesAfterBatchStatement: 2,
     numNewlinesAfterStatement: 1,
+    persistTrailingGo: false,
     spaceBetweenDataTypeAndParameters: true,
     spaceBetweenParametersInDataType: true,
+    terminateBlockStatements: false,
 };
 
 function getConfigurationProperties(): Record<string, ConfigurationProperty> {
@@ -74,11 +95,20 @@ function getPackageNls(): Record<string, string> {
 }
 
 suite("SQL formatter configuration", () => {
-    test("enables the new formatter by default", () => {
-        const previewSetting = getConfigurationProperties()["mssql.format.enablePreviewFormatter"];
-
-        expect(previewSetting.default).to.equal(true);
-        expect(previewSetting.scope).to.equal("window");
+    test("does not contribute legacy formatter settings", () => {
+        const properties = getConfigurationProperties();
+        const descriptions = getPackageNls();
+        for (const setting of [
+            "mssql.format.enablePreviewFormatter",
+            "mssql.format.alignColumnDefinitionsInColumns",
+            "mssql.format.datatypeCasing",
+            "mssql.format.keywordCasing",
+            "mssql.format.placeCommasBeforeNextStatement",
+            "mssql.format.placeSelectStatementReferencesOnNewLine",
+        ]) {
+            expect(properties, setting).not.to.have.property(setting);
+            expect(descriptions, setting).not.to.have.property(setting);
+        }
     });
 
     test("enables parse-error notifications by default", () => {
@@ -118,6 +148,8 @@ suite("SQL formatter configuration", () => {
             "sql150",
             "sql160",
             "sql170",
+            "sql180",
+            "sqlFabricDW",
         ]);
         expect(properties[prefix + "sqlEngineType"].enum).to.deep.equal([
             "all",
@@ -129,34 +161,59 @@ suite("SQL formatter configuration", () => {
             "lowercase",
             "pascalCase",
         ]);
-        expect(properties[prefix + "numNewlinesAfterStatement"].minimum).to.equal(0);
-        expect(properties[prefix + "numNewlinesAfterStatement"].maximum).to.equal(5);
+        expect(properties[prefix + "builtInFunctionCasing"].enum).to.deep.equal([
+            "preserve",
+            "uppercase",
+            "lowercase",
+            "pascalCase",
+        ]);
+        expect(properties[prefix + "clauseBodyAlignment"].enum).to.deep.equal([
+            "aligned",
+            "indented",
+        ]);
+        expect(properties[prefix + "columnAliasStyle"].enum).to.deep.equal([
+            "asKeyword",
+            "equalsSign",
+            "preserve",
+        ]);
+        expect(properties[prefix + "commaPlacement"].enum).to.deep.equal(["trailing", "leading"]);
+        expect(properties[prefix + "identifierBracketing"].enum).to.deep.equal([
+            "preserve",
+            "includeBrackets",
+            "excludeBrackets",
+        ]);
+        expect(properties[prefix + "identifierCasing"].enum).to.deep.equal([
+            "preserve",
+            "uppercase",
+            "lowercase",
+            "pascalCase",
+        ]);
+        expect(properties[prefix + "leadingCommaSpaceCount"].minimum).to.equal(0);
+        expect(properties[prefix + "leadingCommaSpaceCount"].maximum).to.equal(1);
+
+        for (const key of [
+            "numNewlinesAfterBatches",
+            "numNewlinesAfterBatchStatement",
+            "numNewlinesAfterStatement",
+        ]) {
+            expect(properties[prefix + key].minimum, key).to.equal(0);
+            expect(properties[prefix + key].maximum, key).to.equal(5);
+        }
     });
 
-    test("identifies which formatter uses each option", () => {
+    test("describes the active formatter options without preview qualifiers", () => {
         const descriptions = getPackageNls();
         const properties = getConfigurationProperties();
-        const previewPrefix = "**Used when Preview Formatter is enabled.**";
-        const existingPrefix = "**Used when Preview Formatter is disabled.**";
-        const previewSettings = Object.keys(expectedFormatterDefaults).map(
+        const formatterSettings = Object.keys(expectedFormatterDefaults).map(
             (key) => `mssql.format.options.${key}`,
         );
-        const existingSettings = [
-            "mssql.format.alignColumnDefinitionsInColumns",
-            "mssql.format.datatypeCasing",
-            "mssql.format.keywordCasing",
-            "mssql.format.placeCommasBeforeNextStatement",
-            "mssql.format.placeSelectStatementReferencesOnNewLine",
-        ];
 
-        for (const setting of previewSettings) {
-            expect(descriptions[setting].startsWith(previewPrefix), setting).to.be.true;
+        for (const setting of formatterSettings) {
+            expect(descriptions[setting], setting).not.to.include("Preview Formatter");
             expect(properties[setting].markdownDescription, setting).to.equal(`%${setting}%`);
         }
-        for (const setting of existingSettings) {
-            expect(descriptions[setting].startsWith(existingPrefix), setting).to.be.true;
-            expect(properties[setting].markdownDescription, setting).to.equal(`%${setting}%`);
-        }
-        expect(descriptions["mssql.format.enablePreviewFormatter"]).not.to.include("legacy");
+        expect(descriptions["mssql.format.showParseErrorNotification"]).not.to.include(
+            "Preview Formatter",
+        );
     });
 });

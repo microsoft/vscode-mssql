@@ -73,6 +73,12 @@ const MONACO_COLOR_MAP: Record<string, string> = {
     "diffEditor.removedTextBackground": "--vscode-diffEditor-removedTextBackground",
     "diffEditor.insertedLineBackground": "--vscode-diffEditor-insertedLineBackground",
     "diffEditor.removedLineBackground": "--vscode-diffEditor-removedLineBackground",
+    "diffEditor.insertedTextBorder": "--vscode-diffEditor-insertedTextBorder",
+    "diffEditor.removedTextBorder": "--vscode-diffEditor-removedTextBorder",
+    "diffEditorGutter.insertedLineBackground": "--vscode-diffEditorGutter-insertedLineBackground",
+    "diffEditorGutter.removedLineBackground": "--vscode-diffEditorGutter-removedLineBackground",
+    "diffEditorOverview.insertedForeground": "--vscode-diffEditorOverview-insertedForeground",
+    "diffEditorOverview.removedForeground": "--vscode-diffEditorOverview-removedForeground",
     "diffEditor.diagonalFill": "--vscode-diffEditor-diagonalFill",
 };
 
@@ -125,24 +131,38 @@ function getMonacoColors(): Record<string, string> {
     );
 }
 
-function defineVscodeMonacoTheme(monaco: Monaco, themeKind: ColorThemeKind): void {
-    monaco.editor.defineTheme(VSCODE_MONACO_THEME_NAME, {
+export type MonacoThemeColorTransformer = (
+    colors: Record<string, string>,
+) => Record<string, string>;
+
+function defineVscodeMonacoTheme(
+    monaco: Monaco,
+    themeKind: ColorThemeKind,
+    themeName: string,
+    transformColors?: MonacoThemeColorTransformer,
+): void {
+    const colors = getMonacoColors();
+    monaco.editor.defineTheme(themeName, {
         base: resolveMonacoBaseTheme(themeKind),
         inherit: true,
         rules: [],
-        colors: getMonacoColors(),
+        colors: transformColors ? transformColors(colors) : colors,
     });
 
-    monaco.editor.setTheme(VSCODE_MONACO_THEME_NAME);
+    monaco.editor.setTheme(themeName);
 }
-function useVscodeMonacoTheme(themeKind: ColorThemeKind): BeforeMount {
+export function useVscodeMonacoTheme(
+    themeKind: ColorThemeKind,
+    themeName = VSCODE_MONACO_THEME_NAME,
+    transformColors?: MonacoThemeColorTransformer,
+): BeforeMount {
     const frameHandleRef = useRef<number | undefined>(undefined);
 
     const applyTheme = useCallback<BeforeMount>(
         (monaco: Monaco) => {
-            defineVscodeMonacoTheme(monaco, themeKind);
+            defineVscodeMonacoTheme(monaco, themeKind, themeName, transformColors);
         },
-        [themeKind],
+        [themeKind, themeName, transformColors],
     );
 
     useEffect(() => {

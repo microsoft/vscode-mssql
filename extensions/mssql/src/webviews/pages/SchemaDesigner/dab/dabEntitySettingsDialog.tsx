@@ -23,6 +23,7 @@ import {
     RadioGroup,
     Text,
     Textarea,
+    Tooltip,
     tokens,
     useArrowNavigationGroup,
 } from "@fluentui/react-components";
@@ -371,7 +372,7 @@ const useStyles = makeStyles({
     },
     columnMetadataGrid: {
         gridTemplateColumns:
-            "56px minmax(140px, 1fr) 120px minmax(120px, 1fr) minmax(140px, 1.4fr)",
+            "56px 76px minmax(140px, 1fr) 120px minmax(120px, 1fr) minmax(140px, 1.4fr)",
         columnGap: "8px",
     },
     parameterMetadataGrid: {
@@ -443,7 +444,7 @@ const useStyles = makeStyles({
 type DabSettingsSection = "identity" | "permissions" | "rest" | "graphql" | "mcp" | "schema";
 type MetadataGridKind = "columns" | "parameters";
 
-const COLUMN_METADATA_GRID_COLUMN_COUNT = 5;
+const COLUMN_METADATA_GRID_COLUMN_COUNT = 6;
 const PARAMETER_METADATA_GRID_COLUMN_COUNT = 5;
 const COLUMN_GRID_OVERSCAN = 20;
 const TABLE_PERMISSION_ACTIONS = [
@@ -869,7 +870,7 @@ export function DabEntitySettingsDialog({
         columnIndex: number,
     ) => {
         const containsInteractiveControl =
-            kind === "columns" ? columnIndex === 0 || columnIndex >= 3 : columnIndex >= 2;
+            kind === "columns" ? columnIndex <= 1 || columnIndex >= 4 : columnIndex >= 2;
         return {
             role: "gridcell",
             tabIndex: containsInteractiveControl ? undefined : 0,
@@ -1127,6 +1128,20 @@ export function DabEntitySettingsDialog({
         });
     };
 
+    const updateColumnExposure = (columnId: string, isExposed: boolean) => {
+        setLocalEntity((prev) => ({
+            ...prev,
+            columns: prev.columns.map((column) =>
+                column.id === columnId
+                    ? {
+                          ...column,
+                          isExposed: Dab.isLogicalKeyColumn(prev, column) || isExposed,
+                      }
+                    : column,
+            ),
+        }));
+    };
+
     const updateParameter = (
         parameterName: string,
         patch: Partial<Dab.DabParameterConfig> & { clearDefault?: boolean },
@@ -1348,23 +1363,29 @@ export function DabEntitySettingsDialog({
                                         role="columnheader"
                                         aria-colindex={2}
                                         className={classes.metadataGridCell}>
-                                        {locConstants.schemaDesigner.entityName}
+                                        {locConstants.schemaDesigner.exposed}
                                     </div>
                                     <div
                                         role="columnheader"
                                         aria-colindex={3}
                                         className={classes.metadataGridCell}>
-                                        {locConstants.schemaDesigner.dataType}
+                                        {locConstants.schemaDesigner.entityName}
                                     </div>
                                     <div
                                         role="columnheader"
                                         aria-colindex={4}
                                         className={classes.metadataGridCell}>
-                                        {locConstants.schemaDesigner.alias}
+                                        {locConstants.schemaDesigner.dataType}
                                     </div>
                                     <div
                                         role="columnheader"
                                         aria-colindex={5}
+                                        className={classes.metadataGridCell}>
+                                        {locConstants.schemaDesigner.alias}
+                                    </div>
+                                    <div
+                                        role="columnheader"
+                                        aria-colindex={6}
                                         className={classes.metadataGridCell}>
                                         {locConstants.schemaDesigner.description}
                                     </div>
@@ -1381,6 +1402,51 @@ export function DabEntitySettingsDialog({
                                         const isLogicalKey = Dab.isLogicalKeyColumn(
                                             localEntity,
                                             column,
+                                        );
+                                        const logicalKeyExposureLockedText =
+                                            locConstants.schemaDesigner.logicalKeyColumnExposureLocked(
+                                                column.name,
+                                            );
+                                        const exposureCheckbox = (
+                                            <Checkbox
+                                                checked={isLogicalKey || column.isExposed}
+                                                disabled={isLogicalKey}
+                                                onKeyDown={(event) => {
+                                                    if (event.key === "Enter" && !isLogicalKey) {
+                                                        event.preventDefault();
+                                                        updateColumnExposure(
+                                                            column.id,
+                                                            !column.isExposed,
+                                                        );
+                                                    }
+                                                }}
+                                                onChange={(_, data) =>
+                                                    updateColumnExposure(
+                                                        column.id,
+                                                        data.checked === true,
+                                                    )
+                                                }
+                                                aria-label={locConstants.schemaDesigner.exposeColumn(
+                                                    column.name,
+                                                )}
+                                            />
+                                        );
+                                        const exposureCell = (
+                                            <div
+                                                {...getMetadataCellProps(
+                                                    "columns",
+                                                    virtualRow.index,
+                                                    1,
+                                                )}
+                                                tabIndex={isLogicalKey ? 0 : undefined}
+                                                aria-label={
+                                                    isLogicalKey
+                                                        ? logicalKeyExposureLockedText
+                                                        : undefined
+                                                }
+                                                className={classes.metadataGridCell}>
+                                                {exposureCheckbox}
+                                            </div>
                                         );
                                         return (
                                             <div
@@ -1419,11 +1485,20 @@ export function DabEntitySettingsDialog({
                                                         }
                                                     />
                                                 </div>
+                                                {isLogicalKey ? (
+                                                    <Tooltip
+                                                        content={logicalKeyExposureLockedText}
+                                                        relationship="description">
+                                                        {exposureCell}
+                                                    </Tooltip>
+                                                ) : (
+                                                    exposureCell
+                                                )}
                                                 <div
                                                     {...getMetadataCellProps(
                                                         "columns",
                                                         virtualRow.index,
-                                                        1,
+                                                        2,
                                                     )}
                                                     className={`${classes.metadataGridCell} ${classes.tableNameCell}`}>
                                                     {column.name}
@@ -1432,7 +1507,7 @@ export function DabEntitySettingsDialog({
                                                     {...getMetadataCellProps(
                                                         "columns",
                                                         virtualRow.index,
-                                                        2,
+                                                        3,
                                                     )}
                                                     className={`${classes.metadataGridCell} ${classes.tableTypeCell}`}>
                                                     {column.dataType}
@@ -1441,7 +1516,7 @@ export function DabEntitySettingsDialog({
                                                     {...getMetadataCellProps(
                                                         "columns",
                                                         virtualRow.index,
-                                                        3,
+                                                        4,
                                                     )}
                                                     className={classes.metadataGridCell}>
                                                     <Input
@@ -1459,7 +1534,7 @@ export function DabEntitySettingsDialog({
                                                     {...getMetadataCellProps(
                                                         "columns",
                                                         virtualRow.index,
-                                                        4,
+                                                        5,
                                                     )}
                                                     className={classes.metadataGridCell}>
                                                     <Input

@@ -45,7 +45,7 @@ jobs:
       - name: Download baseline sizes
         if: env.should_compare_baseline == 'true'
         continue-on-error: true
-        uses: dawidd6/action-download-artifact@57aa996fc1713cc1579039614f4645a7f4841fd4 # v23
+        uses: dawidd6/action-download-artifact@d63b86af1b34672e53c440b1b83979861906bad7 # v24
         with:
           workflow: publish-baseline.yml
           branch: ${{ github.event.pull_request.base.ref }}
@@ -399,7 +399,7 @@ jobs:
           path: coveragereport
 
       - name: MSSQL - Upload coverage to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./extensions/mssql/coverage/cobertura-coverage.xml

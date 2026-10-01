@@ -11,10 +11,6 @@ export interface ExecutionPlanWebviewState {
 
 export interface ExecutionPlanState {
     /**
-     * Whether execution plans should use the React Flow preview renderer.
-     */
-    isBetaExecutionPlanEnabled?: boolean;
-    /**
      * The execution plan graphs returned by the tools service
      */
     executionPlanGraphs?: ExecutionPlanGraph[];

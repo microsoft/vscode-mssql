@@ -24,7 +24,10 @@ export interface FluentResultGridSortState {
 }
 
 export interface FluentResultGridScrollPosition {
+    /** Index of the top visible row. */
     scrollTop: number;
+    /** Pixel offset within the top visible row. */
+    scrollTopOffset?: number;
     scrollLeft: number;
 }
 

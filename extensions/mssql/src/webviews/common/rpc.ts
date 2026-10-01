@@ -182,11 +182,21 @@ export class WebviewRpc<Reducers> {
     public action<MethodName extends keyof Reducers>(
         method: MethodName,
         payload?: Reducers[MethodName],
-    ) {
-        void this.sendRequest(ReducerRequest.type<Reducers>(), {
+    ): void {
+        void this.actionAndWait(method, payload);
+    }
+
+    /**
+     * Call a reducer and wait for it to complete.
+     */
+    public actionAndWait<MethodName extends keyof Reducers>(
+        method: MethodName,
+        payload?: Reducers[MethodName],
+    ): Promise<void> {
+        return this.sendRequest(ReducerRequest.type<Reducers>(), {
             type: method,
             payload: payload,
-        });
+        }).then(() => undefined);
     }
 
     public sendActionEvent(event: WebviewTelemetryActionEvent) {
@@ -213,7 +223,7 @@ export class WebviewRpc<Reducers> {
         return this.connection.sendNotification(type, params as RequestParam<P>);
     }
 
-    public onNotification<P>(type: NotificationType<P>, handler: (params: P) => void): void {
-        this.connection.onNotification(type, handler);
+    public onNotification<P>(type: NotificationType<P>, handler: (params: P) => void): Disposable {
+        return this.connection.onNotification(type, handler);
     }
 }

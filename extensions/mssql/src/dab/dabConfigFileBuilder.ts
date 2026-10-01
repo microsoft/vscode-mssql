@@ -468,11 +468,17 @@ export class DabConfigFileBuilder {
             return false;
         }
 
+        // custom-tool is emitted for every entity, not just stored procedures.
+        // The schema gates it behind `if custom-tool is true then the source
+        // must be a stored procedure`, and an absent custom-tool satisfies that
+        // condition vacuously — so omitting it makes every table and view fail
+        // validation. Stating false keeps the condition from matching.
         return {
             "dml-tools": Dab.isEntityMcpDmlToolsEnabled(entity),
-            ...(entity.sourceType === Dab.EntitySourceType.StoredProcedure
-                ? { "custom-tool": Dab.isEntityMcpCustomToolEnabled(entity) }
-                : {}),
+            "custom-tool":
+                entity.sourceType === Dab.EntitySourceType.StoredProcedure
+                    ? Dab.isEntityMcpCustomToolEnabled(entity)
+                    : false,
         };
     }
 }
