@@ -18,6 +18,13 @@ import sinonChai from "sinon-chai";
 import { ISelectionData } from "../../src/models/interfaces";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import QueryRunner from "../../src/controllers/queryRunner";
+import * as Utils from "../../src/models/utils";
+import {
+    LiveQueryStatisticsCallbacks,
+    LiveQueryStatisticsMonitor,
+} from "../../src/queryResult/liveQueryStatistics";
+import { ExecutionPlanGraph } from "../../src/sharedInterfaces/executionPlan";
+import { QueryResultPaneTabs } from "../../src/sharedInterfaces/queryResult";
 import store from "../../src/queryResult/singletonStore";
 import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
 
@@ -861,6 +868,117 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(state.isExecuting).to.equal(false);
         expect(state.executionStartTime).to.equal(undefined);
         expect(state.executionElapsedMilliseconds).to.equal(3000);
+    });
+
+    suite("Live query statistics", () => {
+        const uri = "test_uri";
+        let runQuery: sinon.SinonStub;
+        let startMonitor: sinon.SinonStub;
+
+        setup(() => {
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(uri);
+            startMonitor = sandbox.stub(LiveQueryStatisticsMonitor.prototype, "start");
+            runQuery = sandbox
+                .stub(QueryRunner.prototype, "runQuery")
+                .callsFake(async function (selection) {
+                    this.setupQueryExecution(selection);
+                    (
+                        this as unknown as { _startEmitter: vscode.EventEmitter<string> }
+                    )._startEmitter.fire(this.uri);
+                });
+        });
+
+        async function startLiveRun(): Promise<QueryRunner> {
+            contentProvider.onToggleLiveQueryStatistics(true);
+            await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+            const runner = contentProvider.getQueryRunner(uri);
+            runner.handleBatchStart({
+                ownerUri: uri,
+                serverConnectionId: "57",
+                batchSummary: {
+                    hasError: false,
+                    id: 0,
+                    selection: undefined,
+                    resultSetSummaries: [],
+                    executionElapsed: undefined,
+                    executionEnd: undefined,
+                    executionStart: new Date().toISOString(),
+                },
+            });
+            return runner;
+        }
+
+        function getMonitor(): { _sessionId: number; _callbacks: LiveQueryStatisticsCallbacks } {
+            return startMonitor.lastCall.thisValue;
+        }
+
+        test("captures the actual plan and shows the live plan while the query runs", async () => {
+            const runner = await startLiveRun();
+
+            expect(runQuery.firstCall.args[1]).to.deep.include({
+                includeActualExecutionPlanXml: true,
+            });
+            expect(getMonitor()._sessionId).to.equal(57);
+
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+            } as ExecutionPlanGraph;
+            getMonitor()._callbacks.onPlans([liveGraph]);
+
+            let state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                { ...liveGraph, isLive: true, liveRefreshId: 1 },
+            ]);
+            expect(state.tabStates.resultPaneTab).to.equal(QueryResultPaneTabs.ExecutionPlan);
+
+            runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+            state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([]);
+        });
+
+        test("keeps the last live plan when the query is stopped", async () => {
+            const runner = await startLiveRun();
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+            } as ExecutionPlanGraph;
+            getMonitor()._callbacks.onPlans([liveGraph]);
+
+            runner.handleQueryComplete({
+                ownerUri: uri,
+                batchSummaries: [
+                    {
+                        hasError: true,
+                        id: 0,
+                        selection: undefined,
+                        resultSetSummaries: [],
+                        executionElapsed: undefined,
+                        executionEnd: undefined,
+                        executionStart: new Date().toISOString(),
+                    },
+                ],
+            });
+
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                { ...liveGraph, isLive: false, liveRefreshId: 1 },
+            ]);
+        });
+
+        test("explains why live statistics stopped", async () => {
+            await startLiveRun();
+
+            getMonitor()._callbacks.onError("VIEW SERVER STATE permission was denied");
+
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.messages.map((message) => message.message)).to.include(
+                LocConstants.msgLiveQueryStatisticsStopped(
+                    "VIEW SERVER STATE permission was denied",
+                ),
+            );
+        });
     });
 
     test("runQuery should prevent concurrent execution dispatch for same URI", async () => {

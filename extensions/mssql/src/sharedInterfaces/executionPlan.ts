@@ -109,6 +109,16 @@ export interface ExecutionPlanGraph {
      * Query recommendations for optimizing performance
      */
     recommendations: ExecutionPlanRecommendations[];
+    /**
+     * True for the in-flight plan of a statement that is still running, which refreshes with
+     * live row counts until the statement finishes.
+     */
+    isLive?: boolean;
+    /**
+     * Number of the live read this plan came from. It changes only when the plan is read again, so
+     * the view can tell a new read from the same read sent along with other state updates.
+     */
+    liveRefreshId?: number;
 }
 
 export interface ExecutionPlanNode {

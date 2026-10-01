@@ -317,6 +317,17 @@ export function msgSaveSucceeded(filePath: string) {
         comment: ["{0} is the file path"],
     });
 }
+export let msgLiveQueryStatisticsUnavailable = l10n.t(
+    "Live query statistics aren't available for this query because its server session couldn't be identified.",
+);
+export function msgLiveQueryStatisticsStopped(error: string) {
+    return l10n.t({
+        message:
+            "Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}",
+        args: [error],
+        comment: ["{0} is the error message"],
+    });
+}
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
 export let msgSelectProfileToEdit = l10n.t("Select profile to edit");
 export let confirmRemoveProfilePrompt = l10n.t("Confirm to remove this profile.");

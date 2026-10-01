@@ -478,6 +478,16 @@
                     "command": "mssql.disableActualPlan",
                     "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource in mssql.executionPlan.urisWithActualPlanEnabled) && (resourcePath not in mssql.runningQueries)",
                     "group": "navigation@12"
+                },
+                {
+                    "command": "mssql.enableLiveQueryStatistics",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource not in mssql.executionPlan.urisWithLiveQueryStatisticsEnabled) && (resourcePath not in mssql.runningQueries)",
+                    "group": "navigation@13"
+                },
+                {
+                    "command": "mssql.disableLiveQueryStatistics",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource in mssql.executionPlan.urisWithLiveQueryStatisticsEnabled) && (resourcePath not in mssql.runningQueries)",
+                    "group": "navigation@14"
                 }
             ],
             "editor/context": [
@@ -1712,6 +1722,18 @@
                 "command": "mssql.toggleActualPlan",
                 "title": "%mssql.toggleActualPlan%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.enableLiveQueryStatistics",
+                "title": "%mssql.enableLiveQueryStatistics%",
+                "category": "MS SQL",
+                "icon": "$(pulse)"
+            },
+            {
+                "command": "mssql.disableLiveQueryStatistics",
+                "title": "%mssql.disableLiveQueryStatistics%",
+                "category": "MS SQL",
+                "icon": "$(stop-circle)"
             },
             {
                 "command": "mssql.copilot.explainQuery",

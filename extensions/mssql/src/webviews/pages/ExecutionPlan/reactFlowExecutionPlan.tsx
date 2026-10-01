@@ -54,6 +54,9 @@ import {
     ExecutionPlanEdgeModel,
     ExecutionPlanModel,
     ExecutionPlanNodePositions,
+    advanceExecutionPlanEdgeFlow,
+    EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE,
+    ExecutionPlanEdgeFlowState,
     formatExecutionPlanRowCount,
     getHiddenExecutionPlanElementIds,
     layoutExecutionPlan,
@@ -399,6 +402,32 @@ const EXECUTION_PLAN_EDGE_CORNER_RADIUS = 8;
 /** Space between an edge's row count label and the child operator it comes from. */
 const EXECUTION_PLAN_ROW_COUNT_LABEL_GAP = 6;
 
+/** Length of one cycle of the live flow dashes. Matches the animation in the stylesheet. */
+const EXECUTION_PLAN_FLOW_CYCLE_MS = 800;
+
+/** Minimum width of the live flow dashes, so they stay visible on the thinnest edges. */
+const EXECUTION_PLAN_FLOW_MINIMUM_WIDTH = 3;
+
+function ExecutionPlanFlowDashes({ path, edgeWidth }: { path: string; edgeWidth: number }) {
+    // Phase every flow from a shared clock, so an edge that starts flowing or remounts after a
+    // refresh joins the motion where it already is instead of restarting it.
+    const [animationDelay] = useState(
+        () => `-${Math.round(performance.now() % EXECUTION_PLAN_FLOW_CYCLE_MS)}ms`,
+    );
+    return (
+        <path
+            d={path}
+            fill="none"
+            className="execution-plan-flow-dashes"
+            // Slightly wider than the edge, so the dashes read as segments moving along it
+            style={{
+                animationDelay,
+                strokeWidth: Math.max(edgeWidth + 1, EXECUTION_PLAN_FLOW_MINIMUM_WIDTH),
+            }}
+        />
+    );
+}
+
 function ExecutionPlanReactFlowEdge({
     sourceX,
     sourceY,
@@ -407,6 +436,7 @@ function ExecutionPlanReactFlowEdge({
     targetY,
     targetPosition,
     style,
+    animated,
     data,
 }: EdgeProps<ExecutionPlanFlowEdge>) {
     const arrowGeometry = getExecutionPlanArrowGeometry(sourceX, sourceY);
@@ -419,10 +449,30 @@ function ExecutionPlanReactFlowEdge({
         targetPosition,
         borderRadius: EXECUTION_PLAN_EDGE_CORNER_RADIUS,
     });
+    // The flow starts at the handle, which stays put as the edge thickens and its arrowhead grows,
+    // so the dashes never jump. The arrowhead is drawn over the start.
+    const [flowPath] = animated
+        ? getSmoothStepPath({
+              sourceX,
+              sourceY,
+              sourcePosition,
+              targetX,
+              targetY,
+              targetPosition,
+              borderRadius: EXECUTION_PLAN_EDGE_CORNER_RADIUS,
+          })
+        : [undefined];
+
     // The stylesheet sets the color, so the edge and its arrowhead change together on hover
     return (
         <g className="execution-plan-flow-edge">
             <path d={edgePath} fill="none" className="react-flow__edge-path" style={style} />
+            {flowPath && (
+                <ExecutionPlanFlowDashes
+                    path={flowPath}
+                    edgeWidth={typeof style?.strokeWidth === "number" ? style.strokeWidth : 1}
+                />
+            )}
             <path
                 d={arrowGeometry.path}
                 fill="currentColor"
@@ -594,6 +644,10 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
 
 interface ReactFlowExecutionPlanProps {
     root: ExecutionPlanNode;
+    /** The plan of a running statement, refreshed with live row counts. */
+    isLive?: boolean;
+    /** Number of the live read the plan came from. */
+    liveRefreshId?: number;
     themeKind: ColorThemeKind;
     planNumber: number;
     onReady: (controller: ExecutionPlanGraphController | null) => void;
@@ -603,6 +657,8 @@ interface ReactFlowExecutionPlanProps {
 
 export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     root,
+    isLive = false,
+    liveRefreshId,
     themeKind,
     planNumber,
     onReady,
@@ -868,6 +924,22 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
         return () => canvas.removeEventListener("wheel", handleWheel);
     }, [instance]);
 
+    // Rows are moving along an edge whose row count grew recently. The flow state carries across
+    // refreshes so an edge keeps animating through reads that find no new rows.
+    const edgeFlowStateRef = useRef<ExecutionPlanEdgeFlowState>(
+        EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE,
+    );
+    // Advance once per live read. Other state updates resend the same read, and counting those as
+    // reads would stop edges that are still flowing.
+    const edgeFlow = useMemo(
+        () => advanceExecutionPlanEdgeFlow(model.edges, edgeFlowStateRef.current, isLive),
+        [isLive, liveRefreshId],
+    );
+    useEffect(() => {
+        edgeFlowStateRef.current = edgeFlow.state;
+    }, [edgeFlow]);
+    const flowingEdgeIds = edgeFlow.flowingEdgeIds;
+
     const nodes = useMemo<ExecutionPlanFlowNode[]>(
         () =>
             model.nodes.map((planNode) => {
@@ -949,6 +1021,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 target: edge.targetId,
                 type: "executionPlanEdge",
                 hidden: hiddenNodeIds.has(edge.targetId),
+                animated: flowingEdgeIds.has(edge.id),
                 data: {
                     ...edge,
                     rowCountLabel: formatExecutionPlanRowCount(
@@ -961,7 +1034,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 focusable: false,
                 selectable: true,
             })),
-        [hiddenNodeIds, model],
+        [flowingEdgeIds, hiddenNodeIds, model],
     );
 
     useEffect(() => {

@@ -124,6 +124,53 @@ export function formatExecutionPlanRowCount(
     return { label, exact };
 }
 
+/** Refreshes an edge keeps flowing after its row count last grew. */
+export const EXECUTION_PLAN_FLOW_HOLD_REFRESHES = 3;
+
+/** The row counts of a live plan's edges and when each last grew, carried between refreshes. */
+export interface ExecutionPlanEdgeFlowState {
+    rowCounts: ReadonlyMap<string, number>;
+    /** Refreshes since each edge's row count last grew. */
+    refreshesSinceGrowth: ReadonlyMap<string, number>;
+}
+
+export const EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE: ExecutionPlanEdgeFlowState = {
+    rowCounts: new Map(),
+    refreshesSinceGrowth: new Map(),
+};
+
+/**
+ * Advances a live plan's edge flow by one refresh. SQL Server reports in-flight row counts in
+ * bursts, so an edge keeps flowing for a few refreshes after its count last grew instead of
+ * stopping whenever a read finds no new rows. A finished plan has no flowing edges.
+ */
+export function advanceExecutionPlanEdgeFlow(
+    edges: readonly ExecutionPlanEdgeModel[],
+    previous: ExecutionPlanEdgeFlowState,
+    isLive: boolean,
+): { state: ExecutionPlanEdgeFlowState; flowingEdgeIds: ReadonlySet<string> } {
+    if (!isLive) {
+        return { state: EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE, flowingEdgeIds: new Set() };
+    }
+
+    const rowCounts = new Map<string, number>();
+    const refreshesSinceGrowth = new Map<string, number>();
+    const flowingEdgeIds = new Set<string>();
+    for (const edge of edges) {
+        const grew = edge.rowCount > (previous.rowCounts.get(edge.id) ?? 0);
+        const sinceGrowth = grew
+            ? 0
+            : (previous.refreshesSinceGrowth.get(edge.id) ?? EXECUTION_PLAN_FLOW_HOLD_REFRESHES) +
+              1;
+        rowCounts.set(edge.id, edge.rowCount);
+        refreshesSinceGrowth.set(edge.id, sinceGrowth);
+        if (sinceGrowth < EXECUTION_PLAN_FLOW_HOLD_REFRESHES) {
+            flowingEdgeIds.add(edge.id);
+        }
+    }
+    return { state: { rowCounts, refreshesSinceGrowth }, flowingEdgeIds };
+}
+
 /**
  * Immutable, renderer-neutral representation of an execution plan.
  */

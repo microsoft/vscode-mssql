@@ -1004,6 +1004,10 @@ export class LocConstants {
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
             executionPlanRendererError: l10n.t("This execution plan could not be rendered."),
+            live: l10n.t("Live"),
+            livePlanDescription: l10n.t(
+                "Live plan of the running statement. Row counts refresh while it runs.",
+            ),
             executionPlanGraph: (planNumber: number) =>
                 l10n.t({
                     message: "Execution plan {0}, use arrow keys to navigate between nodes",

@@ -189,6 +189,11 @@
         "message": "Successfully saved results to {0}",
         "comment": ["{0} is the file path"]
     },
+    "Live query statistics aren't available for this query because its server session couldn't be identified.": "Live query statistics aren't available for this query because its server session couldn't be identified.",
+    "Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}/{0} is the error message": {
+        "message": "Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Select profile to remove": "Select profile to remove",
     "Select profile to edit": "Select profile to edit",
     "Confirm to remove this profile.": "Confirm to remove this profile.",
@@ -3345,6 +3350,8 @@
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
     "This execution plan could not be rendered.": "This execution plan could not be rendered.",
+    "Live": "Live",
+    "Live plan of the running statement. Row counts refresh while it runs.": "Live plan of the running statement. Row counts refresh while it runs.",
     "Execution plan {0}, use arrow keys to navigate between nodes/{0} is the one-based execution plan number": {
         "message": "Execution plan {0}, use arrow keys to navigate between nodes",
         "comment": ["{0} is the one-based execution plan number"]

@@ -124,6 +124,7 @@ export default class QueryRunner {
     private _uriToQueryStringMap = new Map<string, string>();
     private _registeredNotificationUris = new Set<string>();
     private _executionSource: QueryExecutionSource = "document";
+    private _serverConnectionId: string | undefined;
     private _orphanedQueryRecoveryTimer: ReturnType<typeof setTimeout> | undefined;
     private static _runningQueries = [];
 
@@ -234,6 +235,13 @@ export default class QueryRunner {
      */
     get executionSource(): QueryExecutionSource {
         return this._executionSource;
+    }
+
+    /**
+     * Gets the server session id (SPID) running the current query, once its first batch starts.
+     */
+    get serverConnectionId(): string | undefined {
+        return this._serverConnectionId;
     }
 
     get isSqlCmd(): boolean {
@@ -561,6 +569,7 @@ export default class QueryRunner {
         this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
+        this._serverConnectionId = undefined;
         // Update the status view to show that we're executing
         this._statusView.executingQuery(this.uri);
 
@@ -635,6 +644,7 @@ export default class QueryRunner {
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
         let batch = result.batchSummary;
+        this._serverConnectionId = result.serverConnectionId ?? this._serverConnectionId;
 
         // Set the result sets as an empty array so that as result sets complete we can add to the list
         batch.resultSetSummaries = [];

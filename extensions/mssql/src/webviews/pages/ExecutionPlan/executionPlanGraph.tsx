@@ -91,6 +91,10 @@ const useStyles = makeStyles({
         lineHeight: tokens.lineHeightBase200,
         paddingBottom: "4px",
     },
+    liveBadge: {
+        marginLeft: "8px",
+        verticalAlign: "middle",
+    },
     queryText: {
         fontSize: "12px",
         lineHeight: "17px",
@@ -268,25 +272,26 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
         );
     }, [executionPlanState, graph, graphIndex]);
 
+    // A live plan refreshes about once a second. Keep the user's zoom and open panels until a
+    // different statement's plan replaces it.
+    const planIdentity = graph?.isLive ? `live:${graph.query}` : graph;
     useEffect(() => {
         resetTransientUiState();
-    }, [graph, resetTransientUiState]);
+    }, [planIdentity, resetTransientUiState]);
 
-    const handleRendererReady = useCallback(
-        (controller: ExecutionPlanGraphController | null) => {
-            setExecutionPlanView(controller);
-            if (controller) {
-                setFindNodeOptions(controller.getUniqueElementProperties());
-                setCost(controller.getTotalRelativeCost());
-                setZoomNumber(controller.getZoomLevel());
-            } else {
-                setFindNodeOptions([]);
-                setCost(0);
-                resetTransientUiState();
-            }
-        },
-        [resetTransientUiState],
-    );
+    const handleRendererReady = useCallback((controller: ExecutionPlanGraphController | null) => {
+        setExecutionPlanView(controller);
+        if (controller) {
+            setFindNodeOptions(controller.getUniqueElementProperties());
+            setCost(controller.getTotalRelativeCost());
+            setZoomNumber(controller.getZoomLevel());
+        } else {
+            // A new plan resets the view through planIdentity, so a live refresh, which
+            // briefly reports no renderer, keeps it.
+            setFindNodeOptions([]);
+            setCost(0);
+        }
+    }, []);
 
     useEffect(() => {
         if (inputRef && inputRef.current) {
@@ -390,7 +395,19 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             ? `${getQueryCostString()}, ${query}, ${locConstants.executionPlan.missingIndexRecommendations}`
                             : `${getQueryCostString()}, ${query}`
                     }>
-                    <div className={classes.queryCostSummary}>{getQueryCostString()}</div>
+                    <div className={classes.queryCostSummary}>
+                        {getQueryCostString()}
+                        {graph?.isLive && (
+                            <Badge
+                                appearance="tint"
+                                color="brand"
+                                size="small"
+                                className={classes.liveBadge}
+                                title={locConstants.executionPlan.livePlanDescription}>
+                                {locConstants.executionPlan.live}
+                            </Badge>
+                        )}
+                    </div>
                     <SqlText
                         className={classes.queryText}
                         text={query}
@@ -475,6 +492,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                 }>
                                 <ReactFlowExecutionPlan
                                     root={graph.root}
+                                    isLive={graph.isLive === true}
+                                    liveRefreshId={graph.liveRefreshId}
                                     themeKind={themeKind}
                                     planNumber={graphIndex + 1}
                                     onReady={handleRendererReady}

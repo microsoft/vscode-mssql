@@ -5625,6 +5625,19 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++b64ac05f17e64d037db81a98f51e2688216e292ae9748f979f04dfbac49fd7fc">
+      <source xml:lang="en">Live</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d166f7cc96ddbc851ad16d9b6b05e6fb43435e3164082d8a0a004f6490eb9716">
+      <source xml:lang="en">Live plan of the running statement. Row counts refresh while it runs.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3ca96e2a3734f75719d8f1fd7122b0e4efb466e24c3064a41335f8f2882cad55">
+      <source xml:lang="en">Live query statistics aren&apos;t available for this query because its server session couldn&apos;t be identified.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b43b63025594401db10d74d16ad1332cbfc5cd71a53ee72bcec9b3840199391c">
+      <source xml:lang="en">Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
       <source xml:lang="en">Load</source>
     </trans-unit>
@@ -11584,6 +11597,9 @@
     <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
       <source xml:lang="en">Disable Group By Schema</source>
     </trans-unit>
+    <trans-unit id="mssql.disableLiveQueryStatistics">
+      <source xml:lang="en">Disable Live Query Statistics</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.disableAutoSizingEnumDescription">
       <source xml:lang="en">Disable automatic column sizing</source>
     </trans-unit>
@@ -11628,6 +11644,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
       <source xml:lang="en">Enable Group By Schema</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableLiveQueryStatistics">
+      <source xml:lang="en">Enable Live Query Statistics</source>
     </trans-unit>
     <trans-unit id="mssql.query.alwaysEncryptedParameterization">
       <source xml:lang="en">Enable Parameterization for Always Encrypted</source>

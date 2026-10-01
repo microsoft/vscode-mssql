@@ -218,6 +218,60 @@
     stroke-linejoin: round;
 }
 
+/*
+ * An edge rows are moving along turns accent blue and shows only its moving dashes and arrowhead,
+ * so the motion stands out against the gray edges around it.
+ */
+.execution-plan-flow-canvas .react-flow__edge.animated .execution-plan-flow-edge {
+    color: var(--vscode-charts-blue, var(--vscode-focusBorder));
+}
+
+.execution-plan-flow-canvas
+    .react-flow__edge.animated
+    .execution-plan-flow-edge
+    .react-flow__edge-path {
+    stroke-opacity: 0;
+}
+
+/* React Flow dashes every path of an animated edge. Live plans draw their own flow instead. */
+.execution-plan-flow-canvas .react-flow__edge.animated path {
+    stroke-dasharray: none;
+    animation: none;
+}
+
+/*
+ * Live plans animate the edges rows are moving along. Rows flow from child to parent, toward the
+ * start of the path, so the dash offset grows. Each cycle moves one dash pattern (8 + 6), so the
+ * loop is seamless. Square ends keep the gaps clean however wide the edge is.
+ */
+.execution-plan-flow-canvas .react-flow__edge.animated .execution-plan-flow-dashes {
+    stroke: currentColor;
+    stroke-linecap: butt;
+    stroke-dasharray: 8 6;
+    animation: execution-plan-flow 800ms linear infinite;
+    transition: stroke-width 300ms ease;
+}
+
+@keyframes execution-plan-flow {
+    from {
+        stroke-dashoffset: 0;
+    }
+    to {
+        stroke-dashoffset: 14;
+    }
+}
+
+/* Edges thicken as live row counts grow; ease the change instead of jumping. */
+.execution-plan-flow-canvas .react-flow__edge-path {
+    transition: stroke-width 300ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .execution-plan-flow-canvas .react-flow__edge.animated .execution-plan-flow-dashes {
+        animation: none;
+    }
+}
+
 .execution-plan-flow-tooltip {
     position: fixed;
     z-index: 10;

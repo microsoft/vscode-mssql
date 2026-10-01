@@ -76,6 +76,8 @@
     "mssql.enableActualPlan": "Enable Actual Plan (MSSQL)",
     "mssql.disableActualPlan": "Disable Actual Plan (MSSQL)",
     "mssql.toggleActualPlan": "Toggle Actual Plan",
+    "mssql.enableLiveQueryStatistics": "Enable Live Query Statistics",
+    "mssql.disableLiveQueryStatistics": "Disable Live Query Statistics",
     "mssql.rebuildIntelliSenseCache": "Refresh IntelliSense Cache",
     "mssql.logDebugInfo": "[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)",
     "mssql.maxRecentConnections": "The maximum number of recently used connections to store in the connection list.",
