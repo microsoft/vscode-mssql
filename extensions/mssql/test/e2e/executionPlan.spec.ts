@@ -360,6 +360,17 @@ test.describe("MSSQL Extension - Query Plan", async () => {
             propertiesPanel.getByText("Physical Operation", { exact: true }).first(),
         ).toBeVisible();
 
+        // View the full value of a property
+        const physicalOperationRow = propertyRows.filter({ hasText: "Physical Operation" }).first();
+        await physicalOperationRow.hover();
+        await physicalOperationRow
+            .getByRole("button", { name: "View full value of Physical Operation" })
+            .click();
+        const fullValueDialog = iframe.getByRole("dialog", { name: "Physical Operation" });
+        await expect(fullValueDialog.locator(".view-lines")).toContainText("Nested Loops");
+        await fullValueDialog.getByRole("button", { name: "Close" }).click();
+        await expect(fullValueDialog).toBeHidden();
+
         await propertiesPanel.getByRole("button", { name: "Close" }).click();
 
         await expect(alphabeticalButton).toBeHidden();

@@ -411,16 +411,13 @@ export function registerCommonRequestHandlers(
         return state;
     });
     webviewController.registerReducer("openFileThroughLink", async (state, payload) => {
-        // If the content is an execution plan XML, open it in the execution plan tab
+        // Plans from this result open in its Query Plan tab from the webview. Any other execution
+        // plan XML opens in its own execution plan viewer.
         let formattedText = payload.content;
         if (
             payload.type === Constants.xml &&
             payload.content.startsWith(Constants.queryPlanXmlStart)
         ) {
-            if (state.isExecutionPlan) {
-                state.tabStates.resultPaneTab = qr.QueryResultPaneTabs.ExecutionPlan;
-                return state;
-            }
             openExecutionPlanWebview(
                 webviewViewController.getContext(),
                 webviewViewController.executionPlanService,

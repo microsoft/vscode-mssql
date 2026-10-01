@@ -849,6 +849,26 @@ suite("Query Runner tests", () => {
         expect(queryRunner["_registeredNotificationUris"].size).to.equal(0);
     });
 
+    test("records the execution plan options of the current run", async () => {
+        testSqlToolsServerClient.sendRequest.resolves(
+            new QueryExecuteContracts.QueryExecuteResult(),
+        );
+        setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1",
+        } as unknown as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+        const executionPlanOptions: QueryExecuteContracts.ExecutionPlanOptions = {
+            includeEstimatedExecutionPlanXml: true,
+        };
+
+        await queryRunner.runQuery(standardSelection, executionPlanOptions);
+        expect(queryRunner.executionPlanOptions).to.deep.equal(executionPlanOptions);
+
+        await queryRunner.runQueryString("select 1");
+        expect(queryRunner.executionPlanOptions).to.equal(undefined);
+    });
+
     test("runStatement sends correct request with execution plan options", async () => {
         const queryRunner = createQueryRunner();
         const line = 1;
