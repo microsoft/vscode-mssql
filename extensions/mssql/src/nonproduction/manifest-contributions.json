@@ -1,0 +1,31 @@
+{
+    "$comment": "package.json contributions owned by each non-production area. When a build channel excludes an area, packaging removes these entries from the VSIX manifest (and restores the file afterwards). Every id listed here must exist in package.json — test/unit/nonproductionChannels.test.ts enforces that so the map cannot rot.",
+    "sdkLanguageModels": {
+        "configuration": [
+            "mssql.copilot.sdkProviders.anthropic.enabled",
+            "mssql.copilot.sdkProviders.anthropic.additionalModels",
+            "mssql.copilot.sdkProviders.anthropic.baseUrl",
+            "mssql.copilot.sdkProviders.anthropic.timeout",
+            "mssql.copilot.sdkProviders.anthropic.env",
+            "mssql.copilot.sdkProviders.openai.enabled",
+            "mssql.copilot.sdkProviders.openai.additionalModels",
+            "mssql.copilot.sdkProviders.openai.baseUrl",
+            "mssql.copilot.sdkProviders.openai.timeout",
+            "mssql.copilot.sdkProviders.openai.env",
+            "mssql.copilot.sdkProviders.xai.enabled",
+            "mssql.copilot.sdkProviders.xai.additionalModels",
+            "mssql.copilot.sdkProviders.xai.baseUrl",
+            "mssql.copilot.sdkProviders.xai.timeout",
+            "mssql.copilot.sdkProviders.xai.env"
+        ],
+        "commands": [
+            "mssql.copilot.sdkProviders.anthropic.setApiKey",
+            "mssql.copilot.sdkProviders.anthropic.clearApiKey",
+            "mssql.copilot.sdkProviders.openai.setApiKey",
+            "mssql.copilot.sdkProviders.openai.clearApiKey",
+            "mssql.copilot.sdkProviders.xai.setApiKey",
+            "mssql.copilot.sdkProviders.xai.clearApiKey"
+        ],
+        "languageModelChatProviders": ["anthropic-api", "openai-api", "xai-api"]
+    }
+}
