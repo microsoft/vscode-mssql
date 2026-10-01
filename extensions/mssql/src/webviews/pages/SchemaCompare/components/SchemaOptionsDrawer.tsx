@@ -28,6 +28,7 @@ import { locConstants as loc } from "../../../common/locConstants";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { DacDeployOptionPropertyBoolean } from "vscode-mssql";
+import { getSchemaCompareGeneralOptionPresentation } from "./schemaOptionsUtils";
 
 const useStyles = makeStyles({
     drawer: {
@@ -168,11 +169,13 @@ const SchemaOptionsDrawer = (props: Props) => {
         );
     }
 
-    const filteredGeneralOptions = generalOptionEntries.filter(
-        ([_, value]) =>
+    const filteredGeneralOptions = generalOptionEntries.filter(([key, value]) => {
+        const presentation = getSchemaCompareGeneralOptionPresentation(key, value);
+        return (
             searchQuery === "" ||
-            value.displayName.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+            presentation.displayName.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    });
 
     const filteredObjectTypes = includeObjectTypesEntries.filter(
         ([_, value]) =>
@@ -316,6 +319,10 @@ const SchemaOptionsDrawer = (props: Props) => {
                         <div className={classes.scrollableList}>
                             {optionsToValueNameLookup &&
                                 filteredGeneralOptions.map(([key, value]) => {
+                                    const presentation = getSchemaCompareGeneralOptionPresentation(
+                                        key,
+                                        value,
+                                    );
                                     return (
                                         <div className={classes.listItemContainer} key={key}>
                                             <Checkbox
@@ -323,9 +330,9 @@ const SchemaOptionsDrawer = (props: Props) => {
                                                 onChange={() => handleSettingChanged(key)}
                                                 label={
                                                     <InfoLabel
-                                                        aria-label={value.displayName}
-                                                        info={<>{value.description}</>}>
-                                                        {value.displayName}
+                                                        aria-label={presentation.displayName}
+                                                        info={<>{presentation.description}</>}>
+                                                        {presentation.displayName}
                                                     </InfoLabel>
                                                 }
                                             />

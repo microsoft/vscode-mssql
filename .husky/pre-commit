@@ -1,14 +1,34 @@
 #!/usr/bin/env sh
 
-node scripts/localization-extract.js --staged || exit 1
-if ! git diff --quiet -- \
+# Git clients display hook output in dialogs that do not support terminal formatting.
+if [ ! -t 1 ]; then
+    export NO_COLOR=1
+    export FORCE_COLOR=0
+    export NO_TERMINAL_SEPARATORS=1
+fi
+
+if ! output=$(node scripts/localization-extract.js --staged 2>&1); then
+    echo "Commit blocked: translation files could not be generated."
+    echo "Open Git Log or Show Command Output for details. Fix the reported error, then try committing again."
+    printf '\n%s\n' "$output"
+    exit 1
+fi
+localization_changes=$(git diff --name-only -- \
     extensions/*/l10n/bundle.l10n.json \
     packages/extension-toolkit/l10n/bundle.l10n.json \
     localization/xliff/data-workspace.xlf \
     localization/xliff/extension-toolkit.xlf \
     localization/xliff/sql-database-projects.xlf \
-    localization/xliff/vscode-mssql.xlf; then
-    echo "Localization outputs changed. Review and stage them before committing."
+    localization/xliff/vscode-mssql.xlf)
+if [ -n "$localization_changes" ]; then
+    echo "Commit blocked: updated translation files need to be staged."
+    echo "The localization check generated changes from your staged files. Stage the files listed below, then try committing again."
+    printf '\n%s\n' "$localization_changes"
     exit 1
 fi
-npm run precommit
+if ! output=$(npm run --silent precommit 2>&1); then
+    echo "Commit blocked: checks on staged files failed."
+    echo "Open Git Log or Show Command Output for details. Fix the reported errors, stage your changes, then try committing again."
+    printf '\n%s\n' "$output"
+    exit 1
+fi

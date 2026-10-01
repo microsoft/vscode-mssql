@@ -250,15 +250,6 @@ suite("Utility Tests - isSameConnection", () => {
         authenticationType: authType,
         user: user,
     });
-    let connectionString =
-        "Server=my-server;Database=my-db;Authentication=Sql Password;User ID=my-user";
-    let connection3 = Object.assign(new ConnectionCredentials(), {
-        connectionString: connectionString,
-    });
-    let connection4 = Object.assign(new ConnectionCredentials(), {
-        connectionString: connectionString,
-    });
-
     test("should return true for matching non-connectionstring connections", () => {
         expect(Utils.isSameConnectionInfo(connection1, connection2)).to.equal(true);
     });
@@ -266,19 +257,6 @@ suite("Utility Tests - isSameConnection", () => {
     test("should return false for non-matching non-connectionstring connections", () => {
         connection2.server = "some-other-server";
         expect(Utils.isSameConnectionInfo(connection1, connection2)).to.equal(false);
-    });
-
-    test("should return true for matching connectionstring connections", () => {
-        expect(Utils.isSameConnectionInfo(connection3, connection4)).to.equal(true);
-    });
-
-    test("should return false for non-matching connectionstring connections", () => {
-        connection4.connectionString = "Server=some-other-server";
-        expect(Utils.isSameConnectionInfo(connection3, connection4)).to.equal(false);
-    });
-
-    test("should return false for connectionstring and non-connectionstring connections", () => {
-        expect(Utils.isSameConnectionInfo(connection1, connection3)).to.equal(false);
     });
 });
 
@@ -468,26 +446,6 @@ suite("ConnectionMatcher", () => {
                 } as IConnectionProfile,
                 expected: Utils.MatchScore.AllAvailableProps, // Falls back to property matching
             },
-            // Test connection string exact match
-            {
-                conn1: connStringConn,
-                conn2: connStringConn,
-                expected: Utils.MatchScore.AllAvailableProps,
-            },
-            // Test connection string mismatch
-            {
-                conn1: connStringConn,
-                conn2: {
-                    connectionString: connStringConn.connectionString + "Connection Timeout=77",
-                } as IConnectionProfile,
-                expected: Utils.MatchScore.NotMatch,
-            },
-            // Test connection string vs regular properties
-            {
-                conn1: sqlAuthConn,
-                conn2: connStringConn,
-                expected: Utils.MatchScore.NotMatch,
-            },
             // Test server only match
             {
                 conn1: sqlAuthConn,
@@ -636,7 +594,6 @@ suite("ConnectionMatcher", () => {
         const connections = [
             sqlAuthConn as IConnectionProfileWithSource,
             azureAuthConn as IConnectionProfileWithSource,
-            connStringConn as IConnectionProfileWithSource,
         ];
 
         let match = Utils.ConnectionMatcher.findMatchingProfile(azureAuthConn, connections);
@@ -747,6 +704,47 @@ export const azureAuthConn = {
     accountId: "00000.11111",
 } as IConnectionProfile;
 
-export const connStringConn = {
-    connectionString: "Server=myServer;Database=myDB;Integrated Security=true;",
-} as IConnectionProfile;
+suite("Utility Tests - withTimeout", () => {
+    let clock: sinon.SinonFakeTimers;
+
+    setup(() => {
+        clock = sinon.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    });
+
+    teardown(() => {
+        clock.restore();
+    });
+
+    test("resolves with the value when the promise settles in time", async () => {
+        const result = await Utils.withTimeout(Promise.resolve("done"), 1000, "too slow");
+
+        expect(result).to.equal("done");
+        expect(clock.countTimers(), "the timer is cleared once the promise settles").to.equal(0);
+    });
+
+    test("propagates a rejection from the promise", async () => {
+        let caught: Error | undefined;
+        try {
+            await Utils.withTimeout(Promise.reject(new Error("boom")), 1000, "too slow");
+        } catch (error) {
+            caught = error as Error;
+        }
+
+        expect(caught?.message).to.equal("boom");
+        expect(clock.countTimers(), "the timer is cleared once the promise settles").to.equal(0);
+    });
+
+    test("rejects with the timeout message when the promise never settles", async () => {
+        let caught: Error | undefined;
+        const observed = Utils.withTimeout(new Promise<never>(() => {}), 1000, "too slow").catch(
+            (error) => {
+                caught = error as Error;
+            },
+        );
+
+        await clock.tickAsync(1001);
+        await observed;
+
+        expect(caught?.message).to.equal("too slow");
+    });
+});

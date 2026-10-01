@@ -13,6 +13,7 @@ import {
     SchemaCompareEndpointType,
     SchemaCompareIncludeExcludeAllParams,
     SchemaCompareIncludeExcludeNodeParams,
+    SchemaCompareGenerateScriptParams,
     SchemaCompareReducers,
     TaskExecutionMode,
 } from "../sharedInterfaces/schemaCompare";
@@ -182,7 +183,7 @@ export async function compare(
 export async function generateScript(
     operationId: string,
     taskExecutionMode: TaskExecutionMode,
-    payload: SchemaCompareReducers["generateScript"],
+    payload: SchemaCompareGenerateScriptParams,
     schemaCompareService: mssql.ISchemaCompareService,
     logger?: ILogger,
 ): Promise<mssql.ResultStatus> {

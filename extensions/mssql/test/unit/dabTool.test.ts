@@ -167,6 +167,33 @@ suite("DabTool Tests", () => {
         sandbox.restore();
     });
 
+    const establishEditSession = async (
+        designer: sinon.SinonStubbedInstance<SchemaDesignerWebviewController>,
+        version = "dabcfg_before",
+    ) => {
+        designer.getDabToolState.resolves({
+            returnState: "summary",
+            stateOmittedReason: "entity_count_over_threshold",
+            version,
+            summary: {
+                entityCount: 151,
+                enabledEntityCount: 100,
+                apiTypes: [Dab.ApiType.Rest],
+            },
+        });
+
+        const result = JSON.parse(
+            await dabTool.call(
+                {
+                    input: { operation: "get_state" },
+                } as vscode.LanguageModelToolInvocationOptions<DabToolParams>,
+                mockToken,
+            ),
+        );
+        expect(result.success).to.equal(true);
+        designer.getDabToolState.resetHistory();
+    };
+
     suite("Tool behavior", () => {
         test("returns invalid_request when show is missing connection reference", async () => {
             const options = {
@@ -379,7 +406,6 @@ suite("DabTool Tests", () => {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_abc",
                         targetHint: { server: "localhost", database: "WrongDb" },
                         changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
                     },
@@ -408,7 +434,6 @@ suite("DabTool Tests", () => {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_abc",
                         targetHint: { server: "localhost", database: "AdventureWorks" },
                         changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
                     },
@@ -444,12 +469,12 @@ suite("DabTool Tests", () => {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
 
             const options = {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_before",
                         targetHint: { server: "localhost", database: "adventureworks" },
                         changes: [{ type: "set_all_entities_enabled", isEnabled: true }],
                     },
@@ -460,6 +485,95 @@ suite("DabTool Tests", () => {
             const parsed = JSON.parse(await dabTool.call(options, mockToken));
             expect(parsed.success).to.equal(true);
             expect(mockDesigner.applyDabToolChanges.calledOnce).to.equal(true);
+            expect(mockDesigner.applyDabToolChanges.firstCall.args[0].expectedVersion).to.equal(
+                "dabcfg_before",
+            );
+        });
+
+        test("apply_changes advances the internal edit version after success", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => "localhost");
+            sandbox.stub(mockDesigner as any, "database").get(() => "AdventureWorks");
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
+
+            mockDesigner.applyDabToolChanges.onFirstCall().resolves({
+                success: true,
+                appliedChanges: 1,
+                returnState: "summary",
+                stateOmittedReason: "caller_requested_summary",
+                version: "dabcfg_after_first_apply",
+                summary: {
+                    entityCount: 1,
+                    enabledEntityCount: 1,
+                    apiTypes: [Dab.ApiType.Rest],
+                },
+            });
+            mockDesigner.applyDabToolChanges.onSecondCall().resolves({
+                success: true,
+                appliedChanges: 1,
+                returnState: "summary",
+                stateOmittedReason: "caller_requested_summary",
+                version: "dabcfg_after_second_apply",
+                summary: {
+                    entityCount: 1,
+                    enabledEntityCount: 0,
+                    apiTypes: [Dab.ApiType.Rest],
+                },
+            });
+            const options = {
+                input: {
+                    operation: "apply_changes",
+                    payload: {
+                        changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            await dabTool.call(options, mockToken);
+            await dabTool.call(options, mockToken);
+
+            expect(mockDesigner.applyDabToolChanges.firstCall.args[0].expectedVersion).to.equal(
+                "dabcfg_before",
+            );
+            expect(mockDesigner.applyDabToolChanges.secondCall.args[0].expectedVersion).to.equal(
+                "dabcfg_after_first_apply",
+            );
+        });
+
+        test("edit sessions are scoped to the designer that get_state read", async () => {
+            const firstDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            const secondDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            for (const designer of [firstDesigner, secondDesigner]) {
+                sandbox.stub(designer as any, "server").get(() => "localhost");
+                sandbox.stub(designer as any, "database").get(() => "AdventureWorks");
+            }
+            const getActiveDesigner = sandbox.stub().returns(firstDesigner);
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
+                getActiveDesigner,
+            } as any);
+            await establishEditSession(firstDesigner);
+            getActiveDesigner.returns(secondDesigner);
+
+            const result = JSON.parse(
+                await dabTool.call(
+                    {
+                        input: {
+                            operation: "apply_changes",
+                            payload: {
+                                changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
+                            },
+                        },
+                    } as vscode.LanguageModelToolInvocationOptions<DabToolParams>,
+                    mockToken,
+                ),
+            );
+
+            expect(result.reason).to.equal("state_required");
+            expect(secondDesigner.applyDabToolChanges.called).to.equal(false);
         });
 
         test("returns invalid_request for unknown operation", async () => {
@@ -483,7 +597,7 @@ suite("DabTool Tests", () => {
             expect(parsed.database).to.equal("AdventureWorks");
         });
 
-        test("returns invalid_request when apply_changes is missing expectedVersion", async () => {
+        test("returns state_required when apply_changes has no edit session", async () => {
             const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
             const managerStub = {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
@@ -501,8 +615,9 @@ suite("DabTool Tests", () => {
 
             const parsed = JSON.parse(await dabTool.call(options, mockToken));
             expect(parsed.success).to.equal(false);
-            expect(parsed.reason).to.equal("invalid_request");
-            expect(parsed.message).to.equal("Missing payload.expectedVersion.");
+            expect(parsed.reason).to.equal("state_required");
+            expect(parsed.message).to.equal(loc.dabToolStateRequired);
+            expect(parsed.recommendedNextCall).to.deep.equal({ operation: "get_state" });
             expect(mockDesigner.applyDabToolChanges.called).to.equal(false);
             expect(mockDesigner.revealToForeground.called).to.equal(false);
             expect(mockDesigner.showView.called).to.equal(false);
@@ -518,9 +633,7 @@ suite("DabTool Tests", () => {
             const options = {
                 input: {
                     operation: "apply_changes",
-                    payload: {
-                        expectedVersion: "dabcfg_abc",
-                    },
+                    payload: {},
                 },
             } as unknown as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
 
@@ -554,12 +667,12 @@ suite("DabTool Tests", () => {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
 
             const options = {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_before",
                         changes: [
                             { type: "set_api_types", apiTypes: [Dab.ApiType.Rest] },
                             { type: "add_entity", entity: { id: "t1" } },
@@ -642,7 +755,8 @@ suite("DabTool Tests", () => {
             expect(parsed.success).to.equal(true);
             expect(parsed.server).to.equal("localhost");
             expect(parsed.database).to.equal("AdventureWorks");
-            expect(parsed.version).to.equal("dabcfg_state");
+            expect(parsed).to.not.have.property("version");
+            expect(parsed.editSession).to.equal("ready");
             expect(parsed.summary.entityCount).to.equal(2);
             expect(mockDesigner.getDabToolState.calledOnce).to.equal(true);
             expect(mockDesigner.revealToForeground.called).to.equal(false);
@@ -670,12 +784,12 @@ suite("DabTool Tests", () => {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
 
             const options = {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_before",
                         changes: [
                             {
                                 type: "set_api_types",
@@ -695,6 +809,8 @@ suite("DabTool Tests", () => {
             expect(parsed.appliedChanges).to.equal(2);
             expect(parsed.returnState).to.equal("summary");
             expect(parsed.stateOmittedReason).to.equal("caller_requested_summary");
+            expect(parsed).to.not.have.property("version");
+            expect(parsed.editSession).to.equal("ready");
             expect(parsed.receipt).to.deep.equal({
                 addEntityCount: 0,
                 removeEntityCount: 0,
@@ -740,12 +856,12 @@ suite("DabTool Tests", () => {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
 
             const options = {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_before",
                         changes: [
                             { type: "set_all_entities_enabled", isEnabled: true },
                             {
@@ -766,7 +882,7 @@ suite("DabTool Tests", () => {
             expect(parsed.reason).to.equal("validation_error");
             expect(parsed.failedChangeIndex).to.equal(1);
             expect(parsed.appliedChanges).to.equal(1);
-            expect(parsed.version).to.equal("dabcfg_failed");
+            expect(parsed).to.not.have.property("version");
             expect(parsed.summary.enabledEntityCount).to.equal(1);
             expect(parsed.returnState).to.equal("none");
             expect(parsed.stateOmittedReason).to.equal("caller_requested_none");
@@ -798,12 +914,12 @@ suite("DabTool Tests", () => {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
 
             const options = {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_before",
                         changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
                     },
                 },
@@ -812,8 +928,15 @@ suite("DabTool Tests", () => {
             const parsed = JSON.parse(await dabTool.call(options, mockToken));
             expect(parsed.success).to.equal(false);
             expect(parsed.reason).to.equal("stale_state");
+            expect(parsed.message).to.equal(loc.dabToolStateChanged);
+            expect(parsed).to.not.have.property("version");
+            expect(parsed.recommendedNextCall).to.deep.equal({ operation: "get_state" });
             expect(parsed.returnState).to.equal("full");
             expect(parsed.config?.entities).to.have.length(1);
+
+            const retry = JSON.parse(await dabTool.call(options, mockToken));
+            expect(retry.reason).to.equal("state_required");
+            expect(mockDesigner.applyDabToolChanges.calledOnce).to.equal(true);
         });
 
         test("returns internal_error when tool call throws", async () => {

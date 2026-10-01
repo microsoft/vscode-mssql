@@ -31,6 +31,12 @@ export class Common {
     public static privateString = l10n.t("Private");
     public static remove = l10n.t("Remove");
     public static invalidPort = l10n.t("Port must be a number between 1 and 65535");
+    public static provisioningTarget = (target: string) =>
+        l10n.t({
+            message: "Provisioning {0}",
+            args: [target],
+            comment: ["{0} is the server, container, or database target being provisioned"],
+        });
 }
 
 export class SqlToolsMcp {
@@ -120,6 +126,13 @@ export function msgFinishedExecute(documentName: string) {
 }
 export let msgRunQueryInProgress = l10n.t(
     "A query is already running for this editor session. Please cancel this query or wait for its completion.",
+);
+export let msgRunQueryInProgressCancelAction = l10n.t("Cancel query");
+export let msgQueryNoLongerRunning = l10n.t(
+    "The service is no longer running a query for this editor. The editor's execution state has been reset.",
+);
+export let msgCancelQueryTimedOut = l10n.t(
+    "The cancel request did not complete in time. The editor's execution state has been reset.",
 );
 export let runQueryBatchStartMessage = l10n.t("Started executing query at ");
 export function runQueryBatchStartLine(lineNumber: number) {
@@ -1101,6 +1114,9 @@ export class ConnectionDialog {
     public static entraServicePrincipalAuthTooltip = l10n.t(
         "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
     );
+    public static kerberosAuthTooltip = l10n.t(
+        "Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.",
+    );
     public static applicationClientId = l10n.t("Application (Client) ID");
     public static applicationClientIdTooltip = l10n.t(
         "The Application (Client) ID of your Microsoft Entra app registration.",
@@ -1213,6 +1229,14 @@ export class FirewallRule {
 }
 
 export class Azure {
+    public static systemDatabaseNotInFabricDatabaseHub(databaseName: string): string {
+        return l10n.t({
+            message: "'{0}' is a system database, so it isn't tracked in the Fabric Database Hub.",
+            args: [databaseName],
+            comment: ["{0} is the name of the system database, such as 'master'"],
+        });
+    }
+
     public static unableToAcquireEntraTokenFromVsCode(accountDisplayName: string): string {
         return l10n.t({
             message:
@@ -1583,6 +1607,18 @@ export class AzureSqlDatabase {
     );
     public static maxVcores = l10n.t("Max vCores");
     public static selectMaxVcores = l10n.t("Select Max vCores");
+    public static provisioningTaskSucceeded = (databaseName: string) =>
+        l10n.t({
+            message: "Azure SQL database '{0}' was provisioned successfully.",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static provisioningTaskFailed = (databaseName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Azure SQL database '{0}': {1}",
+            args: [databaseName, error],
+            comment: ["{0} is the database name", "{1} is the error message"],
+        });
 }
 
 export class FabricProvisioning {
@@ -1597,6 +1633,18 @@ export class FabricProvisioning {
     public static databaseNameError = l10n.t(
         "This database name is already in use. Please choose a different name.",
     );
+    public static provisioningTaskSucceeded = (databaseName: string) =>
+        l10n.t({
+            message: "Fabric SQL database '{0}' was provisioned successfully.",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static provisioningTaskFailed = (databaseName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Fabric SQL database '{0}': {1}",
+            args: [databaseName, error],
+            comment: ["{0} is the database name", "{1} is the error message"],
+        });
 }
 
 export class QueryResult {
@@ -1727,6 +1775,55 @@ export class QueryResult {
     );
 }
 
+export class AzureSqlContainer {
+    public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
+    public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
+    public static portInUse = l10n.t("This port is already in use. Choose a different port.");
+    public static portDetectionFailed = l10n.t(
+        "Unable to find an available container port. Check that Docker is running and try again.",
+    );
+    public static invalidContainerName = l10n.t(
+        "Container names must start with a letter or number and contain only letters, numbers, underscores, periods, or hyphens.",
+    );
+    public static invalidHostname = l10n.t("Enter a valid hostname.");
+    public static acceptTerms = l10n.t("Accept the terms and conditions to continue.");
+    public static selectConnectionGroup = l10n.t("Select a connection group.");
+    public static pullImageFailed = l10n.t(
+        "Failed to pull the Azure SQL Database container image. Sign in to the private registry with your preview credentials, then retry.",
+    );
+    public static createContainerFailed = l10n.t(
+        "Failed to create and start the Azure SQL Database container.",
+    );
+    public static containerNotReady = l10n.t(
+        "The Azure SQL Database container did not become ready for connections within five minutes.",
+    );
+    public static connectContainerFailed = l10n.t(
+        "The container started, but the extension could not create its database connection.",
+    );
+    public static provisioningTaskSucceeded = (containerName: string) =>
+        l10n.t({
+            message: "Azure SQL Database container '{0}' was provisioned successfully.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static provisioningTaskFailed = (containerName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Azure SQL Database container '{0}': {1}",
+            args: [containerName, error],
+            comment: ["{0} is the container name", "{1} is the error message"],
+        });
+    public static provisioningTaskCanceled = (containerName: string) =>
+        l10n.t({
+            message: "Provisioning Azure SQL Database container '{0}' was canceled.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static pullingContainerImage = l10n.t("Pulling container image");
+    public static creatingContainer = l10n.t("Creating container");
+    public static settingUpContainer = l10n.t("Setting up container");
+    public static connectingToContainer = l10n.t("Connecting to container");
+}
+
 export class LocalContainers {
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({
@@ -1830,6 +1927,18 @@ export class LocalContainers {
     public static connectingToContainerBody = l10n.t(
         "Connecting to your SQL Server Docker container",
     );
+    public static provisioningTaskSucceeded = (containerName: string) =>
+        l10n.t({
+            message: "SQL Server container '{0}' was provisioned successfully.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static provisioningTaskFailed = (containerName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision SQL Server container '{0}': {1}",
+            args: [containerName, error],
+            comment: ["{0} is the container name", "{1} is the error message"],
+        });
     public static passwordLengthError = l10n.t("Please make your password 8-128 characters long.");
     public static passwordComplexityError = l10n.t(
         "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
@@ -1947,6 +2056,86 @@ export class LocalContainers {
         "DAB container failed to become ready within the timeout period.",
     );
     public static dabStopContainerError = l10n.t("Failed to stop and remove DAB container.");
+    public static dabContainerNotFound = (containerName: string) =>
+        l10n.t({
+            message: "Container {0} no longer exists.",
+            args: [containerName],
+            comment: ["{0} is the Docker container name"],
+        });
+    public static dabStartExistingContainerError = l10n.t("Failed to start the DAB container.");
+    public static dabStopExistingContainerError = l10n.t("Failed to stop the DAB container.");
+    public static dabDeploymentNotFound = l10n.t(
+        "This deployment is no longer tracked. Refresh the deployments list and try again.",
+    );
+    public static dabRedeployPortUnavailable = (port: number, containerName: string) =>
+        l10n.t({
+            message:
+                "Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.",
+            args: [port, containerName],
+            comment: ["{0} is the port number", "{1} is the Docker container name"],
+        });
+    public static dabDeploymentStoreUnavailable = l10n.t(
+        "Deployments cannot be tracked because the extension's storage location is unavailable.",
+    );
+    // DAB CLI deployment strings
+    public static dabCliDownloadFailed = l10n.t(
+        "Failed to download the Data API builder CLI. Please check your network connection.",
+    );
+    public static dabCliPrepareFailed = l10n.t("Failed to prepare the Data API builder CLI.");
+    public static dabCliArchitectureUnsupported = (runtimeIdentifier: string) =>
+        l10n.t({
+            message:
+                "Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.",
+            args: [runtimeIdentifier],
+            comment: ["{0} is a .NET runtime identifier, such as osx-arm64"],
+        });
+    public static dabCliNotAcquired = l10n.t(
+        "The Data API builder CLI is not available. Run the prerequisite checks again.",
+    );
+    public static dabCliDotnetNotFound = l10n.t(
+        "No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.",
+    );
+    public static dabCliInstallDotnet = l10n.t("Download .NET");
+    public static dabCliDotnetNotResolved = l10n.t(
+        "The .NET runtime has not been resolved yet. Run the prerequisite checks again.",
+    );
+    public static dabCliConfigWriteFailed = l10n.t(
+        "Failed to write the Data API builder configuration file.",
+    );
+    public static dabCliConfigInvalid = l10n.t("The Data API builder configuration is not valid.");
+    public static dabCliDatabaseConnectionFailed = l10n.t(
+        "Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.",
+    );
+    public static dabCliEntraConnectionFailed = l10n.t(
+        "Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run 'az login', then run this step again.",
+    );
+    public static dabCliInstallAzureCli = l10n.t("Install the Azure CLI");
+    public static dabCliStartFailed = l10n.t("Failed to start the Data API builder engine.");
+    public static dabCliEngineNotReady = l10n.t(
+        "The Data API builder engine did not become ready within the timeout period.",
+    );
+    public static dabCliStartMissingParams = l10n.t(
+        "Deployment name, port, and configuration are required to start the engine.",
+    );
+    public static dabCliEngineDidNotStart = l10n.t("The Data API builder engine did not start.");
+    public static dabCliEngineReadyTimeout = l10n.t(
+        "The Data API builder engine did not answer in time.",
+    );
+    public static dabCliExitedWithCode = (code: number | null) =>
+        l10n.t({
+            message: "The Data API builder CLI exited with code {0}.",
+            args: [code ?? -1],
+            comment: ["{0} is the process exit code"],
+        });
+    public static dabDockerWindowsAuthNotSupported = l10n.t(
+        "A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.",
+    );
+    public static dabTargetAuthNotSupported = l10n.t(
+        "This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.",
+    );
+    public static dabCliDeploymentNotStartable = l10n.t(
+        "This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.",
+    );
 }
 
 export class UserSurvey {
@@ -2300,6 +2489,36 @@ export class Connection {
         });
     };
 
+    public static connectionStringPropertyRemoved = (
+        connectionDisplayName: string,
+        connectionString: string,
+    ) => {
+        return l10n.t({
+            message:
+                "The 'connectionString' property was removed from connection '{0}'. Removed connection string: '{1}'.",
+            args: [connectionDisplayName, connectionString],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection string that was removed",
+            ],
+        });
+    };
+
+    public static connectionDeletedAfterConnectionStringRemoval = (
+        connectionDisplayName: string,
+        connectionString: string,
+    ) => {
+        return l10n.t({
+            message:
+                "Connection '{0}' was deleted because its 'connectionString' property was removed and no 'server' property was defined. Removed connection string: '{1}'.",
+            args: [connectionDisplayName, connectionString],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection string that was removed",
+            ],
+        });
+    };
+
     public static orphanedConnectionGroupsWarning = (groupNames: string) => {
         return l10n.t({
             message:
@@ -2405,6 +2624,9 @@ export class Connection {
             comment: ["{0} is the account ID", "{1} is the tenant ID"],
         });
     };
+    public static ConnectionStringContainsSecrets = l10n.t(
+        "Connection string redacted due to containing authentication secrets",
+    );
 }
 
 export class MssqlChatAgent {
@@ -2675,6 +2897,12 @@ export class MssqlChatAgent {
     };
     public static dabToolNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
+    );
+    public static dabToolStateRequired = l10n.t(
+        "Read the active Data API builder configuration with mssql_dab operation 'get_state' before applying changes.",
+    );
+    public static dabToolStateChanged = l10n.t(
+        "The active Data API builder configuration changed after it was read. Run mssql_dab operation 'get_state' again before retrying; do not open another designer.",
     );
     public static toolMissingConnectionReference = l10n.t(
         "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
@@ -3215,6 +3443,10 @@ export class SearchDatabase {
 
     public static failedToEstablishConnection = l10n.t("Failed to establish connection");
 
+    public static noConnectionAvailable = l10n.t(
+        "Connect to a server in Object Explorer or open a connected query editor to search database objects.",
+    );
+
     public static typeTable = l10n.t("Table");
     public static typeView = l10n.t("View");
     public static typeStoredProcedure = l10n.t("Stored Procedure");
@@ -3449,6 +3681,43 @@ export class AzureDataStudioMigration {
     );
 }
 
+export class Overview {
+    public static OverviewDocumentTitle = l10n.t("SQL Server (mssql)");
+    public static OverviewTreeNodeLabel = l10n.t("Getting Started");
+    public static OverviewTreeNodeDescription = l10n.t("Connect, build, and learn");
+    public static DevContainerTemplateFileConflict = (relativePath: string) =>
+        l10n.t({
+            message: "The template file '{0}' already exists. What would you like to do?",
+            args: [relativePath],
+            comment: ["{0} is a file path relative to the workspace folder."],
+        });
+    public static DevContainerTemplateFileConflictDetail = (remaining: number) =>
+        l10n.t({
+            message: "Including this one, {0} of the template's files already exist here.",
+            args: [remaining],
+            comment: ["{0} is the number of conflicting files left to decide on."],
+        });
+    public static SkipTemplateFile = l10n.t("Skip");
+    public static OverwriteTemplateFile = l10n.t("Overwrite");
+    public static OverwriteAllTemplateFiles = l10n.t("Overwrite All");
+    public static InstallAgentSkillsFailed = l10n.t(
+        "Could not install the selected agent skills. Check your network connection and try again.",
+    );
+    public static InstallAgentSkillsRemoteUnsupported = l10n.t(
+        "Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.",
+    );
+    public static DevContainersExtensionRequired = l10n.t(
+        "The Dev Containers extension is required to reopen this folder in a container.",
+    );
+    public static InstallDevContainersExtension = l10n.t("Install");
+    public static SelectDevContainerFolder = l10n.t("Select Folder");
+    public static ShortcutExecuteQuery = l10n.t("Execute query");
+    public static ShortcutConnect = l10n.t("Connect");
+    public static ShortcutDisconnect = l10n.t("Disconnect");
+    public static ShortcutFocusObjectExplorer = l10n.t("Focus on Object Explorer");
+    public static ShortcutCopyObjectName = l10n.t("Copy object name");
+}
+
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");
@@ -3550,6 +3819,10 @@ export class Changelog {
         "Use discount code {0} to save €200 on registration.",
     );
     public static sqlconEuRegister = l10n.t("Register");
+    public static gettingStartedPageTitle = l10n.t("MSSQL Getting Started Page");
+    public static gettingStartedPageDescription = l10n.t(
+        "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",
+    );
 }
 
 export class Profiler {

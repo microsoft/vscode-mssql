@@ -161,14 +161,12 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.defaultConnectionId": "",                         // Connection ID (GUID) of the connection to auto-connect new editors with. Only applicable when "mssql.newEditorConnectionBehavior" is set to "defaultConnection"
 }
 
-// Query Formatting
+// Query Formatting (search Settings for "@ext:ms-mssql.mssql format" to see all options)
 {
-  "mssql.format.enablePreviewFormatter": true,             // (Preview) Use the new SQL formatter with additional formatting options
-  "mssql.format.alignColumnDefinitionsInColumns": false,   // Align column definitions in CREATE TABLE statements
-  "mssql.format.datatypeCasing": "none",                   // Datatype casing: "none" | "uppercase" | "lowercase"
-  "mssql.format.keywordCasing": "none",                    // SQL keyword casing: "none" | "uppercase" | "lowercase"
-  "mssql.format.placeCommasBeforeNextStatement": false,    // Place commas before next item (procedural style)
-  "mssql.format.placeSelectStatementReferencesOnNewLine": false  // Put SELECT references on new lines
+  "mssql.format.options.keywordCasing": "uppercase",        // SQL keyword casing: "uppercase" | "lowercase" | "pascalCase"
+  "mssql.format.options.identifierCasing": "preserve",      // Identifier casing: "preserve" | "uppercase" | "lowercase" | "pascalCase"
+  "mssql.format.options.commaPlacement": "trailing",        // Comma placement: "trailing" | "leading"
+  "mssql.format.options.multilineSelectElementsList": true   // Put SELECT columns on separate lines
 }
 
 // IntelliSense
