@@ -478,6 +478,20 @@ export class SessionDiagSink implements DiagnosticSink {
         return this.sessionDir;
     }
 
+    /** Keep the durable session metadata aligned with the active capture policy. */
+    public updateCapturePolicy(
+        captureMode: SessionManifest["captureMode"],
+        policyId: string,
+    ): void {
+        if (this.manifest.captureMode === captureMode && this.manifest.policyId === policyId) {
+            return;
+        }
+        this.manifest.captureMode = captureMode;
+        this.manifest.policyId = policyId;
+        this.manifest.updatedUtc = new Date().toISOString();
+        this.writeManifest();
+    }
+
     public tryWrite(event: DiagEvent): void {
         if (this.failed) {
             return;

@@ -58,6 +58,9 @@ function collectObjectKeys(expression: ts.Expression | undefined, target: Set<st
     if (expression === undefined || !ts.isObjectLiteralExpression(expression)) {
         return;
     }
+    // Only the direct properties are marker attributes. Diagnostic fields use
+    // nested `{ raw, cls }` envelopes; those implementation keys are not part
+    // of the event vocabulary and must not be classified as attributes.
     for (const property of expression.properties) {
         if (!ts.isSpreadAssignment(property)) {
             const key = propertyNameText(property.name);

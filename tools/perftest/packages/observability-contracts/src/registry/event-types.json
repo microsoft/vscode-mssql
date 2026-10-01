@@ -718,10 +718,38 @@
             "timingClass": "sameProcessMonotonic",
             "measurementEligible": false,
             "attrs": {
+                "reason": "identifierSensitive",
                 "durationMinutes": "structuralMetadata"
             },
             "attrsComplete": false,
             "notes": "Elevation reason is user free text — classified identifierSensitive and stored only in the local audit record, never forwarded."
+        },
+        {
+            "name": "debugConsole.opened",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "diagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": true,
+            "notes": "Local Debug Console viewer opened; no source identifiers or captured content are attached."
+        },
+        {
+            "name": "sessionDiag.export.end",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "diagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "events": "structuralMetadata",
+                "redactions": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "A local redacted JSONL export completed; records only output event and redaction counts."
         },
         {
             "name": "sessionDiag.elevation.expired",

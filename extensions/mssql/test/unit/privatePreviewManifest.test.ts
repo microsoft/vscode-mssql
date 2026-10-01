@@ -11,6 +11,10 @@ const SQL_DATA_PLANE_GATE =
     "mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled";
 const METADATA_CACHE_GATE =
     "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled";
+const DEBUG_CONSOLE_GATE =
+    "mssql.privatePreview.debugConsoleActive && config.mssql.enableExperimentalFeatures && config.mssql.debugConsole.enabled";
+const SESSION_DIAGNOSTICS_GATE =
+    "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled";
 
 interface CommandContribution {
     command: string;
@@ -43,6 +47,8 @@ suite("Private preview manifest", () => {
         expect(settings["mssql.enableExperimentalFeatures"]?.default).to.equal(false);
         expect(settings["mssql.sqlDataPlane.enabled"]?.default).to.equal(false);
         expect(settings["mssql.metadataCache.enabled"]?.default).to.equal(false);
+        expect(settings["mssql.debugConsole.enabled"]?.default).to.equal(false);
+        expect(settings["mssql.sessionDiag.enabled"]?.default).to.equal(false);
     });
 
     test("requires the activation snapshot and umbrella before SQL Data Plane UI is visible", () => {
@@ -72,6 +78,22 @@ suite("Private preview manifest", () => {
         expect(commandPalette("mssql.metadataCache.disableOfflineMode").when).to.equal(
             `${METADATA_CACHE_GATE} && config.mssql.metadataCache.offlineMode`,
         );
+    });
+
+    test("requires activation snapshots and complete paths for diagnostics commands", () => {
+        expect(command("mssql.openDebugConsole").enablement).to.equal(DEBUG_CONSOLE_GATE);
+        expect(commandPalette("mssql.openDebugConsole").when).to.equal(DEBUG_CONSOLE_GATE);
+
+        for (const commandId of [
+            "mssql.sessionDiag.enable",
+            "mssql.sessionDiag.disable",
+            "mssql.sessionDiag.elevateCapture",
+            "mssql.sessionDiag.clear",
+            "mssql.sessionDiag.openStorageFolder",
+        ]) {
+            expect(command(commandId).enablement).to.equal(SESSION_DIAGNOSTICS_GATE);
+            expect(commandPalette(commandId).when).to.equal(SESSION_DIAGNOSTICS_GATE);
+        }
     });
 
     function command(commandId: string): CommandContribution {
