@@ -40,6 +40,23 @@ const SQL_AUTH = "SqlLogin";
 const AZURE_MFA = "AzureMFA";
 const INTEGRATED = "Integrated";
 
+/** Normalize the classic wire values exactly as connection preparation does. */
+function normalizedAuthenticationType(value: string | undefined): string {
+    const trimmed = value?.trim() ?? "";
+    switch (trimmed.toLowerCase()) {
+        case "":
+        case "sqllogin":
+            return SQL_AUTH;
+        case "integrated":
+            return INTEGRATED;
+        case "azuremfa":
+        case "activedirectoryinteractive":
+            return AZURE_MFA;
+        default:
+            return trimmed;
+    }
+}
+
 /** Everything the label/tooltip recipes read off a stored profile. */
 export interface OeV2ConnectionLabelFacts {
     readonly profileName?: string;
@@ -67,7 +84,7 @@ export function connectionDisplayLabel(facts: OeV2ConnectionLabelFacts): string 
     if (facts.profileName) {
         return facts.profileName;
     }
-    const authType = facts.authenticationType ?? INTEGRATED;
+    const authType = normalizedAuthenticationType(facts.authenticationType);
     let userOrAuthType: string = authType;
     if (authType === SQL_AUTH && facts.user) {
         userOrAuthType = facts.user;
@@ -135,9 +152,9 @@ const TOOLTIP_ORDER: readonly TooltipKey[] = [
     "replication",
 ];
 
-function displayValue(key: TooltipKey, value: unknown, facts: OeV2ConnectionLabelFacts): string {
+function displayValue(value: unknown): string {
     if (value === AZURE_MFA || value === INTEGRATED) {
-        return facts.authenticationType === AZURE_MFA ? azureMFA : windowsAuthentication;
+        return value === AZURE_MFA ? azureMFA : windowsAuthentication;
     }
     if (value === true) {
         return enabled;
@@ -149,11 +166,14 @@ function displayValue(key: TooltipKey, value: unknown, facts: OeV2ConnectionLabe
 }
 
 function tooltipLineFor(key: TooltipKey, facts: OeV2ConnectionLabelFacts): string | undefined {
-    const value = facts[key];
+    const value =
+        key === "authenticationType"
+            ? normalizedAuthenticationType(facts.authenticationType)
+            : facts[key];
     if (value === undefined || value === "" || value === TOOLTIP_DEFAULTS[key]) {
         return undefined;
     }
-    const rendered = displayValue(key, value, facts);
+    const rendered = displayValue(value);
     const label = TOOLTIP_LABELS[key];
     return label === undefined ? rendered : `${label}: ${rendered}`;
 }
@@ -167,8 +187,8 @@ function tooltipLineFor(key: TooltipKey, facts: OeV2ConnectionLabelFacts): strin
  * defaults key and always printed it.
  */
 export function connectionTooltipLines(facts: OeV2ConnectionLabelFacts): string[] {
-    const dropUser =
-        facts.authenticationType === AZURE_MFA || facts.authenticationType === INTEGRATED;
+    const authType = normalizedAuthenticationType(facts.authenticationType);
+    const dropUser = authType === AZURE_MFA || authType === INTEGRATED;
     const lines: string[] = [];
     for (const key of TOOLTIP_ORDER) {
         if (key === "user" && dropUser) {
@@ -200,16 +220,23 @@ export function disambiguationLines(
         if (key === "profileName") {
             continue;
         }
-        const mine = facts[key];
-        const differs = tiedWith.some((other) => other[key] !== mine);
+        const mine =
+            key === "authenticationType"
+                ? normalizedAuthenticationType(facts.authenticationType)
+                : facts[key];
+        const differs = tiedWith.some((other) => {
+            const theirs =
+                key === "authenticationType"
+                    ? normalizedAuthenticationType(other.authenticationType)
+                    : other[key];
+            return theirs !== mine;
+        });
         if (!differs) {
             continue;
         }
         const label = TOOLTIP_LABELS[key] ?? key;
         const rendered =
-            mine === undefined || mine === ""
-                ? ObjectExplorerV2.notSet
-                : displayValue(key, mine, facts);
+            mine === undefined || mine === "" ? ObjectExplorerV2.notSet : displayValue(mine);
         lines.push(`${label}: ${rendered}`);
     }
     return lines;

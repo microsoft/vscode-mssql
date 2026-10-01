@@ -41,6 +41,7 @@ export type OeV2Path =
           connectionId: string;
           database: string;
           folder: OeV2DatabaseFolder;
+          schema?: string;
           name: string;
       }
     | { kind: "database"; connectionId: string; database: string }
@@ -82,6 +83,14 @@ export type OeV2Path =
           schema: string;
           objectName: string;
           column: string;
+      }
+    | {
+          kind: "key" | "foreignKey";
+          connectionId: string;
+          database: string;
+          schema: string;
+          objectName: string;
+          name: string;
       }
     | {
           kind: "parameter";
@@ -132,6 +141,7 @@ export function encodePath(path: OeV2Path): string {
                 enc(path.connectionId),
                 enc(path.database),
                 enc(path.folder),
+                enc(path.schema ?? ""),
                 enc(path.name),
             );
             break;
@@ -178,6 +188,16 @@ export function encodePath(path: OeV2Path): string {
                 enc(path.schema),
                 enc(path.objectName),
                 enc(path.column),
+            );
+            break;
+        case "key":
+        case "foreignKey":
+            parts.push(
+                enc(path.connectionId),
+                enc(path.database),
+                enc(path.schema),
+                enc(path.objectName),
+                enc(path.name),
             );
             break;
         case "parameter":
@@ -238,15 +258,18 @@ export function decodePath(id: string): OeV2Path | undefined {
                     folder: dec(parts[2]),
                     name: dec(parts[3]),
                 };
-            case "databaseObjectItem":
-                requireLength(5);
+            case "databaseObjectItem": {
+                requireLength(6);
+                const schema = dec(parts[4]);
                 return {
                     kind,
                     connectionId: dec(parts[1]),
                     database: dec(parts[2]),
                     folder: dec(parts[3]),
-                    name: dec(parts[4]),
+                    ...(schema ? { schema } : {}),
+                    name: dec(parts[5]),
                 };
+            }
             case "database":
                 requireLength(3);
                 return { kind, connectionId: dec(parts[1]), database: dec(parts[2]) };
@@ -316,6 +339,17 @@ export function decodePath(id: string): OeV2Path | undefined {
                     schema: dec(parts[3]),
                     objectName: dec(parts[4]),
                     column: dec(parts[5]),
+                };
+            case "key":
+            case "foreignKey":
+                requireLength(6);
+                return {
+                    kind,
+                    connectionId: dec(parts[1]),
+                    database: dec(parts[2]),
+                    schema: dec(parts[3]),
+                    objectName: dec(parts[4]),
+                    name: dec(parts[5]),
                 };
             case "parameter": {
                 requireLength(7);

@@ -42,13 +42,12 @@ function seam(overrides?: Partial<HandoffConnectionSeam>) {
         connect: async (ownerUri, profile) => {
             calls.connect.push(ownerUri);
             calls.profiles.push(profile);
-            return true;
+            return overrides?.connect ? overrides.connect(ownerUri, profile) : true;
         },
         disconnect: async (ownerUri) => {
             calls.disconnect.push(ownerUri);
-            return true;
+            return overrides?.disconnect ? overrides.disconnect(ownerUri) : true;
         },
-        ...overrides,
     };
     return { connections, calls };
 }
@@ -151,6 +150,59 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
             undefined,
         );
         expect(service.hasHandoff("p1")).to.equal(false);
+        service.dispose();
+    });
+
+    test("handoff: concurrent commands join one connect and close owns the result", async () => {
+        let releaseConnect!: (connected: boolean) => void;
+        const connected = new Promise<boolean>((resolve) => (releaseConnect = resolve));
+        let nonce = 0;
+        const pending = seam({ connect: async () => connected });
+        const service = new OeV2ClassicHandoffService(pending.connections, {
+            uriNonce: () => `nonce-${++nonce}`,
+        });
+
+        const first = service.ensureOwnerUri("p1", "sfp_same", PROFILE, "profiler");
+        const second = service.ensureOwnerUri("p1", "sfp_same", PROFILE, "backup");
+        expect(pending.calls.connect).to.have.length(1);
+
+        releaseConnect(true);
+        expect(await first).to.equal("objectexplorerv2://handoff/sfp_same/nonce-1");
+        expect(await second).to.equal("objectexplorerv2://handoff/sfp_same/nonce-1");
+        expect(pending.calls.connect).to.have.length(1);
+
+        await service.close("p1");
+        expect(pending.calls.disconnect).to.deep.equal([
+            "objectexplorerv2://handoff/sfp_same/nonce-1",
+        ]);
+        service.dispose();
+    });
+
+    test("handoff: close waits for an in-flight connect and profile changes replace the owner", async () => {
+        let releaseConnect!: (connected: boolean) => void;
+        const connected = new Promise<boolean>((resolve) => (releaseConnect = resolve));
+        let nonce = 0;
+        const pending = seam({ connect: async () => connected });
+        const service = new OeV2ClassicHandoffService(pending.connections, {
+            uriNonce: () => `nonce-${++nonce}`,
+        });
+
+        const opening = service.ensureOwnerUri("p1", "sfp_old", PROFILE, "restore");
+        const closing = service.close("p1");
+        releaseConnect(true);
+        const oldUri = await opening;
+        await closing;
+        expect(pending.calls.disconnect).to.deep.equal([oldUri]);
+        expect(service.hasHandoff("p1")).to.equal(false);
+
+        const newUri = await service.ensureOwnerUri("p1", "sfp_new", PROFILE, "restore");
+        expect(newUri).to.not.equal(oldUri);
+        expect(pending.calls.connect).to.have.length(2);
+
+        const replacement = await service.ensureOwnerUri("p1", "sfp_newer", PROFILE, "restore");
+        expect(replacement).to.not.equal(newUri);
+        expect(pending.calls.connect).to.have.length(3);
+        expect(pending.calls.disconnect).to.deep.equal([oldUri, newUri]);
         service.dispose();
     });
 

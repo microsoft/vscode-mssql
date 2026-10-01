@@ -409,6 +409,22 @@ suite("Object Explorer v2 browse (B18)", () => {
         h.controller.dispose();
     });
 
+    test("shared-profile retirement closes stale state and permits a clean reopen", async () => {
+        const h = harness();
+        expect(await h.controller.connectProfile("p1")).to.equal(true);
+        expect(h.registry.stateOf("p1")).to.equal("connected");
+
+        await h.controller.retireProfile("p1");
+        expect(h.registry.stateOf("p1")).to.equal("disconnected");
+        h.controller.refresh();
+        const profile = (await h.controller.children()).find((node) => node.connectionId === "p1")!;
+        expect(profile.kind).to.equal("disconnectedConnection");
+
+        await h.controller.children(profile);
+        expect(h.registry.stateOf("p1")).to.equal("connected");
+        h.controller.dispose();
+    });
+
     test("a second connect during an in-flight open JOINS it (wizard vs auto-connect race)", async () => {
         let resolveOpen!: (value: { session: ISqlSession }) => void;
         let opens = 0;
@@ -430,6 +446,37 @@ suite("Object Explorer v2 browse (B18)", () => {
         expect((await first).state).to.equal("connected");
         expect((await second).state).to.equal("connected");
         expect(opens).to.equal(1);
+        registry.dispose();
+    });
+
+    test("a connected entry is replaced when the saved profile fingerprint changes", async () => {
+        let opens = 0;
+        let oldClosed = 0;
+        const registry = new OeV2SessionRegistry(async () => {
+            opens++;
+            return {
+                session: {
+                    info: {},
+                    close: async () => {
+                        if (opens === 1) {
+                            oldClosed++;
+                        }
+                    },
+                    onDidChangeState: () => ({ dispose: () => undefined }),
+                } as unknown as ISqlSession,
+            };
+        });
+        const prepared = (profileFingerprint: string) =>
+            ({
+                serverFingerprint: `server-${profileFingerprint}`,
+                profileRef: { profileFingerprint },
+            }) as Parameters<OeV2SessionRegistry["connect"]>[1];
+
+        expect((await registry.connect("p1", prepared("old"))).state).to.equal("connected");
+        expect((await registry.connect("p1", prepared("new"))).state).to.equal("connected");
+        expect(opens).to.equal(2);
+        expect(oldClosed).to.equal(1);
+        expect(registry.get("p1")?.prepared?.profileRef.profileFingerprint).to.equal("new");
         registry.dispose();
     });
 
@@ -641,9 +688,11 @@ suite("Object Explorer v2 browse (B18)", () => {
 
         const keys = await h.controller.children(orderFolders[1]);
         expect(keys.map((n) => `${n.label}:${n.icon}`)).to.deep.equal(["PK_Orders:Key_PrimaryKey"]);
+        expect(keys[0].path.kind).to.equal("key");
 
         const fks = await h.controller.children(orderFolders[2]);
         expect(fks).to.have.length(1);
+        expect(fks[0].path.kind).to.equal("foreignKey");
         expect(fks[0].label).to.equal("FK_Orders_Customers");
         expect(fks[0].description).to.contain("dbo.Customers");
         expect(fks[0].description).to.contain("CustomerId→CustomerId");
@@ -792,6 +841,22 @@ suite("Object Explorer v2 browse (B18)", () => {
         h.controller.clearFolderFilter(tablesFolder);
         const restored = await h.controller.children(tablesFolder);
         expect(restored.map((n) => n.label)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
+
+        h.settings.groupBySchema = true;
+        h.controller.setFolderFilter(tablesFolder, "Cust");
+        const grouped = await h.controller.children(tablesFolder);
+        expect(grouped.map((n) => `${n.kind}:${n.label}`)).to.deep.equal([
+            "schema:dbo",
+            "status:Filter: 'Cust' (1 of 2 shown)",
+        ]);
+        const groupedMatches = await h.controller.children(grouped[0]);
+        expect(groupedMatches.map((n) => n.label)).to.deep.equal(["dbo.Customers"]);
+
+        h.controller.setFolderFilter(tablesFolder, "zzz-nothing");
+        const noGroupedMatches = await h.controller.children(tablesFolder);
+        expect(noGroupedMatches).to.have.length(1);
+        expect(noGroupedMatches[0].label).to.contain("No matches");
+        h.controller.clearFolderFilter(tablesFolder);
 
         const matches = await h.controller.searchObjects("p1", "AppDb", "Ord");
         expect(matches?.map((m) => `${m.schema}.${m.name}`)).to.deep.equal([

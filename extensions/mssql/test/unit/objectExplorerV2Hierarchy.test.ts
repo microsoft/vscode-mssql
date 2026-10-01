@@ -230,6 +230,26 @@ suite("Object Explorer v2 connection labels (B22 / K6)", () => {
         }
     });
 
+    test("missing and blank auth labels use the same SQL Login default as preparation", () => {
+        for (const authenticationType of [undefined, "", "   "]) {
+            const facts = { server: "srv", user: "sa", authenticationType };
+            expect(connectionDisplayLabel(facts)).to.equal("srv, <default> (sa)");
+            expect(connectionTooltipLines(facts)).to.deep.equal(["Server: srv", "User: sa"]);
+        }
+    });
+
+    test("legacy interactive auth is normalized to Azure MFA like preparation", () => {
+        const legacy = {
+            server: "srv.database.windows.net",
+            authenticationType: "ActiveDirectoryInteractive",
+            email: "karl@contoso.com",
+            user: "ignored-for-aad",
+        };
+        const canonical = { ...legacy, authenticationType: "AzureMFA" };
+        expect(connectionDisplayLabel(legacy)).to.equal(connectionDisplayLabel(canonical));
+        expect(connectionTooltipLines(legacy)).to.deep.equal(connectionTooltipLines(canonical));
+    });
+
     test("tooltip lists non-default properties in classic order and wording", () => {
         const lines = connectionTooltipLines({
             profileName: "Prod East",
@@ -802,8 +822,58 @@ suite("Object Explorer v2 database parity (B24)", () => {
             connectionId: "c1",
             database: "App/Db",
             folder: "security/users",
-            name: "dbo.some user",
+            schema: "dbo.with.dot",
+            name: "some.user",
         };
         expect(decodePath(encodePath(path))).to.deep.equal(path);
+
+        const other = {
+            ...path,
+            schema: "dbo",
+            name: "with.dot.some.user",
+        };
+        expect(encodePath(other)).to.not.equal(encodePath(path));
+    });
+
+    test("schema-qualified auxiliary objects keep distinct identities across dotted names", () => {
+        const nodes = databaseFolderChildren(
+            "c1",
+            "master",
+            "tables/systemTables",
+            READY,
+            fakeSnapshot([]),
+            false,
+            undefined,
+            undefined,
+            { isSystemDatabase: true },
+            auxOf({
+                systemObjects: {
+                    items: [
+                        { schema: "a.b", name: "c", kind: "table", isSystem: true },
+                        { schema: "a", name: "b.c", kind: "table", isSystem: true },
+                    ],
+                },
+            }),
+        );
+        expect(nodes.map((node) => node.label)).to.deep.equal(["a.b.c", "a.b.c"]);
+        expect(new Set(nodes.map((node) => node.id)).size).to.equal(2);
+        expect(nodes.map((node) => node.path)).to.deep.include.members([
+            {
+                kind: "databaseObjectItem",
+                connectionId: "c1",
+                database: "master",
+                folder: "tables/systemTables",
+                schema: "a.b",
+                name: "c",
+            },
+            {
+                kind: "databaseObjectItem",
+                connectionId: "c1",
+                database: "master",
+                folder: "tables/systemTables",
+                schema: "a",
+                name: "b.c",
+            },
+        ]);
     });
 });

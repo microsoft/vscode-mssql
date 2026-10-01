@@ -54,6 +54,7 @@ import {
     rootChildren,
 } from "./oeV2NodeFactory";
 import { errorNode, loadingNode, noItemsNode, statusNode } from "./oeV2Readiness";
+import { encodePath } from "./oeV2Path";
 
 export interface DataPlaneProbe {
     enabled(): boolean;
@@ -219,6 +220,14 @@ export class OeV2TreeController {
             );
             return false;
         }
+        const existingRuntime = this.runtimes.get(connectionId);
+        if (
+            existingRuntime &&
+            existingRuntime.prepared.profileRef.profileFingerprint !==
+                prepared.profileRef.profileFingerprint
+        ) {
+            this.releaseRuntime(connectionId);
+        }
         const session = await sessions.connect(connectionId, prepared);
         if (session.state !== "connected") {
             return false;
@@ -243,14 +252,20 @@ export class OeV2TreeController {
     }
 
     async disconnectProfile(connectionId: string): Promise<void> {
-        const runtime = this.runtimes.get(connectionId);
-        if (runtime) {
-            runtime.subscription.dispose();
-            runtime.coordinator.dispose();
-            this.runtimes.delete(connectionId);
-        }
+        this.releaseRuntime(connectionId);
         await this.deps.sessions?.disconnect(connectionId);
         this.explicitlyDisconnected.add(connectionId);
+    }
+
+    /**
+     * Retire state invalidated by a shared saved-profile edit/removal. Unlike
+     * an explicit user disconnect, a surviving edited profile may auto-open
+     * again on its next expansion using the new connection facts.
+     */
+    async retireProfile(connectionId: string): Promise<void> {
+        this.releaseRuntime(connectionId);
+        await this.deps.sessions?.disconnect(connectionId);
+        this.explicitlyDisconnected.delete(connectionId);
     }
 
     /** Route a refresh request to the right lease scope. */
@@ -460,19 +475,57 @@ export class OeV2TreeController {
                         .ensureDatabaseAuxSection(path.database, section)
                         .catch(() => undefined);
                 }
+                const status = runtime.coordinator.databaseStatus(path.database);
+                const snapshot = runtime.coordinator.databaseSnapshot(path.database);
+                const freshness = toFreshnessFacts(fresh);
+                const scopeFacts = await this.databaseScopeFacts(path.connectionId, path.database);
+                const auxiliary = runtime.coordinator.databaseAuxiliary(path.database);
                 const children = databaseFolderChildren(
                     path.connectionId,
                     path.database,
                     path.folder,
-                    runtime.coordinator.databaseStatus(path.database),
-                    runtime.coordinator.databaseSnapshot(path.database),
+                    status,
+                    snapshot,
                     settings.groupBySchema,
                     path.kind === "schemaFolder" ? path.schema : undefined,
-                    toFreshnessFacts(fresh),
-                    await this.databaseScopeFacts(path.connectionId, path.database),
-                    runtime.coordinator.databaseAuxiliary(path.database),
+                    freshness,
+                    scopeFacts,
+                    auxiliary,
                 );
-                return this.applyFolderFilter(node, children);
+                if (
+                    path.kind === "databaseFolder" &&
+                    settings.groupBySchema &&
+                    this.folderFilters.has(node.id)
+                ) {
+                    const groupedChildren = new Map<string, OeV2Node[]>();
+                    for (const child of children) {
+                        if (child.path.kind !== "schemaFolder") {
+                            continue;
+                        }
+                        groupedChildren.set(
+                            child.id,
+                            databaseFolderChildren(
+                                path.connectionId,
+                                path.database,
+                                path.folder,
+                                status,
+                                snapshot,
+                                true,
+                                child.path.schema,
+                                freshness,
+                                scopeFacts,
+                                auxiliary,
+                            ),
+                        );
+                    }
+                    return this.applyFolderFilter(node, children, groupedChildren);
+                }
+                return this.applyFolderFilter(
+                    node,
+                    children,
+                    undefined,
+                    path.kind !== "schemaFolder",
+                );
             }
             case "object": {
                 const runtime = this.runtimes.get(path.connectionId);
@@ -622,6 +675,9 @@ export class OeV2TreeController {
         if (!this.deps.dataPlane.enabled()) {
             return [statusNode("dataPlane", ObjectExplorerV2.dataPlaneRequired)];
         }
+        if (this.deps.dataPlane.availabilityState() === "unavailable") {
+            return [statusNode("dataPlane", ObjectExplorerV2.dataPlaneUnavailable)];
+        }
         const tree = await this.profileTree();
         const children = rootChildren(tree, (id) => this.connectionFacts(id));
         if (children.length === 0) {
@@ -635,19 +691,32 @@ export class OeV2TreeController {
      * children always pass through). A fully-filtered folder shows an honest
      * "no matches" note rather than pretending emptiness.
      */
-    private applyFolderFilter(folderNode: OeV2Node, children: OeV2Node[]): OeV2Node[] {
-        const filter = this.folderFilters.get(folderNode.id);
+    private applyFolderFilter(
+        folderNode: OeV2Node,
+        children: OeV2Node[],
+        groupedChildren?: ReadonlyMap<string, OeV2Node[]>,
+        includeSummary = true,
+    ): OeV2Node[] {
+        const filter = this.filterForNode(folderNode);
         if (!filter) {
             return children;
         }
         const needle = filter.toLowerCase();
-        const kept = children.filter(
-            (child) =>
-                (child.kind !== "object" && child.kind !== "schema") ||
-                (child.objectName ?? child.label).toLowerCase().includes(needle),
-        );
-        const objectCount = children.filter((child) => child.kind === "object").length;
-        const keptCount = kept.filter((child) => child.kind === "object").length;
+        const matches = (child: OeV2Node): boolean =>
+            child.kind === "object" &&
+            (child.objectName ?? child.label).toLowerCase().includes(needle);
+        const allObjects = groupedChildren
+            ? [...groupedChildren.values()].flat().filter((child) => child.kind === "object")
+            : children.filter((child) => child.kind === "object");
+        const kept = groupedChildren
+            ? children.filter(
+                  (child) =>
+                      child.kind !== "schema" ||
+                      (groupedChildren.get(child.id)?.some(matches) ?? false),
+              )
+            : children.filter((child) => child.kind !== "object" || matches(child));
+        const objectCount = allObjects.length;
+        const keptCount = allObjects.filter(matches).length;
         if (keptCount === 0 && objectCount > 0) {
             return [
                 statusNode(
@@ -657,7 +726,7 @@ export class OeV2TreeController {
                 ),
             ];
         }
-        if (objectCount > 0) {
+        if (includeSummary && objectCount > 0) {
             kept.push(
                 statusNode(
                     `${folderNode.id}#filterNote`,
@@ -669,9 +738,35 @@ export class OeV2TreeController {
         return kept;
     }
 
+    /** Schema folders inherit the filter set on their database-folder parent. */
+    private filterForNode(node: OeV2Node): string | undefined {
+        const direct = this.folderFilters.get(node.id);
+        if (direct || node.path.kind !== "schemaFolder") {
+            return direct;
+        }
+        return this.folderFilters.get(
+            encodePath({
+                kind: "databaseFolder",
+                connectionId: node.path.connectionId,
+                database: node.path.database,
+                folder: node.path.folder,
+            }),
+        );
+    }
+
     private async findProfile(connectionId: string): Promise<OeV2ProfileRecord | undefined> {
         const tree = await this.profileTree();
         return tree.profiles.find((profile) => profile.profileId === connectionId);
+    }
+
+    private releaseRuntime(connectionId: string): void {
+        const runtime = this.runtimes.get(connectionId);
+        if (!runtime) {
+            return;
+        }
+        runtime.subscription.dispose();
+        runtime.coordinator.dispose();
+        this.runtimes.delete(connectionId);
     }
 
     /** Stored profile + server fingerprint for the legacy handoff door. */

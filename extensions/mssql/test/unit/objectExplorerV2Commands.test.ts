@@ -15,7 +15,12 @@ import {
     qualifiedName,
 } from "../../src/objectExplorer/v2/commands/sqlIdentifierFormatter";
 import { stableProfileId } from "../../src/services/metadata/profileAuthAdapter";
-import { readProfileTree } from "../../src/objectExplorer/v2/sessions/oeV2ProfileAdapter";
+import {
+    diffProfileConnectionSnapshots,
+    OeV2StoredProfile,
+    profileConnectionSnapshot,
+    readProfileTree,
+} from "../../src/objectExplorer/v2/sessions/oeV2ProfileAdapter";
 import { copyNameForNode } from "../../src/objectExplorer/v2/commands/oeV2NativeCommands";
 import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 
@@ -47,6 +52,45 @@ suite("Object Explorer v2 command primitives (B19)", () => {
             ],
         });
         expect(tree.profiles[0].profileId).to.equal(derived);
+    });
+
+    test("profile reconciliation distinguishes connection edits from display-only edits", async () => {
+        const source = async (connections: OeV2StoredProfile[]) =>
+            readProfileTree({
+                readAllConnectionGroups: async () => [],
+                readAllConnections: async () => connections,
+            });
+        const before = profileConnectionSnapshot(
+            await source([
+                {
+                    id: "edited",
+                    server: "old.example",
+                    database: "OldDb",
+                    authenticationType: "SqlLogin",
+                    profileName: "Old label",
+                },
+                { id: "removed", server: "gone.example" },
+                { id: "unchanged", server: "same.example", groupId: "old-group" },
+            ]),
+        );
+        const after = profileConnectionSnapshot(
+            await source([
+                {
+                    id: "edited",
+                    server: "new.example",
+                    database: "NewDb",
+                    authenticationType: "Integrated",
+                    profileName: "New label",
+                },
+                { id: "unchanged", server: "same.example", groupId: "new-group" },
+                { id: "added", server: "new-profile.example" },
+            ]),
+        );
+
+        expect(diffProfileConnectionSnapshots(before, after)).to.deep.equal({
+            added: ["added"],
+            retired: ["edited", "removed"],
+        });
     });
 
     test("group-less profiles surface at the root level (harness/settings-written)", async () => {

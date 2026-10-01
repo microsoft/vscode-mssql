@@ -31,7 +31,13 @@ import type { IConnectionStore } from "../../models/connectionStore";
 import { ObjectExplorerV2Provider } from "./objectExplorerV2Provider";
 import { OeV2MetadataCoordinator } from "./metadata/oeV2MetadataCoordinator";
 import { oeV2Settings } from "./settings";
-import { ConnectionProfileSource, readProfileTree } from "./sessions/oeV2ProfileAdapter";
+import {
+    ConnectionProfileSource,
+    diffProfileConnectionSnapshots,
+    OeV2ProfileConnectionSnapshot,
+    profileConnectionSnapshot,
+    readProfileTree,
+} from "./sessions/oeV2ProfileAdapter";
 import { OeV2SessionRegistry } from "./sessions/oeV2SessionRegistry";
 import { registerOeV2NativeCommands } from "./commands/oeV2NativeCommands";
 import {
@@ -283,23 +289,39 @@ export function activateObjectExplorerV2(
     // Connection dialog finished, whichever view's button launched it — v2
     // auto-connects it too ("connect them both"). Bulk settings edits (2+
     // new profiles at once) deliberately stay disconnected.
-    let knownProfileIds: Set<string> | undefined;
-    const snapshotProfiles = async (): Promise<Set<string>> => {
+    let knownProfiles: OeV2ProfileConnectionSnapshot | undefined;
+    const snapshotProfiles = async (): Promise<OeV2ProfileConnectionSnapshot> => {
         const tree = await readProfileTree(deps.profiles);
-        return new Set(tree.profiles.map((profile) => profile.profileId));
+        return profileConnectionSnapshot(tree);
     };
-    void snapshotProfiles().then((ids) => (knownProfileIds = ids));
-    const autoConnectNewProfile = async () => {
+    let profileReconciliation = snapshotProfiles().then((snapshot) => {
+        knownProfiles = snapshot;
+    });
+    const reconcileProfiles = async () => {
         const current = await snapshotProfiles();
-        const previous = knownProfileIds;
-        knownProfileIds = current;
-        if (!previous || !controller) {
+        const previous = knownProfiles;
+        knownProfiles = current;
+        const activeController = controller;
+        const activeHandoff = handoff;
+        if (!previous || !activeController) {
             return;
         }
-        const added = [...current].filter((id) => !previous.has(id));
-        if (added.length === 1) {
-            void controller.connectProfile(added[0]).catch(() => undefined);
+        const { added, retired } = diffProfileConnectionSnapshots(previous, current);
+        for (const connectionId of retired) {
+            await activeHandoff?.close(connectionId);
+            await activeController.retireProfile(connectionId);
         }
+        // Invalidate the cached profile tree before connecting additions so
+        // findProfile observes the same snapshot that produced this diff.
+        activeController.refresh();
+        if (added.length === 1) {
+            await activeController.connectProfile(added[0]).catch(() => false);
+        }
+    };
+    const queueProfileReconciliation = () => {
+        profileReconciliation = profileReconciliation
+            .then(reconcileProfiles, reconcileProfiles)
+            .catch(() => controller?.refresh());
     };
 
     context.subscriptions.push(
@@ -355,9 +377,10 @@ export function activateObjectExplorerV2(
                 event.affectsConfiguration("mssql.objectExplorer.v2")
             ) {
                 if (event.affectsConfiguration("mssql.connections")) {
-                    void autoConnectNewProfile();
+                    queueProfileReconciliation();
+                } else {
+                    controller?.refresh();
                 }
-                controller?.refresh();
             }
         }),
         vscode.commands.registerCommand("mssql.objectExplorerV2.refresh", (node?: OeV2Node) => {

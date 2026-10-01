@@ -29,6 +29,7 @@ export interface HandoffConnectionSeam {
 
 interface HandoffEntry {
     ownerUri: string;
+    fingerprint: string;
 }
 
 export interface OeV2HandoffOptions {
@@ -38,6 +39,8 @@ export interface OeV2HandoffOptions {
 
 export class OeV2ClassicHandoffService {
     private entries = new Map<string, HandoffEntry>();
+    /** Coalesces simultaneous legacy commands for one v2 connection. */
+    private pending = new Map<string, Promise<HandoffEntry | undefined>>();
 
     constructor(
         private readonly connections: HandoffConnectionSeam,
@@ -56,9 +59,42 @@ export class OeV2ClassicHandoffService {
     ): Promise<string | undefined> {
         const existing = this.entries.get(connectionId);
         if (existing) {
-            this.emitHandoff(feature, "reused");
-            return existing.ownerUri;
+            if (existing.fingerprint !== fingerprint) {
+                // The saved profile changed while v2 remained active. Never
+                // reuse a classic connection that targets the old profile.
+                await this.close(connectionId);
+            } else {
+                this.emitHandoff(feature, "reused");
+                return existing.ownerUri;
+            }
         }
+        const pending = this.pending.get(connectionId);
+        if (pending) {
+            const joined = await pending;
+            this.emitHandoff(feature, joined ? "reused" : "connectFailed");
+            return joined?.ownerUri;
+        }
+        const creation = this.createEntry(fingerprint, profile, feature);
+        this.pending.set(connectionId, creation);
+        try {
+            const entry = await creation;
+            if (!entry) {
+                return undefined;
+            }
+            this.entries.set(connectionId, entry);
+            return entry.ownerUri;
+        } finally {
+            if (this.pending.get(connectionId) === creation) {
+                this.pending.delete(connectionId);
+            }
+        }
+    }
+
+    private async createEntry(
+        fingerprint: string,
+        profile: IConnectionProfile,
+        feature: string,
+    ): Promise<HandoffEntry | undefined> {
         const nonce = this.options.uriNonce?.() ?? randomUUID();
         const ownerUri = `objectexplorerv2://handoff/${fingerprint.slice(0, 12)}/${nonce}`;
         // ConnectionManager normalizes credentials in place (including a
@@ -71,8 +107,7 @@ export class OeV2ClassicHandoffService {
             this.emitHandoff(feature, "connectFailed");
             return undefined;
         }
-        const entry: HandoffEntry = { ownerUri };
-        this.entries.set(connectionId, entry);
+        const entry: HandoffEntry = { ownerUri, fingerprint };
         diag.emit({
             feature: "objectExplorer",
             kind: "event",
@@ -82,7 +117,7 @@ export class OeV2ClassicHandoffService {
             },
         });
         this.emitHandoff(feature, "created");
-        return ownerUri;
+        return entry;
     }
 
     hasHandoff(connectionId: string): boolean {
@@ -91,6 +126,9 @@ export class OeV2ClassicHandoffService {
 
     /** Close the handoff connection for a v2 connection (disconnect path). */
     async close(connectionId: string): Promise<void> {
+        // If connect is still in flight, join it so an immediately-following
+        // disconnect/deactivate cannot leave the newly-opened URI unowned.
+        await this.pending.get(connectionId)?.catch(() => undefined);
         const entry = this.entries.get(connectionId);
         if (!entry) {
             return;
@@ -100,7 +138,7 @@ export class OeV2ClassicHandoffService {
     }
 
     dispose(): void {
-        for (const connectionId of [...this.entries.keys()]) {
+        for (const connectionId of new Set([...this.entries.keys(), ...this.pending.keys()])) {
             void this.close(connectionId);
         }
     }

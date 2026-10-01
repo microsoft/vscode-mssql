@@ -96,6 +96,22 @@ suite("Object Explorer v2 shell (B17)", () => {
                 column: HOSTILE,
             },
             {
+                kind: "key",
+                connectionId: "p1",
+                database: "Db",
+                schema: "dbo",
+                objectName: "T",
+                name: HOSTILE,
+            },
+            {
+                kind: "foreignKey",
+                connectionId: "p1",
+                database: "Db",
+                schema: "dbo",
+                objectName: "T",
+                name: HOSTILE,
+            },
+            {
                 kind: "parameter",
                 connectionId: "p1",
                 database: "Db",
@@ -121,6 +137,24 @@ suite("Object Explorer v2 shell (B17)", () => {
         expect(decodePath("oe2:connection")).to.equal(undefined);
         expect(decodePath("oe2:object/c1/db/dbo/T/bogusKind")).to.equal(undefined);
         expect(decodePath("oe2:objectFolder/c1/db/dbo/T/table/bogusFolder")).to.equal(undefined);
+
+        const column = encodePath({
+            kind: "column",
+            connectionId: "p1",
+            database: "Db",
+            schema: "dbo",
+            objectName: "T",
+            column: "key:PK_T",
+        });
+        const key = encodePath({
+            kind: "key",
+            connectionId: "p1",
+            database: "Db",
+            schema: "dbo",
+            objectName: "T",
+            name: "PK_T",
+        });
+        expect(column).to.not.equal(key);
     });
 
     test("profile tree + factory: groups-first alphabetical, ROOT hierarchy", async () => {
@@ -187,6 +221,16 @@ suite("Object Explorer v2 shell (B17)", () => {
             expect(unavailable[0].kind).to.equal("status");
             expect(unavailable[0].label).to.contain("SQL Data Plane");
 
+            // enabled but unavailable → explicit backend status, no profiles
+            const backendUnavailable = new OeV2TreeController({
+                profiles: fakeSource(),
+                dataPlane: { enabled: () => true, availabilityState: () => "unavailable" },
+            });
+            const unavailableRoots = await backendUnavailable.children();
+            expect(unavailableRoots).to.have.length(1);
+            expect(unavailableRoots[0].kind).to.equal("status");
+            expect(unavailableRoots[0].label).to.contain("unavailable");
+
             // enabled → profile roots; group expansion; connect hint on expand
             const controller = new OeV2TreeController({
                 profiles: fakeSource(),
@@ -197,7 +241,7 @@ suite("Object Explorer v2 shell (B17)", () => {
             const team = roots[1];
             const teamChildren = await controller.children(team);
             // K6 (B22): v1 label recipe — `server, database (auth)`.
-            expect(teamChildren.map((n) => n.label)).to.deep.equal(["srv-c, AppDb (Integrated)"]);
+            expect(teamChildren.map((n) => n.label)).to.deep.equal(["srv-c, AppDb (SqlLogin)"]);
             const hint = await controller.children(roots[2]);
             expect(hint[0].kind).to.equal("status");
             expect(hint[0].label).to.contain("Connect");

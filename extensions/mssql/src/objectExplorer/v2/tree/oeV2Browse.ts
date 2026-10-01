@@ -784,7 +784,8 @@ function databaseAuxLeafContent(
             connectionId,
             database,
             folder: def.id,
-            name: item.schema ? `${item.schema}.${item.name}` : item.name,
+            ...(item.schema ? { schema: item.schema } : {}),
+            name: item.name,
         };
         const disabled = item.subType === "disabled";
         const icon =
@@ -1015,11 +1016,11 @@ function objectFolderContent(
                 ? [noItemsNode(scope, path.connectionId)]
                 : constraints.map((constraint) => {
                       const keyPath: OeV2Path = {
-                          kind: "column",
+                          kind: "key",
                           ...base,
                           schema: path.schema,
                           objectName: path.name,
-                          column: `key:${constraint.name}`,
+                          name: constraint.name,
                       };
                       return {
                           id: encodePath(keyPath),
@@ -1047,11 +1048,11 @@ function objectFolderContent(
                 : details.map((detail) => {
                       const target = snapshot.getObject(detail.toObjectId);
                       const fkPath: OeV2Path = {
-                          kind: "column",
+                          kind: "foreignKey",
                           ...base,
                           schema: path.schema,
                           objectName: path.name,
-                          column: `fk:${detail.name}`,
+                          name: detail.name,
                       };
                       const pairs = detail.columns
                           .map((pair) => `${pair.fromColumn}→${pair.toColumn}`)

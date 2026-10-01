@@ -106,10 +106,16 @@ export class OeV2SessionRegistry {
         prepared: PreparedConnection,
     ): Promise<OeV2ConnectionSession> {
         const existing = this.entries.get(connectionId);
-        if (existing && existing.state === "connected") {
+        const preparedFingerprint =
+            prepared.profileRef?.profileFingerprint ?? prepared.serverFingerprint;
+        const existingFingerprint =
+            existing?.prepared?.profileRef?.profileFingerprint ??
+            existing?.prepared?.serverFingerprint;
+        const sameProfile = existing !== undefined && existingFingerprint === preparedFingerprint;
+        if (existing && existing.state === "connected" && sameProfile) {
             return snapshotOf(existing);
         }
-        if (existing && existing.state === "connecting") {
+        if (existing && existing.state === "connecting" && sameProfile) {
             // JOIN the in-flight attempt (live-run finding: the deployment
             // wizard's explicit connect races the single-new-profile
             // auto-connect). A "still connecting" snapshot here read as
