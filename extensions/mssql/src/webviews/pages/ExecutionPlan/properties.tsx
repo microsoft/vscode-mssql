@@ -266,12 +266,15 @@ const columnSizingOptions: TableColumnSizingOptions = {
 
 interface PropertiesPaneProps {
     executionPlanView: ExecutionPlanGraphController;
+    /** Id of the node selected in the graph. The pane shows its properties. */
+    selectedElementId?: string;
     setPropertiesClicked: any;
     inputRef: any;
 }
 
 export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     executionPlanView,
+    selectedElementId,
     setPropertiesClicked,
     inputRef,
 }) => {
@@ -331,23 +334,17 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         }
     }, [items, isFiltered]);
 
+    // Show the selected node's properties as soon as the selection changes
     useEffect(() => {
-        // poll for whether there has been a new element selected in the graph
-        const intervalId = setInterval(() => {
-            const selectedElement = executionPlanView.getSelectedElement();
-            const element: ep.ExecutionPlanNode =
-                selectedElement && "name" in selectedElement
-                    ? selectedElement
-                    : executionPlanView.getRoot();
-
-            // Check if the element has changed, if so, reload items based on new element
-            if (element.id !== id) {
-                loadItems(element);
-            }
-        }, 1000);
-
-        return () => clearInterval(intervalId);
-    });
+        const selectedElement = executionPlanView.getSelectedElement();
+        const element: ep.ExecutionPlanNode =
+            selectedElement && "name" in selectedElement
+                ? selectedElement
+                : executionPlanView.getRoot();
+        if (element.id !== id) {
+            loadItems(element);
+        }
+    }, [executionPlanView, selectedElementId]);
 
     function loadItems(element: ep.ExecutionPlanNode) {
         setName(element.name);

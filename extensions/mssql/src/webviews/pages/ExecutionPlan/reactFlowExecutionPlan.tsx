@@ -580,6 +580,8 @@ interface ReactFlowExecutionPlanProps {
     themeKind: ColorThemeKind;
     planNumber: number;
     onReady: (controller: ExecutionPlanGraphController | null) => void;
+    /** Called with the id of the selected node whenever the selection changes. */
+    onSelectionChange?: (id: string) => void;
 }
 
 export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
@@ -587,6 +589,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     themeKind,
     planNumber,
     onReady,
+    onSelectionChange,
 }) => {
     const model = useMemo(() => new ExecutionPlanModel(root), [root]);
     const positions = useMemo(() => layoutExecutionPlan(model), [model]);
@@ -636,6 +639,9 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     useEffect(() => {
         selectedIdRef.current = selectedId;
     }, [selectedId]);
+    useEffect(() => {
+        onSelectionChange?.(selectedId);
+    }, [onSelectionChange, selectedId]);
     useEffect(() => {
         tooltipsEnabledRef.current = tooltipsEnabled;
     }, [tooltipsEnabled]);
