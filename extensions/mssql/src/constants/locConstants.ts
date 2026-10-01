@@ -310,6 +310,9 @@ export function msgSaveFailed(error: string) {
         comment: ["{0} is the error message"],
     });
 }
+export let msgSaveResultsWhileLoading = l10n.t(
+    "These results can't be saved until all of their rows have loaded.",
+);
 export function msgSaveSucceeded(filePath: string) {
     return l10n.t({
         message: "Successfully saved results to {0}",

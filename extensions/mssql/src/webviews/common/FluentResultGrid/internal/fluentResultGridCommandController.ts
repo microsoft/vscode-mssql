@@ -145,9 +145,13 @@ export function useFluentResultGridCommandController({
     updateHeaderButtonStates: (grid: SlickGrid) => void;
 }): FluentResultGridCommandController {
     const activeFilterColumnRef = useRef<string | undefined>(undefined);
+    // The ranges select-all last set across every column, so Save As can save rows that arrive
+    // after it ran.
+    const selectAllRangesRef = useRef<SlickRange[] | undefined>(undefined);
 
     useEffect(() => {
         activeFilterColumnRef.current = undefined;
+        selectAllRangesRef.current = undefined;
     }, [resultIdentitySignature]);
 
     const getActualSelectionForCopy = useCallback(
@@ -181,6 +185,7 @@ export function useFluentResultGridCommandController({
             return getFluentResultGridSelectionForSave(
                 grid,
                 transformedRows ? (displayRow) => transformedRows[displayRow]?.rowId : undefined,
+                selectAllRangesRef.current,
             );
         },
         [transformedRowsRef],
@@ -564,6 +569,10 @@ export function useFluentResultGridCommandController({
                 firstDataCell,
             );
             grid.getSelectionModel()?.setSelectedRanges(ranges);
+            // Select-all skips hidden columns, so it then no longer stands for the whole result.
+            selectAllRangesRef.current = grid.getColumns().some((column) => column.hidden)
+                ? undefined
+                : ranges;
         },
         [showRowNumberColumn],
     );

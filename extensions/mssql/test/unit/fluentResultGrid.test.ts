@@ -1282,6 +1282,36 @@ suite("Fluent Result Grid", () => {
             expect(getFluentResultGridSelectionForSave(grid)).to.deep.equal([]);
         });
 
+        test("saves the complete result set while the select-all selection is still held", () => {
+            // Select-all ran when two rows had loaded; the result set has since grown to five.
+            const selectAllRanges = [new SlickRange(0, 1, 1, 2)];
+            const getSelectedRanges = sandbox.stub().returns([new SlickRange(0, 1, 1, 2)]);
+            const grid = {
+                getColumns: sandbox.stub().returns(selectionColumns([0, 1])),
+                getDataLength: sandbox.stub().returns(5),
+                getSelectionModel: sandbox.stub().returns({ getSelectedRanges }),
+            } as unknown as SlickGrid;
+
+            expect(
+                getFluentResultGridSelectionForSave(grid, undefined, selectAllRanges),
+            ).to.deep.equal([]);
+
+            // A sort or filter keeps the rows the user is looking at.
+            expect(
+                getFluentResultGridSelectionForSave(
+                    grid,
+                    (displayRow) => displayRow,
+                    selectAllRanges,
+                ),
+            ).to.deep.equal([{ fromRow: 0, fromCell: 0, toRow: 1, toCell: 1 }]);
+
+            // Any other selection saves just that range.
+            getSelectedRanges.returns([new SlickRange(0, 1, 0, 2)]);
+            expect(
+                getFluentResultGridSelectionForSave(grid, undefined, selectAllRanges),
+            ).to.deep.equal([{ fromRow: 0, fromCell: 0, toRow: 0, toCell: 1 }]);
+        });
+
         test("clears selected ranges when sort or filter transforms change displayed rows", () => {
             const calls: SlickRange[][] = [];
             let activeCellWasReset = false;
