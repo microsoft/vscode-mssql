@@ -297,11 +297,6 @@ declare module "vscode-mssql" {
         typeSystemVersion: string | undefined;
 
         /**
-         * Gets or sets the connection string to use for this connection.
-         */
-        connectionString: string | undefined;
-
-        /**
          * Gets or sets the name of the connection's container; undefined if the
          * connection is not hosted by a container
          */
@@ -387,6 +382,10 @@ declare module "vscode-mssql" {
             includeRequest: boolean,
             taskExecutionMode: TaskExecutionMode,
         ): Thenable<SchemaCompareIncludeExcludeAllResult>;
+        getDifferenceDetails(
+            operationId: string,
+            differenceIndex: number,
+        ): Thenable<SchemaCompareDifferenceDetailsResult>;
         openScmp(filePath: string): Thenable<SchemaCompareOpenScmpResult>;
         saveScmp(
             sourceEndpointInfo: SchemaCompareEndpointInfo,
@@ -1016,6 +1015,8 @@ declare module "vscode-mssql" {
         fabric: {
             fabricApiUriBase: string;
             fabricScopeUriBase: string;
+            /** Base URI of the Fabric portal, used to build links into Fabric workloads. */
+            fabricPortalUriBase: string | undefined;
             sqlDbDnsSuffix: string;
             dataWarehouseDnsSuffix: string;
         };
@@ -1323,7 +1324,7 @@ declare module "vscode-mssql" {
         deploymentOptions: DeploymentOptions;
     }
 
-    export interface ValidateStreamingJobResult extends ResultStatus { }
+    export interface ValidateStreamingJobResult extends ResultStatus {}
 
     export interface ParseTSqlScriptResult {
         containsCreateTableStatement: boolean;
@@ -1466,6 +1467,7 @@ declare module "vscode-mssql" {
     }
 
     export interface DiffEntry {
+        hasDetails?: boolean;
         updateAction: SchemaUpdateAction;
         differenceType: SchemaDifferenceType;
         name: string;
@@ -1536,6 +1538,15 @@ declare module "vscode-mssql" {
 
     export interface SchemaCompareIncludeExcludeAllResult extends ResultStatus {
         allIncludedOrExcludedDifferences: DiffEntry[];
+    }
+
+    export interface SchemaCompareDifferenceDetailsParams {
+        operationId: string;
+        differenceIndex: number;
+    }
+
+    export interface SchemaCompareDifferenceDetailsResult extends ResultStatus {
+        difference: DiffEntry;
     }
 
     export interface SchemaCompareNodeParams {

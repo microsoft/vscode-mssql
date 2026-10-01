@@ -11,6 +11,9 @@ import { promises as fs } from "fs";
 import { uuid } from "../utils/utils";
 import {
     SchemaCompareEndpointType,
+    SchemaCompareIncludeExcludeAllParams,
+    SchemaCompareIncludeExcludeNodeParams,
+    SchemaCompareGenerateScriptParams,
     SchemaCompareReducers,
     TaskExecutionMode,
 } from "../sharedInterfaces/schemaCompare";
@@ -180,7 +183,7 @@ export async function compare(
 export async function generateScript(
     operationId: string,
     taskExecutionMode: TaskExecutionMode,
-    payload: SchemaCompareReducers["generateScript"],
+    payload: SchemaCompareGenerateScriptParams,
     schemaCompareService: mssql.ISchemaCompareService,
     logger?: ILogger,
 ): Promise<mssql.ResultStatus> {
@@ -291,7 +294,7 @@ export async function publishProjectChanges(
 export async function includeExcludeNode(
     operationId: string,
     taskExecutionMode: TaskExecutionMode,
-    payload: SchemaCompareReducers["includeExcludeNode"],
+    payload: SchemaCompareIncludeExcludeNodeParams,
     schemaCompareService: mssql.ISchemaCompareService,
     logger?: ILogger,
 ): Promise<mssql.SchemaCompareIncludeExcludeResult> {
@@ -342,7 +345,7 @@ export async function includeExcludeNode(
 export async function includeExcludeAllNodes(
     operationId: string,
     taskExecutionMode: TaskExecutionMode,
-    payload: SchemaCompareReducers["includeExcludeAllNodes"],
+    payload: SchemaCompareIncludeExcludeAllParams,
     schemaCompareService: mssql.ISchemaCompareService,
     logger?: ILogger,
 ): Promise<mssql.SchemaCompareIncludeExcludeAllResult> {

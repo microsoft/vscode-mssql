@@ -121,6 +121,7 @@ export class HttpClient {
                 headers: options?.headers,
                 signal: options?.signal,
                 timeoutMs: options?.timeoutMs,
+                maxRedirects: options?.maxRedirects,
             },
             "stream",
         );
@@ -263,6 +264,7 @@ export class HttpClient {
         config.data = request.body;
         config.signal = request.signal;
         config.timeout = request.timeoutMs;
+        config.maxRedirects = request.maxRedirects;
         config.responseType = responseType;
 
         return {

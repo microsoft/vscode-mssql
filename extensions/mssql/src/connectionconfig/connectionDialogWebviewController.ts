@@ -51,10 +51,9 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import { cmdOpenAzureDataStudioMigration, defaultDatabase } from "../constants/constants";
+import { cmdOpenAzureDataStudioMigration, defaultDatabase, Links } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
-import * as Utils from "../models/utils";
 import {
     createConnectionGroup,
     getDefaultConnectionGroupDialogProps,
@@ -77,7 +76,7 @@ import {
     getVscodeEntraTenantOptions,
     resolveVscodeEntraAccount,
 } from "../azure/vscodeEntraMfaUtils";
-import { PreviewFeature, previewService } from "../previews/previewService";
+import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
 import { getCloudId } from "../azure/providerSettings";
 import {
     AzureBrowseProvider,
@@ -89,6 +88,7 @@ import { buildDatabaseOptions } from "../utils/databaseUtils";
 
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
+export const OPEN_KERBEROS_HELP = "openKerberosHelp";
 const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
@@ -226,9 +226,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         initialConnectionGroup?: IConnectionGroup,
         openAsNewDraft?: boolean,
     ): Promise<void> {
-        const useVscodeAccounts = previewService.isFeatureEnabled(
-            PreviewFeature.UseVscodeAccountsForEntraMFA,
-        );
+        const useVscodeAccounts = !getUseMsalEntraMfaAuthConfig();
 
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
@@ -763,10 +761,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             // If they signed in with a new account and they're using VS Code accounts for EntraMFA auth,
             // then add it to the MFA auth account list and select it.
-            if (
-                newlyAddedAccountId &&
-                previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)
-            ) {
+            if (newlyAddedAccountId && !getUseMsalEntraMfaAuthConfig()) {
                 const accountComponent = this.getFormComponent(state, "accountId");
 
                 if (accountComponent) {
@@ -917,17 +912,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.onNotification(OpenOptionInfoLinkNotification.type, async (payload) => {
-            const infoLinkMap: Partial<Record<AuthenticationType, string>> = {
-                [AuthenticationType.ActiveDirectoryDefault]:
-                    "https://aka.ms/vscode-mssql-auth-entra-default",
-                [AuthenticationType.AzureMFA]: "https://aka.ms/vscode-mssql-auth-entra-mfa",
+            const authInfoLinkMap: Partial<Record<AuthenticationType, string>> = {
+                [AuthenticationType.Integrated]: Links.authKerberosHelp,
+                [AuthenticationType.ActiveDirectoryDefault]: Links.authEntraDefault,
+                [AuthenticationType.AzureMFA]: Links.authEntraMfa,
                 [AuthenticationType.ActiveDirectoryServicePrincipal]:
-                    "https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication?view=sql-server-ver17#using-service-principal-authentication",
+                    Links.authActiveDirectoryServicePrincipal,
             };
 
-            const url = infoLinkMap[payload.option.value as AuthenticationType];
+            const url = authInfoLinkMap[payload.option.value as AuthenticationType];
+
             if (url) {
                 void vscode.env.openExternal(vscode.Uri.parse(url));
+            } else {
+                this.logger.error(
+                    `No authentication info link found for option: ${payload.option.value}`,
+                );
             }
         });
 
@@ -947,6 +947,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 if (signInButton) {
                     await signInButton.callback();
                 }
+            } else if (payload.buttonId === OPEN_KERBEROS_HELP) {
+                await vscode.env.openExternal(vscode.Uri.parse(Links.authKerberosHelp));
             } else {
                 this.logger.error(`Unknown message button clicked: ${payload.buttonId}`);
             }
@@ -1088,7 +1090,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             hiddenProperties.push("accountId", "tenantId");
         }
         if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 const accountId = this.state.connectionProfile.accountId;
                 const cachedTenants = accountId
                     ? this._cachedEntraTenants.get(accountId)
@@ -1182,8 +1184,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 ] as any) = undefined;
             }
         }
-
-        cleanedConnection.connectionString = undefined;
 
         if (cleanedConnection.secureEnclaves !== "Enabled") {
             cleanedConnection.attestationProtocol = undefined;
@@ -1308,10 +1308,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             savedConnection.profileName !== recentConnection.profileName
         ) {
             return false;
-        }
-
-        if (savedConnection.connectionString || recentConnection.connectionString) {
-            return savedConnection.connectionString === recentConnection.connectionString;
         }
 
         if (savedConnection.server !== recentConnection.server) {
@@ -1826,7 +1822,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             } as ChangePasswordDialogProps;
             return state;
         } else {
-            this.state.formMessage = { message: result.errorMessage };
+            this.state.formMessage = {
+                message: result.errorMessage,
+                buttons:
+                    errorType === SqlConnectionErrorType.KerberosNonWindows
+                        ? [
+                              {
+                                  id: OPEN_KERBEROS_HELP,
+                                  label: LocalizedConstants.Common.learnMore,
+                              },
+                          ]
+                        : undefined,
+            };
             this.state.connectionStatus = ApiStatus.Error;
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
@@ -1929,20 +1936,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connection: IConnectionInfo,
     ): Promise<IConnectionDialogProfile> {
         // Load the password if it's saved
-        if (Utils.isEmpty(connection.connectionString)) {
-            if (!connection.password) {
-                // look up password in credential store if one isn't already set
-                const password =
-                    await this._mainController.connectionManager.connectionStore.lookupPassword(
-                        connection,
-                        false /* isConnectionString */,
-                    );
-                connection.password = password;
-            }
-        } else {
-            this.logger.debug(
-                "Connection string connection found in Connection Dialog initialization; should have been converted.",
-            );
+        if (!connection.password) {
+            // look up password in credential store if one isn't already set
+            const password =
+                await this._mainController.connectionManager.connectionStore.lookupPassword(
+                    connection,
+                );
+            connection.password = password;
         }
 
         // The server is serialized to config in "server,port" form; split the port into its own
@@ -2004,7 +2004,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return this._cachedEntraAccounts;
         }
 
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+        if (!getUseMsalEntraMfaAuthConfig()) {
             this._cachedEntraAccounts = await getVscodeEntraAccountOptions();
         } else {
             this._cachedEntraAccounts = await getAccounts(
@@ -2026,7 +2026,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         if (!this._cachedEntraTenants.has(accountId)) {
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 this._cachedEntraTenants.set(
                     accountId,
                     await getVscodeEntraTenantOptions(accountId),
@@ -2078,7 +2078,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             label: LocalizedConstants.ConnectionDialog.signIn,
             id: "azureSignIn",
             callback: async () => {
-                if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+                if (!getUseMsalEntraMfaAuthConfig()) {
                     const existingAccountIds = new Set(
                         (this._cachedEntraAccounts ?? []).map((a) => a.value),
                     );
@@ -2158,9 +2158,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         const tenantComponent = this.getFormComponent(this.state, "tenantId");
-        const useVscodeAccounts = previewService.isFeatureEnabled(
-            PreviewFeature.UseVscodeAccountsForEntraMFA,
-        );
+        const useVscodeAccounts = !getUseMsalEntraMfaAuthConfig();
 
         // If background loading hasn't finished, show spinner on account and
         // await the deferred. updateItemVisibility is called for authenticationType
@@ -2515,7 +2513,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             toProfile.authenticationType === AuthenticationType.AzureMFA &&
             toProfile.user !== undefined
         ) {
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 const matchingAccount = await resolveVscodeEntraAccount(undefined, toProfile.user);
                 if (matchingAccount) {
                     toProfile.accountId = matchingAccount.id;

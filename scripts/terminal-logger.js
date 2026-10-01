@@ -15,6 +15,17 @@ const colors = {
     cyan: "\x1b[36m",
 };
 
+const forceColor = process.env.FORCE_COLOR;
+const useColor =
+    !process.env.NO_COLOR &&
+    (forceColor !== undefined ? forceColor !== "0" : Boolean(process.stdout.isTTY));
+const useSeparators = process.env.NO_TERMINAL_SEPARATORS !== "1";
+if (!useColor) {
+    for (const color of Object.keys(colors)) {
+        colors[color] = "";
+    }
+}
+
 /**
  * Enhanced logging utility for build scripts
  * Provides consistent, colored terminal output with meaningful icons
@@ -60,7 +71,11 @@ const logger = {
     /**
      * Log a separator line for visual organization
      */
-    separator: () => console.log(`${colors.cyan}${"─".repeat(60)}${colors.reset}`),
+    separator: () => {
+        if (useSeparators) {
+            console.log(`${colors.cyan}${"─".repeat(60)}${colors.reset}`);
+        }
+    },
 
     /**
      * Log a header with separator lines above and below

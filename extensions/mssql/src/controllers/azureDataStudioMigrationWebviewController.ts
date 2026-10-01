@@ -71,8 +71,16 @@ const EXCLUDED_SETTINGS = new Set<string>([
     "mssql.enableConnectionPooling",
 
     // Exclude intelliSense lower case suggestions because it was intentionally removed from MSSQL
-    // due to being redundant with mssql.format.keywordCasing and therefore confusing.
+    // due to being redundant with mssql.format.options.keywordCasing and therefore confusing.
     "mssql.intelliSense.lowerCaseSuggestions",
+
+    // These formatter settings were removed along with the legacy formatter.
+    "mssql.format.alignColumnDefinitionsInColumns",
+    "mssql.format.datatypeCasing",
+    "mssql.format.keywordCasing",
+    "mssql.format.placeCommasBeforeNextStatement",
+    "mssql.format.placeSelectStatementReferencesOnNewLine",
+    "mssql.format.enablePreviewFormatter",
 
     // Exclude settings that aren't supported in MSSQL
     // due to not being implemented in MSSQL or for ADS-specific features.

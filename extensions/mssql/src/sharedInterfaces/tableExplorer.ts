@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { RequestType } from "vscode-jsonrpc";
 import { ApiStatus, CoreRPCs } from "./webview";
 
 export enum SqlPaneMode {
@@ -48,6 +49,11 @@ export interface EditCell extends DbCellValue {
 export interface EditCellResult {
     cell: EditCell;
     isRowDirty: boolean;
+}
+
+export interface CellUpdateAcknowledgement {
+    requestId: number;
+    isDirty: boolean;
 }
 
 export interface EditReferencedTableInfo {
@@ -201,16 +207,22 @@ export interface TableExplorerWebViewState {
     currentPage?: number; // Track the current page number in the data grid
     failedCells?: string[]; // Track cells that failed to update (format: "rowId-columnId")
     originalCellValues?: Map<string, DbCellValue>; // Cache original cell values for reliable revert (key: "rowId-columnId")
+    cellUpdateAcknowledgements?: Record<string, CellUpdateAcknowledgement>;
 }
 
 export interface TableExplorerContextProps extends CoreRPCs {
-    commitChanges: () => void;
-    loadSubset: (rowCount: number) => void;
-    createRow: () => void;
-    deleteRow: (rowId: number) => void;
-    updateCell: (rowId: number, columnId: number, newValue: string) => void;
-    revertCell: (rowId: number, columnId: number) => void;
-    revertRow: (rowId: number) => void;
+    commitChanges: () => Promise<void>;
+    loadSubset: (rowCount: number) => Promise<void>;
+    createRow: () => Promise<void>;
+    deleteRow: (rowId: number) => Promise<void>;
+    updateCell: (
+        rowId: number,
+        columnId: number,
+        newValue: string,
+        requestId: number,
+    ) => Promise<void>;
+    revertCell: (rowId: number, columnId: number) => Promise<void>;
+    revertRow: (rowId: number) => Promise<void>;
     generateScript: () => void;
     openScriptInEditor: () => void;
     copyScriptToClipboard: () => void;
@@ -218,7 +230,11 @@ export interface TableExplorerContextProps extends CoreRPCs {
     setCurrentPage: (pageNumber: number) => void;
     saveResults: (format: SupportedSaveFormats, data: ExportData) => void;
     showTableQuery: () => void;
-    runTableQuery: (queryString: string, rowCount?: number, filterOperators?: string[]) => void;
+    runTableQuery: (
+        queryString: string,
+        rowCount?: number,
+        filterOperators?: string[],
+    ) => Promise<boolean>;
     modifyTable: () => void;
     viewTableDiagram: () => void;
     showSql: (sqlScript: string) => void;
@@ -229,7 +245,7 @@ export interface TableExplorerReducers {
     loadSubset: { rowCount: number };
     createRow: {};
     deleteRow: { rowId: number };
-    updateCell: { rowId: number; columnId: number; newValue: string };
+    updateCell: { rowId: number; columnId: number; newValue: string; requestId: number };
     revertCell: { rowId: number; columnId: number };
     revertRow: { rowId: number };
     generateScript: {};
@@ -243,6 +259,12 @@ export interface TableExplorerReducers {
     modifyTable: {};
     viewTableDiagram: {};
     showSql: { sqlScript: string };
+}
+
+export namespace WaitForEditSessionReadyRequest {
+    export const type = new RequestType<void, boolean, void>(
+        "tableExplorer/waitForEditSessionReady",
+    );
 }
 
 export interface ExportData {

@@ -24,9 +24,6 @@ import {
 import { FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { defaultSchema, flatFileImportFileTypes } from "../constants/constants";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
-import { RequestType } from "vscode-languageclient";
-import { SimpleExecuteResult } from "vscode-mssql";
-import { getSchemaNamesFromResult } from "../copilot/tools/listSchemasTool";
 import * as path from "path";
 import ConnectionManager from "./connectionManager";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
@@ -34,8 +31,20 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { Deferred } from "../protocol";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionProfile } from "../models/connectionProfile";
+import { listSchemas } from "../services/schemaService";
 
 const FLAT_FILE_IMPORT_VIEW_ID = "flatFileImport";
+const BUILT_IN_DATABASE_ROLE_SCHEMAS = new Set([
+    "db_accessadmin",
+    "db_backupoperator",
+    "db_datareader",
+    "db_datawriter",
+    "db_ddladmin",
+    "db_denydatareader",
+    "db_denydatawriter",
+    "db_owner",
+    "db_securityadmin",
+]);
 
 /**
  * Controller for the Flat File Import dialog
@@ -49,6 +58,8 @@ export class FlatFileImportWebviewController extends FormWebviewController<
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly operationId: string = uuid();
     private databases: string[] = [];
+    private _schemaConnectionUri: string | undefined;
+    private _schemaConnectionDatabase: string | undefined;
     constructor(
         context: vscode.ExtensionContext,
         private client: SqlToolsServiceClient,
@@ -330,8 +341,13 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         _isBlur: boolean,
     ): Promise<void> {
         if (propertyName === "databaseName") {
-            void this.handleLoadSchemas();
+            await this.handleLoadSchemas();
         }
+    }
+
+    public override dispose(): void {
+        void this.disconnectSchemaConnection();
+        super.dispose();
     }
 
     private setFlatFileFormComponents(): Record<
@@ -418,23 +434,62 @@ export class FlatFileImportWebviewController extends FormWebviewController<
      * @returns A promise that resolves to an array of schema names
      */
     private async getSchemas(databaseName: string): Promise<string[]> {
-        const safeDbName = `[${databaseName.replace(/]/g, "]]")}]`;
-        const getSchemaQuery = `
-            SELECT name
-            FROM ${safeDbName}.sys.schemas
-            WHERE name NOT IN ('sys', 'information_schema')
-            ORDER BY name
-            `;
-        const result = await this.client.sendRequest(
-            new RequestType<{ ownerUri: string; queryString: string }, SimpleExecuteResult, void>(
-                "query/simpleexecute",
-            ),
-            {
-                ownerUri: this.ownerUri,
-                queryString: getSchemaQuery,
-            },
+        const schemaOwnerUri = await this.getSchemaConnectionUri(databaseName);
+        const schemas = await listSchemas(this.client, schemaOwnerUri);
+        return schemas.filter(
+            (schemaName) => !BUILT_IN_DATABASE_ROLE_SCHEMAS.has(schemaName.toLowerCase()),
         );
-        return getSchemaNamesFromResult(result);
+    }
+
+    /**
+     * Gets a connection scoped to the selected database. Azure SQL Database does not support
+     * querying another database with a three-part name, so schemas must be queried in the target
+     * database's connection context.
+     */
+    private async getSchemaConnectionUri(databaseName: string): Promise<string> {
+        if (databaseName === this.databaseName) {
+            await this.disconnectSchemaConnection();
+            return this.ownerUri;
+        }
+
+        if (
+            this._schemaConnectionDatabase === databaseName &&
+            this._schemaConnectionUri &&
+            this.connectionManager.isConnected(this._schemaConnectionUri)
+        ) {
+            return this._schemaConnectionUri;
+        }
+
+        await this.disconnectSchemaConnection();
+
+        const connectionUri = `flat-file-import-${this.operationId}`;
+        const didConnect = await this.connectionManager.connect(connectionUri, {
+            ...this.profile,
+            database: databaseName,
+        });
+
+        if (!didConnect) {
+            throw new Error(Loc.FlatFileImport.fetchSchemasError);
+        }
+
+        if (this.isDisposed) {
+            await this.connectionManager.disconnect(connectionUri);
+            throw new Error(Loc.FlatFileImport.fetchSchemasError);
+        }
+
+        this._schemaConnectionUri = connectionUri;
+        this._schemaConnectionDatabase = databaseName;
+        return connectionUri;
+    }
+
+    private async disconnectSchemaConnection(): Promise<void> {
+        const connectionUri = this._schemaConnectionUri;
+        this._schemaConnectionUri = undefined;
+        this._schemaConnectionDatabase = undefined;
+
+        if (connectionUri) {
+            await this.connectionManager.disconnect(connectionUri);
+        }
     }
 
     /**

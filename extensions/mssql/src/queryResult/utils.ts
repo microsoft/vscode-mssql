@@ -330,6 +330,7 @@ export function registerCommonRequestHandlers(
             {
                 scrollLeft: message.scrollLeft,
                 scrollTop: message.scrollTop,
+                scrollTopOffset: message.scrollTopOffset,
             },
         );
     });

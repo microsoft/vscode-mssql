@@ -50,7 +50,6 @@ function createTestCredentials(): IConnectionInfo {
         multipleActiveResultSets: false,
         packetSize: 8192,
         typeSystemVersion: "Latest",
-        connectionString: "",
         containerName: "",
     };
     return creds;
