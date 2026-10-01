@@ -221,7 +221,7 @@
     "mssql.resultsGrid.showGridLines.none": "Hide all grid lines",
     "mssql.resultsGrid.rowPadding": "Extra vertical padding in pixels added to each row in the results grid, controlling row density. Valid range: 0-10.",
     "mssql.query.displayBitAsNumber": "Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'",
-    "mssql.query.displayUniqueIdentifierInUppercase": "Should UNIQUEIDENTIFIER values be displayed in uppercase, matching SQL Server and SSMS? This also applies to copied and saved results. If false, they will be displayed in lowercase",
+    "mssql.query.displayUniqueIdentifierInUppercase": "Should UNIQUEIDENTIFIER values be displayed in uppercase? This also applies to copied and saved results. If false, they will be displayed in lowercase",
     "mssql.intelliSense.enableIntelliSense": "Should IntelliSense be enabled",
     "mssql.intelliSense.completionTimeoutMilliseconds": "Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.",
     "mssql.intelliSense.enableErrorChecking": "Should IntelliSense error checking be enabled",

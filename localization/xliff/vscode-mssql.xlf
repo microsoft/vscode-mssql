@@ -12233,7 +12233,7 @@
       <source xml:lang="en">Should Query History feature be enabled</source>
     </trans-unit>
     <trans-unit id="mssql.query.displayUniqueIdentifierInUppercase">
-      <source xml:lang="en">Should UNIQUEIDENTIFIER values be displayed in uppercase, matching SQL Server and SSMS? This also applies to copied and saved results. If false, they will be displayed in lowercase</source>
+      <source xml:lang="en">Should UNIQUEIDENTIFIER values be displayed in uppercase? This also applies to copied and saved results. If false, they will be displayed in lowercase</source>
     </trans-unit>
     <trans-unit id="mssql.autoDisableNonTSqlLanguageService">
       <source xml:lang="en">Should language service be auto-disabled when extension detects Non-MSSQL files</source>
