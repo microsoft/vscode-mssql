@@ -3261,6 +3261,12 @@
                     "description": "%mssql.query.displayBitAsNumber%",
                     "scope": "window"
                 },
+                "mssql.query.displayUniqueIdentifierInUppercase": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.query.displayUniqueIdentifierInUppercase%",
+                    "scope": "window"
+                },
                 "mssql.query.maxCharsToStore": {
                     "type": "number",
                     "default": 65535,
