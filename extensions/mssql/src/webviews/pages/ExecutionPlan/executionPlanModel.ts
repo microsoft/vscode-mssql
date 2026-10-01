@@ -94,6 +94,36 @@ export function getExpensiveMetricValue(
     }
 }
 
+/** Row counts below this show exactly; larger ones are shortened, for example to 6.2T. */
+const EXECUTION_PLAN_COMPACT_ROW_COUNT_THRESHOLD = 10_000;
+
+/**
+ * Formats a node's row count for the label on the edge carrying its rows. Large counts are
+ * shortened so the label stays small; the exact count goes in its tooltip.
+ * @returns undefined when the node has no row count.
+ */
+export function formatExecutionPlanRowCount(
+    rowCountDisplayString: string,
+    locale?: string,
+): { label: string; exact: string } | undefined {
+    if (!rowCountDisplayString) {
+        return undefined;
+    }
+    const rowCount = Number(rowCountDisplayString);
+    if (!Number.isFinite(rowCount)) {
+        return { label: rowCountDisplayString, exact: rowCountDisplayString };
+    }
+    const exact = rowCount.toLocaleString(locale);
+    const label =
+        rowCount < EXECUTION_PLAN_COMPACT_ROW_COUNT_THRESHOLD
+            ? exact
+            : new Intl.NumberFormat(locale, {
+                  notation: "compact",
+                  maximumFractionDigits: 1,
+              }).format(rowCount);
+    return { label, exact };
+}
+
 /**
  * Immutable, renderer-neutral representation of an execution plan.
  */
