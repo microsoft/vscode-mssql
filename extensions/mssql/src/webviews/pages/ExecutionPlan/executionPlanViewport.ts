@@ -98,3 +98,75 @@ export function getViewportToRevealExecutionPlanNode(
         zoom: viewport.zoom,
     };
 }
+
+export interface ExecutionPlanBounds {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+}
+
+/**
+ * Scrolls the plan by a wheel delta in screen pixels, the way a scroll area would: the plan stops at
+ * its edges, and an axis where the whole plan already fits doesn't move. No viewport is returned
+ * when the plan can't move in the wheel's direction, so the wheel can scroll the page instead.
+ */
+export function getViewportForExecutionPlanScroll(
+    viewport: ExecutionPlanViewport,
+    delta: ExecutionPlanViewportPoint,
+    planBounds: ExecutionPlanBounds,
+    viewportSize: ExecutionPlanViewportSize,
+): ExecutionPlanViewport | undefined {
+    if (viewport.zoom <= 0) {
+        return undefined;
+    }
+
+    const x = scrollExecutionPlanAxis(
+        viewport.x,
+        delta.x,
+        planBounds.left,
+        planBounds.right,
+        viewportSize.width,
+        viewport.zoom,
+    );
+    const y = scrollExecutionPlanAxis(
+        viewport.y,
+        delta.y,
+        planBounds.top,
+        planBounds.bottom,
+        viewportSize.height,
+        viewport.zoom,
+    );
+    if (x === viewport.x && y === viewport.y) {
+        return undefined;
+    }
+    return { x, y, zoom: viewport.zoom };
+}
+
+/**
+ * Moves one axis of the viewport by a wheel delta without passing the plan's edges. It only moves
+ * in the delta's direction, so a plan already panned past an edge doesn't jump back.
+ */
+function scrollExecutionPlanAxis(
+    offset: number,
+    delta: number,
+    planStart: number,
+    planEnd: number,
+    viewportSize: number,
+    zoom: number,
+): number {
+    // The offset that lines the plan's far edge up with the viewport's far edge, and its near edge
+    // with the viewport's near edge
+    const farEdgeOffset = viewportSize - planEnd * zoom;
+    const nearEdgeOffset = -planStart * zoom;
+    if (farEdgeOffset >= nearEdgeOffset) {
+        return offset;
+    }
+    if (delta > 0) {
+        return offset <= farEdgeOffset ? offset : Math.max(offset - delta, farEdgeOffset);
+    }
+    if (delta < 0) {
+        return offset >= nearEdgeOffset ? offset : Math.min(offset - delta, nearEdgeOffset);
+    }
+    return offset;
+}

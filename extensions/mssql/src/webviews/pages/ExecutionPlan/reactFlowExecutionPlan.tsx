@@ -46,6 +46,7 @@ import {
 } from "./executionPlanGraphController";
 import { getExecutionPlanOperatorIcon } from "./executionPlanOperatorIcons";
 import {
+    EXECUTION_PLAN_GRAPH_PADDING,
     EXECUTION_PLAN_NODE_HEIGHT,
     EXECUTION_PLAN_NODE_WIDTH,
     EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
@@ -67,6 +68,8 @@ import {
     getExecutionPlanTooltipPlacement,
 } from "./executionPlanTooltipPosition";
 import {
+    ExecutionPlanBounds,
+    getViewportForExecutionPlanScroll,
     getViewportForExecutionPlanZoom,
     getViewportToRevealExecutionPlanNode,
 } from "./executionPlanViewport";
@@ -328,6 +331,45 @@ function getNodeSelectionWidth(node: ExecutionPlanNode): number {
         EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
         Math.max(EXECUTION_PLAN_NODE_WIDTH, Math.ceil(labelWidth) + 8),
     );
+}
+
+/** Pixels one wheel "line" scrolls, for wheels that report lines instead of pixels. */
+const EXECUTION_PLAN_WHEEL_LINE_HEIGHT = 16;
+
+/**
+ * The extent of the visible operators and their labels, in flow coordinates, with the graph's
+ * padding around it.
+ */
+function getExecutionPlanBounds(
+    model: ExecutionPlanModel,
+    positions: ExecutionPlanNodePositions,
+    hiddenNodeIds: ReadonlySet<string>,
+): ExecutionPlanBounds {
+    let left = Infinity;
+    let top = Infinity;
+    let right = -Infinity;
+    let bottom = -Infinity;
+    for (const node of model.nodes) {
+        const position = positions.get(node.id);
+        if (!position || hiddenNodeIds.has(node.id)) {
+            continue;
+        }
+        const width = Math.max(EXECUTION_PLAN_NODE_WIDTH, getNodeSelectionWidth(node));
+        const nodeLeft = position.x + (EXECUTION_PLAN_NODE_WIDTH - width) / 2;
+        left = Math.min(left, nodeLeft);
+        right = Math.max(right, nodeLeft + width);
+        top = Math.min(top, position.y);
+        bottom = Math.max(bottom, position.y + getNodeSelectionHeight(node));
+    }
+    if (!Number.isFinite(left)) {
+        return { left: 0, top: 0, right: 0, bottom: 0 };
+    }
+    return {
+        left: left - EXECUTION_PLAN_GRAPH_PADDING,
+        top: top - EXECUTION_PLAN_GRAPH_PADDING,
+        right: right + EXECUTION_PLAN_GRAPH_PADDING,
+        bottom: bottom + EXECUTION_PLAN_GRAPH_PADDING,
+    };
 }
 
 function getNodeSelectionHeight(node: ExecutionPlanNode): number {
@@ -747,6 +789,61 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
         () => getHiddenExecutionPlanElementIds(model, collapsedNodeIds),
         [collapsedNodeIds, model],
     );
+
+    const planBounds = useMemo(
+        () => getExecutionPlanBounds(model, positions, hiddenNodeIds),
+        [hiddenNodeIds, model, positions],
+    );
+    const planBoundsRef = useRef(planBounds);
+    useEffect(() => {
+        planBoundsRef.current = planBounds;
+    }, [planBounds]);
+
+    // The wheel scrolls the plan like a scroll area and hands off to the page at the plan's edges,
+    // so the page still scrolls between stacked plans. The listener isn't passive, so it can claim
+    // the wheel when the plan moves.
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!instance || !canvas) {
+            return;
+        }
+        const handleWheel = (event: WheelEvent) => {
+            // Pinch gestures arrive as ctrl+wheel and zoom through React Flow; tooltips scroll
+            // their own content
+            if (
+                event.ctrlKey ||
+                (event.target instanceof Element &&
+                    event.target.closest(".execution-plan-flow-tooltip"))
+            ) {
+                return;
+            }
+            const unit =
+                event.deltaMode === WheelEvent.DOM_DELTA_LINE
+                    ? EXECUTION_PLAN_WHEEL_LINE_HEIGHT
+                    : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+                      ? canvas.clientHeight
+                      : 1;
+            let deltaX = event.deltaX * unit;
+            let deltaY = event.deltaY * unit;
+            // Shift+wheel scrolls sideways where the browser doesn't already
+            if (event.shiftKey && deltaX === 0) {
+                deltaX = deltaY;
+                deltaY = 0;
+            }
+            const viewport = getViewportForExecutionPlanScroll(
+                instance.getViewport(),
+                { x: deltaX, y: deltaY },
+                planBoundsRef.current,
+                { width: canvas.clientWidth, height: canvas.clientHeight },
+            );
+            if (viewport) {
+                event.preventDefault();
+                void instance.setViewport(viewport);
+            }
+        };
+        canvas.addEventListener("wheel", handleWheel, { passive: false });
+        return () => canvas.removeEventListener("wheel", handleWheel);
+    }, [instance]);
 
     const nodes = useMemo<ExecutionPlanFlowNode[]>(
         () =>
