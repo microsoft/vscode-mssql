@@ -8121,6 +8121,10 @@
     <trans-unit id="++CODE++4870950395d377ccb78a99509d402224e9dde215522464fe53d7423a5e6ac8b2">
       <source xml:lang="en">SDK-style project</source>
     </trans-unit>
+    <trans-unit id="++CODE++98126b1cae780d4e2490f0ef6cf1d2ff68b4049005490d0a6f8ea1970bac5ca2">
+      <source xml:lang="en">SPID: {0}</source>
+      <note>{0} is the server process ID (SPID) of the connection</note>
+    </trans-unit>
     <trans-unit id="++CODE++a7056a455639d1c7deec82ee787db24a0c1878e2792b4597709f0facf7cc7b35">
       <source xml:lang="en">SQL</source>
     </trans-unit>
@@ -8882,6 +8886,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
       <source xml:lang="en">Server name or ADO.NET connection string</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a70f29306e2bb66a98cf37fb5bff386a7a853666ac2588b4d27f748e59ab942">
+      <source xml:lang="en">Server process ID (SPID) of this editor&apos;s connection</source>
     </trans-unit>
     <trans-unit id="++CODE++cc01283cce208f77ad6623104ad4e6b8f82db0c6141aca95a4cffc70a9d3f5b5">
       <source xml:lang="en">Server variable</source>
@@ -11542,6 +11549,9 @@
     </trans-unit>
     <trans-unit id="mssql.statusBar.showQueryExecutionStatus.description">
       <source xml:lang="en">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</source>
+    </trans-unit>
+    <trans-unit id="mssql.statusBar.showServerProcessId.description">
+      <source xml:lang="en">Controls whether the server process ID (SPID) of the query editor&apos;s connection is displayed in the status bar.</source>
     </trans-unit>
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>

@@ -2713,6 +2713,12 @@
                     "default": true,
                     "scope": "window"
                 },
+                "mssql.statusBar.showServerProcessId": {
+                    "type": "boolean",
+                    "description": "%mssql.statusBar.showServerProcessId.description%",
+                    "default": false,
+                    "scope": "window"
+                },
                 "mssql.format.showParseErrorNotification": {
                     "type": "boolean",
                     "description": "%mssql.format.showParseErrorNotification%",

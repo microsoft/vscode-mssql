@@ -614,6 +614,10 @@ export default class QueryRunner {
                 result.ownerUri,
                 Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
             );
+            // The SPID can change when the connection reconnects, so refresh it after every run.
+            if (result.serverConnectionId) {
+                this._statusView.setServerProcessId(result.ownerUri, result.serverConnectionId);
+            }
             Perf.marker("mssql.query.complete", "end", {
                 rowCount: this._batchSets.reduce(
                     (total, batch) =>

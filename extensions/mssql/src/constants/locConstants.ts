@@ -2458,6 +2458,16 @@ export class StatusBar {
     public static notConnectedTooltip = l10n.t("Click to connect to a database");
     public static connectingLabel = l10n.t("Connecting");
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
+    public static serverProcessIdLabel = (serverProcessId: string) => {
+        return l10n.t({
+            message: "SPID: {0}",
+            args: [serverProcessId],
+            comment: ["{0} is the server process ID (SPID) of the connection"],
+        });
+    };
+    public static serverProcessIdTooltip = l10n.t(
+        "Server process ID (SPID) of this editor's connection",
+    );
 }
 
 export class Connection {
