@@ -583,6 +583,31 @@ suite("Query Runner tests", () => {
         expect(isFullExecutionComplete).to.be.true;
     });
 
+    test("Notification - Query complete refreshes the SPID shown in the status bar", () => {
+        const result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: "uri",
+            batchSummaries: [],
+            serverConnectionId: "57",
+        };
+
+        const queryRunner = createQueryRunner();
+        queryRunner.handleQueryComplete(result);
+
+        expect(testStatusView.setServerProcessId).to.have.been.calledWith("uri", "57");
+    });
+
+    test("Notification - Query complete without a SPID keeps the SPID shown in the status bar", () => {
+        const result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: "uri",
+            batchSummaries: [],
+        };
+
+        const queryRunner = createQueryRunner();
+        queryRunner.handleQueryComplete(result);
+
+        expect(testStatusView.setServerProcessId).to.not.have.been.called;
+    });
+
     test("Cleanup is not reported as a full query execution completion", async () => {
         const queryRunner = createQueryRunner();
         let isFullExecutionComplete = true;
