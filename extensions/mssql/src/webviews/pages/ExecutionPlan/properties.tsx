@@ -352,14 +352,19 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 
         // make items list, and sort it based on importance
         const unsortedItems = buildItemListFromProperties(element.properties, 0, 0, false, -1);
-        setItems(
-            recursiveSort(
-                unsortedItems,
-                unsortedItems.filter((item) => !item.isChild),
-                ep.SortOption.Importance,
-            ),
+        const sortedItems = recursiveSort(
+            unsortedItems,
+            unsortedItems.filter((item) => !item.isChild),
+            ep.SortOption.Importance,
         );
         setNumItems(unsortedItems.length);
+        // Expansion state refers to item IDs, which only mean something for the node they came from
+        setShownChildren([]);
+        setOpenedButtons([]);
+        // The list that clearing the filter restores belongs to the node now shown, and an active
+        // filter carries over to it
+        setUnfilteredItems(sortedItems);
+        setItems(isFiltered ? filterPropertyItems(sortedItems, inputValue) : sortedItems);
     }
 
     const handleShowChildrenClick = async (buttonName: string, children: number[]) => {
@@ -450,11 +455,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             // react updates state asynchronously, so if the state of unfiltered
             // items hasn't been updated yet, ie. on the first filter, use items instead
             const currentItems = firstFilter ? items : unfilteredItems;
-            let filteredItems = currentItems.filter(
-                (item) => item.name.includes(searchValue) || item.value.includes(searchValue),
-            );
-
-            setItems(buildFilteredItemsFromChildList(filteredItems, currentItems));
+            setItems(filterPropertyItems(currentItems, searchValue));
             setIsFiltered(true);
         }
         // filtering is removed
@@ -728,6 +729,17 @@ function buildItemListFromProperties(
         currentLength += childrenItems.length + 1;
     }
     return items;
+}
+
+/** The items whose name or value contains the search text, with the parents that lead to them. */
+function filterPropertyItems(
+    items: ep.ExecutionPlanPropertyTableItem[],
+    searchValue: string,
+): ep.ExecutionPlanPropertyTableItem[] {
+    return buildFilteredItemsFromChildList(
+        items.filter((item) => item.name.includes(searchValue) || item.value.includes(searchValue)),
+        items,
+    );
 }
 
 function buildFilteredItemsFromChildList(

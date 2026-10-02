@@ -71,6 +71,7 @@ import {
 } from "./executionPlanTooltipPosition";
 import {
     ExecutionPlanBounds,
+    getExecutionPlanWheelDelta,
     getViewportForExecutionPlanScroll,
     getViewportForExecutionPlanZoom,
     getViewportToRevealExecutionPlanNode,
@@ -336,9 +337,6 @@ function getNodeSelectionWidth(node: ExecutionPlanNode): number {
     );
 }
 
-/** Pixels one wheel "line" scrolls, for wheels that report lines instead of pixels. */
-const EXECUTION_PLAN_WHEEL_LINE_HEIGHT = 16;
-
 /**
  * The extent of the visible operators and their labels, in flow coordinates, with the graph's
  * padding around it.
@@ -437,10 +435,11 @@ function ExecutionPlanReactFlowEdge({
             />
             {data?.rowCountLabel && (
                 // The label ends just before the child, on the last stretch of the edge, which
-                // no other edge shares and no arrowhead covers
+                // no other edge shares and no arrowhead covers. Like the edge, pressing it
+                // doesn't pan the plan.
                 <EdgeLabelRenderer>
                     <div
-                        className="execution-plan-flow-row-count"
+                        className="execution-plan-flow-row-count nopan"
                         title={data.rowCountLabel.exact}
                         aria-hidden="true"
                         style={{
@@ -840,24 +839,12 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             ) {
                 return;
             }
-            const unit =
-                event.deltaMode === WheelEvent.DOM_DELTA_LINE
-                    ? EXECUTION_PLAN_WHEEL_LINE_HEIGHT
-                    : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
-                      ? canvas.clientHeight
-                      : 1;
-            let deltaX = event.deltaX * unit;
-            let deltaY = event.deltaY * unit;
-            // Shift+wheel scrolls sideways where the browser doesn't already
-            if (event.shiftKey && deltaX === 0) {
-                deltaX = deltaY;
-                deltaY = 0;
-            }
+            const canvasSize = { width: canvas.clientWidth, height: canvas.clientHeight };
             const viewport = getViewportForExecutionPlanScroll(
                 instance.getViewport(),
-                { x: deltaX, y: deltaY },
+                getExecutionPlanWheelDelta(event, canvasSize),
                 planBoundsRef.current,
-                { width: canvas.clientWidth, height: canvas.clientHeight },
+                canvasSize,
             );
             if (viewport) {
                 event.preventDefault();

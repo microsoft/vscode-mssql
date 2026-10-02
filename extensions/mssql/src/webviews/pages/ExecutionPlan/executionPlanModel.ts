@@ -98,6 +98,20 @@ export function getExpensiveMetricValue(
 const EXECUTION_PLAN_COMPACT_ROW_COUNT_THRESHOLD = 10_000;
 
 /**
+ * Parses a row count. Whole numbers parse as a BigInt so counts past Number.MAX_SAFE_INTEGER keep
+ * every digit; fractional estimates parse as a number.
+ * @returns undefined when the value isn't a number.
+ */
+function parseExecutionPlanRowCount(value: string): bigint | number | undefined {
+    const trimmed = value.trim();
+    if (/^-?\d+$/.test(trimmed)) {
+        return BigInt(trimmed);
+    }
+    const rowCount = Number(trimmed);
+    return Number.isFinite(rowCount) ? rowCount : undefined;
+}
+
+/**
  * Formats a node's row count for the label on the edge carrying its rows. Large counts are
  * shortened so the label stays small; the exact count goes in its tooltip.
  * @returns undefined when the node has no row count.
@@ -109,13 +123,13 @@ export function formatExecutionPlanRowCount(
     if (!rowCountDisplayString) {
         return undefined;
     }
-    const rowCount = Number(rowCountDisplayString);
-    if (!Number.isFinite(rowCount)) {
+    const rowCount = parseExecutionPlanRowCount(rowCountDisplayString);
+    if (rowCount === undefined) {
         return { label: rowCountDisplayString, exact: rowCountDisplayString };
     }
     const exact = rowCount.toLocaleString(locale);
     const label =
-        rowCount < EXECUTION_PLAN_COMPACT_ROW_COUNT_THRESHOLD
+        Number(rowCount) < EXECUTION_PLAN_COMPACT_ROW_COUNT_THRESHOLD
             ? exact
             : new Intl.NumberFormat(locale, {
                   notation: "compact",

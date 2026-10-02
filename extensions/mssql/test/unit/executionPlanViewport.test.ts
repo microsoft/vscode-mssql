@@ -6,6 +6,7 @@
 import { expect } from "chai";
 
 import {
+    getExecutionPlanWheelDelta,
     getViewportForExecutionPlanScroll,
     getViewportForExecutionPlanZoom,
     getViewportToRevealExecutionPlanNode,
@@ -84,6 +85,45 @@ suite("ExecutionPlanViewport", () => {
                 canvas,
             ),
         ).to.be.undefined;
+    });
+
+    test("converts wheel lines and pages to pixels, scaling pages by each axis", () => {
+        const wideCanvas = { width: 800, height: 400 };
+        expect(
+            getExecutionPlanWheelDelta(
+                { deltaX: 0, deltaY: 50, deltaMode: 0, shiftKey: false },
+                wideCanvas,
+            ),
+        ).to.deep.equal({ x: 0, y: 50 });
+        expect(
+            getExecutionPlanWheelDelta(
+                { deltaX: 1, deltaY: 3, deltaMode: 1, shiftKey: false },
+                wideCanvas,
+            ),
+        ).to.deep.equal({ x: 16, y: 48 });
+        expect(
+            getExecutionPlanWheelDelta(
+                { deltaX: 1, deltaY: 1, deltaMode: 2, shiftKey: false },
+                wideCanvas,
+            ),
+        ).to.deep.equal({ x: 800, y: 400 });
+    });
+
+    test("scrolls sideways with Shift+wheel, a page at a time by the canvas width", () => {
+        const wideCanvas = { width: 800, height: 400 };
+        expect(
+            getExecutionPlanWheelDelta(
+                { deltaX: 0, deltaY: 1, deltaMode: 2, shiftKey: true },
+                wideCanvas,
+            ),
+        ).to.deep.equal({ x: 800, y: 0 });
+        // Browsers that already remap Shift+wheel report a horizontal delta, which is kept as is
+        expect(
+            getExecutionPlanWheelDelta(
+                { deltaX: 40, deltaY: 0, deltaMode: 0, shiftKey: true },
+                wideCanvas,
+            ),
+        ).to.deep.equal({ x: 40, y: 0 });
     });
 
     test("zooms around the canvas origin", () => {
