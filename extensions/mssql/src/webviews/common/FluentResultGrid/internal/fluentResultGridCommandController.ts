@@ -59,6 +59,7 @@ import {
     handleFluentResultGridRowDoubleClick,
     setFluentResultGridSelection,
 } from "./fluentResultGridSelection";
+import { FluentResultGridSelectionModel } from "./fluentResultGridSelectionModel";
 import {
     buildFluentResultGridFilterItems,
     getFluentResultGridRowsForFilterMenu,
@@ -145,14 +146,14 @@ export function useFluentResultGridCommandController({
     updateHeaderButtonStates: (grid: SlickGrid) => void;
 }): FluentResultGridCommandController {
     const activeFilterColumnRef = useRef<string | undefined>(undefined);
-    // The ranges select-all last set across every column, so Save As can save rows that arrive
-    // after it ran.
-    const selectAllRangesRef = useRef<SlickRange[] | undefined>(undefined);
 
     useEffect(() => {
         activeFilterColumnRef.current = undefined;
-        selectAllRangesRef.current = undefined;
-    }, [resultIdentitySignature]);
+        const selectionModel = reactGridRef.current?.slickGrid?.getSelectionModel();
+        if (selectionModel instanceof FluentResultGridSelectionModel) {
+            selectionModel.clearSelectAll();
+        }
+    }, [reactGridRef, resultIdentitySignature]);
 
     const getActualSelectionForCopy = useCallback(
         (grid: SlickGrid) => {
@@ -182,10 +183,12 @@ export function useFluentResultGridCommandController({
     const getSelectionForSave = useCallback(
         (grid: SlickGrid): ISlickRange[] => {
             const transformedRows = transformedRowsRef.current;
+            const selectionModel = grid.getSelectionModel();
             return getFluentResultGridSelectionForSave(
                 grid,
                 transformedRows ? (displayRow) => transformedRows[displayRow]?.rowId : undefined,
-                selectAllRangesRef.current,
+                selectionModel instanceof FluentResultGridSelectionModel &&
+                    selectionModel.isSelectAll,
             );
         },
         [transformedRowsRef],
@@ -568,11 +571,16 @@ export function useFluentResultGridCommandController({
                 rowCount - 1,
                 firstDataCell,
             );
-            grid.getSelectionModel()?.setSelectedRanges(ranges);
-            // Select-all skips hidden columns, so it then no longer stands for the whole result.
-            selectAllRangesRef.current = grid.getColumns().some((column) => column.hidden)
-                ? undefined
-                : ranges;
+            const selectionModel = grid.getSelectionModel();
+            // Select-all skips hidden columns, so it then doesn't stand for the whole result.
+            if (
+                selectionModel instanceof FluentResultGridSelectionModel &&
+                !grid.getColumns().some((column) => column.hidden)
+            ) {
+                selectionModel.setSelectAllRanges(ranges);
+            } else {
+                selectionModel?.setSelectedRanges(ranges);
+            }
         },
         [showRowNumberColumn],
     );

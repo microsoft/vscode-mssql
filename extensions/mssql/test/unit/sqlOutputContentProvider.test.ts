@@ -915,9 +915,10 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         test("saves a finished result set while a later one is still loading", async () => {
             const runner = await startQueryWithResultSets();
+            // The completion event alone marks the result set finished.
             await runner.handleResultSetComplete({
                 ownerUri: uri,
-                resultSetSummary: createResultSet(0, true),
+                resultSetSummary: createResultSet(0),
             });
             runner.handleResultSetAvailable({
                 ownerUri: uri,
@@ -931,6 +932,32 @@ suite("SqlOutputProvider Tests using mocks", () => {
             expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWithExactly(
                 LocConstants.msgSaveResultsWhileLoading,
             );
+        });
+
+        test("keeps a finished result set saveable after its batch completes", async () => {
+            const runner = await startQueryWithResultSets();
+            await runner.handleResultSetComplete({
+                ownerUri: uri,
+                resultSetSummary: createResultSet(0),
+            });
+            // The batch summary replaces the stored result sets, here without the completion flag.
+            runner.handleBatchComplete({
+                ownerUri: uri,
+                batchSummary: {
+                    hasError: false,
+                    id: 0,
+                    selection: undefined,
+                    resultSetSummaries: [createResultSet(0)],
+                    executionElapsed: undefined,
+                    executionEnd: new Date().toISOString(),
+                    executionStart: new Date().toISOString(),
+                },
+            });
+
+            contentProvider.saveResultsRequestHandler(uri, 0, 0, "csv", []);
+
+            expect(onSaveResults).to.have.been.calledOnceWithExactly(uri, 0, 0, "csv", []);
+            expect(messageBoxes.showWarningMessage).to.not.have.been.called;
         });
 
         test("saves any result set once the query has finished", async () => {

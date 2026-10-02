@@ -635,21 +635,21 @@ export function getFluentResultGridSelectionSummaryPayload(
 /**
  * Save As consumes source-row indexes. Unlike copy, no explicit selection stays empty because an
  * empty selection tells the service to save the complete result set.
- * @param selectAllRanges the ranges select-all last set, when it covered every column. While the
- * grid still holds them, without a sort or filter, the selection also saves the complete result
- * set: select-all covers only the rows loaded when it ran, so its range would miss rows that
- * arrived later.
+ * @param isSelectAll whether the selection is still the one select-all set. With every column shown
+ * and no sort or filter, it also saves the complete result set: select-all covers only the rows
+ * loaded when it ran, so its range would miss rows that arrived later.
  */
 export function getFluentResultGridSelectionForSave(
     grid: SlickGrid,
     getActualRowId?: (displayRow: number) => number | undefined,
-    selectAllRanges?: readonly ISlickRange[],
+    isSelectAll = false,
 ): ISlickRange[] {
     const selectedRanges = grid.getSelectionModel()?.getSelectedRanges() ?? [];
     if (selectedRanges.length === 0) {
         return [];
     }
-    if (!getActualRowId && areSameFluentResultGridRanges(selectedRanges, selectAllRanges)) {
+    // A column hidden after select-all ran is no longer selected, so save only what's shown
+    if (isSelectAll && !getActualRowId && !grid.getColumns().some((column) => column.hidden)) {
         return [];
     }
 
@@ -660,23 +660,6 @@ export function getFluentResultGridSelectionForSave(
     return getActualRowId
         ? convertDisplayedSelectionRowsToActual(displayedSelection, getActualRowId)
         : displayedSelection;
-}
-
-function areSameFluentResultGridRanges(
-    ranges: readonly ISlickRange[],
-    otherRanges: readonly ISlickRange[] | undefined,
-): boolean {
-    return (
-        otherRanges !== undefined &&
-        ranges.length === otherRanges.length &&
-        ranges.every(
-            (range, index) =>
-                range.fromRow === otherRanges[index].fromRow &&
-                range.toRow === otherRanges[index].toRow &&
-                range.fromCell === otherRanges[index].fromCell &&
-                range.toCell === otherRanges[index].toCell,
-        )
-    );
 }
 
 export function convertDisplayedSelectionRowsToActual(
