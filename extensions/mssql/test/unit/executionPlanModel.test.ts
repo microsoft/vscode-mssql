@@ -97,6 +97,14 @@ suite("ExecutionPlanModel", () => {
             label: "12.5",
             exact: "12.5",
         });
+        expect(formatExecutionPlanRowCount("0.123456789", "en-US")).to.deep.equal({
+            label: "0.123",
+            exact: "0.123456789",
+        });
+        expect(formatExecutionPlanRowCount("1.50", "en-US")).to.deep.equal({
+            label: "1.5",
+            exact: "1.50",
+        });
         expect(formatExecutionPlanRowCount("n/a", "en-US")).to.deep.equal({
             label: "n/a",
             exact: "n/a",
