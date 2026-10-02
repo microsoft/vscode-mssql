@@ -1382,6 +1382,11 @@
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",
     "Connection error": "Connection error",
+    "SPID: {0}/{0} is the server process ID (SPID) of the connection": {
+        "message": "SPID: {0}",
+        "comment": ["{0} is the server process ID (SPID) of the connection"]
+    },
+    "Server process ID (SPID) of this editor's connection": "Server process ID (SPID) of this editor's connection",
     "Connecting to {0}.../{0} is the connection display name": {
         "message": "Connecting to {0}...",
         "comment": ["{0} is the connection display name"]

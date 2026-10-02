@@ -35,6 +35,8 @@ export namespace QueryExecuteCompleteNotification {
 export class QueryExecuteCompleteNotificationResult {
     ownerUri: string;
     batchSummaries: BatchSummary[];
+    /** Server process ID (SPID) of the connection that ran the query. */
+    serverConnectionId?: string;
 }
 
 // Query Batch Notification -----------------------------------------------------------------------

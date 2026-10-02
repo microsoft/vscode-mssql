@@ -5,6 +5,7 @@
 
 import {
     makeStyles,
+    mergeClasses,
     Toolbar,
     ToolbarButton,
     ToolbarDivider,
@@ -195,7 +196,7 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
     };
 
     const buttonClassName = (selected = false) =>
-        `${classes.button}${selected ? ` ${classes.selectedButton}` : ""}`;
+        mergeClasses(classes.button, selected && classes.selectedButton);
 
     return (
         <Toolbar

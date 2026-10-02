@@ -5,6 +5,7 @@
 
 import {
     Edge,
+    EdgeLabelRenderer,
     EdgeProps,
     EdgeTypes,
     Handle,
@@ -46,16 +47,18 @@ import {
 } from "./executionPlanGraphController";
 import { getExecutionPlanOperatorIcon } from "./executionPlanOperatorIcons";
 import {
+    EXECUTION_PLAN_GRAPH_PADDING,
     EXECUTION_PLAN_NODE_HEIGHT,
     EXECUTION_PLAN_NODE_WIDTH,
     EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
     ExecutionPlanEdgeModel,
     ExecutionPlanModel,
     ExecutionPlanNodePositions,
+    formatExecutionPlanRowCount,
     getHiddenExecutionPlanElementIds,
     layoutExecutionPlan,
 } from "./executionPlanModel";
-import { getExecutionPlanClassicArrowGeometry } from "./executionPlanEdgeGeometry";
+import { getExecutionPlanArrowGeometry } from "./executionPlanEdgeGeometry";
 import {
     ExecutionPlanTooltipContent,
     formatExecutionPlanEdgeTooltip,
@@ -67,6 +70,9 @@ import {
     getExecutionPlanTooltipPlacement,
 } from "./executionPlanTooltipPosition";
 import {
+    ExecutionPlanBounds,
+    getExecutionPlanWheelDelta,
+    getViewportForExecutionPlanScroll,
     getViewportForExecutionPlanZoom,
     getViewportToRevealExecutionPlanNode,
 } from "./executionPlanViewport";
@@ -112,6 +118,8 @@ interface ExecutionPlanFlowNodeData extends Record<string, unknown> {
 
 type ExecutionPlanFlowNode = Node<ExecutionPlanFlowNodeData, "executionPlan">;
 interface ExecutionPlanFlowEdgeData extends ExecutionPlanEdgeModel {
+    /** Rows the child operator sends along this edge, shown on the edge. */
+    rowCountLabel?: { label: string; exact: string };
     [key: string]: unknown;
 }
 type ExecutionPlanFlowEdge = Edge<ExecutionPlanFlowEdgeData>;
@@ -241,7 +249,6 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
                 aria-hidden="true"
             />
             <Handle type="target" position={Position.Left} className="execution-plan-flow-handle" />
-            <div className="execution-plan-flow-row-count">{planNode.rowCountDisplayString}</div>
             <div className="execution-plan-flow-icon-container">
                 <OperatorIcon className="execution-plan-flow-icon" />
                 {planNode.badges.map((badge, index) => (
@@ -330,6 +337,42 @@ function getNodeSelectionWidth(node: ExecutionPlanNode): number {
     );
 }
 
+/**
+ * The extent of the visible operators and their labels, in flow coordinates, with the graph's
+ * padding around it.
+ */
+function getExecutionPlanBounds(
+    model: ExecutionPlanModel,
+    positions: ExecutionPlanNodePositions,
+    hiddenNodeIds: ReadonlySet<string>,
+): ExecutionPlanBounds {
+    let left = Infinity;
+    let top = Infinity;
+    let right = -Infinity;
+    let bottom = -Infinity;
+    for (const node of model.nodes) {
+        const position = positions.get(node.id);
+        if (!position || hiddenNodeIds.has(node.id)) {
+            continue;
+        }
+        const width = Math.max(EXECUTION_PLAN_NODE_WIDTH, getNodeSelectionWidth(node));
+        const nodeLeft = position.x + (EXECUTION_PLAN_NODE_WIDTH - width) / 2;
+        left = Math.min(left, nodeLeft);
+        right = Math.max(right, nodeLeft + width);
+        top = Math.min(top, position.y);
+        bottom = Math.max(bottom, position.y + getNodeSelectionHeight(node));
+    }
+    if (!Number.isFinite(left)) {
+        return { left: 0, top: 0, right: 0, bottom: 0 };
+    }
+    return {
+        left: left - EXECUTION_PLAN_GRAPH_PADDING,
+        top: top - EXECUTION_PLAN_GRAPH_PADDING,
+        right: right + EXECUTION_PLAN_GRAPH_PADDING,
+        bottom: bottom + EXECUTION_PLAN_GRAPH_PADDING,
+    };
+}
+
 function getNodeSelectionHeight(node: ExecutionPlanNode): number {
     const labelHeight =
         EXECUTION_PLAN_LABEL_TOP +
@@ -337,6 +380,22 @@ function getNodeSelectionHeight(node: ExecutionPlanNode): number {
         EXECUTION_PLAN_SELECTION_VERTICAL_PADDING;
     return Math.max(EXECUTION_PLAN_NODE_HEIGHT + 6, labelHeight);
 }
+
+/**
+ * Where edges meet the operator icon, matching the handle positions in the stylesheet. Declaring
+ * them lets React Flow keep drawing edges when a live refresh replaces the nodes, instead of
+ * dropping them until it measures the handles again.
+ */
+const EXECUTION_PLAN_NODE_HANDLES: NonNullable<Node["handles"]> = [
+    { type: "target", position: Position.Left, x: 22.5, y: 31.5, width: 1, height: 1 },
+    { type: "source", position: Position.Right, x: 56.5, y: 31.5, width: 1, height: 1 },
+];
+
+/** Corner radius where an edge turns between operators. */
+const EXECUTION_PLAN_EDGE_CORNER_RADIUS = 8;
+
+/** Space between an edge's row count label and the child operator it comes from. */
+const EXECUTION_PLAN_ROW_COUNT_LABEL_GAP = 6;
 
 function ExecutionPlanReactFlowEdge({
     sourceX,
@@ -346,16 +405,9 @@ function ExecutionPlanReactFlowEdge({
     targetY,
     targetPosition,
     style,
+    data,
 }: EdgeProps<ExecutionPlanFlowEdge>) {
-    const configuredStrokeWidth =
-        typeof style?.strokeWidth === "number"
-            ? style.strokeWidth
-            : Number.parseFloat(String(style?.strokeWidth ?? 1));
-    const strokeWidth =
-        Number.isFinite(configuredStrokeWidth) && configuredStrokeWidth > 0
-            ? configuredStrokeWidth
-            : 1;
-    const arrowGeometry = getExecutionPlanClassicArrowGeometry(sourceX, sourceY, strokeWidth);
+    const arrowGeometry = getExecutionPlanArrowGeometry(sourceX, sourceY);
     const [edgePath] = getSmoothStepPath({
         sourceX: arrowGeometry.edgeSourceX,
         sourceY,
@@ -363,25 +415,15 @@ function ExecutionPlanReactFlowEdge({
         targetX,
         targetY,
         targetPosition,
-        borderRadius: 0,
+        borderRadius: EXECUTION_PLAN_EDGE_CORNER_RADIUS,
     });
-    const stroke = "var(--vscode-editor-foreground)";
-
+    // The stylesheet sets the color, so the edge and its arrowhead change together on hover
     return (
-        <>
-            <path
-                d={edgePath}
-                fill="none"
-                stroke={stroke}
-                className="react-flow__edge-path"
-                style={style}
-            />
+        <g className="execution-plan-flow-edge">
+            <path d={edgePath} fill="none" className="react-flow__edge-path" style={style} />
             <path
                 d={arrowGeometry.path}
-                fill={stroke}
-                stroke={stroke}
-                strokeWidth={strokeWidth}
-                strokeLinejoin="miter"
+                fill="currentColor"
                 className="execution-plan-flow-arrow"
             />
             <path
@@ -391,7 +433,23 @@ function ExecutionPlanReactFlowEdge({
                 strokeWidth={20}
                 className="react-flow__edge-interaction"
             />
-        </>
+            {data?.rowCountLabel && (
+                // The label ends just before the child, on the last stretch of the edge, which
+                // no other edge shares and no arrowhead covers. Like the edge, pressing it
+                // doesn't pan the plan.
+                <EdgeLabelRenderer>
+                    <div
+                        className="execution-plan-flow-row-count nopan"
+                        title={data.rowCountLabel.exact}
+                        aria-hidden="true"
+                        style={{
+                            transform: `translate(-100%, -50%) translate(${targetX - EXECUTION_PLAN_ROW_COUNT_LABEL_GAP}px, ${targetY}px)`,
+                        }}>
+                        {data.rowCountLabel.label}
+                    </div>
+                </EdgeLabelRenderer>
+            )}
+        </g>
     );
 }
 
@@ -538,6 +596,8 @@ interface ReactFlowExecutionPlanProps {
     themeKind: ColorThemeKind;
     planNumber: number;
     onReady: (controller: ExecutionPlanGraphController | null) => void;
+    /** Called with the id of the selected node whenever the selection changes. */
+    onSelectionChange?: (id: string) => void;
 }
 
 export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
@@ -545,6 +605,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     themeKind,
     planNumber,
     onReady,
+    onSelectionChange,
 }) => {
     const model = useMemo(() => new ExecutionPlanModel(root), [root]);
     const positions = useMemo(() => layoutExecutionPlan(model), [model]);
@@ -594,6 +655,9 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     useEffect(() => {
         selectedIdRef.current = selectedId;
     }, [selectedId]);
+    useEffect(() => {
+        onSelectionChange?.(selectedId);
+    }, [onSelectionChange, selectedId]);
     useEffect(() => {
         tooltipsEnabledRef.current = tooltipsEnabled;
     }, [tooltipsEnabled]);
@@ -748,6 +812,49 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
         [collapsedNodeIds, model],
     );
 
+    const planBounds = useMemo(
+        () => getExecutionPlanBounds(model, positions, hiddenNodeIds),
+        [hiddenNodeIds, model, positions],
+    );
+    const planBoundsRef = useRef(planBounds);
+    useEffect(() => {
+        planBoundsRef.current = planBounds;
+    }, [planBounds]);
+
+    // The wheel scrolls the plan like a scroll area and hands off to the page at the plan's edges,
+    // so the page still scrolls between stacked plans. The listener isn't passive, so it can claim
+    // the wheel when the plan moves.
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!instance || !canvas) {
+            return;
+        }
+        const handleWheel = (event: WheelEvent) => {
+            // Pinch gestures arrive as ctrl+wheel and zoom through React Flow; tooltips scroll
+            // their own content
+            if (
+                event.ctrlKey ||
+                (event.target instanceof Element &&
+                    event.target.closest(".execution-plan-flow-tooltip"))
+            ) {
+                return;
+            }
+            const canvasSize = { width: canvas.clientWidth, height: canvas.clientHeight };
+            const viewport = getViewportForExecutionPlanScroll(
+                instance.getViewport(),
+                getExecutionPlanWheelDelta(event, canvasSize),
+                planBoundsRef.current,
+                canvasSize,
+            );
+            if (viewport) {
+                event.preventDefault();
+                void instance.setViewport(viewport);
+            }
+        };
+        canvas.addEventListener("wheel", handleWheel, { passive: false });
+        return () => canvas.removeEventListener("wheel", handleWheel);
+    }, [instance]);
+
     const nodes = useMemo<ExecutionPlanFlowNode[]>(
         () =>
             model.nodes.map((planNode) => {
@@ -764,6 +871,11 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                     focusable: false,
                     width: EXECUTION_PLAN_NODE_WIDTH,
                     height: EXECUTION_PLAN_NODE_HEIGHT,
+                    measured: {
+                        width: EXECUTION_PLAN_NODE_WIDTH,
+                        height: EXECUTION_PLAN_NODE_HEIGHT,
+                    },
+                    handles: EXECUTION_PLAN_NODE_HANDLES,
                     style: {
                         width: EXECUTION_PLAN_NODE_WIDTH,
                         height: EXECUTION_PLAN_NODE_HEIGHT,
@@ -824,9 +936,13 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 target: edge.targetId,
                 type: "executionPlanEdge",
                 hidden: hiddenNodeIds.has(edge.targetId),
-                data: { ...edge },
+                data: {
+                    ...edge,
+                    rowCountLabel: formatExecutionPlanRowCount(
+                        model.getNode(edge.targetId)?.rowCountDisplayString ?? "",
+                    ),
+                },
                 style: {
-                    stroke: "var(--vscode-editor-foreground)",
                     strokeWidth: edge.weight,
                 },
                 focusable: false,

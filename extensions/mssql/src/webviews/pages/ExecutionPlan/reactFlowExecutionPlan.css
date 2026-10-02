@@ -24,7 +24,8 @@
     position: relative;
     box-sizing: border-box;
     border: 1px solid transparent;
-    background: var(--vscode-editor-background);
+    /* Transparent so edges and their labels show where they meet the icon inside the box */
+    background: transparent;
     color: var(--vscode-editor-foreground);
     cursor: default;
     font-family: var(--vscode-editor-font-family, Monaco, Menlo, Consolas, monospace);
@@ -32,7 +33,12 @@
     outline: none;
 }
 
-.execution-plan-flow-node:hover {
+/*
+ * Hover highlights only the icon. The node box reaches past the points where edges and their row
+ * counts meet the icon, and the hover color is opaque in most themes, so filling the box hid them.
+ */
+.execution-plan-flow-node:hover .execution-plan-flow-icon-container {
+    border-radius: 4px;
     background: var(--vscode-list-hoverBackground);
 }
 
@@ -110,14 +116,26 @@
     transform: translateX(-50%);
 }
 
+/* The row count rides on the edge carrying those rows, on its own background so lines never cut it. */
 .execution-plan-flow-row-count {
     position: absolute;
-    top: 24px;
-    left: -20px;
-    min-width: 20px;
-    color: var(--vscode-descriptionForeground);
-    text-align: right;
+    padding: 0 5px;
+    border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border, transparent));
+    border-radius: 8px;
+    background: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+    font-family: var(--vscode-editor-font-family, Monaco, Menlo, Consolas, monospace);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    line-height: 14px;
     white-space: nowrap;
+    /* The label layer ignores the pointer, so the label opts back in to show its exact-count
+       tooltip. Clicks still reach the edge through React, opening the edge's tooltip as before. */
+    pointer-events: all;
+    cursor: pointer;
+    /* Fits a shortened count like 999.9K, so labels keep one size as counts change */
+    min-width: 6ch;
+    text-align: center;
 }
 
 .execution-plan-flow-label {
@@ -158,6 +176,21 @@
     height: 12px;
 }
 
+/*
+ * Edges meet the operator icon, at its vertical center, rather than the sides of the node box.
+ * Keep in sync with EXECUTION_PLAN_NODE_HANDLES.
+ */
+.execution-plan-flow-handle.react-flow__handle-left {
+    top: 32px;
+    left: 23px;
+}
+
+.execution-plan-flow-handle.react-flow__handle-right {
+    top: 32px;
+    right: auto;
+    left: 57px;
+}
+
 .execution-plan-flow-handle {
     width: 1px;
     min-width: 1px;
@@ -169,6 +202,23 @@
 
 .execution-plan-flow-arrow {
     pointer-events: none;
+}
+
+/* Edges sit back in a muted color and come forward when hovered or selected. */
+.execution-plan-flow-canvas .execution-plan-flow-edge {
+    color: var(--vscode-descriptionForeground);
+    transition: color 150ms ease;
+}
+
+.execution-plan-flow-canvas .react-flow__edge:hover .execution-plan-flow-edge,
+.execution-plan-flow-canvas .react-flow__edge.selected .execution-plan-flow-edge {
+    color: var(--vscode-editor-foreground);
+}
+
+.execution-plan-flow-canvas .react-flow__edge .execution-plan-flow-edge .react-flow__edge-path {
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .execution-plan-flow-tooltip {

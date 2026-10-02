@@ -94,6 +94,49 @@ export function getExpensiveMetricValue(
     }
 }
 
+/** Row counts below this show exactly; larger ones are shortened, for example to 6.2T. */
+const EXECUTION_PLAN_COMPACT_ROW_COUNT_THRESHOLD = 10_000;
+
+/** The most fractional digits Intl.NumberFormat accepts. */
+const INTL_MAX_FRACTION_DIGITS = 100;
+
+/**
+ * Formats a node's row count for the label on the edge carrying its rows. Large counts are
+ * shortened so the label stays small; the exact count goes in its tooltip.
+ * @returns undefined when the node has no row count.
+ */
+export function formatExecutionPlanRowCount(
+    rowCountDisplayString: string,
+    locale?: string,
+): { label: string; exact: string } | undefined {
+    if (!rowCountDisplayString) {
+        return undefined;
+    }
+    const value = rowCountDisplayString.trim();
+    const rowCount = Number(value);
+    if (!Number.isFinite(rowCount)) {
+        return { label: rowCountDisplayString, exact: rowCountDisplayString };
+    }
+    // Intl formats a numeric string as an exact decimal, so the tooltip keeps every digit of the
+    // source: counts past Number.MAX_SAFE_INTEGER, and an estimate's fractional digits and zeros
+    const fractionDigits = Math.min(
+        /\.(\d+)$/.exec(value)?.[1].length ?? 0,
+        INTL_MAX_FRACTION_DIGITS,
+    );
+    const exact = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: INTL_MAX_FRACTION_DIGITS,
+    }).format(value as Intl.StringNumericLiteral);
+    const label =
+        rowCount < EXECUTION_PLAN_COMPACT_ROW_COUNT_THRESHOLD
+            ? rowCount.toLocaleString(locale)
+            : new Intl.NumberFormat(locale, {
+                  notation: "compact",
+                  maximumFractionDigits: 1,
+              }).format(rowCount);
+    return { label, exact };
+}
+
 /**
  * Immutable, renderer-neutral representation of an execution plan.
  */
