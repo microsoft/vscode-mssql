@@ -22,24 +22,30 @@ import {
     createTableColumn,
     makeStyles,
     mergeClasses,
+    useRestoreFocusTarget,
 } from "@fluentui/react-components";
 import {
     ArrowSortDownLines16Regular,
     ChevronDown16Regular,
     ChevronRight16Regular,
     Dismiss16Regular,
+    MoreHorizontal16Regular,
     TextSortAscending16Regular,
     TextSortDescending16Regular,
 } from "@fluentui/react-icons";
 import { KeyboardEvent as ReactKeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
+import { PropertyValueDialog } from "./propertyValueDialog";
 import { locConstants } from "../../common/locConstants";
 import {
     CollapseAllIcon16Regular,
     ExpandAllIcon16Regular,
     FilterIcon16Regular,
 } from "../../common/icons/executionPlanIcons";
+
+// Rows show this button on hover or focus; a stable class name lets the row style target it.
+const viewValueButtonClassName = "executionPlanPropertyViewValueButton";
 
 const useStyles = makeStyles({
     paneContainer: {
@@ -162,6 +168,9 @@ const useStyles = makeStyles({
         "&:focus-within": {
             boxShadow: "inset 0 0 0 1px var(--vscode-focusBorder)",
         },
+        [`&:hover .${viewValueButtonClassName}, &:focus-within .${viewValueButtonClassName}`]: {
+            display: "inline-flex",
+        },
     },
     groupRow: {
         backgroundColor:
@@ -190,7 +199,7 @@ const useStyles = makeStyles({
         padding: 0,
         overflow: "hidden",
     },
-    nameContent: {
+    cellContent: {
         boxSizing: "border-box",
         display: "flex",
         alignItems: "center",
@@ -206,9 +215,20 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
     },
-    nameText: {
+    fillText: {
         flex: "1 1 0%",
         width: "auto",
+    },
+    viewValueButton: {
+        flexShrink: 0,
+        width: "20px",
+        minWidth: "20px",
+        height: "20px",
+        minHeight: "20px",
+        marginLeft: "4px",
+        padding: 0,
+        // Hidden buttons take no space, so values use the full column width until hovered.
+        display: "none",
     },
     disclosureButton: {
         width: "16px",
@@ -251,16 +271,21 @@ const useStyles = makeStyles({
     },
 });
 
+// Cells use border-box sizing, so column widths already include the cell padding. Without
+// padding: 0, column sizing reserves that padding again and the value column stops short of the
+// pane's right edge.
 const columnSizingOptions: TableColumnSizingOptions = {
     name: {
         minWidth: 140,
         defaultWidth: 170,
         idealWidth: 180,
+        padding: 0,
     },
     value: {
         minWidth: 140,
         defaultWidth: 220,
         idealWidth: 240,
+        padding: 0,
     },
 };
 
@@ -285,7 +310,11 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     const [unfilteredItems, setUnfilteredItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
     const [numItems, setNumItems] = useState<number>(0);
     const [inputValue, setInputValue] = useState<string>("");
+    const [fullValueItem, setFullValueItem] = useState<
+        ep.ExecutionPlanPropertyTableItem | undefined
+    >(undefined);
     const propertiesPanelRef = useRef<HTMLDivElement>(null);
+    const restoreFocusTargetAttribute = useRestoreFocusTarget();
 
     const visibleItems = useMemo(() => {
         const itemsById = new Map(items.map((item) => [item.id, item]));
@@ -493,7 +522,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         className={classes.cellLayout}
                         title={item.name || undefined}>
                         <div
-                            className={classes.nameContent}
+                            className={classes.cellContent}
                             style={{ paddingLeft: `${item.level * 16}px` }}>
                             {item.children.length > 0 ? (
                                 <Button
@@ -523,7 +552,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                                     <span className={classes.disclosureSpacer} aria-hidden="true" />
                                 )
                             )}
-                            <span className={mergeClasses(classes.cellText, classes.nameText)}>
+                            <span className={mergeClasses(classes.cellText, classes.fillText)}>
                                 {item.name}
                             </span>
                         </div>
@@ -538,13 +567,32 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     {VALUE}
                 </span>
             ),
+            // The value cell lays out its own row instead of using TableCellLayout, whose content
+            // wrapper sizes to the text and would leave the button beside short values.
             renderCell: (item) => (
-                <TableCellLayout
-                    truncate
-                    className={classes.cellLayout}
-                    title={item.value || undefined}>
-                    <span className={classes.cellText}>{item.value}</span>
-                </TableCellLayout>
+                <div className={classes.cellContent} title={item.value || undefined}>
+                    <span className={mergeClasses(classes.cellText, classes.fillText)}>
+                        {item.value}
+                    </span>
+                    {item.value && (
+                        <Button
+                            {...restoreFocusTargetAttribute}
+                            appearance="subtle"
+                            size="small"
+                            className={mergeClasses(
+                                classes.viewValueButton,
+                                viewValueButtonClassName,
+                            )}
+                            icon={<MoreHorizontal16Regular />}
+                            title={locConstants.executionPlan.viewFullValue(item.name)}
+                            aria-label={locConstants.executionPlan.viewFullValue(item.name)}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                setFullValueItem(item);
+                            }}
+                        />
+                    )}
+                </div>
             ),
         }),
     ];
@@ -678,6 +726,10 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     </DataGridBody>
                 </DataGrid>
             </div>
+            <PropertyValueDialog
+                property={fullValueItem}
+                onClose={() => setFullValueItem(undefined)}
+            />
         </div>
     );
 };

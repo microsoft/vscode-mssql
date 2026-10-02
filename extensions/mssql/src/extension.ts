@@ -33,7 +33,7 @@ import {
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
-import { ChangelogWebviewController } from "./controllers/changelogWebviewController";
+import { OverviewWebviewController } from "./controllers/overviewWebviewController";
 import { initializeWebviewLocalizationCache } from "./controllers/localizationCache";
 import { UriOwnershipCoordinator } from "./uriOwnership/uriOwnershipCore";
 import {
@@ -50,6 +50,8 @@ import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
 import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
 import { sqlDatabaseProjectsExtensionId } from "./constants/constants";
+import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
+import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -70,6 +72,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
         builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
         builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
+        builder.define(ISqlProjectLookup, new ServiceDescriptor(SqlProjectLookup));
 
         const instantiationService = builder.seal();
         context.subscriptions.push(instantiationService);
@@ -141,6 +144,10 @@ class MssqlActivation {
         registerSqlDataPlane(context);
         await controller.activate();
 
+        context.subscriptions.push(
+            this._instantiationService.createInstance(SqlProjectRefactoringContribution),
+        );
+
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
         registerSqlToolsMcpServer(
             context,
@@ -181,7 +188,7 @@ class MssqlActivation {
 
         context.subscriptions.push(controller, participant, receiveFeedbackDisposable);
 
-        await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
+        await OverviewWebviewController.showWelcomeOnExtensionUpdate(context);
 
         const dataWorkspaceApi = registerDataWorkspace(context);
         const sqlProjectsShell = vscode.extensions.getExtension(sqlDatabaseProjectsExtensionId);
