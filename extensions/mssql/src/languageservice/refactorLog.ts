@@ -133,20 +133,6 @@ export function getSqlIdentifierRange(
     return new vscode.Range(position.line, result.start, position.line, result.end + 1);
 }
 
-/**
- * Returns true if `filePath` lives under the directory of any `.sqlproj` file currently in the
- * workspace. Uses VS Code's cached file index — no directory walks.
- */
-export async function isInSqlProject(filePath: string): Promise<boolean> {
-    const sqlprojFiles = await vscode.workspace.findFiles("**/*.sqlproj");
-    const normalizedFile = path.normalize(filePath);
-    return sqlprojFiles.some((projUri) => {
-        const projDir = path.normalize(path.dirname(projUri.fsPath));
-        const rel = path.relative(projDir, normalizedFile);
-        return !(rel === ".." || rel.startsWith(".." + path.sep)) && !path.isAbsolute(rel);
-    });
-}
-
 /** Escapes a string for safe use inside an XML attribute value (e.g. an Include path). */
 export function escapeXmlAttribute(value: string): string {
     return value
@@ -175,29 +161,10 @@ export interface RefactorLogTarget {
 }
 
 /**
- * Locates the `.sqlproj` that owns `document`, resolves its refactorlog path, and reads the
- * refactorlog's current content (null when the file does not exist yet). Returns undefined when
- * the document is not inside any project.
+ * Resolves the refactorlog path for the project at `sqlprojUri` and reads the refactorlog's current
+ * content (null when the file does not exist yet).
  */
-export async function resolveRefactorLogTarget(
-    document: vscode.TextDocument,
-): Promise<RefactorLogTarget | undefined> {
-    // Find the .sqlproj that owns the file.
-    // Pick the most-specific (deepest) match to handle nested project structures.
-    const sqlprojFiles = await vscode.workspace.findFiles("**/*.sqlproj");
-    const normalizedDocPath = path.normalize(document.uri.fsPath);
-    const sqlprojUri = sqlprojFiles
-        .filter((projUri) => {
-            const projDir = path.normalize(path.dirname(projUri.fsPath));
-            const rel = path.relative(projDir, normalizedDocPath);
-            return !(rel === ".." || rel.startsWith(".." + path.sep)) && !path.isAbsolute(rel);
-        })
-        .sort((a, b) => b.fsPath.length - a.fsPath.length)[0];
-
-    if (!sqlprojUri) {
-        return undefined;
-    }
-
+export async function resolveRefactorLogTarget(sqlprojUri: vscode.Uri): Promise<RefactorLogTarget> {
     const projDir = path.dirname(sqlprojUri.fsPath);
     const projName = path.basename(sqlprojUri.fsPath, ".sqlproj");
 
