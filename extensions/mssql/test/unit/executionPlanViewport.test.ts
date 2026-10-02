@@ -6,11 +6,126 @@
 import { expect } from "chai";
 
 import {
+    getExecutionPlanWheelDelta,
+    getViewportForExecutionPlanScroll,
     getViewportForExecutionPlanZoom,
     getViewportToRevealExecutionPlanNode,
 } from "../../src/webviews/pages/ExecutionPlan/executionPlanViewport";
 
 suite("ExecutionPlanViewport", () => {
+    // A plan 1000 tall and 300 wide in a 400 x 400 canvas: it scrolls vertically and fits across
+    const planBounds = { left: 0, top: 0, right: 300, bottom: 1000 };
+    const canvas = { width: 400, height: 400 };
+
+    test("scrolls the plan with the wheel and stops at its far edge", () => {
+        expect(
+            getViewportForExecutionPlanScroll(
+                { x: 0, y: 0, zoom: 1 },
+                { x: 0, y: 100 },
+                planBounds,
+                canvas,
+            ),
+        ).to.deep.equal({ x: 0, y: -100, zoom: 1 });
+        expect(
+            getViewportForExecutionPlanScroll(
+                { x: 0, y: -550, zoom: 1 },
+                { x: 0, y: 100 },
+                planBounds,
+                canvas,
+            ),
+        ).to.deep.equal({ x: 0, y: -600, zoom: 1 });
+    });
+
+    test("hands the wheel to the page when the plan can't move that way", () => {
+        // Already at the bottom
+        expect(
+            getViewportForExecutionPlanScroll(
+                { x: 0, y: -600, zoom: 1 },
+                { x: 0, y: 100 },
+                planBounds,
+                canvas,
+            ),
+        ).to.be.undefined;
+        // Already at the top
+        expect(
+            getViewportForExecutionPlanScroll(
+                { x: 0, y: 0, zoom: 1 },
+                { x: 0, y: -100 },
+                planBounds,
+                canvas,
+            ),
+        ).to.be.undefined;
+        // The plan fits across, so sideways scrolling doesn't move it
+        expect(
+            getViewportForExecutionPlanScroll(
+                { x: 0, y: -200, zoom: 1 },
+                { x: 100, y: 0 },
+                planBounds,
+                canvas,
+            ),
+        ).to.be.undefined;
+    });
+
+    test("scrolls the zoomed plan size and never jumps back from past an edge", () => {
+        // At half zoom the plan is 500 tall, so it scrolls at most 100
+        expect(
+            getViewportForExecutionPlanScroll(
+                { x: 0, y: 0, zoom: 0.5 },
+                { x: 0, y: 300 },
+                planBounds,
+                canvas,
+            ),
+        ).to.deep.equal({ x: 0, y: -100, zoom: 0.5 });
+        // Panned below the top by dragging: scrolling up stays put instead of snapping back
+        expect(
+            getViewportForExecutionPlanScroll(
+                { x: 0, y: 50, zoom: 1 },
+                { x: 0, y: -100 },
+                planBounds,
+                canvas,
+            ),
+        ).to.be.undefined;
+    });
+
+    test("converts wheel lines and pages to pixels, scaling pages by each axis", () => {
+        const wideCanvas = { width: 800, height: 400 };
+        expect(
+            getExecutionPlanWheelDelta(
+                { deltaX: 0, deltaY: 50, deltaMode: 0, shiftKey: false },
+                wideCanvas,
+            ),
+        ).to.deep.equal({ x: 0, y: 50 });
+        expect(
+            getExecutionPlanWheelDelta(
+                { deltaX: 1, deltaY: 3, deltaMode: 1, shiftKey: false },
+                wideCanvas,
+            ),
+        ).to.deep.equal({ x: 16, y: 48 });
+        expect(
+            getExecutionPlanWheelDelta(
+                { deltaX: 1, deltaY: 1, deltaMode: 2, shiftKey: false },
+                wideCanvas,
+            ),
+        ).to.deep.equal({ x: 800, y: 400 });
+    });
+
+    test("scrolls sideways with Shift+wheel, a page at a time by the canvas width", () => {
+        const wideCanvas = { width: 800, height: 400 };
+        expect(
+            getExecutionPlanWheelDelta(
+                { deltaX: 0, deltaY: 1, deltaMode: 2, shiftKey: true },
+                wideCanvas,
+            ),
+        ).to.deep.equal({ x: 800, y: 0 });
+        // Browsers that already remap Shift+wheel report a horizontal delta, which is kept as is
+        expect(
+            getExecutionPlanWheelDelta(
+                { deltaX: 40, deltaY: 0, deltaMode: 0, shiftKey: true },
+                wideCanvas,
+            ),
+        ).to.deep.equal({ x: 40, y: 0 });
+    });
+
     test("zooms around the canvas origin", () => {
         const viewport = getViewportForExecutionPlanZoom({ x: -120, y: -60, zoom: 1 }, 1.5);
 
