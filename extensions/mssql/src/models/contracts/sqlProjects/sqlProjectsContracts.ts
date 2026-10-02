@@ -47,6 +47,20 @@ export namespace GetProjectPropertiesRequest {
         void
     >("sqlProjects/getProjectProperties");
 }
+
+export namespace GetProjectModelRequest {
+    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetProjectModelResult, void>(
+        "sqlProjects/getProjectModel",
+    );
+}
+
+export namespace FindProjectForFileRequest {
+    export const type = new RequestType<
+        mssql.FindProjectForFileParams,
+        mssql.FindProjectForFileResult,
+        void
+    >("sqlProjects/findProjectForFile");
+}
 export namespace SetDatabaseSourceRequest {
     export const type = new RequestType<mssql.SetDatabaseSourceParams, mssql.ResultStatus, void>(
         "sqlProjects/setDatabaseSource",
@@ -105,12 +119,6 @@ export namespace MoveSqlObjectScriptRequest {
     );
 }
 
-export namespace GetSqlObjectScriptsRequest {
-    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetScriptsResult, void>(
-        "sqlProjects/getSqlObjectScripts",
-    );
-}
-
 //#endregion
 
 //#region Folder functions
@@ -124,12 +132,6 @@ export namespace AddFolderRequest {
 export namespace DeleteFolderRequest {
     export const type = new RequestType<mssql.FolderParams, mssql.ResultStatus, void>(
         "sqlProjects/deleteFolder",
-    );
-}
-
-export namespace GetFoldersRequest {
-    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetFoldersResult, void>(
-        "sqlProjects/getFolders",
     );
 }
 
@@ -197,18 +199,6 @@ export namespace MovePreDeploymentScriptRequest {
     );
 }
 
-export namespace GetPostDeploymentScriptsRequest {
-    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetScriptsResult, void>(
-        "sqlProjects/getPostDeploymentScripts",
-    );
-}
-
-export namespace GetPreDeploymentScriptsRequest {
-    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetScriptsResult, void>(
-        "sqlProjects/getPreDeploymentScripts",
-    );
-}
-
 //#endregion
 
 //#region None functions
@@ -228,12 +218,6 @@ export namespace DeleteNoneItemRequest {
 export namespace ExcludeNoneItemRequest {
     export const type = new RequestType<mssql.SqlProjectScriptParams, mssql.ResultStatus, void>(
         "sqlProjects/excludeNoneItem",
-    );
-}
-
-export namespace GetNoneItemsRequest {
-    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetScriptsResult, void>(
-        "sqlProjects/getNoneItems",
     );
 }
 

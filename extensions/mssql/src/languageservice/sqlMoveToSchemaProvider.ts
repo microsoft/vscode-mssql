@@ -22,11 +22,11 @@ import {
     buildRefactorWorkspaceEdit,
     extractSchemaFromLinePrefix,
     getSqlIdentifierRange,
-    isInSqlProject,
     RefactorLogTarget,
     resolveRefactorLogTarget,
 } from "./refactorLog";
 import { SqlProjectsService } from "../services/sqlProjectsService";
+import { ISqlProjectLookup } from "./sqlProjectLookup";
 import { getLogger } from "../models/logger";
 
 const logger = getLogger("SqlMoveToSchemaProvider");
@@ -80,7 +80,10 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
 
     private readonly _sqlProjectsService: SqlProjectsService;
 
-    constructor(sqlProjectsService?: SqlProjectsService) {
+    constructor(
+        private readonly _projectLookup: ISqlProjectLookup,
+        sqlProjectsService?: SqlProjectsService,
+    ) {
         this._sqlProjectsService =
             sqlProjectsService ?? new SqlProjectsService(SqlToolsServerClient.instance);
     }
@@ -88,12 +91,17 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
     /**
      * Registers the provider and its backing command. Returns disposables for the caller to track.
      */
-    public static register(): vscode.Disposable[] {
-        const provider = new SqlMoveToSchemaProvider();
+    public static register(projectLookup: ISqlProjectLookup): vscode.Disposable[] {
+        const provider = new SqlMoveToSchemaProvider(projectLookup);
         return [
-            vscode.languages.registerCodeActionsProvider({ language: "sql" }, provider, {
-                providedCodeActionKinds: SqlMoveToSchemaProvider.providedCodeActionKinds,
-            }),
+            // Only saved files can be in a project, so untitled SQL documents never ask
+            vscode.languages.registerCodeActionsProvider(
+                { language: "sql", scheme: "file" },
+                provider,
+                {
+                    providedCodeActionKinds: SqlMoveToSchemaProvider.providedCodeActionKinds,
+                },
+            ),
             vscode.commands.registerCommand(
                 cmdMoveToSchema,
                 (document: vscode.TextDocument, position: vscode.Position) =>
@@ -110,7 +118,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
         range: vscode.Range | vscode.Selection,
     ): Promise<vscode.CodeAction[]> {
-        if (!(await isInSqlProject(document.uri.fsPath))) {
+        if (!(await this._projectLookup.findProjectForFile(document.uri))) {
             return [];
         }
         const position = range.start;
@@ -135,7 +143,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
         position: vscode.Position,
     ): Promise<void> {
-        if (!(await isInSqlProject(document.uri.fsPath))) {
+        if (!(await this._projectLookup.findProjectForFile(document.uri))) {
             void vscode.window.showInformationMessage(loc.moveToSchemaOnlyInProjectFiles);
             return;
         }
@@ -282,12 +290,12 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
     ): Promise<RefactorLogTarget | undefined> {
         try {
-            const refactorTarget = await resolveRefactorLogTarget(document);
-            if (!refactorTarget) {
+            const sqlprojUri = await this._projectLookup.findProjectForFile(document.uri);
+            if (!sqlprojUri) {
                 void vscode.window.showErrorMessage(loc.moveToSchemaOnlyInProjectFiles);
                 return undefined;
             }
-            return refactorTarget;
+            return await resolveRefactorLogTarget(sqlprojUri);
         } catch (err) {
             void vscode.window.showErrorMessage(
                 loc.resolveRefactorLogFailed(err instanceof Error ? err.message : String(err)),
