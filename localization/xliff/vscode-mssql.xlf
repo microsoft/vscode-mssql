@@ -9899,6 +9899,9 @@
     <trans-unit id="++CODE++ce553332733c058a69b217d835936eaa21146d8c0edae6d076f486977b252df6">
       <source xml:lang="en">These are the default MSSQL extension keyboard shortcuts, for Command Palette commands and the query results pane. Customize any of them in Shortcuts Configuration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++daa046e501b37f0ac84d850cbf56de02041133e4051c8b675e5ef799f4fb42fa">
+      <source xml:lang="en">These results can&apos;t be saved until they finish loading.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
       <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
     </trans-unit>

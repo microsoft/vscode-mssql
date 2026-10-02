@@ -239,6 +239,16 @@ export class SqlOutputContentProvider {
         format: string,
         selection: Interfaces.ISlickRange[],
     ): void {
+        // Check before asking for a file. A result set that is still loading can finish while the
+        // save dialog is open, and a selection taken now covers only the rows loaded so far, so
+        // the save would silently write a partial file. Other result sets that have finished can
+        // still be saved while the query runs.
+        const queryRunner = this._queryResultsMap.get(uri)?.queryRunner;
+        const resultSet = queryRunner?.batchSets[batchId]?.resultSetSummaries?.[resultId];
+        if (queryRunner?.isExecutingQuery && !resultSet?.complete) {
+            void vscode.window.showWarningMessage(LocalizedConstants.msgSaveResultsWhileLoading);
+            return;
+        }
         let saveResults = new ResultsSerializer();
         saveResults.onSaveResults(uri, batchId, resultId, format, selection);
     }

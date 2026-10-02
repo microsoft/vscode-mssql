@@ -25,6 +25,7 @@ import { QueryResultPaneTabs } from "../../src/sharedInterfaces/queryResult";
 import { Deferred } from "../../src/protocol";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import QueryRunner from "../../src/controllers/queryRunner";
+import ResultsSerializer from "../../src/models/resultsSerializer";
 import store from "../../src/queryResult/singletonStore";
 import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
 
@@ -868,6 +869,113 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(state.isExecuting).to.equal(false);
         expect(state.executionStartTime).to.equal(undefined);
         expect(state.executionElapsedMilliseconds).to.equal(3000);
+    });
+
+    suite("Save As while a query runs", () => {
+        const uri = "test_uri";
+        let onSaveResults: sinon.SinonStub;
+
+        function createResultSet(id: number, complete?: boolean) {
+            return { batchId: 0, id, rowCount: 10, columnInfo: [], complete };
+        }
+
+        async function startQueryWithResultSets(): Promise<QueryRunner> {
+            sandbox.stub(QueryRunner.prototype, "runQuery").callsFake(async function (selection) {
+                this.setupQueryExecution(selection);
+                (
+                    this as unknown as { _startEmitter: vscode.EventEmitter<string> }
+                )._startEmitter.fire(this.uri);
+            });
+            onSaveResults = sandbox.stub(ResultsSerializer.prototype, "onSaveResults").resolves();
+
+            await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+            const runner = contentProvider.getQueryRunner(uri);
+            runner.handleBatchStart({
+                ownerUri: uri,
+                batchSummary: {
+                    hasError: false,
+                    id: 0,
+                    selection: undefined,
+                    resultSetSummaries: [],
+                    executionElapsed: undefined,
+                    executionEnd: undefined,
+                    executionStart: new Date().toISOString(),
+                },
+            });
+            runner.handleResultSetAvailable({
+                ownerUri: uri,
+                resultSetSummary: createResultSet(0, false),
+            });
+            return runner;
+        }
+
+        test("does not ask for a file while the result set is loading", async () => {
+            await startQueryWithResultSets();
+
+            contentProvider.saveResultsRequestHandler(uri, 0, 0, "csv", []);
+
+            expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWithExactly(
+                LocConstants.msgSaveResultsWhileLoading,
+            );
+            expect(onSaveResults).to.not.have.been.called;
+        });
+
+        test("saves a finished result set while a later one is still loading", async () => {
+            const runner = await startQueryWithResultSets();
+            // The completion event alone marks the result set finished.
+            await runner.handleResultSetComplete({
+                ownerUri: uri,
+                resultSetSummary: createResultSet(0),
+            });
+            runner.handleResultSetAvailable({
+                ownerUri: uri,
+                resultSetSummary: createResultSet(1, false),
+            });
+
+            contentProvider.saveResultsRequestHandler(uri, 0, 0, "csv", []);
+            contentProvider.saveResultsRequestHandler(uri, 0, 1, "csv", []);
+
+            expect(onSaveResults).to.have.been.calledOnceWithExactly(uri, 0, 0, "csv", []);
+            expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWithExactly(
+                LocConstants.msgSaveResultsWhileLoading,
+            );
+        });
+
+        test("keeps a finished result set saveable after its batch completes", async () => {
+            const runner = await startQueryWithResultSets();
+            await runner.handleResultSetComplete({
+                ownerUri: uri,
+                resultSetSummary: createResultSet(0),
+            });
+            // The batch summary replaces the stored result sets, here without the completion flag.
+            runner.handleBatchComplete({
+                ownerUri: uri,
+                batchSummary: {
+                    hasError: false,
+                    id: 0,
+                    selection: undefined,
+                    resultSetSummaries: [createResultSet(0)],
+                    executionElapsed: undefined,
+                    executionEnd: new Date().toISOString(),
+                    executionStart: new Date().toISOString(),
+                },
+            });
+
+            contentProvider.saveResultsRequestHandler(uri, 0, 0, "csv", []);
+
+            expect(onSaveResults).to.have.been.calledOnceWithExactly(uri, 0, 0, "csv", []);
+            expect(messageBoxes.showWarningMessage).to.not.have.been.called;
+        });
+
+        test("saves any result set once the query has finished", async () => {
+            const runner = await startQueryWithResultSets();
+            runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+            contentProvider.saveResultsRequestHandler(uri, 0, 0, "csv", []);
+
+            expect(onSaveResults).to.have.been.calledOnceWithExactly(uri, 0, 0, "csv", []);
+            expect(messageBoxes.showWarningMessage).to.not.have.been.called;
+        });
     });
 
     suite("Result pane tab for execution plans", () => {
