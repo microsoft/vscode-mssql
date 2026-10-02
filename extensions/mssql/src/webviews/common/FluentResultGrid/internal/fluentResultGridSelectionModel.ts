@@ -36,8 +36,9 @@ export class FluentResultGridSelectionModel extends SlickHybridSelectionModel {
 
     /** Selects the given ranges as a select-all selection. */
     public setSelectAllRanges(ranges: SlickRange[]): void {
-        this.setSelectedRanges(ranges);
+        // Mark select-all before the base class notifies, so selection listeners already see it
         this._isSelectAll = true;
+        super.setSelectedRanges(ranges);
     }
 
     /** Stops treating the current selection as select-all, for example once a new result shows. */

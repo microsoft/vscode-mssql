@@ -1396,9 +1396,15 @@ suite("Fluent Result Grid", () => {
             const model = new TestableFluentResultGridSelectionModel({ selectionType: "cell" });
             model.setGridForTest(grid);
             const selectAllRange = new SlickRange(0, 1, 1, 2);
+            let isSelectAllWhenNotified: boolean | undefined;
+            model.onSelectedRangesChanged.subscribe(() => {
+                isSelectAllWhenNotified ??= model.isSelectAll;
+            });
 
             model.setSelectAllRanges([selectAllRange]);
             expect(model.isSelectAll).to.equal(true);
+            // Selection listeners already see it while select-all notifies.
+            expect(isSelectAllWhenNotified).to.equal(true);
 
             // Reapplying the same ranges, as a grid refresh does, keeps it.
             model.refreshSelections();
