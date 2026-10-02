@@ -1357,69 +1357,6 @@ suite("Fluent Result Grid", () => {
             expect(getFluentResultGridSelectionForSave(grid)).to.deep.equal([]);
         });
 
-        test("saves the complete result set while the select-all selection is still held", () => {
-            // Select-all ran when two rows had loaded; the result set has since grown to five.
-            const getColumns = sandbox.stub().returns(selectionColumns([0, 1]));
-            const grid = {
-                getColumns,
-                getDataLength: sandbox.stub().returns(5),
-                getSelectionModel: sandbox.stub().returns({
-                    getSelectedRanges: sandbox.stub().returns([new SlickRange(0, 1, 1, 2)]),
-                }),
-            } as unknown as SlickGrid;
-
-            expect(getFluentResultGridSelectionForSave(grid, undefined, true)).to.deep.equal([]);
-
-            // A sort or filter keeps the rows the user is looking at.
-            expect(
-                getFluentResultGridSelectionForSave(grid, (displayRow) => displayRow, true),
-            ).to.deep.equal([{ fromRow: 0, fromCell: 0, toRow: 1, toCell: 1 }]);
-
-            // Any other selection saves just that range.
-            expect(getFluentResultGridSelectionForSave(grid, undefined, false)).to.deep.equal([
-                { fromRow: 0, fromCell: 0, toRow: 1, toCell: 1 },
-            ]);
-
-            // A column hidden after select-all ran is no longer selected.
-            getColumns.returns(selectionColumns([0, 1], { hiddenSourceColumns: [1] }));
-            expect(getFluentResultGridSelectionForSave(grid, undefined, true)).to.deep.equal([
-                { fromRow: 0, fromCell: 0, toRow: 1, toCell: 0 },
-            ]);
-        });
-
-        test("selection model keeps select-all until the selection changes", () => {
-            const grid = {
-                canCellBeSelected: sandbox.stub().returns(true),
-                getColumns: sandbox.stub().returns(selectionColumns([0, 1])),
-                getOptions: sandbox.stub().returns({ multiSelect: true }),
-            } as unknown as SlickGrid;
-            const model = new TestableFluentResultGridSelectionModel({ selectionType: "cell" });
-            model.setGridForTest(grid);
-            const selectAllRange = new SlickRange(0, 1, 1, 2);
-            let isSelectAllWhenNotified: boolean | undefined;
-            model.onSelectedRangesChanged.subscribe(() => {
-                isSelectAllWhenNotified ??= model.isSelectAll;
-            });
-
-            model.setSelectAllRanges([selectAllRange]);
-            expect(model.isSelectAll).to.equal(true);
-            // Selection listeners already see it while select-all notifies.
-            expect(isSelectAllWhenNotified).to.equal(true);
-
-            // Reapplying the same ranges, as a grid refresh does, keeps it.
-            model.refreshSelections();
-            expect(model.isSelectAll).to.equal(true);
-
-            // A manual selection ends it, even one that then recreates the same ranges.
-            model.setSelectedRanges([new SlickRange(0, 1)]);
-            model.setSelectedRanges([new SlickRange(0, 1, 1, 2)]);
-            expect(model.isSelectAll).to.equal(false);
-
-            model.setSelectAllRanges([selectAllRange]);
-            model.clearSelectAll();
-            expect(model.isSelectAll).to.equal(false);
-        });
-
         test("clears selected ranges when sort or filter transforms change displayed rows", () => {
             const calls: SlickRange[][] = [];
             let activeCellWasReset = false;

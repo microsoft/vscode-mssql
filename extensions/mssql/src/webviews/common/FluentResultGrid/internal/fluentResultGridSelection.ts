@@ -635,23 +635,13 @@ export function getFluentResultGridSelectionSummaryPayload(
 /**
  * Save As consumes source-row indexes. Unlike copy, no explicit selection stays empty because an
  * empty selection tells the service to save the complete result set.
- * @param isSelectAll whether the selection is still the one select-all set. With every column shown
- * and no sort or filter, it also saves the complete result set: select-all covers only the rows
- * loaded when it ran, so its range would miss rows that arrived later.
  */
 export function getFluentResultGridSelectionForSave(
     grid: SlickGrid,
     getActualRowId?: (displayRow: number) => number | undefined,
-    isSelectAll = false,
 ): ISlickRange[] {
     const selectedRanges = grid.getSelectionModel()?.getSelectedRanges() ?? [];
     if (selectedRanges.length === 0) {
-        return [];
-    }
-    // An empty selection saves the complete result set. Do that while select-all still holds, the
-    // rows are untransformed, and every column is shown; a column hidden after select-all ran is no
-    // longer selected, so that case saves just the displayed selection below.
-    if (isSelectAll && !getActualRowId && !grid.getColumns().some((column) => column.hidden)) {
         return [];
     }
 
