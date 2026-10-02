@@ -15,7 +15,14 @@ import * as vscode from "vscode";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
-import { ISelectionData } from "../../src/models/interfaces";
+import { IDbColumn, ISelectionData } from "../../src/models/interfaces";
+import {
+    ExecutionPlanOptions,
+    QueryExecuteSubsetResult,
+} from "../../src/models/contracts/queryExecute";
+import { ExecutionPlanGraph } from "../../src/sharedInterfaces/executionPlan";
+import { QueryResultPaneTabs } from "../../src/sharedInterfaces/queryResult";
+import { Deferred } from "../../src/protocol";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import QueryRunner from "../../src/controllers/queryRunner";
 import ResultsSerializer from "../../src/models/resultsSerializer";
@@ -968,6 +975,143 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
             expect(onSaveResults).to.have.been.calledOnceWithExactly(uri, 0, 0, "csv", []);
             expect(messageBoxes.showWarningMessage).to.not.have.been.called;
+        });
+    });
+
+    suite("Result pane tab for execution plans", () => {
+        const uri = "test_uri";
+        const planXml = "<ShowPlanXML />";
+
+        function createResultSet(batchId: number, id: number, columnName: string) {
+            return {
+                batchId,
+                id,
+                rowCount: 1,
+                columnInfo: [{ columnName } as IDbColumn],
+            };
+        }
+
+        function createBatch(id: number, hasError: boolean) {
+            return {
+                hasError,
+                id,
+                selection: undefined,
+                resultSetSummaries: [],
+                executionElapsed: undefined,
+                executionEnd: undefined,
+                executionStart: new Date().toISOString(),
+            };
+        }
+
+        async function startPlanRun(
+            executionPlanOptions: ExecutionPlanOptions,
+        ): Promise<{ runner: QueryRunner; rows: Deferred<QueryExecuteSubsetResult> }> {
+            sandbox.stub(QueryRunner.prototype, "runQuery").callsFake(async function (selection) {
+                this.setupQueryExecution(selection);
+                (
+                    this as unknown as { _startEmitter: vscode.EventEmitter<string> }
+                )._startEmitter.fire(this.uri);
+            });
+            sandbox
+                .stub(QueryRunner.prototype, "executionPlanOptions")
+                .get(() => executionPlanOptions);
+            executionPlanService.getExecutionPlan.resolves({
+                graphs: [{ root: { cost: 1, subTreeCost: 1 } } as ExecutionPlanGraph],
+                success: true,
+                errorMessage: undefined,
+            });
+
+            await contentProvider.runQuery(
+                statusViewInstance,
+                uri,
+                undefined,
+                "test_title",
+                executionPlanOptions,
+            );
+            const runner = contentProvider.getQueryRunner(uri);
+            const rows = new Deferred<QueryExecuteSubsetResult>();
+            sandbox.stub(runner, "getRows").returns(rows.promise);
+            runner.handleBatchStart({ ownerUri: uri, batchSummary: createBatch(0, false) });
+            return { runner, rows };
+        }
+
+        async function receivePlan(
+            runner: QueryRunner,
+            rows: Deferred<QueryExecuteSubsetResult>,
+            planCompletion: Promise<void>,
+        ): Promise<void> {
+            rows.resolve({
+                resultSubset: { rowCount: 1, rows: [[{ displayValue: planXml, isNull: false }]] },
+            } as QueryExecuteSubsetResult);
+            await planCompletion;
+            await executionPlanService.getExecutionPlan.lastCall.returnValue;
+        }
+
+        function getResultPaneTab(): QueryResultPaneTabs {
+            return contentProvider.queryResultWebviewController.getQueryResultState(uri).tabStates
+                .resultPaneTab;
+        }
+
+        test("an estimated plan opens the Query Plan tab when it is parsed after completion", async () => {
+            const { runner, rows } = await startPlanRun({
+                includeEstimatedExecutionPlanXml: true,
+            });
+            const planResultSet = createResultSet(0, 0, Constants.showPlanXmlColumnName);
+
+            runner.handleResultSetAvailable({ ownerUri: uri, resultSetSummary: planResultSet });
+            expect(getResultPaneTab()).to.equal(QueryResultPaneTabs.Messages);
+
+            const planCompletion = runner.handleResultSetComplete({
+                ownerUri: uri,
+                resultSetSummary: planResultSet,
+            });
+            runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [createBatch(0, false)] });
+            expect(getResultPaneTab()).to.equal(QueryResultPaneTabs.Messages);
+
+            await receivePlan(runner, rows, planCompletion);
+            expect(getResultPaneTab()).to.equal(QueryResultPaneTabs.ExecutionPlan);
+        });
+
+        test("an estimated plan for a failed run stays on the Messages tab", async () => {
+            const { runner, rows } = await startPlanRun({
+                includeEstimatedExecutionPlanXml: true,
+            });
+            const planResultSet = createResultSet(0, 0, Constants.showPlanXmlColumnName);
+
+            runner.handleResultSetAvailable({ ownerUri: uri, resultSetSummary: planResultSet });
+            const planCompletion = runner.handleResultSetComplete({
+                ownerUri: uri,
+                resultSetSummary: planResultSet,
+            });
+            runner.handleQueryComplete({
+                ownerUri: uri,
+                batchSummaries: [createBatch(0, false), createBatch(1, true)],
+            });
+
+            await receivePlan(runner, rows, planCompletion);
+            expect(getResultPaneTab()).to.equal(QueryResultPaneTabs.Messages);
+        });
+
+        test("an actual plan opens the Results tab even when its plan is parsed first", async () => {
+            const { runner, rows } = await startPlanRun({ includeActualExecutionPlanXml: true });
+            const planResultSet = createResultSet(0, 1, Constants.showPlanXmlColumnName);
+
+            runner.handleResultSetAvailable({
+                ownerUri: uri,
+                resultSetSummary: createResultSet(0, 0, "name"),
+            });
+            runner.handleResultSetAvailable({ ownerUri: uri, resultSetSummary: planResultSet });
+            const planCompletion = runner.handleResultSetComplete({
+                ownerUri: uri,
+                resultSetSummary: planResultSet,
+            });
+            await receivePlan(runner, rows, planCompletion);
+            expect(getResultPaneTab()).to.equal(QueryResultPaneTabs.Results);
+
+            runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [createBatch(0, false)] });
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.isExecutionPlan).to.equal(true);
+            expect(state.tabStates.resultPaneTab).to.equal(QueryResultPaneTabs.Results);
         });
     });
 

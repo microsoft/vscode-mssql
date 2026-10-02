@@ -3343,6 +3343,10 @@
     "Expand All": "Expand All",
     "Collapse All": "Collapse All",
     "Filter for any field...": "Filter for any field...",
+    "View full value of {0}/{0} is the name of an execution plan property": {
+        "message": "View full value of {0}",
+        "comment": ["{0} is the name of an execution plan property"]
+    },
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
     "This execution plan could not be rendered.": "This execution plan could not be rendered.",
