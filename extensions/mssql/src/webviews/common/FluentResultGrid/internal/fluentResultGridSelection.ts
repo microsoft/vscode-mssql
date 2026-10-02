@@ -648,7 +648,9 @@ export function getFluentResultGridSelectionForSave(
     if (selectedRanges.length === 0) {
         return [];
     }
-    // A column hidden after select-all ran is no longer selected, so save only what's shown
+    // An empty selection saves the complete result set. Do that while select-all still holds, the
+    // rows are untransformed, and every column is shown; a column hidden after select-all ran is no
+    // longer selected, so that case saves just the displayed selection below.
     if (isSelectAll && !getActualRowId && !grid.getColumns().some((column) => column.hidden)) {
         return [];
     }
