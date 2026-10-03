@@ -16,11 +16,13 @@ import {
 } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import React from "react";
+import { ErrorMessageDetails } from "./errorMessageDetails";
 
 const useStyles = makeStyles({
     dialogSurface: {
         minWidth: "320px",
-        maxWidth: "420px",
+        width: "min(520px, calc(100vw - 32px))",
+        maxWidth: "min(520px, calc(100vw - 32px))",
     },
     title: {
         display: "flex",
@@ -59,7 +61,9 @@ export const ErrorDialog: React.FC<ErrorDialogProps> = ({
                         <ErrorCircleRegular className={classes.icon} />
                         {title}
                     </DialogTitle>
-                    <DialogContent className={classes.content}>{message}</DialogContent>
+                    <DialogContent className={classes.content}>
+                        <ErrorMessageDetails message={message} />
+                    </DialogContent>
                     <DialogActions>
                         <Button appearance="primary" onClick={onRetry}>
                             {retryLabel}

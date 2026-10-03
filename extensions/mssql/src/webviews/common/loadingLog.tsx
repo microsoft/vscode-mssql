@@ -3,12 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, mergeClasses, Spinner, Text } from "@fluentui/react-components";
 import {
-    Checkmark12Regular,
-    ChevronRight12Regular,
-    ErrorCircle12Regular,
-} from "@fluentui/react-icons";
+    makeStyles,
+    mergeClasses,
+    MessageBar,
+    MessageBarBody,
+    Spinner,
+    Text,
+} from "@fluentui/react-components";
+import { Checkmark12Regular, ChevronRight12Regular } from "@fluentui/react-icons";
 import { useEffect, useRef } from "react";
 import { LoadingLogEntry } from "../../sharedInterfaces/webview";
 import { ErrorMessageDetails } from "./errorMessageDetails";
@@ -31,7 +34,7 @@ const useStyles = makeStyles({
     },
     logScroll: {
         width: "100%",
-        maxWidth: "420px",
+        maxWidth: "560px",
         height: "160px",
         minHeight: 0,
         flexShrink: 0,
@@ -45,9 +48,6 @@ const useStyles = makeStyles({
         gap: "10px",
         padding: "4px 0",
         lineHeight: "18px",
-    },
-    errorLogRow: {
-        alignItems: "flex-start",
     },
     icon: {
         width: "14px",
@@ -73,8 +73,10 @@ const useStyles = makeStyles({
     activeText: {
         color: "var(--vscode-editor-foreground)",
     },
-    errorRow: {
-        color: "var(--vscode-errorForeground)",
+    errorMessage: {
+        width: "100%",
+        minWidth: 0,
+        boxSizing: "border-box",
     },
 });
 
@@ -104,41 +106,35 @@ export function LoadingLog({ messages, minHeight }: LoadingLogProps) {
                     const isError = entry.kind === "error";
                     const isActive = index === activeIndex && !isError;
 
+                    if (isError) {
+                        return (
+                            <MessageBar
+                                intent="error"
+                                className={classes.errorMessage}
+                                key={`${entry.message}-${index}`}>
+                                <MessageBarBody>
+                                    <ErrorMessageDetails message={entry.message} />
+                                </MessageBarBody>
+                            </MessageBar>
+                        );
+                    }
+
                     return (
-                        <div
-                            className={mergeClasses(
-                                classes.logRow,
-                                isError ? classes.errorLogRow : undefined,
-                            )}
-                            key={`${entry.message}-${index}`}>
+                        <div className={classes.logRow} key={`${entry.message}-${index}`}>
                             <span
                                 className={mergeClasses(
                                     classes.icon,
-                                    isError
-                                        ? classes.errorRow
-                                        : isActive
-                                          ? classes.activeIcon
-                                          : classes.doneIcon,
+                                    isActive ? classes.activeIcon : classes.doneIcon,
                                 )}>
-                                {isError ? (
-                                    <ErrorCircle12Regular />
-                                ) : isActive ? (
-                                    <ChevronRight12Regular />
-                                ) : (
-                                    <Checkmark12Regular />
-                                )}
+                                {isActive ? <ChevronRight12Regular /> : <Checkmark12Regular />}
                             </span>
-                            {isError ? (
-                                <ErrorMessageDetails message={entry.message} />
-                            ) : (
-                                <Text
-                                    className={mergeClasses(
-                                        classes.text,
-                                        isActive ? classes.activeText : undefined,
-                                    )}>
-                                    {entry.message}
-                                </Text>
-                            )}
+                            <Text
+                                className={mergeClasses(
+                                    classes.text,
+                                    isActive ? classes.activeText : undefined,
+                                )}>
+                                {entry.message}
+                            </Text>
                         </div>
                     );
                 })}
