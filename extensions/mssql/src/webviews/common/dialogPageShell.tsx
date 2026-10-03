@@ -13,6 +13,7 @@ import {
 } from "@fluentui/react-components";
 import { cloneElement, isValidElement, ReactElement, ReactNode } from "react";
 import { ErrorMessageDetails } from "./errorMessageDetails";
+import { locConstants } from "./locConstants";
 
 const defaultHeaderIconSizePx = 32;
 
@@ -282,7 +283,10 @@ export const DialogPageShell = ({
                             {errorMessage && (
                                 <MessageBar intent="error" className={styles.messageBar}>
                                     <MessageBarBody className={styles.messageBody}>
-                                        <ErrorMessageDetails message={errorMessage} />
+                                        <ErrorMessageDetails
+                                            message={errorMessage}
+                                            title={locConstants.common.error}
+                                        />
                                     </MessageBarBody>
                                 </MessageBar>
                             )}

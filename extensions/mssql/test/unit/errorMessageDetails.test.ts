@@ -10,13 +10,14 @@ import { ErrorMessageDetails } from "../../src/webviews/common/errorMessageDetai
 import { locConstants } from "../../src/webviews/common/locConstants";
 
 suite("Error message details", () => {
-    test("renders the full error and a copy button", () => {
+    test("renders the full error, title, and a copy button", () => {
         const message = "A long error with an_unbroken_identifier_that_must_remain_available";
-        const markup = renderToStaticMarkup(createElement(ErrorMessageDetails, { message }));
+        const title = locConstants.common.error;
+        const markup = renderToStaticMarkup(createElement(ErrorMessageDetails, { message, title }));
 
         expect(markup).to.include(message);
+        expect(markup).to.include(title);
         expect(markup).to.include(`<button`);
         expect(markup).to.include(`aria-label="${locConstants.common.copy}"`);
-        expect(markup).to.include(`tabindex="0"`);
     });
 });

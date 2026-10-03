@@ -15,6 +15,7 @@ import { Checkmark12Regular, ChevronRight12Regular } from "@fluentui/react-icons
 import { useEffect, useRef } from "react";
 import { LoadingLogEntry } from "../../sharedInterfaces/webview";
 import { ErrorMessageDetails } from "./errorMessageDetails";
+import { locConstants } from "./locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -113,7 +114,10 @@ export function LoadingLog({ messages, minHeight }: LoadingLogProps) {
                                 className={classes.errorMessage}
                                 key={`${entry.message}-${index}`}>
                                 <MessageBarBody>
-                                    <ErrorMessageDetails message={entry.message} />
+                                    <ErrorMessageDetails
+                                        message={entry.message}
+                                        title={locConstants.common.error}
+                                    />
                                 </MessageBarBody>
                             </MessageBar>
                         );
