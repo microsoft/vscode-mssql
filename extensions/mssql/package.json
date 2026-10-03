@@ -482,12 +482,12 @@
                 },
                 {
                     "command": "mssql.enableLiveQueryStatistics",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource not in mssql.executionPlan.urisWithLiveQueryStatisticsEnabled) && (resourcePath not in mssql.runningQueries)",
+                    "when": "mssql.preview.liveQueryStatisticsEnabled && editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource not in mssql.executionPlan.urisWithLiveQueryStatisticsEnabled) && (resourcePath not in mssql.runningQueries)",
                     "group": "navigation@13"
                 },
                 {
                     "command": "mssql.disableLiveQueryStatistics",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource in mssql.executionPlan.urisWithLiveQueryStatisticsEnabled) && (resourcePath not in mssql.runningQueries)",
+                    "when": "mssql.preview.liveQueryStatisticsEnabled && editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource in mssql.executionPlan.urisWithLiveQueryStatisticsEnabled) && (resourcePath not in mssql.runningQueries)",
                     "group": "navigation@14"
                 }
             ],
@@ -980,6 +980,14 @@
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "mssql.enableLiveQueryStatistics",
+                    "when": "mssql.preview.liveQueryStatisticsEnabled"
+                },
+                {
+                    "command": "mssql.disableLiveQueryStatistics",
+                    "when": "mssql.preview.liveQueryStatisticsEnabled"
+                },
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
                     "when": "false"
@@ -1728,12 +1736,14 @@
                 "command": "mssql.enableLiveQueryStatistics",
                 "title": "%mssql.enableLiveQueryStatistics%",
                 "category": "MS SQL",
+                "enablement": "mssql.preview.liveQueryStatisticsEnabled",
                 "icon": "$(pulse)"
             },
             {
                 "command": "mssql.disableLiveQueryStatistics",
                 "title": "%mssql.disableLiveQueryStatistics%",
                 "category": "MS SQL",
+                "enablement": "mssql.preview.liveQueryStatisticsEnabled",
                 "icon": "$(stop-circle)"
             },
             {
@@ -2075,6 +2085,15 @@
                     "default": 60,
                     "minimum": 0,
                     "markdownDescription": "%mssql.metadata.pollSeconds.description%",
+                    "scope": "application"
+                },
+                "mssql.preview.liveQueryStatistics": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "%mssql.preview.liveQueryStatistics.description%",
                     "scope": "application"
                 },
                 "mssql.preview.betaResultsGrid": {

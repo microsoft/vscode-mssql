@@ -32,6 +32,7 @@ import store from "../queryResult/singletonStore";
 import { QueryCompletionSoundService } from "../services/queryCompletionSoundService";
 import { LiveQueryStatisticsMonitor } from "../queryResult/liveQueryStatistics";
 import { ExecutionPlanGraph } from "../sharedInterfaces/executionPlan";
+import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 const logger = getLogger("SqlOutputContentProvider");
@@ -179,6 +180,20 @@ export class SqlOutputContentProvider {
             }),
             vscode.commands.registerCommand(Constants.cmdDisableLiveQueryStatistics, () => {
                 this.onToggleLiveQueryStatistics(false);
+            }),
+        );
+
+        this.updateLiveQueryStatisticsPreview();
+        this._context.subscriptions.push(
+            vscode.workspace.onDidChangeConfiguration((event) => {
+                if (
+                    event.affectsConfiguration(
+                        getPreviewConfigKey(PreviewFeature.LiveQueryStatistics),
+                    ) ||
+                    event.affectsConfiguration(Constants.configEnableExperimentalFeatures)
+                ) {
+                    this.updateLiveQueryStatisticsPreview();
+                }
             }),
         );
 
@@ -1149,10 +1164,16 @@ export class SqlOutputContentProvider {
     }
 
     public isLiveQueryStatisticsEnabled(uri: string): boolean {
-        return this._liveQueryStatisticsStatuses.includes(uri);
+        return (
+            previewService.isFeatureEnabled(PreviewFeature.LiveQueryStatistics) &&
+            this._liveQueryStatisticsStatuses.includes(uri)
+        );
     }
 
     public onToggleLiveQueryStatistics(isEnable: boolean): void {
+        if (isEnable && !previewService.isFeatureEnabled(PreviewFeature.LiveQueryStatistics)) {
+            return;
+        }
         const uri = Utils.getActiveTextEditorUri();
         if (!uri) {
             return;
@@ -1164,6 +1185,21 @@ export class SqlOutputContentProvider {
             this._liveQueryStatisticsStatuses.push(uri);
         }
         this.updateLiveQueryStatisticsContext();
+    }
+
+    private updateLiveQueryStatisticsPreview(): void {
+        const isEnabled = previewService.isFeatureEnabled(PreviewFeature.LiveQueryStatistics);
+        void vscode.commands.executeCommand(
+            "setContext",
+            "mssql.preview.liveQueryStatisticsEnabled",
+            isEnabled,
+        );
+        if (!isEnabled) {
+            this._liveQueryStatisticsRuns.clear();
+            for (const uri of this._liveQueryStatistics.keys()) {
+                this.stopLiveQueryStatistics(uri, { keepLastPlan: true });
+            }
+        }
     }
 
     /**
@@ -1192,7 +1228,11 @@ export class SqlOutputContentProvider {
      */
     private startLiveQueryStatistics(queryRunner: QueryRunner): void {
         const uri = queryRunner.uri;
-        if (!this._liveQueryStatisticsRuns.has(uri) || this._liveQueryStatistics.has(uri)) {
+        if (
+            !this.isLiveQueryStatisticsEnabled(uri) ||
+            !this._liveQueryStatisticsRuns.has(uri) ||
+            this._liveQueryStatistics.has(uri)
+        ) {
             return;
         }
         this._liveQueryStatisticsRuns.delete(uri);

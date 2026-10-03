@@ -11737,6 +11737,9 @@
     <trans-unit id="mssql.enableConnectionPooling">
       <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;. Note: May keep serverless databases active and prevent auto-pausing.</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.liveQueryStatistics.description">
+      <source xml:lang="en">Enables the preview Live Query Statistics commands to watch a running query plan refresh with live row counts. When unset, follows mssql.enableExperimentalFeatures. Set to true or false to override that setting.</source>
+    </trans-unit>
     <trans-unit id="mssql.preview.betaResultsGrid.description">
       <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
     </trans-unit>

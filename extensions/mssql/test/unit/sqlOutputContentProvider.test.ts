@@ -31,6 +31,11 @@ import {
     LiveQueryStatisticsMonitor,
 } from "../../src/queryResult/liveQueryStatistics";
 import store from "../../src/queryResult/singletonStore";
+import {
+    getPreviewConfigKey,
+    PreviewFeature,
+    previewService,
+} from "../../src/previews/previewService";
 import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
 
 const { expect } = chai;
@@ -57,6 +62,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
     let setSplitPaneSelectionConfig: (value: string) => void;
     let setCurrentEditorColumn: (column: number) => void;
     let getConfigurationStub: sinon.SinonStub;
+    let workspaceEvents: ReturnType<typeof stubVscodeWorkspace>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -71,7 +77,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         mockMap = new Map();
 
         const disposable = { dispose: () => {} } as vscode.Disposable;
-        stubVscodeWorkspace(sandbox);
+        workspaceEvents = stubVscodeWorkspace(sandbox);
         getConfigurationStub = sandbox
             .stub(vscode.workspace, "getConfiguration")
             .returns(stubs.createWorkspaceConfiguration({}));
@@ -879,8 +885,13 @@ suite("SqlOutputProvider Tests using mocks", () => {
         const uri = "test_uri";
         let runQuery: sinon.SinonStub;
         let startMonitor: sinon.SinonStub;
+        let previewEnabled: boolean;
 
         setup(() => {
+            previewEnabled = true;
+            sandbox.stub(previewService, "isFeatureEnabled").callsFake((feature) => {
+                return feature === PreviewFeature.LiveQueryStatistics && previewEnabled;
+            });
             sandbox.stub(Utils, "getActiveTextEditorUri").returns(uri);
             startMonitor = sandbox.stub(LiveQueryStatisticsMonitor.prototype, "start");
             runQuery = sandbox
@@ -916,6 +927,49 @@ suite("SqlOutputProvider Tests using mocks", () => {
         function getMonitor(): { _sessionId: number; _callbacks: LiveQueryStatisticsCallbacks } {
             return startMonitor.lastCall.thisValue;
         }
+
+        test("does not enable live statistics or start monitoring when the preview is disabled", async () => {
+            previewEnabled = false;
+            await startLiveRun();
+
+            expect(contentProvider.isLiveQueryStatisticsEnabled(uri)).to.be.false;
+            expect(runQuery.firstCall.args[1]).to.deep.include({
+                includeActualExecutionPlanXml: false,
+            });
+            expect(startMonitor).not.to.have.been.called;
+        });
+
+        test("stops monitoring and keeps the last plan when the preview is disabled in settings", async () => {
+            const dispose = sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+            await startLiveRun();
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+            } as ExecutionPlanGraph;
+            getMonitor()._callbacks.onPlans([liveGraph]);
+            const executeCommand = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+            previewEnabled = false;
+            const event = {
+                affectsConfiguration: (key: string) =>
+                    key === getPreviewConfigKey(PreviewFeature.LiveQueryStatistics),
+            } as vscode.ConfigurationChangeEvent;
+            for (const call of workspaceEvents.onDidChangeConfiguration.getCalls()) {
+                call.args[0](event);
+            }
+
+            expect(executeCommand).to.have.been.calledWith(
+                "setContext",
+                "mssql.preview.liveQueryStatisticsEnabled",
+                false,
+            );
+            expect(contentProvider.isLiveQueryStatisticsEnabled(uri)).to.be.false;
+            expect(dispose).to.have.been.called;
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                { ...liveGraph, isLive: false, liveRefreshId: 1 },
+            ]);
+        });
 
         test("captures the actual plan and shows the live plan while the query runs", async () => {
             const runner = await startLiveRun();
