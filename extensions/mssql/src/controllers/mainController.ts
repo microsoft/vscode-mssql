@@ -26,6 +26,10 @@ import * as Utils from "../models/utils";
 import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTreeNode";
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
+import {
+    ObjectExplorerNodePicker,
+    ObjectExplorerTarget,
+} from "../objectExplorer/objectExplorerNodePicker";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { MetadataStore } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
@@ -209,6 +213,7 @@ export default class MainController implements vscode.Disposable {
     public copilotService: CopilotService;
     public configuration: vscode.WorkspaceConfiguration;
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
+    public objectExplorerNodePicker: ObjectExplorerNodePicker;
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
@@ -534,7 +539,15 @@ export default class MainController implements vscode.Disposable {
             };
 
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
-            this._event.on(Constants.cmdChatWithDatabase, async (treeNodeInfo: TreeNodeInfo) => {
+            this._event.on(Constants.cmdChatWithDatabase, async (node?: TreeNodeInfo) => {
+                const treeNodeInfo = await this.objectExplorerNodePicker.resolveNode(node, [
+                    ObjectExplorerTarget.Server,
+                    ObjectExplorerTarget.Database,
+                ]);
+                if (!treeNodeInfo) {
+                    return;
+                }
+
                 sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatWithDatabase);
 
                 const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
@@ -606,7 +619,15 @@ export default class MainController implements vscode.Disposable {
             this.registerCommandWithArgs(Constants.cmdChatWithDatabaseInAgentMode);
             this._event.on(
                 Constants.cmdChatWithDatabaseInAgentMode,
-                async (treeNodeInfo: TreeNodeInfo) => {
+                async (node?: TreeNodeInfo) => {
+                    const treeNodeInfo = await this.objectExplorerNodePicker.resolveNode(node, [
+                        ObjectExplorerTarget.Server,
+                        ObjectExplorerTarget.Database,
+                    ]);
+                    if (!treeNodeInfo) {
+                        return;
+                    }
+
                     sendActionEvent(
                         TelemetryViews.MssqlCopilot,
                         TelemetryActions.ChatWithDatabaseInAgentMode,
@@ -762,6 +783,7 @@ export default class MainController implements vscode.Disposable {
                 this._context,
                 this._connectionMgr,
                 profilerSessionManager,
+                this.objectExplorerNodePicker,
             );
 
             this.connectionSharingService = new ConnectionSharingService(
@@ -1597,6 +1619,7 @@ export default class MainController implements vscode.Disposable {
             ),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
+        this.objectExplorerNodePicker = new ObjectExplorerNodePicker(this);
 
         // Register command for table node double-click action
         let lastTableClickTime = 0;
@@ -2011,7 +2034,15 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdFlatFileImport,
-                async (node: ConnectionNode) => {
+                async (selectedNode?: TreeNodeInfo) => {
+                    const node = await this.objectExplorerNodePicker.resolveNode(selectedNode, [
+                        ObjectExplorerTarget.Server,
+                        ObjectExplorerTarget.Database,
+                    ]);
+                    if (!node) {
+                        return;
+                    }
+
                     const connectionUri = this.connectionManager.getUriForConnection(
                         node.connectionProfile,
                     );
@@ -2133,8 +2164,16 @@ export default class MainController implements vscode.Disposable {
         );
 
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdTableExplorer, async (node: any) =>
-                this.onTableExplorer(node),
+            vscode.commands.registerCommand(
+                Constants.cmdTableExplorer,
+                async (selectedNode?: TreeNodeInfo) => {
+                    const node = await this.objectExplorerNodePicker.resolveNode(selectedNode, [
+                        ObjectExplorerTarget.Table,
+                    ]);
+                    if (node) {
+                        await this.onTableExplorer(node);
+                    }
+                },
             ),
         );
 
@@ -2317,7 +2356,14 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdBackupDatabase,
-                async (node: TreeNodeInfo) => {
+                async (selectedNode?: TreeNodeInfo) => {
+                    const node = await this.objectExplorerNodePicker.resolveNode(selectedNode, [
+                        ObjectExplorerTarget.Database,
+                    ]);
+                    if (!node) {
+                        return;
+                    }
+
                     const databaseName = ObjectExplorerUtils.getDatabaseName(node);
                     const reactPanel = new BackupDatabaseWebviewController(
                         this._context,
@@ -2337,7 +2383,15 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdRestoreDatabase,
-                async (node: TreeNodeInfo) => {
+                async (selectedNode?: TreeNodeInfo) => {
+                    const node = await this.objectExplorerNodePicker.resolveNode(selectedNode, [
+                        ObjectExplorerTarget.Server,
+                        ObjectExplorerTarget.Database,
+                    ]);
+                    if (!node) {
+                        return;
+                    }
+
                     const databaseName = ObjectExplorerUtils.getDatabaseName(node);
 
                     const reactPanel = new RestoreDatabaseWebviewController(
@@ -3406,6 +3460,10 @@ export default class MainController implements vscode.Disposable {
 
     public set connectionManager(connectionManager: ConnectionManager) {
         this._connectionMgr = connectionManager;
+    }
+
+    public get objectExplorerProvider(): ObjectExplorerProvider {
+        return this._objectExplorerProvider;
     }
 
     public get outputContentProvider(): SqlOutputContentProvider {

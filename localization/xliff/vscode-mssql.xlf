@@ -6506,6 +6506,10 @@
     <trans-unit id="++CODE++2101f688955200ee2139fc45f42f5c3412079f84a5f41efa95fa02b9f2ced48b">
       <source xml:lang="en">No databases found to import into.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6498ec984470b67860c65662ea2223768a77571beccf812d268169a99b1ba36d">
+      <source xml:lang="en">No databases were found on {0}.</source>
+      <note>{0} is the server name</note>
+    </trans-unit>
     <trans-unit id="++CODE++c5dc54683e13edaa795870a0a2523c2c23ee2a6595b5ceb984a7d2639237a77e">
       <source xml:lang="en">No databases with backups found</source>
     </trans-unit>
@@ -6657,6 +6661,10 @@
     </trans-unit>
     <trans-unit id="++CODE++06ee056a2b74c9a72b5a3191ecc4eb8fef75ff62ddcb3b4076c33179ef7fb4ab">
       <source xml:lang="en">No subscriptions found. Please change Azure account or tenant to view available subscriptions.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0fa5664b392906481281c2ef15210aceb844ef5678b5da05dc660637894f9348">
+      <source xml:lang="en">No tables were found in {0}.</source>
+      <note>{0} is the database name</note>
     </trans-unit>
     <trans-unit id="++CODE++6150f2aa36fc0da88b93d47481d99a988bcafd046bd60d962401893399cd0995">
       <source xml:lang="en">No templates available</source>
@@ -8660,6 +8668,9 @@
     <trans-unit id="++CODE++d80286a389f6cbd72a837db93310e6ca50fa84e403f2bfa5e55d39e3e521279f">
       <source xml:lang="en">Select a resource group</source>
     </trans-unit>
+    <trans-unit id="++CODE++65e99648ea832b6e8d0f8d5f1cd14c544877ba6781b83c0eb4a8e9c9f6012f4d">
+      <source xml:lang="en">Select a schema</source>
+    </trans-unit>
     <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
       <source xml:lang="en">Select a server</source>
     </trans-unit>
@@ -8680,6 +8691,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fac4c702f7790e41763806f2cdc67d0521f91fe1cd0cc1ac492506ea2842b5dc">
       <source xml:lang="en">Select a subscription to view servers in it.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3b750b1a72ab1b252e3b1293e4fb6b6adb65ddfd299ff5097ee2026095e86937">
+      <source xml:lang="en">Select a table</source>
     </trans-unit>
     <trans-unit id="++CODE++ba9bb750744bd9e7ebb8626d0c7104abe572221c6a4f846fe7e635076be038da">
       <source xml:lang="en">Select a target schema, then press Compare.</source>
