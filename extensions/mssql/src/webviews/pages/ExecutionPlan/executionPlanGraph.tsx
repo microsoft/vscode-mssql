@@ -231,6 +231,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const [findNodeOptions, setFindNodeOptions] = useState<string[]>([]);
     const [highlightOpsClicked, setHighlightOpsClicked] = useState(false);
     const [propertiesClicked, setPropertiesClicked] = useState(false);
+    const [selectedElementId, setSelectedElementId] = useState<string>();
     const [propertiesWidth, setPropertiesWidth] = useState(400);
     const [containerHeight, setContainerHeight] = useState("100%");
     const resizableRef = useRef<HTMLDivElement>(null);
@@ -477,6 +478,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                     themeKind={themeKind}
                                     planNumber={graphIndex + 1}
                                     onReady={handleRendererReady}
+                                    onSelectionChange={setSelectedElementId}
                                 />
                             </Suspense>
                         </WebviewErrorBoundary>
@@ -577,6 +579,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             <PropertiesPane
                                 // guaranteed to be non-null
                                 executionPlanView={executionPlanView!}
+                                selectedElementId={selectedElementId}
                                 setPropertiesClicked={setPropertiesClicked}
                                 inputRef={inputRef}
                             />
