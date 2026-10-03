@@ -40,6 +40,10 @@ import {
 } from "../../../sharedInterfaces/executionPlan";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
+import {
+    formatLiveExecutionPlanRows,
+    getExecutionPlanNodeLabelLines,
+} from "./executionPlanLiveStatistics";
 import { SqlText } from "../../common/sqlText";
 import {
     ExecutionPlanGraphController,
@@ -149,6 +153,7 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
     const collapseExpandPaths = getCollapseExpandPaths(themeKind);
     const OperatorIcon = getExecutionPlanOperatorIcon(planNode.type);
     const labelRef = useRef<HTMLDivElement>(null);
+    const labelLines = getExecutionPlanNodeLabelLines(planNode);
     const [renderedSelectionSize, setRenderedSelectionSize] = useState({
         width: selectionWidth,
         height: selectionHeight,
@@ -229,7 +234,7 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
             aria-setsize={siblingCount}
             aria-expanded={planNode.children.length > 0 ? !collapsed : undefined}
             aria-selected={selected}
-            aria-label={[planNode.name, ...planNode.subtext].join(", ")}
+            aria-label={[planNode.name, ...labelLines].join(", ")}
             tabIndex={selected ? 0 : -1}
             onFocus={() => focusSelection(planNode.id)}
             onBlur={(event) => {
@@ -266,8 +271,11 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
                 ))}
             </div>
             <div className="execution-plan-flow-cost">{planNode.costDisplayString}</div>
-            <div ref={labelRef} className="execution-plan-flow-label">
-                {planNode.subtext.map((line, index) => (
+            <div
+                ref={labelRef}
+                className="execution-plan-flow-label"
+                title={formatLiveExecutionPlanRows(planNode, false)}>
+                {labelLines.map((line, index) => (
                     <div key={index}>{line}</div>
                 ))}
             </div>
@@ -315,7 +323,8 @@ const NODE_TYPES: NodeTypes = {
 let nodeLabelMeasurementCanvas: HTMLCanvasElement | undefined;
 
 function getNodeSelectionWidth(node: ExecutionPlanNode): number {
-    const fallbackWidth = Math.max(0, ...node.subtext.map((line) => line.length * 6));
+    const labelLines = getExecutionPlanNodeLabelLines(node);
+    const fallbackWidth = Math.max(0, ...labelLines.map((line) => line.length * 6));
     if (typeof document === "undefined") {
         return Math.min(
             EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
@@ -333,7 +342,7 @@ function getNodeSelectionWidth(node: ExecutionPlanNode): number {
     }
 
     context.font = "10px Monaco, Menlo, Consolas, monospace";
-    const labelWidth = Math.max(0, ...node.subtext.map((line) => context.measureText(line).width));
+    const labelWidth = Math.max(0, ...labelLines.map((line) => context.measureText(line).width));
     return Math.min(
         EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
         Math.max(EXECUTION_PLAN_NODE_WIDTH, Math.ceil(labelWidth) + 8),
@@ -379,7 +388,8 @@ function getExecutionPlanBounds(
 function getNodeSelectionHeight(node: ExecutionPlanNode): number {
     const labelHeight =
         EXECUTION_PLAN_LABEL_TOP +
-        Math.max(1, node.subtext.length) * EXECUTION_PLAN_LABEL_LINE_HEIGHT +
+        Math.max(1, getExecutionPlanNodeLabelLines(node).length) *
+            EXECUTION_PLAN_LABEL_LINE_HEIGHT +
         EXECUTION_PLAN_SELECTION_VERTICAL_PADDING;
     return Math.max(EXECUTION_PLAN_NODE_HEIGHT + 6, labelHeight);
 }
@@ -403,10 +413,10 @@ const EXECUTION_PLAN_ROW_COUNT_LABEL_GAP = 6;
 /** Length of one cycle of the live flow dashes. Matches the animation in the stylesheet. */
 const EXECUTION_PLAN_FLOW_CYCLE_MS = 800;
 
-/** Minimum width of the live flow dashes, so they stay visible on the thinnest edges. */
-const EXECUTION_PLAN_FLOW_MINIMUM_WIDTH = 3;
+/** Live flow stays thin regardless of the number of rows moving along the edge. */
+const EXECUTION_PLAN_FLOW_WIDTH = 1;
 
-function ExecutionPlanFlowDashes({ path, edgeWidth }: { path: string; edgeWidth: number }) {
+function ExecutionPlanFlowDashes({ path }: { path: string }) {
     // Phase every flow from a shared clock, so an edge that starts flowing or remounts after a
     // refresh joins the motion where it already is instead of restarting it.
     const [animationDelay] = useState(
@@ -417,10 +427,9 @@ function ExecutionPlanFlowDashes({ path, edgeWidth }: { path: string; edgeWidth:
             d={path}
             fill="none"
             className="execution-plan-flow-dashes"
-            // Slightly wider than the edge, so the dashes read as segments moving along it
             style={{
                 animationDelay,
-                strokeWidth: Math.max(edgeWidth + 1, EXECUTION_PLAN_FLOW_MINIMUM_WIDTH),
+                strokeWidth: EXECUTION_PLAN_FLOW_WIDTH,
             }}
         />
     );
@@ -465,12 +474,7 @@ function ExecutionPlanReactFlowEdge({
     return (
         <g className="execution-plan-flow-edge">
             <path d={edgePath} fill="none" className="react-flow__edge-path" style={style} />
-            {flowPath && (
-                <ExecutionPlanFlowDashes
-                    path={flowPath}
-                    edgeWidth={typeof style?.strokeWidth === "number" ? style.strokeWidth : 1}
-                />
-            )}
+            {flowPath && <ExecutionPlanFlowDashes path={flowPath} />}
             <path
                 d={arrowGeometry.path}
                 fill="currentColor"

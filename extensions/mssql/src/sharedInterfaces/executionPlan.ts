@@ -119,9 +119,20 @@ export interface ExecutionPlanGraph {
      * the view can tell a new read from the same read sent along with other state updates.
      */
     liveRefreshId?: number;
+    /** Estimated work completed from live operator row counts, weighted by plan costs. */
+    liveQueryStatistics?: {
+        estimatedProgress?: number;
+        elapsedTimeInMs?: number;
+    };
 }
 
 export interface ExecutionPlanNode {
+    /** Numeric counters from the live ShowPlan XML, independent of translated properties. */
+    liveQueryStatistics?: {
+        actualRows?: string;
+        estimatedRows?: number;
+        elapsedTimeInMs?: number;
+    };
     /**
      * Unique id given to node by the provider
      */

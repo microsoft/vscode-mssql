@@ -3356,6 +3356,9 @@
       <source xml:lang="en">Elapsed time: {0}</source>
       <note>{0} is the task elapsed time</note>
     </trans-unit>
+    <trans-unit id="++CODE++20842b4bb57195f7bee0c31086f0e3c808a4a3f6492af5a79414709ad7718fbd">
+      <source xml:lang="en">Elapsed: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
     </trans-unit>
@@ -3793,6 +3796,12 @@
     </trans-unit>
     <trans-unit id="++CODE++905e3218067c7ad96983b2efa72f292627a8b7e1a2c7865613379b01da57c2fb">
       <source xml:lang="en">Estimated Subtree Cost</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ed074783a02defc85c3cddab3608056339647cabcfd9e1e48bac3e08d2eaa20f">
+      <source xml:lang="en">Estimated from operator row counts and plan costs. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++009889f8da222c45ffbfecd313bd7a242a48218c5e6f476811f811a2791d97ea">
+      <source xml:lang="en">Estimated query progress: {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
       <source xml:lang="en">Event details for {0}</source>
@@ -8044,6 +8053,12 @@
     <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
       <source xml:lang="en">Rows per page</source>
     </trans-unit>
+    <trans-unit id="++CODE++a3caed283fb35a1a08c414fad6929478462ffece5b5cc0cba9111a6b913f8502">
+      <source xml:lang="en">Rows: {0} of {1}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ccb988e894fa7b9363c484e68a9b8e3c61f034ec2f4a32e8a96134e393349dc0">
+      <source xml:lang="en">Rows: {0} of {1} ({2})</source>
+    </trans-unit>
     <trans-unit id="++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c">
       <source xml:lang="en">Rule disabled</source>
     </trans-unit>
@@ -10218,6 +10233,9 @@
       <source xml:lang="en">Unable to verify {0}. Check its configuration and retry.</source>
       <note>{0} is the name of a container engine</note>
     </trans-unit>
+    <trans-unit id="++CODE++ca184496974204a0bd3fd4925e0540bc4b0df6fcc232994d29754272b7183812">
+      <source xml:lang="en">Unavailable</source>
+    </trans-unit>
     <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
       <source xml:lang="en">Unavailable for backups to existing files</source>
     </trans-unit>
@@ -11206,6 +11224,9 @@
     <trans-unit id="++CODE++cf927568d4b7bc9996db21639e81c140affb7858a0b68db0cfc6e502b022f98c">
       <source xml:lang="en">{0} rules</source>
       <note>{0} is the number of code analysis rules</note>
+    </trans-unit>
+    <trans-unit id="++CODE++dae58fb2bf4be8157f7f1e95f8d62c366685087b4da8fec7590ee247ae9ae81e">
+      <source xml:lang="en">{0} s</source>
     </trans-unit>
     <trans-unit id="++CODE++0d43a65b231aab5ce9c1a1fcaa614526a6c2cefb7137de400a2a1feae95e1156">
       <source xml:lang="en">{0} selected</source>

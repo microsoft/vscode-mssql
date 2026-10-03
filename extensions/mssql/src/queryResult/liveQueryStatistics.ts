@@ -12,6 +12,7 @@ import {
 import { getLogger } from "../models/logger";
 import { ExecutionPlanGraph } from "../sharedInterfaces/executionPlan";
 import { getErrorMessage } from "../utils/utils";
+import { addLiveExecutionPlanStatistics } from "./liveExecutionPlanStatistics";
 
 const logger = getLogger("LiveQueryStatistics");
 
@@ -89,7 +90,7 @@ export class LiveQueryStatisticsMonitor implements vscode.Disposable {
                 sessionId: this._sessionId,
             });
             if (!this._isDisposed && result?.graphs?.length > 0) {
-                this._callbacks.onPlans(result.graphs);
+                this._callbacks.onPlans(result.graphs.map(addLiveExecutionPlanStatistics));
             }
         } catch (error) {
             if (!this._isDisposed) {

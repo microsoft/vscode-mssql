@@ -1011,6 +1011,18 @@ export class LocConstants {
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
             executionPlanRendererError: l10n.t("This execution plan could not be rendered."),
             live: l10n.t("Live"),
+            liveStatisticsUnavailable: l10n.t("Unavailable"),
+            liveDurationSeconds: (seconds: string) => l10n.t("{0} s", seconds),
+            liveElapsedTime: (duration: string) => l10n.t("Elapsed: {0}", duration),
+            liveRows: (actual: string, estimated: string) =>
+                l10n.t("Rows: {0} of {1}", actual, estimated),
+            liveRowsWithPercentage: (actual: string, estimated: string, percentage: string) =>
+                l10n.t("Rows: {0} of {1} ({2})", actual, estimated, percentage),
+            liveEstimatedProgress: (percentage: string) =>
+                l10n.t("Estimated query progress: {0}", percentage),
+            liveEstimatedProgressDescription: l10n.t(
+                "Estimated from operator row counts and plan costs. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.",
+            ),
             livePlanDescription: l10n.t(
                 "Live plan of the running statement. Row counts refresh while it runs.",
             ),

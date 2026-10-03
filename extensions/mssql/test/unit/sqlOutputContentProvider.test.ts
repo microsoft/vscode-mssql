@@ -997,6 +997,18 @@ suite("SqlOutputProvider Tests using mocks", () => {
             expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([]);
         });
 
+        test("shows the executed batch script when a lightweight plan omits the statement text", async () => {
+            const runner = await startLiveRun();
+            sandbox.stub(runner, "currentBatchQuery").get(() => "select 1;");
+            const liveGraph = {
+                query: "",
+                root: { cost: 1, subTreeCost: 1 },
+            } as ExecutionPlanGraph;
+            getMonitor()._callbacks.onPlans([liveGraph]);
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs[0].query).to.equal("select 1;");
+        });
+
         test("keeps the live plan tab when results arrive and shows results on completion", async () => {
             const runner = await startLiveRun();
             getMonitor()._callbacks.onPlans([

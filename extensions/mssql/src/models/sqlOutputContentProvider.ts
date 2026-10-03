@@ -1270,12 +1270,18 @@ export class SqlOutputContentProvider {
             return;
         }
         live.readCount++;
+        const batchQuery = this._queryResultsMap.get(uri)?.queryRunner.currentBatchQuery;
 
         const executionPlanGraphs = [
             ...(state.executionPlanState.executionPlanGraphs ?? []).filter(
                 (graph) => !graph.isLive,
             ),
-            ...graphs.map((graph) => ({ ...graph, isLive: true, liveRefreshId: live.readCount })),
+            ...graphs.map((graph) => ({
+                ...graph,
+                query: graph.query || batchQuery || "",
+                isLive: true,
+                liveRefreshId: live.readCount,
+            })),
         ];
         state.isExecutionPlan = true;
         state.executionPlanState = {

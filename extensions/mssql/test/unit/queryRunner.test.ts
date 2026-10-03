@@ -903,6 +903,9 @@ suite("Query Runner tests", () => {
         };
 
         testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1",
+        } as vscode.TextDocument);
 
         await queryRunner.runStatement(line, column, executionPlanOptions);
 
@@ -923,6 +926,9 @@ suite("Query Runner tests", () => {
     test("runStatement submission failure closes its performance interval", async () => {
         const failure = new Error("request failed");
         testSqlToolsServerClient.sendRequest.rejects(failure);
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1",
+        } as vscode.TextDocument);
         const queryRunner = createQueryRunner();
 
         let thrown: unknown;
@@ -939,6 +945,42 @@ suite("Query Runner tests", () => {
             "end",
             sinon.match({ hasError: true, errorClass: "Error" }),
         );
+    });
+
+    test("keeps the submitted batch text when the document changes during execution", async () => {
+        let text = "select 0;\r\nGO\r\n  select 1;\r\nselect 2;";
+        vscodeWorkspace.openTextDocument.resolves({ getText: () => text } as vscode.TextDocument);
+        testSqlToolsServerClient.sendRequest.resolves();
+        const queryRunner = createQueryRunner();
+        await queryRunner.runQuery({ startLine: 2, startColumn: 2, endLine: 3, endColumn: 9 });
+        text = "select 999;";
+        queryRunner.handleBatchStart({
+            ownerUri: standardUri,
+            batchSummary: {
+                id: 0,
+                selection: { startLine: 2, startColumn: 2, endLine: 3, endColumn: 9 },
+            } as QueryExecuteContracts.BatchSummary,
+        });
+        expect(queryRunner.currentBatchQuery).to.equal("select 1;\r\nselect 2;");
+    });
+
+    test("updates the batch script for Quick Query batches", async () => {
+        testSqlToolsServerClient.sendRequest.resolves();
+        const queryRunner = createQueryRunner();
+        await queryRunner.runQueryString("select 1;\nGO\nselect 2;");
+        for (const [line, sql] of [
+            [0, "select 1;"],
+            [2, "select 2;"],
+        ] as const) {
+            queryRunner.handleBatchStart({
+                ownerUri: standardUri,
+                batchSummary: {
+                    id: line,
+                    selection: { startLine: line, startColumn: 0, endLine: line, endColumn: 9 },
+                } as QueryExecuteContracts.BatchSummary,
+            });
+            expect(queryRunner.currentBatchQuery).to.equal(sql);
+        }
     });
 
     suite("Copy Results", () => {

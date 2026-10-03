@@ -17,6 +17,7 @@ import {
 } from "react";
 
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
+import { formatLiveExecutionPlanDuration } from "./executionPlanLiveStatistics";
 import {
     normalizeExecutionPlanQuery,
     ParsedRecommendation,
@@ -241,6 +242,23 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const resizableRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<any | null>(null);
     const graph = executionPlanState?.executionPlanGraphs?.[graphIndex];
+    const estimatedProgress = graph?.liveQueryStatistics?.estimatedProgress;
+    const progressLabel =
+        estimatedProgress === undefined
+            ? undefined
+            : locConstants.executionPlan.liveEstimatedProgress(
+                  new Intl.NumberFormat(undefined, {
+                      style: "percent",
+                      maximumFractionDigits: 0,
+                  }).format(Math.floor(estimatedProgress) / 100),
+              );
+    const liveElapsed = graph?.liveQueryStatistics?.elapsedTimeInMs;
+    const elapsedLabel =
+        liveElapsed === undefined
+            ? undefined
+            : locConstants.executionPlan.liveElapsedTime(
+                  formatLiveExecutionPlanDuration(liveElapsed),
+              );
 
     const resetTransientUiState = useCallback(() => {
         setZoomNumber(100);
@@ -390,11 +408,17 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             : "calc(100% - 35px)",
                     }}
                     aria-live="polite"
-                    aria-label={
+                    aria-label={[
+                        getQueryCostString(),
+                        query,
                         recommendations.length > 0
-                            ? `${getQueryCostString()}, ${query}, ${locConstants.executionPlan.missingIndexRecommendations}`
-                            : `${getQueryCostString()}, ${query}`
-                    }>
+                            ? locConstants.executionPlan.missingIndexRecommendations
+                            : undefined,
+                        progressLabel,
+                        elapsedLabel,
+                    ]
+                        .filter(Boolean)
+                        .join(", ")}>
                     <div className={classes.queryCostSummary}>
                         {getQueryCostString()}
                         {graph?.isLive && (
@@ -407,6 +431,15 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                 {locConstants.executionPlan.live}
                             </Badge>
                         )}
+                        {progressLabel && (
+                            <Badge
+                                appearance="outline"
+                                className={classes.liveBadge}
+                                title={locConstants.executionPlan.liveEstimatedProgressDescription}>
+                                {progressLabel}
+                            </Badge>
+                        )}
+                        {elapsedLabel && <span className={classes.liveBadge}>{elapsedLabel}</span>}
                     </div>
                     <SqlText
                         className={classes.queryText}

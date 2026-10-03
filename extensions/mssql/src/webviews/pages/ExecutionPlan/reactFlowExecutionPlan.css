@@ -152,6 +152,11 @@
     transform: translateX(-50%);
 }
 
+.execution-plan-flow-label > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .execution-plan-flow-collapse {
     position: absolute;
     top: 0;
@@ -245,14 +250,13 @@
 /*
  * Live plans animate the edges rows are moving along. Rows flow from child to parent, toward the
  * start of the path, so the dash offset grows. Each cycle moves one dash pattern (8 + 6), so the
- * loop is seamless. Square ends keep the gaps clean however wide the edge is.
+ * loop is seamless. A fixed thin stroke keeps the counters readable as row counts grow.
  */
 .execution-plan-flow-canvas .react-flow__edge.animated .execution-plan-flow-dashes {
     stroke: currentColor;
     stroke-linecap: butt;
     stroke-dasharray: 8 6;
     animation: execution-plan-flow 800ms linear infinite;
-    transition: stroke-width 300ms ease;
 }
 
 @keyframes execution-plan-flow {
