@@ -189,6 +189,11 @@
         "message": "Successfully saved results to {0}",
         "comment": ["{0} is the file path"]
     },
+    "Live query statistics aren't available for this query because its server session couldn't be identified.": "Live query statistics aren't available for this query because its server session couldn't be identified.",
+    "Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}/{0} is the error message": {
+        "message": "Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Select profile to remove": "Select profile to remove",
     "Select profile to edit": "Select profile to edit",
     "Confirm to remove this profile.": "Confirm to remove this profile.",
@@ -3354,6 +3359,45 @@
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
     "This execution plan could not be rendered.": "This execution plan could not be rendered.",
+    "Live/Badge for the execution plan of a currently running query.": {
+        "message": "Live",
+        "comment": ["Badge for the execution plan of a currently running query."]
+    },
+    "Unavailable": "Unavailable",
+    "{0} s/{0} is a localized elapsed duration in seconds; s is the abbreviation for seconds.": {
+        "message": "{0} s",
+        "comment": [
+            "{0} is a localized elapsed duration in seconds; s is the abbreviation for seconds."
+        ]
+    },
+    "{0}:{1}:{2}/Elapsed duration, not a time of day: {0} is total hours (may exceed 24), {1} is two-digit minutes, and {2} is two-digit seconds. All numbers are already localized.": {
+        "message": "{0}:{1}:{2}",
+        "comment": [
+            "Elapsed duration, not a time of day: {0} is total hours (may exceed 24), {1} is two-digit minutes, and {2} is two-digit seconds. All numbers are already localized."
+        ]
+    },
+    "Elapsed: {0}": "Elapsed: {0}",
+    "Rows: {0} of {1}/{0} is the actual processed row count; {1} is the optimizer's estimated total row count. Counts are already localized and may be abbreviated.": {
+        "message": "Rows: {0} of {1}",
+        "comment": [
+            "{0} is the actual processed row count; {1} is the optimizer's estimated total row count. Counts are already localized and may be abbreviated."
+        ]
+    },
+    "Rows: {0} of {1} ({2})/{0} is the actual processed row count; {1} is the optimizer's estimated total row count; {2} is their ratio as a localized percentage, which can exceed 100%.": {
+        "message": "Rows: {0} of {1} ({2})",
+        "comment": [
+            "{0} is the actual processed row count; {1} is the optimizer's estimated total row count; {2} is their ratio as a localized percentage, which can exceed 100%."
+        ]
+    },
+    "Estimated query progress: {0}": "Estimated query progress: {0}",
+    "Estimated query progress: <{0}/{0} is a localized percentage. The < symbol means progress is positive but less than that percentage.": {
+        "message": "Estimated query progress: <{0}",
+        "comment": [
+            "{0} is a localized percentage. The < symbol means progress is positive but less than that percentage."
+        ]
+    },
+    "Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.": "Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.",
+    "Live plan of the running statement. Row counts refresh while it runs.": "Live plan of the running statement. Row counts refresh while it runs.",
     "Execution plan {0}, use arrow keys to navigate between nodes/{0} is the one-based execution plan number": {
         "message": "Execution plan {0}, use arrow keys to navigate between nodes",
         "comment": ["{0} is the one-based execution plan number"]

@@ -40,6 +40,11 @@ import {
 } from "../../../sharedInterfaces/executionPlan";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
+import {
+    formatLiveExecutionPlanRows,
+    getExecutionPlanNodeLabelLineCount,
+    getExecutionPlanNodeLabelLines,
+} from "./executionPlanLiveStatistics";
 import { SqlText } from "../../common/sqlText";
 import {
     ExecutionPlanGraphController,
@@ -54,6 +59,9 @@ import {
     ExecutionPlanEdgeModel,
     ExecutionPlanModel,
     ExecutionPlanNodePositions,
+    advanceExecutionPlanEdgeFlow,
+    EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE,
+    ExecutionPlanEdgeFlowState,
     formatExecutionPlanRowCount,
     getHiddenExecutionPlanElementIds,
     layoutExecutionPlan,
@@ -146,6 +154,7 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
     const collapseExpandPaths = getCollapseExpandPaths(themeKind);
     const OperatorIcon = getExecutionPlanOperatorIcon(planNode.type);
     const labelRef = useRef<HTMLDivElement>(null);
+    const labelLines = getExecutionPlanNodeLabelLines(planNode);
     const [renderedSelectionSize, setRenderedSelectionSize] = useState({
         width: selectionWidth,
         height: selectionHeight,
@@ -157,18 +166,23 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
             return;
         }
 
-        const nextSize = {
-            width: Math.min(
-                EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
-                Math.max(EXECUTION_PLAN_NODE_WIDTH, Math.ceil(label.scrollWidth) + 8),
-            ),
-            height: Math.max(
-                EXECUTION_PLAN_NODE_HEIGHT + 8,
-                label.offsetTop +
-                    Math.ceil(label.scrollHeight) +
-                    EXECUTION_PLAN_SELECTION_VERTICAL_PADDING,
-            ),
-        };
+        const nextSize = planNode.liveQueryStatistics
+            ? {
+                  width: selectionWidth,
+                  height: selectionHeight,
+              }
+            : {
+                  width: Math.min(
+                      EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
+                      Math.max(EXECUTION_PLAN_NODE_WIDTH, Math.ceil(label.scrollWidth) + 8),
+                  ),
+                  height: Math.max(
+                      EXECUTION_PLAN_NODE_HEIGHT + 8,
+                      label.offsetTop +
+                          Math.ceil(label.scrollHeight) +
+                          EXECUTION_PLAN_SELECTION_VERTICAL_PADDING,
+                  ),
+              };
         setRenderedSelectionSize((currentSize) =>
             currentSize.width === nextSize.width && currentSize.height === nextSize.height
                 ? currentSize
@@ -226,7 +240,7 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
             aria-setsize={siblingCount}
             aria-expanded={planNode.children.length > 0 ? !collapsed : undefined}
             aria-selected={selected}
-            aria-label={[planNode.name, ...planNode.subtext].join(", ")}
+            aria-label={[planNode.name, ...labelLines].join(", ")}
             tabIndex={selected ? 0 : -1}
             onFocus={() => focusSelection(planNode.id)}
             onBlur={(event) => {
@@ -263,8 +277,11 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
                 ))}
             </div>
             <div className="execution-plan-flow-cost">{planNode.costDisplayString}</div>
-            <div ref={labelRef} className="execution-plan-flow-label">
-                {planNode.subtext.map((line, index) => (
+            <div
+                ref={labelRef}
+                className="execution-plan-flow-label"
+                title={formatLiveExecutionPlanRows(planNode, false)}>
+                {labelLines.map((line, index) => (
                     <div key={index}>{line}</div>
                 ))}
             </div>
@@ -312,7 +329,11 @@ const NODE_TYPES: NodeTypes = {
 let nodeLabelMeasurementCanvas: HTMLCanvasElement | undefined;
 
 function getNodeSelectionWidth(node: ExecutionPlanNode): number {
-    const fallbackWidth = Math.max(0, ...node.subtext.map((line) => line.length * 6));
+    if (node.liveQueryStatistics) {
+        return EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH;
+    }
+    const labelLines = getExecutionPlanNodeLabelLines(node);
+    const fallbackWidth = Math.max(0, ...labelLines.map((line) => line.length * 6));
     if (typeof document === "undefined") {
         return Math.min(
             EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
@@ -330,7 +351,7 @@ function getNodeSelectionWidth(node: ExecutionPlanNode): number {
     }
 
     context.font = "10px Monaco, Menlo, Consolas, monospace";
-    const labelWidth = Math.max(0, ...node.subtext.map((line) => context.measureText(line).width));
+    const labelWidth = Math.max(0, ...labelLines.map((line) => context.measureText(line).width));
     return Math.min(
         EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
         Math.max(EXECUTION_PLAN_NODE_WIDTH, Math.ceil(labelWidth) + 8),
@@ -376,7 +397,7 @@ function getExecutionPlanBounds(
 function getNodeSelectionHeight(node: ExecutionPlanNode): number {
     const labelHeight =
         EXECUTION_PLAN_LABEL_TOP +
-        Math.max(1, node.subtext.length) * EXECUTION_PLAN_LABEL_LINE_HEIGHT +
+        getExecutionPlanNodeLabelLineCount(node) * EXECUTION_PLAN_LABEL_LINE_HEIGHT +
         EXECUTION_PLAN_SELECTION_VERTICAL_PADDING;
     return Math.max(EXECUTION_PLAN_NODE_HEIGHT + 6, labelHeight);
 }
@@ -397,6 +418,31 @@ const EXECUTION_PLAN_EDGE_CORNER_RADIUS = 8;
 /** Space between an edge's row count label and the child operator it comes from. */
 const EXECUTION_PLAN_ROW_COUNT_LABEL_GAP = 6;
 
+/** Length of one cycle of the live flow dashes. Matches the animation in the stylesheet. */
+const EXECUTION_PLAN_FLOW_CYCLE_MS = 800;
+
+/** Live flow stays thin regardless of the number of rows moving along the edge. */
+const EXECUTION_PLAN_FLOW_WIDTH = 1;
+
+function ExecutionPlanFlowDashes({ path }: { path: string }) {
+    // Phase every flow from a shared clock, so an edge that starts flowing or remounts after a
+    // refresh joins the motion where it already is instead of restarting it.
+    const [animationDelay] = useState(
+        () => `-${Math.round(performance.now() % EXECUTION_PLAN_FLOW_CYCLE_MS)}ms`,
+    );
+    return (
+        <path
+            d={path}
+            fill="none"
+            className="execution-plan-flow-dashes"
+            style={{
+                animationDelay,
+                strokeWidth: EXECUTION_PLAN_FLOW_WIDTH,
+            }}
+        />
+    );
+}
+
 function ExecutionPlanReactFlowEdge({
     sourceX,
     sourceY,
@@ -405,6 +451,7 @@ function ExecutionPlanReactFlowEdge({
     targetY,
     targetPosition,
     style,
+    animated,
     data,
 }: EdgeProps<ExecutionPlanFlowEdge>) {
     const arrowGeometry = getExecutionPlanArrowGeometry(sourceX, sourceY);
@@ -417,10 +464,25 @@ function ExecutionPlanReactFlowEdge({
         targetPosition,
         borderRadius: EXECUTION_PLAN_EDGE_CORNER_RADIUS,
     });
+    // The flow starts at the handle, which stays put as the edge thickens and its arrowhead grows,
+    // so the dashes never jump. The arrowhead is drawn over the start.
+    const [flowPath] = animated
+        ? getSmoothStepPath({
+              sourceX,
+              sourceY,
+              sourcePosition,
+              targetX,
+              targetY,
+              targetPosition,
+              borderRadius: EXECUTION_PLAN_EDGE_CORNER_RADIUS,
+          })
+        : [undefined];
+
     // The stylesheet sets the color, so the edge and its arrowhead change together on hover
     return (
         <g className="execution-plan-flow-edge">
             <path d={edgePath} fill="none" className="react-flow__edge-path" style={style} />
+            {flowPath && <ExecutionPlanFlowDashes path={flowPath} />}
             <path
                 d={arrowGeometry.path}
                 fill="currentColor"
@@ -593,6 +655,10 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
 
 interface ReactFlowExecutionPlanProps {
     root: ExecutionPlanNode;
+    /** The plan of a running statement, refreshed with live row counts. */
+    isLive?: boolean;
+    /** Number of the live read the plan came from. */
+    liveRefreshId?: number;
     themeKind: ColorThemeKind;
     planNumber: number;
     onReady: (controller: ExecutionPlanGraphController | null) => void;
@@ -602,6 +668,8 @@ interface ReactFlowExecutionPlanProps {
 
 export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     root,
+    isLive = false,
+    liveRefreshId,
     themeKind,
     planNumber,
     onReady,
@@ -855,6 +923,22 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
         return () => canvas.removeEventListener("wheel", handleWheel);
     }, [instance]);
 
+    // Rows are moving along an edge whose row count grew recently. The flow state carries across
+    // refreshes so an edge keeps animating through reads that find no new rows.
+    const edgeFlowStateRef = useRef<ExecutionPlanEdgeFlowState>(
+        EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE,
+    );
+    // Advance once per live read. Other state updates resend the same read, and counting those as
+    // reads would stop edges that are still flowing.
+    const edgeFlow = useMemo(
+        () => advanceExecutionPlanEdgeFlow(model.edges, edgeFlowStateRef.current, isLive),
+        [isLive, liveRefreshId],
+    );
+    useEffect(() => {
+        edgeFlowStateRef.current = edgeFlow.state;
+    }, [edgeFlow]);
+    const flowingEdgeIds = edgeFlow.flowingEdgeIds;
+
     const nodes = useMemo<ExecutionPlanFlowNode[]>(
         () =>
             model.nodes.map((planNode) => {
@@ -936,6 +1020,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 target: edge.targetId,
                 type: "executionPlanEdge",
                 hidden: hiddenNodeIds.has(edge.targetId),
+                animated: flowingEdgeIds.has(edge.id),
                 data: {
                     ...edge,
                     rowCountLabel: formatExecutionPlanRowCount(
@@ -948,7 +1033,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 focusable: false,
                 selectable: true,
             })),
-        [hiddenNodeIds, model],
+        [flowingEdgeIds, hiddenNodeIds, model],
     );
 
     useEffect(() => {
