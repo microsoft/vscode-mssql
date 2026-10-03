@@ -228,7 +228,7 @@ export function addExecutionPlanStatistics(
                     : estimatedPerExecution * executions;
             const estimatedRows =
                 estimatedTotal !== undefined && Number.isFinite(estimatedTotal)
-                    ? Math.round(estimatedTotal)
+                    ? estimatedTotal
                     : undefined;
             const runtime = children(relOp).find(
                 (child) => child.localName === "RunTimeInformation",

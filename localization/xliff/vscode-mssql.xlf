@@ -3800,8 +3800,9 @@
     <trans-unit id="++CODE++6ef275a91ab927f3eea9f15361cd4253e4b26eb4d4b6e0531ecc982237acc4cf">
       <source xml:lang="en">Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.</source>
     </trans-unit>
-    <trans-unit id="++CODE++057144fb817ba63a0d318418a854df5e28578fd61944902ae17662e4150b8284">
+    <trans-unit id="++CODE++eb0b18563c32eaf937904faf84f1626b84d89b0e3478be396f1b3dc24e1bc8d7">
       <source xml:lang="en">Estimated query progress: &lt;{0}</source>
+      <note>{0} is a localized percentage. The &lt; symbol means progress is positive but less than that percentage.</note>
     </trans-unit>
     <trans-unit id="++CODE++009889f8da222c45ffbfecd313bd7a242a48218c5e6f476811f811a2791d97ea">
       <source xml:lang="en">Estimated query progress: {0}</source>
@@ -5637,8 +5638,9 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
-    <trans-unit id="++CODE++b64ac05f17e64d037db81a98f51e2688216e292ae9748f979f04dfbac49fd7fc">
+    <trans-unit id="++CODE++65d5e2f3c9144913a6f8bca055f6790146892827ac3567b3605fce500ebdab4c">
       <source xml:lang="en">Live</source>
+      <note>Badge for the execution plan of a currently running query.</note>
     </trans-unit>
     <trans-unit id="++CODE++d166f7cc96ddbc851ad16d9b6b05e6fb43435e3164082d8a0a004f6490eb9716">
       <source xml:lang="en">Live plan of the running statement. Row counts refresh while it runs.</source>
@@ -8056,11 +8058,13 @@
     <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
       <source xml:lang="en">Rows per page</source>
     </trans-unit>
-    <trans-unit id="++CODE++a3caed283fb35a1a08c414fad6929478462ffece5b5cc0cba9111a6b913f8502">
+    <trans-unit id="++CODE++51d99e9df26c20f52b29d6188d01586f33a731803e39e44176c90838f07342b5">
       <source xml:lang="en">Rows: {0} of {1}</source>
+      <note>{0} is the actual processed row count; {1} is the optimizer&apos;s estimated total row count. Counts are already localized and may be abbreviated.</note>
     </trans-unit>
-    <trans-unit id="++CODE++ccb988e894fa7b9363c484e68a9b8e3c61f034ec2f4a32e8a96134e393349dc0">
+    <trans-unit id="++CODE++ef094763df1428dc454cbfbeb03fa1d23b50807b81d899d909c9080110e34f29">
       <source xml:lang="en">Rows: {0} of {1} ({2})</source>
+      <note>{0} is the actual processed row count; {1} is the optimizer&apos;s estimated total row count; {2} is their ratio as a localized percentage, which can exceed 100%.</note>
     </trans-unit>
     <trans-unit id="++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c">
       <source xml:lang="en">Rule disabled</source>
@@ -11228,8 +11232,9 @@
       <source xml:lang="en">{0} rules</source>
       <note>{0} is the number of code analysis rules</note>
     </trans-unit>
-    <trans-unit id="++CODE++dae58fb2bf4be8157f7f1e95f8d62c366685087b4da8fec7590ee247ae9ae81e">
+    <trans-unit id="++CODE++9d5f8d1cce348ce0c5276f612667bb8ccd0699e170bf5957e58ae3983e1e557c">
       <source xml:lang="en">{0} s</source>
+      <note>{0} is a localized elapsed duration in seconds; s is the abbreviation for seconds.</note>
     </trans-unit>
     <trans-unit id="++CODE++0d43a65b231aab5ce9c1a1fcaa614526a6c2cefb7137de400a2a1feae95e1156">
       <source xml:lang="en">{0} selected</source>
@@ -11340,6 +11345,10 @@
       <note>{0} is the task name
 {1} is the status
 {2} is the message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a6cfc540d9e43034888b1ac105df2617193675017ca49cc17a82b4c2c33b41bd">
+      <source xml:lang="en">{0}:{1}:{2}</source>
+      <note>Elapsed duration, not a time of day: {0} is total hours (may exceed 24), {1} is two-digit minutes, and {2} is two-digit seconds. All numbers are already localized.</note>
     </trans-unit>
     <trans-unit id="++CODE++2fd557cb0d0dc9fb91362ad40c6d256d2f0651acde628b9e27152c331f6af0a8">
       <source xml:lang="en">{0}d {1}h</source>

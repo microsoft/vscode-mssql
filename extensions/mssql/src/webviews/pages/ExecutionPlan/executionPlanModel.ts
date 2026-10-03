@@ -15,7 +15,10 @@ import {
     SearchType,
 } from "../../../sharedInterfaces/executionPlan";
 import { locConstants } from "../../common/locConstants";
-import { getExecutionPlanNodeLabelLines } from "./executionPlanLiveStatistics";
+import {
+    getExecutionPlanNodeLabelLineCount,
+    getExecutionPlanNodeLabelLines,
+} from "./executionPlanLiveStatistics";
 
 export const EXECUTION_PLAN_NODE_WIDTH = 80;
 export const EXECUTION_PLAN_NODE_HEIGHT = 80;
@@ -506,12 +509,7 @@ export function layoutExecutionPlan(
 
     const label = (node: ExecutionPlanNode) => getExecutionPlanNodeLabelLines(node).join("\n");
     const measureLabel = (node: ExecutionPlanNode): number =>
-        node.liveQueryStatistics
-            ? Math.min(
-                  EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
-                  Math.max(0, ...getExecutionPlanNodeLabelLines(node).map(measureText)),
-              )
-            : measureText(label(node));
+        node.liveQueryStatistics ? EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH : measureText(label(node));
     const hasBranchingAncestor = (node: ExecutionPlanNode): boolean => {
         let current: ExecutionPlanNode | undefined = node;
         while (current) {
@@ -527,7 +525,7 @@ export function layoutExecutionPlan(
     const setX = (node: ExecutionPlanNode, x: number, level: number): number => {
         levels.set(node.id, level);
         positions.set(node.id, { x, y: 0 });
-        const lines = Math.max(1, getExecutionPlanNodeLabelLines(node).length);
+        const lines = getExecutionPlanNodeLabelLineCount(node);
         rowSpacing = Math.max(
             rowSpacing,
             node.liveQueryStatistics ? 60 + lines * 14 : 45 + lines * 10,

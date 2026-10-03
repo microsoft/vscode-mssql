@@ -33,11 +33,10 @@ suite("Live query statistics preview manifest", () => {
                     (entry: { command: string }) => entry.command === command,
                 )?.when,
             ).to.equal(previewGate);
-            expect(
-                contributes.menus["editor/title"].find(
-                    (entry: { command: string }) => entry.command === command,
-                )?.when,
-            ).to.match(new RegExp(`^${previewGate.replace(/\./g, "\\.")} && `));
+            const toolbarCondition = contributes.menus["editor/title"].find(
+                (entry: { command: string }) => entry.command === command,
+            )?.when;
+            expect(toolbarCondition?.startsWith(`${previewGate} && `)).to.be.true;
         }
     });
 });

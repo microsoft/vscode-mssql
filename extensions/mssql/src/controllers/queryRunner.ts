@@ -76,6 +76,7 @@ export interface QueryExecutionCompleteEvent {
     totalElapsedMilliseconds: number;
     hasError: boolean;
     isFullExecutionComplete: boolean;
+    isCanceled?: boolean;
     isRefresh?: boolean;
 }
 
@@ -117,6 +118,7 @@ export default class QueryRunner {
     private _batchSets: BatchSummary[] = [];
     private _batchSetMessages: { [batchId: number]: IResultMessage[] } = {};
     private _isExecuting: boolean;
+    private _isCanceled = false;
     private _totalElapsedMilliseconds: number;
     private _hasCompleted: boolean;
     private _isSqlCmd: boolean = false;
@@ -277,12 +279,18 @@ export default class QueryRunner {
 
     // PUBLIC METHODS ======================================================
 
+    /** Whether cancellation was requested for this execution, including after completion. */
+    public get isCanceled(): boolean {
+        return this._isCanceled;
+    }
+
     /**
      * Cancels the currently running query.
      * @returns A promise that resolves to the result of the cancel operation.
      * @throws An error if the cancellation fails or times out.
      */
     public async cancel(options?: { silent?: boolean }): Promise<QueryCancelResult> {
+        this._isCanceled ||= this._isExecuting;
         const cancelQueryActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.CancelQuery,
@@ -590,6 +598,7 @@ export default class QueryRunner {
     public setupQueryExecution(_selection?: ISelectionData): void {
         this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
+        this._isCanceled = false;
         this._totalElapsedMilliseconds = 0;
         this._serverConnectionId = undefined;
         this._queryDocumentText = undefined;
@@ -665,6 +674,7 @@ export default class QueryRunner {
                 totalElapsedMilliseconds: this._totalElapsedMilliseconds,
                 hasError,
                 isFullExecutionComplete: true,
+                isCanceled: this._isCanceled,
             });
         }
         sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.QueryExecutionCompleted);
@@ -829,6 +839,7 @@ export default class QueryRunner {
             totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError: !!error,
             isFullExecutionComplete: false,
+            isCanceled: this._isCanceled,
         });
         this._statusView.executedQuery(this._ownerUri);
         this.unregisterAllNotificationUris();

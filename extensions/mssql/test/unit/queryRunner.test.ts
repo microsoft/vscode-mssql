@@ -6,7 +6,10 @@
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
-import QueryRunner, { editorEol } from "../../src/controllers/queryRunner";
+import QueryRunner, {
+    editorEol,
+    QueryExecutionCompleteEvent,
+} from "../../src/controllers/queryRunner";
 import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
 import * as Utils from "../../src/models/utils";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
@@ -581,6 +584,25 @@ suite("Query Runner tests", () => {
         expect(queryRunner.batchSets.length).to.equal(1);
         expect(queryRunner.isExecutingQuery).to.equal(false);
         expect(isFullExecutionComplete).to.be.true;
+    });
+
+    test("reports cancellation separately from SQL errors and resets it for the next execution", async () => {
+        const runner = createQueryRunner();
+        const completed = sandbox.spy();
+        runner.onComplete(completed);
+        runner.setupQueryExecution();
+        testSqlToolsServerClient.sendRequest.resolves({});
+        await runner.cancel();
+        runner.handleQueryComplete({ ownerUri: standardUri, batchSummaries: [] });
+        expect(completed).to.have.been.calledWith(
+            sinon.match({ hasError: false, isCanceled: true }),
+        );
+        expect(runner.isCanceled).to.be.true;
+        runner.setupQueryExecution();
+        runner.handleQueryComplete({ ownerUri: standardUri, batchSummaries: [] });
+        const latest = completed.lastCall.args[0] as QueryExecutionCompleteEvent;
+        expect(latest).to.include({ hasError: false, isCanceled: false });
+        expect(runner.isCanceled).to.be.false;
     });
 
     test("Notification - Query complete refreshes the SPID shown in the status bar", () => {

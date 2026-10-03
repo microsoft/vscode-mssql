@@ -15,6 +15,7 @@ import {
     LiveQueryStatisticsCallbacks,
     LiveQueryStatisticsMonitor,
 } from "../../src/queryResult/liveQueryStatistics";
+import { Deferred } from "../../src/protocol";
 import { ExecutionPlanGraph } from "../../src/sharedInterfaces/executionPlan";
 
 chai.use(sinonChai);
@@ -24,11 +25,13 @@ suite("LiveQueryStatisticsMonitor", () => {
     const graph = { query: "select 1" } as ExecutionPlanGraph;
     let sandbox: sinon.SinonSandbox;
     let sendRequest: sinon.SinonStub;
+    let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let callbacks: { onPlans: sinon.SinonStub; onError: sinon.SinonStub };
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        sendRequest = sandbox.stub();
+        client = sandbox.createStubInstance(SqlToolsServiceClient);
+        sendRequest = client.sendRequest;
         sendRequest.withArgs(EndLiveExecutionPlanRequest.type, sinon.match.any).resolves(true);
         callbacks = { onPlans: sandbox.stub(), onError: sandbox.stub() };
     });
@@ -45,12 +48,12 @@ suite("LiveQueryStatisticsMonitor", () => {
         return sendRequest.getCalls().filter((call) => call.args[0] === type);
     }
 
-    function createMonitor(): LiveQueryStatisticsMonitor {
+    function createMonitor(ownerUri = "test_uri", sessionId = 57): LiveQueryStatisticsMonitor {
         return new LiveQueryStatisticsMonitor(
-            "test_uri",
-            57,
+            ownerUri,
+            sessionId,
             callbacks as LiveQueryStatisticsCallbacks,
-            { sendRequest } as unknown as SqlToolsServiceClient,
+            client,
             1,
         );
     }
@@ -80,6 +83,120 @@ suite("LiveQueryStatisticsMonitor", () => {
             sessionId: 57,
         });
         expect(callbacks.onPlans.firstCall.args).to.deep.equal([[graph]]);
+    });
+
+    test("waits for the previous generation's in-flight read and close before reopening", async () => {
+        const read = new Deferred<unknown>();
+        const close = new Deferred<boolean>();
+        stubReads().resolves({ graphs: [graph] });
+        sendRequest
+            .withArgs(GetLiveExecutionPlanRequest.type, { ownerUri: "test_uri", sessionId: 57 })
+            .returns(read.promise);
+        sendRequest
+            .withArgs(EndLiveExecutionPlanRequest.type, { ownerUri: "test_uri" })
+            .returns(close.promise);
+        const old = createMonitor();
+        old.start();
+        await waitFor(() =>
+            sendRequest.calledWith(GetLiveExecutionPlanRequest.type, {
+                ownerUri: "test_uri",
+                sessionId: 57,
+            }),
+        );
+        old.dispose();
+        const next = createMonitor("test_uri", 58);
+        next.start();
+        await delay(5);
+        expect(sendRequest).not.to.have.been.calledWith(EndLiveExecutionPlanRequest.type, {
+            ownerUri: "test_uri",
+        });
+        expect(sendRequest).not.to.have.been.calledWith(GetLiveExecutionPlanRequest.type, {
+            ownerUri: "test_uri",
+            sessionId: 58,
+        });
+        read.resolve({ graphs: [graph] });
+        await waitFor(() =>
+            sendRequest.calledWith(EndLiveExecutionPlanRequest.type, { ownerUri: "test_uri" }),
+        );
+        expect(sendRequest).not.to.have.been.calledWith(GetLiveExecutionPlanRequest.type, {
+            ownerUri: "test_uri",
+            sessionId: 58,
+        });
+        close.resolve(true);
+        await waitFor(() => callbacks.onPlans.called);
+        next.dispose();
+        await next.closed;
+        expect(sendRequest).to.have.been.calledWith(GetLiveExecutionPlanRequest.type, {
+            ownerUri: "test_uri",
+            sessionId: 58,
+        });
+        expect(callbacks.onError).not.to.have.been.called;
+    });
+
+    test("waits for a renamed monitor to close and suppresses a disposed replacement", async () => {
+        const close = new Deferred<boolean>();
+        stubReads().resolves({ graphs: [graph] });
+        sendRequest
+            .withArgs(EndLiveExecutionPlanRequest.type, { ownerUri: "test_uri" })
+            .returns(close.promise);
+        const old = createMonitor();
+        old.start();
+        await waitFor(() => callbacks.onPlans.called);
+        old.dispose();
+        const replacement = createMonitor("renamed_uri");
+        replacement.start(old.closed);
+        await delay(5);
+        expect(sendRequest).not.to.have.been.calledWith(GetLiveExecutionPlanRequest.type, {
+            ownerUri: "renamed_uri",
+            sessionId: 57,
+        });
+        replacement.dispose();
+        const latest = createMonitor("renamed_uri", 58);
+        latest.start();
+        close.resolve(true);
+        await waitFor(() =>
+            sendRequest.calledWith(GetLiveExecutionPlanRequest.type, {
+                ownerUri: "renamed_uri",
+                sessionId: 58,
+            }),
+        );
+        latest.dispose();
+        await latest.closed;
+        expect(sendRequest).not.to.have.been.calledWith(GetLiveExecutionPlanRequest.type, {
+            ownerUri: "renamed_uri",
+            sessionId: 57,
+        });
+        expect(sendRequest).to.have.been.calledWith(GetLiveExecutionPlanRequest.type, {
+            ownerUri: "renamed_uri",
+            sessionId: 58,
+        });
+    });
+
+    test("does not delay an unrelated editor while another editor's connection closes", async () => {
+        const close = new Deferred<boolean>();
+        stubReads().resolves({ graphs: [graph] });
+        sendRequest
+            .withArgs(EndLiveExecutionPlanRequest.type, { ownerUri: "test_uri" })
+            .returns(close.promise);
+        const old = createMonitor();
+        old.start();
+        await waitFor(() => callbacks.onPlans.called);
+        old.dispose();
+        const other = createMonitor("other_uri");
+        other.start();
+        await waitFor(() =>
+            sendRequest.calledWith(GetLiveExecutionPlanRequest.type, {
+                ownerUri: "other_uri",
+                sessionId: 57,
+            }),
+        );
+        other.dispose();
+        close.resolve(true);
+        await Promise.all([old.closed, other.closed]);
+        expect(sendRequest).to.have.been.calledWith(GetLiveExecutionPlanRequest.type, {
+            ownerUri: "other_uri",
+            sessionId: 57,
+        });
     });
 
     test("keeps progress monotonic per statement and resets when elapsed time starts over", async () => {
@@ -153,6 +270,7 @@ suite("LiveQueryStatisticsMonitor", () => {
         const monitor = createMonitor();
 
         monitor.start();
+        await waitFor(() => requestsOf(GetLiveExecutionPlanRequest.type).length > 0);
         monitor.dispose();
         monitor.dispose();
         await delay(10);

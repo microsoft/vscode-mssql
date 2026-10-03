@@ -31,6 +31,14 @@ export interface LiveQueryStatisticsCallbacks {
  * monitoring connection that stays open between reads, and disposing closes that connection.
  */
 export class LiveQueryStatisticsMonitor implements vscode.Disposable {
+    // STS owns one monitoring connection per client/editor, so a new generation must wait for
+    // the previous generation's read and close before it can open that connection again.
+    private static readonly _closingConnections = new WeakMap<
+        SqlToolsServiceClient,
+        Map<string, Promise<void>>
+    >();
+    private _closed: Promise<void> | undefined;
+    private _startBarrier: Promise<void> | undefined;
     private _timer: ReturnType<typeof setTimeout> | undefined;
     private _pendingRead: Promise<void> | undefined;
     private _isDisposed = false;
@@ -47,8 +55,23 @@ export class LiveQueryStatisticsMonitor implements vscode.Disposable {
         private readonly _pollIntervalMs: number = liveQueryStatisticsPollIntervalMs,
     ) {}
 
-    public start(): void {
+    public start(after?: Promise<void>): void {
+        this._startBarrier = after;
         this.read();
+    }
+
+    /** Settles after disposal has finished closing this generation's monitoring connection. */
+    public get closed(): Promise<void> {
+        return this._closed ?? Promise.resolve();
+    }
+
+    private get closingConnections(): Map<string, Promise<void>> {
+        let connections = LiveQueryStatisticsMonitor._closingConnections.get(this._client);
+        if (!connections) {
+            connections = new Map();
+            LiveQueryStatisticsMonitor._closingConnections.set(this._client, connections);
+        }
+        return connections;
     }
 
     public dispose(): void {
@@ -59,14 +82,21 @@ export class LiveQueryStatisticsMonitor implements vscode.Disposable {
         clearTimeout(this._timer);
         this._timer = undefined;
 
-        void this.closeConnection();
+        const connections = this.closingConnections;
+        const previousClose = connections.get(this._ownerUri);
+        this._closed = this.closeConnection(previousClose).finally(() => {
+            if (connections.get(this._ownerUri) === this._closed) {
+                connections.delete(this._ownerUri);
+            }
+        });
+        connections.set(this._ownerUri, this._closed);
     }
 
     /**
      * Closes the monitoring connection after any read in flight, so that read can't reopen it.
      */
-    private async closeConnection(): Promise<void> {
-        await this._pendingRead;
+    private async closeConnection(previousClose?: Promise<void>): Promise<void> {
+        await Promise.all([previousClose, this._pendingRead]);
         try {
             await this._client.sendRequest(EndLiveExecutionPlanRequest.type, {
                 ownerUri: this._ownerUri,
@@ -79,12 +109,19 @@ export class LiveQueryStatisticsMonitor implements vscode.Disposable {
     }
 
     private read(): void {
-        this._pendingRead = this.readPlan().finally(() => {
-            this._pendingRead = undefined;
-            if (!this._isDisposed) {
-                this._timer = setTimeout(() => this.read(), this._pollIntervalMs);
-            }
-        });
+        const previousClose = this.closingConnections.get(this._ownerUri);
+        this._pendingRead = Promise.all([this._startBarrier, previousClose])
+            .then(() => {
+                if (!this._isDisposed) {
+                    return this.readPlan();
+                }
+            })
+            .finally(() => {
+                this._pendingRead = undefined;
+                if (!this._isDisposed) {
+                    this._timer = setTimeout(() => this.read(), this._pollIntervalMs);
+                }
+            });
     }
 
     private async readPlan(): Promise<void> {

@@ -24,6 +24,7 @@ import { ExecutionPlanGraph } from "../../src/sharedInterfaces/executionPlan";
 import { QueryResultPaneTabs } from "../../src/sharedInterfaces/queryResult";
 import { Deferred } from "../../src/protocol";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
+import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import QueryRunner from "../../src/controllers/queryRunner";
 import * as Utils from "../../src/models/utils";
 import {
@@ -924,9 +925,129 @@ suite("SqlOutputProvider Tests using mocks", () => {
             return runner;
         }
 
-        function getMonitor(): { _sessionId: number; _callbacks: LiveQueryStatisticsCallbacks } {
+        function getMonitor(): {
+            _ownerUri: string;
+            _sessionId: number;
+            _callbacks: LiveQueryStatisticsCallbacks;
+            dispose(): void;
+            closed: Promise<void>;
+        } {
             return startMonitor.lastCall.thisValue;
         }
+
+        function startBatch(runner: QueryRunner, id: number, sessionId: string): void {
+            runner.handleBatchStart({
+                ownerUri: runner.uri,
+                serverConnectionId: sessionId,
+                batchSummary: {
+                    id,
+                    hasError: false,
+                    selection: undefined,
+                    resultSetSummaries: [],
+                    executionElapsed: undefined,
+                    executionEnd: undefined,
+                    executionStart: new Date().toISOString(),
+                },
+            });
+        }
+
+        test("restarts for a changed batch SPID and ignores stale monitor callbacks", async () => {
+            const dispose = sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+            const runner = await startLiveRun();
+            const original = getMonitor();
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+            } as ExecutionPlanGraph;
+            original._callbacks.onPlans([liveGraph]);
+            startBatch(runner, 1, "57");
+            expect(getMonitor()).to.equal(original);
+            startBatch(runner, 2, "58");
+            const replacement = getMonitor();
+            expect(replacement).not.to.equal(original);
+            expect(replacement._sessionId).to.equal(58);
+            expect(dispose).to.have.been.calledOn(original);
+            replacement._callbacks.onPlans([{ ...liveGraph, query: "select 2" }]);
+            original._callbacks.onPlans([{ ...liveGraph, query: "stale" }]);
+            original._callbacks.onError("stale error");
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                { ...liveGraph, query: "select 2", isLive: true, liveRefreshId: 2 },
+            ]);
+            expect(state.messages.some((item) => item.message.includes("stale error"))).to.be.false;
+            runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+            expect(dispose).to.have.been.calledOn(replacement);
+        });
+
+        test("migrates live monitoring and enabled state when an executing editor is saved", async () => {
+            const dispose = sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+            const executeCommand = sandbox.stub(vscode.commands, "executeCommand").resolves();
+            const runner = await startLiveRun();
+            const original = getMonitor();
+            const closing = new Deferred<void>();
+            sandbox.stub(original, "closed").get(() => closing.promise);
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+            } as ExecutionPlanGraph;
+            original._callbacks.onPlans([liveGraph]);
+            const renamed = "saved_query_uri";
+            await contentProvider.updateQueryRunnerUri(uri, renamed);
+            const replacement = getMonitor();
+            expect(replacement._ownerUri).to.equal(renamed);
+            expect(startMonitor).to.have.been.calledWith(closing.promise);
+            expect(contentProvider.isLiveQueryStatisticsEnabled(uri)).to.be.false;
+            expect(contentProvider.isLiveQueryStatisticsEnabled(renamed)).to.be.true;
+            expect(executeCommand).to.have.been.calledWith(
+                "setContext",
+                "mssql.executionPlan.urisWithLiveQueryStatisticsEnabled",
+                [renamed],
+            );
+            original._callbacks.onError("stale error");
+            replacement._callbacks.onPlans([liveGraph]);
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(renamed);
+            expect(state.executionPlanState.executionPlanGraphs[0]).to.include({
+                isLive: true,
+                liveRefreshId: 2,
+            });
+            runner.handleQueryComplete({ ownerUri: renamed, batchSummaries: [] });
+            expect(dispose).to.have.been.calledOn(replacement);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([]);
+            closing.resolve();
+        });
+
+        test("migrates a pending live run before the first batch starts", async () => {
+            sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+            contentProvider.onToggleLiveQueryStatistics(true);
+            await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+            const runner = contentProvider.getQueryRunner(uri);
+            const renamed = "saved_query_uri";
+            await contentProvider.updateQueryRunnerUri(uri, renamed);
+            startBatch(runner, 0, "57");
+            expect(getMonitor()._ownerUri).to.equal(renamed);
+            runner.handleQueryComplete({ ownerUri: renamed, batchSummaries: [] });
+        });
+
+        test("keeps the last live plan on cancellation when STS reports no SQL error", async () => {
+            sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+            const client = sandbox.createStubInstance(SqlToolsServiceClient);
+            client.sendRequest.resolves({});
+            sandbox.stub(SqlToolsServiceClient, "instance").get(() => client);
+            const runner = await startLiveRun();
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+                liveQueryStatistics: { estimatedProgress: 75, elapsedTimeInMs: 1000 },
+            } as ExecutionPlanGraph;
+            getMonitor()._callbacks.onPlans([liveGraph]);
+            await contentProvider.cancelQuery(uri);
+            runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(runner.isCanceled).to.be.true;
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                { ...liveGraph, isLive: false, liveRefreshId: 1 },
+            ]);
+        });
 
         test("does not enable live statistics or start monitoring when the preview is disabled", async () => {
             previewEnabled = false;
@@ -1106,7 +1227,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
             expect(state.tabStates.resultPaneTab).to.equal(QueryResultPaneTabs.Results);
         });
 
-        test("keeps the last live plan when the query is stopped", async () => {
+        test("keeps the last live plan when the query fails", async () => {
             const runner = await startLiveRun();
             const liveGraph = {
                 query: "select 1",
@@ -1136,12 +1257,16 @@ suite("SqlOutputProvider Tests using mocks", () => {
             ]);
         });
 
-        test("explains why live statistics stopped", async () => {
+        test("shows polling diagnostics in Messages after removing the live graph", async () => {
             await startLiveRun();
-
+            getMonitor()._callbacks.onPlans([
+                { query: "select 1", root: { cost: 1, subTreeCost: 1 } } as ExecutionPlanGraph,
+            ]);
             getMonitor()._callbacks.onError("VIEW SERVER STATE permission was denied");
 
             const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.tabStates.resultPaneTab).to.equal(QueryResultPaneTabs.Messages);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([]);
             expect(state.messages.map((message) => message.message)).to.include(
                 LocConstants.msgLiveQueryStatisticsStopped(
                     "VIEW SERVER STATE permission was denied",

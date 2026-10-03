@@ -42,6 +42,7 @@ import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import {
     formatLiveExecutionPlanRows,
+    getExecutionPlanNodeLabelLineCount,
     getExecutionPlanNodeLabelLines,
 } from "./executionPlanLiveStatistics";
 import { SqlText } from "../../common/sqlText";
@@ -165,18 +166,23 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
             return;
         }
 
-        const nextSize = {
-            width: Math.min(
-                EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
-                Math.max(EXECUTION_PLAN_NODE_WIDTH, Math.ceil(label.scrollWidth) + 8),
-            ),
-            height: Math.max(
-                EXECUTION_PLAN_NODE_HEIGHT + 8,
-                label.offsetTop +
-                    Math.ceil(label.scrollHeight) +
-                    EXECUTION_PLAN_SELECTION_VERTICAL_PADDING,
-            ),
-        };
+        const nextSize = planNode.liveQueryStatistics
+            ? {
+                  width: selectionWidth,
+                  height: selectionHeight,
+              }
+            : {
+                  width: Math.min(
+                      EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
+                      Math.max(EXECUTION_PLAN_NODE_WIDTH, Math.ceil(label.scrollWidth) + 8),
+                  ),
+                  height: Math.max(
+                      EXECUTION_PLAN_NODE_HEIGHT + 8,
+                      label.offsetTop +
+                          Math.ceil(label.scrollHeight) +
+                          EXECUTION_PLAN_SELECTION_VERTICAL_PADDING,
+                  ),
+              };
         setRenderedSelectionSize((currentSize) =>
             currentSize.width === nextSize.width && currentSize.height === nextSize.height
                 ? currentSize
@@ -323,6 +329,9 @@ const NODE_TYPES: NodeTypes = {
 let nodeLabelMeasurementCanvas: HTMLCanvasElement | undefined;
 
 function getNodeSelectionWidth(node: ExecutionPlanNode): number {
+    if (node.liveQueryStatistics) {
+        return EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH;
+    }
     const labelLines = getExecutionPlanNodeLabelLines(node);
     const fallbackWidth = Math.max(0, ...labelLines.map((line) => line.length * 6));
     if (typeof document === "undefined") {
@@ -388,8 +397,7 @@ function getExecutionPlanBounds(
 function getNodeSelectionHeight(node: ExecutionPlanNode): number {
     const labelHeight =
         EXECUTION_PLAN_LABEL_TOP +
-        Math.max(1, getExecutionPlanNodeLabelLines(node).length) *
-            EXECUTION_PLAN_LABEL_LINE_HEIGHT +
+        getExecutionPlanNodeLabelLineCount(node) * EXECUTION_PLAN_LABEL_LINE_HEIGHT +
         EXECUTION_PLAN_SELECTION_VERTICAL_PADDING;
     return Math.max(EXECUTION_PLAN_NODE_HEIGHT + 6, labelHeight);
 }

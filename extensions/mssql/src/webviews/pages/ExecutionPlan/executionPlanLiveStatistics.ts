@@ -27,7 +27,17 @@ export function formatLiveExecutionPlanDuration(milliseconds: number, locale?: s
         );
     }
     const seconds = Math.floor(milliseconds / 1000);
-    return `${Math.floor(seconds / 3600)}:${String(Math.floor(seconds / 60) % 60).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+    const hours = new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 0 });
+    const clockPart = new Intl.NumberFormat(locale, {
+        useGrouping: false,
+        minimumIntegerDigits: 2,
+        maximumFractionDigits: 0,
+    });
+    return locConstants.executionPlan.liveDurationClock(
+        hours.format(Math.floor(seconds / 3600)),
+        clockPart.format(Math.floor(seconds / 60) % 60),
+        clockPart.format(seconds % 60),
+    );
 }
 
 /** Row ratios can exceed 100% when the optimizer underestimates cardinality. */
@@ -48,7 +58,9 @@ export function formatLiveExecutionPlanRows(
             locale,
             compact && Number(value) >= 10_000
                 ? { notation: "compact", maximumFractionDigits: 1 }
-                : { maximumFractionDigits: 0 },
+                : typeof value === "number" && !Number.isInteger(value)
+                  ? { maximumSignificantDigits: 6 }
+                  : { maximumFractionDigits: 0 },
         ).format(value as Intl.StringNumericLiteral);
     };
     const actual = formatCount(stats.actualRows);
@@ -69,7 +81,12 @@ export function formatLiveExecutionPlanRows(
     return locConstants.executionPlan.liveRows(actual, estimated);
 }
 
-/** The live counters participate in layout and hit-testing as well as rendering. */
+/** Reserve both runtime lines before their counters arrive, so updates cannot move operators. */
+export function getExecutionPlanNodeLabelLineCount(node: ExecutionPlanNode): number {
+    return Math.max(1, node.subtext.length + (node.liveQueryStatistics ? 2 : 0));
+}
+
+/** Format the currently available counters for rendering. */
 export function getExecutionPlanNodeLabelLines(node: ExecutionPlanNode, locale?: string): string[] {
     const lines = [...node.subtext];
     const elapsed = node.liveQueryStatistics?.elapsedTimeInMs;

@@ -224,6 +224,22 @@ suite("Live execution plan statistics", () => {
         });
     });
 
+    test("preserves fractional estimates for pipeline progress and repeated executions", () => {
+        const result = addLiveExecutionPlanStatistics(
+            graph(
+                node(),
+                plan(
+                    '<RelOp EstimateRows="0.1" EstimateRebinds="1"><RunTimeInformation><RunTimeCountersPerThread ActualRows="0" /></RunTimeInformation></RelOp>',
+                ),
+            ),
+        );
+        expect(result.root.children[0].liveQueryStatistics?.estimatedRows).to.equal(0.2);
+        expect(result.liveQueryStatistics?.estimatedProgress).to.equal(0);
+        expect(formatLiveExecutionPlanRows(result.root.children[0], false, "en-US")).to.equal(
+            "Rows: 0 of 0.2 (0%)",
+        );
+    });
+
     test("does not invent progress when estimates are zero or runtime counters are missing", () => {
         for (const relOp of [
             '<RelOp EstimateRows="0"><RunTimeInformation><RunTimeCountersPerThread ActualRows="5" /></RunTimeInformation></RelOp>',
@@ -272,6 +288,18 @@ suite("Live execution plan labels", () => {
         expect(formatLiveExecutionPlanDuration(25 * 3600_000, "en-US")).to.equal("25:00:00");
     });
 
+    test("localizes duration digits and fractional row estimates", () => {
+        expect(formatLiveExecutionPlanDuration(67011, "ar-EG")).to.equal("٠:٠١:٠٧");
+        expect(formatLiveExecutionPlanDuration(25 * 3600_000, "ar-EG")).to.equal("٢٥:٠٠:٠٠");
+        const operator = node();
+        operator.liveQueryStatistics = { actualRows: "1", estimatedRows: 0.25 };
+        expect(formatLiveExecutionPlanRows(operator, false, "de-DE")).to.equal(
+            "Rows: 1 of 0,25 (400 %)",
+        );
+        operator.liveQueryStatistics.estimatedRows = 0.000025;
+        expect(formatLiveExecutionPlanRows(operator, false, "en-US")).to.contain("of 0.000025");
+    });
+
     test("shows underestimated row counts above 100% and keeps exact counts in the tooltip", () => {
         const operator = node();
         operator.liveQueryStatistics = { actualRows: "9007199254740993", estimatedRows: 1 };
@@ -306,5 +334,30 @@ suite("Live execution plan labels", () => {
         ]);
         expect(positions.get(second.id)!.y - positions.get(first.id)!.y).to.be.at.least(116);
         expect(positions.get(first.id)!.x - positions.get(model.root.id)!.x).to.be.at.most(240);
+    });
+
+    test("keeps operator positions fixed as runtime counters arrive and grow", () => {
+        const root = node([node([node()]), node()]);
+        const operators = [root, ...root.children, ...root.children[0].children];
+        for (const operator of operators) {
+            operator.liveQueryStatistics = {};
+        }
+        const initial = layoutExecutionPlan(new ExecutionPlanModel(root));
+        for (const elapsedTimeInMs of [11, 67011, 25 * 3600_000]) {
+            for (const operator of operators) {
+                operator.liveQueryStatistics = {
+                    elapsedTimeInMs,
+                    actualRows: "9007199254740993",
+                    estimatedRows: 0.000025,
+                };
+                operator.rowCountDisplayString = "9P";
+                for (const edge of operator.edges) {
+                    edge.rowCount = 9007199254740992;
+                }
+            }
+            // Runtime spacing must also remain independent of translated label widths.
+            const updated = layoutExecutionPlan(new ExecutionPlanModel(root), () => 1000);
+            expect([...updated]).to.deep.equal([...initial]);
+        }
     });
 });
