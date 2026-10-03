@@ -3797,8 +3797,11 @@
     <trans-unit id="++CODE++905e3218067c7ad96983b2efa72f292627a8b7e1a2c7865613379b01da57c2fb">
       <source xml:lang="en">Estimated Subtree Cost</source>
     </trans-unit>
-    <trans-unit id="++CODE++ed074783a02defc85c3cddab3608056339647cabcfd9e1e48bac3e08d2eaa20f">
-      <source xml:lang="en">Estimated from operator row counts and plan costs. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.</source>
+    <trans-unit id="++CODE++6ef275a91ab927f3eea9f15361cd4253e4b26eb4d4b6e0531ecc982237acc4cf">
+      <source xml:lang="en">Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++057144fb817ba63a0d318418a854df5e28578fd61944902ae17662e4150b8284">
+      <source xml:lang="en">Estimated query progress: &lt;{0}</source>
     </trans-unit>
     <trans-unit id="++CODE++009889f8da222c45ffbfecd313bd7a242a48218c5e6f476811f811a2791d97ea">
       <source xml:lang="en">Estimated query progress: {0}</source>

@@ -17,7 +17,10 @@ import {
 } from "react";
 
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
-import { formatLiveExecutionPlanDuration } from "./executionPlanLiveStatistics";
+import {
+    formatLiveExecutionPlanDuration,
+    formatLiveExecutionPlanProgress,
+} from "./executionPlanLiveStatistics";
 import {
     normalizeExecutionPlanQuery,
     ParsedRecommendation,
@@ -246,12 +249,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const progressLabel =
         estimatedProgress === undefined
             ? undefined
-            : locConstants.executionPlan.liveEstimatedProgress(
-                  new Intl.NumberFormat(undefined, {
-                      style: "percent",
-                      maximumFractionDigits: 0,
-                  }).format(Math.floor(estimatedProgress) / 100),
-              );
+            : formatLiveExecutionPlanProgress(estimatedProgress);
     const liveElapsed = graph?.liveQueryStatistics?.elapsedTimeInMs;
     const elapsedLabel =
         liveElapsed === undefined

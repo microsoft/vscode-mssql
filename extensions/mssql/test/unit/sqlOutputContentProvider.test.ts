@@ -997,6 +997,75 @@ suite("SqlOutputProvider Tests using mocks", () => {
             expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([]);
         });
 
+        for (const planArrivesAfterCompletion of [false, true]) {
+            test(`keeps final operator stats when the actual plan arrives ${planArrivesAfterCompletion ? "after" : "before"} completion`, async () => {
+                const runner = await startLiveRun();
+                const liveGraph = {
+                    query: "select 1",
+                    root: { cost: 1, subTreeCost: 1 },
+                    liveQueryStatistics: { estimatedProgress: 75, elapsedTimeInMs: 1000 },
+                } as ExecutionPlanGraph;
+                getMonitor()._callbacks.onPlans([liveGraph]);
+                const finalGraph = {
+                    query: "select 1",
+                    root: {
+                        cost: 1,
+                        subTreeCost: 1,
+                        children: [
+                            {
+                                liveQueryStatistics: {
+                                    actualRows: "80",
+                                    estimatedRows: 100,
+                                    elapsedTimeInMs: 2000,
+                                },
+                            },
+                        ],
+                    },
+                    liveQueryStatistics: { elapsedTimeInMs: 2100 },
+                } as ExecutionPlanGraph;
+                executionPlanService.getExecutionPlan.resolves({
+                    graphs: [finalGraph],
+                    success: true,
+                    errorMessage: undefined,
+                });
+                const rows = new Deferred<QueryExecuteSubsetResult>();
+                sandbox.stub(runner, "getRows").returns(rows.promise);
+                const planCompletion = runner.handleResultSetComplete({
+                    ownerUri: uri,
+                    resultSetSummary: {
+                        batchId: 0,
+                        id: 0,
+                        rowCount: 1,
+                        columnInfo: [{ columnName: Constants.showPlanXmlColumnName } as IDbColumn],
+                    },
+                });
+                if (planArrivesAfterCompletion) {
+                    runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+                    // Final display reflects this run even if preview settings change afterward.
+                    previewEnabled = false;
+                }
+                rows.resolve({
+                    resultSubset: {
+                        rowCount: 1,
+                        rows: [[{ displayValue: "<ShowPlanXML />", isNull: false }]],
+                    },
+                } as QueryExecuteSubsetResult);
+                await planCompletion;
+                await executionPlanService.getExecutionPlan.lastCall.returnValue;
+                if (!planArrivesAfterCompletion) {
+                    runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+                }
+                const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+                expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                    {
+                        ...finalGraph,
+                        liveQueryStatistics: { estimatedProgress: 100, elapsedTimeInMs: 2100 },
+                    },
+                ]);
+                expect(finalGraph.liveQueryStatistics?.estimatedProgress).to.be.undefined;
+            });
+        }
+
         test("shows the executed batch script when a lightweight plan omits the statement text", async () => {
             const runner = await startLiveRun();
             sandbox.stub(runner, "currentBatchQuery").get(() => "select 1;");
@@ -1042,6 +1111,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
             const liveGraph = {
                 query: "select 1",
                 root: { cost: 1, subTreeCost: 1 },
+                liveQueryStatistics: { estimatedProgress: 75, elapsedTimeInMs: 1000 },
             } as ExecutionPlanGraph;
             getMonitor()._callbacks.onPlans([liveGraph]);
 

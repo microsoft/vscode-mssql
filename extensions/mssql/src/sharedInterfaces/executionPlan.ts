@@ -119,7 +119,7 @@ export interface ExecutionPlanGraph {
      * the view can tell a new read from the same read sent along with other state updates.
      */
     liveRefreshId?: number;
-    /** Estimated work completed from live operator row counts, weighted by plan costs. */
+    /** Estimated work completed from pipeline input rows, weighted by refined plan costs. */
     liveQueryStatistics?: {
         estimatedProgress?: number;
         elapsedTimeInMs?: number;

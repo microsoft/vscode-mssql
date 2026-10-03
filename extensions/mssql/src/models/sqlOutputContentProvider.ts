@@ -702,6 +702,7 @@ export class SqlOutputContentProvider {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
+            let isLiveRun = false;
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
                 this.updateWebviewState(queryRunner.uri, {
@@ -718,6 +719,7 @@ export class SqlOutputContentProvider {
             });
 
             const startListener = queryRunner.onStart(async (_panelUri) => {
+                isLiveRun = this._liveQueryStatisticsRuns.has(queryRunner.uri);
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
@@ -899,6 +901,7 @@ export class SqlOutputContentProvider {
             });
 
             const onExecutionPlanListener = queryRunner.onExecutionPlan(async (e) => {
+                const wasLive = isLiveRun;
                 const planGraphs = await this._executionPlanService.getExecutionPlan({
                     graphFileContent: e.xml,
                     graphFileType: "xml",
@@ -912,7 +915,17 @@ export class SqlOutputContentProvider {
                 const currentGraphs = resultWebviewState.executionPlanState.executionPlanGraphs;
                 const existingGraphs = [
                     ...currentGraphs.filter((graph) => !graph.isLive),
-                    ...planGraphs.graphs,
+                    ...planGraphs.graphs.map((graph) =>
+                        wasLive && graph.liveQueryStatistics
+                            ? {
+                                  ...graph,
+                                  liveQueryStatistics: {
+                                      ...graph.liveQueryStatistics,
+                                      estimatedProgress: 100,
+                                  },
+                              }
+                            : graph,
+                    ),
                     ...currentGraphs.filter((graph) => graph.isLive),
                 ];
 

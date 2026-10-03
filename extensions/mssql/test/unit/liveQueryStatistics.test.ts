@@ -82,6 +82,43 @@ suite("LiveQueryStatisticsMonitor", () => {
         expect(callbacks.onPlans.firstCall.args).to.deep.equal([[graph]]);
     });
 
+    test("keeps progress monotonic per statement and resets when elapsed time starts over", async () => {
+        const sample = (rows: number, elapsed: number, query = "select 1"): ExecutionPlanGraph =>
+            ({
+                query,
+                root: { children: [{ cost: 1, children: [] }] },
+                graphFile: {
+                    graphFileType: "xml",
+                    planIndexInFile: 0,
+                    graphFileContent: `<ShowPlanXML><StmtSimple StatementId="1"><QueryPlan><QueryTimeStats ElapsedTime="${elapsed}" />
+                    <RelOp EstimateRows="100"><RunTimeInformation><RunTimeCountersPerThread ActualRows="${rows}" /></RunTimeInformation></RelOp>
+                    </QueryPlan></StmtSimple></ShowPlanXML>`,
+                },
+            }) as ExecutionPlanGraph;
+        const reads = stubReads();
+        reads.onCall(0).resolves({ graphs: [sample(75, 100), sample(10, 100, "select 2")] });
+        reads.onCall(1).resolves({ graphs: [sample(50, 200), sample(20, 200, "select 2")] });
+        reads.onCall(2).resolves({ graphs: [sample(5, 10), sample(30, 300, "select 2")] });
+        reads.resolves({ graphs: [] });
+        const monitor = createMonitor();
+        monitor.start();
+        await waitFor(() => callbacks.onPlans.callCount >= 3);
+        monitor.dispose();
+
+        const reported = callbacks.onPlans
+            .getCalls()
+            .map((call) =>
+                (call.args[0] as ExecutionPlanGraph[]).map(
+                    (plan) => plan.liveQueryStatistics?.estimatedProgress,
+                ),
+            );
+        expect(reported).to.deep.equal([
+            [75, 10],
+            [75, 20],
+            [5, 30],
+        ]);
+    });
+
     test("waits for a plan while the statement hasn't started", async () => {
         stubReads().resolves({ graphs: [] });
         const monitor = createMonitor();

@@ -3366,7 +3366,8 @@
     "Rows: {0} of {1}": "Rows: {0} of {1}",
     "Rows: {0} of {1} ({2})": "Rows: {0} of {1} ({2})",
     "Estimated query progress: {0}": "Estimated query progress: {0}",
-    "Estimated from operator row counts and plan costs. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.": "Estimated from operator row counts and plan costs. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.",
+    "Estimated query progress: <{0}": "Estimated query progress: <{0}",
+    "Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.": "Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.",
     "Live plan of the running statement. Row counts refresh while it runs.": "Live plan of the running statement. Row counts refresh while it runs.",
     "Execution plan {0}, use arrow keys to navigate between nodes/{0} is the one-based execution plan number": {
         "message": "Execution plan {0}, use arrow keys to navigate between nodes",

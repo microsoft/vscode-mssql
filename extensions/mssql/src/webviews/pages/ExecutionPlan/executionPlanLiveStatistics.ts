@@ -6,6 +6,17 @@
 import { ExecutionPlanNode } from "../../../sharedInterfaces/executionPlan";
 import { locConstants } from "../../common/locConstants";
 
+/** Keep small, nonzero progress visible instead of rounding it down to zero. */
+export function formatLiveExecutionPlanProgress(progress: number, locale?: string): string {
+    const formatter = new Intl.NumberFormat(locale, {
+        style: "percent",
+        maximumFractionDigits: 1,
+    });
+    return progress > 0 && progress < 0.1
+        ? locConstants.executionPlan.liveEstimatedProgressLessThan(formatter.format(0.001))
+        : locConstants.executionPlan.liveEstimatedProgress(formatter.format(progress / 100));
+}
+
 export function formatLiveExecutionPlanDuration(milliseconds: number, locale?: string): string {
     if (milliseconds < 60_000) {
         return locConstants.executionPlan.liveDurationSeconds(

@@ -34,6 +34,10 @@ export class LiveQueryStatisticsMonitor implements vscode.Disposable {
     private _timer: ReturnType<typeof setTimeout> | undefined;
     private _pendingRead: Promise<void> | undefined;
     private _isDisposed = false;
+    private readonly _progressByStatement = new Map<
+        string,
+        { progress: number; elapsedTimeInMs?: number }
+    >();
 
     constructor(
         private readonly _ownerUri: string,
@@ -90,7 +94,32 @@ export class LiveQueryStatisticsMonitor implements vscode.Disposable {
                 sessionId: this._sessionId,
             });
             if (!this._isDisposed && result?.graphs?.length > 0) {
-                this._callbacks.onPlans(result.graphs.map(addLiveExecutionPlanStatistics));
+                this._callbacks.onPlans(
+                    result.graphs.map((graph, index) => {
+                        const annotated = addLiveExecutionPlanStatistics(graph);
+                        const statistics = annotated.liveQueryStatistics;
+                        if (statistics?.estimatedProgress === undefined) {
+                            return annotated;
+                        }
+                        const key = `${graph.graphFile?.planIndexInFile ?? index}:${graph.query}`;
+                        const previous = this._progressByStatement.get(key);
+                        // Refining a cardinality estimate can lower the current sample. Keep the
+                        // displayed estimate monotonic, but reset when a statement starts again.
+                        const restarted =
+                            previous?.elapsedTimeInMs !== undefined &&
+                            statistics.elapsedTimeInMs !== undefined &&
+                            statistics.elapsedTimeInMs < previous.elapsedTimeInMs;
+                        statistics.estimatedProgress = Math.max(
+                            statistics.estimatedProgress,
+                            restarted ? 0 : (previous?.progress ?? 0),
+                        );
+                        this._progressByStatement.set(key, {
+                            progress: statistics.estimatedProgress,
+                            elapsedTimeInMs: statistics.elapsedTimeInMs,
+                        });
+                        return annotated;
+                    }),
+                );
             }
         } catch (error) {
             if (!this._isDisposed) {

@@ -9,6 +9,7 @@ import { ExecutionPlanGraph, ExecutionPlanNode } from "../../src/sharedInterface
 import {
     getExecutionPlanNodeLabelLines,
     formatLiveExecutionPlanDuration,
+    formatLiveExecutionPlanProgress,
     formatLiveExecutionPlanRows,
 } from "../../src/webviews/pages/ExecutionPlan/executionPlanLiveStatistics";
 import {
@@ -75,16 +76,106 @@ suite("Live execution plan statistics", () => {
         expect(JSON.stringify(source)).to.equal(before);
     });
 
-    test("weights observed row progress by operator cost rather than averaging operators", () => {
+    test("uses pipeline input progress instead of intermediate output row estimates", () => {
         const result = addLiveExecutionPlanStatistics(
             graph(
                 node([node([], 3)]),
-                plan(`<RelOp EstimateRows="100"><RunTimeInformation><RunTimeCountersPerThread ActualRows="0" /></RunTimeInformation><NestedLoops>
+                plan(`<RelOp PhysicalOp="Nested Loops" EstimateRows="1000000000000"><RunTimeInformation><RunTimeCountersPerThread ActualRows="0" /></RunTimeInformation><NestedLoops>
             <RelOp EstimateRows="100"><RunTimeInformation><RunTimeCountersPerThread ActualRows="75" /></RunTimeInformation></RelOp>
             </NestedLoops></RelOp>`),
             ),
         );
-        expect(result.liveQueryStatistics?.estimatedProgress).to.equal(56.25);
+        expect(result.liveQueryStatistics?.estimatedProgress).to.equal(75);
+    });
+
+    test("advances a cross join from input rows even when intermediate estimates are trillions", () => {
+        const sample = (rows: number): ExecutionPlanGraph =>
+            graph(
+                node([node(), node([node()])], 1000000000),
+                plan(`<RelOp PhysicalOp="Nested Loops" EstimateRows="1000000000000">
+                    <RunTimeInformation><RunTimeCountersPerThread ActualRows="${rows * 10}" ActualExecutions="1" ActualEndOfScans="0" /></RunTimeInformation>
+                    <NestedLoops>
+                        <RelOp PhysicalOp="Clustered Index Scan" EstimateRows="100">
+                            <RunTimeInformation><RunTimeCountersPerThread ActualRows="${rows}" ActualExecutions="1" ActualEndOfScans="0" /></RunTimeInformation>
+                        </RelOp>
+                        <RelOp PhysicalOp="Table Spool" EstimateRows="10">
+                            <RunTimeInformation><RunTimeCountersPerThread ActualRows="${rows * 10}" ActualExecutions="${rows + 1}" ActualEndOfScans="${rows}" /></RunTimeInformation>
+                            <Spool><RelOp PhysicalOp="Clustered Index Scan" EstimateRows="1000">
+                                <RunTimeInformation><RunTimeCountersPerThread ActualRows="10" ActualExecutions="1" ActualEndOfScans="1" /></RunTimeInformation>
+                            </RelOp></Spool>
+                        </RelOp>
+                    </NestedLoops>
+                </RelOp>`),
+            );
+        const earlier = addLiveExecutionPlanStatistics(sample(25));
+        const later = addLiveExecutionPlanStatistics(sample(75));
+        expect(earlier.liveQueryStatistics?.estimatedProgress).to.be.within(25, 99);
+        expect(later.liveQueryStatistics?.estimatedProgress).to.be.within(75, 99);
+        expect(later.liveQueryStatistics!.estimatedProgress!).to.be.greaterThan(
+            earlier.liveQueryStatistics!.estimatedProgress!,
+        );
+        // Keep the optimizer estimate visible on each operator even when overall costs adapt.
+        expect(later.root.children[0].liveQueryStatistics?.estimatedRows).to.equal(1000000000000);
+    });
+
+    test("does not treat one completed inner scan as a finished nested-loop input", () => {
+        const result = addLiveExecutionPlanStatistics(
+            graph(
+                node([node(), node()]),
+                plan(`<RelOp PhysicalOp="Nested Loops" EstimateRows="1000">
+                    <RunTimeInformation><RunTimeCountersPerThread ActualRows="100" ActualExecutions="1" ActualEndOfScans="0" /></RunTimeInformation>
+                    <NestedLoops>
+                        <RelOp PhysicalOp="Table Scan" EstimateRows="100">
+                            <RunTimeInformation><RunTimeCountersPerThread ActualRows="10" ActualExecutions="1" ActualEndOfScans="0" /></RunTimeInformation>
+                        </RelOp>
+                        <RelOp PhysicalOp="Table Scan" EstimateRows="10" EstimateRebinds="9">
+                            <RunTimeInformation><RunTimeCountersPerThread ActualRows="10" ActualExecutions="1" ActualEndOfScans="1" /></RunTimeInformation>
+                        </RelOp>
+                    </NestedLoops>
+                </RelOp>`),
+            ),
+        );
+        expect(result.liveQueryStatistics?.estimatedProgress).to.be.closeTo(10, 0.000001);
+    });
+
+    test("counts hash build work before the probe pipeline starts", () => {
+        const result = addLiveExecutionPlanStatistics(
+            graph(
+                node([node([], 8), node()], 1),
+                plan(`<RelOp PhysicalOp="Hash Match" EstimateRows="100">
+                    <RunTimeInformation><RunTimeCountersPerThread ActualRows="0" /></RunTimeInformation>
+                    <Hash>
+                        <RelOp PhysicalOp="Table Scan" EstimateRows="100">
+                            <RunTimeInformation><RunTimeCountersPerThread ActualRows="50" ActualExecutions="1" ActualEndOfScans="0" /></RunTimeInformation>
+                        </RelOp>
+                        <RelOp PhysicalOp="Table Scan" EstimateRows="100">
+                            <RunTimeInformation><RunTimeCountersPerThread ActualRows="0" ActualExecutions="0" ActualEndOfScans="0" /></RunTimeInformation>
+                        </RelOp>
+                    </Hash>
+                </RelOp>`),
+            ),
+        );
+        expect(result.liveQueryStatistics?.estimatedProgress).to.equal(40);
+    });
+
+    test("refines completed parallel scans without treating an active worker as finished", () => {
+        const sample = (endOfScans: number): ExecutionPlanGraph =>
+            graph(
+                node(),
+                plan(`<RelOp PhysicalOp="Table Scan" EstimateRows="1000">
+                    <RunTimeInformation>
+                        <RunTimeCountersPerThread Thread="0" ActualRows="0" ActualExecutions="0" ActualEndOfScans="0" />
+                        <RunTimeCountersPerThread Thread="1" ActualRows="20" ActualExecutions="1" ActualEndOfScans="1" />
+                        <RunTimeCountersPerThread Thread="2" ActualRows="30" ActualExecutions="1" ActualEndOfScans="${endOfScans}" />
+                    </RunTimeInformation>
+                </RelOp>`),
+            );
+        expect(
+            addLiveExecutionPlanStatistics(sample(0)).liveQueryStatistics?.estimatedProgress,
+        ).to.equal(5);
+        expect(
+            addLiveExecutionPlanStatistics(sample(1)).liveQueryStatistics?.estimatedProgress,
+        ).to.equal(99);
     });
 
     test("keeps exact row counts past Number.MAX_SAFE_INTEGER without translated properties", () => {
@@ -157,6 +248,24 @@ suite("Live execution plan statistics", () => {
 });
 
 suite("Live execution plan labels", () => {
+    test("distinguishes tiny nonzero progress from zero and preserves fractional percentages", () => {
+        expect(formatLiveExecutionPlanProgress(0, "en-US")).to.equal(
+            "Estimated query progress: 0%",
+        );
+        expect(formatLiveExecutionPlanProgress(0.001, "en-US")).to.equal(
+            "Estimated query progress: <0.1%",
+        );
+        expect(formatLiveExecutionPlanProgress(0.1, "en-US")).to.equal(
+            "Estimated query progress: 0.1%",
+        );
+        expect(formatLiveExecutionPlanProgress(94.94, "en-US")).to.equal(
+            "Estimated query progress: 94.9%",
+        );
+        expect(formatLiveExecutionPlanProgress(99, "en-US")).to.equal(
+            "Estimated query progress: 99%",
+        );
+    });
+
     test("formats subsecond, minute, and multiday durations without losing whole seconds", () => {
         expect(formatLiveExecutionPlanDuration(11, "en-US")).to.equal("0.011 s");
         expect(formatLiveExecutionPlanDuration(67011, "en-US")).to.equal("0:01:07");

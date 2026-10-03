@@ -1020,8 +1020,10 @@ export class LocConstants {
                 l10n.t("Rows: {0} of {1} ({2})", actual, estimated, percentage),
             liveEstimatedProgress: (percentage: string) =>
                 l10n.t("Estimated query progress: {0}", percentage),
+            liveEstimatedProgressLessThan: (percentage: string) =>
+                l10n.t("Estimated query progress: <{0}", percentage),
             liveEstimatedProgressDescription: l10n.t(
-                "Estimated from operator row counts and plan costs. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.",
+                "Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.",
             ),
             livePlanDescription: l10n.t(
                 "Live plan of the running statement. Row counts refresh while it runs.",
