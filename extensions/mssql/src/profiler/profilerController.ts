@@ -21,6 +21,10 @@ import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
+import {
+    ObjectExplorerNodePicker,
+    ObjectExplorerTarget,
+} from "../objectExplorer/objectExplorerNodePicker";
 import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, isAzureSqlDbCompatible } from "../models/connectionInfo";
 import { getErrorMessage, uuid } from "../utils/utils";
@@ -44,6 +48,7 @@ export class ProfilerController {
         private _context: vscode.ExtensionContext,
         private _connectionManager: ConnectionManager,
         private _sessionManager: ProfilerSessionManager,
+        private _nodePicker?: ObjectExplorerNodePicker,
     ) {
         this._logger = logger.withPrefix("Profiler");
         this.registerCommands();
@@ -237,13 +242,30 @@ export class ProfilerController {
         }
     }
 
+    /**
+     * Resolves the node a launch command runs against. Commands run from the Command Palette
+     * receive no node, so the user is asked to choose one.
+     */
+    private async resolveNode(
+        node: TreeNodeInfo | undefined,
+        targets: ObjectExplorerTarget[],
+    ): Promise<TreeNodeInfo | undefined> {
+        return this._nodePicker ? this._nodePicker.resolveNode(node, targets) : node;
+    }
+
     private registerCommands(): void {
         // Launch Profiler from Object Explorer (uses selected connection)
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 "mssql.profiler.launchFromObjectExplorer",
-                async (treeNodeInfo: TreeNodeInfo) => {
+                async (node?: TreeNodeInfo) => {
                     try {
+                        const treeNodeInfo = await this.resolveNode(node, [
+                            ObjectExplorerTarget.Server,
+                        ]);
+                        if (!treeNodeInfo) {
+                            return;
+                        }
                         const connectionProfile = treeNodeInfo.connectionProfile;
                         await this.launchProfilerWithConnection(connectionProfile);
                     } catch (e) {
@@ -260,8 +282,14 @@ export class ProfilerController {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 "mssql.profiler.launchFromDatabase",
-                async (treeNodeInfo: TreeNodeInfo) => {
+                async (node?: TreeNodeInfo) => {
                     try {
+                        const treeNodeInfo = await this.resolveNode(node, [
+                            ObjectExplorerTarget.Database,
+                        ]);
+                        if (!treeNodeInfo) {
+                            return;
+                        }
                         const connectionProfile = treeNodeInfo.connectionProfile;
                         // Use ObjectExplorerUtils.getDatabaseName to reliably get the database name.
                         // connectionProfile.database is often empty for Database nodes because they
