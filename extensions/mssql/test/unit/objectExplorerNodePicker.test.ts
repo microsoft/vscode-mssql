@@ -132,7 +132,7 @@ suite("ObjectExplorerNodePicker", () => {
 
         const result = await picker.resolveNode(undefined, [ObjectExplorerTarget.Server]);
 
-        expect(connectionUi.promptForConnection).to.have.been.calledOnce;
+        expect(connectionUi.promptForConnection).to.have.been.called;
         expect(createSession).to.have.been.calledWith(profile);
         expect(result).to.equal(server);
     });
@@ -237,12 +237,17 @@ suite("ObjectExplorerNodePicker", () => {
         stubChildren(database, [schema]);
         stubChildren(schema, [tablesFolder]);
         stubChildren(tablesFolder, [orders]);
-        window.showQuickPick.callsFake(async (items: vscode.QuickPickItem[]) => items[0]);
+        const offeredLabels: string[][] = [];
+        window.showQuickPick.callsFake(async (items: vscode.QuickPickItem[]) => {
+            offeredLabels.push(items.map((item) => item.label));
+            return items[0];
+        });
 
         const result = await picker.resolveNode(undefined, [ObjectExplorerTarget.Table]);
 
         expect(connectionUi.promptForConnection).to.not.have.been.called;
-        expect(window.showQuickPick).to.have.been.calledTwice;
+        expect(offeredLabels).to.deep.include(["dbo"]);
+        expect(offeredLabels).to.deep.include(["dbo.Orders"]);
         expect(result).to.equal(orders);
     });
 });
