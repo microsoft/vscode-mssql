@@ -58,6 +58,16 @@ interface FileWatcherStatus {
     fileWatcher: vscode.FileSystemWatcher;
 }
 
+interface ProjectFileQuickPickItem extends vscode.QuickPickItem {
+    fileSystemUri: vscode.Uri;
+    projectFileUri: vscode.Uri;
+}
+
+interface ProjectFileSearchEntry {
+    entry: FileProjectEntry;
+    iconPath: vscode.ThemeIcon;
+}
+
 /**
  * Controller for managing lifecycle of projects
  */
@@ -1603,9 +1613,9 @@ export class ProjectsController {
     /**
      * Opens a file in the editor and adds a file watcher to check if a create table statement has been added
      * @param fileSystemUri uri of file
-     * @param node node of file in the tree
+     * @param node optional node of the file in the tree
      */
-    public async openFileWithWatcher(fileSystemUri: vscode.Uri, _node: FileNode): Promise<void> {
+    public async openFileWithWatcher(fileSystemUri: vscode.Uri, _node?: FileNode): Promise<void> {
         await vscode.commands.executeCommand(constants.vscodeOpenCommand, fileSystemUri);
 
         const fileWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(
@@ -2251,6 +2261,79 @@ export class ProjectsController {
         return project.sqlObjectScripts
             .filter((f) => f.fsUri.fsPath.endsWith(constants.sqlFileExtension))
             .map((f) => f.fsUri.fsPath);
+    }
+
+    /**
+     * Searches every file in the open SQL projects, including files below collapsed tree nodes.
+     */
+    public async findFile(): Promise<void> {
+        const projectFiles = await utils.getSqlProjectsInWorkspace();
+        const quickPickItems: ProjectFileQuickPickItem[] = [];
+        const seenFiles = new Set<string>();
+
+        for (const projectFile of projectFiles) {
+            const project = await Project.openProject(projectFile.fsPath, false, true);
+            const entries: ProjectFileSearchEntry[] = [
+                ...project.sqlObjectScripts.map((entry) => ({
+                    entry,
+                    iconPath: new vscode.ThemeIcon("file-code"),
+                })),
+                ...project.preDeployScripts.map((entry) => ({
+                    entry,
+                    iconPath: new vscode.ThemeIcon("play"),
+                })),
+                ...project.postDeployScripts.map((entry) => ({
+                    entry,
+                    iconPath: new vscode.ThemeIcon("play"),
+                })),
+                ...project.noneDeployScripts.map((entry) => ({
+                    entry,
+                    iconPath: new vscode.ThemeIcon("file"),
+                })),
+                ...project.publishProfiles.map((entry) => ({
+                    entry,
+                    iconPath: new vscode.ThemeIcon("cloud-upload"),
+                })),
+            ];
+
+            for (const { entry, iconPath } of entries) {
+                const fileKey = entry.fsUri.toString();
+                if (seenFiles.has(fileKey)) {
+                    continue;
+                }
+
+                seenFiles.add(fileKey);
+                const relativePath = utils.getPlatformSafeFileEntryPath(entry.relativePath);
+                const folder = path.posix.dirname(relativePath);
+                quickPickItems.push({
+                    label: path.basename(entry.fsUri.fsPath),
+                    description:
+                        folder === "."
+                            ? project.projectFileName
+                            : `${folder} — ${project.projectFileName}`,
+                    iconPath,
+                    fileSystemUri: entry.fsUri,
+                    projectFileUri: projectFile,
+                });
+            }
+        }
+
+        const selectedFile = await vscode.window.showQuickPick(
+            quickPickItems.sort((a, b) => a.label.localeCompare(b.label)),
+            {
+                title: SqlProjects.findFileTitle,
+                placeHolder: SqlProjects.findFilePlaceholder,
+                matchOnDescription: true,
+                matchOnDetail: true,
+            },
+        );
+
+        if (selectedFile) {
+            await this.openFileWithWatcher(selectedFile.fileSystemUri);
+            await utils
+                .getDataWorkspaceExtensionApi()
+                .revealProjectItem(selectedFile.projectFileUri, selectedFile.fileSystemUri);
+        }
     }
 
     public async getProjectDatabaseSchemaProvider(projectFilePath: string): Promise<string> {
