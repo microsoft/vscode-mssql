@@ -2339,6 +2339,9 @@
     <trans-unit id="++CODE++b5b443f33da497ccf2678851978831b0e00e274513ff16f44c570776cb6cc34c">
       <source xml:lang="en">Copy data and save results to files</source>
     </trans-unit>
+    <trans-unit id="++CODE++3445c4802a96131120ac2a8e228d505e08afc53b917172374c3810badc0407c7">
+      <source xml:lang="en">Copy error details</source>
+    </trans-unit>
     <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
       <source xml:lang="en">Copy link</source>
     </trans-unit>
@@ -9052,11 +9055,17 @@
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>
     </trans-unit>
+    <trans-unit id="++CODE++94ea9b1d33a02975ea6b71d6cf87d461a48de07869c047b5daeb1654e9d539f8">
+      <source xml:lang="en">Show less</source>
+    </trans-unit>
     <trans-unit id="++CODE++34b66838fe486341b25e97f41fad0907e36f19f2293a7cb445080b43e3076be5">
       <source xml:lang="en">Show log</source>
     </trans-unit>
     <trans-unit id="++CODE++8a4cdc1c1353b76118cc7e7eb513c9d9cb49db4012aec7b94b52971b4518edf4">
       <source xml:lang="en">Show masked command (hides sensitive information)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f5c9bd131486e793ee105bd81f001fc25cdc2dac9c1d9f636ac7d43a10efc7e6">
+      <source xml:lang="en">Show more</source>
     </trans-unit>
     <trans-unit id="++CODE++03cd9b98d0e655868474c63968d4e0979851a6f4a8412764029837f5331efb5e">
       <source xml:lang="en">Show or hide the query result panel</source>
