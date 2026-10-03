@@ -622,6 +622,20 @@ export class ObjectExplorerService {
     }
 
     /**
+     * Gets the children of a node, loading them first if they are not cached. Unlike getChildren,
+     * this waits for the load to finish instead of returning a loading placeholder.
+     * @param element The node to get children for
+     * @returns The loaded children of the node
+     */
+    public async getLoadedNodeChildren(element: TreeNodeInfo): Promise<TreeNodeInfo[]> {
+        if (!this._treeNodeToChildrenMap.has(element)) {
+            await this.getOrCreateNodeChildrenWithSession(element);
+        }
+        const children = this._treeNodeToChildrenMap.get(element) ?? [];
+        return children.filter((child): child is TreeNodeInfo => child instanceof TreeNodeInfo);
+    }
+
+    /**
      * Handles getting children for all nodes other than the root node
      * @param element The node to get children for
      * @returns The children of the node

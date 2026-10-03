@@ -621,6 +621,17 @@
         "comment": ["{0} is the node label"]
     },
     "Loading...": "Loading...",
+    "Select a database": "Select a database",
+    "Select a schema": "Select a schema",
+    "Select a table": "Select a table",
+    "No databases were found on {0}./{0} is the server name": {
+        "message": "No databases were found on {0}.",
+        "comment": ["{0} is the server name"]
+    },
+    "No tables were found in {0}./{0} is the database name": {
+        "message": "No tables were found in {0}.",
+        "comment": ["{0} is the database name"]
+    },
     "Generating script...": "Generating script...",
     "Fetching {0} script.../{0} is the script type": {
         "message": "Fetching {0} script...",
@@ -710,7 +721,6 @@
     },
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     "No subscriptions found. Please change Azure account or tenant to view available subscriptions.": "No subscriptions found. Please change Azure account or tenant to view available subscriptions.",
-    "Select a database": "Select a database",
     "User databases": "User databases",
     "System databases": "System databases",
     "Unable to load database list from server: {0} You may enter the database name directly./{0} is the connection error message": {
