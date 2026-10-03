@@ -61,6 +61,7 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
             "fluent-result-grid",
             controller.isGridFocused ? "focused" : "",
             props.gridSettings?.alternatingRowColors ? "results-grid--alternating" : "",
+            props.gridSettings?.rightAlignNumbers ? "results-grid--right-align-numbers" : "",
             theme?.className,
             props.className,
         ]

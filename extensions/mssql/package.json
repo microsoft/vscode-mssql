@@ -3262,6 +3262,11 @@
                     "maximum": 10,
                     "description": "%mssql.resultsGrid.rowPadding%"
                 },
+                "mssql.resultsGrid.rightAlignNumbers": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.resultsGrid.rightAlignNumbers%"
+                },
                 "mssql.query.displayBitAsNumber": {
                     "type": "boolean",
                     "default": true,
