@@ -628,9 +628,19 @@ export class ObjectExplorerService {
      * @returns The loaded children of the node
      */
     public async getLoadedNodeChildren(element: TreeNodeInfo): Promise<TreeNodeInfo[]> {
-        if (!this._treeNodeToChildrenMap.has(element)) {
+        if (
+            !this._treeNodeToChildrenMap.has(element) &&
+            !this._inFlightChildrenFetches.has(element)
+        ) {
             await this.getOrCreateNodeChildrenWithSession(element);
         }
+
+        let inFlight = this._inFlightChildrenFetches.get(element);
+        while (inFlight) {
+            await inFlight;
+            inFlight = this._inFlightChildrenFetches.get(element);
+        }
+
         const children = this._treeNodeToChildrenMap.get(element) ?? [];
         return children.filter((child): child is TreeNodeInfo => child instanceof TreeNodeInfo);
     }
