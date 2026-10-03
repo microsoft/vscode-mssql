@@ -328,7 +328,12 @@ export function NotebookResultGrid({
 
         // Ctrl+C / Cmd+C copy handler
         gridDiv.addEventListener("keydown", (e: KeyboardEvent) => {
-            if ((e.ctrlKey || e.metaKey) && eventMatchesKey(e, { key: "c", code: KeyCode.KeyC })) {
+            // Alt must be off: macOS Option+C produces "ç", which falls back to the physical key.
+            if (
+                (e.ctrlKey || e.metaKey) &&
+                !e.altKey &&
+                eventMatchesKey(e, { key: "c", code: KeyCode.KeyC })
+            ) {
                 const ranges = grid.getSelectionModel()?.getSelectedRanges();
                 if (!ranges || ranges.length === 0) {
                     // If no selection, copy active cell
