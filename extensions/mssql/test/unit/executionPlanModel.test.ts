@@ -17,9 +17,9 @@ import {
 import {
     ExecutionPlanEdgeModel,
     ExecutionPlanModel,
+    formatExecutionPlanRowCount,
     getExecutionPlanEdgeWeight,
     advanceExecutionPlanEdgeFlow,
-    formatExecutionPlanRowCount,
     EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE,
     EXECUTION_PLAN_FLOW_HOLD_REFRESHES,
     getExpensiveMetricValue,
@@ -128,6 +128,29 @@ suite("ExecutionPlanModel", () => {
         expect(
             advanceExecutionPlanEdgeFlow([edge("scan", 50)], flow.state, false).flowingEdgeIds.size,
         ).to.equal(0);
+    });
+
+    test("keeps every digit of row counts too large for a number, and fractional estimates", () => {
+        expect(formatExecutionPlanRowCount("9007199254740993", "en-US")).to.deep.equal({
+            label: "9007.2T",
+            exact: "9,007,199,254,740,993",
+        });
+        expect(formatExecutionPlanRowCount("12.5", "en-US")).to.deep.equal({
+            label: "12.5",
+            exact: "12.5",
+        });
+        expect(formatExecutionPlanRowCount("0.123456789", "en-US")).to.deep.equal({
+            label: "0.123",
+            exact: "0.123456789",
+        });
+        expect(formatExecutionPlanRowCount("1.50", "en-US")).to.deep.equal({
+            label: "1.5",
+            exact: "1.50",
+        });
+        expect(formatExecutionPlanRowCount("n/a", "en-US")).to.deep.equal({
+            label: "n/a",
+            exact: "n/a",
+        });
     });
 
     test("normalizes immutably with stable element IDs and deduplicated derived properties", () => {

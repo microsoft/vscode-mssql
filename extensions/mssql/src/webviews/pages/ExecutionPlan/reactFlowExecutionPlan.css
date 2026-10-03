@@ -129,7 +129,10 @@
     font-variant-numeric: tabular-nums;
     line-height: 14px;
     white-space: nowrap;
-    pointer-events: none;
+    /* The label layer ignores the pointer, so the label opts back in to show its exact-count
+       tooltip. Clicks still reach the edge through React, opening the edge's tooltip as before. */
+    pointer-events: all;
+    cursor: pointer;
     /* Fits a shortened count like 999.9K, so labels keep one size as counts change */
     min-width: 6ch;
     text-align: center;

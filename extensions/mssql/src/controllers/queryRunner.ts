@@ -125,6 +125,7 @@ export default class QueryRunner {
     private _registeredNotificationUris = new Set<string>();
     private _executionSource: QueryExecutionSource = "document";
     private _serverConnectionId: string | undefined;
+    private _executionPlanOptions: ExecutionPlanOptions | undefined;
     private _orphanedQueryRecoveryTimer: ReturnType<typeof setTimeout> | undefined;
     private static _runningQueries = [];
 
@@ -242,6 +243,13 @@ export default class QueryRunner {
      */
     get serverConnectionId(): string | undefined {
         return this._serverConnectionId;
+    }
+
+    /**
+     * Gets the execution plan options requested for the current query execution.
+     */
+    get executionPlanOptions(): ExecutionPlanOptions | undefined {
+        return this._executionPlanOptions;
     }
 
     get isSqlCmd(): boolean {
@@ -374,6 +382,7 @@ export default class QueryRunner {
         executionPlanOptions?: ExecutionPlanOptions,
     ): Promise<void> {
         this._executionSource = "document";
+        this._executionPlanOptions = executionPlanOptions;
 
         let optionsParams: QueryExecuteStatementParams = {
             ownerUri: this._ownerUri,
@@ -433,6 +442,7 @@ export default class QueryRunner {
         promise?: Deferred<boolean>,
     ): Promise<void> {
         this._executionSource = "document";
+        this._executionPlanOptions = executionPlanOptions;
 
         const queryType = selection ? "selection" : "document";
         const runQueryActivity = startActivity(
@@ -512,6 +522,7 @@ export default class QueryRunner {
      */
     public async runQueryString(query: string, promise?: Deferred<boolean>): Promise<void> {
         this._executionSource = "quickQuery";
+        this._executionPlanOptions = undefined;
 
         const executeParams: QueryExecuteStringParams = {
             ownerUri: this._ownerUri,
@@ -612,6 +623,10 @@ export default class QueryRunner {
                 result.ownerUri,
                 Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
             );
+            // The SPID can change when the connection reconnects, so refresh it after every run.
+            if (result.serverConnectionId) {
+                this._statusView.setServerProcessId(result.ownerUri, result.serverConnectionId);
+            }
             Perf.marker("mssql.query.complete", "end", {
                 rowCount: this._batchSets.reduce(
                     (total, batch) =>

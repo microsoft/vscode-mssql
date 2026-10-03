@@ -106,6 +106,49 @@ export interface ExecutionPlanBounds {
     bottom: number;
 }
 
+/** Pixels one wheel "line" scrolls, for wheels that report lines instead of pixels. */
+const EXECUTION_PLAN_WHEEL_LINE_HEIGHT = 16;
+
+// WheelEvent.DOM_DELTA_LINE and DOM_DELTA_PAGE; WheelEvent isn't defined outside the browser.
+const WHEEL_DELTA_LINE = 1;
+const WHEEL_DELTA_PAGE = 2;
+
+/** The parts of a wheel event that decide how far it scrolls the plan. */
+export interface ExecutionPlanWheelInput {
+    deltaX: number;
+    deltaY: number;
+    deltaMode: number;
+    shiftKey: boolean;
+}
+
+/**
+ * Converts a wheel event's deltas to screen pixels. Shift+wheel scrolls sideways where the browser
+ * doesn't already. The remap happens before scaling, so a page of Shift+wheel moves one canvas
+ * width rather than one canvas height.
+ */
+export function getExecutionPlanWheelDelta(
+    wheel: ExecutionPlanWheelInput,
+    canvasSize: ExecutionPlanViewportSize,
+): ExecutionPlanViewportPoint {
+    let { deltaX, deltaY } = wheel;
+    if (wheel.shiftKey && deltaX === 0) {
+        deltaX = deltaY;
+        deltaY = 0;
+    }
+    // Page-mode deltas count canvas pages, so each axis scales by its own dimension
+    const toPixels = (delta: number, pageSize: number) => {
+        switch (wheel.deltaMode) {
+            case WHEEL_DELTA_LINE:
+                return delta * EXECUTION_PLAN_WHEEL_LINE_HEIGHT;
+            case WHEEL_DELTA_PAGE:
+                return delta * pageSize;
+            default:
+                return delta;
+        }
+    };
+    return { x: toPixels(deltaX, canvasSize.width), y: toPixels(deltaY, canvasSize.height) };
+}
+
 /**
  * Scrolls the plan by a wheel delta in screen pixels, the way a scroll area would: the plan stops at
  * its edges, and an axis where the whole plan already fits doesn't move. No viewport is returned

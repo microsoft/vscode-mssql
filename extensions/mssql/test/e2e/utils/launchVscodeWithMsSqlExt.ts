@@ -11,7 +11,7 @@ import { _electron as electron } from "playwright";
 import * as path from "path";
 import * as fs from "fs";
 import * as cp from "child_process";
-import { ElectronApplication, Page } from "@playwright/test";
+import { ElectronApplication, Page, expect } from "@playwright/test";
 import { getVsCodeVersionName } from "./envConfigReader";
 import * as os from "os";
 
@@ -21,6 +21,14 @@ export type mssqlExtensionLaunchConfig = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     initialConfig?: any;
     useVsix?: boolean;
+    /**
+     * Directory to copy into this launch's extensions dir instead of installing the
+     * prerequisite extensions one launch at a time. Defaults to E2E_EXTENSIONS_TEMPLATE,
+     * which `scripts/prepare-e2e-env.js` populates once per CI job.
+     */
+    extensionsTemplateDir?: string;
+    /** Additional VS Code CLI arguments appended to the defaults. */
+    extraLaunchArgs?: string[];
 };
 
 export const DEFAULT_USER_CONFIG = {
@@ -28,6 +36,32 @@ export const DEFAULT_USER_CONFIG = {
 };
 
 const DOTNET_RUNTIME_EXTENSION_ID = "ms-dotnettools.vscode-dotnet-runtime";
+
+/**
+ * Builds the environment for the VS Code instance under test.
+ *
+ * Running the suite from inside VS Code's integrated terminal leaks the extension host's own
+ * variables into the child. Two of them break the launch outright:
+ *
+ *  - `ELECTRON_RUN_AS_NODE=1` makes Code.exe run as plain Node, so it rejects Playwright's
+ *    `--remote-debugging-port` with "bad option" and exits before printing the debugger line.
+ *    Playwright reports this only as "Process failed to launch!".
+ *  - `VSCODE_IPC_HOOK` points at the already-running instance, which the new process would
+ *    hand off to instead of starting its own window.
+ */
+function getIsolatedLaunchEnv(): Record<string, string> {
+    const env: Record<string, string> = {};
+    for (const [key, value] of Object.entries(process.env)) {
+        if (value === undefined) {
+            continue;
+        }
+        if (key === "ELECTRON_RUN_AS_NODE" || key.startsWith("VSCODE_")) {
+            continue;
+        }
+        env[key] = value;
+    }
+    return env;
+}
 
 function installExtension(
     cliPath: string,
@@ -110,11 +144,28 @@ export async function launchVsCodeWithMssqlExtension(
         "--skip-release-notes",
         "--skip-welcome",
         "--no-sandbox",
+        // Selectors throughout the suite resolve through localized aria-labels, so the
+        // workbench locale has to be fixed rather than inherited from the machine.
+        "--locale=en",
+        // A trust prompt would otherwise intercept the first interaction in a workspace.
+        "--disable-workspace-trust",
+        "--disable-telemetry",
         `--user-data-dir=${userDataDir}`,
         `--extensions-dir=${extensionsDir}`,
+        ...(config.extraLaunchArgs ?? []),
     ];
 
-    if (process.env["SKIP_DOTNET_RUNTIME_EXTENSION_INSTALL"] === "true") {
+    const extensionsTemplateDir =
+        config.extensionsTemplateDir ??
+        process.env["E2E_EXTENSIONS_TEMPLATE"] ??
+        path.join(process.env["RUNNER_TEMP"] || os.tmpdir(), "mssql-e2e-ext-template");
+
+    if (fs.existsSync(path.join(extensionsTemplateDir, "extensions.json"))) {
+        // Copying a prepared directory takes about a second; installing the extension
+        // costs roughly 35 seconds and would repeat on every launch in the run.
+        console.log(`Copying prepared extensions from ${extensionsTemplateDir}...`);
+        fs.cpSync(extensionsTemplateDir, extensionsDir, { recursive: true });
+    } else if (process.env["SKIP_DOTNET_RUNTIME_EXTENSION_INSTALL"] === "true") {
         console.log(`Skipping ${DOTNET_RUNTIME_EXTENSION_ID} install before launch.`);
     } else {
         console.log(`Installing ${DOTNET_RUNTIME_EXTENSION_ID} before launch...`);
@@ -136,18 +187,21 @@ export async function launchVsCodeWithMssqlExtension(
         launchArgs.push("--temp-profile");
     }
 
-    const shouldRecordVideo =
-        process.env.CI && process.env["DISABLE_ELECTRON_VIDEO_RECORDING"] !== "true";
+    // Video recording is opt-in everywhere. Locally it interferes with Playwright's window
+    // detection (a blank window gets captured instead of the workbench), and in CI each
+    // recording costs real CPU for the whole run while parallel workers are competing for
+    // it — which shows up as timing flake. Traces are retained on failure instead. Set
+    // ENABLE_ELECTRON_VIDEO_RECORDING=true to turn it back on for a single investigation.
+    const shouldRecordVideo = process.env["ENABLE_ELECTRON_VIDEO_RECORDING"] === "true";
 
     console.log("Launching VS Code with:", vscodePath, launchArgs);
     if (shouldRecordVideo) {
         console.log("Staging Playwright videos in:", videoDir);
     }
 
-    // Video recording interferes with Playwright's window detection locally (causes a
-    // blank window to be captured instead of the VS Code workbench). Only enable in CI.
     const electronLaunchOptions = {
         executablePath: vscodePath,
+        env: getIsolatedLaunchEnv(),
         args: config.useVsix
             ? launchArgs
             : [...launchArgs, `--extensionDevelopmentPath=${devExtensionPath}`],
@@ -162,31 +216,37 @@ export async function launchVsCodeWithMssqlExtension(
     };
 
     const electronApp = await electron.launch(electronLaunchOptions);
+    try {
+        const page = await electronApp.firstWindow({ timeout: 10_000 });
 
-    const page = await electronApp.firstWindow({ timeout: 10_000 });
+        await page.setViewportSize({ width: 1920, height: 1080 });
 
-    await page.setViewportSize({ width: 1920, height: 1080 });
+        // Activate MSSQL tab if not already selected
+        const sqlTab = page.locator('[role="tab"][aria-label^="SQL Server"]');
+        if ((await sqlTab.getAttribute("aria-selected")) !== "true") {
+            const tabLink = sqlTab.locator("a");
+            await tabLink.waitFor({ state: "visible", timeout: 30_000 });
+            await tabLink.click();
+        }
 
-    // Activate MSSQL tab if not already selected
-    const sqlTab = page.locator('[role="tab"][aria-label^="SQL Server"]');
-    if ((await sqlTab.getAttribute("aria-selected")) !== "true") {
-        const tabLink = sqlTab.locator("a");
-        await tabLink.waitFor({ state: "visible", timeout: 30_000 });
-        await tabLink.click();
+        // Object Explorer is ready once it has rendered at least one tree item. That is the
+        // "Add Connection" placeholder on a clean profile, or the seeded connections when
+        // mssql.connections was supplied in initialConfig.
+        await expect
+            .poll(async () => await page.locator('[role="treeitem"]').count(), {
+                timeout: 60_000,
+                message: "Object Explorer did not render any tree items.",
+            })
+            .toBeGreaterThan(0);
+
+        return { electronApp, page, userDataDir, extensionsDir, videoDir };
+    } catch (error) {
+        await electronApp.close().catch(() => undefined);
+        if (path.dirname(tmpRoot) === tmpBaseDir && path.basename(tmpRoot).startsWith("mssql-")) {
+            fs.rmSync(tmpRoot, { recursive: true, force: true });
+        }
+        throw error;
     }
-
-    // Wait for Object Explorer to finish loading
-    await page
-        .getByText("There is no data provider registered that can provide view data.")
-        .first()
-        .waitFor({ state: "hidden", timeout: 30_000 });
-
-    await page.locator('[role="treeitem"][aria-label*="Add Connection"]').waitFor({
-        state: "visible",
-        timeout: 30_000,
-    });
-
-    return { electronApp, page, userDataDir, extensionsDir, videoDir };
 }
 
 /**

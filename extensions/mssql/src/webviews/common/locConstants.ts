@@ -1001,6 +1001,12 @@ export class LocConstants {
             previous: l10n.t("Previous"),
             expand: l10n.t("Expand"),
             collapse: l10n.t("Collapse"),
+            viewFullValue: (propertyName: string) =>
+                l10n.t({
+                    message: "View full value of {0}",
+                    args: [propertyName],
+                    comment: ["{0} is the name of an execution plan property"],
+                }),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
             executionPlanRendererError: l10n.t("This execution plan could not be rendered."),

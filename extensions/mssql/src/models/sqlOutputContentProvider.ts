@@ -55,6 +55,34 @@ function getSelectionSummaryDisplayText(text?: string): string | undefined {
     return text?.replace(/\$\([^)]+\)\s*/g, "").trim();
 }
 
+function isEstimatedPlanRun(queryRunner: QueryRunner): boolean {
+    return queryRunner.executionPlanOptions?.includeEstimatedExecutionPlanXml === true;
+}
+
+/**
+ * Picks the tab to show when a run completes. Failed runs show Messages. Estimated plan runs show
+ * the Query Plan tab. Every other run, including one that captures actual plans, shows Results
+ * when it returned any result sets, matching SSMS.
+ */
+function getCompletedRunTab(
+    state: qr.QueryResultWebviewState,
+    isEstimatedPlan: boolean,
+    hasError: boolean,
+): QueryResultPaneTabs {
+    if (hasError) {
+        return QueryResultPaneTabs.Messages;
+    }
+    if (isEstimatedPlan) {
+        // A plan still being parsed opens its tab when it arrives.
+        return state.isExecutionPlan
+            ? QueryResultPaneTabs.ExecutionPlan
+            : QueryResultPaneTabs.Messages;
+    }
+    return countResultSets(state.resultSetSummaries) > 0
+        ? QueryResultPaneTabs.Results
+        : QueryResultPaneTabs.Messages;
+}
+
 export class SqlOutputContentProvider {
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
     private _queryResultWebviewController: QueryResultWebviewController;
@@ -704,10 +732,11 @@ export class SqlOutputContentProvider {
                         resultWebviewState.resultSetSummaries[batchId] = {};
                     }
                     resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
-                    // Switch to results tab for the first result set. A run with live statistics
-                    // stays on its live plan instead.
+                    // Switch to results for the first result set unless this run shows an
+                    // estimated or live plan instead.
                     if (
                         countResultSets(resultWebviewState.resultSetSummaries) === 1 &&
+                        !isEstimatedPlanRun(queryRunner) &&
                         !this._liveQueryStatistics.has(queryRunner.uri)
                     ) {
                         resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
@@ -846,22 +875,11 @@ export class SqlOutputContentProvider {
                         time: new Date().toLocaleTimeString(),
                     });
                 }
-                // if there is an error, show the error message and set the tab to the messages tab
-                let tabState: QueryResultPaneTabs;
-                if (hasError) {
-                    tabState = QueryResultPaneTabs.Messages;
-                } else {
-                    if (resultWebviewState.isExecutionPlan) {
-                        tabState = QueryResultPaneTabs.ExecutionPlan;
-                    } else {
-                        if (Object.keys(resultWebviewState.resultSetSummaries)?.length > 0) {
-                            tabState = QueryResultPaneTabs.Results;
-                        } else {
-                            tabState = QueryResultPaneTabs.Messages;
-                        }
-                    }
-                }
-                resultWebviewState.tabStates.resultPaneTab = tabState;
+                resultWebviewState.tabStates.resultPaneTab = getCompletedRunTab(
+                    resultWebviewState,
+                    isEstimatedPlanRun(queryRunner),
+                    hasError,
+                );
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
             });
 
@@ -898,6 +916,15 @@ export class SqlOutputContentProvider {
                     ),
                     xmlPlans: xmlPlans,
                 };
+
+                // Plans are parsed asynchronously and can arrive after the run has completed,
+                // so an estimated plan run also opens the Query Plan tab here.
+                if (
+                    isEstimatedPlanRun(queryRunner) &&
+                    !queryRunner.batchSets.some((batch) => batch?.hasError)
+                ) {
+                    resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.ExecutionPlan;
+                }
 
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
             });

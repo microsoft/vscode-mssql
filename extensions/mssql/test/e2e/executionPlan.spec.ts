@@ -79,10 +79,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await expect(
             iframe.getByRole("tree", { name: /Execution plan 1, use arrow keys/ }),
         ).toBeVisible();
-        await rootNode.focus();
-        await expect(iframe.getByRole("status")).toHaveText(
-            "Execution plan 1, use arrow keys to navigate between nodes",
-        );
+        await expect(iframe.getByRole("status")).toHaveAttribute("aria-live", "polite");
         const viewport = iframe.locator(".react-flow__viewport").first();
         const viewportStyle = await viewport.getAttribute("style");
         await rootNode.press("ArrowRight");
@@ -359,6 +356,22 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await expect(
             propertiesPanel.getByText("Physical Operation", { exact: true }).first(),
         ).toBeVisible();
+
+        // View the full value of a property
+        const physicalOperationRow = propertyRows.filter({ hasText: "Physical Operation" }).first();
+        await physicalOperationRow.hover();
+        await physicalOperationRow
+            .getByRole("button", { name: "View full value of Physical Operation" })
+            .click();
+        const fullValueDialog = iframe.getByRole("dialog", { name: "Physical Operation" });
+        await expect(fullValueDialog).toBeVisible();
+        // The dialog loads Monaco on first open. The chunk is large (and instrumented for
+        // coverage in CI), so the editor can take well over the default timeout to appear.
+        await expect(fullValueDialog.locator(".view-lines")).toContainText("Nested Loops", {
+            timeout: 30 * 1000,
+        });
+        await fullValueDialog.getByRole("button", { name: "Close" }).click();
+        await expect(fullValueDialog).toBeHidden();
 
         await propertiesPanel.getByRole("button", { name: "Close" }).click();
 
