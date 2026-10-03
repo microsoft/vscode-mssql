@@ -12,6 +12,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { cloneElement, isValidElement, ReactElement, ReactNode } from "react";
+import { ErrorMessageDetails } from "./errorMessageDetails";
 
 const defaultHeaderIconSizePx = 32;
 
@@ -110,6 +111,16 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "12px",
         paddingTop: "16px",
+        minWidth: 0,
+    },
+    messageBar: {
+        width: "100%",
+        maxWidth: "100%",
+        minWidth: 0,
+        boxSizing: "border-box",
+    },
+    messageBody: {
+        minWidth: 0,
     },
     loadingMessageBody: {
         display: "flex",
@@ -269,13 +280,15 @@ export const DialogPageShell = ({
                     {(errorMessage || loadingMessage) && (
                         <div className={styles.messageStack} style={contentWidthStyle}>
                             {errorMessage && (
-                                <MessageBar intent="error">
-                                    <MessageBarBody>{errorMessage}</MessageBarBody>
+                                <MessageBar intent="error" className={styles.messageBar}>
+                                    <MessageBarBody className={styles.messageBody}>
+                                        <ErrorMessageDetails message={errorMessage} />
+                                    </MessageBarBody>
                                 </MessageBar>
                             )}
                             {loadingMessage && (
-                                <MessageBar intent="info">
-                                    <MessageBarBody>
+                                <MessageBar intent="info" className={styles.messageBar}>
+                                    <MessageBarBody className={styles.messageBody}>
                                         <div className={styles.loadingMessageBody}>
                                             <Spinner size="tiny" />
                                             <span>{loadingMessage}</span>
