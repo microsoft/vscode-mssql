@@ -130,8 +130,6 @@ import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
-import { SqlSymbolRenameProvider } from "../languageservice/sqlSymbolRenameProvider";
-import { SqlMoveToSchemaProvider } from "../languageservice/sqlMoveToSchemaProvider";
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { OverviewOpenOptions, OverviewWebviewController } from "./overviewWebviewController";
@@ -434,17 +432,6 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearAzureTokenCache, () =>
                 this.connectionManager.onClearAzureTokenCache(),
             );
-            // Register the RenameProvider so F2 / "Rename Symbol" uses our STS backend.
-            // This gives the native inline rename textbox + VS Code's preview panel.
-            const renameProvider = new SqlSymbolRenameProvider();
-            this._context.subscriptions.push(
-                vscode.languages.registerRenameProvider({ language: "sql" }, renameProvider),
-            );
-
-            // Register the "Move to Schema..." refactor action (under the Refactor... menu) plus its
-            // backing command. Picking it shows a QuickPick to choose the target schema.
-            this._context.subscriptions.push(...SqlMoveToSchemaProvider.register());
-
             this.registerCommand(Constants.cmdShowEstimatedPlan);
             this._event.on(Constants.cmdShowEstimatedPlan, () => {
                 void this.onRunQuery({
@@ -3563,16 +3550,47 @@ export default class MainController implements vscode.Disposable {
         tableExplorerWebView.revealToForeground();
     }
 
-    public async onSearchDatabase(node?: any): Promise<void> {
+    public async onSearchDatabase(node?: TreeNodeInfo): Promise<void> {
+        const connectionCredentials = this.getSearchDatabaseConnection(node);
+        if (!connectionCredentials) {
+            void vscode.window.showErrorMessage(
+                LocalizedConstants.SearchDatabase.noConnectionAvailable,
+            );
+            return;
+        }
+
         const searchDatabaseWebView = new SearchDatabaseWebViewController(
             this._context,
             this.metadataService,
             this._connectionMgr,
-            node,
+            connectionCredentials,
             this._scriptingService,
         );
 
         searchDatabaseWebView.revealToForeground();
+    }
+
+    /**
+     * Resolves the connection to search against: the Object Explorer node's connection when the
+     * command is invoked from the tree, otherwise the active editor's connection (for example
+     * when invoked from a keyboard shortcut or the command palette).
+     */
+    private getSearchDatabaseConnection(node?: TreeNodeInfo): IConnectionInfo | undefined {
+        if (node?.connectionProfile) {
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            return {
+                ...node.connectionProfile,
+                database:
+                    databaseName && databaseName !== LocalizedConstants.defaultDatabaseLabel
+                        ? databaseName
+                        : node.connectionProfile.database,
+            };
+        }
+
+        const activeEditorUri = Utils.getActiveTextEditorUri();
+        return activeEditorUri
+            ? this._connectionMgr.getConnectionInfo(activeEditorUri)?.credentials
+            : undefined;
     }
 
     /**

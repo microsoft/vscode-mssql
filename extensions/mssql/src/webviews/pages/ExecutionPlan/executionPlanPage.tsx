@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ExecutionPlanGraph } from "./executionPlanGraph";
@@ -36,13 +36,25 @@ const useStyles = makeStyles({
     },
 });
 
-interface ExecutionPlanPageProps {
-    autoLoad?: boolean;
+/**
+ * Asks the page to scroll a plan into view. Each request is a new object, so the same plan can be
+ * revealed again after the user scrolls away.
+ */
+export interface ExecutionPlanRevealRequest {
+    graphIndex: number;
 }
 
-export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) => {
+interface ExecutionPlanPageProps {
+    autoLoad?: boolean;
+    /** Plan to scroll into view. Pass it only while the page is visible, so it can be measured. */
+    revealRequest?: ExecutionPlanRevealRequest;
+}
+
+export const ExecutionPlanPage = ({ autoLoad = true, revealRequest }: ExecutionPlanPageProps) => {
     const classes = useStyles();
     const context = useContext(ExecutionPlanContext);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const revealedRequestRef = useRef<ExecutionPlanRevealRequest | undefined>(undefined);
     const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
         (s) => s.executionPlanState,
     );
@@ -59,6 +71,26 @@ export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) =
             context.getExecutionPlan();
         }
     }, [autoLoad, executionPlanState]);
+
+    useEffect(() => {
+        if (
+            !revealRequest ||
+            revealRequest === revealedRequestRef.current ||
+            loadState !== ApiStatus.Loaded
+        ) {
+            return;
+        }
+        // Wait a frame so a tab that was just shown has been laid out before measuring.
+        const frame = requestAnimationFrame(() => {
+            const container = containerRef.current;
+            const plan = container?.children[revealRequest.graphIndex];
+            if (container && plan instanceof HTMLElement) {
+                container.scrollTop = plan.offsetTop;
+                revealedRequestRef.current = revealRequest;
+            }
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [revealRequest, loadState]);
 
     const renderMainContent = () => {
         switch (loadState) {
@@ -86,5 +118,9 @@ export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) =
         }
     };
 
-    return <div className={classes.outerDiv}>{renderMainContent()}</div>;
+    return (
+        <div ref={containerRef} className={classes.outerDiv}>
+            {renderMainContent()}
+        </div>
+    );
 };

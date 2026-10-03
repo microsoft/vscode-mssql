@@ -1001,6 +1001,12 @@ export class LocConstants {
             previous: l10n.t("Previous"),
             expand: l10n.t("Expand"),
             collapse: l10n.t("Collapse"),
+            viewFullValue: (propertyName: string) =>
+                l10n.t({
+                    message: "View full value of {0}",
+                    args: [propertyName],
+                    comment: ["{0} is the name of an execution plan property"],
+                }),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
             executionPlanRendererError: l10n.t("This execution plan could not be rendered."),
@@ -2903,6 +2909,67 @@ export class LocConstants {
         };
     }
 
+    public get azureSqlContainer() {
+        return {
+            sqlLogin: l10n.t("SQL Login"),
+            entraMfa: l10n.t("Microsoft Entra ID - Universal with MFA support"),
+            entraDefault: l10n.t("Microsoft Entra ID - Default"),
+            entraServicePrincipal: l10n.t("Microsoft Entra ID - Service Principal"),
+            authenticationTooltip: l10n.t("The developer container uses SQL Login authentication."),
+            userNameTooltip: l10n.t(
+                "The built-in administrator login for the developer container.",
+            ),
+            passwordTooltip: l10n.t(
+                "Use 8–128 characters with characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.",
+            ),
+            passwordLengthError: l10n.t("The password must be 8–128 characters long."),
+            passwordComplexityError: l10n.t(
+                "The password must contain characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.",
+            ),
+            savePasswordTooltip: l10n.t("Save the password securely with the connection profile."),
+            profileName: l10n.t("Profile Name"),
+            profileNamePlaceholder: l10n.t("Enter profile name"),
+            profileNameTooltip: l10n.t("An optional display name for the connection."),
+            connectionGroup: l10n.t("Connection Group"),
+            selectConnectionGroup: l10n.t("Select a connection group"),
+            containerName: l10n.t("Container Name"),
+            containerNameTooltip: l10n.t("An optional name for the database container."),
+            port: l10n.t("Port"),
+            portTooltip: l10n.t(
+                "The host port used to connect to the database. The default is 1433.",
+            ),
+            hostname: l10n.t("Hostname"),
+            hostnameTooltip: l10n.t("An optional hostname assigned to the container."),
+            optional: l10n.t("(optional)"),
+            acceptTerms: l10n.t("Accept"),
+            termsAndConditions: l10n.t("Terms & Conditions"),
+            termsTooltip: l10n.t("You must accept the container license terms to continue."),
+            validationFailed: l10n.t("Unable to validate the container configuration."),
+            provisioningFailed: l10n.t("Container deployment failed."),
+            settingUpContainer: (containerName: string) =>
+                l10n.t({
+                    message: "Setting up {0}...",
+                    args: [containerName],
+                    comment: ["{0} is the container name"],
+                }),
+            gettingContainerReady: l10n.t("Getting container ready for connections"),
+            pullingContainerImage: l10n.t("Pulling container image"),
+            pullingContainerImageDescription: l10n.t(
+                "Downloading the Azure SQL Database developer container image from the private registry.",
+            ),
+            creatingContainer: l10n.t("Creating container"),
+            creatingContainerDescription: l10n.t(
+                "Creating and starting your Azure SQL Database container.",
+            ),
+            settingUpContainerStep: l10n.t("Setting up container"),
+            settingUpContainerDescription: l10n.t("Readying the container for connections."),
+            connectingToContainer: l10n.t("Connecting to container"),
+            connectingToContainerDescription: l10n.t(
+                "Connecting to your Azure SQL Database developer container.",
+            ),
+        };
+    }
+
     public get azureSqlDatabase() {
         return {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
@@ -2910,6 +2977,119 @@ export class LocConstants {
             azureSqlDatabaseDescription: l10n.t(
                 "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
             ),
+            chooseDeploymentOption: l10n.t("Choose how to run Azure SQL Database"),
+            localContainer: l10n.t("Local container (Preview)"),
+            localContainerDescription: l10n.t(
+                "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.",
+            ),
+            free: l10n.t("Free"),
+            freeDescription: l10n.t(
+                "Try Azure SQL Database at no cost with the free tier offer — a fully managed cloud database, ready for your app, ORM, or migration tools.",
+            ),
+            localContainerTbd: l10n.t("TBD"),
+            localContainerWizardTitle: l10n.t("(Preview) New Azure SQL Database - Container"),
+            developerContainer: l10n.t("Azure SQL Database developer container"),
+            paasAlignedLocalDevelopment: l10n.t("PaaS-aligned local development"),
+            paasAlignedLocalDevelopmentDescription: l10n.t(
+                "Build and test against the Azure SQL Database developer container so what runs locally matches what runs in Azure—no surprises at deploy time.",
+            ),
+            crossPlatformArmAndX64: l10n.t("Cross-platform, ARM and x64"),
+            crossPlatformArmAndX64Description: l10n.t(
+                "Native ARM and x64 images so you get great performance on Apple silicon, Surface, and Linux ARM devices, and on traditional Intel/AMD machines alike.",
+            ),
+            usePreferredContainerEngine: l10n.t("Use the container engine you prefer"),
+            usePreferredContainerEngineDescription: l10n.t(
+                "Create, start, stop, and remove your container from the MSSQL extension using Docker, Podman, containerd (nerdctl), or WSL containers on Windows.",
+            ),
+            learnMoreAboutDeveloperContainer: l10n.t(
+                "Learn more about the Azure SQL Database developer container",
+            ),
+            useDevContainersWithAzureSqlDatabase: l10n.t(
+                "Use Dev Containers with Azure SQL Database",
+            ),
+            configureDeveloperContainer: l10n.t("Configure and customize the developer container"),
+            containerEngine: l10n.t("Container engine"),
+            detectingContainerEngines: l10n.t("Detecting container engines..."),
+            enginesDetected: (count: number) =>
+                count === 1
+                    ? l10n.t("1 engine detected")
+                    : l10n.t({
+                          message: "{0} engines detected",
+                          args: [count],
+                          comment: ["{0} is the number of detected container engines"],
+                      }),
+            engineNotDetected: l10n.t("Engine not detected"),
+            selectContainerEngine: l10n.t("Select a container engine"),
+            containerEngineDetectionFailed: l10n.t("Container engine detection failed."),
+            containerEngineNotRunning: (engine: string) =>
+                l10n.t({
+                    message: "Unable to connect to {0}. Make sure it is running and retry.",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
+            containerEngineCheckFailed: (engine: string) =>
+                l10n.t({
+                    message: "Unable to verify {0}. Check its configuration and retry.",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
+            noContainerEngineFound: l10n.t("No container engine found"),
+            installContainerEngineToContinue: l10n.t("Install a container engine to continue"),
+            installContainerEngineDescription: l10n.t(
+                "The local database runs inside a container, so you'll need a container engine. Docker is pre-selected as a common default; any of the options below will work. Install one to continue.",
+            ),
+            recommended: l10n.t("Recommended"),
+            dockerDescription: l10n.t(
+                "Widely used container engine, available as Docker Desktop or Docker Engine. · Windows, macOS, Linux",
+            ),
+            getDockerDesktop: l10n.t("Get Docker Desktop"),
+            otherSupportedEngines: l10n.t("Other supported engines"),
+            podmanDescription: l10n.t(
+                "Open-source container engine, often used as a Docker alternative. · Windows, macOS, Linux",
+            ),
+            getPodmanDesktop: l10n.t("Get Podman Desktop"),
+            containerdDescription: l10n.t(
+                "Container runtime, commonly used through nerdctl or Rancher Desktop. · Windows, macOS, Linux",
+            ),
+            getRancherDesktop: l10n.t("Get Rancher Desktop"),
+            appleContainerDescription: l10n.t(
+                "Container tool from Apple for macOS on Apple silicon. · macOS 26+",
+            ),
+            getAppleContainer: l10n.t("Get Apple container"),
+            wslContainerDescription: l10n.t(
+                "Runs containers through Windows Subsystem for Linux (WSL). · Windows",
+            ),
+            setUpWslContainers: l10n.t("Set up WSL containers"),
+            docker: l10n.t("Docker"),
+            podman: l10n.t("Podman"),
+            containerd: l10n.t("containerd"),
+            appleContainer: l10n.t("Apple container"),
+            wslContainer: l10n.t("WSL container"),
+            gettingContainerEngineReady: (engine: string) =>
+                l10n.t({
+                    message: "Getting {0} ready...",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
+            checkingPrerequisites: l10n.t("Checking prerequisites"),
+            checkingIfContainerEngineIsInstalled: (engine: string) =>
+                l10n.t({
+                    message: "Checking if {0} is installed",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
+            checkingIfContainerEngineIsStarted: (engine: string) =>
+                l10n.t({
+                    message: "Checking if {0} is started",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
+            checkingContainerEngineConfiguration: (engine: string) =>
+                l10n.t({
+                    message: "Checking {0} configuration",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
             oltpAzureSql: l10n.t("OLTP, built on Azure SQL"),
             oltpAzureSqlDescription: l10n.t(
                 "Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.",
@@ -4063,81 +4243,77 @@ export class LocConstants {
             promptCopied: l10n.t("Copied"),
             openPromptInCopilot: l10n.t("Open in Copilot"),
 
-            promptTagConnect: l10n.t("Connect"),
             promptTagBuild: l10n.t("Build"),
             promptTagAi: l10n.t("AI"),
+            promptTagAutomate: l10n.t("Automate"),
             promptTagDiagnose: l10n.t("Diagnose"),
-            promptConnectNodeTitle: l10n.t(
-                "Connect my Node app to Azure SQL Database without a password",
-            ),
-            promptConnectNodeDescription: l10n.t(
-                "Configure a Node.js application to use secure Microsoft Entra authentication.",
-            ),
             promptScaffoldAppTitle: l10n.t(
                 "Scaffold the schema, migrations, and data layer for this app",
             ),
             promptScaffoldAppDescription: l10n.t(
-                "Inspect the current project and build its Azure SQL persistence layer.",
+                "Build a persistence layer in its own schema, with migrations safe to re-run.",
             ),
             promptVectorSearchTitle: l10n.t(
-                "Add vector search to this table and make it use the index",
+                "Add native vector search and verify the index is used",
             ),
             promptVectorSearchDescription: l10n.t(
-                "Add indexed vector search using Azure SQL's native vector capabilities.",
+                "Store embeddings, write the similarity query, and catch silent full-table scans.",
             ),
-            promptError40613Title: l10n.t("Why does my first query after idle fail with 40613"),
-            promptError40613Description: l10n.t(
-                "Diagnose serverless resume behavior and make the application resilient to it.",
+            promptSqlTriggerFunctionTitle: l10n.t(
+                "Run an Azure Function whenever a row in my table changes",
+            ),
+            promptSqlTriggerFunctionDescription: l10n.t(
+                "Wire up a SQL trigger and an HTTP endpoint, verified locally against your data.",
+            ),
+            promptSlowEndpointTitle: l10n.t("Why did this endpoint get slow?"),
+            promptSlowEndpointDescription: l10n.t(
+                "Trace the queries behind a slow endpoint and find the cause, with evidence.",
             ),
 
             promptTagAssess: l10n.t("Assess"),
             promptTagPlan: l10n.t("Plan"),
-            promptTagSize: l10n.t("Size"),
+            promptTagMigrate: l10n.t("Migrate"),
             promptTagValidate: l10n.t("Validate"),
-            promptMigrationPathTitle: l10n.t("Which Azure target should this SQL Server move to?"),
-            promptMigrationPathDescription: l10n.t(
-                "Pre-select candidate targets and migration methods before any assessment data exists.",
+            promptAssessMigrationTitle: l10n.t("Assess my database for migration to Azure SQL"),
+            promptAssessMigrationDescription: l10n.t(
+                "Discover migration blockers, compatibility issues, and the best-fit Azure SQL target.",
             ),
-            promptMigrationPrerequisitesTitle: l10n.t(
-                "What has to be ready before I run this migration?",
+            promptPlanMigrationTitle: l10n.t("Create a migration plan for my database"),
+            promptPlanMigrationDescription: l10n.t(
+                "Turn assessment findings into an actionable, safe migration plan.",
             ),
-            promptMigrationPrerequisitesDescription: l10n.t(
-                "Turn a chosen migration path into a sourced prerequisite checklist.",
+            promptMigrateDatabaseTitle: l10n.t("Migrate my database to Azure SQL"),
+            promptMigrateDatabaseDescription: l10n.t(
+                "Execute the migration, monitor progress, and surface anything that needs attention.",
             ),
-            promptSkuSizingTitle: l10n.t("Size an Azure SQL SKU from this server's performance"),
-            promptSkuSizingDescription: l10n.t(
-                "Collect performance data from an on-premises server and recommend a SKU.",
-            ),
-            promptValidateMigrationTitle: l10n.t(
-                "Validate the data now that the migration is done",
-            ),
+            promptValidateMigrationTitle: l10n.t("Validate my migration before I cut over"),
             promptValidateMigrationDescription: l10n.t(
-                "Reconcile the source and target tables without changing either side.",
+                "Verify the target is complete, healthy, and ready for application traffic.",
             ),
 
-            promptConnectNodeBody: l10n.t(
-                "Connect this Node.js app to Azure SQL Database using Microsoft Entra authentication instead of a SQL login. Wire up the connection so it works both on my machine and from the deployed app, and make sure no database password ends up in the repository or in configuration.",
-            ),
             promptScaffoldAppBody: l10n.t(
-                "Look at this project and build its Azure SQL persistence layer: design tables for the entities it already has, add ordered migration scripts that are safe to re-run, and generate the data access code the app calls. Run the migrations against the application database, never against master.",
+                "Build the persistence layer for this app: tables for its entities, ordered migrations that are safe to re-run, and the data access code it calls. Keep the app's tables, migration history and locks in their own schema, and run migrations only against the app's database. Make sure a migration can never report success while leaving something that fails later.",
             ),
             promptVectorSearchBody: l10n.t(
-                "Add vector search to this table using Azure SQL's native VECTOR type and VECTOR_DISTANCE. Store the embeddings, write the similarity query, then show me how to confirm it is using a vector index rather than scanning the whole table.",
+                "Add semantic search to one of my tables using the database's native vector support, after checking this engine supports it. Store the embeddings and write the similarity query. Then give me a check I can run that proves the query, exactly as the app runs it, uses the vector index, and that fails loudly if it ever falls back to scanning.",
             ),
-            promptError40613Body: l10n.t(
-                "My first query after an idle period fails with error 40613 against Azure SQL Database. Explain what the serverless tier is doing when that happens, then change this app's connection and retry handling so the resume is absorbed instead of surfacing as a failed request.",
+            promptSqlTriggerFunctionBody: l10n.t(
+                "Build an Azure Function app that reacts whenever a row in one of my tables is inserted or updated, plus an HTTP endpoint that adds rows to that table. Run it locally against my database and prove both work: show the reaction firing for a change you make, and show what happens when a new row's key already exists.",
             ),
-            promptMigrationPathBody: l10n.t(
-                "I want to move a SQL Server estate to Azure and have no assessment data yet. Ask me the discovery questions you need, then recommend the candidate Azure targets and migration methods that fit, the blockers that would rule each one out, and the evidence I still have to collect. Treat the recommendation as provisional until assessment tooling confirms it.",
+            promptSlowEndpointBody: l10n.t(
+                "One of my app's endpoints got slow. Find the database queries behind it, work out why they're slow, and show the evidence. Tell me what the database didn't record that you'd need. Don't change anything yet.",
             ),
-            promptMigrationPrerequisitesBody: l10n.t(
-                "I have chosen a migration path for this SQL Server. Build the prerequisite plan for it: what has to be in place on the source, on the target and on the network before I execute, plus a readiness summary I can hand to a partner. Ask me only the questions this path actually needs.",
+            promptAssessMigrationBody: l10n.t(
+                "Assess my database for migration to Azure SQL. Analyze its configuration, compatibility, dependencies, and workload characteristics. Identify blockers, warnings, and changes required for migration, and recommend the best-fit Azure SQL target with evidence. Give me a clear readiness summary and the actions I should take before migrating.",
             ),
-            promptSkuSizingBody: l10n.t(
-                "This is an on-premises SQL Server instance. Collect performance data from it and recommend an Azure SQL SKU sized from that data, not from a guess. Tell me what the collection needs before it starts and how long it should run to be representative.",
+            promptPlanMigrationBody: l10n.t(
+                "Using my assessment results, create an end-to-end migration plan for the recommended Azure SQL target. Resolve or account for identified blockers and dependencies, choose an appropriate migration approach, and define the sequence of steps from preparation through cutover. Include prerequisites, validation checkpoints, rollback considerations, and anything I need to address before starting the migration.",
+            ),
+            promptMigrateDatabaseBody: l10n.t(
+                "Migrate my database to the selected Azure SQL target using the migration plan. Validate prerequisites before starting, configure the migration, move the required schema and data, and monitor its progress. Surface errors, warnings, or conditions that could affect the migration or cutover, and don't proceed past a critical failure without telling me what needs to be fixed.",
             ),
             promptValidateMigrationBody: l10n.t(
-                "The migration target is online. Validate it against the source without changing data, schema or configuration on either side: compare the user table inventory and the exact row counts for every mapped table, and report the tables that do not reconcile.",
+                "Validate the migrated Azure SQL database before cutover. Check that the expected schema and data were migrated successfully, identify discrepancies or migration errors, and verify that the target is ready for application connectivity. Give me a clear go or no-go recommendation, show the evidence behind it, and provide remediation steps for anything that still needs attention.",
             ),
 
             walkthroughMediaAlt: l10n.t("Animated walkthrough of MSSQL features in VS Code"),

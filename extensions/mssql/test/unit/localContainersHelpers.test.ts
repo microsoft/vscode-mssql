@@ -159,6 +159,25 @@ suite("localContainers logic", () => {
         expect(await localContainersHelpers.validatePort("")).to.be.true;
     });
 
+    test("rejects malformed port numbers before checking availability", async () => {
+        const findAvailablePort = sandbox.stub(dockerUtils, "findAvailablePort");
+        for (const port of ["0", "65536", "-1", "1.5", "1e3", "NaN", "Infinity", " ", " 1433"]) {
+            expect(localContainersHelpers.isValidPortNumber(port)).to.be.false;
+            expect(await localContainersHelpers.validatePort(port)).to.be.false;
+        }
+        expect(localContainersHelpers.isValidPortNumber("")).to.be.false;
+        expect(await localContainersHelpers.validatePort("")).to.be.true;
+        expect(findAvailablePort).not.to.have.been.called;
+    });
+
+    test("accepts available ports at both boundaries", async () => {
+        sandbox.stub(dockerUtils, "findAvailablePort").callsFake(async (port) => port);
+        for (const port of ["1", "65535"]) {
+            expect(localContainersHelpers.isValidPortNumber(port)).to.be.true;
+            expect(await localContainersHelpers.validatePort(port)).to.be.true;
+        }
+    });
+
     test("validateDockerConnectionProfile validates containerName and port", async () => {
         sandbox
             .stub(dockerUtils, "validateContainerName")

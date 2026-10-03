@@ -583,6 +583,31 @@ suite("Query Runner tests", () => {
         expect(isFullExecutionComplete).to.be.true;
     });
 
+    test("Notification - Query complete refreshes the SPID shown in the status bar", () => {
+        const result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: "uri",
+            batchSummaries: [],
+            serverConnectionId: "57",
+        };
+
+        const queryRunner = createQueryRunner();
+        queryRunner.handleQueryComplete(result);
+
+        expect(testStatusView.setServerProcessId).to.have.been.calledWith("uri", "57");
+    });
+
+    test("Notification - Query complete without a SPID keeps the SPID shown in the status bar", () => {
+        const result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: "uri",
+            batchSummaries: [],
+        };
+
+        const queryRunner = createQueryRunner();
+        queryRunner.handleQueryComplete(result);
+
+        expect(testStatusView.setServerProcessId).to.not.have.been.called;
+    });
+
     test("Cleanup is not reported as a full query execution completion", async () => {
         const queryRunner = createQueryRunner();
         let isFullExecutionComplete = true;
@@ -847,6 +872,26 @@ suite("Query Runner tests", () => {
             "file:///new.sql",
         );
         expect(queryRunner["_registeredNotificationUris"].size).to.equal(0);
+    });
+
+    test("records the execution plan options of the current run", async () => {
+        testSqlToolsServerClient.sendRequest.resolves(
+            new QueryExecuteContracts.QueryExecuteResult(),
+        );
+        setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1",
+        } as unknown as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+        const executionPlanOptions: QueryExecuteContracts.ExecutionPlanOptions = {
+            includeEstimatedExecutionPlanXml: true,
+        };
+
+        await queryRunner.runQuery(standardSelection, executionPlanOptions);
+        expect(queryRunner.executionPlanOptions).to.deep.equal(executionPlanOptions);
+
+        await queryRunner.runQueryString("select 1");
+        expect(queryRunner.executionPlanOptions).to.equal(undefined);
     });
 
     test("runStatement sends correct request with execution plan options", async () => {

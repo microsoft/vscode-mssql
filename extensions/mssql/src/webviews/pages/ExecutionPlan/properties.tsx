@@ -22,24 +22,30 @@ import {
     createTableColumn,
     makeStyles,
     mergeClasses,
+    useRestoreFocusTarget,
 } from "@fluentui/react-components";
 import {
     ArrowSortDownLines16Regular,
     ChevronDown16Regular,
     ChevronRight16Regular,
     Dismiss16Regular,
+    MoreHorizontal16Regular,
     TextSortAscending16Regular,
     TextSortDescending16Regular,
 } from "@fluentui/react-icons";
 import { KeyboardEvent as ReactKeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
+import { PropertyValueDialog } from "./propertyValueDialog";
 import { locConstants } from "../../common/locConstants";
 import {
     CollapseAllIcon16Regular,
     ExpandAllIcon16Regular,
     FilterIcon16Regular,
 } from "../../common/icons/executionPlanIcons";
+
+// Rows show this button on hover or focus; a stable class name lets the row style target it.
+const viewValueButtonClassName = "executionPlanPropertyViewValueButton";
 
 const useStyles = makeStyles({
     paneContainer: {
@@ -162,6 +168,9 @@ const useStyles = makeStyles({
         "&:focus-within": {
             boxShadow: "inset 0 0 0 1px var(--vscode-focusBorder)",
         },
+        [`&:hover .${viewValueButtonClassName}, &:focus-within .${viewValueButtonClassName}`]: {
+            display: "inline-flex",
+        },
     },
     groupRow: {
         backgroundColor:
@@ -190,7 +199,7 @@ const useStyles = makeStyles({
         padding: 0,
         overflow: "hidden",
     },
-    nameContent: {
+    cellContent: {
         boxSizing: "border-box",
         display: "flex",
         alignItems: "center",
@@ -206,9 +215,20 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
     },
-    nameText: {
+    fillText: {
         flex: "1 1 0%",
         width: "auto",
+    },
+    viewValueButton: {
+        flexShrink: 0,
+        width: "20px",
+        minWidth: "20px",
+        height: "20px",
+        minHeight: "20px",
+        marginLeft: "4px",
+        padding: 0,
+        // Hidden buttons take no space, so values use the full column width until hovered.
+        display: "none",
     },
     disclosureButton: {
         width: "16px",
@@ -251,27 +271,35 @@ const useStyles = makeStyles({
     },
 });
 
+// Cells use border-box sizing, so column widths already include the cell padding. Without
+// padding: 0, column sizing reserves that padding again and the value column stops short of the
+// pane's right edge.
 const columnSizingOptions: TableColumnSizingOptions = {
     name: {
         minWidth: 140,
         defaultWidth: 170,
         idealWidth: 180,
+        padding: 0,
     },
     value: {
         minWidth: 140,
         defaultWidth: 220,
         idealWidth: 240,
+        padding: 0,
     },
 };
 
 interface PropertiesPaneProps {
     executionPlanView: ExecutionPlanGraphController;
+    /** Id of the node selected in the graph. The pane shows its properties. */
+    selectedElementId?: string;
     setPropertiesClicked: any;
     inputRef: any;
 }
 
 export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     executionPlanView,
+    selectedElementId,
     setPropertiesClicked,
     inputRef,
 }) => {
@@ -285,7 +313,11 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     const [unfilteredItems, setUnfilteredItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
     const [numItems, setNumItems] = useState<number>(0);
     const [inputValue, setInputValue] = useState<string>("");
+    const [fullValueItem, setFullValueItem] = useState<
+        ep.ExecutionPlanPropertyTableItem | undefined
+    >(undefined);
     const propertiesPanelRef = useRef<HTMLDivElement>(null);
+    const restoreFocusTargetAttribute = useRestoreFocusTarget();
 
     const visibleItems = useMemo(() => {
         const itemsById = new Map(items.map((item) => [item.id, item]));
@@ -331,23 +363,17 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         }
     }, [items, isFiltered]);
 
+    // Show the selected node's properties as soon as the selection changes
     useEffect(() => {
-        // poll for whether there has been a new element selected in the graph
-        const intervalId = setInterval(() => {
-            const selectedElement = executionPlanView.getSelectedElement();
-            const element: ep.ExecutionPlanNode =
-                selectedElement && "name" in selectedElement
-                    ? selectedElement
-                    : executionPlanView.getRoot();
-
-            // Check if the element has changed, if so, reload items based on new element
-            if (element.id !== id) {
-                loadItems(element);
-            }
-        }, 1000);
-
-        return () => clearInterval(intervalId);
-    });
+        const selectedElement = executionPlanView.getSelectedElement();
+        const element: ep.ExecutionPlanNode =
+            selectedElement && "name" in selectedElement
+                ? selectedElement
+                : executionPlanView.getRoot();
+        if (element.id !== id) {
+            loadItems(element);
+        }
+    }, [executionPlanView, selectedElementId]);
 
     function loadItems(element: ep.ExecutionPlanNode) {
         setName(element.name);
@@ -355,14 +381,19 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 
         // make items list, and sort it based on importance
         const unsortedItems = buildItemListFromProperties(element.properties, 0, 0, false, -1);
-        setItems(
-            recursiveSort(
-                unsortedItems,
-                unsortedItems.filter((item) => !item.isChild),
-                ep.SortOption.Importance,
-            ),
+        const sortedItems = recursiveSort(
+            unsortedItems,
+            unsortedItems.filter((item) => !item.isChild),
+            ep.SortOption.Importance,
         );
         setNumItems(unsortedItems.length);
+        // Expansion state refers to item IDs, which only mean something for the node they came from
+        setShownChildren([]);
+        setOpenedButtons([]);
+        // The list that clearing the filter restores belongs to the node now shown, and an active
+        // filter carries over to it
+        setUnfilteredItems(sortedItems);
+        setItems(isFiltered ? filterPropertyItems(sortedItems, inputValue) : sortedItems);
     }
 
     const handleShowChildrenClick = async (buttonName: string, children: number[]) => {
@@ -453,11 +484,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             // react updates state asynchronously, so if the state of unfiltered
             // items hasn't been updated yet, ie. on the first filter, use items instead
             const currentItems = firstFilter ? items : unfilteredItems;
-            let filteredItems = currentItems.filter(
-                (item) => item.name.includes(searchValue) || item.value.includes(searchValue),
-            );
-
-            setItems(buildFilteredItemsFromChildList(filteredItems, currentItems));
+            setItems(filterPropertyItems(currentItems, searchValue));
             setIsFiltered(true);
         }
         // filtering is removed
@@ -493,7 +520,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         className={classes.cellLayout}
                         title={item.name || undefined}>
                         <div
-                            className={classes.nameContent}
+                            className={classes.cellContent}
                             style={{ paddingLeft: `${item.level * 16}px` }}>
                             {item.children.length > 0 ? (
                                 <Button
@@ -523,7 +550,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                                     <span className={classes.disclosureSpacer} aria-hidden="true" />
                                 )
                             )}
-                            <span className={mergeClasses(classes.cellText, classes.nameText)}>
+                            <span className={mergeClasses(classes.cellText, classes.fillText)}>
                                 {item.name}
                             </span>
                         </div>
@@ -538,13 +565,32 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     {VALUE}
                 </span>
             ),
+            // The value cell lays out its own row instead of using TableCellLayout, whose content
+            // wrapper sizes to the text and would leave the button beside short values.
             renderCell: (item) => (
-                <TableCellLayout
-                    truncate
-                    className={classes.cellLayout}
-                    title={item.value || undefined}>
-                    <span className={classes.cellText}>{item.value}</span>
-                </TableCellLayout>
+                <div className={classes.cellContent} title={item.value || undefined}>
+                    <span className={mergeClasses(classes.cellText, classes.fillText)}>
+                        {item.value}
+                    </span>
+                    {item.value && (
+                        <Button
+                            {...restoreFocusTargetAttribute}
+                            appearance="subtle"
+                            size="small"
+                            className={mergeClasses(
+                                classes.viewValueButton,
+                                viewValueButtonClassName,
+                            )}
+                            icon={<MoreHorizontal16Regular />}
+                            title={locConstants.executionPlan.viewFullValue(item.name)}
+                            aria-label={locConstants.executionPlan.viewFullValue(item.name)}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                setFullValueItem(item);
+                            }}
+                        />
+                    )}
+                </div>
             ),
         }),
     ];
@@ -678,6 +724,10 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     </DataGridBody>
                 </DataGrid>
             </div>
+            <PropertyValueDialog
+                property={fullValueItem}
+                onClose={() => setFullValueItem(undefined)}
+            />
         </div>
     );
 };
@@ -731,6 +781,17 @@ function buildItemListFromProperties(
         currentLength += childrenItems.length + 1;
     }
     return items;
+}
+
+/** The items whose name or value contains the search text, with the parents that lead to them. */
+function filterPropertyItems(
+    items: ep.ExecutionPlanPropertyTableItem[],
+    searchValue: string,
+): ep.ExecutionPlanPropertyTableItem[] {
+    return buildFilteredItemsFromChildList(
+        items.filter((item) => item.name.includes(searchValue) || item.value.includes(searchValue)),
+        items,
+    );
 }
 
 function buildFilteredItemsFromChildList(

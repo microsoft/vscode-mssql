@@ -17,7 +17,7 @@ import { AGENT_SKILL_PLUGINS } from "../../src/sharedInterfaces/overview";
 import {
     AgentPluginsInstaller,
     AgentSkillsDownloads,
-    parseSkillsCatalog,
+    parseSkillFrontMatter,
     RemoteWindowUnsupportedError,
 } from "../../src/agentPlugins/agentPluginsInstaller";
 
@@ -327,67 +327,137 @@ suite("Agent Plugins Installer", () => {
     });
 
     test("loads, parses, and caches the shipped skills catalog", async () => {
-        const getStub = sandbox.stub(VscodeHttpClient.prototype, "get");
-        getStub.callsFake(async (url: string) => ({
-            ok: !url.startsWith("https://aka.ms/"),
-            status: url.startsWith("https://aka.ms/") ? 301 : 200,
-            statusText: "",
-            headers: createHttpHeaders(
-                url.startsWith("https://aka.ms/")
-                    ? { location: "https://github.com/contoso/sql-skills" }
-                    : {},
-            ),
-            data: [
-                "## Skills (57)",
-                "",
-                "| Skill | What it does |",
-                "| --- | --- |",
-                url.includes("/microsoft-sql-migration/")
-                    ? "| `recommend-migration-path` | Recommends a migration path. |"
-                    : "| `connect-from-typescript-and-node` | Connect a **Node.js** application using `mssql`. |",
-                "",
+        const archiveSource = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-skills-catalog-"));
+        try {
+            const root = path.join(archiveSource, "sql-skills-main");
+            const writeArchiveFile = async (relative: string, lines: string[]) => {
+                await fs.mkdir(path.dirname(path.join(root, relative)), { recursive: true });
+                await fs.writeFile(path.join(root, relative), lines.join("\n"));
+            };
+            await writeArchiveFile(
+                "plugins/microsoft-sql-vscode/skills/connect-from-typescript-and-node/SKILL.md",
+                [
+                    "---",
+                    "name: connect-from-typescript-and-node",
+                    "description: >-",
+                    "  Connect a **Node.js** application",
+                    "  using `mssql`.",
+                    "---",
+                    "",
+                    "# Connect from Node.js",
+                ],
+            );
+            await writeArchiveFile("plugins/microsoft-sql-vscode/skills/bulk-load/SKILL.md", [
                 "---",
-                "",
-                "| Skill | Install command |",
-                "| --- | --- |",
-                "| **connect-from-typescript-and-node** | `duplicate outside the catalog` |",
-            ].join("\n"),
-        }));
-
-        const first = await installer.getSkillsCatalog();
-        const second = await installer.getSkillsCatalog();
-
-        expect(first).to.deep.equal([
-            {
-                id: "microsoft-sql-vscode",
-                repositoryUrl:
-                    "https://github.com/contoso/sql-skills/tree/main/plugins/microsoft-sql-vscode",
-                skills: [
-                    {
-                        id: "connect-from-typescript-and-node",
-                        description: "Connect a Node.js application using mssql.",
-                        repositoryUrl:
-                            "https://github.com/contoso/sql-skills/blob/main/plugins/microsoft-sql-vscode/skills/connect-from-typescript-and-node/SKILL.md",
-                    },
+                "name: bulk-load",
+                'description: "Loads data fast."',
+                "---",
+            ]);
+            await writeArchiveFile(
+                "plugins/microsoft-sql-migration/skills/recommend-migration-path/SKILL.md",
+                [
+                    "---",
+                    "name: recommend-migration-path",
+                    "description: Recommends a migration path.",
+                    "---",
                 ],
-            },
-            {
-                id: "microsoft-sql-migration",
-                repositoryUrl:
-                    "https://github.com/contoso/sql-skills/tree/main/plugins/microsoft-sql-migration",
-                skills: [
-                    {
-                        id: "recommend-migration-path",
-                        description: "Recommends a migration path.",
-                        repositoryUrl:
-                            "https://github.com/contoso/sql-skills/blob/main/plugins/microsoft-sql-migration/skills/recommend-migration-path/SKILL.md",
-                    },
-                ],
-            },
-        ]);
-        expect(second).to.equal(first);
-        // The resolve attempt, then one README per collection.
-        expect(getStub).to.have.been.calledThrice;
+            );
+            // Neither a README, a file nested inside a skill, nor a skill of another collection
+            // is part of the catalog.
+            await writeArchiveFile("plugins/microsoft-sql-vscode/README.md", [
+                "## Included skills",
+            ]);
+            await writeArchiveFile("plugins/microsoft-sql-vscode/skills/bulk-load/refs/SKILL.md", [
+                "---",
+                "description: Nested reference.",
+                "---",
+            ]);
+            await writeArchiveFile("plugins/microsoft-sql/skills/other-collection/SKILL.md", [
+                "---",
+                "description: Another collection.",
+                "---",
+            ]);
+            const archivePath = path.join(archiveSource, "skills.tar.gz");
+            await tar.c({ gzip: true, file: archivePath, cwd: archiveSource }, ["sql-skills-main"]);
+
+            const sha = "b".repeat(40);
+            const getStub = sandbox
+                .stub(VscodeHttpClient.prototype, "get")
+                .callsFake(async (url: string) => ({
+                    ok: !url.startsWith("https://aka.ms/"),
+                    status: url.startsWith("https://aka.ms/") ? 301 : 200,
+                    statusText: "",
+                    headers: createHttpHeaders(
+                        url.startsWith("https://aka.ms/")
+                            ? { location: "https://github.com/contoso/sql-skills" }
+                            : {},
+                    ),
+                    data: url.startsWith("https://api.github.com/") ? sha : "",
+                }));
+            const downloadStub = sandbox
+                .stub(VscodeHttpClient.prototype, "downloadToPath")
+                .callsFake(async (_url, target) => {
+                    await fs.copyFile(archivePath, target);
+                    return { status: 200 } as Awaited<
+                        ReturnType<VscodeHttpClient["downloadToPath"]>
+                    >;
+                });
+
+            const first = await installer.getSkillsCatalog();
+            const second = await installer.getSkillsCatalog();
+
+            const skillUrl = (plugin: string, skill: string) =>
+                `https://github.com/contoso/sql-skills/blob/main/plugins/${plugin}/skills/${skill}/SKILL.md`;
+            expect(first).to.deep.equal([
+                {
+                    id: "microsoft-sql-vscode",
+                    repositoryUrl:
+                        "https://github.com/contoso/sql-skills/tree/main/plugins/microsoft-sql-vscode",
+                    skills: [
+                        {
+                            id: "bulk-load",
+                            description: "Loads data fast.",
+                            repositoryUrl: skillUrl("microsoft-sql-vscode", "bulk-load"),
+                        },
+                        {
+                            id: "connect-from-typescript-and-node",
+                            description: "Connect a Node.js application using mssql.",
+                            repositoryUrl: skillUrl(
+                                "microsoft-sql-vscode",
+                                "connect-from-typescript-and-node",
+                            ),
+                        },
+                    ],
+                },
+                {
+                    id: "microsoft-sql-migration",
+                    repositoryUrl:
+                        "https://github.com/contoso/sql-skills/tree/main/plugins/microsoft-sql-migration",
+                    skills: [
+                        {
+                            id: "recommend-migration-path",
+                            description: "Recommends a migration path.",
+                            repositoryUrl: skillUrl(
+                                "microsoft-sql-migration",
+                                "recommend-migration-path",
+                            ),
+                        },
+                    ],
+                },
+            ]);
+            expect(second).to.equal(first);
+            // One archive, pinned to the revision, read for both collections.
+            expect(downloadStub).to.have.been.calledOnce;
+            expect(String(downloadStub.firstCall.args[0])).to.equal(
+                `https://codeload.github.com/contoso/sql-skills/tar.gz/${sha}`,
+            );
+            // The resolve attempt and the revision check.
+            expect(getStub).to.have.been.calledTwice;
+            const staging = path.join(storageDir, "agentSkills", ".staging");
+            expect(await fs.readdir(staging).catch(() => [])).to.be.empty;
+        } finally {
+            await fs.rm(archiveSource, { recursive: true, force: true });
+        }
     });
 
     test("restores the installed copy when the staged copy cannot be moved into place", async () => {
@@ -448,61 +518,62 @@ suite("Agent Plugins Installer", () => {
         expect(await installer["isPluginPresent"]()).to.equal(false);
     });
 
-    test("reads only the first skills table, whatever separates the sections", () => {
-        // The collection README follows its catalog with an install table whose rows repeat every
-        // skill name, and an authoring table whose first column is prose. Neither is a skill, and
-        // neither section is reliably preceded by a horizontal rule.
-        const skills = parseSkillsCatalog(
+    test("reads folded, plain, and multi-line front matter values", () => {
+        const fields = parseSkillFrontMatter(
             [
-                "# Skills",
+                "---",
+                "name: connect-from-dotnet",
+                "description: >-",
+                "  Connects a .NET application",
+                "  to Azure SQL Database.",
                 "",
-                "## What's in this collection",
+                '  Use when a user says "connect".',
+                "allowed-tools: Bash(az:*) Grep",
+                "metadata:",
+                "  owner: sql",
+                "---",
                 "",
-                "| Skill | What it does |",
-                "| --- | --- |",
-                "| **connect-node** | Connect a **Node.js** application using `mssql`. |",
-                "| **read-plan** | Read an execution plan. |",
-                "",
-                "## INSTALL",
-                "",
-                "| Skill | Install command |",
-                "| --- | --- |",
-                "| **connect-node** | `npx skills add owner/repo --skill connect-node` |",
-                "",
-                "## Authoring standard",
-                "",
-                "| Layer | When | What |",
-                "| --- | --- | --- |",
-                "| **1. Instructions** | when the skill triggers | The happy path. |",
+                "description: not front matter",
             ].join("\n"),
-            "microsoft-sql-vscode",
-            "https://github.com/owner/repo",
         );
 
-        expect(skills.map((skill) => skill.id)).to.deep.equal(["connect-node", "read-plan"]);
-        expect(skills[0].description).to.equal("Connect a Node.js application using mssql.");
+        // The nested map is skipped, and nothing after the closing marker is read.
+        expect(fields).to.deep.equal({
+            name: "connect-from-dotnet",
+            description:
+                'Connects a .NET application to Azure SQL Database.\nUse when a user says "connect".',
+            "allowed-tools": "Bash(az:*) Grep",
+        });
     });
 
-    test("reads the code-quoted skill names the generated plugin README uses", () => {
-        const skills = parseSkillsCatalog(
-            [
-                "## Skills (2)",
-                "",
-                "| Skill | Description |",
-                "| --- | --- |",
-                "| `recommend-migration-path` | Recommend a target and method. |",
-                "| `validate-post-migration-data` | Reconcile source and target. |",
-                "",
-                "## Install",
-            ].join("\n"),
-            "microsoft-sql-migration",
-            "https://github.com/owner/repo",
+    test("resolves the escapes each quoting style allows", () => {
+        const fields = parseSkillFrontMatter(
+            ["---", 'description: "Say \\"hi\\" to\\tSQL"', "name: 'it''s'", "---"].join("\r\n"),
         );
 
-        expect(skills.map((skill) => skill.id)).to.deep.equal([
-            "recommend-migration-path",
-            "validate-post-migration-data",
-        ]);
+        expect(fields).to.deep.equal({ description: 'Say "hi" to\tSQL', name: "it's" });
+    });
+
+    test("keeps a literal block's line breaks and drops a plain value's comment", () => {
+        const fields = parseSkillFrontMatter(
+            [
+                "---",
+                "description: |",
+                "  First line.",
+                "  Second line.",
+                "name: plain-name # generated",
+                "---",
+            ].join("\n"),
+        );
+
+        expect(fields).to.deep.equal({
+            description: "First line.\nSecond line.",
+            name: "plain-name",
+        });
+    });
+
+    test("reads nothing from a file without front matter", () => {
+        expect(parseSkillFrontMatter("# Skill\n\ndescription: not front matter")).to.deep.equal({});
     });
 
     test("does not cache a failed skills catalog request", async () => {

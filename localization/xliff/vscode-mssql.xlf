@@ -69,11 +69,17 @@
     <trans-unit id="++CODE++130aea5a0d1dd689e85fedca3a2c57e179d4a58d3e7d62875e2bf25799c0762f">
       <source xml:lang="en">(Command completed successfully)</source>
     </trans-unit>
+    <trans-unit id="++CODE++07fabb68044c3242380f6f542e565ce78bbab7b2f7a9b7407dba1821179d3cfb">
+      <source xml:lang="en">(Preview) New Azure SQL Database - Container</source>
+    </trans-unit>
     <trans-unit id="++CODE++10901a1c32c7ff27302839dda36a950d6b522c7ca85b8d9605112601a8a392f9">
       <source xml:lang="en">(current)</source>
     </trans-unit>
     <trans-unit id="++CODE++d29a0939bcb51176dd565a5e2d33214ce5204806b384bd80a72cb40861cdc7b9">
       <source xml:lang="en">(empty)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0059798b7f7023e4d9e5c4595f7b9ba7ee64f69993ee524824d57e5a48b1228c">
+      <source xml:lang="en">(optional)</source>
     </trans-unit>
     <trans-unit id="++CODE++2dbc3a842e150a69d5a35dc7e059907884fff202bead2f25e3284cdbecedf340">
       <source xml:lang="en">({0} row(s) affected)</source>
@@ -117,6 +123,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b">
       <source xml:lang="en">1</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f3715b57be27000462959853dd6e8195e067db349e0e9cdf56820c8e9afa26f8">
+      <source xml:lang="en">1 engine detected</source>
     </trans-unit>
     <trans-unit id="++CODE++07c30a3a0d752e12c0b2a23084bf77b6747f3b7fa00b7e9d820a3bc18040418a">
       <source xml:lang="en">1 row</source>
@@ -242,6 +251,9 @@
     <trans-unit id="++CODE++e21e734aaaff27306eeaba840397aea3b25480cb0426c9c21386cbf141e56e34">
       <source xml:lang="en">Accept the SQL Server EULA to deploy a SQL Server Docker container</source>
     </trans-unit>
+    <trans-unit id="++CODE++f03426e3bef8cda374f183610176ee817112ca7abb03ea57e2b453a429fea548">
+      <source xml:lang="en">Accept the terms and conditions to continue.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa0563b6f04578f7a2a7cff43aed611c4835bbb2f3a21dfed76a0601a1d63859">
       <source xml:lang="en">Access denied. Please ensure you have the necessary permissions to use this tool or model.</source>
     </trans-unit>
@@ -353,15 +365,15 @@
     <trans-unit id="++CODE++72d975d00b2a6ec753bd80833252852de2c69720c3bbcd404493650cb4cdca41">
       <source xml:lang="en">Add filters to modify the SQL query</source>
     </trans-unit>
-    <trans-unit id="++CODE++eb5fa8eda3652255e1ed76fdcbbdff29061c399cdf557b0d393085e3c354d278">
-      <source xml:lang="en">Add indexed vector search using Azure SQL&apos;s native vector capabilities.</source>
-    </trans-unit>
     <trans-unit id="++CODE++7c0d6c25e58caa429d8df44b1266a82eff13a7fe9f477b164863aea8a9acc658">
       <source xml:lang="en">Add my client IP ({0})</source>
       <note>{0} is the IP address of the client</note>
     </trans-unit>
     <trans-unit id="++CODE++119f58d6a58b3f47f5c837a12f2f47a5201453288fc7ec0267e5886c2deba6e9">
       <source xml:lang="en">Add my subnet IP range</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c605ac4a3b3beceff40b59c0761cf72cf1e16c26d47d8f96a53b4ea678eed401">
+      <source xml:lang="en">Add native vector search and verify the index is used</source>
     </trans-unit>
     <trans-unit id="++CODE++cf502b3a94444bf574bf8c1ca17b7ba9f954543af389a62e0eeca0ec3faa08f3">
       <source xml:lang="en">Add new column</source>
@@ -371,6 +383,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e891f9e2ee7ea16cb59e0300e28e862e02117c23fab36f0eefe9cbec2520e74f">
       <source xml:lang="en">Add reference</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d48a4c818cd03cbe407e0c2feabec124c5a21e1dd62613713e4149072c6b06e9">
+      <source xml:lang="en">Add semantic search to one of my tables using the database&apos;s native vector support, after checking this engine supports it. Store the embeddings and write the similarity query. Then give me a check I can run that proves the query, exactly as the app runs it, uses the vector index, and that fails loudly if it ever falls back to scanning.</source>
     </trans-unit>
     <trans-unit id="++CODE++419a6a835f7a02b24021d1de3d33b7aa4b8dcd405b5ada92a062b20f4f0f0f8a">
       <source xml:lang="en">Add specialized skills to GitHub Copilot to help you work with SQL Server and Azure SQL.</source>
@@ -392,12 +407,6 @@
     </trans-unit>
     <trans-unit id="++CODE++dcc475b31b6d6d1bc68eede1badaf4b6af93c3683fe3a25ae08c8544b572e7fa">
       <source xml:lang="en">Add to workspace</source>
-    </trans-unit>
-    <trans-unit id="++CODE++638fa6131268fff5cb2508bef634c4421e1e6111e2651483a1453f542b4265e8">
-      <source xml:lang="en">Add vector search to this table and make it use the index</source>
-    </trans-unit>
-    <trans-unit id="++CODE++591974aaca8469a696debf9257e9c56ce57b38e29b3142c5cda53f493c99d6b3">
-      <source xml:lang="en">Add vector search to this table using Azure SQL&apos;s native VECTOR type and VECTOR_DISTANCE. Store the embeddings, write the similarity query, then show me how to confirm it is using a vector index rather than scanning the whole table.</source>
     </trans-unit>
     <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
       <source xml:lang="en">Added</source>
@@ -563,6 +572,15 @@
       <source xml:lang="en">An error occurred: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++103dc0b3502d1fcebd3c683fbf6018141ecf8fda727fe9fa4079be18fccec5e2">
+      <source xml:lang="en">An optional display name for the connection.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d32e3a84cdfbfda4d0efe903ff0546c59ccd5abdd60a9fba71eb29933b68ff67">
+      <source xml:lang="en">An optional hostname assigned to the container.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d40e138ed4448c750e0a7ff0fe5fd71033b28ad55e182ca27fa2a4aaba8c1795">
+      <source xml:lang="en">An optional name for the database container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6615bf1c8fddf2fbb0970f969c21c5d919d912608bd1cceb93855780bec3123d">
       <source xml:lang="en">An unexpected error occurred</source>
     </trans-unit>
@@ -595,6 +613,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a6f31505cd1943fe9695363ab1c0a08e79c015c0747830d411a24e29689f4899">
       <source xml:lang="en">Append to the existing backup set</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6b2cdf94ce9afbe1f4c76dc4c2499a92968cdbd86f786b2ff0246d9ba2d6ba7d">
+      <source xml:lang="en">Apple container</source>
     </trans-unit>
     <trans-unit id="++CODE++a7168cfe83fa5085e397d074c440ebc49d8f9d65f5241ff5f2ea586f9a4db451">
       <source xml:lang="en">Application (Client) ID</source>
@@ -733,6 +754,12 @@
     <trans-unit id="++CODE++b7629cecee74de732c203019eb744cbca8f67a67c4e39575063e2e5c282094cf">
       <source xml:lang="en">Assess</source>
     </trans-unit>
+    <trans-unit id="++CODE++9d40cd6118662087f4602d0ff8ed0d60669b5566c517c3497c33d83acfc32057">
+      <source xml:lang="en">Assess my database for migration to Azure SQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a2e55aa257528d4800f4a8d01df0935b27fd9f1921af846054ca81e5d96f7b0">
+      <source xml:lang="en">Assess my database for migration to Azure SQL. Analyze its configuration, compatibility, dependencies, and workload characteristics. Identify blockers, warnings, and changes required for migration, and recommend the best-fit Azure SQL target with evidence. Give me a clear readiness summary and the actions I should take before migrating.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b17def22e3775d608a7cdc7f600aa9fd107e2209e657a6d358a5687f9f7c7bd">
       <source xml:lang="en">At least one API type must be selected.</source>
     </trans-unit>
@@ -801,6 +828,9 @@
     <trans-unit id="++CODE++70d2e37ffe6556af0cba5c43fa55ab55f9235530987956b396745510a5d4d471">
       <source xml:lang="en">Auto-scroll enabled</source>
     </trans-unit>
+    <trans-unit id="++CODE++f9dcbb55deba4b9fc8f81c4045718a29cb9b7481508475edb9d52eb869b303a9">
+      <source xml:lang="en">Automate</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0">
       <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
     </trans-unit>
@@ -859,6 +889,13 @@
     </trans-unit>
     <trans-unit id="++CODE++bbe331f8e32243066afbce22f5a989fac4ccc48b7f8902da20c35b50117276af">
       <source xml:lang="en">Azure SQL Database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++afa642e7f0f23aaef2ad17d85c91927bb555193a2ad8ebd3d712cfc2e7cce2fc">
+      <source xml:lang="en">Azure SQL Database container &apos;{0}&apos; was provisioned successfully.</source>
+      <note>{0} is the container name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e449024435d9bf391c84ac2d47dc8e861cf2e81db21000998c4dd9de37c2b7e2">
+      <source xml:lang="en">Azure SQL Database developer container</source>
     </trans-unit>
     <trans-unit id="++CODE++ba5528fbaf5a47fa7cb9ab8214c97d40ed77a42a1258edd947bff8447eb8dabf">
       <source xml:lang="en">Azure SQL Database is not supported for backup.</source>
@@ -1082,14 +1119,26 @@
     <trans-unit id="++CODE++13c21cbf0c8262d9afe95473cca56d822ff75f02ee7857e032bad6473fbd73ec">
       <source xml:lang="en">Build a database-backed app from setup to API and running.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9a13713cc7404b365d0a2b0cf7d9b8b03e908836a20ef308d597a3e3bcc3a309">
+      <source xml:lang="en">Build a persistence layer in its own schema, with migrations safe to re-run.</source>
+    </trans-unit>
     <trans-unit id="++CODE++75b3413e271841585d3319f0608aef1923c61d737b219530dd8de5459def7aa7">
       <source xml:lang="en">Build an AI-ready app</source>
+    </trans-unit>
+    <trans-unit id="++CODE++04280a4be30504353c032cabeb7df69e957da11bbe79acf8f88dd3441e715940">
+      <source xml:lang="en">Build an Azure Function app that reacts whenever a row in one of my tables is inserted or updated, plus an HTTP endpoint that adds rows to that table. Run it locally against my database and prove both work: show the reaction firing for a change you make, and show what happens when a new row&apos;s key already exists.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++35b54742b4b8ebf6a0e70dbfa5982c36cd963c32bcf380111fa113b6bf41609a">
+      <source xml:lang="en">Build and test against the Azure SQL Database developer container so what runs locally matches what runs in Azure—no surprises at deploy time.</source>
     </trans-unit>
     <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
       <source xml:lang="en">Build failed with exit code {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++826d02f44b0b73307289256833824e9adbe8e6be6379095d214e84d814b95183">
       <source xml:lang="en">Build failed. Check output pane for more details. {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bb58800ec91d1ccd8fc4f138bc7f5d65dc2dab9fd3a00222f1fb478036140092">
+      <source xml:lang="en">Build the persistence layer for this app: tables for its entities, ordered migrations that are safe to re-run, and the data access code it calls. Keep the app&apos;s tables, migration history and locks in their own schema, and run migrations only against the app&apos;s database. Make sure a migration can never report success while leaving something that fails later.</source>
     </trans-unit>
     <trans-unit id="++CODE++83786570b57c8ba630ba1a34a6392b74bd535658df4105674f535468e8bf66a3">
       <source xml:lang="en">Build with AI using GitHub Copilot</source>
@@ -1379,11 +1428,26 @@
     <trans-unit id="++CODE++741262e58e1274cef3f38a5aa8042fcf05db92d4ca8e9c9e573acd0e2242ba97">
       <source xml:lang="en">Checking if the Docker Engine is configured correctly on your machine.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6a65f0a204f84c4bea2ce3851f9c48faee86345adb765cb168cc89ac5fa9da62">
+      <source xml:lang="en">Checking if {0} is installed</source>
+      <note>{0} is the name of a container engine</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a1275792b7bed4fb274de46284608fa59adac5e0c9b9bdffb76eb3265599c14f">
+      <source xml:lang="en">Checking if {0} is started</source>
+      <note>{0} is the name of a container engine</note>
+    </trans-unit>
     <trans-unit id="++CODE++38ccc9db5b300e54116d6f6e8b8ee1420fea7792e8483c7368fdd964b6ecef0a">
       <source xml:lang="en">Checking pre-requisites</source>
     </trans-unit>
+    <trans-unit id="++CODE++bed2352ff59159c73b59736906b22bdd3d00395b9ab6fe9854a94e0b0ec3707c">
+      <source xml:lang="en">Checking prerequisites</source>
+    </trans-unit>
     <trans-unit id="++CODE++ed7fa7e173cd1f99f4403bd77fd717d26cdffa2216341e208fa2c5f7ac0d5d53">
       <source xml:lang="en">Checking the generated configuration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++009a217216e315d46a059b610c8a45ecd78e10f1fe79e6edb0fc303515c8f831">
+      <source xml:lang="en">Checking {0} configuration</source>
+      <note>{0} is the name of a container engine</note>
     </trans-unit>
     <trans-unit id="++CODE++2e5f79bb94a8c40b3a103600323d7faee672abfb51f3c38679aab02fd4075a8d">
       <source xml:lang="en">Checking...</source>
@@ -1432,6 +1496,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
       <source xml:lang="en">Choose color</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d0a50b3c66ed08ff5e7bb4903c4593ac6050d5493dccbfbf9442a0466bf2c2cc">
+      <source xml:lang="en">Choose how to run Azure SQL Database</source>
     </trans-unit>
     <trans-unit id="++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959">
       <source xml:lang="en">Choose the Right Version</source>
@@ -1650,9 +1717,6 @@
     <trans-unit id="++CODE++2a741bf60e87cb92c5850d89286135aaed0b73927b901114af28ad88fe82951f">
       <source xml:lang="en">Collation</source>
     </trans-unit>
-    <trans-unit id="++CODE++c5a429303f6ab70e9ff4f24e521c406798b3be2985e882fbd796c460d927685c">
-      <source xml:lang="en">Collect performance data from an on-premises server and recommend a SKU.</source>
-    </trans-unit>
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
     </trans-unit>
@@ -1788,14 +1852,14 @@
     <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
       <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
     </trans-unit>
-    <trans-unit id="++CODE++aa49da8fc6c28ccd6528e40cce959eb1cf6e3a093cde3302f3f009345bf76078">
-      <source xml:lang="en">Configure a Node.js application to use secure Microsoft Entra authentication.</source>
-    </trans-unit>
     <trans-unit id="++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71">
       <source xml:lang="en">Configure and customize Azure SQL Databases</source>
     </trans-unit>
     <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
       <source xml:lang="en">Configure and customize SQL Server containers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4ab7a5958270dc900b1fc6e1de343e6603d980d2e696347d548b132a26b9e6d3">
+      <source xml:lang="en">Configure and customize the developer container</source>
     </trans-unit>
     <trans-unit id="++CODE++c3601ab056586eb83c082fc146db4ff551ad914941f89ed7954a78a0618bc798">
       <source xml:lang="en">Configure keyboard shortcuts used by the MSSQL extension.</source>
@@ -1836,14 +1900,8 @@
     <trans-unit id="++CODE++0e65cf5077295cb9c747c8444e19e9f9c8c5b82d37158c24cf1ece7c84dd746b">
       <source xml:lang="en">Connect and manage database connections</source>
     </trans-unit>
-    <trans-unit id="++CODE++0fb7fb11dc215a93d89a9b060c696149f590b9accdd0747896fee613fb7755eb">
-      <source xml:lang="en">Connect my Node app to Azure SQL Database without a password</source>
-    </trans-unit>
     <trans-unit id="++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da">
       <source xml:lang="en">Connect the active SQL document to a database</source>
-    </trans-unit>
-    <trans-unit id="++CODE++869b13cbc90dee1872ef01380429d9064aee528e808257ce990b87602d1da8da">
-      <source xml:lang="en">Connect this Node.js app to Azure SQL Database using Microsoft Entra authentication instead of a SQL login. Wire up the connection so it works both on my machine and from the deployed app, and make sure no database password ends up in the repository or in configuration.</source>
     </trans-unit>
     <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
       <source xml:lang="en">Connect to Database</source>
@@ -1859,6 +1917,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b34d1cdc1ec3705ae1fac0b6b10b411a0d5f271dfc967f647c99784ba9a323bb">
       <source xml:lang="en">Connect to a database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++319fd56a6ab647e30c6f7f884069a327250bfe1e6d09e28b8ef533b154753826">
+      <source xml:lang="en">Connect to a server in Object Explorer or open a connected query editor to search database objects.</source>
     </trans-unit>
     <trans-unit id="++CODE++b2c490a777ddf796ff31f0e2a230e002b1329f808ec37cf885ad1bfcd7696ca3">
       <source xml:lang="en">Connect to server {0} and database {1}?</source>
@@ -1914,6 +1975,9 @@
     <trans-unit id="++CODE++bd02214c7799ec6a69018761f76fed82a6516c170ddbc3fdbf6f0c2a7b566d9f">
       <source xml:lang="en">Connecting to Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++24f000f73c4da1bd21abc5c6b2b01f5c377aa5044ee3731c385ca3bc6dcb51d7">
+      <source xml:lang="en">Connecting to container</source>
+    </trans-unit>
     <trans-unit id="++CODE++2e2706212eec134e00b88651a09bcbab6a28eb15560d24a9c6d3690d6c06b57b">
       <source xml:lang="en">Connecting to database</source>
     </trans-unit>
@@ -1933,6 +1997,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b613d48f906e133dadf56bfc9a00ef15bc7209a24e679f5d5e38df28270ef4f9">
       <source xml:lang="en">Connecting to server...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1bedc379ef85da000d94a7e0da8e2ac72fd725b4673a9f1caa39b77bf7a2109b">
+      <source xml:lang="en">Connecting to your Azure SQL Database developer container.</source>
     </trans-unit>
     <trans-unit id="++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744">
       <source xml:lang="en">Connecting to your SQL Server Docker container</source>
@@ -2110,8 +2177,17 @@
     <trans-unit id="++CODE++69f2cb7dd2107d62b752a7de5d918a0b657147558a767c02175920d2b510a997">
       <source xml:lang="en">Container Settings</source>
     </trans-unit>
+    <trans-unit id="++CODE++8c5db61c12be42335ff46beb93cc83ae5686c04239ee29893e1bb734ffff12d2">
+      <source xml:lang="en">Container deployment failed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
       <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d1273dee165a798016d28766fc9e176e3ef9d6b960f589f45d1635f6d4516abc">
+      <source xml:lang="en">Container engine</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e64006bd11f3fe50e57eb15915a5c3b5907ab4f3c849cbb737c8690450bc7c37">
+      <source xml:lang="en">Container engine detection failed.</source>
     </trans-unit>
     <trans-unit id="++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd">
       <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
@@ -2131,8 +2207,17 @@
     <trans-unit id="++CODE++bbcce2214819b0c2d1ab53dff1f116b6071d1223a513c97750b73e775ac8ca49">
       <source xml:lang="en">Container name, port, and config content are required to start the container.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c9d6bec0d3e4324f01b85de6d6b8cb8df66cdb3f6d89d62e17af655e2739fa36">
+      <source xml:lang="en">Container names must start with a letter or number and contain only letters, numbers, underscores, periods, or hyphens.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6afdf49d00bde2bc467f3cec19bb85b59741fbf80180c91ea58de6599f494046">
       <source xml:lang="en">Container no longer exists</source>
+    </trans-unit>
+    <trans-unit id="++CODE++46254c066820a2981fe74812027103f1acf16af3dc8a63c4de643705a6004b4c">
+      <source xml:lang="en">Container runtime, commonly used through nerdctl or Rancher Desktop. · Windows, macOS, Linux</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c5117b0ecd482d6fa46fcbc638b447909ff59ce4bedb7461f905c6a78be5ddc8">
+      <source xml:lang="en">Container tool from Apple for macOS on Apple silicon. · macOS 26+</source>
     </trans-unit>
     <trans-unit id="++CODE++ec959d6a5a283eaa094720f71457b35ef140f83d240d53d757000a127ff78889">
       <source xml:lang="en">Container {0} no longer exists.</source>
@@ -2420,6 +2505,9 @@
     <trans-unit id="++CODE++cd5d40e7e1a14d9851ddb7fdc70f5a23d601e2cfdedc094f5d873ba2f1287590">
       <source xml:lang="en">Create a local container</source>
     </trans-unit>
+    <trans-unit id="++CODE++6a882aace8cc5bcb91c12be4b45f40a77f4e12267f18138965b67ba208a59dc8">
+      <source xml:lang="en">Create a migration plan for my database</source>
+    </trans-unit>
     <trans-unit id="++CODE++69492d8c5a4720738c3c8f74945f154f79ec6ed69ae532646893c2e25e7101e3">
       <source xml:lang="en">Create a new connection profile</source>
     </trans-unit>
@@ -2468,6 +2556,9 @@
     <trans-unit id="++CODE++df71f4b96b979f9c3e85500de3a22246aeeebfa03664d2f7ea8db2b79e01f222">
       <source xml:lang="en">Create project from database</source>
     </trans-unit>
+    <trans-unit id="++CODE++9f5536c554c4ef316c1eec300ef63cac4497346c928e31196a716ad418b9ac76">
+      <source xml:lang="en">Create, start, stop, and remove your container from the MSSQL extension using Docker, Podman, containerd (nerdctl), or WSL containers on Windows.</source>
+    </trans-unit>
     <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
       <source xml:lang="en">Created table {0}</source>
       <note>{0} is the qualified table name</note>
@@ -2488,8 +2579,14 @@
     <trans-unit id="++CODE++9365b2c6708531c8df9ee555c58dcb675690a166106fe78638a3cd5c8472ff57">
       <source xml:lang="en">Creating and starting the container</source>
     </trans-unit>
+    <trans-unit id="++CODE++e057ee374d49e2f19a973d6fdadd7c4cb32d493ab2e53e82ec4de400663273bf">
+      <source xml:lang="en">Creating and starting your Azure SQL Database container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
       <source xml:lang="en">Creating and starting your SQL Server container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1b12d9c7046f7ee58dd557095e1f7227dab92c90750af8e380a7c343457d2463">
+      <source xml:lang="en">Creating container</source>
     </trans-unit>
     <trans-unit id="++CODE++725716b6df2a2ce3060b1681ae49712313e3156ab2af1b2ee7585b72b69dc7d5">
       <source xml:lang="en">Creating database</source>
@@ -2516,6 +2613,9 @@
     <trans-unit id="++CODE++36d37fc43209cbab12c2155e6a214b4d880350cd721cc4e9e45216daaefaeb49">
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++fffe840efaba69fcb5f88dd3c3472b066470eeb08bba1ed2cc7cd876a561423f">
+      <source xml:lang="en">Cross-platform, ARM and x64</source>
     </trans-unit>
     <trans-unit id="++CODE++31471ef54c94fd1a0ed4fcd85c62277d98a6119305f1ea0862fab2f0aa4a1c3b">
       <source xml:lang="en">Current Schema: {0}, Select the new schema:</source>
@@ -2957,6 +3057,9 @@
     <trans-unit id="++CODE++b77717c5f83b6e956ddee4a19420a4f7c0bed4934cd5d6cec4c61ac92420743e">
       <source xml:lang="en">Details tab - displays all event properties</source>
     </trans-unit>
+    <trans-unit id="++CODE++c0bc2bc41cb782c0f95b1575903bbadfe3482426cae5ee91de0282d9c17aa241">
+      <source xml:lang="en">Detecting container engines...</source>
+    </trans-unit>
     <trans-unit id="++CODE++071f21588670838182cef27feaf5f3b7c5b5f7cba62b6829713d036637016453">
       <source xml:lang="en">Dev Containers extension</source>
     </trans-unit>
@@ -2995,9 +3098,6 @@
     </trans-unit>
     <trans-unit id="++CODE++64dd65edfeaabd10a5a0f29816332bf82ca9c7b7056182a29f9e1d987cbaf016">
       <source xml:lang="en">Diagnose</source>
-    </trans-unit>
-    <trans-unit id="++CODE++18e5d8a52d65ad0cc95f446e6db7b7a52e00baf59e7f6b7c4e05e396027b6a5b">
-      <source xml:lang="en">Diagnose serverless resume behavior and make the application resilient to it.</source>
     </trans-unit>
     <trans-unit id="++CODE++babe24f1687d8f696f010c9dab1cdc17cea284045f0cef8dab2ed2c4cd5eac9e">
       <source xml:lang="en">Different database, different server</source>
@@ -3061,6 +3161,9 @@
     <trans-unit id="++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb">
       <source xml:lang="en">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6f20fa6a600b53cec9c024408133f88ab39fcfb932939b72f19f8d681dabd36a">
+      <source xml:lang="en">Discover migration blockers, compatibility issues, and the best-fit Azure SQL target.</source>
+    </trans-unit>
     <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
       <source xml:lang="en">Dismiss</source>
     </trans-unit>
@@ -3100,6 +3203,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581">
       <source xml:lang="en">Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6169e958b37ce8662817b0f3e0bf450a174742fafc527800e67f430738b4b63">
+      <source xml:lang="en">Docker</source>
     </trans-unit>
     <trans-unit id="++CODE++c8beae897ee0f07e4f929cfc5a5584932a7d07e2754f7c6b53ff44d351c2245c">
       <source xml:lang="en">Docker Desktop</source>
@@ -3164,6 +3270,9 @@
     <trans-unit id="++CODE++adbcc35e97d53bc1acdeb5a1bf4ea403d362f3fb6074a2edc4206716cafb4191">
       <source xml:lang="en">Downloading from {0} to {1}</source>
     </trans-unit>
+    <trans-unit id="++CODE++be6b5343c4e371f17d689b82b4de67da63fdc8e5d937a14fdbc0ec5f96d868d8">
+      <source xml:lang="en">Downloading the Azure SQL Database developer container image from the private registry.</source>
+    </trans-unit>
     <trans-unit id="++CODE++44ef47797353661b06274b2fe94ca033f5bb11ec18c160acc819451520aa50eb">
       <source xml:lang="en">Downloading the Data API builder container image</source>
     </trans-unit>
@@ -3202,6 +3311,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2f7514a7052124c11a8ce6b0e1142e55c5cca7611f0cf9d28bb94e5dcecbc07a">
+      <source xml:lang="en">Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.</source>
     </trans-unit>
     <trans-unit id="++CODE++a05ece881012991a79aaf2cbbba9d6e11e35d05ed66f547dfaae931a8d9e50af">
       <source xml:lang="en">Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.</source>
@@ -3333,6 +3445,9 @@
     <trans-unit id="++CODE++fc203569fa858e0ef3d2644e417247d162f933f5e91db77c913471844e2f3ced">
       <source xml:lang="en">Ends with</source>
     </trans-unit>
+    <trans-unit id="++CODE++64938288dcdad2d31a98ee4a08bbe0127ea1eeef590c2f37b2ef0dc5efa17899">
+      <source xml:lang="en">Engine not detected</source>
+    </trans-unit>
     <trans-unit id="++CODE++37344542a7e5c1efe17609d8b0a03cfce9724b28b06beef14f1cdd17ef737245">
       <source xml:lang="en">Engine: {0}</source>
       <note>{0} is the engine type</note>
@@ -3372,6 +3487,12 @@
     </trans-unit>
     <trans-unit id="++CODE++8c50a1a6a69f19f52d48a8ec9ac6d8fa30c1b8ae5f3b9448aabffc2dd94184c9">
       <source xml:lang="en">Enter a number...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++99423f847824fcaa5126b691889e26782436157dbcbb9ae40af381c1175e72eb">
+      <source xml:lang="en">Enter a port number between 1 and 65535.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++885dd0087e9192594843144ef7d051d40c814ddf786b582e0e5a9c2f6ae7fcf1">
+      <source xml:lang="en">Enter a valid hostname.</source>
     </trans-unit>
     <trans-unit id="++CODE++6086fe9511daa7a6fa39f0af8abaf8b553c8292375dfd76bc8d583b28ce3c808">
       <source xml:lang="en">Enter admin password</source>
@@ -3731,6 +3852,9 @@
     <trans-unit id="++CODE++3c2445c4b77dfeb6f38759a13a0a6558331ca648164e54fd7d86e53ebf6c1e11">
       <source xml:lang="en">Execute query</source>
     </trans-unit>
+    <trans-unit id="++CODE++79327a75237b56fbfe00f20c857579f230607b88a5b8dc1f2476cbc3981caf3a">
+      <source xml:lang="en">Execute the migration, monitor progress, and surface anything that needs attention.</source>
+    </trans-unit>
     <trans-unit id="++CODE++40d9cbf18ef0f64392913d9d6e4d075ee8b46d9541fa3d4461e4229b8b234139">
       <source xml:lang="en">Execute with Run (or {0}) and sort, filter, and export the results grid.</source>
     </trans-unit>
@@ -4088,6 +4212,9 @@
       <source xml:lang="en">Failed to create a new row: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++bc92a6543c3a7d054c67dd97a1abb664ea0f81001a1748eb4002d630c06acdba">
+      <source xml:lang="en">Failed to create and start the Azure SQL Database container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1d1ece53e805a9b638cb289253e56faa6197e148738b75e24f6670b681717ff0">
       <source xml:lang="en">Failed to create database &apos;{0}&apos;. {1}</source>
       <note>{0} is the database name
@@ -4260,6 +4387,11 @@
     <trans-unit id="++CODE++954dec32386b912be138accf36de060517dcc00ae06dd2f4b243aa7233170cad">
       <source xml:lang="en">Failed to prepare the Data API builder CLI.</source>
     </trans-unit>
+    <trans-unit id="++CODE++607e176ae1b91e5c6d3cc5407432ae9dd464895fe286ef6d2bfa18229a9cfa1f">
+      <source xml:lang="en">Failed to provision Azure SQL Database container &apos;{0}&apos;: {1}</source>
+      <note>{0} is the container name
+{1} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++7ba26df4d0fbbd2bee13f3a586513471356439c4aa47b18bd9640be75254373e">
       <source xml:lang="en">Failed to provision Azure SQL database &apos;{0}&apos;: {1}</source>
       <note>{0} is the database name
@@ -4280,6 +4412,9 @@
     </trans-unit>
     <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
       <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b518d845e44610b4377261fbcb8f2ba44c47f7a0466f943b35fe4c0952e68556">
+      <source xml:lang="en">Failed to pull the Azure SQL Database container image. Sign in to the private registry with your preview credentials, then retry.</source>
     </trans-unit>
     <trans-unit id="++CODE++496b6f97ebcac961581d18dc0885f8d7a6b2a71fc701642e7a36ea762139e99d">
       <source xml:lang="en">Failed to read saved rule overrides from project</source>
@@ -4795,8 +4930,20 @@
     <trans-unit id="++CODE++10990bf5e602e929a28b2b4c29a15161d0b50a53837cfaf936e89bed619098ac">
       <source xml:lang="en">Geo-redundant backup storage</source>
     </trans-unit>
+    <trans-unit id="++CODE++4a7b451ef6baef1b63397c9b94e65e95fd6491764724706fdc24cde499344f2a">
+      <source xml:lang="en">Get Apple container</source>
+    </trans-unit>
     <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
       <source xml:lang="en">Get Connection Details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d437608993b7d9994099908478007993eb9926d5669333846d2ef057b1efce6c">
+      <source xml:lang="en">Get Docker Desktop</source>
+    </trans-unit>
+    <trans-unit id="++CODE++94784428906a49e448e071be984ab50461e6b4f3b423b192dc96a46b657e3e43">
+      <source xml:lang="en">Get Podman Desktop</source>
+    </trans-unit>
+    <trans-unit id="++CODE++81dfe1ef30e650fc07b7013caa07bf382f61bf73890dce3898507a1d2f3133f9">
+      <source xml:lang="en">Get Rancher Desktop</source>
     </trans-unit>
     <trans-unit id="++CODE++983f311018642b0ae60c71253b5735579906d43d260ea926ebe5e815b1c97abb">
       <source xml:lang="en">Get Started</source>
@@ -4850,6 +4997,10 @@
     </trans-unit>
     <trans-unit id="++CODE++fd3de1df58e0359434b048c93f9c81d995c274b3324feac5914da2b4a87373e4">
       <source xml:lang="en">Getting started with the MSSQL extension in 5 minutes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4201843a600d683a73af891266dd991d2085171190a33f4a2ec21927d7514af4">
+      <source xml:lang="en">Getting {0} ready...</source>
+      <note>{0} is the name of a container engine</note>
     </trans-unit>
     <trans-unit id="++CODE++8b4079e3f24ee61b62917b7334fe2278bdcfbc3f354e431a30e6940c7e702683">
       <source xml:lang="en">Git repository URL</source>
@@ -4975,17 +5126,11 @@
     <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
       <source xml:lang="en">Hue</source>
     </trans-unit>
-    <trans-unit id="++CODE++65618a6c16b7366932ea2e2c9ab3de115e5175e3ebf36630033d81e5eb734a8e">
-      <source xml:lang="en">I have chosen a migration path for this SQL Server. Build the prerequisite plan for it: what has to be in place on the source, on the target and on the network before I execute, plus a readiness summary I can hand to a partner. Ask me only the questions this path actually needs.</source>
-    </trans-unit>
     <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
       <source xml:lang="en">I have read the summary and understand the potential risks.</source>
     </trans-unit>
     <trans-unit id="++CODE++cec4c1fded759957b61fa5bace2234953f9645b8a10f1ac56cdd67e89cb7c118">
       <source xml:lang="en">I understand this action is permanent and irreversible</source>
-    </trans-unit>
-    <trans-unit id="++CODE++86396a42bf61dce19d8337b2fca0145c2f6b7fdb6db9d2684812adcb7d336d44">
-      <source xml:lang="en">I want to move a SQL Server estate to Azure and have no assessment data yet. Ask me the discovery questions you need, then recommend the candidate Azure targets and migration methods that fit, the blockers that would rule each one out, and the evidence I still have to collect. Treat the recommendation as provisional until assessment tooling confirms it.</source>
     </trans-unit>
     <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
       <source xml:lang="en">I&apos;m sorry, I can only assist with SQL-related questions.</source>
@@ -5141,14 +5286,14 @@
     <trans-unit id="++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba">
       <source xml:lang="en">Insert selected query-editor text using {arg}. If you don&apos;t use the placeholder, selected text is automatically appended to the end of the query.</source>
     </trans-unit>
-    <trans-unit id="++CODE++5c255cf5434e54023b2deea5fbcb9c1be9311c9cbaacb84ab4f46506aa7e2da9">
-      <source xml:lang="en">Inspect the current project and build its Azure SQL persistence layer.</source>
-    </trans-unit>
     <trans-unit id="++CODE++569ca49f4aaf7846e952c1d4aeca72febd0b79fa1c4f9db08fd3127551218572">
       <source xml:lang="en">Install</source>
     </trans-unit>
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b637f48231c287ed10c7c8f2dc3078f0eb4535efd992d75b15b940b06ecebcc5">
+      <source xml:lang="en">Install a container engine to continue</source>
     </trans-unit>
     <trans-unit id="++CODE++ea37170478c135fe5621105f676ae5cdb160b763078a28d661098d6d6b2959b2">
       <source xml:lang="en">Install the Azure CLI</source>
@@ -5337,6 +5482,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4a29deb493a072c2e5caeb851f0c29f8d8d34ce9f4c1ed0dbe167ea82b6cbcb5">
       <source xml:lang="en">Learn more about dev containers for Azure SQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++616561bef06cfc25c1f974cf5d6d22bd4f68196072548c1e82e5dd5734139702">
+      <source xml:lang="en">Learn more about the Azure SQL Database developer container</source>
     </trans-unit>
     <trans-unit id="++CODE++bed71cb48b93c9ddd3d7494b7de7cd0195365e0c1026fe368db8ae42257058f8">
       <source xml:lang="en">Learn more about this template</source>
@@ -5649,6 +5797,9 @@
     <trans-unit id="++CODE++44fe2df974d8b80786309f264819c59c4f54ef54e4c1ae57b1dd7983d08b6ba5">
       <source xml:lang="en">Local clone path</source>
     </trans-unit>
+    <trans-unit id="++CODE++361bad9f7864ba91d621aa931828237741303dc125d67ac76c81ea7b3001090b">
+      <source xml:lang="en">Local container (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
       <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
     </trans-unit>
@@ -5685,9 +5836,6 @@
     <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
       <source xml:lang="en">Logs copied to clipboard</source>
     </trans-unit>
-    <trans-unit id="++CODE++2ac0b7c1c6ae7cf3f2794887e38d7bd0f31a83f7b2d1be7f59ddfcaf02dd7920">
-      <source xml:lang="en">Look at this project and build its Azure SQL persistence layer: design tables for the entities it already has, add ordered migration scripts that are safe to re-run, and generate the data access code the app calls. Run the migrations against the application database, never against master.</source>
-    </trans-unit>
     <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
       <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
     </trans-unit>
@@ -5722,6 +5870,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
       <source xml:lang="en">MSSQL Feedback</source>
+    </trans-unit>
+    <trans-unit id="++CODE++864cdbc96e4721c7b8a9796dd6b8580a559d95fbf34d17162724bc5e735e3a97">
+      <source xml:lang="en">MSSQL Getting Started Page</source>
     </trans-unit>
     <trans-unit id="++CODE++a5427462c277225a1de708f2b2b949ae62f5ef9a5248d7d4c11d6ed297afc756">
       <source xml:lang="en">MSSQL Notebook Selection Summary</source>
@@ -5853,6 +6004,15 @@
     <trans-unit id="++CODE++eda567f3ec45bd45068c5e275d9a4acdcf64217bc5c76c47427cda124aa7bed3">
       <source xml:lang="en">Microsoft Entra ID</source>
     </trans-unit>
+    <trans-unit id="++CODE++38f5548da28a6b04c103d4d706e5780e7e8a961c59c9230d47e390224573a379">
+      <source xml:lang="en">Microsoft Entra ID - Default</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56c4bcec7516f042864b2f7040ffcf8ca9552aad186f4ab50eec57a70dae35ef">
+      <source xml:lang="en">Microsoft Entra ID - Service Principal</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6288bf172611fb82a8e833bee7f42ed6a1cc9cdb507fffe068ba6d1b54f3e48">
+      <source xml:lang="en">Microsoft Entra ID - Universal with MFA support</source>
+    </trans-unit>
     <trans-unit id="++CODE++4cca27a3569729f8e3fa178db33f438eaa136c7491a5c3d26c807c876a02c292">
       <source xml:lang="en">Microsoft Entra Id</source>
     </trans-unit>
@@ -5889,6 +6049,15 @@
     </trans-unit>
     <trans-unit id="++CODE++7d4b99d7fea1f8fb56040b0f388071d3f886f709000859485129c0ce1930fce9">
       <source xml:lang="en">Microsoft would like your feedback</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f988ed29d81b7bb6144200368b6bd765f7818dfad88acd9acb37e5dfb9840aab">
+      <source xml:lang="en">Migrate</source>
+    </trans-unit>
+    <trans-unit id="++CODE++97547b3dcb7f017b997d28d82f71bcba4056d9dc564d1385c58ad41f9184548a">
+      <source xml:lang="en">Migrate my database to Azure SQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++04f911ed232585e87f025e5ead6d18db308a31b35bc39c652fabfc72e2b3ef6f">
+      <source xml:lang="en">Migrate my database to the selected Azure SQL target using the migration plan. Validate prerequisites before starting, configure the migration, move the required schema and data, and monitor its progress. Surface errors, warnings, or conditions that could affect the migration or cutover, and don&apos;t proceed past a critical failure without telling me what needs to be fixed.</source>
     </trans-unit>
     <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
       <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
@@ -6046,9 +6215,6 @@
     <trans-unit id="++CODE++c26ee0e4b915257d995cffde4cc7b77a97c1e0cfa544836fdcb28329d1dc749a">
       <source xml:lang="en">Mutation</source>
     </trans-unit>
-    <trans-unit id="++CODE++3f0cef497990f152bfa80f26e6ff1ac87eacfc2e40bcb0bdf6685287a9e15503">
-      <source xml:lang="en">My first query after an idle period fails with error 40613 against Azure SQL Database. Explain what the serverless tier is doing when that happens, then change this app&apos;s connection and retry handling so the resume is absorbed instead of surfacing as a failed request.</source>
-    </trans-unit>
     <trans-unit id="++CODE++4f597d21c43ad4296c13690ad65aaff476273a489afc5e5d6f91073de96baf9b">
       <source xml:lang="en">MyProfilerSession</source>
     </trans-unit>
@@ -6069,6 +6235,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
       <source xml:lang="en">Name of the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a5135f7bb6d09c754daab4f864f6bcbd5980df298e33b6dd4a979c1fb9484545">
+      <source xml:lang="en">Native ARM and x64 images so you get great performance on Apple silicon, Surface, and Linux ARM devices, and on traditional Intel/AMD machines alike.</source>
     </trans-unit>
     <trans-unit id="++CODE++fa0b5c9f24a385fbfa5914f392a2476c831d7baa4365e59cfca338130cd71c98">
       <source xml:lang="en">Navigate result grids</source>
@@ -6299,6 +6468,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9fc475057175144b8fcda9ed4418c5a9aaba01234c96fc1798278f52a9235eff">
       <source xml:lang="en">No connections were found in the file.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++afa6373905dd0df844c57d2c0c940e04d0c8a70c203a6d842bbcf4554d43952f">
+      <source xml:lang="en">No container engine found</source>
     </trans-unit>
     <trans-unit id="++CODE++3da75270eacf985d78bd5f504130e299acb9022f261146dfc7f1ac655fba70bd">
       <source xml:lang="en">No customized settings found</source>
@@ -6653,6 +6825,9 @@
     <trans-unit id="++CODE++53dbddd7bcdf5a51afae1447f034e76d78722d20c1d6d62002c00e19f68ea9b2">
       <source xml:lang="en">On Update Action</source>
     </trans-unit>
+    <trans-unit id="++CODE++77f4b6cbb91f6e89511bceef7c078a47075e4ad04a2a4c903cbf2b6f2a1c90c3">
+      <source xml:lang="en">One of my app&apos;s endpoints got slow. Find the database queries behind it, work out why they&apos;re slow, and show the evidence. Tell me what the database didn&apos;t record that you&apos;d need. Don&apos;t change anything yet.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2d763983a073bc87ca923bb655d5bf3537e7afaaf07ef5f21a8a814550e24413">
       <source xml:lang="en">One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.</source>
       <note>{0} is the comma separated list of connection group names</note>
@@ -6792,6 +6967,9 @@
       <source xml:lang="en">Open {0}</source>
       <note>{0} is the label of the link destination</note>
     </trans-unit>
+    <trans-unit id="++CODE++f019e0add1fccf57f3aafbd4e20ea0b7806b423d468bfa8c358092adfeaafe3f">
+      <source xml:lang="en">Open-source container engine, often used as a Docker alternative. · Windows, macOS, Linux</source>
+    </trans-unit>
     <trans-unit id="++CODE++0184aa15fddaf2cf9c1019f5b52366b5f0f9c3e32bcb7bbbf5abe19a72962252">
       <source xml:lang="en">Opened the Dev Containers extension&apos;s template picker instead.</source>
     </trans-unit>
@@ -6843,6 +7021,9 @@
     <trans-unit id="++CODE++110b7288ee54432862487c6ca5ea2579493dc3b078d51218ff4e2bfdcac4986c">
       <source xml:lang="en">Original file name</source>
     </trans-unit>
+    <trans-unit id="++CODE++ba0f79f8e6b404bef26409b2931e81b2052e932cee9299698e54213e4b2dfe88">
+      <source xml:lang="en">Other supported engines</source>
+    </trans-unit>
     <trans-unit id="++CODE++ebdad9ba4c5e3ce0078ad8e8fb31e4c76176834cd2370f05bd043e4baf8d6c5a">
       <source xml:lang="en">Others</source>
     </trans-unit>
@@ -6873,6 +7054,9 @@
     </trans-unit>
     <trans-unit id="++CODE++796120837694d3f3f29259cfeb25091698c2a0aa87873658d840b4993ee889b3">
       <source xml:lang="en">PNG</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f4f146a5b809e582037b0ddc0b665fdd873f4449725a3f2a57d2eae07d7766b8">
+      <source xml:lang="en">PaaS-aligned local development</source>
     </trans-unit>
     <trans-unit id="++CODE++248d6fc3eeeea8a859f0b50d51cff03616d0d0a52c7ab563d7a2046e33849837">
       <source xml:lang="en">Package Reference</source>
@@ -7014,6 +7198,9 @@
       <source xml:lang="en">Plugin · Includes {0} skills</source>
       <note>{0} is the number of skills the plugin bundles</note>
     </trans-unit>
+    <trans-unit id="++CODE++dcf103b39c072dc6ba804fab5401897e47a5175fcd4736c8ede992d392d9fde1">
+      <source xml:lang="en">Podman</source>
+    </trans-unit>
     <trans-unit id="++CODE++bc7051ce0441313dcb7c9b9d349caa1600527dbe0a54a25654881eeef7c4b0b4">
       <source xml:lang="en">Point Data API Builder at your tables to expose REST and GraphQL endpoints.</source>
     </trans-unit>
@@ -7051,9 +7238,6 @@
     </trans-unit>
     <trans-unit id="++CODE++a37a2142ebde04c1b6e14939040584bba21a84f5a0028999e960e6d6fb9c21d3">
       <source xml:lang="en">PostDeploy Elements</source>
-    </trans-unit>
-    <trans-unit id="++CODE++1423c50a402df5872e33dd35876d9844919a4902b7e364bd8f7c1a6efab64036">
-      <source xml:lang="en">Pre-select candidate targets and migration methods before any assessment data exists.</source>
     </trans-unit>
     <trans-unit id="++CODE++03456e4003fc53cc3045f2a6373a863f1981602e69f5da1d7fd7062f85981d1e">
       <source xml:lang="en">PreDeploy Elements</source>
@@ -7241,6 +7425,13 @@
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
     </trans-unit>
+    <trans-unit id="++CODE++ee1746ec779568d60b4f4c459f6f677bd01e349636a4f73bb6a99231e49819b8">
+      <source xml:lang="en">Provisioning Azure SQL Database container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++193ddf8cebed883aa9f4c1499dba6d2f07e4b31ee3c0d6fc58945d266919fcd2">
+      <source xml:lang="en">Provisioning Azure SQL Database container &apos;{0}&apos; was canceled.</source>
+      <note>{0} is the container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++b8fddb7a2a0858e5c78adda3e0f311031aa9e175bf7dd618546382f69c68de5b">
       <source xml:lang="en">Provisioning {0}</source>
       <note>{0} is the server, container, or database target being provisioned</note>
@@ -7296,6 +7487,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
       <source xml:lang="en">Pulling SQL Server Image</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7f37318759afb151b04b6368c494757c2529b75b153b09d0e429e16e68e2b1c2">
+      <source xml:lang="en">Pulling container image</source>
     </trans-unit>
     <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
       <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
@@ -7444,6 +7638,9 @@
     <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
       <source xml:lang="en">Readying container for connections...</source>
     </trans-unit>
+    <trans-unit id="++CODE++b56deef8f73a49495fd32bbed137f542a06404e57170397c761f3c8eef98234b">
+      <source xml:lang="en">Readying the container for connections.</source>
+    </trans-unit>
     <trans-unit id="++CODE++64eb0638da2ca01334778c2f5992e854d714839cb7a963823ba7cf5e369a00af">
       <source xml:lang="en">Real-time database activity monitoring with Extended Events</source>
     </trans-unit>
@@ -7465,8 +7662,8 @@
     <trans-unit id="++CODE++1f47d8366934f024275d2126cc2693f6ea8e1a6815af400835993032a05dd518">
       <source xml:lang="en">Recheck</source>
     </trans-unit>
-    <trans-unit id="++CODE++778bf4396f584f47542a5cb868992aa957ecc7273d074e90e79bfa40d374189d">
-      <source xml:lang="en">Reconcile the source and target tables without changing either side.</source>
+    <trans-unit id="++CODE++d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef">
+      <source xml:lang="en">Recommended</source>
     </trans-unit>
     <trans-unit id="++CODE++8cb3da9c49a18274300475b2f9dbf9edd0a194821a1ce05c7d8351ffee8abdaa">
       <source xml:lang="en">Record shortcut</source>
@@ -7849,6 +8046,9 @@
     <trans-unit id="++CODE++4228aeb07c410ffc9d15b458bf7c2bf8d9dfa7af632f2c339e69f8cb54654da3">
       <source xml:lang="en">Rules</source>
     </trans-unit>
+    <trans-unit id="++CODE++34ef2e4e57e03bb3051579a7ad4a25ac18b6a045198cb6114bcd5d49f11e7bc3">
+      <source xml:lang="en">Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.</source>
+    </trans-unit>
     <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
       <source xml:lang="en">Run Query</source>
     </trans-unit>
@@ -7860,6 +8060,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f1f7fb149510b3345e622785a8ef9a6d79fe17a9521268307fd6a9e32668494b">
+      <source xml:lang="en">Run an Azure Function whenever a row in my table changes</source>
     </trans-unit>
     <trans-unit id="++CODE++0ab80ab98d7d16f11e736faff60edd6bc2b3d343621580f76a97d7055a675509">
       <source xml:lang="en">Run and iterate</source>
@@ -7915,8 +8118,15 @@
     <trans-unit id="++CODE++1535db1c91172380e70396d4a07899000757727b521ac651eb91dbcaee2460e4">
       <source xml:lang="en">Runs Data API builder in a container on this machine, published on a local port.</source>
     </trans-unit>
+    <trans-unit id="++CODE++76086ca76a113f441793f5f388b976f1b83690e0fd9fa4bb54d1000b9107cb58">
+      <source xml:lang="en">Runs containers through Windows Subsystem for Linux (WSL). · Windows</source>
+    </trans-unit>
     <trans-unit id="++CODE++4870950395d377ccb78a99509d402224e9dde215522464fe53d7423a5e6ac8b2">
       <source xml:lang="en">SDK-style project</source>
+    </trans-unit>
+    <trans-unit id="++CODE++98126b1cae780d4e2490f0ef6cf1d2ff68b4049005490d0a6f8ea1970bac5ca2">
+      <source xml:lang="en">SPID: {0}</source>
+      <note>{0} is the server process ID (SPID) of the connection</note>
     </trans-unit>
     <trans-unit id="++CODE++a7056a455639d1c7deec82ee787db24a0c1878e2792b4597709f0facf7cc7b35">
       <source xml:lang="en">SQL</source>
@@ -8122,6 +8332,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0a12b3e51f64e705d6de90db7bcada67844d93e118f414b2fc703b2014efabc5">
       <source xml:lang="en">Save source and target, options, and excluded elements</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ceb8d17e99b53884900c80e49e8bf1915c487bc612f97f76f01de7e3079c787c">
+      <source xml:lang="en">Save the password securely with the connection profile.</source>
     </trans-unit>
     <trans-unit id="++CODE++65c2ce4c13ec3a32d62c618c0dd7fcd050eb87d877318da88bd69031d987fc00">
       <source xml:lang="en">Save this filter for reuse</source>
@@ -8414,8 +8627,14 @@
     <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
       <source xml:lang="en">Select a connection group</source>
     </trans-unit>
+    <trans-unit id="++CODE++32b8cc7271fec240c70a7c4d849e445e3c2128ed4e0cc0938e125099ec99d6c8">
+      <source xml:lang="en">Select a connection group.</source>
+    </trans-unit>
     <trans-unit id="++CODE++abf078a3e4a6e103d6da7a7075ac601a095b2ba444bfc98447f49248daa477fb">
       <source xml:lang="en">Select a connection to use as the default</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e2f6eae6478e08c046980653113c7f509326035ecbf6911bd1a5783d386ff48f">
+      <source xml:lang="en">Select a container engine</source>
     </trans-unit>
     <trans-unit id="++CODE++4e6644fdcf104792709d58c5309c2a4ec5a14b58e94a40bdd9da2af532e8e534">
       <source xml:lang="en">Select a data source</source>
@@ -8674,6 +8893,9 @@
     <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
       <source xml:lang="en">Server name or ADO.NET connection string</source>
     </trans-unit>
+    <trans-unit id="++CODE++0a70f29306e2bb66a98cf37fb5bff386a7a853666ac2588b4d27f748e59ab942">
+      <source xml:lang="en">Server process ID (SPID) of this editor&apos;s connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++cc01283cce208f77ad6623104ad4e6b8f82db0c6141aca95a4cffc70a9d3f5b5">
       <source xml:lang="en">Server variable</source>
     </trans-unit>
@@ -8727,6 +8949,9 @@
     <trans-unit id="++CODE++4da10f1fbb17cac25e9e78536d4104cb4b2fbbc436dbc37dee5450f22c2accda">
       <source xml:lang="en">Set up</source>
     </trans-unit>
+    <trans-unit id="++CODE++1b4fafdd8d57af20c97587522a1abcf3dd8fbb052b112d7dc8c5144c0ee01e72">
+      <source xml:lang="en">Set up WSL containers</source>
+    </trans-unit>
     <trans-unit id="++CODE++3b56d48f1471bb8471ecd14ede6519545fc579a2925e575b09e14a80ebb5c61e">
       <source xml:lang="en">Sets the project up somewhere else and opens it</source>
     </trans-unit>
@@ -8738,6 +8963,10 @@
     </trans-unit>
     <trans-unit id="++CODE++98a2e618e690165268025ae1d25d8d84ea575af666bdd7a5b719bc777e3d584f">
       <source xml:lang="en">Setting up container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b006935de5a43d932e533abfa4350c61c766be28781a9eb6b6a7838b1c08be04">
+      <source xml:lang="en">Setting up {0}...</source>
+      <note>{0} is the container name</note>
     </trans-unit>
     <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
       <source xml:lang="en">Settings</source>
@@ -8923,12 +9152,6 @@
     <trans-unit id="++CODE++aa86409ea7e147ea5324e4a83d49efc512f2527f7dbada91558cde583e1a8ec2">
       <source xml:lang="en">Simplified</source>
     </trans-unit>
-    <trans-unit id="++CODE++1af851907331c0ed99e7c63b4e55df808bc5fc4c990a1cf80ca8c0f76daf1f3b">
-      <source xml:lang="en">Size</source>
-    </trans-unit>
-    <trans-unit id="++CODE++cb4d012f5297bd4b933268a27737339cec3153c9adba78da636d89480e98ed73">
-      <source xml:lang="en">Size an Azure SQL SKU from this server&apos;s performance</source>
-    </trans-unit>
     <trans-unit id="++CODE++28d03596d24eeb4eab2d6fe21ca1cb95be7cb1fa6f92933db05e2cc4f4cdfa06">
       <source xml:lang="en">Skip</source>
     </trans-unit>
@@ -9103,6 +9326,9 @@
     <trans-unit id="++CODE++6549c4671adc57fc8e91f8f954ddc90c5afa351bdac948dc76c0a1bdc604d3bc">
       <source xml:lang="en">Storage Account is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++c7b8b06aab73c64f55558b47032bc9bd5e482199d0a16a1b479549141010ba8a">
+      <source xml:lang="en">Store embeddings, write the similarity query, and catch silent full-table scans.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c3d80b4555b5cc4db38060d13360c4a25eb2324a33e2301b7af68c423a06a187">
       <source xml:lang="en">Stored Procedure</source>
     </trans-unit>
@@ -9237,6 +9463,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b27ba710997adaf6099374edb801d44bef36c92e6d37e0190c7c1d12d4b32209">
       <source xml:lang="en">T-SQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++03626549a59abf648ee59163b3b8acbf66c36513cb1e76d6e277bc044c926e30">
+      <source xml:lang="en">TBD</source>
     </trans-unit>
     <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
       <source xml:lang="en">Table</source>
@@ -9407,6 +9636,9 @@
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++19f94053c824ea8918fb1bc75d32db61c103a9bda361494326fb6212602380fb">
+      <source xml:lang="en">The Azure SQL Database container did not become ready for connections within five minutes.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4b322ab456c5f1d7a9a9be01df5778e65771785eab5f5f93637487f24f24793d">
       <source xml:lang="en">The Data API builder CLI exited with code {0}.</source>
       <note>{0} is the process exit code</note>
@@ -9451,6 +9683,9 @@
     <trans-unit id="++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73">
       <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9cb184bfbce8489983076e7d2b758fba742453f68e82aa907ad3b48c7247c61f">
+      <source xml:lang="en">The built-in administrator login for the developer container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d7c54293989298ee3944f49558ec6882f3cdee331b1959779bb00e2e6921be28">
       <source xml:lang="en">The cancel request did not complete in time. The editor&apos;s execution state has been reset.</source>
     </trans-unit>
@@ -9473,6 +9708,9 @@
       <note>{0} is the container name
 {1} is the list of connection display names</note>
     </trans-unit>
+    <trans-unit id="++CODE++f24f0ea65710646b02db37e614de2d14b6869f13fca2fa875a61d673cab12499">
+      <source xml:lang="en">The container started, but the extension could not create its database connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1a187c0bb776eac7a356f6623badf4084f701ae47f405cfc74374c79fbf44ddb">
       <source xml:lang="en">The container {0} will be stopped and removed, and its endpoints will stop responding.</source>
       <note>{0} is the Docker container name</note>
@@ -9491,6 +9729,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4ed30ce390b4a87aa521240a8313735faff4c4cb4df0c01292ffdaf5b9a44c58">
       <source xml:lang="en">The description of the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44d1028a4f9813fa5404247a36ba5c244cf826267718ec8031f44ea1744cd9f5">
+      <source xml:lang="en">The developer container uses SQL Login authentication.</source>
     </trans-unit>
     <trans-unit id="++CODE++7d461990f839b0bf2ac4825e909940b31fbe37f7b1da2ee5a4091bfb27cf40cb">
       <source xml:lang="en">The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.</source>
@@ -9517,8 +9758,14 @@
       <source xml:lang="en">The following workspace or workspace folder connections are missing the &apos;id&apos; property and are being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it. &#10;&#10; {0}</source>
       <note>{0} is the list of display names for the connections that have been ignored</note>
     </trans-unit>
+    <trans-unit id="++CODE++165859562845402828987200e5aa14c44dffb25584ee962b984d30418a65f9b5">
+      <source xml:lang="en">The host port used to connect to the database. The default is 1433.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11">
       <source xml:lang="en">The language model did not return any output.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56b03896b84cffa8cabcfcbee375fe8ac177fff10b9a9712425fcc9edd65b112">
+      <source xml:lang="en">The local database runs inside a container, so you&apos;ll need a container engine. Docker is pre-selected as a common default; any of the options below will work. Install one to continue.</source>
     </trans-unit>
     <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
       <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
@@ -9531,9 +9778,6 @@
     </trans-unit>
     <trans-unit id="++CODE++748f1779a56584b54a1ebea2ed54d4ed5a28d6480654284f36b3c9ccc02e1ddc">
       <source xml:lang="en">The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++31127dcf07dd279e22b762ae8f6e138c1382bc31ae4b83b7c0bf1fb75f6db863">
-      <source xml:lang="en">The migration target is online. Validate it against the source without changing data, schema or configuration on either side: compare the user table inventory and the exact row counts for every mapped table, and report the tables that do not reconcile.</source>
     </trans-unit>
     <trans-unit id="++CODE++497f95858a915b211f7f758c96976c859fb0e3695e61ec32971051e8b431c186">
       <source xml:lang="en">The move was rejected or could not be completed.</source>
@@ -9552,6 +9796,12 @@
     </trans-unit>
     <trans-unit id="++CODE++644a28f160d2df093fab1a8c94e5176f21c1af3bee1915315edd409d14397021">
       <source xml:lang="en">The name of the index.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++272506f9c62042553eaf9c72b757e5be6cfceeb0cc13c88115850578f6483bb9">
+      <source xml:lang="en">The password must be 8–128 characters long.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4f741739bf72ecedf22b1028fb8e35adfbf2ff99d28aa41ffa0531c6deaba4e5">
+      <source xml:lang="en">The password must contain characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.</source>
     </trans-unit>
     <trans-unit id="++CODE++1541ca54eaafab6eaf10bd1051af6f50394e0b8f11aad6012045ce761a8ff683">
       <source xml:lang="en">The project &apos;{0}&apos; will not be fully compatible with SSDT after conversion. A backup copy of the project file will be created in the project folder prior to conversion. More information is available at https://aka.ms/sqlprojsdk. Continue with converting to SDK-style project?</source>
@@ -9705,14 +9955,14 @@
     <trans-unit id="++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84">
       <source xml:lang="en">This file name is reserved for use by Windows. Choose another name and try again</source>
     </trans-unit>
-    <trans-unit id="++CODE++5a22c0eba305caad4c998e466bf6e41168617de7a7c0bbbf06d9f1ef1ef79c6e">
-      <source xml:lang="en">This is an on-premises SQL Server instance. Collect performance data from it and recommend an Azure SQL SKU sized from that data, not from a guess. Tell me what the collection needs before it starts and how long it should run to be representative.</source>
-    </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
     </trans-unit>
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++174959f5d73693f0a200518e8628bc5f2a3a1eaa6e9a834296e47264ea7f9548">
+      <source xml:lang="en">This port is already in use. Choose a different port.</source>
     </trans-unit>
     <trans-unit id="++CODE++d2cd4222b87fe208131546fa04e7a1627d7270f2581fc96c91e88a4e870c9fc0">
       <source xml:lang="en">This project type does not support drag and drop.</source>
@@ -9837,6 +10087,9 @@
     <trans-unit id="++CODE++3018218f5b66be1c5027fdc1d75389f30f30ac7cfa00c77c3453790d8830dc9a">
       <source xml:lang="en">Total rows to fetch:</source>
     </trans-unit>
+    <trans-unit id="++CODE++46d981a71762418a844ace6d52c63bc4bc1c1c72e858b3a933b9041d3a303fbb">
+      <source xml:lang="en">Trace the queries behind a slow endpoint and find the cause, with evidence.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c7363102b16228ab96af90a6f97d1ab569d452b23341820a7070e0dd8ddb859b">
       <source xml:lang="en">Transaction Log</source>
     </trans-unit>
@@ -9855,6 +10108,9 @@
     <trans-unit id="++CODE++d7f5ff6e4dad9f838e47b0ebe6e7599c967ad07620a3329436b4887f723d649e">
       <source xml:lang="en">Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9066bcf86086f787cb18707f7e21b7a999aad096ef7628b8396765d020da8f97">
+      <source xml:lang="en">Try Azure SQL Database at no cost with the free tier offer — a fully managed cloud database, ready for your app, ORM, or migration tools.</source>
+    </trans-unit>
     <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
       <source xml:lang="en">Try adjusting your search or filters</source>
     </trans-unit>
@@ -9867,8 +10123,8 @@
     <trans-unit id="++CODE++afca09a8409008c96ae284a9907ab46092f88096cfbb89b9635809fd2a005fa4">
       <source xml:lang="en">Try these prompts</source>
     </trans-unit>
-    <trans-unit id="++CODE++0d456af1edfdae675fabba13aa9673a730a223fb287fc17543cea096ac55ef9f">
-      <source xml:lang="en">Turn a chosen migration path into a sourced prerequisite checklist.</source>
+    <trans-unit id="++CODE++1ae28ccb95a9e8a208a88da08177dd26341fcd71294e1a5b620c47f7c710c80c">
+      <source xml:lang="en">Turn assessment findings into an actionable, safe migration plan.</source>
     </trans-unit>
     <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
       <source xml:lang="en">Type</source>
@@ -9891,6 +10147,10 @@
       <note>{0} is the token expiration time
 {1} is the current time</note>
     </trans-unit>
+    <trans-unit id="++CODE++228b3a68247cc2b415352af6f2b877f677eed15f0e7ec636bd4b12485e37501d">
+      <source xml:lang="en">Unable to connect to {0}. Make sure it is running and retry.</source>
+      <note>{0} is the name of a container engine</note>
+    </trans-unit>
     <trans-unit id="++CODE++0749eac937735a54efbd2572de25232bb773c43b1ed6b2407da37b6235f20410">
       <source xml:lang="en">Unable to construct connection: {0}</source>
     </trans-unit>
@@ -9908,6 +10168,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b474fc22f1618dc88dad0f863f6c96d4ffee6b9bdf2cdb2df795f88454205991">
       <source xml:lang="en">Unable to find SQLCMD variable &apos;{0}&apos;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++99eb98bf3b6f9d7069cdebb841ed9301b58656ae9c331c707b4452df372c94cd">
+      <source xml:lang="en">Unable to find an available container port. Check that Docker is running and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++1bc75a205c0a3c7535306f442efb269b3357c0f0a48f77179e0bed082d1aac9e">
       <source xml:lang="en">Unable to find database reference {0}</source>
@@ -9940,6 +10203,13 @@
     </trans-unit>
     <trans-unit id="++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd">
       <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a38bee0d6e2500966d3b6a21896c9f5dedaf92acdfa83ed3ba50a4a1850670d4">
+      <source xml:lang="en">Unable to validate the container configuration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++124ca56333c7f32c616c30516bbaebdd39e4cc4821f247c3d4df5b9419ec9a0a">
+      <source xml:lang="en">Unable to verify {0}. Check its configuration and retry.</source>
+      <note>{0} is the name of a container engine</note>
     </trans-unit>
     <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
       <source xml:lang="en">Unavailable for backups to existing files</source>
@@ -10076,8 +10346,14 @@
     <trans-unit id="++CODE++c83ce937073615b8c93e7c38ed529e567ff2c01f291f92e3b4d08245018f362b">
       <source xml:lang="en">Usage limits exceeded. Try again later, or consider optimizing your requests.</source>
     </trans-unit>
+    <trans-unit id="++CODE++655e7662b4eed2bd100c5c729d7f16166715ef315856643bbd03b9ec3b1c4249">
+      <source xml:lang="en">Use 8–128 characters with characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0c6ca6448ea705b7f78c38755ccb2a269fc8330838886aa3603085f462cb49b0">
       <source xml:lang="en">Use Database API Builder to generate a backend data API directly from your schema, exposing REST, GraphQL, or MCP endpoints.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++57cd4465c3c4fa7a5ac8b67e8c2015285fb983f76c49853d74d7b6e23d7f7c4e">
+      <source xml:lang="en">Use Dev Containers with Azure SQL Database</source>
     </trans-unit>
     <trans-unit id="++CODE++b5561dc4caff598b3f5a9190b224cd34587621b1d44cb0f024a6308777d211df">
       <source xml:lang="en">Use Microsoft Entra ID authentication to provision and connect to this database.</source>
@@ -10109,6 +10385,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8554896230a854603e46ae96226b8dddfb8b6982555ef3d9d03d5bb2650fbbc4">
       <source xml:lang="en">Use the Schema Designer to visualize your app&apos;s tables and relationships, and to add, edit, or delete them.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ca430fc0c7e827c05997a3d77ef0098780b700e6533eff298ade1b31a3274a98">
+      <source xml:lang="en">Use the container engine you prefer</source>
     </trans-unit>
     <trans-unit id="++CODE++749b400ba20ba43ab49bfea89c887715c90666b26c5f0a8d9dbedf1dafce1735">
       <source xml:lang="en">Use the default server setting</source>
@@ -10156,6 +10435,9 @@
     <trans-unit id="++CODE++65ae913d6e4b65d9fd4e5dadb2105c2fa92c333afb13006d3254bff50ff418b2">
       <source xml:lang="en">Uses the WITH RESTRICTED_USER option during restore</source>
     </trans-unit>
+    <trans-unit id="++CODE++0e45859156eb917f67d5bb511da17e8dde10f6a94e0cc8c5713c989ce37985a0">
+      <source xml:lang="en">Using my assessment results, create an end-to-end migration plan for the recommended Azure SQL target. Resolve or account for identified blockers and dependencies, choose an appropriate migration approach, and define the sequence of steps from preparation through cutover. Include prerequisites, validation checkpoints, rollback considerations, and anything I need to address before starting the migration.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1806851cf9209ecb674faf6fe227aa165f6dbc4df5d05ea9f0cc71e3d00245c7">
       <source xml:lang="en">Using {0} ({1})...</source>
       <note>{0} is the model name
@@ -10168,8 +10450,11 @@
     <trans-unit id="++CODE++40611abbdda22526b47ddcb41553bf3f556195a6855f2aca8404d62791a7ec67">
       <source xml:lang="en">Validate</source>
     </trans-unit>
-    <trans-unit id="++CODE++111c0671df4455cd0fb8cf3e774f348ae32eafe489de6c3b0316954f05d091fa">
-      <source xml:lang="en">Validate the data now that the migration is done</source>
+    <trans-unit id="++CODE++6f6979cf64c04cd52187f9a4fe1a8ee5198553574fdd6b5fa45508f11531c4f8">
+      <source xml:lang="en">Validate my migration before I cut over</source>
+    </trans-unit>
+    <trans-unit id="++CODE++77e42406cc13ed7e8922f01ef4ed2233b9e95d0b328886afe57875681b44e875">
+      <source xml:lang="en">Validate the migrated Azure SQL database before cutover. Check that the expected schema and data were migrated successfully, identify discrepancies or migration errors, and verify that the target is ready for application connectivity. Give me a clear go or no-go recommendation, show the evidence behind it, and provide remediation steps for anything that still needs attention.</source>
     </trans-unit>
     <trans-unit id="++CODE++b84c66ad40ee1cc20942fe07d1bad88916d0a664bb3f5688ab8a84a0ab5e3cf3">
       <source xml:lang="en">Validating configuration</source>
@@ -10197,6 +10482,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
       <source xml:lang="en">Verify backup when finished</source>
+    </trans-unit>
+    <trans-unit id="++CODE++360bffd9a4c319eb9ff4ca5dfd2b1fcbc5af2533482587b2418837072c4ed112">
+      <source xml:lang="en">Verify the target is complete, healthy, and ready for application traffic.</source>
     </trans-unit>
     <trans-unit id="++CODE++c3c67860a7ed33d60abb06ff29ebf03be5f1db11b3ed71566467dc8a55add424">
       <source xml:lang="en">Verifying Docker engine is ready</source>
@@ -10239,6 +10527,10 @@
     </trans-unit>
     <trans-unit id="++CODE++1759988fd95773a6e5fffcc896143f0bb8b7798322561aa8ea5ddbf79da0e9d1">
       <source xml:lang="en">View changes in Schema Compare</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7cf4febf4bd4fde0ce1d1c48faa577c4aa71b23b775ef63b0b238f022a92d9b3">
+      <source xml:lang="en">View full value of {0}</source>
+      <note>{0} is the name of an execution plan property</note>
     </trans-unit>
     <trans-unit id="++CODE++12237266cc8c3c0b0f99735d579480d2b1077668f1a68df8ad88c92a12e982e5">
       <source xml:lang="en">View known issues</source>
@@ -10295,6 +10587,9 @@
     <trans-unit id="++CODE++b6af395c5020f3f19337172a94b2607d19ef6f8fed2424cf788b0d00b0572264">
       <source xml:lang="en">WHERE</source>
     </trans-unit>
+    <trans-unit id="++CODE++cf95aa41b5e92646701fd3a8ed7c359d126c2bb738e702f6b2300c670f5c3a24">
+      <source xml:lang="en">WSL container</source>
+    </trans-unit>
     <trans-unit id="++CODE++d5c7fe9b21751cb7dce95d9d0153ce2f1e7051fead29607c7b04c26a6d474eb4">
       <source xml:lang="en">Walkthroughs</source>
     </trans-unit>
@@ -10344,9 +10639,6 @@
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>
     </trans-unit>
-    <trans-unit id="++CODE++cd57807cdaf3b48e2ac3483ea1c17637f35fc7ece994cb96c8078872565c4b01">
-      <source xml:lang="en">What has to be ready before I run this migration?</source>
-    </trans-unit>
     <trans-unit id="++CODE++80951190f29dfee120dd907c3873d8a149d585a5f711c4f5bed59e14493cc4c6">
       <source xml:lang="en">What&apos;s new</source>
     </trans-unit>
@@ -10356,11 +10648,11 @@
     <trans-unit id="++CODE++e665368a7ddcbfc0773b209b289d596aa211d1746b8da0a3802464ede446cc70">
       <source xml:lang="en">Where the project will be created.</source>
     </trans-unit>
-    <trans-unit id="++CODE++dd47e1e70737dcfe862f6eb8b72464086e5b891109ec1d77cbdfb71358406ae2">
-      <source xml:lang="en">Which Azure target should this SQL Server move to?</source>
+    <trans-unit id="++CODE++f8d9319c3b029ab680834f0ad04e6fe566f3500828d6968ef7e420813be503c6">
+      <source xml:lang="en">Why did this endpoint get slow?</source>
     </trans-unit>
-    <trans-unit id="++CODE++da3243e9a2ab47b9642a1eaab484b40a2e47d33ca3804503d5b0756589bcbe58">
-      <source xml:lang="en">Why does my first query after idle fail with 40613</source>
+    <trans-unit id="++CODE++b961e7c38baae1cb74bc31a4bbb418c9d3a8b2a0316ee9287d2f151a73edec17">
+      <source xml:lang="en">Widely used container engine, available as Docker Desktop or Docker Engine. · Windows, macOS, Linux</source>
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -10370,6 +10662,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8746aa4543652187c8719dbebc36f0609e31bbc53b14ed2ca12b0207c9e79345">
       <source xml:lang="en">Windows Authentication</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8fd327e952b1908d7b6e1208d2d1fe2af7a479232accca6c08eebc9c8bb8094e">
+      <source xml:lang="en">Wire up a SQL trigger and an HTTP endpoint, verified locally against your data.</source>
     </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
@@ -10418,6 +10713,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
       <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4dc8fab67d918ef72549261550d7aa876604e84b3c899cd54deb340c5af779bb">
+      <source xml:lang="en">You must accept the container license terms to continue.</source>
     </trans-unit>
     <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
       <source xml:lang="en">You must accept the license</source>
@@ -10512,6 +10810,9 @@
     <trans-unit id="++CODE++27f5e6eb93673ec8555f139d6bd2a5f727cfeabefe8c913a9832a141f55fca1a">
       <source xml:lang="en">captured {0}</source>
       <note>{0} is the UTC timestamp when the metadata cache entry was captured</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2397d068a8d1552a4c3f9147ba9c94e086bfd66fb2acb5bbaf47197105127d5f">
+      <source xml:lang="en">containerd</source>
     </trans-unit>
     <trans-unit id="++CODE++beeb20fbd67695085c26c5dfa7b5ece4d1985d201cb6f0dd9aa66a36ed987ce5">
       <source xml:lang="en">contains</source>
@@ -10773,6 +11074,10 @@
     <trans-unit id="++CODE++7f79912e776b14c310615f10e26f6ea1eca71fcacafb73e275603e152cb9f04d">
       <source xml:lang="en">{0} docs</source>
       <note>{0} is the name of a database migration tool</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5aff5a62ed9e3e45cb7a46b55c22276f68648422c23b19a12c5be7cdc46bf9da">
+      <source xml:lang="en">{0} engines detected</source>
+      <note>{0} is the number of detected container engines</note>
     </trans-unit>
     <trans-unit id="++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731">
       <source xml:lang="en">{0} errors</source>
@@ -11074,6 +11379,15 @@
     </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
+    <trans-unit id="mssql.saveAsExcel.autoFilterHeaderRow">
+      <source xml:lang="en">**Used when column headers are enabled.** When true, enable auto filtering on the header row when saving results as an Excel file</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsExcel.freezeHeaderRow">
+      <source xml:lang="en">**Used when column headers are enabled.** When true, freeze the header row when saving results as an Excel file</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsExcel.boldHeaderRow">
+      <source xml:lang="en">**Used when column headers are enabled.** When true, make the header row bold when saving results as an Excel file</source>
+    </trans-unit>
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
@@ -11241,6 +11555,9 @@
     </trans-unit>
     <trans-unit id="mssql.statusBar.showQueryExecutionStatus.description">
       <source xml:lang="en">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</source>
+    </trans-unit>
+    <trans-unit id="mssql.statusBar.showServerProcessId.description">
+      <source xml:lang="en">Controls whether the server process ID (SPID) of the query editor&apos;s connection is displayed in the status bar.</source>
     </trans-unit>
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
@@ -12120,6 +12437,12 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsExcel.autoSizeColumns">
+      <source xml:lang="en">When true, attempt to automatically size columns when saving results as an Excel file</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsExcel.includeHeaders">
+      <source xml:lang="en">When true, column headers are included when saving results as an Excel file</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.WindowsAuthLabel">
       <source xml:lang="en">Windows Authentication</source>

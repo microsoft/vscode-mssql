@@ -1775,6 +1775,55 @@ export class QueryResult {
     );
 }
 
+export class AzureSqlContainer {
+    public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
+    public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
+    public static portInUse = l10n.t("This port is already in use. Choose a different port.");
+    public static portDetectionFailed = l10n.t(
+        "Unable to find an available container port. Check that Docker is running and try again.",
+    );
+    public static invalidContainerName = l10n.t(
+        "Container names must start with a letter or number and contain only letters, numbers, underscores, periods, or hyphens.",
+    );
+    public static invalidHostname = l10n.t("Enter a valid hostname.");
+    public static acceptTerms = l10n.t("Accept the terms and conditions to continue.");
+    public static selectConnectionGroup = l10n.t("Select a connection group.");
+    public static pullImageFailed = l10n.t(
+        "Failed to pull the Azure SQL Database container image. Sign in to the private registry with your preview credentials, then retry.",
+    );
+    public static createContainerFailed = l10n.t(
+        "Failed to create and start the Azure SQL Database container.",
+    );
+    public static containerNotReady = l10n.t(
+        "The Azure SQL Database container did not become ready for connections within five minutes.",
+    );
+    public static connectContainerFailed = l10n.t(
+        "The container started, but the extension could not create its database connection.",
+    );
+    public static provisioningTaskSucceeded = (containerName: string) =>
+        l10n.t({
+            message: "Azure SQL Database container '{0}' was provisioned successfully.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static provisioningTaskFailed = (containerName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Azure SQL Database container '{0}': {1}",
+            args: [containerName, error],
+            comment: ["{0} is the container name", "{1} is the error message"],
+        });
+    public static provisioningTaskCanceled = (containerName: string) =>
+        l10n.t({
+            message: "Provisioning Azure SQL Database container '{0}' was canceled.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static pullingContainerImage = l10n.t("Pulling container image");
+    public static creatingContainer = l10n.t("Creating container");
+    public static settingUpContainer = l10n.t("Setting up container");
+    public static connectingToContainer = l10n.t("Connecting to container");
+}
+
 export class LocalContainers {
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({
@@ -2409,6 +2458,16 @@ export class StatusBar {
     public static notConnectedTooltip = l10n.t("Click to connect to a database");
     public static connectingLabel = l10n.t("Connecting");
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
+    public static serverProcessIdLabel = (serverProcessId: string) => {
+        return l10n.t({
+            message: "SPID: {0}",
+            args: [serverProcessId],
+            comment: ["{0} is the server process ID (SPID) of the connection"],
+        });
+    };
+    public static serverProcessIdTooltip = l10n.t(
+        "Server process ID (SPID) of this editor's connection",
+    );
 }
 
 export class Connection {
@@ -3394,6 +3453,10 @@ export class SearchDatabase {
 
     public static failedToEstablishConnection = l10n.t("Failed to establish connection");
 
+    public static noConnectionAvailable = l10n.t(
+        "Connect to a server in Object Explorer or open a connected query editor to search database objects.",
+    );
+
     public static typeTable = l10n.t("Table");
     public static typeView = l10n.t("View");
     public static typeStoredProcedure = l10n.t("Stored Procedure");
@@ -3766,6 +3829,10 @@ export class Changelog {
         "Use discount code {0} to save €200 on registration.",
     );
     public static sqlconEuRegister = l10n.t("Register");
+    public static gettingStartedPageTitle = l10n.t("MSSQL Getting Started Page");
+    public static gettingStartedPageDescription = l10n.t(
+        "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",
+    );
 }
 
 export class Profiler {

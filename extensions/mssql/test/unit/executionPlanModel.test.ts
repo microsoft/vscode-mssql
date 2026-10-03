@@ -16,6 +16,7 @@ import {
 } from "../../src/sharedInterfaces/executionPlan";
 import {
     ExecutionPlanModel,
+    formatExecutionPlanRowCount,
     getExecutionPlanEdgeWeight,
     getExpensiveMetricValue,
     getHiddenExecutionPlanElementIds,
@@ -75,6 +76,41 @@ function node(
 }
 
 suite("ExecutionPlanModel", () => {
+    test("formats edge row counts, shortening large ones and keeping the exact value", () => {
+        expect(formatExecutionPlanRowCount("1234", "en-US")).to.deep.equal({
+            label: "1,234",
+            exact: "1,234",
+        });
+        expect(formatExecutionPlanRowCount("6243720000000", "en-US")).to.deep.equal({
+            label: "6.2T",
+            exact: "6,243,720,000,000",
+        });
+        expect(formatExecutionPlanRowCount("", "en-US")).to.equal(undefined);
+    });
+
+    test("keeps every digit of row counts too large for a number, and fractional estimates", () => {
+        expect(formatExecutionPlanRowCount("9007199254740993", "en-US")).to.deep.equal({
+            label: "9007.2T",
+            exact: "9,007,199,254,740,993",
+        });
+        expect(formatExecutionPlanRowCount("12.5", "en-US")).to.deep.equal({
+            label: "12.5",
+            exact: "12.5",
+        });
+        expect(formatExecutionPlanRowCount("0.123456789", "en-US")).to.deep.equal({
+            label: "0.123",
+            exact: "0.123456789",
+        });
+        expect(formatExecutionPlanRowCount("1.50", "en-US")).to.deep.equal({
+            label: "1.5",
+            exact: "1.50",
+        });
+        expect(formatExecutionPlanRowCount("n/a", "en-US")).to.deep.equal({
+            label: "n/a",
+            exact: "n/a",
+        });
+    });
+
     test("normalizes immutably with stable element IDs and deduplicated derived properties", () => {
         const source = node("root", "Root", [node("child", "Child")], {
             properties: [

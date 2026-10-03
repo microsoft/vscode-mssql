@@ -15,7 +15,6 @@ import {
     AGENT_SKILL_PLUGINS,
     AgentSkillGroup,
     AgentSkillPluginName,
-    AgentSkillSummary,
 } from "../sharedInterfaces/overview";
 
 interface SkillsSource {
@@ -25,7 +24,7 @@ interface SkillsSource {
 
 /**
  * The short link redirects to the repository that ships the skills, and every other URL here -- the archive, the
- * revision, the catalog READMEs and the source links -- is derived from whatever it resolves to.
+ * revision, the skills catalog and the source links -- is derived from whatever it resolves to.
  * Repointing the link moves all of them together, so the copy that gets installed and the copy
  * the links describe cannot drift apart.
  */
@@ -90,7 +89,6 @@ const LATEST_SHA_REUSE_MS = 60 * 1000;
 
 const SHA_REQUEST_TIMEOUT_MS = 15_000;
 const DOWNLOAD_TIMEOUT_MS = 120_000;
-const CATALOG_REQUEST_TIMEOUT_MS = 15_000;
 const RESOLVE_REQUEST_TIMEOUT_MS = 15_000;
 
 /**
@@ -523,34 +521,39 @@ export class AgentPluginsInstaller {
         }
     }
 
+    /**
+     * The catalog is read from each skill's own `SKILL.md` in the same archive an install
+     * extracts, so what the page lists is exactly what installing would give the user. The
+     * plugin READMEs are generated from these files, and their layout is free to change.
+     */
     private async fetchSkillsCatalog(): Promise<AgentSkillGroup[]> {
-        const client = new VscodeHttpClient({ logger: this._logger });
         // Resolved once for the whole catalog, so both collections and every link in them
         // describe the same repository even if the short link were repointed mid-flight.
         const source = await this._downloads.resolveSource();
         const repository = repositoryUrl(source);
-        return Promise.all(
-            AGENT_SKILL_PLUGINS.map(async (id) => {
-                const readmeUrl = `https://raw.githubusercontent.com/${source.owner}/${source.name}/${SKILLS_REF}/plugins/${id}/README.md`;
-                const response = await client.get<string>(readmeUrl, {
-                    timeoutMs: CATALOG_REQUEST_TIMEOUT_MS,
-                });
-                if (!response.ok) {
-                    throw new Error(
-                        `Loading the ${id} skills catalog failed with status ${response.status}`,
-                    );
-                }
-                const skills = parseSkillsCatalog(response.data, id, repository);
-                if (skills.length === 0) {
-                    throw new Error(`The ${id} skills catalog contained no shipped skills.`);
-                }
-                return {
-                    id,
-                    skills,
-                    repositoryUrl: `${repository}/tree/${SKILLS_REF}/plugins/${id}`,
-                };
-            }),
+        const sha = await this._downloads.fetchLatestSha();
+        const skillFiles = await this._downloads.withArchive(sha, (archivePath) =>
+            readSkillFiles(archivePath, AGENT_SKILL_PLUGINS),
         );
+
+        return AGENT_SKILL_PLUGINS.map((id) => {
+            const skills = [...(skillFiles.get(id) ?? new Map<string, string>())]
+                .map(([skill, markdown]) => ({
+                    id: skill,
+                    description: toPlainText(parseSkillFrontMatter(markdown).description ?? ""),
+                    repositoryUrl: `${repository}/blob/${SKILLS_REF}/plugins/${id}/skills/${skill}/SKILL.md`,
+                }))
+                .filter((skill) => skill.description.length > 0)
+                .sort((a, b) => a.id.localeCompare(b.id));
+            if (skills.length === 0) {
+                throw new Error(`The ${id} skills catalog contained no shipped skills.`);
+            }
+            return {
+                id,
+                skills,
+                repositoryUrl: `${repository}/tree/${SKILLS_REF}/plugins/${id}`,
+            };
+        });
     }
 
     private async isPluginPresent(): Promise<boolean> {
@@ -631,76 +634,172 @@ export class AgentPluginsInstaller {
 }
 
 /**
- * Heading the shipped skills are tabulated under, e.g. `## What's in this collection` or
- * `### Skills`.
+ * A skill's instructions inside the source archive, e.g.
+ * `microsoft-sql-<sha>/plugins/microsoft-sql-vscode/skills/connect-from-dotnet/SKILL.md`.
+ * GitHub nests the whole archive under one `<repo>-<ref>/` directory. The folder name is the
+ * skill's id, and it cannot contain a path separator, so it is safe to put in a link.
  */
-const SKILLS_TABLE_HEADING = /^#{2,3}\s+(?:What.s in this collection|Skills\b)/i;
+const SKILL_FILE_IN_ARCHIVE =
+    /^[^/]+\/plugins\/([^/]+)\/skills\/([a-z0-9][a-z0-9._-]*)\/SKILL\.md$/i;
 
 /**
- * A skill's name as the first cell of a table row.
+ * Collects every `SKILL.md` of the named plugins, keyed by plugin and then by skill. The archive
+ * is only listed, never extracted, so nothing in it is written to disk.
+ */
+async function readSkillFiles(
+    archivePath: string,
+    pluginNames: readonly string[],
+): Promise<Map<string, Map<string, string>>> {
+    const wanted = new Set(pluginNames);
+    const files = new Map<string, Map<string, string>>();
+    const reads: Promise<void>[] = [];
+    await tar.t({
+        file: archivePath,
+        onReadEntry: (entry: tar.ReadEntry) => {
+            const match = SKILL_FILE_IN_ARCHIVE.exec(entry.path);
+            if (entry.type !== "File" || !match || !wanted.has(match[1])) {
+                return;
+            }
+            const [, pluginName, skill] = match;
+            const chunks: Buffer[] = [];
+            reads.push(
+                new Promise((resolve, reject) => {
+                    entry.on("data", (chunk: Buffer) => chunks.push(chunk));
+                    entry.on("end", () => {
+                        const skills = files.get(pluginName) ?? new Map<string, string>();
+                        skills.set(skill, Buffer.concat(chunks).toString("utf8"));
+                        files.set(pluginName, skills);
+                        resolve();
+                    });
+                    entry.on("error", reject);
+                }),
+            );
+        },
+    });
+    await Promise.all(reads);
+    return files;
+}
+
+/**
+ * Reads the top-level string fields of a `SKILL.md` front matter block, e.g. its `name` and
+ * `description`.
  *
- * The collection README emphasises it (`**name**`) and the generated plugin READMEs code-quote
- * it (`` `name` ``), so both are accepted. Anything else -- a `---` separator row, or a prose
- * label such as `1. Instructions` -- is not a skill and is skipped.
+ * Only the scalar styles skills use are understood -- plain, single- and double-quoted, and
+ * literal (`|`) or folded (`>`) blocks -- rather than taking a YAML dependency for two fields.
+ * Nested values, such as a `metadata` map, are skipped.
  */
-const SKILL_NAME_CELL = /^(?:\*\*|`)([a-z0-9][a-z0-9._-]*)(?:\*\*|`)$/i;
-
-/**
- * Only the first table under the skills heading is read. The same README goes on to tabulate
- * per-skill install commands and the authoring standard, and those rows look enough like skill
- * rows that matching the whole document lists every skill twice and adds three headings that
- * are not skills at all.
- */
-export function parseSkillsCatalog(
-    markdown: string,
-    pluginName: AgentSkillPluginName,
-    repository: string,
-): AgentSkillSummary[] {
+export function parseSkillFrontMatter(markdown: string): Record<string, string> {
     // CRLF line endings, normalized to LF before splitting.
     const lines = markdown.replace(/\r\n/g, "\n").split("\n");
-    const headingIndex = lines.findIndex((line) => SKILLS_TABLE_HEADING.test(line));
-    if (headingIndex < 0) {
-        return [];
+    if (lines[0]?.trim() !== "---") {
+        return {};
+    }
+    const end = lines.findIndex((line, index) => index > 0 && /^(?:---|\.\.\.)\s*$/.test(line));
+    const body = lines.slice(1, end < 0 ? lines.length : end);
+
+    const fields: Record<string, string> = {};
+    for (let index = 0; index < body.length; index++) {
+        // A top-level key starts in the first column, e.g. "description: >-".
+        const field = /^([A-Za-z0-9_-]+):(?=\s|$)\s*(.*)$/.exec(body[index]);
+        if (!field) {
+            continue;
+        }
+        // The indented and blank lines that follow belong to this key: a block's text, a
+        // value continued on the next line, or a nested map.
+        const continuation: string[] = [];
+        while (
+            index + 1 < body.length &&
+            (body[index + 1].trim() === "" || /^\s/.test(body[index + 1]))
+        ) {
+            continuation.push(body[++index]);
+        }
+        const value = readScalar(field[2].trim(), continuation);
+        if (value !== undefined) {
+            fields[field[1]] = value;
+        }
+    }
+    return fields;
+}
+
+function readScalar(value: string, continuation: string[]): string | undefined {
+    // A block indicator with optional chomping or indentation, e.g. ">-" or "|2".
+    const block = /^([|>])[-+0-9]*(?:\s+#.*)?$/.exec(value);
+    if (block) {
+        const indents = continuation
+            .filter((line) => line.trim() !== "")
+            .map((line) => line.length - line.trimStart().length);
+        const indent = indents.length > 0 ? Math.min(...indents) : 0;
+        const text = continuation.map((line) => (line.trim() === "" ? "" : line.slice(indent)));
+        return block[1] === "|" ? text.join("\n").trim() : foldLines(text);
     }
 
-    const skills: AgentSkillSummary[] = [];
-    const seen = new Set<string>();
-    let inTable = false;
+    const quote = value[0];
+    if (quote === '"' || quote === "'") {
+        // A quoted value may carry on over the following lines, which fold into single spaces.
+        return readQuoted(foldLines([value, ...continuation]), quote);
+    }
 
-    for (const line of lines.slice(headingIndex + 1)) {
-        if (line.startsWith("#")) {
-            break;
+    // A key with nothing after it and indented keys or items below holds a nested value.
+    const firstLine = continuation.find((line) => line.trim() !== "");
+    if (value === "" && firstLine && /^\s+(?:[A-Za-z0-9_-]+:(?:\s|$)|-\s)/.test(firstLine)) {
+        return undefined;
+    }
+    // A plain value, where " #" starts a comment.
+    return foldLines([value, ...continuation]).replace(/\s+#.*$/, "");
+}
+
+/** Joins lines the way a folded value does: a line break is a space, a blank line a break. */
+function foldLines(lines: string[]): string {
+    let text = "";
+    let breaks = 0;
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed === "") {
+            breaks++;
+            continue;
         }
-        if (!line.trimStart().startsWith("|")) {
-            if (inTable) {
+        if (text !== "") {
+            text += breaks > 0 ? "\n".repeat(breaks) : " ";
+        }
+        text += trimmed;
+        breaks = 0;
+    }
+    return text;
+}
+
+/** The text between the quotes, with the escapes each quoting style allows resolved. */
+function readQuoted(value: string, quote: '"' | "'"): string {
+    let text = "";
+    for (let index = 1; index < value.length; index++) {
+        const char = value[index];
+        if (quote === "'" && char === "'") {
+            // Single quotes escape only themselves, by doubling: 'it''s' -> it's.
+            if (value[index + 1] !== "'") {
                 break;
             }
+            index++;
+        } else if (quote === '"' && char === '"') {
+            break;
+        } else if (quote === '"' && char === "\\" && index + 1 < value.length) {
+            const escaped = value[++index];
+            text += { n: "\n", t: "\t", r: "\r", "0": "\0" }[escaped] ?? escaped;
             continue;
         }
-        inTable = true;
-
-        // A row is `| name | description |`, so the split has an empty cell at each end.
-        const cells = line
-            .split("|")
-            .slice(1, -1)
-            .map((cell) => cell.trim());
-        const name = SKILL_NAME_CELL.exec(cells[0] ?? "")?.[1];
-        if (!name || cells.length < 2 || seen.has(name)) {
-            continue;
-        }
-        seen.add(name);
-        skills.push({
-            id: name,
-            description: cells[1]
-                // Bold markers, e.g. "**Note**" -> "Note".
-                .replace(/\*\*/g, "")
-                // Inline code, e.g. "`sqlcmd`" -> "sqlcmd".
-                .replace(/`([^`]+)`/g, "$1")
-                // Links, e.g. "[docs](https://example.com)" -> "docs".
-                .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
-                .trim(),
-            repositoryUrl: `${repository}/blob/${SKILLS_REF}/plugins/${pluginName}/skills/${name}/SKILL.md`,
-        });
+        text += char;
     }
-    return skills;
+    return text;
+}
+
+/** Skill descriptions may carry light Markdown, which the page shows as plain text. */
+function toPlainText(text: string): string {
+    return (
+        text
+            // Bold markers, e.g. "**Note**" -> "Note".
+            .replace(/\*\*/g, "")
+            // Inline code, e.g. "`sqlcmd`" -> "sqlcmd".
+            .replace(/`([^`]+)`/g, "$1")
+            // Links, e.g. "[docs](https://example.com)" -> "docs".
+            .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
+            .trim()
+    );
 }
