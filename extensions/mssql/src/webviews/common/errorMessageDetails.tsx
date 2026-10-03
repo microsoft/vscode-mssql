@@ -3,33 +3,63 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Link, makeStyles, mergeClasses, Text } from "@fluentui/react-components";
-import { Checkmark16Regular, Copy16Regular } from "@fluentui/react-icons";
+import { Button, Link, makeStyles, mergeClasses } from "@fluentui/react-components";
+import { Checkmark16Regular, Copy16Regular, ErrorCircle16Filled } from "@fluentui/react-icons";
 import { useEffect, useRef, useState } from "react";
 import { locConstants } from "./locConstants";
+
+const errorColor = "var(--vscode-errorForeground)";
 
 const useStyles = makeStyles({
     root: {
         display: "grid",
-        gridTemplateColumns: "minmax(0, 1fr) auto",
-        columnGap: "8px",
-        rowGap: "6px",
+        gridTemplateColumns: "16px minmax(0, 1fr) auto",
+        columnGap: "10px",
+        rowGap: "4px",
         width: "100%",
         minWidth: 0,
+        boxSizing: "border-box",
+        padding: "10px 8px 10px 12px",
+        border: `1px solid color-mix(in srgb, ${errorColor} 45%, transparent)`,
+        borderRadius: "4px",
+        backgroundColor: `color-mix(in srgb, ${errorColor} 10%, var(--vscode-editor-background))`,
+        color: "var(--vscode-foreground)",
+        fontSize: "13px",
+        lineHeight: "20px",
+    },
+    icon: {
+        gridColumn: 1,
+        gridRow: 1,
+        width: "16px",
+        height: "16px",
+        marginTop: "2px",
+        color: errorColor,
     },
     title: {
-        gridColumn: 1,
+        gridColumn: 2,
+        gridRow: 1,
         minWidth: 0,
         fontWeight: 600,
-        lineHeight: "20px",
+    },
+    copyButton: {
+        gridColumn: 3,
+        gridRow: 1,
+        alignSelf: "start",
+        minWidth: "24px",
+        width: "24px",
+        height: "24px",
+        color: "var(--vscode-icon-foreground, var(--vscode-foreground))",
     },
     message: {
-        gridColumn: "1 / -1",
+        gridColumn: "2 / 4",
         minWidth: 0,
+        paddingRight: "8px",
         whiteSpace: "pre-wrap",
         overflowWrap: "anywhere",
-        wordBreak: "break-word",
-        lineHeight: "20px",
+    },
+    untitledMessage: {
+        gridColumn: 2,
+        gridRow: 1,
     },
     collapsedMessage: {
         display: "-webkit-box",
@@ -42,18 +72,12 @@ const useStyles = makeStyles({
         overflowY: "auto",
         scrollbarWidth: "thin",
         scrollbarColor: "var(--vscode-scrollbarSlider-background) transparent",
-        paddingRight: "8px",
-    },
-    copyButton: {
-        gridColumn: 2,
-        gridRow: 1,
-        flexShrink: 0,
-        alignSelf: "start",
     },
     toggle: {
-        gridColumn: "1 / -1",
+        gridColumn: 2,
         justifySelf: "start",
         fontSize: "12px",
+        lineHeight: "18px",
     },
 });
 
@@ -82,7 +106,7 @@ export const ErrorMessageDetails = ({ message, title }: ErrorMessageDetailsProps
 
         const messageElement = messageRef.current;
         const measureOverflow = () => {
-            setCanExpand(messageElement.scrollHeight > messageElement.clientHeight);
+            setCanExpand(messageElement.scrollHeight > messageElement.clientHeight + 1);
         };
         const frame = requestAnimationFrame(measureOverflow);
         const resizeObserver = new ResizeObserver(measureOverflow);
@@ -103,11 +127,11 @@ export const ErrorMessageDetails = ({ message, title }: ErrorMessageDetailsProps
         [],
     );
 
-    const copyLabel = copied ? locConstants.common.copied : locConstants.common.copy;
+    const copyLabel = copied ? locConstants.common.copied : locConstants.common.copyErrorDetails;
 
     const copyMessage = async () => {
         try {
-            await navigator.clipboard.writeText(message);
+            await navigator.clipboard.writeText(title ? `${title}\n${message}` : message);
             setCopied(true);
             if (copyResetTimerRef.current) {
                 clearTimeout(copyResetTimerRef.current);
@@ -119,21 +143,9 @@ export const ErrorMessageDetails = ({ message, title }: ErrorMessageDetailsProps
     };
 
     return (
-        <div className={classes.root}>
-            {title && (
-                <Text className={classes.title} weight="semibold">
-                    {title}
-                </Text>
-            )}
-            <div
-                ref={messageRef}
-                className={mergeClasses(
-                    classes.message,
-                    expanded ? classes.expandedMessage : classes.collapsedMessage,
-                )}
-                tabIndex={expanded ? 0 : undefined}>
-                {message}
-            </div>
+        <div className={classes.root} role="alert">
+            <ErrorCircle16Filled className={classes.icon} aria-hidden />
+            {title && <div className={classes.title}>{title}</div>}
             <Button
                 className={classes.copyButton}
                 appearance="subtle"
@@ -143,12 +155,23 @@ export const ErrorMessageDetails = ({ message, title }: ErrorMessageDetailsProps
                 aria-label={copyLabel}
                 onClick={() => void copyMessage()}
             />
+            <div
+                ref={messageRef}
+                className={mergeClasses(
+                    classes.message,
+                    !title && classes.untitledMessage,
+                    expanded ? classes.expandedMessage : classes.collapsedMessage,
+                )}
+                tabIndex={expanded ? 0 : undefined}>
+                {message}
+            </div>
             {canExpand && (
                 <Link
                     as="button"
                     className={classes.toggle}
+                    aria-expanded={expanded}
                     onClick={() => setExpanded((current) => !current)}>
-                    {expanded ? locConstants.common.collapse : locConstants.common.expand}
+                    {expanded ? locConstants.common.showLess : locConstants.common.showMore}
                 </Link>
             )}
         </div>

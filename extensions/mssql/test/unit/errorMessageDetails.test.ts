@@ -18,6 +18,6 @@ suite("Error message details", () => {
         expect(markup).to.include(message);
         expect(markup).to.include(title);
         expect(markup).to.include(`<button`);
-        expect(markup).to.include(`aria-label="${locConstants.common.copy}"`);
+        expect(markup).to.include(`aria-label="${locConstants.common.copyErrorDetails}"`);
     });
 });

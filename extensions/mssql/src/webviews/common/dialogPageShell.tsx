@@ -281,14 +281,10 @@ export const DialogPageShell = ({
                     {(errorMessage || loadingMessage) && (
                         <div className={styles.messageStack} style={contentWidthStyle}>
                             {errorMessage && (
-                                <MessageBar intent="error" className={styles.messageBar}>
-                                    <MessageBarBody className={styles.messageBody}>
-                                        <ErrorMessageDetails
-                                            message={errorMessage}
-                                            title={locConstants.common.error}
-                                        />
-                                    </MessageBarBody>
-                                </MessageBar>
+                                <ErrorMessageDetails
+                                    message={errorMessage}
+                                    title={locConstants.common.error}
+                                />
                             )}
                             {loadingMessage && (
                                 <MessageBar intent="info" className={styles.messageBar}>

@@ -12,8 +12,6 @@ import {
     DialogSurface,
     DialogTitle,
     makeStyles,
-    MessageBar,
-    MessageBarBody,
 } from "@fluentui/react-components";
 import React from "react";
 import { ErrorMessageDetails } from "./errorMessageDetails";
@@ -26,10 +24,6 @@ const useStyles = makeStyles({
     },
     content: {
         marginBlock: "16px 0",
-    },
-    messageBar: {
-        width: "100%",
-        boxSizing: "border-box",
     },
 });
 
@@ -55,11 +49,7 @@ export const ErrorDialog: React.FC<ErrorDialogProps> = ({
                 <DialogBody>
                     <DialogTitle>{title}</DialogTitle>
                     <DialogContent className={classes.content}>
-                        <MessageBar intent="error" className={classes.messageBar}>
-                            <MessageBarBody>
-                                <ErrorMessageDetails message={message} />
-                            </MessageBarBody>
-                        </MessageBar>
+                        <ErrorMessageDetails message={message} />
                     </DialogContent>
                     <DialogActions>
                         <Button appearance="primary" onClick={onRetry}>

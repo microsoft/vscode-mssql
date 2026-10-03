@@ -3,14 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    makeStyles,
-    mergeClasses,
-    MessageBar,
-    MessageBarBody,
-    Spinner,
-    Text,
-} from "@fluentui/react-components";
+import { makeStyles, mergeClasses, Spinner, Text } from "@fluentui/react-components";
 import { Checkmark12Regular, ChevronRight12Regular } from "@fluentui/react-icons";
 import { useEffect, useRef } from "react";
 import { LoadingLogEntry } from "../../sharedInterfaces/webview";
@@ -74,11 +67,6 @@ const useStyles = makeStyles({
     activeText: {
         color: "var(--vscode-editor-foreground)",
     },
-    errorMessage: {
-        width: "100%",
-        minWidth: 0,
-        boxSizing: "border-box",
-    },
 });
 
 export interface LoadingLogProps {
@@ -109,17 +97,11 @@ export function LoadingLog({ messages, minHeight }: LoadingLogProps) {
 
                     if (isError) {
                         return (
-                            <MessageBar
-                                intent="error"
-                                className={classes.errorMessage}
-                                key={`${entry.message}-${index}`}>
-                                <MessageBarBody>
-                                    <ErrorMessageDetails
-                                        message={entry.message}
-                                        title={locConstants.common.error}
-                                    />
-                                </MessageBarBody>
-                            </MessageBar>
+                            <ErrorMessageDetails
+                                key={`${entry.message}-${index}`}
+                                message={entry.message}
+                                title={locConstants.common.error}
+                            />
                         );
                     }
 
