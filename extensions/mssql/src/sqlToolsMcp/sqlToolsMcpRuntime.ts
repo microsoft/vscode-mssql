@@ -7,6 +7,7 @@ import { IConnectionInfo } from "vscode-mssql";
 import ConnectionManager from "../controllers/connectionManager";
 import * as ConnInfo from "../models/connectionInfo";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../models/interfaces";
+import { isAgentAccessible } from "../copilot/tools/toolsUtils";
 import * as Utils from "../models/utils";
 import { Logger } from "../models/logger";
 import {
@@ -325,9 +326,14 @@ export class SqlToolsMcpRuntime {
         await Promise.all(contexts.map((context) => this.cleanupContext(context)));
     }
 
+    /**
+     * Saved profiles that agents are allowed to see and use. Profiles the user has hidden from
+     * agents are left out, so they can't be listed, looked up by name or handle, or connected to.
+     */
     private async getSavedProfiles(): Promise<IConnectionProfileWithSource[]> {
         await this.connectionManager.initialized.promise;
-        return this.connectionManager.connectionStore.readAllConnections(false);
+        const profiles = await this.connectionManager.connectionStore.readAllConnections(false);
+        return profiles.filter(isAgentAccessible);
     }
 
     private async findProfileByName(
