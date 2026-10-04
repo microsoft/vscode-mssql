@@ -9,6 +9,7 @@ import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
+import { isAgentAccessible } from "./toolsUtils";
 import { randomUUID } from "crypto";
 
 /** Parameters for the connect tool. */
@@ -55,7 +56,10 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
         serverName?: string,
         database?: string,
     ) {
-        const profiles = await this._connectionManager.connectionStore.readAllConnections();
+        // Profiles the user has hidden from agents are treated as if they don't exist
+        const profiles = (
+            await this._connectionManager.connectionStore.readAllConnections()
+        ).filter(isAgentAccessible);
 
         // 1. If profileId is provided, use that saved connection profile directly
         if (profileId) {

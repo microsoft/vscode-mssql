@@ -12591,6 +12591,9 @@
     <trans-unit id="mssql.saveAsCsv.includeHeaders">
       <source xml:lang="en">[Optional] When true, column headers are included when saving results as CSV</source>
     </trans-unit>
+    <trans-unit id="mssql.connection.allowAgentAccess">
+      <source xml:lang="en">[Optional] Whether Copilot agent tools can see and connect to this connection. Set to false to hide this connection from agent tools. Defaults to true.</source>
+    </trans-unit>
     <trans-unit id="mssql.connection.server">
       <source xml:lang="en">[Required] Specify the server name to connect to. Use &apos;hostname instance&apos; or &apos;&lt;server&gt;.database.windows.net&apos; for Azure SQL Database.</source>
     </trans-unit>
