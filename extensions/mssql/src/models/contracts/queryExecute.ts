@@ -11,6 +11,8 @@ export class ResultSetSummary {
     batchId: number;
     rowCount: number;
     columnInfo: IDbColumn[];
+    /** True once every row has been read, so the row count is final. */
+    complete?: boolean;
 }
 
 export class BatchSummary {

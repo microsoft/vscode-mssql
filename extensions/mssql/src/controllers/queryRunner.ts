@@ -713,6 +713,15 @@ export default class QueryRunner {
     public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
         let batch: BatchSummary = result.batchSummary;
 
+        // Keep the completion each result set already reported, which Save As checks while the
+        // query runs. A result set that failed partway never reported it, so it stays incomplete.
+        const previousResultSets = this._batchSets[batch.id]?.resultSetSummaries;
+        for (const resultSet of batch.resultSetSummaries ?? []) {
+            if (previousResultSets?.[resultSet.id]?.complete) {
+                resultSet.complete = true;
+            }
+        }
+
         // Store the batch again to get the rest of the data
         this._batchSets[batch.id] = batch;
         let executionTime = <number>(Utils.parseTimeString(batch.executionElapsed) || 0);
@@ -756,6 +765,9 @@ export default class QueryRunner {
     ): Promise<void> {
         let resultSet = result.resultSetSummary;
         let batchSet = this._batchSets[resultSet.batchId];
+
+        // Every row has been read once this arrives, whether or not the service set the flag
+        resultSet.complete = true;
 
         // Store the result set in the batch and emit that a result set has completed
         batchSet.resultSetSummaries[resultSet.id] = resultSet;
