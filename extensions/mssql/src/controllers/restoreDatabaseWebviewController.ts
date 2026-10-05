@@ -58,6 +58,7 @@ import { ConnectionProfile } from "../models/connectionProfile";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { getServerTypes, ServerType } from "../models/connectionInfo";
+import { DatabaseEngineEdition } from "../databaseProjects/common/enums";
 
 export class RestoreDatabaseWebviewController extends ObjectManagementWebviewController<
     RestoreDatabaseFormState,
@@ -97,8 +98,16 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         let restoreViewModel = new RestoreDatabaseViewModel();
         this.updateViewModel(restoreViewModel);
 
+        const engineEdition = this.connectionManager.getServerInfo(this.profile)?.engineEditionId;
         const serverTypes = getServerTypes(this.profile);
-        if (serverTypes.includes(ServerType.Azure) && serverTypes.includes(ServerType.Sql)) {
+        const hasKnownEngineEdition =
+            engineEdition !== undefined && engineEdition !== DatabaseEngineEdition.Unknown;
+        if (
+            engineEdition === DatabaseEngineEdition.SqlDatabase ||
+            (!hasKnownEngineEdition &&
+                serverTypes.includes(ServerType.Azure) &&
+                serverTypes.includes(ServerType.Sql))
+        ) {
             restoreViewModel.loadState = ApiStatus.Error;
             restoreViewModel.errorMessage = LocConstants.RestoreDatabase.azureSqlDbNotSupported;
             this.updateViewModel(restoreViewModel);
@@ -113,9 +122,11 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         // Get restore config info
         let restoreConfigInfo: RestoreConfigInfo;
         try {
-            restoreConfigInfo = (
-                await this.objectManagementService.getRestoreConfigInfo(this.ownerUri)
-            ).configInfo;
+            const response = await this.objectManagementService.getRestoreConfigInfo(this.ownerUri);
+            if (response.errorMessage) {
+                throw new Error(response.errorMessage);
+            }
+            restoreConfigInfo = response.configInfo;
         } catch (error) {
             restoreViewModel.loadState = ApiStatus.Error;
             restoreViewModel.errorMessage = getErrorMessage(error);
