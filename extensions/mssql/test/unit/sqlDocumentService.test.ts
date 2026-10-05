@@ -561,7 +561,7 @@ suite("SqlDocumentService Tests", () => {
         );
     });
 
-    test("createDocument should fall back to the first editor group when no text editor is active", async () => {
+    test("createDocument should use the active editor group when no text editor is active", async () => {
         const doc = mockTextDocument("untitled:Untitled-1");
         sandbox.stub(vscode.workspace, "openTextDocument").resolves(doc);
         const showTextDocumentStub = sandbox
@@ -573,7 +573,7 @@ suite("SqlDocumentService Tests", () => {
 
         expect(showTextDocumentStub).to.have.been.calledOnceWith(
             doc,
-            sinon.match({ viewColumn: vscode.ViewColumn.One }),
+            sinon.match({ viewColumn: vscode.ViewColumn.Active }),
         );
     });
 
