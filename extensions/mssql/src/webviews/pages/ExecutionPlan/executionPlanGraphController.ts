@@ -35,7 +35,12 @@ export interface ExecutionPlanGraphController {
     setZoomLevel(level: number): void;
     searchNodes(searchQuery: SearchQuery): ExecutionPlanNode[];
     centerElement(element: InternalExecutionPlanElement): void;
-    selectElement(element: InternalExecutionPlanElement | undefined, bringToCenter?: boolean): void;
+    /** Focus defaults to true; comparison synchronization keeps focus in the originating pane. */
+    selectElement(
+        element: InternalExecutionPlanElement | undefined,
+        bringToCenter?: boolean,
+        focus?: boolean,
+    ): void;
     clearExpensiveOperatorHighlighting(): void;
     highlightExpensiveOperator(
         predicate: (node: ExecutionPlanMetricSource) => number | undefined,

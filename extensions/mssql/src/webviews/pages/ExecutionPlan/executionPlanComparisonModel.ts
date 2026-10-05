@@ -87,10 +87,6 @@ export function buildExecutionPlanComparisonMaps(
     };
 }
 
-function oneLine(value: string | undefined): string {
-    return (value ?? "").replace(/\r\n|\r|\n/g, " ");
-}
-
 function compareProperties(
     primary: ExecutionPlanGraphElementProperty | undefined,
     secondary: ExecutionPlanGraphElementProperty | undefined,
@@ -161,8 +157,8 @@ function propertiesToRows(
             return {
                 id,
                 name,
-                primaryValue: oneLine(value.primary?.displayValue),
-                secondaryValue: oneLine(value.secondary?.displayValue),
+                primaryValue: value.primary?.displayValue ?? "",
+                secondaryValue: value.secondary?.displayValue ?? "",
                 comparison: compareProperties(value.primary, value.secondary),
                 level,
                 children: propertiesToRows(primaryChildren, secondaryChildren, id, level + 1),

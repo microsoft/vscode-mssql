@@ -628,12 +628,15 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
     public selectElement(
         element: InternalExecutionPlanElement | undefined,
         bringToCenter?: boolean,
+        focus = true,
     ): void {
         const selectedElement = element ?? this._options.model.root;
         this._options.setSelectedId(selectedElement.id ?? this._options.model.root.id);
         if ("name" in selectedElement) {
             this._options.expandAncestors(selectedElement.id);
-            this._options.focusNode(selectedElement.id);
+            if (focus) {
+                this._options.focusNode(selectedElement.id);
+            }
         }
         if (bringToCenter) {
             this.centerElement(selectedElement);
@@ -668,7 +671,7 @@ interface ReactFlowExecutionPlanProps {
     comparisonGroupRoots?: ReadonlyMap<string, number>;
     /** Called with the selected node id, including programmatic selection changes. */
     onSelectionChange?: (id: string) => void;
-    /** Called when the user selects a node, to synchronize comparison panes. */
+    /** Called whenever the selected node changes, including Find and keyboard focus. */
     onNodeSelectionChange?: (node: ExecutionPlanNode) => void;
     viewport?: Viewport;
     onViewportChange?: (viewport: Viewport) => void;
@@ -745,6 +748,12 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     useEffect(() => {
         onNodeSelectionChangeRef.current = onNodeSelectionChange;
     }, [onNodeSelectionChange]);
+    useEffect(() => {
+        const node = model.getNode(selectedId);
+        if (node) {
+            onNodeSelectionChangeRef.current?.(node);
+        }
+    }, [model, selectedId]);
 
     const expandAncestors = useCallback(
         (id: string) => {
@@ -791,16 +800,12 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             expandAncestors(id);
             selectedIdRef.current = id;
             setSelectedId(id);
-            const node = model.getNode(id);
-            if (node) {
-                onNodeSelectionChangeRef.current?.(node);
-            }
             if (reveal) {
                 revealNode(id);
             }
             focusNode(id);
         },
-        [expandAncestors, focusNode, model, revealNode],
+        [expandAncestors, focusNode, revealNode],
     );
 
     const showNodeTooltip = useCallback(

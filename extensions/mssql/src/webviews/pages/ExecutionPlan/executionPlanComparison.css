@@ -105,13 +105,13 @@
 
 .execution-plan-comparison-pane-header {
     box-sizing: border-box;
-    padding: 5px 8px;
     border-bottom: 1px solid var(--vscode-panel-border);
     background: var(--vscode-editorGroupHeader-tabsBackground);
     flex: 0 0 auto;
 }
 
 .execution-plan-comparison-source-row {
+    padding: 5px 8px;
     display: flex;
     min-width: 0;
     align-items: center;
@@ -123,22 +123,6 @@
     overflow: hidden;
     font-size: 12px;
     font-weight: 600;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.execution-plan-comparison-cost {
-    margin-top: 3px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.execution-plan-comparison-query {
-    max-height: 17px;
-    margin-top: 3px;
-    overflow: hidden;
-    font-size: 11px;
-    line-height: 17px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -345,7 +329,6 @@
 .execution-plan-comparison-property-grid [role="row"] {
     height: 26px;
     min-height: 26px;
-    overflow: hidden;
     border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
     background: transparent;
 }
@@ -381,12 +364,17 @@
     font-weight: 600;
 }
 
-.execution-plan-comparison-grid-group-row > [role="gridcell"]:first-child {
-    grid-column: 1 / -1;
+/* Fluent inserts focus elements before the cells, so child position cannot identify the label. */
+.execution-plan-comparison-grid-group-row > .execution-plan-comparison-grid-section-cell {
+    flex: 1 1 auto;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
     border-right: none;
 }
 
-.execution-plan-comparison-grid-group-row > [role="gridcell"]:not(:first-child) {
+.execution-plan-comparison-grid-group-row
+    > [role="gridcell"]:not(.execution-plan-comparison-grid-section-cell) {
     display: none;
 }
 
@@ -446,4 +434,35 @@
 .execution-plan-comparison-diff-greater,
 .execution-plan-comparison-diff-less {
     color: var(--vscode-textLink-foreground);
+}
+
+.execution-plan-comparison-grid-value-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+}
+
+.execution-plan-comparison-grid-value-content > .execution-plan-comparison-grid-text {
+    flex: 1 1 0%;
+    width: auto;
+}
+
+.execution-plan-comparison-view-value {
+    display: none;
+    flex-shrink: 0;
+    width: 20px;
+    min-width: 20px;
+    height: 20px;
+    min-height: 20px;
+    margin-left: 4px;
+    padding: 0;
+}
+
+.execution-plan-comparison-property-grid [role="row"]:hover .execution-plan-comparison-view-value,
+.execution-plan-comparison-property-grid
+    [role="row"]:focus-within
+    .execution-plan-comparison-view-value {
+    display: inline-flex;
 }

@@ -17,6 +17,8 @@ import {
     OpenExecutionPlanSource,
 } from "./executionPlanSourceRegistry";
 import { WebviewPanelController } from "./webviewPanelController";
+import SqlDocumentService from "./sqlDocumentService";
+import { showQuery } from "./sharedExecutionPlanUtils";
 
 interface ExecutionPlanQuickPickItem extends vscode.QuickPickItem {
     document?: vscode.TextDocument;
@@ -86,6 +88,7 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
         primaryGraphs: ep.ExecutionPlanGraph[],
         primaryGraphIndex: number,
         primarySourceName: string,
+        private readonly _sqlDocumentService: SqlDocumentService,
     ) {
         comparisonEditorCounter++;
         super(
@@ -135,7 +138,9 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
         this.registerReducer("getExecutionPlan", async (state) => state);
         this.registerReducer("saveExecutionPlan", async (state) => state);
         this.registerReducer("showPlanXml", async (state) => state);
-        this.registerReducer("showQuery", async (state) => state);
+        this.registerReducer("showQuery", async (state, payload) =>
+            showQuery(state, payload, this._sqlDocumentService),
+        );
         this.registerReducer("updateTotalCost", async (state) => state);
         this.registerReducer("compareExecutionPlan", async (state) => state);
         this.registerReducer("selectComparisonPlan", async (state) => {

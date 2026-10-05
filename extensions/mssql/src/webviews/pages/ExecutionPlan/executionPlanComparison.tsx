@@ -21,6 +21,7 @@ import {
     ToolbarButton,
     ToolbarDivider,
     tokens,
+    useRestoreFocusTarget,
 } from "@fluentui/react-components";
 import {
     AddSquareRegular,
@@ -30,6 +31,7 @@ import {
     ChevronLeft16Regular,
     ChevronRight16Regular,
     Dismiss16Regular,
+    MoreHorizontal16Regular,
     DocumentAddRegular,
     DocumentBulletListFilled,
     DocumentBulletListRegular,
@@ -75,7 +77,6 @@ import {
     ZoomOriginalSizeIcon16Regular,
 } from "../../common/icons/executionPlanIcons";
 import { locConstants } from "../../common/locConstants";
-import { SqlText } from "../../common/sqlText";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewErrorBoundary } from "../../common/webviewErrorBoundary";
 import {
@@ -84,7 +85,8 @@ import {
     ExecutionPlanComparisonPropertyRow,
 } from "./executionPlanComparisonModel";
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
-import { normalizeExecutionPlanQuery } from "./executionPlanQuery";
+import { ExecutionPlanHeader } from "./executionPlanHeader";
+import { PropertyValueDialog } from "./propertyValueDialog";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { useExecutionPlanSelector } from "./executionPlanSelector";
 import { FindNode } from "./findNodes";
@@ -99,10 +101,10 @@ type ComparisonPropertyGridItem =
     | { kind: "equivalent"; id: string };
 
 const comparisonPropertyColumnSizing: TableColumnSizingOptions = {
-    name: { minWidth: 140, defaultWidth: 180, idealWidth: 200 },
-    primary: { minWidth: 140, defaultWidth: 190, idealWidth: 220 },
-    comparison: { minWidth: 64, defaultWidth: 72, idealWidth: 72 },
-    secondary: { minWidth: 140, defaultWidth: 190, idealWidth: 220 },
+    name: { minWidth: 140, defaultWidth: 180, idealWidth: 200, padding: 0 },
+    primary: { minWidth: 140, defaultWidth: 190, idealWidth: 220, padding: 0 },
+    comparison: { minWidth: 64, defaultWidth: 72, idealWidth: 72, padding: 0 },
+    secondary: { minWidth: 140, defaultWidth: 190, idealWidth: 220, padding: 0 },
 };
 
 function graphCostPercentage(source: ExecutionPlanComparisonSource, graph: ExecutionPlanGraph) {
@@ -162,7 +164,6 @@ function ComparisonPlanPane({
         return undefined;
     }
 
-    const query = normalizeExecutionPlanQuery(graph.query);
     const queryCost = locConstants.executionPlan.queryCostRelativeToScript(
         source.selectedGraphIndex + 1,
         graphCostPercentage(source, graph),
@@ -201,14 +202,7 @@ function ComparisonPlanPane({
                         </Dropdown>
                     )}
                 </div>
-                <div className="execution-plan-comparison-cost">{queryCost}</div>
-                <SqlText
-                    className="execution-plan-comparison-query"
-                    text={query}
-                    singleLine
-                    showLineBreaks
-                    title={query}
-                />
+                <ExecutionPlanHeader graph={graph} costLabel={queryCost} />
             </div>
             <div className="execution-plan-comparison-graph">
                 <WebviewErrorBoundary
@@ -228,6 +222,8 @@ function ComparisonPlanPane({
                     <ReactFlowExecutionPlan
                         key={`${side}-${source.selectedGraphIndex}`}
                         root={graph.root}
+                        isLive={graph.isLive === true}
+                        liveRefreshId={graph.liveRefreshId}
                         planNumber={source.selectedGraphIndex + 1}
                         themeKind={themeKind}
                         onReady={handleReady}
@@ -278,6 +274,20 @@ function ComparisonPropertyTable({
     const [gridHeight, setGridHeight] = useState(0);
     const [propertiesWidth, setPropertiesWidth] = useState(560);
     const gridContainerRef = useRef<HTMLDivElement>(null);
+    const [fullValue, setFullValue] = useState<{ name: string; value: string }>();
+    const fullValueButtonRef = useRef<HTMLButtonElement | undefined>(undefined);
+    const closeFullValue = useCallback(() => {
+        setFullValue(undefined);
+        requestAnimationFrame(() => {
+            const button = fullValueButtonRef.current;
+            if (button?.isConnected) {
+                // Focusing the row reveals its buttons before returning focus to the opener.
+                button.closest<HTMLElement>('[role="row"]')?.focus({ preventScroll: true });
+                button.focus({ preventScroll: true });
+            }
+        });
+    }, []);
+    const restoreFocusTargetAttribute = useRestoreFocusTarget()["data-tabster"];
     const rows = useMemo(
         () =>
             flattenPropertyRows(
@@ -349,6 +359,10 @@ function ComparisonPropertyTable({
     );
 
     useEffect(() => {
+        setEquivalentOpen(false);
+    }, [primary?.id, secondary?.id]);
+
+    useEffect(() => {
         if (!gridContainerRef.current) {
             return;
         }
@@ -389,7 +403,7 @@ function ComparisonPropertyTable({
                 renderCell: (item) => (
                     <DataGridCell
                         className={
-                            item.kind === "section"
+                            item.kind !== "property"
                                 ? "execution-plan-comparison-grid-section-cell"
                                 : undefined
                         }>
@@ -424,13 +438,40 @@ function ComparisonPropertyTable({
                 columnId: "primary",
                 renderHeaderCell: () => primaryColumn,
                 renderCell: (item) => (
-                    <DataGridCell className="execution-plan-comparison-grid-value">
+                    <DataGridCell
+                        className="execution-plan-comparison-grid-value"
+                        data-side="primary">
                         {item.kind === "property" ? (
-                            <span
-                                className="execution-plan-comparison-grid-text"
+                            <div
+                                className="execution-plan-comparison-grid-value-content"
                                 title={item.row.primaryValue}>
-                                {item.row.primaryValue}
-                            </span>
+                                <span className="execution-plan-comparison-grid-text">
+                                    {item.row.primaryValue}
+                                </span>
+                                {item.row.primaryValue && (
+                                    <Button
+                                        data-tabster={restoreFocusTargetAttribute}
+                                        appearance="subtle"
+                                        size="small"
+                                        className="execution-plan-comparison-view-value"
+                                        icon={<MoreHorizontal16Regular />}
+                                        title={locConstants.executionPlan.viewFullValue(
+                                            item.row.name,
+                                        )}
+                                        aria-label={locConstants.executionPlan.viewFullValue(
+                                            item.row.name,
+                                        )}
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            fullValueButtonRef.current = event.currentTarget;
+                                            setFullValue({
+                                                name: item.row.name,
+                                                value: item.row.primaryValue,
+                                            });
+                                        }}
+                                    />
+                                )}
+                            </div>
                         ) : undefined}
                     </DataGridCell>
                 ),
@@ -448,35 +489,71 @@ function ComparisonPropertyTable({
                 columnId: "secondary",
                 renderHeaderCell: () => secondaryColumn,
                 renderCell: (item) => (
-                    <DataGridCell className="execution-plan-comparison-grid-value">
+                    <DataGridCell
+                        className="execution-plan-comparison-grid-value"
+                        data-side="secondary">
                         {item.kind === "property" ? (
-                            <span
-                                className="execution-plan-comparison-grid-text"
+                            <div
+                                className="execution-plan-comparison-grid-value-content"
                                 title={item.row.secondaryValue}>
-                                {item.row.secondaryValue}
-                            </span>
+                                <span className="execution-plan-comparison-grid-text">
+                                    {item.row.secondaryValue}
+                                </span>
+                                {item.row.secondaryValue && (
+                                    <Button
+                                        data-tabster={restoreFocusTargetAttribute}
+                                        appearance="subtle"
+                                        size="small"
+                                        className="execution-plan-comparison-view-value"
+                                        icon={<MoreHorizontal16Regular />}
+                                        title={locConstants.executionPlan.viewFullValue(
+                                            item.row.name,
+                                        )}
+                                        aria-label={locConstants.executionPlan.viewFullValue(
+                                            item.row.name,
+                                        )}
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            fullValueButtonRef.current = event.currentTarget;
+                                            setFullValue({
+                                                name: item.row.name,
+                                                value: item.row.secondaryValue,
+                                            });
+                                        }}
+                                    />
+                                )}
+                            </div>
                         ) : undefined}
                     </DataGridCell>
                 ),
             }),
         ],
-        [equivalent.length, equivalentOpen, primaryColumn, secondaryColumn],
+        [
+            equivalent.length,
+            equivalentOpen,
+            primaryColumn,
+            secondaryColumn,
+            restoreFocusTargetAttribute,
+        ],
     );
 
-    const renderRow = (
-        { item, rowId }: TableRowData<ComparisonPropertyGridItem>,
-        style: CSSProperties,
-    ): ReactNode => (
-        <DataGridRow<ComparisonPropertyGridItem>
-            key={rowId}
-            className={
-                item.kind === "section" || item.kind === "equivalent"
-                    ? "execution-plan-comparison-grid-group-row"
-                    : undefined
-            }
-            style={style}>
-            {({ renderCell }) => <>{renderCell(item)}</>}
-        </DataGridRow>
+    const renderRow = useCallback(
+        (
+            { item, rowId }: TableRowData<ComparisonPropertyGridItem>,
+            style: CSSProperties,
+        ): ReactNode => (
+            <DataGridRow<ComparisonPropertyGridItem>
+                key={rowId}
+                className={
+                    item.kind === "section" || item.kind === "equivalent"
+                        ? "execution-plan-comparison-grid-group-row"
+                        : undefined
+                }
+                style={style}>
+                {({ renderCell }) => <>{renderCell(item)}</>}
+            </DataGridRow>
+        ),
+        [],
     );
 
     const startPropertiesResize = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -605,6 +682,7 @@ function ComparisonPropertyTable({
                     </DataGrid>
                 )}
             </div>
+            <PropertyValueDialog property={fullValue} onClose={closeFullValue} />
         </aside>
     );
 }
@@ -634,7 +712,14 @@ export function ExecutionPlanComparison() {
     );
 
     const handlePrimaryViewportChange = useCallback((viewport: Viewport) => {
-        setPrimaryViewport(viewport);
+        setPrimaryViewport((current) =>
+            current &&
+            current.x === viewport.x &&
+            current.y === viewport.y &&
+            current.zoom === viewport.zoom
+                ? current
+                : viewport,
+        );
         setSecondaryViewport((current) =>
             current && current.zoom !== viewport.zoom
                 ? { ...current, zoom: viewport.zoom }
@@ -642,7 +727,14 @@ export function ExecutionPlanComparison() {
         );
     }, []);
     const handleSecondaryViewportChange = useCallback((viewport: Viewport) => {
-        setSecondaryViewport(viewport);
+        setSecondaryViewport((current) =>
+            current &&
+            current.x === viewport.x &&
+            current.y === viewport.y &&
+            current.zoom === viewport.zoom
+                ? current
+                : viewport,
+        );
         setPrimaryViewport((current) =>
             current && current.zoom !== viewport.zoom
                 ? { ...current, zoom: viewport.zoom }
@@ -667,7 +759,7 @@ export function ExecutionPlanComparison() {
             }
             const matchingElement = targetController.getElementById(matchingIds[0]);
             if (matchingElement && "name" in matchingElement) {
-                targetController.selectElement(matchingElement, false);
+                targetController.selectElement(matchingElement, false, false);
                 setTargetSelection(matchingElement);
             }
         },

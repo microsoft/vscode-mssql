@@ -101,6 +101,7 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                     state.executionPlanState.executionPlanGraphs,
                     payload.graphIndex,
                     this.panel.title,
+                    this.sqlDocumentService,
                 );
             }
             return state;

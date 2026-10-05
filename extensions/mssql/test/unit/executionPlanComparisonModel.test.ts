@@ -107,7 +107,7 @@ suite("ExecutionPlanComparisonModel", () => {
         ]);
     });
 
-    test("compares numeric values, missing values, nested values, and flattens line breaks", () => {
+    test("compares numeric values, missing values, nested values, and preserves full values", () => {
         const rows = buildExecutionPlanComparisonPropertyRows(
             [
                 property("Rows", "20", {
@@ -136,8 +136,8 @@ suite("ExecutionPlanComparisonModel", () => {
 
         expect(rows.find((row) => row.name === "Rows")?.comparison).to.equal("greater");
         expect(rows.find((row) => row.name === "Description")).to.include({
-            primaryValue: "line 1 line 2",
-            secondaryValue: "line 1 line 2",
+            primaryValue: "line 1\r\nline 2",
+            secondaryValue: "line 1\nline 2",
             comparison: "different",
         });
         expect(rows.find((row) => row.name === "Nested")?.children[0]).to.include({

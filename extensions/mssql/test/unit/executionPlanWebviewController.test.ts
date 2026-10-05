@@ -18,6 +18,7 @@ import { contents } from "../resources/testsqlplan";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { GetExecutionPlanRequest } from "../../src/models/contracts/executionPlan";
 import {
+    ExecutionPlanComparisonWebviewController,
     getComparisonExecutionPlanGraphs,
     getExecutionPlanComparisonGraphInfo,
     getValidExecutionPlanComparisonResult,
@@ -230,6 +231,7 @@ suite("ExecutionPlanWebviewController", () => {
             [graph],
             0,
             xmlPlanFileName,
+            mockSqlDocumentService,
         );
         expect(result).to.equal(state);
     });
@@ -252,6 +254,38 @@ suite("ExecutionPlanWebviewController", () => {
 });
 
 suite("ExecutionPlanComparisonWebviewController", () => {
+    test("opens the complete recommended query without connecting or executing it", async () => {
+        const sandbox = sinon.createSandbox();
+        let controller: ExecutionPlanComparisonWebviewController | undefined;
+        try {
+            const sqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
+            sqlDocumentService.newQuery.resolves();
+            controller = new ExecutionPlanComparisonWebviewController(
+                {
+                    extensionUri: vscode.Uri.parse("https://localhost"),
+                    extensionPath: "path",
+                } as unknown as vscode.ExtensionContext,
+                sandbox.createStubInstance(ExecutionPlanService),
+                [],
+                0,
+                "plan.sqlplan",
+                sqlDocumentService,
+            );
+            const query = "-- Missing index recommendation\nCREATE INDEX ix ON dbo.t (id);";
+            const state = controller.state;
+            const result = await controller["_reducerHandlers"].get("showQuery")(state, { query });
+            expect(sqlDocumentService.newQuery).to.have.been.calledWithExactly({
+                content: query,
+                connectionStrategy: ConnectionStrategy.DoNotConnect,
+                sourceUri: undefined,
+            });
+            expect(result).to.equal(state);
+        } finally {
+            controller?.dispose();
+            sandbox.restore();
+        }
+    });
+
     test("normalizes comparison file types without mutating loaded graph metadata", () => {
         const graphInfo: ep.ExecutionPlanGraphInfo = {
             graphFileContent: "<ShowPlanXML />",

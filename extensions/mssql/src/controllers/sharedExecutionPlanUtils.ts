@@ -48,6 +48,7 @@ export function openExecutionPlanComparisonWebview(
     graphs: import("../sharedInterfaces/executionPlan").ExecutionPlanGraph[],
     graphIndex: number,
     sourceName: string,
+    sqlDocumentService: SqlDocumentService,
 ): ExecutionPlanComparisonWebviewController {
     const controller = new ExecutionPlanComparisonWebviewController(
         context,
@@ -55,6 +56,7 @@ export function openExecutionPlanComparisonWebview(
         graphs,
         graphIndex,
         sourceName,
+        sqlDocumentService,
     );
     controller.revealToForeground();
     return controller;

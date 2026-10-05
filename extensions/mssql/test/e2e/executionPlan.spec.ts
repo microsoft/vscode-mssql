@@ -13,6 +13,7 @@ import {
 } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
 import path from "path";
+import { QuickInput } from "./pageObjects/quickInput";
 
 test.describe("MSSQL Extension - Query Plan", async () => {
     let vsCodePage: Page;
@@ -29,7 +30,6 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         afterLaunch: async ({ page }) => {
             vsCodePage = page;
             // Query plan entry point
-            await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
             await vsCodePage.keyboard.press(`${getModifierKey()}+P`);
             await waitForCommandPaletteToBeVisible(vsCodePage);
             await vsCodePage.keyboard.type(
@@ -430,6 +430,94 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await highlightOpsComponent.getByRole("button", { name: "Close" }).click();
 
         await expect(highlightOpsInputBox).toBeHidden();
+    });
+    test("Test Comparison Selection, Full Property Values, and Wheel Scrolling", async () => {
+        await expect(queryPlanContainer.getByRole("treeitem").first()).toBeVisible();
+        await iframe.getByRole("button", { name: "Compare Execution Plan", exact: true }).click();
+        const comparison = await getWebviewByTitle(vsCodePage, "Compare Execution Plans 1");
+        const primary = comparison.getByRole("region", { name: "Primary plan", exact: true });
+        await expect(
+            primary.getByRole("tree", { name: /Execution plan 1, use arrow keys/ }),
+        ).toBeVisible();
+        await expect(primary.locator(".execution-plan-flow-arrow").first()).toBeVisible();
+        await expect(
+            primary.getByText("select * from sys.all_views", { exact: true }),
+        ).toBeVisible();
+
+        await comparison
+            .getByRole("toolbar", { name: "Compare Execution Plans" })
+            .getByRole("button", { name: "Add execution plan", exact: true })
+            .click();
+        const quickInput = new QuickInput(vsCodePage);
+        await quickInput.filter("plan.sqlplan");
+        await quickInput.pick("plan.sqlplan");
+        const secondary = comparison.getByRole("region", { name: "Added plan", exact: true });
+        await expect(secondary.getByRole("treeitem").first()).toBeVisible();
+        await expect(comparison.locator(".execution-plan-comparison-loading")).toBeHidden();
+        await expect(comparison.locator(".execution-plan-comparison-group").first()).toBeVisible();
+
+        await comparison.getByRole("button", { name: "Properties", exact: true }).click();
+        const properties = comparison.locator(".execution-plan-comparison-properties");
+        await properties
+            .getByRole("textbox", { name: "Filter comparison properties..." })
+            .fill("Physical Operation");
+        const physicalRow = properties.getByRole("row").filter({ hasText: "Physical Operation" });
+        const equivalent = properties.getByRole("button", { name: /Equivalent Properties/ });
+
+        const nestedLoops = primary.getByRole("treeitem", { name: /Nested Loops/ }).first();
+        await nestedLoops.focus();
+        await expect(nestedLoops).toBeFocused();
+        await expect(secondary.locator('[role="treeitem"][aria-selected="true"]')).toContainText(
+            "Nested Loops",
+        );
+        await equivalent.click();
+        await expect(physicalRow).toContainText("Nested Loops");
+
+        // Each side opens its own exact value in the shared read-only SQL editor.
+        for (const side of ["primary", "secondary"]) {
+            await physicalRow.hover();
+            const valueButton = physicalRow
+                .locator(`[data-side="${side}"]`)
+                .getByRole("button", { name: "View full value of Physical Operation" });
+            await valueButton.click();
+            const dialog = comparison.getByRole("dialog", { name: "Physical Operation" });
+            await expect(dialog.locator(".view-lines")).toContainText("Nested Loops", {
+                timeout: 30 * 1000,
+            });
+            await dialog.getByRole("button", { name: "Close", exact: true }).click();
+            await expect(dialog).toBeHidden();
+            await expect(valueButton).toBeFocused();
+        }
+
+        // Find selects through the graph controller, rather than through a node click.
+        await comparison.getByRole("button", { name: "Find in primary plan", exact: true }).click();
+        const find = primary.locator("#findNodeInputContainer");
+        await find.locator("#findNodeDropdown").click();
+        const propertySearch = comparison.getByRole("searchbox").last();
+        await propertySearch.fill("Node ID");
+        await propertySearch.press("Enter");
+        await find.locator("#findNodeComparisonDropdown").click();
+        await comparison.getByRole("option", { name: "Equals", exact: true }).click();
+        await find.locator("#findNodeInputBox").fill("2");
+        await find.getByRole("button", { name: "Next", exact: true }).click();
+        const selectedPrimary = primary.locator('[role="treeitem"][aria-selected="true"]');
+        await expect(selectedPrimary).toContainText("Hash Match");
+        await expect(selectedPrimary).toBeFocused();
+        await expect(secondary.locator('[role="treeitem"][aria-selected="true"]')).toContainText(
+            "Hash Match",
+        );
+        await expect(equivalent).toHaveAttribute("aria-expanded", "false");
+        await equivalent.click();
+        await expect(physicalRow).toContainText("Hash Match");
+        await find.getByRole("button", { name: "Close", exact: true }).click();
+
+        await properties.getByRole("button", { name: "Close", exact: true }).click();
+        const initialZoom = await getZoom(comparison);
+        await primary.locator(".execution-plan-flow-canvas").hover();
+        await vsCodePage.mouse.wheel(0, 500);
+        await expect.poll(() => getZoom(comparison)).toBeCloseTo(initialZoom!, 4);
+        await writeCoverage(comparison, "executionPlanComparison");
+        await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
     });
 });
 

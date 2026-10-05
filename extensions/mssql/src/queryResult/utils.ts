@@ -475,6 +475,7 @@ export function registerCommonRequestHandlers(
                 state.executionPlanState.executionPlanGraphs,
                 payload.graphIndex,
                 state.title ?? LocalizedConstants.executionPlan,
+                webviewViewController.sqlDocumentService,
             );
         }
         return state;
