@@ -155,7 +155,7 @@ export function isMac(): boolean {
     return process.platform === "darwin";
 }
 
-export function getModifierKey(): string {
+export function getModifierKey(): "Meta" | "Control" {
     return isMac() ? "Meta" : "Control";
 }
 

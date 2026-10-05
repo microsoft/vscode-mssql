@@ -11,12 +11,17 @@
  * results are byte-identical on every server.
  */
 
+export const GUID_VALUE = "01234567-89ab-cdef-0123-456789abcdef";
+
 /**
  * Mixed types in one result set: NULL, leading spaces, an embedded newline, an over-long value,
- * and a numeric column for the footer's selection aggregates.
+ * a numeric column for selection aggregates, and the same GUID as uniqueidentifier and text.
  */
-export const MIXED_TYPES_QUERY = `SELECT * FROM (VALUES
-    (1, N'Ada',  N'plain',                                  CAST(12.50 AS decimal(10,2))),
+export const MIXED_TYPES_QUERY = `SELECT t.*,
+    CAST('${GUID_VALUE}' AS uniqueidentifier) AS guid,
+    N'${GUID_VALUE}' AS guid_text
+FROM (VALUES
+    (1, N'Ada',  N'plain   text',                          CAST(12.50 AS decimal(10,2))),
     (2, N'  Bo', N'leading spaces in the name column',      CAST(7.25  AS decimal(10,2))),
     (3, N'Cy',   N'line1' + CHAR(13) + CHAR(10) + N'line2', CAST(0.00  AS decimal(10,2))),
     (4, N'Dee',  NULL,                                      NULL),
@@ -24,7 +29,7 @@ export const MIXED_TYPES_QUERY = `SELECT * FROM (VALUES
 ) AS t(id, name, notes, amount);`;
 
 export const MIXED_TYPES_ROW_COUNT = 5;
-export const MIXED_TYPES_COLUMNS = ["id", "name", "notes", "amount"];
+export const MIXED_TYPES_COLUMNS = ["id", "name", "notes", "amount", "guid", "guid_text"];
 
 /** Columns the cell formatter turns into hyperlinks. Supported on every serviced version. */
 export const TYPED_COLUMNS_QUERY = `SELECT

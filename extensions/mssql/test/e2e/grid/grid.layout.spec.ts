@@ -230,7 +230,7 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
             .toBeGreaterThan(1);
     });
 
-    test("keeps only a viewport of a 100k-row result rendered", async () => {
+    test("keeps a 100k-row result virtualized and restores the exact scroll offset after an editor switch", async () => {
         const { electronApp, page } = getContext();
         await setQueryText(electronApp, page, LARGE_QUERY);
         await executeQueryAndWait(page);
@@ -249,6 +249,26 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
                 largeGrid.locator(".fluent-result-grid-row-number").last().getAttribute("title"),
             )
             .toBe("100000");
+
+        const viewport = largeGrid.locator(".slick-viewport-right:visible").first();
+        const rowHeight = await largeGrid
+            .locator(".slick-row")
+            .first()
+            .evaluate((element) => element.getBoundingClientRect().height);
+        // An offset inside a row catches restoration that saves only the top row index.
+        const scrollTop = rowHeight * 10 + 7;
+        await viewport.evaluate((element, top) => element.scrollTo({ top }), scrollTop);
+        await expect.poll(() => viewport.evaluate((element) => element.scrollTop)).toBe(scrollTop);
+        await expect(largeGrid.locator('.fluent-result-grid-row-number[title="11"]')).toBeVisible();
+
+        await openNewQueryEditor(page);
+        await expect(page.getByRole("tab", { name: /Untitled-2/ }).first()).toBeVisible();
+        await page
+            .getByRole("tab", { name: /Untitled-1/ })
+            .first()
+            .click();
+        await expect(largeGrid).toBeVisible();
+        await expect.poll(() => viewport.evaluate((element) => element.scrollTop)).toBe(scrollTop);
     });
 
     test("defers an offscreen result set and mounts it when scrolled into view", async () => {

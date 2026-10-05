@@ -29,7 +29,7 @@ import {
     runCopyAsCommand,
     stageQuery,
 } from "./gridActions";
-import { MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
+import { GUID_VALUE, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
 
 /**
  * Clipboard and cell-formatting coverage for the preview results grid.
@@ -206,10 +206,17 @@ test.describe("MSSQL Extension - Preview Grid Clipboard", () => {
         await expect(nullCell.locator(".missing-value")).toHaveCount(1);
     });
 
-    test("preserves leading spaces in cell text", async () => {
+    test("visually preserves leading and repeated spaces in cell text", async () => {
         // Row 2's name is two spaces then "Bo". HTML whitespace collapsing used to drop them.
         const cell = getCell(grid, 1, 1);
         await expect(cell).toHaveText(/^\s{2}Bo$/);
+        await expect(cell.locator(".grid-cell-value-container")).toHaveCSS("white-space", "pre");
+        const repeatedSpaces = getCell(grid, 0, 2);
+        await expect(repeatedSpaces).toHaveText(/^plain {3}text$/);
+        await expect(repeatedSpaces.locator(".grid-cell-value-container")).toHaveCSS(
+            "white-space",
+            "pre",
+        );
     });
 
     test("shows an embedded newline as a return glyph instead of wrapping", async () => {
@@ -259,6 +266,35 @@ test.describe("MSSQL Extension - Preview Grid Clipboard", () => {
         await clickCell(grid, 0, 1, { modifiers: ["Shift"] });
         await page.keyboard.press(`${getModifierKey()}+C`);
         await expect.poll(() => readClipboard(electronApp)).toContain("1\tAda");
+    });
+
+    test("copying adjacent Ctrl/Cmd-selected cells preserves layout and excludes deselected cells", async () => {
+        const { electronApp, page } = getContext();
+        const modifier = getModifierKey();
+        await clearClipboard(electronApp);
+        await clickCell(grid, 0, 0);
+        await clickCell(grid, 0, 1, { modifiers: [modifier] });
+        await expect(grid.locator(".slick-cell.selected")).toHaveCount(2);
+        await page.keyboard.press(`${getModifierKey()}+C`);
+        const copiedText = async () =>
+            (await readClipboard(electronApp)).replace(/\r\n/g, "\n").replace(/\n$/, "");
+        await expect.poll(copiedText).toBe("1\tAda");
+
+        await clickCell(grid, 0, 1, { modifiers: [modifier] });
+        await expect(grid.locator(".slick-cell.selected")).toHaveCount(1);
+        await clearClipboard(electronApp);
+        await page.keyboard.press(`${getModifierKey()}+C`);
+        await expect.poll(copiedText).toBe("1");
+    });
+
+    test("displays and copies GUIDs in uppercase by default without changing text columns", async () => {
+        const { electronApp, page } = getContext();
+        await expect(getCell(grid, 0, 4)).toHaveText(GUID_VALUE.toUpperCase());
+        await expect(getCell(grid, 0, 5)).toHaveText(GUID_VALUE);
+        await clearClipboard(electronApp);
+        await clickCell(grid, 0, 4);
+        await page.keyboard.press(`${getModifierKey()}+C`);
+        await expect.poll(() => readClipboard(electronApp)).toContain(GUID_VALUE.toUpperCase());
     });
 
     test("copying a rectangle preserves its row and column layout", async () => {
@@ -398,7 +434,7 @@ test.describe("MSSQL Extension - Preview Grid Clipboard", () => {
         const { electronApp, page } = getContext();
         await clearClipboard(electronApp);
         await clickCell(grid, 0, 1);
-        await clickCell(grid, 4, 1, { modifiers: ["Control"] });
+        await clickCell(grid, 4, 1, { modifiers: [getModifierKey()] });
         await page.keyboard.press(`${getModifierKey()}+C`);
         await expect.poll(() => readClipboard(electronApp)).toContain("Ada");
         expect(await readClipboard(electronApp)).toContain("Eli");
@@ -432,7 +468,7 @@ test.describe("MSSQL Extension - Preview Grid Clipboard", () => {
         const { electronApp, page } = getContext();
         await clearClipboard(electronApp);
         await clickCell(grid, 0, 0);
-        await clickCell(grid, 0, 0, { modifiers: ["Control"] });
+        await clickCell(grid, 0, 0, { modifiers: [getModifierKey()] });
         await expect(grid.locator(".slick-cell.selected")).toHaveCount(0);
         await page.keyboard.press(`${getModifierKey()}+C`);
         await expect.poll(() => readClipboard(electronApp)).toContain("Ada");

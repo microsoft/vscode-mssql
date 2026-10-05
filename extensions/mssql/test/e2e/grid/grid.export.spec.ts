@@ -6,33 +6,36 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { Locator } from "@playwright/test";
+import { FrameLocator, Locator } from "@playwright/test";
 import { test, expect } from "../baseFixtures";
 import { useSharedVsCodeLifecycle } from "../utils/testLifecycle";
 import { QuickInput } from "../pageObjects";
+import { setQueryText, waitForResultGrid } from "../utils/testHelpers";
 import { getGridLaunchConfig } from "./gridLaunchConfig";
-import { clickCell, resetGrid, stageQuery } from "./gridActions";
-import { MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
+import { clickCell, getCell, resetGrid, stageQuery } from "./gridActions";
+import { GUID_VALUE, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
 
 test.describe("MSSQL Extension - Preview Grid Export", () => {
     let grid: Locator;
+    let resultsFrame: FrameLocator;
     const exportDir = fs.mkdtempSync(path.join(os.tmpdir(), "mssql-grid-export-"));
 
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: {
             initialConfig: getGridLaunchConfig({
                 "mssql.results.openAfterSave": false,
+                "mssql.query.displayUniqueIdentifierInUppercase": false,
                 "mssql.saveAsCsv.includeHeaders": false,
                 "mssql.saveAsCsv.delimiter": ";",
                 "mssql.saveAsCsv.encoding": "utf-16le",
             }),
         },
         afterLaunch: async ({ electronApp, page }) => {
-            grid = (
-                await stageQuery(electronApp, page, MIXED_TYPES_QUERY, {
-                    minRows: MIXED_TYPES_ROW_COUNT,
-                })
-            ).grid;
+            const staged = await stageQuery(electronApp, page, MIXED_TYPES_QUERY, {
+                minRows: MIXED_TYPES_ROW_COUNT,
+            });
+            grid = staged.grid;
+            resultsFrame = staged.resultsFrame;
         },
     });
 
@@ -75,6 +78,9 @@ test.describe("MSSQL Extension - Preview Grid Export", () => {
         expect(content).toContain("Eli");
         expect(content).toContain(";");
         expect(content).not.toContain("id;name");
+        await expect(getCell(grid, 0, 4)).toHaveText(GUID_VALUE);
+        expect(content).toContain(GUID_VALUE);
+        expect(content).not.toContain(GUID_VALUE.toUpperCase());
     });
 
     test("Save as JSON writes a parseable result file", async () => {
@@ -132,6 +138,49 @@ test.describe("MSSQL Extension - Preview Grid Export", () => {
         expect(content).toContain("Ada");
         expect(content).toContain("Bo");
         expect(content).not.toContain("Eli");
+    });
+    test("blocks export of loading rows while allowing a finished result set to be saved", async () => {
+        const { electronApp, page } = getContext();
+        const footer = resultsFrame.getByTestId("summary-footer");
+        // Keep the second result streaming until explicitly cancelled. Wide rows prevent the
+        // server from finishing before the UI interaction, without sleeps or database objects.
+        await setQueryText(
+            electronApp,
+            page,
+            `${MIXED_TYPES_QUERY}
+SELECT TOP (1000000) REPLICATE(N'x', 4000) AS payload
+FROM sys.all_objects a CROSS JOIN sys.all_objects b CROSS JOIN sys.all_objects c;`,
+        );
+        await page.locator('[aria-label^="Execute Query"]').first().click();
+        try {
+            const partialGrid = await waitForResultGrid(resultsFrame, "0_1", 1);
+            await expect(footer).toHaveAttribute("aria-live", "off");
+            await partialGrid.getByRole("button", { name: "Save as CSV" }).click();
+            await expect(
+                page.getByText("These results can't be saved until they finish loading.", {
+                    exact: true,
+                }),
+            ).toBeVisible();
+            await expect(new QuickInput(page).widget).toHaveCount(0);
+            await expect(footer).toHaveAttribute("aria-live", "off");
+
+            grid = await waitForResultGrid(resultsFrame, "0_0", MIXED_TYPES_ROW_COUNT);
+            const filePath = await saveFromToolbar("Save as CSV", "finished-during-stream.csv");
+            await expect.poll(() => fs.readFileSync(filePath, "utf16le")).toContain("Eli");
+            await expect(footer).toHaveAttribute("aria-live", "off");
+        } finally {
+            await page.keyboard.press("Escape");
+            const cancel = page.locator('[aria-label^="Cancel Query"]').first();
+            if (await cancel.isVisible()) {
+                await cancel.click();
+            }
+            await expect(footer).toHaveAttribute("aria-live", "polite", { timeout: 15_000 });
+            await resultsFrame
+                .getByTestId("results-tab-list")
+                .getByRole("tab", { name: /Results Preview/ })
+                .click();
+            grid = await waitForResultGrid(resultsFrame, "0_0", MIXED_TYPES_ROW_COUNT);
+        }
     });
 });
 
