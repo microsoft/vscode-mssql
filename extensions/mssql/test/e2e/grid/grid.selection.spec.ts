@@ -99,6 +99,9 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
 
     test("stages the fixture with every row displayed", async () => {
         await expect(grid).toHaveAttribute("data-row-count", String(SELECTION_ROW_COUNT));
+        // Numeric alignment is opt-in; this fixture uses the default setting.
+        await expect(getCell(grid, 0, 0)).not.toHaveCSS("justify-content", "flex-end");
+        await expect(getCell(grid, 0, 3)).not.toHaveCSS("justify-content", "flex-end");
     });
 
     test("a plain click selects exactly one cell and makes it active", async () => {

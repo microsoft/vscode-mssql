@@ -8,7 +8,7 @@ import { test, expect } from "../baseFixtures";
 import { useSharedVsCodeLifecycle } from "../utils/testLifecycle";
 import { executeQueryAndWait, setQueryText, waitForResultGrid } from "../utils/testHelpers";
 import { getGridLaunchConfig } from "./gridLaunchConfig";
-import { clickCell, stageQuery } from "./gridActions";
+import { clickCell, getCell, stageQuery } from "./gridActions";
 import { MESSAGES_QUERY, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
 
 test.describe("MSSQL Extension - Preview Grid Pane", () => {
@@ -16,7 +16,9 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
     let grid: Locator;
 
     const getContext = useSharedVsCodeLifecycle({
-        launchOptions: { initialConfig: getGridLaunchConfig() },
+        launchOptions: {
+            initialConfig: getGridLaunchConfig({ "mssql.resultsGrid.rightAlignNumbers": true }),
+        },
         afterLaunch: async ({ electronApp, page }) => {
             const staged = await stageQuery(electronApp, page, MIXED_TYPES_QUERY, {
                 minRows: MIXED_TYPES_ROW_COUNT,
@@ -24,6 +26,14 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
             resultsFrame = staged.resultsFrame;
             grid = staged.grid;
         },
+    });
+
+    test("right-aligns numeric columns while keeping text left-aligned", async () => {
+        await expect(getCell(grid, 0, 0)).toHaveCSS("justify-content", "flex-end");
+        await expect(getCell(grid, 0, 3)).toHaveCSS("justify-content", "flex-end");
+        await expect(getCell(grid, 3, 3)).toHaveCSS("justify-content", "flex-end");
+        await expect(getCell(grid, 0, 1)).not.toHaveCSS("justify-content", "flex-end");
+        await expect(getCell(grid, 0, 2)).not.toHaveCSS("justify-content", "flex-end");
     });
 
     test("shows result count and switches between results and messages", async () => {
@@ -147,6 +157,14 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
                     .getByRole("tab", { name: "Results (1)" }),
             ).toBeVisible();
             await expect(resultsFrame.getByTestId("summary-footer")).toHaveCount(0);
+            // Reuse the mode switch and staged mixed-type result to cover classic alignment.
+            const classicGrid = resultsFrame.locator('[id="gridContainter-0_0"]');
+            await expect(getCell(classicGrid, 0, 3)).toContainText("12.50");
+            await expect(getCell(classicGrid, 0, 0)).toHaveCSS("text-align", "right");
+            await expect(getCell(classicGrid, 0, 3)).toHaveCSS("text-align", "right");
+            await expect(getCell(classicGrid, 3, 3)).toHaveCSS("text-align", "right");
+            await expect(getCell(classicGrid, 0, 1)).not.toHaveCSS("text-align", "right");
+            await expect(getCell(classicGrid, 0, 2)).not.toHaveCSS("text-align", "right");
         } finally {
             // useSharedVsCodeLifecycle keeps this VS Code instance for the rest of the file, so
             // classic results left on would run every later test against the wrong grid -- and
