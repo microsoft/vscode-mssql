@@ -6,7 +6,10 @@
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
-import QueryRunner, { editorEol } from "../../src/controllers/queryRunner";
+import QueryRunner, {
+    editorEol,
+    QueryExecutionCompleteEvent,
+} from "../../src/controllers/queryRunner";
 import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
 import * as Utils from "../../src/models/utils";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
@@ -583,6 +586,25 @@ suite("Query Runner tests", () => {
         expect(isFullExecutionComplete).to.be.true;
     });
 
+    test("reports cancellation separately from SQL errors and resets it for the next execution", async () => {
+        const runner = createQueryRunner();
+        const completed = sandbox.spy();
+        runner.onComplete(completed);
+        runner.setupQueryExecution();
+        testSqlToolsServerClient.sendRequest.resolves({});
+        await runner.cancel();
+        runner.handleQueryComplete({ ownerUri: standardUri, batchSummaries: [] });
+        expect(completed).to.have.been.calledWith(
+            sinon.match({ hasError: false, isCanceled: true }),
+        );
+        expect(runner.isCanceled).to.be.true;
+        runner.setupQueryExecution();
+        runner.handleQueryComplete({ ownerUri: standardUri, batchSummaries: [] });
+        const latest = completed.lastCall.args[0] as QueryExecutionCompleteEvent;
+        expect(latest).to.include({ hasError: false, isCanceled: false });
+        expect(runner.isCanceled).to.be.false;
+    });
+
     test("Notification - Query complete refreshes the SPID shown in the status bar", () => {
         const result: QueryExecuteCompleteNotificationResult = {
             ownerUri: "uri",
@@ -903,6 +925,9 @@ suite("Query Runner tests", () => {
         };
 
         testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1",
+        } as vscode.TextDocument);
 
         await queryRunner.runStatement(line, column, executionPlanOptions);
 
@@ -923,6 +948,9 @@ suite("Query Runner tests", () => {
     test("runStatement submission failure closes its performance interval", async () => {
         const failure = new Error("request failed");
         testSqlToolsServerClient.sendRequest.rejects(failure);
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1",
+        } as vscode.TextDocument);
         const queryRunner = createQueryRunner();
 
         let thrown: unknown;
@@ -939,6 +967,42 @@ suite("Query Runner tests", () => {
             "end",
             sinon.match({ hasError: true, errorClass: "Error" }),
         );
+    });
+
+    test("keeps the submitted batch text when the document changes during execution", async () => {
+        let text = "select 0;\r\nGO\r\n  select 1;\r\nselect 2;";
+        vscodeWorkspace.openTextDocument.resolves({ getText: () => text } as vscode.TextDocument);
+        testSqlToolsServerClient.sendRequest.resolves();
+        const queryRunner = createQueryRunner();
+        await queryRunner.runQuery({ startLine: 2, startColumn: 2, endLine: 3, endColumn: 9 });
+        text = "select 999;";
+        queryRunner.handleBatchStart({
+            ownerUri: standardUri,
+            batchSummary: {
+                id: 0,
+                selection: { startLine: 2, startColumn: 2, endLine: 3, endColumn: 9 },
+            } as QueryExecuteContracts.BatchSummary,
+        });
+        expect(queryRunner.currentBatchQuery).to.equal("select 1;\r\nselect 2;");
+    });
+
+    test("updates the batch script for Quick Query batches", async () => {
+        testSqlToolsServerClient.sendRequest.resolves();
+        const queryRunner = createQueryRunner();
+        await queryRunner.runQueryString("select 1;\nGO\nselect 2;");
+        for (const [line, sql] of [
+            [0, "select 1;"],
+            [2, "select 2;"],
+        ] as const) {
+            queryRunner.handleBatchStart({
+                ownerUri: standardUri,
+                batchSummary: {
+                    id: line,
+                    selection: { startLine: line, startColumn: 0, endLine: line, endColumn: 9 },
+                } as QueryExecuteContracts.BatchSummary,
+            });
+            expect(queryRunner.currentBatchQuery).to.equal(sql);
+        }
     });
 
     suite("Copy Results", () => {

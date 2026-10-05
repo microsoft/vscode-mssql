@@ -18,6 +18,10 @@ import {
 
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
 import {
+    formatLiveExecutionPlanDuration,
+    formatLiveExecutionPlanProgress,
+} from "./executionPlanLiveStatistics";
+import {
     normalizeExecutionPlanQuery,
     ParsedRecommendation,
     parseRecommendationDisplayString,
@@ -90,6 +94,10 @@ const useStyles = makeStyles({
         fontWeight: tokens.fontWeightSemibold,
         lineHeight: tokens.lineHeightBase200,
         paddingBottom: "4px",
+    },
+    liveBadge: {
+        marginLeft: "8px",
+        verticalAlign: "middle",
     },
     queryText: {
         fontSize: "12px",
@@ -237,6 +245,18 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const resizableRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<any | null>(null);
     const graph = executionPlanState?.executionPlanGraphs?.[graphIndex];
+    const estimatedProgress = graph?.liveQueryStatistics?.estimatedProgress;
+    const progressLabel =
+        estimatedProgress === undefined
+            ? undefined
+            : formatLiveExecutionPlanProgress(estimatedProgress);
+    const liveElapsed = graph?.liveQueryStatistics?.elapsedTimeInMs;
+    const elapsedLabel =
+        liveElapsed === undefined
+            ? undefined
+            : locConstants.executionPlan.liveElapsedTime(
+                  formatLiveExecutionPlanDuration(liveElapsed),
+              );
 
     const resetTransientUiState = useCallback(() => {
         setZoomNumber(100);
@@ -268,25 +288,26 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
         );
     }, [executionPlanState, graph, graphIndex]);
 
+    // A live plan refreshes about once a second. Keep the user's zoom and open panels until a
+    // different statement's plan replaces it.
+    const planIdentity = graph?.isLive ? `live:${graph.query}` : graph;
     useEffect(() => {
         resetTransientUiState();
-    }, [graph, resetTransientUiState]);
+    }, [planIdentity, resetTransientUiState]);
 
-    const handleRendererReady = useCallback(
-        (controller: ExecutionPlanGraphController | null) => {
-            setExecutionPlanView(controller);
-            if (controller) {
-                setFindNodeOptions(controller.getUniqueElementProperties());
-                setCost(controller.getTotalRelativeCost());
-                setZoomNumber(controller.getZoomLevel());
-            } else {
-                setFindNodeOptions([]);
-                setCost(0);
-                resetTransientUiState();
-            }
-        },
-        [resetTransientUiState],
-    );
+    const handleRendererReady = useCallback((controller: ExecutionPlanGraphController | null) => {
+        setExecutionPlanView(controller);
+        if (controller) {
+            setFindNodeOptions(controller.getUniqueElementProperties());
+            setCost(controller.getTotalRelativeCost());
+            setZoomNumber(controller.getZoomLevel());
+        } else {
+            // A new plan resets the view through planIdentity, so a live refresh, which
+            // briefly reports no renderer, keeps it.
+            setFindNodeOptions([]);
+            setCost(0);
+        }
+    }, []);
 
     useEffect(() => {
         if (inputRef && inputRef.current) {
@@ -385,12 +406,39 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             : "calc(100% - 35px)",
                     }}
                     aria-live="polite"
-                    aria-label={
+                    aria-label={[
+                        getQueryCostString(),
+                        query,
                         recommendations.length > 0
-                            ? `${getQueryCostString()}, ${query}, ${locConstants.executionPlan.missingIndexRecommendations}`
-                            : `${getQueryCostString()}, ${query}`
-                    }>
-                    <div className={classes.queryCostSummary}>{getQueryCostString()}</div>
+                            ? locConstants.executionPlan.missingIndexRecommendations
+                            : undefined,
+                        progressLabel,
+                        elapsedLabel,
+                    ]
+                        .filter(Boolean)
+                        .join(", ")}>
+                    <div className={classes.queryCostSummary}>
+                        {getQueryCostString()}
+                        {graph?.isLive && (
+                            <Badge
+                                appearance="tint"
+                                color="brand"
+                                size="small"
+                                className={classes.liveBadge}
+                                title={locConstants.executionPlan.livePlanDescription}>
+                                {locConstants.executionPlan.live}
+                            </Badge>
+                        )}
+                        {progressLabel && (
+                            <Badge
+                                appearance="outline"
+                                className={classes.liveBadge}
+                                title={locConstants.executionPlan.liveEstimatedProgressDescription}>
+                                {progressLabel}
+                            </Badge>
+                        )}
+                        {elapsedLabel && <span className={classes.liveBadge}>{elapsedLabel}</span>}
+                    </div>
                     <SqlText
                         className={classes.queryText}
                         text={query}
@@ -475,6 +523,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                 }>
                                 <ReactFlowExecutionPlan
                                     root={graph.root}
+                                    isLive={graph.isLive === true}
+                                    liveRefreshId={graph.liveRefreshId}
                                     themeKind={themeKind}
                                     planNumber={graphIndex + 1}
                                     onReady={handleRendererReady}

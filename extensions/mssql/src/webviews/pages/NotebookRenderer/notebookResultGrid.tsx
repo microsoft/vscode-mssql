@@ -22,6 +22,7 @@ import type {
     NotebookCopyAsCsvOptions,
     NotebookSelectionSummaryMessage,
 } from "../../../sharedInterfaces/notebookQueryResult";
+import { isNotebookCopyShortcut } from "./notebookKeyboard";
 import "./notebookResultGrid.css";
 import "../../media/slickgrid.css";
 import "../../media/table.css";
@@ -326,7 +327,7 @@ export function NotebookResultGrid({
 
         // Ctrl+C / Cmd+C copy handler
         gridDiv.addEventListener("keydown", (e: KeyboardEvent) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+            if (isNotebookCopyShortcut(e)) {
                 const ranges = grid.getSelectionModel()?.getSelectedRanges();
                 if (!ranges || ranges.length === 0) {
                     // If no selection, copy active cell

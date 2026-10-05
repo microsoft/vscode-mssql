@@ -253,6 +253,47 @@ export function parseWebviewKeyboardShortcutConfig(
     return webviewKeyBinding;
 }
 
+const LETTER_REGEX = /^[a-z]$/;
+const ASCII_PRINTABLE_REGEX = /^[\x20-\x7e]$/;
+
+/**
+ * Matches the non-modifier part of a keyboard event against a key combination.
+ *
+ * Letter shortcuts are matched by the character the keyboard layout produced (`event.key`), so
+ * Ctrl+A means the key labelled "A" on AZERTY, QWERTZ, Dvorak, etc. `event.code` names the
+ * physical key by its US QWERTY position, which is the key labelled "Q" on AZERTY. The physical
+ * position is only used for letters when the layout produced no plain ASCII character (e.g.
+ * Cyrillic or Greek layouts, macOS Option characters, dead keys), where it is the only usable
+ * signal. Other keys (digits, punctuation, named keys) keep matching by `code` when provided.
+ * @param event Raw keyboard event
+ * @param combo Key combination to match against
+ * @returns True if the event's key matches the combination, false otherwise
+ */
+export function eventMatchesKey(
+    event: Pick<KeyboardEvent, "code" | "key">,
+    combo: Pick<WebviewKeyCombination, "code" | "key">,
+): boolean {
+    const eventKey = event.key?.length === 1 ? event.key.toLowerCase() : event.key;
+    const comboKey = combo.key?.length === 1 ? combo.key.toLowerCase() : combo.key;
+
+    if (comboKey && LETTER_REGEX.test(comboKey) && ASCII_PRINTABLE_REGEX.test(eventKey ?? "")) {
+        return eventKey === comboKey;
+    }
+
+    // If a code is provided, it must match.
+    if (combo.code) {
+        return combo.code === event.code;
+    }
+
+    // Otherwise match by `key` if provided.
+    if (comboKey) {
+        return eventKey === comboKey;
+    }
+
+    // If neither code nor key specified, we can't match.
+    return false;
+}
+
 /**
  * Matches a raw keyboard event against the event generated from user configuration.
  * @param event Raw keyboard event
@@ -271,20 +312,7 @@ export function eventMatchesShortcut(
     if ((combo.altKey ?? false) !== event.altKey) return false;
     if ((combo.shiftKey ?? false) !== event.shiftKey) return false;
 
-    // If a code is provided, it must match.
-    if (combo.code) {
-        return combo.code === event.code;
-    }
-
-    // Otherwise match by `key` if provided.
-    if (combo.key) {
-        const eventKey = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-        const comboKey = combo.key.length === 1 ? combo.key.toLowerCase() : combo.key;
-        return eventKey === comboKey;
-    }
-
-    // If neither code nor key specified, we can't match.
-    return false;
+    return eventMatchesKey(event, combo);
 }
 
 /**

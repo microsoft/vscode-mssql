@@ -43,6 +43,8 @@ export class QueryExecuteCompleteNotificationResult {
 export class QueryExecuteBatchNotificationParams {
     batchSummary: BatchSummary;
     ownerUri: string;
+    /** Server session id (SPID) running the batch. Sent with batch start by newer services. */
+    serverConnectionId?: string;
 }
 
 // ------------------------------- < Query Batch Start  Notification > ------------------------------------

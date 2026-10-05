@@ -307,7 +307,8 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     const [shownChildren, setShownChildren] = useState<number[]>([]);
     const [openedButtons, setOpenedButtons] = useState<string[]>([]);
     const [name, setName] = useState<string>("");
-    const [id, setId] = useState<string>("");
+    const displayedNodeId = useRef<string | undefined>(undefined);
+    const currentSortOption = useRef(ep.SortOption.Importance);
     const [items, setItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
     const [isFiltered, setIsFiltered] = useState<boolean>(false);
     const [unfilteredItems, setUnfilteredItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
@@ -349,20 +350,6 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     const COLLAPSE_ALL = locConstants.executionPlan.collapseAll;
     const FILTER_ANY_FIELD = locConstants.executionPlan.filterAnyField;
 
-    // this sets the items list on the initial load, so there isn't a delay
-    useEffect(() => {
-        // check whether items is actively filtered so it doesn't rerender if there
-        // are no filter results
-        if (!items.length && !isFiltered) {
-            const selectedElement = executionPlanView.getSelectedElement();
-            const element: ep.ExecutionPlanNode =
-                selectedElement && "name" in selectedElement
-                    ? selectedElement
-                    : executionPlanView.getRoot();
-            loadItems(element);
-        }
-    }, [items, isFiltered]);
-
     // Show the selected node's properties as soon as the selection changes
     useEffect(() => {
         const selectedElement = executionPlanView.getSelectedElement();
@@ -370,26 +357,30 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             selectedElement && "name" in selectedElement
                 ? selectedElement
                 : executionPlanView.getRoot();
-        if (element.id !== id) {
-            loadItems(element);
-        }
+        loadItems(element);
     }, [executionPlanView, selectedElementId]);
 
     function loadItems(element: ep.ExecutionPlanNode) {
         setName(element.name);
-        setId(element.id);
+        const selectionChanged = element.id !== displayedNodeId.current;
+        displayedNodeId.current = element.id;
+        if (selectionChanged) {
+            currentSortOption.current = ep.SortOption.Importance;
+        }
 
-        // make items list, and sort it based on importance
+        // A live refresh keeps the selected node's sort order.
         const unsortedItems = buildItemListFromProperties(element.properties, 0, 0, false, -1);
         const sortedItems = recursiveSort(
             unsortedItems,
             unsortedItems.filter((item) => !item.isChild),
-            ep.SortOption.Importance,
+            currentSortOption.current,
         );
         setNumItems(unsortedItems.length);
         // Expansion state refers to item IDs, which only mean something for the node they came from
-        setShownChildren([]);
-        setOpenedButtons([]);
+        if (selectionChanged) {
+            setShownChildren([]);
+            setOpenedButtons([]);
+        }
         // The list that clearing the filter restores belongs to the node now shown, and an active
         // filter carries over to it
         setUnfilteredItems(sortedItems);
@@ -449,6 +440,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 
     // ads removes filters before carrying out any of the toolbar actions
     const handleSort = async (sortOption: ep.SortOption) => {
+        currentSortOption.current = sortOption;
         const currentItems = resetFiltering();
         setItems(
             recursiveSort(

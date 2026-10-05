@@ -324,16 +324,19 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
                         key={qr.QueryResultPaneTabs.Messages}>
                         {locConstants.queryResult.messages}
                     </Tab>
-                    {Object.keys(resultSetSummaries).length > 0 && isExecutionPlan && (
-                        <Tab
-                            value={qr.QueryResultPaneTabs.ExecutionPlan}
-                            title={locConstants.queryResult.queryPlanTooltip(
-                                keyBindings[WebviewAction.QueryResultSwitchToQueryPlanTab].label,
-                            )}
-                            key={qr.QueryResultPaneTabs.ExecutionPlan}>
-                            {`${locConstants.queryResult.queryPlan(executionPlanGraphs?.length || 0)}`}
-                        </Tab>
-                    )}
+                    {isExecutionPlan &&
+                        (Object.keys(resultSetSummaries).length > 0 ||
+                            (executionPlanGraphs?.length ?? 0) > 0) && (
+                            <Tab
+                                value={qr.QueryResultPaneTabs.ExecutionPlan}
+                                title={locConstants.queryResult.queryPlanTooltip(
+                                    keyBindings[WebviewAction.QueryResultSwitchToQueryPlanTab]
+                                        .label,
+                                )}
+                                key={qr.QueryResultPaneTabs.ExecutionPlan}>
+                                {`${locConstants.queryResult.queryPlan(executionPlanGraphs?.length || 0)}`}
+                            </Tab>
+                        )}
                 </TabList>
 
                 <Toolbar aria-label={locConstants.queryResult.resultsToolbar}>

@@ -43,6 +43,10 @@
 - Extension-toolkit tests use the Node.js test runner. Match the existing tests under packages/extension-toolkit.
 - Assert telemetry and logging payloads rather than incidental call order, indexes, or exact call
   counts. Await asynchronous UI rendering before asserting.
+- Add smoke coverage for grid changes when practical. Reuse existing specs and fixtures to avoid
+  extra VS Code launches, connections, and queries.
+- Seed static smoke settings through `initialConfig`; avoid settings-file writes and fixed sleeps.
+  Wait for observable UI state.
 
 ## T-SQL Grammar
 

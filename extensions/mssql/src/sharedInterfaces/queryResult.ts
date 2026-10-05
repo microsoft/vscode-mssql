@@ -68,6 +68,7 @@ export interface GridSettings {
     freezeFirstColumnByDefault?: boolean;
     showGridLines?: GridLinesMode;
     rowPadding?: number | null;
+    rightAlignNumbers?: boolean;
 }
 
 export interface QueryResultWebviewState extends ExecutionPlanWebviewState {

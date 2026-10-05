@@ -543,6 +543,40 @@ suite("SqlDocumentService Tests", () => {
         mockCreateDocument.restore();
     });
 
+    test("createDocument should open in the active editor group", async () => {
+        const doc = mockTextDocument("untitled:Untitled-1");
+        sandbox.stub(vscode.workspace, "openTextDocument").resolves(doc);
+        const showTextDocumentStub = sandbox
+            .stub(vscode.window, "showTextDocument")
+            .resolves({ document: doc } as any);
+        sandbox.stub(vscode.window, "activeTextEditor").value({
+            viewColumn: vscode.ViewColumn.Two,
+        });
+
+        await (sqlDocumentService as any).createDocument();
+
+        expect(showTextDocumentStub).to.have.been.calledOnceWith(
+            doc,
+            sinon.match({ viewColumn: vscode.ViewColumn.Two }),
+        );
+    });
+
+    test("createDocument should use the active editor group when no text editor is active", async () => {
+        const doc = mockTextDocument("untitled:Untitled-1");
+        sandbox.stub(vscode.workspace, "openTextDocument").resolves(doc);
+        const showTextDocumentStub = sandbox
+            .stub(vscode.window, "showTextDocument")
+            .resolves({ document: doc } as any);
+        sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
+
+        await (sqlDocumentService as any).createDocument();
+
+        expect(showTextDocumentStub).to.have.been.calledOnceWith(
+            doc,
+            sinon.match({ viewColumn: vscode.ViewColumn.Active }),
+        );
+    });
+
     test("newQuery should copy connection from URI when copyConnectionFromUri is provided", async () => {
         let editor: vscode.TextEditor = {
             document: {
