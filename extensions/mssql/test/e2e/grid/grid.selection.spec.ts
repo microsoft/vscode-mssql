@@ -148,6 +148,40 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
         await expect(selectedCells()).toHaveCount(SELECTION_ROW_COUNT * SELECTION_COLUMN_COUNT);
     });
 
+    for (const { layout, key, code, selectsAll } of [
+        { layout: "AZERTY A", key: "a", code: "KeyQ", selectsAll: true },
+        { layout: "AZERTY Q", key: "q", code: "KeyA", selectsAll: false },
+        { layout: "Cyrillic physical A", key: "ф", code: "KeyA", selectsAll: true },
+    ]) {
+        test(`select-all follows the keyboard layout for ${layout}`, async () => {
+            await clickCell(grid, 0, 0);
+            const isMac = getModifierKey() === "Meta";
+            // Playwright's keyboard uses a US layout. Supply the key/code pair reported by
+            // this layout to exercise the rendered grid's real keyboard handler.
+            await activeCells()
+                .first()
+                .evaluate(
+                    async (element, shortcut) => {
+                        element.dispatchEvent(
+                            new KeyboardEvent("keydown", {
+                                key: shortcut.key,
+                                code: shortcut.code,
+                                ctrlKey: !shortcut.isMac,
+                                metaKey: shortcut.isMac,
+                                bubbles: true,
+                                cancelable: true,
+                            }),
+                        );
+                        await new Promise(requestAnimationFrame);
+                    },
+                    { key, code, isMac },
+                );
+            await expect(selectedCells()).toHaveCount(
+                selectsAll ? SELECTION_ROW_COUNT * SELECTION_COLUMN_COUNT : 1,
+            );
+        });
+    }
+
     test("clicking a row number selects that whole row", async () => {
         await getRowNumberCell(grid, 2).click();
 
