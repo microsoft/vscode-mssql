@@ -124,25 +124,23 @@ export class ObjectExplorerDragAndDropController
                     }
 
                     sendActionEvent(TelemetryViews.ObjectExplorer, TelemetryActions.DragAndDrop, {
-                        dragType: dragData.type,
-                        dropTarget: target ? "connectionGroup" : "ROOT",
+                        additionalProps: {
+                            dragType: dragData.type,
+                            dropTarget: target ? "connectionGroup" : "ROOT",
+                        },
                     });
                 }
             }
         } catch (err) {
             this._logger.error("Failed to parse drag metadata:", getErrorMessage(err));
-            sendErrorEvent(
-                TelemetryViews.ObjectExplorer,
-                TelemetryActions.DragAndDrop,
-                err,
-                true, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-                {
+            sendErrorEvent(TelemetryViews.ObjectExplorer, TelemetryActions.DragAndDrop, {
+                error: err,
+                includeErrorMessage: true,
+                additionalProps: {
                     dragType: dragData.type,
                     dropTarget: target ? "connectionGroup" : "ROOT",
                 },
-            );
+            });
         }
     }
 }

@@ -52,7 +52,7 @@ export const ApplicationInfoSection = ({
 
     return (
         <div className={classes.section}>
-            <Field label={locConstants.dacpacDialog.applicationNameLabel}>
+            <Field label={locConstants.dacpacDialog.applicationNameLabel} orientation="horizontal">
                 <Input
                     value={applicationName}
                     onChange={(_, data) => setApplicationName(data.value)}
@@ -65,7 +65,8 @@ export const ApplicationInfoSection = ({
             <Field
                 label={locConstants.dacpacDialog.applicationVersionLabel}
                 validationMessage={versionValidation?.message}
-                validationState={versionValidation?.severity}>
+                validationState={versionValidation?.severity}
+                orientation="horizontal">
                 <Input
                     value={applicationVersion}
                     onChange={(_, data) => {

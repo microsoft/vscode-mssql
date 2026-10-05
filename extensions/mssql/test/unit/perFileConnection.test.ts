@@ -406,6 +406,29 @@ suite("Per File Connection Tests", () => {
         expect(actualDbName).to.equal(expectedDbName);
     });
 
+    test("Should show the connection's SPID in the status bar", async () => {
+        const testFile = "file:///my/test/file.sql";
+        const connectionCreds = createTestCredentials();
+        const myResult = createConnectionResultForCreds(connectionCreds);
+        myResult.ownerUri = testFile;
+        myResult.serverConnectionId = "57";
+
+        const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
+        serviceClientStub.sendRequest.callsFake(() => {
+            manager.handleConnectionCompleteNotification().call(manager, myResult);
+            return Promise.resolve(true);
+        });
+        const statusViewStub = sandbox.createStubInstance(StatusView);
+
+        manager.client = serviceClientStub;
+        manager.statusView = statusViewStub;
+
+        const result = await manager.connect(testFile, connectionCreds);
+
+        expect(result).to.equal(true);
+        expect(statusViewStub.setServerProcessId).to.have.been.calledWith(testFile, "57");
+    });
+
     function createConnectionResultForCreds(
         connectionCreds: IConnectionInfo,
         dbName?: string,
@@ -625,7 +648,6 @@ function createTestCredentials(): IConnectionInfo {
         multipleActiveResultSets: false,
         packetSize: 8192,
         typeSystemVersion: "Latest",
-        connectionString: "",
         containerName: "",
     };
     return creds;

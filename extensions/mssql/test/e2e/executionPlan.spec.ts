@@ -17,14 +17,13 @@ import path from "path";
 test.describe("MSSQL Extension - Query Plan", async () => {
     let vsCodePage: Page;
     let iframe: FrameLocator;
-    let queryPlanMXGraph: Locator;
+    let queryPlanContainer: Locator;
     let currentZoom = 100;
 
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: {
             initialConfig: {
                 "mssql.showChangelogOnUpdate": false,
-                "mssql.preview.betaExecutionPlan": true,
             },
         },
         afterLaunch: async ({ page }) => {
@@ -51,8 +50,8 @@ test.describe("MSSQL Extension - Query Plan", async () => {
                 state: "visible",
                 timeout: 30 * 1000,
             });
-            queryPlanMXGraph = iframe.locator("#queryPlanParent1");
-            await expect(queryPlanMXGraph).toBeVisible();
+            queryPlanContainer = iframe.locator("#queryPlanParent1");
+            await expect(queryPlanContainer).toBeVisible();
         },
         afterEach: async ({ page: vsCodePage }) => {
             await refocusQueryPlanTab(vsCodePage);
@@ -77,7 +76,10 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 
         const rootNode = iframe.locator('[role="treeitem"][tabindex="0"]').first();
         await expect(rootNode).toBeVisible();
-        await rootNode.focus();
+        await expect(
+            iframe.getByRole("tree", { name: /Execution plan 1, use arrow keys/ }),
+        ).toBeVisible();
+        await expect(iframe.getByRole("status")).toHaveAttribute("aria-live", "polite");
         const viewport = iframe.locator(".react-flow__viewport").first();
         const viewportStyle = await viewport.getAttribute("style");
         await rootNode.press("ArrowRight");
@@ -99,16 +101,19 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await collapseButton.press("Space");
         await expect(rootNode).toHaveAttribute("aria-expanded", "false");
         await expect(collapseButton).toBeFocused();
+
+        await rootNode.focus();
+        await rootNode.press("ArrowRight");
+        await expect(rootNode).toHaveAttribute("aria-expanded", "false");
+        await expect(rootNode).toBeFocused();
+
+        await collapseButton.focus();
         await collapseButton.press("Enter");
         await expect(rootNode).toHaveAttribute("aria-expanded", "true");
         await expect(collapseButton).toBeFocused();
 
         await rootNode.focus();
         await rootNode.press("ArrowLeft");
-        await expect(rootNode).toHaveAttribute("aria-expanded", "false");
-        await expect(rootNode).toBeFocused();
-
-        await rootNode.press("ArrowRight");
         await expect(rootNode).toHaveAttribute("aria-expanded", "true");
         await expect(rootNode).toBeFocused();
 
@@ -236,7 +241,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await findNodeDownButtonLocator.click();
         await findNodeDownButtonLocator.click();
-        const selectedNode = queryPlanMXGraph.locator(".execution-plan-flow-node.selected");
+        const selectedNode = queryPlanContainer.locator(".execution-plan-flow-node.selected");
         await expect(selectedNode).toContainText("Compute Scalar");
 
         const findNodeUpButtonLocator = iframe.locator(
@@ -352,6 +357,22 @@ test.describe("MSSQL Extension - Query Plan", async () => {
             propertiesPanel.getByText("Physical Operation", { exact: true }).first(),
         ).toBeVisible();
 
+        // View the full value of a property
+        const physicalOperationRow = propertyRows.filter({ hasText: "Physical Operation" }).first();
+        await physicalOperationRow.hover();
+        await physicalOperationRow
+            .getByRole("button", { name: "View full value of Physical Operation" })
+            .click();
+        const fullValueDialog = iframe.getByRole("dialog", { name: "Physical Operation" });
+        await expect(fullValueDialog).toBeVisible();
+        // The dialog loads Monaco on first open. The chunk is large (and instrumented for
+        // coverage in CI), so the editor can take well over the default timeout to appear.
+        await expect(fullValueDialog.locator(".view-lines")).toContainText("Nested Loops", {
+            timeout: 30 * 1000,
+        });
+        await fullValueDialog.getByRole("button", { name: "Close" }).click();
+        await expect(fullValueDialog).toBeHidden();
+
         await propertiesPanel.getByRole("button", { name: "Close" }).click();
 
         await expect(alphabeticalButton).toBeHidden();
@@ -370,7 +391,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const highlightOpsApplyButton = highlightOpsComponent.getByRole("button", {
             name: "Apply",
         });
-        const highlightedNode = queryPlanMXGraph.locator(".execution-plan-flow-node.highlighted");
+        const highlightedNode = queryPlanContainer.locator(".execution-plan-flow-node.highlighted");
         const selectMetric = async (metric: string) => {
             await highlightOpsInputBox.click();
             const searchBox = iframe.getByRole("searchbox").last();

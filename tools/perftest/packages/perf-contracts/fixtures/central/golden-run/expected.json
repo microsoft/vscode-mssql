@@ -1,0 +1,48 @@
+{
+    "sourceDigest": "src_-WGkd0Mr4mJCUnTheLhGiM",
+    "contentDigest": "cnt_Hk2A93JWF6nPL3fALvT6hw",
+    "projectionDigest": "prj_uHHRTgzAvMo-bUdXL-w14V",
+    "previewDigest": "pvw_7MORT57Da-xC69vD2IxJ8w",
+    "tables": [
+        {
+            "name": "artifact_refs",
+            "rows": 2,
+            "bytesEstimate": 699
+        },
+        {
+            "name": "environments",
+            "rows": 1,
+            "bytesEstimate": 572
+        },
+        {
+            "name": "metrics",
+            "rows": 4,
+            "bytesEstimate": 1711
+        },
+        {
+            "name": "repetitions",
+            "rows": 3,
+            "bytesEstimate": 894
+        },
+        {
+            "name": "run_repositories",
+            "rows": 2,
+            "bytesEstimate": 353
+        },
+        {
+            "name": "runs",
+            "rows": 1,
+            "bytesEstimate": 411
+        },
+        {
+            "name": "scenarios",
+            "rows": 2,
+            "bytesEstimate": 269
+        },
+        {
+            "name": "validations",
+            "rows": 2,
+            "bytesEstimate": 363
+        }
+    ]
+}

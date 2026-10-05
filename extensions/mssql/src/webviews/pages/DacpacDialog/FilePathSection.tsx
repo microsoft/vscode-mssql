@@ -67,7 +67,8 @@ export const FilePathSection = ({
                             ? "error"
                             : "warning"
                         : "none"
-                }>
+                }
+                orientation="horizontal">
                 <div className={classes.fileInputGroup}>
                     <Input
                         className={classes.fileInput}

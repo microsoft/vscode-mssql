@@ -120,7 +120,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
      */
     private async connectInternal(connectionInfo: IConnectionInfo): Promise<string> {
         const uri = generateQueryUri().toString();
-        this.log.debug(
+        this.log.trace(
             `[connectInternal] begin adhocUri=${uri} ` +
                 `server=${connectionInfo.server} database=${connectionInfo.database ?? "(default)"}`,
         );
@@ -137,7 +137,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             );
             throw err;
         }
-        this.log.debug(
+        this.log.trace(
             `[connectInternal] connect returned success=${success} ` +
                 `after ${Date.now() - started}ms uri=${uri}`,
         );
@@ -152,18 +152,18 @@ export class NotebookConnectionManager implements vscode.Disposable {
      * otherwise prompts the user to pick one.
      */
     async ensureConnection(): Promise<string> {
-        this.log.debug(
+        this.log.trace(
             `[ensureConnection] begin currentUri=${this.connectionUri ?? "none"} ` +
                 `hasStoredInfo=${!!this.connectionInfo}`,
         );
         if (this.connectionUri) {
             const alive = this.connectionSharingService.isConnected(this.connectionUri);
-            this.log.debug(`[ensureConnection] existing uri alive=${alive}`);
+            this.log.trace(`[ensureConnection] existing uri alive=${alive}`);
             if (alive) {
                 return this.connectionUri;
             }
             // Connection went stale
-            this.log.info(`[ensureConnection] Connection stale, clearing: ${this.connectionUri}`);
+            this.log.debug(`[ensureConnection] Connection stale, clearing: ${this.connectionUri}`);
             this.connectionUri = undefined;
             this.connectionLabel = "";
             this.invalidateCellRegistrations();
@@ -171,7 +171,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
         // Try reconnecting with stored connection info (within-session stale connection)
         if (this.connectionInfo) {
-            this.log.info("[ensureConnection] Attempting reconnect with stored connection info");
+            this.log.debug("[ensureConnection] Attempting reconnect with stored connection info");
             try {
                 const uri = await this.connectInternal(this.connectionInfo);
                 this.connectionUri = uri;
@@ -185,7 +185,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         }
 
         // No alive connection — prompt the user
-        this.log.info("[ensureConnection] No connection, prompting user");
+        this.log.debug("[ensureConnection] No connection, prompting user");
         return this.promptAndConnect();
     }
 
@@ -197,8 +197,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         const activity = startActivity(
             TelemetryViews.SqlNotebooks,
             TelemetryActions.NotebookConnect,
-            undefined,
-            { method: "prompt" },
+            { additionalProps: { method: "prompt" } },
         );
         try {
             const pickListItems = await this.connectionMgr.connectionStore.getPickListItems();
@@ -218,18 +217,18 @@ export class NotebookConnectionManager implements vscode.Disposable {
                 !connectionInfo.database &&
                 savedServer?.toLowerCase() === connectionInfo.server.toLowerCase()
             ) {
-                this.log.info(`[promptAndConnect] Restoring saved database context: ${savedDb}`);
+                this.log.debug(`[promptAndConnect] Restoring saved database context: ${savedDb}`);
                 connectionInfo = { ...connectionInfo, database: savedDb };
             }
 
-            this.log.info(
+            this.log.debug(
                 `[promptAndConnect] server=${connectionInfo.server}, database=${connectionInfo.database}`,
             );
             const uri = await this.connectInternal(connectionInfo);
-            this.log.info(`[promptAndConnect] connect() → URI=${uri}`);
+            this.log.debug(`[promptAndConnect] connect() → URI=${uri}`);
 
             const actualDb = this.getActualDatabase(uri);
-            this.log.info(`[promptAndConnect] Actual DB: ${actualDb}`);
+            this.log.debug(`[promptAndConnect] Actual DB: ${actualDb}`);
             this.connectionLabel = formatConnectionLabel(connectionInfo.server, actualDb);
 
             this.connectionUri = uri;
@@ -251,19 +250,18 @@ export class NotebookConnectionManager implements vscode.Disposable {
         const activity = startActivity(
             TelemetryViews.SqlNotebooks,
             TelemetryActions.NotebookConnect,
-            undefined,
-            { method: "objectExplorer" },
+            { additionalProps: { method: "objectExplorer" } },
         );
         try {
             const server = connectionInfo.server;
             const database = connectionInfo.database;
-            this.log.info(`[connectWith] server=${server}, database=${database}`);
+            this.log.debug(`[connectWith] server=${server}, database=${database}`);
 
             const uri = await this.connectInternal(connectionInfo);
-            this.log.info(`[connectWith] connect() → URI=${uri}`);
+            this.log.debug(`[connectWith] connect() → URI=${uri}`);
 
             const actualDb = this.getActualDatabase(uri);
-            this.log.info(`[connectWith] Connected to database: ${actualDb}`);
+            this.log.debug(`[connectWith] Connected to database: ${actualDb}`);
 
             this.connectionUri = uri;
             this.connectionInfo = { ...connectionInfo, database: actualDb || database };
@@ -296,7 +294,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         if (!this.connectionInfo) {
             throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
-        this.log.info(`[changeDatabase] Switching to [${database}]`);
+        this.log.debug(`[changeDatabase] Switching to [${database}]`);
 
         sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.NotebookChangeDatabase);
 
@@ -308,11 +306,11 @@ export class NotebookConnectionManager implements vscode.Disposable {
         // Reconnect with the new database
         const newInfo = { ...this.connectionInfo, database };
         const uri = await this.connectInternal(newInfo);
-        this.log.info(`[changeDatabase] Reconnected → URI=${uri}`);
+        this.log.debug(`[changeDatabase] Reconnected → URI=${uri}`);
 
         // Get the actual database name from the connection info that STS populated
         const actualDb = this.getActualDatabase(uri);
-        this.log.info(`[changeDatabase] Verified: ${actualDb}`);
+        this.log.debug(`[changeDatabase] Verified: ${actualDb}`);
 
         this.connectionUri = uri;
         this.connectionInfo = newInfo;
@@ -333,7 +331,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
         const alive = this.connectionSharingService.isConnected(this.connectionUri);
-        this.log.debug(
+        this.log.trace(
             `[executeQueryString] dispatch uri=${this.connectionUri} ` +
                 `aliveAtDispatch=${alive} sqlLen=${sql.length}`,
         );
@@ -348,7 +346,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
     }
 
     disconnect(): void {
-        this.log.info(`[disconnect] URI=${this.connectionUri ?? "none"}`);
+        this.log.debug(`[disconnect] URI=${this.connectionUri ?? "none"}`);
         if (this.connectionUri) {
             sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.NotebookDisconnect);
             this.connectionSharingService.disconnect(this.connectionUri);
@@ -367,7 +365,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
      * connection after a new one has been established.
      */
     disconnectUri(uri: string): void {
-        this.log.info(`[disconnectUri] URI=${uri}`);
+        this.log.debug(`[disconnectUri] URI=${uri}`);
         this.connectionSharingService.disconnect(uri);
     }
 
@@ -410,7 +408,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
      */
     async connectCellForIntellisense(cellDocumentUri: string): Promise<void> {
         if (!this.connectionInfo) {
-            this.log.debug(
+            this.log.trace(
                 `[connectCellForIntellisense] Skipped (no connectionInfo) cell=${cellDocumentUri}`,
             );
             return;
@@ -448,7 +446,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             // ignore parse errors
         }
         const authType = connectionDetails.options?.authenticationType ?? "unknown";
-        this.log.debug(
+        this.log.trace(
             `[connectCellForIntellisense] Sending connect request scheme=${cellUriScheme} server=${sourceInfo.server} database=${sourceInfo.database || "(default)"} auth=${authType} cell=${cellDocumentUri}`,
         );
 
@@ -487,7 +485,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             );
 
             if (generation !== this.connectionGeneration) {
-                this.log.debug(
+                this.log.trace(
                     `[connectCellForIntellisense] connection changed mid-request (gen ${generation} → ${this.connectionGeneration}); dropping stale registration cell=${cellDocumentUri}`,
                 );
                 if (completeParams?.connectionId) {
@@ -520,7 +518,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
                 return;
             }
 
-            this.log.debug(
+            this.log.trace(
                 `[connectCellForIntellisense] STS connection complete connectionId=${completeParams.connectionId} cell=${cellDocumentUri}`,
             );
         } catch (err: any) {
@@ -592,7 +590,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         const params: DisconnectParams = { ownerUri: uri };
         void this.connectionMgr.sendRequest(DisconnectRequest.type, params).then(
             (disconnected) =>
-                this.log.debug(
+                this.log.trace(
                     `[disconnectCellUri] disconnect result=${String(disconnected)} cell=${uri}`,
                 ),
             (err: any) =>

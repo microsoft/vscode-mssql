@@ -110,6 +110,19 @@ suite("SqlDocumentService Tests", () => {
         sandbox.restore();
     });
 
+    async function openSqlDocumentAfterSaveOrRenameDelay(
+        document: vscode.TextDocument,
+    ): Promise<void> {
+        const clock = sandbox.useFakeTimers();
+        try {
+            const openPromise = sqlDocumentService.onDidOpenTextDocument(document);
+            await clock.tickAsync(500);
+            await openPromise;
+        } finally {
+            clock.restore();
+        }
+    }
+
     test("handleNewQueryCommand should create a new query and update recents", async () => {
         stubTelemetry(sandbox);
         const editor: vscode.TextEditor = {
@@ -495,12 +508,9 @@ suite("SqlDocumentService Tests", () => {
     // Open document event test
     test("onDidOpenTextDocument should propagate the function to the connectionManager", async () => {
         // Call onDidOpenTextDocument to test its side effects
-        await sqlDocumentService.onDidOpenTextDocument(document);
+        await openSqlDocumentAfterSaveOrRenameDelay(document);
 
-        expect(connectionManager.onDidOpenTextDocument).to.have.been.calledOnceWithExactly(
-            document,
-        );
-        expect(docUriCallback).to.equal(document.uri.toString());
+        expect(connectionManager.onDidOpenTextDocument).to.have.been.calledWithExactly(document);
     });
 
     test("onDidOpenTextDocument should skip notebook cell documents", async () => {
@@ -531,6 +541,40 @@ suite("SqlDocumentService Tests", () => {
         expect(mockCreateDocument).to.have.been.calledOnce;
 
         mockCreateDocument.restore();
+    });
+
+    test("createDocument should open in the active editor group", async () => {
+        const doc = mockTextDocument("untitled:Untitled-1");
+        sandbox.stub(vscode.workspace, "openTextDocument").resolves(doc);
+        const showTextDocumentStub = sandbox
+            .stub(vscode.window, "showTextDocument")
+            .resolves({ document: doc } as any);
+        sandbox.stub(vscode.window, "activeTextEditor").value({
+            viewColumn: vscode.ViewColumn.Two,
+        });
+
+        await (sqlDocumentService as any).createDocument();
+
+        expect(showTextDocumentStub).to.have.been.calledOnceWith(
+            doc,
+            sinon.match({ viewColumn: vscode.ViewColumn.Two }),
+        );
+    });
+
+    test("createDocument should use the active editor group when no text editor is active", async () => {
+        const doc = mockTextDocument("untitled:Untitled-1");
+        sandbox.stub(vscode.workspace, "openTextDocument").resolves(doc);
+        const showTextDocumentStub = sandbox
+            .stub(vscode.window, "showTextDocument")
+            .resolves({ document: doc } as any);
+        sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
+
+        await (sqlDocumentService as any).createDocument();
+
+        expect(showTextDocumentStub).to.have.been.calledOnceWith(
+            doc,
+            sinon.match({ viewColumn: vscode.ViewColumn.Active }),
+        );
     });
 
     test("newQuery should copy connection from URI when copyConnectionFromUri is provided", async () => {
@@ -639,7 +683,7 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.onDidChangeActiveTextEditor(editor1);
 
         // Open a new external SQL file -> should auto-connect
-        await sqlDocumentService.onDidOpenTextDocument(script2);
+        await openSqlDocumentAfterSaveOrRenameDelay(script2);
         expect(connectStub).to.have.been.calledOnceWithExactly(script2.uri.toString(), {
             server: "localhost",
         });
@@ -654,7 +698,7 @@ suite("SqlDocumentService Tests", () => {
         const fileDoc = mockTextDocument("file:///test.sql");
         const waitStub = sandbox.stub(sqlDocumentService, "waitForOngoingCreates").resolves();
 
-        await sqlDocumentService.onDidOpenTextDocument(fileDoc);
+        await openSqlDocumentAfterSaveOrRenameDelay(fileDoc);
 
         expect(waitStub).to.have.been.calledOnce;
         waitStub.restore();
@@ -667,7 +711,7 @@ suite("SqlDocumentService Tests", () => {
         } as vscode.TextDocument;
         const waitStub = sandbox.stub(sqlDocumentService, "waitForOngoingCreates").resolves();
 
-        await sqlDocumentService.onDidOpenTextDocument(untitledDoc);
+        await openSqlDocumentAfterSaveOrRenameDelay(untitledDoc);
 
         expect(waitStub).to.have.been.calledOnce;
         waitStub.restore();
@@ -683,7 +727,7 @@ suite("SqlDocumentService Tests", () => {
             server: "localhost",
         } as any;
 
-        await sqlDocumentService.onDidOpenTextDocument(doc);
+        await openSqlDocumentAfterSaveOrRenameDelay(doc);
 
         // Should not have tried to connect since this is a recently renamed/saved file
         expect(connectionManager.connect).to.not.have.been.called;
@@ -1093,7 +1137,7 @@ suite("SqlDocumentService Tests", () => {
 
                 sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
 
-                await sqlDocumentService.onDidOpenTextDocument(document);
+                await openSqlDocumentAfterSaveOrRenameDelay(document);
 
                 expect(connectionManager.connect).to.have.been.calledWith(document.uri.toString());
             });
@@ -1105,7 +1149,7 @@ suite("SqlDocumentService Tests", () => {
 
                 sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
 
-                await sqlDocumentService.onDidOpenTextDocument(document);
+                await openSqlDocumentAfterSaveOrRenameDelay(document);
 
                 expect(connectionManager.connect).to.not.have.been.called;
             });
@@ -1117,7 +1161,7 @@ suite("SqlDocumentService Tests", () => {
 
                 sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
 
-                await sqlDocumentService.onDidOpenTextDocument(document);
+                await openSqlDocumentAfterSaveOrRenameDelay(document);
 
                 expect(connectionManager.connect).to.not.have.been.called;
             });
@@ -1138,7 +1182,7 @@ suite("SqlDocumentService Tests", () => {
                     .stub(connectionManager, "connectionStore")
                     .get(() => makeConnectionStore(sandbox, mockConnectionConfig));
 
-                await sqlDocumentService.onDidOpenTextDocument(document);
+                await openSqlDocumentAfterSaveOrRenameDelay(document);
 
                 expect(connectionManager.connect).to.have.been.calledWith(document.uri.toString());
             });
@@ -1157,7 +1201,7 @@ suite("SqlDocumentService Tests", () => {
                     .stub(connectionManager, "connectionStore")
                     .get(() => makeConnectionStore(sandbox, mockConnectionConfig));
 
-                await sqlDocumentService.onDidOpenTextDocument(document);
+                await openSqlDocumentAfterSaveOrRenameDelay(document);
 
                 expect(connectionManager.connect).to.have.been.calledWith(document.uri.toString());
             });
@@ -1176,7 +1220,7 @@ suite("SqlDocumentService Tests", () => {
                     .stub(connectionManager, "connectionStore")
                     .get(() => makeConnectionStore(sandbox, mockConnectionConfig));
 
-                await sqlDocumentService.onDidOpenTextDocument(document);
+                await openSqlDocumentAfterSaveOrRenameDelay(document);
 
                 expect(connectionManager.connect).to.not.have.been.called;
             });
@@ -1189,7 +1233,7 @@ suite("SqlDocumentService Tests", () => {
 
                 sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
 
-                await sqlDocumentService.onDidOpenTextDocument(document);
+                await openSqlDocumentAfterSaveOrRenameDelay(document);
 
                 expect(connectionManager.connect).to.have.been.calledWith(document.uri.toString());
             });
@@ -1202,7 +1246,7 @@ suite("SqlDocumentService Tests", () => {
 
                 sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
 
-                await sqlDocumentService.onDidOpenTextDocument(document);
+                await openSqlDocumentAfterSaveOrRenameDelay(document);
 
                 expect(connectionManager.connect).to.not.have.been.called;
             });

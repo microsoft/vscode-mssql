@@ -33,6 +33,7 @@ import {
     applyFluentResultGridTransformsToSourceRows,
     hasActiveFluentResultGridFilters,
 } from "./fluentResultGridTransforms";
+import { clearFluentResultGridSelection } from "./fluentResultGridSelection";
 
 export interface FluentResultGridDataController {
     allRowsCacheRef: MutableRefObject<SourceRow[] | undefined>;
@@ -150,17 +151,15 @@ export function useFluentResultGridDataController({
         };
     }, [dataView]);
 
-    const previousResultIdentitySignatureRef = useRef<string | undefined>(undefined);
+    const previousResultIdentitySignatureRef = useRef<string | undefined>(resultIdentitySignature);
     useEffect(() => {
         const shouldResetData =
+            previousResultIdentitySignatureRef.current !== undefined &&
             previousResultIdentitySignatureRef.current !== resultIdentitySignature;
         previousResultIdentitySignatureRef.current = resultIdentitySignature;
 
         dataView.setLength(resultSetSummary.rowCount, shouldResetData);
         setDisplayedRowCount(resultSetSummary.rowCount);
-        if (shouldResetData) {
-            dataView.refresh(0);
-        }
     }, [dataView, resultIdentitySignature, resultSetSummary.rowCount]);
 
     useEffect(() => {
@@ -235,6 +234,7 @@ export function useFluentResultGridDataController({
                     restoreHorizontalScrollPosition(grid, preservedScrollLeft);
                 }
                 dataView.ensureViewportLoaded();
+                clearFluentResultGridSelection(grid);
                 return true;
             }
 
@@ -276,6 +276,7 @@ export function useFluentResultGridDataController({
                 restoreHorizontalScrollPosition(grid, preservedScrollLeft);
             }
             dataView.ensureViewportLoaded();
+            clearFluentResultGridSelection(grid);
             return true;
         },
         [dataView, ensureAllRowsLoaded, hasActiveTransforms, restoreHorizontalScrollPosition],

@@ -7,7 +7,6 @@ const TOOLTIP_WIDTH = 520;
 const TOOLTIP_MAXIMUM_HEIGHT = 420;
 const TOOLTIP_MINIMUM_HEIGHT = 80;
 const TOOLTIP_VIEWPORT_MARGIN = 8;
-const TOOLTIP_SOURCE_GAP = 8;
 const TOOLTIP_VERTICAL_CLAMP_HEIGHT = 200;
 
 export interface ExecutionPlanTooltipSourceBounds {
@@ -82,8 +81,8 @@ export function fitExecutionPlanTooltipPlacement(
 }
 
 /**
- * Positions node tooltips beside their source. If neither horizontal side has
- * enough room, the tooltip is placed above or below the node instead.
+ * Prefers the supplied anchor and lets the post-render fitting pass move the
+ * tooltip only when its measured dimensions would overflow the viewport.
  */
 export function getExecutionPlanTooltipPlacement(
     anchor: ExecutionPlanTooltipAnchor,
@@ -109,50 +108,9 @@ export function getExecutionPlanTooltipPlacement(
         };
     }
 
-    const source = anchor.sourceBounds;
-    const rightmostLeft = viewport.width - TOOLTIP_VIEWPORT_MARGIN - tooltipWidth;
-    if (rightmostLeft >= source.right) {
-        const left = Math.min(source.right + TOOLTIP_SOURCE_GAP, rightmostLeft);
-        return {
-            left,
-            top: defaultTop,
-            maxHeight: getMaximumHeight(defaultTop, viewport.height),
-        };
-    }
-
-    if (source.left - tooltipWidth >= TOOLTIP_VIEWPORT_MARGIN) {
-        const left = Math.max(
-            TOOLTIP_VIEWPORT_MARGIN,
-            source.left - tooltipWidth - TOOLTIP_SOURCE_GAP,
-        );
-        return {
-            left,
-            top: defaultTop,
-            maxHeight: getMaximumHeight(defaultTop, viewport.height),
-        };
-    }
-
-    const left = clamp(
-        (source.left + source.right - tooltipWidth) / 2,
-        TOOLTIP_VIEWPORT_MARGIN,
-        maximumLeft,
-    );
-    const belowTop = source.bottom + TOOLTIP_SOURCE_GAP;
-    const availableBelow = viewport.height - TOOLTIP_VIEWPORT_MARGIN - belowTop;
-    const availableAbove = source.top - TOOLTIP_SOURCE_GAP - TOOLTIP_VIEWPORT_MARGIN;
-
-    if (availableBelow >= TOOLTIP_MINIMUM_HEIGHT || availableBelow >= availableAbove) {
-        return {
-            left,
-            top: belowTop,
-            maxHeight: Math.min(TOOLTIP_MAXIMUM_HEIGHT, Math.max(0, availableBelow)),
-        };
-    }
-
-    const maxHeight = Math.min(TOOLTIP_MAXIMUM_HEIGHT, Math.max(0, availableAbove));
     return {
-        left,
-        top: source.top - TOOLTIP_SOURCE_GAP - maxHeight,
-        maxHeight,
+        left: anchor.x,
+        top: anchor.y,
+        maxHeight: getMaximumHeight(anchor.y, viewport.height),
     };
 }

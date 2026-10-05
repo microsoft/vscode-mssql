@@ -36,7 +36,7 @@ import {
     SecurityTokenRequest,
 } from "../models/contracts/azure";
 import * as ConnectionContracts from "../models/contracts/connection";
-import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
+import { ClearPooledConnectionsRequest } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
 import {
     AuthenticationTypes,
@@ -52,6 +52,7 @@ import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
 import { IInstantiationService } from "extension-toolkit/base";
 import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
+import { Perf } from "../perf/perfTelemetry";
 import {
     ActivityObject,
     ActivityStatus,
@@ -68,7 +69,7 @@ import { getServerTypes, canCheckDatabasePauseStatus } from "../models/connectio
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
 import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
-import { PreviewFeature, previewService } from "../previews/previewService";
+import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
 
 /**
  * Maximum number of connection retries when a target serverless Azure SQL database is
@@ -560,7 +561,7 @@ export default class ConnectionManager {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { selectedOption: LocalizedConstants.msgYes },
+                        { additionalProps: { selectedOption: LocalizedConstants.msgYes } },
                     );
 
                     await vscode.workspace
@@ -581,13 +582,13 @@ export default class ConnectionManager {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { selectedOption: LocalizedConstants.msgNo },
+                        { additionalProps: { selectedOption: LocalizedConstants.msgNo } },
                     );
                 } else {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { selectedOption: LocalizedConstants.dismiss },
+                        { additionalProps: { selectedOption: LocalizedConstants.dismiss } },
                     );
                 }
             }
@@ -632,9 +633,7 @@ export default class ConnectionManager {
         const self = this;
         return (params: ConnectionContracts.RefreshTokenParams): void => {
             void (async () => {
-                const useVscodeAccountsForEntraMFA = previewService.isFeatureEnabled(
-                    PreviewFeature.UseVscodeAccountsForEntraMFA,
-                );
+                const useVscodeAccountsForEntraMFA = !getUseMsalEntraMfaAuthConfig();
 
                 // Always send a tokenRefreshed notification back to STS so it can unblock
                 // IntelliSense (via TokenUpdateUris). On failure, send empty token/expiresOn=0;
@@ -666,17 +665,20 @@ export default class ConnectionManager {
                             sendErrorEvent(
                                 TelemetryViews.ConnectionManager,
                                 TelemetryActions.RefreshTokenNotification,
-                                new Error("Missing accountId in refresh token notification"),
-                                true, // includeErrorMessage
-                                "missingAccountId",
-                                undefined,
                                 {
-                                    useVscodeAccountsForEntraMFA: String(
-                                        useVscodeAccountsForEntraMFA,
+                                    error: new Error(
+                                        "Missing accountId in refresh token notification",
                                     ),
-                                },
-                                {
-                                    currentTimestamp: Math.floor(Date.now() / 1000),
+                                    includeErrorMessage: true,
+                                    errorCode: "missingAccountId",
+                                    additionalProps: {
+                                        useVscodeAccountsForEntraMFA: String(
+                                            useVscodeAccountsForEntraMFA,
+                                        ),
+                                    },
+                                    additionalMeasurements: {
+                                        currentTimestamp: Math.floor(Date.now() / 1000),
+                                    },
                                 },
                             );
 
@@ -693,17 +695,18 @@ export default class ConnectionManager {
                             sendErrorEvent(
                                 TelemetryViews.ConnectionManager,
                                 TelemetryActions.RefreshTokenNotification,
-                                new Error("Account not found in account store"),
-                                true, // includeErrorMessage
-                                "accountNotFound",
-                                undefined,
                                 {
-                                    useVscodeAccountsForEntraMFA: String(
-                                        useVscodeAccountsForEntraMFA,
-                                    ),
-                                },
-                                {
-                                    currentTimestamp: Math.floor(Date.now() / 1000),
+                                    error: new Error("Account not found in account store"),
+                                    includeErrorMessage: true,
+                                    errorCode: "accountNotFound",
+                                    additionalProps: {
+                                        useVscodeAccountsForEntraMFA: String(
+                                            useVscodeAccountsForEntraMFA,
+                                        ),
+                                    },
+                                    additionalMeasurements: {
+                                        currentTimestamp: Math.floor(Date.now() / 1000),
+                                    },
                                 },
                             );
 
@@ -732,18 +735,21 @@ export default class ConnectionManager {
                         sendErrorEvent(
                             TelemetryViews.ConnectionManager,
                             TelemetryActions.RefreshTokenNotification,
-                            new Error("Token refresh did not produce a token"),
-                            true, // includeErrorMessage
-                            "tokenNotRefreshed",
-                            undefined,
                             {
-                                useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
-                            },
-                            {
-                                currentTimestamp: Math.floor(Date.now() / 1000),
-                                ...(expiresOn !== undefined
-                                    ? { refreshedTokenExpirationTimestamp: expiresOn }
-                                    : {}),
+                                error: new Error("Token refresh did not produce a token"),
+                                includeErrorMessage: true,
+                                errorCode: "tokenNotRefreshed",
+                                additionalProps: {
+                                    useVscodeAccountsForEntraMFA: String(
+                                        useVscodeAccountsForEntraMFA,
+                                    ),
+                                },
+                                additionalMeasurements: {
+                                    currentTimestamp: Math.floor(Date.now() / 1000),
+                                    ...(expiresOn !== undefined
+                                        ? { refreshedTokenExpirationTimestamp: expiresOn }
+                                        : {}),
+                                },
                             },
                         );
 
@@ -756,20 +762,23 @@ export default class ConnectionManager {
                         sendErrorEvent(
                             TelemetryViews.ConnectionManager,
                             TelemetryActions.RefreshTokenNotification,
-                            new Error(
-                                "Service client unavailable while sending refreshed token notification",
-                            ),
-                            true, // includeErrorMessage
-                            "serviceClientUnavailable",
-                            undefined,
                             {
-                                useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
-                            },
-                            {
-                                currentTimestamp: Math.floor(Date.now() / 1000),
-                                ...(expiresOn !== undefined
-                                    ? { refreshedTokenExpirationTimestamp: expiresOn }
-                                    : {}),
+                                error: new Error(
+                                    "Service client unavailable while sending refreshed token notification",
+                                ),
+                                includeErrorMessage: true,
+                                errorCode: "serviceClientUnavailable",
+                                additionalProps: {
+                                    useVscodeAccountsForEntraMFA: String(
+                                        useVscodeAccountsForEntraMFA,
+                                    ),
+                                },
+                                additionalMeasurements: {
+                                    currentTimestamp: Math.floor(Date.now() / 1000),
+                                    ...(expiresOn !== undefined
+                                        ? { refreshedTokenExpirationTimestamp: expiresOn }
+                                        : {}),
+                                },
                             },
                         );
 
@@ -781,12 +790,14 @@ export default class ConnectionManager {
                         TelemetryViews.ConnectionManager,
                         TelemetryActions.RefreshTokenNotification,
                         {
-                            useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
-                        },
-                        {
-                            currentTimestamp: Math.floor(Date.now() / 1000),
-                            refreshedTokenExpirationTimestamp:
-                                expiresOn !== undefined ? expiresOn : 0,
+                            additionalProps: {
+                                useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
+                            },
+                            additionalMeasurements: {
+                                currentTimestamp: Math.floor(Date.now() / 1000),
+                                refreshedTokenExpirationTimestamp:
+                                    expiresOn !== undefined ? expiresOn : 0,
+                            },
                         },
                     );
 
@@ -806,15 +817,17 @@ export default class ConnectionManager {
                     sendErrorEvent(
                         TelemetryViews.ConnectionManager,
                         TelemetryActions.RefreshTokenNotification,
-                        error instanceof Error ? error : new Error(getErrorMessage(error)),
-                        false, // includeErrorMessage
-                        "exception",
-                        undefined,
                         {
-                            useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
-                        },
-                        {
-                            currentTimestamp: Math.floor(Date.now() / 1000),
+                            error:
+                                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                            includeErrorMessage: false,
+                            errorCode: "exception",
+                            additionalProps: {
+                                useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
+                            },
+                            additionalMeasurements: {
+                                currentTimestamp: Math.floor(Date.now() / 1000),
+                            },
                         },
                     );
 
@@ -854,12 +867,6 @@ export default class ConnectionManager {
             LocalizedConstants.Common.cancel,
         );
         if (selection === LocalizedConstants.enableTrustServerCertificate) {
-            if (profile.connectionString) {
-                // Append connection string with encryption options
-                profile.connectionString = profile.connectionString.concat(
-                    "; Encrypt=true; Trust Server Certificate=true;",
-                );
-            }
             profile.encrypt = EncryptOptions.Mandatory;
             profile.trustServerCertificate = true;
             await reconnectAction(profile);
@@ -924,49 +931,6 @@ export default class ConnectionManager {
             let connectionToSave: IConnectionInfo = Object.assign({}, connection.credentials);
             await this._connectionStore.addRecentlyUsed(connectionToSave);
         }
-    }
-
-    /**
-     * Populates a credential object based on the credential connection string
-     */
-    private async populateCredentialsFromConnectionString(
-        credentials: IConnectionInfo,
-        connectionSummary: ConnectionSummary,
-    ): Promise<IConnectionInfo> {
-        // populate credential details
-        credentials.database = connectionSummary.databaseName;
-        credentials.user = connectionSummary.userName;
-        credentials.server = connectionSummary.serverName;
-
-        // save credentials if needed
-        let isPasswordBased: boolean = ConnectionCredentials.isPasswordBasedConnectionString(
-            credentials.connectionString,
-        );
-        if (isPasswordBased) {
-            // save the connection string here
-            await this._connectionStore.saveProfileWithConnectionString(
-                credentials as IConnectionProfile,
-            );
-            // replace the conn string from the profile
-            credentials.connectionString = ConnectionStore.formatCredentialId(
-                credentials.server,
-                credentials.database,
-                credentials.user,
-                ConnectionStore.CRED_PROFILE_USER,
-                true,
-            );
-
-            // set auth type
-            credentials.authenticationType = Constants.sqlAuthentication;
-
-            // set savePassword to true so that credentials are automatically
-            // deleted if the settings file is manually changed
-            (credentials as IConnectionProfile).savePassword = true;
-        } else {
-            credentials.authenticationType = Constants.integratedauth;
-        }
-
-        return credentials;
     }
 
     /**
@@ -1257,7 +1221,7 @@ export default class ConnectionManager {
 
         // 2. If the user is using VS Code accounts for Entra MFA, use that flow to refresh the token.
         // STS cannot read VS Code auth sessions, so this path still needs to pass a token.
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+        if (!getUseMsalEntraMfaAuthConfig()) {
             const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
 
             if (
@@ -1301,12 +1265,12 @@ export default class ConnectionManager {
             account = await this.accountStore.getAccount(connectionInfo.accountId);
         } else {
             // Send telemetry to identify code paths where accountId is missing
-            sendErrorEvent(
-                TelemetryViews.ConnectionManager,
-                TelemetryActions.Connect,
-                new Error("Azure MFA connection missing accountId in refreshEntraTokenIfNeeded"),
-                true, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.ConnectionManager, TelemetryActions.Connect, {
+                error: new Error(
+                    "Azure MFA connection missing accountId in refreshEntraTokenIfNeeded",
+                ),
+                includeErrorMessage: true,
+            });
             throw new Error(LocalizedConstants.cannotConnect);
         }
 
@@ -1446,16 +1410,15 @@ export default class ConnectionManager {
         const connectionActivity = startActivity(
             TelemetryViews.ConnectionManager,
             TelemetryActions.Connect,
-            undefined, // Default correlation id
             {
-                serverTypes: getServerTypes(credentials).join(","),
-                cloudType: getCloudId(),
-                connectionSource: connectionSource,
+                additionalProps: {
+                    serverTypes: getServerTypes(credentials).join(","),
+                    cloudType: getCloudId(),
+                    connectionSource: connectionSource,
+                },
+                connectionInfo: credentials,
+                includeCallStack: true,
             },
-            undefined,
-            credentials,
-            undefined,
-            true, // include call stack
         );
 
         if (!fileUri) {
@@ -1463,6 +1426,10 @@ export default class ConnectionManager {
         }
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
+
+        // Measure the actual connection attempt. Credential/Entra preparation
+        // may prompt, throw, or be cancelled and must not leave an orphan begin.
+        Perf.marker("mssql.connection.begin", "begin");
 
         // Check if the connection is one that we can check for pause status (i.e., a Azure SQL database using Entra MFA auth)
         const isPauseAwareConnection =
@@ -1510,7 +1477,9 @@ export default class ConnectionManager {
             setTimeout(() => {
                 if (!initRequestCompleted) {
                     connectionActivity.update({
-                        longRunningIntialization: "true",
+                        additionalProps: {
+                            longRunningIntialization: "true",
+                        },
                     });
                 }
             }, Constants.stsImmediateActivityTimeout);
@@ -1521,6 +1490,10 @@ export default class ConnectionManager {
             initRequestCompleted = true;
         } catch (error) {
             initRequestCompleted = true;
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "requestRejected",
+            });
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(error);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
@@ -1546,6 +1519,10 @@ export default class ConnectionManager {
          */
         if (!initResponse) {
             const initialConnectionError = new Error("Failed to initiate connection");
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "emptyResponse",
+            });
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(initialConnectionError);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
@@ -1558,10 +1535,12 @@ export default class ConnectionManager {
         }
 
         connectionActivity.update({
-            connectionInitiated: "true",
+            additionalProps: {
+                connectionInitiated: "true",
+            },
         });
 
-        const result = await connectionCompletePromise.promise;
+        const result = await this.awaitConnectionCompletion(connectionCompletePromise.promise);
 
         connectionInfo.connecting = false;
 
@@ -1574,13 +1553,10 @@ export default class ConnectionManager {
              */
 
             await this.handleConnectionSuccess(fileUri, connectionInfo, result);
-            connectionActivity.end(
-                ActivityStatus.Succeeded,
-                undefined,
-                undefined,
-                connectionInfo?.credentials,
-                result?.serverInfo,
-            );
+            connectionActivity.end(ActivityStatus.Succeeded, {
+                connectionInfo: connectionInfo?.credentials,
+                serverInfo: result?.serverInfo,
+            });
             return true;
         } else {
             let errorType = "";
@@ -1595,8 +1571,12 @@ export default class ConnectionManager {
                         serverlessStatusPromise,
                     )
                 ) {
-                    connectionActivity.update({ retryConnection: "true" });
+                    connectionActivity.update({ additionalProps: { retryConnection: "true" } });
                     connectionActivity.end(ActivityStatus.Retrying);
+                    Perf.marker("mssql.connection.failed", "instant", {
+                        error: true,
+                        reason: "serverlessRetry",
+                    });
 
                     return await this.connect(fileUri, connectionInfo.credentials, {
                         shouldHandleErrors,
@@ -1614,10 +1594,16 @@ export default class ConnectionManager {
 
                 errorType = errorHandlingResult?.errorHandled;
                 connectionActivity.update({
-                    retryConnection: errorHandlingResult?.isHandled ? "true" : "false",
+                    additionalProps: {
+                        retryConnection: errorHandlingResult?.isHandled ? "true" : "false",
+                    },
                 });
                 if (errorHandlingResult.isHandled) {
                     connectionActivity.end(ActivityStatus.Retrying);
+                    Perf.marker("mssql.connection.failed", "instant", {
+                        error: true,
+                        reason: "credentialRetry",
+                    });
                     return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
                         connectionSource: connectionSource,
                     });
@@ -1628,6 +1614,12 @@ export default class ConnectionManager {
             connectionInfo.errorMessage = result.errorMessage;
             connectionInfo.messages = result.messages;
             connectionInfo.connecting = false;
+
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: result.errorNumber !== undefined ? "sqlError" : "unknown",
+                ...(result.errorNumber !== undefined ? { errorNumber: result.errorNumber } : {}),
+            });
 
             this.statusView.setConnectionError(fileUri, connectionInfo.credentials, result);
             this._logger.error(
@@ -1740,8 +1732,7 @@ export default class ConnectionManager {
         telemetryActivity?: ActivityObject,
     ): Promise<IConnectionInfo> {
         const telemetryActivityErrorType = "ConnectionPreparationError";
-        // Verify that the connection info has server or connection string
-        if (!credentials.server && !credentials.connectionString) {
+        if (!credentials.server) {
             const error = new Error(LocalizedConstants.serverNameMissing);
             telemetryActivity?.endFailed(
                 error,
@@ -1784,15 +1775,6 @@ export default class ConnectionManager {
             throw passwordError;
         }
 
-        // Handle connection string-based credentials
-        if (
-            credentials.connectionString?.includes(ConnectionStore.CRED_PREFIX) &&
-            credentials.connectionString?.includes("isConnectionString:true")
-        ) {
-            let connectionString = await this.connectionStore.lookupPassword(credentials, true);
-            credentials.connectionString = connectionString;
-        }
-
         if (
             credentials.authenticationType ===
             Utils.authTypeToString(AuthenticationTypes.Integrated)
@@ -1801,13 +1783,35 @@ export default class ConnectionManager {
         }
 
         telemetryActivity?.update({
-            connectionPrepared: "true",
+            additionalProps: {
+                connectionPrepared: "true",
+            },
         });
         return credentials;
     }
 
     /**
      * Handles the steps to take on a successful connection.
+     * Waits for the connection/complete notification. The only code that rejects
+     * this deferred is cancelConnection ("Connection cancelled"), which would
+     * otherwise leave the mssql.connection.begin perf interval without a
+     * terminal marker; close it with a failure marker before rethrowing.
+     */
+    private async awaitConnectionCompletion(
+        completion: Promise<ConnectionContracts.ConnectionCompleteParams>,
+    ): Promise<ConnectionContracts.ConnectionCompleteParams> {
+        try {
+            return await completion;
+        } catch (error) {
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "cancelled",
+            });
+            throw error;
+        }
+    }
+
+    /**
      * @param fileUri uri of the file the connection is for
      * @param connectionInfo the connection info object to update
      * @param result the result of the connection
@@ -1821,15 +1825,6 @@ export default class ConnectionManager {
         /**
          * Connection was successful
          */
-
-        // Legacy connection string code. TODO: MAYBE GET RID OF THIS.
-        if (connectionInfo.credentials.connectionString) {
-            connectionInfo.credentials = await this.populateCredentialsFromConnectionString(
-                connectionInfo.credentials,
-                result.connectionSummary,
-            );
-        }
-        // END legacy connection string code.
 
         // Saving server info to the map
         this._connectionCredentialsToServerInfoMap.set(
@@ -1851,6 +1846,7 @@ export default class ConnectionManager {
         connectionInfo.errorMessage = undefined;
 
         void this.statusView.connectSuccess(fileUri, newCredentials, connectionInfo.serverInfo);
+        this.statusView.setServerProcessId(fileUri, result.serverConnectionId);
 
         this.statusView.languageServiceStatusChanged(
             fileUri,
@@ -1861,6 +1857,7 @@ export default class ConnectionManager {
             connection: connectionInfo,
             fileUri: fileUri,
         });
+        Perf.marker("mssql.connection.ready", "end");
 
         this._logger.info(
             LocalizedConstants.msgConnectedServerInfo(
@@ -1869,18 +1866,16 @@ export default class ConnectionManager {
                 JSON.stringify(connectionInfo.serverInfo),
             ),
         );
-        sendActionEvent(
-            TelemetryViews.ConnectionManager,
-            TelemetryActions.CreateConnectionResult,
-            {
+        sendActionEvent(TelemetryViews.ConnectionManager, TelemetryActions.CreateConnectionResult, {
+            additionalProps: {
                 connectedEngineEditionId: String(result.serverInfo.engineEditionId),
             },
-            {
+            additionalMeasurements: {
                 connectedEngineEditionId: result.serverInfo.engineEditionId,
             },
-            newCredentials as IConnectionProfile,
-            result.serverInfo,
-        );
+            connectionInfo: newCredentials as IConnectionProfile,
+            serverInfo: result.serverInfo,
+        });
 
         await this.handlePasswordStorageOnConnect(connectionInfo.credentials as IConnectionProfile);
 
@@ -1908,7 +1903,7 @@ export default class ConnectionManager {
         errorHandled?: SqlConnectionErrorType;
     }> {
         // Helper for "learn more" prompts
-        const showWithHelp = async (message: string, helpLabel: string, helpUrl: string) => {
+        const showWithLearnMore = async (message: string, helpLabel: string, helpUrl: string) => {
             const action = await vscode.window.showErrorMessage(message, helpLabel);
             if (action === helpLabel) {
                 await vscode.env.openExternal(vscode.Uri.parse(helpUrl));
@@ -1975,10 +1970,10 @@ export default class ConnectionManager {
                 };
             }
         } else if (errorType === SqlConnectionErrorType.KerberosNonWindows) {
-            await showWithHelp(
+            await showWithLearnMore(
                 LocalizedConstants.msgConnectionError2(errorMessage),
-                LocalizedConstants.help,
-                Constants.integratedAuthHelpLink,
+                LocalizedConstants.Common.learnMore,
+                Constants.Links.authKerberosHelp,
             );
             return {
                 isHandled: false,
@@ -2249,7 +2244,6 @@ export default class ConnectionManager {
 
     /**
      * Perform startup checks for connections:
-     * - migrates legacy connection strings
      * - emits basic connection stats
      */
     private async performConnectionStartupChecks(): Promise<void> {
@@ -2260,22 +2254,12 @@ export default class ConnectionManager {
         const connectionGroups: IConnectionGroup[] =
             await this.connectionStore.readAllConnectionGroups();
 
-        const migrationTally = {
-            migrated: 0,
-            notNeeded: 0,
-            error: 0,
-        };
-
         const orderingTally = {
             orderedConnections: 0,
             orderedGroups: 0,
         };
 
         for (const connection of connections) {
-            const result = await this.migrateLegacyConnection(connection);
-
-            migrationTally[result] = (migrationTally[result] || 0) + 1;
-
             if (connection.order !== undefined) {
                 orderingTally.orderedConnections++;
             }
@@ -2287,97 +2271,14 @@ export default class ConnectionManager {
             }
         }
 
-        if (migrationTally.migrated > 0) {
-            this._logger.info(
-                `Completed migration of legacy Connection String connections. (${migrationTally.migrated} migrated, ${migrationTally.notNeeded} not needed, ${migrationTally.error} errored)`,
-            );
-        } else {
-            this._logger.info(
-                `No legacy Connection String connections found to migrate. (${migrationTally.notNeeded} not needed, ${migrationTally.error} errored)`,
-            );
-        }
-
-        sendActionEvent(
-            TelemetryViews.Connection,
-            TelemetryActions.Stats,
-            {}, // properties
-            {
+        sendActionEvent(TelemetryViews.Connection, TelemetryActions.Stats, {
+            additionalProps: {},
+            additionalMeasurements: {
                 connectionCount: connections.length,
                 connectionGroupCount: connectionGroups.length,
-                ...migrationTally,
                 ...orderingTally,
             },
-        );
-    }
-
-    private async migrateLegacyConnection(
-        profile: IConnectionProfile,
-    ): Promise<"notNeeded" | "migrated" | "error"> {
-        try {
-            if (Utils.isEmpty(profile.connectionString)) {
-                return "notNeeded"; // Not a connection string profile; skip
-            }
-
-            let connectionString = profile.connectionString;
-
-            // Get the real connection string from credentials store if necessary
-            if (connectionString.includes(ConnectionStore.CRED_CONNECTION_STRING_PREFIX)) {
-                const retrievedString = await this.connectionStore.lookupPassword(profile, true);
-                connectionString = retrievedString ?? connectionString;
-            }
-
-            // merge profile from connection string with existing profile
-            const connDetails = await this.parseConnectionString(connectionString);
-            const profileFromString = ConnectionCredentials.removeUndefinedProperties(
-                ConnectionCredentials.createConnectionInfo(connDetails),
-            );
-
-            const newProfile: IConnectionProfile = {
-                ...profileFromString,
-                ...profile,
-            };
-
-            const passwordIndex = connectionString.toLowerCase().indexOf("password=");
-
-            if (passwordIndex !== -1) {
-                // extract password from connection string
-                const passwordStart = passwordIndex + "password=".length;
-                const passwordEnd = connectionString.indexOf(";", passwordStart);
-
-                newProfile.password = connectionString.substring(
-                    passwordStart,
-                    passwordEnd === -1 ? undefined : passwordEnd, // if no further semicolon found, password must be the last item in the connection string
-                );
-
-                newProfile.savePassword = true;
-            }
-
-            // clear the old connection string from the profile as it no longer has useful information
-            newProfile.connectionString = "";
-
-            await this.connectionStore.saveProfile(newProfile);
-            return "migrated";
-        } catch (err) {
-            this._logger.error(
-                `Error migrating legacy connection with ID ${profile.id}: ${getErrorMessage(err)}`,
-            );
-
-            vscode.window.showErrorMessage(
-                LocalizedConstants.Connection.errorMigratingLegacyConnection(
-                    profile.id,
-                    getErrorMessage(err),
-                ),
-            );
-
-            sendErrorEvent(
-                TelemetryViews.General,
-                TelemetryActions.MigrateLegacyConnections,
-                err,
-                false, // includeErrorMessage
-            );
-
-            return "error";
-        }
+        });
     }
 
     /**
@@ -2442,11 +2343,11 @@ export default class ConnectionManager {
                 sendErrorEvent(
                     TelemetryViews.ConnectionManager,
                     TelemetryActions.AcquireVsCodeAccountToken,
-                    error instanceof Error ? error : new Error(getErrorMessage(error)),
-                    /* includeErrorMessage */ false,
-                    /* errorCode */ undefined,
-                    /* errorType */ undefined,
-                    {},
+                    {
+                        error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                        includeErrorMessage: false,
+                        additionalProps: {},
+                    },
                 );
                 return { accountKey: "", token: "", expiresOn: 0 };
             }
@@ -2482,7 +2383,7 @@ export default class ConnectionManager {
             let acquireToken: (accountId: string, tenantId: string) => Promise<IToken | undefined>;
             let onSignIn: () => Promise<string | undefined>;
 
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 this._logger.debug("AKV token request received (VS Code accounts path)");
                 getAccounts = async () => {
                     const accounts = await VsCodeAzureHelper.getAccounts();
@@ -2694,7 +2595,7 @@ export async function getSqlConnectionErrorType(
         return SqlConnectionErrorType.FirewallRuleError;
     } else if (
         !platformInfo.isWindows &&
-        errorMessage?.includes(Constants.errorKerberosSubString)
+        errorMessage?.toLowerCase().includes(Constants.errorKerberosSubString.toLowerCase())
     ) {
         return SqlConnectionErrorType.KerberosNonWindows;
     } else if (

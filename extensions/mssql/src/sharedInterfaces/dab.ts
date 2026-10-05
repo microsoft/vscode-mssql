@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
+import { AuthenticationType } from "./connectionDialog";
 import { SchemaDesigner } from "./schemaDesigner";
 import { ApiStatus, Status } from "./webview";
 
@@ -115,12 +116,52 @@ export namespace Dab {
         StoredProcedure = "stored-procedure",
     }
 
+    export interface DabMetadataQueryOptions {
+        useNoLock?: boolean;
+    }
+
+    export interface DabDatabaseObjectMetadata {
+        id: string;
+        schema: string;
+        name: string;
+    }
+
+    export interface DabViewColumnMetadata {
+        id: string;
+        name: string;
+        dataType: string;
+        isPrimaryKey: boolean;
+        ordinal: number;
+    }
+
+    export interface DabStoredProcedureParameterMetadata {
+        name: string;
+        dataType: string;
+        ordinal: number;
+    }
+
     /**
      * Authorization roles for entity access
      */
     export enum AuthorizationRole {
         Anonymous = "anonymous",
         Authenticated = "authenticated",
+    }
+
+    export const supportedAuthorizationRoles = [
+        AuthorizationRole.Anonymous,
+        AuthorizationRole.Authenticated,
+    ] as const;
+
+    export interface EntityPermissionFieldAccess {
+        action: EntityAction;
+        fields: string[];
+    }
+
+    export interface EntityPermissionConfig {
+        role: AuthorizationRole;
+        actions: EntityAction[];
+        fieldAccess?: EntityPermissionFieldAccess[];
     }
 
     /**
@@ -132,9 +173,18 @@ export namespace Dab {
          */
         entityName: string;
         /**
-         * Authorization role for the entity
+         * Optional description for the entity. Written to both entity.description and
+         * source.description in generated DAB config.
+         */
+        description?: string;
+        /**
+         * Legacy single authorization role for older cached configs.
          */
         authorizationRole: AuthorizationRole;
+        /**
+         * Role-specific permission actions.
+         */
+        permissions?: EntityPermissionConfig[];
         /**
          * Custom REST path (overrides default /api/entityName)
          */
@@ -163,8 +213,13 @@ export namespace Dab {
          */
         graphQLEnabled?: boolean;
         /**
-         * Whether this table entity should be exposed through MCP DML tools.
-         * Defaults to true in DAB when omitted.
+         * Whether this entity should be exposed through MCP when MCP is globally enabled.
+         * Defaults to true.
+         */
+        mcpEnabled?: boolean;
+        /**
+         * Whether MCP DML tools should be enabled for this entity.
+         * Defaults to true when MCP is enabled.
          */
         mcpDmlToolsEnabled?: boolean;
         /**
@@ -177,9 +232,14 @@ export namespace Dab {
         storedProcedureGraphQLOperation?: GraphQLOperation;
         /**
          * Whether a stored procedure entity should be exposed as a dedicated MCP custom tool.
-         * Defaults to true for stored procedures.
+         * Defaults to false for stored procedures.
          */
         exposeAsMcpCustomTool?: boolean;
+        /**
+         * Preferred MCP custom-tool setting. Kept separate from exposeAsMcpCustomTool
+         * so older cached configs continue to load.
+         */
+        mcpCustomToolEnabled?: boolean;
     }
 
     /**
@@ -266,13 +326,13 @@ export namespace Dab {
          */
         isEnabled: boolean;
         /**
-         * Whether this table is supported by DAB.
-         * Tables without primary keys or with unsupported data types are not supported.
+         * Whether this entity is supported by DAB.
+         * Unsupported data types are blocking; missing keys are fixable warnings.
          */
         isSupported: boolean;
         /**
-         * Structured reasons why the table is not supported.
-         * Only set when isSupported is false. Converted to localized
+         * Structured reasons why the entity is unsupported or needs user input.
+         * Converted to localized
          * strings in the UI layer.
          */
         unsupportedReasons?: DabUnsupportedReason[];
@@ -421,6 +481,16 @@ export namespace Dab {
         );
     }
 
+    export interface GetDatabaseObjectsResponse {
+        sourceObjects: DabSourceObject[];
+    }
+
+    export namespace GetDatabaseObjectsRequest {
+        export const type = new RequestType<void, GetDatabaseObjectsResponse, void>(
+            "dab/getDatabaseObjects",
+        );
+    }
+
     /**
      * Entity reference for DAB tool operations.
      * Exactly one form is supported: id OR schemaName+tableName OR schemaName+sourceName+sourceType.
@@ -454,12 +524,47 @@ export namespace Dab {
         | { type: "add_entity"; entity: DabEntityRef }
         | { type: "remove_entity"; entity: DabEntityRef }
         | { type: "set_entity_enabled"; entity: DabEntityRef; isEnabled: boolean }
+        | {
+              type: "set_entity_surface";
+              entity: DabEntityRef;
+              apiType: ApiType;
+              isEnabled: boolean;
+          }
         | { type: "set_entity_actions"; entity: DabEntityRef; enabledActions: EntityAction[] }
+        | {
+              type: "set_entity_permissions";
+              entity: DabEntityRef;
+              permissions: EntityPermissionConfig[];
+          }
         | {
               type: "set_column_exposed";
               entity: DabEntityRef;
               column: DabColumnRef;
               isExposed: boolean;
+          }
+        | {
+              type: "set_field_metadata";
+              entity: DabEntityRef;
+              field: DabColumnRef;
+              alias?: string | null;
+              description?: string | null;
+              isPrimaryKey?: boolean;
+          }
+        | {
+              type: "set_parameter_metadata";
+              entity: DabEntityRef;
+              parameter: { name: string };
+              isRequired?: boolean;
+              defaultValue?: string | number | boolean | null;
+              clearDefault?: boolean;
+              description?: string | null;
+          }
+        | {
+              type: "set_entity_mcp";
+              entity: DabEntityRef;
+              enabled?: boolean;
+              dmlToolsEnabled?: boolean;
+              customToolEnabled?: boolean;
           }
         | { type: "patch_entity_settings"; entity: DabEntityRef; set: DabEntitySettingsPatch }
         | { type: "set_only_enabled_entities"; entities: DabEntityRef[] }
@@ -554,6 +659,34 @@ export namespace Dab {
         export const type = new NotificationType<CacheConfigParams>("dab/cacheConfig");
     }
 
+    /**
+     * Discards the stored configuration for this database. The webview rebuilds
+     * defaults from the current schema and saves them through the usual path,
+     * and waits for this to finish first: the rebuilt config is saved on the
+     * same channel, so starting it before the delete has landed would race the
+     * two writes against each other.
+     */
+    export interface DiscardPendingCliEngineParams {
+        /** Port the engine was told to publish on. */
+        port: number;
+    }
+
+    /**
+     * Stops a CLI engine that started but never finished deploying. The engine
+     * is detached and is only tracked once the last step succeeds, so a failure
+     * in between would otherwise leave it running and holding the port that the
+     * retry is about to ask for.
+     */
+    export namespace DiscardPendingCliEngineRequest {
+        export const type = new RequestType<DiscardPendingCliEngineParams, void, void>(
+            "dab/discardPendingCliEngine",
+        );
+    }
+
+    export namespace ResetConfigRequest {
+        export const type = new RequestType<void, void, void>("dab/resetConfig");
+    }
+
     // ============================================
     // Notifications (Webview -> Extension)
     // ============================================
@@ -643,11 +776,22 @@ export namespace Dab {
     // ============================================
 
     /**
-     * DAB container image from Microsoft Container Registry.
-     * Uses :latest tag intentionally so users always get the newest Data API builder
-     * features and bug fixes without manual version management.
+     * Engine version both deployment targets run.
+     *
+     * The designer decides which column types it will expose based on what the
+     * engine supports, so the container and the CLI must not drift apart.
      */
-    export const DAB_CONTAINER_IMAGE = "mcr.microsoft.com/azure-databases/data-api-builder:latest";
+    export const DAB_ENGINE_VERSION = "2.1.4-rc";
+
+    /**
+     * DAB container image from Microsoft Container Registry.
+     *
+     * Pinned to the same version as the CLI so both targets run one engine: a
+     * data type the designer allows has to be servable wherever it is deployed.
+     * The :latest tag cannot be used for that, since it tracks the newest
+     * stable and would leave the container behind the CLI.
+     */
+    export const DAB_CONTAINER_IMAGE = `mcr.microsoft.com/azure-databases/data-api-builder:${DAB_ENGINE_VERSION}`;
 
     /**
      * Platform to use when pulling the DAB container image.
@@ -666,6 +810,65 @@ export namespace Dab {
      */
     export const DAB_DEFAULT_CONTAINER_NAME = "dab-container";
 
+    /** Prefix every generated deployment name carries. */
+    export const DAB_DEPLOYMENT_NAME_PREFIX = "DAB";
+
+    /** Longest database fragment a generated deployment name embeds. */
+    export const DAB_DEPLOYMENT_NAME_DB_MAX_LENGTH = 20;
+
+    /**
+     * Builds the database fragment of a deployment name.
+     *
+     * Docker container names allow only a narrow character set, so anything
+     * else is dropped rather than substituted; a name that reduces to nothing
+     * falls back to a fixed word so the result is still a legal container name.
+     *
+     * @param databaseName Database the deployment serves
+     */
+    export function buildDabDeploymentNameFragment(databaseName: string): string {
+        const fragment = (databaseName ?? "")
+            .replace(/[^A-Za-z0-9]/g, "")
+            .slice(0, DAB_DEPLOYMENT_NAME_DB_MAX_LENGTH);
+        return fragment || "db";
+    }
+
+    /**
+     * Builds a deployment name of the form `DAB_<database>_<n>`.
+     *
+     * @param databaseName Database the deployment serves
+     * @param index Discriminator making the name unique
+     */
+    export function buildDabDeploymentName(databaseName: string, index: number): string {
+        return `${DAB_DEPLOYMENT_NAME_PREFIX}_${buildDabDeploymentNameFragment(databaseName)}_${index}`;
+    }
+
+    /**
+     * NuGet package that ships the DAB CLI.
+     */
+    export const DAB_CLI_PACKAGE_ID = "Microsoft.DataApiBuilder";
+
+    /**
+     * DAB CLI version to run, the same engine version as the container image.
+     *
+     * Keep this a version that has cleared any mirror's publication delay;
+     * feeds that proxy nuget.org commonly hold new packages back for days.
+     */
+    export const DAB_CLI_VERSION = DAB_ENGINE_VERSION;
+
+    /**
+     * Default flat container the CLI package is downloaded from. Environments
+     * that disable nuget.org in favor of a mirror override this through the
+     * `mssql.dab.cliPackageFeedUrl` setting.
+     */
+    export const DAB_CLI_DEFAULT_PACKAGE_FEED_URL = "https://api.nuget.org/v3-flatcontainer";
+
+    /**
+     * Environment variable the generated CLI config resolves its connection
+     * string from, so the credential is passed to the engine process instead of
+     * being written to disk.
+     */
+    export const DAB_CLI_CONNECTION_STRING_ENV_VAR = "DAB_CONNECTION_STRING";
+
     /**
      * Enumeration representing the order of steps in the DAB deployment process
      */
@@ -682,6 +885,252 @@ export namespace Dab {
         startContainer = 4,
         /** Check if DAB container is ready */
         checkContainer = 5,
+        /** Download and unpack the pinned DAB CLI package */
+        acquireDabCli = 6,
+        /** Resolve a .NET runtime that can run the DAB CLI */
+        checkDotnetRuntime = 7,
+        /** Write the config file and validate it with the CLI */
+        validateCliConfig = 8,
+        /** Launch the DAB engine process */
+        startCliEngine = 9,
+        /** Check if the DAB engine is answering */
+        checkCliEngine = 10,
+    }
+
+    /**
+     * Top-level view of the deployments dialog. The dialog either lists the
+     * deployments tracked for this database, asks which target to deploy to,
+     * or runs the deployment wizard in place.
+     */
+    export enum DabDeploymentDialogView {
+        /** Tracked deployments, with their live container state. */
+        List = 0,
+        /** Target picker shown after "Create new". */
+        TargetSelection = 1,
+        /** Prerequisite checks, parameter input, progress, and completion. */
+        Wizard = 2,
+    }
+
+    /**
+     * Where a deployment runs. Only local Docker is supported today; the picker
+     * exists so further targets can be added without reshaping the dialog.
+     */
+    export enum DabDeploymentTarget {
+        /** DAB runs in a local Docker container. */
+        Docker = "docker",
+        /** DAB runs as a local process, started by the DAB CLI. */
+        DabCli = "dabCli",
+    }
+
+    /**
+     * How the deployment flow was entered.
+     *
+     * Deploying from the toolbar is a self-contained flow that ends on its own
+     * completion screen; the deployments dialog owns a list to return to. The
+     * distinction lets the deployments experience be switched off without
+     * leaving the toolbar's Deploy button with nowhere to finish.
+     */
+    export enum DabDeploymentEntryPoint {
+        /** The toolbar's Deploy button, with no deployments list behind it. */
+        Standalone = "standalone",
+        /** The deployments dialog. */
+        Deployments = "deployments",
+    }
+
+    /**
+     * Whether the wizard is creating a new container or replacing an existing
+     * one under the same name and port.
+     */
+    export enum DabDeploymentMode {
+        Create = "create",
+        Redeploy = "redeploy",
+    }
+
+    /**
+     * The steps each deployment target runs, split into the prerequisite checks
+     * shown before the settings form and the work done after it.
+     *
+     * The CLI acquires its package before resolving a runtime because the
+     * package's runtimeconfig is what says which runtime version is needed.
+     */
+    export const dabDeploymentStepsByTarget: Record<
+        DabDeploymentTarget,
+        { prerequisites: DabDeploymentStepOrder[]; deployment: DabDeploymentStepOrder[] }
+    > = {
+        [DabDeploymentTarget.Docker]: {
+            prerequisites: [
+                DabDeploymentStepOrder.dockerInstallation,
+                DabDeploymentStepOrder.startDockerDesktop,
+                DabDeploymentStepOrder.checkDockerEngine,
+            ],
+            deployment: [
+                DabDeploymentStepOrder.pullImage,
+                DabDeploymentStepOrder.startContainer,
+                DabDeploymentStepOrder.checkContainer,
+            ],
+        },
+        [DabDeploymentTarget.DabCli]: {
+            prerequisites: [
+                DabDeploymentStepOrder.acquireDabCli,
+                DabDeploymentStepOrder.checkDotnetRuntime,
+            ],
+            deployment: [
+                DabDeploymentStepOrder.validateCliConfig,
+                DabDeploymentStepOrder.startCliEngine,
+                DabDeploymentStepOrder.checkCliEngine,
+            ],
+        },
+    };
+
+    /**
+     * Entra authentication types. The engine cannot be handed this extension's
+     * token — it has no way to receive one, and a token would expire under a
+     * deployment that outlives the window — so it signs in for itself from the
+     * credentials already present on the machine.
+     */
+    const ENTRA_AUTHENTICATION_TYPES: string[] = [
+        AuthenticationType.AzureMFA,
+        AuthenticationType.ActiveDirectoryDefault,
+        AuthenticationType.AzureMFAAndUser,
+        AuthenticationType.ActiveDirectoryServicePrincipal,
+    ];
+
+    /**
+     * Entra types whose sign-in the engine has to perform for itself, because
+     * nothing in the connection string names a credential it could reuse.
+     *
+     * A service principal is the exception: its client id and secret travel in
+     * the connection string, so the engine authenticates as the same principal
+     * the designer connected with rather than falling back to whichever
+     * identity happens to be signed in on the machine.
+     */
+    const AMBIENT_ENTRA_AUTHENTICATION_TYPES: string[] = ENTRA_AUTHENTICATION_TYPES.filter(
+        (authenticationType) =>
+            authenticationType !== AuthenticationType.ActiveDirectoryServicePrincipal,
+    );
+
+    /** True when a connection signs in through Microsoft Entra. */
+    export function isEntraAuthentication(authenticationType: string | undefined): boolean {
+        return !!authenticationType && ENTRA_AUTHENTICATION_TYPES.includes(authenticationType);
+    }
+
+    /**
+     * True when the engine has to acquire its own token for this connection,
+     * because the connection string carries no credential of its own.
+     */
+    export function usesAmbientEntraCredentials(authenticationType: string | undefined): boolean {
+        return (
+            !!authenticationType && AMBIENT_ENTRA_AUTHENTICATION_TYPES.includes(authenticationType)
+        );
+    }
+
+    /**
+     * Whether a deployment target can carry this connection's authentication
+     * through to the running engine.
+     *
+     * The CLI runs on the host as the signed-in user, so Windows Authentication
+     * reaches SQL Server as that user and an Entra sign-in already present on
+     * the machine can be picked up. A container can do neither: it runs outside
+     * the Windows session and cannot see the host's credentials.
+     *
+     * @param target Deployment target being considered
+     * @param authenticationType Authentication type of the connection
+     */
+    export function isDabTargetSupportedForAuthentication(
+        target: DabDeploymentTarget,
+        authenticationType: string | undefined,
+    ): boolean {
+        if (authenticationType === AuthenticationType.SqlLogin) {
+            return true;
+        }
+
+        if (target !== DabDeploymentTarget.DabCli) {
+            return false;
+        }
+
+        return (
+            authenticationType === AuthenticationType.Integrated ||
+            isEntraAuthentication(authenticationType)
+        );
+    }
+
+    /**
+     * Connection string properties that name who is connecting. They are
+     * stripped for an Entra deployment: the engine acquires its own token, and
+     * it only does so when the connection string names no other credential.
+     */
+    const CREDENTIAL_CONNECTION_PROPERTIES = [
+        "user id",
+        "uid",
+        "user",
+        "password",
+        "pwd",
+        "authentication",
+        "integrated security",
+        "trusted_connection",
+    ];
+
+    /**
+     * Prepares the connection string the CLI engine runs with.
+     *
+     * For the Entra types that sign in from the machine's existing session, the
+     * credential properties are removed so the engine acquires its own token.
+     * A service principal keeps its client id and secret — stripping those
+     * would leave the engine authenticating as some other identity, or as none
+     * — and every other authentication type is passed through untouched. The
+     * string reaches the engine through its environment rather than its command
+     * line, so a secret in it is not exposed in the process list.
+     *
+     * @param connectionString Connection string of the designer's connection
+     * @param authenticationType Authentication type of that connection
+     */
+    export function buildDabCliConnectionString(
+        connectionString: string,
+        authenticationType: string | undefined,
+    ): string {
+        if (!usesAmbientEntraCredentials(authenticationType)) {
+            return connectionString;
+        }
+
+        return connectionString
+            .split(";")
+            .filter((property) => {
+                const key = property.split("=")[0]?.trim().toLowerCase();
+                return !!property.trim() && !CREDENTIAL_CONNECTION_PROPERTIES.includes(key ?? "");
+            })
+            .join(";");
+    }
+
+    /** Every step a target runs, in order. */
+    export function getDabDeploymentSteps(target: DabDeploymentTarget): DabDeploymentStepOrder[] {
+        const steps = dabDeploymentStepsByTarget[target];
+        return [...steps.prerequisites, ...steps.deployment];
+    }
+
+    /** True when the step belongs to the target's prerequisite phase. */
+    export function isDabPrerequisiteStep(
+        target: DabDeploymentTarget,
+        step: DabDeploymentStepOrder,
+    ): boolean {
+        return dabDeploymentStepsByTarget[target].prerequisites.includes(step);
+    }
+
+    /** The step that follows this one, or undefined when the target is finished. */
+    export function getNextDabDeploymentStep(
+        target: DabDeploymentTarget,
+        step: DabDeploymentStepOrder,
+    ): DabDeploymentStepOrder | undefined {
+        const steps = getDabDeploymentSteps(target);
+        return steps[steps.indexOf(step) + 1];
+    }
+
+    /** True when a successful run of this step means the deployment is live. */
+    export function isFinalDabDeploymentStep(
+        target: DabDeploymentTarget,
+        step: DabDeploymentStepOrder,
+    ): boolean {
+        const deploymentSteps = dabDeploymentStepsByTarget[target].deployment;
+        return deploymentSteps[deploymentSteps.length - 1] === step;
     }
 
     /**
@@ -696,7 +1145,7 @@ export namespace Dab {
         ParameterInput = 2,
         /** Deployment progress steps */
         Deployment = 3,
-        /** Completion or error state */
+        /** Completion or error state, shown only by the standalone flow */
         Complete = 4,
     }
 
@@ -740,6 +1189,26 @@ export namespace Dab {
          * Whether the deployment dialog is open
          */
         isDialogOpen: boolean;
+        /**
+         * Which of the dialog's top-level views is showing
+         */
+        dialogView: DabDeploymentDialogView;
+        /**
+         * Where the wizard is deploying to. Decides which steps run.
+         */
+        target: DabDeploymentTarget;
+        /**
+         * How the flow was entered, which decides where it finishes.
+         */
+        entryPoint: DabDeploymentEntryPoint;
+        /**
+         * Whether the wizard is creating a container or redeploying one
+         */
+        mode: DabDeploymentMode;
+        /**
+         * Tracked deployment the wizard is redeploying, when in redeploy mode
+         */
+        activeDeploymentId?: string;
         /**
          * Current dialog step
          */
@@ -800,23 +1269,26 @@ export namespace Dab {
     /**
      * Creates a default deployment state
      */
-    export function createDefaultDeploymentState(): DabDeploymentState {
+    export function createDefaultDeploymentState(
+        target: DabDeploymentTarget = DabDeploymentTarget.Docker,
+    ): DabDeploymentState {
+        const steps = getDabDeploymentSteps(target);
         return {
             isDialogOpen: false,
+            dialogView: DabDeploymentDialogView.List,
+            target,
+            entryPoint: DabDeploymentEntryPoint.Deployments,
+            mode: DabDeploymentMode.Create,
             dialogStep: DabDeploymentDialogStep.Confirmation,
-            currentDeploymentStep: DabDeploymentStepOrder.dockerInstallation,
+            currentDeploymentStep: steps[0],
             params: {
-                containerName: DAB_DEFAULT_CONTAINER_NAME,
+                // Left blank: the settings form asks the extension for a
+                // generated name on mount, so seeding a placeholder here would
+                // only flash a name that is about to be replaced.
+                containerName: "",
                 port: DAB_DEFAULT_PORT,
             },
-            stepStatuses: [
-                { step: DabDeploymentStepOrder.dockerInstallation, status: ApiStatus.NotStarted },
-                { step: DabDeploymentStepOrder.startDockerDesktop, status: ApiStatus.NotStarted },
-                { step: DabDeploymentStepOrder.checkDockerEngine, status: ApiStatus.NotStarted },
-                { step: DabDeploymentStepOrder.pullImage, status: ApiStatus.NotStarted },
-                { step: DabDeploymentStepOrder.startContainer, status: ApiStatus.NotStarted },
-                { step: DabDeploymentStepOrder.checkContainer, status: ApiStatus.NotStarted },
-            ],
+            stepStatuses: steps.map((step) => ({ step, status: ApiStatus.NotStarted })),
             isDeploying: false,
         };
     }
@@ -834,6 +1306,13 @@ export namespace Dab {
          */
         step: DabDeploymentStepOrder;
         /**
+         * Where the deployment is running. Defaults to Docker for callers that
+         * predate the CLI target.
+         */
+        target?: DabDeploymentTarget;
+        /** The dialog that started this deployment, for bounded telemetry. */
+        entryPoint?: DabDeploymentEntryPoint;
+        /**
          * Deployment parameters (needed for some steps)
          */
         params?: DabDeploymentParams;
@@ -841,6 +1320,11 @@ export namespace Dab {
          * DAB config (needed for starting the container)
          */
         config?: DabConfig;
+        /**
+         * Deployment being redeployed. When set, a successful readiness check
+         * updates that tracking record instead of adding a new one.
+         */
+        deploymentId?: string;
     }
 
     export interface RunDeploymentStepResponse {
@@ -990,6 +1474,154 @@ export namespace Dab {
     }
 
     // ============================================
+    // Deployment tracking
+    // ============================================
+
+    /**
+     * Live state of a tracked deployment's container, as reported by Docker.
+     */
+    export enum DabDeploymentContainerStatus {
+        /** Container exists and is running. */
+        Running = "running",
+        /** Container exists but is not running. */
+        Stopped = "stopped",
+        /** Container no longer exists; only the tracking record remains. */
+        Missing = "missing",
+        /** Docker could not be reached, so the real state is unknown. */
+        Unknown = "unknown",
+    }
+
+    /**
+     * A DAB container deployed from the designer, persisted per server/database
+     * so it can be managed again in a later session.
+     */
+    export interface DabDeploymentRecord {
+        /** Stable identifier for the record, independent of the container. */
+        id: string;
+        /** Where this deployment runs. */
+        target: DabDeploymentTarget;
+        /** Docker container name, or the deployment name for a CLI deployment. */
+        name: string;
+        /** Host port the DAB API is published on. */
+        port: number;
+        /**
+         * CLI only: process id of the engine, used to stop it. Status is
+         * resolved by probing the port rather than this pid, so a recycled pid
+         * can never make a dead deployment look alive.
+         */
+        processId?: number;
+        /**
+         * CLI only: path of the generated config file the engine runs. Its
+         * presence is what makes a stopped deployment startable again.
+         */
+        configPath?: string;
+        /**
+         * API types the container was deployed with. Kept on the record so the
+         * endpoints can be listed without regenerating the deployed config.
+         */
+        apiTypes: ApiType[];
+        /** Hash of the generated DAB config this container is running. */
+        configHash: string;
+        /** ISO timestamp of the first deployment of this container. */
+        createdUtc: string;
+        /** ISO timestamp of the most recent deployment or redeployment. */
+        deployedUtc: string;
+    }
+
+    /**
+     * A tracked deployment paired with the state the deployments list needs.
+     */
+    export interface DabDeploymentListItem extends DabDeploymentRecord {
+        /** Live container state at the time the list was built. */
+        status: DabDeploymentContainerStatus;
+        /**
+         * True when the designer config no longer matches what this container
+         * is running, so redeploying would change what the API serves.
+         */
+        isConfigOutdated: boolean;
+        /** Base URL the API is published on. */
+        apiUrl: string;
+    }
+
+    export interface GetDeploymentsParams {
+        /**
+         * Current designer config, used to decide which deployments are running
+         * an outdated configuration.
+         */
+        config?: DabConfig;
+    }
+
+    export interface GetDeploymentsResponse {
+        deployments: DabDeploymentListItem[];
+        /** Error message when the list could not be built. */
+        error?: string;
+    }
+
+    export namespace GetDeploymentsRequest {
+        export const type = new RequestType<GetDeploymentsParams, GetDeploymentsResponse, void>(
+            "dab/getDeployments",
+        );
+    }
+
+    /**
+     * Identifies a tracked deployment to act on.
+     */
+    export interface DeploymentActionParams {
+        deploymentId: string;
+    }
+
+    export interface DeploymentActionResponse {
+        success: boolean;
+        error?: string;
+    }
+
+    /** Stops and removes the container, then stops tracking the deployment. */
+    export namespace DeleteDeploymentRequest {
+        export const type = new RequestType<DeploymentActionParams, DeploymentActionResponse, void>(
+            "dab/deleteDeployment",
+        );
+    }
+
+    /** Starts an existing stopped container without redeploying it. */
+    export namespace StartDeploymentContainerRequest {
+        export const type = new RequestType<DeploymentActionParams, DeploymentActionResponse, void>(
+            "dab/startDeploymentContainer",
+        );
+    }
+
+    /** Stops a running container, leaving it in place. */
+    export namespace StopDeploymentContainerRequest {
+        export const type = new RequestType<DeploymentActionParams, DeploymentActionResponse, void>(
+            "dab/stopDeploymentContainer",
+        );
+    }
+
+    export interface PrepareRedeploymentResponse extends DeploymentActionResponse {
+        /**
+         * Name and port to redeploy with. Present only on success.
+         */
+        params?: DabDeploymentParams;
+        /**
+         * Target to redeploy to, so the wizard runs the steps this deployment
+         * was originally made with. Present only on success.
+         */
+        target?: DabDeploymentTarget;
+    }
+
+    /**
+     * Verifies the deployment's port is still free and removes the existing
+     * container so the normal deployment steps can recreate it under the same
+     * name and port. Fails without touching the container when the port has
+     * been taken by something else.
+     */
+    export namespace PrepareRedeploymentRequest {
+        export const type = new RequestType<
+            DeploymentActionParams,
+            PrepareRedeploymentResponse,
+            void
+        >("dab/prepareRedeployment");
+    }
+    // ============================================
     // Service interface
     // ============================================
 
@@ -1046,6 +1678,38 @@ export namespace Dab {
          * @param containerName Name of the container to stop
          */
         stopDeployment(containerName: string): Promise<StopDeploymentResponse>;
+
+        /**
+         * Hashes the DAB config file a deployment would produce, with the
+         * connection string excluded. Two configs that make DAB serve the same
+         * thing hash the same, whatever connection generated them, so a hash
+         * stored with a deployment stays comparable across sessions.
+         */
+        computeConfigHash(config: DabConfig): string;
+
+        /**
+         * Reports the live state of a previously deployed container
+         * @param containerName Name of the container to inspect
+         */
+        getContainerStatus(containerName: string): Promise<DabDeploymentContainerStatus>;
+
+        /**
+         * Starts an existing stopped container without redeploying it
+         * @param containerName Name of the container to start
+         */
+        startContainer(containerName: string): Promise<DeploymentActionResponse>;
+
+        /**
+         * Stops a running container, leaving it in place
+         * @param containerName Name of the container to stop
+         */
+        stopContainer(containerName: string): Promise<DeploymentActionResponse>;
+
+        /**
+         * Reports whether a host port is still free for a container to publish
+         * @param port The host port to check
+         */
+        isPortAvailable(port: number): Promise<boolean>;
     }
 
     // ============================================
@@ -1068,10 +1732,8 @@ export namespace Dab {
         "sys.geography",
         "sys.geometry",
         "sys.hierarchyid",
-        "json",
         "rowversion",
         "sql_variant",
-        "vector",
         "xml",
     ];
 
@@ -1108,8 +1770,8 @@ export namespace Dab {
 
     /**
      * Validates whether a schema table is supported by DAB.
-     * Runs all checks and collects all reasons for unsupported tables.
-     * @returns An object with isSupported and an optional reason string.
+     * Runs all checks and collects blocking issues plus fixable key warnings.
+     * @returns An object with isSupported and optional structured reasons.
      */
     export function validateTableForDab(table: SchemaDesigner.Table): {
         isSupported: boolean;
@@ -1129,7 +1791,10 @@ export namespace Dab {
             reasons.push({ type: "unsupportedDataTypes", columns: details });
         }
 
-        return reasons.length > 0 ? { isSupported: false, reasons } : { isSupported: true };
+        const hasBlockingReason = reasons.some((reason) => reason.type === "unsupportedDataTypes");
+        return reasons.length > 0
+            ? { isSupported: !hasBlockingReason, reasons }
+            : { isSupported: true };
     }
 
     export function validateSourceObjectForDab(sourceObject: DabSourceObject): {
@@ -1137,10 +1802,14 @@ export namespace Dab {
         reasons?: DabUnsupportedReason[];
     } {
         const reasons: DabUnsupportedReason[] = [];
+        const inferredKeyNames = inferLogicalKeyColumnNames(
+            sourceObject.columns,
+            sourceObject.sourceName,
+        );
         const hasPrimaryKey =
-            sourceObject.sourceType === EntitySourceType.Table
-                ? sourceObject.columns.some((c) => c.isPrimaryKey)
-                : (sourceObject.fields ?? []).some((field) => field.isPrimaryKey);
+            sourceObject.sourceType !== EntitySourceType.StoredProcedure &&
+            ((sourceObject.fields ?? []).some((field) => field.isPrimaryKey) ||
+                inferredKeyNames.size > 0);
         if (sourceObject.sourceType !== EntitySourceType.StoredProcedure && !hasPrimaryKey) {
             reasons.push({ type: "noPrimaryKey" });
         }
@@ -1165,7 +1834,10 @@ export namespace Dab {
             reasons.push({ type: "unsupportedDataTypes", columns: details });
         }
 
-        return reasons.length > 0 ? { isSupported: false, reasons } : { isSupported: true };
+        const hasBlockingReason = reasons.some((reason) => reason.type === "unsupportedDataTypes");
+        return reasons.length > 0
+            ? { isSupported: !hasBlockingReason, reasons }
+            : { isSupported: true };
     }
 
     /**
@@ -1189,13 +1861,296 @@ export namespace Dab {
         };
     }
 
+    export const defaultApiTypes: ApiType[] = [ApiType.Rest, ApiType.GraphQL, ApiType.Mcp];
+
+    function normalizeKeyCandidateName(value?: string): string {
+        return (value ?? "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+    }
+
+    function isIdSuffixCandidate(columnName: string): boolean {
+        return (
+            /^id$/i.test(columnName) ||
+            /(^|[_\-\s])id$/i.test(columnName) ||
+            /[A-Z0-9]ID$/.test(columnName) ||
+            /[a-z0-9]Id$/.test(columnName)
+        );
+    }
+
+    function inferLogicalKeyColumnNames(
+        columns: DabColumnConfig[],
+        sourceName?: string,
+    ): Set<string> {
+        const physicalKeys = columns.filter((column) => column.isPrimaryKey);
+        if (physicalKeys.length > 0) {
+            return new Set(physicalKeys.map((column) => normalizeDabIdentifier(column.name)));
+        }
+
+        const supportedColumns = columns.filter((column) => column.isSupported);
+        const normalizedSourceName = normalizeKeyCandidateName(sourceName);
+        const exactIdColumns = supportedColumns.filter(
+            (column) => normalizeKeyCandidateName(column.name) === "id",
+        );
+        if (exactIdColumns.length === 1) {
+            return new Set([normalizeDabIdentifier(exactIdColumns[0].name)]);
+        }
+
+        const sourceIdColumns =
+            normalizedSourceName.length > 0
+                ? supportedColumns.filter(
+                      (column) =>
+                          normalizeKeyCandidateName(column.name) === `${normalizedSourceName}id`,
+                  )
+                : [];
+        if (sourceIdColumns.length === 1) {
+            return new Set([normalizeDabIdentifier(sourceIdColumns[0].name)]);
+        }
+
+        const idSuffixColumns = supportedColumns.filter((column) =>
+            isIdSuffixCandidate(column.name),
+        );
+        if (idSuffixColumns.length > 0 && idSuffixColumns.length <= 2) {
+            return new Set(idSuffixColumns.map((column) => normalizeDabIdentifier(column.name)));
+        }
+
+        return new Set();
+    }
+
+    const crudActions = [
+        EntityAction.Create,
+        EntityAction.Read,
+        EntityAction.Update,
+        EntityAction.Delete,
+    ];
+
+    export function getDefaultPermissionsForSource(
+        sourceType?: EntitySourceType,
+    ): EntityPermissionConfig[] {
+        if (sourceType === EntitySourceType.StoredProcedure) {
+            return [
+                { role: AuthorizationRole.Anonymous, actions: [] },
+                { role: AuthorizationRole.Authenticated, actions: [EntityAction.Execute] },
+            ];
+        }
+
+        return [
+            { role: AuthorizationRole.Anonymous, actions: [EntityAction.Read] },
+            { role: AuthorizationRole.Authenticated, actions: [...crudActions] },
+        ];
+    }
+
+    function normalizePermissionActions(
+        actions: EntityAction[] | undefined,
+        sourceType?: EntitySourceType,
+    ): EntityAction[] {
+        const allowedActions =
+            sourceType === EntitySourceType.StoredProcedure
+                ? new Set<EntityAction>([EntityAction.Execute])
+                : new Set<EntityAction>(crudActions);
+        return [...new Set(actions ?? [])].filter((action) => allowedActions.has(action));
+    }
+
+    function normalizePermissionFieldAccess(
+        fieldAccess: EntityPermissionFieldAccess[] | undefined,
+        actions: EntityAction[],
+        sourceType?: EntitySourceType,
+    ): EntityPermissionFieldAccess[] | undefined {
+        if (!fieldAccess?.length || sourceType === EntitySourceType.StoredProcedure) {
+            return undefined;
+        }
+
+        const actionSet = new Set(actions);
+        const normalized = fieldAccess
+            .filter((access) => actionSet.has(access.action))
+            .map((access) => ({
+                action: access.action,
+                fields: [...new Set(access.fields)],
+            }));
+        return normalized.length > 0 ? normalized : undefined;
+    }
+
+    export function getEntityPermissions(entity: DabEntityConfig): EntityPermissionConfig[] {
+        if (entity.advancedSettings.permissions?.length) {
+            const byRole = new Map<AuthorizationRole, EntityAction[]>();
+            const fieldAccessByRole = new Map<
+                AuthorizationRole,
+                EntityPermissionFieldAccess[] | undefined
+            >();
+            for (const role of supportedAuthorizationRoles) {
+                byRole.set(role, []);
+            }
+            for (const permission of entity.advancedSettings.permissions) {
+                if (!supportedAuthorizationRoles.includes(permission.role)) {
+                    continue;
+                }
+                byRole.set(
+                    permission.role,
+                    normalizePermissionActions(permission.actions, entity.sourceType),
+                );
+                fieldAccessByRole.set(permission.role, permission.fieldAccess);
+            }
+            return supportedAuthorizationRoles.map((role) => ({
+                role,
+                actions: byRole.get(role) ?? [],
+                fieldAccess: normalizePermissionFieldAccess(
+                    fieldAccessByRole.get(role),
+                    byRole.get(role) ?? [],
+                    entity.sourceType,
+                ),
+            }));
+        }
+
+        const legacyRole = entity.advancedSettings.authorizationRole ?? AuthorizationRole.Anonymous;
+        const legacyActions = normalizePermissionActions(entity.enabledActions, entity.sourceType);
+        return supportedAuthorizationRoles.map((role) => ({
+            role,
+            actions: role === legacyRole ? legacyActions : [],
+        }));
+    }
+
+    export function getPermissionActionsForRole(
+        entity: DabEntityConfig,
+        role: AuthorizationRole,
+    ): EntityAction[] {
+        return (
+            getEntityPermissions(entity).find((permission) => permission.role === role)?.actions ??
+            []
+        );
+    }
+
+    export function hasEntityPermission(entity: DabEntityConfig, role: AuthorizationRole): boolean {
+        return getPermissionActionsForRole(entity, role).length > 0;
+    }
+
+    export function isEntityRestEnabled(entity: DabEntityConfig): boolean {
+        return entity.advancedSettings.restEnabled !== false;
+    }
+
+    export function isEntityGraphQLEnabled(entity: DabEntityConfig): boolean {
+        return entity.advancedSettings.graphQLEnabled !== false;
+    }
+
+    export function isEntityMcpEnabled(entity: DabEntityConfig): boolean {
+        if (entity.advancedSettings.mcpEnabled === false) {
+            return false;
+        }
+
+        const dmlToolsEnabled = isEntityMcpDmlToolsEnabled(entity);
+        if (entity.sourceType === EntitySourceType.StoredProcedure) {
+            return dmlToolsEnabled || isEntityMcpCustomToolEnabled(entity);
+        }
+
+        return dmlToolsEnabled;
+    }
+
+    export function isEntityMcpDmlToolsEnabled(entity: DabEntityConfig): boolean {
+        return entity.advancedSettings.mcpDmlToolsEnabled !== false;
+    }
+
+    export function isEntityMcpCustomToolEnabled(entity: DabEntityConfig): boolean {
+        return (
+            entity.advancedSettings.mcpCustomToolEnabled ??
+            entity.advancedSettings.exposeAsMcpCustomTool ??
+            false
+        );
+    }
+
+    export function getEntityExposedApiTypes(
+        entity: DabEntityConfig,
+        globallyEnabledApiTypes: readonly ApiType[] = [ApiType.Rest, ApiType.GraphQL, ApiType.Mcp],
+    ): ApiType[] {
+        const globallyEnabledApiTypeSet = new Set(globallyEnabledApiTypes);
+        return [ApiType.Rest, ApiType.GraphQL, ApiType.Mcp].filter((apiType) => {
+            if (!globallyEnabledApiTypeSet.has(apiType)) {
+                return false;
+            }
+            switch (apiType) {
+                case ApiType.Rest:
+                    return isEntityRestEnabled(entity);
+                case ApiType.GraphQL:
+                    return isEntityGraphQLEnabled(entity);
+                case ApiType.Mcp:
+                    return isEntityMcpEnabled(entity);
+            }
+        });
+    }
+
+    export function isEntityEffectivelyExposed(
+        entity: DabEntityConfig,
+        globallyEnabledApiTypes?: readonly ApiType[],
+    ): boolean {
+        return getEntityExposedApiTypes(entity, globallyEnabledApiTypes).length > 0;
+    }
+
+    export function isEntityExposed(entity: DabEntityConfig): boolean {
+        return isEntityEffectivelyExposed(entity);
+    }
+
+    export function hasLogicalKey(entity: DabEntityConfig): boolean {
+        if (entity.sourceType === EntitySourceType.StoredProcedure) {
+            return true;
+        }
+
+        if (entity.fields !== undefined) {
+            return entity.fields.some((field) => field.isPrimaryKey);
+        }
+
+        return entity.columns.some((column) => column.isPrimaryKey);
+    }
+
+    export function getFieldForColumn(
+        entity: DabEntityConfig,
+        columnName: string,
+    ): DabFieldConfig | undefined {
+        return entity.fields?.find(
+            (field) => normalizeDabIdentifier(field.name) === normalizeDabIdentifier(columnName),
+        );
+    }
+
+    export function isLogicalKeyColumn(entity: DabEntityConfig, column: DabColumnConfig): boolean {
+        const field = getFieldForColumn(entity, column.name);
+        return field !== undefined ? field.isPrimaryKey === true : column.isPrimaryKey;
+    }
+
+    export function isColumnEffectivelyExposed(
+        entity: DabEntityConfig,
+        column: DabColumnConfig,
+        globallyEnabledApiTypes?: readonly ApiType[],
+    ): boolean {
+        return (
+            isEntityEffectivelyExposed(entity, globallyEnabledApiTypes) &&
+            (isLogicalKeyColumn(entity, column) || column.isExposed)
+        );
+    }
+
+    export function hasBlockingUnsupportedReason(entity: DabEntityConfig): boolean {
+        return (entity.unsupportedReasons ?? []).some(
+            (reason) => reason.type === "unsupportedDataTypes",
+        );
+    }
+
+    export function hasFixableKeyWarning(entity: DabEntityConfig): boolean {
+        return (
+            entity.sourceType !== EntitySourceType.StoredProcedure &&
+            !hasLogicalKey(entity) &&
+            (entity.unsupportedReasons ?? []).some((reason) => reason.type === "noPrimaryKey")
+        );
+    }
+
     export function createSourceObjectFromTable(table: SchemaDesigner.Table): DabSourceObject {
+        const columns = table.columns.map((column) => createDefaultColumnConfig(column));
+        const inferredKeyNames = inferLogicalKeyColumnNames(columns, table.name);
         return {
             id: table.id,
             sourceType: EntitySourceType.Table,
             schemaName: table.schema,
             sourceName: table.name,
-            columns: table.columns.map((column) => createDefaultColumnConfig(column)),
+            columns,
+            fields: columns.map((column) => ({
+                name: column.name,
+                ...(inferredKeyNames.has(normalizeDabIdentifier(column.name))
+                    ? { isPrimaryKey: true }
+                    : {}),
+            })),
         };
     }
 
@@ -1243,13 +2198,17 @@ export namespace Dab {
     ): DabEntityConfig {
         const { isSupported, reasons } = validateSourceObjectForDab(sourceObject);
         const isStoredProcedure = sourceObject.sourceType === EntitySourceType.StoredProcedure;
+        const hasMissingKeyWarning =
+            sourceObject.sourceType !== EntitySourceType.StoredProcedure &&
+            reasons?.some((reason) => reason.type === "noPrimaryKey") === true;
+        const isIncludedByDefault = isSupported && !hasMissingKeyWarning;
         return {
             id: sourceObject.id,
             sourceType: sourceObject.sourceType,
             sourceName: sourceObject.sourceName,
             tableName: sourceObject.sourceName,
             schemaName: sourceObject.schemaName,
-            isEnabled: isSupported,
+            isEnabled: isIncludedByDefault,
             isSupported,
             unsupportedReasons: reasons,
             enabledActions: isStoredProcedure
@@ -1261,12 +2220,28 @@ export namespace Dab {
                       EntityAction.Delete,
                   ],
             columns: sourceObject.columns.map((column) => ({ ...column })),
-            fields: sourceObject.fields?.map((field) => ({ ...field })),
-            parameters: sourceObject.parameters?.map((parameter) => ({ ...parameter })),
+            fields:
+                sourceObject.sourceType === EntitySourceType.StoredProcedure
+                    ? undefined
+                    : syncFieldsWithSource(sourceObject.fields, sourceObject),
+            parameters: sourceObject.parameters?.map((parameter) => ({
+                ...parameter,
+                isRequired: parameter.isRequired ?? true,
+            })),
             advancedSettings: {
                 entityName: sourceObject.sourceName,
                 authorizationRole: AuthorizationRole.Anonymous,
-                ...(isStoredProcedure ? { exposeAsMcpCustomTool: true } : {}),
+                permissions: getDefaultPermissionsForSource(sourceObject.sourceType),
+                restEnabled: isIncludedByDefault,
+                graphQLEnabled: isIncludedByDefault,
+                mcpEnabled: isIncludedByDefault,
+                mcpDmlToolsEnabled: isIncludedByDefault,
+                ...(isStoredProcedure
+                    ? {
+                          exposeAsMcpCustomTool: false,
+                          mcpCustomToolEnabled: false,
+                      }
+                    : {}),
             },
         };
     }
@@ -1291,6 +2266,118 @@ export namespace Dab {
         return parameters?.map((parameter) => ({ ...parameter }));
     }
 
+    function createDefaultFieldsFromColumns(
+        columns: DabColumnConfig[],
+        sourceName?: string,
+    ): DabFieldConfig[] {
+        const inferredKeyNames = inferLogicalKeyColumnNames(columns, sourceName);
+        return columns.map((column) => ({
+            name: column.name,
+            ...(inferredKeyNames.has(normalizeDabIdentifier(column.name))
+                ? { isPrimaryKey: true }
+                : {}),
+        }));
+    }
+
+    function syncFieldsWithSource(
+        existingFields: DabFieldConfig[] | undefined,
+        sourceObject: DabSourceObject,
+    ): DabFieldConfig[] | undefined {
+        if (sourceObject.sourceType === EntitySourceType.StoredProcedure) {
+            return undefined;
+        }
+
+        const sourceFields = sourceObject.fields?.length
+            ? sourceObject.fields
+            : createDefaultFieldsFromColumns(sourceObject.columns, sourceObject.sourceName);
+        const inferredKeyNames = inferLogicalKeyColumnNames(
+            sourceObject.columns,
+            sourceObject.sourceName,
+        );
+        const existingByName = new Map(
+            (existingFields ?? []).map((field) => [normalizeDabIdentifier(field.name), field]),
+        );
+
+        return sourceFields.map((sourceField) => {
+            const normalizedName = normalizeDabIdentifier(sourceField.name);
+            const existingField = existingByName.get(normalizedName);
+            return {
+                name: sourceField.name,
+                ...(existingField?.alias ? { alias: existingField.alias } : {}),
+                ...(existingField?.description ? { description: existingField.description } : {}),
+                ...((existingField?.isPrimaryKey ??
+                sourceField.isPrimaryKey ??
+                inferredKeyNames.has(normalizedName))
+                    ? { isPrimaryKey: true }
+                    : {}),
+            };
+        });
+    }
+
+    function syncParametersWithSource(
+        existingParameters: DabParameterConfig[] | undefined,
+        sourceParameters: DabParameterConfig[] | undefined,
+    ): DabParameterConfig[] | undefined {
+        if (!sourceParameters?.length) {
+            return undefined;
+        }
+
+        const existingByName = new Map(
+            (existingParameters ?? []).map((parameter) => [
+                normalizeDabIdentifier(parameter.name.replace(/^@/, "")),
+                parameter,
+            ]),
+        );
+
+        return sourceParameters.map((sourceParameter) => {
+            const normalizedName = sourceParameter.name.replace(/^@/, "");
+            const existingParameter = existingByName.get(normalizeDabIdentifier(normalizedName));
+            return {
+                name: normalizedName,
+                dataType: sourceParameter.dataType,
+                isRequired: existingParameter?.isRequired ?? sourceParameter.isRequired ?? true,
+                ...(existingParameter?.defaultValue !== undefined
+                    ? { defaultValue: existingParameter.defaultValue }
+                    : sourceParameter.defaultValue !== undefined
+                      ? { defaultValue: sourceParameter.defaultValue }
+                      : {}),
+                ...(existingParameter?.description
+                    ? { description: existingParameter.description }
+                    : sourceParameter.description
+                      ? { description: sourceParameter.description }
+                      : {}),
+            };
+        });
+    }
+
+    function normalizeAdvancedSettings(entity: DabEntityConfig): EntityAdvancedSettings {
+        const isStoredProcedure = entity.sourceType === EntitySourceType.StoredProcedure;
+        const legacyCustomTool = entity.advancedSettings.exposeAsMcpCustomTool;
+        const customToolEnabled =
+            entity.advancedSettings.mcpCustomToolEnabled ??
+            (legacyCustomTool !== undefined ? legacyCustomTool : false);
+        const hasExplicitSurfaceSettings =
+            entity.advancedSettings.restEnabled !== undefined ||
+            entity.advancedSettings.graphQLEnabled !== undefined ||
+            entity.advancedSettings.mcpEnabled !== undefined;
+        const defaultSurfaceEnabled = hasExplicitSurfaceSettings ? true : entity.isEnabled;
+
+        return {
+            ...entity.advancedSettings,
+            permissions: getEntityPermissions(entity),
+            restEnabled: entity.advancedSettings.restEnabled ?? defaultSurfaceEnabled,
+            graphQLEnabled: entity.advancedSettings.graphQLEnabled ?? defaultSurfaceEnabled,
+            mcpEnabled: entity.advancedSettings.mcpEnabled ?? defaultSurfaceEnabled,
+            mcpDmlToolsEnabled: entity.advancedSettings.mcpDmlToolsEnabled ?? true,
+            ...(isStoredProcedure
+                ? {
+                      exposeAsMcpCustomTool: customToolEnabled,
+                      mcpCustomToolEnabled: customToolEnabled,
+                  }
+                : {}),
+        };
+    }
+
     function cloneConfig(config: DabConfig): DabConfig {
         return {
             apiTypes: [...config.apiTypes],
@@ -1301,7 +2388,7 @@ export namespace Dab {
                 fields: cloneFields(entity.fields),
                 parameters: cloneParameters(entity.parameters),
                 unsupportedReasons: cloneUnsupportedReasons(entity.unsupportedReasons),
-                advancedSettings: { ...entity.advancedSettings },
+                advancedSettings: normalizeAdvancedSettings(entity),
             })),
         };
     }
@@ -1387,9 +2474,13 @@ export namespace Dab {
             isSupported,
             unsupportedReasons: reasons,
             columns: syncedColumns.columns,
-            fields: cloneFields(sourceObject.fields),
-            parameters: cloneParameters(sourceObject.parameters),
-            // Unsupported entities must remain disabled until the schema is fixed.
+            fields: syncFieldsWithSource(entity.fields, {
+                ...sourceObject,
+                columns: syncedColumns.columns,
+            }),
+            parameters: syncParametersWithSource(entity.parameters, sourceObject.parameters),
+            advancedSettings: normalizeAdvancedSettings(entity),
+            // Entities with blocking unsupported types must remain disabled until the schema is fixed.
             isEnabled: !isSupported ? false : entity.isEnabled,
         };
     }
@@ -1482,7 +2573,7 @@ export namespace Dab {
 
     export function createDefaultConfigFromSources(sourceObjects: DabSourceObject[]): DabConfig {
         return {
-            apiTypes: [ApiType.Rest, ApiType.GraphQL, ApiType.Mcp],
+            apiTypes: [...defaultApiTypes],
             entities: sourceObjects.map((sourceObject) =>
                 createDefaultEntityConfigFromSource(sourceObject),
             ),

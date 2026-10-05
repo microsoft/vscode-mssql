@@ -13,16 +13,14 @@ import {
     ScriptType,
     SEARCH_TYPE_PREFIXES,
 } from "../sharedInterfaces/searchDatabase";
-import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
-import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { IMetadataService } from "../services/metadataService";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { MetadataType, ObjectMetadata } from "../sharedInterfaces/metadata";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ScriptingService } from "../scripting/scriptingService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
-import { IScriptingObject } from "vscode-mssql";
+import { IScriptingObject, type IConnectionInfo } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocConstants from "../constants/locConstants";
 import { Deferred } from "../protocol";
@@ -44,15 +42,20 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
     // Deferred that resolves when initialization completes (success or error)
     private _initialized: Deferred<void> = new Deferred<void>();
 
+    /**
+     * @param connectionCredentials Connection to search against. Callers are responsible for
+     * resolving this from whatever context invoked the command (Object Explorer node, active
+     * editor connection, etc.).
+     */
     constructor(
         context: vscode.ExtensionContext,
         private _metadataService: IMetadataService,
         private _connectionManager: ConnectionManager,
-        private _targetNode: TreeNodeInfo,
+        private _connectionCredentials: IConnectionInfo,
         private _scriptingService: ScriptingService,
     ) {
-        const serverName = _targetNode?.connectionProfile?.server || "Server";
-        const databaseName = ObjectExplorerUtils.getDatabaseName(_targetNode) || "master";
+        const serverName = _connectionCredentials.server;
+        const databaseName = _connectionCredentials.database || Constants.defaultDatabase;
 
         // Generate a unique, stable owner URI for this webview instance (per-panel URI, stable for panel lifetime)
         const instanceId = uuid();
@@ -179,9 +182,11 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.Initialize,
-            this._operationId,
             {
-                operationId: this._operationId,
+                correlationId: this._operationId,
+                additionalProps: {
+                    operationId: this._operationId,
+                },
             },
         );
 
@@ -203,7 +208,9 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         this.updateState();
 
         endActivity.end(ActivityStatus.Succeeded, {
-            operationId: this._operationId,
+            additionalProps: {
+                operationId: this._operationId,
+            },
         });
     }
 
@@ -213,6 +220,16 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
      */
     private getConnectionUri(): string {
         return this._ownerUri;
+    }
+
+    /**
+     * Get the connection credentials for this panel, scoped to the currently selected database.
+     */
+    private getConnectionCredentials(): IConnectionInfo {
+        return {
+            ...this._connectionCredentials,
+            database: this.state.selectedDatabase,
+        };
     }
 
     /**
@@ -251,8 +268,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             await this._connectionManager.disconnect(connectionUri);
         }
 
-        const connectionCreds = { ...this._targetNode.connectionProfile };
-        connectionCreds.database = targetDatabase;
+        const connectionCreds = this.getConnectionCredentials();
 
         if (!this._connectionManager.isConnecting(connectionUri)) {
             this.logVerbose(`Connecting to database '${targetDatabase}'`);
@@ -307,8 +323,10 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             this.logVerbose(`Using cached metadata for ${this.state.selectedDatabase}`);
 
             sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.LoadMetadata, {
-                operationId: this._operationId,
-                source: "cache",
+                additionalProps: {
+                    operationId: this._operationId,
+                    source: "cache",
+                },
             });
 
             // Restore schema state from cached metadata
@@ -327,10 +345,12 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.LoadMetadata,
-            uuid(),
             {
-                operationId: this._operationId,
-                source: "server",
+                correlationId: uuid(),
+                additionalProps: {
+                    operationId: this._operationId,
+                    source: "server",
+                },
             },
         );
 
@@ -378,9 +398,11 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             this.applyFiltersAndSearch();
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this._operationId,
-                objectCount: metadata.length.toString(),
-                schemaCount: uniqueSchemas.length.toString(),
+                additionalProps: {
+                    operationId: this._operationId,
+                    objectCount: metadata.length.toString(),
+                    schemaCount: uniqueSchemas.length.toString(),
+                },
             });
         } catch (error) {
             const errorMessage = getErrorMessage(error);
@@ -543,11 +565,13 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             this.applyFiltersAndSearch();
 
             sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.Search, {
-                operationId: this._operationId,
-                resultCount: state.totalResultCount.toString(),
-                hasSearchPrefix: (
-                    this.parseSearchPrefix(payload.searchTerm).typeFilter !== undefined
-                ).toString(),
+                additionalProps: {
+                    operationId: this._operationId,
+                    resultCount: state.totalResultCount.toString(),
+                    hasSearchPrefix: (
+                        this.parseSearchPrefix(payload.searchTerm).typeFilter !== undefined
+                    ).toString(),
+                },
             });
 
             return state;
@@ -569,8 +593,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
                 const endActivity = startActivity(
                     TelemetryViews.SearchDatabase,
                     TelemetryActions.SetDatabase,
-                    uuid(),
-                    { operationId: this._operationId },
+                    { correlationId: uuid(), additionalProps: { operationId: this._operationId } },
                 );
 
                 const previousDatabase = state.selectedDatabase;
@@ -589,7 +612,9 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
                     await this.loadMetadata();
 
                     endActivity.end(ActivityStatus.Succeeded, {
-                        operationId: this._operationId,
+                        additionalProps: {
+                            operationId: this._operationId,
+                        },
                     });
                 } catch (error) {
                     this.logError(`Error switching database: ${getErrorMessage(error)}`);
@@ -691,8 +716,10 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             );
 
             sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.CopyObjectName, {
-                operationId: this._operationId,
-                objectType: payload.object.metadataTypeName,
+                additionalProps: {
+                    operationId: this._operationId,
+                    objectType: payload.object.metadataTypeName,
+                },
             });
 
             return state;
@@ -736,8 +763,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SearchDatabase,
                 TelemetryActions.RefreshResults,
-                uuid(),
-                { operationId: this._operationId },
+                { correlationId: uuid(), additionalProps: { operationId: this._operationId } },
             );
 
             // Reset filters and search to initial state
@@ -759,7 +785,9 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
                 await this.loadMetadata();
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    operationId: this._operationId,
+                    additionalProps: {
+                        operationId: this._operationId,
+                    },
                 });
             } catch (error) {
                 this.logError(`Error refreshing results: ${getErrorMessage(error)}`);
@@ -839,16 +867,14 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
      * Generate and open a script for the specified object
      */
     private async scriptObject(object: SearchResultItem, scriptType: ScriptType): Promise<void> {
-        const endActivity = startActivity(
-            TelemetryViews.SearchDatabase,
-            TelemetryActions.Script,
-            uuid(),
-            {
+        const endActivity = startActivity(TelemetryViews.SearchDatabase, TelemetryActions.Script, {
+            correlationId: uuid(),
+            additionalProps: {
                 operationId: this._operationId,
                 scriptType: scriptType,
                 objectType: object.metadataTypeName,
             },
-        );
+        });
 
         try {
             this.logVerbose(
@@ -876,8 +902,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
 
             // Get server info from connection manager - use the current connection credentials
             // with the selected database to ensure we get the correct server info
-            const connectionCreds = { ...this._targetNode.connectionProfile };
-            connectionCreds.database = this.state.selectedDatabase;
+            const connectionCreds = this.getConnectionCredentials();
             const serverInfo = this._connectionManager.getServerInfo(connectionCreds);
 
             // Create scripting parameters
@@ -906,9 +931,11 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this._operationId,
-                scriptType: scriptType,
-                objectType: object.metadataTypeName,
+                additionalProps: {
+                    operationId: this._operationId,
+                    scriptType: scriptType,
+                    objectType: object.metadataTypeName,
+                },
             });
         } catch (error) {
             this.logError(`Error scripting object '${object.fullName}': ${getErrorMessage(error)}`);
@@ -937,10 +964,12 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.EditData,
-            uuid(),
             {
-                operationId: this._operationId,
-                objectType: object.metadataTypeName,
+                correlationId: uuid(),
+                additionalProps: {
+                    operationId: this._operationId,
+                    objectType: object.metadataTypeName,
+                },
             },
         );
 
@@ -957,7 +986,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
                     schema: object.schema,
                     metadataTypeName: object.metadataTypeName,
                 },
-                connectionProfile: { ...this._targetNode.connectionProfile },
+                connectionProfile: this.getConnectionCredentials(),
                 nodeType: "Table",
                 parentNode: {
                     metadata: {
@@ -971,7 +1000,9 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             await vscode.commands.executeCommand(Constants.cmdTableExplorer, syntheticNode);
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this._operationId,
+                additionalProps: {
+                    operationId: this._operationId,
+                },
             });
         } catch (error) {
             this.logError(`Error opening Edit Data: ${getErrorMessage(error)}`);
@@ -996,10 +1027,12 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.ModifyTable,
-            uuid(),
             {
-                operationId: this._operationId,
-                objectType: object.metadataTypeName,
+                correlationId: uuid(),
+                additionalProps: {
+                    operationId: this._operationId,
+                    objectType: object.metadataTypeName,
+                },
             },
         );
 
@@ -1011,7 +1044,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             // The node needs nodeType, label, metadata, connectionProfile, and a parent with database metadata
             // so that getDatabaseNameForNode can find the database name.
             // It also needs updateConnectionProfile method which the controller calls during initialization.
-            const connectionProfile = { ...this._targetNode.connectionProfile };
+            const connectionProfile = this.getConnectionCredentials();
             const syntheticNode = {
                 metadata: {
                     name: object.name,
@@ -1036,7 +1069,9 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             await vscode.commands.executeCommand(Constants.cmdEditTable, syntheticNode);
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this._operationId,
+                additionalProps: {
+                    operationId: this._operationId,
+                },
             });
         } catch (error) {
             this.logError(`Error opening Modify Table: ${getErrorMessage(error)}`);

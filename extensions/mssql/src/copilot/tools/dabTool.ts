@@ -25,7 +25,6 @@ export type DabToolParams =
     | {
           operation: "apply_changes";
           payload: {
-              expectedVersion: string;
               targetHint?: ToolTargetHint;
               changes: Dab.DabToolChange[];
           };
@@ -36,6 +35,7 @@ export type DabToolParams =
 
 type DabToolFailureReason =
     | "no_active_designer"
+    | "state_required"
     | "target_mismatch"
     | "stale_state"
     | "not_found"
@@ -49,8 +49,13 @@ interface DabToolChangeCounts {
     remove_entity_count: number;
     set_api_types_count: number;
     set_entity_enabled_count: number;
+    set_entity_surface_count: number;
     set_entity_actions_count: number;
+    set_entity_permissions_count: number;
     set_column_exposed_count: number;
+    set_field_metadata_count: number;
+    set_parameter_metadata_count: number;
+    set_entity_mcp_count: number;
     patch_entity_settings_count: number;
     set_only_enabled_entities_count: number;
     set_all_entities_enabled_count: number;
@@ -61,8 +66,13 @@ interface DabToolReceipt {
     removeEntityCount: number;
     setApiTypesCount: number;
     setEntityEnabledCount: number;
+    setEntitySurfaceCount: number;
     setEntityActionsCount: number;
+    setEntityPermissionsCount: number;
     setColumnExposedCount: number;
+    setFieldMetadataCount: number;
+    setParameterMetadataCount: number;
+    setEntityMcpCount: number;
     patchEntitySettingsCount: number;
     setOnlyEnabledEntitiesCount: number;
     setAllEntitiesEnabledCount: number;
@@ -81,7 +91,6 @@ interface DabToolError {
     targetHint?: ToolTargetHint;
     failedChangeIndex?: number;
     appliedChanges?: number;
-    version?: string;
     summary?: Dab.DabToolSummary;
     returnState?: "full" | "summary" | "none";
     stateOmittedReason?:
@@ -89,10 +98,22 @@ interface DabToolError {
         | "caller_requested_summary"
         | "caller_requested_none";
     config?: Dab.DabConfig;
+    recommendedNextCall?: {
+        operation: "get_state";
+    };
 }
 
 export class DabTool extends ToolBase<DabToolParams> {
     public readonly toolName = Constants.copilotDabToolName;
+
+    /**
+     * The last DAB version observed by this tool for each open designer.
+     *
+     * Versions are deliberately kept behind the tool boundary. Language models are good at
+     * producing semantic patches, but should not be asked to reproduce opaque concurrency
+     * tokens. The webview still performs the authoritative optimistic-concurrency check.
+     */
+    private readonly _editVersions = new WeakMap<SchemaDesignerWebviewController, string>();
 
     constructor(
         private _connectionManager: ConnectionManager,
@@ -119,16 +140,14 @@ export class DabTool extends ToolBase<DabToolParams> {
             measurements?: Record<string, number>;
         }) => {
             try {
-                sendActionEvent(
-                    TelemetryViews.MssqlCopilot,
-                    TelemetryActions.DabTool,
-                    {
+                sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.DabTool, {
+                    additionalProps: {
                         operation: params.operation,
                         success: String(params.success),
                         ...(params.reason ? { reason: params.reason } : {}),
                     },
-                    params.measurements ?? {},
-                );
+                    additionalMeasurements: params.measurements ?? {},
+                });
             } catch {
                 // Telemetry must never block tool execution.
             }
@@ -151,8 +170,13 @@ export class DabTool extends ToolBase<DabToolParams> {
                 remove_entity_count: 0,
                 set_api_types_count: 0,
                 set_entity_enabled_count: 0,
+                set_entity_surface_count: 0,
                 set_entity_actions_count: 0,
+                set_entity_permissions_count: 0,
                 set_column_exposed_count: 0,
+                set_field_metadata_count: 0,
+                set_parameter_metadata_count: 0,
+                set_entity_mcp_count: 0,
                 patch_entity_settings_count: 0,
                 set_only_enabled_entities_count: 0,
                 set_all_entities_enabled_count: 0,
@@ -172,11 +196,26 @@ export class DabTool extends ToolBase<DabToolParams> {
                     case "set_entity_enabled":
                         counts.set_entity_enabled_count++;
                         break;
+                    case "set_entity_surface":
+                        counts.set_entity_surface_count++;
+                        break;
                     case "set_entity_actions":
                         counts.set_entity_actions_count++;
                         break;
+                    case "set_entity_permissions":
+                        counts.set_entity_permissions_count++;
+                        break;
                     case "set_column_exposed":
                         counts.set_column_exposed_count++;
+                        break;
+                    case "set_field_metadata":
+                        counts.set_field_metadata_count++;
+                        break;
+                    case "set_parameter_metadata":
+                        counts.set_parameter_metadata_count++;
+                        break;
+                    case "set_entity_mcp":
+                        counts.set_entity_mcp_count++;
                         break;
                     case "patch_entity_settings":
                         counts.patch_entity_settings_count++;
@@ -198,8 +237,13 @@ export class DabTool extends ToolBase<DabToolParams> {
             removeEntityCount: counts.remove_entity_count,
             setApiTypesCount: counts.set_api_types_count,
             setEntityEnabledCount: counts.set_entity_enabled_count,
+            setEntitySurfaceCount: counts.set_entity_surface_count,
             setEntityActionsCount: counts.set_entity_actions_count,
+            setEntityPermissionsCount: counts.set_entity_permissions_count,
             setColumnExposedCount: counts.set_column_exposed_count,
+            setFieldMetadataCount: counts.set_field_metadata_count,
+            setParameterMetadataCount: counts.set_parameter_metadata_count,
+            setEntityMcpCount: counts.set_entity_mcp_count,
             patchEntitySettingsCount: counts.patch_entity_settings_count,
             setOnlyEnabledEntitiesCount: counts.set_only_enabled_entities_count,
             setAllEntitiesEnabledCount: counts.set_all_entities_enabled_count,
@@ -259,6 +303,7 @@ export class DabTool extends ToolBase<DabToolParams> {
 
             if (operation === "get_state") {
                 const state = await activeDesigner.getDabToolState();
+                this._editVersions.set(activeDesigner, state.version);
                 sendToolTelemetry({
                     operation,
                     success: true,
@@ -272,6 +317,8 @@ export class DabTool extends ToolBase<DabToolParams> {
                         {
                             success: true,
                             ...state,
+                            version: undefined,
+                            editSession: "ready",
                         },
                         activeDesigner,
                     ),
@@ -284,20 +331,6 @@ export class DabTool extends ToolBase<DabToolParams> {
                         success: false,
                         reason: "invalid_request",
                         message: `Unknown operation: ${String(operation)}`,
-                    },
-                    activeDesigner,
-                );
-                sendToolTelemetry({ operation, success: false, reason: err.reason });
-                return json(err);
-            }
-
-            const expectedVersion = options.input.payload?.expectedVersion;
-            if (!expectedVersion) {
-                const err: DabToolError = withTarget(
-                    {
-                        success: false,
-                        reason: "invalid_request",
-                        message: "Missing payload.expectedVersion.",
                     },
                     activeDesigner,
                 );
@@ -354,6 +387,23 @@ export class DabTool extends ToolBase<DabToolParams> {
                 return json(err);
             }
 
+            const expectedVersion = this._editVersions.get(activeDesigner);
+            if (!expectedVersion) {
+                const err: DabToolError = withTarget(
+                    {
+                        success: false,
+                        reason: "state_required",
+                        message: loc.dabToolStateRequired,
+                        recommendedNextCall: {
+                            operation: "get_state",
+                        },
+                    },
+                    activeDesigner,
+                );
+                sendToolTelemetry({ operation, success: false, reason: err.reason });
+                return json(err);
+            }
+
             activeDesigner.revealToForeground();
             activeDesigner.showView(SchemaDesigner.SchemaDesignerActiveView.Dab);
             const applyResult = await activeDesigner.applyDabToolChanges({
@@ -364,14 +414,19 @@ export class DabTool extends ToolBase<DabToolParams> {
 
             if (applyResult.success === false) {
                 const failedResult = applyResult;
+                if (failedResult.reason === "stale_state") {
+                    this._editVersions.delete(activeDesigner);
+                }
                 const err: DabToolError = withTarget(
                     {
                         success: false,
                         reason: failedResult.reason,
-                        message: failedResult.message,
+                        message:
+                            failedResult.reason === "stale_state"
+                                ? loc.dabToolStateChanged
+                                : failedResult.message,
                         failedChangeIndex: failedResult.failedChangeIndex,
                         appliedChanges: failedResult.appliedChanges,
-                        version: failedResult.version,
                         summary: failedResult.summary,
                         ...(failedResult.returnState
                             ? { returnState: failedResult.returnState }
@@ -380,6 +435,13 @@ export class DabTool extends ToolBase<DabToolParams> {
                             ? { stateOmittedReason: failedResult.stateOmittedReason }
                             : {}),
                         ...(failedResult.config ? { config: failedResult.config } : {}),
+                        ...(failedResult.reason === "stale_state"
+                            ? {
+                                  recommendedNextCall: {
+                                      operation: "get_state" as const,
+                                  },
+                              }
+                            : {}),
                     },
                     activeDesigner,
                 );
@@ -398,6 +460,7 @@ export class DabTool extends ToolBase<DabToolParams> {
             }
 
             const successResult = applyResult;
+            this._editVersions.set(activeDesigner, successResult.version);
             sendToolTelemetry({
                 operation,
                 success: true,
@@ -413,6 +476,8 @@ export class DabTool extends ToolBase<DabToolParams> {
                 withTarget(
                     {
                         ...successResult,
+                        version: undefined,
+                        editSession: "ready",
                         receipt: toReceipt(changeCounts),
                     },
                     activeDesigner,

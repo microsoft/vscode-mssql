@@ -25,7 +25,10 @@ import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { CloseSessionRequest } from "../../src/models/contracts/objectExplorer/closeSessionRequest";
 import { Deferred } from "../../src/protocol";
-import { ExpandRequest } from "../../src/models/contracts/objectExplorer/expandNodeRequest";
+import {
+    ExpandRequest,
+    ExpandResponse,
+} from "../../src/models/contracts/objectExplorer/expandNodeRequest";
 import {
     ActivityObject,
     ActivityStatus,
@@ -60,12 +63,12 @@ import {
     initializeIconUtils,
     stubLogger,
     stubMessageBoxes,
-    stubPreviewService,
+    stubUseMsalEntraMfaAuthConfig,
 } from "./utils";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+import { OverviewTreeNode } from "../../src/objectExplorer/nodes/overviewTreeNode";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
-import { PreviewFeature } from "../../src/previews/previewService";
 const { MissingEntraAuthAccountError } = vscodeEntraMfaUtils;
 
 chai.use(sinonChai);
@@ -205,6 +208,7 @@ suite("OE Service Tests", () => {
         let sandbox: sinon.SinonSandbox;
         let endStub: sinon.SinonStub;
         let endFailedStub: sinon.SinonStub;
+        let updateStub: sinon.SinonStub;
         let startActivityStub: sinon.SinonStub;
 
         setup(() => {
@@ -219,12 +223,13 @@ suite("OE Service Tests", () => {
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
             endStub = sandbox.stub();
             endFailedStub = sandbox.stub();
+            updateStub = sandbox.stub();
             startActivityStub = sandbox.stub(telemetry, "startActivity").returns({
                 end: endStub,
                 endFailed: endFailedStub,
                 correlationId: "",
                 startTime: 0,
-                update: sandbox.stub(),
+                update: updateStub,
             });
             objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
@@ -348,11 +353,9 @@ suite("OE Service Tests", () => {
             expect(
                 endStub,
                 "Telemetry should end successfully with the child count",
-            ).to.have.been.calledWithMatch(
-                ActivityStatus.Succeeded,
-                sinon.match.any,
-                sinon.match({ childrenCount: 2 }),
-            );
+            ).to.have.been.calledWithMatch(ActivityStatus.Succeeded, {
+                additionalMeasurements: sinon.match({ childrenCount: 2 }),
+            });
 
             // Verify the result matches the mapped children
             expect(result, "Result should match mapped children").to.equal(mappedChildren);
@@ -521,6 +524,12 @@ suite("OE Service Tests", () => {
             expect(mockClient.sendRequest.args[1][0], "Retry request is a refresh").to.equal(
                 RefreshRequest.type,
             );
+            expect(
+                updateStub,
+                "Telemetry should record that the retry uses a refresh",
+            ).to.have.been.calledOnceWithExactly({
+                additionalProps: { isRefresh: "true" },
+            });
 
             expect(
                 mockConnectionManager.shouldRetryForPausedServerlessDatabase.calledOnce,
@@ -836,6 +845,78 @@ suite("OE Service Tests", () => {
             ).to.be.false;
         });
 
+        test("a filtered refresh settles even when the expand outlasts the tree refresh debounce", async () => {
+            // Loading updates make VS Code request the node's children again. Simulate a slow
+            // filtered refresh and verify those callbacks do not keep queuing more refreshes.
+            const TREE_REFRESH_DELAY_MS = 5;
+            const EXPAND_LATENCY_MS = 40;
+            const MAX_SIMULATED_TREE_FETCHES = 100;
+            const clock = sandbox.useFakeTimers();
+            sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake(() => undefined);
+
+            const connectionProfile = createMockConnectionProfile({ id: "conn1" });
+            let simulatedTreeFetches = 0;
+
+            // Stands in for ObjectExplorerProvider.refresh(), which fires onDidChangeTreeData and
+            // makes VS Code re-fetch the node's children after a short debounce.
+            const loopingService = new ObjectExplorerService(mockConnectionManager, (node) => {
+                if (simulatedTreeFetches >= MAX_SIMULATED_TREE_FETCHES) {
+                    return;
+                }
+                simulatedTreeFetches++;
+                setTimeout(() => void loopingService.getChildren(node), TREE_REFRESH_DELAY_MS);
+            });
+            loopingService.initialized.resolve();
+            setUpOETreeRoot(loopingService, [connectionProfile]);
+
+            const connectionNode = (loopingService as any)._connectionNodes.get(
+                connectionProfile.id,
+            ) as ConnectionNode;
+            connectionNode.sessionId = "session123";
+
+            const respondAfterLatency = () => {
+                setTimeout(
+                    () =>
+                        loopingService.handleExpandNodeNotification({
+                            sessionId: connectionNode.sessionId,
+                            nodePath: connectionNode.nodePath,
+                            nodes: [],
+                            errorMessage: "",
+                        } as ExpandResponse),
+                    EXPAND_LATENCY_MS,
+                );
+                return Promise.resolve(true);
+            };
+            mockClient.sendRequest
+                .withArgs(RefreshRequest.type, sinon.match.any)
+                .callsFake(respondAfterLatency);
+            mockClient.sendRequest
+                .withArgs(ExpandRequest.type, sinon.match.any)
+                .callsFake(respondAfterLatency);
+
+            // Applying a filter sets the filters, then refreshes the node.
+            connectionNode.filters = [
+                { name: "Name", operator: 9, value: "cdwi" },
+            ] as import("vscode-mssql").NodeFilter[];
+            connectionNode.shouldRefresh = true;
+            void loopingService.getChildren(connectionNode);
+
+            await clock.tickAsync(400);
+
+            expect(
+                mockClient.sendRequest,
+                "One filter apply should send exactly one refresh, not a self-sustaining loop",
+            ).to.have.been.calledOnceWithExactly(RefreshRequest.type, sinon.match.any);
+            expect(
+                connectionNode.shouldRefresh,
+                "Refresh flag should be cleared once the refresh has been dispatched",
+            ).to.be.false;
+            expect(
+                (loopingService as any)._refreshQueuedAfterInFlight.has(connectionNode),
+                "No refresh should remain queued after the load settles",
+            ).to.be.false;
+        });
+
         test("expandNode should handle error response from SQL Tools Service", async () => {
             // Mock node and session ID
             const mockNode = new TreeNodeInfo(
@@ -1138,12 +1219,17 @@ suite("OE Service Tests", () => {
             const updateStub = mockActivityObject.update as sinon.SinonStub;
             expect(updateStub.calledOnce, "Telemetry should be updated once").to.be.true;
             expect(
-                updateStub.args[0][0].connectionType,
+                updateStub.args[0][0].additionalProps.connectionType,
                 "Connection type should be captured",
             ).to.equal(connectionProfile.authenticationType);
-            expect(updateStub.args[0][0].isFixed, "Is fixed should be false").to.equal("false");
-            expect(updateStub.args[0][0].errorHandled, "Error handled should be undefined").to.be
-                .undefined;
+            expect(
+                updateStub.args[0][0].additionalProps.isFixed,
+                "Is fixed should be false",
+            ).to.equal("false");
+            expect(
+                updateStub.args[0][0].additionalProps.errorHandled,
+                "Error handled should be undefined",
+            ).to.be.undefined;
         });
 
         test("handleSessionCreationFailure should update telemetry when error number is present", async () => {
@@ -1171,10 +1257,14 @@ suite("OE Service Tests", () => {
 
             // Verify telemetry was updated with error number
             expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
-            expect(updateStub.args[0][0].connectionType, "Connection type should match").to.equal(
-                "SqlLogin",
-            );
-            expect(updateStub.args[0][1].errorNumber, "Error number should match").to.equal(12345);
+            expect(
+                updateStub.args[0][0].additionalProps.connectionType,
+                "Connection type should match",
+            ).to.equal("SqlLogin");
+            expect(
+                updateStub.args[0][0].additionalMeasurements.errorNumber,
+                "Error number should match",
+            ).to.equal(12345);
         });
 
         test("handleSessionCreationFailure delegates to ConnectionManager.handleConnectionErrors", async () => {
@@ -1246,11 +1336,11 @@ suite("OE Service Tests", () => {
             ).to.be.true;
             expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
             expect(
-                updateStub.args[1][0].errorHandled,
+                updateStub.args[1][0].additionalProps.errorHandled,
                 "Telemetry should record handled error type",
             ).to.equal("trustServerCertificate");
             expect(
-                updateStub.args[1][0].isFixed,
+                updateStub.args[1][0].additionalProps.isFixed,
                 "Telemetry should record issue as fixed",
             ).to.equal("true");
         });
@@ -1290,7 +1380,7 @@ suite("OE Service Tests", () => {
             ).to.be.false;
             expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
             expect(
-                updateStub.args[1][0].isFixed,
+                updateStub.args[1][0].additionalProps.isFixed,
                 "Telemetry should indicate the issue is unresolved",
             ).to.equal("true");
         });
@@ -1638,8 +1728,7 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateSession,
-                sinon.match.any,
-                sinon.match({ connectionType: "SqlLogin" }),
+                { additionalProps: sinon.match({ connectionType: "SqlLogin" }) },
             );
         });
 
@@ -1711,16 +1800,16 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateSession,
-                sinon.match.any,
-                sinon.match({ connectionType: "newConnection" }),
+                { additionalProps: sinon.match({ connectionType: "newConnection" }) },
             );
             expect(
                 endStub,
                 "Telemetry should end successfully with the connection type",
-            ).to.have.been.calledWithMatch(
-                ActivityStatus.Succeeded,
-                sinon.match({ connectionType: connectionProfile.authenticationType }),
-            );
+            ).to.have.been.calledWithMatch(ActivityStatus.Succeeded, {
+                additionalProps: sinon.match({
+                    connectionType: connectionProfile.authenticationType,
+                }),
+            });
 
             // Verify client requests were sent
             expect(mockClient.sendRequest.calledTwice, "Client should send two requests").to.be
@@ -2023,8 +2112,7 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateSession,
-                sinon.match.any,
-                sinon.match({ connectionType: "AzureMFA" }),
+                { additionalProps: sinon.match({ connectionType: "AzureMFA" }) },
             );
 
             // Reset stubs
@@ -2041,8 +2129,7 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateSession,
-                sinon.match.any,
-                sinon.match({ connectionType: "newConnection" }),
+                { additionalProps: sinon.match({ connectionType: "newConnection" }) },
             );
         });
 
@@ -2241,10 +2328,9 @@ suite("OE Service Tests", () => {
             expect(
                 endStub,
                 "Telemetry should end with the updated connection type",
-            ).to.have.been.calledWithMatch(
-                ActivityStatus.Succeeded,
-                sinon.match({ connectionType: "SqlLogin" }),
-            );
+            ).to.have.been.calledWithMatch(ActivityStatus.Succeeded, {
+                additionalProps: sinon.match({ connectionType: "SqlLogin" }),
+            });
         });
     });
 
@@ -2259,6 +2345,7 @@ suite("OE Service Tests", () => {
         let objectExplorerService: ObjectExplorerService;
 
         setup(async () => {
+            initializeIconUtils();
             sandbox = sinon.createSandbox();
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -2293,7 +2380,7 @@ suite("OE Service Tests", () => {
             sandbox.restore();
         });
 
-        test("getRootNodes should return AddConnectionNodes when no saved connections exist", async () => {
+        test("getRootNodes should return Overview before add actions when no connections exist", async () => {
             // Setup connection store to return empty array
             mockConnectionStore.readAllConnections.resolves([]);
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
@@ -2313,7 +2400,9 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify the result
-            expect(result, "Result should match mock add connection nodes").to.equal(
+            expect(result).to.have.lengthOf(3);
+            expect(result[0]).to.be.instanceOf(OverviewTreeNode);
+            expect(result.slice(1), "Result should include the add connection nodes").to.deep.equal(
                 mockAddConnectionNodes,
             );
 
@@ -2336,19 +2425,16 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.ExpandNode,
-                sinon.match.any,
-                sinon.match({ nodeType: "root" }),
+                { additionalProps: sinon.match({ nodeType: "root" }) },
             );
 
             // Verify activity ended with success.
             expect(
                 endStub,
                 "Telemetry should end successfully with zero children",
-            ).to.have.been.calledWithMatch(
-                ActivityStatus.Succeeded,
-                sinon.match.any,
-                sinon.match({ childrenCount: 0 }),
-            );
+            ).to.have.been.calledWithMatch(ActivityStatus.Succeeded, {
+                additionalMeasurements: sinon.match({ childrenCount: 0 }),
+            });
         });
 
         test("getRootNodes should create connection nodes from saved profiles", async () => {
@@ -2361,11 +2447,12 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify the result
-            expect(result, "Result should match saved nodes").to.have.length(2);
-            expect(result[0].label, "First node label should match").to.equal(
+            expect(result, "Result should include Overview and saved nodes").to.have.length(3);
+            expect(result[0]).to.be.instanceOf(OverviewTreeNode);
+            expect(result[1].label, "First connection label should match").to.equal(
                 mockConnections[0].profileName,
             );
-            expect(result[1].label, "Second node label should match").to.equal(
+            expect(result[2].label, "Second connection label should match").to.equal(
                 mockConnections[1].profileName,
             );
 
@@ -2378,9 +2465,36 @@ suite("OE Service Tests", () => {
             // Verify telemetry ended with correct node count.
             expect(endStub, "Telemetry should include the node count").to.have.been.calledWithMatch(
                 ActivityStatus.Succeeded,
-                sinon.match.any,
-                sinon.match({ nodeCount: 2 }),
+                { additionalMeasurements: sinon.match({ nodeCount: 3 }) },
             );
+        });
+
+        test("getRootNodes should always put Overview first", async () => {
+            const mockConnections = createMockConnectionProfiles(1);
+            mockConnectionStore.readAllConnections.resolves(mockConnections);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
+
+            const result = await (objectExplorerService as any).getRootNodes();
+
+            expect(result).to.have.lengthOf(2);
+            expect(result[0]).to.be.instanceOf(OverviewTreeNode);
+            expect(result[0].label).to.equal(LocalizedConstants.Overview.OverviewTreeNodeLabel);
+            expect(result[0].description).to.equal(
+                LocalizedConstants.Overview.OverviewTreeNodeDescription,
+            );
+            expect(result[1]).to.be.instanceOf(ConnectionNode);
+        });
+
+        test("getRootNodes should omit Overview when it is hidden", async () => {
+            const mockConnections = createMockConnectionProfiles(1);
+            mockConnectionStore.readAllConnections.resolves(mockConnections);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
+            objectExplorerService.setOverviewVisibility(false);
+
+            const result = await (objectExplorerService as any).getRootNodes();
+
+            expect(result).to.have.lengthOf(1);
+            expect(result[0]).to.be.instanceOf(ConnectionNode);
         });
 
         test("getRootNodes should handle error in connection store", async () => {
@@ -2404,8 +2518,7 @@ suite("OE Service Tests", () => {
                 ).to.have.been.calledWithMatch(
                     TelemetryViews.ObjectExplorer,
                     TelemetryActions.ExpandNode,
-                    sinon.match.any,
-                    sinon.match({ nodeType: "root" }),
+                    { additionalProps: sinon.match({ nodeType: "root" }) },
                 );
                 expect(endStub.called, "Telemetry end should not be called").to.be.false;
                 expect(endFailedStub.called, "Telemetry end failed should not be called").to.be
@@ -2413,7 +2526,7 @@ suite("OE Service Tests", () => {
             }
         });
 
-        test("getRootNodes should return empty array when no groups or connections exist", async () => {
+        test("getRootNodes should return Overview when no groups or connections exist", async () => {
             // Setup connection store to return empty arrays for both connections and groups
             mockConnectionStore.readAllConnections.resolves([]);
             mockConnectionStore.readAllConnectionGroups.resolves([]);
@@ -2421,8 +2534,8 @@ suite("OE Service Tests", () => {
             // Call the method
             const result = await (objectExplorerService as any).getRootNodes();
 
-            // Verify the result is an empty array
-            expect(result, "Result should be an empty array").to.be.an("array").that.is.empty;
+            expect(result).to.have.lengthOf(1);
+            expect(result[0]).to.be.instanceOf(OverviewTreeNode);
         });
 
         test("getRootNodes should return groups and connections in correct order", async () => {
@@ -2441,13 +2554,14 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify we have all expected nodes
-            expect(result.length, "Should have 3 root nodes (2 groups + 1 connection)").to.equal(3);
+            expect(result.length, "Should have Overview, 2 groups, and 1 connection").to.equal(4);
+            expect(result[0]).to.be.instanceOf(OverviewTreeNode);
 
             // Verify groups come before connections
             const firstTwoAreGroups = result
-                .slice(0, 2)
+                .slice(1, 3)
                 .every((node) => node instanceof ConnectionGroupNode);
-            const lastIsConnection = result[2] instanceof ConnectionNode;
+            const lastIsConnection = result[3] instanceof ConnectionNode;
             expect(firstTwoAreGroups, "First two nodes should be groups").to.be.true;
             expect(lastIsConnection, "Last node should be a connection").to.be.true;
 
@@ -2457,7 +2571,7 @@ suite("OE Service Tests", () => {
                 .map((node) => (node as ConnectionGroupNode).connectionGroup.id);
             expect(resultGroupIds).to.have.members([rootGroups[0].id, rootGroups[1].id]);
 
-            const resultConnection = result[2] as ConnectionNode;
+            const resultConnection = result[3] as ConnectionNode;
             expect(resultConnection.connectionProfile.id).to.equal(rootConnections[0].id);
         });
 
@@ -2802,8 +2916,7 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateSession,
-                sinon.match.any,
-                sinon.match({ connectionType: "SqlLogin" }),
+                { additionalProps: sinon.match({ connectionType: "SqlLogin" }) },
             );
         });
     });
@@ -2860,9 +2973,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should prompt with Sign In and Edit options when MissingVsCodeEntraAuthError is thrown", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 // User dismisses the dialog
@@ -2892,9 +3003,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should call signIn and retry prepareConnectionInfo when user chooses Sign In and Retry", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2930,9 +3039,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should return undefined if retry after sign-in also fails", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2958,9 +3065,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should open connection dialog when user chooses Edit Connection Profile", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
 
@@ -2990,9 +3095,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should return undefined without prompting when user dismisses the error dialog", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 messageBoxes.showErrorMessage.resolves(undefined);
@@ -3012,9 +3115,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should return undefined for non-MissingVsCodeEntraAuthError errors when Entra MFA is enabled", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const genericError = new Error("Some unexpected error");
                 mockConnectionManager.prepareConnectionInfo.rejects(genericError);
 
@@ -3030,10 +3131,8 @@ suite("OE Service Tests", () => {
                 ).to.be.false;
             });
 
-            test("should prompt with Sign In and Edit options and use addAccount when useVscodeAccountsForEntraMfa is disabled", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
-                });
+            test("should prompt with Sign In and Edit options and use addAccount when MSAL Entra MFA authentication is enabled", async () => {
+                stubUseMsalEntraMfaAuthConfig(sandbox, true);
 
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
@@ -3058,10 +3157,8 @@ suite("OE Service Tests", () => {
                 ).to.be.false;
             });
 
-            test("should call addAccount and retry when useVscodeAccountsForEntraMfa is disabled and user chooses Sign In", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
-                });
+            test("should call addAccount and retry when MSAL Entra MFA authentication is enabled and user chooses Sign In", async () => {
+                stubUseMsalEntraMfaAuthConfig(sandbox, true);
 
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 const connectionProfile = createMockConnectionProfile({

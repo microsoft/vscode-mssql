@@ -1,0 +1,50 @@
+// One-repetition provider-parity smoke for cancellation and forced-spill
+// reclamation. Both backends use identical SQL, terminal status, spill, and
+// file-removal oracles; this remains diagnostic until repeated baselines are
+// stable. The broader shape matrix lives in config.backend-shapes.local.jsonc.
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "diagnostic",
+    "repetitions": 1,
+    "warmupRepetitions": 0,
+    "scenarios": [
+        "querystudio-cancel-long-query-sts2",
+        "querystudio-cancel-long-query-tsnative",
+        "querystudio-dispose-forced-spill-sts2",
+        "querystudio-dispose-forced-spill-tsnative",
+    ],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "../workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../../../extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {},
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_SQLLOGIN_CONNSTRING",
+        "snapshot": "seed-v2",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": true, "otel": "off" },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

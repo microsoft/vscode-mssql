@@ -15,7 +15,7 @@ runs:
   steps:
     - name: Setup Node.js (cached)
       if: ${{ inputs.cache != '' }}
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
         node-version: "24.15.0" # pinning due to https://github.com/nodejs/node/issues/63487
         cache: ${{ inputs.cache }}
@@ -23,6 +23,6 @@ runs:
 
     - name: Setup Node.js
       if: ${{ inputs.cache == '' }}
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
         node-version: "24.15.0" # pinning due to https://github.com/nodejs/node/issues/63487

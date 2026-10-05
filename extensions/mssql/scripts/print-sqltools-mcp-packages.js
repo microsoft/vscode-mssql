@@ -92,6 +92,7 @@ function main() {
 module.exports = {
     getPackageSpecs,
     getSqlToolsMcpConfig,
+    loadConfig,
 };
 
 if (require.main === module) {

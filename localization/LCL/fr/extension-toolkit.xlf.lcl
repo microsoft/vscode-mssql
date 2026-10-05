@@ -1,10 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<LCX SchemaVersion="6.0" Name="D:\a\1\s\localization\xliff\extension-toolkit.xlf" PsrId="308" SrcCul="en-US" xmlns="http://schemas.microsoft.com/locstudio/2006/6/lcx" TgtCul="fr-FR">
+<LCX SchemaVersion="6.0" Name="D:\a\1\s\localization\xliff\extension-toolkit.xlf" PsrId="308" FileType="1" SrcCul="en-US" TgtCul="fr-FR" xmlns="http://schemas.microsoft.com/locstudio/2006/6/lcx">
   <OwnedComments>
     <Cmt Name="Dev" />
     <Cmt Name="LcxAdmin" />
     <Cmt Name="Rccx" />
   </OwnedComments>
+  <Settings Name="@SettingsPath@\default.lss" Type="Lss" />
   <Item ItemId=";Xliff file" ItemType="0" PsrId="308" Leaf="false">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
     <Item ItemId=";Xliff Resources" ItemType="0" PsrId="308" Leaf="false">
@@ -12,27 +13,30 @@
       <Item ItemId=";++CODE++29cb43d35709b0f1254247869842039bbf9946fe14ac3ed5d2361149d327e4fb" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Des paramètres de proxy ont été trouvés, mais une erreur s’est produite lors de l’analyse de l’URL : « {0} ». Vous pouvez rencontrer des problèmes de connexion. Erreur : {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Cmts>
-          <Cmt Name="Dev"><![CDATA[{0} is the proxy URL]D;]A;{1} is the error message;]]></Cmt>
-        </Cmts>
       </Item>
       <Item ItemId=";++CODE++846411cdb6da1b9a5bf9c0fbfff056eff05f531a8f63ec2c402d974c616aae31" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Des paramètres de proxy ont été trouvés, mais sans protocole (par exemple http://) : « {0} ». Vous pouvez rencontrer des problèmes de connexion.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Cmts>
-          <Cmt Name="Dev"><![CDATA[{0} is the proxy URL;]]></Cmt>
-        </Cmts>
       </Item>
       <Item ItemId=";++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unable to read proxy agent options.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Impossible de lire les options de l'agent proxy.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
     </Item>
   </Item>
-<Settings Name="@SettingsPath@\default.lss" Type="Lss" /></LCX>
+</LCX>

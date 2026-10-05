@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "./executionPlan.css";
-
 import {
     makeStyles,
+    mergeClasses,
     Toolbar,
     ToolbarButton,
     ToolbarDivider,
@@ -102,7 +101,6 @@ interface ReactFlowIconStackProps {
     query: string;
     xml: string;
     graphIndex: number;
-    canCompare: boolean;
 }
 
 enum InputEnum {
@@ -127,7 +125,6 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
     query,
     xml,
     graphIndex,
-    canCompare,
 }) => {
     const classes = useStyles();
     const context = useContext(ExecutionPlanContext);
@@ -203,7 +200,7 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
     };
 
     const buttonClassName = (selected = false) =>
-        `${classes.button}${selected ? ` ${classes.selectedButton}` : ""}`;
+        mergeClasses(classes.button, selected && classes.selectedButton);
 
     return (
         <Toolbar
@@ -231,15 +228,13 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
                 title={OPEN_QUERY}
                 aria-label={OPEN_QUERY}
             />
-            {canCompare && (
-                <ToolbarButton
-                    className={classes.button}
-                    icon={<BranchCompareIcon16Regular className={classes.icon} />}
-                    onClick={() => context.compareExecutionPlan(graphIndex)}
-                    title={COMPARE_PLAN}
-                    aria-label={COMPARE_PLAN}
-                />
-            )}
+            <ToolbarButton
+                className={classes.button}
+                icon={<BranchCompareIcon16Regular className={classes.icon} />}
+                onClick={() => context.compareExecutionPlan(graphIndex)}
+                title={COMPARE_PLAN}
+                aria-label={COMPARE_PLAN}
+            />
             <ToolbarDivider className={classes.divider} />
             <ToolbarButton
                 className={classes.button}

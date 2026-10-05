@@ -4,16 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
+import { isEndpointEmpty } from "../schemaCompareEndpointUtils";
 import { locConstants as loc } from "../../../common/locConstants";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 
 const useStyles = makeStyles({
     container: {
-        marginTop: "32px",
+        position: "absolute",
+        inset: 0,
         display: "flex",
         gap: "16px",
         flexDirection: "column",
-        alignItems: "stretch",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        padding: "24px",
+        boxSizing: "border-box",
+        pointerEvents: "none",
     },
 });
 
@@ -23,6 +30,8 @@ const Message = () => {
     const applySucceeded = useSchemaCompareSelector((s) => s.applySucceeded);
     const applyFailed = useSchemaCompareSelector((s) => s.applyFailed);
     const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
+    const sourceEndpointInfo = useSchemaCompareSelector((s) => s.sourceEndpointInfo);
+    const targetEndpointInfo = useSchemaCompareSelector((s) => s.targetEndpointInfo);
     const classes = useStyles();
 
     let message = "";
@@ -40,7 +49,17 @@ const Message = () => {
         message = loc.schemaCompare.initializingComparison;
         showSpinner = true;
     } else if (!isComparisonInProgress && !schemaCompareResult) {
-        message = loc.schemaCompare.intro;
+        const needsSource = isEndpointEmpty(sourceEndpointInfo);
+        const needsTarget = isEndpointEmpty(targetEndpointInfo);
+        if (needsSource && needsTarget) {
+            message = loc.schemaCompare.intro;
+        } else if (needsSource) {
+            message = loc.schemaCompare.selectSourceToCompare;
+        } else if (needsTarget) {
+            message = loc.schemaCompare.selectTargetToCompare;
+        } else {
+            message = loc.schemaCompare.readyToCompare;
+        }
     }
 
     if (!message) {

@@ -1,0 +1,23 @@
+{
+    "name": "mssql-perftest",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Local-first deterministic end-to-end performance harness for the MSSQL VS Code extension and SQL Tools Service",
+    "workspaces": [
+        "packages/*",
+        "extensions/*"
+    ],
+    "scripts": {
+        "build": "npm run build --workspaces --if-present",
+        "pretest": "npm run build",
+        "test": "npm run test --workspaces --if-present",
+        "typecheck": "npm run typecheck --workspaces --if-present",
+        "perftest": "node packages/perftest-cli/dist/cli.js"
+    },
+    "engines": {
+        "node": ">=22"
+    },
+    "devDependencies": {
+        "prettier": "^3.6.2"
+    }
+}

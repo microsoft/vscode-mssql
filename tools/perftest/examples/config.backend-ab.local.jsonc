@@ -1,0 +1,54 @@
+// TSQ2-12 backend A/B: sts2-local vs ts-native on IDENTICAL Query Studio
+// 10k-row scenarios (same provider-neutral fixture, markers, metrics; only
+// the pre-launch backend setting differs). Raw DECIMAL(18,4) fidelity remains
+// a separate correctness oracle. Non-gating exploratory baseline.
+// Run from the perftest repo root:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.backend-ab.local.jsonc
+// Then:
+//   node packages/perftest-cli/dist/cli.js head-to-head \
+//     --baseline-scenario querystudio-query-10k-sts2 \
+//     --candidate-scenario querystudio-query-10k-tsnative
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": ["querystudio-query-10k-sts2", "querystudio-query-10k-tsnative"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "../workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../../../extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            // Same STS2 commit as this tree; built binaries reused from the main checkout.
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_SQLLOGIN_CONNSTRING",
+        "snapshot": "seed-v2",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    // processSampler ON: resource fairness needs exthost+STS totals per side.
+    "diagnostics": { "markers": true, "processSampler": true, "otel": "off" },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

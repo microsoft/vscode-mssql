@@ -52,7 +52,6 @@ suite("ExecutionPlanWebviewController", () => {
                 loadState: ApiStatus.Loading,
                 executionPlanGraphs: [],
                 totalCost: 0,
-                isBetaExecutionPlanEnabled: false,
             },
         };
 
@@ -61,7 +60,6 @@ suite("ExecutionPlanWebviewController", () => {
                 executionPlanGraphs: [],
                 loadState: ApiStatus.Loaded,
                 totalCost: 100,
-                isBetaExecutionPlanEnabled: false,
             },
         };
 
@@ -186,7 +184,6 @@ suite("ExecutionPlanWebviewController", () => {
                 executionPlanGraphs: [],
                 loadState: ApiStatus.Loaded,
                 totalCost: 100,
-                isBetaExecutionPlanEnabled: false,
             },
         });
 
@@ -218,7 +215,6 @@ suite("ExecutionPlanWebviewController", () => {
         const state: ep.ExecutionPlanWebviewState = {
             executionPlanState: {
                 ...mockInitialState.executionPlanState,
-                isBetaExecutionPlanEnabled: true,
                 executionPlanGraphs: [graph],
             },
         };
@@ -238,12 +234,11 @@ suite("ExecutionPlanWebviewController", () => {
         expect(result).to.equal(state);
     });
 
-    test("should not open comparison when the React Flow preview is disabled", async () => {
+    test("should not open comparison when no graphs are loaded", async () => {
         const state: ep.ExecutionPlanWebviewState = {
             executionPlanState: {
                 ...mockInitialState.executionPlanState,
-                isBetaExecutionPlanEnabled: false,
-                executionPlanGraphs: [{} as ep.ExecutionPlanGraph],
+                executionPlanGraphs: [],
             },
         };
         const openComparisonStub = sandbox.stub(epUtils, "openExecutionPlanComparisonWebview");

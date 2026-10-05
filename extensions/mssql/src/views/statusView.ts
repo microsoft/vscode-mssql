@@ -27,6 +27,8 @@ class FileStatusBar {
     public statusConnection: vscode.StatusBarItem;
     // Item for the change database
     public statusChangeDatabase: vscode.StatusBarItem;
+    // Item for the server process ID (SPID) of the connection
+    public statusServerProcessId: vscode.StatusBarItem;
     // Item for the query status
     public statusQuery: vscode.StatusBarItem;
     // Item for language service status
@@ -47,6 +49,7 @@ export default class StatusView implements vscode.Disposable {
     private _statusBars: { [fileUri: string]: FileStatusBar };
     private _lastShownStatusBar: FileStatusBar;
     private _onDidCloseTextDocumentEvent: vscode.Disposable;
+    private _onDidChangeConfigurationEvent: vscode.Disposable;
     private _connectionStore: ConnectionStore;
 
     constructor() {
@@ -54,6 +57,17 @@ export default class StatusView implements vscode.Disposable {
         this._onDidCloseTextDocumentEvent = vscode.workspace.onDidCloseTextDocument((params) =>
             this.onDidCloseTextDocument(params),
         );
+        this._onDidChangeConfigurationEvent = vscode.workspace.onDidChangeConfiguration((e) => {
+            if (
+                e.affectsConfiguration(
+                    `${Constants.extensionConfigSectionName}.${Constants.configStatusBarShowServerProcessId}`,
+                )
+            ) {
+                for (const fileUri of Object.keys(this._statusBars)) {
+                    this.updateServerProcessIdVisibility(fileUri, this._statusBars[fileUri]);
+                }
+            }
+        });
 
         // Listen for ownership changes from coordinating extensions
         if (uriOwnershipCoordinator) {
@@ -75,11 +89,14 @@ export default class StatusView implements vscode.Disposable {
                         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
                         this.showStatusBarItem(fileUri, bar.statusConnection);
                         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
+                        this.updateServerProcessIdVisibility(fileUri, bar);
                         this.showStatusBarItem(fileUri, bar.statusLanguageService);
                         if (!this.isInWebviewFooterEnabled) {
-                            this.showStatusBarItem(fileUri, bar.statusQuery);
                             this.showStatusBarItem(fileUri, bar.rowCount);
                             this.showStatusBarItem(fileUri, bar.executionTime);
+                        }
+                        if (this.isShowQueryExecutionStatusEnabled) {
+                            this.showStatusBarItem(fileUri, bar.statusQuery);
                         } else {
                             bar.statusQuery.hide();
                         }
@@ -96,6 +113,7 @@ export default class StatusView implements vscode.Disposable {
                 this._statusBars[bar].statusLanguageFlavor.dispose();
                 this._statusBars[bar].statusConnection.dispose();
                 this._statusBars[bar].statusChangeDatabase.dispose();
+                this._statusBars[bar].statusServerProcessId.dispose();
                 this._statusBars[bar].statusQuery.dispose();
                 this._statusBars[bar].statusLanguageService.dispose();
                 this._statusBars[bar].executionTime.dispose();
@@ -108,6 +126,7 @@ export default class StatusView implements vscode.Disposable {
             }
         }
         this._onDidCloseTextDocumentEvent.dispose();
+        this._onDidChangeConfigurationEvent.dispose();
     }
 
     public setConnectionStore(connectionStore: ConnectionStore): void {
@@ -116,11 +135,29 @@ export default class StatusView implements vscode.Disposable {
 
     /**
      * Whether the in-webview query results footer preview is enabled. When enabled, the
-     * row count and execution time status bar items (and the query progress indicator) are
-     * suppressed because the footer surfaces that information inside the results view.
+     * row count and execution time status bar items are suppressed because the footer surfaces
+     * that information inside the results view.
      */
     private get isInWebviewFooterEnabled(): boolean {
         return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
+    }
+
+    /**
+     * Whether the query execution status bar item is enabled in settings.
+     */
+    private get isShowQueryExecutionStatusEnabled(): boolean {
+        return vscode.workspace
+            .getConfiguration(Constants.extensionConfigSectionName)
+            .get<boolean>(Constants.configStatusBarShowQueryExecutionStatus, true);
+    }
+
+    /**
+     * Whether the server process ID (SPID) status bar item is enabled in settings.
+     */
+    private get isShowServerProcessIdEnabled(): boolean {
+        return vscode.workspace
+            .getConfiguration(Constants.extensionConfigSectionName)
+            .get<boolean>(Constants.configStatusBarShowServerProcessId, false);
     }
 
     // Create status bar item if needed
@@ -135,6 +172,10 @@ export default class StatusView implements vscode.Disposable {
         bar.statusChangeDatabase = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Right,
         );
+        bar.statusServerProcessId = vscode.window.createStatusBarItem(
+            vscode.StatusBarAlignment.Right,
+        );
+        bar.statusServerProcessId.tooltip = LocalizedConstants.StatusBar.serverProcessIdTooltip;
         bar.statusQuery = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
         bar.statusQuery.accessibilityInformation = { role: "alert", label: "" };
         bar.statusLanguageService = vscode.window.createStatusBarItem(
@@ -157,6 +198,9 @@ export default class StatusView implements vscode.Disposable {
             }
             if (bar.statusChangeDatabase) {
                 bar.statusChangeDatabase.dispose();
+            }
+            if (bar.statusServerProcessId) {
+                bar.statusServerProcessId.dispose();
             }
             if (bar.statusQuery) {
                 bar.statusQuery.dispose();
@@ -196,11 +240,14 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
+        this.updateServerProcessIdVisibility(fileUri, bar);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
         if (!this.isInWebviewFooterEnabled) {
-            this.showStatusBarItem(fileUri, bar.statusQuery);
             this.showStatusBarItem(fileUri, bar.rowCount);
             this.showStatusBarItem(fileUri, bar.executionTime);
+        }
+        if (this.isShowQueryExecutionStatusEnabled) {
+            this.showStatusBarItem(fileUri, bar.statusQuery);
         } else {
             bar.statusQuery.hide();
         }
@@ -211,6 +258,7 @@ export default class StatusView implements vscode.Disposable {
         let bar = this.getStatusBar(fileUri);
 
         bar.connectionId = undefined;
+        this.setServerProcessId(fileUri, undefined);
 
         bar.statusConnection.text = `$(plug) ${LocalizedConstants.StatusBar.disconnectedLabel}`;
         bar.statusConnection.tooltip = LocalizedConstants.StatusBar.notConnectedTooltip;
@@ -238,6 +286,28 @@ export default class StatusView implements vscode.Disposable {
             LocalizedConstants.connectingTooltip + ConnInfo.getTooltip(connCreds);
         bar.connectionId = (connCreds as IConnectionProfile).id || undefined;
         this.showStatusBarItem(fileUri, bar.statusConnection);
+        this.setServerProcessId(fileUri, undefined);
+    }
+
+    /**
+     * Sets the server process ID (SPID) shown for the editor's connection.
+     * @param fileUri URI of the editor
+     * @param serverProcessId SPID reported by the service, or undefined to clear it
+     */
+    public setServerProcessId(fileUri: string, serverProcessId: string | undefined): void {
+        const bar = this.getStatusBar(fileUri);
+        bar.statusServerProcessId.text = serverProcessId
+            ? LocalizedConstants.StatusBar.serverProcessIdLabel(serverProcessId)
+            : "";
+        this.updateServerProcessIdVisibility(fileUri, bar);
+    }
+
+    private updateServerProcessIdVisibility(fileUri: string, bar: FileStatusBar): void {
+        if (this.isShowServerProcessIdEnabled) {
+            this.showStatusBarItem(fileUri, bar.statusServerProcessId);
+        } else {
+            bar.statusServerProcessId.hide();
+        }
     }
 
     /**
@@ -352,7 +422,7 @@ export default class StatusView implements vscode.Disposable {
         let bar = this.getStatusBar(fileUri);
         clearInterval(bar.queryTimer);
         this.hideStatusBarItem(fileUri, bar.executionTime);
-        if (this.isInWebviewFooterEnabled) {
+        if (!this.isShowQueryExecutionStatusEnabled) {
             bar.statusQuery.hide();
             return;
         }
@@ -364,7 +434,7 @@ export default class StatusView implements vscode.Disposable {
 
     public executedQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
-        if (this.isInWebviewFooterEnabled) {
+        if (!this.isShowQueryExecutionStatusEnabled) {
             bar.statusQuery.hide();
             return;
         }
@@ -387,7 +457,8 @@ export default class StatusView implements vscode.Disposable {
 
     public cancelingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
-        if (this.isInWebviewFooterEnabled) {
+        clearInterval(bar.queryTimer);
+        if (!this.isShowQueryExecutionStatusEnabled) {
             bar.statusQuery.hide();
             return;
         }
@@ -396,8 +467,6 @@ export default class StatusView implements vscode.Disposable {
         bar.statusQuery.command = undefined;
         bar.statusQuery.text = LocalizedConstants.cancelingQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
-        this.showProgress(fileUri, LocalizedConstants.cancelingQueryLabel, bar.statusQuery);
-        clearInterval(bar.queryTimer);
     }
 
     public languageServiceStatusChanged(fileUri: string, status: string): void {
@@ -516,6 +585,7 @@ export default class StatusView implements vscode.Disposable {
             this._lastShownStatusBar.statusLanguageFlavor.hide();
             this._lastShownStatusBar.statusConnection.hide();
             this._lastShownStatusBar.statusChangeDatabase.hide();
+            this._lastShownStatusBar.statusServerProcessId.hide();
             this._lastShownStatusBar.statusQuery.hide();
             this._lastShownStatusBar.statusLanguageService.hide();
             this._lastShownStatusBar.executionTime.hide();

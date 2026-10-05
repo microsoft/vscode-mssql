@@ -156,6 +156,29 @@ export function applyFluentResultGridTransformsToSourceRows({
     });
 }
 
+/**
+ * Filter menus are narrowed by every active filter except their own. Excluding the menu column's
+ * filter keeps values hidden by that filter available so the user can select them again.
+ */
+export function getFluentResultGridRowsForFilterMenu({
+    rows,
+    filters,
+    columnId,
+}: {
+    rows: readonly SourceRow[];
+    filters: ColumnFilterMap;
+    columnId: string;
+}): SourceRow[] {
+    const otherColumnFilters = Object.fromEntries(
+        Object.entries(filters).filter(([filteredColumnId]) => filteredColumnId !== columnId),
+    );
+
+    return applyFluentResultGridTransformsToSourceRows({
+        rows,
+        filters: otherColumnFilters,
+    });
+}
+
 export function getFluentResultGridFilterDisplayText(
     value: FluentResultGridFilterValue,
     strings: FluentResultGridStrings,

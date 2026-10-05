@@ -165,8 +165,12 @@ suite("SchemaDesignerTool Tests", () => {
             sendActionEventStub.calledWithMatch(
                 TelemetryViews.MssqlCopilot,
                 TelemetryActions.SchemaDesignerTool,
-                sinon.match(expectedProperties),
-                expectedMeasurements ? sinon.match(expectedMeasurements) : sinon.match.any,
+                {
+                    additionalProps: sinon.match(expectedProperties),
+                    additionalMeasurements: expectedMeasurements
+                        ? sinon.match(expectedMeasurements)
+                        : sinon.match.any,
+                },
             ),
             `Expected SchemaDesignerTool telemetry: ${JSON.stringify(expectedProperties)}`,
         ).to.be.true;

@@ -5,20 +5,17 @@
 
 import type { Column } from "slickgrid-react";
 import type { IDbColumn } from "../../../../sharedInterfaces/queryResult";
+import { isNumericSqlType, NUMERIC_CELL_CSS_CLASS } from "../../sqlTypeUtils";
 import {
     FLUENT_RESULT_GRID_DEFAULT_COLUMN_WIDTH,
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
-    FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
 } from "./fluentResultGridConstants";
 import {
-    fluentResultGridRowNumberFormatter,
     getFluentResultGridColumnFormatter,
     getFluentResultGridColumnName,
 } from "./fluentResultGridFormatters";
-import {
-    FLUENT_RESULT_GRID_ROW_NUMBER_FIELD,
-    type FluentResultGridDataRow,
-} from "./fluentResultGridDataView";
+import type { FluentResultGridDataRow } from "./fluentResultGridDataView";
+import { createFluentResultGridRowNumberColumn } from "./fluentResultGridRowNumber";
 
 export function isFluentResultGridDataColumn(column: Column<FluentResultGridDataRow>): boolean {
     return column.id !== FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID && !column.excludeFromGridMenu;
@@ -53,33 +50,14 @@ export function createFluentResultGridColumns({
         sortable: false,
         filterable: true,
         formatter: getFluentResultGridColumnFormatter(column),
+        cssClass: isNumericSqlType(column.dataTypeName) ? NUMERIC_CELL_CSS_CLASS : undefined,
     }));
 
     if (!showRowNumberColumn) {
         return columns;
     }
 
-    return [
-        {
-            id: FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
-            name: "",
-            field: FLUENT_RESULT_GRID_ROW_NUMBER_FIELD,
-            width: FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
-            minWidth: FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
-            maxWidth: FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
-            cssClass: "fluent-result-grid-row-number-cell",
-            headerCssClass: "fluent-result-grid-row-number-header",
-            reorderable: false,
-            resizable: false,
-            selectable: false,
-            sortable: false,
-            excludeFromColumnPicker: true,
-            excludeFromGridMenu: true,
-            excludeFromHeaderMenu: true,
-            formatter: fluentResultGridRowNumberFormatter,
-        },
-        ...columns,
-    ];
+    return [createFluentResultGridRowNumberColumn(), ...columns];
 }
 
 export function areAllFluentResultGridColumnsShown(

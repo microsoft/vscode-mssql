@@ -22,6 +22,7 @@ import store, { QueryResultSingletonStore } from "./singletonStore";
 import * as LocalizedConstants from "../constants/locConstants";
 import { formatXml } from "../utils/utils";
 import { getLogger } from "../models/logger";
+import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 
 export const MAX_VIEW_COLUMN = 9;
 const logger = getLogger("QueryResult");
@@ -76,6 +77,54 @@ export function registerCommonRequestHandlers(
         await vscode.commands.executeCommand("workbench.action.closePanel");
     });
 
+    webviewController.onRequest(qr.ToggleResultsGridModeRequest.type, async (message) => {
+        // Negate the effective value rather than the stored one: when the preview setting is
+        // unset it falls back to the global experimental flag, and only negating what the user
+        // currently sees guarantees the toggle actually changes the grid.
+        const newValue = !previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
+
+        const measurements: Record<string, number> = {};
+        if (message?.gridCount !== undefined) {
+            measurements.gridCount = message.gridCount;
+        }
+        if (message?.rowCount !== undefined) {
+            measurements.rowCount = bucketizeRowCount(message.rowCount);
+        }
+
+        // Sent before the update because writing the setting reloads this webview, which may
+        // tear down the caller before the request resolves.
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.ToggleResultsGridMode, {
+            additionalProps: {
+                correlationId: correlationId,
+                newMode: newValue ? "preview" : "classic",
+                source: "resultsPaneSwitch",
+                webviewLocation:
+                    webviewController instanceof QueryResultWebviewController
+                        ? "panel"
+                        : "document",
+            },
+            additionalMeasurements: measurements,
+        });
+
+        // The configuration listener fires for this write too and reports changes made outside
+        // the product. Claim this one so the single toggle is not counted twice.
+        webviewViewController.setGridModeChangeReportedBySwitch(true);
+        try {
+            await vscode.workspace
+                .getConfiguration()
+                .update(
+                    getPreviewConfigKey(PreviewFeature.BetaResultsGrid),
+                    newValue,
+                    vscode.ConfigurationTarget.Global,
+                );
+        } catch (error) {
+            // The listener will not fire, so release the claim rather than swallowing the next
+            // genuine settings-driven change.
+            webviewViewController.setGridModeChangeReportedBySwitch(false);
+            throw error;
+        }
+    });
+
     webviewController.onRequest(qr.HandleSelectionSummaryRequest.type, async (uri) => {
         webviewViewController.handleSelectionSummary(uri);
     });
@@ -108,10 +157,12 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.SaveResultsWebviewRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.SaveResults, {
-            correlationId: correlationId,
-            format: message.format,
-            selection: JSON.stringify(message.selection),
-            origin: message.origin,
+            additionalProps: {
+                correlationId: correlationId,
+                format: message.format,
+                selection: JSON.stringify(message.selection),
+                origin: message.origin,
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -126,7 +177,9 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopySelectionRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
+            additionalProps: {
+                correlationId: correlationId,
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -136,12 +189,15 @@ export function registerCommonRequestHandlers(
                 message.resultId,
                 message.selection,
                 shouldIncludeHeaders(message.includeHeaders),
+                message.preserveSelectionLayout,
             );
     });
 
     webviewController.onRequest(qr.CopyHeadersRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyHeaders, {
-            correlationId: correlationId,
+            additionalProps: {
+                correlationId: correlationId,
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -155,8 +211,10 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsCsvRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
-            format: "csv",
+            additionalProps: {
+                correlationId: correlationId,
+                format: "csv",
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -170,8 +228,10 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsJsonRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
-            format: "json",
+            additionalProps: {
+                correlationId: correlationId,
+                format: "json",
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -185,8 +245,10 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsInClauseRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
-            format: "in-clause",
+            additionalProps: {
+                correlationId: correlationId,
+                format: "in-clause",
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -200,8 +262,10 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsInsertIntoRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
-            format: "insert-into",
+            additionalProps: {
+                correlationId: correlationId,
+                format: "insert-into",
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -267,6 +331,7 @@ export function registerCommonRequestHandlers(
             {
                 scrollLeft: message.scrollLeft,
                 scrollTop: message.scrollTop,
+                scrollTopOffset: message.scrollTopOffset,
             },
         );
     });
@@ -347,16 +412,13 @@ export function registerCommonRequestHandlers(
         return state;
     });
     webviewController.registerReducer("openFileThroughLink", async (state, payload) => {
-        // If the content is an execution plan XML, open it in the execution plan tab
+        // Plans from this result open in its Query Plan tab from the webview. Any other execution
+        // plan XML opens in its own execution plan viewer.
         let formattedText = payload.content;
         if (
             payload.type === Constants.xml &&
             payload.content.startsWith(Constants.queryPlanXmlStart)
         ) {
-            if (state.isExecutionPlan) {
-                state.tabStates.resultPaneTab = qr.QueryResultPaneTabs.ExecutionPlan;
-                return state;
-            }
             openExecutionPlanWebview(
                 webviewViewController.getContext(),
                 webviewViewController.executionPlanService,
@@ -406,10 +468,7 @@ export function registerCommonRequestHandlers(
         return (await updateTotalCost(state, payload)) as qr.QueryResultWebviewState;
     });
     webviewController.registerReducer("compareExecutionPlan", async (state, payload) => {
-        if (
-            state.executionPlanState.isBetaExecutionPlanEnabled &&
-            state.executionPlanState.executionPlanGraphs?.length
-        ) {
+        if (state.executionPlanState.executionPlanGraphs?.length) {
             openExecutionPlanComparisonWebview(
                 webviewViewController.getContext(),
                 webviewViewController.executionPlanService,

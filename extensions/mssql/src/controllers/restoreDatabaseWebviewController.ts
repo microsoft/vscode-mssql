@@ -120,12 +120,10 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             restoreViewModel.loadState = ApiStatus.Error;
             restoreViewModel.errorMessage = getErrorMessage(error);
             this.updateViewModel(restoreViewModel);
-            sendErrorEvent(
-                TelemetryViews.Restore,
-                TelemetryActions.InitializeRestore,
+            sendErrorEvent(TelemetryViews.Restore, TelemetryActions.InitializeRestore, {
                 error,
-                false, // include error message in telemetry
-            );
+                includeErrorMessage: false,
+            });
             return;
         }
 
@@ -198,12 +196,10 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
                 this.updateViewModel(restoreViewModel, state);
             })
             .catch((error) => {
-                sendErrorEvent(
-                    TelemetryViews.Restore,
-                    TelemetryActions.GetRestorePlan,
+                sendErrorEvent(TelemetryViews.Restore, TelemetryActions.GetRestorePlan, {
                     error,
-                    false, // include error message in telemetry
-                );
+                    includeErrorMessage: false,
+                });
             });
 
         this.registerRestoreRpcHandlers();
@@ -286,7 +282,9 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         this.registerReducer("restoreDatabase", async (state, _payload) => {
             await this.restoreHelper(TaskExecutionMode.executeAndScript);
             sendActionEvent(TelemetryViews.Restore, TelemetryActions.Restore, {
-                restoreType: this.restoreViewModel(state).type,
+                additionalProps: {
+                    restoreType: this.restoreViewModel(state).type,
+                },
             });
             return state;
         });
@@ -306,7 +304,9 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
 
             await this.restoreHelper(TaskExecutionMode.script);
             sendActionEvent(TelemetryViews.Restore, TelemetryActions.ScriptRestore, {
-                restoreType: this.restoreViewModel(state).type,
+                additionalProps: {
+                    restoreType: this.restoreViewModel(state).type,
+                },
             });
             return state;
         });
@@ -705,17 +705,13 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             return await this.objectManagementService.restoreDatabase(params);
         } catch (error) {
             this.state.errorMessage = getErrorMessage(error);
-            sendErrorEvent(
-                TelemetryViews.Restore,
-                TelemetryActions.Restore,
+            sendErrorEvent(TelemetryViews.Restore, TelemetryActions.Restore, {
                 error,
-                false, // include error message in telemetry
-                undefined, // error code
-                undefined, // error type
-                {
+                includeErrorMessage: false,
+                additionalProps: {
                     isScript: (taskMode === TaskExecutionMode.script).toString(),
                 },
-            );
+            });
             return;
         }
     }
@@ -749,12 +745,10 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             restoreViewModel.restorePlan = undefined;
             restoreViewModel.errorMessage = getErrorMessage(error);
             this.updateViewModel(restoreViewModel, state);
-            sendErrorEvent(
-                TelemetryViews.Restore,
-                TelemetryActions.GetRestorePlan,
+            sendErrorEvent(TelemetryViews.Restore, TelemetryActions.GetRestorePlan, {
                 error,
-                false, // include error message in telemetry
-            );
+                includeErrorMessage: false,
+            });
 
             return this.updateViewModel(restoreViewModel, state);
         }

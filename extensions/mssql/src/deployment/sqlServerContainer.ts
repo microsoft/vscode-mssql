@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DockerCommandParams, DockerStep } from "../sharedInterfaces/localContainers";
+import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
     defaultPortNumber,
@@ -19,6 +20,7 @@ import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "../docker/dockerodeClient";
+import { getSqlPasswordValidationError, SqlPasswordValidationError } from "../utils/sqlStringUtils";
 import {
     DockerCommand,
     checkDockerInstallation,
@@ -148,25 +150,14 @@ function getContainerStartTimestampSeconds(
  * If the password is invalid, it returns an error message.
  */
 export function validateSqlServerPassword(password: string): string {
-    if (password.length < 8 || password.length > 128) {
-        return LocalContainers.passwordLengthError;
+    switch (getSqlPasswordValidationError(password)) {
+        case SqlPasswordValidationError.Length:
+            return LocalContainers.passwordLengthError;
+        case SqlPasswordValidationError.Complexity:
+            return LocalContainers.passwordComplexityError;
+        default:
+            return "";
     }
-
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasDigit = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*]/.test(password);
-
-    // Count the number of required character categories met
-    const categoryCount = [hasUpperCase, hasLowerCase, hasDigit, hasSpecialChar].filter(
-        Boolean,
-    ).length;
-
-    if (categoryCount < 3) {
-        return LocalContainers.passwordComplexityError;
-    }
-
-    return "";
 }
 
 /**
@@ -239,58 +230,75 @@ export async function restartSqlServerContainer(
     containerName: string,
     containerNode: ConnectionNode,
     objectExplorerService: ObjectExplorerService,
-): Promise<boolean> {
-    const dockerPreparedResult = await prepareForDockerContainerCommand(
-        containerName,
-        containerNode,
-        objectExplorerService,
-    );
-    if (!dockerPreparedResult.success) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.RestartContainer,
-            new Error(dockerPreparedResult.error),
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
+): Promise<boolean | undefined> {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    try {
+        const dockerPreparedResult = await prepareForDockerContainerCommand(
+            containerName,
+            containerNode,
+            objectExplorerService,
+            cancellationTokenSource,
         );
-        return false;
+        if (!dockerPreparedResult.success) {
+            if (dockerPreparedResult.canceled) {
+                return undefined;
+            }
+            sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+                error: new Error(dockerPreparedResult.error),
+                includeErrorMessage: false,
+            });
+            return false;
+        }
+        const isContainerRunning = await isDockerContainerRunning(containerName);
+
+        if (isContainerRunning) return true; // Container is already running
+        containerNode.loadingLabel = LocalContainers.startingContainerLoadingLabel;
+        await objectExplorerService.setLoadingUiForNode(containerNode, cancellationTokenSource);
+        dockerLogger.info(`Restarting container: ${containerName}`);
+        const container = await getContainerByName(containerName);
+        if (!container) {
+            throw new Error(`Container ${containerName} does not exist.`);
+        }
+        const containerStarted = await Promise.race([
+            container.start().then(() => true),
+            new Promise<boolean>((resolve) =>
+                cancellationTokenSource.token.onCancellationRequested(() => resolve(false)),
+            ),
+        ]);
+        if (!containerStarted) {
+            dockerLogger.info(`Container start canceled for ${containerName}.`);
+            return undefined;
+        }
+
+        dockerLogger.info(`Container ${containerName} restarted successfully.`);
+        containerNode.loadingLabel = LocalContainers.readyingContainerLoadingLabel;
+        await objectExplorerService.setLoadingUiForNode(containerNode, cancellationTokenSource);
+
+        const containerReadyResult: DockerCommandParams =
+            await checkIfSqlServerContainerIsReadyForConnections(
+                containerName,
+                cancellationTokenSource.token,
+            );
+
+        if (containerReadyResult.canceled) {
+            return undefined;
+        }
+
+        containerNode.loadingLabel = ObjectExplorer.LoadingNodeLabel;
+        await objectExplorerService.setLoadingUiForNode(containerNode);
+
+        if (!containerReadyResult.success) {
+            sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+                error: new Error(containerReadyResult.error),
+                includeErrorMessage: false,
+            });
+            return false;
+        }
+        sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer);
+        return true;
+    } finally {
+        cancellationTokenSource.dispose();
     }
-    const isContainerRunning = await isDockerContainerRunning(containerName);
-
-    if (isContainerRunning) return true; // Container is already running
-    containerNode.loadingLabel = LocalContainers.startingContainerLoadingLabel;
-    await objectExplorerService.setLoadingUiForNode(containerNode);
-    dockerLogger.info(`Restarting container: ${containerName}`);
-    const container = await getContainerByName(containerName);
-    if (!container) {
-        throw new Error(`Container ${containerName} does not exist.`);
-    }
-    await container.start();
-
-    dockerLogger.info(`Container ${containerName} restarted successfully.`);
-    containerNode.loadingLabel = LocalContainers.readyingContainerLoadingLabel;
-    await objectExplorerService.setLoadingUiForNode(containerNode);
-
-    const containerReadyResult =
-        await checkIfSqlServerContainerIsReadyForConnections(containerName);
-
-    containerNode.loadingLabel = ObjectExplorer.LoadingNodeLabel;
-    await objectExplorerService.setLoadingUiForNode(containerNode);
-
-    if (!containerReadyResult.success) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.RestartContainer,
-            new Error(containerReadyResult.error),
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-        );
-        return false;
-    }
-    sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer);
-    return true;
 }
 
 /**
@@ -299,6 +307,7 @@ export async function restartSqlServerContainer(
  */
 export async function checkIfSqlServerContainerIsReadyForConnections(
     containerName: string,
+    cancellationToken?: vscode.CancellationToken,
 ): Promise<DockerCommandParams> {
     const timeoutMs = 300_000; // 5 minutes
     const readyMessage = SQL_SERVER_COMMANDS.CHECK_CONTAINER_READY;
@@ -323,13 +332,17 @@ export async function checkIfSqlServerContainerIsReadyForConnections(
         });
         let isReady = false;
         try {
-            isReady = await logMonitor.waitForMatch(readyMessage, timeoutMs);
+            isReady = await logMonitor.waitForMatch(readyMessage, timeoutMs, cancellationToken);
         } finally {
             logMonitor.dispose();
         }
         if (isReady) {
             dockerLogger.info(`${containerName} is ready for connections!`);
             return { success: true };
+        }
+        if (cancellationToken?.isCancellationRequested) {
+            dockerLogger.info(`Container readiness check canceled for ${containerName}.`);
+            return { success: false, canceled: true };
         }
     } catch (e) {
         dockerLogger.info(

@@ -80,7 +80,7 @@ suite("RunQueryTool Tests", () => {
             sendActionEventStub.calledWithMatch(
                 TelemetryViews.MssqlCopilot,
                 TelemetryActions.RunQuery,
-                sinon.match(expectedProperties),
+                { additionalProps: sinon.match(expectedProperties) },
             ),
             `Expected run query telemetry: ${JSON.stringify(expectedProperties)}`,
         ).to.be.true;

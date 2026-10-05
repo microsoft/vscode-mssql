@@ -5,6 +5,7 @@
 
 import { l10n } from "vscode";
 import * as os from "os";
+import { getErrorMessage } from "../utils/utils";
 
 // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
 export class Common {
@@ -30,6 +31,12 @@ export class Common {
     public static privateString = l10n.t("Private");
     public static remove = l10n.t("Remove");
     public static invalidPort = l10n.t("Port must be a number between 1 and 65535");
+    public static provisioningTarget = (target: string) =>
+        l10n.t({
+            message: "Provisioning {0}",
+            args: [target],
+            comment: ["{0} is the server, container, or database target being provisioned"],
+        });
 }
 
 export class SqlToolsMcp {
@@ -42,7 +49,7 @@ export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
-export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration (Preview)");
+export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
 export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
 export let quickQuerySlotOutOfRange = (maxSlot: number) =>
     l10n.t({
@@ -119,6 +126,13 @@ export function msgFinishedExecute(documentName: string) {
 }
 export let msgRunQueryInProgress = l10n.t(
     "A query is already running for this editor session. Please cancel this query or wait for its completion.",
+);
+export let msgRunQueryInProgressCancelAction = l10n.t("Cancel query");
+export let msgQueryNoLongerRunning = l10n.t(
+    "The service is no longer running a query for this editor. The editor's execution state has been reset.",
+);
+export let msgCancelQueryTimedOut = l10n.t(
+    "The cancel request did not complete in time. The editor's execution state has been reset.",
 );
 export let runQueryBatchStartMessage = l10n.t("Started executing query at ");
 export function runQueryBatchStartLine(lineNumber: number) {
@@ -296,11 +310,25 @@ export function msgSaveFailed(error: string) {
         comment: ["{0} is the error message"],
     });
 }
+export const msgSaveResultsWhileLoading = l10n.t(
+    "These results can't be saved until they finish loading.",
+);
 export function msgSaveSucceeded(filePath: string) {
     return l10n.t({
         message: "Successfully saved results to {0}",
         args: [filePath],
         comment: ["{0} is the file path"],
+    });
+}
+export let msgLiveQueryStatisticsUnavailable = l10n.t(
+    "Live query statistics aren't available for this query because its server session couldn't be identified.",
+);
+export function msgLiveQueryStatisticsStopped(error: string) {
+    return l10n.t({
+        message:
+            "Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}",
+        args: [error],
+        comment: ["{0} is the error message"],
     });
 }
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
@@ -857,6 +885,7 @@ export let failedToAddTextToWorkspace = (errorMessage: string) =>
     });
 export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
+export let copyingResultsCanceled = l10n.t("Copying results canceled");
 
 export let openQueryResultsInTabByDefaultPrompt = l10n.t(
     "Do you want to always display query results in a new tab instead of the query pane?",
@@ -1117,6 +1146,9 @@ export class ConnectionDialog {
     public static entraServicePrincipalAuthTooltip = l10n.t(
         "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
     );
+    public static kerberosAuthTooltip = l10n.t(
+        "Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.",
+    );
     public static applicationClientId = l10n.t("Application (Client) ID");
     public static applicationClientIdTooltip = l10n.t(
         "The Application (Client) ID of your Microsoft Entra app registration.",
@@ -1229,6 +1261,14 @@ export class FirewallRule {
 }
 
 export class Azure {
+    public static systemDatabaseNotInFabricDatabaseHub(databaseName: string): string {
+        return l10n.t({
+            message: "'{0}' is a system database, so it isn't tracked in the Fabric Database Hub.",
+            args: [databaseName],
+            comment: ["{0} is the name of the system database, such as 'master'"],
+        });
+    }
+
     public static unableToAcquireEntraTokenFromVsCode(accountDisplayName: string): string {
         return l10n.t({
             message:
@@ -1599,6 +1639,18 @@ export class AzureSqlDatabase {
     );
     public static maxVcores = l10n.t("Max vCores");
     public static selectMaxVcores = l10n.t("Select Max vCores");
+    public static provisioningTaskSucceeded = (databaseName: string) =>
+        l10n.t({
+            message: "Azure SQL database '{0}' was provisioned successfully.",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static provisioningTaskFailed = (databaseName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Azure SQL database '{0}': {1}",
+            args: [databaseName, error],
+            comment: ["{0} is the database name", "{1} is the error message"],
+        });
 }
 
 export class FabricProvisioning {
@@ -1613,6 +1665,18 @@ export class FabricProvisioning {
     public static databaseNameError = l10n.t(
         "This database name is already in use. Please choose a different name.",
     );
+    public static provisioningTaskSucceeded = (databaseName: string) =>
+        l10n.t({
+            message: "Fabric SQL database '{0}' was provisioned successfully.",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static provisioningTaskFailed = (databaseName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Fabric SQL database '{0}': {1}",
+            args: [databaseName, error],
+            comment: ["{0} is the database name", "{1} is the error message"],
+        });
 }
 
 export class QueryResult {
@@ -1743,6 +1807,55 @@ export class QueryResult {
     );
 }
 
+export class AzureSqlContainer {
+    public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
+    public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
+    public static portInUse = l10n.t("This port is already in use. Choose a different port.");
+    public static portDetectionFailed = l10n.t(
+        "Unable to find an available container port. Check that Docker is running and try again.",
+    );
+    public static invalidContainerName = l10n.t(
+        "Container names must start with a letter or number and contain only letters, numbers, underscores, periods, or hyphens.",
+    );
+    public static invalidHostname = l10n.t("Enter a valid hostname.");
+    public static acceptTerms = l10n.t("Accept the terms and conditions to continue.");
+    public static selectConnectionGroup = l10n.t("Select a connection group.");
+    public static pullImageFailed = l10n.t(
+        "Failed to pull the Azure SQL Database container image. Sign in to the private registry with your preview credentials, then retry.",
+    );
+    public static createContainerFailed = l10n.t(
+        "Failed to create and start the Azure SQL Database container.",
+    );
+    public static containerNotReady = l10n.t(
+        "The Azure SQL Database container did not become ready for connections within five minutes.",
+    );
+    public static connectContainerFailed = l10n.t(
+        "The container started, but the extension could not create its database connection.",
+    );
+    public static provisioningTaskSucceeded = (containerName: string) =>
+        l10n.t({
+            message: "Azure SQL Database container '{0}' was provisioned successfully.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static provisioningTaskFailed = (containerName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Azure SQL Database container '{0}': {1}",
+            args: [containerName, error],
+            comment: ["{0} is the container name", "{1} is the error message"],
+        });
+    public static provisioningTaskCanceled = (containerName: string) =>
+        l10n.t({
+            message: "Provisioning Azure SQL Database container '{0}' was canceled.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static pullingContainerImage = l10n.t("Pulling container image");
+    public static creatingContainer = l10n.t("Creating container");
+    public static settingUpContainer = l10n.t("Setting up container");
+    public static connectingToContainer = l10n.t("Connecting to container");
+}
+
 export class LocalContainers {
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({
@@ -1846,6 +1959,18 @@ export class LocalContainers {
     public static connectingToContainerBody = l10n.t(
         "Connecting to your SQL Server Docker container",
     );
+    public static provisioningTaskSucceeded = (containerName: string) =>
+        l10n.t({
+            message: "SQL Server container '{0}' was provisioned successfully.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static provisioningTaskFailed = (containerName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision SQL Server container '{0}': {1}",
+            args: [containerName, error],
+            comment: ["{0} is the container name", "{1} is the error message"],
+        });
     public static passwordLengthError = l10n.t("Please make your password 8-128 characters long.");
     public static passwordComplexityError = l10n.t(
         "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
@@ -1896,9 +2021,20 @@ export class LocalContainers {
     public static deleteContainerConfirmation = (containerName: string) => {
         return l10n.t({
             message:
-                "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.",
+                "Are you sure you want to delete the container '{0}'?\n\nThis will remove both the container and its connection from VS Code.",
             args: [containerName],
             comment: ["{0} is the container name"],
+        });
+    };
+    public static deleteSharedContainerConfirmation = (
+        containerName: string,
+        connectionDisplayNames: string[],
+    ) => {
+        return l10n.t({
+            message:
+                "The container '{0}' is also used by other saved connections:\n{1}\n\nDeleting it will remove both the container and this connection from VS Code, and the other connections will stop working.\n\nAre you sure you want to continue?",
+            args: [containerName, connectionDisplayNames.map((n) => `· ${n}`).join(os.EOL)],
+            comment: ["{0} is the container name", "{1} is the list of connection display names"],
         });
     };
     public static configureLinuxContainers = l10n.t("Configure Linux containers");
@@ -1952,6 +2088,86 @@ export class LocalContainers {
         "DAB container failed to become ready within the timeout period.",
     );
     public static dabStopContainerError = l10n.t("Failed to stop and remove DAB container.");
+    public static dabContainerNotFound = (containerName: string) =>
+        l10n.t({
+            message: "Container {0} no longer exists.",
+            args: [containerName],
+            comment: ["{0} is the Docker container name"],
+        });
+    public static dabStartExistingContainerError = l10n.t("Failed to start the DAB container.");
+    public static dabStopExistingContainerError = l10n.t("Failed to stop the DAB container.");
+    public static dabDeploymentNotFound = l10n.t(
+        "This deployment is no longer tracked. Refresh the deployments list and try again.",
+    );
+    public static dabRedeployPortUnavailable = (port: number, containerName: string) =>
+        l10n.t({
+            message:
+                "Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.",
+            args: [port, containerName],
+            comment: ["{0} is the port number", "{1} is the Docker container name"],
+        });
+    public static dabDeploymentStoreUnavailable = l10n.t(
+        "Deployments cannot be tracked because the extension's storage location is unavailable.",
+    );
+    // DAB CLI deployment strings
+    public static dabCliDownloadFailed = l10n.t(
+        "Failed to download the Data API builder CLI. Please check your network connection.",
+    );
+    public static dabCliPrepareFailed = l10n.t("Failed to prepare the Data API builder CLI.");
+    public static dabCliArchitectureUnsupported = (runtimeIdentifier: string) =>
+        l10n.t({
+            message:
+                "Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.",
+            args: [runtimeIdentifier],
+            comment: ["{0} is a .NET runtime identifier, such as osx-arm64"],
+        });
+    public static dabCliNotAcquired = l10n.t(
+        "The Data API builder CLI is not available. Run the prerequisite checks again.",
+    );
+    public static dabCliDotnetNotFound = l10n.t(
+        "No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.",
+    );
+    public static dabCliInstallDotnet = l10n.t("Download .NET");
+    public static dabCliDotnetNotResolved = l10n.t(
+        "The .NET runtime has not been resolved yet. Run the prerequisite checks again.",
+    );
+    public static dabCliConfigWriteFailed = l10n.t(
+        "Failed to write the Data API builder configuration file.",
+    );
+    public static dabCliConfigInvalid = l10n.t("The Data API builder configuration is not valid.");
+    public static dabCliDatabaseConnectionFailed = l10n.t(
+        "Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.",
+    );
+    public static dabCliEntraConnectionFailed = l10n.t(
+        "Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run 'az login', then run this step again.",
+    );
+    public static dabCliInstallAzureCli = l10n.t("Install the Azure CLI");
+    public static dabCliStartFailed = l10n.t("Failed to start the Data API builder engine.");
+    public static dabCliEngineNotReady = l10n.t(
+        "The Data API builder engine did not become ready within the timeout period.",
+    );
+    public static dabCliStartMissingParams = l10n.t(
+        "Deployment name, port, and configuration are required to start the engine.",
+    );
+    public static dabCliEngineDidNotStart = l10n.t("The Data API builder engine did not start.");
+    public static dabCliEngineReadyTimeout = l10n.t(
+        "The Data API builder engine did not answer in time.",
+    );
+    public static dabCliExitedWithCode = (code: number | null) =>
+        l10n.t({
+            message: "The Data API builder CLI exited with code {0}.",
+            args: [code ?? -1],
+            comment: ["{0} is the process exit code"],
+        });
+    public static dabDockerWindowsAuthNotSupported = l10n.t(
+        "A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.",
+    );
+    public static dabTargetAuthNotSupported = l10n.t(
+        "This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.",
+    );
+    public static dabCliDeploymentNotStartable = l10n.t(
+        "This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.",
+    );
 }
 
 export class UserSurvey {
@@ -2123,6 +2339,13 @@ export class SchemaCompare {
     public static Open = l10n.t("Open");
     public static Save = l10n.t("Save");
     public static defaultUserName = l10n.t("default");
+    public static failedToConnectToServer = l10n.t("Failed to connect to server");
+    public static savedConnectionNotFound = (connectionId: string) =>
+        l10n.t({
+            message: "Saved connection '{0}' not found.",
+            args: [connectionId],
+            comment: ["{0} is the saved connection ID"],
+        });
     public static Yes = l10n.t("Yes");
     public static No = l10n.t("No");
     public static optionsChangedMessage = l10n.t(
@@ -2134,9 +2357,6 @@ export class SchemaCompare {
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the generate script operation"],
         });
-    public static areYouSureYouWantToUpdateTheTarget = l10n.t(
-        "Are you sure you want to update the target?",
-    );
     public static schemaCompareApplyFailed = (errorMessage: string) =>
         l10n.t({
             message: "Failed to apply changes: '{0}'",
@@ -2169,26 +2389,26 @@ export class SchemaCompare {
         });
     public static cannotExcludeEntryWithBlockingDependency = (
         diffEntryName: string,
-        firstDependentName: string,
+        blockingObjectNames: string,
     ) =>
         l10n.t({
-            message: "Cannot exclude {0}. Included dependents exist, such as {1}",
-            args: [diffEntryName, firstDependentName],
+            message: "Cannot exclude {0}. Blocking included objects: {1}",
+            args: [diffEntryName, blockingObjectNames],
             comment: [
                 "{0} is the name of the entry",
-                "{1} is the name of the blocking dependency preventing exclusion.",
+                "{1} is a comma-separated list of objects preventing exclusion.",
             ],
         });
     public static cannotIncludeEntryWithBlockingDependency = (
         diffEntryName: string,
-        firstDependentName: string,
+        blockingObjectNames: string,
     ) =>
         l10n.t({
-            message: "Cannot include {0}. Excluded dependents exist, such as {1}",
-            args: [diffEntryName, firstDependentName],
+            message: "Cannot include {0}. Blocking excluded objects: {1}",
+            args: [diffEntryName, blockingObjectNames],
             comment: [
                 "{0} is the name of the entry",
-                "{1} is the name of the blocking dependency preventing inclusion.",
+                "{1} is a comma-separated list of objects preventing inclusion.",
             ],
         });
     public static cannotExcludeEntry = (diffEntryName: string) =>
@@ -2270,6 +2490,16 @@ export class StatusBar {
     public static notConnectedTooltip = l10n.t("Click to connect to a database");
     public static connectingLabel = l10n.t("Connecting");
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
+    public static serverProcessIdLabel = (serverProcessId: string) => {
+        return l10n.t({
+            message: "SPID: {0}",
+            args: [serverProcessId],
+            comment: ["{0} is the server process ID (SPID) of the connection"],
+        });
+    };
+    public static serverProcessIdTooltip = l10n.t(
+        "Server process ID (SPID) of this editor's connection",
+    );
 }
 
 export class Connection {
@@ -2285,7 +2515,7 @@ export class Connection {
         return l10n.t({
             message:
                 "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}",
-            args: [connectionDisplayNames.join("\n")],
+            args: [connectionDisplayNames.join(os.EOL)],
             comment: [
                 "{0} is the list of display names for the connections that have been ignored",
             ],
@@ -2298,6 +2528,36 @@ export class Connection {
                 "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
             args: [connectionId],
             comment: ["{0} is the connection ID for the connection that has been ignored"],
+        });
+    };
+
+    public static connectionStringPropertyRemoved = (
+        connectionDisplayName: string,
+        connectionString: string,
+    ) => {
+        return l10n.t({
+            message:
+                "The 'connectionString' property was removed from connection '{0}'. Removed connection string: '{1}'.",
+            args: [connectionDisplayName, connectionString],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection string that was removed",
+            ],
+        });
+    };
+
+    public static connectionDeletedAfterConnectionStringRemoval = (
+        connectionDisplayName: string,
+        connectionString: string,
+    ) => {
+        return l10n.t({
+            message:
+                "Connection '{0}' was deleted because its 'connectionString' property was removed and no 'server' property was defined. Removed connection string: '{1}'.",
+            args: [connectionDisplayName, connectionString],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection string that was removed",
+            ],
         });
     };
 
@@ -2406,6 +2666,9 @@ export class Connection {
             comment: ["{0} is the account ID", "{1} is the tenant ID"],
         });
     };
+    public static ConnectionStringContainsSecrets = l10n.t(
+        "Connection string redacted due to containing authentication secrets",
+    );
 }
 
 export class MssqlChatAgent {
@@ -2676,6 +2939,12 @@ export class MssqlChatAgent {
     };
     public static dabToolNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
+    );
+    public static dabToolStateRequired = l10n.t(
+        "Read the active Data API builder configuration with mssql_dab operation 'get_state' before applying changes.",
+    );
+    public static dabToolStateChanged = l10n.t(
+        "The active Data API builder configuration changed after it was read. Run mssql_dab operation 'get_state' again before retrying; do not open another designer.",
     );
     public static toolMissingConnectionReference = l10n.t(
         "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
@@ -3216,6 +3485,10 @@ export class SearchDatabase {
 
     public static failedToEstablishConnection = l10n.t("Failed to establish connection");
 
+    public static noConnectionAvailable = l10n.t(
+        "Connect to a server in Object Explorer or open a connected query editor to search database objects.",
+    );
+
     public static typeTable = l10n.t("Table");
     public static typeView = l10n.t("View");
     public static typeStoredProcedure = l10n.t("Stored Procedure");
@@ -3450,6 +3723,43 @@ export class AzureDataStudioMigration {
     );
 }
 
+export class Overview {
+    public static OverviewDocumentTitle = l10n.t("SQL Server (mssql)");
+    public static OverviewTreeNodeLabel = l10n.t("Getting Started");
+    public static OverviewTreeNodeDescription = l10n.t("Connect, build, and learn");
+    public static DevContainerTemplateFileConflict = (relativePath: string) =>
+        l10n.t({
+            message: "The template file '{0}' already exists. What would you like to do?",
+            args: [relativePath],
+            comment: ["{0} is a file path relative to the workspace folder."],
+        });
+    public static DevContainerTemplateFileConflictDetail = (remaining: number) =>
+        l10n.t({
+            message: "Including this one, {0} of the template's files already exist here.",
+            args: [remaining],
+            comment: ["{0} is the number of conflicting files left to decide on."],
+        });
+    public static SkipTemplateFile = l10n.t("Skip");
+    public static OverwriteTemplateFile = l10n.t("Overwrite");
+    public static OverwriteAllTemplateFiles = l10n.t("Overwrite All");
+    public static InstallAgentSkillsFailed = l10n.t(
+        "Could not install the selected agent skills. Check your network connection and try again.",
+    );
+    public static InstallAgentSkillsRemoteUnsupported = l10n.t(
+        "Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.",
+    );
+    public static DevContainersExtensionRequired = l10n.t(
+        "The Dev Containers extension is required to reopen this folder in a container.",
+    );
+    public static InstallDevContainersExtension = l10n.t("Install");
+    public static SelectDevContainerFolder = l10n.t("Select Folder");
+    public static ShortcutExecuteQuery = l10n.t("Execute query");
+    public static ShortcutConnect = l10n.t("Connect");
+    public static ShortcutDisconnect = l10n.t("Disconnect");
+    public static ShortcutFocusObjectExplorer = l10n.t("Focus on Object Explorer");
+    public static ShortcutCopyObjectName = l10n.t("Copy object name");
+}
+
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");
@@ -3523,6 +3833,10 @@ export class Changelog {
     public static sqlProjCodeAnalysisDescription = l10n.t(
         "Analyze static code with customizable rulesets in SQL Database Projects.",
     );
+    public static sqlFormatterTitle = l10n.t("SQL Formatter");
+    public static sqlFormatterDescription = l10n.t(
+        "Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.",
+    );
 
     // Sidebar content
     public static resourcesTitle = l10n.t("Resources");
@@ -3547,6 +3861,10 @@ export class Changelog {
         "Use discount code {0} to save €200 on registration.",
     );
     public static sqlconEuRegister = l10n.t("Register");
+    public static gettingStartedPageTitle = l10n.t("MSSQL Getting Started Page");
+    public static gettingStartedPageDescription = l10n.t(
+        "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",
+    );
 }
 
 export class Profiler {
@@ -4241,4 +4559,1189 @@ export class SqlMoveToSchema {
     public static moveFileRejected = l10n.t("The move was rejected or could not be completed.");
     public static sqlprojUpdateFailed = (message: string): string =>
         l10n.t("Failed to update the .sqlproj after moving the file: {0}", message);
+}
+
+/** Strings for the Projects workspace surface (src/dataWorkspace). */
+export class DataWorkspace {
+    public static ExtensionActivationError = (extensionId: string, error: string): string => {
+        return l10n.t(
+            "Failed to load the project provider extension '{0}'. Error message: {1}",
+            extensionId,
+            error,
+        );
+    };
+    public static UnknownProjectsError = (projectFiles: string[]): string => {
+        return l10n.t(
+            "No provider was found for the following projects: {0}",
+            projectFiles.join(os.EOL),
+        );
+    };
+    public static SelectProjectFileActionName = l10n.t("Select");
+    public static AllProjectTypes = l10n.t("All Project Types");
+    public static ProviderNotFoundForProjectTypeError = (projectType: string): string => {
+        return l10n.t("No provider was found for project type with id: '{0}'", projectType);
+    };
+    public static projectFailedToLoad = (project: string, error: string) => {
+        return l10n.t(
+            "Project '{0}' failed to load: {1}  To view more details, [open the developer console](command:workbench.action.toggleDevTools).",
+            project,
+            error,
+        );
+    };
+    public static fileDoesNotExist = (name: string): string => {
+        return l10n.t("File '{0}' doesn't exist", name);
+    };
+    public static projectNameNull = l10n.t("Project name is null");
+    public static noPreviousData = (tableName: string): string => {
+        return l10n.t(
+            "Prior {0} for the current project will appear here, please run to see the results.",
+            tableName,
+        );
+    };
+    public static gitCloneMessage = (url: string): string => {
+        return l10n.t("Cloning git repository '{0}'...", url);
+    };
+    public static gitCloneError = l10n.t(
+        "Error during git clone. View git output for more details",
+    );
+    public static openedProjectsUndefinedAfterRefresh = l10n.t(
+        "List of opened projects should not be undefined after refresh from disk.",
+    );
+    public static dragAndDropNotSupported = l10n.t(
+        "This project type does not support drag and drop.",
+    );
+    public static onlyMovingOneFileIsSupported = l10n.t(
+        "Only moving one file at a time is supported.",
+    );
+    public static noProjectProvidingExtensionsInstalled = l10n.t(
+        "No database project extensions are installed. Please install a database project extension to use this feature.",
+    );
+    // UI
+    public static OkButtonText = l10n.t("OK");
+    public static BrowseButtonText = l10n.t("Browse");
+    public static BrowseEllipsis = l10n.t("Browse...");
+    public static OpenButtonText = l10n.t("Open");
+    public static CreateButtonText = l10n.t("Create");
+    public static Select = l10n.t("Select");
+    // New Project Dialog
+    public static NewProjectDialogTitle = l10n.t("Create new database project");
+    public static TypeTitle = l10n.t("Type");
+    public static ProjectNameTitle = l10n.t("Name");
+    public static ProjectNamePlaceholder = l10n.t("Enter project name");
+    public static EnterProjectName = l10n.t("Enter Project Name");
+    public static ProjectLocationTitle = l10n.t("Location");
+    public static ProjectLocationPlaceholder = l10n.t("Select location to create project");
+    public static ProjectParentDirectoryNotExistError = (location: string): string => {
+        return l10n.t(
+            "The selected project location '{0}' does not exist or is not a directory.",
+            location,
+        );
+    };
+    public static ProjectDirectoryAlreadyExistError = (
+        projectName: string,
+        location: string,
+    ): string => {
+        return l10n.t(
+            "There is already a directory named '{0}' in the selected location: '{1}'.",
+            projectName,
+            location,
+        );
+    };
+    public static ProjectDirectoryAlreadyExistErrorShort = (projectName: string) => {
+        return l10n.t(
+            "Directory '{0}' already exists in the selected location, please choose another",
+            projectName,
+        );
+    };
+    public static SelectProjectType = l10n.t("Select Database Project Type");
+    public static SelectProjectLocation = l10n.t("Select Project Location");
+    public static NameCannotBeEmpty = l10n.t("Name cannot be empty");
+    public static TargetPlatform = l10n.t("Target Platform");
+    public static SdkStyleProject = l10n.t("SDK-style project");
+    public static LearnMore = l10n.t("Learn More");
+    public static YesRecommended = l10n.t("Yes (Recommended)");
+    public static No = l10n.t("No");
+    public static Yes = l10n.t("Yes");
+    public static SdkLearnMorePlaceholder = l10n.t(
+        'Click "Learn More" button for more information about SDK-style projects',
+    );
+    public static Default = l10n.t("Default");
+    public static SelectTargetPlatform = l10n.t("Select Target Platform");
+    public static LocalDevInfo = (target: string) =>
+        l10n.t(
+            'Click "Learn more" button for more information about local development experience to {0}',
+            target,
+        );
+    public static undefinedFilenameErrorMessage = l10n.t("Undefined name");
+    public static filenameEndingIsPeriodErrorMessage = l10n.t("File name cannot end with a period");
+    public static whitespaceFilenameErrorMessage = l10n.t("File name cannot be whitespace");
+    public static invalidFileCharsErrorMessage = l10n.t("Invalid file characters");
+    public static reservedWindowsFilenameErrorMessage = l10n.t(
+        "This file name is reserved for use by Windows. Choose another name and try again",
+    );
+    public static reservedValueErrorMessage = l10n.t(
+        "Reserved file name. Choose another name and try again",
+    );
+    public static trailingWhitespaceErrorMessage = l10n.t(
+        "File name cannot start or end with whitespace",
+    );
+    public static tooLongFilenameErrorMessage = l10n.t("File name cannot be over 255 characters");
+    public static confirmCreateProjectWithBuildTaskDialogName = l10n.t(
+        "Do you want to configure SQL project build as the default build configuration for this folder?",
+    );
+    //Open Existing Dialog
+    public static OpenExistingDialogTitle = l10n.t("Open Existing Project");
+    public static FileNotExistError = (fileType: string, filePath: string): string => {
+        return l10n.t(
+            "The selected {0} file '{1}' does not exist or is not a file.",
+            fileType,
+            filePath,
+        );
+    };
+    public static CloneParentDirectoryNotExistError = (location: string): string => {
+        return l10n.t(
+            "The selected clone path '{0}' does not exist or is not a directory.",
+            location,
+        );
+    };
+    public static Project = l10n.t("Project");
+    public static LocationSelectorTitle = l10n.t("Location");
+    public static ProjectFilePlaceholder = l10n.t("Select project file");
+    public static WorkspacePlaceholder = (workspaceFileExtension: string) =>
+        l10n.t("Select workspace ({0}) file", workspaceFileExtension);
+    public static ProjectAlreadyOpened = (path: string): string => {
+        return l10n.t("Project '{0}' is already opened.", path);
+    };
+    public static Local = l10n.t("Local");
+    public static RemoteGitRepo = l10n.t("Remote git repository");
+    public static GitRepoUrlTitle = l10n.t("Git repository URL");
+    public static GitRepoUrlPlaceholder = l10n.t("Enter remote git repository URL");
+    public static LocalClonePathTitle = l10n.t("Local clone path");
+    public static LocalClonePathPlaceholder = l10n.t("Select location to clone repository locally");
+    public static ProjectFileTitle = l10n.t("Project file");
+    // Dashboard dialog
+    public static Refresh = l10n.t("Refresh");
+}
+
+export class SqlDataPlane {
+    public static openWithProvider = (alternativeDisplayName: string): string =>
+        l10n.t({
+            message: "Open with {0}",
+            args: [alternativeDisplayName],
+            comment: ["{0} is the display name of the alternative SQL data plane provider"],
+        });
+
+    public static fallbackPrompt = (
+        missingCapabilities: string,
+        currentDisplayName: string,
+    ): string =>
+        l10n.t({
+            message: "This connection requires {0}, which {1} does not support.",
+            args: [missingCapabilities, currentDisplayName],
+            comment: [
+                "{0} is a list of required capabilities",
+                "{1} is the display name of the current SQL data plane provider",
+            ],
+        });
+
+    public static fallbackNotification = (
+        missingCapabilities: string,
+        currentDisplayName: string,
+        alternativeDisplayName: string,
+    ): string =>
+        l10n.t({
+            message:
+                "This connection requires {0}, which {1} does not support. Connected with {2} instead.",
+            args: [missingCapabilities, currentDisplayName, alternativeDisplayName],
+            comment: [
+                "{0} is a list of required capabilities",
+                "{1} is the display name of the current SQL data plane provider",
+                "{2} is the display name of the alternative SQL data plane provider",
+            ],
+        });
+}
+
+export class MetadataCache {
+    public static notEnabled = l10n.t(
+        "The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.",
+    );
+    public static cleared = l10n.t("MSSQL metadata cache cleared.");
+    public static noEntries = l10n.t("The metadata cache has no entries to clear.");
+    public static clearForConnectionTitle = l10n.t("Clear cached metadata for a connection");
+    public static capturedAt = (capturedAtUtc: string): string =>
+        l10n.t({
+            message: "captured {0}",
+            args: [capturedAtUtc],
+            comment: ["{0} is the UTC timestamp when the metadata cache entry was captured"],
+        });
+    public static entryCleared = l10n.t("MSSQL metadata cache entry cleared.");
+}
+
+export class Metadata {
+    public static dataPlaneRequired = l10n.t(
+        "Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.",
+    );
+}
+
+export class SqlProjects {
+    private static readonly dataSourcesFileName = "datasources.json";
+    private static readonly illegalSqlCmdChars = ["$", "@", "#", '"', "'", "-"];
+
+    public static checkoutOutputMessage = l10n.t("Check output pane for more details");
+
+    public static emptyProjectTypeDisplayName = l10n.t("SQL Server Database");
+
+    public static emptyProjectTypeDescription = l10n.t(
+        "Develop and publish schemas for SQL Server databases starting from an empty project",
+    );
+
+    public static edgeProjectTypeDisplayName = l10n.t("Azure SQL Edge Database");
+
+    public static edgeProjectTypeDescription = l10n.t(
+        "Start with the core pieces to develop and publish schemas for Azure SQL Edge Database",
+    );
+
+    public static emptySdkProjectTypeDisplayName = l10n.t("SQL Database (SDK)");
+
+    public static emptySdkProjectTypeDescription = l10n.t(
+        "Develop and publish schemas for SQL databases with Microsoft.Build.Sql, starting from an empty SDK-style project.",
+    );
+
+    public static emptyAzureDbProjectTypeDisplayName = l10n.t("Azure SQL Database");
+
+    public static emptyAzureDbProjectTypeDescription = l10n.t(
+        "Develop and publish schemas for Azure SQL Database starting from an empty project",
+    );
+
+    public static addItemAction = l10n.t("Add Item");
+
+    public static schemaCompareAction = l10n.t("Schema Compare");
+
+    public static buildAction = l10n.t("Build");
+
+    public static publishAction = l10n.t("Publish");
+
+    public static changeTargetPlatformAction = l10n.t("Change Target Platform");
+
+    public static Status = l10n.t("Status");
+
+    public static Time = l10n.t("Time");
+
+    public static Date = l10n.t("Date");
+
+    public static TargetPlatform = l10n.t("Target Platform");
+
+    public static TargetServer = l10n.t("Target Server");
+
+    public static TargetDatabase = l10n.t("Target Database");
+
+    public static BuildHistory = l10n.t("Build History");
+
+    public static PublishHistory = l10n.t("Publish History");
+
+    public static Success = l10n.t("Success");
+
+    public static Failed = l10n.t("Failed");
+
+    public static InProgress = l10n.t("In progress");
+
+    public static hr = l10n.t("hr");
+
+    public static min = l10n.t("min");
+
+    public static sec = l10n.t("sec");
+
+    public static msec = l10n.t("msec");
+
+    public static at = l10n.t("at");
+
+    public static databaseReferencesNodeName = l10n.t("Database References");
+
+    public static sqlcmdVariablesNodeName = l10n.t("SQLCMD Variables");
+
+    public static sqlConnectionStringFriendly = l10n.t("SQL connection string");
+
+    public static yesString = l10n.t("Yes");
+
+    public static openEulaString = l10n.t("Open License Agreement");
+
+    public static noString = l10n.t("No");
+
+    public static noStringDefault = l10n.t("No (default)");
+
+    public static okString = l10n.t("Ok");
+
+    public static selectString = l10n.t("Select");
+
+    public static selectFileString = l10n.t("Select File");
+
+    public static dacpacFiles = l10n.t("dacpac Files");
+
+    public static publishSettingsFiles = l10n.t("Publish Settings File");
+
+    public static file = l10n.t("File");
+
+    public static flat = l10n.t("Flat");
+
+    public static objectType = l10n.t("Object Type");
+
+    public static schema = l10n.t("Schema");
+
+    public static schemaObjectType = l10n.t("Schema/Object Type");
+
+    public static defaultProjectNameStarter = l10n.t("DatabaseProject");
+
+    public static location = l10n.t("Location");
+
+    public static reloadProject = l10n.t("Would you like to reload your database project?");
+
+    public static learnMore = l10n.t("Learn More");
+
+    public static newObjectNamePrompt(objectType: string) {
+        return l10n.t("New {0} name:", objectType);
+    }
+
+    public static deleteConfirmation(toDelete: string) {
+        return l10n.t("Are you sure you want to delete {0}?", toDelete);
+    }
+
+    public static deleteConfirmationContents(toDelete: string) {
+        return l10n.t("Are you sure you want to delete {0} and all of its contents?", toDelete);
+    }
+
+    public static deleteReferenceConfirmation(toDelete: string) {
+        return l10n.t("Are you sure you want to delete the reference to {0}?", toDelete);
+    }
+
+    public static deleteSqlCmdVariableConfirmation(toDelete: string) {
+        return l10n.t("Are you sure you want to delete the SQLCMD Variable '{0}'?", toDelete);
+    }
+
+    public static selectTargetPlatform(currentTargetPlatform: string) {
+        return l10n.t(
+            "Current target platform: {0}. Select new target platform",
+            currentTargetPlatform,
+        );
+    }
+
+    public static currentTargetPlatform(projectName: string, currentTargetPlatform: string) {
+        return l10n.t(
+            "Target platform of the project {0} is now {1}",
+            projectName,
+            currentTargetPlatform,
+        );
+    }
+
+    public static projectUpdatedToSdkStyle(projectName: string) {
+        return l10n.t(
+            "The project {0} has been updated to be an SDK-style project. Click 'Learn More' for details on the Microsoft.Build.Sql SDK and ways to simplify the project file.",
+            projectName,
+        );
+    }
+
+    public static convertToSdkStyleConfirmation(projectName: string) {
+        return l10n.t(
+            "The project '{0}' will not be fully compatible with SSDT after conversion. A backup copy of the project file will be created in the project folder prior to conversion. More information is available at https://aka.ms/sqlprojsdk. Continue with converting to SDK-style project?",
+            projectName,
+        );
+    }
+
+    public static updatedToSdkStyleError(projectName: string) {
+        return l10n.t(
+            "Converting the project {0} to SDK-style was unsuccessful. Changes to the .sqlproj have been rolled back.",
+            projectName,
+        );
+    }
+
+    public static enterNewName = l10n.t("Enter new name");
+
+    public static addProjectGuidLabel = l10n.t("Add ProjectGuid");
+
+    public static missingProjectGuids(count: number, projectNames: string[]): string {
+        if (count === 1) {
+            return l10n.t(
+                "Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?",
+                projectNames[0],
+            );
+        }
+        return l10n.t(
+            "{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?\n\nProjects:\n{1}",
+            count,
+            projectNames.map((n) => `'${n}'`).join(", "),
+        );
+    }
+
+    public static publishDialogName = l10n.t("Publish project");
+
+    public static publish = l10n.t("Publish");
+
+    public static cancelButtonText = l10n.t("Cancel");
+
+    public static databaseNameLabel = l10n.t("Database");
+
+    public static targetConnectionLabel = l10n.t("Connection");
+
+    public static dataSourceRadioButtonLabel = l10n.t("Data sources");
+
+    public static connectionRadioButtonLabel = l10n.t("Connections");
+
+    public static dataSourceDropdownTitle = l10n.t("Data source");
+
+    public static noDataSourcesText = l10n.t("No data sources in this project");
+
+    public static loadProfilePlaceholderText = l10n.t("Load profile...");
+
+    public static profileReadError = (err: any) =>
+        l10n.t("Error loading the publish profile. {0}", getErrorMessage(err));
+
+    public static sqlCmdVariables = l10n.t("SQLCMD Variables");
+
+    public static sqlCmdVariableColumn = l10n.t("Name");
+
+    public static sqlCmdValueColumn = l10n.t("Value");
+
+    public static revertSqlCmdVarsButtonTitle = l10n.t("Revert values to project defaults");
+
+    public static profile = l10n.t("Profile");
+
+    public static selectConnection = l10n.t("Select connection");
+
+    public static server = l10n.t("Server");
+
+    public static defaultUser = l10n.t("default");
+
+    public static selectProfileToUse = l10n.t("Select publish profile to load");
+
+    public static selectProfile = l10n.t("Select Profile");
+
+    public static saveProfileAsButtonText = l10n.t("Save As...");
+
+    public static save = l10n.t("Save");
+
+    public static dontUseProfile = l10n.t("Don't use profile");
+
+    public static browseForProfileWithIcon = `$(folder) ${l10n.t("Browse for profile")}`;
+
+    public static chooseSqlcmdVarsToModify = l10n.t("Choose SQLCMD variables to modify");
+
+    public static enterNewValueForVar = (varName: string) =>
+        l10n.t("Enter new default value for variable '{0}'", varName);
+
+    public static enterNewSqlCmdVariableName = l10n.t("Enter new SQLCMD Variable name");
+
+    public static enterNewSqlCmdVariableDefaultValue = (varName: string) =>
+        l10n.t("Enter default value for SQLCMD variable '{0}'", varName);
+
+    public static addSqlCmdVariableWithoutDefaultValue = (varName: string) =>
+        l10n.t("Add SQLCMD variable '{0}' to project without default value?", varName);
+
+    public static sqlcmdVariableAlreadyExists = l10n.t(
+        "A SQLCMD Variable with the same name already exists in this project",
+    );
+
+    public static resetAllVars = l10n.t("Reset all variables");
+
+    public static createNew = l10n.t("Create New");
+
+    public static enterNewDatabaseName = l10n.t("Enter new database name");
+
+    public static newText = l10n.t("New");
+
+    public static selectDatabase = l10n.t("Select database");
+
+    public static done = l10n.t("Done");
+
+    public static nameMustNotBeEmpty = l10n.t("Name must not be empty");
+
+    public static versionMustNotBeEmpty = l10n.t("Version must not be empty");
+
+    public static AdvancedOptionsButton = l10n.t("Advanced...");
+
+    public static AdvancedPublishOptions = l10n.t("Advanced Publish Options");
+
+    public static PublishOptions = l10n.t("Publish Options");
+
+    public static ExcludeObjectTypeTab = l10n.t("Exclude Object Types");
+
+    public static ResetButton: string = l10n.t("Reset");
+
+    public static OptionDescription: string = l10n.t("Option Description");
+
+    public static OptionName: string = l10n.t("Option Name");
+
+    public static OptionInclude: string = l10n.t("Include");
+
+    public static OptionNotFoundWarningMessage(label: string) {
+        return l10n.t("label: {0} does not exist in the options value name lookup", label);
+    }
+
+    public static addDatabaseReferenceDialogName = l10n.t("Add database reference");
+
+    public static addDatabaseReferenceOkButtonText = l10n.t("Add reference");
+
+    public static referenceRadioButtonsGroupTitle = l10n.t("Referenced Database Type");
+
+    public static projectLabel = l10n.t("Project (.sqlproj)");
+
+    public static systemDatabase = l10n.t("System database");
+
+    public static dacpacText = l10n.t("Data-tier application (.dacpac)");
+
+    public static nupkgText = l10n.t("Published data-tier application (.nupkg)");
+
+    public static nupkgNamePlaceholder = l10n.t("NuGet package name");
+
+    public static version = l10n.t("Version");
+
+    public static versionPlaceholder = l10n.t("NuGet package version");
+
+    public static selectDacpac = l10n.t("Select .dacpac");
+
+    public static sameDatabase = l10n.t("Same database");
+
+    public static differentDbSameServer = l10n.t("Different database, same server");
+
+    public static differentDbDifferentServer = l10n.t("Different database, different server");
+
+    public static systemDbLocationDropdownValues = [SqlProjects.differentDbSameServer];
+
+    public static locationDropdownValues = [
+        SqlProjects.sameDatabase,
+        SqlProjects.differentDbSameServer,
+        SqlProjects.differentDbDifferentServer,
+    ];
+
+    public static databaseName = l10n.t("Database name");
+
+    public static databaseVariable = l10n.t("Database variable");
+
+    public static serverName = l10n.t("Server name");
+
+    public static serverVariable = l10n.t("Server variable");
+
+    public static suppressMissingDependenciesErrors = l10n.t(
+        "Suppress errors caused by unresolved references in the referenced project",
+    );
+
+    public static exampleUsage = l10n.t("Example Usage");
+
+    public static enterSystemDbName = l10n.t("Enter a database name for this system database");
+
+    public static databaseNameRequiredVariableOptional = l10n.t(
+        "A database name is required. The database variable is optional.",
+    );
+
+    public static databaseNameServerNameVariableRequired = l10n.t(
+        "A database name, server name, and server variable are required. The database variable is optional",
+    );
+
+    public static databaseProject = l10n.t("Database project");
+
+    public static dacpacMustBeOnSameDrive = l10n.t(
+        "Dacpac references need to be located on the same drive as the project file.",
+    );
+
+    public static dacpacNotOnSameDrive = (projectLocation: string): string => {
+        return l10n.t(
+            "Dacpac references need to be located on the same drive as the project file. The project file is located at {0}",
+            projectLocation,
+        );
+    };
+
+    public static referencedDatabaseType = l10n.t("Referenced Database type");
+
+    public static excludeFolderNotSupported = l10n.t("Excluding folders is not yet supported");
+
+    public static unhandledDeleteType = (itemType: string): string => {
+        return l10n.t("Unhandled item type during delete: '{0}", itemType);
+    };
+
+    public static unhandledExcludeType = (itemType: string): string => {
+        return l10n.t("Unhandled item type during exclude: '{0}", itemType);
+    };
+
+    public static artifactReference = l10n.t("Artifact Reference");
+
+    public static packageReference = l10n.t("Package Reference");
+
+    public static referenceTypeRadioButtonsGroupTitle = l10n.t("Reference Type");
+
+    public static createProjectFromDatabaseDialogName = l10n.t("Create project from database");
+
+    public static createProjectDialogOkButtonText = l10n.t("Create");
+
+    public static sourceDatabase = l10n.t("Source database");
+
+    public static targetProject = l10n.t("Target project");
+
+    public static createProjectSettings = l10n.t("Settings");
+
+    public static projectNameLabel = l10n.t("Name");
+
+    public static projectNamePlaceholderText = l10n.t("Enter project name");
+
+    public static projectLocationLabel = l10n.t("Location");
+
+    public static projectLocationPlaceholderText = l10n.t("Select location to create project");
+
+    public static browseButtonText = l10n.t("Browse folder");
+
+    public static selectFolderStructure = l10n.t("Select folder structure");
+
+    public static folderStructureLabel = l10n.t("Folder structure");
+
+    public static includePermissionsLabel = l10n.t("Include permissions");
+
+    public static includePermissionsInProject = l10n.t("Include permissions in project");
+
+    public static browseEllipsisWithIcon = `$(folder) ${l10n.t("Browse...")}`;
+
+    public static selectProjectLocation = l10n.t("Select project location");
+
+    public static sdkStyleProject = l10n.t("SDK-style project");
+
+    public static YesRecommended = l10n.t("Yes (Recommended)");
+
+    public static SdkLearnMorePlaceholder = l10n.t(
+        'Click "Learn More" button for more information about SDK-style projects',
+    );
+
+    public static ProjectParentDirectoryNotExistError = (location: string): string => {
+        return l10n.t(
+            "The selected project location '{0}' does not exist or is not a directory.",
+            location,
+        );
+    };
+
+    public static ProjectDirectoryAlreadyExistError = (
+        projectName: string,
+        location: string,
+    ): string => {
+        return l10n.t(
+            "There is already a directory named '{0}' in the selected location: '{1}'.",
+            projectName,
+            location,
+        );
+    };
+
+    public static confirmCreateProjectWithBuildTaskDialogName = l10n.t(
+        "Do you want to configure SQL project build as the default build configuration for this folder?",
+    );
+
+    public static buildTaskName = l10n.t("Build");
+
+    public static buildWithCodeAnalysisTaskName = l10n.t("Build with Code Analysis");
+
+    public static restoreTaskName = l10n.t("Restore NuGet packages");
+
+    public static updateProjectFromDatabaseDialogName = l10n.t("Update project from database");
+
+    public static updateText = l10n.t("Update");
+
+    public static noSqlProjFile = l10n.t("The selected project file does not exist");
+
+    public static noSchemaCompareExtension = l10n.t(
+        "The Schema Compare extension must be installed to a update a project from a database.",
+    );
+
+    public static projectToUpdatePlaceholderText = l10n.t("Select project file");
+
+    public static updateAction = l10n.t("Update action");
+
+    public static compareActionRadioButtonLabel = l10n.t("View changes in Schema Compare");
+
+    public static updateActionRadioButtonLabel = l10n.t("Apply all changes");
+
+    public static actionLabel = l10n.t("Action");
+
+    public static applyConfirmation: string = l10n.t(
+        "Are you sure you want to update the target project?",
+    );
+
+    public static selectProjectFile: string = l10n.t("Select project file");
+
+    public static applySuccess = l10n.t("Project was successfully updated.");
+
+    public static equalComparison = l10n.t("The project is already up to date with the database.");
+
+    public static applyError(errorMessage: string): string {
+        return l10n.t("There was an error updating the project: {0}", errorMessage);
+    }
+
+    public static updatingProjectFromDatabase(projectName: string, databaseName: string): string {
+        return l10n.t("Updating {0} from {1}...", projectName, databaseName);
+    }
+
+    public static errorPrefix(errorMessage: string): string {
+        return l10n.t("Error: {0}", errorMessage);
+    }
+
+    public static compareErrorMessage(errorMessage: string): string {
+        return l10n.t("Schema Compare failed: {0}", errorMessage ? errorMessage : "Unknown");
+    }
+
+    public static multipleSqlProjFiles = l10n.t(
+        "Multiple .sqlproj files selected; please select only one.",
+    );
+
+    public static noSqlProjFiles = l10n.t("No .sqlproj file selected; please select one.");
+
+    public static noDataSourcesFile = l10n.t("No {0} found", SqlProjects.dataSourcesFileName);
+
+    public static missingVersion = l10n.t(
+        "Missing 'version' entry in {0}",
+        SqlProjects.dataSourcesFileName,
+    );
+
+    public static unrecognizedDataSourcesVersion = l10n.t("Unrecognized version: ");
+
+    public static unknownDataSourceType = l10n.t("Unknown data source type: ");
+
+    public static invalidSqlConnectionString = l10n.t("Invalid SQL connection string");
+
+    public static extractTargetRequired = l10n.t(
+        "Target information for extract is required to create database project.",
+    );
+
+    public static schemaCompareNotInstalled = l10n.t(
+        "Schema compare extension installation is required to run schema compare",
+    );
+
+    public static buildFailedCannotStartSchemaCompare = l10n.t(
+        "Schema compare could not start because build failed",
+    );
+
+    public static projectNeedsUpdatingForCrossPlat(projectName: string) {
+        return l10n.t(
+            "The targets, references, and system database references need to be updated to build the project '{0}'.",
+            projectName,
+        );
+    }
+
+    public static updateProjectForCrossPlatform(projectName: string) {
+        return l10n.t(
+            "{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?",
+            SqlProjects.projectNeedsUpdatingForCrossPlat(projectName),
+        );
+    }
+
+    public static updateProjectForCrossPlatformShort(projectName: string) {
+        return l10n.t("Update {0} for cross-platform support?", projectName);
+    }
+
+    public static updateProjectDatabaseReferencesForCrossPlatform(projectName: string) {
+        return l10n.t(
+            "The system database references need to be updated to build the project '{0}'. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?",
+            projectName,
+        );
+    }
+
+    public static databaseReferenceTypeRequired = l10n.t(
+        "Database reference type is required for adding a reference to a database",
+    );
+
+    public static systemDatabaseReferenceRequired = l10n.t(
+        "System database selection is required for adding a reference to a system database",
+    );
+
+    public static dacpacFileLocationRequired = l10n.t(
+        "Dacpac file location is required for adding a reference to a database",
+    );
+
+    public static databaseLocationRequired = l10n.t(
+        "Database location is required for adding a reference to a database",
+    );
+
+    public static databaseNameRequired = l10n.t(
+        "Database name is required for adding a reference to a different database",
+    );
+
+    public static invalidDataSchemaProvider = l10n.t("Invalid DSP in .sqlproj file");
+
+    public static invalidDatabaseReference = l10n.t("Invalid database reference in .sqlproj file");
+
+    public static databaseSelectionRequired = l10n.t(
+        "Database selection is required to create a project from a database",
+    );
+
+    public static databaseReferenceAlreadyExists = l10n.t(
+        "A reference to this database already exists in this project",
+    );
+
+    public static outsideFolderPath = l10n.t(
+        "Items with absolute path outside project folder are not supported. Please make sure the paths in the project file are relative to project folder.",
+    );
+
+    public static parentTreeItemUnknown = l10n.t("Cannot access parent of provided tree item");
+
+    public static prePostDeployCount = l10n.t(
+        "To successfully build, update the project to have one pre-deployment script and/or one post-deployment script",
+    );
+
+    public static invalidProjectReload = l10n.t(
+        "Cannot access provided database project. Only valid, open database projects can be reloaded.",
+    );
+
+    public static externalStreamingJobValidationPassed = l10n.t(
+        "Validation of external streaming job passed.",
+    );
+
+    public static errorRetrievingBuildFiles = l10n.t(
+        "Could not build project. Error retrieving files needed to build.",
+    );
+
+    public static projectAlreadyOpened(path: string) {
+        return l10n.t("Project '{0}' is already opened.", path);
+    }
+
+    public static projectAlreadyExists(name: string, path: string) {
+        return l10n.t("A project named {0} already exists in {1}.", name, path);
+    }
+
+    public static noFileExist(fileName: string) {
+        return l10n.t("File {0} doesn't exist", fileName);
+    }
+
+    public static fileOrFolderDoesNotExist(name: string) {
+        return l10n.t("File or directory '{0}' doesn't exist", name);
+    }
+
+    public static cannotResolvePath(path: string) {
+        return l10n.t("Cannot resolve path {0}", path);
+    }
+
+    public static fileAlreadyExists(filename: string) {
+        return l10n.t(
+            "A file with the name '{0}' already exists on disk at this location. Please choose another name.",
+            filename,
+        );
+    }
+
+    public static folderAlreadyExists(filename: string) {
+        return l10n.t(
+            "A folder with the name '{0}' already exists on disk at this location. Please choose another name.",
+            filename,
+        );
+    }
+
+    public static folderAlreadyExistsChooseNewLocation(filename: string) {
+        return l10n.t(
+            "A folder with the name '{0}' already exists on disk at this location. Please choose another location.",
+            filename,
+        );
+    }
+
+    public static invalidInput(input: string) {
+        return l10n.t("Invalid input: {0}", input);
+    }
+
+    public static invalidProjectPropertyValueInSqlProj(propertyName: string) {
+        return l10n.t(
+            "Invalid value specified for the property '{0}' in .sqlproj file",
+            propertyName,
+        );
+    }
+
+    public static invalidProjectPropertyValueProvided(propertyName: string) {
+        return l10n.t("Project property value '{0} is invalid", propertyName);
+    }
+
+    public static unableToCreatePublishConnection(input: string) {
+        return l10n.t("Unable to construct connection: {0}", input);
+    }
+
+    public static circularProjectReference(project1: string, project2: string) {
+        return l10n.t("Circular reference from project {0} to project {1}", project1, project2);
+    }
+
+    public static errorFindingBuildFilesLocation(err: any) {
+        return l10n.t("Error finding build files location: {0}", getErrorMessage(err));
+    }
+
+    public static projBuildFailed(errorMessage: string) {
+        return l10n.t("Build failed. Check output pane for more details. {0}", errorMessage);
+    }
+
+    /**
+     * @param errorMessage omitted when dotnet reported the failure itself, since the details are
+     * already in the task terminal.
+     */
+    public static projRestoreFailed(errorMessage?: string) {
+        const message = l10n.t(
+            "Restore NuGet packages failed. Check the terminal output for more details.",
+        );
+        return errorMessage ? `${message} ${errorMessage}` : message;
+    }
+
+    public static unexpectedProjectContext(uri: string) {
+        return l10n.t(
+            "Unable to establish project context.  Command invoked from unexpected location: {0}",
+            uri,
+        );
+    }
+
+    public static unableToPerformAction(action: string, uri: string, error?: string) {
+        return l10n.t("Unable to locate '{0}' target: '{1}'. {2}", action, uri, error);
+    }
+
+    public static unableToFindObject(path: string, objType: string) {
+        return l10n.t("Unable to find {1} with path '{0}'", path, objType);
+    }
+
+    public static deployScriptExists(scriptType: string) {
+        return l10n.t(
+            "A {0} script already exists. The new script will not be included in build.",
+            scriptType,
+        );
+    }
+
+    public static cantAddCircularProjectReference(project: string) {
+        return l10n.t(
+            "A reference to project '{0}' cannot be added. Adding this project as a reference would cause a circular dependency",
+            project,
+        );
+    }
+
+    public static unableToFindSqlCmdVariable(variableName: string) {
+        return l10n.t("Unable to find SQLCMD variable '{0}'", variableName);
+    }
+
+    public static unableToFindDatabaseReference(reference: string) {
+        return l10n.t("Unable to find database reference {0}", reference);
+    }
+
+    public static invalidGuid(guid: string) {
+        return l10n.t("Specified GUID is invalid: {0}", guid);
+    }
+
+    public static invalidTargetPlatform(
+        targetPlatform: string,
+        supportedTargetPlatforms: string[],
+    ) {
+        return l10n.t(
+            "Invalid target platform: {0}. Supported target platforms: {1}",
+            targetPlatform,
+            supportedTargetPlatforms.toString(),
+        );
+    }
+
+    public static errorReadingProject(section: string, path: string, error?: string) {
+        return l10n.t("Error trying to read {0} of project '{1}'. {2}", section, path, error);
+    }
+
+    public static errorAddingDatabaseReference(referenceName: string, error: string) {
+        return l10n.t("Error adding database reference to {0}. Error: {1}", referenceName, error);
+    }
+
+    public static errorNotSupportedInVsCode(actionDescription: string) {
+        return l10n.t(
+            "Error: {0} is not currently supported in SQL Database Projects for VS Code.",
+            actionDescription,
+        );
+    }
+
+    public static sqlcmdVariableNameCannotContainWhitespace(name: string) {
+        return l10n.t("SQLCMD variable name '{0}' cannot contain whitespace", name);
+    }
+
+    public static sqlcmdVariableNameCannotContainIllegalChars(name: string) {
+        return l10n.t(
+            "SQLCMD variable name '{0}' cannot contain any of the following characters: {1}",
+            name,
+            SqlProjects.illegalSqlCmdChars.join(", "),
+        );
+    }
+
+    public static deleteAction = l10n.t("Delete");
+
+    public static excludeAction = l10n.t("Exclude");
+
+    public static fileObject = l10n.t("file");
+
+    public static folderObject = l10n.t("folder");
+
+    public static folderFriendlyName = l10n.t("Folder");
+
+    public static scriptFriendlyName = l10n.t("Script");
+
+    public static tableFriendlyName = l10n.t("Table");
+
+    public static viewFriendlyName = l10n.t("View");
+
+    public static storedProcedureFriendlyName = l10n.t("Stored Procedure");
+
+    public static tableValuedFunctionFriendlyName = l10n.t("Table-Valued Function");
+
+    public static triggerFriendlyName = l10n.t("Trigger");
+
+    public static databaseTriggerFriendlyName = l10n.t("Database Trigger");
+
+    public static schemaFriendlyName = l10n.t("Schema");
+
+    public static dataSourceFriendlyName = l10n.t("Data Source");
+
+    public static fileFormatFriendlyName = l10n.t("File Format");
+
+    public static externalStreamFriendlyName = l10n.t("External Stream");
+
+    public static externalStreamingJobFriendlyName = l10n.t("External Streaming Job");
+
+    public static sequenceFriendlyName = l10n.t("Sequence");
+
+    public static preDeployScriptFriendlyName = l10n.t("Script.PreDeployment");
+
+    public static postDeployScriptFriendlyName = l10n.t("Script.PostDeployment");
+
+    public static publishProfileFriendlyName = l10n.t("Publish Profile");
+
+    public static tasksJsonFriendlyName = l10n.t("Tasks.json");
+
+    public static DotnetInstallationConfirmation: string = l10n.t(
+        "The .NET SDK cannot be located. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK location in settings if already installed.",
+    );
+
+    public static NetCoreSupportedVersionInstallationConfirmation(installedVersion: string) {
+        return l10n.t(
+            "Currently installed .NET SDK version is {0}, which is not supported. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK supported version location in settings if already installed.",
+            installedVersion,
+        );
+    }
+
+    public static UpdateDotnetLocation: string = l10n.t("Update Location");
+
+    public static projectsOutputChannel = l10n.t("Database Projects");
+
+    public static Install: string = l10n.t("Install");
+
+    public static DoNotAskAgain: string = l10n.t("Don't Ask Again");
+
+    public static BuildElements = l10n.t("Build Elements");
+
+    public static FolderElements = l10n.t("Folder Elements");
+
+    public static PreDeployElements = l10n.t("PreDeploy Elements");
+
+    public static PostDeployElements = l10n.t("PostDeploy Elements");
+
+    public static NoneElements = l10n.t("None Elements");
+
+    public static ImportElements = l10n.t("Import Elements");
+
+    public static ProjectReferenceNameElement = l10n.t("Project reference name element");
+
+    public static ProjectReferenceElement = l10n.t("Project reference");
+
+    public static DacpacReferenceElement = l10n.t("Dacpac reference");
+
+    public static PublishProfileElements = l10n.t("Publish profile elements");
+
+    public static azureAddAccount = l10n.t("Add an Account...");
+
+    public static downloadError = l10n.t("Download error");
+
+    public static downloadProgress = l10n.t("Download progress");
+
+    public static downloading = l10n.t("Downloading");
+
+    public static nugetDownloadFailedHelp(buildDirPath: string): string {
+        return l10n.t(
+            "Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}",
+            buildDirPath,
+        );
+    }
+
+    public static downloadingNuget(nuget: string) {
+        return l10n.t("Downloading {0} nuget to get build DLLs ", nuget);
+    }
+
+    public static downloadingFromTo(from: string, to: string) {
+        return l10n.t("Downloading from {0} to {1}", from, to);
+    }
+
+    public static extractingDacFxDlls(location: string) {
+        return l10n.t("Extracting DacFx build DLLs to {0}", location);
+    }
+
+    public static errorDownloading(url: string, error: string) {
+        return l10n.t("Error downloading {0}. Error: {1}", url, error);
+    }
+
+    public static errorExtracting(path: string, error: string) {
+        return l10n.t("Error extracting files from {0}. Error: {1}", path, error);
+    }
+
+    public static onlyMoveFilesFoldersSupported = l10n.t(
+        "Only moving files and folders are supported",
+    );
+
+    public static movingFilesBetweenProjectsNotSupported = l10n.t(
+        "Moving files between projects is not supported",
+    );
+
+    public static errorMovingFile(source: string, destination: string, error: string) {
+        return l10n.t(
+            "Error when moving file from {0} to {1}. Error: {2}",
+            source,
+            destination,
+            error,
+        );
+    }
+
+    public static moveConfirmationPrompt(source: string, destination: string) {
+        return l10n.t("Are you sure you want to move {0} to {1}?", source, destination);
+    }
+
+    public static move = l10n.t("Move");
+
+    public static errorRenamingFile(source: string, destination: string, error: string) {
+        return l10n.t(
+            "Error when renaming file from {0} to {1}. Error: {2}",
+            source,
+            destination,
+            error,
+        );
+    }
+
+    public static unhandledMoveNode = l10n.t("Unhandled node type for move");
+
+    public static updatingExistingTasksJson = l10n.t(
+        "A SQL Projects build task has been added to the existing tasks.json file.",
+    );
+
+    public static getSqlProjectBuildTaskDetail(projectName: string): string {
+        return l10n.t("Builds the {0} SQL project", projectName);
+    }
+
+    public static tasksJsonUpdateError(error: string): string {
+        return l10n.t("Error updating existing tasks.json: {0}", error);
+    }
+
+    public static tasksJsonInvalidTasksArrayError = l10n.t(
+        "Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again.",
+    );
+
+    public static loc0ErroredOut1(
+        arg0: string | number | boolean,
+        arg1: string | number | boolean,
+    ) {
+        return l10n.t("\t>>> {0}   … errored out: {1}", arg0, arg1);
+    }
+
+    public static loc0ExitedWithCode1(
+        arg0: string | number | boolean,
+        arg1: string | number | boolean,
+    ) {
+        return l10n.t("    >>> {0}    … exited with code: {1}", arg0, arg1);
+    }
+
+    public static loc0ExitedWithSignal1(
+        arg0: string | number | boolean,
+        arg1: string | number | boolean | null,
+    ) {
+        return l10n.t("    >>> {0}   … exited with signal: {1}", arg0, arg1);
+    }
+
+    public static stdout = l10n.t("    stdout: ");
+
+    public static stderr = l10n.t("    stderr: ");
 }

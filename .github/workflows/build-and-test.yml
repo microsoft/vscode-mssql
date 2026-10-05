@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -42,22 +42,33 @@ jobs:
             echo "should_compare_baseline=false" >> $GITHUB_ENV
           fi
 
-      - name: Download baseline sizes
-        if: env.should_compare_baseline == 'true'
-        continue-on-error: true
-        uses: dawidd6/action-download-artifact@v21
-        with:
-          workflow: publish-baseline.yml
-          branch: ${{ github.event.pull_request.base.ref }}
-          name: baseline-sizes
-          path: ./baseline
-          if_no_artifact_found: warn
-
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
 
+      - name: Test VSIX size comparison
+        run: npm run test:repo
+
+      - name: Select baseline for PR base commit
+        if: env.should_compare_baseline == 'true'
+        id: baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        run: node scripts/vsix-size-comparison.mjs select
+
+      - name: Download baseline sizes
+        if: env.should_compare_baseline == 'true' && steps.baseline.outputs.run-id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.baseline.outputs.run-id }}
+          name: baseline-sizes
+          path: ./baseline
+
       - name: Setup .NET Core # Required to execute ReportGenerator
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 8.x
           dotnet-quality: "ga"
@@ -97,206 +108,46 @@ jobs:
           npm run package -- --preview
 
       - name: MSSQL - Upload VSIX files
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mssql-vsix
           path: ./extensions/mssql/*.vsix
 
       - name: SqlProj - Upload VSIX files
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sql-database-projects-vsix
           path: ./extensions/sql-database-projects/*.vsix
 
       - name: DataWorkspace - Upload VSIX files
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: data-workspace-vsix
           path: ./extensions/data-workspace/*.vsix
 
       - name: Keymap - Upload VSIX files
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: keymap-vsix
           path: ./extensions/database-management-keymap/*.vsix
 
-      - name: Setting up change icons
+      - name: Calculate VSIX size comparisons
         if: env.should_compare_baseline == 'true'
-        run: |
-          echo "better_change_icon=🟢" >> $GITHUB_ENV
-          echo "worse_change_icon=🔴" >> $GITHUB_ENV
-          echo "no_change_icon=⚪" >> $GITHUB_ENV
-
-      - name: Calculate vsix file sizes
-        if: env.should_compare_baseline == 'true'
-        run: |
-          # Get baseline size from downloaded artifact or default to 0
-          if [ -f ./baseline/baseline-sizes.json ]; then
-            target_size=$(jq -r '.mssql.vsix_kb' ./baseline/baseline-sizes.json)
-          else
-            echo "⚠️ No baseline found, using 0 for comparison"
-            target_size=0
-          fi
-
-          pr_vsix=$(find ./extensions/mssql -name "*.vsix")
-          pr_size=$(stat -c%s "$pr_vsix")
-          pr_size=$((pr_size / 1024))
-
-          size_diff=$((pr_size - target_size))
-
-          if [ "$target_size" -gt 0 ]; then
-            percentage_change=$((100 * size_diff / target_size))
-          else
-            percentage_change=0
-          fi
-
-          echo "Baseline VSIX size: $target_size KB"
-          echo "PR branch VSIX size: $pr_size KB"
-          echo "Size difference: $size_diff KB"
-          echo "Percentage change: $percentage_change%"
-          echo "mssql_target_vsix_size=$target_size" >> $GITHUB_ENV
-          echo "mssql_pr_vsix_size=$pr_size" >> $GITHUB_ENV
-          echo "mssql_vsix_size_diff=$size_diff" >> $GITHUB_ENV
-          echo "mssql_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
-
-          if [ "$percentage_change" -gt 0 ]; then
-            echo "mssql_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
-          elif [ "$percentage_change" -lt 0 ]; then
-            echo "mssql_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
-          else
-            echo "mssql_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
-          fi
-
-      - name: Calculate sql-database-projects vsix file sizes
-        if: env.should_compare_baseline == 'true'
-        run: |
-          # Get baseline size from downloaded artifact or default to 0
-          if [ -f ./baseline/baseline-sizes.json ]; then
-            target_size=$(jq -r '.sql_database_projects.vsix_kb' ./baseline/baseline-sizes.json)
-          else
-            echo "⚠️ No baseline found, using 0 for comparison"
-            target_size=0
-          fi
-
-          pr_vsix=$(find ./extensions/sql-database-projects -name "*.vsix")
-          pr_size=$(stat -c%s "$pr_vsix")
-          pr_size=$((pr_size / 1024))
-
-          size_diff=$((pr_size - target_size))
-
-          if [ "$target_size" -gt 0 ]; then
-            percentage_change=$((100 * size_diff / target_size))
-          else
-            percentage_change=0
-          fi
-
-          echo "Baseline sql-database-projects VSIX size: $target_size KB"
-          echo "PR branch sql-database-projects VSIX size: $pr_size KB"
-          echo "Size difference: $size_diff KB"
-          echo "Percentage change: $percentage_change%"
-          echo "sqlproj_target_vsix_size=$target_size" >> $GITHUB_ENV
-          echo "sqlproj_pr_vsix_size=$pr_size" >> $GITHUB_ENV
-          echo "sqlproj_vsix_size_diff=$size_diff" >> $GITHUB_ENV
-          echo "sqlproj_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
-
-          if [ "$percentage_change" -gt 0 ]; then
-            echo "sqlproj_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
-          elif [ "$percentage_change" -lt 0 ]; then
-            echo "sqlproj_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
-          else
-            echo "sqlproj_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
-          fi
-
-      - name: Calculate data-workspace vsix file sizes
-        if: env.should_compare_baseline == 'true'
-        run: |
-          # Get baseline size from downloaded artifact or default to 0
-          if [ -f ./baseline/baseline-sizes.json ]; then
-            target_size=$(jq -r '.data_workspace.vsix_kb' ./baseline/baseline-sizes.json)
-          else
-            echo "⚠️ No baseline found, using 0 for comparison"
-            target_size=0
-          fi
-
-          pr_vsix=$(find ./extensions/data-workspace -name "*.vsix")
-          pr_size=$(stat -c%s "$pr_vsix")
-          pr_size=$((pr_size / 1024))
-
-          size_diff=$((pr_size - target_size))
-
-          if [ "$target_size" -gt 0 ]; then
-            percentage_change=$((100 * size_diff / target_size))
-          else
-            percentage_change=0
-          fi
-
-          echo "Baseline data-workspace VSIX size: $target_size KB"
-          echo "PR branch data-workspace VSIX size: $pr_size KB"
-          echo "Size difference: $size_diff KB"
-          echo "Percentage change: $percentage_change%"
-          echo "dataworkspace_target_vsix_size=$target_size" >> $GITHUB_ENV
-          echo "dataworkspace_pr_vsix_size=$pr_size" >> $GITHUB_ENV
-          echo "dataworkspace_vsix_size_diff=$size_diff" >> $GITHUB_ENV
-          echo "dataworkspace_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
-
-          if [ "$percentage_change" -gt 0 ]; then
-            echo "dataworkspace_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
-          elif [ "$percentage_change" -lt 0 ]; then
-            echo "dataworkspace_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
-          else
-            echo "dataworkspace_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
-          fi
-
-      - name: Keymap - Calculate vsix file sizes
-        if: env.should_compare_baseline == 'true'
-        run: |
-          # Get baseline size from downloaded artifact or default to 0
-          if [ -f ./baseline/baseline-sizes.json ]; then
-            target_size=$(jq -r '.keymap.vsix_kb' ./baseline/baseline-sizes.json)
-          else
-            echo "⚠️ No baseline found, using 0 for comparison"
-            target_size=0
-          fi
-
-          pr_vsix=$(find ./extensions/database-management-keymap -name "*.vsix")
-          pr_size=$(stat -c%s "$pr_vsix")
-          pr_size=$((pr_size / 1024))
-
-          size_diff=$((pr_size - target_size))
-
-          if [ "$target_size" -gt 0 ]; then
-            percentage_change=$((100 * size_diff / target_size))
-          else
-            percentage_change=0
-          fi
-
-          echo "Baseline keymap VSIX size: $target_size KB"
-          echo "PR branch keymap VSIX size: $pr_size KB"
-          echo "Size difference: $size_diff KB"
-          echo "Percentage change: $percentage_change%"
-          echo "keymap_target_vsix_size=$target_size" >> $GITHUB_ENV
-          echo "keymap_pr_vsix_size=$pr_size" >> $GITHUB_ENV
-          echo "keymap_vsix_size_diff=$size_diff" >> $GITHUB_ENV
-          echo "keymap_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
-
-          if [ "$percentage_change" -gt 0 ]; then
-            echo "keymap_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
-          elif [ "$percentage_change" -lt 0 ]; then
-            echo "keymap_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
-          else
-            echo "keymap_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
-          fi
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/vsix-size-comparison.mjs compare
 
       - name: MSSQL - Run unit tests
         continue-on-error: true
+        working-directory: ./extensions/mssql
         run: |
           set +e  # Don't exit on errors
-          DISPLAY=:10 npm run test -- --target mssql
+          DISPLAY=:10 npm test
           UNIT_EXIT_CODE=$?
           echo "mssql_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
       - name: MSSQL - Unit Test Report
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         if: success() || failure()
         with:
           name: "Unit Test Report"
@@ -358,14 +209,14 @@ jobs:
           echo "mssql_smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
 
       - name: Upload Smoke Test Screenshots and Videos
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: smoke-test-failure-screenshots
           path: ./extensions/mssql/test-results/**/
           retention-days: 7
 
       - name: Smoke Test Report
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         if: success() || failure()
         with:
           name: "Smoke Test Report"
@@ -384,7 +235,7 @@ jobs:
           fi
 
       - name: Generate Coverage Report
-        uses: danielpalme/ReportGenerator-GitHub-Action@v5
+        uses: danielpalme/ReportGenerator-GitHub-Action@d3ebf1f760f7d8ab92cc44d9bcfee7ad73722a31 # v5.5.11
         with:
           reports: "./extensions/mssql/coverage/cobertura-coverage.xml"
           targetdir: "coveragereport"
@@ -392,31 +243,20 @@ jobs:
           toolpath: "reportgeneratortool"
 
       - name: Upload coverage report artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: CoverageReport
           path: coveragereport
 
       - name: MSSQL - Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./extensions/mssql/coverage/cobertura-coverage.xml
           flags: mssql
 
-      - name: Write PR results to markdown
-        if: env.should_compare_baseline == 'true'
-        run: |
-          echo "### PR Changes" >> results.md
-          echo "| Category                      | Target Branch        | PR Branch         | Difference           |" >> results.md
-          echo "|------------------------------|--------------------|-------------------|----------------------|" >> results.md
-          echo "| vscode-mssql VSIX            | ${{ env.mssql_target_vsix_size }} KB | ${{ env.mssql_pr_vsix_size }} KB | ${{ env.mssql_vsix_change_icon }} ${{ env.mssql_vsix_size_diff }} KB ( ${{ env.mssql_vsix_percentage_change }}% ) |" >> results.md
-          echo "| sql-database-projects VSIX   | ${{ env.sqlproj_target_vsix_size }} KB | ${{ env.sqlproj_pr_vsix_size }} KB | ${{ env.sqlproj_vsix_change_icon }} ${{ env.sqlproj_vsix_size_diff }} KB ( ${{ env.sqlproj_vsix_percentage_change }}% ) |" >> results.md
-          echo "| data-workspace VSIX          | ${{ env.dataworkspace_target_vsix_size }} KB | ${{ env.dataworkspace_pr_vsix_size }} KB | ${{ env.dataworkspace_vsix_change_icon }} ${{ env.dataworkspace_vsix_size_diff }} KB ( ${{ env.dataworkspace_vsix_percentage_change }}% ) |" >> results.md
-          echo "| keymap VSIX                 | ${{ env.keymap_target_vsix_size }} KB | ${{ env.keymap_pr_vsix_size }} KB | ${{ env.keymap_vsix_change_icon }} ${{ env.keymap_vsix_size_diff }} KB ( ${{ env.keymap_vsix_percentage_change }}% ) |" >> results.md
-
       - name: Find comment
-        uses: peter-evans/find-comment@v4
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
         if: env.should_compare_baseline == 'true'
         id: fc
         with:
@@ -426,7 +266,7 @@ jobs:
             ### PR Changes
 
       - name: Create or update comment
-        uses: peter-evans/create-or-update-comment@v5
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         if: env.should_compare_baseline == 'true'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -434,36 +274,6 @@ jobs:
           body-path: ./results.md
           comment-id: ${{ steps.fc.outputs.comment-id }}
           edit-mode: replace
-
-      - name: SqlProj - Run unit tests
-        continue-on-error: true
-        run: |
-          set +e  # Don't exit on errors
-          DISPLAY=:10 npm run test -- --target sql-database-projects
-          UNIT_EXIT_CODE=$?
-          echo "sqlproj_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
-
-      - name: SqlProj - Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./extensions/sql-database-projects/coverage/cobertura-coverage.xml
-          flags: sqlproj
-
-      - name: DataWorkspace - Run unit tests
-        continue-on-error: true
-        run: |
-          set +e  # Don't exit on errors
-          DISPLAY=:10 npm run test -- --target data-workspace
-          UNIT_EXIT_CODE=$?
-          echo "dataworkspace_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
-
-      - name: DataWorkspace - Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./extensions/data-workspace/coverage/cobertura-coverage.xml
-          flags: data-workspace
 
       - name: Generate xliff files
         run: |
@@ -522,7 +332,7 @@ jobs:
           fi
 
       - name: Find comment
-        uses: peter-evans/find-comment@v4
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
         if: github.event_name == 'pull_request'
         id: loc-comment
         with:
@@ -533,7 +343,7 @@ jobs:
 
       - name: Create or update comment
         if: github.event_name == 'pull_request' && env.loc_update_required == 'true'
-        uses: peter-evans/create-or-update-comment@v5
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         with:
           comment-id: ${{ steps.loc-comment.outputs.comment-id }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -569,18 +379,6 @@ jobs:
           if [ "${{ env.mssql_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.mssql_unit_tests_pr_exit_code }}" != "" ]; then
             echo "  ❌ MSSQL unit tests failed with exit code ${{ env.mssql_unit_tests_pr_exit_code }}"
             PIPELINE_FAILED=true
-          fi
-
-          # Check SqlProj unit tests
-          if [ "${{ env.sqlproj_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.sqlproj_unit_tests_pr_exit_code }}" != "" ]; then
-            echo "  ❌ SqlProj unit tests failed with exit code ${{ env.sqlproj_unit_tests_pr_exit_code }}"
-            PIPELINE_FAILED=true
-          fi
-
-          # Check DataWorkspace unit tests
-          if [ "${{ env.dataworkspace_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.dataworkspace_unit_tests_pr_exit_code }}" != "" ]; then
-            echo "  ⚠️ DataWorkspace unit tests failed with exit code ${{ env.dataworkspace_unit_tests_pr_exit_code }} (warning because tests not yet stablized)"
-            # PIPELINE_FAILED=true # Don't fail for dataworkspace unit tests yet; they aren't stable
           fi
 
           # Check MSSQL smoke tests

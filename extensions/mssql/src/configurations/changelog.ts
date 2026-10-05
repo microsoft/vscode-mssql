@@ -13,9 +13,24 @@ export const changelogConfig: ChangelogWebviewState = {
         title: locConstants.Changelog.mainContentTitle,
         entries: [
             {
+                title: locConstants.Changelog.gettingStartedPageTitle,
+                description: locConstants.Changelog.gettingStartedPageDescription,
+                isPreview: true,
+            },
+            {
+                title: locConstants.Changelog.sqlFormatterTitle,
+                description: locConstants.Changelog.sqlFormatterDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-formatter",
+                    },
+                ],
+            },
+            {
                 title: locConstants.Changelog.shortcutsConfigurationTitle,
                 description: locConstants.Changelog.shortcutsConfigurationDescription,
-                isPreview: true,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
@@ -32,7 +47,6 @@ export const changelogConfig: ChangelogWebviewState = {
             {
                 title: locConstants.Changelog.azureSqlProvisioningTitle,
                 description: locConstants.Changelog.azureSqlProvisioningDescription,
-                isPreview: true,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
@@ -43,28 +57,6 @@ export const changelogConfig: ChangelogWebviewState = {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
                         value: "https://aka.ms/vscode-mssql-azuresql-docs",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.schemaDesignerCopilotTitle,
-                description: locConstants.Changelog.schemaDesignerCopilotDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-schema-designer-copilot-docs",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.dabWithCopilotTitle,
-                description: locConstants.Changelog.dabWithCopilotDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-dab-docs",
                     },
                 ],
             },
@@ -113,14 +105,24 @@ export const changelogConfig: ChangelogWebviewState = {
         description: locConstants.Changelog.secondaryContentDescription,
         entries: [
             {
-                title: locConstants.Changelog.fabricQueryProfilerTitle,
-                description: locConstants.Changelog.fabricQueryProfilerDescription,
-                codeSnippets: ["TSQL_Azure"],
+                title: locConstants.Changelog.schemaDesignerCopilotTitle,
+                description: locConstants.Changelog.schemaDesignerCopilotDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
-                        value: "https://aka.ms/vscode-mssql-query-profiler-docs#create-a-profiling-session",
+                        value: "https://aka.ms/vscode-mssql-schema-designer-copilot-docs",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.dabWithCopilotTitle,
+                description: locConstants.Changelog.dabWithCopilotDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-dab-docs",
                     },
                 ],
             },
@@ -158,22 +160,6 @@ export const changelogConfig: ChangelogWebviewState = {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
                         value: "https://aka.ms/vscode-mssql-dacpac",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.fabricIntegrationTitle,
-                description: locConstants.Changelog.fabricIntegrationDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-fabric-db-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-fabric-docs",
                     },
                 ],
             },
@@ -266,21 +252,6 @@ export const changelogConfig: ChangelogWebviewState = {
             ],
         },
     ],
-    event: {
-        mainTitle: "SQLCON EU",
-        secondaryTitle: "Microsoft SQL\nCOMMUNITY CONFERENCE",
-        location: { name: "BARCELONA", timezone: "+02:00" }, // keep timezone in UTC offset format "+HH:MM"
-        date: "2026-09-28", // keep YYYY-MM-DD format; front-end will "prettify" it
-        endDate: "2026-10-01",
-        actionButton: {
-            text: locConstants.Changelog.sqlconEuRegister,
-            url: "https://aka.ms/sqlconeu?ocid=sqlconeu_vscode_inproduct_azdata",
-        },
-        description: [
-            locConstants.Changelog.sqlconEuDescription1,
-            locConstants.Changelog.sqlconEuDescription2,
-        ],
-        codeSnippets: ["VSCODE200"],
-    },
+    event: undefined,
     version: vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown",
 };

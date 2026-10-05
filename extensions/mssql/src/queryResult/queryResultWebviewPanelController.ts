@@ -49,12 +49,12 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "revealQueryResult.svg",
+                        "queryResultView_dark.svg",
                     ),
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "revealQueryResult.svg",
+                        "queryResultView_light.svg",
                     ),
                 },
             },

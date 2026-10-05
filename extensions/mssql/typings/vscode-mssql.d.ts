@@ -5,7 +5,6 @@
 
 declare module "vscode-mssql" {
     import * as vscode from "vscode";
-    import { RequestType } from "vscode-languageclient";
 
     /**
      * Covers defining what the vscode-mssql extension exports to other extensions
@@ -18,129 +17,13 @@ declare module "vscode-mssql" {
         name = "ms-mssql.mssql",
     }
 
-    /**
-     * The APIs provided by Mssql extension
-     * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
-     */
+    /** The API provided to other extensions by the mssql extension. */
     export interface IExtension {
-        /**
-         * Path to the root of the SQL Tools Service folder
-         */
-        readonly sqlToolsServicePath: string;
+        /** APIs for working with user-approved mssql connections. */
+        readonly connectionSharing: IConnectionSharingService;
 
-        /**
-         * Service for accessing DacFx functionality
-         */
-        readonly dacFx: IDacFxService;
-
-        /**
-         * Service for accessing SchemaCompare functionality
-         */
-        readonly schemaCompare: ISchemaCompareService;
-
-        /**
-         * Service for accessing SQL Projects file functionality
-         */
-        readonly sqlProjects: ISqlProjectsService;
-
-        /**
-         * Service for accessing Azure Account functionality
-         */
-        readonly azureAccountService: IAzureAccountService;
-
-        /**
-         * Service for accessing Azure Resources functionality
-         */
-        readonly azureResourceService: IAzureResourceService;
-
-        /**
-         * Prompts the user to select an existing connection or create a new one, and then returns the result
-         * @param ignoreFocusOut Whether the quickpick prompt ignores focus out (default false)
-         */
-        promptForConnection(ignoreFocusOut?: boolean): Promise<IConnectionInfo | undefined>;
-
-        /**
-         * Attempts to create a new connection for the given connection info. An error is thrown and displayed
-         * to the user if an error occurs while connecting.
-         * Warning: setting the saveConnection to true will save a new connection profile each time this is called.
-         * Make sure to use that parameter only when you want to actually save a new profile.
-         * @param connectionInfo The connection info
-         * @param saveConnection Save the connection profile if sets to true
-         * @returns The URI associated with this connection
-         */
-        connect(connectionInfo: IConnectionInfo, saveConnection?: boolean): Promise<string>;
-
-        /**
-         * Prompts the user to add firewall rule if connection failed with a firewall error.
-         * @param connectionUri The URI of the connection to add firewall rule to.
-         * @param connectionInfo The connection info
-         * @returns True if firewall rule added
-         */
-        promptForFirewallRule(
-            connectionUri: string,
-            connectionInfo: IConnectionInfo,
-        ): Promise<boolean>;
-
-        /**
-         * Lists the databases for a given connection. Must be given an already-opened connection to succeed.
-         * @param connectionUri The URI of the connection to list the databases for.
-         * @returns The list of database names
-         */
-        listDatabases(connectionUri: string): Promise<string[]>;
-
-        /**
-         * Gets the database name for the node - which is the database name of the connection for a server node, the database name
-         * for nodes at or under a database node or a default value if it's neither of those.
-         * @param node The node to get the database name of
-         * @returns The database name
-         */
-        getDatabaseNameFromTreeNode(node: ITreeNodeInfo): string;
-
-        /**
-         * Get the connection string for the provided connection Uri or connection details.
-         * @param connectionUriOrDetails Either the connection Uri for the connection or the connection details for the connection is required.
-         * @param includePassword (optional) if password should be included in connection string.
-         * @param includeApplicationName (optional) if application name should be included in connection string.
-         * @returns connection string for the connection
-         */
-        getConnectionString(
-            connectionUriOrDetails: string | ConnectionDetails,
-            includePassword?: boolean,
-            includeApplicationName?: boolean,
-        ): Promise<string>;
-
-        /**
-         * Set connection details for the provided connection info
-         * Able to use this for getConnectionString requests to STS that require ConnectionDetails type
-         * @param connectionInfo connection info of the connection
-         * @returns connection details credentials for the connection
-         */
-        createConnectionDetails(connectionInfo: IConnectionInfo): ConnectionDetails;
-
-        /**
-         * Send a request to the SQL Tools Server client
-         * @param requestType The type of the request
-         * @param params The params to pass with the request
-         * @returns A promise object for when the request receives a response
-         */
-        sendRequest<P, R, E, R0>(requestType: RequestType<P, R, E, R0>, params?: P): Promise<R>;
-
-        /**
-         * Get the server info for a connection
-         * @param connectionInfo connection info of the connection
-         * @returns server information
-         */
-        getServerInfo(connectionInfo: IConnectionInfo): IServerInfo;
-        /**
-         * APIs for working with mssql connections
-         * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
-         */
-        connectionSharing: IConnectionSharingService;
-        /**
-         * APIs for coordinating URI ownership with other database extensions
-         * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
-         */
-        uriOwnershipApi: UriOwnershipApi;
+        /** APIs for coordinating URI ownership with other database extensions. */
+        readonly uriOwnershipApi: UriOwnershipApi;
     }
 
     /**
@@ -414,11 +297,6 @@ declare module "vscode-mssql" {
         typeSystemVersion: string | undefined;
 
         /**
-         * Gets or sets the connection string to use for this connection.
-         */
-        connectionString: string | undefined;
-
-        /**
          * Gets or sets the name of the connection's container; undefined if the
          * connection is not hosted by a container
          */
@@ -504,6 +382,10 @@ declare module "vscode-mssql" {
             includeRequest: boolean,
             taskExecutionMode: TaskExecutionMode,
         ): Thenable<SchemaCompareIncludeExcludeAllResult>;
+        getDifferenceDetails(
+            operationId: string,
+            differenceIndex: number,
+        ): Thenable<SchemaCompareDifferenceDetailsResult>;
         openScmp(filePath: string): Thenable<SchemaCompareOpenScmpResult>;
         saveScmp(
             sourceEndpointInfo: SchemaCompareEndpointInfo,
@@ -860,6 +742,18 @@ declare module "vscode-mssql" {
         getProjectProperties(projectUri: string): Promise<GetProjectPropertiesResult>;
 
         /**
+         * Get the properties, SQLCMD variables, database references, and items of a project in one request
+         * @param projectUri Absolute path of the project, including .sqlproj
+         */
+        getProjectModel(projectUri: string): Promise<GetProjectModelResult>;
+
+        /**
+         * Find the SQL project that owns a .sql file: the nearest .sqlproj in the file's folder or a parent folder
+         * @param filePath Absolute path of the .sql file
+         */
+        findProjectForFile(filePath: string): Promise<FindProjectForFileResult>;
+
+        /**
          * Set one or more properties on a SQL project.
          * @param projectUri Absolute path of the project, including .sqlproj
          * @param properties Map of property names to their new values
@@ -943,34 +837,10 @@ declare module "vscode-mssql" {
         getDatabaseReferences(projectUri: string): Promise<GetDatabaseReferencesResult>;
 
         /**
-         * Get all the folders in a project
-         * @param projectUri Absolute path of the project, including .sqlproj
-         */
-        getFolders(projectUri: string): Promise<GetFoldersResult>;
-
-        /**
-         * Get all the post-deployment scripts in a project
-         * @param projectUri Absolute path of the project, including .sqlproj
-         */
-        getPostDeploymentScripts(projectUri: string): Promise<GetScriptsResult>;
-
-        /**
-         * Get all the pre-deployment scripts in a project
-         * @param projectUri Absolute path of the project, including .sqlproj
-         */
-        getPreDeploymentScripts(projectUri: string): Promise<GetScriptsResult>;
-
-        /**
          * Get all the SQLCMD variables in a project
          * @param projectUri Absolute path of the project, including .sqlproj
          */
         getSqlCmdVariables(projectUri: string): Promise<GetSqlCmdVariablesResult>;
-
-        /**
-         * Get all the SQL object scripts in a project
-         * @param projectUri Absolute path of the project, including .sqlproj
-         */
-        getSqlObjectScripts(projectUri: string): Promise<GetScriptsResult>;
 
         /**
          * Add a None item to a project
@@ -992,12 +862,6 @@ declare module "vscode-mssql" {
          * @param path Path of the item, including extension, relative to the .sqlproj
          */
         excludeNoneItem(projectUri: string, path: string): Promise<ResultStatus>;
-
-        /**
-         * Get all the None items in a project
-         * @param projectUri Absolute path of the project, including .sqlproj
-         */
-        getNoneItems(projectUri: string): Promise<GetScriptsResult>;
 
         /**
          * Move a None item in a project
@@ -1133,6 +997,8 @@ declare module "vscode-mssql" {
         fabric: {
             fabricApiUriBase: string;
             fabricScopeUriBase: string;
+            /** Base URI of the Fabric portal, used to build links into Fabric workloads. */
+            fabricPortalUriBase: string | undefined;
             sqlDbDnsSuffix: string;
             dataWarehouseDnsSuffix: string;
         };
@@ -1440,7 +1306,7 @@ declare module "vscode-mssql" {
         deploymentOptions: DeploymentOptions;
     }
 
-    export interface ValidateStreamingJobResult extends ResultStatus { }
+    export interface ValidateStreamingJobResult extends ResultStatus {}
 
     export interface ParseTSqlScriptResult {
         containsCreateTableStatement: boolean;
@@ -1573,6 +1439,7 @@ declare module "vscode-mssql" {
         serverName: string;
         databaseName: string;
         ownerUri: string;
+        connectionId?: string;
         connectionDetails: SchemaCompareConnectionInfo;
         connectionName?: string;
         projectFilePath: string;
@@ -1582,6 +1449,7 @@ declare module "vscode-mssql" {
     }
 
     export interface DiffEntry {
+        hasDetails?: boolean;
         updateAction: SchemaUpdateAction;
         differenceType: SchemaDifferenceType;
         name: string;
@@ -1654,6 +1522,15 @@ declare module "vscode-mssql" {
         allIncludedOrExcludedDifferences: DiffEntry[];
     }
 
+    export interface SchemaCompareDifferenceDetailsParams {
+        operationId: string;
+        differenceIndex: number;
+    }
+
+    export interface SchemaCompareDifferenceDetailsResult extends ResultStatus {
+        difference: DiffEntry;
+    }
+
     export interface SchemaCompareNodeParams {
         operationId: string;
         diffEntry: DiffEntry;
@@ -1716,6 +1593,13 @@ declare module "vscode-mssql" {
          * Absolute path of the project, including .sqlproj
          */
         projectUri: string;
+    }
+
+    export interface FindProjectForFileParams {
+        /**
+         * Absolute path of the file to look up
+         */
+        filePath: string;
     }
 
     export interface SqlProjectScriptParams extends SqlProjectParams {
@@ -1953,13 +1837,6 @@ declare module "vscode-mssql" {
         nugetPackageReferences: NugetPackageReference[];
     }
 
-    export interface GetFoldersResult extends ResultStatus {
-        /**
-         * Array of folders contained in the project
-         */
-        folders: string[];
-    }
-
     export interface GetSqlCmdVariablesResult extends ResultStatus {
         /**
          * Array of SQLCMD variables contained in the project
@@ -1967,11 +1844,54 @@ declare module "vscode-mssql" {
         sqlCmdVariables: SqlCmdVariable[];
     }
 
-    export interface GetScriptsResult extends ResultStatus {
+    export interface GetProjectModelResult extends ResultStatus {
         /**
-         * Array of scripts contained in the project
+         * Project properties, as returned by getProjectProperties
          */
-        scripts: string[];
+        properties: GetProjectPropertiesResult;
+        /**
+         * Whether the project is compatible with cross-platform builds
+         */
+        isCrossPlatformCompatible: boolean;
+        /**
+         * Array of SQLCMD variables contained in the project
+         */
+        sqlCmdVariables: SqlCmdVariable[];
+        /**
+         * Database references contained in the project, as returned by getDatabaseReferences
+         */
+        databaseReferences: GetDatabaseReferencesResult;
+        /**
+         * Relative paths of the SQL object scripts (Build items) in the project
+         */
+        sqlObjectScripts: string[];
+        /**
+         * Relative paths of the pre-deployment scripts in the project
+         */
+        preDeploymentScripts: string[];
+        /**
+         * Relative paths of the post-deployment scripts in the project
+         */
+        postDeploymentScripts: string[];
+        /**
+         * Relative paths of the None items in the project, without glob patterns
+         */
+        noneItems: string[];
+        /**
+         * Relative paths of the folders in the project
+         */
+        folders: string[];
+    }
+
+    export interface FindProjectForFileResult extends ResultStatus {
+        /**
+         * Absolute path of the owning .sqlproj, or undefined when the file is not in a project
+         */
+        projectUri?: string;
+        /**
+         * Whether the owning project is currently loaded in SQL Tools Service
+         */
+        isLoaded: boolean;
     }
 
     //#endregion

@@ -214,7 +214,7 @@ function ComparisonPlanPane({
                 <WebviewErrorBoundary
                     fallback={
                         <div role="alert" className="execution-plan-comparison-render-error">
-                            {locConstants.executionPlan.reactFlowRendererError}
+                            {locConstants.executionPlan.executionPlanRendererError}
                         </div>
                     }
                     onError={(error, errorInfo) => {
@@ -228,10 +228,11 @@ function ComparisonPlanPane({
                     <ReactFlowExecutionPlan
                         key={`${side}-${source.selectedGraphIndex}`}
                         root={graph.root}
+                        planNumber={source.selectedGraphIndex + 1}
                         themeKind={themeKind}
                         onReady={handleReady}
                         comparisonGroupRoots={groupRoots}
-                        onSelectionChange={onSelectionChange}
+                        onNodeSelectionChange={onSelectionChange}
                         viewport={viewport}
                         onViewportChange={onViewportChange}
                     />
@@ -247,7 +248,6 @@ function ComparisonPlanPane({
                             }
                         }}
                         inputRef={inputRef}
-                        useReactFlow={true}
                     />
                 )}
             </div>
@@ -612,9 +612,6 @@ function ComparisonPropertyTable({
 export function ExecutionPlanComparison() {
     const context = useContext(ExecutionPlanContext);
     const comparisonState = useExecutionPlanSelector((state) => state.executionPlanComparisonState);
-    const isPreviewEnabled = useExecutionPlanSelector(
-        (state) => state.executionPlanState.isBetaExecutionPlanEnabled === true,
-    );
     const [primaryController, setPrimaryController] = useState<ExecutionPlanGraphController | null>(
         null,
     );
@@ -720,13 +717,6 @@ export function ExecutionPlanComparison() {
 
     if (!context || !comparisonState) {
         return undefined;
-    }
-    if (!isPreviewEnabled) {
-        return (
-            <div className="execution-plan-comparison-message" role="alert">
-                {locConstants.executionPlan.comparisonPreviewRequired}
-            </div>
-        );
     }
 
     const primarySource = comparisonState.primary;

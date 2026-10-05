@@ -1,0 +1,74 @@
+{
+    "schemaVersion": 2,
+    "runId": "2026-06-29T22-00-00Z_abcd1234",
+    "repId": 1,
+    "scenarioId": "query-10k-results",
+    "attemptId": 0,
+    "passType": "measurement",
+    "status": "passed",
+    "trace": {
+        "traceId": "0af7651916cd43dd8448eb211c80319c",
+        "rootTraceparent": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01"
+    },
+    "git": [
+        { "repo": "vscode-mssql", "sha": "abc123", "dirty": false },
+        { "repo": "sqltoolsservice", "sha": "def456", "dirty": false }
+    ],
+    "environment": {
+        "environmentHash": "sha256:example",
+        "machineId": "perfbox-01",
+        "os": { "platform": "win32", "version": "Windows 11 26100" },
+        "cpu": {
+            "model": "Example CPU",
+            "logicalCores": 16,
+            "affinity": [0, 1, 2, 3],
+            "turboDisabled": true
+        },
+        "vscode": { "version": "1.xx.x", "quality": "stable" },
+        "sql": { "imageDigest": "sha256:example", "snapshot": "seed-v4", "cacheMode": "warm" }
+    },
+    "metrics": [
+        {
+            "name": "scenario.wallclock",
+            "value": 412.7,
+            "unit": "ms",
+            "component": "scenario",
+            "processRole": "boundary",
+            "source": "marker",
+            "official": true,
+            "lowerIsBetter": true,
+            "aggregation": "trimmedMean",
+            "tags": { "scenarioGroup": "query" }
+        },
+        {
+            "name": "sql.networkDriver.duration",
+            "value": 70.0,
+            "unit": "ms",
+            "component": "driver",
+            "processRole": "boundary",
+            "source": "derived",
+            "official": false,
+            "lowerIsBetter": true,
+            "derivation": {
+                "formula": "max(0, sqlclient.command.duration - sqlserver.duration)",
+                "inputs": ["sqlclient.command.duration", "sqlserver.duration"],
+                "confidence": "medium"
+            },
+            "confidence": "medium"
+        }
+    ],
+    "artifacts": [
+        { "kind": "markers", "path": "markers.jsonl", "retention": "always", "sizeBytes": 1234 },
+        {
+            "kind": "sqlXEvents",
+            "path": "artifacts/sql/sql-xevents.json",
+            "retention": "on-regression"
+        }
+    ],
+    "validations": [
+        { "name": "requiredMarkersPresent", "status": "passed" },
+        { "name": "traceContextConnected", "status": "passed" },
+        { "name": "machineIdle", "status": "passed" }
+    ],
+    "errors": []
+}

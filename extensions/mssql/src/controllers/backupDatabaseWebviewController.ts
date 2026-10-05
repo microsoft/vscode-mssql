@@ -131,12 +131,10 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 backupModel.databaseName,
             );
             this.updateViewModel(backupModel);
-            sendErrorEvent(
-                TelemetryViews.Backup,
-                TelemetryActions.InitializeBackup,
-                new Error(LocConstants.BackupDatabase.couldNotConnectToDatabase("")),
-                true, // include error message in telemetry
-            );
+            sendErrorEvent(TelemetryViews.Backup, TelemetryActions.InitializeBackup, {
+                error: new Error(LocConstants.BackupDatabase.couldNotConnectToDatabase("")),
+                includeErrorMessage: true,
+            });
         }
 
         this.onDisposed(() => {
@@ -158,12 +156,10 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             this.state.errorMessage =
                 backupConfigError || LocConstants.BackupDatabase.unableToLoadBackupConfig;
             this.updateViewModel(backupModel);
-            sendErrorEvent(
-                TelemetryViews.Backup,
-                TelemetryActions.InitializeBackup,
-                new Error(LocConstants.BackupDatabase.unableToLoadBackupConfig),
-                true, // include error message in telemetry
-            );
+            sendErrorEvent(TelemetryViews.Backup, TelemetryActions.InitializeBackup, {
+                error: new Error(LocConstants.BackupDatabase.unableToLoadBackupConfig),
+                includeErrorMessage: true,
+            });
             return;
         }
 
@@ -305,12 +301,15 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             const backupViewModel = this.backupViewModel(state);
 
             sendActionEvent(TelemetryViews.Backup, TelemetryActions.Backup, {
-                backupToUrl: backupViewModel.type === DisasterRecoveryType.Url ? "true" : "false",
-                backupWithExistingFiles:
-                    backupViewModel.type === DisasterRecoveryType.BackupFile &&
-                    backupViewModel.backupFiles.some((file) => file.isExisting)
-                        ? "true"
-                        : "false",
+                additionalProps: {
+                    backupToUrl:
+                        backupViewModel.type === DisasterRecoveryType.Url ? "true" : "false",
+                    backupWithExistingFiles:
+                        backupViewModel.type === DisasterRecoveryType.BackupFile &&
+                        backupViewModel.backupFiles.some((file) => file.isExisting)
+                            ? "true"
+                            : "false",
+                },
             });
             return state;
         });

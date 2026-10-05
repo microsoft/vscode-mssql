@@ -3,7 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { expect, FrameLocator, Page } from "@playwright/test";
+import { expect, FrameLocator, Locator, Page } from "@playwright/test";
+import { promises as fs } from "fs";
+import * as os from "os";
+import * as path from "path";
+import type { VsCodeAppHandle } from "./launchVscodeWithMsSqlExt";
+import { QuickInput, VsCodeCommand } from "../pageObjects";
+
+/**
+ * Status bar text the extension publishes while a query is running.
+ * Kept in sync with `executeQueryLabel` in src/constants/locConstants.ts.
+ */
+const EXECUTING_QUERY_STATUS = "Executing query...";
 
 export async function addDatabaseConnection(
     vsCodePage: Page,
@@ -58,11 +69,9 @@ export async function addDatabaseConnection(
 }
 
 export async function openNewQueryEditor(vsCodePage: Page): Promise<void> {
-    await vsCodePage.keyboard.press(`${getModifierKey()}+P`);
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(">MS SQL: New Query");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.press("Enter");
+    // Picking the exact row rather than pressing Enter on the top fuzzy match: the palette ranks
+    // results, so Enter can run a neighbouring command.
+    await new QuickInput(vsCodePage).run(VsCodeCommand.mssqlNewQuery);
 }
 
 export async function disconnect(vsCodePage: Page): Promise<void> {
@@ -93,8 +102,53 @@ export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promis
     await expect(commandPaletteInput).toBeVisible();
 }
 
-export async function getWebviewByTitle(vsCodePage: Page, title: string): Promise<FrameLocator> {
-    return vsCodePage.frameLocator(".webview").frameLocator(`[title='${title}']`);
+/**
+ * Resolves the webview frame whose inner iframe carries `title`.
+ *
+ * A plain `frameLocator(".webview")` resolves to exactly one frame under Playwright's strict
+ * mode, so it throws as soon as a second webview is mounted — the results panel plus a dialog,
+ * for example. The inner iframe lives in a different document, so CSS `:has()` cannot reach it
+ * either; the outer frames have to be probed one at a time.
+ */
+export async function getWebviewByTitle(
+    vsCodePage: Page,
+    title: string,
+    timeout = 30 * 1000,
+): Promise<FrameLocator> {
+    // VS Code's webview host keeps both active-frame and pending-frame during a reload
+    // (src/vs/workbench/contrib/webview/browser/pre/index.html). A title-only frame locator
+    // becomes ambiguous while the preview grid switch replaces the webview bundle.
+    const innerSelector = `#active-frame[title='${title}']`;
+    const outerFrames = vsCodePage.locator(".webview");
+    const outerFrameLocators = vsCodePage.frameLocator(".webview");
+    let matchedIndex = -1;
+
+    await expect
+        .poll(
+            async () => {
+                const count = await outerFrames.count();
+                for (let index = 0; index < count; index++) {
+                    // The inner iframe element lives in the outer frame's document, so probe
+                    // each outer frame individually instead of resolving it against the page.
+                    const innerCount = await outerFrameLocators
+                        .nth(index)
+                        .locator(`iframe${innerSelector}`)
+                        .count();
+                    if (innerCount > 0) {
+                        matchedIndex = index;
+                        return true;
+                    }
+                }
+                return false;
+            },
+            {
+                timeout,
+                message: `Timed out waiting for a webview titled "${title}".`,
+            },
+        )
+        .toBe(true);
+
+    return outerFrameLocators.nth(matchedIndex).frameLocator(innerSelector);
 }
 
 export function isMac(): boolean {
@@ -103,4 +157,246 @@ export function isMac(): boolean {
 
 export function getModifierKey(): string {
     return isMac() ? "Meta" : "Control";
+}
+
+/** VS Code's status bar, which publishes connection and query execution state. */
+export function getStatusBar(vsCodePage: Page): Locator {
+    return vsCodePage.locator('[id="workbench.parts.statusbar"]');
+}
+
+/**
+ * Writes to the real OS clipboard through Electron's main process.
+ *
+ * Pasting is the only safe way to get SQL into the editor: `keyboard.type()` lets the language
+ * service turn a newline into a suggestion accept, which silently rewrites the query.
+ */
+export function writeClipboard(app: VsCodeAppHandle, text: string): Promise<void> {
+    return app.evaluate(({ clipboard }, value) => clipboard.writeText(value), text);
+}
+
+/** Reads the real OS clipboard, so copy assertions check what the user would actually paste. */
+export function readClipboard(app: VsCodeAppHandle): Promise<string> {
+    return app.evaluate(({ clipboard }) => clipboard.readText());
+}
+
+/** Empties the clipboard so a stale value from an earlier test cannot satisfy an assertion. */
+export function clearClipboard(app: VsCodeAppHandle): Promise<void> {
+    return writeClipboard(app, "");
+}
+
+/**
+ * The clipboard is the machine's, not the VS Code instance's.
+ *
+ * Every worker launches its own VS Code but they all write to the same OS clipboard, and the grid
+ * project runs two workers over files that each copy and read. One worker clearing or copying
+ * between another's copy and read makes the second assert against the first one's data, or
+ * against an empty clipboard. Playwright has no cross-worker mutex, so this is a lock file: an
+ * exclusive create is atomic, which is what makes it work between processes.
+ *
+ * The path is minted per run by globalSetup and passed to workers through the environment, so it
+ * is shared by the workers of one run and by nothing else. That is what lets the lock be simple:
+ * a file left behind by a killed run cannot block a later one, because a later run never looks at
+ * the same path, and nothing ever has cause to delete a file it does not own. Two runs overlapping
+ * on one machine do not share a lock and so do not serialize against each other -- they already
+ * contend for the one OS clipboard, which is not a thing a lock here can fix.
+ *
+ * Only the holder removes the file. There is deliberately no stale-lock reclamation: every form
+ * of it reduces to checking the file and then deleting it, and in that window the holder can
+ * release and a third worker acquire, so the reclaimer deletes a lock it does not own and two
+ * workers enter the critical section. A worker that dies holding the lock therefore fails the
+ * remaining clipboard tests on the acquire timeout, which is loud and diagnosable.
+ */
+const CLIPBOARD_LOCK_PATH_ENV = "MSSQL_E2E_CLIPBOARD_LOCK_PATH";
+
+/** Mints this run's lock path. Called once from globalSetup; see the note above. */
+export function createClipboardLockPath(): string {
+    const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return path.join(os.tmpdir(), `vscode-mssql-e2e-clipboard-${unique}.lock`);
+}
+
+function clipboardLockPath(): string {
+    const configured = process.env[CLIPBOARD_LOCK_PATH_ENV];
+    if (!configured) {
+        // Failing is the point: falling back to a shared path would silently reintroduce the
+        // cross-run deletion, and falling back to no lock would silently reintroduce the race.
+        throw new Error(
+            `${CLIPBOARD_LOCK_PATH_ENV} is unset, so the clipboard lock has no path. ` +
+                "globalSetup sets it; a run that skips global setup cannot use the clipboard.",
+        );
+    }
+    return configured;
+}
+
+/** Publishes this run's lock path to the workers, which are forked after globalSetup. */
+export function setClipboardLockPath(lockPath: string): void {
+    process.env[CLIPBOARD_LOCK_PATH_ENV] = lockPath;
+}
+
+/** Removes this run's lock file. Called from globalTeardown, once every worker has exited. */
+export async function removeClipboardLockFile(): Promise<void> {
+    const configured = process.env[CLIPBOARD_LOCK_PATH_ENV];
+    if (configured) {
+        await fs.rm(configured, { force: true });
+    }
+}
+
+/**
+ * The token this worker wrote into the lock file, while it holds the lock.
+ *
+ * Releasing checks it so that a release arriving from a worker that never acquired -- an
+ * afterEach still runs when its acquire hook timed out -- cannot delete the holder's lock.
+ */
+let clipboardLockToken: string | undefined;
+
+/** Takes the clipboard lock, waiting for whichever worker holds it. */
+export async function acquireClipboardLock(timeout = 30 * 1000): Promise<void> {
+    const deadline = Date.now() + timeout;
+    const lockPath = clipboardLockPath();
+    const token = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    for (;;) {
+        try {
+            // "wx" fails rather than truncating when the file exists, and that failure is the
+            // lock: exactly one worker can win the create.
+            const handle = await fs.open(lockPath, "wx");
+            try {
+                await handle.writeFile(token);
+            } finally {
+                await handle.close();
+            }
+            clipboardLockToken = token;
+            return;
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+                throw error;
+            }
+        }
+
+        if (Date.now() > deadline) {
+            throw new Error("Timed out waiting for the clipboard lock held by another worker.");
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+}
+
+/** Releases the clipboard lock, if this worker is the one holding it. */
+export async function releaseClipboardLock(): Promise<void> {
+    if (clipboardLockToken === undefined) {
+        return;
+    }
+    // Nothing else can delete or replace the file while this worker holds it, so there is no
+    // check-then-act window here: reaching this line means the lock is ours.
+    clipboardLockToken = undefined;
+    await fs.rm(clipboardLockPath(), { force: true });
+}
+
+/** Runs `body` with the clipboard held exclusively across workers. */
+export async function withClipboardLock<T>(body: () => Promise<T>): Promise<T> {
+    await acquireClipboardLock();
+    try {
+        return await body();
+    } finally {
+        await releaseClipboardLock();
+    }
+}
+
+/**
+ * Replaces the active editor's contents with `sql` in one text input event.
+ * Requires the editor determinism settings from GRID_LAUNCH_CONFIG.
+ */
+export async function setQueryText(
+    _app: VsCodeAppHandle,
+    vsCodePage: Page,
+    sql: string,
+): Promise<void> {
+    await vsCodePage.click("div.view-lines.monaco-mouse-cursor-text");
+    await vsCodePage.keyboard.press(`${getModifierKey()}+A`);
+    // Insert the whole SQL string as one textInput event. This avoids Monaco's per-keystroke
+    // suggestion acceptance on newlines and keeps the OS clipboard available for concurrent
+    // grid clipboard tests running in another Playwright worker.
+    await vsCodePage.keyboard.insertText(sql);
+}
+
+/** Waits for the status bar to report a live connection to `serverName`. */
+export async function waitForConnected(
+    vsCodePage: Page,
+    serverName: string,
+    timeout = 60 * 1000,
+): Promise<void> {
+    await expect(getStatusBar(vsCodePage)).toContainText(serverName, { timeout });
+}
+
+/**
+ * Runs the active query and waits for the extension to stop reporting it as running.
+ *
+ * The status bar is only a coarse gate here, for two reasons found in `src/views/statusView.ts`:
+ * `executedQuery` sets "Query executed" and then hides the item 200ms later, so polling for that
+ * text is a race by construction; and with the preview grid enabled `setExecutionTime` returns
+ * early because the timing moves into the webview footer instead. "Executing query..." is shown
+ * for the whole run, so its disappearance is the reliable page-level signal.
+ *
+ * Callers that need to know the results are actually rendered should follow this with
+ * {@link waitForResultGrid}, which gates on the grid's own row count.
+ */
+export async function executeQueryAndWait(vsCodePage: Page, timeout = 120 * 1000): Promise<void> {
+    const statusBar = getStatusBar(vsCodePage);
+    const executeQueryButton = vsCodePage.locator('[aria-label^="Execute Query"]').first();
+    await expect(executeQueryButton).toBeVisible();
+    await executeQueryButton.click();
+
+    // A fast query can finish before this is observable, so entering the state is best-effort.
+    await expect(statusBar)
+        .toContainText(EXECUTING_QUERY_STATUS, { timeout: 5 * 1000 })
+        .catch(() => undefined);
+    await expect(statusBar).not.toContainText(EXECUTING_QUERY_STATUS, { timeout });
+}
+
+/**
+ * Waits for a result grid to be rendered with at least `minRows` displayed rows.
+ *
+ * `data-row-count` is the grid's own view of what it is showing, so it stays honest through
+ * filtering and streaming. Asserting on a cell's text instead would also match the Messages tab.
+ */
+export async function waitForResultGrid(
+    resultsFrame: FrameLocator,
+    gridId = "0_0",
+    minRows = 1,
+    timeout = 60 * 1000,
+): Promise<Locator> {
+    const grid = resultsFrame.locator(`[data-grid-id="${gridId}"]`);
+    await expect(grid).toBeVisible({ timeout });
+    await expect
+        .poll(async () => Number((await grid.getAttribute("data-row-count")) ?? "0"), {
+            timeout,
+            message: `Timed out waiting for grid ${gridId} to display at least ${minRows} row(s).`,
+        })
+        .toBeGreaterThanOrEqual(minRows);
+    return grid;
+}
+
+/**
+ * Thin wrappers over the {@link QuickInput} page object.
+ *
+ * New specs should construct `new QuickInput(page)` directly; these remain so the existing
+ * specs pick up the reliability fixes without being rewritten.
+ */
+export function closeQuickInput(vsCodePage: Page, timeout = 10 * 1000): Promise<void> {
+    return new QuickInput(vsCodePage).close(timeout);
+}
+
+export function pickQuickInputItem(
+    vsCodePage: Page,
+    itemText: string,
+    timeout = 30 * 1000,
+): Promise<void> {
+    return new QuickInput(vsCodePage).pick(itemText, timeout);
+}
+
+export function runCommandFromPalette(
+    vsCodePage: Page,
+    filterText: string,
+    rowLabel: string,
+    timeout = 30 * 1000,
+): Promise<void> {
+    return new QuickInput(vsCodePage).runCommand(filterText, rowLabel, timeout);
 }

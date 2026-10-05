@@ -79,7 +79,7 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         const effectiveScopes = scopes ?? this.scopes;
 
         let authority = this.loginEndpointUrl + tenant.id;
-        this.logger.info(`Authority URL set to: ${authority}`);
+        this.logger.debug(`Authority URL set to: ${authority}`);
 
         try {
             let authUrlRequest: AuthorizationUrlRequest;

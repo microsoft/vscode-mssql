@@ -6,7 +6,10 @@
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
-import QueryRunner from "../../src/controllers/queryRunner";
+import QueryRunner, {
+    editorEol,
+    QueryExecutionCompleteEvent,
+} from "../../src/controllers/queryRunner";
 import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
 import * as Utils from "../../src/models/utils";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
@@ -28,6 +31,7 @@ import { ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
 import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
+import { Perf } from "../../src/perf/perfTelemetry";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -53,6 +57,7 @@ suite("Query Runner tests", () => {
     let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
     let showTextDocumentStub: sinon.SinonStub;
     let getConfigurationStub: sinon.SinonStub;
+    let perfMarkerStub: sinon.SinonStub;
 
     function createQueryRunner(
         uri: string = standardUri,
@@ -84,6 +89,7 @@ suite("Query Runner tests", () => {
         getConfigurationStub = sandbox
             .stub(vscode.workspace, "getConfiguration")
             .returns(stubs.createWorkspaceConfiguration({}));
+        perfMarkerStub = sandbox.stub(Perf, "marker");
 
         clipboardWriteTextStub = sandbox.stub().resolves();
         sandbox.stub(vscode.env, "clipboard").value({ writeText: clipboardWriteTextStub });
@@ -133,6 +139,7 @@ suite("Query Runner tests", () => {
         // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
         expect(queryRunner.isExecutingQuery).to.equal(true);
         expect(queryRunner.totalElapsedMilliseconds).to.equal(0);
+        expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
     });
 
     test("Handles Query Request Error Properly", async () => {
@@ -168,6 +175,12 @@ suite("Query Runner tests", () => {
             expect(testStatusView.executedQuery).to.have.been.called;
             // ... The query runner should not be running a query
             expect(queryRunner.isExecutingQuery).to.equal(false);
+            expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
+            expect(perfMarkerStub).to.have.been.calledWith(
+                "mssql.query.complete",
+                "end",
+                sinon.match({ hasError: true }),
+            );
         }
     });
 
@@ -194,6 +207,30 @@ suite("Query Runner tests", () => {
         expect(testQueryNotificationHandler.registerRunner).to.have.been.calledWith(
             queryRunner,
             standardUri,
+        );
+        expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
+    });
+
+    test("Quick Query submission failure closes its performance interval", async () => {
+        const failure = new Error("request failed");
+        testSqlToolsServerClient.sendRequest
+            .withArgs(QueryExecuteContracts.QueryExecuteStringRequest.type, sinon.match.object)
+            .rejects(failure);
+        const queryRunner = createQueryRunner();
+
+        let thrown: unknown;
+        try {
+            await queryRunner.runQueryString("select 1");
+        } catch (error) {
+            thrown = error;
+        }
+
+        expect(thrown).to.equal(failure);
+        expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
+        expect(perfMarkerStub).to.have.been.calledWith(
+            "mssql.query.complete",
+            "end",
+            sinon.match({ hasError: true, errorClass: "Error" }),
         );
     });
 
@@ -454,6 +491,65 @@ suite("Query Runner tests", () => {
         expect(queryRunner.batchSetMessages[message.message.batchId].length).to.equal(1);
     });
 
+    test("Notification - Message preserves non-error messages when batch messages are disabled", () => {
+        const config = stubs.createWorkspaceConfiguration({
+            [Constants.configResultsShowBatchMessages]: false,
+        });
+        getConfigurationStub.returns(config);
+        const message: QueryExecuteContracts.QueryExecuteMessageParams = {
+            message: {
+                batchId: 0,
+                isError: false,
+                message: "hello",
+                time: new Date().toISOString(),
+            },
+            ownerUri: standardUri,
+        };
+        const queryRunner = createQueryRunner();
+        const messageListener = sandbox.spy();
+        queryRunner.onMessage(messageListener);
+        queryRunner.batchSetMessages[message.message.batchId] = [];
+
+        queryRunner.handleMessage(message);
+
+        expect(queryRunner.batchSetMessages[message.message.batchId]).to.deep.equal([
+            message.message,
+        ]);
+        expect(messageListener).to.have.been.calledWith(message.message);
+        expect(testStatusView.showRowCount).to.have.been.calledWith(
+            standardUri,
+            message.message.message,
+        );
+    });
+
+    test("Notification - Message preserves errors when batch messages are disabled", () => {
+        const config = stubs.createWorkspaceConfiguration({
+            [Constants.configResultsShowBatchMessages]: false,
+        });
+        getConfigurationStub.returns(config);
+        const message: QueryExecuteContracts.QueryExecuteMessageParams = {
+            message: {
+                batchId: 0,
+                isError: true,
+                message: "Incorrect syntax near 'FROM'.",
+                time: new Date().toISOString(),
+            },
+            ownerUri: standardUri,
+        };
+        const queryRunner = createQueryRunner();
+        const messageListener = sandbox.spy();
+        queryRunner.onMessage(messageListener);
+        queryRunner.batchSetMessages[message.message.batchId] = [];
+
+        queryRunner.handleMessage(message);
+
+        expect(queryRunner.batchSetMessages[message.message.batchId]).to.deep.equal([
+            message.message,
+        ]);
+        expect(messageListener).to.have.been.calledWith(message.message);
+        expect(testStatusView.hideRowCount).to.have.been.calledWith(standardUri, true);
+    });
+
     test("Notification - Query complete", () => {
         // Setup:
 
@@ -476,6 +572,10 @@ suite("Query Runner tests", () => {
         // If:
         // ... I have a query runner
         let queryRunner = createQueryRunner();
+        let isFullExecutionComplete = false;
+        queryRunner.onComplete((event) => {
+            isFullExecutionComplete = event.isFullExecutionComplete;
+        });
 
         // ... And I handle a query completion event
         queryRunner.handleQueryComplete(result);
@@ -483,6 +583,64 @@ suite("Query Runner tests", () => {
         // ... The state of the query runner has been updated
         expect(queryRunner.batchSets.length).to.equal(1);
         expect(queryRunner.isExecutingQuery).to.equal(false);
+        expect(isFullExecutionComplete).to.be.true;
+    });
+
+    test("reports cancellation separately from SQL errors and resets it for the next execution", async () => {
+        const runner = createQueryRunner();
+        const completed = sandbox.spy();
+        runner.onComplete(completed);
+        runner.setupQueryExecution();
+        testSqlToolsServerClient.sendRequest.resolves({});
+        await runner.cancel();
+        runner.handleQueryComplete({ ownerUri: standardUri, batchSummaries: [] });
+        expect(completed).to.have.been.calledWith(
+            sinon.match({ hasError: false, isCanceled: true }),
+        );
+        expect(runner.isCanceled).to.be.true;
+        runner.setupQueryExecution();
+        runner.handleQueryComplete({ ownerUri: standardUri, batchSummaries: [] });
+        const latest = completed.lastCall.args[0] as QueryExecutionCompleteEvent;
+        expect(latest).to.include({ hasError: false, isCanceled: false });
+        expect(runner.isCanceled).to.be.false;
+    });
+
+    test("Notification - Query complete refreshes the SPID shown in the status bar", () => {
+        const result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: "uri",
+            batchSummaries: [],
+            serverConnectionId: "57",
+        };
+
+        const queryRunner = createQueryRunner();
+        queryRunner.handleQueryComplete(result);
+
+        expect(testStatusView.setServerProcessId).to.have.been.calledWith("uri", "57");
+    });
+
+    test("Notification - Query complete without a SPID keeps the SPID shown in the status bar", () => {
+        const result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: "uri",
+            batchSummaries: [],
+        };
+
+        const queryRunner = createQueryRunner();
+        queryRunner.handleQueryComplete(result);
+
+        expect(testStatusView.setServerProcessId).to.not.have.been.called;
+    });
+
+    test("Cleanup is not reported as a full query execution completion", async () => {
+        const queryRunner = createQueryRunner();
+        let isFullExecutionComplete = true;
+        queryRunner.onComplete((event) => {
+            isFullExecutionComplete = event.isFullExecutionComplete;
+        });
+        testSqlToolsServerClient.sendRequest.resolves();
+
+        await queryRunner.dispose();
+
+        expect(isFullExecutionComplete).to.be.false;
     });
 
     test("Notification - Query complete preserves absolute batch selection from service", () => {
@@ -738,6 +896,26 @@ suite("Query Runner tests", () => {
         expect(queryRunner["_registeredNotificationUris"].size).to.equal(0);
     });
 
+    test("records the execution plan options of the current run", async () => {
+        testSqlToolsServerClient.sendRequest.resolves(
+            new QueryExecuteContracts.QueryExecuteResult(),
+        );
+        setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1",
+        } as unknown as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+        const executionPlanOptions: QueryExecuteContracts.ExecutionPlanOptions = {
+            includeEstimatedExecutionPlanXml: true,
+        };
+
+        await queryRunner.runQuery(standardSelection, executionPlanOptions);
+        expect(queryRunner.executionPlanOptions).to.deep.equal(executionPlanOptions);
+
+        await queryRunner.runQueryString("select 1");
+        expect(queryRunner.executionPlanOptions).to.equal(undefined);
+    });
+
     test("runStatement sends correct request with execution plan options", async () => {
         const queryRunner = createQueryRunner();
         const line = 1;
@@ -747,6 +925,9 @@ suite("Query Runner tests", () => {
         };
 
         testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1",
+        } as vscode.TextDocument);
 
         await queryRunner.runStatement(line, column, executionPlanOptions);
 
@@ -761,6 +942,67 @@ suite("Query Runner tests", () => {
             QueryExecuteContracts.QueryExecuteStatementRequest.type,
             expectedParams,
         );
+        expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
+    });
+
+    test("runStatement submission failure closes its performance interval", async () => {
+        const failure = new Error("request failed");
+        testSqlToolsServerClient.sendRequest.rejects(failure);
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1",
+        } as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+
+        let thrown: unknown;
+        try {
+            await queryRunner.runStatement(1, 1);
+        } catch (error) {
+            thrown = error;
+        }
+
+        expect(thrown).to.equal(failure);
+        expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
+        expect(perfMarkerStub).to.have.been.calledWith(
+            "mssql.query.complete",
+            "end",
+            sinon.match({ hasError: true, errorClass: "Error" }),
+        );
+    });
+
+    test("keeps the submitted batch text when the document changes during execution", async () => {
+        let text = "select 0;\r\nGO\r\n  select 1;\r\nselect 2;";
+        vscodeWorkspace.openTextDocument.resolves({ getText: () => text } as vscode.TextDocument);
+        testSqlToolsServerClient.sendRequest.resolves();
+        const queryRunner = createQueryRunner();
+        await queryRunner.runQuery({ startLine: 2, startColumn: 2, endLine: 3, endColumn: 9 });
+        text = "select 999;";
+        queryRunner.handleBatchStart({
+            ownerUri: standardUri,
+            batchSummary: {
+                id: 0,
+                selection: { startLine: 2, startColumn: 2, endLine: 3, endColumn: 9 },
+            } as QueryExecuteContracts.BatchSummary,
+        });
+        expect(queryRunner.currentBatchQuery).to.equal("select 1;\r\nselect 2;");
+    });
+
+    test("updates the batch script for Quick Query batches", async () => {
+        testSqlToolsServerClient.sendRequest.resolves();
+        const queryRunner = createQueryRunner();
+        await queryRunner.runQueryString("select 1;\nGO\nselect 2;");
+        for (const [line, sql] of [
+            [0, "select 1;"],
+            [2, "select 2;"],
+        ] as const) {
+            queryRunner.handleBatchStart({
+                ownerUri: standardUri,
+                batchSummary: {
+                    id: line,
+                    selection: { startLine: line, startColumn: 0, endLine: line, endColumn: 9 },
+                } as QueryExecuteContracts.BatchSummary,
+            });
+            expect(queryRunner.currentBatchQuery).to.equal(sql);
+        }
     });
 
     suite("Copy Results", () => {
@@ -869,6 +1111,133 @@ suite("Query Runner tests", () => {
                 { fromRow: 4, toRow: 4, fromCell: 0, toCell: 0 },
                 { fromRow: 6, toRow: 6, fromCell: 0, toCell: 0 },
             ]);
+        });
+
+        test("copyResults writes overlapping Beta Grid selections as unique rows", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [
+                { fromRow: 0, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 1, toRow: 2, fromCell: 2, toCell: 2 },
+            ];
+            const rows = [
+                [
+                    { isNull: false, displayValue: "r0c0" },
+                    { isNull: false, displayValue: "r0c1" },
+                    { isNull: false, displayValue: "r0c2" },
+                ],
+                [
+                    { isNull: false, displayValue: "r1c0" },
+                    { isNull: false, displayValue: "r1c1" },
+                    { isNull: false, displayValue: "r1c2" },
+                ],
+                [
+                    { isNull: false, displayValue: "r2c0" },
+                    { isNull: false, displayValue: "r2c1" },
+                    { isNull: false, displayValue: "r2c2" },
+                ],
+            ];
+            sandbox.stub(queryRunner, "getRows").resolves({
+                resultSubset: {
+                    rowCount: rows.length,
+                    rows,
+                },
+            });
+
+            await queryRunner.copyResults(selection, 0, 0, false, true);
+
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith(
+                ["r0c0\t", "r1c0\tr1c2", "r2c0\tr2c2"].join(editorEol),
+            );
+            expect(testSqlToolsServerClient.sendRequest).to.not.have.been.calledWith(
+                CopyResults2Request.type,
+            );
+        });
+
+        test("copyResults shows progress for large overlapping Beta Grid selections", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [
+                { fromRow: 0, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 1, toRow: 2, fromCell: 2, toCell: 2 },
+            ];
+            getConfigurationStub.returns(
+                stubs.createWorkspaceConfiguration({
+                    [Constants.configInMemoryDataProcessingThreshold]: 1,
+                }),
+            );
+            sandbox.stub(queryRunner, "getRows").resolves({
+                resultSubset: {
+                    rowCount: 3,
+                    rows: [
+                        [{ isNull: false, displayValue: "r0c0" }],
+                        [{ isNull: false, displayValue: "r1c0" }],
+                        [{ isNull: false, displayValue: "r2c0" }],
+                    ],
+                },
+            });
+
+            await queryRunner.copyResults(selection, 0, 0, false, true);
+
+            expect(vscode.window.withProgress).to.have.been.called;
+        });
+
+        test("a new copy cancels an in-flight overlapping Beta Grid copy", async () => {
+            const queryRunner = createQueryRunner();
+            const sparseSelection = [
+                { fromRow: 0, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 1, toRow: 2, fromCell: 2, toCell: 2 },
+            ];
+            let resolveRows!: (value: QueryExecuteSubsetResult) => void;
+            const pendingRows = new Promise<QueryExecuteSubsetResult>((resolve) => {
+                resolveRows = resolve;
+            });
+            sandbox.stub(queryRunner, "getRows").returns(pendingRows);
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({ content: "new copy" });
+
+            const firstCopy = queryRunner.copyResults(sparseSelection, 0, 0, false, true);
+            const secondCopy = queryRunner.copyResults(
+                [{ fromRow: 4, toRow: 4, fromCell: 0, toCell: 0 }],
+                0,
+                0,
+                false,
+            );
+            resolveRows({
+                resultSubset: {
+                    rowCount: 3,
+                    rows: [
+                        [{ isNull: false, displayValue: "old0" }],
+                        [{ isNull: false, displayValue: "old1" }],
+                        [{ isNull: false, displayValue: "old2" }],
+                    ],
+                },
+            });
+
+            await Promise.all([firstCopy, secondCopy]);
+
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith("new copy");
+            expect(testSqlToolsServerClient.sendNotification).to.not.have.been.calledWith(
+                CancelCopy2Notification.type,
+            );
+        });
+
+        test("copyResults keeps legacy overlapping selections on the backend copy path", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [
+                { fromRow: 0, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 1, toRow: 2, fromCell: 2, toCell: 2 },
+            ];
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({ content: "legacy copy" });
+
+            await queryRunner.copyResults(selection, 0, 0, false);
+
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+                CopyResults2Request.type,
+                sinon.match.object,
+            );
         });
 
         test("copyResultsAsCsv calls copyResults2 with CSV CopyType", async () => {

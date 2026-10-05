@@ -1,0 +1,45 @@
+// Milestone 1 seed-crystal config: runs the pure-harness `noop` scenario.
+// Run from the perftest repo root:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.noop.local.jsonc
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 2,
+    "warmupRepetitions": 0,
+    "scenarios": ["noop"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "fresh",
+        "extensions": [
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {},
+    },
+    // noop touches no SQL; provider external + snapshot none keeps the schema
+    // satisfied without provisioning anything.
+    "sql": {
+        "provider": "external",
+        "snapshot": "none",
+        "cacheMode": "unknown",
+        "connectionProfile": "none",
+    },
+    "environment": {
+        "requireIdle": false,
+    },
+    "diagnostics": {
+        "markers": true,
+        "processSampler": false,
+        "otel": "off",
+    },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

@@ -47,7 +47,11 @@ export interface FluentResultGridBehaviorProps {
 export interface FluentResultGridCallbackProps {
     onCommand?: (event: FluentResultGridCommandEvent) => MaybePromise<void>;
     onStateChange?: (state: FluentResultGridState) => void;
-    onSelectionSummaryChange?: (selection: readonly ISlickRange[]) => MaybePromise<void>;
+    onSelectionChange?: (selection: readonly ISlickRange[]) => void;
+    onSelectionSummaryChange?: (
+        selection: readonly ISlickRange[],
+        displaySelection?: readonly ISlickRange[],
+    ) => MaybePromise<void>;
     onInMemoryDataProcessingThresholdExceeded?: () => MaybePromise<void>;
 }
 
@@ -64,4 +68,5 @@ export interface FluentResultGridProps
 
 export interface FluentResultGridHandle {
     focusGrid: () => void;
+    clearSelection?: () => void;
 }

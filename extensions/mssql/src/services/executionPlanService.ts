@@ -12,6 +12,7 @@ import {
 } from "../models/contracts/executionPlan";
 import { getLogger } from "../models/logger";
 import * as ep from "../sharedInterfaces/executionPlan";
+import { addExecutionPlanStatistics } from "../queryResult/liveExecutionPlanStatistics";
 
 const logger = getLogger("ExecutionPlanService");
 
@@ -24,7 +25,23 @@ export class ExecutionPlanService implements ep.ExecutionPlanService {
             let params: GetExecutionPlanParams = {
                 graphInfo: planFile,
             };
-            return await this._sqlToolsClient.sendRequest(GetExecutionPlanRequest.type, params);
+            const result = await this._sqlToolsClient.sendRequest(
+                GetExecutionPlanRequest.type,
+                params,
+            );
+            return {
+                ...result,
+                graphs: result.graphs.map((graph, index) => {
+                    // Both query results and opened .sqlplan files use this service. Enrich actual
+                    // plans here so their counters don't disappear when they replace a live read.
+                    const source = {
+                        ...graph,
+                        graphFile: { ...planFile, planIndexInFile: index, ...graph.graphFile },
+                    };
+                    const annotated = addExecutionPlanStatistics(source);
+                    return annotated === source ? graph : annotated;
+                }),
+            };
         } catch (e) {
             logger.error("Failed to get execution plan", e);
             throw e;

@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { spawn } from "child_process";
+import { createServer } from "net";
 import { arch, platform } from "os";
 import { PassThrough } from "stream";
 import fixPath from "fix-path";
@@ -180,7 +181,11 @@ export interface ContainerLogMonitor {
     dispose: () => void;
     getLogs: () => string | undefined;
     includes: (text: string) => boolean;
-    waitForMatch: (text: string, timeoutMs: number) => Promise<boolean>;
+    waitForMatch: (
+        text: string,
+        timeoutMs: number,
+        cancellationToken?: vscode.CancellationToken,
+    ) => Promise<boolean>;
 }
 
 export interface StartContainerLogMonitorOptions {
@@ -243,12 +248,32 @@ export async function startContainerLogMonitor(
             return logs.length > 0 ? logs : undefined;
         },
         includes: (text: string) => bufferedLogs.includes(text),
-        waitForMatch: (text: string, timeoutMs: number) => {
+        waitForMatch: (
+            text: string,
+            timeoutMs: number,
+            cancellationToken?: vscode.CancellationToken,
+        ) => {
             if (bufferedLogs.includes(text)) {
                 return Promise.resolve(true);
             }
 
+            if (cancellationToken?.isCancellationRequested) {
+                return Promise.resolve(false);
+            }
+
             return new Promise<boolean>((resolve, reject) => {
+                let cancellationListener: vscode.Disposable | undefined;
+
+                const cleanup = () => {
+                    clearTimeout(timeoutHandle);
+                    cancellationListener?.dispose();
+                    stdoutStream.removeListener("data", onData);
+                    stderrStream.removeListener("data", onData);
+                    rawLogsStream.removeListener("error", onError);
+                    rawLogsStream.removeListener("end", onEnd);
+                    rawLogsStream.removeListener("close", onEnd);
+                };
+
                 const onData = () => {
                     if (bufferedLogs.includes(text)) {
                         cleanupAndResolve(true);
@@ -256,24 +281,14 @@ export async function startContainerLogMonitor(
                 };
 
                 const onError = (error: Error) => {
-                    clearTimeout(timeoutHandle);
-                    stdoutStream.removeListener("data", onData);
-                    stderrStream.removeListener("data", onData);
-                    rawLogsStream.removeListener("error", onError);
-                    rawLogsStream.removeListener("end", onEnd);
-                    rawLogsStream.removeListener("close", onEnd);
+                    cleanup();
                     reject(error);
                 };
 
                 const onEnd = () => cleanupAndResolve(false);
 
                 const cleanupAndResolve = (result: boolean) => {
-                    clearTimeout(timeoutHandle);
-                    stdoutStream.removeListener("data", onData);
-                    stderrStream.removeListener("data", onData);
-                    rawLogsStream.removeListener("error", onError);
-                    rawLogsStream.removeListener("end", onEnd);
-                    rawLogsStream.removeListener("close", onEnd);
+                    cleanup();
                     resolve(result);
                 };
 
@@ -284,6 +299,9 @@ export async function startContainerLogMonitor(
                 rawLogsStream.on("error", onError);
                 rawLogsStream.on("end", onEnd);
                 rawLogsStream.on("close", onEnd);
+                cancellationListener = cancellationToken?.onCancellationRequested(() =>
+                    cleanupAndResolve(false),
+                );
             });
         },
     };
@@ -615,11 +633,14 @@ export async function isDockerContainerRunning(name: string): Promise<boolean> {
 export async function startDocker(
     node?: ConnectionNode,
     objectExplorerService?: ObjectExplorerService,
+    cancellationTokenSource?: vscode.CancellationTokenSource,
 ): Promise<DockerCommandParams> {
     try {
         await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
-            dockerStartedThroughExtension: "false",
+            additionalProps: {
+                dockerStartedThroughExtension: "false",
+            },
         });
         return { success: true };
     } catch (e) {
@@ -637,7 +658,7 @@ export async function startDocker(
     }
     if (node && objectExplorerService) {
         node.loadingLabel = LocalContainers.startingDockerLoadingLabel;
-        await objectExplorerService.setLoadingUiForNode(node);
+        await objectExplorerService.setLoadingUiForNode(node, cancellationTokenSource);
     }
     let dockerDesktopPath = "";
     if (platform() === Platform.Windows) {
@@ -661,26 +682,60 @@ export async function startDocker(
 
     try {
         dockerLogger.info("Waiting for Docker to start...");
-        await execDockerCommand(startCommand);
+        let startCancellationListener: vscode.Disposable | undefined;
+        let dockerStartCanceled: boolean;
+        try {
+            dockerStartCanceled = await Promise.race([
+                execDockerCommand(startCommand).then(() => false),
+                new Promise<boolean>((resolve) => {
+                    startCancellationListener =
+                        cancellationTokenSource?.token.onCancellationRequested(() => resolve(true));
+                }),
+            ]);
+        } finally {
+            startCancellationListener?.dispose();
+        }
+
+        if (dockerStartCanceled || cancellationTokenSource?.token.isCancellationRequested) {
+            return { success: false, canceled: true };
+        }
 
         let attempts = 0;
         const maxAttempts = 30;
         const interval = 2000;
 
         return await new Promise((resolve) => {
+            let cancellationListener: vscode.Disposable | undefined;
+            let completed = false;
+            const complete = (result: DockerCommandParams) => {
+                if (completed) {
+                    return;
+                }
+                completed = true;
+                clearInterval(checkDocker);
+                cancellationListener?.dispose();
+                resolve(result);
+            };
+
             const checkDocker = setInterval(async () => {
                 try {
                     await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
-                    clearInterval(checkDocker);
+                    if (completed) {
+                        return;
+                    }
                     dockerLogger.info("Docker started successfully.");
                     sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
-                        dockerStartedThroughExtension: "true",
+                        additionalProps: {
+                            dockerStartedThroughExtension: "true",
+                        },
                     });
-                    resolve({ success: true });
+                    complete({ success: true });
                 } catch (e) {
+                    if (completed) {
+                        return;
+                    }
                     if (++attempts >= maxAttempts) {
-                        clearInterval(checkDocker);
-                        resolve({
+                        complete({
                             success: false,
                             error: LocalContainers.dockerFailedToStartWithinTimeout,
                             fullErrorText: getErrorMessage(e),
@@ -688,6 +743,12 @@ export async function startDocker(
                     }
                 }
             }, interval);
+            cancellationListener = cancellationTokenSource?.token.onCancellationRequested(() =>
+                complete({ success: false, canceled: true }),
+            );
+            if (cancellationTokenSource?.token.isCancellationRequested) {
+                cancellationListener?.dispose();
+            }
         });
     } catch (e) {
         return {
@@ -717,14 +778,10 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.DeleteContainer);
         return true;
     } catch (e) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.DeleteContainer,
-            e,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-        );
+        sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.DeleteContainer, {
+            error: e,
+            includeErrorMessage: false,
+        });
         return false;
     }
 }
@@ -743,14 +800,10 @@ export async function stopContainer(containerName: string): Promise<boolean> {
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StopContainer);
         return true;
     } catch (e) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.StopContainer,
-            e,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-        );
+        sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.StopContainer, {
+            error: e,
+            includeErrorMessage: false,
+        });
         return false;
     }
 }
@@ -798,22 +851,80 @@ export async function checkIfConnectionIsDockerContainer(machineName: string): P
 }
 
 /**
- * Finds an available port for a new Docker container, starting from the specified port.
- * It checks the currently running containers and their exposed ports to find an unused port.
+ * How many candidate ports to probe before giving up. Scanning to
+ * MAX_PORT_NUMBER would mean tens of thousands of socket binds on a machine
+ * where the whole range above the start port is busy.
  */
-export async function findAvailablePort(startPort: number): Promise<number> {
+const MAX_PORT_PROBE_ATTEMPTS = 200;
+
+/**
+ * Addresses a published port has to be free on.
+ *
+ * Loopback is probed because that is where DAB publishes: containers bind
+ * 127.0.0.1 and the CLI engine listens there too, and on Windows a wildcard
+ * bind succeeds while a loopback listener holds the same port. The wildcard is
+ * probed with no address at all, which is how Node binds every interface, so a
+ * service listening broadly is caught as well.
+ */
+const HOST_PORT_PROBE_ADDRESSES: (string | undefined)[] = ["127.0.0.1", undefined];
+
+/** Reports whether a socket can be bound to one address and port. */
+function canBindAddress(host: string | undefined, port: number): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
+        const server = createServer();
+        server.unref();
+        server.once("error", () => resolve(false));
+        server.listen({ ...(host ? { host } : {}), port, exclusive: true }, () => {
+            server.close(() => resolve(true));
+        });
+    });
+}
+
+/**
+ * Checks whether the host can still publish the given port.
+ *
+ * Docker port bindings are not the whole story: a port claimed by any other
+ * process on the machine is one `docker create` will refuse to bind, and a
+ * detached engine left running by an earlier session is exactly such a process.
+ */
+export async function isHostPortAvailable(port: number): Promise<boolean> {
+    for (const host of HOST_PORT_PROBE_ADDRESSES) {
+        if (!(await canBindAddress(host, port))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Finds an available port for a new Docker container, starting from the specified port.
+ * A port is available only when no container has it bound and no process on the
+ * host is already listening on it.
+ */
+export async function findAvailablePort(
+    startPort: number,
+    /** Overridable so tests can drive port availability without real sockets. */
+    isPortFree: (port: number) => Promise<boolean> = isHostPortAvailable,
+): Promise<number> {
     try {
         const dockerClient = getDockerodeClient();
         const containerInfos = await dockerClient.listContainers({ all: true });
         const containerIds = containerInfos
             .map((containerInfo) => containerInfo.Id)
             .filter((id): id is string => Boolean(id));
-        if (!containerIds.length) return startPort;
 
-        const usedPorts = await getUsedPortsFromContainers(containerIds);
+        const usedPorts = containerIds.length
+            ? await getUsedPortsFromContainers(containerIds)
+            : new Set<number>();
 
-        for (let port = startPort; port <= MAX_PORT_NUMBER; port++) {
-            if (!usedPorts.has(port)) {
+        const lastPort = Math.min(startPort + MAX_PORT_PROBE_ATTEMPTS - 1, MAX_PORT_NUMBER);
+        for (let port = startPort; port <= lastPort; port++) {
+            if (usedPorts.has(port)) {
+                continue;
+            }
+
+            if (await isPortFree(port)) {
                 return port;
             }
         }
@@ -831,10 +942,17 @@ export async function prepareForDockerContainerCommand(
     containerName: string,
     containerNode: ConnectionNode,
     objectExplorerService: ObjectExplorerService,
+    cancellationTokenSource?: vscode.CancellationTokenSource,
 ): Promise<DockerCommandParams> {
-    const startDockerResult = await startDocker(containerNode, objectExplorerService);
+    const startDockerResult = await startDocker(
+        containerNode,
+        objectExplorerService,
+        cancellationTokenSource,
+    );
     if (!startDockerResult.success) {
-        vscode.window.showErrorMessage(startDockerResult.error);
+        if (!startDockerResult.canceled) {
+            vscode.window.showErrorMessage(startDockerResult.error);
+        }
         return startDockerResult;
     }
 

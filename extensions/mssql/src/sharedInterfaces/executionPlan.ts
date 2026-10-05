@@ -15,10 +15,6 @@ export interface ExecutionPlanWebviewState {
 
 export interface ExecutionPlanState {
     /**
-     * Whether execution plans should use the React Flow preview renderer.
-     */
-    isBetaExecutionPlanEnabled?: boolean;
-    /**
      * The execution plan graphs returned by the tools service
      */
     executionPlanGraphs?: ExecutionPlanGraph[];
@@ -160,9 +156,30 @@ export interface ExecutionPlanGraph {
      * Query recommendations for optimizing performance
      */
     recommendations: ExecutionPlanRecommendations[];
+    /**
+     * True for the in-flight plan of a statement that is still running, which refreshes with
+     * live row counts until the statement finishes.
+     */
+    isLive?: boolean;
+    /**
+     * Number of the live read this plan came from. It changes only when the plan is read again, so
+     * the view can tell a new read from the same read sent along with other state updates.
+     */
+    liveRefreshId?: number;
+    /** Estimated work completed from pipeline input rows, weighted by refined plan costs. */
+    liveQueryStatistics?: {
+        estimatedProgress?: number;
+        elapsedTimeInMs?: number;
+    };
 }
 
 export interface ExecutionPlanNode {
+    /** Numeric counters from the live ShowPlan XML, independent of translated properties. */
+    liveQueryStatistics?: {
+        actualRows?: string;
+        estimatedRows?: number;
+        elapsedTimeInMs?: number;
+    };
     /**
      * Unique id given to node by the provider
      */

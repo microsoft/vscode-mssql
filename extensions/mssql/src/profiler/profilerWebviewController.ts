@@ -234,8 +234,15 @@ export class ProfilerWebviewController extends WebviewPanelController<
                 sendActionEvent(
                     TelemetryViews.Profiler,
                     TelemetryActions.ProfilerCloseWarningShown,
-                    { sessionId: this._currentSession.id, userAction: "Discarded" },
-                    { unsavedEventsCount: this._currentSession.events.size },
+                    {
+                        additionalProps: {
+                            sessionId: this._currentSession.id,
+                            userAction: "Discarded",
+                        },
+                        additionalMeasurements: {
+                            unsavedEventsCount: this._currentSession.events.size,
+                        },
+                    },
                 );
             }
             return undefined;
@@ -246,8 +253,15 @@ export class ProfilerWebviewController extends WebviewPanelController<
                 sendActionEvent(
                     TelemetryViews.Profiler,
                     TelemetryActions.ProfilerCloseWarningShown,
-                    { sessionId: this._currentSession.id, userAction: "Cancelled" },
-                    { unsavedEventsCount: this._currentSession.events.size },
+                    {
+                        additionalProps: {
+                            sessionId: this._currentSession.id,
+                            userAction: "Cancelled",
+                        },
+                        additionalMeasurements: {
+                            unsavedEventsCount: this._currentSession.events.size,
+                        },
+                    },
                 );
             }
             return {
@@ -467,7 +481,12 @@ export class ProfilerWebviewController extends WebviewPanelController<
                     sendActionEvent(
                         TelemetryViews.Profiler,
                         TelemetryActions.ProfilerFilterApplied,
-                        { sessionId: this._currentSession.id, filters: pairs.join(",") },
+                        {
+                            additionalProps: {
+                                sessionId: this._currentSession.id,
+                                filters: pairs.join(","),
+                            },
+                        },
                     );
                 }
 
@@ -583,8 +602,15 @@ export class ProfilerWebviewController extends WebviewPanelController<
                                 sendActionEvent(
                                     TelemetryViews.Profiler,
                                     TelemetryActions.ProfilerExportDone,
-                                    { sessionId: this._currentSession.id, exportFormat: "csv" },
-                                    { eventsExportedCount: allEvents.length },
+                                    {
+                                        additionalProps: {
+                                            sessionId: this._currentSession.id,
+                                            exportFormat: "csv",
+                                        },
+                                        additionalMeasurements: {
+                                            eventsExportedCount: allEvents.length,
+                                        },
+                                    },
                                 );
                             }
                         }

@@ -433,6 +433,9 @@ suite("DAB Container", () => {
         expect(result).to.equal("");
     });
 
+    /** Port availability comes from the test, not from the host running it. */
+    const allHostPortsFree = async () => true;
+
     test("findAvailableDabPort: should return default DAB port when available", async () => {
         const listContainersStub = sandbox.stub();
         const dockerClientMock = createDockerClientMock({
@@ -441,7 +444,7 @@ suite("DAB Container", () => {
         sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
 
         listContainersStub.resolves([]);
-        const result = await dabContainer.findAvailableDabPort();
+        const result = await dabContainer.findAvailableDabPort(undefined, allHostPortsFree);
         expect(result).to.equal(5000); // Dab.DAB_DEFAULT_PORT
     });
 
@@ -470,7 +473,7 @@ suite("DAB Container", () => {
             },
         });
 
-        const result = await dabContainer.findAvailableDabPort();
+        const result = await dabContainer.findAvailableDabPort(undefined, allHostPortsFree);
         expect(result).to.equal(5001);
     });
 
@@ -482,7 +485,7 @@ suite("DAB Container", () => {
         sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
 
         listContainersStub.resolves([]);
-        const result = await dabContainer.findAvailableDabPort(8080);
+        const result = await dabContainer.findAvailableDabPort(8080, allHostPortsFree);
         expect(result).to.equal(8080);
     });
 });

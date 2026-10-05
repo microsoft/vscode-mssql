@@ -24,6 +24,7 @@ import ColumnMenuPopup, {
     FilterValue,
 } from "./table/plugins/ColumnMenuPopup";
 import { TableColumnResizeDialog } from "./table/TableColumnResizeDialog";
+import { ExecutionPlanRevealRequest } from "../ExecutionPlan/executionPlanPage";
 
 export interface ColumnFilterPopupOptions {
     columnId: string;
@@ -77,11 +78,14 @@ export interface QueryResultReactProvider
     getExecutionPlan(uri: string): void;
 
     /**
-     * Opens a file of type with with specified content
+     * Opens a file of type with with specified content. A plan from this result opens its Query
+     * Plan tab scrolled to that plan instead.
      * @param content the content of the file
      * @param type the type of file to open
      */
     openFileThroughLink(content: string, type: string): void;
+    /** The plan the Query Plan tab should scroll to after a plan link is opened. */
+    executionPlanRevealRequest?: ExecutionPlanRevealRequest;
     /**
      * Opens the resize column dialog
      * @param options options for the resize dialog
@@ -100,9 +104,34 @@ interface QueryResultProviderProps {
     children: ReactNode;
 }
 
+/**
+ * Finds the first plan in this result parsed from the given XML. Every plan keeps the XML of the
+ * result set it came from, so this is the plan a link to that XML refers to.
+ * @returns the plan's index, or -1 when the XML is not one of this result's plans.
+ */
+function findExecutionPlanGraphIndex(
+    state: QueryResultWebviewState | undefined,
+    content: string,
+): number {
+    if (!state?.isExecutionPlan) {
+        return -1;
+    }
+    return (
+        state.executionPlanState?.executionPlanGraphs?.findIndex(
+            (graph) => graph.graphFile?.graphFileContent === content,
+        ) ?? -1
+    );
+}
+
 const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview<QueryResultWebviewState, QueryResultReducers>();
+    const { extensionRpc, getSnapshot } = useVscodeWebview<
+        QueryResultWebviewState,
+        QueryResultReducers
+    >();
     const [copyIndicatorVisible, setCopyIndicatorVisible] = useState(false);
+    const [executionPlanRevealRequest, setExecutionPlanRevealRequest] = useState<
+        ExecutionPlanRevealRequest | undefined
+    >(undefined);
     const copyIndicatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     // Grid context menu state
     const [menuState, setMenuState] = useState<{
@@ -202,8 +231,17 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             },
 
             openFileThroughLink: (content: string, type: string) => {
+                const graphIndex = findExecutionPlanGraphIndex(getSnapshot(), content);
+                if (graphIndex >= 0) {
+                    setExecutionPlanRevealRequest({ graphIndex });
+                    extensionRpc.action("setResultTab", {
+                        tabId: QueryResultPaneTabs.ExecutionPlan,
+                    });
+                    return;
+                }
                 extensionRpc.action("openFileThroughLink", { content, type });
             },
+            executionPlanRevealRequest,
 
             // Execution Plan commands
 
@@ -267,7 +305,9 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
         }),
         [
             extensionRpc,
+            getSnapshot,
             copyIndicatorVisible,
+            executionPlanRevealRequest,
             showCopyIndicator,
             hideFilterPopup,
             hideHeaderContextMenu,

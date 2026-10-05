@@ -21,6 +21,7 @@ export enum TelemetryViews {
     Deployment = "Deployment",
     LocalContainers = "LocalContainers",
     FabricProvisioning = "FabricProvisioning",
+    FabricDatabaseHub = "FabricDatabaseHub",
     AzureSqlDatabase = "AzureSqlDatabase",
     TableDesigner = "TableDesigner",
     SchemaCompare = "SchemaCompare",
@@ -40,6 +41,7 @@ export enum TelemetryViews {
     ScriptingService = "ScriptingService",
     TableExplorer = "TableExplorer",
     ChangelogPage = "ChangelogPage",
+    OverviewPage = "OverviewPage",
     AzureDataStudioMigration = "AzureDataStudioMigration",
     FileBrowser = "FileBrowser",
     Backup = "Backup",
@@ -64,7 +66,6 @@ export enum TelemetryActions {
     PublishProjectChanges = "PublishProjectChanges",
     PublishDatabaseChanges = "PublishDatabaseChanges",
     BuildProject = "BuildProject",
-    AddNewConnectionDialogOpened = "AddNewConnectionDialogOpened",
     ListingActiveServers = "ListingActiveServers",
     SqlProjectInstalledVerification = "SqlProjectInstalledVerification",
     Compare = "Compare",
@@ -88,6 +89,7 @@ export enum TelemetryActions {
     NewQuery = "NewQuery",
     RunQuery = "RunQuery",
     QueryExecutionCompleted = "QueryExecutionCompleted",
+    QueryCompletionSoundPlayback = "QueryCompletionSoundPlayback",
     RunResultPaneAction = "RunResultPaneAction",
     CreateConnection = "CreateConnection",
     CreateConnectionResult = "CreateConnectionResult",
@@ -118,6 +120,7 @@ export enum TelemetryActions {
     CopyHeaders = "CopyHeaders",
     OpenQueryResultsInTabByDefaultPrompt = "OpenQueryResultsInTabByDefaultPrompt",
     OpenQueryResult = "OpenQueryResult",
+    ToggleResultsGridMode = "ToggleResultsGridMode",
     Restore = "Restore",
     LoadConnection = "LoadConnection",
     LoadConnectionProperties = "LoadConnectionProperties",
@@ -158,7 +161,6 @@ export enum TelemetryActions {
     ProvisionFabricDatabase = "ProvisionFabricDatabase",
     ConnectToFabricDatabase = "ConnectToFabricDatabase",
     LoadFromConnectionString = "LoadFromConnectionString",
-    MigrateLegacyConnections = "MigrateLegacyConnections",
     MigrateEditorConnectionBehavior = "MigrateEditorConnectionBehavior",
     FilterAzureSubscriptions = "FilterAzureSubscriptions",
     ScriptNode = "ScriptNode",
@@ -191,6 +193,14 @@ export enum TelemetryActions {
     ExportDabConfig = "ExportDabConfig",
     OpenDabApiUrl = "OpenDabApiUrl",
     RunDabDeploymentStep = "RunDabDeploymentStep",
+    OpenDabDeploymentDialog = "OpenDabDeploymentDialog",
+    SelectDabDeploymentTarget = "SelectDabDeploymentTarget",
+    FinishDabDeployment = "FinishDabDeployment",
+    RedeployDabDeployment = "RedeployDabDeployment",
+    DeleteDabDeployment = "DeleteDabDeployment",
+    StartDabDeployment = "StartDabDeployment",
+    StopDabDeployment = "StopDabDeployment",
+    ResetDabConfig = "ResetDabConfig",
     LookupPassword = "LookupPassword",
     ChatCommand = "ChatCommand",
     ReadCredential = "ReadCredential",
@@ -219,6 +229,23 @@ export enum TelemetryActions {
     ExecuteCommand = "ExecuteCommand",
     ChangelogDontShowAgain = "ChangelogDontShowAgain",
     CloseChangelog = "CloseChangelog",
+    OpenRecentSqlFile = "OpenRecentSqlFile",
+    OpenFolder = "OpenFolder",
+    RunOverviewAction = "RunOverviewAction",
+    RunChangelogAction = "RunChangelogAction",
+    ReopenInContainer = "ReopenInContainer",
+    OverviewPageOpened = "OverviewPageOpened",
+    DevContainerSetup = "DevContainerSetup",
+    PromptCopied = "PromptCopied",
+    PromptOpenedInChat = "PromptOpenedInChat",
+    WalkthroughOpened = "WalkthroughOpened",
+    DiscoverCardOpened = "DiscoverCardOpened",
+    OpenExtensionPage = "OpenExtensionPage",
+    PrerequisiteInstalled = "PrerequisiteInstalled",
+    RecheckPrerequisites = "RecheckPrerequisites",
+    InstallAgentSkills = "InstallAgentSkills",
+    ManageAgentSkills = "ManageAgentSkills",
+    AddDevContainerConfiguration = "AddDevContainerConfiguration",
     OnRequest = "OnRequest",
     CancelQuery = "CancelQuery",
     GetResultRowsSubset = "GetResultRowsSubset",
@@ -317,11 +344,16 @@ export enum ActivityStatus {
  */
 export type FinishActivity = (
     activityStatus: Exclude<ActivityStatus, ActivityStatus.Failed>,
-    additionalProperties?: Record<string, string>,
-    additionalMeasurements?: Record<string, number>,
-    connectionProfile?: vscodeMssql.IConnectionInfo,
-    serverInfo?: vscodeMssql.IServerInfo,
+    options?: ActivityEventOptions,
 ) => void;
+
+/** Optional telemetry data included when updating or finishing an activity. */
+export interface ActivityEventOptions {
+    additionalProps?: Record<string, string>;
+    additionalMeasurements?: Record<string, number>;
+    connectionInfo?: vscodeMssql.IConnectionInfo;
+    serverInfo?: vscodeMssql.IServerInfo;
+}
 
 /**
  * Finish an activity with a failure. This should be called when the activity fails to send the final telemetry event
@@ -340,12 +372,7 @@ export type FinishActivityFailed = (
 /**
  * Update an activity. This should be called when the activity is still in progress to send intermediate telemetry events
  */
-export type UpdateActivity = (
-    additionalProperties?: Record<string, string>,
-    additionalMeasurements?: Record<string, number>,
-    connectionProfile?: vscodeMssql.IConnectionInfo,
-    serverInfo?: vscodeMssql.IServerInfo,
-) => void;
+export type UpdateActivity = (options?: ActivityEventOptions) => void;
 
 /**
  * An object that contains the functions to update and finish an activity. This is returned when an activity is started

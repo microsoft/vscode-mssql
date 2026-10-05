@@ -9,6 +9,7 @@ import {
     getShortcutInfo,
     parseWebviewKeyboardShortcutConfig,
     eventMatchesShortcut,
+    isCtrlInsertCopyShortcut,
 } from "../../src/webviews/common/keyboardUtils";
 import {
     WebviewAction,
@@ -30,6 +31,37 @@ suite("keyboardUtils Tests", () => {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    suite("isCtrlInsertCopyShortcut", () => {
+        test("matches Ctrl+Insert without additional modifiers", () => {
+            expect(
+                isCtrlInsertCopyShortcut({
+                    altKey: false,
+                    code: "Insert",
+                    ctrlKey: true,
+                    key: "Insert",
+                    metaKey: false,
+                    shiftKey: false,
+                }),
+            ).to.equal(true);
+        });
+
+        test("rejects Insert without Ctrl and Ctrl+Shift+Insert", () => {
+            const event = {
+                altKey: false,
+                code: "Insert",
+                ctrlKey: false,
+                key: "Insert",
+                metaKey: false,
+                shiftKey: false,
+            };
+
+            expect(isCtrlInsertCopyShortcut(event)).to.equal(false);
+            expect(isCtrlInsertCopyShortcut({ ...event, ctrlKey: true, shiftKey: true })).to.equal(
+                false,
+            );
+        });
     });
 
     suite("getShortcutInfo", () => {
@@ -449,6 +481,58 @@ suite("keyboardUtils Tests", () => {
             const escapeEvent = createKeyboardEvent({ key: "Escape", code: "Escape" });
             const escapeCombo: WebviewKeyCombination = { key: "Escape", code: "Escape" };
             expect(eventMatchesShortcut(escapeEvent, escapeCombo)).to.equal(true);
+        });
+
+        suite("non-US keyboard layouts", () => {
+            // Ctrl+A / Ctrl+C as parsed from the default "ctrlcmd+a" / "ctrlcmd+c" bindings.
+            const selectAll = (): WebviewKeyCombination =>
+                getShortcutInfo("ctrlcmd+a").keyCombination;
+            const copy = (): WebviewKeyCombination => getShortcutInfo("ctrlcmd+c").keyCombination;
+
+            test("matches Ctrl+A on AZERTY, where the A key reports code KeyQ", () => {
+                const event = createKeyboardEvent({ key: "a", code: "KeyQ", ctrlKey: true });
+                expect(eventMatchesShortcut(event, selectAll())).to.equal(true);
+            });
+
+            test("does not treat Ctrl+Q on AZERTY (code KeyA) as Ctrl+A", () => {
+                const event = createKeyboardEvent({ key: "q", code: "KeyA", ctrlKey: true });
+                expect(eventMatchesShortcut(event, selectAll())).to.equal(false);
+            });
+
+            test("matches Ctrl+A on Dvorak, where the A key is unmoved but others are", () => {
+                const dvorakA = createKeyboardEvent({ key: "a", code: "KeyA", ctrlKey: true });
+                const dvorakC = createKeyboardEvent({ key: "c", code: "KeyI", ctrlKey: true });
+                expect(eventMatchesShortcut(dvorakA, selectAll())).to.equal(true);
+                expect(eventMatchesShortcut(dvorakC, copy())).to.equal(true);
+            });
+
+            test("falls back to the physical key on non-Latin layouts", () => {
+                const russianA = createKeyboardEvent({ key: "ф", code: "KeyA", ctrlKey: true });
+                const greekC = createKeyboardEvent({ key: "ψ", code: "KeyC", ctrlKey: true });
+                expect(eventMatchesShortcut(russianA, selectAll())).to.equal(true);
+                expect(eventMatchesShortcut(greekC, copy())).to.equal(true);
+            });
+
+            test("falls back to the physical key for dead keys and macOS Option characters", () => {
+                const deadKey = createKeyboardEvent({ key: "Dead", code: "KeyA", ctrlKey: true });
+                const optionA = createKeyboardEvent({
+                    key: "å",
+                    code: "KeyA",
+                    altKey: true,
+                    metaKey: true,
+                });
+                const optionCombo = getShortcutInfo("cmd+alt+a").keyCombination;
+                expect(eventMatchesShortcut(deadKey, selectAll())).to.equal(true);
+                expect(eventMatchesShortcut(optionA, optionCombo)).to.equal(true);
+            });
+
+            test("keeps matching digits by physical key on AZERTY", () => {
+                // The unshifted AZERTY digit row produces "&", "é", ...
+                const event = createKeyboardEvent({ key: "&", code: "Digit1", ctrlKey: true });
+                expect(
+                    eventMatchesShortcut(event, getShortcutInfo("ctrl+1").keyCombination),
+                ).to.equal(true);
+            });
         });
 
         test("should return false when combo has neither key nor code", () => {

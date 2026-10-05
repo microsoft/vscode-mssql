@@ -149,6 +149,17 @@ suite("Object Explorer Provider Tests", function () {
         sandbox.restore();
     });
 
+    test("setOverviewVisibility updates the service and refreshes the root", () => {
+        const refreshSpy = sandbox.spy(objectExplorerProvider, "refresh");
+
+        objectExplorerProvider.setOverviewVisibility(false);
+
+        expect(objectExplorerServiceStub.setOverviewVisibility).to.have.been.calledOnceWithExactly(
+            false,
+        );
+        expect(refreshSpy).to.have.been.calledOnceWithExactly(undefined);
+    });
+
     // TODO: @aasimkhan30 Fix this test
     // // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
     // test.skip("Test Create Session", () => {
@@ -231,6 +242,7 @@ suite("Object Explorer Provider Tests", function () {
         expect(expandStub).to.have.been.calledOnceWithExactly(
             parentTreeNode,
             parentTreeNode.sessionId,
+            false, // a first expand of a never-expanded node is not a refresh
         );
 
         await new Promise((resolve) => setTimeout(resolve, 50));

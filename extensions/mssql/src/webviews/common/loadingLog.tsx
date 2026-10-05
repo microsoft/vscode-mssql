@@ -4,13 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, mergeClasses, Spinner, Text } from "@fluentui/react-components";
-import {
-    Checkmark12Regular,
-    ChevronRight12Regular,
-    ErrorCircle12Regular,
-} from "@fluentui/react-icons";
+import { Checkmark12Regular, ChevronRight12Regular } from "@fluentui/react-icons";
 import { useEffect, useRef } from "react";
 import { LoadingLogEntry } from "../../sharedInterfaces/webview";
+import { ErrorMessageDetails } from "./errorMessageDetails";
+import { locConstants } from "./locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -30,12 +28,12 @@ const useStyles = makeStyles({
     },
     logScroll: {
         width: "100%",
-        maxWidth: "420px",
+        maxWidth: "560px",
         height: "160px",
         minHeight: 0,
         flexShrink: 0,
         overflowY: "auto",
-        scrollbarWidth: "none",
+        scrollbarWidth: "thin",
         scrollbarColor: "var(--vscode-scrollbarSlider-background) transparent",
     },
     logRow: {
@@ -60,6 +58,7 @@ const useStyles = makeStyles({
         color: "var(--vscode-descriptionForeground)",
     },
     text: {
+        minWidth: 0,
         color: "var(--vscode-descriptionForeground)",
         whiteSpace: "nowrap",
         overflow: "hidden",
@@ -67,9 +66,6 @@ const useStyles = makeStyles({
     },
     activeText: {
         color: "var(--vscode-editor-foreground)",
-    },
-    errorRow: {
-        color: "var(--vscode-errorForeground)",
     },
 });
 
@@ -99,33 +95,29 @@ export function LoadingLog({ messages, minHeight }: LoadingLogProps) {
                     const isError = entry.kind === "error";
                     const isActive = index === activeIndex && !isError;
 
+                    if (isError) {
+                        return (
+                            <ErrorMessageDetails
+                                key={`${entry.message}-${index}`}
+                                message={entry.message}
+                                title={locConstants.common.error}
+                            />
+                        );
+                    }
+
                     return (
                         <div className={classes.logRow} key={`${entry.message}-${index}`}>
                             <span
                                 className={mergeClasses(
                                     classes.icon,
-                                    isError
-                                        ? classes.errorRow
-                                        : isActive
-                                          ? classes.activeIcon
-                                          : classes.doneIcon,
+                                    isActive ? classes.activeIcon : classes.doneIcon,
                                 )}>
-                                {isError ? (
-                                    <ErrorCircle12Regular />
-                                ) : isActive ? (
-                                    <ChevronRight12Regular />
-                                ) : (
-                                    <Checkmark12Regular />
-                                )}
+                                {isActive ? <ChevronRight12Regular /> : <Checkmark12Regular />}
                             </span>
                             <Text
                                 className={mergeClasses(
                                     classes.text,
-                                    isError
-                                        ? classes.errorRow
-                                        : isActive
-                                          ? classes.activeText
-                                          : undefined,
+                                    isActive ? classes.activeText : undefined,
                                 )}>
                                 {entry.message}
                             </Text>

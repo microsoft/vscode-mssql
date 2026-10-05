@@ -8,8 +8,7 @@ import { fileURLToPath } from "node:url";
 import esbuildUtils from "../../scripts/esbuild-utils.js";
 
 const extensionDirectory = path.dirname(fileURLToPath(import.meta.url));
-const { createNodeExtensionConfig, disallowUnresolvedModulesPlugin, run } = esbuildUtils;
-const outputFile = path.join(extensionDirectory, "dist/main.js");
+const { createNodeExtensionConfig, run } = esbuildUtils;
 
 /**
  * Bundle the TypeScript entry point and its runtime dependencies into dist/main.js so VSCE can
@@ -34,10 +33,7 @@ await run(
             },
             outdir: path.join(extensionDirectory, "dist"),
             minify: isProd,
-            plugins: [
-                extensionManifestPlugin,
-                disallowUnresolvedModulesPlugin(outputFile, ["dataworkspace", "vscode-mssql"]),
-            ],
+            plugins: [extensionManifestPlugin],
             sourcemap: !isProd,
             tsconfig: path.join(extensionDirectory, "tsconfig.json"),
         }),

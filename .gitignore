@@ -2,7 +2,10 @@
 out
 dist
 BuildDirectory
-extensions/sql-database-projects/BuildDirectory/*
+!extensions/mssql/BuildDirectory/
+extensions/mssql/BuildDirectory/*
+!extensions/mssql/BuildDirectory/SystemDacpacs/
+!extensions/mssql/BuildDirectory/SystemDacpacs/**
 
 # Dependencies
 node_modules
@@ -39,6 +42,8 @@ test/resources/launchDir
 # Build artifacts
 *BROWSE.VC*
 examples
+!tools/perftest/examples/
+!tools/perftest/examples/**
 sqltoolsservice
 sqltools-mcp
 flatfileservice
@@ -47,9 +52,10 @@ flatfileservice
 # Generated localization files (keep source bundle.l10n.json files)
 extensions/*/l10n/bundle.l10n.*.json
 !extensions/*/l10n/bundle.l10n.json
+packages/*/l10n/bundle.l10n.*.json
+!packages/*/l10n/bundle.l10n.json
 extensions/*/package.nls.*.json
 localization/l10n/
-src/constants/localizedConstants.ts
 
 # Cache and tooling
 .eslintcache

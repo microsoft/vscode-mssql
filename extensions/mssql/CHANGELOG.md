@@ -1,5 +1,60 @@
 # Change Log
 
+## Version 1.46.0
+
+- Release date: September 28, 2026
+- Release status: GA
+
+### What's new in 1.46.0
+
+- Released the new SQL formatter as generally available (GA), giving users more formatting options and greater control over T-SQL style and layout
+- Added a new MSSQL Getting Started page (Preview) to make it easier to start using the extension with one-click MSSQL Agent skills installation, dev container templates, walkthrough, and learning resources
+- Added the ability to save filters in the Object Explorer Filters dialog, and fixed an issue where Object Explorer entries could remain stuck on "Loading..." after a filter was applied
+- Added optional sound notifications when query execution completes, so long-running queries can notify you when they finish. Enable with `mssql.query.playCompletionSound` and choose a custom .wav file by setting `mssql.query.completionSoundFile`
+- Fixed issues in the Query Results where error numbers could not be clicked to jump to the problematic T-SQL, and where `PRINT` statements in result-less batches may not be visible
+- Added object filters to Schema Compare to group changes by object type
+- Improved Data API Builder with persistent deployment configurations, tracked deployments, a CLI deployment target, and support for exposing `vector` and `json` columns through the UI and GitHub Copilot
+- Improved the performance and reliability of Schema Compare
+- Fixed an issue where Flat File Import would not retain column settings after failures, and improved reliability of data type selection
+- Fixed an issue in the Edit Table Data dialog where changes might appear as unsaved after data was restored to its original values
+- Added the "Copy as" submenu to SQL Notebook result grids for copying selections as CSV, JSON, `INSERT INTO`, or `IN` clause values
+
+## Version 1.45.1
+
+- Release date: August 26, 2026
+- Release status: GA
+
+### What's new in 1.45.1
+
+- Improved cell selection in the new Query Results Grid (Preview) to match the familiar classic grid experience, including support for multi-cell selection with Ctrl/Cmd+click
+- Fixed an issue where running a query could get stuck on "Executing query" and results would never appear
+- Restored the "Executing query" timer in the status bar while queries run, with a new `mssql.statusBar.showQueryExecutionStatus` setting to hide it if you prefer
+- Added an option to always freeze the first column of query results, so key values stay visible while scrolling wide result sets. Enable with `mssql.resultsGrid.freezeFirstColumnByDefault` in settings
+- Added Ctrl+Insert as an alternative shortcut for copying selected results
+- Added a Preview Grid toggle to the Query Results toolbar so you can switch between the new and classic results grids without editing settings
+- Added missing index recommendations to the execution plan view, making it easy to spot indexing opportunities for slow queries
+
+## Version 1.45.0
+
+- Release date: August 19, 2026
+- Release status: GA
+
+### What's new in 1.45.0
+
+- Released Azure SQL Database provisioning as generally available (GA) for easily creating new free tier Azure SQL databases, with post-deployment actions to copy connection string and migration commands, download deployment scripts (ARM, Bicep, and Terraform template), and discover next steps.
+- Released Shortcuts Configuration as generally available (GA), allowing you to create and manage keyboard shortcuts for Quick Queries, the Query Editor, and the Results Grid.
+- Introduced a new SQL formatter (Preview), enabled by default with `mssql.format.enablePreviewFormatter`, with more formatting options and greater control over T-SQL style and layout.
+- Enabled the new Query Results Grid experience (Preview) by default, featuring improved state management and support for showing, hiding, and freezing columns. To switch back to the previous results grid, disable `mssql.preview.betaResultsGrid` in settings.
+- Fixed an issue that could cause Object Explorer filtering to hang.
+- Improved IntelliSense reliability for larger databases and complex queries, with a new `mssql.intelliSense.completionTimeoutMilliseconds` setting to configure how long the language service waits for large completion results.
+- Fixed an issue that could cancel queries unexpectedly.
+- Improved streaming performance in the Query Results Grid preview.
+- Added a Restore command and custom NuGet analyzer support to SQL Database Projects, and improved schema operations for new and moved objects.
+- Added selection aggregates (Average, Count, and Sum) to the SQL Notebooks results status bar.
+- Improved Table Designer validation for default values and vector columns.
+
+Thank you to @cjohnsto-nz for contributing Microsoft Entra account and token resolution performance improvements!
+
 ## Version 1.44.1
 
 - Release date: July 29, 2026

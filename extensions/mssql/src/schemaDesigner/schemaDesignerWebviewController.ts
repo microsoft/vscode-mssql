@@ -13,15 +13,23 @@ import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
-import { IConnectionInfo } from "vscode-mssql";
+import {
+    configSchemaDesignerEnableDeploymentsView,
+    configSchemaDesignerEnableExpandCollapseButtons,
+} from "../constants/constants";
+import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { DatabaseEngineEdition } from "../databaseProjects/common/enums";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
+import { DabMetadataService, type IDabMetadataService } from "../dab/dabMetadataService";
+import { DabConfigStore, type DabStoreKey } from "../dab/dabConfigStore";
+import { generateDabDeploymentName } from "../dab/dabContainer";
 import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 import { addMcpServerToWorkspace } from "../copilot/copilotUtils";
+import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
     getSchemaDesignerDefinitionOutput,
     SchemaDesignerDefinitionOutput,
@@ -32,12 +40,26 @@ function isExpandCollapseButtonsEnabled(): boolean {
         .get<boolean>(configSchemaDesignerEnableExpandCollapseButtons) as boolean;
 }
 
+function isDeploymentsViewEnabled(): boolean {
+    return !!vscode.workspace
+        .getConfiguration()
+        .get<boolean>(configSchemaDesignerEnableDeploymentsView);
+}
+
 function isCopilotChatInstalled(): boolean {
     return !!vscode.extensions.getExtension("github.copilot-chat");
 }
 
+function dabTelemetryTarget(target: Dab.DabDeploymentTarget): string {
+    return target === Dab.DabDeploymentTarget.Docker || target === Dab.DabDeploymentTarget.DabCli
+        ? target
+        : "unknown";
+}
+
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
 const DAB_CONFIG_FILE_EXTENSION = "json";
+/** Idle period before an edited DAB config is written to global storage. */
+const DAB_CONFIG_SAVE_DEBOUNCE_MS = 500;
 const DEFINITION_FILE_EXTENSION_BY_KIND: Record<SchemaDesigner.DefinitionKind, string> = {
     [SchemaDesigner.DefinitionKind.Sql]: "sql",
     [SchemaDesigner.DefinitionKind.Prisma]: "prisma",
@@ -87,7 +109,13 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private _key: string = "";
     private _serverName: string | undefined;
     private _sqlServerContainerName: string | undefined;
-    private _dabService = new DabService();
+    private _dabService: DabService;
+    private _dabConfigStore: DabConfigStore | undefined;
+    private _pendingDabConfigSave: Dab.DabConfig | undefined;
+    /** Process id of a CLI engine launched but not yet recorded. */
+    private _pendingDabCliProcessId: number | undefined;
+    private _dabConfigSaveTimer: NodeJS.Timeout | undefined;
+    private _dabMetadataService: IDabMetadataService | undefined;
     private _progressListener:
         | ((progress: SchemaDesigner.SchemaDesignerProgressNotificationParams) => void)
         | undefined;
@@ -112,6 +140,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         private connectionUri?: string,
         isReadOnly: boolean = false,
         cacheKey?: string,
+        dabMetadataService?: IDabMetadataService,
     ) {
         super(
             context,
@@ -119,6 +148,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             SCHEMA_DESIGNER_VIEW_ID,
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
+                enableDeploymentsView: isDeploymentsViewEnabled(),
                 isCopilotChatInstalled: isCopilotChatInstalled(),
                 copilotChatDiscoveryDismissed: getCopilotChatDiscoveryDismissedState(context),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
@@ -146,12 +176,22 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         );
 
         this._key = cacheKey ?? `${this.connectionString}-${this.databaseName}`;
+        this._dabMetadataService = dabMetadataService;
         this._serverName = this.resolveServerName();
         this._sqlServerContainerName = this.resolveSqlServerContainerName();
+        this._dabConfigStore = context.globalStorageUri
+            ? new DabConfigStore(context.globalStorageUri.fsPath)
+            : undefined;
+        this._dabService = new DabService(
+            context.globalStorageUri
+                ? { storagePath: context.globalStorageUri.fsPath, logger: this.logger }
+                : undefined,
+        );
 
         this.updateState({
             ...this.state,
             isDabDeploymentSupported: this.resolveIsDabDeploymentSupported(),
+            dabTargetSupport: this.resolveDabTargetSupport(),
         });
 
         this.setupRequestHandlers();
@@ -193,17 +233,20 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const definitionActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.GetDefinition,
-                undefined,
                 {
-                    tableCount: payload.updatedSchema.tables.length.toString(),
+                    additionalProps: {
+                        tableCount: payload.updatedSchema.tables.length.toString(),
+                    },
                 },
             );
             const script = await this.schemaDesignerService.getDefinition({
                 updatedSchema: payload.updatedSchema,
                 sessionId: this._sessionId,
             });
-            definitionActivity.end(ActivityStatus.Succeeded, undefined, {
-                tableCount: payload.updatedSchema.tables.length,
+            definitionActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    tableCount: payload.updatedSchema.tables.length,
+                },
             });
             this.updateCacheItem(payload.updatedSchema);
             return script;
@@ -213,9 +256,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const reportActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.GetReport,
-                undefined,
                 {
-                    tableCount: payload.updatedSchema.tables.length.toString(),
+                    additionalProps: {
+                        tableCount: payload.updatedSchema.tables.length.toString(),
+                    },
                 },
             );
             try {
@@ -228,19 +272,18 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     report,
                 };
 
-                reportActivity.end(
-                    ActivityStatus.Succeeded,
-                    {
+                reportActivity.end(ActivityStatus.Succeeded, {
+                    additionalProps: {
                         hasSchemaChanged: result.report?.hasSchemaChanged?.toString(),
                         possibleDataLoss: result.report?.dacReport?.possibleDataLoss?.toString(),
                         requireTableRecreation:
                             result.report.dacReport?.requireTableRecreation?.toString(),
                         hasWarnings: result.report?.dacReport?.hasWarnings?.toString(),
                     },
-                    {
+                    additionalMeasurements: {
                         tableCount: payload.updatedSchema?.tables?.length,
                     },
-                );
+                });
 
                 return result;
             } catch (error) {
@@ -255,14 +298,15 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const publishActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.PublishSession,
-                undefined,
             );
             try {
                 await this.schemaDesignerService.publishSession({
                     sessionId: this._sessionId,
                 });
-                publishActivity.end(ActivityStatus.Succeeded, undefined, {
-                    tableCount: payload.schema?.tables?.length,
+                publishActivity.end(ActivityStatus.Succeeded, {
+                    additionalMeasurements: {
+                        tableCount: payload.schema?.tables?.length,
+                    },
                 });
                 if (this.schemaDesignerDetails) {
                     this.schemaDesignerDetails.schema = payload.schema;
@@ -318,7 +362,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             }
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportToImage, {
-                format: payload?.format,
+                additionalProps: {
+                    format: payload?.format,
+                },
             });
 
             void UserSurvey.getInstance().promptUserForNPSFeedback(SCHEMA_DESIGNER_VIEW_ID);
@@ -393,7 +439,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const generateScriptActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.GenerateScript,
-                undefined,
             );
             vscode.window.withProgress(
                 {
@@ -406,13 +451,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                         const result = await this.schemaDesignerService.generateScript({
                             sessionId: this._sessionId,
                         });
-                        generateScriptActivity.end(
-                            ActivityStatus.Succeeded,
-                            undefined,
-                            result?.script
+                        generateScriptActivity.end(ActivityStatus.Succeeded, {
+                            additionalMeasurements: result?.script
                                 ? { scriptLength: result?.script?.length }
                                 : { scriptLength: 0 },
-                        );
+                        });
                         let connectionCredentials: IConnectionInfo | undefined;
                         // Open the document in the editor with the connection
                         if (this.treeNode) {
@@ -472,6 +515,12 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         // DAB request handlers
+        this.onRequest(Dab.GetDatabaseObjectsRequest.type, async () => {
+            return {
+                sourceObjects: await this.getDabDatabaseObjects(),
+            };
+        });
+
         this.onRequest(Dab.GenerateConfigRequest.type, async (payload) => {
             return this._dabService.generateConfig(payload.config, {
                 connectionString: this.connectionString,
@@ -480,13 +529,26 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(Dab.GetCachedConfigRequest.type, async () => {
+            // The in-memory cache holds the config for designers opened in this
+            // session; the store carries it across sessions.
+            const cachedConfig = this.schemaDesignerCache.get(this._key)?.dabConfig;
             return {
-                config: this.schemaDesignerCache.get(this._key)?.dabConfig,
+                config: cachedConfig ?? (await this.loadDabConfigFromStore()),
             };
         });
 
         this.onNotification(Dab.CacheConfigNotification.type, async (payload) => {
             this.updateCacheItem(undefined, undefined, payload.config);
+            this.scheduleDabConfigSave(payload.config);
+        });
+
+        this.onRequest(Dab.DiscardPendingCliEngineRequest.type, async (payload) => {
+            await this.discardPendingDabCliEngine(payload.port);
+        });
+
+        this.onRequest(Dab.ResetConfigRequest.type, async () => {
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ResetDabConfig);
+            await this.deleteStoredDabConfig();
         });
 
         this.onNotification(Dab.OpenConfigInEditorNotification.type, async (payload) => {
@@ -496,7 +558,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             });
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportDabConfig, {
-                language: "json",
+                additionalProps: {
+                    language: "json",
+                },
             });
 
             await vscode.window.showTextDocument(doc);
@@ -507,8 +571,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 await this.addTextToWorkspace(payload.configContent, DAB_CONFIG_FILE_EXTENSION);
 
                 sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportDabConfig, {
-                    language: "json",
-                    target: "workspace",
+                    additionalProps: {
+                        language: "json",
+                        target: "workspace",
+                    },
                 });
             } catch (error) {
                 await vscode.window.showErrorMessage(
@@ -533,7 +599,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             }
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.OpenDabApiUrl, {
-                apiType: payload.apiType ?? "",
+                additionalProps: {
+                    apiType: payload.apiType ?? "",
+                },
             });
 
             try {
@@ -559,7 +627,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             }
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.CopyDabText, {
-                copyTextType: payload.copyTextType,
+                additionalProps: {
+                    copyTextType: payload.copyTextType,
+                },
             });
 
             await vscode.window.showInformationMessage(message);
@@ -567,16 +637,37 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
         // DAB deployment request handlers
         this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
+            const target = payload.target ?? Dab.DabDeploymentTarget.Docker;
+            const telemetryTarget = dabTelemetryTarget(target);
+            const mode = payload.deploymentId
+                ? Dab.DabDeploymentMode.Redeploy
+                : Dab.DabDeploymentMode.Create;
             const deploymentStepActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.RunDabDeploymentStep,
-                undefined,
                 {
-                    step: payload.step.toString(),
+                    additionalProps: {
+                        step: Dab.DabDeploymentStepOrder[payload.step] ?? "unknown",
+                        target: telemetryTarget,
+                        mode,
+                        entryPoint:
+                            payload.entryPoint === Dab.DabDeploymentEntryPoint.Standalone ||
+                            payload.entryPoint === Dab.DabDeploymentEntryPoint.Deployments
+                                ? payload.entryPoint
+                                : "unknown",
+                        phase:
+                            telemetryTarget === "unknown"
+                                ? "unknown"
+                                : Dab.isDabPrerequisiteStep(target, payload.step)
+                                  ? "prerequisite"
+                                  : "deployment",
+                    },
                 },
             );
-            if (!this.resolveIsDabDeploymentSupported()) {
-                const message = LocConstants.SchemaDesigner.dabDeploymentNotSupported;
+            const targetSupport = this.resolveDabTargetSupport()[target];
+            if (!targetSupport?.isSupported) {
+                const message =
+                    targetSupport?.reason ?? LocConstants.SchemaDesigner.dabDeploymentNotSupported;
                 void vscode.window.showErrorMessage(message);
                 deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
                     hasContainerLogs: "false",
@@ -587,18 +678,60 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 };
             }
             try {
-                const result = await this._dabService.runDeploymentStep(
-                    payload.step,
-                    payload.params,
-                    payload.config,
-                    this.connectionString
-                        ? {
-                              connectionString: this.connectionString,
-                              sqlServerContainerName: this._sqlServerContainerName,
-                          }
-                        : undefined,
-                );
+                const connectionInfo = this.connectionString
+                    ? {
+                          connectionString: this.connectionString,
+                          sqlServerContainerName: this._sqlServerContainerName,
+                      }
+                    : undefined;
+
+                const result =
+                    target === Dab.DabDeploymentTarget.DabCli
+                        ? await this._dabService.runCliDeploymentStep(
+                              payload.step,
+                              payload.params,
+                              payload.config,
+                              connectionInfo,
+                              payload.params
+                                  ? this.getDabCliConfigPath(payload.params.containerName)
+                                  : undefined,
+                              this.resolveAuthenticationType(),
+                          )
+                        : await this._dabService.runDeploymentStep(
+                              payload.step,
+                              payload.params,
+                              payload.config,
+                              connectionInfo,
+                          );
+
                 if (result.success) {
+                    // Remember the engine's process id so it can be stopped later;
+                    // it is launched a step before the deployment is tracked.
+                    if (
+                        target === Dab.DabDeploymentTarget.DabCli &&
+                        payload.step === Dab.DabDeploymentStepOrder.startCliEngine
+                    ) {
+                        this._pendingDabCliProcessId = (result as { processId?: number }).processId;
+                    }
+
+                    // The deployment is only worth tracking once it answers.
+                    if (Dab.isFinalDabDeploymentStep(target, payload.step) && payload.params) {
+                        await this.trackDabDeployment(
+                            target,
+                            payload.params,
+                            payload.config,
+                            payload.deploymentId,
+                        );
+                    }
+                    if (Dab.isFinalDabDeploymentStep(target, payload.step)) {
+                        sendActionEvent(
+                            TelemetryViews.SchemaDesigner,
+                            TelemetryActions.FinishDabDeployment,
+                            {
+                                additionalProps: { target: telemetryTarget, mode },
+                            },
+                        );
+                    }
                     deploymentStepActivity.end(ActivityStatus.Succeeded);
                 } else {
                     deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
@@ -615,11 +748,84 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(Dab.ValidateDeploymentParamsRequest.type, async (payload) => {
-            return this._dabService.validateDeploymentParams(payload.containerName, payload.port);
+            // An empty name means the form is asking for a default; generate one
+            // from the database so both targets read as DAB_<database>_<n>.
+            const trackedNames = await this.getTrackedDabNames();
+            if (!payload.containerName) {
+                return this._dabService.validateDeploymentParams(
+                    await this.generateDabDeploymentName(),
+                    payload.port,
+                );
+            }
+
+            return this._dabService.validateDeploymentParams(
+                payload.containerName,
+                payload.port,
+                trackedNames,
+            );
         });
 
         this.onRequest(Dab.StopDeploymentRequest.type, async (payload) => {
             return this._dabService.stopDeployment(payload.containerName);
+        });
+
+        // DAB deployment tracking request handlers
+        this.onRequest(Dab.GetDeploymentsRequest.type, async (payload) => {
+            return this.getDabDeploymentList(payload.config);
+        });
+
+        this.onRequest(Dab.DeleteDeploymentRequest.type, async (payload) => {
+            return this.withTrackedDabDeployment(
+                payload.deploymentId,
+                TelemetryActions.DeleteDabDeployment,
+                async (store, key, record) => {
+                    const result = await this.tearDownDabDeployment(store, key, record);
+                    if (!result.success) {
+                        return { success: false, error: result.error };
+                    }
+
+                    await store.removeDeployment(key, record.id);
+                    return { success: true };
+                },
+            );
+        });
+
+        this.onRequest(Dab.StartDeploymentContainerRequest.type, async (payload) => {
+            return this.withTrackedDabDeployment(
+                payload.deploymentId,
+                TelemetryActions.StartDabDeployment,
+                async (store, key, record) => this.startTrackedDabDeployment(store, key, record),
+            );
+        });
+
+        this.onRequest(Dab.StopDeploymentContainerRequest.type, async (payload) => {
+            return this.withTrackedDabDeployment(
+                payload.deploymentId,
+                TelemetryActions.StopDabDeployment,
+                async (store, key, record) => {
+                    if (record.target !== Dab.DabDeploymentTarget.DabCli) {
+                        return this._dabService.stopContainer(record.name);
+                    }
+
+                    const result = await this._dabService.stopCliDeployment(record);
+                    if (result.success) {
+                        // The process is gone, so the recorded id now names
+                        // nothing -- or, in time, something unrelated. Drop it
+                        // rather than leave it for a later stop to signal.
+                        await store.updateDeployment(key, record.id, { processId: undefined });
+                    }
+
+                    return result;
+                },
+            );
+        });
+
+        this.onRequest(Dab.PrepareRedeploymentRequest.type, async (payload) => {
+            return this.withTrackedDabDeployment(
+                payload.deploymentId,
+                TelemetryActions.RedeployDabDeployment,
+                async (store, key, record) => this.prepareDabRedeployment(store, key, record),
+            );
         });
 
         this.onRequest(Dab.AddMcpServerRequest.type, async (payload) => {
@@ -629,16 +835,202 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
     }
 
+    private async getDabDatabaseObjects(): Promise<Dab.DabSourceObject[]> {
+        if (!this.connectionUri) {
+            return [];
+        }
+
+        const dabMetadataService = this.dabMetadataService;
+        const queryOptions = this.getDabMetadataQueryOptions();
+        const [views, storedProcedures] = await Promise.all([
+            dabMetadataService.listDabViews(this.connectionUri, this.databaseName, queryOptions),
+            dabMetadataService.listDabStoredProcedures(
+                this.connectionUri,
+                this.databaseName,
+                queryOptions,
+            ),
+        ]);
+        const [viewColumnsByView, parametersByProcedure] = await Promise.all([
+            this.getDabViewColumnsByView(
+                dabMetadataService,
+                this.connectionUri,
+                views,
+                queryOptions,
+            ),
+            this.getDabStoredProcedureParametersByProcedure(
+                dabMetadataService,
+                this.connectionUri,
+                storedProcedures,
+                queryOptions,
+            ),
+        ]);
+
+        const viewObjects = views.map((view) => {
+            const columns = viewColumnsByView.get(view.id) ?? [];
+            return {
+                id: view.id,
+                sourceType: Dab.EntitySourceType.View,
+                schemaName: view.schema,
+                sourceName: view.name,
+                columns: columns.map((column) => ({
+                    id: column.id,
+                    name: column.name,
+                    dataType: column.dataType,
+                    isPrimaryKey: column.isPrimaryKey,
+                    isSupported: Dab.isDataTypeSupportedForDab(column.dataType),
+                    isExposed: true,
+                })),
+                fields: columns.map((column) => ({
+                    name: column.name,
+                    ...(column.isPrimaryKey ? { isPrimaryKey: true } : {}),
+                })),
+            };
+        });
+
+        const storedProcedureObjects = storedProcedures.map((procedure) => {
+            const parameters = parametersByProcedure.get(procedure.id) ?? [];
+            return {
+                id: procedure.id,
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: procedure.schema,
+                sourceName: procedure.name,
+                columns: [],
+                parameters: parameters.map((parameter) => ({
+                    name: parameter.name.replace(/^@/, ""),
+                    dataType: parameter.dataType,
+                    isRequired: true,
+                })),
+            };
+        });
+
+        return [...viewObjects, ...storedProcedureObjects];
+    }
+
+    private get dabMetadataService(): IDabMetadataService {
+        this._dabMetadataService ??= new DabMetadataService(SqlToolsServiceClient.instance);
+        return this._dabMetadataService;
+    }
+
+    private async getDabViewColumnsByView(
+        dabMetadataService: IDabMetadataService,
+        ownerUri: string,
+        views: Dab.DabDatabaseObjectMetadata[],
+        queryOptions: Dab.DabMetadataQueryOptions,
+    ): Promise<Map<string, Dab.DabViewColumnMetadata[]>> {
+        if (views.length === 0) {
+            return new Map();
+        }
+
+        try {
+            return await dabMetadataService.getDabViewColumnsByView(
+                ownerUri,
+                this.databaseName,
+                queryOptions,
+            );
+        } catch (error) {
+            this.logger.warn(
+                `Failed to load DAB view columns in bulk. Falling back to per-view metadata. ${getErrorMessage(error)}`,
+            );
+        }
+
+        return new Map(
+            await Promise.all(
+                views.map(async (view) => {
+                    try {
+                        return [
+                            view.id,
+                            await dabMetadataService.getDabViewColumns(
+                                ownerUri,
+                                view.schema,
+                                view.name,
+                                this.databaseName,
+                                queryOptions,
+                            ),
+                        ] as const;
+                    } catch (error) {
+                        this.logger.warn(
+                            `Failed to load DAB view columns for ${view.schema}.${view.name}. ${getErrorMessage(error)}`,
+                        );
+                        return [view.id, [] as Dab.DabViewColumnMetadata[]] as const;
+                    }
+                }),
+            ),
+        );
+    }
+
+    private async getDabStoredProcedureParametersByProcedure(
+        dabMetadataService: IDabMetadataService,
+        ownerUri: string,
+        storedProcedures: Dab.DabDatabaseObjectMetadata[],
+        queryOptions: Dab.DabMetadataQueryOptions,
+    ): Promise<Map<string, Dab.DabStoredProcedureParameterMetadata[]>> {
+        if (storedProcedures.length === 0) {
+            return new Map();
+        }
+
+        try {
+            return await dabMetadataService.getDabStoredProcedureParametersByProcedure(
+                ownerUri,
+                this.databaseName,
+                queryOptions,
+            );
+        } catch (error) {
+            this.logger.warn(
+                `Failed to load DAB stored procedure parameters in bulk. Falling back to per-procedure metadata. ${getErrorMessage(error)}`,
+            );
+        }
+
+        return new Map(
+            await Promise.all(
+                storedProcedures.map(async (procedure) => {
+                    try {
+                        return [
+                            procedure.id,
+                            await dabMetadataService.getDabStoredProcedureParameters(
+                                ownerUri,
+                                procedure.schema,
+                                procedure.name,
+                                this.databaseName,
+                                queryOptions,
+                            ),
+                        ] as const;
+                    } catch (error) {
+                        this.logger.warn(
+                            `Failed to load DAB stored procedure parameters for ${procedure.schema}.${procedure.name}. ${getErrorMessage(error)}`,
+                        );
+                        return [
+                            procedure.id,
+                            [] as Dab.DabStoredProcedureParameterMetadata[],
+                        ] as const;
+                    }
+                }),
+            ),
+        );
+    }
+
+    private getDabMetadataQueryOptions(): Dab.DabMetadataQueryOptions {
+        return {
+            useNoLock: this.supportsNoLockTableHints(),
+        };
+    }
+
+    private supportsNoLockTableHints(): boolean {
+        const engineEditionId = this.resolveServerInfo()?.engineEditionId;
+        if (engineEditionId === undefined || engineEditionId === DatabaseEngineEdition.Unknown) {
+            return false;
+        }
+
+        return (
+            engineEditionId !== DatabaseEngineEdition.SqlDataWarehouse &&
+            engineEditionId !== DatabaseEngineEdition.SqlOnDemand
+        );
+    }
+
     private async initializeSchemaDesignerSession(): Promise<SchemaDesigner.CreateSessionResponse> {
         const schemaDesignerInitActivity = startActivity(
             TelemetryViews.SchemaDesigner,
             TelemetryActions.Initialize,
-            undefined, // correlationId
-            undefined, // startActivityAdditionalProps
-            undefined, // startActivityAdditionalMeasurements
-            undefined, // connectionInfo
-            undefined, // serverInfo
-            true, // include callstack in telemetry
+            { includeCallStack: true },
         );
         try {
             let sessionResponse: SchemaDesigner.CreateSessionResponse;
@@ -668,8 +1060,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
             this.schemaDesignerDetails = sessionResponse;
             this._sessionId = sessionResponse.sessionId;
-            schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
-                tableCount: sessionResponse?.schema?.tables?.length,
+            schemaDesignerInitActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    tableCount: sessionResponse?.schema?.tables?.length,
+                },
             });
             return sessionResponse;
         } catch (error) {
@@ -705,7 +1099,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 return;
             }
 
-            this.logger.info("Progress", progress);
+            this.logger.debug("Progress", progress);
 
             try {
                 void this.sendNotification(
@@ -798,6 +1192,13 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     enableExpandCollapseButtons: newValue,
                 });
             }
+
+            if (e.affectsConfiguration(configSchemaDesignerEnableDeploymentsView)) {
+                this.updateState({
+                    ...this.state,
+                    enableDeploymentsView: isDeploymentsViewEnabled(),
+                });
+            }
         });
         this.registerDisposable(configChangeDisposable);
     }
@@ -851,6 +1252,456 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         return schemaDesignerCacheItem;
     }
 
+    // #region DAB persistence
+
+    /**
+     * Identifies the stored DAB configuration for this designer. Undefined when
+     * the server could not be resolved, in which case nothing is persisted and
+     * the designer falls back to the in-memory cache for this session.
+     */
+    private get dabStoreKey(): DabStoreKey | undefined {
+        return this._serverName
+            ? { server: this._serverName, database: this.databaseName }
+            : undefined;
+    }
+
+    private async loadDabConfigFromStore(): Promise<Dab.DabConfig | undefined> {
+        const store = this._dabConfigStore;
+        const key = this.dabStoreKey;
+        if (!store || !key) {
+            return undefined;
+        }
+
+        try {
+            return await store.getConfig(key);
+        } catch (error) {
+            this.logger.warn(`Failed to read stored DAB config: ${getErrorMessage(error)}`);
+            return undefined;
+        }
+    }
+
+    /**
+     * Drops the stored configuration so a reset cannot leave stale settings
+     * behind if the designer closes before the defaults are saved.
+     */
+    private async deleteStoredDabConfig(): Promise<void> {
+        const store = this._dabConfigStore;
+        const key = this.dabStoreKey;
+        if (!store || !key) {
+            return;
+        }
+
+        // A save queued from before the reset would write the old config back.
+        this._pendingDabConfigSave = undefined;
+        if (this._dabConfigSaveTimer) {
+            clearTimeout(this._dabConfigSaveTimer);
+            this._dabConfigSaveTimer = undefined;
+        }
+
+        try {
+            await store.deleteConfig(key);
+        } catch (error) {
+            this.logger.warn(`Failed to discard stored DAB config: ${getErrorMessage(error)}`);
+        }
+    }
+
+    /**
+     * Persists the configuration after a short idle period. The designer emits
+     * a config on every edit, so writing on each one would mean a file write
+     * per checkbox click.
+     */
+    private scheduleDabConfigSave(config: Dab.DabConfig): void {
+        if (!this._dabConfigStore || !this.dabStoreKey) {
+            return;
+        }
+
+        this._pendingDabConfigSave = config;
+        if (this._dabConfigSaveTimer) {
+            return;
+        }
+
+        this._dabConfigSaveTimer = setTimeout(() => {
+            this._dabConfigSaveTimer = undefined;
+            void this.flushDabConfigSave();
+        }, DAB_CONFIG_SAVE_DEBOUNCE_MS);
+    }
+
+    /** Writes any pending configuration immediately. */
+    private async flushDabConfigSave(): Promise<void> {
+        if (this._dabConfigSaveTimer) {
+            clearTimeout(this._dabConfigSaveTimer);
+            this._dabConfigSaveTimer = undefined;
+        }
+
+        const config = this._pendingDabConfigSave;
+        const store = this._dabConfigStore;
+        const key = this.dabStoreKey;
+        this._pendingDabConfigSave = undefined;
+        if (!config || !store || !key) {
+            return;
+        }
+
+        try {
+            await store.saveConfig(key, config);
+        } catch (error) {
+            this.logger.error(`Failed to save DAB config: ${getErrorMessage(error)}`);
+        }
+    }
+
+    /**
+     * Stops an engine that started but never finished deploying.
+     *
+     * It is launched a step before the deployment is tracked, so a failure in
+     * between leaves a detached process that nothing is recorded against and
+     * that still holds the port. Retrying on that port would fail against the
+     * engine its own previous attempt left behind.
+     *
+     * @param port Port the engine was told to publish on
+     */
+    private async discardPendingDabCliEngine(port: number): Promise<void> {
+        const processId = this._pendingDabCliProcessId;
+        if (processId === undefined) {
+            return;
+        }
+
+        this._pendingDabCliProcessId = undefined;
+        const result = await this._dabService.stopCliEngineProcess(processId, port);
+        if (!result.success) {
+            this.logger.warn(
+                `Failed to stop the DAB engine left by a failed deployment: ${result.error}`,
+            );
+        }
+    }
+
+    /**
+     * Records a container that finished deploying, or refreshes the record of
+     * one that was redeployed.
+     */
+    private async trackDabDeployment(
+        target: Dab.DabDeploymentTarget,
+        params: Dab.DabDeploymentParams,
+        config: Dab.DabConfig | undefined,
+        deploymentId: string | undefined,
+    ): Promise<void> {
+        const store = this._dabConfigStore;
+        const key = this.dabStoreKey;
+        if (!store || !key || !config) {
+            return;
+        }
+
+        const isCli = target === Dab.DabDeploymentTarget.DabCli;
+        const cliFields = isCli
+            ? {
+                  processId: this._pendingDabCliProcessId,
+                  configPath: this.getDabCliConfigPath(params.containerName),
+              }
+            : {};
+
+        try {
+            const configHash = this._dabService.computeConfigHash(config);
+            if (deploymentId) {
+                const updated = await store.updateDeployment(key, deploymentId, {
+                    target,
+                    name: params.containerName,
+                    port: params.port,
+                    apiTypes: config.apiTypes,
+                    configHash,
+                    deployedUtc: new Date().toISOString(),
+                    ...cliFields,
+                });
+
+                // The record can be gone if it was deleted mid-redeploy; fall
+                // through and track the deployment that is now actually running.
+                if (updated) {
+                    return;
+                }
+            }
+
+            await store.addDeployment(key, {
+                target,
+                name: params.containerName,
+                port: params.port,
+                apiTypes: config.apiTypes,
+                configHash,
+                ...cliFields,
+            });
+        } catch (error) {
+            this.logger.error(`Failed to record DAB deployment: ${getErrorMessage(error)}`);
+        } finally {
+            this._pendingDabCliProcessId = undefined;
+        }
+    }
+
+    /**
+     * Generates a deployment name that collides with neither an existing Docker
+     * container nor a deployment already tracked for this database.
+     */
+    private async generateDabDeploymentName(): Promise<string> {
+        return generateDabDeploymentName(this.databaseName, await this.getTrackedDabNames());
+    }
+
+    /** Names already spoken for by a tracked deployment, on either target. */
+    private async getTrackedDabNames(): Promise<string[]> {
+        const store = this._dabConfigStore;
+        const key = this.dabStoreKey;
+        if (!store || !key) {
+            return [];
+        }
+
+        try {
+            return (await store.getDeployments(key)).map((deployment) => deployment.name);
+        } catch (error) {
+            this.logger.warn(
+                `Could not read tracked deployments while naming: ${getErrorMessage(error)}`,
+            );
+            return [];
+        }
+    }
+
+    /** Config file path for a CLI deployment of this name. */
+    private getDabCliConfigPath(name: string): string | undefined {
+        const store = this._dabConfigStore;
+        const key = this.dabStoreKey;
+        if (!store || !key) {
+            return undefined;
+        }
+
+        return this._dabService.getCliConfigPath(store.getCliDeploymentDirectory(key, name));
+    }
+
+    /** Resolves the live state of a tracked deployment, whichever target it uses. */
+    private async getDabDeploymentStatus(
+        record: Dab.DabDeploymentRecord,
+    ): Promise<Dab.DabDeploymentContainerStatus> {
+        return record.target === Dab.DabDeploymentTarget.DabCli
+            ? this._dabService.getCliDeploymentStatus(record)
+            : this._dabService.getContainerStatus(record.name);
+    }
+
+    /**
+     * Starts a tracked deployment again without redeploying it.
+     *
+     * A CLI engine is a process rather than a container, so restarting it means
+     * relaunching it from its saved config; the new process id is recorded so
+     * the deployment can be stopped again later.
+     */
+    private async startTrackedDabDeployment(
+        store: DabConfigStore,
+        key: DabStoreKey,
+        record: Dab.DabDeploymentRecord,
+    ): Promise<Dab.DeploymentActionResponse> {
+        if (record.target !== Dab.DabDeploymentTarget.DabCli) {
+            return this._dabService.startContainer(record.name);
+        }
+
+        if (!this.connectionString) {
+            return { success: false, error: LocConstants.SchemaDesigner.dabDeploymentNotSupported };
+        }
+
+        const result = await this._dabService.startCliDeployment(
+            record,
+            {
+                connectionString: this.connectionString,
+                sqlServerContainerName: this._sqlServerContainerName,
+            },
+            this.resolveAuthenticationType(),
+        );
+
+        if (result.success) {
+            await store.updateDeployment(key, record.id, { processId: result.processId });
+        }
+
+        return { success: result.success, error: result.error };
+    }
+
+    /**
+     * Stops a deployment and removes whatever it left behind: the container for
+     * Docker, or the engine process and its generated config for the CLI.
+     */
+    private async tearDownDabDeployment(
+        store: DabConfigStore,
+        key: DabStoreKey,
+        record: Dab.DabDeploymentRecord,
+        status?: Dab.DabDeploymentContainerStatus,
+    ): Promise<Dab.DeploymentActionResponse> {
+        if (record.target === Dab.DabDeploymentTarget.DabCli) {
+            // Only a running deployment has an engine to stop. Signalling the
+            // recorded pid of one that already exited risks hitting whatever
+            // inherited that number since.
+            const isRunning =
+                (status ?? (await this.getDabDeploymentStatus(record))) ===
+                Dab.DabDeploymentContainerStatus.Running;
+            if (isRunning) {
+                const stopResult = await this._dabService.stopCliDeployment(record);
+                if (!stopResult.success) {
+                    return stopResult;
+                }
+            }
+
+            await store.deleteCliDeployment(key, record.name);
+            return { success: true };
+        }
+
+        const result = await this._dabService.stopDeployment(record.name);
+        return { success: result.success, error: result.error };
+    }
+
+    /**
+     * Builds the deployments list, pairing each tracked deployment with its
+     * live container state and whether it is running an outdated config.
+     */
+    private async getDabDeploymentList(
+        config: Dab.DabConfig | undefined,
+    ): Promise<Dab.GetDeploymentsResponse> {
+        const store = this._dabConfigStore;
+        const key = this.dabStoreKey;
+        if (!store || !key) {
+            return {
+                deployments: [],
+                error: LocConstants.LocalContainers.dabDeploymentStoreUnavailable,
+            };
+        }
+
+        try {
+            const records = await store.getDeployments(key);
+            const currentConfigHash = config
+                ? this._dabService.computeConfigHash(config)
+                : undefined;
+
+            const deployments = await Promise.all(
+                records.map(async (record) => ({
+                    ...record,
+                    status: await this.getDabDeploymentStatus(record),
+                    isConfigOutdated: currentConfigHash
+                        ? currentConfigHash !== record.configHash
+                        : false,
+                    apiUrl: `http://localhost:${record.port}`,
+                })),
+            );
+
+            // Newest first: the deployment a user just made is the one they act on.
+            deployments.sort((left, right) => right.deployedUtc.localeCompare(left.deployedUtc));
+            return { deployments };
+        } catch (error) {
+            this.logger.error(`Failed to list DAB deployments: ${getErrorMessage(error)}`);
+            return { deployments: [], error: getErrorMessage(error) };
+        }
+    }
+
+    /**
+     * Resolves a tracked deployment and runs an action against it, reporting a
+     * clear failure when the store is unavailable or the record has gone.
+     */
+    private async withTrackedDabDeployment<T extends Dab.DeploymentActionResponse>(
+        deploymentId: string,
+        telemetryAction: TelemetryActions,
+        action: (
+            store: DabConfigStore,
+            key: DabStoreKey,
+            record: Dab.DabDeploymentRecord,
+        ) => Promise<T>,
+    ): Promise<T | Dab.DeploymentActionResponse> {
+        const store = this._dabConfigStore;
+        const key = this.dabStoreKey;
+        if (!store || !key) {
+            sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                additionalProps: {
+                    target: "unknown",
+                    outcome: "failure",
+                    reason: "storeUnavailable",
+                },
+            });
+            return {
+                success: false,
+                error: LocConstants.LocalContainers.dabDeploymentStoreUnavailable,
+            };
+        }
+
+        let telemetryTarget = "unknown";
+        try {
+            const record = (await store.getDeployments(key)).find(
+                (deployment) => deployment.id === deploymentId,
+            );
+            if (!record) {
+                sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                    additionalProps: { target: "unknown", outcome: "failure", reason: "notFound" },
+                });
+                return {
+                    success: false,
+                    error: LocConstants.LocalContainers.dabDeploymentNotFound,
+                };
+            }
+
+            telemetryTarget = dabTelemetryTarget(record.target);
+            const result = await action(store, key, record);
+            sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                additionalProps: {
+                    target: telemetryTarget,
+                    outcome: result.success ? "success" : "failure",
+                    ...(result.success ? {} : { reason: "operationFailed" }),
+                },
+            });
+            return result;
+        } catch (error) {
+            sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                additionalProps: {
+                    target: telemetryTarget,
+                    outcome: "failure",
+                    reason: "exception",
+                },
+            });
+            this.logger.error(`DAB deployment action failed: ${getErrorMessage(error)}`);
+            return { success: false, error: getErrorMessage(error) };
+        }
+    }
+
+    /**
+     * Clears the way for a redeployment: the port is checked first so a
+     * container is never removed for a deployment that cannot succeed, then the
+     * existing container is removed so it can be recreated under the same name.
+     */
+    private async prepareDabRedeployment(
+        store: DabConfigStore,
+        key: DabStoreKey,
+        record: Dab.DabDeploymentRecord,
+    ): Promise<Dab.PrepareRedeploymentResponse> {
+        const status = await this.getDabDeploymentStatus(record);
+        const portUnavailableError = {
+            success: false,
+            error: LocConstants.LocalContainers.dabRedeployPortUnavailable(
+                record.port,
+                record.name,
+            ),
+        };
+
+        // Only a running deployment is holding its own port. In every other
+        // state the port can be checked first, so nothing is torn down for a
+        // redeployment that was going to fail anyway.
+        const isRunning = status === Dab.DabDeploymentContainerStatus.Running;
+        if (!isRunning && !(await this._dabService.isPortAvailable(record.port))) {
+            return portUnavailableError;
+        }
+
+        const tearDownResult = await this.tearDownDabDeployment(store, key, record, status);
+        if (!tearDownResult.success) {
+            return { success: false, error: tearDownResult.error };
+        }
+
+        // Whatever was holding the port is gone now, so anything still bound to
+        // it belongs to something else.
+        if (isRunning && !(await this._dabService.isPortAvailable(record.port))) {
+            return portUnavailableError;
+        }
+
+        return {
+            success: true,
+            params: { containerName: record.name, port: record.port },
+            target: record.target,
+        };
+    }
+
+    // #endregion
+
     override async dispose(): Promise<void> {
         if (this._progressListener) {
             this.schemaDesignerService.removeProgressListener(this._progressListener);
@@ -863,6 +1714,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         if (this.schemaDesignerDetails) {
             this.updateCacheItem(this.schemaDesignerDetails!.schema);
         }
+        await this.flushDabConfigSave();
         super.dispose();
     }
 
@@ -918,16 +1770,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     }
 
     private resolveServerName(): string | undefined {
-        if (this.treeNode) {
-            return this.treeNode.connectionProfile?.server;
-        }
-
-        if (this.connectionUri) {
-            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
-                ?.credentials?.server;
-        }
-
-        return undefined;
+        return this.resolveConnectionInfo()?.server;
     }
 
     /**
@@ -936,19 +1779,44 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
      * Docker container that cannot perform interactive Azure AD authentication.
      */
     private resolveIsDabDeploymentSupported(): boolean {
+        return Object.values(this.resolveDabTargetSupport()).some((target) => target.isSupported);
+    }
+
+    /**
+     * Works out which deployment targets this connection can use.
+     *
+     * The CLI runs as the signed-in user, so it can carry Windows
+     * Authentication through to SQL Server. A container cannot: it runs outside
+     * the user's Windows session with no way to present their credentials.
+     * Neither can complete an interactive Entra sign-in from a background
+     * process, so those connections support no target.
+     */
+    private resolveDabTargetSupport(): Record<string, SchemaDesigner.DabTargetSupport> {
         const authType = this.resolveAuthenticationType();
-        return authType === AuthenticationType.SqlLogin;
+        const isWindowsAuth = authType === AuthenticationType.Integrated;
+
+        const describe = (target: Dab.DabDeploymentTarget): SchemaDesigner.DabTargetSupport => {
+            if (Dab.isDabTargetSupportedForAuthentication(target, authType)) {
+                return { isSupported: true };
+            }
+
+            return {
+                isSupported: false,
+                reason:
+                    isWindowsAuth && target === Dab.DabDeploymentTarget.Docker
+                        ? LocConstants.LocalContainers.dabDockerWindowsAuthNotSupported
+                        : LocConstants.LocalContainers.dabTargetAuthNotSupported,
+            };
+        };
+
+        return {
+            [Dab.DabDeploymentTarget.DabCli]: describe(Dab.DabDeploymentTarget.DabCli),
+            [Dab.DabDeploymentTarget.Docker]: describe(Dab.DabDeploymentTarget.Docker),
+        };
     }
 
     private resolveAuthenticationType(): string | undefined {
-        if (this.treeNode) {
-            return this.treeNode.connectionProfile?.authenticationType;
-        }
-        if (this.connectionUri) {
-            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
-                ?.credentials?.authenticationType;
-        }
-        return undefined;
+        return this.resolveConnectionInfo()?.authenticationType;
     }
 
     /**
@@ -956,13 +1824,25 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
      * Returns undefined if the SQL Server is not running in a Docker container.
      */
     private resolveSqlServerContainerName(): string | undefined {
+        return this.resolveConnectionInfo()?.containerName;
+    }
+
+    private resolveServerInfo(): IServerInfo | undefined {
+        const connectionInfo = this.resolveConnectionInfo();
+        if (!connectionInfo) {
+            return undefined;
+        }
+        return this.mainController.connectionManager.getServerInfo(connectionInfo);
+    }
+
+    private resolveConnectionInfo(): IConnectionInfo | undefined {
         if (this.treeNode) {
-            return this.treeNode.connectionProfile?.containerName;
+            return this.treeNode.connectionProfile;
         }
 
         if (this.connectionUri) {
             return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
-                ?.credentials?.containerName;
+                ?.credentials;
         }
 
         return undefined;

@@ -16,7 +16,6 @@ import {
 import { ObjectExplorerFilterStore } from "../../src/objectExplorer/objectExplorerFilterStore";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { stubTelemetry } from "./utils";
-import { previewService } from "../../src/previews/previewService";
 
 chai.use(sinonChai);
 
@@ -28,7 +27,6 @@ suite("ObjectExplorerFilter tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
-        sandbox.stub(previewService, "isFeatureEnabled").returns(false);
         getPresetsStub = sandbox
             .stub(ObjectExplorerFilterStore.prototype, "getPresets")
             .resolves([]);
@@ -130,7 +128,6 @@ suite("ObjectExplorerFilter tests", () => {
 
         expect(stub.loadData).to.have.been.calledWithMatch({
             nodePath: "server/db/Views",
-            isPreviewEnabled: false,
             filterPresets: [],
         });
 
@@ -138,8 +135,7 @@ suite("ObjectExplorerFilter tests", () => {
         await filtersPromise;
     });
 
-    test("loads reusable filters only when the preview is enabled", async () => {
-        (previewService.isFeatureEnabled as sinon.SinonStub).returns(true);
+    test("loads reusable filters", async () => {
         getPresetsStub.resolves([
             {
                 id: "saved-filter",
@@ -157,7 +153,6 @@ suite("ObjectExplorerFilter tests", () => {
 
         expect(getPresetsStub).to.have.been.called;
         expect(stub.loadData).to.have.been.calledWithMatch({
-            isPreviewEnabled: true,
             filterPresets: sinon.match(
                 (presets: unknown) =>
                     Array.isArray(presets) &&

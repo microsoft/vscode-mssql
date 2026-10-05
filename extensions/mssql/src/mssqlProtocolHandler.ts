@@ -45,7 +45,6 @@ export class MssqlProtocolHandler {
     /**
      * Handles the given URI and returns connection information if applicable. Examples of URIs handled:
      * - vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&user=sa&authenticationType=SqlLogin
-     * - vscode://ms-mssql.mssql/connect?connectionString=Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;
      *
      * @param uri - The URI to handle.
      * @returns The connection information or undefined if not applicable.
@@ -83,8 +82,10 @@ export class MssqlProtocolHandler {
             if (handled) {
                 this._logger.info(`Successfully handled URI: ${uri.toString()}`);
                 sendActionEvent(TelemetryViews.ProtocolHandler, TelemetryActions.Invoke, {
-                    action: uri.path,
-                    source: new URLSearchParams(uri.query).get("source") ?? "unknown",
+                    additionalProps: {
+                        action: uri.path,
+                        source: new URLSearchParams(uri.query).get("source") ?? "unknown",
+                    },
                 });
             } else {
                 throw new Error(`Unknown URI command: ${uri.toString()}`);
@@ -92,18 +93,14 @@ export class MssqlProtocolHandler {
         } catch (err) {
             this._logger.error(`Error handling URI: ${getErrorMessage(err)}`);
 
-            sendErrorEvent(
-                TelemetryViews.ProtocolHandler,
-                TelemetryActions.Invoke,
-                err,
-                false, // includeErrorMessage
-                undefined, //errorCode
-                undefined, // errorType
-                {
+            sendErrorEvent(TelemetryViews.ProtocolHandler, TelemetryActions.Invoke, {
+                error: err,
+                includeErrorMessage: false,
+                additionalProps: {
                     command: uri.path,
                     source: new URLSearchParams(uri.query).get("source") ?? "unknown",
                 },
-            );
+            });
         }
     }
 
@@ -190,11 +187,6 @@ export class MssqlProtocolHandler {
         const args = new URLSearchParams(query);
 
         this.fillConnectionProperty(connectionInfo, args, "profileName");
-
-        const connString = this.fillConnectionProperty(connectionInfo, args, "connectionString");
-        if (connString) {
-            return connectionInfo as IConnectionProfile;
-        }
 
         this.fillConnectionProperty(connectionInfo, args, "tenantId");
         this.fillConnectionProperty(connectionInfo, args, "accountId");

@@ -138,7 +138,7 @@ export const AzureBrowsePage = () => {
                                 {mainOptions
                                     .filter(
                                         // filter out inputs that are manually handled
-                                        (opt) => !["server", "database"].includes(opt),
+                                        (opt) => !["server", "port", "database"].includes(opt),
                                     )
                                     .map((inputName, idx) => {
                                         const component =

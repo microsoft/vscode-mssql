@@ -5,6 +5,8 @@
 
 import {
     Button,
+    Card,
+    CardHeader,
     Dialog,
     DialogActions,
     DialogBody,
@@ -13,12 +15,12 @@ import {
     DialogTitle,
     Input,
     makeStyles,
-    mergeClasses,
     Menu,
     MenuItem,
     MenuList,
     MenuPopover,
     MenuTrigger,
+    mergeClasses,
     Text,
     tokens,
     Tooltip,
@@ -28,10 +30,10 @@ import {
     DeleteRegular,
     DismissRegular,
     EditRegular,
+    FilterRegular,
     InfoRegular,
     MoreHorizontalRegular,
-    PinFilled,
-    PinRegular,
+    SaveRegular,
 } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { KeyboardEvent, useRef, useState } from "react";
@@ -39,7 +41,7 @@ import { ObjectExplorerFilterPreset } from "../../../sharedInterfaces/objectExpl
 import { locConstants } from "../../common/locConstants";
 
 const presetRowHeight = 48;
-const groupHeadingHeight = 28;
+const groupHeadingHeight = 32;
 const separatedGroupHeadingHeight = 44;
 const maximumListHeight = 352;
 
@@ -69,7 +71,6 @@ const useStyles = makeStyles({
         boxSizing: "border-box",
         padding: `0 ${tokens.spacingHorizontalS} ${tokens.spacingVerticalL} ${tokens.spacingHorizontalL}`,
         borderLeft: "1px solid var(--vscode-editorGroup-border)",
-        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
         "@media (max-width: 760px)": {
             padding: `${tokens.spacingVerticalL} 0 0`,
             borderLeft: "none",
@@ -111,16 +112,12 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         gap: tokens.spacingHorizontalXS,
-        paddingLeft: tokens.spacingHorizontalS,
         paddingRight: tokens.spacingHorizontalS,
-        color: "var(--vscode-descriptionForeground)",
-        textTransform: "uppercase",
-        letterSpacing: "0.3px",
+        color: "var(--vscode-foreground)",
     },
     separatedGroupRow: {
         height: `${separatedGroupHeadingHeight}px`,
         paddingTop: tokens.spacingVerticalM,
-        borderTop: "1px solid var(--vscode-editorGroup-border)",
     },
     groupCount: {
         color: "var(--vscode-descriptionForeground)",
@@ -132,14 +129,8 @@ const useStyles = makeStyles({
         width: "100%",
         height: `${presetRowHeight}px`,
         boxSizing: "border-box",
-        display: "flex",
-        alignItems: "center",
-        gap: tokens.spacingHorizontalXXS,
-        padding: `${tokens.spacingVerticalXXS} ${tokens.spacingHorizontalXXS}`,
-        borderRadius: tokens.borderRadiusSmall,
-        ":hover": {
-            backgroundColor: "var(--vscode-list-hoverBackground)",
-        },
+        padding: `2px ${tokens.spacingHorizontalXS}`,
+        margin: 0,
     },
     selectedRow: {
         backgroundColor: "var(--vscode-list-inactiveSelectionBackground)",
@@ -148,18 +139,25 @@ const useStyles = makeStyles({
         },
     },
     presetButton: {
-        flexGrow: 1,
+        width: "100%",
         minWidth: 0,
-        height: "100%",
         justifyContent: "flex-start",
-        paddingLeft: tokens.spacingHorizontalS,
-        paddingRight: tokens.spacingHorizontalS,
+        padding: 0,
         color: "var(--vscode-foreground)",
+    },
+    cardHeader: {
+        width: "100%",
+        minWidth: 0,
+    },
+    cardHeaderContent: {
+        minWidth: 0,
+        overflow: "hidden",
     },
     presetText: {
         display: "flex",
         width: "100%",
         minWidth: 0,
+        overflow: "hidden",
         flexDirection: "column",
         alignItems: "flex-start",
         justifyContent: "center",
@@ -202,17 +200,6 @@ const useStyles = makeStyles({
         flexGrow: 1,
         minWidth: 0,
     },
-    tooltip: {
-        display: "flex",
-        flexDirection: "column",
-        gap: tokens.spacingVerticalXS,
-        maxWidth: "360px",
-    },
-    tooltipOptions: {
-        display: "flex",
-        flexDirection: "column",
-        rowGap: tokens.spacingVerticalXXS,
-    },
 });
 
 export interface ObjectExplorerFilterPresetsProps {
@@ -236,7 +223,6 @@ export const ObjectExplorerFilterPresets = ({
 }: ObjectExplorerFilterPresetsProps) => {
     const classes = useStyles();
     const listRef = useRef<HTMLDivElement>(null);
-    const [openMenuPresetId, setOpenMenuPresetId] = useState<string>();
     const [renamingPresetId, setRenamingPresetId] = useState<string>();
     const [renameValue, setRenameValue] = useState("");
     const [pendingDelete, setPendingDelete] = useState<ObjectExplorerFilterPreset>();
@@ -304,7 +290,7 @@ export const ObjectExplorerFilterPresets = ({
         });
     };
 
-    const handlePresetKeyDown = (event: KeyboardEvent<HTMLButtonElement>, rowIndex: number) => {
+    const handlePresetKeyDown = (event: KeyboardEvent<HTMLElement>, rowIndex: number) => {
         const currentPosition = presetRows.findIndex((entry) => entry.rowIndex === rowIndex);
         let nextPosition: number | undefined;
         switch (event.key) {
@@ -441,6 +427,10 @@ export const ObjectExplorerFilterPresets = ({
                             const summary = details.join(" · ");
                             const displayName =
                                 row.preset.isPinned && row.preset.name ? row.preset.name : summary;
+                            const tooltipText =
+                                row.preset.isPinned && row.preset.name
+                                    ? [displayName, ...details].join("\n")
+                                    : details.join("\n");
                             const showSummary =
                                 row.preset.isPinned &&
                                 !!row.preset.name &&
@@ -461,12 +451,14 @@ export const ObjectExplorerFilterPresets = ({
                                 normalizedRenameValue.length > 0 && !renameHasConflict;
 
                             return (
-                                <div
+                                <Card
                                     key={row.id}
                                     className={mergeClasses(
                                         classes.row,
                                         isSelected && classes.selectedRow,
                                     )}
+                                    appearance="subtle"
+                                    size="small"
                                     role="listitem"
                                     aria-posinset={row.position + 1}
                                     aria-setsize={presets.length}
@@ -502,135 +494,91 @@ export const ObjectExplorerFilterPresets = ({
                                                     }
                                                 }}
                                             />
-                                            <Tooltip
-                                                content={
+                                            <Button
+                                                type="button"
+                                                appearance="subtle"
+                                                size="small"
+                                                className={classes.actionButton}
+                                                icon={<CheckmarkRegular />}
+                                                disabled={!canSaveRename}
+                                                title={
                                                     renameHasConflict
                                                         ? locConstants.objectExplorerFiltering
                                                               .filterNameAlreadyExists
                                                         : locConstants.common.save
                                                 }
-                                                relationship="label">
-                                                <Button
-                                                    type="button"
-                                                    appearance="subtle"
-                                                    size="small"
-                                                    className={classes.actionButton}
-                                                    icon={<CheckmarkRegular />}
-                                                    disabled={!canSaveRename}
-                                                    onClick={() =>
-                                                        finishRename(row.preset, virtualRow.index)
-                                                    }
-                                                />
-                                            </Tooltip>
-                                            <Tooltip
-                                                content={locConstants.common.cancel}
-                                                relationship="label">
-                                                <Button
-                                                    type="button"
-                                                    appearance="subtle"
-                                                    size="small"
-                                                    className={classes.actionButton}
-                                                    icon={<DismissRegular />}
-                                                    onClick={() => cancelRename(virtualRow.index)}
-                                                />
-                                            </Tooltip>
+                                                aria-label={locConstants.common.save}
+                                                onClick={() =>
+                                                    finishRename(row.preset, virtualRow.index)
+                                                }
+                                            />
+                                            <Button
+                                                type="button"
+                                                appearance="subtle"
+                                                size="small"
+                                                className={classes.actionButton}
+                                                icon={<DismissRegular />}
+                                                title={locConstants.common.cancel}
+                                                aria-label={locConstants.common.cancel}
+                                                onClick={() => cancelRename(virtualRow.index)}
+                                            />
                                         </div>
                                     ) : (
-                                        <>
-                                            <Tooltip
-                                                content={
-                                                    <div className={classes.tooltip}>
-                                                        <Text weight="semibold">{displayName}</Text>
-                                                        <div className={classes.tooltipOptions}>
-                                                            {details.map((detail, index) => (
-                                                                <Text key={index} size={200}>
-                                                                    {detail}
-                                                                </Text>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                }
-                                                relationship="description">
-                                                <Button
-                                                    type="button"
-                                                    appearance="subtle"
-                                                    className={classes.presetButton}
-                                                    data-preset-row-index={virtualRow.index}
-                                                    aria-label={locConstants.objectExplorerFiltering.useFilter(
-                                                        displayName,
-                                                    )}
-                                                    aria-pressed={isSelected}
-                                                    onKeyDown={(event) =>
-                                                        handlePresetKeyDown(event, virtualRow.index)
-                                                    }
-                                                    onClick={() => onSelect(row.preset)}>
-                                                    <span className={classes.presetText}>
-                                                        <Text
-                                                            className={mergeClasses(
-                                                                classes.truncate,
-                                                                classes.presetTitle,
-                                                            )}
-                                                            weight={
-                                                                row.preset.isPinned &&
-                                                                row.preset.name
-                                                                    ? "semibold"
-                                                                    : "regular"
-                                                            }>
-                                                            {displayName}
-                                                        </Text>
-                                                        {showSummary && (
-                                                            <Text
-                                                                className={mergeClasses(
-                                                                    classes.truncate,
-                                                                    classes.presetMetadata,
-                                                                )}
-                                                                size={200}>
-                                                                {summary}
-                                                            </Text>
-                                                        )}
-                                                    </span>
-                                                </Button>
-                                            </Tooltip>
-                                            <div className={classes.actions}>
-                                                <Tooltip
-                                                    content={
-                                                        row.preset.isPinned
-                                                            ? locConstants.objectExplorerFiltering
-                                                                  .unpinFilter
-                                                            : locConstants.objectExplorerFiltering
-                                                                  .pinFilter
-                                                    }
-                                                    relationship="label">
+                                        <CardHeader
+                                            className={classes.cardHeader}
+                                            image={<FilterRegular fontSize={20} />}
+                                            header={{
+                                                className: classes.cardHeaderContent,
+                                                children: (
                                                     <Button
                                                         type="button"
                                                         appearance="subtle"
-                                                        size="small"
-                                                        className={classes.actionButton}
-                                                        icon={
-                                                            row.preset.isPinned ? (
-                                                                <PinFilled />
-                                                            ) : (
-                                                                <PinRegular />
+                                                        className={classes.presetButton}
+                                                        data-preset-row-index={virtualRow.index}
+                                                        aria-label={locConstants.objectExplorerFiltering.useFilter(
+                                                            displayName,
+                                                        )}
+                                                        aria-pressed={isSelected}
+                                                        title={tooltipText}
+                                                        onKeyDown={(event) =>
+                                                            handlePresetKeyDown(
+                                                                event,
+                                                                virtualRow.index,
                                                             )
                                                         }
-                                                        onClick={() =>
-                                                            onSetPinned(
-                                                                row.preset.id,
-                                                                !row.preset.isPinned,
-                                                            )
-                                                        }
-                                                    />
-                                                </Tooltip>
-                                                {row.preset.isPinned && (
-                                                    <Menu
-                                                        open={openMenuPresetId === row.preset.id}
-                                                        onOpenChange={(_event, data) =>
-                                                            setOpenMenuPresetId(
-                                                                data.open
-                                                                    ? row.preset.id
-                                                                    : undefined,
-                                                            )
-                                                        }>
+                                                        onClick={() => onSelect(row.preset)}>
+                                                        <span className={classes.presetText}>
+                                                            <Text
+                                                                className={mergeClasses(
+                                                                    classes.truncate,
+                                                                    classes.presetTitle,
+                                                                )}
+                                                                weight={
+                                                                    row.preset.isPinned &&
+                                                                    row.preset.name
+                                                                        ? "semibold"
+                                                                        : "regular"
+                                                                }>
+                                                                {displayName}
+                                                            </Text>
+                                                            {showSummary && (
+                                                                <Text
+                                                                    className={mergeClasses(
+                                                                        classes.truncate,
+                                                                        classes.presetMetadata,
+                                                                    )}
+                                                                    size={200}>
+                                                                    {summary}
+                                                                </Text>
+                                                            )}
+                                                        </span>
+                                                    </Button>
+                                                ),
+                                            }}
+                                            action={{
+                                                className: classes.actions,
+                                                children: (
+                                                    <Menu>
                                                         <MenuTrigger disableButtonEnhancement>
                                                             <Button
                                                                 type="button"
@@ -638,6 +586,9 @@ export const ObjectExplorerFilterPresets = ({
                                                                 size="small"
                                                                 className={classes.actionButton}
                                                                 icon={<MoreHorizontalRegular />}
+                                                                title={locConstants.objectExplorerFiltering.moreFilterActions(
+                                                                    displayName,
+                                                                )}
                                                                 aria-label={locConstants.objectExplorerFiltering.moreFilterActions(
                                                                     displayName,
                                                                 )}
@@ -646,39 +597,59 @@ export const ObjectExplorerFilterPresets = ({
                                                         <MenuPopover>
                                                             <MenuList>
                                                                 <MenuItem
-                                                                    icon={<EditRegular />}
+                                                                    icon={
+                                                                        row.preset.isPinned ? (
+                                                                            <DismissRegular />
+                                                                        ) : (
+                                                                            <SaveRegular />
+                                                                        )
+                                                                    }
                                                                     onClick={() =>
-                                                                        beginRename(row.preset)
+                                                                        onSetPinned(
+                                                                            row.preset.id,
+                                                                            !row.preset.isPinned,
+                                                                        )
+                                                                    }>
+                                                                    {row.preset.isPinned
+                                                                        ? locConstants
+                                                                              .objectExplorerFiltering
+                                                                              .removeFromSavedFilters
+                                                                        : locConstants
+                                                                              .objectExplorerFiltering
+                                                                              .saveFilter}
+                                                                </MenuItem>
+                                                                {row.preset.isPinned && (
+                                                                    <MenuItem
+                                                                        icon={<EditRegular />}
+                                                                        onClick={() =>
+                                                                            beginRename(row.preset)
+                                                                        }>
+                                                                        {
+                                                                            locConstants
+                                                                                .objectExplorerFiltering
+                                                                                .renameFilter
+                                                                        }
+                                                                    </MenuItem>
+                                                                )}
+                                                                <MenuItem
+                                                                    icon={<DeleteRegular />}
+                                                                    onClick={() =>
+                                                                        setPendingDelete(row.preset)
                                                                     }>
                                                                     {
                                                                         locConstants
                                                                             .objectExplorerFiltering
-                                                                            .renameFilter
+                                                                            .deleteFilter
                                                                     }
                                                                 </MenuItem>
                                                             </MenuList>
                                                         </MenuPopover>
                                                     </Menu>
-                                                )}
-                                                <Tooltip
-                                                    content={
-                                                        locConstants.objectExplorerFiltering
-                                                            .deleteFilter
-                                                    }
-                                                    relationship="label">
-                                                    <Button
-                                                        type="button"
-                                                        appearance="subtle"
-                                                        size="small"
-                                                        className={classes.actionButton}
-                                                        icon={<DeleteRegular />}
-                                                        onClick={() => setPendingDelete(row.preset)}
-                                                    />
-                                                </Tooltip>
-                                            </div>
-                                        </>
+                                                ),
+                                            }}
+                                        />
                                     )}
-                                </div>
+                                </Card>
                             );
                         })}
                     </div>

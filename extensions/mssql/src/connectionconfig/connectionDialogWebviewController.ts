@@ -51,14 +51,9 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import {
-    cmdOpenAzureDataStudioMigration,
-    defaultDatabase,
-    systemDatabases,
-} from "../constants/constants";
+import { cmdOpenAzureDataStudioMigration, defaultDatabase, Links } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
-import * as Utils from "../models/utils";
 import {
     createConnectionGroup,
     getDefaultConnectionGroupDialogProps,
@@ -81,7 +76,7 @@ import {
     getVscodeEntraTenantOptions,
     resolveVscodeEntraAccount,
 } from "../azure/vscodeEntraMfaUtils";
-import { PreviewFeature, previewService } from "../previews/previewService";
+import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
 import { getCloudId } from "../azure/providerSettings";
 import {
     AzureBrowseProvider,
@@ -89,9 +84,11 @@ import {
     BrowseProviderHost,
     FabricBrowseProvider,
 } from "./browseProvider";
+import { buildDatabaseOptions } from "../utils/databaseUtils";
 
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
+export const OPEN_KERBEROS_HELP = "openKerberosHelp";
 const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
@@ -215,14 +212,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 // The spots in initializeDialog() that handle potential PII have their own error catches that emit error telemetry with `includeErrorMessage` set to false.
                 // Everything else during initialization shouldn't have PII, so it's okay to include the error message here.
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.Initialize,
-                    err,
-                    true, // includeErrorMessage
-                    undefined, // errorCode,
-                    "catchAll", // errorType
-                );
+                sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.Initialize, {
+                    error: err,
+                    includeErrorMessage: true,
+                    errorType: "catchAll",
+                });
                 this.initialized.reject(getErrorMessage(err));
             });
     }
@@ -232,9 +226,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         initialConnectionGroup?: IConnectionGroup,
         openAsNewDraft?: boolean,
     ): Promise<void> {
-        const useVscodeAccounts = previewService.isFeatureEnabled(
-            PreviewFeature.UseVscodeAccountsForEntraMFA,
-        );
+        const useVscodeAccounts = !getUseMsalEntraMfaAuthConfig();
 
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
@@ -265,12 +257,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         // Display intitial UI since it may take a moment for the connection to load
-        // due to fetching Azure account and tenant info
+        // due to fetching Azure account info
         this.loadEmptyConnection();
         await this.updateItemVisibility();
         this.updateState();
 
-        // Load VS Code Entra accounts and tenants in the background after the initial render
+        // Load VS Code Entra accounts in the background after the initial render
         if (useVscodeAccounts) {
             void this.loadVscodeEntraDataAsync();
         } else {
@@ -283,14 +275,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState();
         } catch (err) {
             void vscode.window.showErrorMessage(getErrorMessage(err));
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.Initialize,
-                err,
-                false, // includeErrorMessage
-                undefined, // errorCode,
-                "loadSavedConnections", // errorType
-            );
+            sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.Initialize, {
+                error: err,
+                includeErrorMessage: false,
+                errorType: "loadSavedConnections",
+            });
         }
 
         // Load connection (if specified); happens after form is loaded so that the form can be updated
@@ -301,14 +290,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this.loadEmptyConnection();
                 void vscode.window.showErrorMessage(getErrorMessage(err));
 
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.Initialize,
-                    err,
-                    false, // includeErrorMessage
-                    undefined, // errorCode,
-                    "loadConnectionToEdit", // errorType
-                );
+                sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.Initialize, {
+                    error: err,
+                    includeErrorMessage: false,
+                    errorType: "loadConnectionToEdit",
+                });
             }
         }
 
@@ -380,7 +366,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("loadConnectionAsNewDraft", async (state, payload) => {
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadConnection, {
-                mode: "newDraft",
+                additionalProps: {
+                    mode: "newDraft",
+                },
             });
             await this.setConnectionAsNewDraft(payload.connection);
 
@@ -418,18 +406,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 state.formMessage = { message: getErrorMessage(err) };
                 state.dialog = undefined;
 
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.AddFirewallRule,
-                    err,
-                    false, // includeErrorMessage
-                    undefined, // errorCode
-                    err.Name, // errorType
-                    {
+                sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule, {
+                    error: err,
+                    includeErrorMessage: false,
+                    errorType: err.Name,
+                    additionalProps: {
                         failure: err.Name,
                         cloudType: getCloudId(),
                     },
-                );
+                });
 
                 return state;
             }
@@ -564,8 +549,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         TelemetryViews.ConnectionDialog,
                         TelemetryActions.LoadFromConnectionString,
                         {
-                            result: "unsupportedAuthType",
-                            details: connDetails.options.authenticationType,
+                            additionalProps: {
+                                result: "unsupportedAuthType",
+                                details: connDetails.options.authenticationType,
+                            },
                         },
                     );
 
@@ -589,7 +576,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryViews.ConnectionDialog,
                     TelemetryActions.LoadFromConnectionString,
                     {
-                        result: "success",
+                        additionalProps: {
+                            result: "success",
+                        },
                     },
                 );
 
@@ -607,10 +596,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 sendErrorEvent(
                     TelemetryViews.ConnectionDialog,
                     TelemetryActions.LoadFromConnectionString,
-                    error,
-                    false, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
+                    { error, includeErrorMessage: false },
                 );
 
                 return state;
@@ -714,7 +700,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             try {
                 const signInResult = await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
 
-                state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map(
+                state.azureAccounts = (await VsCodeAzureHelper.getAccounts(false)).map(
                     (a) =>
                         ({
                             id: a.id,
@@ -750,6 +736,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const newlyAddedAccountId = state.azureAccounts.find(
                 (a) => !existingAccountIds.includes(a.id),
             )?.id;
+
             if (newlyAddedAccountId && newlyAddedAccountId !== state.selectedAccountId) {
                 state.selectedAccountId = newlyAddedAccountId;
                 state.azureTenants = [];
@@ -770,6 +757,24 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     state.selectedTenantId,
                 );
                 await provider.autoLoadContents(state);
+            }
+
+            // If they signed in with a new account and they're using VS Code accounts for EntraMFA auth,
+            // then add it to the MFA auth account list and select it.
+            if (newlyAddedAccountId && !getUseMsalEntraMfaAuthConfig()) {
+                const accountComponent = this.getFormComponent(state, "accountId");
+
+                if (accountComponent) {
+                    accountComponent.loadStatus = { status: ApiStatus.Loading };
+                }
+
+                this.updateState(state);
+
+                await this.loadVscodeEntraDataAsync();
+
+                state.connectionProfile.accountId = newlyAddedAccountId;
+                this.updateState(state);
+                await this.handleAzureMFAEdits("accountId");
             }
 
             return state;
@@ -907,17 +912,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.onNotification(OpenOptionInfoLinkNotification.type, async (payload) => {
-            const infoLinkMap: Partial<Record<AuthenticationType, string>> = {
-                [AuthenticationType.ActiveDirectoryDefault]:
-                    "https://aka.ms/vscode-mssql-auth-entra-default",
-                [AuthenticationType.AzureMFA]: "https://aka.ms/vscode-mssql-auth-entra-mfa",
+            const authInfoLinkMap: Partial<Record<AuthenticationType, string>> = {
+                [AuthenticationType.Integrated]: Links.authKerberosHelp,
+                [AuthenticationType.ActiveDirectoryDefault]: Links.authEntraDefault,
+                [AuthenticationType.AzureMFA]: Links.authEntraMfa,
                 [AuthenticationType.ActiveDirectoryServicePrincipal]:
-                    "https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication?view=sql-server-ver17#using-service-principal-authentication",
+                    Links.authActiveDirectoryServicePrincipal,
             };
 
-            const url = infoLinkMap[payload.option.value as AuthenticationType];
+            const url = authInfoLinkMap[payload.option.value as AuthenticationType];
+
             if (url) {
                 void vscode.env.openExternal(vscode.Uri.parse(url));
+            } else {
+                this.logger.error(
+                    `No authentication info link found for option: ${payload.option.value}`,
+                );
             }
         });
 
@@ -937,6 +947,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 if (signInButton) {
                     await signInButton.callback();
                 }
+            } else if (payload.buttonId === OPEN_KERBEROS_HELP) {
+                await vscode.env.openExternal(vscode.Uri.parse(Links.authKerberosHelp));
             } else {
                 this.logger.error(`Unknown message button clicked: ${payload.buttonId}`);
             }
@@ -1078,7 +1090,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             hiddenProperties.push("accountId", "tenantId");
         }
         if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 const accountId = this.state.connectionProfile.accountId;
                 const cachedTenants = accountId
                     ? this._cachedEntraTenants.get(accountId)
@@ -1173,8 +1185,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
         }
 
-        cleanedConnection.connectionString = undefined;
-
         if (cleanedConnection.secureEnclaves !== "Enabled") {
             cleanedConnection.attestationProtocol = undefined;
             cleanedConnection.enclaveAttestationUrl = undefined;
@@ -1204,15 +1214,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             savedConnections,
         );
 
-        sendActionEvent(
-            TelemetryViews.ConnectionDialog,
-            TelemetryActions.LoadRecentConnections,
-            undefined, // additionalProperties
-            {
+        sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadRecentConnections, {
+            additionalMeasurements: {
                 savedConnectionsCount: savedConnections.length,
                 recentConnectionsCount: recentConnections.length,
             },
-        );
+        });
 
         const self = this;
 
@@ -1232,13 +1239,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         sendErrorEvent(
                             TelemetryViews.ConnectionDialog,
                             TelemetryActions.LoadConnections,
-                            err,
-                            false, // includeErrorMessage
-                            undefined, // errorCode
-                            undefined, // errorType
                             {
-                                connectionType: connType,
-                                authType: conn.authenticationType,
+                                error: err,
+                                includeErrorMessage: false,
+                                additionalProps: {
+                                    connectionType: connType,
+                                    authType: conn.authenticationType,
+                                },
                             },
                         );
 
@@ -1301,10 +1308,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             savedConnection.profileName !== recentConnection.profileName
         ) {
             return false;
-        }
-
-        if (savedConnection.connectionString || recentConnection.connectionString) {
-            return savedConnection.connectionString === recentConnection.connectionString;
         }
 
         if (savedConnection.server !== recentConnection.server) {
@@ -1400,13 +1403,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState();
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
-                result: "success",
-                submitAction: action,
-                newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
-                connectionInputType: this.state.selectedInputMode,
-                authMode: this.state.connectionProfile.authenticationType,
-                serverTypes: getServerTypes(this.state.connectionProfile).join(","),
-                cloudType: getCloudId(),
+                additionalProps: {
+                    result: "success",
+                    submitAction: action,
+                    newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
+                    connectionInputType: this.state.selectedInputMode,
+                    authMode: this.state.connectionProfile.authenticationType,
+                    serverTypes: getServerTypes(this.state.connectionProfile).join(","),
+                    cloudType: getCloudId(),
+                },
             });
 
             await this.panel.dispose();
@@ -1417,20 +1422,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.formMessage = { message: getErrorMessage(error) };
             this.updateState();
 
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.CreateConnection,
+            sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
                 error,
-                undefined, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-                {
+                additionalProps: {
                     submitAction: action,
                     connectionInputType: this.state.selectedInputMode,
                     authMode: this.state.connectionProfile.authenticationType,
                     cloudType: getCloudId(),
                 },
-            );
+            });
 
             return state;
         }
@@ -1450,7 +1450,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (erroredInputs.length > 0) {
             this.state.connectionStatus = ApiStatus.Error;
             this.updateState(state);
-            this.logger.warn("One more more inputs have errors: " + erroredInputs.join(", "));
+            this.logger.debug("One more more inputs have errors: " + erroredInputs.join(", "));
             return undefined;
         }
 
@@ -1510,20 +1510,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             this.updateState(state);
 
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.CreateConnection,
+            sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
                 error,
-                false, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-                {
+                includeErrorMessage: false,
+                additionalProps: {
                     submitAction: this._lastSubmittedAction,
                     connectionInputType: this.state.selectedInputMode,
                     authMode: this.state.connectionProfile.authenticationType,
                     cloudType: getCloudId(),
                 },
-            );
+            });
 
             return false;
         } finally {
@@ -1558,25 +1554,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private buildDatabaseOptions(dbs: string[]): FormItemOptions[] {
-        const collator = new Intl.Collator(undefined, { sensitivity: "base" });
-        const userDbs = dbs
-            .filter((db) => !systemDatabases.includes(db.toLowerCase()))
-            .sort((a, b) => collator.compare(a, b));
-        const sysDbs = dbs
-            .filter((db) => systemDatabases.includes(db.toLowerCase()))
-            .sort((a, b) => collator.compare(a, b));
-        return [
-            ...userDbs.map((db) => ({
-                displayName: db,
-                value: db,
-                groupName: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
-            })),
-            ...sysDbs.map((db) => ({
-                displayName: db,
-                value: db,
-                groupName: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,
-            })),
-        ];
+        return buildDatabaseOptions(dbs, {
+            userDatabases: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
+            systemDatabases: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,
+        });
     }
 
     private buildDatabaseFetchKey(): string {
@@ -1792,14 +1773,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
 
             if (!handleFirewallErrorResult.result) {
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.AddFirewallRule,
-                    new Error(result.errorMessage),
-                    true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
-                    undefined, // errorCode
-                    "parseIP", // errorType
-                );
+                sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule, {
+                    error: new Error(result.errorMessage),
+                    // Parse failed because it couldn't detect an IP address, so that'd be the only PII.
+                    includeErrorMessage: true,
+                    errorType: "parseIP",
+                });
 
                 // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
                 handleFirewallErrorResult.ipAddress = "0.0.0.0";
@@ -1843,15 +1822,28 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             } as ChangePasswordDialogProps;
             return state;
         } else {
-            this.state.formMessage = { message: result.errorMessage };
+            this.state.formMessage = {
+                message: result.errorMessage,
+                buttons:
+                    errorType === SqlConnectionErrorType.KerberosNonWindows
+                        ? [
+                              {
+                                  id: OPEN_KERBEROS_HELP,
+                                  label: LocalizedConstants.Common.learnMore,
+                              },
+                          ]
+                        : undefined,
+            };
             this.state.connectionStatus = ApiStatus.Error;
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
-                result: "connectionError",
-                errorNumber: String(result.errorNumber),
-                newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
-                connectionInputType: this.state.selectedInputMode,
-                authMode: this.state.connectionProfile.authenticationType,
+                additionalProps: {
+                    result: "connectionError",
+                    errorNumber: String(result.errorNumber),
+                    newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
+                    connectionInputType: this.state.selectedInputMode,
+                    authMode: this.state.connectionProfile.authenticationType,
+                },
             });
 
             return state;
@@ -1937,26 +1929,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         await this.handleAzureMFAEdits("authenticationType");
         await this.handleAzureMFAEdits("accountId");
         await this.checkReadyToConnect();
+        this.triggerDatabaseFetchIfReady();
     }
 
     private async initializeConnectionForDialog(
         connection: IConnectionInfo,
     ): Promise<IConnectionDialogProfile> {
         // Load the password if it's saved
-        if (Utils.isEmpty(connection.connectionString)) {
-            if (!connection.password) {
-                // look up password in credential store if one isn't already set
-                const password =
-                    await this._mainController.connectionManager.connectionStore.lookupPassword(
-                        connection,
-                        false /* isConnectionString */,
-                    );
-                connection.password = password;
-            }
-        } else {
-            this.logger.debug(
-                "Connection string connection found in Connection Dialog initialization; should have been converted.",
-            );
+        if (!connection.password) {
+            // look up password in credential store if one isn't already set
+            const password =
+                await this._mainController.connectionManager.connectionStore.lookupPassword(
+                    connection,
+                );
+            connection.password = password;
         }
 
         // The server is serialized to config in "server,port" form; split the port into its own
@@ -1980,8 +1966,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#region Azure helpers
 
     /**
-     * Loads VS Code Entra accounts and tenants for all accounts in the background.
-     * Public for testing purposes only.
+     * Loads VS Code Entra accounts in the background. Tenant options are loaded on demand.
      */
     public async loadVscodeEntraDataAsync(): Promise<void> {
         this._entraDataLoaded = new Deferred<void>();
@@ -1995,18 +1980,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             if (accountComponent) {
                 accountComponent.options = accountOptions;
             }
-
-            await Promise.all(
-                accountOptions.map(async (account) => {
-                    try {
-                        await this.getEntraMfaTenantOptions(account.value);
-                    } catch (err) {
-                        this.logger.error(
-                            `Error loading tenants for account '${account.value}': ${getErrorMessage(err)}`,
-                        );
-                    }
-                }),
-            );
 
             this._entraDataLoaded.resolve();
         } catch (err) {
@@ -2031,7 +2004,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return this._cachedEntraAccounts;
         }
 
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+        if (!getUseMsalEntraMfaAuthConfig()) {
             this._cachedEntraAccounts = await getVscodeEntraAccountOptions();
         } else {
             this._cachedEntraAccounts = await getAccounts(
@@ -2053,7 +2026,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         if (!this._cachedEntraTenants.has(accountId)) {
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 this._cachedEntraTenants.set(
                     accountId,
                     await getVscodeEntraTenantOptions(accountId),
@@ -2105,7 +2078,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             label: LocalizedConstants.ConnectionDialog.signIn,
             id: "azureSignIn",
             callback: async () => {
-                if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+                if (!getUseMsalEntraMfaAuthConfig()) {
                     const existingAccountIds = new Set(
                         (this._cachedEntraAccounts ?? []).map((a) => a.value),
                     );
@@ -2124,8 +2097,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         return;
                     }
 
-                    // Invalidate cache and re-load all accounts + tenants
-                    this.clearEntraAccountCache();
                     accountsComponent.loadStatus = { status: ApiStatus.Loading };
                     this.updateState();
 
@@ -2187,9 +2158,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         const tenantComponent = this.getFormComponent(this.state, "tenantId");
-        const useVscodeAccounts = previewService.isFeatureEnabled(
-            PreviewFeature.UseVscodeAccountsForEntraMFA,
-        );
+        const useVscodeAccounts = !getUseMsalEntraMfaAuthConfig();
 
         // If background loading hasn't finished, show spinner on account and
         // await the deferred. updateItemVisibility is called for authenticationType
@@ -2384,7 +2353,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.loadingAzureAccountsStatus = ApiStatus.Loading;
             this.updateState(state);
 
-            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+            state.azureAccounts = (await VsCodeAzureHelper.getAccounts(false)).map((a) => {
                 return {
                     id: a.id,
                     name: a.label,
@@ -2468,18 +2437,25 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ): Promise<boolean> {
         const azureAccount = await VsCodeAzureHelper.getAccountById(state.selectedAccountId);
         const auth = VsCodeAzureHelper.getProvider();
+        const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(azureAccount);
 
-        const signedIn = await auth.signIn(tenantId, azureAccount);
+        const signedIn = await auth.signIn(
+            tenantId === homeTenantId ? undefined : tenantId,
+            azureAccount,
+        );
 
-        // Refresh isSignedIn status for all tenants so the UI reflects the change
+        // Reload tenant metadata after sign-in so a home-tenant fallback is replaced by the full list.
         if (signedIn) {
+            const tenants = await VsCodeAzureHelper.getTenantsForAccount(azureAccount);
             const statuses = await Promise.all(
-                state.azureTenants.map((t) => auth.isSignedIn(t.id, azureAccount)),
+                tenants.map((tenant) => auth.isSignedIn(tenant.tenantId, azureAccount)),
             );
-            state.azureTenants = state.azureTenants.map((t, i) => ({
-                ...t,
-                isSignedIn: statuses[i],
+            state.azureTenants = tenants.map((tenant, index) => ({
+                id: tenant.tenantId!,
+                name: tenant.displayName!,
+                isSignedIn: statuses[index],
             }));
+            state.selectedTenantId = tenantId;
             this.updateState(state);
         }
 
@@ -2537,7 +2513,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             toProfile.authenticationType === AuthenticationType.AzureMFA &&
             toProfile.user !== undefined
         ) {
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 const matchingAccount = await resolveVscodeEntraAccount(undefined, toProfile.user);
                 if (matchingAccount) {
                     toProfile.accountId = matchingAccount.id;

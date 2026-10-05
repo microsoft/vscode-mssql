@@ -12,8 +12,10 @@ import { expect } from "chai";
 import {
     CLEAR_TOKEN_CACHE,
     ConnectionDialogWebviewController,
+    OPEN_KERBEROS_HELP,
 } from "../../src/connectionconfig/connectionDialogWebviewController";
 import {
+    Common as CommonLoc,
     ConnectionDialog as Loc,
     Connection as ConnectionLoc,
 } from "../../src/constants/locConstants";
@@ -49,8 +51,8 @@ import {
     stubGetCapabilitiesRequest,
     stubInstantiationService,
     stubMessageBoxes,
-    stubPreviewService,
     stubTelemetry,
+    stubUseMsalEntraMfaAuthConfig,
     stubUserSurvey,
 } from "./utils";
 import {
@@ -68,12 +70,11 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
-import { errorPasswordExpired } from "../../src/constants/constants";
+import { errorPasswordExpired, Links } from "../../src/constants/constants";
 import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { deepClone } from "../../src/models/utils";
-import { PreviewFeature } from "../../src/previews/previewService";
 
 chai.use(sinonChai);
 
@@ -808,6 +809,206 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(azureAutoLoad.calledOnce).to.be.true;
                 expect(fabricLoad.notCalled).to.be.true;
             });
+
+            test("reloads all tenants after signing into a signed-out tenant", async () => {
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getAccountById")
+                    .resolves(mockAccounts.signedInAccount);
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+                    .resolves(mockTenants.slice(0, 2));
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getHomeTenantIdForAccount")
+                    .returns(mockTenants[0].tenantId);
+
+                const provider = sandbox.createStubInstance(VSCodeAzureSubscriptionProvider);
+                provider.signIn.resolves(true);
+                provider.isSignedIn.resolves(true);
+                sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getProvider").returns(provider);
+                sandbox.stub(controller["_azureBrowseProvider"], "loadCollections").resolves();
+                sandbox.stub(controller["_azureBrowseProvider"], "autoLoadContents").resolves();
+
+                const selectedTenant = mockTenants[0];
+                controller.state.selectedAccountId = mockAccounts.signedInAccount.id;
+                controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
+                controller.state.azureTenants = [
+                    {
+                        id: selectedTenant.tenantId,
+                        name: selectedTenant.tenantId,
+                        isSignedIn: false,
+                    },
+                ];
+
+                await controller["_reducerHandlers"].get("setSelectedTenantId")(controller.state, {
+                    tenantId: selectedTenant.tenantId,
+                });
+
+                expect(controller.state.azureTenants).to.deep.equal(
+                    mockTenants.slice(0, 2).map((tenant) => ({
+                        id: tenant.tenantId,
+                        name: tenant.displayName,
+                        isSignedIn: true,
+                    })),
+                );
+                expect(controller.state.selectedTenantId).to.equal(selectedTenant.tenantId);
+                expect(provider.signIn).to.have.been.calledWith(
+                    undefined,
+                    mockAccounts.signedInAccount,
+                );
+            });
+        });
+
+        suite("signIntoAzureForBrowse", () => {
+            setup(() => {
+                sandbox.stub(controller["_azureBrowseProvider"], "loadCollections").resolves();
+                sandbox.stub(controller["_azureBrowseProvider"], "autoLoadContents").resolves();
+                sandbox.stub(controller["_fabricBrowseProvider"], "loadCollections").resolves();
+                sandbox.stub(controller["_fabricBrowseProvider"], "autoLoadContents").resolves();
+            });
+
+            test("refreshes auth account options and selects the newly added account when VS Code Entra authentication is used", async () => {
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
+                stubVscodeAzureSignIn(sandbox);
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                    .resolves([mockAccounts.signedInAccount]);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                // Restore the constructor-time stub so the reducer's call to the real
+                // implementation refreshes the auth form's account/tenant options.
+                loadVscodeEntraDataAsyncStub.restore();
+
+                controller.state.azureAccounts = [];
+                controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+
+                await controller["_reducerHandlers"].get("signIntoAzureForBrowse")(
+                    controller.state,
+                    { browseTarget: ConnectionInputMode.AzureBrowse },
+                );
+
+                const accountComponent = controller.state.formComponents["accountId"];
+                expect(
+                    accountComponent.options.some(
+                        (o) => o.value === mockAccounts.signedInAccount.id,
+                    ),
+                    "auth account options should include the newly added account",
+                ).to.be.true;
+                expect(controller.state.connectionProfile.accountId).to.equal(
+                    mockAccounts.signedInAccount.id,
+                );
+
+                const tenantComponent = controller.state.formComponents["tenantId"];
+                expect(
+                    tenantComponent.options.length,
+                    "tenant options should be populated for the newly selected account",
+                ).to.be.greaterThan(0);
+                expect(controller.state.connectionProfile.tenantId).to.equal(
+                    mockTenants[0].tenantId,
+                );
+            });
+
+            test("does not alter auth form account options or connectionProfile.accountId when MSAL Entra MFA authentication is used", async () => {
+                stubUseMsalEntraMfaAuthConfig(sandbox, true);
+                stubVscodeAzureSignIn(sandbox);
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                    .resolves([mockAccounts.signedInAccount]);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                const accountComponent = controller.state.formComponents["accountId"];
+                const originalOptions = [{ displayName: "existing", value: "existing-account-id" }];
+                accountComponent.options = originalOptions;
+                controller.state.connectionProfile.accountId = "existing-account-id";
+
+                // Reset any calls made during controller construction so we only observe
+                // calls triggered by this reducer invocation.
+                loadVscodeEntraDataAsyncStub.resetHistory();
+
+                await controller["_reducerHandlers"].get("signIntoAzureForBrowse")(
+                    controller.state,
+                    { browseTarget: ConnectionInputMode.AzureBrowse },
+                );
+
+                // Browse sign-in still succeeds and selects the browsed account...
+                expect(controller.state.selectedAccountId).to.equal(
+                    mockAccounts.signedInAccount.id,
+                );
+                // ...but the auth form's account selection/options are untouched.
+                expect(controller.state.connectionProfile.accountId).to.equal(
+                    "existing-account-id",
+                );
+                expect(accountComponent.options).to.deep.equal(originalOptions);
+                expect(loadVscodeEntraDataAsyncStub.called).to.be.false;
+            });
+
+            test("leaves the existing auth selection unchanged when no new account was added", async () => {
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
+                stubVscodeAzureSignIn(sandbox);
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                    .resolves([mockAccounts.signedInAccount]);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                // The account is already known before sign-in, so re-authenticating it should
+                // not be treated as a newly added account.
+                controller.state.azureAccounts = [
+                    {
+                        id: mockAccounts.signedInAccount.id,
+                        name: mockAccounts.signedInAccount.label,
+                    },
+                ];
+
+                const accountComponent = controller.state.formComponents["accountId"];
+                const originalOptions = [{ displayName: "existing", value: "existing-account-id" }];
+                accountComponent.options = originalOptions;
+                controller.state.connectionProfile.accountId = "existing-account-id";
+
+                loadVscodeEntraDataAsyncStub.resetHistory();
+
+                await controller["_reducerHandlers"].get("signIntoAzureForBrowse")(
+                    controller.state,
+                    { browseTarget: ConnectionInputMode.AzureBrowse },
+                );
+
+                expect(loadVscodeEntraDataAsyncStub.called).to.be.false;
+                expect(controller.state.connectionProfile.accountId).to.equal(
+                    "existing-account-id",
+                );
+                expect(accountComponent.options).to.deep.equal(originalOptions);
+            });
+
+            test("applies the same event-scoped auth synchronization for FabricBrowse", async () => {
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
+                stubVscodeAzureSignIn(sandbox);
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                    .resolves([mockAccounts.signedInAccount]);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                loadVscodeEntraDataAsyncStub.restore();
+
+                controller.state.azureAccounts = [];
+                controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+
+                await controller["_reducerHandlers"].get("signIntoAzureForBrowse")(
+                    controller.state,
+                    { browseTarget: ConnectionInputMode.FabricBrowse },
+                );
+
+                // The event-scoped auth synchronization added by this reducer applies
+                // regardless of browseTarget, so FabricBrowse sign-in refreshes the same
+                // auth form account options as AzureBrowse sign-in.
+                const accountComponent = controller.state.formComponents["accountId"];
+                expect(
+                    accountComponent.options.some(
+                        (o) => o.value === mockAccounts.signedInAccount.id,
+                    ),
+                    "auth account options should refresh for FabricBrowse sign-in too",
+                ).to.be.true;
+                expect(controller.state.connectionProfile.accountId).to.equal(
+                    mockAccounts.signedInAccount.id,
+                );
+            });
         });
 
         suite("toggleFavoriteCollection", () => {
@@ -949,6 +1150,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         test("loadConnectionAsNewDraft", async () => {
             controller.state.formMessage = { message: "Sample error" };
+            connectionManager.connect.resolves(true);
+            connectionManager.listDatabases.resolves(["SavedDatabase", "OtherDatabase"]);
 
             const testConnection = {
                 id: "existing-profile-id",
@@ -976,6 +1179,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(controller.state.editingConnectionDisplayName).to.be.undefined;
             expect(controller.state.formMessage).to.be.undefined;
             expect(controller.state.readyToConnect).to.be.true;
+            expect(controller.state.connectionProfile.database).to.equal("SavedDatabase");
+            expect(connectionManager.connect).to.have.been.called;
 
             // Ensure source object wasn't mutated
             expect(testConnection.id).to.equal("existing-profile-id");
@@ -984,7 +1189,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         test("loadConnection normalizes legacy Entra account ids when VS Code account mode is enabled", async () => {
-            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+            stubUseMsalEntraMfaAuthConfig(sandbox, false);
             sandbox
                 .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
                 .resolves([mockAccounts.signedInAccount]);
@@ -1013,6 +1218,21 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockAccounts.signedInAccount.id,
             );
             expect(controller.state.connectionProfile.tenantId).to.equal(mockTenants[0].tenantId);
+        });
+
+        test("does not load tenants for every VS Code account in the background", async () => {
+            stubUseMsalEntraMfaAuthConfig(sandbox, false);
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                .resolves([mockAccounts.signedInAccount, mockAccounts.notSignedInAccount]);
+            const getTenantsForAccount = sandbox.stub(
+                AzureHelpers.VsCodeAzureHelper,
+                "getTenantsForAccount",
+            );
+
+            await controller["loadVscodeEntraDataAsync"]();
+
+            expect(getTenantsForAccount).to.not.have.been.called;
         });
 
         suite("connect", () => {
@@ -1215,6 +1435,55 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(controller.state.formMessage.message).to.equal(errorMessage);
             });
 
+            test("displays Kerberos guidance for an unhandled Kerberos connection error", async () => {
+                const errorMessage = "Cannot authenticate using Kerberos";
+                connectionManager.connect.resolves(false);
+                connectionManager.getConnectionInfo.returns({
+                    errorNumber: 0,
+                    errorMessage,
+                    messages: errorMessage,
+                    credentials: {
+                        server: mockServerName,
+                        user: mockUserName,
+                    },
+                } as ConnectionInfo);
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.KerberosNonWindows);
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(controller.state.dialog).to.be.undefined;
+                expect(controller.state.formMessage).to.deep.equal({
+                    message: errorMessage,
+                    buttons: [{ id: OPEN_KERBEROS_HELP, label: CommonLoc.learnMore }],
+                });
+            });
+
+            test("keeps the specialized error flow when a handled error mentions Kerberos", async () => {
+                const errorMessage = "Kerberos connection requires trusting the certificate";
+                connectionManager.connect.resolves(false);
+                connectionManager.getConnectionInfo.returns({
+                    errorNumber: 0,
+                    errorMessage,
+                    messages: errorMessage,
+                    credentials: {
+                        server: mockServerName,
+                        user: mockUserName,
+                    },
+                } as ConnectionInfo);
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.TrustServerCertificateNotEnabled);
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(controller.state.dialog?.type).to.equal("trustServerCert");
+                expect(controller.state.formMessage).to.be.undefined;
+            });
+
             test("displays password changed dialog upon password expired error", async () => {
                 mockObjectExplorerProvider.createSession.resolves({
                     sessionId: "testSessionId",
@@ -1267,6 +1536,18 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(azureControllerStub.clearTokenCache).to.have.been.calledOnce;
             });
 
+            test("openKerberosHelp", async () => {
+                const openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+
+                await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
+                    buttonId: OPEN_KERBEROS_HELP,
+                });
+
+                expect(openExternalStub).to.have.been.calledOnceWith(
+                    vscode.Uri.parse(Links.authKerberosHelp),
+                );
+            });
+
             test("unknown button", async () => {
                 const unknownButtonId = "unknownButtonId";
 
@@ -1307,13 +1588,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         suite("loadFromConnectionString", () => {
             setup(() => {
-                // Pin the preview feature to a deterministic value so the Azure MFA
+                // Pin the authentication mode so the Azure MFA
                 // path uses the stubbed azureAccountService instead of waiting on the
                 // background VS Code Entra data load (`_entraDataLoaded`), which depends
                 // on real `vscode.authentication` APIs and hangs in CI.
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, true);
             });
 
             async function runConnectionStringScenario(
@@ -1464,7 +1743,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
     test("getAzureActionButtons", async () => {
         // Tests the MSAL path (non-VS-Code-accounts)
-        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
+        stubUseMsalEntraMfaAuthConfig(sandbox, true);
         controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
         controller.state.connectionProfile.accountId = "TestEntraAccountId";
 
@@ -1774,7 +2053,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
     test("getAzureActionButtons uses VS Code sign-in when VS Code account mode is enabled", async () => {
         loadVscodeEntraDataAsyncStub.restore();
-        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+        stubUseMsalEntraMfaAuthConfig(sandbox, false);
 
         sandbox
             .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")

@@ -139,10 +139,12 @@ export class ProfilerSessionManager {
         session.startedAt = Date.now();
         const isFromFile = session.sessionType === SessionType.File;
         sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionStarted, {
-            sessionId,
-            engineType: session.engineType,
-            templateName: session.templateName,
-            isFromFile: String(isFromFile),
+            additionalProps: {
+                sessionId,
+                engineType: session.engineType,
+                templateName: session.templateName,
+                isFromFile: String(isFromFile),
+            },
         });
 
         return result;

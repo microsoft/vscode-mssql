@@ -8,11 +8,6 @@ import * as vscode from "vscode";
 
 import * as LocalizedConstants from "../constants/locConstants";
 import { sqlPlanLanguageId } from "../constants/constants";
-import {
-    getPreviewConfigKey,
-    isBetaExecutionPlanEnabled,
-    PreviewFeature,
-} from "../previews/previewService";
 import * as ep from "../sharedInterfaces/executionPlan";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { ExecutionPlanService } from "../services/executionPlanService";
@@ -102,7 +97,6 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
                     loadState: ApiStatus.Loaded,
                     executionPlanGraphs: [],
                     totalCost: 0,
-                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
                 executionPlanComparisonState: {
                     primary: {
@@ -135,23 +129,6 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
         );
 
         this.registerRpcHandlers();
-        this.registerDisposable(
-            vscode.workspace.onDidChangeConfiguration((event) => {
-                if (
-                    event.affectsConfiguration(
-                        getPreviewConfigKey(PreviewFeature.BetaExecutionPlan),
-                    )
-                ) {
-                    this.updateState({
-                        ...this.state,
-                        executionPlanState: {
-                            ...this.state.executionPlanState,
-                            isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
-                        },
-                    });
-                }
-            }),
-        );
     }
 
     private registerRpcHandlers(): void {

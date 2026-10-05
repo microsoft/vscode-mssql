@@ -34,7 +34,7 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
         );
 
         let authority = this.loginEndpointUrl + tenant.id;
-        this.logger.info(`Authority URL set to: ${authority}`);
+        this.logger.debug(`Authority URL set to: ${authority}`);
 
         const effectiveScopes = scopes ?? this.scopes;
 

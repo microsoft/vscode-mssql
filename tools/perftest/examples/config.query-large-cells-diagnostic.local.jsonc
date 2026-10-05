@@ -1,0 +1,57 @@
+// Focused Query Studio large-value diagnostic. Query execution happens during
+// scenario setup for the interaction workloads, while STS page diagnostics,
+// process samples, row-store/cache markers, and exact interaction outcomes are
+// retained across the whole repetition. Connection credentials come only from
+// STS2_SQLSERVER_CONNSTRING.
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "diagnostic",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": [
+        "querystudio-interaction-large-cells-20x1mb",
+        "querystudio-interaction-copyall-large-cells",
+        "querystudio-interaction-copyall-large-cells-forced-spill",
+    ],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "../workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../../../extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "STS_ENABLE_STS2": "1",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v2",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": {
+        "markers": true,
+        "processSampler": true,
+        "stsEnvelopeJournal": true,
+        "otel": "off",
+    },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

@@ -5,7 +5,7 @@
 
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
-import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
+import { Common, ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { ILogger } from "../sharedInterfaces/logger";
 import {
@@ -32,6 +32,9 @@ import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { UserSurvey } from "../nps/userSurvey";
+import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
+import { DeploymentType } from "../sharedInterfaces/deployment";
+import { completeProvisioningTask, startProvisioningTask } from "./deploymentBackgroundTasks";
 
 export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
 
@@ -87,9 +90,11 @@ export async function initializeFabricProvisioningState(
     sendActionEvent(
         TelemetryViews.FabricProvisioning,
         TelemetryActions.StartFabricProvisioningDeployment,
-        {},
         {
-            localContainersInitTimeInMs: Date.now() - startTime,
+            additionalProps: {},
+            additionalMeasurements: {
+                localContainersInitTimeInMs: Date.now() - startTime,
+            },
         },
     );
 
@@ -447,23 +452,19 @@ export async function getWorkspaces(
             workspaceOptions[0]?.value ??
             "";
         updateFabricProvisioningState(deploymentController, state);
-        sendActionEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.GetWorkspaces,
-            {},
-            {
+        sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaces, {
+            additionalProps: {},
+            additionalMeasurements: {
                 numWorkspaces: state.workspaces.length,
                 workspaceLoadTimeInMs: Date.now() - startTime,
             },
-        );
+        });
     } catch (err) {
         state.isWorkspacesErrored = true;
-        sendErrorEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.GetWorkspaces,
-            err,
-            false,
-        );
+        sendErrorEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaces, {
+            error: err,
+            includeErrorMessage: false,
+        });
         updateFabricProvisioningState(deploymentController, state);
     }
 }
@@ -491,22 +492,18 @@ export async function getRoleForWorkspace(
                 workspace.role = role.role;
             }
         }
-        sendActionEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.GetWorkspaceRole,
-            {},
-            {
+        sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaceRole, {
+            additionalProps: {},
+            additionalMeasurements: {
                 workspaceRoleLoadTimeInMs: Date.now() - startTime,
             },
-        );
+        });
     } catch (err) {
         state.errorMessage = getErrorMessage(err);
-        sendErrorEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.GetWorkspaceRole,
-            err,
-            false,
-        );
+        sendErrorEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaceRole, {
+            error: err,
+            includeErrorMessage: false,
+        });
     }
     return workspace;
 }
@@ -549,9 +546,11 @@ export async function sortWorkspacesByPermission(
         sendActionEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.GetPermissionsForWorkspaces,
-            {},
             {
-                workspacePermissionsLoadTimeInMs: Date.now() - startTime,
+                additionalProps: {},
+                additionalMeasurements: {
+                    workspacePermissionsLoadTimeInMs: Date.now() - startTime,
+                },
             },
         );
     } else {
@@ -619,14 +618,12 @@ export async function handleWorkspaceFormAction(
         state.databaseNamesInWorkspace = databasesInWorkspaces.map(
             (database) => database.displayName,
         );
-        sendActionEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.GetFabricDatabases,
-            {},
-            {
+        sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetFabricDatabases, {
+            additionalProps: {},
+            additionalMeasurements: {
                 fabricDatabasesLoadTimeInMs: Date.now() - startTime,
             },
-        );
+        });
     }
     // Validate databases
     const databaseNameComponent = state.formComponents["databaseName"];
@@ -651,6 +648,14 @@ export async function provisionDatabase(
     const startTime = Date.now();
     state.provisionLoadState = ApiStatus.Loading;
     updateFabricProvisioningState(deploymentController, state);
+    const databaseName = state.formState.databaseName;
+    const provisioningTarget = `${state.workspaceName}/${databaseName}`;
+    startProvisioningTask(
+        deploymentController,
+        DeploymentType.FabricProvisioning,
+        Common.provisioningTarget(provisioningTarget),
+        provisioningTarget,
+    );
 
     try {
         state.database = await FabricHelper.createFabricSqlDatabase(
@@ -662,24 +667,37 @@ export async function provisionDatabase(
 
         state.provisionLoadState = ApiStatus.Loaded;
         updateFabricProvisioningState(deploymentController, state);
+        completeProvisioningTask(
+            deploymentController,
+            DeploymentType.FabricProvisioning,
+            BackgroundTaskState.Succeeded,
+            FabricProvisioning.provisioningTaskSucceeded(databaseName),
+        );
         sendActionEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ProvisionFabricDatabase,
-            {},
             {
-                provisionDatabaseLoadTimeInMs: Date.now() - startTime,
+                additionalProps: {},
+                additionalMeasurements: {
+                    provisionDatabaseLoadTimeInMs: Date.now() - startTime,
+                },
             },
         );
         void connectToDatabase(deploymentController);
     } catch (err) {
         state.errorMessage = getErrorMessage(err);
+        completeProvisioningTask(
+            deploymentController,
+            DeploymentType.FabricProvisioning,
+            BackgroundTaskState.Failed,
+            FabricProvisioning.provisioningTaskFailed(databaseName, state.errorMessage),
+        );
         state.provisionLoadState = ApiStatus.Error;
         updateFabricProvisioningState(deploymentController, state);
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ProvisionFabricDatabase,
-            err,
-            false,
+            { error: err, includeErrorMessage: false },
         );
     }
 }
@@ -738,9 +756,11 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
         sendActionEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,
-            {},
             {
-                connectToDatabaseLoadTimeInMs: Date.now() - startTime,
+                additionalProps: {},
+                additionalMeasurements: {
+                    connectToDatabaseLoadTimeInMs: Date.now() - startTime,
+                },
             },
         );
 
@@ -751,8 +771,7 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,
-            err,
-            false,
+            { error: err, includeErrorMessage: false },
         );
     }
     updateFabricProvisioningState(deploymentController, state);
@@ -763,11 +782,13 @@ export function sendFabricProvisioningCloseEventTelemetry(state: fp.FabricProvis
         TelemetryViews.FabricProvisioning,
         TelemetryActions.FinishFabricProvisioningDeployment,
         {
-            // Include telemetry data about the state when closed
-            formValidationState: state.formValidationLoadState,
-            errorMessage: state.errorMessage,
-            provisionState: state.provisionLoadState,
-            connectionState: state.connectionLoadState,
+            additionalProps: {
+                // Include telemetry data about the state when closed
+                formValidationState: state.formValidationLoadState,
+                errorMessage: state.errorMessage,
+                provisionState: state.provisionLoadState,
+                connectionState: state.connectionLoadState,
+            },
         },
     );
 }
@@ -777,14 +798,15 @@ export function updateFabricProvisioningState(
     newState: fp.FabricProvisioningState,
 ) {
     deploymentController.state.deploymentTypeState = newState;
-    deploymentController.updateState(deploymentController.state);
+    if (!deploymentController.isDisposed) {
+        deploymentController.updateState(deploymentController.state);
+    }
 }
 
 export function handleCreateDatabase(
     deploymentController: DeploymentWebviewController,
     state: fp.FabricProvisioningState,
 ): fp.FabricProvisioningState {
-    void provisionDatabase(deploymentController);
     state.deploymentStartTime = new Date().toUTCString();
 
     // Set tenant and workspace names to display later
@@ -794,5 +816,6 @@ export function handleCreateDatabase(
     state.workspaceName = state.formComponents.workspace.options.find(
         (option) => option.value === state.formState.workspace,
     )?.displayName;
+    void provisionDatabase(deploymentController);
     return state;
 }

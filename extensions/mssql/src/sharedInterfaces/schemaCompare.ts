@@ -8,7 +8,6 @@ import {
     DiffEntry,
     DeploymentOptions,
     ResultStatus,
-    SchemaCompareResult,
     SchemaComparePublishProjectResult,
     SchemaCompareOptionsResult,
     SchemaCompareIncludeExcludeResult,
@@ -23,6 +22,8 @@ import {
     SchemaUpdateAction,
     TaskExecutionMode,
 } from "../enums";
+import { FormItemOptions } from "./form";
+import { RequestType } from "vscode-jsonrpc";
 
 export {
     ExtractTarget,
@@ -31,15 +32,42 @@ export {
     SchemaUpdateAction,
     TaskExecutionMode,
 };
+
+export type SchemaCompareLayout = "classic" | "simplified";
+export type SchemaCompareGroupBy = "none" | "type" | "action" | "schema";
+
+export interface SchemaCompareServer {
+    profileName: string;
+    server: string;
+    database?: string;
+}
+
+/**
+ * Lightweight description of the current comparison result. The full difference list is
+ * kept on the extension host and fetched by the webview with
+ * {@link SchemaCompareGetDifferencesRequest} so state updates stay small.
+ */
+export interface SchemaCompareResultSummary {
+    /** Identifies one comparison run; every difference request is validated against it. */
+    comparisonId: number;
+    areEqual: boolean;
+    differenceCount: number;
+}
+
 export interface SchemaCompareWebViewState {
+    layout: SchemaCompareLayout;
+    groupBy: SchemaCompareGroupBy;
     isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;
     isApplyInProgress: boolean;
     applySucceeded: boolean;
     applyFailed: boolean;
-    isIncludeExcludeAllOperationInProgress: boolean;
-    activeServers: { [connectionUri: string]: { profileName: string; server: string } };
-    databases: string[];
+    isEndpointSelectionInProgress?: boolean;
+    connections: { [connectionId: string]: SchemaCompareServer };
+    databases: FormItemOptions[];
+    databaseListConnectionId: string;
+    isDatabaseListLoading: boolean;
+    databaseListError: string;
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
     auxiliaryEndpointInfo: SchemaCompareEndpointInfo;
     intermediaryOptionsResult: SchemaCompareOptionsResult;
@@ -51,26 +79,27 @@ export interface SchemaCompareWebViewState {
     originalSourceExcludes: Map<string, DiffEntry>;
     originalTargetExcludes: Map<string, DiffEntry>;
     sourceTargetSwitched: boolean;
-    schemaCompareResult: SchemaCompareResult;
-    generateScriptResultStatus: ResultStatus;
+    schemaCompareResult?: SchemaCompareResultSummary;
     publishDatabaseChangesResultStatus: ResultStatus;
     schemaComparePublishProjectResult: SchemaComparePublishProjectResult;
     schemaCompareIncludeExcludeResult: SchemaCompareIncludeExcludeResult;
     schemaCompareOpenScmpResult: SchemaCompareOpenScmpResult;
     saveScmpResultStatus: ResultStatus;
     cancelResultStatus: ResultStatus;
-    waitingForNewConnection: boolean;
-    pendingConnectionEndpointType: "source" | "target" | null;
 }
 
 export interface SchemaCompareReducers {
+    setLayout: { layout: SchemaCompareLayout };
+    setGroupBy: { groupBy: SchemaCompareGroupBy };
+
     isSqlProjectExtensionInstalled: {};
 
     listActiveServers: {};
 
-    listDatabasesForActiveServer: { connectionUri: string };
-
-    openAddNewConnectionDialog: { endpointType: "source" | "target" };
+    listDatabasesForActiveServer: {
+        connectionUri: string;
+        connectionDatabaseName?: string;
+    };
 
     selectFile: {
         endpoint: SchemaCompareEndpointInfo;
@@ -116,11 +145,6 @@ export interface SchemaCompareReducers {
         deploymentOptions: DeploymentOptions;
     };
 
-    generateScript: {
-        targetServerName: string;
-        targetDatabaseName: string;
-    };
-
     publishChanges: {
         targetServerName: string;
         targetDatabaseName: string;
@@ -139,16 +163,6 @@ export interface SchemaCompareReducers {
 
     resetOptions: {};
 
-    includeExcludeNode: {
-        id: number;
-        diffEntry: DiffEntry;
-        includeRequest: boolean;
-    };
-
-    includeExcludeAllNodes: {
-        includeRequest: boolean;
-    };
-
     openScmp: {};
 
     saveScmp: {};
@@ -157,13 +171,23 @@ export interface SchemaCompareReducers {
 }
 
 export interface SchemaCompareContextProps extends CoreRPCs {
+    differences: DiffEntry[];
+    isDifferencesLoading: boolean;
+    loadingDifferenceDetailIds: ReadonlySet<number>;
+    pendingDifferenceIds: ReadonlySet<number>;
+    isIncludeExcludeAllInProgress: boolean;
+    isScriptGenerationInProgress: boolean;
+    /** True while any request that depends on the current comparison is in flight. */
+    isOperationInProgress: boolean;
+
+    setLayout: (layout: SchemaCompareLayout) => void;
+    setGroupBy: (groupBy: SchemaCompareGroupBy) => void;
+
     isSqlProjectExtensionInstalled: () => void;
 
     listActiveServers: () => void;
 
-    listDatabasesForActiveServer: (connectionUri: string) => void;
-
-    openAddNewConnectionDialog: (endpointType: "source" | "target") => void;
+    listDatabasesForActiveServer: (connectionUri: string, connectionDatabaseName?: string) => void;
 
     selectFile: (
         endpoint: SchemaCompareEndpointInfo,
@@ -204,7 +228,10 @@ export interface SchemaCompareContextProps extends CoreRPCs {
         deploymentOptions: DeploymentOptions,
     ) => void;
 
-    generateScript: (targetServerName: string, targetDatabaseName: string) => void;
+    generateScript: (
+        targetServerName: string,
+        targetDatabaseName: string,
+    ) => Promise<SchemaCompareGenerateScriptResponse>;
 
     publishChanges: (targetServerName: string, targetDatabaseName: string) => void;
 
@@ -218,13 +245,135 @@ export interface SchemaCompareContextProps extends CoreRPCs {
 
     resetOptions: () => void;
 
-    includeExcludeNode: (id: number, diffEntry: DiffEntry, includeRequest: boolean) => void;
+    includeExcludeNode: (
+        id: number,
+        diffEntry: DiffEntry,
+        includeRequest: boolean,
+    ) => Promise<void>;
 
-    includeExcludeAllNodes: (includeRequest: boolean) => void;
+    includeExcludeAllNodes: (includeRequest: boolean) => Promise<void>;
+
+    loadDifferenceDetails: (id: number) => Promise<void>;
 
     openScmp: () => void;
 
     saveScmp: () => void;
 
     cancel: () => void;
+}
+
+export type SchemaCompareIncludeExcludeRejectionReason =
+    | "blockingDependencies"
+    | "notExcludable"
+    | "differenceNotFound"
+    | "serviceError"
+    | "staleComparison";
+
+export interface SchemaCompareDifferenceUpdate {
+    id: number;
+    included: boolean;
+}
+
+export interface SchemaCompareBlockingDependency {
+    id?: number;
+    name: string;
+}
+
+export interface SchemaCompareGetDifferencesWebviewParams {
+    comparisonId: number;
+}
+
+export interface SchemaCompareGetDifferencesWebviewResponse {
+    success: boolean;
+    comparisonId: number;
+    differences: DiffEntry[];
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareGetDifferencesRequest {
+    export const type = new RequestType<
+        SchemaCompareGetDifferencesWebviewParams,
+        SchemaCompareGetDifferencesWebviewResponse,
+        void
+    >("schemaCompare/getDifferencesWebview");
+}
+
+export interface SchemaCompareIncludeExcludeNodeParams {
+    comparisonId: number;
+    id: number;
+    diffEntry: DiffEntry;
+    includeRequest: boolean;
+}
+
+export interface SchemaCompareIncludeExcludeNodeResponse {
+    success: boolean;
+    updates: SchemaCompareDifferenceUpdate[];
+    blockingDependencies: SchemaCompareBlockingDependency[];
+    reason?: SchemaCompareIncludeExcludeRejectionReason;
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareIncludeExcludeNodeRequest {
+    export const type = new RequestType<
+        SchemaCompareIncludeExcludeNodeParams,
+        SchemaCompareIncludeExcludeNodeResponse,
+        void
+    >("schemaCompare/includeExcludeNodeWebview");
+}
+
+export interface SchemaCompareGetDifferenceDetailsWebviewParams {
+    comparisonId: number;
+    id: number;
+}
+
+export interface SchemaCompareGetDifferenceDetailsWebviewResponse {
+    success: boolean;
+    difference?: DiffEntry;
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareGetDifferenceDetailsRequest {
+    export const type = new RequestType<
+        SchemaCompareGetDifferenceDetailsWebviewParams,
+        SchemaCompareGetDifferenceDetailsWebviewResponse,
+        void
+    >("schemaCompare/getDifferenceDetailsWebview");
+}
+
+export interface SchemaCompareGenerateScriptParams {
+    comparisonId: number;
+    targetServerName: string;
+    targetDatabaseName: string;
+}
+
+export interface SchemaCompareGenerateScriptResponse {
+    success: boolean;
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareGenerateScriptRequest {
+    export const type = new RequestType<
+        SchemaCompareGenerateScriptParams,
+        SchemaCompareGenerateScriptResponse,
+        void
+    >("schemaCompare/generateScriptWebview");
+}
+
+export interface SchemaCompareIncludeExcludeAllParams {
+    comparisonId: number;
+    includeRequest: boolean;
+}
+
+export interface SchemaCompareIncludeExcludeAllResponse {
+    success: boolean;
+    updates: SchemaCompareDifferenceUpdate[];
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareIncludeExcludeAllRequest {
+    export const type = new RequestType<
+        SchemaCompareIncludeExcludeAllParams,
+        SchemaCompareIncludeExcludeAllResponse,
+        void
+    >("schemaCompare/includeExcludeAllWebview");
 }

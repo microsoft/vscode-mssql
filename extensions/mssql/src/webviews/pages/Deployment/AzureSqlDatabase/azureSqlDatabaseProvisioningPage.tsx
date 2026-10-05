@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useMemo } from "react";
-import { makeStyles, tokens } from "@fluentui/react-components";
+import { Button, makeStyles, tokens } from "@fluentui/react-components";
+import { AddRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
@@ -19,6 +20,8 @@ import {
     generateAzureSqlDatabaseBicep,
     generateAzureSqlDatabaseTerraform,
 } from "../deploymentScripts";
+import { AddFirewallRuleDialogProps } from "../../../../sharedInterfaces/connectionDialog";
+import { AddFirewallRuleDialog } from "../../AddFirewallRule/addFirewallRule.component";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -58,6 +61,7 @@ const useStyles = makeStyles({
         padding: "20px",
         width: "100%",
         minWidth: 0,
+        boxSizing: "border-box",
     },
     cardDiv: {
         width: "100%",
@@ -70,10 +74,14 @@ const useStyles = makeStyles({
         whiteSpace: "nowrap",
     },
     cardItemError: {
+        display: "block",
+        width: "100%",
+        minWidth: 0,
+        maxWidth: "100%",
         fontSize: "14px",
         padding: "10px 0",
         whiteSpace: "normal",
-        overflowWrap: "break-word",
+        overflowWrap: "anywhere",
         wordBreak: "break-word",
     },
     cardItemLabel: {
@@ -83,6 +91,9 @@ const useStyles = makeStyles({
     cardBody: {
         padding: "0",
     },
+    addFirewallRuleButton: {
+        alignSelf: "flex-start",
+    },
 });
 
 export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
@@ -91,6 +102,9 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
     const provisionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.provisionLoadState);
     const connectionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.connectionLoadState);
     const errorMessage = useAzureSqlDatabaseDeploymentSelector((s) => s.errorMessage);
+    const firewallErrorMessage = useAzureSqlDatabaseDeploymentSelector(
+        (s) => s.firewallErrorMessage,
+    );
     const databaseName = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.databaseName);
     const deploymentStartTime = useAzureSqlDatabaseDeploymentSelector((s) => s.deploymentStartTime);
     const subscriptionName = useAzureSqlDatabaseDeploymentSelector((s) => s.subscriptionName);
@@ -103,6 +117,8 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
     const maxVcores = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.maxVcores);
     const serverRegion = useAzureSqlDatabaseDeploymentSelector((s) => s.serverRegion);
     const connectionString = useAzureSqlDatabaseDeploymentSelector((s) => s.connectionString);
+    const dialog = useAzureSqlDatabaseDeploymentSelector((s) => s.dialog);
+    const canAddFirewallRule = useAzureSqlDatabaseDeploymentSelector((s) => s.canAddFirewallRule);
 
     const scriptBaseName = (databaseName || "database").replace(/[^a-zA-Z0-9-_]/g, "_");
     const scripts = useMemo<PostDeploymentScript[]>(() => {
@@ -148,6 +164,12 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
 
     if (!provisionLoadState) return undefined;
 
+    const connectionErrorMessage =
+        connectionLoadState === ApiStatus.Error || firewallErrorMessage
+            ? errorMessage || firewallErrorMessage
+            : undefined;
+    const hasConnectionError = !!connectionErrorMessage;
+
     const deploymentSucceeded = provisionLoadState === ApiStatus.Loaded;
 
     const stepStatus =
@@ -160,7 +182,7 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
         if (provisionLoadState !== ApiStatus.Loaded) {
             return `${locConstants.azureSqlDatabase.deploymentInProgress}...`;
         }
-        if (connectionLoadState === ApiStatus.Error) {
+        if (hasConnectionError) {
             return locConstants.azureSqlDatabase.connectionFailed;
         }
         if (connectionLoadState !== ApiStatus.Loaded) {
@@ -171,6 +193,15 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
 
     return (
         <div className={classes.outerDiv}>
+            {context && dialog?.type === "addFirewallRule" && (
+                <AddFirewallRuleDialog
+                    mode="modal"
+                    state={(dialog as AddFirewallRuleDialogProps).props}
+                    addFirewallRule={context.addFirewallRule}
+                    closeDialog={context.closeFirewallRuleDialog}
+                    signIntoAzure={context.signIntoAzureForFirewallRule}
+                />
+            )}
             <div className={classes.innerDiv}>
                 <div className={classes.contentHeader}>
                     {locConstants.azureSqlDatabase.provisioning} {databaseName}
@@ -181,14 +212,23 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                     className={classes.cardDiv}
                     bodyClassName={classes.cardBody}>
                     <div className={classes.cardContentDiv}>
-                        {errorMessage ? (
+                        {errorMessage || connectionErrorMessage ? (
                             <div className={classes.cardColumn} style={{ paddingRight: "20px" }}>
                                 <span className={classes.cardItemError}>
                                     <span className={classes.cardItemLabel}>
                                         {locConstants.common.error}:
                                     </span>
-                                    {errorMessage}
+                                    {errorMessage || connectionErrorMessage}
                                 </span>
+                                {canAddFirewallRule && (
+                                    <Button
+                                        appearance="secondary"
+                                        className={classes.addFirewallRuleButton}
+                                        icon={<AddRegular />}
+                                        onClick={() => context?.openFirewallRuleDialog()}>
+                                        {locConstants.firewallRules.addFirewallRule}
+                                    </Button>
+                                )}
                             </div>
                         ) : (
                             <>

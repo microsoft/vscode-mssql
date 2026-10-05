@@ -1,0 +1,49 @@
+// M6' acceptance config: proves the regression gate and invalid-run rules.
+// Usage (from perftest root):
+//   1. Baseline:  perftest run --config examples/config.gate-proof.local.jsonc --scenario noop
+//      perftest baseline set gate-proof <runId>
+//   2. Regression: run noop-synthetic-delay against the SAME baseline name via
+//      a config whose scenario list is the delayed variant (see PROGRESS.md) —
+//      expected: REGRESSED verdict, exit code 1.
+//   3. Invalid:   perftest run ... --scenario noop-missing-marker — expected:
+//      invalid reps, exit 6, no fast wallclock anywhere.
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 5,
+    "warmupRepetitions": 0,
+    "scenarios": ["noop", "noop-synthetic-delay", "noop-missing-marker"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "extensions": [
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {},
+    },
+    "sql": {
+        "provider": "external",
+        "snapshot": "none",
+        "cacheMode": "unknown",
+        "connectionProfile": "none",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": false, "otel": "off" },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": {
+        "baseline": "none",
+        "failOnRegression": true,
+        "thresholds": {
+            "default": { "pct": 10, "absMs": 5, "test": "welchT", "minSamples": 3, "maxCv": 0.5 },
+        },
+    },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

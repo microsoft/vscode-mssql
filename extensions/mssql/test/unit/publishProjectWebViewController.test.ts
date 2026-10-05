@@ -1552,7 +1552,7 @@ suite("PublishProjectWebViewController Tests", () => {
             (args) => args[1] === TelemetryActions.PublishProject,
         );
         expect(publishCall, "PublishProject telemetry should be emitted").to.exist;
-        expect(publishCall[2].serverTypes).to.equal(expectedServerTypes);
+        expect(publishCall[2]?.additionalProps?.serverTypes).to.equal(expectedServerTypes);
 
         // Verify GenerateScript failure event includes serverTypes (exercises the !result.success path)
         await controller["generateDeploymentScript"](
@@ -1564,7 +1564,7 @@ suite("PublishProjectWebViewController Tests", () => {
             (args) => args[1] === TelemetryActions.GenerateScript,
         );
         expect(scriptErrorCall, "GenerateScript error telemetry should be emitted").to.exist;
-        expect(scriptErrorCall[6].serverTypes).to.equal(expectedServerTypes);
+        expect(scriptErrorCall[2]?.additionalProps?.serverTypes).to.equal(expectedServerTypes);
     });
 
     //#region SqlPackage Command Generation Tests
