@@ -1647,6 +1647,25 @@ suite("Fluent Result Grid", () => {
             });
         });
 
+        test("maps select-all to the layout's A key on AZERTY keyboards", () => {
+            const selectAllBinding: FluentResultGridKeyBindingMap = {
+                [FluentResultGridCommand.SelectAll]: {
+                    keyCombination: { key: "a", code: "KeyA", ctrlKey: true },
+                },
+            };
+            // On AZERTY the key labelled A reports code KeyQ, and the key labelled Q reports KeyA.
+            const azertyA = keyboardEvent({ key: "a", code: "KeyQ", ctrlKey: true });
+            const azertyQ = keyboardEvent({ key: "q", code: "KeyA", ctrlKey: true });
+
+            for (const keyBindings of [selectAllBinding, {}]) {
+                expect(getFluentResultGridKeyboardAction(azertyA, keyBindings)).to.deep.equal({
+                    kind: "command",
+                    commandId: FluentResultGridCommand.SelectAll,
+                });
+                expect(getFluentResultGridKeyboardAction(azertyQ, keyBindings)).to.equal(undefined);
+            }
+        });
+
         test("does not intercept workbench modifier combinations", () => {
             const events = [
                 keyboardEvent({ code: "Tab", ctrlKey: true }),

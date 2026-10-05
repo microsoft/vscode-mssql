@@ -358,6 +358,7 @@ export const configResultsGridAlternatingRowColors = "resultsGrid.alternatingRow
 export const configResultsGridFreezeFirstColumnByDefault = "resultsGrid.freezeFirstColumnByDefault";
 export const configResultsGridShowGridLines = "resultsGrid.showGridLines";
 export const configResultsGridRowPadding = "resultsGrid.rowPadding";
+export const configResultsGridRightAlignNumbers = "resultsGrid.rightAlignNumbers";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";

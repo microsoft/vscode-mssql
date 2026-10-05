@@ -12193,6 +12193,9 @@
     <trans-unit id="mssql.copilot.rewriteQuery">
       <source xml:lang="en">Rewrite Query</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsGrid.rightAlignNumbers">
+      <source xml:lang="en">Right-align values in numeric columns (such as int, decimal, float, and money) in the results grid.</source>
+    </trans-unit>
     <trans-unit id="mssql.runQueryHistory">
       <source xml:lang="en">Run Query</source>
     </trans-unit>
