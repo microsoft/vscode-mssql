@@ -3359,6 +3359,9 @@
       <source xml:lang="en">Elapsed time: {0}</source>
       <note>{0} is the task elapsed time</note>
     </trans-unit>
+    <trans-unit id="++CODE++20842b4bb57195f7bee0c31086f0e3c808a4a3f6492af5a79414709ad7718fbd">
+      <source xml:lang="en">Elapsed: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
     </trans-unit>
@@ -3796,6 +3799,16 @@
     </trans-unit>
     <trans-unit id="++CODE++905e3218067c7ad96983b2efa72f292627a8b7e1a2c7865613379b01da57c2fb">
       <source xml:lang="en">Estimated Subtree Cost</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6ef275a91ab927f3eea9f15361cd4253e4b26eb4d4b6e0531ecc982237acc4cf">
+      <source xml:lang="en">Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eb0b18563c32eaf937904faf84f1626b84d89b0e3478be396f1b3dc24e1bc8d7">
+      <source xml:lang="en">Estimated query progress: &lt;{0}</source>
+      <note>{0} is a localized percentage. The &lt; symbol means progress is positive but less than that percentage.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++009889f8da222c45ffbfecd313bd7a242a48218c5e6f476811f811a2791d97ea">
+      <source xml:lang="en">Estimated query progress: {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
       <source xml:lang="en">Event details for {0}</source>
@@ -5627,6 +5640,20 @@
       <source xml:lang="en">Listing views for connection &apos;{0}&apos; (ID: {1})</source>
       <note>{0} is the connection display name
 {1} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++65d5e2f3c9144913a6f8bca055f6790146892827ac3567b3605fce500ebdab4c">
+      <source xml:lang="en">Live</source>
+      <note>Badge for the execution plan of a currently running query.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d166f7cc96ddbc851ad16d9b6b05e6fb43435e3164082d8a0a004f6490eb9716">
+      <source xml:lang="en">Live plan of the running statement. Row counts refresh while it runs.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3ca96e2a3734f75719d8f1fd7122b0e4efb466e24c3064a41335f8f2882cad55">
+      <source xml:lang="en">Live query statistics aren&apos;t available for this query because its server session couldn&apos;t be identified.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b43b63025594401db10d74d16ad1332cbfc5cd71a53ee72bcec9b3840199391c">
+      <source xml:lang="en">Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
       <source xml:lang="en">Load</source>
@@ -8034,6 +8061,14 @@
     <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
       <source xml:lang="en">Rows per page</source>
     </trans-unit>
+    <trans-unit id="++CODE++51d99e9df26c20f52b29d6188d01586f33a731803e39e44176c90838f07342b5">
+      <source xml:lang="en">Rows: {0} of {1}</source>
+      <note>{0} is the actual processed row count; {1} is the optimizer&apos;s estimated total row count. Counts are already localized and may be abbreviated.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ef094763df1428dc454cbfbeb03fa1d23b50807b81d899d909c9080110e34f29">
+      <source xml:lang="en">Rows: {0} of {1} ({2})</source>
+      <note>{0} is the actual processed row count; {1} is the optimizer&apos;s estimated total row count; {2} is their ratio as a localized percentage, which can exceed 100%.</note>
+    </trans-unit>
     <trans-unit id="++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c">
       <source xml:lang="en">Rule disabled</source>
     </trans-unit>
@@ -10214,6 +10249,9 @@
       <source xml:lang="en">Unable to verify {0}. Check its configuration and retry.</source>
       <note>{0} is the name of a container engine</note>
     </trans-unit>
+    <trans-unit id="++CODE++ca184496974204a0bd3fd4925e0540bc4b0df6fcc232994d29754272b7183812">
+      <source xml:lang="en">Unavailable</source>
+    </trans-unit>
     <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
       <source xml:lang="en">Unavailable for backups to existing files</source>
     </trans-unit>
@@ -11203,6 +11241,10 @@
       <source xml:lang="en">{0} rules</source>
       <note>{0} is the number of code analysis rules</note>
     </trans-unit>
+    <trans-unit id="++CODE++9d5f8d1cce348ce0c5276f612667bb8ccd0699e170bf5957e58ae3983e1e557c">
+      <source xml:lang="en">{0} s</source>
+      <note>{0} is a localized elapsed duration in seconds; s is the abbreviation for seconds.</note>
+    </trans-unit>
     <trans-unit id="++CODE++0d43a65b231aab5ce9c1a1fcaa614526a6c2cefb7137de400a2a1feae95e1156">
       <source xml:lang="en">{0} selected</source>
       <note>{0} is the number of selected filter values</note>
@@ -11312,6 +11354,10 @@
       <note>{0} is the task name
 {1} is the status
 {2} is the message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a6cfc540d9e43034888b1ac105df2617193675017ca49cc17a82b4c2c33b41bd">
+      <source xml:lang="en">{0}:{1}:{2}</source>
+      <note>Elapsed duration, not a time of day: {0} is total hours (may exceed 24), {1} is two-digit minutes, and {2} is two-digit seconds. All numbers are already localized.</note>
     </trans-unit>
     <trans-unit id="++CODE++2fd557cb0d0dc9fb91362ad40c6d256d2f0651acde628b9e27152c331f6af0a8">
       <source xml:lang="en">{0}d {1}h</source>
@@ -11607,6 +11653,9 @@
     <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
       <source xml:lang="en">Disable Group By Schema</source>
     </trans-unit>
+    <trans-unit id="mssql.disableLiveQueryStatistics">
+      <source xml:lang="en">Disable Live Query Statistics</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.disableAutoSizingEnumDescription">
       <source xml:lang="en">Disable automatic column sizing</source>
     </trans-unit>
@@ -11651,6 +11700,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
       <source xml:lang="en">Enable Group By Schema</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableLiveQueryStatistics">
+      <source xml:lang="en">Enable Live Query Statistics</source>
     </trans-unit>
     <trans-unit id="mssql.query.alwaysEncryptedParameterization">
       <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
@@ -11726,6 +11778,9 @@
     </trans-unit>
     <trans-unit id="mssql.enableConnectionPooling">
       <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;. Note: May keep serverless databases active and prevent auto-pausing.</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.liveQueryStatistics.description">
+      <source xml:lang="en">Enables the preview Live Query Statistics commands to watch a running query plan refresh with live row counts. When unset, follows mssql.enableExperimentalFeatures. Set to true or false to override that setting.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.betaResultsGrid.description">
       <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
