@@ -25,7 +25,13 @@ import { useLinkedSelection } from "./useLinkedSelection";
 /** Compares two execution plans side by side, outlining the areas they have in common. */
 export function ExecutionPlanComparisonPage() {
     const { extensionRpc } = useVscodeWebview();
-    const { panes, errorMessage: sourceError, pickSource, selectGraph } = useComparisonSources();
+    const {
+        loaded,
+        panes,
+        errorMessage: sourceError,
+        pickSource,
+        selectGraph,
+    } = useComparisonSources();
     const comparison = useGraphComparison(
         panes.primary?.source.graphs[panes.primary.graphIndex],
         panes.secondary?.source.graphs[panes.secondary.graphIndex],
@@ -49,21 +55,18 @@ export function ExecutionPlanComparisonPage() {
             void extensionRpc.sendNotification(ShowComparisonQueryNotification.type, { query }),
         [extensionRpc],
     );
-    const pickSecondary = () => void pickSource("secondary");
     const closeFind = useCallback(() => setFindSide(undefined), []);
 
-    if (!panes.primary) {
+    if (!loaded) {
         return (
             <main className="execution-plan-comparison execution-plan-comparison-status">
-                {sourceError ? (
-                    <div role="alert">{sourceError}</div>
-                ) : (
-                    <Spinner label={locConstants.executionPlan.loadingExecutionPlan} />
-                )}
+                <Spinner label={locConstants.executionPlan.loadingExecutionPlan} />
             </main>
         );
     }
 
+    // The toolbar fills the first empty pane, and replaces the secondary plan once both are full.
+    const toolbarPickSide: ComparisonSide = panes.primary ? "secondary" : "primary";
     const errorMessage = sourceError ?? comparison.errorMessage;
     const renderPane = (side: ComparisonSide) => {
         const pane = panes[side];
@@ -75,7 +78,7 @@ export function ExecutionPlanComparisonPage() {
                     <Button
                         appearance="primary"
                         icon={<AddSquareRegular />}
-                        onClick={pickSecondary}>
+                        onClick={() => void pickSource(side)}>
                         {locConstants.executionPlan.addExecutionPlan}
                     </Button>
                 </div>
@@ -107,8 +110,8 @@ export function ExecutionPlanComparisonPage() {
             style={{ color: tokens.colorNeutralForeground1 }}>
             <ComparisonToolbar
                 controllers={controllers}
-                hasSecondary={panes.secondary !== undefined}
-                onPickSecondary={pickSecondary}
+                replacesPlan={panes.primary !== undefined && panes.secondary !== undefined}
+                onPickPlan={() => void pickSource(toolbarPickSide)}
                 orientation={orientation}
                 onToggleOrientation={() =>
                     setOrientation((current) =>

@@ -9,6 +9,7 @@ import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
 import {
     getModifierKey,
     getWebviewByTitle,
+    runCommandFromPalette,
     waitForCommandPaletteToBeVisible,
 } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
@@ -530,6 +531,48 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await expect.poll(() => paneZoom(primary)).toBeGreaterThan(primaryZoom);
         await expect.poll(() => paneZoom(secondary)).toBeGreaterThan(secondaryZoom);
         await writeCoverage(comparison, "executionPlanComparison");
+        await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
+    });
+
+    test("Test Comparing Plans Added to a Blank Comparison", async () => {
+        await runCommandFromPalette(
+            vsCodePage,
+            "Compare Execution Plans",
+            "MS SQL: Compare Execution Plans",
+        );
+        // Each comparison editor is numbered, so take the title of the one just opened.
+        const activeTab = vsCodePage.locator('div[role="tab"].active');
+        await expect(activeTab).toHaveAttribute("aria-label", /^Compare Execution Plans \d+$/);
+        const comparison = await getWebviewByTitle(
+            vsCodePage,
+            (await activeTab.getAttribute("aria-label"))!,
+        );
+        const placeholders = comparison.locator(".execution-plan-comparison-placeholder");
+        await expect(placeholders).toHaveCount(2);
+
+        const quickInput = new QuickInput(vsCodePage);
+        await placeholders
+            .first()
+            .getByRole("button", { name: "Add execution plan", exact: true })
+            .click();
+        await quickInput.filter("plan.sqlplan");
+        await quickInput.pick("plan.sqlplan");
+        const primary = comparison.getByRole("region", { name: "Primary plan", exact: true });
+        await expect(primary.getByRole("treeitem").first()).toBeVisible();
+        await expect(placeholders).toHaveCount(1);
+
+        // With the primary pane full, the toolbar fills the secondary one.
+        const toolbar = comparison.getByRole("toolbar", { name: "Compare Execution Plans" });
+        await toolbar.getByRole("button", { name: "Add execution plan", exact: true }).click();
+        await quickInput.filter("plan.sqlplan");
+        await quickInput.pick("plan.sqlplan");
+        const secondary = comparison.getByRole("region", { name: "Added plan", exact: true });
+        await expect(secondary.getByRole("treeitem").first()).toBeVisible();
+        await expect(placeholders).toHaveCount(0);
+        await expect(comparison.locator(".execution-plan-comparison-group").first()).toBeVisible();
+        await expect(
+            toolbar.getByRole("button", { name: "Replace execution plan", exact: true }),
+        ).toBeVisible();
         await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
     });
 });

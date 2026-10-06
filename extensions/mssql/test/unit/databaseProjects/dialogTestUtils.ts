@@ -5,7 +5,10 @@
 
 import * as vscodeMssql from "vscode-mssql";
 import { AuthenticationType } from "../../../src/databaseProjects/common/enums";
-import { MssqlInternalApi } from "../../../src/controllers/internalApiFactory";
+import {
+    ExecutionPlanToCompare,
+    MssqlInternalApi,
+} from "../../../src/controllers/internalApiFactory";
 
 export interface TestUtils {
     vscodeMssqlIExtension: MssqlInternalApi;
@@ -39,6 +42,9 @@ export class MockVscodeMssqlIExtension implements MssqlInternalApi {
         throw new Error("Method not implemented.");
     }
     getServerInfo(_: vscodeMssql.IConnectionInfo): vscodeMssql.IServerInfo {
+        throw new Error("Method not implemented.");
+    }
+    compareExecutionPlans(_?: ExecutionPlanToCompare, __?: ExecutionPlanToCompare): Promise<void> {
         throw new Error("Method not implemented.");
     }
 }

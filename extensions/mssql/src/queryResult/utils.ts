@@ -475,9 +475,11 @@ export function registerCommonRequestHandlers(
             webviewViewController.executionPlanService,
             webviewViewController.sqlDocumentService,
             {
-                name: state.title ?? LocalizedConstants.executionPlan,
-                graphs: state.executionPlanState.executionPlanGraphs ?? [],
-                graphIndex,
+                primary: {
+                    name: state.title ?? LocalizedConstants.executionPlan,
+                    graphs: state.executionPlanState.executionPlanGraphs ?? [],
+                    graphIndex,
+                },
             },
         );
     });

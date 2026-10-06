@@ -1733,6 +1733,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.compareExecutionPlans",
+                "title": "%mssql.compareExecutionPlans%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.enableLiveQueryStatistics",
                 "title": "%mssql.enableLiveQueryStatistics%",
                 "category": "MS SQL",

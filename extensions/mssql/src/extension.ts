@@ -52,6 +52,7 @@ import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
 import { sqlDatabaseProjectsExtensionId } from "./constants/constants";
 import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
 import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
+import { ExecutionPlanComparisonContribution } from "./controllers/executionPlanComparisonContribution";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -146,6 +147,11 @@ class MssqlActivation {
 
         context.subscriptions.push(
             this._instantiationService.createInstance(SqlProjectRefactoringContribution),
+            this._instantiationService.createInstance(
+                ExecutionPlanComparisonContribution,
+                controller.executionPlanService,
+                controller.sqlDocumentService,
+            ),
         );
 
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);

@@ -20,10 +20,19 @@ export interface ExecutionPlanComparisonSource {
     graphs: ExecutionPlanGraph[];
 }
 
-/** The plan the comparison editor was opened from. */
+/** A plan a comparison starts with. */
 export interface ExecutionPlanComparisonInitialSource extends ExecutionPlanComparisonSource {
     /** Statement to show first. */
     graphIndex: number;
+}
+
+/**
+ * The plans a comparison starts with: one when opened from a plan, two when opened through the
+ * internal API, and none when opened blank from the command palette.
+ */
+export interface ExecutionPlanComparisonInitialSources {
+    primary?: ExecutionPlanComparisonInitialSource;
+    secondary?: ExecutionPlanComparisonInitialSource;
 }
 
 /** A node in one compared graph that has a match in the other graph. */
@@ -50,9 +59,9 @@ export interface CompareExecutionPlanGraphsResult {
     secondary: ExecutionPlanComparisonMatch[];
 }
 
-export namespace GetInitialComparisonSourceRequest {
-    export const type = new RequestType<void, ExecutionPlanComparisonInitialSource, void>(
-        "executionPlanComparison/getInitialSource",
+export namespace GetInitialComparisonSourcesRequest {
+    export const type = new RequestType<void, ExecutionPlanComparisonInitialSources, void>(
+        "executionPlanComparison/getInitialSources",
     );
 }
 

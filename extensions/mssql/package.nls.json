@@ -76,6 +76,7 @@
     "mssql.enableActualPlan": "Enable Actual Plan (MSSQL)",
     "mssql.disableActualPlan": "Disable Actual Plan (MSSQL)",
     "mssql.toggleActualPlan": "Toggle Actual Plan",
+    "mssql.compareExecutionPlans": "Compare Execution Plans",
     "mssql.enableLiveQueryStatistics": "Enable Live Query Statistics",
     "mssql.disableLiveQueryStatistics": "Disable Live Query Statistics",
     "mssql.rebuildIntelliSenseCache": "Refresh IntelliSense Cache",

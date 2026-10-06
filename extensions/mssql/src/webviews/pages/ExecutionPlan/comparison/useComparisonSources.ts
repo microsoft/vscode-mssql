@@ -7,12 +7,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
     ExecutionPlanComparisonSource,
-    GetInitialComparisonSourceRequest,
+    GetInitialComparisonSourcesRequest,
     PickComparisonSourceRequest,
 } from "../../../../sharedInterfaces/executionPlanComparison";
 import { getErrorMessage } from "../../../common/utils";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
-import { ComparisonSide } from "./comparisonModel";
+import { ComparisonSide, comparisonSides } from "./comparisonModel";
 
 /** The plan a pane shows, and which of its statements. */
 export interface ComparisonPaneSource {
@@ -23,12 +23,14 @@ export interface ComparisonPaneSource {
 }
 
 /**
- * Holds the plans the comparison shows. The primary plan comes from the editor the comparison was
- * opened from; the user picks the secondary one.
+ * Holds the plans the comparison shows. A comparison starts with the plans it was opened with, if
+ * any, and the user picks the rest.
  */
 export function useComparisonSources() {
     const { extensionRpc } = useVscodeWebview();
     const [panes, setPanes] = useState<Partial<Record<ComparisonSide, ComparisonPaneSource>>>({});
+    /** False until the extension says which plans, if any, the comparison starts with. */
+    const [loaded, setLoaded] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string>();
     const nextKeyRef = useRef(0);
     const pickVersionRef = useRef(0);
@@ -43,10 +45,21 @@ export function useComparisonSources() {
     );
 
     useEffect(() => {
-        void extensionRpc.sendRequest(GetInitialComparisonSourceRequest.type).then(
-            ({ graphIndex, ...source }) => load("primary", source, graphIndex),
-            (error: unknown) => setErrorMessage(getErrorMessage(error)),
-        );
+        void extensionRpc
+            .sendRequest(GetInitialComparisonSourcesRequest.type)
+            .then(
+                (initialSources) => {
+                    for (const side of comparisonSides) {
+                        const initialSource = initialSources[side];
+                        if (initialSource) {
+                            const { graphIndex, ...source } = initialSource;
+                            load(side, source, graphIndex);
+                        }
+                    }
+                },
+                (error: unknown) => setErrorMessage(getErrorMessage(error)),
+            )
+            .finally(() => setLoaded(true));
     }, [extensionRpc, load]);
 
     /** A later pick wins, even when an earlier one finishes loading last. */
@@ -77,5 +90,5 @@ export function useComparisonSources() {
         [],
     );
 
-    return { panes, errorMessage, pickSource, selectGraph };
+    return { loaded, panes, errorMessage, pickSource, selectGraph };
 }

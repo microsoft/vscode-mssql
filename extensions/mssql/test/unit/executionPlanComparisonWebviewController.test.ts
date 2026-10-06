@@ -8,6 +8,7 @@ import { expect } from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
+import { IExtensionContextService } from "extension-toolkit/vscode";
 import * as jsonRpc from "vscode-jsonrpc/node";
 import { RequestType, ResponseError } from "vscode-jsonrpc/node";
 
@@ -17,14 +18,24 @@ import {
     getExecutionPlanComparisonMatches,
     toComparisonGraph,
 } from "../../src/controllers/executionPlanComparisonWebviewController";
+import { ExecutionPlanComparisonContribution } from "../../src/controllers/executionPlanComparisonContribution";
 import { executionPlanSourceRegistry } from "../../src/controllers/executionPlanSourceRegistry";
+import { createMssqlInternalApi } from "../../src/controllers/internalApiFactory";
+import MainController from "../../src/controllers/mainController";
+import * as epUtils from "../../src/controllers/sharedExecutionPlanUtils";
 import { openExecutionPlanComparisonWebview } from "../../src/controllers/sharedExecutionPlanUtils";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import * as ep from "../../src/sharedInterfaces/executionPlan";
 import * as epc from "../../src/sharedInterfaces/executionPlanComparison";
 import * as utils from "../../src/utils/utils";
-import { stubLogger, stubTelemetry, stubWebviewConnectionRpc, stubWebviewPanel } from "./utils";
+import {
+    observeWebviewReady,
+    stubLogger,
+    stubTelemetry,
+    stubWebviewConnectionRpc,
+    stubWebviewPanel,
+} from "./utils";
 
 chai.use(sinonChai);
 
@@ -98,17 +109,26 @@ suite("ExecutionPlanComparisonWebviewController", () => {
     });
 
     teardown(() => {
+        observeWebviewReady(controller);
         controller?.dispose();
         controller = undefined;
         sandbox.restore();
     });
 
-    function createController(graphs = [graph("first"), graph("second", 1)], graphIndex = 1) {
+    function createController(
+        initialSources: epc.ExecutionPlanComparisonInitialSources = {
+            primary: {
+                name: "primary.sqlplan",
+                graphs: [graph("first"), graph("second", 1)],
+                graphIndex: 1,
+            },
+        },
+    ) {
         controller = new ExecutionPlanComparisonWebviewController(
             context,
             executionPlanService,
             sqlDocumentService,
-            { name: "primary.sqlplan", graphs, graphIndex },
+            initialSources,
         );
         return controller;
     }
@@ -140,16 +160,46 @@ suite("ExecutionPlanComparisonWebviewController", () => {
             liveRefreshId: 4,
             liveQueryStatistics: { estimatedProgress: 0.5 },
         };
-        createController([graph("first"), live], 5);
-
-        const source = await request(epc.GetInitialComparisonSourceRequest.type);
-
-        expect(source).to.deep.equal({
-            name: "primary.sqlplan",
-            graphs: [graph("first"), graph("live")],
-            graphIndex: 1,
+        createController({
+            primary: { name: "primary.sqlplan", graphs: [graph("first"), live], graphIndex: 5 },
         });
-        expect(toComparisonGraph(source.graphs[0])).to.equal(source.graphs[0]);
+
+        const sources = await request(epc.GetInitialComparisonSourcesRequest.type);
+
+        expect(sources).to.deep.equal({
+            primary: {
+                name: "primary.sqlplan",
+                graphs: [graph("first"), graph("live")],
+                graphIndex: 1,
+            },
+            secondary: undefined,
+        });
+        const plain = graph("first");
+        expect(toComparisonGraph(plain), "a plan that is not live is not copied").to.equal(plain);
+    });
+
+    test("hands over both plans it was opened with", async () => {
+        const primary = { name: "a.sqlplan", graphs: [graph("a")], graphIndex: 0 };
+        const secondary = { name: "b.sqlplan", graphs: [graph("b"), graph("c", 1)], graphIndex: 1 };
+        createController({ primary, secondary });
+
+        expect(await request(epc.GetInitialComparisonSourcesRequest.type)).to.deep.equal({
+            primary,
+            secondary,
+        });
+    });
+
+    test("starts blank when opened without plans", async () => {
+        controller = new ExecutionPlanComparisonWebviewController(
+            context,
+            executionPlanService,
+            sqlDocumentService,
+        );
+
+        expect(await request(epc.GetInitialComparisonSourcesRequest.type)).to.deep.equal({
+            primary: undefined,
+            secondary: undefined,
+        });
     });
 
     test("opens a recommended query without connecting or running it", () => {
@@ -256,14 +306,152 @@ suite("ExecutionPlanComparisonWebviewController", () => {
         expect((error as ResponseError<unknown>).message).to.equal("Plan XML is invalid");
     });
 
-    test("does not open a comparison without a plan", () => {
+    test("opens a blank comparison when no plan is given", () => {
+        openExecutionPlanComparisonWebview(context, executionPlanService, sqlDocumentService);
+
+        expect(vscode.window.createWebviewPanel).to.have.been.calledOnce;
+    });
+
+    test("does not open a comparison of a plan without statements", () => {
         openExecutionPlanComparisonWebview(context, executionPlanService, sqlDocumentService, {
-            name: "empty",
-            graphs: [],
-            graphIndex: 0,
+            primary: { name: "full", graphs: [graph("full")], graphIndex: 0 },
+            secondary: { name: "empty", graphs: [], graphIndex: 0 },
         });
 
         expect(vscode.window.createWebviewPanel).not.to.have.been.called;
+    });
+});
+
+suite("ExecutionPlanComparisonContribution", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("registers a command that opens a blank comparison", () => {
+        const registerCommand = sandbox
+            .stub(vscode.commands, "registerCommand")
+            .returns({ dispose: sandbox.stub() });
+        const openComparison = sandbox.stub(epUtils, "openExecutionPlanComparisonWebview");
+        const executionPlanService = sandbox.createStubInstance(ExecutionPlanService);
+        const sqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
+        const context = { extensionUri: vscode.Uri.file("/tmp/ext") } as vscode.ExtensionContext;
+        const contribution = new ExecutionPlanComparisonContribution(
+            executionPlanService,
+            sqlDocumentService,
+            { context } as IExtensionContextService,
+        );
+
+        expect(registerCommand).to.have.been.calledOnceWith("mssql.compareExecutionPlans");
+        registerCommand.firstCall.args[1]();
+
+        expect(openComparison).to.have.been.calledOnceWithExactly(
+            context,
+            executionPlanService,
+            sqlDocumentService,
+        );
+        contribution.dispose();
+    });
+});
+
+suite("Internal API execution plan comparison", () => {
+    let sandbox: sinon.SinonSandbox;
+    let executionPlanService: sinon.SinonStubbedInstance<ExecutionPlanService>;
+    let openComparison: sinon.SinonStub;
+    let mainController: MainController;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        executionPlanService = sandbox.createStubInstance(ExecutionPlanService);
+        openComparison = sandbox.stub(epUtils, "openExecutionPlanComparisonWebview");
+        mainController = {
+            context: { extensionUri: vscode.Uri.file("/tmp/ext") },
+            executionPlanService,
+            sqlDocumentService: sandbox.createStubInstance(SqlDocumentService),
+        } as unknown as MainController;
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("opens a comparison of two plans, each on its chosen statement", async () => {
+        executionPlanService.getExecutionPlan
+            .withArgs(sinon.match({ graphFileContent: "<a />" }))
+            .resolves({ graphs: [graph("a")], success: true, errorMessage: "" });
+        executionPlanService.getExecutionPlan
+            .withArgs(sinon.match({ graphFileContent: "<b />" }))
+            .resolves({ graphs: [graph("b"), graph("c", 1)], success: true, errorMessage: "" });
+
+        await createMssqlInternalApi(mainController).compareExecutionPlans(
+            { name: "a.sqlplan", planXml: "<a />" },
+            { name: "b.sqlplan", planXml: "<b />", statementIndex: 1 },
+        );
+
+        expect(openComparison).to.have.been.calledOnceWithExactly(
+            mainController.context,
+            mainController.executionPlanService,
+            mainController.sqlDocumentService,
+            {
+                primary: { name: "a.sqlplan", graphs: [graph("a")], graphIndex: 0 },
+                secondary: {
+                    name: "b.sqlplan",
+                    graphs: [graph("b"), graph("c", 1)],
+                    graphIndex: 1,
+                },
+            },
+        );
+    });
+
+    test("leaves the panes without a plan empty", async () => {
+        executionPlanService.getExecutionPlan.resolves({
+            graphs: [graph("a")],
+            success: true,
+            errorMessage: "",
+        });
+
+        await createMssqlInternalApi(mainController).compareExecutionPlans({
+            name: "a.sqlplan",
+            planXml: "<a />",
+        });
+
+        expect(openComparison).to.have.been.calledOnceWith(
+            sinon.match.any,
+            sinon.match.any,
+            sinon.match.any,
+            {
+                primary: { name: "a.sqlplan", graphs: [graph("a")], graphIndex: 0 },
+                secondary: undefined,
+            },
+        );
+    });
+
+    test("rejects a plan that cannot be parsed, without opening a comparison", async () => {
+        executionPlanService.getExecutionPlan.resolves({
+            graphs: [],
+            success: true,
+            errorMessage: "",
+        });
+
+        let error: unknown;
+        try {
+            await createMssqlInternalApi(mainController).compareExecutionPlans({
+                name: "bad.sqlplan",
+                planXml: "<bad />",
+            });
+        } catch (e) {
+            error = e;
+        }
+
+        expect((error as Error)?.message).to.equal(
+            "The selected file does not contain an execution plan.",
+        );
+        expect(openComparison).not.to.have.been.called;
     });
 });
 

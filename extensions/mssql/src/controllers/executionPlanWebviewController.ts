@@ -99,9 +99,11 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                 this.executionPlanService,
                 this.sqlDocumentService,
                 {
-                    name: this.panel.title,
-                    graphs: this.state.executionPlanState.executionPlanGraphs ?? [],
-                    graphIndex,
+                    primary: {
+                        name: this.panel.title,
+                        graphs: this.state.executionPlanState.executionPlanGraphs ?? [],
+                        graphIndex,
+                    },
                 },
             );
         });

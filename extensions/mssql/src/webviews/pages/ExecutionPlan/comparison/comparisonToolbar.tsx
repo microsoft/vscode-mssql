@@ -28,8 +28,9 @@ import { ComparisonOrientation, ComparisonSide, comparisonSides } from "./compar
 
 interface ComparisonToolbarProps {
     controllers: Record<ComparisonSide, ExecutionPlanGraphController | null>;
-    hasSecondary: boolean;
-    onPickSecondary: () => void;
+    /** True once both panes have a plan, when picking another replaces the secondary one. */
+    replacesPlan: boolean;
+    onPickPlan: () => void;
     orientation: ComparisonOrientation;
     onToggleOrientation: () => void;
     propertiesOpen: boolean;
@@ -43,8 +44,8 @@ interface ComparisonToolbarProps {
 /** Commands for the whole comparison. Zoom commands act on both plans. */
 export function ComparisonToolbar({
     controllers,
-    hasSecondary,
-    onPickSecondary,
+    replacesPlan,
+    onPickPlan,
     orientation,
     onToggleOrientation,
     propertiesOpen,
@@ -60,7 +61,7 @@ export function ComparisonToolbar({
     const noPlans = readyControllers.length === 0;
     const forEachPlan = (action: (controller: ExecutionPlanGraphController) => void) => () =>
         readyControllers.forEach(action);
-    const pickLabel = hasSecondary
+    const pickLabel = replacesPlan
         ? locConstants.executionPlan.replaceExecutionPlan
         : locConstants.executionPlan.addExecutionPlan;
     const orientationLabel =
@@ -83,8 +84,8 @@ export function ComparisonToolbar({
             className="execution-plan-comparison-toolbar"
             aria-label={locConstants.executionPlan.compareExecutionPlans}>
             <ToolbarButton
-                icon={hasSecondary ? <ArrowSyncRegular /> : <DocumentAddRegular />}
-                onClick={onPickSecondary}
+                icon={replacesPlan ? <ArrowSyncRegular /> : <DocumentAddRegular />}
+                onClick={onPickPlan}
                 title={pickLabel}
                 aria-label={pickLabel}
             />

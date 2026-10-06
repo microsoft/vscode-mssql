@@ -11685,6 +11685,9 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
       <source xml:lang="en">Command Timeout</source>
     </trans-unit>
+    <trans-unit id="mssql.compareExecutionPlans">
+      <source xml:lang="en">Compare Execution Plans</source>
+    </trans-unit>
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Compare Schemas...</source>
     </trans-unit>

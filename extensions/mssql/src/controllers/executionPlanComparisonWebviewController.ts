@@ -59,6 +59,29 @@ export function getComparisonExecutionPlanGraphs(
     return result.graphs;
 }
 
+/** Parses showplan XML into the graphs of one comparison pane. */
+export async function loadComparisonGraphs(
+    executionPlanService: ExecutionPlanService,
+    planXml: string,
+): Promise<ep.ExecutionPlanGraph[]> {
+    return getComparisonExecutionPlanGraphs(
+        await executionPlanService.getExecutionPlan({
+            graphFileContent: planXml,
+            graphFileType: `.${sqlPlanLanguageId}`,
+        }),
+    );
+}
+
+function toInitialSource(
+    source: epc.ExecutionPlanComparisonInitialSource,
+): epc.ExecutionPlanComparisonInitialSource {
+    return {
+        name: source.name,
+        graphs: source.graphs.map(toComparisonGraph),
+        graphIndex: Math.min(Math.max(source.graphIndex, 0), Math.max(source.graphs.length - 1, 0)),
+    };
+}
+
 function collectMatches(
     root: ep.ExecutionGraphComparisonResult,
 ): epc.ExecutionPlanComparisonMatch[] {
@@ -111,20 +134,20 @@ function toResponseError(error: unknown, fallbackMessage: string): ResponseError
 
 /**
  * Hosts the comparison editor. The webview owns which plans and statements it shows, so this
- * controller keeps no webview state: it hands over the plan the editor was opened from, loads the
- * plans the user picks, and compares the graphs the webview sends.
+ * controller keeps no webview state: it hands over the plans the editor was opened with, loads
+ * the plans the user picks, and compares the graphs the webview sends.
  */
 export class ExecutionPlanComparisonWebviewController extends WebviewPanelController<
     epc.ExecutionPlanComparisonWebviewState,
     epc.ExecutionPlanComparisonReducers
 > {
-    private readonly _initialSource: epc.ExecutionPlanComparisonInitialSource;
+    private readonly _initialSources: epc.ExecutionPlanComparisonInitialSources;
 
     constructor(
         context: vscode.ExtensionContext,
         private readonly _executionPlanService: ExecutionPlanService,
         private readonly _sqlDocumentService: SqlDocumentService,
-        initialSource: epc.ExecutionPlanComparisonInitialSource,
+        initialSources: epc.ExecutionPlanComparisonInitialSources = {},
     ) {
         comparisonEditorCounter++;
         super(
@@ -150,16 +173,12 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
             },
         );
 
-        this._initialSource = {
-            name: initialSource.name,
-            graphs: initialSource.graphs.map(toComparisonGraph),
-            graphIndex: Math.min(
-                Math.max(initialSource.graphIndex, 0),
-                Math.max(initialSource.graphs.length - 1, 0),
-            ),
+        this._initialSources = {
+            primary: initialSources.primary && toInitialSource(initialSources.primary),
+            secondary: initialSources.secondary && toInitialSource(initialSources.secondary),
         };
 
-        this.onRequest(epc.GetInitialComparisonSourceRequest.type, () => this._initialSource);
+        this.onRequest(epc.GetInitialComparisonSourcesRequest.type, () => this._initialSources);
         this.onRequest(epc.PickComparisonSourceRequest.type, () => this.pickSource());
         this.onRequest(epc.CompareExecutionPlanGraphsRequest.type, (params) =>
             this.compareGraphs(params),
@@ -178,12 +197,7 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
             return undefined;
         }
         try {
-            const graphs = getComparisonExecutionPlanGraphs(
-                await this._executionPlanService.getExecutionPlan({
-                    graphFileContent: plan.contents,
-                    graphFileType: `.${sqlPlanLanguageId}`,
-                }),
-            );
+            const graphs = await loadComparisonGraphs(this._executionPlanService, plan.contents);
             return { name: plan.name, graphs };
         } catch (error) {
             this.logger.error("Failed to load execution plan for comparison", error);

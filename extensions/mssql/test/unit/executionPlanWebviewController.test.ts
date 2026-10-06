@@ -18,7 +18,7 @@ import { contents } from "../resources/testsqlplan";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { GetExecutionPlanRequest } from "../../src/models/contracts/executionPlan";
 import * as jsonRpc from "vscode-jsonrpc/node";
-import { stubWebviewConnectionRpc } from "./utils";
+import { observeWebviewReady, stubWebviewConnectionRpc } from "./utils";
 
 chai.use(sinonChai);
 
@@ -233,9 +233,10 @@ suite("ExecutionPlanWebviewController", () => {
                 mockContext,
                 mockExecutionPlanService,
                 mockSqlDocumentService,
-                { name: xmlPlanFileName, graphs: [graph], graphIndex: 0 },
+                { primary: { name: xmlPlanFileName, graphs: [graph], graphIndex: 0 } },
             );
         } finally {
+            observeWebviewReady(planController);
             planController.dispose();
         }
     });
