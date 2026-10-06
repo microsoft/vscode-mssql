@@ -3,17 +3,57 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FrameLocator, Locator } from "@playwright/test";
+import { FrameLocator, Locator, Page } from "@playwright/test";
 import { test, expect } from "../baseFixtures";
 import { useSharedVsCodeLifecycle } from "../utils/testLifecycle";
-import { executeQueryAndWait, setQueryText, waitForResultGrid } from "../utils/testHelpers";
+import {
+    executeQueryAndWait,
+    getExecuteQueryShortcut,
+    setQueryText,
+    waitForQueryExecutionToEnd,
+    waitForResultGrid,
+} from "../utils/testHelpers";
 import { getGridLaunchConfig } from "./gridLaunchConfig";
 import { clickCell, getCell, stageQuery } from "./gridActions";
-import { MESSAGES_QUERY, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
+import {
+    getMarkerQuery,
+    MESSAGES_QUERY,
+    MIXED_TYPES_QUERY,
+    MIXED_TYPES_ROW_COUNT,
+    RUN_ID_QUERY,
+} from "./gridFixtures";
+
+/**
+ * How long a one-row SELECT may take from the execute shortcut to a rendered, finished result.
+ * Tight enough to fail when the run starts seconds late, with CI headroom over a round trip
+ * that takes well under a second locally.
+ */
+const SHORTCUT_RUN_BUDGET_MS = 5 * 1000;
+
+/** Mirrors msgRunQueryInProgress in src/constants/locConstants.ts. */
+const QUERY_IN_PROGRESS_MESSAGE = "A query is already running for this editor session";
 
 test.describe("MSSQL Extension - Preview Grid Pane", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
+
+    function getShortcutResultGrid(): Promise<Locator> {
+        return waitForResultGrid(resultsFrame, "0_0", 1, SHORTCUT_RUN_BUDGET_MS);
+    }
+
+    /**
+     * Waits for a shortcut run to render `expected` and finish, without the "already running"
+     * toast that a stuck execution state shows instead of running the query.
+     */
+    async function expectShortcutRunResult(page: Page, expected: string | RegExp): Promise<void> {
+        await expect(getCell(await getShortcutResultGrid(), 0, 0)).toHaveText(expected, {
+            timeout: SHORTCUT_RUN_BUDGET_MS,
+        });
+        await waitForQueryExecutionToEnd(page, SHORTCUT_RUN_BUDGET_MS);
+        await expect(
+            page.locator(".notifications-toasts").getByText(QUERY_IN_PROGRESS_MESSAGE),
+        ).toHaveCount(0);
+    }
 
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: {
@@ -103,6 +143,76 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
         await expect(tooltip).toContainText("Min:0");
         await expect(tooltip).toContainText("Max:99.99");
         await expect(tooltip).toContainText("Null:1");
+    });
+
+    // The shortcut cases replace the staged result; nothing after them reads `grid`, and the
+    // classic-mode case re-runs the mixed-type fixture before it asserts on cells.
+    test("the execute shortcut runs the edited text on every press, promptly", async () => {
+        const { electronApp, page } = getContext();
+        const executeShortcut = getExecuteQueryShortcut();
+
+        // No wait between the edit and the press: the regression treated the new text as
+        // unchanged, ran the previous query, or ran the new one several seconds late.
+        for (let run = 1; run <= 3; run++) {
+            const marker = `pasted-${run}`;
+            await setQueryText(electronApp, page, getMarkerQuery(marker));
+            await page.keyboard.press(executeShortcut);
+            await expectShortcutRunResult(page, marker);
+        }
+
+        // Typing produces one content change per keystroke, unlike setQueryText's single insert.
+        // Only the digit before `' AS marker;` changes, inside the string literal, where the
+        // editor determinism settings leave nothing to autocomplete.
+        await setQueryText(electronApp, page, getMarkerQuery("typed-0"));
+        for (let run = 1; run <= 2; run++) {
+            await page.keyboard.press("End");
+            for (let step = 0; step < "' AS marker;".length; step++) {
+                await page.keyboard.press("ArrowLeft");
+            }
+            await page.keyboard.press("Backspace");
+            await page.keyboard.type(String(run));
+            await page.keyboard.press(executeShortcut);
+            await expectShortcutRunResult(page, `typed-${run}`);
+        }
+    });
+
+    test("the execute shortcut re-runs unchanged text and runs only a selection", async () => {
+        const { electronApp, page } = getContext();
+        const executeShortcut = getExecuteQueryShortcut();
+        const runIdPattern = /^[0-9A-F-]{36}$/i;
+
+        await setQueryText(electronApp, page, RUN_ID_QUERY);
+        await page.keyboard.press(executeShortcut);
+        await expectShortcutRunResult(page, runIdPattern);
+        let previousRunId = await getCell(await getShortcutResultGrid(), 0, 0).innerText();
+
+        // Pressing again without touching the text must still execute; a skipped run leaves the
+        // previous NEWID() on screen.
+        for (let run = 1; run <= 2; run++) {
+            await page.keyboard.press(executeShortcut);
+            const runIdCell = getCell(await getShortcutResultGrid(), 0, 0);
+            await expect(runIdCell, `unchanged re-run ${run} did not execute`).not.toHaveText(
+                previousRunId,
+                { timeout: SHORTCUT_RUN_BUDGET_MS },
+            );
+            await expectShortcutRunResult(page, runIdPattern);
+            previousRunId = await runIdCell.innerText();
+        }
+
+        // setQueryText leaves the cursor at the end of the last line; select only that line.
+        await setQueryText(
+            electronApp,
+            page,
+            `${getMarkerQuery("not-selected")}\n${getMarkerQuery("selected")}`,
+        );
+        await page.keyboard.press("Shift+Home");
+        await page.keyboard.press(executeShortcut);
+        await expectShortcutRunResult(page, "selected");
+        await expect(
+            resultsFrame
+                .getByTestId("results-tab-list")
+                .getByRole("tab", { name: "Results Preview (1)" }),
+        ).toBeVisible();
     });
 
     test("renders PRINT output and a query error in the messages pane", async () => {

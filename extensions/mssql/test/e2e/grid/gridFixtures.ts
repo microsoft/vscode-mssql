@@ -120,3 +120,11 @@ export const SELECTION_QUERY = `SELECT * FROM (VALUES
 
 export const SELECTION_ROW_COUNT = 6;
 export const SELECTION_COLUMN_COUNT = 4;
+
+/** One row whose only cell is `marker`, so a result can be tied to the text that produced it. */
+export function getMarkerQuery(marker: string): string {
+    return `SELECT N'${marker}' AS marker;`;
+}
+
+/** A value that differs on every execution, so an unchanged result means nothing ran. */
+export const RUN_ID_QUERY = "SELECT CONVERT(nvarchar(36), NEWID()) AS run_id;";

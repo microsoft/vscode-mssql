@@ -348,7 +348,23 @@ export async function executeQueryAndWait(vsCodePage: Page, timeout = 120 * 1000
     await expect(statusBar)
         .toContainText(EXECUTING_QUERY_STATUS, { timeout: 5 * 1000 })
         .catch(() => undefined);
-    await expect(statusBar).not.toContainText(EXECUTING_QUERY_STATUS, { timeout });
+    await waitForQueryExecutionToEnd(vsCodePage, timeout);
+}
+
+/** Waits for the status bar to stop reporting a running query; see {@link executeQueryAndWait}. */
+export async function waitForQueryExecutionToEnd(
+    vsCodePage: Page,
+    timeout = 120 * 1000,
+): Promise<void> {
+    await expect(getStatusBar(vsCodePage)).not.toContainText(EXECUTING_QUERY_STATUS, { timeout });
+}
+
+/**
+ * The `mssql.runQuery` keybinding from package.json (ctrl+shift+e, cmd+shift+e on macOS), as a
+ * Playwright key string.
+ */
+export function getExecuteQueryShortcut(): string {
+    return `${getModifierKey()}+Shift+E`;
 }
 
 /**
