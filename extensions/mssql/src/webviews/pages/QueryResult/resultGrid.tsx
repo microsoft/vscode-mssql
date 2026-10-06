@@ -22,6 +22,7 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import { SLICKGRID_ROW_ID_PROP } from "./table/utils";
 import { MARGIN_BOTTOM } from "./queryResultsGridView";
 import { isXmlCell } from "../../common/xmlUtils";
+import { isNumericSqlType, NUMERIC_CELL_CSS_CLASS } from "../../common/sqlTypeUtils";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -206,6 +207,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                     toolTip: col.columnName,
                     field: index.toString(),
                     formatter: getColumnFormatter(col),
+                    cssClass: isNumericSqlType(col.dataTypeName)
+                        ? NUMERIC_CELL_CSS_CLASS
+                        : undefined,
                 };
             });
 

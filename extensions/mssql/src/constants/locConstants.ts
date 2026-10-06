@@ -310,11 +310,25 @@ export function msgSaveFailed(error: string) {
         comment: ["{0} is the error message"],
     });
 }
+export const msgSaveResultsWhileLoading = l10n.t(
+    "These results can't be saved until they finish loading.",
+);
 export function msgSaveSucceeded(filePath: string) {
     return l10n.t({
         message: "Successfully saved results to {0}",
         args: [filePath],
         comment: ["{0} is the file path"],
+    });
+}
+export let msgLiveQueryStatisticsUnavailable = l10n.t(
+    "Live query statistics aren't available for this query because its server session couldn't be identified.",
+);
+export function msgLiveQueryStatisticsStopped(error: string) {
+    return l10n.t({
+        message:
+            "Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}",
+        args: [error],
+        comment: ["{0} is the error message"],
     });
 }
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");

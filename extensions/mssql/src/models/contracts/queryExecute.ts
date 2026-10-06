@@ -11,6 +11,8 @@ export class ResultSetSummary {
     batchId: number;
     rowCount: number;
     columnInfo: IDbColumn[];
+    /** True once every row has been read, so the row count is final. */
+    complete?: boolean;
 }
 
 export class BatchSummary {
@@ -41,6 +43,8 @@ export class QueryExecuteCompleteNotificationResult {
 export class QueryExecuteBatchNotificationParams {
     batchSummary: BatchSummary;
     ownerUri: string;
+    /** Server session id (SPID) running the batch. Sent with batch start by newer services. */
+    serverConnectionId?: string;
 }
 
 // ------------------------------- < Query Batch Start  Notification > ------------------------------------

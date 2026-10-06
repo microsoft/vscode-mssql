@@ -30,6 +30,9 @@ import * as Utils from "./utils";
 import throttle = require("lodash/throttle");
 import store from "../queryResult/singletonStore";
 import { QueryCompletionSoundService } from "../services/queryCompletionSoundService";
+import { LiveQueryStatisticsMonitor } from "../queryResult/liveQueryStatistics";
+import { ExecutionPlanGraph } from "../sharedInterfaces/executionPlan";
+import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 const logger = getLogger("SqlOutputContentProvider");
@@ -85,6 +88,18 @@ export class SqlOutputContentProvider {
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
     private _queryResultWebviewController: QueryResultWebviewController;
     private _actualPlanStatuses: string[] = [];
+    private _liveQueryStatisticsStatuses: string[] = [];
+    // Editors whose current run should show live query statistics once its session is known
+    private _liveQueryStatisticsRuns: Set<string> = new Set();
+    private _liveQueryStatistics: Map<
+        string,
+        {
+            monitor: LiveQueryStatisticsMonitor;
+            sessionId: number;
+            hasShownPlan: boolean;
+            readCount: number;
+        }
+    > = new Map();
     // One execution slot per editor URI. The token identifies the run that owns the slot so a
     // stale release (or a cancel during setup) can never clear a newer run's slot.
     private _queryExecutionInFlightUris: Map<string, symbol> = new Map();
@@ -164,6 +179,29 @@ export class SqlOutputContentProvider {
             }),
         );
 
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdEnableLiveQueryStatistics, () => {
+                this.onToggleLiveQueryStatistics(true);
+            }),
+            vscode.commands.registerCommand(Constants.cmdDisableLiveQueryStatistics, () => {
+                this.onToggleLiveQueryStatistics(false);
+            }),
+        );
+
+        this.updateLiveQueryStatisticsPreview();
+        this._context.subscriptions.push(
+            vscode.workspace.onDidChangeConfiguration((event) => {
+                if (
+                    event.affectsConfiguration(
+                        getPreviewConfigKey(PreviewFeature.LiveQueryStatistics),
+                    ) ||
+                    event.affectsConfiguration(Constants.configEnableExperimentalFeatures)
+                ) {
+                    this.updateLiveQueryStatisticsPreview();
+                }
+            }),
+        );
+
         /**
          * Command to toggle the display of the query results panel
          */
@@ -239,6 +277,16 @@ export class SqlOutputContentProvider {
         format: string,
         selection: Interfaces.ISlickRange[],
     ): void {
+        // Check before asking for a file. A result set that is still loading can finish while the
+        // save dialog is open, and a selection taken now covers only the rows loaded so far, so
+        // the save would silently write a partial file. Other result sets that have finished can
+        // still be saved while the query runs.
+        const queryRunner = this._queryResultsMap.get(uri)?.queryRunner;
+        const resultSet = queryRunner?.batchSets[batchId]?.resultSetSummaries?.[resultId];
+        if (queryRunner?.isExecutingQuery && !resultSet?.complete) {
+            void vscode.window.showWarningMessage(LocalizedConstants.msgSaveResultsWhileLoading);
+            return;
+        }
         let saveResults = new ResultsSerializer();
         saveResults.onSaveResults(uri, batchId, resultId, format, selection);
     }
@@ -402,11 +450,16 @@ export class SqlOutputContentProvider {
 
             this.releaseExecutionSlotOnComplete(runner, slot);
 
-            const includeExecutionPlanXml =
-                executionPlanOptions?.includeActualExecutionPlanXml ??
-                this._actualPlanStatuses.includes(uri);
             const includeEstimatedExecutionPlanXml =
                 executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false;
+            const showLiveStatistics =
+                !includeEstimatedExecutionPlanXml && this.isLiveQueryStatisticsEnabled(uri);
+            this.setLiveQueryStatisticsForRun(uri, showLiveStatistics);
+            // Live statistics end with the actual plan, which also turns on the per-operator
+            // profiling that older servers need to report live row counts.
+            const includeExecutionPlanXml =
+                executionPlanOptions?.includeActualExecutionPlanXml ??
+                (this._actualPlanStatuses.includes(uri) || showLiveStatistics);
 
             await runner.runQuery(
                 selection,
@@ -467,6 +520,7 @@ export class SqlOutputContentProvider {
             }
 
             this.releaseExecutionSlotOnComplete(runner, slot);
+            this.setLiveQueryStatisticsForRun(uri, false);
             await runner.runQueryString(query, promise);
         } catch (error) {
             this.releaseExecutionSlot(slot);
@@ -513,7 +567,10 @@ export class SqlOutputContentProvider {
 
             this.releaseExecutionSlotOnComplete(runner, slot);
 
-            const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
+            const showLiveStatistics = this.isLiveQueryStatisticsEnabled(uri);
+            this.setLiveQueryStatisticsForRun(uri, showLiveStatistics);
+            const includeExecutionPlanXml =
+                this._actualPlanStatuses.includes(uri) || showLiveStatistics;
 
             await runner.runStatement(selection.startLine, selection.startColumn, {
                 includeActualExecutionPlanXml: includeExecutionPlanXml,
@@ -615,6 +672,7 @@ export class SqlOutputContentProvider {
             title,
             executionPlanOptions?.includeEstimatedExecutionPlanXml ||
                 this._actualPlanStatuses.includes(uri) ||
+                this.isLiveQueryStatisticsEnabled(uri) ||
                 executionPlanOptions?.includeActualExecutionPlanXml,
         );
         if (isOpenQueryResultsInTabByDefaultEnabled()) {
@@ -659,6 +717,7 @@ export class SqlOutputContentProvider {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
+            let isLiveRun = false;
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
                 this.updateWebviewState(queryRunner.uri, {
@@ -675,6 +734,7 @@ export class SqlOutputContentProvider {
             });
 
             const startListener = queryRunner.onStart(async (_panelUri) => {
+                isLiveRun = this._liveQueryStatisticsRuns.has(queryRunner.uri);
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
@@ -704,11 +764,12 @@ export class SqlOutputContentProvider {
                         resultWebviewState.resultSetSummaries[batchId] = {};
                     }
                     resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
-                    // Switch to results tab for the first result set. Estimated plan runs only
-                    // return plan XML, so they open on the Query Plan tab once a plan is parsed.
+                    // Switch to results for the first result set unless this run shows an
+                    // estimated or live plan instead.
                     if (
                         countResultSets(resultWebviewState.resultSetSummaries) === 1 &&
-                        !isEstimatedPlanRun(queryRunner)
+                        !isEstimatedPlanRun(queryRunner) &&
+                        !this._liveQueryStatistics.has(queryRunner.uri)
                     ) {
                         resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
                     }
@@ -746,6 +807,7 @@ export class SqlOutputContentProvider {
             );
 
             const batchStartListener = queryRunner.onBatchStart(async (batch) => {
+                this.startLiveQueryStatistics(queryRunner);
                 if (!Utils.shouldShowBatchMessages()) {
                     return;
                 }
@@ -815,6 +877,7 @@ export class SqlOutputContentProvider {
                     totalMilliseconds,
                     totalElapsedMilliseconds,
                     hasError,
+                    isCanceled,
                     isFullExecutionComplete,
                     isRefresh,
                 } = e;
@@ -830,6 +893,10 @@ export class SqlOutputContentProvider {
                     }
                 }
 
+                // A stopped or failed statement never gets an actual plan, so keep its last read
+                this.stopLiveQueryStatistics(queryRunner.uri, {
+                    keepLastPlan: hasError || isCanceled,
+                });
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
@@ -852,6 +919,7 @@ export class SqlOutputContentProvider {
             });
 
             const onExecutionPlanListener = queryRunner.onExecutionPlan(async (e) => {
+                const wasLive = isLiveRun;
                 const planGraphs = await this._executionPlanService.getExecutionPlan({
                     graphFileContent: e.xml,
                     graphFileType: "xml",
@@ -861,8 +929,23 @@ export class SqlOutputContentProvider {
                     e.uri,
                 );
 
-                const existingGraphs = resultWebviewState.executionPlanState.executionPlanGraphs;
-                existingGraphs.push(...planGraphs.graphs);
+                // Finished plans go before the live plan of the statement still running
+                const currentGraphs = resultWebviewState.executionPlanState.executionPlanGraphs;
+                const existingGraphs = [
+                    ...currentGraphs.filter((graph) => !graph.isLive),
+                    ...planGraphs.graphs.map((graph) =>
+                        wasLive && !queryRunner.isCanceled && graph.liveQueryStatistics
+                            ? {
+                                  ...graph,
+                                  liveQueryStatistics: {
+                                      ...graph.liveQueryStatistics,
+                                      estimatedProgress: 100,
+                                  },
+                              }
+                            : graph,
+                    ),
+                    ...currentGraphs.filter((graph) => graph.isLive),
+                ];
 
                 const xmlPlans = resultWebviewState.executionPlanState.xmlPlans;
                 xmlPlans[`${e.batchId},${e.resultId}`] = e.xml;
@@ -1015,6 +1098,9 @@ export class SqlOutputContentProvider {
     }
 
     public async updateQueryRunnerUri(oldUri: string, newUri: string): Promise<void> {
+        if (oldUri === newUri) {
+            return;
+        }
         this.migrateThrottledUpdateUri(oldUri, newUri);
 
         // Keep the execution slot with the editor: the runner releases it under its new URI.
@@ -1032,6 +1118,29 @@ export class SqlOutputContentProvider {
         }
 
         this._queryResultWebviewController.updateUri(oldUri, newUri);
+
+        this._liveQueryStatisticsStatuses = [
+            ...new Set(
+                this._liveQueryStatisticsStatuses.map((uri) => (uri === oldUri ? newUri : uri)),
+            ),
+        ];
+        this.updateLiveQueryStatisticsContext();
+        if (this._liveQueryStatisticsRuns.delete(oldUri)) {
+            this._liveQueryStatisticsRuns.add(newUri);
+        }
+        const live = this._liveQueryStatistics.get(oldUri);
+        if (live) {
+            this._liveQueryStatistics.delete(oldUri);
+            live.monitor.dispose();
+            if (queryRunnerState) {
+                this.createLiveQueryStatisticsMonitor(
+                    newUri,
+                    live.sessionId,
+                    live,
+                    live.monitor.closed,
+                );
+            }
+        }
     }
 
     /**
@@ -1058,6 +1167,15 @@ export class SqlOutputContentProvider {
             }
         }
 
+        this.stopLiveQueryStatistics(closedDocumentUri);
+        this._liveQueryStatisticsRuns.delete(closedDocumentUri);
+        if (this._liveQueryStatisticsStatuses.includes(closedDocumentUri)) {
+            this._liveQueryStatisticsStatuses = this._liveQueryStatisticsStatuses.filter(
+                (uri) => uri !== closedDocumentUri,
+            );
+            this.updateLiveQueryStatisticsContext();
+        }
+
         if (this._actualPlanStatuses.includes(closedDocumentUri)) {
             this._actualPlanStatuses = this._actualPlanStatuses.filter(
                 (uri) => uri !== closedDocumentUri,
@@ -1080,6 +1198,8 @@ export class SqlOutputContentProvider {
     }
 
     public async cleanupRunner(uri: string): Promise<void> {
+        this.stopLiveQueryStatistics(uri);
+        this._liveQueryStatisticsRuns.delete(uri);
         let queryRunnerState = this._queryResultsMap.get(uri);
         if (queryRunnerState) {
             // Clear any pending throttled state update for this URI
@@ -1098,6 +1218,203 @@ export class SqlOutputContentProvider {
             }
             this._queryResultsMap.delete(uri);
         }
+    }
+
+    public isLiveQueryStatisticsEnabled(uri: string): boolean {
+        return (
+            previewService.isFeatureEnabled(PreviewFeature.LiveQueryStatistics) &&
+            this._liveQueryStatisticsStatuses.includes(uri)
+        );
+    }
+
+    public onToggleLiveQueryStatistics(isEnable: boolean): void {
+        if (isEnable && !previewService.isFeatureEnabled(PreviewFeature.LiveQueryStatistics)) {
+            return;
+        }
+        const uri = Utils.getActiveTextEditorUri();
+        if (!uri) {
+            return;
+        }
+        this._liveQueryStatisticsStatuses = this._liveQueryStatisticsStatuses.filter(
+            (statusUri) => statusUri !== uri,
+        );
+        if (isEnable) {
+            this._liveQueryStatisticsStatuses.push(uri);
+        }
+        this.updateLiveQueryStatisticsContext();
+    }
+
+    private updateLiveQueryStatisticsPreview(): void {
+        const isEnabled = previewService.isFeatureEnabled(PreviewFeature.LiveQueryStatistics);
+        void vscode.commands.executeCommand(
+            "setContext",
+            "mssql.preview.liveQueryStatisticsEnabled",
+            isEnabled,
+        );
+        if (!isEnabled) {
+            this._liveQueryStatisticsRuns.clear();
+            for (const uri of this._liveQueryStatistics.keys()) {
+                this.stopLiveQueryStatistics(uri, { keepLastPlan: true });
+            }
+        }
+    }
+
+    /**
+     * Updates the context key that switches the editor toolbar between the enable and disable
+     * live query statistics buttons.
+     */
+    private updateLiveQueryStatisticsContext(): void {
+        void vscode.commands.executeCommand(
+            "setContext",
+            "mssql.executionPlan.urisWithLiveQueryStatisticsEnabled",
+            this._liveQueryStatisticsStatuses,
+        );
+    }
+
+    private setLiveQueryStatisticsForRun(uri: string, isEnabled: boolean): void {
+        this.stopLiveQueryStatistics(uri);
+        if (isEnabled) {
+            this._liveQueryStatisticsRuns.add(uri);
+        } else {
+            this._liveQueryStatisticsRuns.delete(uri);
+        }
+    }
+
+    /** Starts monitoring the current batch, restarting if a reconnect changes its SPID. */
+    private startLiveQueryStatistics(queryRunner: QueryRunner): void {
+        const uri = queryRunner.uri;
+        if (!this.isLiveQueryStatisticsEnabled(uri) || !this._liveQueryStatisticsRuns.has(uri)) {
+            return;
+        }
+        const sessionId = Number(queryRunner.serverConnectionId);
+        if (!Number.isInteger(sessionId) || sessionId <= 0) {
+            this.stopLiveQueryStatistics(uri);
+            this.addLiveQueryStatisticsMessage(
+                uri,
+                LocalizedConstants.msgLiveQueryStatisticsUnavailable,
+            );
+            return;
+        }
+        const previous = this._liveQueryStatistics.get(uri);
+        if (previous?.sessionId === sessionId) {
+            return;
+        }
+        previous?.monitor.dispose();
+        this.createLiveQueryStatisticsMonitor(uri, sessionId, previous);
+    }
+
+    private createLiveQueryStatisticsMonitor(
+        uri: string,
+        sessionId: number,
+        previous?: { hasShownPlan: boolean; readCount: number },
+        after?: Promise<void>,
+    ): void {
+        const monitor = new LiveQueryStatisticsMonitor(uri, sessionId, {
+            onPlans: (graphs) => {
+                if (this._liveQueryStatistics.get(uri)?.monitor === monitor) {
+                    this.showLivePlans(uri, graphs);
+                }
+            },
+            onError: (message) => {
+                if (this._liveQueryStatistics.get(uri)?.monitor !== monitor) {
+                    return;
+                }
+                this.stopLiveQueryStatistics(uri);
+                this.addLiveQueryStatisticsMessage(
+                    uri,
+                    LocalizedConstants.msgLiveQueryStatisticsStopped(message),
+                );
+            },
+        });
+        this._liveQueryStatistics.set(uri, {
+            monitor,
+            sessionId,
+            hasShownPlan: previous?.hasShownPlan ?? false,
+            readCount: previous?.readCount ?? 0,
+        });
+        monitor.start(after);
+    }
+
+    /**
+     * Shows the in-flight plans after the finished plans of the run, replacing the previous read.
+     */
+    private showLivePlans(uri: string, graphs: ExecutionPlanGraph[]): void {
+        const live = this._liveQueryStatistics.get(uri);
+        const state = this._queryResultWebviewController.getQueryResultState(uri);
+        if (!live || !state) {
+            return;
+        }
+        live.readCount++;
+        const batchQuery = this._queryResultsMap.get(uri)?.queryRunner.currentBatchQuery;
+
+        const executionPlanGraphs = [
+            ...(state.executionPlanState.executionPlanGraphs ?? []).filter(
+                (graph) => !graph.isLive,
+            ),
+            ...graphs.map((graph) => ({
+                ...graph,
+                query: graph.query || batchQuery || "",
+                isLive: true,
+                liveRefreshId: live.readCount,
+            })),
+        ];
+        state.isExecutionPlan = true;
+        state.executionPlanState = {
+            ...state.executionPlanState,
+            executionPlanGraphs,
+            loadState: ApiStatus.Loaded,
+            totalCost: executionPlanGraphs.reduce(
+                (acc, graph) => acc + graph.root.cost + graph.root.subTreeCost,
+                0,
+            ),
+            xmlPlans: state.executionPlanState.xmlPlans ?? {},
+        };
+        // Open the plan once per run, so a user who switches tabs isn't pulled back every second
+        if (!live.hasShownPlan) {
+            live.hasShownPlan = true;
+            state.tabStates.resultPaneTab = QueryResultPaneTabs.ExecutionPlan;
+        }
+        this.updateWebviewState(uri, state);
+    }
+
+    /**
+     * Stops polling. The in-flight plans are removed, since the run's actual plans replace them,
+     * unless keepLastPlan keeps them as the last state read.
+     */
+    private stopLiveQueryStatistics(uri: string, options?: { keepLastPlan?: boolean }): void {
+        this._liveQueryStatisticsRuns.delete(uri);
+        const live = this._liveQueryStatistics.get(uri);
+        if (!live) {
+            return;
+        }
+        live.monitor.dispose();
+        this._liveQueryStatistics.delete(uri);
+
+        const state = this._queryResultWebviewController.getQueryResultState(uri);
+        const graphs = state?.executionPlanState?.executionPlanGraphs;
+        if (graphs?.some((graph) => graph.isLive)) {
+            state.executionPlanState = {
+                ...state.executionPlanState,
+                executionPlanGraphs: options?.keepLastPlan
+                    ? graphs.map((graph) => (graph.isLive ? { ...graph, isLive: false } : graph))
+                    : graphs.filter((graph) => !graph.isLive),
+            };
+            this.updateWebviewState(uri, state);
+        }
+    }
+
+    private addLiveQueryStatisticsMessage(uri: string, message: string): void {
+        const state = this._queryResultWebviewController.getQueryResultState(uri);
+        if (!state) {
+            return;
+        }
+        state.messages.push({
+            message,
+            isError: false,
+            time: new Date().toLocaleTimeString(),
+        });
+        state.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+        this.scheduleThrottledUpdate(uri);
     }
 
     public onToggleActualPlan(isEnable: boolean): void {

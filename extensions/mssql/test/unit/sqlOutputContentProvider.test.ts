@@ -24,8 +24,20 @@ import { ExecutionPlanGraph } from "../../src/sharedInterfaces/executionPlan";
 import { QueryResultPaneTabs } from "../../src/sharedInterfaces/queryResult";
 import { Deferred } from "../../src/protocol";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
+import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import QueryRunner from "../../src/controllers/queryRunner";
+import ResultsSerializer from "../../src/models/resultsSerializer";
+import * as Utils from "../../src/models/utils";
+import {
+    LiveQueryStatisticsCallbacks,
+    LiveQueryStatisticsMonitor,
+} from "../../src/queryResult/liveQueryStatistics";
 import store from "../../src/queryResult/singletonStore";
+import {
+    getPreviewConfigKey,
+    PreviewFeature,
+    previewService,
+} from "../../src/previews/previewService";
 import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
 
 const { expect } = chai;
@@ -52,6 +64,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
     let setSplitPaneSelectionConfig: (value: string) => void;
     let setCurrentEditorColumn: (column: number) => void;
     let getConfigurationStub: sinon.SinonStub;
+    let workspaceEvents: ReturnType<typeof stubVscodeWorkspace>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -66,7 +79,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         mockMap = new Map();
 
         const disposable = { dispose: () => {} } as vscode.Disposable;
-        stubVscodeWorkspace(sandbox);
+        workspaceEvents = stubVscodeWorkspace(sandbox);
         getConfigurationStub = sandbox
             .stub(vscode.workspace, "getConfiguration")
             .returns(stubs.createWorkspaceConfiguration({}));
@@ -868,6 +881,506 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(state.isExecuting).to.equal(false);
         expect(state.executionStartTime).to.equal(undefined);
         expect(state.executionElapsedMilliseconds).to.equal(3000);
+    });
+
+    suite("Save As while a query runs", () => {
+        const uri = "test_uri";
+        let onSaveResults: sinon.SinonStub;
+
+        function createResultSet(id: number, complete?: boolean) {
+            return { batchId: 0, id, rowCount: 10, columnInfo: [], complete };
+        }
+
+        async function startQueryWithResultSets(): Promise<QueryRunner> {
+            sandbox.stub(QueryRunner.prototype, "runQuery").callsFake(async function (selection) {
+                this.setupQueryExecution(selection);
+                (
+                    this as unknown as { _startEmitter: vscode.EventEmitter<string> }
+                )._startEmitter.fire(this.uri);
+            });
+            onSaveResults = sandbox.stub(ResultsSerializer.prototype, "onSaveResults").resolves();
+
+            await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+            const runner = contentProvider.getQueryRunner(uri);
+            runner.handleBatchStart({
+                ownerUri: uri,
+                batchSummary: {
+                    hasError: false,
+                    id: 0,
+                    selection: undefined,
+                    resultSetSummaries: [],
+                    executionElapsed: undefined,
+                    executionEnd: undefined,
+                    executionStart: new Date().toISOString(),
+                },
+            });
+            runner.handleResultSetAvailable({
+                ownerUri: uri,
+                resultSetSummary: createResultSet(0, false),
+            });
+            return runner;
+        }
+
+        test("does not ask for a file while the result set is loading", async () => {
+            await startQueryWithResultSets();
+
+            contentProvider.saveResultsRequestHandler(uri, 0, 0, "csv", []);
+
+            expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWithExactly(
+                LocConstants.msgSaveResultsWhileLoading,
+            );
+            expect(onSaveResults).to.not.have.been.called;
+        });
+
+        test("saves a finished result set while a later one is still loading", async () => {
+            const runner = await startQueryWithResultSets();
+            // The completion event alone marks the result set finished.
+            await runner.handleResultSetComplete({
+                ownerUri: uri,
+                resultSetSummary: createResultSet(0),
+            });
+            runner.handleResultSetAvailable({
+                ownerUri: uri,
+                resultSetSummary: createResultSet(1, false),
+            });
+
+            contentProvider.saveResultsRequestHandler(uri, 0, 0, "csv", []);
+            contentProvider.saveResultsRequestHandler(uri, 0, 1, "csv", []);
+
+            expect(onSaveResults).to.have.been.calledOnceWithExactly(uri, 0, 0, "csv", []);
+            expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWithExactly(
+                LocConstants.msgSaveResultsWhileLoading,
+            );
+        });
+
+        test("keeps a finished result set saveable after its batch completes", async () => {
+            const runner = await startQueryWithResultSets();
+            await runner.handleResultSetComplete({
+                ownerUri: uri,
+                resultSetSummary: createResultSet(0),
+            });
+            // The batch summary replaces the stored result sets, here without the completion flag.
+            runner.handleBatchComplete({
+                ownerUri: uri,
+                batchSummary: {
+                    hasError: false,
+                    id: 0,
+                    selection: undefined,
+                    resultSetSummaries: [createResultSet(0)],
+                    executionElapsed: undefined,
+                    executionEnd: new Date().toISOString(),
+                    executionStart: new Date().toISOString(),
+                },
+            });
+
+            contentProvider.saveResultsRequestHandler(uri, 0, 0, "csv", []);
+
+            expect(onSaveResults).to.have.been.calledOnceWithExactly(uri, 0, 0, "csv", []);
+            expect(messageBoxes.showWarningMessage).to.not.have.been.called;
+        });
+
+        test("saves any result set once the query has finished", async () => {
+            const runner = await startQueryWithResultSets();
+            runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+            contentProvider.saveResultsRequestHandler(uri, 0, 0, "csv", []);
+
+            expect(onSaveResults).to.have.been.calledOnceWithExactly(uri, 0, 0, "csv", []);
+            expect(messageBoxes.showWarningMessage).to.not.have.been.called;
+        });
+    });
+
+    suite("Live query statistics", () => {
+        const uri = "test_uri";
+        let runQuery: sinon.SinonStub;
+        let startMonitor: sinon.SinonStub;
+        let previewEnabled: boolean;
+
+        setup(() => {
+            previewEnabled = true;
+            sandbox.stub(previewService, "isFeatureEnabled").callsFake((feature) => {
+                return feature === PreviewFeature.LiveQueryStatistics && previewEnabled;
+            });
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(uri);
+            startMonitor = sandbox.stub(LiveQueryStatisticsMonitor.prototype, "start");
+            runQuery = sandbox
+                .stub(QueryRunner.prototype, "runQuery")
+                .callsFake(async function (selection) {
+                    this.setupQueryExecution(selection);
+                    (
+                        this as unknown as { _startEmitter: vscode.EventEmitter<string> }
+                    )._startEmitter.fire(this.uri);
+                });
+        });
+
+        async function startLiveRun(): Promise<QueryRunner> {
+            contentProvider.onToggleLiveQueryStatistics(true);
+            await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+            const runner = contentProvider.getQueryRunner(uri);
+            runner.handleBatchStart({
+                ownerUri: uri,
+                serverConnectionId: "57",
+                batchSummary: {
+                    hasError: false,
+                    id: 0,
+                    selection: undefined,
+                    resultSetSummaries: [],
+                    executionElapsed: undefined,
+                    executionEnd: undefined,
+                    executionStart: new Date().toISOString(),
+                },
+            });
+            return runner;
+        }
+
+        function getMonitor(): {
+            _ownerUri: string;
+            _sessionId: number;
+            _callbacks: LiveQueryStatisticsCallbacks;
+            dispose(): void;
+            closed: Promise<void>;
+        } {
+            return startMonitor.lastCall.thisValue;
+        }
+
+        function startBatch(runner: QueryRunner, id: number, sessionId: string): void {
+            runner.handleBatchStart({
+                ownerUri: runner.uri,
+                serverConnectionId: sessionId,
+                batchSummary: {
+                    id,
+                    hasError: false,
+                    selection: undefined,
+                    resultSetSummaries: [],
+                    executionElapsed: undefined,
+                    executionEnd: undefined,
+                    executionStart: new Date().toISOString(),
+                },
+            });
+        }
+
+        test("restarts for a changed batch SPID and ignores stale monitor callbacks", async () => {
+            const dispose = sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+            const runner = await startLiveRun();
+            const original = getMonitor();
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+            } as ExecutionPlanGraph;
+            original._callbacks.onPlans([liveGraph]);
+            startBatch(runner, 1, "57");
+            expect(getMonitor()).to.equal(original);
+            startBatch(runner, 2, "58");
+            const replacement = getMonitor();
+            expect(replacement).not.to.equal(original);
+            expect(replacement._sessionId).to.equal(58);
+            expect(dispose).to.have.been.calledOn(original);
+            replacement._callbacks.onPlans([{ ...liveGraph, query: "select 2" }]);
+            original._callbacks.onPlans([{ ...liveGraph, query: "stale" }]);
+            original._callbacks.onError("stale error");
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                { ...liveGraph, query: "select 2", isLive: true, liveRefreshId: 2 },
+            ]);
+            expect(state.messages.some((item) => item.message.includes("stale error"))).to.be.false;
+            runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+            expect(dispose).to.have.been.calledOn(replacement);
+        });
+
+        test("migrates live monitoring and enabled state when an executing editor is saved", async () => {
+            const dispose = sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+            const executeCommand = sandbox.stub(vscode.commands, "executeCommand").resolves();
+            const runner = await startLiveRun();
+            const original = getMonitor();
+            const closing = new Deferred<void>();
+            sandbox.stub(original, "closed").get(() => closing.promise);
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+            } as ExecutionPlanGraph;
+            original._callbacks.onPlans([liveGraph]);
+            const renamed = "saved_query_uri";
+            await contentProvider.updateQueryRunnerUri(uri, renamed);
+            const replacement = getMonitor();
+            expect(replacement._ownerUri).to.equal(renamed);
+            expect(startMonitor).to.have.been.calledWith(closing.promise);
+            expect(contentProvider.isLiveQueryStatisticsEnabled(uri)).to.be.false;
+            expect(contentProvider.isLiveQueryStatisticsEnabled(renamed)).to.be.true;
+            expect(executeCommand).to.have.been.calledWith(
+                "setContext",
+                "mssql.executionPlan.urisWithLiveQueryStatisticsEnabled",
+                [renamed],
+            );
+            original._callbacks.onError("stale error");
+            replacement._callbacks.onPlans([liveGraph]);
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(renamed);
+            expect(state.executionPlanState.executionPlanGraphs[0]).to.include({
+                isLive: true,
+                liveRefreshId: 2,
+            });
+            runner.handleQueryComplete({ ownerUri: renamed, batchSummaries: [] });
+            expect(dispose).to.have.been.calledOn(replacement);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([]);
+            closing.resolve();
+        });
+
+        test("migrates a pending live run before the first batch starts", async () => {
+            sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+            contentProvider.onToggleLiveQueryStatistics(true);
+            await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+            const runner = contentProvider.getQueryRunner(uri);
+            const renamed = "saved_query_uri";
+            await contentProvider.updateQueryRunnerUri(uri, renamed);
+            startBatch(runner, 0, "57");
+            expect(getMonitor()._ownerUri).to.equal(renamed);
+            runner.handleQueryComplete({ ownerUri: renamed, batchSummaries: [] });
+        });
+
+        test("keeps the last live plan on cancellation when STS reports no SQL error", async () => {
+            sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+            const client = sandbox.createStubInstance(SqlToolsServiceClient);
+            client.sendRequest.resolves({});
+            sandbox.stub(SqlToolsServiceClient, "instance").get(() => client);
+            const runner = await startLiveRun();
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+                liveQueryStatistics: { estimatedProgress: 75, elapsedTimeInMs: 1000 },
+            } as ExecutionPlanGraph;
+            getMonitor()._callbacks.onPlans([liveGraph]);
+            await contentProvider.cancelQuery(uri);
+            runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(runner.isCanceled).to.be.true;
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                { ...liveGraph, isLive: false, liveRefreshId: 1 },
+            ]);
+        });
+
+        test("does not enable live statistics or start monitoring when the preview is disabled", async () => {
+            previewEnabled = false;
+            await startLiveRun();
+
+            expect(contentProvider.isLiveQueryStatisticsEnabled(uri)).to.be.false;
+            expect(runQuery.firstCall.args[1]).to.deep.include({
+                includeActualExecutionPlanXml: false,
+            });
+            expect(startMonitor).not.to.have.been.called;
+        });
+
+        test("stops monitoring and keeps the last plan when the preview is disabled in settings", async () => {
+            const dispose = sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+            await startLiveRun();
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+            } as ExecutionPlanGraph;
+            getMonitor()._callbacks.onPlans([liveGraph]);
+            const executeCommand = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+            previewEnabled = false;
+            const event = {
+                affectsConfiguration: (key: string) =>
+                    key === getPreviewConfigKey(PreviewFeature.LiveQueryStatistics),
+            } as vscode.ConfigurationChangeEvent;
+            for (const call of workspaceEvents.onDidChangeConfiguration.getCalls()) {
+                call.args[0](event);
+            }
+
+            expect(executeCommand).to.have.been.calledWith(
+                "setContext",
+                "mssql.preview.liveQueryStatisticsEnabled",
+                false,
+            );
+            expect(contentProvider.isLiveQueryStatisticsEnabled(uri)).to.be.false;
+            expect(dispose).to.have.been.called;
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                { ...liveGraph, isLive: false, liveRefreshId: 1 },
+            ]);
+        });
+
+        test("captures the actual plan and shows the live plan while the query runs", async () => {
+            const runner = await startLiveRun();
+
+            expect(runQuery.firstCall.args[1]).to.deep.include({
+                includeActualExecutionPlanXml: true,
+            });
+            expect(getMonitor()._sessionId).to.equal(57);
+
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+            } as ExecutionPlanGraph;
+            getMonitor()._callbacks.onPlans([liveGraph]);
+
+            let state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                { ...liveGraph, isLive: true, liveRefreshId: 1 },
+            ]);
+            expect(state.tabStates.resultPaneTab).to.equal(QueryResultPaneTabs.ExecutionPlan);
+
+            runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+            state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([]);
+        });
+
+        for (const planArrivesAfterCompletion of [false, true]) {
+            test(`keeps final operator stats when the actual plan arrives ${planArrivesAfterCompletion ? "after" : "before"} completion`, async () => {
+                const runner = await startLiveRun();
+                const liveGraph = {
+                    query: "select 1",
+                    root: { cost: 1, subTreeCost: 1 },
+                    liveQueryStatistics: { estimatedProgress: 75, elapsedTimeInMs: 1000 },
+                } as ExecutionPlanGraph;
+                getMonitor()._callbacks.onPlans([liveGraph]);
+                const finalGraph = {
+                    query: "select 1",
+                    root: {
+                        cost: 1,
+                        subTreeCost: 1,
+                        children: [
+                            {
+                                liveQueryStatistics: {
+                                    actualRows: "80",
+                                    estimatedRows: 100,
+                                    elapsedTimeInMs: 2000,
+                                },
+                            },
+                        ],
+                    },
+                    liveQueryStatistics: { elapsedTimeInMs: 2100 },
+                } as ExecutionPlanGraph;
+                executionPlanService.getExecutionPlan.resolves({
+                    graphs: [finalGraph],
+                    success: true,
+                    errorMessage: undefined,
+                });
+                const rows = new Deferred<QueryExecuteSubsetResult>();
+                sandbox.stub(runner, "getRows").returns(rows.promise);
+                const planCompletion = runner.handleResultSetComplete({
+                    ownerUri: uri,
+                    resultSetSummary: {
+                        batchId: 0,
+                        id: 0,
+                        rowCount: 1,
+                        columnInfo: [{ columnName: Constants.showPlanXmlColumnName } as IDbColumn],
+                    },
+                });
+                if (planArrivesAfterCompletion) {
+                    runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+                    // Final display reflects this run even if preview settings change afterward.
+                    previewEnabled = false;
+                }
+                rows.resolve({
+                    resultSubset: {
+                        rowCount: 1,
+                        rows: [[{ displayValue: "<ShowPlanXML />", isNull: false }]],
+                    },
+                } as QueryExecuteSubsetResult);
+                await planCompletion;
+                await executionPlanService.getExecutionPlan.lastCall.returnValue;
+                if (!planArrivesAfterCompletion) {
+                    runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+                }
+                const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+                expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                    {
+                        ...finalGraph,
+                        liveQueryStatistics: { estimatedProgress: 100, elapsedTimeInMs: 2100 },
+                    },
+                ]);
+                expect(finalGraph.liveQueryStatistics?.estimatedProgress).to.be.undefined;
+            });
+        }
+
+        test("shows the executed batch script when a lightweight plan omits the statement text", async () => {
+            const runner = await startLiveRun();
+            sandbox.stub(runner, "currentBatchQuery").get(() => "select 1;");
+            const liveGraph = {
+                query: "",
+                root: { cost: 1, subTreeCost: 1 },
+            } as ExecutionPlanGraph;
+            getMonitor()._callbacks.onPlans([liveGraph]);
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs[0].query).to.equal("select 1;");
+        });
+
+        test("keeps the live plan tab when results arrive and shows results on completion", async () => {
+            const runner = await startLiveRun();
+            getMonitor()._callbacks.onPlans([
+                {
+                    query: "select 1",
+                    root: { cost: 1, subTreeCost: 1 },
+                } as ExecutionPlanGraph,
+            ]);
+
+            runner.handleResultSetAvailable({
+                ownerUri: uri,
+                resultSetSummary: {
+                    batchId: 0,
+                    id: 0,
+                    rowCount: 1,
+                    columnInfo: [{ columnName: "value" } as IDbColumn],
+                },
+            });
+
+            let state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.tabStates.resultPaneTab).to.equal(QueryResultPaneTabs.ExecutionPlan);
+
+            runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+            state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.tabStates.resultPaneTab).to.equal(QueryResultPaneTabs.Results);
+        });
+
+        test("keeps the last live plan when the query fails", async () => {
+            const runner = await startLiveRun();
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+                liveQueryStatistics: { estimatedProgress: 75, elapsedTimeInMs: 1000 },
+            } as ExecutionPlanGraph;
+            getMonitor()._callbacks.onPlans([liveGraph]);
+
+            runner.handleQueryComplete({
+                ownerUri: uri,
+                batchSummaries: [
+                    {
+                        hasError: true,
+                        id: 0,
+                        selection: undefined,
+                        resultSetSummaries: [],
+                        executionElapsed: undefined,
+                        executionEnd: undefined,
+                        executionStart: new Date().toISOString(),
+                    },
+                ],
+            });
+
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([
+                { ...liveGraph, isLive: false, liveRefreshId: 1 },
+            ]);
+        });
+
+        test("shows polling diagnostics in Messages after removing the live graph", async () => {
+            await startLiveRun();
+            getMonitor()._callbacks.onPlans([
+                { query: "select 1", root: { cost: 1, subTreeCost: 1 } } as ExecutionPlanGraph,
+            ]);
+            getMonitor()._callbacks.onError("VIEW SERVER STATE permission was denied");
+
+            const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+            expect(state.tabStates.resultPaneTab).to.equal(QueryResultPaneTabs.Messages);
+            expect(state.executionPlanState.executionPlanGraphs).to.deep.equal([]);
+            expect(state.messages.map((message) => message.message)).to.include(
+                LocConstants.msgLiveQueryStatisticsStopped(
+                    "VIEW SERVER STATE permission was denied",
+                ),
+            );
+        });
     });
 
     suite("Result pane tab for execution plans", () => {

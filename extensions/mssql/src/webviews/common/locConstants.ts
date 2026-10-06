@@ -65,6 +65,9 @@ export class LocConstants {
             dismiss: l10n.t("Dismiss"),
             expand: l10n.t("Expand"),
             collapse: l10n.t("Collapse"),
+            showMore: l10n.t("Show more"),
+            showLess: l10n.t("Show less"),
+            copyErrorDetails: l10n.t("Copy error details"),
             error: l10n.t("Error"),
             getStarted: l10n.t("Get Started"),
             back: l10n.t("Back"),
@@ -1010,6 +1013,60 @@ export class LocConstants {
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
             executionPlanRendererError: l10n.t("This execution plan could not be rendered."),
+            live: l10n.t({
+                message: "Live",
+                comment: ["Badge for the execution plan of a currently running query."],
+            }),
+            liveStatisticsUnavailable: l10n.t("Unavailable"),
+            liveDurationSeconds: (seconds: string) =>
+                l10n.t({
+                    message: "{0} s",
+                    args: [seconds],
+                    comment: [
+                        "{0} is a localized elapsed duration in seconds; s is the abbreviation for seconds.",
+                    ],
+                }),
+            liveDurationClock: (hours: string, minutes: string, seconds: string) =>
+                l10n.t({
+                    message: "{0}:{1}:{2}",
+                    args: [hours, minutes, seconds],
+                    comment: [
+                        "Elapsed duration, not a time of day: {0} is total hours (may exceed 24), {1} is two-digit minutes, and {2} is two-digit seconds. All numbers are already localized.",
+                    ],
+                }),
+            liveElapsedTime: (duration: string) => l10n.t("Elapsed: {0}", duration),
+            liveRows: (actual: string, estimated: string) =>
+                l10n.t({
+                    message: "Rows: {0} of {1}",
+                    args: [actual, estimated],
+                    comment: [
+                        "{0} is the actual processed row count; {1} is the optimizer's estimated total row count. Counts are already localized and may be abbreviated.",
+                    ],
+                }),
+            liveRowsWithPercentage: (actual: string, estimated: string, percentage: string) =>
+                l10n.t({
+                    message: "Rows: {0} of {1} ({2})",
+                    args: [actual, estimated, percentage],
+                    comment: [
+                        "{0} is the actual processed row count; {1} is the optimizer's estimated total row count; {2} is their ratio as a localized percentage, which can exceed 100%.",
+                    ],
+                }),
+            liveEstimatedProgress: (percentage: string) =>
+                l10n.t("Estimated query progress: {0}", percentage),
+            liveEstimatedProgressLessThan: (percentage: string) =>
+                l10n.t({
+                    message: "Estimated query progress: <{0}",
+                    args: [percentage],
+                    comment: [
+                        "{0} is a localized percentage. The < symbol means progress is positive but less than that percentage.",
+                    ],
+                }),
+            liveEstimatedProgressDescription: l10n.t(
+                "Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.",
+            ),
+            livePlanDescription: l10n.t(
+                "Live plan of the running statement. Row counts refresh while it runs.",
+            ),
             executionPlanGraph: (planNumber: number) =>
                 l10n.t({
                     message: "Execution plan {0}, use arrow keys to navigate between nodes",

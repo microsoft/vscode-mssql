@@ -179,7 +179,8 @@ export class QueryResultWebviewController extends WebviewViewController<
                     e.affectsConfiguration("mssql.resultsGrid.alternatingRowColors") ||
                     e.affectsConfiguration("mssql.resultsGrid.freezeFirstColumnByDefault") ||
                     e.affectsConfiguration("mssql.resultsGrid.showGridLines") ||
-                    e.affectsConfiguration("mssql.resultsGrid.rowPadding")
+                    e.affectsConfiguration("mssql.resultsGrid.rowPadding") ||
+                    e.affectsConfiguration("mssql.resultsGrid.rightAlignNumbers")
                 ) {
                     const newValue = this.getGridSettingsConfig();
                     for (const [uri, state] of this._queryResultStateMap) {
@@ -523,6 +524,8 @@ export class QueryResultWebviewController extends WebviewViewController<
                 false,
             showGridLines,
             rowPadding: config.get(Constants.configResultsGridRowPadding) as number | undefined,
+            rightAlignNumbers:
+                (config.get(Constants.configResultsGridRightAlignNumbers) as boolean) ?? false,
         };
     }
 
