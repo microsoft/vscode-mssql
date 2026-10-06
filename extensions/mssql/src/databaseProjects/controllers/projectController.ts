@@ -58,14 +58,24 @@ interface FileWatcherStatus {
     fileWatcher: vscode.FileSystemWatcher;
 }
 
+/** Which project collection a Find File result came from. Reported in telemetry. */
+type ProjectFileKind =
+    | "sqlObjectScript"
+    | "preDeployScript"
+    | "postDeployScript"
+    | "noneDeployScript"
+    | "publishProfile";
+
 interface ProjectFileQuickPickItem extends vscode.QuickPickItem {
     fileSystemUri: vscode.Uri;
     projectFileUri: vscode.Uri;
+    fileKind: ProjectFileKind;
 }
 
 interface ProjectFileSearchEntry {
     entry: FileProjectEntry;
     iconPath: vscode.ThemeIcon;
+    fileKind: ProjectFileKind;
 }
 
 /**
@@ -2277,26 +2287,31 @@ export class ProjectsController {
                 ...project.sqlObjectScripts.map((entry) => ({
                     entry,
                     iconPath: new vscode.ThemeIcon("file-code"),
+                    fileKind: "sqlObjectScript" as const,
                 })),
                 ...project.preDeployScripts.map((entry) => ({
                     entry,
                     iconPath: new vscode.ThemeIcon("play"),
+                    fileKind: "preDeployScript" as const,
                 })),
                 ...project.postDeployScripts.map((entry) => ({
                     entry,
                     iconPath: new vscode.ThemeIcon("play"),
+                    fileKind: "postDeployScript" as const,
                 })),
                 ...project.noneDeployScripts.map((entry) => ({
                     entry,
                     iconPath: new vscode.ThemeIcon("file"),
+                    fileKind: "noneDeployScript" as const,
                 })),
                 ...project.publishProfiles.map((entry) => ({
                     entry,
                     iconPath: new vscode.ThemeIcon("cloud-upload"),
+                    fileKind: "publishProfile" as const,
                 })),
             ];
 
-            for (const { entry, iconPath } of entries) {
+            for (const { entry, iconPath, fileKind } of entries) {
                 const fileKey = entry.fsUri.toString();
                 if (seenFiles.has(fileKey)) {
                     continue;
@@ -2306,7 +2321,9 @@ export class ProjectsController {
                 const relativePath = utils.getPlatformSafeFileEntryPath(entry.relativePath);
                 const folder = path.posix.dirname(relativePath);
                 quickPickItems.push({
-                    label: path.basename(entry.fsUri.fsPath),
+                    // The project-relative path is already normalized to forward slashes, so
+                    // this splits correctly whichever platform the project was created on.
+                    label: path.posix.basename(relativePath),
                     description:
                         folder === "."
                             ? project.projectFileName
@@ -2314,6 +2331,7 @@ export class ProjectsController {
                     iconPath,
                     fileSystemUri: entry.fsUri,
                     projectFileUri: projectFile,
+                    fileKind,
                 });
             }
         }
@@ -2328,12 +2346,46 @@ export class ProjectsController {
             },
         );
 
-        if (selectedFile) {
-            await this.openFileWithWatcher(selectedFile.fileSystemUri);
-            await utils
-                .getDataWorkspaceExtensionApi()
-                .revealProjectItem(selectedFile.projectFileUri, selectedFile.fileSystemUri);
+        // Anything other than "reveal" falls back to the default, so a hand-edited value is never
+        // sent to telemetry.
+        const behavior =
+            vscode.workspace.getConfiguration().get<string>(constants.findFileBehaviorSetting) ===
+            constants.FindFileBehavior.Reveal
+                ? constants.FindFileBehavior.Reveal
+                : constants.FindFileBehavior.RevealAndOpen;
+        // Only enumerated values and counts: file names, paths and project names stay local.
+        const telemetryEvent = TelemetryReporter.createActionEvent(
+            TelemetryViews.ProjectController,
+            TelemetryActions.findFile,
+        ).withAdditionalMeasurements({
+            projectCount: projectFiles.length,
+            fileCount: quickPickItems.length,
+        });
+
+        if (!selectedFile) {
+            telemetryEvent.withAdditionalProperties({ behavior, result: "cancelled" }).send();
+            return;
         }
+
+        const revealed = await utils
+            .getDataWorkspaceExtensionApi()
+            .revealProjectItem(selectedFile.projectFileUri, selectedFile.fileSystemUri);
+        // Reveal-only still opens the file when the tree cannot show it, so a pick is never a
+        // no-op. Opening after the reveal leaves focus in the editor.
+        const opened = behavior !== constants.FindFileBehavior.Reveal || !revealed;
+        if (opened) {
+            await this.openFileWithWatcher(selectedFile.fileSystemUri);
+        }
+
+        telemetryEvent
+            .withAdditionalProperties({
+                behavior,
+                result: "selected",
+                fileKind: selectedFile.fileKind,
+                revealed: String(revealed),
+                opened: String(opened),
+            })
+            .send();
     }
 
     public async getProjectDatabaseSchemaProvider(projectFilePath: string): Promise<string> {

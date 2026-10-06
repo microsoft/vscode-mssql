@@ -79,6 +79,19 @@
                         "type": "boolean",
                         "default": true,
                         "description": "%sqlDatabaseProjects.autoCreateFolders%"
+                    },
+                    "sqlDatabaseProjects.findFileBehavior": {
+                        "type": "string",
+                        "enum": [
+                            "revealAndOpen",
+                            "reveal"
+                        ],
+                        "enumDescriptions": [
+                            "%sqlDatabaseProjects.findFileBehavior.revealAndOpen%",
+                            "%sqlDatabaseProjects.findFileBehavior.reveal%"
+                        ],
+                        "default": "revealAndOpen",
+                        "description": "%sqlDatabaseProjects.findFileBehavior%"
                     }
                 }
             }

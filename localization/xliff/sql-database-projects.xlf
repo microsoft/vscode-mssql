@@ -130,6 +130,12 @@
     <trans-unit id="sqlDatabaseProjects.restorePackages">
       <source xml:lang="en">Restore Packages</source>
     </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.findFileBehavior.reveal">
+      <source xml:lang="en">Reveal and select the file in the Database Projects view without opening it.</source>
+    </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.findFileBehavior.revealAndOpen">
+      <source xml:lang="en">Reveal the file in the Database Projects view and open it in the editor.</source>
+    </trans-unit>
     <trans-unit id="sqlDatabaseProjects.objectExplorerSubmenu">
       <source xml:lang="en">SQL Database Projects</source>
     </trans-unit>
@@ -141,6 +147,9 @@
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.validateExternalStreamingJob">
       <source xml:lang="en">Validate External Streaming Job</source>
+    </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.findFileBehavior">
+      <source xml:lang="en">What happens when you pick a file in Find File.</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.collapseProjectNodes">
       <source xml:lang="en">Whether project nodes start collapsed</source>
