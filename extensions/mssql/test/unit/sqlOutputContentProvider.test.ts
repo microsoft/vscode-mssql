@@ -907,7 +907,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
                 batchSummary: {
                     hasError: false,
                     id: 0,
-                    selection: undefined,
+                    selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 8 },
                     resultSetSummaries: [],
                     executionElapsed: undefined,
                     executionEnd: undefined,
@@ -965,7 +965,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
                 batchSummary: {
                     hasError: false,
                     id: 0,
-                    selection: undefined,
+                    selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 8 },
                     resultSetSummaries: [createResultSet(0)],
                     executionElapsed: undefined,
                     executionEnd: new Date().toISOString(),
