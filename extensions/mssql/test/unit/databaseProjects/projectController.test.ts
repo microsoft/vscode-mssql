@@ -73,8 +73,8 @@ suite("ProjectsController", function (): void {
     suite("project controller operations", function (): void {
         suite("Project file operations and prompting", function (): void {
             test("Should refresh project scripts changed on disk", async function (): Promise<void> {
-                const projectFilePath = "C:\\test\\project.sqlproj";
-                const scriptPath = "C:\\test\\Table.sql";
+                const projectFilePath = path.resolve("/", "test", "project.sqlproj");
+                const scriptPath = path.resolve("/", "test", "Table.sql");
                 const openProjectStub = sandbox.stub(Project, "openProject").resolves({
                     sqlObjectScripts: [{ fsUri: vscode.Uri.file(scriptPath) }],
                 } as Project);
@@ -88,10 +88,22 @@ suite("ProjectsController", function (): void {
             });
 
             suite("Find File", function (): void {
-                const firstProjectUri = vscode.Uri.file("C:\\test\\First\\First.sqlproj");
-                const secondProjectUri = vscode.Uri.file("C:\\test\\Second\\Second.sqlproj");
-                const tableUri = vscode.Uri.file("C:\\test\\First\\dbo\\Tables\\Customer.sql");
-                const profileUri = vscode.Uri.file("C:\\test\\Second\\Publish\\Local.publish.xml");
+                // Absolute paths use the native form of the OS running the tests. The relative
+                // paths below keep backslashes, because .sqlproj files store them that way on
+                // every OS.
+                const testRoot = path.resolve("/", "test");
+                const firstProjectUri = vscode.Uri.file(
+                    path.join(testRoot, "First", "First.sqlproj"),
+                );
+                const secondProjectUri = vscode.Uri.file(
+                    path.join(testRoot, "Second", "Second.sqlproj"),
+                );
+                const tableUri = vscode.Uri.file(
+                    path.join(testRoot, "First", "dbo", "Tables", "Customer.sql"),
+                );
+                const profileUri = vscode.Uri.file(
+                    path.join(testRoot, "Second", "Publish", "Local.publish.xml"),
+                );
 
                 interface FindFileStubs {
                     showQuickPick: sinon.SinonStub;
@@ -291,7 +303,9 @@ suite("ProjectsController", function (): void {
                 });
 
                 test("Should report an unknown setting value as the default", async function (): Promise<void> {
-                    const stubs = stubFindFile({ behavior: "C:\\Users\\someone\\secret" });
+                    const stubs = stubFindFile({
+                        behavior: path.join(path.resolve("/", "Users"), "someone", "secret"),
+                    });
 
                     await new ProjectsController(testContext.outputChannel).findFile();
 

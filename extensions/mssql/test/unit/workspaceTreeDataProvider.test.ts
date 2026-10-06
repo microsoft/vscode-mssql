@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as chai from "chai";
+import * as path from "path";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
@@ -28,9 +29,12 @@ suite("WorkspaceTreeDataProvider", function (): void {
     });
 
     test("Should reveal and select an item in a collapsed project hierarchy", async function (): Promise<void> {
-        const projectFile = vscode.Uri.file("C:\\test\\Project.sqlproj");
-        const file = vscode.Uri.file("C:\\test\\dbo\\Tables\\Customer.sql");
-        const rootElement = { projectFileUri: projectFile };
+        const testRoot = path.resolve("/", "test");
+        const projectFilePath = path.join(testRoot, "Project.sqlproj");
+        const projectFile = vscode.Uri.file(projectFilePath);
+        const file = vscode.Uri.file(path.join(testRoot, "dbo", "Tables", "Customer.sql"));
+        // A separate Uri instance, so the project is matched by path rather than by identity.
+        const rootElement = { projectFileUri: vscode.Uri.file(projectFilePath) };
         const fileElement = { fileSystemUri: file };
         const revealStub = sandbox.stub().resolves();
         sandbox.stub(vscode.window, "createTreeView").returns({
