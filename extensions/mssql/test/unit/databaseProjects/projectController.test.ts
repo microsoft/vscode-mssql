@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { expect } from "chai";
+import * as chai from "chai";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
 import * as dataworkspace from "dataworkspace";
 import * as vscodeMssql from "vscode-mssql";
 import * as baselines from "./baselines/baselines";
@@ -28,12 +29,21 @@ import { ProjectRootTreeItem } from "../../../src/databaseProjects/models/tree/p
 import { FolderNode, FileNode } from "../../../src/databaseProjects/models/tree/fileFolderTreeItem";
 import { BaseProjectTreeItem } from "../../../src/databaseProjects/models/tree/baseTreeItem";
 import { ImportDataModel } from "../../../src/databaseProjects/models/api/import";
-import { ItemType, SqlTargetPlatform } from "../../../src/databaseProjects/sqldbproj";
+import { EntryType, ItemType, SqlTargetPlatform } from "../../../src/databaseProjects/sqldbproj";
 import {
     FileProjectEntry,
     SqlProjectReferenceProjectEntry,
 } from "../../../src/databaseProjects/models/projectEntry";
 import { SqlProjects } from "../../../src/constants/locConstants";
+import {
+    TelemetryActions,
+    TelemetryReporter,
+    TelemetryViews,
+} from "../../../src/databaseProjects/common/telemetry";
+import type { TelemetryEvent } from "extension-toolkit/vscode";
+
+chai.use(sinonChai);
+const { expect } = chai;
 
 let testContext: TestContext;
 const templatesPath = testUtils.getTemplatesRootPath();
@@ -63,8 +73,8 @@ suite("ProjectsController", function (): void {
     suite("project controller operations", function (): void {
         suite("Project file operations and prompting", function (): void {
             test("Should refresh project scripts changed on disk", async function (): Promise<void> {
-                const projectFilePath = "C:\\test\\project.sqlproj";
-                const scriptPath = "C:\\test\\Table.sql";
+                const projectFilePath = path.resolve("/", "test", "project.sqlproj");
+                const scriptPath = path.resolve("/", "test", "Table.sql");
                 const openProjectStub = sandbox.stub(Project, "openProject").resolves({
                     sqlObjectScripts: [{ fsUri: vscode.Uri.file(scriptPath) }],
                 } as Project);
@@ -75,6 +85,342 @@ suite("ProjectsController", function (): void {
                 expect(openProjectStub.calledOnceWithExactly(projectFilePath, false, true)).to.be
                     .true;
                 expect(scripts).to.deep.equal([vscode.Uri.file(scriptPath).fsPath]);
+            });
+
+            suite("Find File", function (): void {
+                // Absolute paths use the native form of the OS running the tests. The relative
+                // paths below keep backslashes, because .sqlproj files store them that way on
+                // every OS.
+                const testRoot = path.resolve("/", "test");
+                const firstProjectUri = vscode.Uri.file(
+                    path.join(testRoot, "First", "First.sqlproj"),
+                );
+                const secondProjectUri = vscode.Uri.file(
+                    path.join(testRoot, "Second", "Second.sqlproj"),
+                );
+                const tableUri = vscode.Uri.file(
+                    path.join(testRoot, "First", "dbo", "Tables", "Customer.sql"),
+                );
+                const profileUri = vscode.Uri.file(
+                    path.join(testRoot, "Second", "Publish", "Local.publish.xml"),
+                );
+
+                interface FindFileStubs {
+                    showQuickPick: sinon.SinonStub;
+                    executeCommand: sinon.SinonStub;
+                    revealProjectItem: sinon.SinonStub;
+                    openProject: sinon.SinonStub;
+                    telemetry: {
+                        properties: Record<string, string>;
+                        measurements: Record<string, number>;
+                        send: sinon.SinonStub;
+                    };
+                }
+
+                /**
+                 * Stubs two projects, the quick pick, the Projects view reveal, the Find File
+                 * setting and the telemetry event the command sends.
+                 */
+                function stubFindFile(
+                    options: { behavior?: string; picked?: boolean; revealed?: boolean } = {},
+                ): FindFileStubs {
+                    sandbox
+                        .stub(utils, "getSqlProjectsInWorkspace")
+                        .resolves([firstProjectUri, secondProjectUri]);
+                    const openProject = sandbox.stub(Project, "openProject");
+                    openProject.onFirstCall().resolves({
+                        projectFileName: "First",
+                        sqlObjectScripts: [
+                            new FileProjectEntry(
+                                tableUri,
+                                "dbo\\Tables\\Customer.sql",
+                                EntryType.File,
+                            ),
+                        ],
+                        preDeployScripts: [],
+                        postDeployScripts: [],
+                        noneDeployScripts: [],
+                        publishProfiles: [],
+                    } as Project);
+                    openProject.onSecondCall().resolves({
+                        projectFileName: "Second",
+                        sqlObjectScripts: [],
+                        preDeployScripts: [],
+                        postDeployScripts: [],
+                        noneDeployScripts: [],
+                        publishProfiles: [
+                            new FileProjectEntry(
+                                profileUri,
+                                "Publish\\Local.publish.xml",
+                                EntryType.File,
+                            ),
+                        ],
+                    } as Project);
+
+                    const showQuickPick = sandbox.stub(vscode.window, "showQuickPick").resolves(
+                        options.picked === false
+                            ? undefined
+                            : ({
+                                  label: "Customer.sql",
+                                  fileSystemUri: tableUri,
+                                  projectFileUri: firstProjectUri,
+                                  fileKind: "sqlObjectScript",
+                              } as vscode.QuickPickItem),
+                    );
+                    const executeCommand = sandbox.stub(vscode.commands, "executeCommand");
+                    const revealProjectItem = sandbox.stub().resolves(options.revealed ?? true);
+                    sandbox.stub(utils, "getDataWorkspaceExtensionApi").returns({
+                        revealProjectItem,
+                    } as unknown as dataworkspace.IExtension);
+                    sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                        get: (key: string) =>
+                            key === constants.findFileBehaviorSetting
+                                ? options.behavior
+                                : undefined,
+                    } as unknown as vscode.WorkspaceConfiguration);
+                    sandbox.stub(vscode.workspace, "createFileSystemWatcher").returns({
+                        dispose: sandbox.stub(),
+                    } as unknown as vscode.FileSystemWatcher);
+                    sandbox.stub(vscode.workspace, "onDidCloseTextDocument").returns({
+                        dispose: sandbox.stub(),
+                    });
+
+                    const telemetry = {
+                        properties: {} as Record<string, string>,
+                        measurements: {} as Record<string, number>,
+                        send: sandbox.stub(),
+                    };
+                    const telemetryEvent = {
+                        withAdditionalProperties(properties: Record<string, string>) {
+                            Object.assign(telemetry.properties, properties);
+                            return telemetryEvent;
+                        },
+                        withAdditionalMeasurements(measurements: Record<string, number>) {
+                            Object.assign(telemetry.measurements, measurements);
+                            return telemetryEvent;
+                        },
+                        send: telemetry.send,
+                    };
+                    sandbox
+                        .stub(TelemetryReporter, "createActionEvent")
+                        .withArgs(TelemetryViews.ProjectController, TelemetryActions.findFile)
+                        .returns(telemetryEvent as unknown as TelemetryEvent);
+
+                    return {
+                        showQuickPick,
+                        executeCommand,
+                        revealProjectItem,
+                        openProject,
+                        telemetry,
+                    };
+                }
+
+                test("Should list files across projects, then reveal and open the pick", async function (): Promise<void> {
+                    const stubs = stubFindFile();
+
+                    await new ProjectsController(testContext.outputChannel).findFile();
+
+                    expect(stubs.openProject).to.have.been.calledTwice;
+                    // Without reload, so the projects stay open in SQL Tools Service.
+                    expect(stubs.openProject.firstCall.args).to.deep.equal([
+                        firstProjectUri.fsPath,
+                    ]);
+                    expect(stubs.openProject.secondCall.args).to.deep.equal([
+                        secondProjectUri.fsPath,
+                    ]);
+                    const items = await stubs.showQuickPick.firstCall.args[0];
+                    expect(items).to.have.length(2);
+                    expect(items[0]).to.include({
+                        label: "Customer.sql",
+                        description: "dbo/Tables — First",
+                    });
+                    expect(items[1]).to.include({
+                        label: "Local.publish.xml",
+                        description: "Publish — Second",
+                    });
+                    expect((items[0].iconPath as vscode.ThemeIcon).id).to.equal("file-code");
+                    expect(items[0].detail).to.be.undefined;
+                    expect((items[1].iconPath as vscode.ThemeIcon).id).to.equal("cloud-upload");
+                    expect(stubs.showQuickPick.firstCall.args[1]).to.include({
+                        matchOnDescription: true,
+                        matchOnDetail: true,
+                    });
+                    expect(stubs.revealProjectItem).to.have.been.calledOnceWithExactly(
+                        firstProjectUri,
+                        tableUri,
+                    );
+                    expect(stubs.executeCommand).to.have.been.calledWithExactly(
+                        constants.vscodeOpenCommand,
+                        tableUri,
+                    );
+                    // Opening after the reveal leaves focus in the editor.
+                    expect(stubs.revealProjectItem).to.have.been.calledBefore(stubs.executeCommand);
+                    expect(stubs.telemetry.send).to.have.been.calledOnce;
+                    expect(stubs.telemetry.properties).to.deep.equal({
+                        behavior: "revealAndOpen",
+                        result: "selected",
+                        fileKind: "sqlObjectScript",
+                        revealed: "true",
+                        opened: "true",
+                    });
+                    expect(stubs.telemetry.measurements).to.deep.equal({
+                        projectCount: 2,
+                        skippedProjectCount: 0,
+                        fileCount: 2,
+                    });
+                });
+
+                test("Should only reveal the pick when the setting is reveal", async function (): Promise<void> {
+                    const stubs = stubFindFile({ behavior: constants.FindFileBehavior.Reveal });
+
+                    await new ProjectsController(testContext.outputChannel).findFile();
+
+                    expect(stubs.revealProjectItem).to.have.been.calledOnceWithExactly(
+                        firstProjectUri,
+                        tableUri,
+                    );
+                    expect(stubs.executeCommand).not.to.have.been.calledWith(
+                        constants.vscodeOpenCommand,
+                    );
+                    expect(stubs.telemetry.properties).to.deep.equal({
+                        behavior: "reveal",
+                        result: "selected",
+                        fileKind: "sqlObjectScript",
+                        revealed: "true",
+                        opened: "false",
+                    });
+                });
+
+                test("Should open the pick when reveal-only cannot find it in the tree", async function (): Promise<void> {
+                    const stubs = stubFindFile({
+                        behavior: constants.FindFileBehavior.Reveal,
+                        revealed: false,
+                    });
+
+                    await new ProjectsController(testContext.outputChannel).findFile();
+
+                    expect(stubs.executeCommand).to.have.been.calledWithExactly(
+                        constants.vscodeOpenCommand,
+                        tableUri,
+                    );
+                    expect(stubs.telemetry.properties).to.include({
+                        behavior: "reveal",
+                        revealed: "false",
+                        opened: "true",
+                    });
+                });
+
+                test("Should report an unknown setting value as the default", async function (): Promise<void> {
+                    const stubs = stubFindFile({
+                        behavior: path.join(path.resolve("/", "Users"), "someone", "secret"),
+                    });
+
+                    await new ProjectsController(testContext.outputChannel).findFile();
+
+                    expect(stubs.executeCommand).to.have.been.calledWithExactly(
+                        constants.vscodeOpenCommand,
+                        tableUri,
+                    );
+                    expect(stubs.telemetry.properties.behavior).to.equal("revealAndOpen");
+                });
+
+                test("Should search the remaining projects when one cannot be loaded", async function (): Promise<void> {
+                    const stubs = stubFindFile({ picked: false });
+                    stubs.openProject.onFirstCall().rejects(new Error("Invalid project file"));
+                    const showWarningMessage = sandbox.stub(vscode.window, "showWarningMessage");
+                    const appendLine = sandbox.stub(testContext.outputChannel, "appendLine");
+
+                    await new ProjectsController(testContext.outputChannel).findFile();
+
+                    const items = await stubs.showQuickPick.firstCall.args[0];
+                    expect(items.map((item: vscode.QuickPickItem) => item.label)).to.deep.equal([
+                        "Local.publish.xml",
+                    ]);
+                    expect(appendLine).to.have.been.calledOnceWithExactly(
+                        SqlProjects.findFileProjectLoadError(
+                            "First.sqlproj",
+                            "Invalid project file",
+                        ),
+                    );
+                    expect(showWarningMessage).to.have.been.calledOnceWithExactly(
+                        SqlProjects.findFileProjectsSkipped(1),
+                    );
+                    expect(stubs.telemetry.measurements).to.deep.equal({
+                        projectCount: 2,
+                        skippedProjectCount: 1,
+                        fileCount: 1,
+                    });
+                });
+
+                test("Should list a file linked into two projects once per project", async function (): Promise<void> {
+                    const stubs = stubFindFile({ picked: false });
+                    stubs.openProject.onSecondCall().resolves({
+                        projectFileName: "Second",
+                        sqlObjectScripts: [
+                            new FileProjectEntry(
+                                tableUri,
+                                "..\\First\\dbo\\Tables\\Customer.sql",
+                                EntryType.File,
+                            ),
+                            // A repeat within one project is still listed only once.
+                            new FileProjectEntry(
+                                tableUri,
+                                "..\\First\\dbo\\Tables\\Customer.sql",
+                                EntryType.File,
+                            ),
+                        ],
+                        preDeployScripts: [],
+                        postDeployScripts: [],
+                        noneDeployScripts: [],
+                        publishProfiles: [],
+                    } as Project);
+
+                    await new ProjectsController(testContext.outputChannel).findFile();
+
+                    const items: Array<
+                        vscode.QuickPickItem & {
+                            fileSystemUri: vscode.Uri;
+                            projectFileUri: vscode.Uri;
+                        }
+                    > = await stubs.showQuickPick.firstCall.args[0];
+                    expect(
+                        items.map((item) => ({
+                            description: item.description,
+                            file: item.fileSystemUri.toString(),
+                            project: item.projectFileUri.toString(),
+                        })),
+                    ).to.have.deep.members([
+                        {
+                            description: "dbo/Tables — First",
+                            file: tableUri.toString(),
+                            project: firstProjectUri.toString(),
+                        },
+                        {
+                            description: "../First/dbo/Tables — Second",
+                            file: tableUri.toString(),
+                            project: secondProjectUri.toString(),
+                        },
+                    ]);
+                });
+
+                test("Should not reveal or open a file when the search is cancelled", async function (): Promise<void> {
+                    const stubs = stubFindFile({ picked: false });
+
+                    await new ProjectsController(testContext.outputChannel).findFile();
+
+                    expect(stubs.revealProjectItem).not.to.have.been.called;
+                    expect(stubs.executeCommand).not.to.have.been.called;
+                    expect(stubs.telemetry.send).to.have.been.calledOnce;
+                    expect(stubs.telemetry.properties).to.deep.equal({
+                        behavior: "revealAndOpen",
+                        result: "cancelled",
+                    });
+                    expect(stubs.telemetry.measurements).to.deep.equal({
+                        projectCount: 2,
+                        skippedProjectCount: 0,
+                        fileCount: 2,
+                    });
+                });
             });
 
             test("Should create new sqlproj file with correct specified target platform", async function (): Promise<void> {

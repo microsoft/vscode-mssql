@@ -2726,6 +2726,16 @@
     "Currently installed .NET SDK version is {0}, which is not supported. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK supported version location in settings if already installed.": "Currently installed .NET SDK version is {0}, which is not supported. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK supported version location in settings if already installed.",
     "Update Location": "Update Location",
     "Database Projects": "Database Projects",
+    "Find File in Database Projects": "Find File in Database Projects",
+    "Search by file name, path, or project": "Search by file name, path, or project",
+    "Find File skipped {0} because it could not be loaded: {1}/{0} is a project file name{1} is the error message": {
+        "message": "Find File skipped {0} because it could not be loaded: {1}",
+        "comment": ["{0} is a project file name", "{1} is the error message"]
+    },
+    "Find File skipped {0} project(s) that could not be loaded. See the Database Projects output for details./{0} is the number of projects that could not be loaded": {
+        "message": "Find File skipped {0} project(s) that could not be loaded. See the Database Projects output for details.",
+        "comment": ["{0} is the number of projects that could not be loaded"]
+    },
     "Don't Ask Again": "Don't Ask Again",
     "Build Elements": "Build Elements",
     "Folder Elements": "Folder Elements",

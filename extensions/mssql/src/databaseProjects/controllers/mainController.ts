@@ -359,6 +359,11 @@ export default class MainController implements vscode.Disposable {
                 },
             ),
         );
+        this.context.subscriptions.push(
+            vscode.commands.registerCommand("sqlDatabaseProjects.findFile", async () => {
+                return this.projectsController.findFile();
+            }),
+        );
 
         IconPathHelper.setExtensionContext(this.extensionContext);
 
