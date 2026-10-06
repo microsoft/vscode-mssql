@@ -516,6 +516,19 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await primary.locator(".execution-plan-flow-canvas").hover();
         await vsCodePage.mouse.wheel(0, 500);
         await expect.poll(() => getZoom(comparison)).toBeCloseTo(initialZoom!, 4);
+
+        // Toolbar zoom acts on both plans, not only the primary one.
+        const paneZoom = async (pane: Locator) => {
+            const style = (await pane.locator(".react-flow__viewport").getAttribute("style")) ?? "";
+            return parseFloat(style.match(/scale\(([^)]+)\)/)?.[1] ?? "1");
+        };
+        const [primaryZoom, secondaryZoom] = [await paneZoom(primary), await paneZoom(secondary)];
+        await comparison
+            .getByRole("toolbar", { name: "Compare Execution Plans" })
+            .getByRole("button", { name: "Zoom In", exact: true })
+            .click();
+        await expect.poll(() => paneZoom(primary)).toBeGreaterThan(primaryZoom);
+        await expect.poll(() => paneZoom(secondary)).toBeGreaterThan(secondaryZoom);
         await writeCoverage(comparison, "executionPlanComparison");
         await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
     });

@@ -997,7 +997,6 @@ export class LocConstants {
             addExecutionPlan: l10n.t("Add execution plan"),
             replaceExecutionPlan: l10n.t("Replace execution plan"),
             resetZoom: l10n.t("Reset zoom"),
-            toggleComparisonOrientation: l10n.t("Toggle comparison orientation"),
             switchToSideBySideComparison: l10n.t("Switch to side-by-side comparison"),
             switchToStackedComparison: l10n.t("Switch to top-and-bottom comparison"),
             findPrimaryPlan: l10n.t("Find in primary plan"),
@@ -1007,8 +1006,19 @@ export class LocConstants {
             choosePlanToCompare: l10n.t("Choose an execution plan to compare."),
             comparisonLoading: l10n.t("Loading similar areas in compared plans..."),
             comparisonProperties: l10n.t("Comparison properties"),
-            equivalentProperties: l10n.t("Equivalent Properties"),
-            differentProperties: l10n.t("Different Properties"),
+            equivalentProperties: (count: number) =>
+                l10n.t({
+                    message: "Equivalent Properties ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of properties with the same value in both plans"],
+                }),
+            differentProperties: (count: number) =>
+                l10n.t({
+                    message: "Different Properties ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of properties whose values differ between plans"],
+                }),
+            propertyNotInPlan: l10n.t("Not in this plan"),
             topOperation: (name: string) =>
                 l10n.t({
                     message: "Top operation: {0}",

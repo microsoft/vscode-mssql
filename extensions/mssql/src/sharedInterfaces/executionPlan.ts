@@ -3,14 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { NotificationType } from "vscode-jsonrpc";
 import { ApiStatus } from "./webview";
 
 export interface ExecutionPlanWebviewState {
     executionPlanState: ExecutionPlanState;
-    /**
-     * Present when this webview is displaying the React Flow execution-plan comparison editor.
-     */
-    executionPlanComparisonState?: ExecutionPlanComparisonState;
 }
 
 export interface ExecutionPlanState {
@@ -63,23 +60,14 @@ export interface ExecutionPlanReducers {
     updateTotalCost: {
         addedCost: number;
     };
-    /**
-     * Opens the selected statement in the React Flow execution-plan comparison editor.
-     */
-    compareExecutionPlan: {
-        graphIndex: number;
-    };
-    /**
-     * Selects or browses for the plan shown in the second comparison pane.
-     */
-    selectComparisonPlan: {};
-    /**
-     * Changes the active statement in either comparison pane.
-     */
-    setComparisonGraphIndexes: {
-        primaryGraphIndex?: number;
-        secondaryGraphIndex?: number;
-    };
+}
+
+/**
+ * Opens a comparison editor with a statement of the plan the webview shows. It changes no webview
+ * state, so it is a notification rather than a reducer, which would send all of the state back.
+ */
+export namespace CompareExecutionPlanNotification {
+    export const type = new NotificationType<{ graphIndex: number }>("executionPlan/compare");
 }
 
 export interface ExecutionPlanProvider {
@@ -112,31 +100,11 @@ export interface ExecutionPlanProvider {
      */
     updateTotalCost(addedCost: number): void;
 
-    compareExecutionPlan(graphIndex: number): void;
-
-    selectComparisonPlan(): void;
-
-    setComparisonGraphIndexes(
-        primaryGraphIndex: number | undefined,
-        secondaryGraphIndex: number | undefined,
-    ): void;
-}
-
-export interface ExecutionPlanComparisonSource {
     /**
-     * Display name of the source file or query-result plan.
+     * Opens a comparison editor with the given statement in its primary pane.
+     * @param graphIndex the statement to compare
      */
-    sourceName: string;
-    graphs: ExecutionPlanGraph[];
-    selectedGraphIndex: number;
-}
-
-export interface ExecutionPlanComparisonState {
-    primary: ExecutionPlanComparisonSource;
-    secondary?: ExecutionPlanComparisonSource;
-    comparisonResult?: ExecutionPlanComparisonResult;
-    loadState: ApiStatus;
-    errorMessage?: string;
+    compareExecutionPlan(graphIndex: number): void;
 }
 
 export interface ExecutionPlanGraph {

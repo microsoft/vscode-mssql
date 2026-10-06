@@ -3134,8 +3134,9 @@
     <trans-unit id="++CODE++64dd65edfeaabd10a5a0f29816332bf82ca9c7b7056182a29f9e1d987cbaf016">
       <source xml:lang="en">Diagnose</source>
     </trans-unit>
-    <trans-unit id="++CODE++4b0045c9fc54a1a76963412690f422d9df678d52c5c73cdb8a08be6d64a3ef10">
-      <source xml:lang="en">Different Properties</source>
+    <trans-unit id="++CODE++933df5245adc504389997bc6e02151ec81d7dd23c69841fe4f4211584de903e3">
+      <source xml:lang="en">Different Properties ({0})</source>
+      <note>{0} is the number of properties whose values differ between plans</note>
     </trans-unit>
     <trans-unit id="++CODE++babe24f1687d8f696f010c9dab1cdc17cea284045f0cef8dab2ed2c4cd5eac9e">
       <source xml:lang="en">Different database, different server</source>
@@ -3651,8 +3652,9 @@
     <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
       <source xml:lang="en">Equals</source>
     </trans-unit>
-    <trans-unit id="++CODE++adacba2e8823c97bb66748a885cc9f61760fe7736e17b1953c0d95957f6ff1b7">
-      <source xml:lang="en">Equivalent Properties</source>
+    <trans-unit id="++CODE++55bebfafae65ce68cdc5302448c2b0107ba56be8cd1becd40225b8efcf32d4af">
+      <source xml:lang="en">Equivalent Properties ({0})</source>
+      <note>{0} is the number of properties with the same value in both plans</note>
     </trans-unit>
     <trans-unit id="++CODE++54a0e8c17ebb21a11f8a25b8042786ef7efe52441e6cc87e92c67e0c4c0c6e78">
       <source xml:lang="en">Error</source>
@@ -6614,9 +6616,6 @@
     <trans-unit id="++CODE++0ca074b55c38a61a072092289a02d99d016075ccc3ba4519df5bcb3a8777d561">
       <source xml:lang="en">No events to export</source>
     </trans-unit>
-    <trans-unit id="++CODE++9238763eb28c554c36194de6e3ca3dfcf960208d8c41561c154ffed739e9f2af">
-      <source xml:lang="en">No execution plan was selected.</source>
-    </trans-unit>
     <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
       <source xml:lang="en">No filter is currently active</source>
     </trans-unit>
@@ -6840,6 +6839,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31">
       <source xml:lang="en">Not found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++985d9fefa52bf18419eb4075142cda1bad859ee0ea7c4f58b5b8f3b1058417d2">
+      <source xml:lang="en">Not in this plan</source>
     </trans-unit>
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
@@ -10187,9 +10189,6 @@
     <trans-unit id="++CODE++c7b96245094d8cc24762fbd0211e44291f3224450089189c452ce1985982dd94">
       <source xml:lang="en">Toggle columns for {0}</source>
       <note>{0} is the entity name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++28f866c43aa6ee57d772de6ebb259b538807c69fe055d1518fcf80df0d3f1ee4">
-      <source xml:lang="en">Toggle comparison orientation</source>
     </trans-unit>
     <trans-unit id="++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157">
       <source xml:lang="en">Toggle dark mode</source>

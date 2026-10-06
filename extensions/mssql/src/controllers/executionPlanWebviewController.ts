@@ -93,20 +93,17 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
         this.registerReducer("updateTotalCost", async (state, payload) => {
             return updateTotalCost(state, payload);
         });
-        this.registerReducer("compareExecutionPlan", async (state, payload) => {
-            if (state.executionPlanState.executionPlanGraphs?.length) {
-                openExecutionPlanComparisonWebview(
-                    this._context,
-                    this.executionPlanService,
-                    state.executionPlanState.executionPlanGraphs,
-                    payload.graphIndex,
-                    this.panel.title,
-                    this.sqlDocumentService,
-                );
-            }
-            return state;
+        this.onNotification(ep.CompareExecutionPlanNotification.type, ({ graphIndex }) => {
+            openExecutionPlanComparisonWebview(
+                this._context,
+                this.executionPlanService,
+                this.sqlDocumentService,
+                {
+                    name: this.panel.title,
+                    graphs: this.state.executionPlanState.executionPlanGraphs ?? [],
+                    graphIndex,
+                },
+            );
         });
-        this.registerReducer("selectComparisonPlan", async (state) => state);
-        this.registerReducer("setComparisonGraphIndexes", async (state) => state);
     }
 }

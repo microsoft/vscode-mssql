@@ -5,11 +5,10 @@
 
 import { Badge, Button, makeStyles, tokens } from "@fluentui/react-components";
 import { Lightbulb16Filled } from "@fluentui/react-icons";
-import { CSSProperties, useContext } from "react";
+import { CSSProperties } from "react";
 import { ExecutionPlanGraph } from "../../../sharedInterfaces/executionPlan";
 import { locConstants } from "../../common/locConstants";
 import { SqlText } from "../../common/sqlText";
-import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import {
     normalizeExecutionPlanQuery,
     parseRecommendationDisplayString,
@@ -104,16 +103,18 @@ const useStyles = makeStyles({
 export function ExecutionPlanHeader({
     graph,
     costLabel,
+    onShowQuery,
     id,
     style,
 }: {
     graph: ExecutionPlanGraph | undefined;
     costLabel: string;
+    /** Opens a recommendation's script, wrapped in its explanatory comment, without running it. */
+    onShowQuery: (query: string) => void;
     id?: string;
     style?: CSSProperties;
 }) {
     const classes = useStyles();
-    const context = useContext(ExecutionPlanContext);
     const query = normalizeExecutionPlanQuery(graph?.query ?? "");
     const recommendations = (graph?.recommendations ?? []).map((recommendation) => ({
         ...parseRecommendationDisplayString(recommendation.displayString),
@@ -192,7 +193,7 @@ export function ExecutionPlanHeader({
                             icon={<Lightbulb16Filled className={classes.recommendationIcon} />}
                             aria-label={recommendation.accessibleName}
                             title={`${recommendation.accessibleName}\n\n${locConstants.executionPlan.openIndexRecommendationScript}`}
-                            onClick={() => context?.showQuery(recommendation.queryWithDescription)}>
+                            onClick={() => onShowQuery(recommendation.queryWithDescription)}>
                             <span className={classes.recommendationLabel}>
                                 {locConstants.executionPlan.missingIndex}
                             </span>

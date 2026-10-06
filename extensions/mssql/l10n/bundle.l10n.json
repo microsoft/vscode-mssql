@@ -519,7 +519,6 @@
     },
     "Browse for an execution plan...": "Browse for an execution plan...",
     "Select an execution plan to compare": "Select an execution plan to compare",
-    "No execution plan was selected.": "No execution plan was selected.",
     "Failed to compare execution plans.": "Failed to compare execution plans.",
     "Failed to load the selected execution plan.": "Failed to load the selected execution plan.",
     "The selected file does not contain an execution plan.": "The selected file does not contain an execution plan.",
@@ -3366,7 +3365,6 @@
     "Add execution plan": "Add execution plan",
     "Replace execution plan": "Replace execution plan",
     "Reset zoom": "Reset zoom",
-    "Toggle comparison orientation": "Toggle comparison orientation",
     "Switch to side-by-side comparison": "Switch to side-by-side comparison",
     "Switch to top-and-bottom comparison": "Switch to top-and-bottom comparison",
     "Find in primary plan": "Find in primary plan",
@@ -3376,8 +3374,15 @@
     "Choose an execution plan to compare.": "Choose an execution plan to compare.",
     "Loading similar areas in compared plans...": "Loading similar areas in compared plans...",
     "Comparison properties": "Comparison properties",
-    "Equivalent Properties": "Equivalent Properties",
-    "Different Properties": "Different Properties",
+    "Equivalent Properties ({0})/{0} is the number of properties with the same value in both plans": {
+        "message": "Equivalent Properties ({0})",
+        "comment": ["{0} is the number of properties with the same value in both plans"]
+    },
+    "Different Properties ({0})/{0} is the number of properties whose values differ between plans": {
+        "message": "Different Properties ({0})",
+        "comment": ["{0} is the number of properties whose values differ between plans"]
+    },
+    "Not in this plan": "Not in this plan",
     "Top operation: {0}/{0} is an execution plan operation name": {
         "message": "Top operation: {0}",
         "comment": ["{0} is an execution plan operation name"]

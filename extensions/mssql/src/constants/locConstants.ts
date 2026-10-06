@@ -854,7 +854,6 @@ export let compareExecutionPlansEditor = (index: number) =>
     });
 export let browseForExecutionPlan = l10n.t("Browse for an execution plan...");
 export let selectExecutionPlanToCompare = l10n.t("Select an execution plan to compare");
-export let noExecutionPlanSelected = l10n.t("No execution plan was selected.");
 export let executionPlanComparisonFailed = l10n.t("Failed to compare execution plans.");
 export let executionPlanComparisonLoadFailed = l10n.t(
     "Failed to load the selected execution plan.",

@@ -47,20 +47,8 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanProviderProps> = ({ chil
                 });
             },
             compareExecutionPlan: function (graphIndex: number): void {
-                extensionRpc.action("compareExecutionPlan", {
+                void extensionRpc.sendNotification(ep.CompareExecutionPlanNotification.type, {
                     graphIndex,
-                });
-            },
-            selectComparisonPlan: function (): void {
-                extensionRpc.action("selectComparisonPlan", {});
-            },
-            setComparisonGraphIndexes: function (
-                primaryGraphIndex: number | undefined,
-                secondaryGraphIndex: number | undefined,
-            ): void {
-                extensionRpc.action("setComparisonGraphIndexes", {
-                    primaryGraphIndex,
-                    secondaryGraphIndex,
                 });
             },
         }),

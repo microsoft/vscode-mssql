@@ -16,6 +16,7 @@ import {
 } from "../controllers/sharedExecutionPlanUtils";
 import { sendActionEvent } from "extension-toolkit/vscode";
 import * as qr from "../sharedInterfaces/queryResult";
+import { CompareExecutionPlanNotification } from "../sharedInterfaces/executionPlan";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store, { QueryResultSingletonStore } from "./singletonStore";
@@ -467,21 +468,19 @@ export function registerCommonRequestHandlers(
     webviewController.registerReducer("updateTotalCost", async (state, payload) => {
         return (await updateTotalCost(state, payload)) as qr.QueryResultWebviewState;
     });
-    webviewController.registerReducer("compareExecutionPlan", async (state, payload) => {
-        if (state.executionPlanState.executionPlanGraphs?.length) {
-            openExecutionPlanComparisonWebview(
-                webviewViewController.getContext(),
-                webviewViewController.executionPlanService,
-                state.executionPlanState.executionPlanGraphs,
-                payload.graphIndex,
-                state.title ?? LocalizedConstants.executionPlan,
-                webviewViewController.sqlDocumentService,
-            );
-        }
-        return state;
+    webviewController.onNotification(CompareExecutionPlanNotification.type, ({ graphIndex }) => {
+        const state = webviewController.state;
+        openExecutionPlanComparisonWebview(
+            webviewViewController.getContext(),
+            webviewViewController.executionPlanService,
+            webviewViewController.sqlDocumentService,
+            {
+                name: state.title ?? LocalizedConstants.executionPlan,
+                graphs: state.executionPlanState.executionPlanGraphs ?? [],
+                graphIndex,
+            },
+        );
     });
-    webviewController.registerReducer("selectComparisonPlan", async (state) => state);
-    webviewController.registerReducer("setComparisonGraphIndexes", async (state) => state);
     webviewController.onRequest(qr.ShowFilterDisabledMessageRequest.type, async () => {
         vscode.window.showInformationMessage(
             LocalizedConstants.inMemoryDataProcessingThresholdExceeded,

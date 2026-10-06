@@ -177,7 +177,6 @@
     position: relative;
     display: flex;
     box-sizing: border-box;
-    width: min(46vw, 560px);
     min-width: 360px;
     min-height: 0;
     border-left: 1px solid
@@ -239,6 +238,7 @@
     height: 28px;
     padding: 0 10px;
     align-items: center;
+    gap: 12px;
     color: var(--vscode-descriptionForeground);
     font-family: var(--vscode-editor-font-family, Monaco, Menlo, Consolas, monospace);
 }
@@ -278,8 +278,8 @@
 .execution-plan-comparison-property-grid-container {
     min-height: 0;
     width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
+    /* The grid body scrolls both ways, and its header follows it horizontally. */
+    overflow: hidden;
     background: var(--vscode-editor-background);
     flex: 1 1 auto;
 }
@@ -326,7 +326,42 @@
     border-right: none;
 }
 
+/* Fluent's button reset sets resize: horizontal, so clipping its overflow would make Chromium
+   draw a resize grip in each header's corner. Columns resize through their own handles. */
+.execution-plan-comparison-grid-header .fui-DataGridHeaderCell__button {
+    min-width: 0;
+    overflow: hidden;
+    resize: none;
+}
+
+.execution-plan-comparison-grid-header-text {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.execution-plan-comparison-grid-header-icon {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.execution-plan-comparison-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
 .execution-plan-comparison-property-grid [role="row"] {
+    /* Rows are only as wide as the grid, so span the columns to keep borders and hover
+       backgrounds under cells that scroll into view. */
+    min-width: max-content;
     height: 26px;
     min-height: 26px;
     border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
@@ -356,26 +391,21 @@
     border-right: none;
 }
 
-.execution-plan-comparison-grid-group-row {
+.execution-plan-comparison-property-grid [role="row"].execution-plan-comparison-grid-group-row {
     background: var(
         --vscode-sideBarSectionHeader-background,
         var(--vscode-list-inactiveSelectionBackground)
-    ) !important;
+    );
     font-weight: 600;
 }
 
-/* Fluent inserts focus elements before the cells, so child position cannot identify the label. */
-.execution-plan-comparison-grid-group-row > .execution-plan-comparison-grid-section-cell {
-    flex: 1 1 auto;
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
+/* A group label may run past the name column, across the empty cells beside it. */
+.execution-plan-comparison-grid-group-row > [role="gridcell"] {
     border-right: none;
 }
 
-.execution-plan-comparison-grid-group-row
-    > [role="gridcell"]:not(.execution-plan-comparison-grid-section-cell) {
-    display: none;
+.execution-plan-comparison-property-grid .execution-plan-comparison-grid-group-cell {
+    overflow: visible;
 }
 
 .execution-plan-comparison-grid-value {
@@ -393,38 +423,65 @@
     white-space: nowrap;
 }
 
+.execution-plan-comparison-grid-name {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+}
+
+.execution-plan-comparison-grid-name > .execution-plan-comparison-grid-text {
+    flex: 1 1 0%;
+    width: auto;
+}
+
+.execution-plan-comparison-disclosure,
+.execution-plan-comparison-disclosure-spacer {
+    flex: 0 0 auto;
+    width: 20px;
+    min-width: 20px;
+    height: 20px;
+    min-height: 20px;
+    padding: 0;
+}
+
 .execution-plan-comparison-grid-comparison {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.execution-plan-comparison-equivalent-button {
+.execution-plan-comparison-group-button {
     display: inline-flex;
-    width: 100%;
-    min-width: 0;
+    width: max-content;
     height: 26px;
     padding: 0;
     align-items: center;
     gap: 4px;
-    overflow: hidden;
     border: none;
     background: transparent;
     color: inherit;
     cursor: pointer;
     font: inherit;
     font-weight: 600;
-    text-align: left;
-    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.execution-plan-comparison-equivalent-button svg {
+.execution-plan-comparison-group-button svg {
     flex: 0 0 auto;
 }
 
+/* Inline icons sit on the text baseline, above the middle of the row. */
 .execution-plan-comparison-diff {
-    text-align: center !important;
+    display: inline-flex;
+    align-items: center;
+}
+
+.execution-plan-comparison-grid-missing {
+    color: var(--vscode-descriptionForeground);
+    line-height: 26px;
 }
 
 .execution-plan-comparison-diff-different {

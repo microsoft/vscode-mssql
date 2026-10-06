@@ -5,40 +5,39 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
+import { ErrorCodes, ResponseError } from "vscode-jsonrpc/node";
 
+import { startActivity } from "extension-toolkit/vscode";
 import * as LocalizedConstants from "../constants/locConstants";
 import { sqlPlanLanguageId } from "../constants/constants";
 import * as ep from "../sharedInterfaces/executionPlan";
-import { ApiStatus } from "../sharedInterfaces/webview";
+import * as epc from "../sharedInterfaces/executionPlanComparison";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { getErrorMessage } from "../utils/utils";
-import {
-    executionPlanSourceRegistry,
-    OpenExecutionPlanSource,
-} from "./executionPlanSourceRegistry";
+import { executionPlanSourceRegistry } from "./executionPlanSourceRegistry";
 import { WebviewPanelController } from "./webviewPanelController";
-import SqlDocumentService from "./sqlDocumentService";
-import { showQuery } from "./sharedExecutionPlanUtils";
+import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 
-interface ExecutionPlanQuickPickItem extends vscode.QuickPickItem {
-    document?: vscode.TextDocument;
-    source?: OpenExecutionPlanSource;
-    browse?: boolean;
+interface PlanQuickPickItem extends vscode.QuickPickItem {
+    plan?: { name: string; contents: string };
 }
 
 let comparisonEditorCounter = 0;
 
 /**
- * SQL Tools Service comparison expects an extensionless SQL plan file type. Clone the graph info
- * so switching into comparison mode never mutates the graph used by the normal plan renderer.
+ * A comparison shows a snapshot. Drop the live markers of a statement that is still running, so
+ * the snapshot does not claim to refresh.
  */
-export function getExecutionPlanComparisonGraphInfo(
-    graphInfo: ep.ExecutionPlanGraphInfo,
-): ep.ExecutionPlanGraphInfo {
-    return {
-        ...graphInfo,
-        graphFileType: sqlPlanLanguageId,
-    };
+export function toComparisonGraph(graph: ep.ExecutionPlanGraph): ep.ExecutionPlanGraph {
+    if (!graph.isLive && !graph.liveQueryStatistics && graph.liveRefreshId === undefined) {
+        return graph;
+    }
+    const snapshot = { ...graph };
+    delete snapshot.isLive;
+    delete snapshot.liveRefreshId;
+    delete snapshot.liveQueryStatistics;
+    return snapshot;
 }
 
 /**
@@ -60,59 +59,79 @@ export function getComparisonExecutionPlanGraphs(
     return result.graphs;
 }
 
+function collectMatches(
+    root: ep.ExecutionGraphComparisonResult,
+): epc.ExecutionPlanComparisonMatch[] {
+    const matches: epc.ExecutionPlanComparisonMatch[] = [];
+    const stack = [root];
+    while (stack.length > 0) {
+        const node = stack.pop()!;
+        if (node.hasMatch) {
+            matches.push({
+                nodeId: String(node.baseNode.id),
+                groupIndex: node.groupIndex,
+                matchingNodeIds: (node.matchingNodesId ?? []).map(String),
+            });
+        }
+        const children = node.children ?? [];
+        for (let index = children.length - 1; index >= 0; index--) {
+            stack.push(children[index]);
+        }
+    }
+    return matches;
+}
+
 /**
- * SQL Tools Service's comparison response also contains no ResultStatus. The comparison trees are
- * the authoritative success payload, matching Azure Data Studio's handling.
+ * Reduces a tools service comparison to the matched nodes of each graph. The response repeats the
+ * full subtree of every node, which is quadratic in the plan size, and carries no ResultStatus;
+ * its comparison trees are the authoritative success payload, matching Azure Data Studio.
  */
-export function getValidExecutionPlanComparisonResult(
+export function getExecutionPlanComparisonMatches(
     result: ep.ExecutionPlanComparisonResult,
-): ep.ExecutionPlanComparisonResult {
+): epc.CompareExecutionPlanGraphsResult {
     if (result.success === false) {
         throw new Error(result.errorMessage || LocalizedConstants.executionPlanComparisonFailed);
     }
     if (!result.firstComparisonResult || !result.secondComparisonResult) {
         throw new Error(LocalizedConstants.executionPlanComparisonFailed);
     }
-    return result;
+    return {
+        primary: collectMatches(result.firstComparisonResult),
+        secondary: collectMatches(result.secondComparisonResult),
+    };
 }
 
+/**
+ * A ResponseError reaches the webview with its message as is. Any other error would arrive
+ * wrapped in the name of the request.
+ */
+function toResponseError(error: unknown, fallbackMessage: string): ResponseError<void> {
+    return new ResponseError(ErrorCodes.InternalError, getErrorMessage(error) || fallbackMessage);
+}
+
+/**
+ * Hosts the comparison editor. The webview owns which plans and statements it shows, so this
+ * controller keeps no webview state: it hands over the plan the editor was opened from, loads the
+ * plans the user picks, and compares the graphs the webview sends.
+ */
 export class ExecutionPlanComparisonWebviewController extends WebviewPanelController<
-    ep.ExecutionPlanWebviewState,
-    ep.ExecutionPlanReducers
+    epc.ExecutionPlanComparisonWebviewState,
+    epc.ExecutionPlanComparisonReducers
 > {
-    private _comparisonRequestVersion = 0;
+    private readonly _initialSource: epc.ExecutionPlanComparisonInitialSource;
 
     constructor(
         context: vscode.ExtensionContext,
         private readonly _executionPlanService: ExecutionPlanService,
-        primaryGraphs: ep.ExecutionPlanGraph[],
-        primaryGraphIndex: number,
-        primarySourceName: string,
         private readonly _sqlDocumentService: SqlDocumentService,
+        initialSource: epc.ExecutionPlanComparisonInitialSource,
     ) {
         comparisonEditorCounter++;
         super(
             context,
-            "executionPlan",
             "executionPlanComparison",
-            {
-                executionPlanState: {
-                    loadState: ApiStatus.Loaded,
-                    executionPlanGraphs: [],
-                    totalCost: 0,
-                },
-                executionPlanComparisonState: {
-                    primary: {
-                        sourceName: primarySourceName,
-                        graphs: primaryGraphs,
-                        selectedGraphIndex: Math.min(
-                            Math.max(primaryGraphIndex, 0),
-                            Math.max(primaryGraphs.length - 1, 0),
-                        ),
-                    },
-                    loadState: ApiStatus.Loaded,
-                },
-            },
+            "executionPlanComparison",
+            {},
             {
                 title: LocalizedConstants.compareExecutionPlansEditor(comparisonEditorCounter),
                 viewColumn: vscode.ViewColumn.Active,
@@ -131,199 +150,109 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
             },
         );
 
-        this.registerRpcHandlers();
-    }
-
-    private registerRpcHandlers(): void {
-        this.registerReducer("getExecutionPlan", async (state) => state);
-        this.registerReducer("saveExecutionPlan", async (state) => state);
-        this.registerReducer("showPlanXml", async (state) => state);
-        this.registerReducer("showQuery", async (state, payload) =>
-            showQuery(state, payload, this._sqlDocumentService),
-        );
-        this.registerReducer("updateTotalCost", async (state) => state);
-        this.registerReducer("compareExecutionPlan", async (state) => state);
-        this.registerReducer("selectComparisonPlan", async (state) => {
-            const selection = await this.selectComparisonPlan();
-            if (!selection) {
-                return state;
-            }
-
-            const loadingState: ep.ExecutionPlanWebviewState = {
-                ...state,
-                executionPlanComparisonState: {
-                    ...state.executionPlanComparisonState!,
-                    loadState: ApiStatus.Loading,
-                    errorMessage: undefined,
-                },
-            };
-            this.updateState(loadingState);
-
-            try {
-                const result = await this._executionPlanService.getExecutionPlan({
-                    graphFileContent: selection.contents,
-                    graphFileType: `.${sqlPlanLanguageId}`,
-                });
-                const graphs = getComparisonExecutionPlanGraphs(result);
-
-                const comparisonState: ep.ExecutionPlanComparisonState = {
-                    ...loadingState.executionPlanComparisonState!,
-                    secondary: {
-                        sourceName: selection.sourceName,
-                        graphs,
-                        selectedGraphIndex: 0,
-                    },
-                };
-                return await this.compareSelectedGraphs({
-                    ...loadingState,
-                    executionPlanComparisonState: comparisonState,
-                });
-            } catch (error) {
-                this.logger.error("Failed to load execution plan for comparison", error);
-                return {
-                    ...loadingState,
-                    executionPlanComparisonState: {
-                        ...loadingState.executionPlanComparisonState!,
-                        loadState: ApiStatus.Error,
-                        errorMessage:
-                            getErrorMessage(error) ||
-                            LocalizedConstants.executionPlanComparisonLoadFailed,
-                    },
-                };
-            }
-        });
-        this.registerReducer("setComparisonGraphIndexes", async (state, payload) => {
-            const comparisonState = state.executionPlanComparisonState;
-            if (!comparisonState) {
-                return state;
-            }
-
-            const primaryIndex =
-                payload.primaryGraphIndex ?? comparisonState.primary.selectedGraphIndex;
-            const secondaryIndex =
-                payload.secondaryGraphIndex ?? comparisonState.secondary?.selectedGraphIndex ?? 0;
-            const nextState: ep.ExecutionPlanWebviewState = {
-                ...state,
-                executionPlanComparisonState: {
-                    ...comparisonState,
-                    primary: {
-                        ...comparisonState.primary,
-                        selectedGraphIndex: Math.min(
-                            Math.max(primaryIndex, 0),
-                            Math.max(comparisonState.primary.graphs.length - 1, 0),
-                        ),
-                    },
-                    secondary: comparisonState.secondary
-                        ? {
-                              ...comparisonState.secondary,
-                              selectedGraphIndex: Math.min(
-                                  Math.max(secondaryIndex, 0),
-                                  Math.max(comparisonState.secondary.graphs.length - 1, 0),
-                              ),
-                          }
-                        : undefined,
-                    comparisonResult: undefined,
-                    errorMessage: undefined,
-                },
-            };
-            return await this.compareSelectedGraphs(nextState);
-        });
-    }
-
-    private async compareSelectedGraphs(
-        state: ep.ExecutionPlanWebviewState,
-    ): Promise<ep.ExecutionPlanWebviewState> {
-        const comparisonState = state.executionPlanComparisonState;
-        const primaryGraph =
-            comparisonState?.primary.graphs[comparisonState.primary.selectedGraphIndex];
-        const secondaryGraph =
-            comparisonState?.secondary?.graphs[comparisonState.secondary.selectedGraphIndex];
-        if (!comparisonState || !primaryGraph || !secondaryGraph) {
-            return {
-                ...state,
-                executionPlanComparisonState: {
-                    ...comparisonState!,
-                    loadState: ApiStatus.Loaded,
-                },
-            };
-        }
-
-        const requestVersion = ++this._comparisonRequestVersion;
-        const loadingState: ep.ExecutionPlanWebviewState = {
-            ...state,
-            executionPlanComparisonState: {
-                ...comparisonState,
-                loadState: ApiStatus.Loading,
-                comparisonResult: undefined,
-                errorMessage: undefined,
-            },
+        this._initialSource = {
+            name: initialSource.name,
+            graphs: initialSource.graphs.map(toComparisonGraph),
+            graphIndex: Math.min(
+                Math.max(initialSource.graphIndex, 0),
+                Math.max(initialSource.graphs.length - 1, 0),
+            ),
         };
-        this.updateState(loadingState);
 
+        this.onRequest(epc.GetInitialComparisonSourceRequest.type, () => this._initialSource);
+        this.onRequest(epc.PickComparisonSourceRequest.type, () => this.pickSource());
+        this.onRequest(epc.CompareExecutionPlanGraphsRequest.type, (params) =>
+            this.compareGraphs(params),
+        );
+        this.onNotification(epc.ShowComparisonQueryNotification.type, ({ query }) => {
+            void this._sqlDocumentService.newQuery({
+                content: query,
+                connectionStrategy: ConnectionStrategy.DoNotConnect,
+            });
+        });
+    }
+
+    private async pickSource(): Promise<epc.ExecutionPlanComparisonSource | undefined> {
+        const plan = await this.pickPlan();
+        if (!plan) {
+            return undefined;
+        }
         try {
-            const comparisonResult = getValidExecutionPlanComparisonResult(
+            const graphs = getComparisonExecutionPlanGraphs(
+                await this._executionPlanService.getExecutionPlan({
+                    graphFileContent: plan.contents,
+                    graphFileType: `.${sqlPlanLanguageId}`,
+                }),
+            );
+            return { name: plan.name, graphs };
+        } catch (error) {
+            this.logger.error("Failed to load execution plan for comparison", error);
+            throw toResponseError(error, LocalizedConstants.executionPlanComparisonLoadFailed);
+        }
+    }
+
+    private async compareGraphs(
+        params: epc.CompareExecutionPlanGraphsParams,
+    ): Promise<epc.CompareExecutionPlanGraphsResult> {
+        const activity = startActivity(TelemetryViews.ExecutionPlan, TelemetryActions.Compare);
+        try {
+            const matches = getExecutionPlanComparisonMatches(
                 await this._executionPlanService.compareExecutionPlanGraph(
-                    getExecutionPlanComparisonGraphInfo(primaryGraph.graphFile),
-                    getExecutionPlanComparisonGraphInfo(secondaryGraph.graphFile),
+                    params.primary,
+                    params.secondary,
                 ),
             );
-            if (requestVersion !== this._comparisonRequestVersion) {
-                return this.state;
-            }
-            return {
-                ...loadingState,
-                executionPlanComparisonState: {
-                    ...loadingState.executionPlanComparisonState!,
-                    comparisonResult,
-                    loadState: ApiStatus.Loaded,
+            activity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    primaryMatchCount: matches.primary.length,
+                    secondaryMatchCount: matches.secondary.length,
                 },
-            };
+            });
+            return matches;
         } catch (error) {
-            if (requestVersion !== this._comparisonRequestVersion) {
-                return this.state;
-            }
             this.logger.error("Failed to compare execution plans", error);
-            return {
-                ...loadingState,
-                executionPlanComparisonState: {
-                    ...loadingState.executionPlanComparisonState!,
-                    loadState: ApiStatus.Error,
-                    errorMessage:
-                        getErrorMessage(error) || LocalizedConstants.executionPlanComparisonFailed,
-                },
-            };
+            activity.endFailed(error instanceof Error ? error : new Error(getErrorMessage(error)));
+            throw toResponseError(error, LocalizedConstants.executionPlanComparisonFailed);
         }
     }
 
-    private async selectComparisonPlan(): Promise<
-        { contents: string; sourceName: string } | undefined
-    > {
-        const openPlanItems: ExecutionPlanQuickPickItem[] = vscode.workspace.textDocuments
-            .filter(
-                (document) =>
-                    document.uri.scheme !== "untitled" &&
-                    (document.languageId === sqlPlanLanguageId ||
-                        document.fileName.toLowerCase().endsWith(`.${sqlPlanLanguageId}`)),
-            )
-            .map((document) => ({
-                label: `$(file) ${path.basename(document.fileName)}`,
+    /** Offers the open plans and a file browser, and returns the chosen plan's XML. */
+    private async pickPlan(): Promise<{ name: string; contents: string } | undefined> {
+        const registeredSources = executionPlanSourceRegistry.getSources();
+        const registeredContents = new Set(registeredSources.map((source) => source.contents));
+        const registeredItems: PlanQuickPickItem[] = registeredSources.map((source) => ({
+            label: `$(graph) ${source.sourceName}`,
+            description: LocalizedConstants.openExecutionPlan,
+            plan: { name: source.sourceName, contents: source.contents },
+        }));
+        // A .sqlplan file opened in its plan viewer stays in workspace.textDocuments, so skip the
+        // documents that already appear as open plans.
+        const documentItems: PlanQuickPickItem[] = [];
+        for (const document of vscode.workspace.textDocuments) {
+            if (
+                document.uri.scheme === "untitled" ||
+                (document.languageId !== sqlPlanLanguageId &&
+                    !document.fileName.toLowerCase().endsWith(`.${sqlPlanLanguageId}`))
+            ) {
+                continue;
+            }
+            const contents = document.getText();
+            if (registeredContents.has(contents)) {
+                continue;
+            }
+            const name = path.basename(document.fileName);
+            documentItems.push({
+                label: `$(file) ${name}`,
                 description: document.uri.fsPath,
-                document,
-            }));
-        const browseItem: ExecutionPlanQuickPickItem = {
+                plan: { name, contents },
+            });
+        }
+        const browseItem: PlanQuickPickItem = {
             label: `$(folder-opened) ${LocalizedConstants.browseForExecutionPlan}`,
-            browse: true,
         };
-        const registeredPlanItems: ExecutionPlanQuickPickItem[] = executionPlanSourceRegistry
-            .getSources()
-            .map((source) => ({
-                label: `$(graph) ${source.sourceName}`,
-                description: LocalizedConstants.openExecutionPlan,
-                source,
-            }));
 
         const selected = await vscode.window.showQuickPick(
-            [browseItem, ...registeredPlanItems, ...openPlanItems],
+            [browseItem, ...registeredItems, ...documentItems],
             {
                 placeHolder: LocalizedConstants.selectExecutionPlanToCompare,
                 matchOnDescription: true,
@@ -332,36 +261,27 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
         if (!selected) {
             return undefined;
         }
-        if (selected.document) {
-            return {
-                contents: selected.document.getText(),
-                sourceName: path.basename(selected.document.fileName),
-            };
-        }
-        if (selected.source) {
-            return {
-                contents: selected.source.contents,
-                sourceName: selected.source.sourceName,
-            };
+        if (selected.plan) {
+            return selected.plan;
         }
 
-        const uris = await vscode.window.showOpenDialog({
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: false,
-            filters: {
-                [LocalizedConstants.executionPlanFileFilter]: [sqlPlanLanguageId],
-            },
-            openLabel: LocalizedConstants.compareExecutionPlans,
-        });
-        const uri = uris?.[0];
+        const uri = (
+            await vscode.window.showOpenDialog({
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                filters: {
+                    [LocalizedConstants.executionPlanFileFilter]: [sqlPlanLanguageId],
+                },
+                openLabel: LocalizedConstants.compareExecutionPlans,
+            })
+        )?.[0];
         if (!uri) {
             return undefined;
         }
-        const contents = new TextDecoder().decode(await vscode.workspace.fs.readFile(uri));
         return {
-            contents,
-            sourceName: path.basename(uri.fsPath || uri.path),
+            name: path.basename(uri.fsPath || uri.path),
+            contents: new TextDecoder().decode(await vscode.workspace.fs.readFile(uri)),
         };
     }
 }

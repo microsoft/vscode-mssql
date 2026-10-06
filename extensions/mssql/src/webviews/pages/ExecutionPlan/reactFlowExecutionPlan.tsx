@@ -15,7 +15,6 @@ import {
     Position,
     ReactFlow,
     ReactFlowInstance,
-    Viewport,
     ViewportPortal,
     getSmoothStepPath,
 } from "@xyflow/react";
@@ -567,11 +566,15 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
 
     public toggleTooltip(): boolean {
         const enabled = !this._options.getTooltipsEnabled();
+        this.setTooltipsEnabled(enabled);
+        return enabled;
+    }
+
+    public setTooltipsEnabled(enabled: boolean): void {
         this._options.setTooltipsEnabled(enabled);
         if (!enabled) {
             this._options.closeTooltip();
         }
-        return enabled;
     }
 
     private setAnchoredZoom(zoom: number): void {
@@ -668,13 +671,10 @@ interface ReactFlowExecutionPlanProps {
     themeKind: ColorThemeKind;
     planNumber: number;
     onReady: (controller: ExecutionPlanGraphController | null) => void;
+    /** Roots of the similar areas to outline, each mapped to the color slot of its area. */
     comparisonGroupRoots?: ReadonlyMap<string, number>;
     /** Called with the selected node id, including programmatic selection changes. */
     onSelectionChange?: (id: string) => void;
-    /** Called whenever the selected node changes, including Find and keyboard focus. */
-    onNodeSelectionChange?: (node: ExecutionPlanNode) => void;
-    viewport?: Viewport;
-    onViewportChange?: (viewport: Viewport) => void;
 }
 
 export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
@@ -686,9 +686,6 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     onReady,
     comparisonGroupRoots,
     onSelectionChange,
-    onNodeSelectionChange,
-    viewport,
-    onViewportChange,
 }) => {
     const model = useMemo(() => new ExecutionPlanModel(root), [root]);
     const positions = useMemo(() => layoutExecutionPlan(model), [model]);
@@ -702,7 +699,6 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     const [focusAnnouncement, setFocusAnnouncement] = useState("");
     const selectedIdRef = useRef(selectedId);
     const tooltipsEnabledRef = useRef(tooltipsEnabled);
-    const onNodeSelectionChangeRef = useRef(onNodeSelectionChange);
     const nodeElementsRef = useRef(new Map<string, HTMLDivElement>());
     const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -745,16 +741,6 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     useEffect(() => {
         tooltipsEnabledRef.current = tooltipsEnabled;
     }, [tooltipsEnabled]);
-    useEffect(() => {
-        onNodeSelectionChangeRef.current = onNodeSelectionChange;
-    }, [onNodeSelectionChange]);
-    useEffect(() => {
-        const node = model.getNode(selectedId);
-        if (node) {
-            onNodeSelectionChangeRef.current?.(node);
-        }
-    }, [model, selectedId]);
-
     const expandAncestors = useCallback(
         (id: string) => {
             const ancestorIds = model.getAncestorIds(id);
@@ -1065,13 +1051,13 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     const comparisonGroups = useMemo(() => {
         const groups: {
             id: string;
-            groupIndex: number;
+            colorSlot: number;
             x: number;
             y: number;
             width: number;
             height: number;
         }[] = [];
-        for (const [rootId, groupIndex] of comparisonGroupRoots ?? []) {
+        for (const [rootId, colorSlot] of comparisonGroupRoots ?? []) {
             if (!positions.has(rootId) || hiddenNodeIds.has(rootId)) {
                 continue;
             }
@@ -1122,8 +1108,8 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 Math.max(...memberBounds.map((bounds) => bounds.bottom)) +
                 EXECUTION_PLAN_COMPARISON_GROUP_PADDING;
             groups.push({
-                id: `${groupIndex}-${rootId}`,
-                groupIndex,
+                id: rootId,
+                colorSlot,
                 x: left,
                 y: top,
                 width: right - left,
@@ -1193,8 +1179,6 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                     edgeTypes={EDGE_TYPES}
                     onInit={setInstance}
                     defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-                    viewport={viewport}
-                    onViewportChange={onViewportChange}
                     minZoom={0.01}
                     maxZoom={2}
                     panOnDrag
@@ -1237,7 +1221,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                             {comparisonGroups.map((group) => (
                                 <div
                                     key={group.id}
-                                    className={`execution-plan-comparison-group execution-plan-comparison-group-${Math.abs(group.groupIndex) % 4}`}
+                                    className={`execution-plan-comparison-group execution-plan-comparison-group-${group.colorSlot}`}
                                     style={{
                                         transform: `translate(${group.x}px, ${group.y}px)`,
                                         width: group.width,

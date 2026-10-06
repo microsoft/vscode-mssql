@@ -6,7 +6,10 @@
 import { ReactNode, createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getCoreRPCs } from "../../common/utils";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { ExecutionPlanProvider } from "../../../sharedInterfaces/executionPlan";
+import {
+    CompareExecutionPlanNotification,
+    ExecutionPlanProvider,
+} from "../../../sharedInterfaces/executionPlan";
 import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
     GridContextMenuAction,
@@ -281,18 +284,8 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                 extensionRpc.action("updateTotalCost", { addedCost });
             },
             compareExecutionPlan: (graphIndex: number) => {
-                extensionRpc.action("compareExecutionPlan", { graphIndex });
-            },
-            selectComparisonPlan: () => {
-                extensionRpc.action("selectComparisonPlan", {});
-            },
-            setComparisonGraphIndexes: (
-                primaryGraphIndex: number | undefined,
-                secondaryGraphIndex: number | undefined,
-            ) => {
-                extensionRpc.action("setComparisonGraphIndexes", {
-                    primaryGraphIndex,
-                    secondaryGraphIndex,
+                void extensionRpc.sendNotification(CompareExecutionPlanNotification.type, {
+                    graphIndex,
                 });
             },
             openResizeDialog: (options: Partial<ResizeColumnDialogState>) => {

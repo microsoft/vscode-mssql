@@ -28,6 +28,7 @@ export interface ExecutionPlanGraphController {
     getSelectedElement(): InternalExecutionPlanElement | undefined;
     getElementById(id: string): InternalExecutionPlanElement | undefined;
     toggleTooltip(): boolean;
+    setTooltipsEnabled(enabled: boolean): void;
     zoomIn(): void;
     zoomOut(): void;
     zoomToFit(): void;

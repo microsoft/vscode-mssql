@@ -17,12 +17,8 @@ import * as epUtils from "../../src/controllers/sharedExecutionPlanUtils";
 import { contents } from "../resources/testsqlplan";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { GetExecutionPlanRequest } from "../../src/models/contracts/executionPlan";
-import {
-    ExecutionPlanComparisonWebviewController,
-    getComparisonExecutionPlanGraphs,
-    getExecutionPlanComparisonGraphInfo,
-    getValidExecutionPlanComparisonResult,
-} from "../../src/controllers/executionPlanComparisonWebviewController";
+import * as jsonRpc from "vscode-jsonrpc/node";
+import { stubWebviewConnectionRpc } from "./utils";
 
 chai.use(sinonChai);
 
@@ -206,136 +202,42 @@ suite("ExecutionPlanWebviewController", () => {
         updateTotalCostStub.restore();
     });
 
-    test("should open React Flow comparison for the selected graph", async () => {
-        const graph = {
-            root: {
-                cost: 1,
-                subTreeCost: 2,
-            },
-        } as ep.ExecutionPlanGraph;
-        const state: ep.ExecutionPlanWebviewState = {
-            executionPlanState: {
-                ...mockInitialState.executionPlanState,
-                executionPlanGraphs: [graph],
-            },
-        };
+    test("should open a comparison of the statement the webview asks for", () => {
+        const connection = stubWebviewConnectionRpc(sandbox);
+        sandbox
+            .stub(jsonRpc, "createMessageConnection")
+            .returns(connection.connection as unknown as jsonRpc.MessageConnection);
         const openComparisonStub = sandbox.stub(epUtils, "openExecutionPlanComparisonWebview");
-
-        const result = await controller["_reducerHandlers"].get("compareExecutionPlan")(state, {
-            graphIndex: 0,
-        });
-
-        expect(openComparisonStub).to.have.been.calledWithExactly(
+        const graph = { root: { cost: 1, subTreeCost: 2 } } as ep.ExecutionPlanGraph;
+        const planController = new ExecutionPlanWebviewController(
             mockContext,
             mockExecutionPlanService,
-            [graph],
-            0,
-            xmlPlanFileName,
             mockSqlDocumentService,
+            executionPlanContents,
+            xmlPlanFileName,
         );
-        expect(result).to.equal(state);
-    });
-
-    test("should not open comparison when no graphs are loaded", async () => {
-        const state: ep.ExecutionPlanWebviewState = {
-            executionPlanState: {
-                ...mockInitialState.executionPlanState,
-                executionPlanGraphs: [],
-            },
-        };
-        const openComparisonStub = sandbox.stub(epUtils, "openExecutionPlanComparisonWebview");
-
-        await controller["_reducerHandlers"].get("compareExecutionPlan")(state, {
-            graphIndex: 0,
-        });
-
-        expect(openComparisonStub).not.to.have.been.called;
-    });
-});
-
-suite("ExecutionPlanComparisonWebviewController", () => {
-    test("opens the complete recommended query without connecting or executing it", async () => {
-        const sandbox = sinon.createSandbox();
-        let controller: ExecutionPlanComparisonWebviewController | undefined;
         try {
-            const sqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
-            sqlDocumentService.newQuery.resolves();
-            controller = new ExecutionPlanComparisonWebviewController(
-                {
-                    extensionUri: vscode.Uri.parse("https://localhost"),
-                    extensionPath: "path",
-                } as unknown as vscode.ExtensionContext,
-                sandbox.createStubInstance(ExecutionPlanService),
-                [],
-                0,
-                "plan.sqlplan",
-                sqlDocumentService,
+            planController.state = {
+                executionPlanState: {
+                    ...mockResultState.executionPlanState,
+                    executionPlanGraphs: [graph],
+                },
+            };
+
+            const compare = connection.notificationHandlers.get(
+                ep.CompareExecutionPlanNotification.type.method,
+            ) as (params: { graphIndex: number }) => void;
+            compare({ graphIndex: 0 });
+
+            expect(openComparisonStub).to.have.been.calledOnceWithExactly(
+                mockContext,
+                mockExecutionPlanService,
+                mockSqlDocumentService,
+                { name: xmlPlanFileName, graphs: [graph], graphIndex: 0 },
             );
-            const query = "-- Missing index recommendation\nCREATE INDEX ix ON dbo.t (id);";
-            const state = controller.state;
-            const result = await controller["_reducerHandlers"].get("showQuery")(state, { query });
-            expect(sqlDocumentService.newQuery).to.have.been.calledWithExactly({
-                content: query,
-                connectionStrategy: ConnectionStrategy.DoNotConnect,
-                sourceUri: undefined,
-            });
-            expect(result).to.equal(state);
         } finally {
-            controller?.dispose();
-            sandbox.restore();
+            planController.dispose();
         }
-    });
-
-    test("normalizes comparison file types without mutating loaded graph metadata", () => {
-        const graphInfo: ep.ExecutionPlanGraphInfo = {
-            graphFileContent: "<ShowPlanXML />",
-            graphFileType: ".sqlplan",
-            planIndexInFile: 3,
-        };
-
-        const comparisonGraphInfo = getExecutionPlanComparisonGraphInfo(graphInfo);
-
-        expect(comparisonGraphInfo).to.deep.equal({
-            graphFileContent: "<ShowPlanXML />",
-            graphFileType: "sqlplan",
-            planIndexInFile: 3,
-        });
-        expect(graphInfo.graphFileType).to.equal(".sqlplan");
-        expect(comparisonGraphInfo).not.to.equal(graphInfo);
-    });
-
-    test("accepts graphs when an older service response omits success", () => {
-        const graphs = [{} as ep.ExecutionPlanGraph];
-        const result: ep.GetExecutionPlanResult = {
-            graphs,
-            success: undefined!,
-            errorMessage: "",
-        };
-
-        expect(getComparisonExecutionPlanGraphs(result)).to.equal(graphs);
-    });
-
-    test("rejects an explicit service failure with a useful fallback message", () => {
-        const result: ep.GetExecutionPlanResult = {
-            graphs: [],
-            success: false,
-            errorMessage: "",
-        };
-
-        expect(() => getComparisonExecutionPlanGraphs(result)).to.throw(
-            "Failed to load the selected execution plan.",
-        );
-    });
-
-    test("accepts comparison trees when an older service response omits success", () => {
-        const result: ep.ExecutionPlanComparisonResult = {
-            firstComparisonResult: {} as ep.ExecutionGraphComparisonResult,
-            secondComparisonResult: {} as ep.ExecutionGraphComparisonResult,
-            success: undefined!,
-            errorMessage: "",
-        };
-
-        expect(getValidExecutionPlanComparisonResult(result)).to.equal(result);
     });
 });
 

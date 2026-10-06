@@ -10,6 +10,7 @@ import {
     lazy,
     Suspense,
     useCallback,
+    useContext,
     useEffect,
     useRef,
     useState,
@@ -18,6 +19,7 @@ import {
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
 import { normalizeExecutionPlanQuery } from "./executionPlanQuery";
 import { ExecutionPlanHeader } from "./executionPlanHeader";
+import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
 import { PropertiesPane } from "./properties";
@@ -127,6 +129,7 @@ interface ExecutionPlanGraphProps {
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphIndex }) => {
     const classes = useStyles();
     const { themeKind, extensionRpc } = useVscodeWebview();
+    const context = useContext(ExecutionPlanContext);
     const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
         (s) => s.executionPlanState,
     );
@@ -273,6 +276,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                     id="queryCostContainer"
                     graph={graph}
                     costLabel={getQueryCostString()}
+                    onShowQuery={(planQuery) => context?.showQuery(planQuery)}
                     style={{
                         // 35px is the width of the side toolbar with some extra room for padding
                         width: propertiesClicked
