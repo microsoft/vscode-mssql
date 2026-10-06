@@ -37,22 +37,38 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
 
-    function getShortcutResultGrid(): Promise<Locator> {
-        return waitForResultGrid(resultsFrame, "0_0", 1, SHORTCUT_RUN_BUDGET_MS);
-    }
-
     /**
-     * Waits for a shortcut run to render `expected` and finish, without the "already running"
-     * toast that a stuck execution state shows instead of running the query.
+     * Presses the execute shortcut and requires the run to render `expected` and finish within
+     * one budget measured from the keypress, without the "already running" toast that a stuck
+     * execution state shows instead of running the query. Returns the rendered value.
+     *
+     * Every wait gets only the time left before the shared deadline. Giving each its own budget
+     * would let a run several seconds late pass. `replaces` is the value the previous run left on
+     * screen, for re-runs whose new value matches the same pattern.
      */
-    async function expectShortcutRunResult(page: Page, expected: string | RegExp): Promise<void> {
-        await expect(getCell(await getShortcutResultGrid(), 0, 0)).toHaveText(expected, {
-            timeout: SHORTCUT_RUN_BUDGET_MS,
-        });
-        await waitForQueryExecutionToEnd(page, SHORTCUT_RUN_BUDGET_MS);
+    async function runWithShortcut(
+        page: Page,
+        expected: string | RegExp,
+        replaces?: string,
+    ): Promise<string> {
+        const deadline = Date.now() + SHORTCUT_RUN_BUDGET_MS;
+        // A Playwright timeout of 0 means "no timeout", so an expired budget becomes 1ms.
+        const remaining = () => Math.max(deadline - Date.now(), 1);
+
+        await page.keyboard.press(getExecuteQueryShortcut());
+        const resultGrid = await waitForResultGrid(resultsFrame, "0_0", 1, remaining());
+        const cell = getCell(resultGrid, 0, 0);
+        if (replaces !== undefined) {
+            await expect(cell, "the re-run did not execute").not.toHaveText(replaces, {
+                timeout: remaining(),
+            });
+        }
+        await expect(cell).toHaveText(expected, { timeout: remaining() });
+        await waitForQueryExecutionToEnd(page, remaining());
         await expect(
             page.locator(".notifications-toasts").getByText(QUERY_IN_PROGRESS_MESSAGE),
         ).toHaveCount(0);
+        return cell.innerText();
     }
 
     const getContext = useSharedVsCodeLifecycle({
@@ -149,15 +165,13 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
     // classic-mode case re-runs the mixed-type fixture before it asserts on cells.
     test("the execute shortcut runs the edited text on every press, promptly", async () => {
         const { electronApp, page } = getContext();
-        const executeShortcut = getExecuteQueryShortcut();
 
         // No wait between the edit and the press: the regression treated the new text as
         // unchanged, ran the previous query, or ran the new one several seconds late.
         for (let run = 1; run <= 3; run++) {
             const marker = `pasted-${run}`;
             await setQueryText(electronApp, page, getMarkerQuery(marker));
-            await page.keyboard.press(executeShortcut);
-            await expectShortcutRunResult(page, marker);
+            await runWithShortcut(page, marker);
         }
 
         // Typing produces one content change per keystroke, unlike setQueryText's single insert.
@@ -171,32 +185,21 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
             }
             await page.keyboard.press("Backspace");
             await page.keyboard.type(String(run));
-            await page.keyboard.press(executeShortcut);
-            await expectShortcutRunResult(page, `typed-${run}`);
+            await runWithShortcut(page, `typed-${run}`);
         }
     });
 
     test("the execute shortcut re-runs unchanged text and runs only a selection", async () => {
         const { electronApp, page } = getContext();
-        const executeShortcut = getExecuteQueryShortcut();
         const runIdPattern = /^[0-9A-F-]{36}$/i;
 
         await setQueryText(electronApp, page, RUN_ID_QUERY);
-        await page.keyboard.press(executeShortcut);
-        await expectShortcutRunResult(page, runIdPattern);
-        let previousRunId = await getCell(await getShortcutResultGrid(), 0, 0).innerText();
+        let previousRunId = await runWithShortcut(page, runIdPattern);
 
         // Pressing again without touching the text must still execute; a skipped run leaves the
         // previous NEWID() on screen.
         for (let run = 1; run <= 2; run++) {
-            await page.keyboard.press(executeShortcut);
-            const runIdCell = getCell(await getShortcutResultGrid(), 0, 0);
-            await expect(runIdCell, `unchanged re-run ${run} did not execute`).not.toHaveText(
-                previousRunId,
-                { timeout: SHORTCUT_RUN_BUDGET_MS },
-            );
-            await expectShortcutRunResult(page, runIdPattern);
-            previousRunId = await runIdCell.innerText();
+            previousRunId = await runWithShortcut(page, runIdPattern, previousRunId);
         }
 
         // setQueryText leaves the cursor at the end of the last line; select only that line.
@@ -206,8 +209,7 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
             `${getMarkerQuery("not-selected")}\n${getMarkerQuery("selected")}`,
         );
         await page.keyboard.press("Shift+Home");
-        await page.keyboard.press(executeShortcut);
-        await expectShortcutRunResult(page, "selected");
+        await runWithShortcut(page, "selected");
         await expect(
             resultsFrame
                 .getByTestId("results-tab-list")
