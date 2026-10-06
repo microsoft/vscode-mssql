@@ -4733,6 +4733,15 @@
     <trans-unit id="++CODE++42af6a08749637b661d7673a57e520b362b73fba41c61d645bd40d992f426733">
       <source xml:lang="en">Find File in Database Projects</source>
     </trans-unit>
+    <trans-unit id="++CODE++28199841b2689d624c54aff94ccb2ba8a80585e87c60057b6d35b257104efa7b">
+      <source xml:lang="en">Find File skipped {0} because it could not be loaded: {1}</source>
+      <note>{0} is a project file name
+{1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b723038b8f575b22fd1479b203e283922165824edb271e793079039adea57e41">
+      <source xml:lang="en">Find File skipped {0} project(s) that could not be loaded. See the Database Projects output for details.</source>
+      <note>{0} is the number of projects that could not be loaded</note>
+    </trans-unit>
     <trans-unit id="++CODE++664d6cdf0494d6e50579257917eb2ad1b6aa7534db584c3368f24b47c08cdc22">
       <source xml:lang="en">Find Next</source>
     </trans-unit>

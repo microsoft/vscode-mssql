@@ -2279,10 +2279,29 @@ export class ProjectsController {
     public async findFile(): Promise<void> {
         const projectFiles = await utils.getSqlProjectsInWorkspace();
         const quickPickItems: ProjectFileQuickPickItem[] = [];
-        const seenFiles = new Set<string>();
+        let skippedProjectCount = 0;
 
         for (const projectFile of projectFiles) {
-            const project = await Project.openProject(projectFile.fsPath, false, true);
+            let project: Project;
+            try {
+                // No reload: reloading closes the project in SQL Tools Service, which discards the
+                // IntelliSense model that the Projects view built when it opened the project.
+                project = await Project.openProject(projectFile.fsPath);
+            } catch (error) {
+                // Like the Projects view, one unreadable project must not hide the others' files.
+                skippedProjectCount++;
+                this._outputChannel.appendLine(
+                    SqlProjects.findFileProjectLoadError(
+                        path.basename(projectFile.fsPath),
+                        utils.getErrorMessage(error),
+                    ),
+                );
+                continue;
+            }
+
+            // A file linked into several projects is listed once per project, so it can be
+            // revealed through each project's tree; only repeats within one project are dropped.
+            const seenFiles = new Set<string>();
             const entries: ProjectFileSearchEntry[] = [
                 ...project.sqlObjectScripts.map((entry) => ({
                     entry,
@@ -2336,6 +2355,13 @@ export class ProjectsController {
             }
         }
 
+        if (skippedProjectCount > 0) {
+            // Not awaited: the search over the projects that did load should open right away.
+            void vscode.window.showWarningMessage(
+                SqlProjects.findFileProjectsSkipped(skippedProjectCount),
+            );
+        }
+
         const selectedFile = await vscode.window.showQuickPick(
             quickPickItems.sort((a, b) => a.label.localeCompare(b.label)),
             {
@@ -2359,6 +2385,7 @@ export class ProjectsController {
             TelemetryActions.findFile,
         ).withAdditionalMeasurements({
             projectCount: projectFiles.length,
+            skippedProjectCount,
             fileCount: quickPickItems.length,
         });
 

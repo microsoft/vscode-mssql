@@ -5597,6 +5597,23 @@ export class SqlProjects {
 
     public static findFilePlaceholder = l10n.t("Search by file name, path, or project");
 
+    public static findFileProjectLoadError(projectFileName: string, error: string): string {
+        return l10n.t({
+            message: "Find File skipped {0} because it could not be loaded: {1}",
+            args: [projectFileName, error],
+            comment: ["{0} is a project file name", "{1} is the error message"],
+        });
+    }
+
+    public static findFileProjectsSkipped(skippedCount: number): string {
+        return l10n.t({
+            message:
+                "Find File skipped {0} project(s) that could not be loaded. See the Database Projects output for details.",
+            args: [skippedCount],
+            comment: ["{0} is the number of projects that could not be loaded"],
+        });
+    }
+
     public static Install: string = l10n.t("Install");
 
     public static DoNotAskAgain: string = l10n.t("Don't Ask Again");

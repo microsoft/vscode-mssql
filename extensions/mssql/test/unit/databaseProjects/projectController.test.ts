@@ -221,6 +221,13 @@ suite("ProjectsController", function (): void {
                     await new ProjectsController(testContext.outputChannel).findFile();
 
                     expect(stubs.openProject).to.have.been.calledTwice;
+                    // Without reload, so the projects stay open in SQL Tools Service.
+                    expect(stubs.openProject.firstCall.args).to.deep.equal([
+                        firstProjectUri.fsPath,
+                    ]);
+                    expect(stubs.openProject.secondCall.args).to.deep.equal([
+                        secondProjectUri.fsPath,
+                    ]);
                     const items = await stubs.showQuickPick.firstCall.args[0];
                     expect(items).to.have.length(2);
                     expect(items[0]).to.include({
@@ -258,6 +265,7 @@ suite("ProjectsController", function (): void {
                     });
                     expect(stubs.telemetry.measurements).to.deep.equal({
                         projectCount: 2,
+                        skippedProjectCount: 0,
                         fileCount: 2,
                     });
                 });
@@ -316,6 +324,85 @@ suite("ProjectsController", function (): void {
                     expect(stubs.telemetry.properties.behavior).to.equal("revealAndOpen");
                 });
 
+                test("Should search the remaining projects when one cannot be loaded", async function (): Promise<void> {
+                    const stubs = stubFindFile({ picked: false });
+                    stubs.openProject.onFirstCall().rejects(new Error("Invalid project file"));
+                    const showWarningMessage = sandbox.stub(vscode.window, "showWarningMessage");
+                    const appendLine = sandbox.stub(testContext.outputChannel, "appendLine");
+
+                    await new ProjectsController(testContext.outputChannel).findFile();
+
+                    const items = await stubs.showQuickPick.firstCall.args[0];
+                    expect(items.map((item: vscode.QuickPickItem) => item.label)).to.deep.equal([
+                        "Local.publish.xml",
+                    ]);
+                    expect(appendLine).to.have.been.calledOnceWithExactly(
+                        SqlProjects.findFileProjectLoadError(
+                            "First.sqlproj",
+                            "Invalid project file",
+                        ),
+                    );
+                    expect(showWarningMessage).to.have.been.calledOnceWithExactly(
+                        SqlProjects.findFileProjectsSkipped(1),
+                    );
+                    expect(stubs.telemetry.measurements).to.deep.equal({
+                        projectCount: 2,
+                        skippedProjectCount: 1,
+                        fileCount: 1,
+                    });
+                });
+
+                test("Should list a file linked into two projects once per project", async function (): Promise<void> {
+                    const stubs = stubFindFile({ picked: false });
+                    stubs.openProject.onSecondCall().resolves({
+                        projectFileName: "Second",
+                        sqlObjectScripts: [
+                            new FileProjectEntry(
+                                tableUri,
+                                "..\\First\\dbo\\Tables\\Customer.sql",
+                                EntryType.File,
+                            ),
+                            // A repeat within one project is still listed only once.
+                            new FileProjectEntry(
+                                tableUri,
+                                "..\\First\\dbo\\Tables\\Customer.sql",
+                                EntryType.File,
+                            ),
+                        ],
+                        preDeployScripts: [],
+                        postDeployScripts: [],
+                        noneDeployScripts: [],
+                        publishProfiles: [],
+                    } as Project);
+
+                    await new ProjectsController(testContext.outputChannel).findFile();
+
+                    const items: Array<
+                        vscode.QuickPickItem & {
+                            fileSystemUri: vscode.Uri;
+                            projectFileUri: vscode.Uri;
+                        }
+                    > = await stubs.showQuickPick.firstCall.args[0];
+                    expect(
+                        items.map((item) => ({
+                            description: item.description,
+                            file: item.fileSystemUri.toString(),
+                            project: item.projectFileUri.toString(),
+                        })),
+                    ).to.have.deep.members([
+                        {
+                            description: "dbo/Tables — First",
+                            file: tableUri.toString(),
+                            project: firstProjectUri.toString(),
+                        },
+                        {
+                            description: "../First/dbo/Tables — Second",
+                            file: tableUri.toString(),
+                            project: secondProjectUri.toString(),
+                        },
+                    ]);
+                });
+
                 test("Should not reveal or open a file when the search is cancelled", async function (): Promise<void> {
                     const stubs = stubFindFile({ picked: false });
 
@@ -330,6 +417,7 @@ suite("ProjectsController", function (): void {
                     });
                     expect(stubs.telemetry.measurements).to.deep.equal({
                         projectCount: 2,
+                        skippedProjectCount: 0,
                         fileCount: 2,
                     });
                 });
