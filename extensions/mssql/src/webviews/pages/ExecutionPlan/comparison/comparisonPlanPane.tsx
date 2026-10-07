@@ -13,10 +13,11 @@ import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { WebviewErrorBoundary } from "../../../common/webviewErrorBoundary";
 import { ExecutionPlanGraphController } from "../executionPlanGraphController";
 import { ExecutionPlanHeader } from "../executionPlanHeader";
+import { ExecutionPlanViewport } from "../executionPlanViewport";
 import { FindNode } from "../findNodes";
 import { ReactFlowExecutionPlan } from "../reactFlowExecutionPlan";
 import { ComparisonSide } from "./comparisonModel";
-import { ComparisonZoomControls } from "./comparisonZoomControls";
+import { ComparisonFindControl, ComparisonZoomControls } from "./comparisonCanvasControls";
 import { ComparisonPaneSource } from "./useComparisonSources";
 
 function graphCostPercentage(source: ExecutionPlanComparisonSource, graphIndex: number) {
@@ -36,8 +37,7 @@ interface ComparisonPlanPaneProps {
     linkedNodeId: string | undefined;
     onSelectGraph: (side: ComparisonSide, graphIndex: number) => void;
     onShowQuery: (query: string) => void;
-    showFind: boolean;
-    onCloseFind: () => void;
+    onViewportChange: (side: ComparisonSide, viewport: ExecutionPlanViewport) => void;
     showMinimap: boolean;
 }
 
@@ -51,14 +51,14 @@ export function ComparisonPlanPane({
     linkedNodeId,
     onSelectGraph,
     onShowQuery,
-    showFind,
-    onCloseFind,
+    onViewportChange,
     showMinimap,
 }: ComparisonPlanPaneProps) {
     const { themeKind, extensionRpc } = useVscodeWebview();
     const { source, graphIndex } = pane;
     const graph = source.graphs[graphIndex];
     const [controller, setController] = useState<ExecutionPlanGraphController | null>(null);
+    const [showFind, setShowFind] = useState(false);
     const findInputRef = useRef<HTMLInputElement>(null);
     const handleReady = useCallback(
         (nextController: ExecutionPlanGraphController | null) => {
@@ -71,6 +71,14 @@ export function ComparisonPlanPane({
         (id: string) => onSelectionChange(side, id),
         [onSelectionChange, side],
     );
+    const handleViewportChange = useCallback(
+        (viewport: ExecutionPlanViewport) => onViewportChange(side, viewport),
+        [onViewportChange, side],
+    );
+    const findLabel =
+        side === "primary"
+            ? locConstants.executionPlan.findPrimaryPlan
+            : locConstants.executionPlan.findSecondaryPlan;
 
     useEffect(() => {
         if (showFind) {
@@ -120,6 +128,7 @@ export function ComparisonPlanPane({
                         graphCostPercentage(source, graphIndex),
                     )}
                     onShowQuery={onShowQuery}
+                    queryActions
                 />
             </div>
             <div className="execution-plan-comparison-graph">
@@ -145,9 +154,16 @@ export function ComparisonPlanPane({
                         comparisonGroupRoots={groupRoots}
                         onSelectionChange={handleSelectionChange}
                         linkedNodeId={linkedNodeId}
+                        onViewportChange={handleViewportChange}
                         overlay={
                             <>
                                 <ComparisonZoomControls controller={controller} />
+                                <ComparisonFindControl
+                                    label={findLabel}
+                                    open={showFind}
+                                    disabled={!controller}
+                                    onToggle={() => setShowFind((open) => !open)}
+                                />
                                 {showMinimap && (
                                     <MiniMap
                                         pannable
@@ -164,11 +180,7 @@ export function ComparisonPlanPane({
                         executionPlanView={controller}
                         setExecutionPlanView={() => undefined}
                         findNodeOptions={controller.getUniqueElementProperties()}
-                        setFindNodeClicked={(open: boolean) => {
-                            if (!open) {
-                                onCloseFind();
-                            }
-                        }}
+                        setFindNodeClicked={setShowFind}
                         inputRef={findInputRef}
                     />
                 )}

@@ -35,16 +35,27 @@ export interface ExecutionPlanComparisonInitialSources {
     secondary?: ExecutionPlanComparisonInitialSource;
 }
 
+/** Where the comparison properties panel sits: beside the plans or below them. */
+export type ExecutionPlanComparisonPropertiesDock = "side" | "bottom";
+
 /** View choices the comparison editor remembers across editors and sessions. */
 export interface ExecutionPlanComparisonViewSettings {
     minimapsVisible: boolean;
     /** Whether the areas the two plans have in common are outlined. */
     similarAreasVisible: boolean;
+    propertiesDock: ExecutionPlanComparisonPropertiesDock;
+    /** Whether zooming or scrolling one plan does the same to the other. */
+    viewsSynced: boolean;
+    /** Whether hovering an operator or edge shows its tooltip. */
+    tooltipsEnabled: boolean;
 }
 
 export const defaultComparisonViewSettings: ExecutionPlanComparisonViewSettings = {
     minimapsVisible: true,
     similarAreasVisible: true,
+    propertiesDock: "side",
+    viewsSynced: false,
+    tooltipsEnabled: true,
 };
 
 /** A node in one compared graph that has a match in the other graph. */
@@ -77,14 +88,21 @@ export namespace GetInitialComparisonSourcesRequest {
     );
 }
 
+export interface PickComparisonSourceParams {
+    /** Name of the plan the pick replaces, which the picker names in its prompt. */
+    replacing?: string;
+}
+
 /**
  * Lets the user pick an open plan or a plan file, and loads it. Resolves to nothing when the user
  * cancels, and fails with a displayable message when the plan cannot be loaded.
  */
 export namespace PickComparisonSourceRequest {
-    export const type = new RequestType<void, ExecutionPlanComparisonSource | undefined, void>(
-        "executionPlanComparison/pickSource",
-    );
+    export const type = new RequestType<
+        PickComparisonSourceParams,
+        ExecutionPlanComparisonSource | undefined,
+        void
+    >("executionPlanComparison/pickSource");
 }
 
 /** Fails with a displayable message when the tools service cannot compare the graphs. */

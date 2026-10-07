@@ -9,33 +9,72 @@
 }
 
 .execution-plan-comparison-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
     min-height: 36px;
-    padding: 2px 4px;
+    padding: 0 8px;
     flex: 0 0 auto;
     border-bottom: 1px solid var(--vscode-panel-border);
     background: var(--vscode-editorGroupHeader-tabsBackground);
 }
 
-.execution-plan-comparison-toolbar button {
-    min-width: 32px;
-    height: 32px;
+/*
+ * Buttons follow VS Code's action bar: 16px icons in the icon color, a hover fill, and the
+ * toggle option colors while pressed (as on Match Case in the find widget), so a setting that is
+ * on reads as on rather than as disabled. Layout segments are radios and style themselves.
+ */
+.execution-plan-comparison-toolbar button:not([role="radio"]) {
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--vscode-icon-foreground, var(--vscode-foreground));
 }
 
-.execution-plan-comparison-toolbar button > svg,
+.execution-plan-comparison-toolbar button:not([role="radio"]):hover:not(:disabled) {
+    background: var(--vscode-toolbar-hoverBackground);
+    color: var(--vscode-icon-foreground, var(--vscode-foreground));
+}
+
+.execution-plan-comparison-toolbar button:not([role="radio"])[aria-pressed="true"] {
+    border-color: var(--vscode-inputOption-activeBorder);
+    background: var(--vscode-inputOption-activeBackground);
+    color: var(--vscode-inputOption-activeForeground, var(--vscode-foreground));
+}
+
+.execution-plan-comparison-toolbar button:not([role="radio"]):disabled {
+    opacity: 0.4;
+}
+
 .execution-plan-comparison-toolbar button > span {
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
 }
 
-/* Segments report their state with aria-checked, and keep their own selected color. */
-.execution-plan-comparison-toolbar button[aria-pressed="true"]:not([role="radio"]) {
-    background: var(--vscode-toolbar-activeBackground);
+/* The replace menu shows a small chevron after its icon, so it reads as a menu. */
+.execution-plan-comparison-toolbar button.execution-plan-comparison-plan-menu {
+    width: auto;
+    padding: 0 3px;
+    gap: 1px;
+}
+
+.execution-plan-comparison-toolbar
+    .execution-plan-comparison-plan-menu
+    > .fui-MenuButton__menuIcon {
+    width: 10px;
+    height: 10px;
+    margin: 0;
+    font-size: 10px;
 }
 
 /* A compact pill, so the layout choice reads as one control rather than two more buttons. */
 .execution-plan-comparison-toolbar .execution-plan-comparison-layout {
-    margin: 0 4px;
+    margin: 0 2px;
 }
 
 .execution-plan-comparison-toolbar .execution-plan-comparison-layout button {
@@ -44,21 +83,15 @@
     padding: 0 4px;
 }
 
-.execution-plan-comparison-toolbar .execution-plan-comparison-layout button > span {
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
-}
-
 .execution-plan-comparison-toolbar .execution-plan-comparison-toolbar-divider {
     align-self: center;
     box-sizing: border-box;
     width: 1px;
     min-width: 1px;
-    height: 20px;
-    min-height: 20px;
+    height: 16px;
+    min-height: 16px;
     padding: 0;
-    margin: 0 4px;
+    margin: 0 6px;
     flex: 0 0 1px;
 }
 
@@ -67,6 +100,10 @@
     min-width: 0;
     min-height: 0;
     flex: 1 1 auto;
+}
+
+.execution-plan-comparison-content-bottom {
+    flex-direction: column;
 }
 
 .execution-plan-comparison-split {
@@ -266,6 +303,68 @@
     left: 4px;
     width: 2px;
     background: var(--vscode-focusBorder);
+}
+
+/* Below the plans, the panel spans the editor and resizes from its top edge. */
+.execution-plan-comparison-properties-bottom {
+    min-width: 0;
+    min-height: 160px;
+    border-top: 1px solid
+        var(--vscode-sideBar-border, var(--vscode-editorGroup-border, transparent));
+    border-left: none;
+}
+
+.execution-plan-comparison-properties-bottom > .execution-plan-comparison-properties-resizer {
+    top: -5px;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: auto;
+    height: 11px;
+    cursor: ns-resize;
+}
+
+.execution-plan-comparison-properties-bottom
+    > .execution-plan-comparison-properties-resizer::after {
+    top: 5px;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: auto;
+    height: 1px;
+}
+
+.execution-plan-comparison-properties-bottom
+    > .execution-plan-comparison-properties-resizer:hover::after,
+.execution-plan-comparison-properties-bottom
+    > .execution-plan-comparison-properties-resizer:focus-visible::after {
+    top: 4px;
+    left: 0;
+    width: auto;
+    height: 2px;
+}
+
+.execution-plan-comparison-properties-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Like VS Code's toggle options, such as Match Case in the find widget. */
+.execution-plan-comparison-dock-option {
+    border: 1px solid transparent;
+}
+
+.execution-plan-comparison-dock-option > span {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
+
+.execution-plan-comparison-dock-option[aria-pressed="true"] {
+    border-color: var(--vscode-inputOption-activeBorder);
+    background: var(--vscode-inputOption-activeBackground);
+    color: var(--vscode-inputOption-activeForeground);
 }
 
 .execution-plan-comparison-properties-title {
@@ -572,4 +671,19 @@
     [role="row"]:focus-within
     .execution-plan-comparison-view-value {
     display: inline-flex;
+}
+
+/* Closer to the corner than the other panels, so the find widget opens just left of it. */
+.execution-plan-comparison-graph .execution-plan-comparison-find-control {
+    margin: 8px;
+}
+
+.execution-plan-comparison-graph .react-flow__controls-button[aria-pressed="true"] {
+    background: var(--vscode-inputOption-activeBackground);
+    color: var(--vscode-inputOption-activeForeground, var(--vscode-foreground));
+}
+
+.execution-plan-comparison-graph #findNodeInputContainer {
+    top: 6px;
+    right: 42px;
 }

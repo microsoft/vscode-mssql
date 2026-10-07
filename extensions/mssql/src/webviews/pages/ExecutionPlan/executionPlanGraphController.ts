@@ -9,6 +9,7 @@ import {
     InternalExecutionPlanElement,
     SearchQuery,
 } from "../../../sharedInterfaces/executionPlan";
+import { ExecutionPlanViewport } from "./executionPlanViewport";
 
 export interface ExecutionPlanMetricSource {
     cost: number;
@@ -36,6 +37,15 @@ export interface ExecutionPlanGraphController {
     setZoomLevel(level: number): void;
     searchNodes(searchQuery: SearchQuery): ExecutionPlanNode[];
     centerElement(element: InternalExecutionPlanElement): void;
+    getViewport(): ExecutionPlanViewport;
+    /** Moves the view at once, without animating. */
+    setViewport(viewport: ExecutionPlanViewport): void;
+    /** Whether an element is on the canvas and not hidden under a panel drawn over it. */
+    isElementInView(element: InternalExecutionPlanElement): boolean;
+    /** The center of an element, in the plan's own coordinates. */
+    getElementCenter(element: InternalExecutionPlanElement): { x: number; y: number } | undefined;
+    /** Centers the view on a point in the plan's own coordinates, keeping the zoom. */
+    centerAt(point: { x: number; y: number }): void;
     /** Centers an element that is out of view, and leaves the view alone when it is in view. */
     revealElement(element: InternalExecutionPlanElement): void;
     /** Focus defaults to true; comparison synchronization keeps focus in the originating pane. */

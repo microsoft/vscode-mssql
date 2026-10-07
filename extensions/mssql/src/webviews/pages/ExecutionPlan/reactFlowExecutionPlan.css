@@ -73,6 +73,11 @@
     box-shadow: 0 0 0 1px var(--vscode-focusBorder, #007fd4);
 }
 
+/* Panels drawn over the canvas position themselves against the plan's container. */
+.execution-plan-flow-overlay {
+    display: contents;
+}
+
 /* The match of the operator selected in the other plan, drawn apart from this plan's own focus. */
 .execution-plan-flow-node.linked > .execution-plan-flow-selection-outline {
     border: 1px dashed var(--vscode-focusBorder, #007fd4);

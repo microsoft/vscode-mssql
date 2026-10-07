@@ -3,29 +3,41 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Toolbar, ToolbarButton, ToolbarDivider } from "@fluentui/react-components";
+import {
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
+    Toolbar,
+    ToolbarButton,
+    ToolbarDivider,
+} from "@fluentui/react-components";
 import {
     ArrowSwapRegular,
-    ArrowSyncRegular,
+    ChevronDown12Regular,
     DocumentAddRegular,
     DocumentBulletListFilled,
     DocumentBulletListRegular,
+    DocumentSyncRegular,
     LayerFilled,
     LayerRegular,
+    LinkFilled,
+    LinkRegular,
     MapFilled,
     MapRegular,
     SplitHorizontalRegular,
     SplitVerticalRegular,
 } from "@fluentui/react-icons";
+import { ReactElement } from "react";
 
 import {
-    SearchPlanIcon,
     TooltipIcon16Regular,
     TooltipOffIcon16Regular,
 } from "../../../common/icons/executionPlanIcons";
 import { locConstants } from "../../../common/locConstants";
 import { SegmentedControl, SegmentedControlOption } from "../../../common/segmentedControl";
-import { ExecutionPlanGraphController } from "../executionPlanGraphController";
 import { ComparisonOrientation, ComparisonSide, comparisonSides } from "./comparisonModel";
 
 const orientationOptions: SegmentedControlOption<ComparisonOrientation>[] = [
@@ -41,11 +53,42 @@ const orientationOptions: SegmentedControlOption<ComparisonOrientation>[] = [
     },
 ];
 
+/** A toolbar button that stays pressed while its setting is on. */
+function ToggleButton({
+    label,
+    pressed,
+    icon,
+    pressedIcon,
+    disabled,
+    onToggle,
+}: {
+    label: string;
+    pressed: boolean;
+    icon: ReactElement;
+    pressedIcon?: ReactElement;
+    disabled?: boolean;
+    onToggle: () => void;
+}) {
+    return (
+        <ToolbarButton
+            icon={pressed && pressedIcon ? pressedIcon : icon}
+            disabled={disabled}
+            onClick={onToggle}
+            title={label}
+            aria-label={label}
+            aria-pressed={pressed}
+        />
+    );
+}
+
 interface ComparisonToolbarProps {
-    controllers: Record<ComparisonSide, ExecutionPlanGraphController | null>;
-    /** True once both panes have a plan, when picking another replaces the secondary one. */
-    replacesPlan: boolean;
-    onPickPlan: () => void;
+    /** False until a plan is loaded, which the view commands need. */
+    hasPlans: boolean;
+    /** The name of the plan in each pane, or undefined while the pane is empty. */
+    planNames: Record<ComparisonSide, string | undefined>;
+    /** Fills the first empty pane. */
+    onAddPlan: () => void;
+    onReplacePlan: (side: ComparisonSide) => void;
     canSwap: boolean;
     onSwap: () => void;
     orientation: ComparisonOrientation;
@@ -54,19 +97,23 @@ interface ComparisonToolbarProps {
     onToggleMinimaps: () => void;
     similarAreasVisible: boolean;
     onToggleSimilarAreas: () => void;
+    viewsSynced: boolean;
+    onToggleViewsSynced: () => void;
     propertiesOpen: boolean;
     onToggleProperties: () => void;
-    findSide: ComparisonSide | undefined;
-    onToggleFind: (side: ComparisonSide) => void;
     tooltipsEnabled: boolean;
     onToggleTooltips: () => void;
 }
 
-/** Commands for the whole comparison. Each plan has its own zoom controls on its canvas. */
+/**
+ * Commands for the whole comparison, grouped as: adding plans; arranging them; what the plans
+ * show; and the panels around them. Each plan has its own zoom and find controls on its canvas.
+ */
 export function ComparisonToolbar({
-    controllers,
-    replacesPlan,
-    onPickPlan,
+    hasPlans,
+    planNames,
+    onAddPlan,
+    onReplacePlan,
     canSwap,
     onSwap,
     orientation,
@@ -75,41 +122,66 @@ export function ComparisonToolbar({
     onToggleMinimaps,
     similarAreasVisible,
     onToggleSimilarAreas,
+    viewsSynced,
+    onToggleViewsSynced,
     propertiesOpen,
     onToggleProperties,
-    findSide,
-    onToggleFind,
     tooltipsEnabled,
     onToggleTooltips,
 }: ComparisonToolbarProps) {
-    const readyControllers = comparisonSides
-        .map((side) => controllers[side])
-        .filter((controller) => controller !== null);
-    const noPlans = readyControllers.length === 0;
-    const pickLabel = replacesPlan
-        ? locConstants.executionPlan.replaceExecutionPlan
-        : locConstants.executionPlan.addExecutionPlan;
-    const findButton = (side: ComparisonSide, planNumber: 1 | 2, label: string) => (
-        <ToolbarButton
-            icon={<SearchPlanIcon planNumber={planNumber} selected={findSide === side} />}
-            disabled={!controllers[side]}
-            onClick={() => onToggleFind(side)}
-            title={label}
-            aria-label={label}
-            aria-pressed={findSide === side}
-        />
-    );
+    const replaceLabels: Record<ComparisonSide, string> =
+        orientation === "stacked"
+            ? {
+                  primary: locConstants.executionPlan.replaceTopPlan,
+                  secondary: locConstants.executionPlan.replaceBottomPlan,
+              }
+            : {
+                  primary: locConstants.executionPlan.replaceLeftPlan,
+                  secondary: locConstants.executionPlan.replaceRightPlan,
+              };
 
     return (
         <Toolbar
             className="execution-plan-comparison-toolbar"
             aria-label={locConstants.executionPlan.compareExecutionPlans}>
-            <ToolbarButton
-                icon={replacesPlan ? <ArrowSyncRegular /> : <DocumentAddRegular />}
-                onClick={onPickPlan}
-                title={pickLabel}
-                aria-label={pickLabel}
-            />
+            {planNames.primary !== undefined && planNames.secondary !== undefined ? (
+                // With both panes full, adding a plan means choosing which one it replaces.
+                <Menu>
+                    <MenuTrigger disableButtonEnhancement>
+                        <MenuButton
+                            appearance="subtle"
+                            className="execution-plan-comparison-plan-menu"
+                            icon={<DocumentSyncRegular />}
+                            menuIcon={<ChevronDown12Regular />}
+                            title={locConstants.executionPlan.replaceExecutionPlan}
+                            aria-label={locConstants.executionPlan.replaceExecutionPlan}>
+                            {/* Fluent leaves out the chevron of an icon-only menu button. */}
+                            <span className="execution-plan-comparison-visually-hidden">
+                                {locConstants.executionPlan.replaceExecutionPlan}
+                            </span>
+                        </MenuButton>
+                    </MenuTrigger>
+                    <MenuPopover>
+                        <MenuList>
+                            {comparisonSides.map((side) => (
+                                <MenuItem
+                                    key={side}
+                                    secondaryContent={planNames[side]}
+                                    onClick={() => onReplacePlan(side)}>
+                                    {replaceLabels[side]}
+                                </MenuItem>
+                            ))}
+                        </MenuList>
+                    </MenuPopover>
+                </Menu>
+            ) : (
+                <ToolbarButton
+                    icon={<DocumentAddRegular />}
+                    onClick={onAddPlan}
+                    title={locConstants.executionPlan.addExecutionPlan}
+                    aria-label={locConstants.executionPlan.addExecutionPlan}
+                />
+            )}
             <ToolbarDivider className="execution-plan-comparison-toolbar-divider" />
             <ToolbarButton
                 icon={<ArrowSwapRegular />}
@@ -126,39 +198,46 @@ export function ComparisonToolbar({
                 ariaLabel={locConstants.executionPlan.planLayout}
             />
             <ToolbarDivider className="execution-plan-comparison-toolbar-divider" />
-            <ToolbarButton
-                icon={minimapsVisible ? <MapFilled /> : <MapRegular />}
-                disabled={noPlans}
-                onClick={onToggleMinimaps}
-                title={locConstants.executionPlan.toggleMinimap}
-                aria-label={locConstants.executionPlan.toggleMinimap}
-                aria-pressed={minimapsVisible}
+            <ToggleButton
+                label={locConstants.executionPlan.toggleMinimap}
+                pressed={minimapsVisible}
+                icon={<MapRegular />}
+                pressedIcon={<MapFilled />}
+                disabled={!hasPlans}
+                onToggle={onToggleMinimaps}
             />
-            <ToolbarButton
-                icon={similarAreasVisible ? <LayerFilled /> : <LayerRegular />}
-                disabled={noPlans}
-                onClick={onToggleSimilarAreas}
-                title={locConstants.executionPlan.toggleSimilarAreas}
-                aria-label={locConstants.executionPlan.toggleSimilarAreas}
-                aria-pressed={similarAreasVisible}
+            <ToggleButton
+                label={locConstants.executionPlan.toggleSimilarAreas}
+                pressed={similarAreasVisible}
+                icon={<LayerRegular />}
+                pressedIcon={<LayerFilled />}
+                disabled={!hasPlans}
+                onToggle={onToggleSimilarAreas}
             />
-            <ToolbarButton
-                icon={propertiesOpen ? <DocumentBulletListFilled /> : <DocumentBulletListRegular />}
-                disabled={!controllers.primary}
-                onClick={onToggleProperties}
-                title={locConstants.executionPlan.properties}
-                aria-label={locConstants.executionPlan.properties}
-                aria-pressed={propertiesOpen}
+            <ToggleButton
+                label={locConstants.executionPlan.syncZoomAndScroll}
+                pressed={viewsSynced}
+                icon={<LinkRegular />}
+                pressedIcon={<LinkFilled />}
+                disabled={!hasPlans}
+                onToggle={onToggleViewsSynced}
             />
-            {findButton("primary", 1, locConstants.executionPlan.findPrimaryPlan)}
-            {findButton("secondary", 2, locConstants.executionPlan.findSecondaryPlan)}
-            <ToolbarButton
-                icon={tooltipsEnabled ? <TooltipIcon16Regular /> : <TooltipOffIcon16Regular />}
-                disabled={noPlans}
-                onClick={onToggleTooltips}
-                title={locConstants.executionPlan.toggleTooltips}
-                aria-label={locConstants.executionPlan.toggleTooltips}
-                aria-pressed={tooltipsEnabled}
+            <ToolbarDivider className="execution-plan-comparison-toolbar-divider" />
+            <ToggleButton
+                label={locConstants.executionPlan.properties}
+                pressed={propertiesOpen}
+                icon={<DocumentBulletListRegular />}
+                pressedIcon={<DocumentBulletListFilled />}
+                disabled={!hasPlans}
+                onToggle={onToggleProperties}
+            />
+            <ToggleButton
+                label={locConstants.executionPlan.toggleTooltips}
+                pressed={tooltipsEnabled}
+                icon={<TooltipOffIcon16Regular />}
+                pressedIcon={<TooltipIcon16Regular />}
+                disabled={!hasPlans}
+                onToggle={onToggleTooltips}
             />
         </Toolbar>
     );

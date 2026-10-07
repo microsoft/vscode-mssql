@@ -209,12 +209,15 @@ suite("ExecutionPlanComparisonWebviewController", () => {
         });
     });
 
-    test("shows the minimaps and similar areas until the user hides them", async () => {
+    test("starts with minimaps, similar areas and tooltips shown, and properties beside the plans", async () => {
         createController();
 
         expect(await request(epc.GetComparisonViewSettingsRequest.type)).to.deep.equal({
             minimapsVisible: true,
             similarAreasVisible: true,
+            propertiesDock: "side",
+            viewsSynced: false,
+            tooltipsEnabled: true,
         });
     });
 
@@ -225,6 +228,9 @@ suite("ExecutionPlanComparisonWebviewController", () => {
         )!;
         update({ minimapsVisible: false });
         update({ similarAreasVisible: false });
+        update({ propertiesDock: "bottom" });
+        update({ viewsSynced: true });
+        update({ tooltipsEnabled: false });
         update({ minimapsVisible: true });
         observeWebviewReady(first);
         first.dispose();
@@ -234,6 +240,9 @@ suite("ExecutionPlanComparisonWebviewController", () => {
         expect(await request(epc.GetComparisonViewSettingsRequest.type)).to.deep.equal({
             minimapsVisible: true,
             similarAreasVisible: false,
+            propertiesDock: "bottom",
+            viewsSynced: true,
+            tooltipsEnabled: false,
         });
     });
 
@@ -271,6 +280,21 @@ suite("ExecutionPlanComparisonWebviewController", () => {
         } finally {
             registration.dispose();
         }
+    });
+
+    test("names the plan being replaced when asking for its replacement", async () => {
+        const showQuickPick = sandbox.stub(vscode.window, "showQuickPick").resolves(undefined);
+        createController();
+
+        await request(epc.PickComparisonSourceRequest.type, {});
+        await request(epc.PickComparisonSourceRequest.type, { replacing: "plan2.sqlplan" });
+
+        expect(showQuickPick.firstCall.args[1]?.placeHolder).to.equal(
+            "Select an execution plan to compare",
+        );
+        expect(showQuickPick.secondCall.args[1]?.placeHolder).to.equal(
+            "Select an execution plan to replace plan2.sqlplan",
+        );
     });
 
     test("resolves to nothing when the user cancels the pick", async () => {

@@ -26,10 +26,14 @@ function selectedNode(
 
 /**
  * Tracks each pane's graph controller and selected operator. While linking is on, selecting an
- * operator in a similar area selects its match in the other pane, outlines it, and centers it when
- * it is out of view, without moving focus there.
+ * operator in a similar area selects its match in the other pane, outlines it, and scrolls it
+ * into view when it is off the canvas or under a panel, without moving focus there.
  */
-export function useLinkedSelection(maps: ExecutionPlanComparisonMaps, linking: boolean) {
+export function useLinkedSelection(
+    maps: ExecutionPlanComparisonMaps,
+    linking: boolean,
+    synced: boolean,
+) {
     const [controllers, setControllers] = useState<
         Record<ComparisonSide, ExecutionPlanGraphController | null>
     >({ primary: null, secondary: null });
@@ -46,6 +50,7 @@ export function useLinkedSelection(maps: ExecutionPlanComparisonMaps, linking: b
     });
     const mapsRef = useRef(maps);
     const linkingRef = useRef(linking);
+    const syncedRef = useRef(synced);
     /** The pane the user last selected in, whose selection the other pane follows. */
     const sourceSideRef = useRef<ComparisonSide | undefined>(undefined);
 
@@ -84,7 +89,22 @@ export function useLinkedSelection(maps: ExecutionPlanComparisonMaps, linking: b
                 target.followedId = linkedId;
                 target.controller.selectElement(element, false, false);
             }
-            target.controller.revealElement(element);
+            if (!syncedRef.current) {
+                target.controller.revealElement(element);
+            } else if (!target.controller.isElementInView(element)) {
+                // Synced views move together, so center between the selection and its match to
+                // keep both in view where the two plans allow it.
+                const source = panesRef.current[side].controller;
+                const sourceElement = source?.getElementById(id);
+                const selected = sourceElement && source?.getElementCenter(sourceElement);
+                const match = target.controller.getElementCenter(element);
+                if (selected && match) {
+                    target.controller.centerAt({
+                        x: (selected.x + match.x) / 2,
+                        y: (selected.y + match.y) / 2,
+                    });
+                }
+            }
             setLinkedId(targetSide, linkedId);
         },
         [setLinkedId],
@@ -98,6 +118,10 @@ export function useLinkedSelection(maps: ExecutionPlanComparisonMaps, linking: b
             followMatch(sourceSide, sourceId);
         }
     }, [followMatch]);
+
+    useEffect(() => {
+        syncedRef.current = synced;
+    }, [synced]);
 
     useEffect(() => {
         mapsRef.current = maps;

@@ -3,7 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ZoomFit16Regular, ZoomIn16Regular, ZoomOut16Regular } from "@fluentui/react-icons";
+import {
+    Search16Regular,
+    ZoomFit16Regular,
+    ZoomIn16Regular,
+    ZoomOut16Regular,
+} from "@fluentui/react-icons";
 import { ControlButton, Controls, useStore } from "@xyflow/react";
 import { ReactElement } from "react";
 
@@ -63,6 +68,41 @@ export function ComparisonZoomControls({
                 <ZoomOriginalSizeIcon16Regular />,
                 (planController) => planController.setZoomLevel(100),
             )}
+        </Controls>
+    );
+}
+
+/**
+ * Opens the plan's find widget, from React Flow's controls panel at the top-right of the canvas.
+ * The widget opens just left of it.
+ */
+export function ComparisonFindControl({
+    label,
+    open,
+    disabled,
+    onToggle,
+}: {
+    label: string;
+    open: boolean;
+    disabled: boolean;
+    onToggle: () => void;
+}) {
+    return (
+        <Controls
+            className="execution-plan-comparison-find-control"
+            position="top-right"
+            showZoom={false}
+            showFitView={false}
+            showInteractive={false}
+            aria-label={label}>
+            <ControlButton
+                title={label}
+                aria-label={label}
+                aria-pressed={open}
+                disabled={disabled}
+                onClick={onToggle}>
+                <Search16Regular />
+            </ControlButton>
         </Controls>
     );
 }

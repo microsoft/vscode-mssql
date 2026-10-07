@@ -2320,6 +2320,9 @@
     <trans-unit id="++CODE++26c6883b4e9eb25526ec19d94646a3c9fd552c11c259e57b199d396504ada712">
       <source xml:lang="en">Copy Object Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++b2438ae936ce1b04cc796587cfbb853c474023d603be2d98fde7be3526f9a295">
+      <source xml:lang="en">Copy Query</source>
+    </trans-unit>
     <trans-unit id="++CODE++970a1f3493ca367ca4e95e0f203ef44c08040fa0563dd8b2cc2c9c69cf125da4">
       <source xml:lang="en">Copy Script</source>
     </trans-unit>
@@ -3242,6 +3245,12 @@
     </trans-unit>
     <trans-unit id="++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581">
       <source xml:lang="en">Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++acaf4ae60031ae0f6ae96f17a943cd90dce40cf063154c5a3a42ad08dc47cb24">
+      <source xml:lang="en">Dock to the bottom</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3cf4b9fd798574c2eb835769059d3f7bd012f2a13506e1cf6bcc60902cfdcb13">
+      <source xml:lang="en">Dock to the side</source>
     </trans-unit>
     <trans-unit id="++CODE++e6169e958b37ce8662817b0f3e0bf450a174742fafc527800e67f430738b4b63">
       <source xml:lang="en">Docker</source>
@@ -7919,11 +7928,23 @@
       <note>{0} is the current database name
 {1} is the new database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++361e78911e1bf0379262ab92b60ee5ef118764a2f7ec389696a5e120a18e8b01">
+      <source xml:lang="en">Replace bottom plan…</source>
+    </trans-unit>
     <trans-unit id="++CODE++1d47dd969ccae17db9089a867a2faa5967875338321066d9ab8baaa121c21f35">
       <source xml:lang="en">Replace execution plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++e50317e1f03c637723fdf8da11219373a7ef55b888501311564b8a6036159a89">
+      <source xml:lang="en">Replace left plan…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2eda9853e418c1abe501cbbab5fc56be77110f720c8adfe9f4cfa350f3b327d2">
+      <source xml:lang="en">Replace right plan…</source>
+    </trans-unit>
     <trans-unit id="++CODE++6be4a48af21f057f95228c735626f18c8bc96d306afa6ab163770f2f5c73265f">
       <source xml:lang="en">Replace this container with a new one on the same name and port, running your current configuration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++13389e6e3be817efbff7bd8693d7900757dd1109345b9275b0b63542926e8499">
+      <source xml:lang="en">Replace top plan…</source>
     </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
@@ -8851,6 +8872,10 @@
     <trans-unit id="++CODE++1640d78bbb35be6002586df3036191c5bb7455eb5cd6613f8455bd3e2cf0d2bc">
       <source xml:lang="en">Select an execution plan to compare</source>
     </trans-unit>
+    <trans-unit id="++CODE++2feddedc429af59e438afc4eb6fbbf8d819d6570863c8cca67547390a5687a3e">
+      <source xml:lang="en">Select an execution plan to replace {0}</source>
+      <note>{0} is the name of the execution plan being replaced</note>
+    </trans-unit>
     <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
       <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
     </trans-unit>
@@ -9592,6 +9617,9 @@
     </trans-unit>
     <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
       <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cf233c87a5d60df3f5931160bfe3e42bacd2ace167c3531a08e55758b461f905">
+      <source xml:lang="en">Sync Zoom and Scroll</source>
     </trans-unit>
     <trans-unit id="++CODE++2550007022b2cb525a426176b9fd9615b9fac3cc51d6abd99ac96f59ea33ce3a">
       <source xml:lang="en">Synchronous resize</source>

@@ -62,12 +62,17 @@ export function useComparisonSources() {
             .finally(() => setLoaded(true));
     }, [extensionRpc, load]);
 
-    /** A later pick wins, even when an earlier one finishes loading last. */
+    /**
+     * Lets the user pick the plan for a pane, naming the plan it replaces, if any. A later pick
+     * wins, even when an earlier one finishes loading last.
+     */
     const pickSource = useCallback(
-        async (side: ComparisonSide) => {
+        async (side: ComparisonSide, replacing?: string) => {
             const version = ++pickVersionRef.current;
             try {
-                const source = await extensionRpc.sendRequest(PickComparisonSourceRequest.type);
+                const source = await extensionRpc.sendRequest(PickComparisonSourceRequest.type, {
+                    replacing,
+                });
                 if (version === pickVersionRef.current && source) {
                     setErrorMessage(undefined);
                     load(side, source, 0);

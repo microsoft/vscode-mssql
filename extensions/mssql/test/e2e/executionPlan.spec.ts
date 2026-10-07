@@ -11,6 +11,7 @@ import {
     getWebviewByTitle,
     runCommandFromPalette,
     waitForCommandPaletteToBeVisible,
+    withClipboardLock,
 } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
 import path from "path";
@@ -502,6 +503,21 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const linkedMatch = secondary.locator(".execution-plan-flow-node.linked");
         await expect(linkedMatch).toContainText("Nested Loops");
         await expect.poll(() => isWithin(secondary, linkedMatch)).toBe(true);
+        // Panels over the canvas, such as the minimap, do not count as showing the match.
+        await expect
+            .poll(async () => {
+                const match = await linkedMatch.boundingBox();
+                const minimap = await secondary.locator(".react-flow__minimap").boundingBox();
+                return (
+                    !!match &&
+                    !!minimap &&
+                    (match.x + match.width <= minimap.x ||
+                        minimap.x + minimap.width <= match.x ||
+                        match.y + match.height <= minimap.y ||
+                        minimap.y + minimap.height <= match.y)
+                );
+            })
+            .toBe(true);
         await expect(nestedLoops).toBeFocused();
         await equivalent.click();
         await expect(physicalRow).toContainText("Nested Loops");
@@ -544,6 +560,11 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await expect(physicalRow).toContainText("Hash Match");
         await find.getByRole("button", { name: "Close", exact: true }).click();
 
+        // The panel docks below the plans and back beside them.
+        await properties.getByRole("button", { name: "Dock to the bottom", exact: true }).click();
+        await expect(properties).toHaveClass(/execution-plan-comparison-properties-bottom/);
+        await properties.getByRole("button", { name: "Dock to the side", exact: true }).click();
+        await expect(properties).toHaveClass(/execution-plan-comparison-properties-side/);
         await properties.getByRole("button", { name: "Close", exact: true }).click();
         const initialZoom = await getZoom(comparison);
         await primary.locator(".execution-plan-flow-canvas").hover();
@@ -562,14 +583,41 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await secondary.getByRole("button", { name: "Zoom Out", exact: true }).click();
         await expect.poll(() => paneZoom(secondary)).toBeLessThan(secondaryZoom);
 
-        // Both plans show a minimap until the user hides them, and later comparisons keep that.
-        const minimapToggle = (frame: FrameLocator) =>
+        // Synced, zooming one plan zooms the other to match. Sync is saved, so turn it off again.
+        const syncToggle = comparison
+            .getByRole("toolbar", { name: "Compare Execution Plans" })
+            .getByRole("button", { name: "Sync Zoom and Scroll", exact: true });
+        await expect(syncToggle).toHaveAttribute("aria-pressed", "false");
+        await syncToggle.click();
+        await primary.getByRole("button", { name: "Zoom In", exact: true }).click();
+        await expect
+            .poll(async () => (await paneZoom(secondary)) - (await paneZoom(primary)))
+            .toBeCloseTo(0, 4);
+        await syncToggle.click();
+        await expect(syncToggle).toHaveAttribute("aria-pressed", "false");
+
+        // The query line copies its query.
+        await withClipboardLock(async () => {
+            await primary.getByRole("button", { name: "Copy Query", exact: true }).click();
+            await expect(
+                primary.getByRole("button", { name: "Copy Query", exact: true }),
+            ).toHaveAttribute("title", "Copied");
+        });
+
+        // Both plans show a minimap and tooltips until the user turns them off, and later
+        // comparisons keep that.
+        const toolbarToggle = (frame: FrameLocator, name: string) =>
             frame
                 .getByRole("toolbar", { name: "Compare Execution Plans" })
-                .getByRole("button", { name: "Toggle Minimap", exact: true });
+                .getByRole("button", { name, exact: true });
+        const minimapToggle = (frame: FrameLocator) => toolbarToggle(frame, "Toggle Minimap");
+        const tooltipsToggle = (frame: FrameLocator) => toolbarToggle(frame, "Toggle Tooltips");
         await expect(comparison.locator(".react-flow__minimap")).toHaveCount(2);
         await minimapToggle(comparison).click();
         await expect(comparison.locator(".react-flow__minimap")).toHaveCount(0);
+        await expect(tooltipsToggle(comparison)).toHaveAttribute("aria-pressed", "true");
+        await tooltipsToggle(comparison).click();
+        await expect(tooltipsToggle(comparison)).toHaveAttribute("aria-pressed", "false");
         await writeCoverage(comparison, "executionPlanComparison");
         await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
 
@@ -583,9 +631,12 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await expect(reopened.getByRole("region", { name: "Primary plan" })).toBeVisible();
         await expect(reopened.locator(".react-flow__minimap")).toHaveCount(0);
-        // Show them again, so the comparisons that follow start from the default.
+        await expect(tooltipsToggle(reopened)).toHaveAttribute("aria-pressed", "false");
+        // Turn them on again, so the comparisons that follow start from the defaults.
         await minimapToggle(reopened).click();
         await expect(reopened.locator(".react-flow__minimap")).toHaveCount(1);
+        await tooltipsToggle(reopened).click();
+        await expect(tooltipsToggle(reopened)).toHaveAttribute("aria-pressed", "true");
         await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
     });
 
@@ -625,9 +676,19 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await expect(secondary.getByRole("treeitem").first()).toBeVisible();
         await expect(placeholders).toHaveCount(0);
         await expect(comparison.locator(".execution-plan-comparison-group").first()).toBeVisible();
-        await expect(
-            toolbar.getByRole("button", { name: "Replace execution plan", exact: true }),
-        ).toBeVisible();
+        // With both panes full, the toolbar asks which plan to replace, and the picker names it.
+        await toolbar.getByRole("button", { name: "Replace execution plan", exact: true }).click();
+        await expect(comparison.getByRole("menuitem", { name: /Replace top plan/ })).toContainText(
+            "plan.sqlplan",
+        );
+        await comparison.getByRole("menuitem", { name: /Replace bottom plan/ }).click();
+        await expect(vsCodePage.locator(".quick-input-widget input")).toHaveAttribute(
+            "placeholder",
+            "Select an execution plan to replace plan.sqlplan",
+        );
+        await quickInput.filter("plan.sqlplan");
+        await quickInput.pick("plan.sqlplan");
+        await expect(secondary.getByRole("treeitem").first()).toBeVisible();
         await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
     });
 });

@@ -4,8 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Badge, Button, makeStyles, tokens } from "@fluentui/react-components";
-import { Lightbulb16Filled } from "@fluentui/react-icons";
-import { CSSProperties } from "react";
+import {
+    Checkmark16Regular,
+    Copy16Regular,
+    Lightbulb16Filled,
+    Open16Regular,
+} from "@fluentui/react-icons";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import { ExecutionPlanGraph } from "../../../sharedInterfaces/executionPlan";
 import { locConstants } from "../../common/locConstants";
 import { SqlText } from "../../common/sqlText";
@@ -37,12 +42,26 @@ const useStyles = makeStyles({
         marginLeft: "8px",
         verticalAlign: "middle",
     },
+    queryRow: {
+        display: "flex",
+        alignItems: "center",
+        columnGap: "2px",
+        paddingTop: "4px",
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
     queryText: {
+        flex: "1 1 auto",
+        minWidth: 0,
         fontSize: "12px",
         lineHeight: "17px",
         maxHeight: "17px",
-        paddingTop: "4px",
-        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    queryAction: {
+        flexShrink: 0,
+        minWidth: "20px",
+        width: "20px",
+        height: "20px",
+        padding: 0,
     },
     recommendations: {
         display: "flex",
@@ -104,17 +123,23 @@ export function ExecutionPlanHeader({
     graph,
     costLabel,
     onShowQuery,
+    queryActions = false,
     id,
     style,
 }: {
     graph: ExecutionPlanGraph | undefined;
     costLabel: string;
-    /** Opens a recommendation's script, wrapped in its explanatory comment, without running it. */
+    /** Opens a query, or a recommendation's script in its explanatory comment, without running it. */
     onShowQuery: (query: string) => void;
+    /** Shows buttons at the end of the query line that copy the query and open it in a new tab. */
+    queryActions?: boolean;
     id?: string;
     style?: CSSProperties;
 }) {
     const classes = useStyles();
+    const [copied, setCopied] = useState(false);
+    const copiedTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+    useEffect(() => () => clearTimeout(copiedTimerRef.current), []);
     const query = normalizeExecutionPlanQuery(graph?.query ?? "");
     const recommendations = (graph?.recommendations ?? []).map((recommendation) => ({
         ...parseRecommendationDisplayString(recommendation.displayString),
@@ -173,13 +198,50 @@ export function ExecutionPlanHeader({
                 )}
                 {elapsedLabel && <span className={classes.liveBadge}>{elapsedLabel}</span>}
             </div>
-            <SqlText
-                className={classes.queryText}
-                text={query}
-                singleLine
-                showLineBreaks
-                title={query}
-            />
+            <div className={classes.queryRow}>
+                <SqlText
+                    className={classes.queryText}
+                    text={query}
+                    singleLine
+                    showLineBreaks
+                    title={query}
+                />
+                {queryActions && query && (
+                    <>
+                        <Button
+                            appearance="subtle"
+                            size="small"
+                            className={classes.queryAction}
+                            icon={copied ? <Checkmark16Regular /> : <Copy16Regular />}
+                            title={
+                                copied
+                                    ? locConstants.common.copied
+                                    : locConstants.executionPlan.copyQuery
+                            }
+                            aria-label={locConstants.executionPlan.copyQuery}
+                            onClick={() => {
+                                void navigator.clipboard.writeText(query).then(() => {
+                                    setCopied(true);
+                                    clearTimeout(copiedTimerRef.current);
+                                    copiedTimerRef.current = setTimeout(
+                                        () => setCopied(false),
+                                        1500,
+                                    );
+                                });
+                            }}
+                        />
+                        <Button
+                            appearance="subtle"
+                            size="small"
+                            className={classes.queryAction}
+                            icon={<Open16Regular />}
+                            title={locConstants.executionPlan.openQuery}
+                            aria-label={locConstants.executionPlan.openQuery}
+                            onClick={() => onShowQuery(query)}
+                        />
+                    </>
+                )}
+            </div>
             {recommendations.length > 0 && (
                 <div
                     className={classes.recommendations}

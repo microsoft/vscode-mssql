@@ -22,6 +22,7 @@ import { useComparisonSources } from "./useComparisonSources";
 import { useComparisonViewSettings } from "./useComparisonViewSettings";
 import { useGraphComparison } from "./useGraphComparison";
 import { useLinkedSelection } from "./useLinkedSelection";
+import { useViewportSync } from "./useViewportSync";
 
 const noGroupRoots: ReadonlyMap<string, number> = new Map();
 
@@ -41,12 +42,13 @@ export function ExecutionPlanComparisonPage() {
         panes.secondary?.source.graphs[panes.secondary.graphIndex],
     );
     const { settings: viewSettings, updateSettings } = useComparisonViewSettings();
+    const viewsSynced = viewSettings?.viewsSynced ?? false;
     const { controllers, selectedNodes, linkedIds, onReady, onSelectionChange } =
-        useLinkedSelection(comparison.maps, viewSettings?.similarAreasVisible ?? true);
+        useLinkedSelection(comparison.maps, viewSettings?.similarAreasVisible ?? true, viewsSynced);
+    const onViewportChange = useViewportSync(controllers, viewsSynced);
     const [orientation, setOrientation] = useState<ComparisonOrientation>("stacked");
     const [propertiesOpen, setPropertiesOpen] = useState(false);
-    const [findSide, setFindSide] = useState<ComparisonSide>();
-    const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
+    const tooltipsEnabled = viewSettings?.tooltipsEnabled ?? true;
 
     // Panes remount when they change statement or plan, so apply the setting to new graphs too.
     useEffect(() => {
@@ -59,7 +61,6 @@ export function ExecutionPlanComparisonPage() {
             void extensionRpc.sendNotification(ShowComparisonQueryNotification.type, { query }),
         [extensionRpc],
     );
-    const closeFind = useCallback(() => setFindSide(undefined), []);
 
     if (!loaded || !viewSettings) {
         return (
@@ -69,8 +70,6 @@ export function ExecutionPlanComparisonPage() {
         );
     }
 
-    // The toolbar fills the first empty pane, and replaces the secondary plan once both are full.
-    const toolbarPickSide: ComparisonSide = panes.primary ? "secondary" : "primary";
     const errorMessage = sourceError ?? comparison.errorMessage;
     const renderPane = (side: ComparisonSide) => {
         const pane = panes[side];
@@ -105,8 +104,7 @@ export function ExecutionPlanComparisonPage() {
                 linkedNodeId={linkedIds[side]}
                 onSelectGraph={selectGraph}
                 onShowQuery={showQuery}
-                showFind={findSide === side}
-                onCloseFind={closeFind}
+                onViewportChange={onViewportChange}
                 showMinimap={viewSettings.minimapsVisible}
             />
         );
@@ -117,9 +115,13 @@ export function ExecutionPlanComparisonPage() {
             className="execution-plan-comparison"
             style={{ color: tokens.colorNeutralForeground1 }}>
             <ComparisonToolbar
-                controllers={controllers}
-                replacesPlan={panes.primary !== undefined && panes.secondary !== undefined}
-                onPickPlan={() => void pickSource(toolbarPickSide)}
+                hasPlans={controllers.primary !== null || controllers.secondary !== null}
+                planNames={{
+                    primary: panes.primary?.source.name,
+                    secondary: panes.secondary?.source.name,
+                }}
+                onAddPlan={() => void pickSource(panes.primary ? "secondary" : "primary")}
+                onReplacePlan={(side) => void pickSource(side, panes[side]?.source.name)}
                 canSwap={panes.primary !== undefined || panes.secondary !== undefined}
                 onSwap={swap}
                 orientation={orientation}
@@ -132,21 +134,20 @@ export function ExecutionPlanComparisonPage() {
                 onToggleSimilarAreas={() =>
                     updateSettings({ similarAreasVisible: !viewSettings.similarAreasVisible })
                 }
+                viewsSynced={viewsSynced}
+                onToggleViewsSynced={() => updateSettings({ viewsSynced: !viewsSynced })}
                 propertiesOpen={propertiesOpen}
                 onToggleProperties={() => setPropertiesOpen((open) => !open)}
-                findSide={findSide}
-                onToggleFind={(side) =>
-                    setFindSide((current) => (current === side ? undefined : side))
-                }
                 tooltipsEnabled={tooltipsEnabled}
-                onToggleTooltips={() => setTooltipsEnabled((enabled) => !enabled)}
+                onToggleTooltips={() => updateSettings({ tooltipsEnabled: !tooltipsEnabled })}
             />
             {errorMessage && (
                 <div className="execution-plan-comparison-error" role="alert">
                     {errorMessage}
                 </div>
             )}
-            <div className="execution-plan-comparison-content">
+            <div
+                className={`execution-plan-comparison-content execution-plan-comparison-content-${viewSettings.propertiesDock}`}>
                 <ComparisonSplit
                     orientation={orientation}
                     first={renderPane("primary")}
@@ -157,6 +158,8 @@ export function ExecutionPlanComparisonPage() {
                         primary={selectedNodes.primary}
                         secondary={selectedNodes.secondary}
                         orientation={orientation}
+                        dock={viewSettings.propertiesDock}
+                        onDockChange={(propertiesDock) => updateSettings({ propertiesDock })}
                         onClose={() => setPropertiesOpen(false)}
                     />
                 )}

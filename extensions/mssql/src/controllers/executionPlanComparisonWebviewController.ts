@@ -180,7 +180,9 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
         };
 
         this.onRequest(epc.GetInitialComparisonSourcesRequest.type, () => this._initialSources);
-        this.onRequest(epc.PickComparisonSourceRequest.type, () => this.pickSource());
+        this.onRequest(epc.PickComparisonSourceRequest.type, (params) =>
+            this.pickSource(params?.replacing),
+        );
         this.onRequest(epc.CompareExecutionPlanGraphsRequest.type, (params) =>
             this.compareGraphs(params),
         );
@@ -208,8 +210,10 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
         };
     }
 
-    private async pickSource(): Promise<epc.ExecutionPlanComparisonSource | undefined> {
-        const plan = await this.pickPlan();
+    private async pickSource(
+        replacing: string | undefined,
+    ): Promise<epc.ExecutionPlanComparisonSource | undefined> {
+        const plan = await this.pickPlan(replacing);
         if (!plan) {
             return undefined;
         }
@@ -248,7 +252,9 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
     }
 
     /** Offers the open plans and a file browser, and returns the chosen plan's XML. */
-    private async pickPlan(): Promise<{ name: string; contents: string } | undefined> {
+    private async pickPlan(
+        replacing: string | undefined,
+    ): Promise<{ name: string; contents: string } | undefined> {
         const registeredSources = executionPlanSourceRegistry.getSources();
         const registeredContents = new Set(registeredSources.map((source) => source.contents));
         const registeredItems: PlanQuickPickItem[] = registeredSources.map((source) => ({
@@ -285,7 +291,10 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
         const selected = await vscode.window.showQuickPick(
             [browseItem, ...registeredItems, ...documentItems],
             {
-                placeHolder: LocalizedConstants.selectExecutionPlanToCompare,
+                placeHolder:
+                    replacing === undefined
+                        ? LocalizedConstants.selectExecutionPlanToCompare
+                        : LocalizedConstants.selectExecutionPlanToReplace(replacing),
                 matchOnDescription: true,
             },
         );
