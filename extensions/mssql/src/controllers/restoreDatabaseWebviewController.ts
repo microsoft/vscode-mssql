@@ -57,7 +57,7 @@ import { WebviewPanelController } from "./webviewPanelController";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
-import { getServerTypes, ServerType } from "../models/connectionInfo";
+import { isAzureSqlDatabaseConnection } from "../models/connectionInfo";
 
 export class RestoreDatabaseWebviewController extends ObjectManagementWebviewController<
     RestoreDatabaseFormState,
@@ -97,8 +97,12 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         let restoreViewModel = new RestoreDatabaseViewModel();
         this.updateViewModel(restoreViewModel);
 
-        const serverTypes = getServerTypes(this.profile);
-        if (serverTypes.includes(ServerType.Azure) && serverTypes.includes(ServerType.Sql)) {
+        if (
+            isAzureSqlDatabaseConnection(
+                this.profile,
+                this.connectionManager.getServerInfo(this.profile)?.engineEditionId,
+            )
+        ) {
             restoreViewModel.loadState = ApiStatus.Error;
             restoreViewModel.errorMessage = LocConstants.RestoreDatabase.azureSqlDbNotSupported;
             this.updateViewModel(restoreViewModel);
@@ -113,9 +117,11 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         // Get restore config info
         let restoreConfigInfo: RestoreConfigInfo;
         try {
-            restoreConfigInfo = (
-                await this.objectManagementService.getRestoreConfigInfo(this.ownerUri)
-            ).configInfo;
+            const response = await this.objectManagementService.getRestoreConfigInfo(this.ownerUri);
+            if (response.errorMessage) {
+                throw new Error(response.errorMessage);
+            }
+            restoreConfigInfo = response.configInfo;
         } catch (error) {
             restoreViewModel.loadState = ApiStatus.Error;
             restoreViewModel.errorMessage = getErrorMessage(error);

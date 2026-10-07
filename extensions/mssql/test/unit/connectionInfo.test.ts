@@ -11,6 +11,7 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import * as Constants from "../../src/constants/constants";
 import { EncryptOptions, IConnectionProfile } from "../../src/models/interfaces";
 import { ServerType } from "../../src/models/connectionInfo";
+import { DatabaseEngineEdition } from "../../src/databaseProjects/common/enums";
 
 suite("getConnectionDisplayName", () => {
     test("Should include server, database, and user for SQL Authentication", () => {
@@ -298,6 +299,55 @@ test("getServerTypes", () => {
             result,
             `'${input}' should return ${expected.join(", ")}, but was ${result.join(", ")}`,
         ).to.deep.equal(expected);
+    }
+});
+
+suite("isAzureSqlDatabaseConnection", () => {
+    for (const server of ["localhost,1433", "127.0.0.1,1434", "sql-alias"]) {
+        test(`detects the Azure SQL Database engine at ${server}`, () => {
+            expect(
+                ConnectionInfo.isAzureSqlDatabaseConnection(
+                    { server } as IConnectionInfo,
+                    DatabaseEngineEdition.SqlDatabase,
+                ),
+            ).to.be.true;
+        });
+    }
+
+    for (const edition of [
+        DatabaseEngineEdition.Standard,
+        DatabaseEngineEdition.Enterprise,
+        DatabaseEngineEdition.SqlManagedInstance,
+        DatabaseEngineEdition.SqlDataWarehouse,
+        DatabaseEngineEdition.SqlDbFabric,
+    ]) {
+        test(`uses known engine edition ${edition} instead of the hostname`, () => {
+            expect(
+                ConnectionInfo.isAzureSqlDatabaseConnection(
+                    { server: "test.database.windows.net" } as IConnectionInfo,
+                    edition,
+                ),
+            ).to.be.false;
+        });
+    }
+
+    for (const edition of [undefined, DatabaseEngineEdition.Unknown]) {
+        test(`falls back to the hostname for engine edition ${edition}`, () => {
+            for (const [server, expected] of [
+                ["test.database.windows.net,1433", true],
+                ["localhost,1433", false],
+                ["test.sql.azuresynapse.net", false],
+                ["test.database.fabric.microsoft.com", false],
+            ] as const) {
+                expect(
+                    ConnectionInfo.isAzureSqlDatabaseConnection(
+                        { server } as IConnectionInfo,
+                        edition,
+                    ),
+                    server,
+                ).to.equal(expected);
+            }
+        });
     }
 });
 
