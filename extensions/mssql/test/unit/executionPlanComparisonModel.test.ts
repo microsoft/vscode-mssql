@@ -136,6 +136,23 @@ suite("ExecutionPlanComparisonModel", () => {
         expect(rows.find((row) => row.name === "Only secondary")?.comparison).to.equal("different");
     });
 
+    test("treats the same number written differently as equal", () => {
+        const number = {
+            dataType: ExecutionPlanGraphElementPropertyDataType.Number,
+            betterValue: ExecutionPlanGraphElementPropertyBetterValue.LowerNumber,
+        };
+        const rows = buildExecutionPlanComparisonPropertyRows(
+            [property("Rows", "1", number), property("Cost", "0.5", number)],
+            [property("Rows", "1.0", number), property("Cost", "0.50", number)],
+        );
+
+        expect(rows.find((row) => row.name === "Rows")).to.include({
+            comparison: "equal",
+            hasDifference: false,
+        });
+        expect(rows.find((row) => row.name === "Cost")?.comparison).to.equal("equal");
+    });
+
     test("marks a property as different when only a nested value differs", () => {
         const rows = buildExecutionPlanComparisonPropertyRows(
             [

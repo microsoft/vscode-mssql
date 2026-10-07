@@ -41,7 +41,13 @@ chai.use(sinonChai);
 
 function graph(name: string, planIndexInFile = 0): ep.ExecutionPlanGraph {
     return {
-        root: { id: "0", name, cost: 1, subTreeCost: 1 } as ep.ExecutionPlanNode,
+        root: {
+            id: "0",
+            name,
+            cost: 1,
+            subTreeCost: 1,
+            children: [],
+        } as unknown as ep.ExecutionPlanNode,
         query: `select '${name}'`,
         graphFile: {
             graphFileContent: `<ShowPlanXML name="${name}" />`,
@@ -161,8 +167,20 @@ suite("ExecutionPlanComparisonWebviewController", () => {
     }
 
     test("hands over the plan it was opened from, without the live markers of a running query", async () => {
+        const liveStatistics = { actualRows: "3", estimatedRows: 10, elapsedTimeInMs: 20 };
+        const liveChild = {
+            id: "1",
+            name: "child",
+            children: [],
+            liveQueryStatistics: liveStatistics,
+        } as unknown as ep.ExecutionPlanNode;
         const live: ep.ExecutionPlanGraph = {
             ...graph("live"),
+            root: {
+                ...graph("live").root,
+                children: [liveChild],
+                liveQueryStatistics: liveStatistics,
+            },
             isLive: true,
             liveRefreshId: 4,
             liveQueryStatistics: { estimatedProgress: 0.5 },
@@ -173,14 +191,21 @@ suite("ExecutionPlanComparisonWebviewController", () => {
 
         const sources = await request(epc.GetInitialComparisonSourcesRequest.type);
 
+        const snapshot = graph("live");
+        snapshot.root.children = [
+            { id: "1", name: "child", children: [] } as unknown as ep.ExecutionPlanNode,
+        ];
         expect(sources).to.deep.equal({
             primary: {
                 name: "primary.sqlplan",
-                graphs: [graph("first"), graph("live")],
+                graphs: [graph("first"), snapshot],
                 graphIndex: 1,
             },
             secondary: undefined,
         });
+        expect(live.root.liveQueryStatistics, "the live plan itself is left alone").to.equal(
+            liveStatistics,
+        );
         const plain = graph("first");
         expect(toComparisonGraph(plain), "a plan that is not live is not copied").to.equal(plain);
     });
@@ -242,6 +267,44 @@ suite("ExecutionPlanComparisonWebviewController", () => {
             similarAreasVisible: false,
             propertiesDock: "bottom",
             viewsSynced: true,
+            tooltipsEnabled: false,
+        });
+    });
+
+    test("saves quick view changes one at a time, so an older save never lands last", async () => {
+        // A slow state store whose reads lag behind its writes, which VS Code's store can do
+        // while another part of the extension saves.
+        const saved = new Map<string, unknown>();
+        let saving = 0;
+        let overlapped = false;
+        context = {
+            ...context,
+            globalState: {
+                get: (key: string) => saved.get(key),
+                update: async (key: string, value: unknown) => {
+                    overlapped ||= saving > 0;
+                    saving++;
+                    await new Promise((resolve) => setTimeout(resolve, 5));
+                    saved.set(key, value);
+                    saving--;
+                },
+            },
+        } as unknown as vscode.ExtensionContext;
+        createController();
+        const update = notificationHandlers.get(
+            epc.UpdateComparisonViewSettingsNotification.type.method,
+        )!;
+        update({ minimapsVisible: false });
+        update({ tooltipsEnabled: false });
+
+        expect(
+            await request(epc.GetComparisonViewSettingsRequest.type),
+            "a comparison opened before the saves finish has both changes",
+        ).to.include({ minimapsVisible: false, tooltipsEnabled: false });
+        await new Promise((resolve) => setTimeout(resolve, 30));
+        expect(overlapped, "saves overlapped").to.equal(false);
+        expect(saved.get("executionPlanComparison.viewSettings")).to.include({
+            minimapsVisible: false,
             tooltipsEnabled: false,
         });
     });

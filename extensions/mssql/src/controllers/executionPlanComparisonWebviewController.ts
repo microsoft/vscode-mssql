@@ -27,14 +27,72 @@ let comparisonEditorCounter = 0;
 const viewSettingsStorageKey = "executionPlanComparison.viewSettings";
 
 /**
- * A comparison shows a snapshot. Drop the live markers of a statement that is still running, so
- * the snapshot does not claim to refresh.
+ * The comparison view settings, shared by every comparison editor. Editors read this copy rather
+ * than the state store, whose reads can briefly lag behind its own writes, so a change applies
+ * to the next editor at once. Saves run one at a time, each with the latest settings, so an
+ * older save never lands after a newer one.
+ */
+class ComparisonViewSettingsStore {
+    private _settings: epc.ExecutionPlanComparisonViewSettings;
+    private _saved: Promise<void> = Promise.resolve();
+
+    constructor(private readonly _state: vscode.Memento) {
+        this._settings = {
+            ...epc.defaultComparisonViewSettings,
+            ..._state.get<Partial<epc.ExecutionPlanComparisonViewSettings>>(viewSettingsStorageKey),
+        };
+    }
+
+    public get settings(): epc.ExecutionPlanComparisonViewSettings {
+        return this._settings;
+    }
+
+    public update(
+        change: Partial<epc.ExecutionPlanComparisonViewSettings>,
+        onSaveFailed: (error: unknown) => void,
+    ): void {
+        this._settings = { ...this._settings, ...change };
+        this._saved = this._saved
+            .then(() => this._state.update(viewSettingsStorageKey, this._settings))
+            .then(undefined, onSaveFailed);
+    }
+}
+
+const viewSettingsStores = new WeakMap<vscode.Memento, ComparisonViewSettingsStore>();
+
+function getViewSettingsStore(state: vscode.Memento): ComparisonViewSettingsStore {
+    let store = viewSettingsStores.get(state);
+    if (!store) {
+        store = new ComparisonViewSettingsStore(state);
+        viewSettingsStores.set(state, store);
+    }
+    return store;
+}
+
+function hasLiveStatistics(node: ep.ExecutionPlanNode): boolean {
+    return node.liveQueryStatistics !== undefined || node.children.some(hasLiveStatistics);
+}
+
+function toComparisonNode(node: ep.ExecutionPlanNode): ep.ExecutionPlanNode {
+    const snapshot = { ...node, children: node.children.map(toComparisonNode) };
+    delete snapshot.liveQueryStatistics;
+    return snapshot;
+}
+
+/**
+ * A comparison shows a snapshot. Drop the live markers and row counts of a statement that is
+ * still running, so the snapshot neither claims to refresh nor lays out its operators as live.
  */
 export function toComparisonGraph(graph: ep.ExecutionPlanGraph): ep.ExecutionPlanGraph {
-    if (!graph.isLive && !graph.liveQueryStatistics && graph.liveRefreshId === undefined) {
+    if (
+        !graph.isLive &&
+        !graph.liveQueryStatistics &&
+        graph.liveRefreshId === undefined &&
+        !hasLiveStatistics(graph.root)
+    ) {
         return graph;
     }
-    const snapshot = { ...graph };
+    const snapshot = { ...graph, root: toComparisonNode(graph.root) };
     delete snapshot.isLive;
     delete snapshot.liveRefreshId;
     delete snapshot.liveQueryStatistics;
@@ -186,28 +244,19 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
         this.onRequest(epc.CompareExecutionPlanGraphsRequest.type, (params) =>
             this.compareGraphs(params),
         );
-        this.onRequest(epc.GetComparisonViewSettingsRequest.type, () => this.getViewSettings());
-        this.onNotification(epc.UpdateComparisonViewSettingsNotification.type, (update) => {
-            void this._context.globalState.update(viewSettingsStorageKey, {
-                ...this.getViewSettings(),
-                ...update,
-            });
-        });
+        const viewSettings = getViewSettingsStore(this._context.globalState);
+        this.onRequest(epc.GetComparisonViewSettingsRequest.type, () => viewSettings.settings);
+        this.onNotification(epc.UpdateComparisonViewSettingsNotification.type, (update) =>
+            viewSettings.update(update, (error) =>
+                this.logger.error("Failed to save execution plan comparison settings", error),
+            ),
+        );
         this.onNotification(epc.ShowComparisonQueryNotification.type, ({ query }) => {
             void this._sqlDocumentService.newQuery({
                 content: query,
                 connectionStrategy: ConnectionStrategy.DoNotConnect,
             });
         });
-    }
-
-    private getViewSettings(): epc.ExecutionPlanComparisonViewSettings {
-        return {
-            ...epc.defaultComparisonViewSettings,
-            ...this._context.globalState.get<Partial<epc.ExecutionPlanComparisonViewSettings>>(
-                viewSettingsStorageKey,
-            ),
-        };
     }
 
     private async pickSource(

@@ -139,6 +139,10 @@ function compareProperties(
     if (!Number.isFinite(primaryNumber) || !Number.isFinite(secondaryNumber)) {
         return "different";
     }
+    if (primaryNumber === secondaryNumber) {
+        // The same number written differently, such as 1 and 1.0.
+        return "equal";
+    }
     return primaryNumber > secondaryNumber ? "greater" : "less";
 }
 

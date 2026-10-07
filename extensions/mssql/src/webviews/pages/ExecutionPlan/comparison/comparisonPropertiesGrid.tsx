@@ -50,6 +50,7 @@ import {
     ComparisonSide,
     ExecutionPlanComparisonPropertyRow,
     ExecutionPlanComparisonPropertySort,
+    ExecutionPlanPropertyComparison,
     filterComparisonPropertyRows,
     flattenComparisonPropertyRows,
     sortComparisonPropertyRows,
@@ -95,34 +96,33 @@ function getColumnSizing(width: number): TableColumnSizingOptions {
 }
 
 function HeaderLabel({ label }: { label: string }) {
-    return (
-        <span className="execution-plan-comparison-grid-header-text" title={label}>
-            {label}
-        </span>
-    );
+    return <span className="execution-plan-comparison-grid-header-text">{label}</span>;
 }
 
-function ComparisonIcon({ row }: { row: ExecutionPlanComparisonPropertyRow }) {
+/** Equal values show no icon, so the cell adds nothing unlabeled to the accessibility tree. */
+function ComparisonIcon({
+    comparison,
+}: {
+    comparison: Exclude<ExecutionPlanPropertyComparison, "equal">;
+}) {
     const label =
-        row.comparison === "greater"
+        comparison === "greater"
             ? locConstants.executionPlan.greaterThan
-            : row.comparison === "less"
+            : comparison === "less"
               ? locConstants.executionPlan.lessThan
-              : row.comparison === "different"
-                ? locConstants.executionPlan.notEqual
-                : "";
+              : locConstants.executionPlan.notEqual;
     return (
         <span
-            className={`execution-plan-comparison-diff execution-plan-comparison-diff-${row.comparison}`}
+            className={`execution-plan-comparison-diff execution-plan-comparison-diff-${comparison}`}
             title={label}
             aria-label={label}>
-            {row.comparison === "greater" ? (
+            {comparison === "greater" ? (
                 <ChevronRight16Regular />
-            ) : row.comparison === "less" ? (
+            ) : comparison === "less" ? (
                 <ChevronLeft16Regular />
-            ) : row.comparison === "different" ? (
+            ) : (
                 <Dismiss16Regular />
-            ) : undefined}
+            )}
         </span>
     );
 }
@@ -358,50 +358,58 @@ export function ComparisonPropertiesGrid({
         [restoreFocusTargetAttribute],
     );
 
-    const columns = useMemo<TableColumnDefinition<GridItem>[]>(() => {
+    const headerLabels = useMemo<Record<string, string>>(() => {
         const stacked = orientation === "stacked";
-        const primaryLabel = stacked
-            ? locConstants.executionPlan.valueTopPlan
-            : locConstants.executionPlan.valueLeftPlan;
-        const secondaryLabel = stacked
-            ? locConstants.executionPlan.valueBottomPlan
-            : locConstants.executionPlan.valueRightPlan;
-        return [
+        return {
+            name: locConstants.executionPlan.name,
+            primary: stacked
+                ? locConstants.executionPlan.valueTopPlan
+                : locConstants.executionPlan.valueLeftPlan,
+            comparison: locConstants.executionPlan.comparison,
+            secondary: stacked
+                ? locConstants.executionPlan.valueBottomPlan
+                : locConstants.executionPlan.valueRightPlan,
+        };
+    }, [orientation]);
+
+    const columns = useMemo<TableColumnDefinition<GridItem>[]>(
+        () => [
             createTableColumn({
                 columnId: "name",
-                renderHeaderCell: () => <HeaderLabel label={locConstants.executionPlan.name} />,
+                renderHeaderCell: () => <HeaderLabel label={headerLabels.name} />,
                 renderCell: renderNameCell,
             }),
             createTableColumn({
                 columnId: "primary",
-                renderHeaderCell: () => <HeaderLabel label={primaryLabel} />,
+                renderHeaderCell: () => <HeaderLabel label={headerLabels.primary} />,
                 renderCell: (item) => renderValueCell(item, "primary"),
             }),
             createTableColumn({
                 columnId: "comparison",
                 renderHeaderCell: () => (
-                    <span
-                        className="execution-plan-comparison-grid-header-icon"
-                        title={locConstants.executionPlan.comparison}>
+                    <span className="execution-plan-comparison-grid-header-icon">
                         <ArrowBidirectionalLeftRight16Regular aria-hidden />
                         <span className="execution-plan-comparison-visually-hidden">
-                            {locConstants.executionPlan.comparison}
+                            {headerLabels.comparison}
                         </span>
                     </span>
                 ),
                 renderCell: (item) => (
                     <DataGridCell className="execution-plan-comparison-grid-comparison">
-                        {item.kind === "property" ? <ComparisonIcon row={item.row} /> : undefined}
+                        {item.kind === "property" && item.row.comparison !== "equal" ? (
+                            <ComparisonIcon comparison={item.row.comparison} />
+                        ) : undefined}
                     </DataGridCell>
                 ),
             }),
             createTableColumn({
                 columnId: "secondary",
-                renderHeaderCell: () => <HeaderLabel label={secondaryLabel} />,
+                renderHeaderCell: () => <HeaderLabel label={headerLabels.secondary} />,
                 renderCell: (item) => renderValueCell(item, "secondary"),
             }),
-        ];
-    }, [orientation, renderNameCell, renderValueCell]);
+        ],
+        [headerLabels, renderNameCell, renderValueCell],
+    );
 
     const handleRowKeyDown = useCallback(
         (event: ReactKeyboardEvent<HTMLDivElement>, row: ExecutionPlanComparisonPropertyRow) => {
@@ -464,8 +472,11 @@ export function ComparisonPropertiesGrid({
                     aria-label={locConstants.executionPlan.comparisonProperties}>
                     <DataGridHeader className="execution-plan-comparison-grid-header">
                         <DataGridRow>
-                            {({ renderHeaderCell }) => (
-                                <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                            {({ columnId, renderHeaderCell }) => (
+                                // The tooltip covers the whole cell, not just its label text.
+                                <DataGridHeaderCell title={headerLabels[String(columnId)]}>
+                                    {renderHeaderCell()}
+                                </DataGridHeaderCell>
                             )}
                         </DataGridRow>
                     </DataGridHeader>

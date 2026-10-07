@@ -468,6 +468,13 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 
         await comparison.getByRole("button", { name: "Properties", exact: true }).click();
         const properties = comparison.locator(".execution-plan-comparison-properties");
+        // Each column header shows its name as a tooltip anywhere over the header, not only
+        // over its label text.
+        for (const header of ["Name", "Value (Top Plan)", "Comparison", "Value (Bottom Plan)"]) {
+            await expect(
+                properties.getByRole("columnheader", { name: header, exact: true }),
+            ).toHaveAttribute("title", header);
+        }
         await properties
             .getByRole("textbox", { name: "Filter comparison properties..." })
             .fill("Physical Operation");
