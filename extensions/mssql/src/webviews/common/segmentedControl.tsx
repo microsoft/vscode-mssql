@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ToggleButton, makeStyles, mergeClasses, ButtonProps } from "@fluentui/react-components";
-import { ReactNode } from "react";
+import { ReactElement, ReactNode } from "react";
 
 const useStyles = makeStyles({
     root: {
@@ -21,7 +21,10 @@ const useStyles = makeStyles({
 
 export interface SegmentedControlOption<T extends string = string> {
     value: T;
-    label: ReactNode;
+    label?: ReactNode;
+    icon?: ReactElement;
+    /** Tooltip, and the accessible name of an option shown only as an icon. */
+    title?: string;
     disabled?: boolean;
 }
 
@@ -62,6 +65,9 @@ export function SegmentedControl<T extends string = string>({
                     role="radio"
                     aria-checked={value === option.value}
                     disabled={option.disabled}
+                    icon={option.icon}
+                    title={option.title}
+                    aria-label={option.label === undefined ? option.title : undefined}
                     appearance={value === option.value ? "primary" : "subtle"}
                     className={mergeClasses(classes.button, buttonClassName)}
                     onClick={() => {

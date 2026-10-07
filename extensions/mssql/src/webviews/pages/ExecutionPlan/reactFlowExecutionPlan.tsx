@@ -15,6 +15,8 @@ import {
     Position,
     ReactFlow,
     ReactFlowInstance,
+    ReactFlowProvider,
+    ViewportPortal,
     getSmoothStepPath,
 } from "@xyflow/react";
 import { Button } from "@fluentui/react-components";
@@ -23,6 +25,7 @@ import {
     CSSProperties,
     KeyboardEvent as ReactKeyboardEvent,
     MouseEvent,
+    ReactNode,
     useCallback,
     useEffect,
     useId,
@@ -79,6 +82,7 @@ import {
 } from "./executionPlanTooltipPosition";
 import {
     ExecutionPlanBounds,
+    ExecutionPlanViewport,
     getExecutionPlanWheelDelta,
     getViewportForExecutionPlanScroll,
     getViewportForExecutionPlanZoom,
@@ -92,6 +96,7 @@ const EXECUTION_PLAN_LABEL_TOP = 49;
 const EXECUTION_PLAN_LABEL_LINE_HEIGHT = 14;
 const EXECUTION_PLAN_SELECTION_VERTICAL_PADDING = 10;
 const EXECUTION_PLAN_SELECTION_TOP_OFFSET = -1;
+const EXECUTION_PLAN_COMPARISON_GROUP_PADDING = 10;
 
 interface TooltipState {
     targetId: string;
@@ -109,6 +114,8 @@ interface ExecutionPlanFlowNodeData extends Record<string, unknown> {
     collapsed: boolean;
     highlighted: boolean;
     selected: boolean;
+    /** Matches the operator selected in another view, such as the other plan of a comparison. */
+    linked: boolean;
     selectionWidth: number;
     selectionHeight: number;
     themeKind: ColorThemeKind;
@@ -141,6 +148,7 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
         collapsed,
         highlighted,
         selected,
+        linked,
         selectionWidth,
         selectionHeight,
         themeKind,
@@ -225,6 +233,7 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
                 "execution-plan-flow-node",
                 selected ? "selected" : "",
                 highlighted ? "highlighted" : "",
+                linked ? "linked" : "",
             ]
                 .filter(Boolean)
                 .join(" ")}
@@ -530,6 +539,7 @@ interface ReactFlowExecutionPlanControllerOptions {
     setHighlightedId: (id: string | undefined) => void;
     expandAncestors: (id: string) => void;
     focusNode: (id: string) => void;
+    isNodeInView: (id: string) => boolean;
     closeTooltip: () => void;
 }
 
@@ -564,11 +574,15 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
 
     public toggleTooltip(): boolean {
         const enabled = !this._options.getTooltipsEnabled();
+        this.setTooltipsEnabled(enabled);
+        return enabled;
+    }
+
+    public setTooltipsEnabled(enabled: boolean): void {
         this._options.setTooltipsEnabled(enabled);
         if (!enabled) {
             this._options.closeTooltip();
         }
-        return enabled;
     }
 
     private setAnchoredZoom(zoom: number): void {
@@ -605,6 +619,47 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
         return this._options.model.searchNodes(searchQuery);
     }
 
+    public getViewport(): ExecutionPlanViewport {
+        return this._options.instance.getViewport();
+    }
+
+    public setViewport(viewport: ExecutionPlanViewport): void {
+        void this._options.instance.setViewport(viewport);
+    }
+
+    public isElementInView(element: InternalExecutionPlanElement): boolean {
+        const id = "name" in element ? element.id : (element as ExecutionPlanEdgeModel).targetId;
+        return this._options.isNodeInView(id);
+    }
+
+    public getElementCenter(
+        element: InternalExecutionPlanElement,
+    ): { x: number; y: number } | undefined {
+        const id = "name" in element ? element.id : (element as ExecutionPlanEdgeModel).targetId;
+        const position = this._options.positions.get(id);
+        return (
+            position && {
+                x: position.x + EXECUTION_PLAN_NODE_WIDTH / 2,
+                y: position.y + EXECUTION_PLAN_NODE_HEIGHT / 2,
+            }
+        );
+    }
+
+    public centerAt(point: { x: number; y: number }): void {
+        void this._options.instance.setCenter(point.x, point.y, {
+            zoom: this._options.instance.getZoom(),
+            duration: 150,
+        });
+    }
+
+    public revealElement(element: InternalExecutionPlanElement): void {
+        const id = "name" in element ? element.id : (element as ExecutionPlanEdgeModel).targetId;
+        this._options.expandAncestors(id);
+        if (!this._options.isNodeInView(id)) {
+            this.centerElement(element);
+        }
+    }
+
     public centerElement(element: InternalExecutionPlanElement): void {
         const id = "name" in element ? element.id : (element as ExecutionPlanEdgeModel).targetId;
         const position = this._options.positions.get(id);
@@ -625,12 +680,15 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
     public selectElement(
         element: InternalExecutionPlanElement | undefined,
         bringToCenter?: boolean,
+        focus = true,
     ): void {
         const selectedElement = element ?? this._options.model.root;
         this._options.setSelectedId(selectedElement.id ?? this._options.model.root.id);
         if ("name" in selectedElement) {
             this._options.expandAncestors(selectedElement.id);
-            this._options.focusNode(selectedElement.id);
+            if (focus) {
+                this._options.focusNode(selectedElement.id);
+            }
         }
         if (bringToCenter) {
             this.centerElement(selectedElement);
@@ -662,8 +720,20 @@ interface ReactFlowExecutionPlanProps {
     themeKind: ColorThemeKind;
     planNumber: number;
     onReady: (controller: ExecutionPlanGraphController | null) => void;
-    /** Called with the id of the selected node whenever the selection changes. */
+    /** Roots of the similar areas to outline, each mapped to the color slot of its area. */
+    comparisonGroupRoots?: ReadonlyMap<string, number>;
+    /** Called with the selected node id, including programmatic selection changes. */
     onSelectionChange?: (id: string) => void;
+    /** An operator to outline as the match of the one selected in another view. */
+    linkedNodeId?: string;
+    /** Called as the view moves or zooms, whether the user or code moved it. */
+    onViewportChange?: (viewport: ExecutionPlanViewport) => void;
+    /**
+     * Controls drawn over the canvas, such as React Flow's Controls panel. They render outside
+     * the tree of operators, which may own only tree items, and can read React Flow's store. An
+     * operator under any of them does not count as in view.
+     */
+    overlay?: ReactNode;
 }
 
 export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
@@ -673,7 +743,11 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     themeKind,
     planNumber,
     onReady,
+    comparisonGroupRoots,
     onSelectionChange,
+    linkedNodeId,
+    onViewportChange,
+    overlay,
 }) => {
     const model = useMemo(() => new ExecutionPlanModel(root), [root]);
     const positions = useMemo(() => layoutExecutionPlan(model), [model]);
@@ -689,6 +763,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     const tooltipsEnabledRef = useRef(tooltipsEnabled);
     const nodeElementsRef = useRef(new Map<string, HTMLDivElement>());
     const canvasRef = useRef<HTMLDivElement>(null);
+    const overlayRef = useRef<HTMLDivElement>(null);
 
     const registerNodeElement = useCallback((id: string, element: HTMLDivElement | null) => {
         if (element) {
@@ -765,6 +840,41 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             if (viewport) {
                 void instance.setViewport(viewport);
             }
+        },
+        [instance, positions],
+    );
+
+    /** Whether a node is on the canvas and not hidden under anything drawn over it. */
+    const isNodeInView = useCallback(
+        (id: string) => {
+            const position = positions.get(id);
+            const canvas = canvasRef.current;
+            if (!instance || !position || !canvas) {
+                return true;
+            }
+            const onCanvas =
+                getViewportToRevealExecutionPlanNode(
+                    instance.getViewport(),
+                    position,
+                    { width: EXECUTION_PLAN_NODE_WIDTH, height: EXECUTION_PLAN_NODE_HEIGHT },
+                    { width: canvas.clientWidth, height: canvas.clientHeight },
+                    EXECUTION_PLAN_REVEAL_PADDING,
+                ) === undefined;
+            const element = nodeElementsRef.current.get(id);
+            if (!onCanvas || !element || !overlayRef.current) {
+                return onCanvas;
+            }
+            const node = element.getBoundingClientRect();
+            // The overlay lays out its children over the canvas, so each one can cover the node.
+            return ![...overlayRef.current.children].some((cover) => {
+                const bounds = cover.getBoundingClientRect();
+                return (
+                    node.left < bounds.right &&
+                    bounds.left < node.right &&
+                    node.top < bounds.bottom &&
+                    bounds.top < node.bottom
+                );
+            });
         },
         [instance, positions],
     );
@@ -972,6 +1082,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                         collapsed: collapsedNodeIds.has(planNode.id),
                         highlighted: highlightedId === planNode.id,
                         selected: selectedId === planNode.id,
+                        linked: linkedNodeId === planNode.id,
                         selectionWidth: getNodeSelectionWidth(planNode),
                         selectionHeight: getNodeSelectionHeight(planNode),
                         themeKind,
@@ -1003,6 +1114,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             collapsedNodeIds,
             hiddenNodeIds,
             highlightedId,
+            linkedNodeId,
             model,
             navigateNode,
             positions,
@@ -1036,6 +1148,77 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
         [flowingEdgeIds, hiddenNodeIds, model],
     );
 
+    const comparisonGroups = useMemo(() => {
+        const groups: {
+            id: string;
+            colorSlot: number;
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        }[] = [];
+        for (const [rootId, colorSlot] of comparisonGroupRoots ?? []) {
+            if (!positions.has(rootId) || hiddenNodeIds.has(rootId)) {
+                continue;
+            }
+            const memberIds: string[] = [];
+            const visit = (id: string) => {
+                if (hiddenNodeIds.has(id)) {
+                    return;
+                }
+                memberIds.push(id);
+                model.getChildIds(id).forEach(visit);
+            };
+            visit(rootId);
+            const memberBounds = memberIds
+                .map((id) => {
+                    const position = positions.get(id);
+                    const node = model.getNode(id);
+                    if (!position || !node) {
+                        return undefined;
+                    }
+                    const width = getNodeSelectionWidth(node);
+                    return {
+                        left: position.x - (width - EXECUTION_PLAN_NODE_WIDTH) / 2,
+                        top: position.y + EXECUTION_PLAN_SELECTION_TOP_OFFSET,
+                        right:
+                            position.x +
+                            EXECUTION_PLAN_NODE_WIDTH +
+                            (width - EXECUTION_PLAN_NODE_WIDTH) / 2,
+                        bottom:
+                            position.y +
+                            EXECUTION_PLAN_SELECTION_TOP_OFFSET +
+                            getNodeSelectionHeight(node),
+                    };
+                })
+                .filter((bounds) => bounds !== undefined);
+            if (memberBounds.length === 0) {
+                continue;
+            }
+            const left =
+                Math.min(...memberBounds.map((bounds) => bounds.left)) -
+                EXECUTION_PLAN_COMPARISON_GROUP_PADDING;
+            const top =
+                Math.min(...memberBounds.map((bounds) => bounds.top)) -
+                EXECUTION_PLAN_COMPARISON_GROUP_PADDING;
+            const right =
+                Math.max(...memberBounds.map((bounds) => bounds.right)) +
+                EXECUTION_PLAN_COMPARISON_GROUP_PADDING;
+            const bottom =
+                Math.max(...memberBounds.map((bounds) => bounds.bottom)) +
+                EXECUTION_PLAN_COMPARISON_GROUP_PADDING;
+            groups.push({
+                id: rootId,
+                colorSlot,
+                x: left,
+                y: top,
+                width: right - left,
+                height: bottom - top,
+            });
+        }
+        return groups;
+    }, [comparisonGroupRoots, hiddenNodeIds, model, positions]);
+
     useEffect(() => {
         if (!instance) {
             return;
@@ -1057,14 +1240,15 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             setHighlightedId,
             expandAncestors,
             focusNode,
+            isNodeInView,
             closeTooltip: () => setTooltip(undefined),
         });
         onReady(controller);
         return () => onReady(null);
-    }, [expandAncestors, focusNode, instance, model, onReady, positions]);
+    }, [expandAncestors, focusNode, instance, isNodeInView, model, onReady, positions]);
 
     return (
-        <>
+        <ReactFlowProvider>
             <div
                 className="execution-plan-flow-announcement"
                 role="status"
@@ -1095,6 +1279,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                     nodeTypes={NODE_TYPES}
                     edgeTypes={EDGE_TYPES}
                     onInit={setInstance}
+                    onMove={(_event, viewport) => onViewportChange?.(viewport)}
                     defaultViewport={{ x: 0, y: 0, zoom: 1 }}
                     minZoom={0.01}
                     maxZoom={2}
@@ -1132,7 +1317,24 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                             });
                             focusNode(selectedIdRef.current);
                         }
-                    }}></ReactFlow>
+                    }}>
+                    {comparisonGroups.length > 0 && (
+                        <ViewportPortal>
+                            {comparisonGroups.map((group) => (
+                                <div
+                                    key={group.id}
+                                    className={`execution-plan-comparison-group execution-plan-comparison-group-${group.colorSlot}`}
+                                    style={{
+                                        transform: `translate(${group.x}px, ${group.y}px)`,
+                                        width: group.width,
+                                        height: group.height,
+                                    }}
+                                    aria-hidden
+                                />
+                            ))}
+                        </ViewportPortal>
+                    )}
+                </ReactFlow>
                 {tooltip && (
                     <ExecutionPlanTooltip
                         tooltip={tooltip}
@@ -1143,7 +1345,10 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                     />
                 )}
             </div>
-        </>
+            <div ref={overlayRef} className="execution-plan-flow-overlay">
+                {overlay}
+            </div>
+        </ReactFlowProvider>
     );
 };
 

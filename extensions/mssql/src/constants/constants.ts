@@ -140,6 +140,7 @@ export const cmdShowEstimatedPlan = "mssql.showEstimatedPlan";
 export const cmdEnableActualPlan = "mssql.enableActualPlan";
 export const cmdDisableActualPlan = "mssql.disableActualPlan";
 export const cmdToggleActualPlan = "mssql.toggleActualPlan";
+export const cmdCompareExecutionPlans = "mssql.compareExecutionPlans";
 export const cmdEnableLiveQueryStatistics = "mssql.enableLiveQueryStatistics";
 export const cmdDisableLiveQueryStatistics = "mssql.disableLiveQueryStatistics";
 export const cmdNewTable = "mssql.newTable";
