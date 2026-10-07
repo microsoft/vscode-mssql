@@ -455,7 +455,15 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const secondary = comparison.getByRole("region", { name: "Added plan", exact: true });
         await expect(secondary.getByRole("treeitem").first()).toBeVisible();
         await expect(comparison.locator(".execution-plan-comparison-loading")).toBeHidden();
-        await expect(comparison.locator(".execution-plan-comparison-group").first()).toBeVisible();
+        const similarAreas = comparison.locator(".execution-plan-comparison-group");
+        await expect(similarAreas.first()).toBeVisible();
+        const similarAreasToggle = comparison
+            .getByRole("toolbar", { name: "Compare Execution Plans" })
+            .getByRole("button", { name: "Toggle Similar Areas", exact: true });
+        await similarAreasToggle.click();
+        await expect(similarAreas).toHaveCount(0);
+        await similarAreasToggle.click();
+        await expect(similarAreas.first()).toBeVisible();
 
         await comparison.getByRole("button", { name: "Properties", exact: true }).click();
         const properties = comparison.locator(".execution-plan-comparison-properties");
@@ -465,12 +473,36 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const physicalRow = properties.getByRole("row").filter({ hasText: "Physical Operation" });
         const equivalent = properties.getByRole("button", { name: /Equivalent Properties/ });
 
+        // Pan the added plan's operators out of view, to see the match brought back. The drag
+        // starts left of the minimap and ends inside the canvas, so React Flow sees its release.
+        const secondaryCanvas = (await secondary
+            .locator(".execution-plan-flow-canvas")
+            .boundingBox())!;
+        const dragY = secondaryCanvas.y + secondaryCanvas.height * 0.6;
+        await vsCodePage.mouse.move(secondaryCanvas.x + secondaryCanvas.width * 0.6, dragY);
+        await vsCodePage.mouse.down();
+        await vsCodePage.mouse.move(secondaryCanvas.x + 5, dragY, { steps: 10 });
+        await vsCodePage.mouse.up();
+        await expect
+            .poll(() =>
+                isWithin(
+                    secondary,
+                    secondary.locator(".execution-plan-flow-node", { hasText: "Nested Loops" }),
+                ),
+            )
+            .toBe(false);
+
         const nestedLoops = primary.getByRole("treeitem", { name: /Nested Loops/ }).first();
         await nestedLoops.focus();
         await expect(nestedLoops).toBeFocused();
         await expect(secondary.locator('[role="treeitem"][aria-selected="true"]')).toContainText(
             "Nested Loops",
         );
+        // The match is outlined and centered in the added plan, while focus stays here.
+        const linkedMatch = secondary.locator(".execution-plan-flow-node.linked");
+        await expect(linkedMatch).toContainText("Nested Loops");
+        await expect.poll(() => isWithin(secondary, linkedMatch)).toBe(true);
+        await expect(nestedLoops).toBeFocused();
         await equivalent.click();
         await expect(physicalRow).toContainText("Nested Loops");
 
@@ -518,19 +550,42 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await vsCodePage.mouse.wheel(0, 500);
         await expect.poll(() => getZoom(comparison)).toBeCloseTo(initialZoom!, 4);
 
-        // Toolbar zoom acts on both plans, not only the primary one.
+        // Each plan zooms with the controls on its own canvas, leaving the other plan as it is.
         const paneZoom = async (pane: Locator) => {
             const style = (await pane.locator(".react-flow__viewport").getAttribute("style")) ?? "";
             return parseFloat(style.match(/scale\(([^)]+)\)/)?.[1] ?? "1");
         };
         const [primaryZoom, secondaryZoom] = [await paneZoom(primary), await paneZoom(secondary)];
-        await comparison
-            .getByRole("toolbar", { name: "Compare Execution Plans" })
-            .getByRole("button", { name: "Zoom In", exact: true })
-            .click();
+        await primary.getByRole("button", { name: "Zoom In", exact: true }).click();
         await expect.poll(() => paneZoom(primary)).toBeGreaterThan(primaryZoom);
-        await expect.poll(() => paneZoom(secondary)).toBeGreaterThan(secondaryZoom);
+        expect(await paneZoom(secondary)).toBe(secondaryZoom);
+        await secondary.getByRole("button", { name: "Zoom Out", exact: true }).click();
+        await expect.poll(() => paneZoom(secondary)).toBeLessThan(secondaryZoom);
+
+        // Both plans show a minimap until the user hides them, and later comparisons keep that.
+        const minimapToggle = (frame: FrameLocator) =>
+            frame
+                .getByRole("toolbar", { name: "Compare Execution Plans" })
+                .getByRole("button", { name: "Toggle Minimap", exact: true });
+        await expect(comparison.locator(".react-flow__minimap")).toHaveCount(2);
+        await minimapToggle(comparison).click();
+        await expect(comparison.locator(".react-flow__minimap")).toHaveCount(0);
         await writeCoverage(comparison, "executionPlanComparison");
+        await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
+
+        await refocusQueryPlanTab(vsCodePage);
+        await iframe.getByRole("button", { name: "Compare Execution Plan", exact: true }).click();
+        const activeTab = vsCodePage.locator('div[role="tab"].active');
+        await expect(activeTab).toHaveAttribute("aria-label", /^Compare Execution Plans \d+$/);
+        const reopened = await getWebviewByTitle(
+            vsCodePage,
+            (await activeTab.getAttribute("aria-label"))!,
+        );
+        await expect(reopened.getByRole("region", { name: "Primary plan" })).toBeVisible();
+        await expect(reopened.locator(".react-flow__minimap")).toHaveCount(0);
+        // Show them again, so the comparisons that follow start from the default.
+        await minimapToggle(reopened).click();
+        await expect(reopened.locator(".react-flow__minimap")).toHaveCount(1);
         await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
     });
 
@@ -576,6 +631,24 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
     });
 });
+
+/** Whether an operator lies inside the visible canvas of a plan pane. */
+async function isWithin(pane: Locator, node: Locator): Promise<boolean> {
+    // React Flow leaves operators out of view unrendered.
+    if ((await node.count()) === 0) {
+        return false;
+    }
+    const canvas = await pane.locator(".execution-plan-flow-canvas").boundingBox();
+    const box = await node.first().boundingBox();
+    return (
+        !!canvas &&
+        !!box &&
+        box.x >= canvas.x &&
+        box.y >= canvas.y &&
+        box.x + box.width <= canvas.x + canvas.width &&
+        box.y + box.height <= canvas.y + canvas.height
+    );
+}
 
 export async function refocusQueryPlanTab(page: Page) {
     const queryPlanTab = page.locator('div[role="tab"][aria-label="plan.sqlplan"]');

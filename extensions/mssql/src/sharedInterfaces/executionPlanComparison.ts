@@ -35,6 +35,18 @@ export interface ExecutionPlanComparisonInitialSources {
     secondary?: ExecutionPlanComparisonInitialSource;
 }
 
+/** View choices the comparison editor remembers across editors and sessions. */
+export interface ExecutionPlanComparisonViewSettings {
+    minimapsVisible: boolean;
+    /** Whether the areas the two plans have in common are outlined. */
+    similarAreasVisible: boolean;
+}
+
+export const defaultComparisonViewSettings: ExecutionPlanComparisonViewSettings = {
+    minimapsVisible: true,
+    similarAreasVisible: true,
+};
+
 /** A node in one compared graph that has a match in the other graph. */
 export interface ExecutionPlanComparisonMatch {
     /** Id of the node, as reported by the tools service. */
@@ -82,6 +94,19 @@ export namespace CompareExecutionPlanGraphsRequest {
         CompareExecutionPlanGraphsResult,
         void
     >("executionPlanComparison/compareGraphs");
+}
+
+export namespace GetComparisonViewSettingsRequest {
+    export const type = new RequestType<void, ExecutionPlanComparisonViewSettings, void>(
+        "executionPlanComparison/getViewSettings",
+    );
+}
+
+/** Saves the view choices the user changes, for comparisons opened later. */
+export namespace UpdateComparisonViewSettingsNotification {
+    export const type = new NotificationType<Partial<ExecutionPlanComparisonViewSettings>>(
+        "executionPlanComparison/updateViewSettings",
+    );
 }
 
 /** Opens a query, such as a missing index script, in a new editor without running it. */

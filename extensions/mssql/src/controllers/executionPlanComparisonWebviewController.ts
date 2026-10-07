@@ -24,6 +24,7 @@ interface PlanQuickPickItem extends vscode.QuickPickItem {
 }
 
 let comparisonEditorCounter = 0;
+const viewSettingsStorageKey = "executionPlanComparison.viewSettings";
 
 /**
  * A comparison shows a snapshot. Drop the live markers of a statement that is still running, so
@@ -183,12 +184,28 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
         this.onRequest(epc.CompareExecutionPlanGraphsRequest.type, (params) =>
             this.compareGraphs(params),
         );
+        this.onRequest(epc.GetComparisonViewSettingsRequest.type, () => this.getViewSettings());
+        this.onNotification(epc.UpdateComparisonViewSettingsNotification.type, (update) => {
+            void this._context.globalState.update(viewSettingsStorageKey, {
+                ...this.getViewSettings(),
+                ...update,
+            });
+        });
         this.onNotification(epc.ShowComparisonQueryNotification.type, ({ query }) => {
             void this._sqlDocumentService.newQuery({
                 content: query,
                 connectionStrategy: ConnectionStrategy.DoNotConnect,
             });
         });
+    }
+
+    private getViewSettings(): epc.ExecutionPlanComparisonViewSettings {
+        return {
+            ...epc.defaultComparisonViewSettings,
+            ...this._context.globalState.get<Partial<epc.ExecutionPlanComparisonViewSettings>>(
+                viewSettingsStorageKey,
+            ),
+        };
     }
 
     private async pickSource(): Promise<epc.ExecutionPlanComparisonSource | undefined> {

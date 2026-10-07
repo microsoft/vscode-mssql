@@ -36,6 +36,8 @@ export interface ExecutionPlanGraphController {
     setZoomLevel(level: number): void;
     searchNodes(searchQuery: SearchQuery): ExecutionPlanNode[];
     centerElement(element: InternalExecutionPlanElement): void;
+    /** Centers an element that is out of view, and leaves the view alone when it is in view. */
+    revealElement(element: InternalExecutionPlanElement): void;
     /** Focus defaults to true; comparison synchronization keeps focus in the originating pane. */
     selectElement(
         element: InternalExecutionPlanElement | undefined,

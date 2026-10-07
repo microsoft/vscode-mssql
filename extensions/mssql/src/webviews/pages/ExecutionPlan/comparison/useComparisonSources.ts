@@ -90,5 +90,10 @@ export function useComparisonSources() {
         [],
     );
 
-    return { loaded, panes, errorMessage, pickSource, selectGraph };
+    const swap = useCallback(
+        () => setPanes((current) => ({ primary: current.secondary, secondary: current.primary })),
+        [],
+    );
+
+    return { loaded, panes, errorMessage, pickSource, selectGraph, swap };
 }

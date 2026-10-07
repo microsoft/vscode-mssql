@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ExecutionPlanGraph } from "../../../../sharedInterfaces/executionPlan";
 import {
@@ -30,9 +30,25 @@ export function useGraphComparison(
 ) {
     const { extensionRpc } = useVscodeWebview();
     const [comparison, setComparison] = useState<GraphComparison>();
+    const comparisonRef = useRef(comparison);
+
+    useEffect(() => {
+        comparisonRef.current = comparison;
+    }, [comparison]);
 
     useEffect(() => {
         if (!primary || !secondary) {
+            return;
+        }
+        // Swapping the panes swaps their matches, so there is nothing to ask the service.
+        const previous = comparisonRef.current;
+        if (previous?.result && previous.primary === secondary && previous.secondary === primary) {
+            setComparison({
+                primary,
+                secondary,
+                status: ApiStatus.Loaded,
+                result: { primary: previous.result.secondary, secondary: previous.result.primary },
+            });
             return;
         }
         // A newer pair of graphs supersedes this request, even if this one answers last.

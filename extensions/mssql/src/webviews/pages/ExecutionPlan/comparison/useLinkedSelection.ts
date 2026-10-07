@@ -25,48 +25,89 @@ function selectedNode(
 }
 
 /**
- * Tracks each pane's graph controller and selected operator. Selecting an operator selects its
- * match in the other pane, without moving focus there.
+ * Tracks each pane's graph controller and selected operator. While linking is on, selecting an
+ * operator in a similar area selects its match in the other pane, outlines it, and centers it when
+ * it is out of view, without moving focus there.
  */
-export function useLinkedSelection(maps: ExecutionPlanComparisonMaps) {
+export function useLinkedSelection(maps: ExecutionPlanComparisonMaps, linking: boolean) {
     const [controllers, setControllers] = useState<
         Record<ComparisonSide, ExecutionPlanGraphController | null>
     >({ primary: null, secondary: null });
     const [selectedNodes, setSelectedNodes] = useState<
         Record<ComparisonSide, ExecutionPlanNode | undefined>
     >({ primary: undefined, secondary: undefined });
+    const [linkedIds, setLinkedIds] = useState<Record<ComparisonSide, string | undefined>>({
+        primary: undefined,
+        secondary: undefined,
+    });
     const panesRef = useRef<Record<ComparisonSide, PaneSelection>>({
         primary: { controller: null },
         secondary: { controller: null },
     });
     const mapsRef = useRef(maps);
+    const linkingRef = useRef(linking);
+    /** The pane the user last selected in, whose selection the other pane follows. */
+    const sourceSideRef = useRef<ComparisonSide | undefined>(undefined);
 
-    const followMatch = useCallback((side: ComparisonSide, id: string) => {
-        const matches =
-            side === "primary" ? mapsRef.current.primaryMatches : mapsRef.current.secondaryMatches;
-        const matchingIds = matches.get(id);
-        const target = panesRef.current[otherSide(side)];
-        if (!target.controller || !matchingIds?.length) {
-            return;
-        }
-        if (target.selectedId && matchingIds.includes(target.selectedId)) {
-            return;
-        }
-        const element = target.controller.getElementById(matchingIds[0]);
-        if (element && "name" in element) {
-            target.followedId = element.id;
-            target.controller.selectElement(element, false, false);
-        }
-    }, []);
+    const setLinkedId = useCallback(
+        (side: ComparisonSide, id: string | undefined) =>
+            setLinkedIds((current) =>
+                current[side] === id ? current : { ...current, [side]: id },
+            ),
+        [],
+    );
 
-    // Matches arrive after the panes render, so follow the selection the primary pane already has.
+    const followMatch = useCallback(
+        (side: ComparisonSide, id: string) => {
+            const targetSide = otherSide(side);
+            const target = panesRef.current[targetSide];
+            const matches =
+                side === "primary"
+                    ? mapsRef.current.primaryMatches
+                    : mapsRef.current.secondaryMatches;
+            const matchingIds = matches.get(id);
+            if (!linkingRef.current || !target.controller || !matchingIds?.length) {
+                setLinkedId(targetSide, undefined);
+                return;
+            }
+            // Keep the other pane's selection when it is already one of the matches.
+            const linkedId =
+                target.selectedId && matchingIds.includes(target.selectedId)
+                    ? target.selectedId
+                    : matchingIds[0];
+            const element = target.controller.getElementById(linkedId);
+            if (!element || !("name" in element)) {
+                setLinkedId(targetSide, undefined);
+                return;
+            }
+            if (linkedId !== target.selectedId) {
+                target.followedId = linkedId;
+                target.controller.selectElement(element, false, false);
+            }
+            target.controller.revealElement(element);
+            setLinkedId(targetSide, linkedId);
+        },
+        [setLinkedId],
+    );
+
+    /** Links again from the pane the user last selected in, as matches or the setting change. */
+    const followSource = useCallback(() => {
+        const sourceSide = sourceSideRef.current;
+        const sourceId = sourceSide && panesRef.current[sourceSide].selectedId;
+        if (sourceSide && sourceId) {
+            followMatch(sourceSide, sourceId);
+        }
+    }, [followMatch]);
+
     useEffect(() => {
         mapsRef.current = maps;
-        const selectedId = panesRef.current.primary.selectedId;
-        if (selectedId) {
-            followMatch("primary", selectedId);
+        linkingRef.current = linking;
+        if (linking) {
+            followSource();
+        } else {
+            setLinkedIds({ primary: undefined, secondary: undefined });
         }
-    }, [maps, followMatch]);
+    }, [followSource, linking, maps]);
 
     const onSelectionChange = useCallback(
         (side: ComparisonSide, id: string) => {
@@ -78,11 +119,15 @@ export function useLinkedSelection(maps: ExecutionPlanComparisonMaps) {
             }));
             const isEcho = pane.followedId === id;
             pane.followedId = undefined;
-            if (!isEcho) {
-                followMatch(side, id);
+            // A pane reports its first selection as it mounts, before the user has chosen one.
+            if (isEcho || !pane.controller) {
+                return;
             }
+            sourceSideRef.current = side;
+            setLinkedId(side, undefined);
+            followMatch(side, id);
         },
-        [followMatch],
+        [followMatch, setLinkedId],
     );
 
     const onReady = useCallback(
@@ -96,14 +141,18 @@ export function useLinkedSelection(maps: ExecutionPlanComparisonMaps) {
                 ...current,
                 [side]: selectedNode(controller, pane.selectedId),
             }));
-            // A pane that remounts follows the selection the other pane already has.
-            const otherSelectedId = panesRef.current[otherSide(side)].selectedId;
-            if (controller && otherSelectedId) {
-                followMatch(otherSide(side), otherSelectedId);
+            setLinkedId(side, undefined);
+            if (sourceSideRef.current === side) {
+                // The pane the user selected in has a new graph, so there is nothing to follow.
+                sourceSideRef.current = undefined;
+                setLinkedId(otherSide(side), undefined);
+            } else if (controller) {
+                // A pane that remounts follows the selection the other pane already has.
+                followSource();
             }
         },
-        [followMatch],
+        [followSource, setLinkedId],
     );
 
-    return { controllers, selectedNodes, onReady, onSelectionChange };
+    return { controllers, selectedNodes, linkedIds, onReady, onSelectionChange };
 }

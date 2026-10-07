@@ -6158,6 +6158,9 @@
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
     </trans-unit>
+    <trans-unit id="++CODE++4bad6cff07d217818c512e21b5b33bf51cb09daf95e72f1e2e6e113601b5bd6f">
+      <source xml:lang="en">Minimap</source>
+    </trans-unit>
     <trans-unit id="++CODE++c02d79e56f113063c85842818c6c44fef7133c8a9a68e6f6adf23c9d9d52c195">
       <source xml:lang="en">Missing &apos;version&apos; entry in {0}</source>
     </trans-unit>
@@ -7222,6 +7225,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fa8ed0bdabdd6bcb1c0746f1d3e15212f7f3439d74339fbaaf16c60c0a80fb8e">
       <source xml:lang="en">Plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b72565b89cf34e3c9d2ef1cd5cec6f4459f950e94b5a42785c0cee4767898d4">
+      <source xml:lang="en">Plan layout</source>
     </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
@@ -9221,6 +9227,9 @@
     <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
       <source xml:lang="en">Showplan XML</source>
     </trans-unit>
+    <trans-unit id="++CODE++a3d7b387c34df52c5a611045b53215ebba668ddb9026a813b5aff0d50599fb3e">
+      <source xml:lang="en">Side by side</source>
+    </trans-unit>
     <trans-unit id="++CODE++bcc0bcc9140b0c97a6440ce56966a07a05e85bddd509ddc5e2ab98755f319af1">
       <source xml:lang="en">Sign In</source>
     </trans-unit>
@@ -9341,6 +9350,9 @@
     </trans-unit>
     <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
       <source xml:lang="en">SqlPackage Command</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c2fed746cc0e2142b5a2bb118d3d02721c0800c3bf25385c936a6c846d773f7f">
+      <source xml:lang="en">Stacked</source>
     </trans-unit>
     <trans-unit id="++CODE++042beab64062efc6a2e69013111afa772e5cb23c39d380bc06cc12b9bf4c8042">
       <source xml:lang="en">Standby file</source>
@@ -9530,6 +9542,9 @@
     <trans-unit id="++CODE++80ee14639029361a0df6f0a7dc915add2263a133778342ff214f336b388633a4">
       <source xml:lang="en">Suppress errors caused by unresolved references in the referenced project</source>
     </trans-unit>
+    <trans-unit id="++CODE++bd54fadd00a5561a2e50e77ed7ae3ae1fb037c7772cdf3f72ad59c715c1aa1a0">
+      <source xml:lang="en">Swap plans</source>
+    </trans-unit>
     <trans-unit id="++CODE++175f5352107a324eb25f4342a9114e2685b64a1ef54a5ff6ba3a24d0ac215ea7">
       <source xml:lang="en">Switch Direction</source>
     </trans-unit>
@@ -9570,12 +9585,6 @@
     <trans-unit id="++CODE++1cd65c404018fe0b10838ebb1d185bc820d942c2bab789cf9e0ed90db9bb6451">
       <source xml:lang="en">Switch to Text View ({0})</source>
       <note>{0} is the keyboard shortcut for switching to text view</note>
-    </trans-unit>
-    <trans-unit id="++CODE++21c4e0a0d9360e58a0da63a3b5787df48cacfe0ff5287d7df8fb6a83ff561d87">
-      <source xml:lang="en">Switch to side-by-side comparison</source>
-    </trans-unit>
-    <trans-unit id="++CODE++77f7339d54315fa9a7e05370739a74614f7690c55baeef6a7a285d00df983f53">
-      <source xml:lang="en">Switch to top-and-bottom comparison</source>
     </trans-unit>
     <trans-unit id="++CODE++ed15b242aa1a7a4a806b10b44d2a0010fdcd7582ee1d23ff253e9d376230e87b">
       <source xml:lang="en">Switched to {0}</source>
@@ -10159,11 +10168,17 @@
     <trans-unit id="++CODE++f91eac004e8c4e3334060eea2ab51d73ccda2acc75fd0cf172b0679757126f6f">
       <source xml:lang="en">Toggle Actual Plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++f1a9d44768edd0bea56a83dfaedc2b700d0f48a80ee84ccfa37e3aa684d8c971">
+      <source xml:lang="en">Toggle Minimap</source>
+    </trans-unit>
     <trans-unit id="++CODE++66537f058f1d64aa91d143821967b726382f308bef7eed1bbbf400dd835869f8">
       <source xml:lang="en">Toggle Query Result Panel</source>
     </trans-unit>
     <trans-unit id="++CODE++5f7970089ef6445b1c3f5481a75e81db1831a82f5afeda03b2c286e1abd07384">
       <source xml:lang="en">Toggle SQLCMD Mode</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0888fb768c96dbbea7f193833d4dc8ec6ac4cf63d8a49991b8768eaa9dab7e6a">
+      <source xml:lang="en">Toggle Similar Areas</source>
     </trans-unit>
     <trans-unit id="++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa">
       <source xml:lang="en">Toggle Sort</source>
@@ -10940,6 +10955,9 @@
     </trans-unit>
     <trans-unit id="++CODE++24649ee0c7a92fd868db079f46ef6b58509081e8b0e8b9ed929606f33c62831d">
       <source xml:lang="en">Zoom Out</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6af7d7b77b492a1ab706508c2bfd23391aa5f31d081efc876da60eee29bad51a">
+      <source xml:lang="en">Zoom controls</source>
     </trans-unit>
     <trans-unit id="++CODE++dc81206350e3da642fed43285f8b5a1dc00e0d91b4b81b6bffe3181d0e261d2e">
       <source xml:lang="en">Zoom to Fit</source>

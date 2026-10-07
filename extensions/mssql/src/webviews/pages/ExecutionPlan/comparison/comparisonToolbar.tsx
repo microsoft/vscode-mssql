@@ -5,34 +5,55 @@
 
 import { Toolbar, ToolbarButton, ToolbarDivider } from "@fluentui/react-components";
 import {
+    ArrowSwapRegular,
     ArrowSyncRegular,
     DocumentAddRegular,
     DocumentBulletListFilled,
     DocumentBulletListRegular,
+    LayerFilled,
+    LayerRegular,
+    MapFilled,
+    MapRegular,
     SplitHorizontalRegular,
     SplitVerticalRegular,
-    ZoomFitRegular,
-    ZoomInRegular,
-    ZoomOutRegular,
 } from "@fluentui/react-icons";
 
 import {
     SearchPlanIcon,
     TooltipIcon16Regular,
     TooltipOffIcon16Regular,
-    ZoomOriginalSizeIcon16Regular,
 } from "../../../common/icons/executionPlanIcons";
 import { locConstants } from "../../../common/locConstants";
+import { SegmentedControl, SegmentedControlOption } from "../../../common/segmentedControl";
 import { ExecutionPlanGraphController } from "../executionPlanGraphController";
 import { ComparisonOrientation, ComparisonSide, comparisonSides } from "./comparisonModel";
+
+const orientationOptions: SegmentedControlOption<ComparisonOrientation>[] = [
+    {
+        value: "sideBySide",
+        icon: <SplitVerticalRegular />,
+        title: locConstants.executionPlan.sideBySide,
+    },
+    {
+        value: "stacked",
+        icon: <SplitHorizontalRegular />,
+        title: locConstants.executionPlan.stacked,
+    },
+];
 
 interface ComparisonToolbarProps {
     controllers: Record<ComparisonSide, ExecutionPlanGraphController | null>;
     /** True once both panes have a plan, when picking another replaces the secondary one. */
     replacesPlan: boolean;
     onPickPlan: () => void;
+    canSwap: boolean;
+    onSwap: () => void;
     orientation: ComparisonOrientation;
-    onToggleOrientation: () => void;
+    onOrientationChange: (orientation: ComparisonOrientation) => void;
+    minimapsVisible: boolean;
+    onToggleMinimaps: () => void;
+    similarAreasVisible: boolean;
+    onToggleSimilarAreas: () => void;
     propertiesOpen: boolean;
     onToggleProperties: () => void;
     findSide: ComparisonSide | undefined;
@@ -41,13 +62,19 @@ interface ComparisonToolbarProps {
     onToggleTooltips: () => void;
 }
 
-/** Commands for the whole comparison. Zoom commands act on both plans. */
+/** Commands for the whole comparison. Each plan has its own zoom controls on its canvas. */
 export function ComparisonToolbar({
     controllers,
     replacesPlan,
     onPickPlan,
+    canSwap,
+    onSwap,
     orientation,
-    onToggleOrientation,
+    onOrientationChange,
+    minimapsVisible,
+    onToggleMinimaps,
+    similarAreasVisible,
+    onToggleSimilarAreas,
     propertiesOpen,
     onToggleProperties,
     findSide,
@@ -59,15 +86,9 @@ export function ComparisonToolbar({
         .map((side) => controllers[side])
         .filter((controller) => controller !== null);
     const noPlans = readyControllers.length === 0;
-    const forEachPlan = (action: (controller: ExecutionPlanGraphController) => void) => () =>
-        readyControllers.forEach(action);
     const pickLabel = replacesPlan
         ? locConstants.executionPlan.replaceExecutionPlan
         : locConstants.executionPlan.addExecutionPlan;
-    const orientationLabel =
-        orientation === "horizontal"
-            ? locConstants.executionPlan.switchToSideBySideComparison
-            : locConstants.executionPlan.switchToStackedComparison;
     const findButton = (side: ComparisonSide, planNumber: 1 | 2, label: string) => (
         <ToolbarButton
             icon={<SearchPlanIcon planNumber={planNumber} selected={findSide === side} />}
@@ -91,47 +112,36 @@ export function ComparisonToolbar({
             />
             <ToolbarDivider className="execution-plan-comparison-toolbar-divider" />
             <ToolbarButton
-                icon={<ZoomInRegular />}
-                disabled={noPlans}
-                onClick={forEachPlan((controller) => controller.zoomIn())}
-                title={locConstants.executionPlan.zoomIn}
-                aria-label={locConstants.executionPlan.zoomIn}
+                icon={<ArrowSwapRegular />}
+                disabled={!canSwap}
+                onClick={onSwap}
+                title={locConstants.executionPlan.swapPlans}
+                aria-label={locConstants.executionPlan.swapPlans}
             />
-            <ToolbarButton
-                icon={<ZoomOutRegular />}
-                disabled={noPlans}
-                onClick={forEachPlan((controller) => controller.zoomOut())}
-                title={locConstants.executionPlan.zoomOut}
-                aria-label={locConstants.executionPlan.zoomOut}
-            />
-            <ToolbarButton
-                icon={<ZoomFitRegular />}
-                disabled={noPlans}
-                onClick={forEachPlan((controller) => controller.zoomToFit())}
-                title={locConstants.executionPlan.zoomToFit}
-                aria-label={locConstants.executionPlan.zoomToFit}
-            />
-            <ToolbarButton
-                icon={<ZoomOriginalSizeIcon16Regular />}
-                disabled={noPlans}
-                onClick={forEachPlan((controller) => controller.setZoomLevel(100))}
-                title={locConstants.executionPlan.resetZoom}
-                aria-label={locConstants.executionPlan.resetZoom}
+            <SegmentedControl<ComparisonOrientation>
+                className="execution-plan-comparison-layout"
+                value={orientation}
+                options={orientationOptions}
+                onValueChange={onOrientationChange}
+                ariaLabel={locConstants.executionPlan.planLayout}
             />
             <ToolbarDivider className="execution-plan-comparison-toolbar-divider" />
             <ToolbarButton
-                icon={
-                    orientation === "horizontal" ? (
-                        <SplitVerticalRegular />
-                    ) : (
-                        <SplitHorizontalRegular />
-                    )
-                }
-                onClick={onToggleOrientation}
-                title={orientationLabel}
-                aria-label={orientationLabel}
+                icon={minimapsVisible ? <MapFilled /> : <MapRegular />}
+                disabled={noPlans}
+                onClick={onToggleMinimaps}
+                title={locConstants.executionPlan.toggleMinimap}
+                aria-label={locConstants.executionPlan.toggleMinimap}
+                aria-pressed={minimapsVisible}
             />
-            <ToolbarDivider className="execution-plan-comparison-toolbar-divider" />
+            <ToolbarButton
+                icon={similarAreasVisible ? <LayerFilled /> : <LayerRegular />}
+                disabled={noPlans}
+                onClick={onToggleSimilarAreas}
+                title={locConstants.executionPlan.toggleSimilarAreas}
+                aria-label={locConstants.executionPlan.toggleSimilarAreas}
+                aria-pressed={similarAreasVisible}
+            />
             <ToolbarButton
                 icon={propertiesOpen ? <DocumentBulletListFilled /> : <DocumentBulletListRegular />}
                 disabled={!controllers.primary}

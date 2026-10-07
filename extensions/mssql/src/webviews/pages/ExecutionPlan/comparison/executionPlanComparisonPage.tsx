@@ -19,8 +19,11 @@ import { ComparisonPropertiesPanel } from "./comparisonPropertiesPanel";
 import { ComparisonSplit } from "./comparisonSplit";
 import { ComparisonToolbar } from "./comparisonToolbar";
 import { useComparisonSources } from "./useComparisonSources";
+import { useComparisonViewSettings } from "./useComparisonViewSettings";
 import { useGraphComparison } from "./useGraphComparison";
 import { useLinkedSelection } from "./useLinkedSelection";
+
+const noGroupRoots: ReadonlyMap<string, number> = new Map();
 
 /** Compares two execution plans side by side, outlining the areas they have in common. */
 export function ExecutionPlanComparisonPage() {
@@ -31,15 +34,16 @@ export function ExecutionPlanComparisonPage() {
         errorMessage: sourceError,
         pickSource,
         selectGraph,
+        swap,
     } = useComparisonSources();
     const comparison = useGraphComparison(
         panes.primary?.source.graphs[panes.primary.graphIndex],
         panes.secondary?.source.graphs[panes.secondary.graphIndex],
     );
-    const { controllers, selectedNodes, onReady, onSelectionChange } = useLinkedSelection(
-        comparison.maps,
-    );
-    const [orientation, setOrientation] = useState<ComparisonOrientation>("horizontal");
+    const { settings: viewSettings, updateSettings } = useComparisonViewSettings();
+    const { controllers, selectedNodes, linkedIds, onReady, onSelectionChange } =
+        useLinkedSelection(comparison.maps, viewSettings?.similarAreasVisible ?? true);
+    const [orientation, setOrientation] = useState<ComparisonOrientation>("stacked");
     const [propertiesOpen, setPropertiesOpen] = useState(false);
     const [findSide, setFindSide] = useState<ComparisonSide>();
     const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
@@ -57,7 +61,7 @@ export function ExecutionPlanComparisonPage() {
     );
     const closeFind = useCallback(() => setFindSide(undefined), []);
 
-    if (!loaded) {
+    if (!loaded || !viewSettings) {
         return (
             <main className="execution-plan-comparison execution-plan-comparison-status">
                 <Spinner label={locConstants.executionPlan.loadingExecutionPlan} />
@@ -90,16 +94,20 @@ export function ExecutionPlanComparisonPage() {
                 side={side}
                 pane={pane}
                 groupRoots={
-                    side === "primary"
-                        ? comparison.maps.primaryGroupRoots
-                        : comparison.maps.secondaryGroupRoots
+                    !viewSettings.similarAreasVisible
+                        ? noGroupRoots
+                        : side === "primary"
+                          ? comparison.maps.primaryGroupRoots
+                          : comparison.maps.secondaryGroupRoots
                 }
                 onReady={onReady}
                 onSelectionChange={onSelectionChange}
+                linkedNodeId={linkedIds[side]}
                 onSelectGraph={selectGraph}
                 onShowQuery={showQuery}
                 showFind={findSide === side}
                 onCloseFind={closeFind}
+                showMinimap={viewSettings.minimapsVisible}
             />
         );
     };
@@ -112,11 +120,17 @@ export function ExecutionPlanComparisonPage() {
                 controllers={controllers}
                 replacesPlan={panes.primary !== undefined && panes.secondary !== undefined}
                 onPickPlan={() => void pickSource(toolbarPickSide)}
+                canSwap={panes.primary !== undefined || panes.secondary !== undefined}
+                onSwap={swap}
                 orientation={orientation}
-                onToggleOrientation={() =>
-                    setOrientation((current) =>
-                        current === "horizontal" ? "vertical" : "horizontal",
-                    )
+                onOrientationChange={setOrientation}
+                minimapsVisible={viewSettings.minimapsVisible}
+                onToggleMinimaps={() =>
+                    updateSettings({ minimapsVisible: !viewSettings.minimapsVisible })
+                }
+                similarAreasVisible={viewSettings.similarAreasVisible}
+                onToggleSimilarAreas={() =>
+                    updateSettings({ similarAreasVisible: !viewSettings.similarAreasVisible })
                 }
                 propertiesOpen={propertiesOpen}
                 onToggleProperties={() => setPropertiesOpen((open) => !open)}

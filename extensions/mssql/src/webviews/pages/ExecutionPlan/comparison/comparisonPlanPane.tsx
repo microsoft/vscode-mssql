@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Dropdown, Option } from "@fluentui/react-components";
+import { MiniMap } from "@xyflow/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ExecutionPlanComparisonSource } from "../../../../sharedInterfaces/executionPlanComparison";
@@ -15,6 +16,7 @@ import { ExecutionPlanHeader } from "../executionPlanHeader";
 import { FindNode } from "../findNodes";
 import { ReactFlowExecutionPlan } from "../reactFlowExecutionPlan";
 import { ComparisonSide } from "./comparisonModel";
+import { ComparisonZoomControls } from "./comparisonZoomControls";
 import { ComparisonPaneSource } from "./useComparisonSources";
 
 function graphCostPercentage(source: ExecutionPlanComparisonSource, graphIndex: number) {
@@ -30,10 +32,13 @@ interface ComparisonPlanPaneProps {
     groupRoots: ReadonlyMap<string, number>;
     onReady: (side: ComparisonSide, controller: ExecutionPlanGraphController | null) => void;
     onSelectionChange: (side: ComparisonSide, id: string) => void;
+    /** The match of the operator selected in the other pane, outlined in this one. */
+    linkedNodeId: string | undefined;
     onSelectGraph: (side: ComparisonSide, graphIndex: number) => void;
     onShowQuery: (query: string) => void;
     showFind: boolean;
     onCloseFind: () => void;
+    showMinimap: boolean;
 }
 
 /** One plan of the comparison: its statement picker, query summary and graph. */
@@ -43,10 +48,12 @@ export function ComparisonPlanPane({
     groupRoots,
     onReady,
     onSelectionChange,
+    linkedNodeId,
     onSelectGraph,
     onShowQuery,
     showFind,
     onCloseFind,
+    showMinimap,
 }: ComparisonPlanPaneProps) {
     const { themeKind, extensionRpc } = useVscodeWebview();
     const { source, graphIndex } = pane;
@@ -137,6 +144,19 @@ export function ComparisonPlanPane({
                         onReady={handleReady}
                         comparisonGroupRoots={groupRoots}
                         onSelectionChange={handleSelectionChange}
+                        linkedNodeId={linkedNodeId}
+                        overlay={
+                            <>
+                                <ComparisonZoomControls controller={controller} />
+                                {showMinimap && (
+                                    <MiniMap
+                                        pannable
+                                        zoomable
+                                        ariaLabel={locConstants.executionPlan.minimap}
+                                    />
+                                )}
+                            </>
+                        }
                     />
                 </WebviewErrorBoundary>
                 {showFind && controller && (

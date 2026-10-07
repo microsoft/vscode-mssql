@@ -14,7 +14,8 @@ import {
 } from "../../../../sharedInterfaces/executionPlanComparison";
 
 export type ComparisonSide = "primary" | "secondary";
-export type ComparisonOrientation = "horizontal" | "vertical";
+/** Plans one above the other, or next to each other. */
+export type ComparisonOrientation = "stacked" | "sideBySide";
 export const comparisonSides: readonly ComparisonSide[] = ["primary", "secondary"];
 
 export function otherSide(side: ComparisonSide): ComparisonSide {

@@ -34,7 +34,7 @@ export function ComparisonSplit({
     const [ratio, setRatio] = useState(0.5);
     const splitRef = useRef<HTMLDivElement>(null);
     const draggingRef = useRef(false);
-    const horizontal = orientation === "horizontal";
+    const stacked = orientation === "stacked";
 
     const resizeFromPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
         if (!draggingRef.current || !splitRef.current) {
@@ -43,7 +43,7 @@ export function ComparisonSplit({
         const bounds = splitRef.current.getBoundingClientRect();
         setRatio(
             clampRatio(
-                horizontal
+                stacked
                     ? (event.clientY - bounds.top) / bounds.height
                     : (event.clientX - bounds.left) / bounds.width,
             ),
@@ -51,9 +51,9 @@ export function ComparisonSplit({
     };
     const resizeFromKeyboard = (event: ReactKeyboardEvent<HTMLDivElement>) => {
         const step =
-            event.key === (horizontal ? "ArrowUp" : "ArrowLeft")
+            event.key === (stacked ? "ArrowUp" : "ArrowLeft")
                 ? -KEYBOARD_STEP
-                : event.key === (horizontal ? "ArrowDown" : "ArrowRight")
+                : event.key === (stacked ? "ArrowDown" : "ArrowRight")
                   ? KEYBOARD_STEP
                   : 0;
         if (step !== 0) {
@@ -65,7 +65,7 @@ export function ComparisonSplit({
     return (
         <div
             ref={splitRef}
-            className={`execution-plan-comparison-split execution-plan-comparison-split-${orientation}`}
+            className={`execution-plan-comparison-split execution-plan-comparison-split-${stacked ? "stacked" : "side-by-side"}`}
             onPointerMove={resizeFromPointer}
             onPointerUp={(event) => {
                 draggingRef.current = false;
@@ -80,7 +80,7 @@ export function ComparisonSplit({
                 className="execution-plan-comparison-sash"
                 role="separator"
                 tabIndex={0}
-                aria-orientation={horizontal ? "horizontal" : "vertical"}
+                aria-orientation={stacked ? "horizontal" : "vertical"}
                 aria-valuemin={MIN_RATIO * 100}
                 aria-valuemax={MAX_RATIO * 100}
                 aria-valuenow={Math.round(ratio * 100)}

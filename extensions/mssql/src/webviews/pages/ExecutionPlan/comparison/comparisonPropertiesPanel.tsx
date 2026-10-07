@@ -69,11 +69,11 @@ export function ComparisonPropertiesPanel({
     const [width, setWidth] = useState(() =>
         clampWidth(Math.min(DEFAULT_MAX_WIDTH, window.innerWidth * 0.46)),
     );
-    const horizontal = orientation === "horizontal";
-    const primaryTitle = horizontal
+    const stacked = orientation === "stacked";
+    const primaryTitle = stacked
         ? locConstants.executionPlan.topOperation(primary?.name ?? "")
         : locConstants.executionPlan.leftOperation(primary?.name ?? "");
-    const secondaryTitle = horizontal
+    const secondaryTitle = stacked
         ? locConstants.executionPlan.bottomOperation(secondary?.name ?? "")
         : locConstants.executionPlan.rightOperation(secondary?.name ?? "");
 

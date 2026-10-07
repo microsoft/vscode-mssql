@@ -101,10 +101,17 @@ suite("ExecutionPlanComparisonWebviewController", () => {
 
         executionPlanService = sandbox.createStubInstance(ExecutionPlanService);
         sqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
+        const globalState = new Map<string, unknown>();
         context = {
             extensionUri: vscode.Uri.file("/tmp/ext"),
             extensionPath: "/tmp/ext",
             subscriptions: [],
+            globalState: {
+                get: (key: string) => globalState.get(key),
+                update: async (key: string, value: unknown) => {
+                    globalState.set(key, value);
+                },
+            },
         } as unknown as vscode.ExtensionContext;
     });
 
@@ -199,6 +206,34 @@ suite("ExecutionPlanComparisonWebviewController", () => {
         expect(await request(epc.GetInitialComparisonSourcesRequest.type)).to.deep.equal({
             primary: undefined,
             secondary: undefined,
+        });
+    });
+
+    test("shows the minimaps and similar areas until the user hides them", async () => {
+        createController();
+
+        expect(await request(epc.GetComparisonViewSettingsRequest.type)).to.deep.equal({
+            minimapsVisible: true,
+            similarAreasVisible: true,
+        });
+    });
+
+    test("remembers each view choice for comparisons opened later", async () => {
+        const first = createController();
+        const update = notificationHandlers.get(
+            epc.UpdateComparisonViewSettingsNotification.type.method,
+        )!;
+        update({ minimapsVisible: false });
+        update({ similarAreasVisible: false });
+        update({ minimapsVisible: true });
+        observeWebviewReady(first);
+        first.dispose();
+
+        createController();
+
+        expect(await request(epc.GetComparisonViewSettingsRequest.type)).to.deep.equal({
+            minimapsVisible: true,
+            similarAreasVisible: false,
         });
     });
 

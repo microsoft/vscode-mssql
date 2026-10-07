@@ -73,6 +73,12 @@
     box-shadow: 0 0 0 1px var(--vscode-focusBorder, #007fd4);
 }
 
+/* The match of the operator selected in the other plan, drawn apart from this plan's own focus. */
+.execution-plan-flow-node.linked > .execution-plan-flow-selection-outline {
+    border: 1px dashed var(--vscode-focusBorder, #007fd4);
+    background: color-mix(in srgb, var(--vscode-focusBorder, #007fd4) 10%, transparent);
+}
+
 .execution-plan-flow-node.highlighted > .execution-plan-flow-selection-outline {
     border-color: var(--vscode-inputValidation-errorBorder);
     box-shadow: 0 0 0 2px var(--vscode-inputValidation-errorBorder);

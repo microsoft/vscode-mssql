@@ -15,6 +15,7 @@ import {
     Position,
     ReactFlow,
     ReactFlowInstance,
+    ReactFlowProvider,
     ViewportPortal,
     getSmoothStepPath,
 } from "@xyflow/react";
@@ -24,6 +25,7 @@ import {
     CSSProperties,
     KeyboardEvent as ReactKeyboardEvent,
     MouseEvent,
+    ReactNode,
     useCallback,
     useEffect,
     useId,
@@ -111,6 +113,8 @@ interface ExecutionPlanFlowNodeData extends Record<string, unknown> {
     collapsed: boolean;
     highlighted: boolean;
     selected: boolean;
+    /** Matches the operator selected in another view, such as the other plan of a comparison. */
+    linked: boolean;
     selectionWidth: number;
     selectionHeight: number;
     themeKind: ColorThemeKind;
@@ -143,6 +147,7 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
         collapsed,
         highlighted,
         selected,
+        linked,
         selectionWidth,
         selectionHeight,
         themeKind,
@@ -227,6 +232,7 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
                 "execution-plan-flow-node",
                 selected ? "selected" : "",
                 highlighted ? "highlighted" : "",
+                linked ? "linked" : "",
             ]
                 .filter(Boolean)
                 .join(" ")}
@@ -532,6 +538,7 @@ interface ReactFlowExecutionPlanControllerOptions {
     setHighlightedId: (id: string | undefined) => void;
     expandAncestors: (id: string) => void;
     focusNode: (id: string) => void;
+    isNodeInView: (id: string) => boolean;
     closeTooltip: () => void;
 }
 
@@ -611,6 +618,14 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
         return this._options.model.searchNodes(searchQuery);
     }
 
+    public revealElement(element: InternalExecutionPlanElement): void {
+        const id = "name" in element ? element.id : (element as ExecutionPlanEdgeModel).targetId;
+        this._options.expandAncestors(id);
+        if (!this._options.isNodeInView(id)) {
+            this.centerElement(element);
+        }
+    }
+
     public centerElement(element: InternalExecutionPlanElement): void {
         const id = "name" in element ? element.id : (element as ExecutionPlanEdgeModel).targetId;
         const position = this._options.positions.get(id);
@@ -675,6 +690,13 @@ interface ReactFlowExecutionPlanProps {
     comparisonGroupRoots?: ReadonlyMap<string, number>;
     /** Called with the selected node id, including programmatic selection changes. */
     onSelectionChange?: (id: string) => void;
+    /** An operator to outline as the match of the one selected in another view. */
+    linkedNodeId?: string;
+    /**
+     * Controls drawn over the canvas, such as React Flow's Controls panel. They render outside
+     * the tree of operators, which may own only tree items, and can read React Flow's store.
+     */
+    overlay?: ReactNode;
 }
 
 export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
@@ -686,6 +708,8 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     onReady,
     comparisonGroupRoots,
     onSelectionChange,
+    linkedNodeId,
+    overlay,
 }) => {
     const model = useMemo(() => new ExecutionPlanModel(root), [root]);
     const positions = useMemo(() => layoutExecutionPlan(model), [model]);
@@ -777,6 +801,26 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             if (viewport) {
                 void instance.setViewport(viewport);
             }
+        },
+        [instance, positions],
+    );
+
+    const isNodeInView = useCallback(
+        (id: string) => {
+            const position = positions.get(id);
+            const canvas = canvasRef.current;
+            if (!instance || !position || !canvas) {
+                return true;
+            }
+            return (
+                getViewportToRevealExecutionPlanNode(
+                    instance.getViewport(),
+                    position,
+                    { width: EXECUTION_PLAN_NODE_WIDTH, height: EXECUTION_PLAN_NODE_HEIGHT },
+                    { width: canvas.clientWidth, height: canvas.clientHeight },
+                    EXECUTION_PLAN_REVEAL_PADDING,
+                ) === undefined
+            );
         },
         [instance, positions],
     );
@@ -984,6 +1028,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                         collapsed: collapsedNodeIds.has(planNode.id),
                         highlighted: highlightedId === planNode.id,
                         selected: selectedId === planNode.id,
+                        linked: linkedNodeId === planNode.id,
                         selectionWidth: getNodeSelectionWidth(planNode),
                         selectionHeight: getNodeSelectionHeight(planNode),
                         themeKind,
@@ -1015,6 +1060,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             collapsedNodeIds,
             hiddenNodeIds,
             highlightedId,
+            linkedNodeId,
             model,
             navigateNode,
             positions,
@@ -1140,14 +1186,15 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             setHighlightedId,
             expandAncestors,
             focusNode,
+            isNodeInView,
             closeTooltip: () => setTooltip(undefined),
         });
         onReady(controller);
         return () => onReady(null);
-    }, [expandAncestors, focusNode, instance, model, onReady, positions]);
+    }, [expandAncestors, focusNode, instance, isNodeInView, model, onReady, positions]);
 
     return (
-        <>
+        <ReactFlowProvider>
             <div
                 className="execution-plan-flow-announcement"
                 role="status"
@@ -1243,7 +1290,8 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                     />
                 )}
             </div>
-        </>
+            {overlay}
+        </ReactFlowProvider>
     );
 };
 

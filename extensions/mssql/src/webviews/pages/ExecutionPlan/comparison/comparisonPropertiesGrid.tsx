@@ -359,11 +359,11 @@ export function ComparisonPropertiesGrid({
     );
 
     const columns = useMemo<TableColumnDefinition<GridItem>[]>(() => {
-        const horizontal = orientation === "horizontal";
-        const primaryLabel = horizontal
+        const stacked = orientation === "stacked";
+        const primaryLabel = stacked
             ? locConstants.executionPlan.valueTopPlan
             : locConstants.executionPlan.valueLeftPlan;
-        const secondaryLabel = horizontal
+        const secondaryLabel = stacked
             ? locConstants.executionPlan.valueBottomPlan
             : locConstants.executionPlan.valueRightPlan;
         return [

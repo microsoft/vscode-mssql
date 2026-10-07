@@ -28,8 +28,26 @@
     font-size: 20px;
 }
 
-.execution-plan-comparison-toolbar button[aria-pressed="true"] {
+/* Segments report their state with aria-checked, and keep their own selected color. */
+.execution-plan-comparison-toolbar button[aria-pressed="true"]:not([role="radio"]) {
     background: var(--vscode-toolbar-activeBackground);
+}
+
+/* A compact pill, so the layout choice reads as one control rather than two more buttons. */
+.execution-plan-comparison-toolbar .execution-plan-comparison-layout {
+    margin: 0 4px;
+}
+
+.execution-plan-comparison-toolbar .execution-plan-comparison-layout button {
+    min-width: 28px;
+    height: 24px;
+    padding: 0 4px;
+}
+
+.execution-plan-comparison-toolbar .execution-plan-comparison-layout button > span {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
 }
 
 .execution-plan-comparison-toolbar .execution-plan-comparison-toolbar-divider {
@@ -58,11 +76,11 @@
     flex: 1 1 auto;
 }
 
-.execution-plan-comparison-split-horizontal {
+.execution-plan-comparison-split-stacked {
     flex-direction: column;
 }
 
-.execution-plan-comparison-split-vertical {
+.execution-plan-comparison-split-side-by-side {
     flex-direction: row;
 }
 
@@ -81,11 +99,11 @@
     outline: none;
 }
 
-.execution-plan-comparison-split-horizontal > .execution-plan-comparison-sash {
+.execution-plan-comparison-split-stacked > .execution-plan-comparison-sash {
     cursor: ns-resize;
 }
 
-.execution-plan-comparison-split-vertical > .execution-plan-comparison-sash {
+.execution-plan-comparison-split-side-by-side > .execution-plan-comparison-sash {
     cursor: ew-resize;
 }
 
@@ -132,6 +150,38 @@
     min-width: 0;
     min-height: 0;
     flex: 1 1 auto;
+
+    /* React Flow draws its controls panel with these; take them from the VS Code theme. */
+    --xy-controls-button-background-color: var(--vscode-editorWidget-background);
+    --xy-controls-button-background-color-hover: var(--vscode-toolbar-hoverBackground);
+    --xy-controls-button-color: var(--vscode-editor-foreground);
+    --xy-controls-button-color-hover: var(--vscode-editor-foreground);
+    --xy-controls-button-border-color: var(--vscode-editorWidget-border);
+    --xy-controls-box-shadow: 0 2px 8px var(--vscode-widget-shadow);
+    --xy-minimap-background-color: var(--vscode-editorWidget-background);
+    --xy-minimap-mask-background-color: color-mix(
+        in srgb,
+        var(--vscode-editor-background) 60%,
+        transparent
+    );
+    --xy-minimap-mask-stroke-color: var(--vscode-focusBorder);
+    --xy-minimap-mask-stroke-width: 1;
+    --xy-minimap-node-background-color: var(--vscode-descriptionForeground);
+    --xy-minimap-node-stroke-color: transparent;
+}
+
+.execution-plan-comparison-graph .react-flow__minimap {
+    border: 1px solid var(--vscode-editorWidget-border);
+    box-shadow: 0 2px 8px var(--vscode-widget-shadow);
+}
+
+.execution-plan-comparison-graph .react-flow__controls {
+    border: 1px solid var(--vscode-editorWidget-border);
+}
+
+.execution-plan-comparison-graph .react-flow__controls-button:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
 }
 
 .execution-plan-comparison-placeholder,
