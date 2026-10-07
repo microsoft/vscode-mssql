@@ -9,6 +9,7 @@ import {
     TableColumnDefinition,
     TableColumnSizingOptions,
     TableRowData,
+    useEventCallback,
     useFluent,
     useRestoreFocusTarget,
     useScrollbarWidth,
@@ -57,9 +58,20 @@ import {
 } from "./comparisonModel";
 
 type PropertyGroup = "different" | "equivalent";
+/**
+ * A row of the grid, with everything that draws it. Rows render from these alone, so the row
+ * renderer never changes: the grid remounts every row when it does, which drops keyboard focus.
+ */
 type GridItem =
     | { kind: "group"; id: PropertyGroup; label: string; open: boolean }
-    | { kind: "property"; id: string; row: ExecutionPlanComparisonPropertyRow };
+    | {
+          kind: "property";
+          id: string;
+          row: ExecutionPlanComparisonPropertyRow;
+          expanded: boolean;
+          /** The row the property is nested in: its parent property, or its group. */
+          parentId: string;
+      };
 
 const ROW_HEIGHT = 26;
 const HEADER_HEIGHT = 28;
@@ -184,10 +196,21 @@ export function ComparisonPropertiesGrid({
                     ? locConstants.executionPlan.differentProperties(groupRows.length)
                     : locConstants.executionPlan.equivalentProperties(groupRows.length);
             const open = openGroups[group];
+            // The last row seen at each level, which is the parent of the next row below it.
+            const ancestors: string[] = [];
             const groupItems = open
-                ? flattenComparisonPropertyRows(groupRows, isExpanded).map(
-                      (row): GridItem => ({ kind: "property", id: row.id, row }),
-                  )
+                ? flattenComparisonPropertyRows(groupRows, isExpanded).map((row): GridItem => {
+                      const parentId = row.level === 0 ? group : ancestors[row.level - 1];
+                      ancestors[row.level] = row.id;
+                      ancestors.length = row.level + 1;
+                      return {
+                          kind: "property",
+                          id: row.id,
+                          row,
+                          expanded: isExpanded(row),
+                          parentId,
+                      };
+                  })
                 : [];
             return [{ kind: "group", id: group, label, open }, ...groupItems];
         });
@@ -269,8 +292,7 @@ export function ComparisonPropertiesGrid({
                     </DataGridCell>
                 );
             }
-            const { row } = item;
-            const expanded = isExpanded(row);
+            const { row, expanded } = item;
             return (
                 <DataGridCell>
                     <div
@@ -309,7 +331,7 @@ export function ComparisonPropertiesGrid({
                 </DataGridCell>
             );
         },
-        [isExpanded, isFiltering, setRowExpanded, toggleGroup],
+        [isFiltering, setRowExpanded, toggleGroup],
     );
 
     const renderValueCell = useCallback(
@@ -411,48 +433,96 @@ export function ComparisonPropertiesGrid({
         [headerLabels, renderNameCell, renderValueCell],
     );
 
-    const handleRowKeyDown = useCallback(
-        (event: ReactKeyboardEvent<HTMLDivElement>, row: ExecutionPlanComparisonPropertyRow) => {
-            if (event.target !== event.currentTarget || row.children.length === 0 || isFiltering) {
+    /**
+     * Focuses a row. A row scrolled out of the rendered window is scrolled to first, and focused
+     * once the grid renders it.
+     */
+    const focusRow = useCallback(
+        (id: string, from: HTMLElement) => {
+            const findRow = () =>
+                containerRef.current?.querySelector<HTMLElement>(
+                    `[role="row"][data-item-id="${CSS.escape(id)}"]`,
+                );
+            const row = findRow();
+            if (row) {
+                row.focus();
                 return;
             }
-            const expanded = expandedIds.has(row.id);
-            if (
-                (event.key === "ArrowRight" && !expanded) ||
-                (event.key === "ArrowLeft" && expanded)
-            ) {
-                event.preventDefault();
-                event.stopPropagation();
-                setRowExpanded(row.id, !expanded);
+            // Rows sit in the list's inner element, inside the element that scrolls.
+            const scroller = from.parentElement?.parentElement;
+            const index = items.findIndex((item) => item.id === id);
+            if (!scroller || index < 0) {
+                return;
             }
+            scroller.scrollTop = index * ROW_HEIGHT;
+            requestAnimationFrame(() => requestAnimationFrame(() => findRow()?.focus()));
         },
-        [expandedIds, isFiltering, setRowExpanded],
+        [items],
+    );
+
+    /**
+     * Tree keys on a focused row: Right opens a closed row, Left closes an open one or moves to
+     * the row it is nested in, and Space opens or closes a group. Other keys, and Right on an
+     * open row, keep the grid's own navigation, such as Enter or Right moving into the cells.
+     */
+    const handleRowKeyDown = useEventCallback(
+        (event: ReactKeyboardEvent<HTMLDivElement>, item: GridItem) => {
+            if (event.target !== event.currentTarget) {
+                return;
+            }
+            if (item.kind === "group") {
+                const toggles =
+                    event.key === " " ||
+                    (event.key === "ArrowRight" && !item.open) ||
+                    (event.key === "ArrowLeft" && item.open);
+                if (!toggles) {
+                    return;
+                }
+                toggleGroup(item.id);
+            } else if (
+                event.key === "ArrowRight" &&
+                item.row.children.length > 0 &&
+                !item.expanded &&
+                !isFiltering
+            ) {
+                setRowExpanded(item.id, true);
+            } else if (event.key === "ArrowLeft" && item.expanded && !isFiltering) {
+                setRowExpanded(item.id, false);
+            } else if (event.key === "ArrowLeft") {
+                focusRow(item.parentId, event.currentTarget);
+            } else {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+        },
     );
 
     const renderRow = useCallback(
         ({ item, rowId }: TableRowData<GridItem>, style: CSSProperties): ReactNode => (
             <DataGridRow<GridItem>
                 key={rowId}
+                data-item-id={item.id}
                 className={
                     item.kind === "group" ? "execution-plan-comparison-grid-group-row" : undefined
                 }
-                aria-level={item.kind === "property" ? item.row.level + 1 : undefined}
+                // Groups are the top level of the tree, and properties nest under them.
+                aria-level={item.kind === "group" ? 1 : item.row.level + 2}
                 aria-expanded={
-                    item.kind === "property" && item.row.children.length > 0
-                        ? isExpanded(item.row)
-                        : undefined
+                    item.kind === "group"
+                        ? item.open
+                        : item.row.children.length > 0
+                          ? item.expanded
+                          : undefined
                 }
-                onKeyDown={
-                    item.kind === "property"
-                        ? (event: ReactKeyboardEvent<HTMLDivElement>) =>
-                              handleRowKeyDown(event, item.row)
-                        : undefined
+                onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) =>
+                    handleRowKeyDown(event, item)
                 }
                 style={style}>
                 {({ renderCell }) => <>{renderCell(item)}</>}
             </DataGridRow>
         ),
-        [handleRowKeyDown, isExpanded],
+        [handleRowKeyDown],
     );
 
     return (

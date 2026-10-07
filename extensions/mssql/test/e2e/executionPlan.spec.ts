@@ -590,6 +590,52 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await expect(physicalRow).toContainText("Hash Match");
         await find.getByRole("button", { name: "Close", exact: true }).click();
 
+        // The properties work as a tree from the keyboard, and keep focus as rows open and close.
+        await properties.getByRole("textbox", { name: "Filter comparison properties..." }).fill("");
+        const groupRow = properties.getByRole("row", { name: /Equivalent Properties/ });
+        await groupRow.focus();
+        await expect(groupRow).toHaveAttribute("aria-level", "1");
+        await expect(groupRow).toHaveAttribute("aria-expanded", "true");
+        await groupRow.press("ArrowLeft");
+        await expect(groupRow).toHaveAttribute("aria-expanded", "false");
+        await expect(groupRow).toBeFocused();
+        await groupRow.press(" ");
+        await expect(groupRow).toHaveAttribute("aria-expanded", "true");
+        await expect(groupRow).toBeFocused();
+
+        const nestedId = await properties
+            .locator('[role="row"][aria-level="2"][aria-expanded="false"]')
+            .first()
+            .getAttribute("data-item-id");
+        const nestedRow = properties.locator(`[role="row"][data-item-id="${nestedId}"]`);
+        await nestedRow.focus();
+        await nestedRow.press("ArrowRight");
+        await expect(nestedRow).toHaveAttribute("aria-expanded", "true");
+        await expect(nestedRow).toBeFocused();
+        await vsCodePage.keyboard.press("ArrowDown");
+        await expect(properties.locator('[role="row"]:focus')).toHaveAttribute("aria-level", "3");
+        await vsCodePage.keyboard.press("ArrowLeft");
+        await expect(nestedRow).toBeFocused();
+        await nestedRow.press("ArrowLeft");
+        await expect(nestedRow).toHaveAttribute("aria-expanded", "false");
+        await expect(nestedRow).toBeFocused();
+
+        // Right moves from a row into its cells, up to the button that shows a value in full.
+        await physicalRow.focus();
+        await vsCodePage.keyboard.press("ArrowRight");
+        await vsCodePage.keyboard.press("ArrowRight");
+        await vsCodePage.keyboard.press("ArrowRight");
+        const primaryValueButton = physicalRow
+            .locator('[data-side="primary"]')
+            .getByRole("button", { name: "View full value of Physical Operation" });
+        await expect(primaryValueButton).toBeFocused();
+        await vsCodePage.keyboard.press("Enter");
+        const valueDialog = comparison.getByRole("dialog", { name: "Physical Operation" });
+        await expect(valueDialog).toBeVisible();
+        await vsCodePage.keyboard.press("Escape");
+        await expect(valueDialog).toBeHidden();
+        await expect(primaryValueButton).toBeFocused();
+
         // The panel docks below the plans and back beside them.
         await properties.getByRole("button", { name: "Dock to the bottom", exact: true }).click();
         await expect(properties).toHaveClass(/execution-plan-comparison-properties-bottom/);

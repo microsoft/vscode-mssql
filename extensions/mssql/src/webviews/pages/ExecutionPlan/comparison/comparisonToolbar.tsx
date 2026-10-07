@@ -23,8 +23,6 @@ import {
     DocumentSyncRegular,
     LayerFilled,
     LayerRegular,
-    LinkFilled,
-    LinkRegular,
     MapFilled,
     MapRegular,
     SplitHorizontalRegular,
@@ -36,6 +34,7 @@ import {
     TooltipIcon16Regular,
     TooltipOffIcon16Regular,
 } from "../../../common/icons/executionPlanIcons";
+import { SyncViews16Regular } from "../../../common/icons/fluentIcons";
 import { locConstants } from "../../../common/locConstants";
 import { SegmentedControl, SegmentedControlOption } from "../../../common/segmentedControl";
 import { ComparisonOrientation, ComparisonSide, comparisonSides } from "./comparisonModel";
@@ -217,8 +216,7 @@ export function ComparisonToolbar({
             <ToggleButton
                 label={locConstants.executionPlan.syncZoomAndScroll}
                 pressed={viewsSynced}
-                icon={<LinkRegular />}
-                pressedIcon={<LinkFilled />}
+                icon={<SyncViews16Regular />}
                 disabled={!hasPlans}
                 onToggle={onToggleViewsSynced}
             />
