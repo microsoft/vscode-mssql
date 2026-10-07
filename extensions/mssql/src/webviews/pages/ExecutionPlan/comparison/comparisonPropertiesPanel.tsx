@@ -130,12 +130,15 @@ export function ComparisonPropertiesPanel({
                 setWidth(clampWidth(size));
             }
         };
+        // A cancelled drag ends like a released one, so the panel stops following the pointer.
         const onPointerUp = () => {
             document.removeEventListener("pointermove", onPointerMove);
             document.removeEventListener("pointerup", onPointerUp);
+            document.removeEventListener("pointercancel", onPointerUp);
         };
         document.addEventListener("pointermove", onPointerMove);
         document.addEventListener("pointerup", onPointerUp);
+        document.addEventListener("pointercancel", onPointerUp);
     };
     const resizeFromKeyboard = (event: ReactKeyboardEvent<HTMLDivElement>) => {
         const step = event.shiftKey ? 50 : 10;

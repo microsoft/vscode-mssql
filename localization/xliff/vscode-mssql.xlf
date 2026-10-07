@@ -8004,6 +8004,9 @@
       <source xml:lang="en">Resize column &apos;{0}&apos;</source>
       <note>{0} is the name of the column</note>
     </trans-unit>
+    <trans-unit id="++CODE++83eea39be736728236fb22f8c3db766aa09720fb5aae4a7ef908a8d1a158b4ae">
+      <source xml:lang="en">Resize plans</source>
+    </trans-unit>
     <trans-unit id="++CODE++f8266045b5596ddc5cd3d4af27e2af2af3242d50c27ef97945b665ad805b41f2">
       <source xml:lang="en">Resize the active result grid column</source>
     </trans-unit>

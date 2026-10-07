@@ -11,6 +11,7 @@ import {
     useState,
 } from "react";
 
+import { locConstants } from "../../../common/locConstants";
 import { ComparisonOrientation } from "./comparisonModel";
 
 const MIN_RATIO = 0.2;
@@ -67,9 +68,11 @@ export function ComparisonSplit({
             ref={splitRef}
             className={`execution-plan-comparison-split execution-plan-comparison-split-${stacked ? "stacked" : "side-by-side"}`}
             onPointerMove={resizeFromPointer}
-            onPointerUp={(event) => {
+            onPointerUp={(event) => event.currentTarget.releasePointerCapture(event.pointerId)}
+            // Fires after a release, a cancel, or anything else that ends the capture, so a
+            // cancelled drag does not keep resizing as the pointer moves.
+            onLostPointerCapture={() => {
                 draggingRef.current = false;
-                event.currentTarget.releasePointerCapture(event.pointerId);
             }}>
             <div
                 className="execution-plan-comparison-split-pane"
@@ -80,6 +83,7 @@ export function ComparisonSplit({
                 className="execution-plan-comparison-sash"
                 role="separator"
                 tabIndex={0}
+                aria-label={locConstants.executionPlan.resizePlans}
                 aria-orientation={stacked ? "horizontal" : "vertical"}
                 aria-valuemin={MIN_RATIO * 100}
                 aria-valuemax={MAX_RATIO * 100}

@@ -171,19 +171,19 @@ export function ComparisonPlanPane({
                                         ariaLabel={locConstants.executionPlan.minimap}
                                     />
                                 )}
+                                {showFind && controller && (
+                                    <FindNode
+                                        executionPlanView={controller}
+                                        setExecutionPlanView={() => undefined}
+                                        findNodeOptions={controller.getUniqueElementProperties()}
+                                        setFindNodeClicked={setShowFind}
+                                        inputRef={findInputRef}
+                                    />
+                                )}
                             </>
                         }
                     />
                 </WebviewErrorBoundary>
-                {showFind && controller && (
-                    <FindNode
-                        executionPlanView={controller}
-                        setExecutionPlanView={() => undefined}
-                        findNodeOptions={controller.getUniqueElementProperties()}
-                        setFindNodeClicked={setShowFind}
-                        inputRef={findInputRef}
-                    />
-                )}
             </div>
         </section>
     );

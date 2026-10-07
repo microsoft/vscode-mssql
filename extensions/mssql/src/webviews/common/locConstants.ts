@@ -1006,6 +1006,7 @@ export class LocConstants {
             toggleMinimap: l10n.t("Toggle Minimap"),
             toggleSimilarAreas: l10n.t("Toggle Similar Areas"),
             syncZoomAndScroll: l10n.t("Sync Zoom and Scroll"),
+            resizePlans: l10n.t("Resize plans"),
             copyQuery: l10n.t("Copy Query"),
             dockToSide: l10n.t("Dock to the side"),
             dockToBottom: l10n.t("Dock to the bottom"),

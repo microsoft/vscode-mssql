@@ -466,6 +466,10 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await similarAreasToggle.click();
         await expect(similarAreas.first()).toBeVisible();
 
+        await expect(
+            comparison.getByRole("separator", { name: "Resize plans", exact: true }),
+        ).toBeVisible();
+
         await comparison.getByRole("button", { name: "Properties", exact: true }).click();
         const properties = comparison.locator(".execution-plan-comparison-properties");
         // Each column header shows its name as a tooltip anywhere over the header, not only
@@ -557,6 +561,16 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         // Find selects through the graph controller, rather than through a node click.
         await comparison.getByRole("button", { name: "Find in primary plan", exact: true }).click();
         const find = primary.locator("#findNodeInputContainer");
+        // It floats over the top-right corner of the plan's canvas.
+        const findBox = (await find.boundingBox())!;
+        const primaryCanvas = (await primary.locator(".execution-plan-flow-canvas").boundingBox())!;
+        expect(findBox.y).toBeGreaterThanOrEqual(primaryCanvas.y);
+        expect(findBox.x + findBox.width).toBeLessThanOrEqual(
+            primaryCanvas.x + primaryCanvas.width,
+        );
+        expect(findBox.x + findBox.width).toBeGreaterThan(
+            primaryCanvas.x + primaryCanvas.width * 0.75,
+        );
         await find.locator("#findNodeDropdown").click();
         const propertySearch = comparison.getByRole("searchbox").last();
         await propertySearch.fill("Node ID");

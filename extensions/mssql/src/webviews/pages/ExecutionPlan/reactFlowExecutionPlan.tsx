@@ -730,7 +730,8 @@ interface ReactFlowExecutionPlanProps {
     onViewportChange?: (viewport: ExecutionPlanViewport) => void;
     /**
      * Controls drawn over the canvas, such as React Flow's Controls panel. They render outside
-     * the tree of operators, which may own only tree items, and can read React Flow's store.
+     * the tree of operators, which may own only tree items, and can read React Flow's store. An
+     * operator under any of them does not count as in view.
      */
     overlay?: ReactNode;
 }
@@ -843,7 +844,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
         [instance, positions],
     );
 
-    /** Whether a node is on the canvas and not hidden under a panel drawn over it. */
+    /** Whether a node is on the canvas and not hidden under anything drawn over it. */
     const isNodeInView = useCallback(
         (id: string) => {
             const position = positions.get(id);
@@ -864,13 +865,14 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 return onCanvas;
             }
             const node = element.getBoundingClientRect();
-            return ![...overlayRef.current.querySelectorAll(".react-flow__panel")].some((panel) => {
-                const cover = panel.getBoundingClientRect();
+            // The overlay lays out its children over the canvas, so each one can cover the node.
+            return ![...overlayRef.current.children].some((cover) => {
+                const bounds = cover.getBoundingClientRect();
                 return (
-                    node.left < cover.right &&
-                    cover.left < node.right &&
-                    node.top < cover.bottom &&
-                    cover.top < node.bottom
+                    node.left < bounds.right &&
+                    bounds.left < node.right &&
+                    node.top < bounds.bottom &&
+                    bounds.top < node.bottom
                 );
             });
         },
