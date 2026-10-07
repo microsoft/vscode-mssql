@@ -475,6 +475,15 @@ test.describe("MSSQL Extension - Query Plan", async () => {
                 properties.getByRole("columnheader", { name: header, exact: true }),
             ).toHaveAttribute("title", header);
         }
+        // The resize handle announces its whole range: from the smallest width to the largest.
+        const resizer = properties.getByRole("separator");
+        const [minimum, current, maximum] = await Promise.all(
+            ["aria-valuemin", "aria-valuenow", "aria-valuemax"].map(async (name) =>
+                Number(await resizer.getAttribute(name)),
+            ),
+        );
+        expect(minimum).toBeLessThanOrEqual(current);
+        expect(current).toBeLessThanOrEqual(maximum);
         await properties
             .getByRole("textbox", { name: "Filter comparison properties..." })
             .fill("Physical Operation");

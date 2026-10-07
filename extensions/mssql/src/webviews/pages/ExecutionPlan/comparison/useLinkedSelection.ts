@@ -92,8 +92,9 @@ export function useLinkedSelection(
             if (!syncedRef.current) {
                 target.controller.revealElement(element);
             } else if (!target.controller.isElementInView(element)) {
-                // Synced views move together, so center between the selection and its match to
-                // keep both in view where the two plans allow it.
+                // Synced views share one transform, so the two plans' layout coordinates line up
+                // and the point between the selection and its match is a point in both. Center
+                // there to keep both in view where the two plans allow it.
                 const source = panesRef.current[side].controller;
                 const sourceElement = source?.getElementById(id);
                 const selected = sourceElement && source?.getElementCenter(sourceElement);

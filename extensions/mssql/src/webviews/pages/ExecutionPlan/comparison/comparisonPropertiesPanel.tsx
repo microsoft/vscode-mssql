@@ -29,13 +29,23 @@ import { ComparisonPropertiesGrid } from "./comparisonPropertiesGrid";
 const MIN_WIDTH = 360;
 const DEFAULT_MAX_WIDTH = 560;
 const MIN_HEIGHT = 160;
+/** The panel takes at most this share of the window, so the plans stay in view. */
+const MAX_WINDOW_SHARE = 0.8;
+
+function maxWidth(): number {
+    return window.innerWidth * MAX_WINDOW_SHARE;
+}
+
+function maxHeight(): number {
+    return window.innerHeight * MAX_WINDOW_SHARE;
+}
 
 function clampWidth(width: number): number {
-    return Math.min(window.innerWidth * 0.8, Math.max(MIN_WIDTH, width));
+    return Math.min(maxWidth(), Math.max(MIN_WIDTH, width));
 }
 
 function clampHeight(height: number): number {
-    return Math.min(window.innerHeight * 0.8, Math.max(MIN_HEIGHT, height));
+    return Math.min(maxHeight(), Math.max(MIN_HEIGHT, height));
 }
 
 const dockOptions: {
@@ -153,6 +163,7 @@ export function ComparisonPropertiesPanel({
                 aria-orientation={below ? "horizontal" : "vertical"}
                 aria-label={`${locConstants.queryResult.resize} ${locConstants.executionPlan.comparisonProperties}`}
                 aria-valuemin={below ? MIN_HEIGHT : MIN_WIDTH}
+                aria-valuemax={Math.round(below ? maxHeight() : maxWidth())}
                 aria-valuenow={Math.round(below ? height : width)}
                 tabIndex={0}
                 onPointerDown={resizeFromPointer}
