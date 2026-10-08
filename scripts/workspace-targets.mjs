@@ -8,6 +8,14 @@ export const workspaceTargets = [
         scripts: ["build", "watch", "test", "lint"],
     },
     {
+        target: "sql-core",
+        kind: "package",
+        aliases: ["sql-core", "sqlcore"],
+        packageName: "sql-core",
+        directory: "packages/sql-core",
+        scripts: ["build", "watch", "test", "lint"],
+    },
+    {
         target: "mssql",
         kind: "extension",
         aliases: ["mssql"],

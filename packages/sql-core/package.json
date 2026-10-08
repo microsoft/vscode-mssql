@@ -1,0 +1,42 @@
+{
+    "name": "sql-core",
+    "version": "0.0.1",
+    "private": true,
+    "description": "VS Code-independent SQL building blocks and data providers for agents and tools",
+    "license": "SEE LICENSE IN ../../LICENSE.txt",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "performance": [
+                "dist/performance/index.d.ts"
+            ]
+        }
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./performance": {
+            "types": "./dist/performance/index.d.ts",
+            "require": "./dist/performance/index.js",
+            "default": "./dist/performance/index.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
+        "lint": "eslint --quiet --cache ./src ./test",
+        "pretest": "npm run build",
+        "test": "node --test"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.14",
+        "typescript": "^5.8.3"
+    }
+}

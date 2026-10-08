@@ -147,6 +147,38 @@ export default [
         },
     },
 
+    // sql-core package
+    {
+        files: ["packages/sql-core/src/**/*.ts"],
+        ignores: [...(includeIgnoreFile(gitignorePath).ignores || [])],
+        languageOptions: {
+            ecmaVersion: "latest",
+            sourceType: "module",
+            parser: tseslint.parser,
+            parserOptions: {
+                tsconfigRootDir: __dirname,
+                project: "./packages/sql-core/tsconfig.json",
+            },
+        },
+        plugins: {
+            notice,
+            jsdoc,
+            ["@typescript-eslint"]: tseslint.plugin,
+            ...eslintPluginPrettierRecommended.plugins,
+            "@stylistic": stylistic,
+            "custom-eslint-rules": customRules,
+        },
+        rules: {
+            ...sharedRules,
+            "no-restricted-imports": [
+                "error",
+                {
+                    paths: [{ name: "vscode", message: "sql-core must not depend on VS Code." }],
+                },
+            ],
+        },
+    },
+
     // mssql extension - with React support
     {
         files: [
