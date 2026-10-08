@@ -12,8 +12,10 @@ const {
     sessionPreamble,
 } = require("../dist/index.js");
 const {
+    buildPlanChangeSql,
+    buildQueryInsightsTopQueriesQuery,
+    buildQueryStoreProbeQuery,
     buildSqlEngineActivityQuery,
-    buildTopQueriesPlan,
 } = require("../dist/performance/index.js");
 
 const azureSql = classifyPlatform({ engineEdition: 5 });
@@ -81,24 +83,29 @@ suite("providers use the preamble", () => {
         assert.equal((sql.match(/OPTION \(MAXDOP 1\)/g) ?? []).length, 2);
     });
 
-    test("top queries read without locks and on one CPU", () => {
-        const plan = buildTopQueriesPlan(azureSql, {
-            metric: "cpu",
-            start: new Date(Date.UTC(2026, 9, 8, 5)),
-            end: new Date(Date.UTC(2026, 9, 8, 6)),
-            top: 5,
-        });
-        assert.match(plan.sql, /READ UNCOMMITTED/);
-        assert.match(plan.sql, /OPTION \(MAXDOP 1\);/);
+    test("Query Store probes read without locks and without MAXDOP", () => {
+        const sql = buildQueryStoreProbeQuery(azureSql, { metrics: true });
+        assert.ok(sql.startsWith(sessionPreamble(azureSql, "read")));
+        assert.doesNotMatch(sql, /MAXDOP/);
+    });
+
+    test("plan changes use the change preamble", () => {
+        const sql = buildPlanChangeSql(
+            azureSql,
+            "forcePlan",
+            { queryId: "1", planId: "2", replicaGroupId: "1" },
+            false,
+        );
+        assert.ok(sql.startsWith(sessionPreamble(azureSql, "change")));
     });
 
     test("Query Insights reads use only NOCOUNT", () => {
-        const plan = buildTopQueriesPlan(fabricWarehouse, {
+        const sql = buildQueryInsightsTopQueriesQuery(fabricWarehouse, {
             metric: "cpu",
             start: new Date(Date.UTC(2026, 9, 8, 5)),
             end: new Date(Date.UTC(2026, 9, 8, 6)),
             top: 5,
         });
-        assert.doesNotMatch(plan.sql, /ISOLATION LEVEL|MAXDOP/);
+        assert.doesNotMatch(sql, /ISOLATION LEVEL|MAXDOP/);
     });
 });

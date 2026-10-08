@@ -29,6 +29,11 @@ import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { MetadataStore } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
+import { createPerformanceService, PerformanceService } from "../performance/performanceService";
+import {
+    PerformanceDashboardWebviewController,
+    performanceDashboardTargetForNode,
+} from "../performance/performanceDashboardWebviewController";
 import {
     prepareConnection,
     ProfileSecretSource,
@@ -216,6 +221,7 @@ export default class MainController implements vscode.Disposable {
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
     public cloudDeployService: CloudDeployService;
+    public performanceService: PerformanceService;
     public protocolHandler: MssqlProtocolHandler;
     public azureResourcesIntegration: AzureResourcesExtensionIntegration;
     public fabricDatabaseHubIntegration: FabricDatabaseHubIntegration;
@@ -1144,6 +1150,9 @@ export default class MainController implements vscode.Disposable {
             );
         }
         this.initializeMetadataStore();
+        // Shared by the Copilot tools and webview dialogs; closes its sessions on deactivate.
+        this.performanceService = createPerformanceService(this._connectionMgr);
+        this._context.subscriptions.push(this.performanceService);
 
         this._sqlDocumentService = new SqlDocumentService(this);
         this.configureQuickQueryService();
@@ -2141,6 +2150,13 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdSearchDatabase, async (node: any) =>
                 this.onSearchDatabase(node),
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdOpenPerformanceDashboard,
+                (node?: TreeNodeInfo) => this.onOpenPerformanceDashboard(node),
             ),
         );
 
@@ -3568,6 +3584,18 @@ export default class MainController implements vscode.Disposable {
         );
 
         searchDatabaseWebView.revealToForeground();
+    }
+
+    /** Opens the performance dashboard for the database of an Object Explorer node. */
+    public onOpenPerformanceDashboard(node?: TreeNodeInfo): void {
+        const target = performanceDashboardTargetForNode(node);
+        if (!target) {
+            void vscode.window.showErrorMessage(
+                LocalizedConstants.PerformanceDashboard.noSavedConnection,
+            );
+            return;
+        }
+        new PerformanceDashboardWebviewController(this._context, target).revealToForeground();
     }
 
     /**

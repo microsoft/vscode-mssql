@@ -3,11 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export * from "./result";
-export * from "./runOptions";
-export * from "./activity/types";
-export * from "./activity/blockingChains";
-export * from "./activity/activeRequests";
-export * from "./queryStore";
-export * from "./queryStoreRun";
-export * from "./queryInsights/topQueries";
+export interface PerformanceDashboardState {
+    serverName: string;
+    /** Empty for the login's default database. */
+    databaseName: string;
+}
+
+export type PerformanceDashboardReducers = Record<string, never>;

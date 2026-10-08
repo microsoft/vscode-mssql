@@ -24,9 +24,9 @@ export const workspaceTargets = [
         scripts: ["build", "watch", "test", "smoketest", "lint", "package"],
         supportsProdBuild: true,
         dependencies: {
-            build: ["extension-toolkit"],
-            watch: ["extension-toolkit"],
-            lint: ["extension-toolkit"],
+            build: ["extension-toolkit", "sql-core"],
+            watch: ["extension-toolkit", "sql-core"],
+            lint: ["extension-toolkit", "sql-core"],
         },
     },
     {

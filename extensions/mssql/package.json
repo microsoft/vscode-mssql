@@ -180,6 +180,7 @@
         "promisify-child-process": "^3.1.1",
         "semver": "^7.7.4",
         "shallow-equal": "^3.1.0",
+        "sql-core": "file:../../packages/sql-core",
         "strip-json-comments": "^5.0.1",
         "tar": "^7.5.21",
         "tmp": "^0.2.7",
@@ -708,6 +709,11 @@
                     "group": "3_MSSQL_databaseDiscover@1"
                 },
                 {
+                    "command": "mssql.performance.openDashboard",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/) && mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled",
+                    "group": "3_MSSQL_databaseDiscover@3"
+                },
+                {
                     "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "7_MSSQL_compareAndDacpac@2"
@@ -1162,6 +1168,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.performance.openDashboard",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.editConnection",
                     "when": "false"
                 },
@@ -1434,6 +1444,12 @@
                 "command": "mssql.searchDatabase",
                 "title": "%mssql.searchDatabase%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.performance.openDashboard",
+                "title": "%mssql.performance.openDashboard%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled"
             },
             {
                 "command": "mssql.rebuildIntelliSenseCache",

@@ -32,8 +32,22 @@ export type PerfScope = "instance" | "database" | "pool" | "server" | "item";
  * Codes for data that the result does not include. Callers show localized text for each code.
  */
 export type MissingDataCode =
+    /** Query Store does not have wait statistics (SQL Server 2016, Synapse). */
     | "queryStoreWaitStats"
+    /** Query Store does not have the log and tempdb metrics (SQL Server 2016). */
     | "queryStoreLogAndTempdbMetrics"
+    /**
+     * Query Store is READ_ONLY, so it does not capture new queries or statistics. The data can be
+     * old. `probeQueryStore` returns the reason, for example the size limit.
+     */
+    | "queryStoreReadOnly"
+    /**
+     * Query Store has only duration and execution count. Synapse dedicated pools record 0 for CPU,
+     * I/O, memory, CLR, DOP, row count, log, and tempdb.
+     */
+    | "queryStoreResourceMetrics"
+    /** The plan change flags of the regressed queries, because the plan read failed. */
+    | "regressedPlanChanges"
     | "statementText"
     | "otherUsersRequests"
     | "cpuReadsAndMemory";

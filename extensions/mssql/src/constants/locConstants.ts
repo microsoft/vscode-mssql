@@ -3480,6 +3480,19 @@ export class DacpacDialog {
     }
 }
 
+export class PerformanceDashboard {
+    public static title = (databaseName: string) =>
+        l10n.t({
+            message: "Performance Dashboard - {0}",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+
+    public static noSavedConnection = l10n.t(
+        "Open the performance dashboard from a database in Object Explorer.",
+    );
+}
+
 export class SearchDatabase {
     public static title = (serverName: string) =>
         l10n.t({

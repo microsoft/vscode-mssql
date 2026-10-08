@@ -7072,6 +7072,9 @@
     <trans-unit id="++CODE++eca206dacc5627de738a49f5b7cc3a89393f5c0d8e5da0dadfb8baec1c274678">
       <source xml:lang="en">Open the generated SELECT statement in a new editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++96751ee2703bf1649d8bd008c585c3a7cde2819e0c28a08c0cebb23639327355">
+      <source xml:lang="en">Open the performance dashboard from a database in Object Explorer.</source>
+    </trans-unit>
     <trans-unit id="++CODE++bcec92c3fcbd6a1012ed2ae1a5d10e462184bbb5ca83b2df5552cb49620c78cf">
       <source xml:lang="en">Open the recommended index script in a new query editor</source>
     </trans-unit>
@@ -7237,6 +7240,13 @@
     </trans-unit>
     <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
       <source xml:lang="en">Perform checksum before writing to media</source>
+    </trans-unit>
+    <trans-unit id="++CODE++50c6354db9a8ad019022b49c82114f47e871f282cc0d9aae5a492d94921d796f">
+      <source xml:lang="en">Performance Dashboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dff9d1934e0d5891cfa6d1d5cb972f956f71f93a7424bca3bf403b255653787d">
+      <source xml:lang="en">Performance Dashboard - {0}</source>
+      <note>{0} is the database name</note>
     </trans-unit>
     <trans-unit id="++CODE++abccc78cc93c07931feccfbd0665c003373b48334fd8d4cf5c6d0c714e68f26e">
       <source xml:lang="en">Permissions</source>
@@ -11214,6 +11224,11 @@
       <note>{0} is the name of a collection of agent skills
 {1} is the number of skills listed in that collection</note>
     </trans-unit>
+    <trans-unit id="++CODE++16c96b68947d2c0c3f9db25fe1f3e472119632c071adf26bb4f76a70bd960eaf">
+      <source xml:lang="en">{0} / {1}</source>
+      <note>{0} is the server name
+{1} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++60f820e33dc2ebb9ace1ef9c084e6b0ce9c75e159edf59e955aa68a7b304783b">
       <source xml:lang="en">{0} / {1}</source>
       <note>{0} is the one-based position of the selected schema difference
@@ -12261,6 +12276,9 @@
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
+    </trans-unit>
+    <trans-unit id="mssql.performance.openDashboard">
+      <source xml:lang="en">Performance Dashboard</source>
     </trans-unit>
     <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
       <source xml:lang="en">Place AS on its own line.</source>

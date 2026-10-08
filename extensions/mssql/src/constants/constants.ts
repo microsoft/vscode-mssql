@@ -73,6 +73,7 @@ export const cmdCopilotNewQueryWithConnection = "mssql.copilot.newQueryWithConne
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
 export const cmdSearchDatabase = "mssql.searchDatabase";
+export const cmdOpenPerformanceDashboard = "mssql.performance.openDashboard";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
 export const triggerSchemaCompareAutomatic = "automatic";

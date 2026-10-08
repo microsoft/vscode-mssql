@@ -1884,6 +1884,11 @@
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
     },
+    "Performance Dashboard - {0}/{0} is the database name": {
+        "message": "Performance Dashboard - {0}",
+        "comment": ["{0} is the database name"]
+    },
+    "Open the performance dashboard from a database in Object Explorer.": "Open the performance dashboard from a database in Object Explorer.",
     "Search Database Objects - {0}/{0} is the server name": {
         "message": "Search Database Objects - {0}",
         "comment": ["{0} is the server name"]
@@ -4916,6 +4921,11 @@
     "is null": "is null",
     "is not null": "is not null",
     "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.": "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.",
+    "Performance Dashboard": "Performance Dashboard",
+    "{0} / {1}/{0} is the server name{1} is the database name": {
+        "message": "{0} / {1}",
+        "comment": ["{0} is the server name", "{1} is the database name"]
+    },
     "Search Database Objects": "Search Database Objects",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {

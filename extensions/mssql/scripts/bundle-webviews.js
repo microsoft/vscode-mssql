@@ -37,6 +37,7 @@ void run(
                 codeAnalysis: "src/webviews/pages/CodeAnalysis/index.tsx",
                 tableExplorer: "src/webviews/pages/TableExplorer/index.tsx",
                 searchDatabase: "src/webviews/pages/SearchDatabase/index.tsx",
+                performanceDashboard: "src/webviews/pages/PerformanceDashboard/index.tsx",
                 changelog: "src/webviews/pages/Changelog/index.tsx",
                 overview: "src/webviews/pages/Overview/index.tsx",
                 profiler: "src/webviews/pages/Profiler/index.tsx",

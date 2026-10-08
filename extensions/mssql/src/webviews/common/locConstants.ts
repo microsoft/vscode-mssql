@@ -3656,6 +3656,18 @@ export class LocConstants {
         };
     }
 
+    public get performanceDashboard() {
+        return {
+            title: l10n.t("Performance Dashboard"),
+            serverAndDatabase: (serverName: string, databaseName: string) =>
+                l10n.t({
+                    message: "{0} / {1}",
+                    args: [serverName, databaseName],
+                    comment: ["{0} is the server name", "{1} is the database name"],
+                }),
+        };
+    }
+
     public get searchDatabase() {
         return {
             // Page titles and headers
