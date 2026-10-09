@@ -3656,6 +3656,12 @@ export class LocConstants {
         };
     }
 
+    public get navigation() {
+        return {
+            breadcrumb: l10n.t("Breadcrumb"),
+        };
+    }
+
     public get performanceDashboard() {
         return {
             title: l10n.t("Performance Dashboard"),
@@ -3665,6 +3671,38 @@ export class LocConstants {
                     args: [serverName, databaseName],
                     comment: ["{0} is the server name", "{1} is the database name"],
                 }),
+            database: l10n.t("Database"),
+            searchDatabases: l10n.t("Search databases"),
+            databaseListFailed: (errorMessage: string) =>
+                l10n.t({
+                    message: "Could not load the database list: {0}",
+                    args: [errorMessage],
+                    comment: ["{0} is the error message"],
+                }),
+            overview: l10n.t("Overview"),
+            queries: l10n.t("Queries"),
+            query: (queryId: string) =>
+                l10n.t({
+                    message: "Query {0}",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
+            comparePlans: l10n.t("Compare plans"),
+            comparePlanPair: (firstPlanId: string, secondPlanId: string) =>
+                l10n.t({
+                    message: "Compare plans {0} and {1}",
+                    args: [firstPlanId, secondPlanId],
+                    comment: ["{0} and {1} are Query Store plan IDs"],
+                }),
+            liveActivity: l10n.t("Live activity"),
+            session: (sessionId: string) =>
+                l10n.t({
+                    message: "Session {0}",
+                    args: [sessionId],
+                    comment: ["{0} is the SQL Server session ID"],
+                }),
+            changes: l10n.t("Changes"),
+            setup: l10n.t("Setup"),
         };
     }
 

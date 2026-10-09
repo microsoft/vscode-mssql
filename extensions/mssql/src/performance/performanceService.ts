@@ -17,7 +17,14 @@
  *     const result = await target.topConsumers({}, { timeoutMs: 15_000, signal });
  */
 
-import { PlatformInfo, SessionPurpose, SqlReadOptions, SqlReader, detectPlatform } from "sql-core";
+import {
+    PlatformInfo,
+    SessionPurpose,
+    SqlReadOptions,
+    SqlReader,
+    detectPlatform,
+    listDatabases,
+} from "sql-core";
 import {
     ActiveActivity,
     AppliedChange,
@@ -261,6 +268,20 @@ export class PerformanceTarget {
     /** Running requests and blocking chains. */
     activeRequests(options?: SqlReadOptions): Promise<PerformanceResult<ActiveActivity>> {
         return this.run("read", (reader, info) => getActiveRequests(reader, info, options));
+    }
+
+    /**
+     * The online databases that the connection can see. In Azure SQL Database, a user database
+     * sees only itself and `master`.
+     */
+    databases(options?: SqlReadOptions): Promise<PerformanceResult<string[]>> {
+        return this.run("read", async (reader, info) => ({
+            status: "ready",
+            platform: info.platform,
+            observedAtUtc: new Date().toISOString(),
+            missing: [],
+            data: await listDatabases(reader, info, options),
+        }));
     }
 
     // -----------------------------------------------------------------------------------------

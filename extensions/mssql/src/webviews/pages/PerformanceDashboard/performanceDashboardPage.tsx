@@ -3,9 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, shorthands, Title3, tokens } from "@fluentui/react-components";
+import { makeStyles, shorthands, Tab, TabList, Title3 } from "@fluentui/react-components";
 import { locConstants as loc } from "../../common/locConstants";
-import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
+import { NavigationBreadcrumb } from "../../common/navigation/navigationBreadcrumb";
+import { useNavigation } from "../../common/navigation/navigationProvider";
+import { PerformanceDashboardDatabasePicker } from "./performanceDashboardDatabasePicker";
+import {
+    PerformanceDashboardRoute,
+    performanceDashboardRouter,
+    performanceDashboardTabs,
+} from "./performanceDashboardRoutes";
 
 const useStyles = makeStyles({
     root: {
@@ -16,37 +23,59 @@ const useStyles = makeStyles({
         ...shorthands.overflow("hidden"),
         backgroundColor: "var(--vscode-editor-background)",
     },
-    header: {
+    navigationBar: {
         display: "flex",
-        flexDirection: "column",
-        ...shorthands.padding("16px"),
+        alignItems: "center",
+        ...shorthands.padding("4px", "12px", "0"),
+        minWidth: 0,
+    },
+    breadcrumb: {
+        minWidth: 0,
+    },
+    tabs: {
+        ...shorthands.padding("0", "8px"),
         ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    content: {
+        flexGrow: 1,
+        ...shorthands.overflow("auto"),
+        ...shorthands.padding("16px", "20px"),
     },
     title: {
         color: "var(--vscode-foreground)",
         ...shorthands.margin(0),
     },
-    connection: {
-        color: "var(--vscode-descriptionForeground)",
-        fontSize: tokens.fontSizeBase200,
-    },
 });
 
 export const PerformanceDashboardPage = () => {
     const classes = useStyles();
-    const serverName = usePerformanceDashboardSelector((state) => state.serverName);
-    const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
+    const { router, match, navigate } = useNavigation<PerformanceDashboardRoute>();
 
     return (
         <div className={classes.root}>
-            <div className={classes.header}>
-                <Title3 className={classes.title}>{loc.performanceDashboard.title}</Title3>
-                <span className={classes.connection}>
-                    {databaseName
-                        ? loc.performanceDashboard.serverAndDatabase(serverName, databaseName)
-                        : serverName}
-                </span>
-            </div>
+            <nav className={classes.navigationBar} aria-label={loc.performanceDashboard.title}>
+                <NavigationBreadcrumb
+                    className={classes.breadcrumb}
+                    root={<PerformanceDashboardDatabasePicker />}
+                />
+            </nav>
+            <TabList
+                className={classes.tabs}
+                size="small"
+                selectedValue={router.topRoute(match).id}
+                onTabSelect={(_event, data) => navigate(router.build(String(data.value)))}>
+                {performanceDashboardTabs.map((tab) => (
+                    <Tab key={tab.id} value={tab.id}>
+                        {tab.title(performanceDashboardRouter.match(tab.path)!)}
+                    </Tab>
+                ))}
+            </TabList>
+            <main className={classes.content}>
+                {/* Placeholder until the views are built. */}
+                <Title3 as="h1" className={classes.title}>
+                    {match.route.title(match)}
+                </Title3>
+            </main>
         </div>
     );
 };

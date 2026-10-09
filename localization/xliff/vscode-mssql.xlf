@@ -1066,6 +1066,9 @@
       <source xml:lang="en">Bottom operation: {0}</source>
       <note>{0} is an execution plan operation name</note>
     </trans-unit>
+    <trans-unit id="++CODE++2bd873d6c734e63ea80e163a6a643f75bf87a3d24e3164987d176a2e3e5c567e">
+      <source xml:lang="en">Breadcrumb</source>
+    </trans-unit>
     <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
       <source xml:lang="en">Brightness</source>
     </trans-unit>
@@ -1827,6 +1830,13 @@
     <trans-unit id="++CODE++bfb50f40d677806eb1c3fa2b02c9048eade68bcf1237e4c6268522333d903edc">
       <source xml:lang="en">Compare and synchronize schemas between databases or DACPACs</source>
     </trans-unit>
+    <trans-unit id="++CODE++30d9abfd7c7af513814bdfadcafe7ec4a90bc6bcee519086dc513f63f2cd7384">
+      <source xml:lang="en">Compare plans</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cc86b2fae91800a9e4bfe07c686a5b84c829bdcaf28f20bb7ffd0f2b103e0e70">
+      <source xml:lang="en">Compare plans {0} and {1}</source>
+      <note>{0} and {1} are Query Store plan IDs</note>
+    </trans-unit>
     <trans-unit id="++CODE++9fb1b0a3d5937c4d492e2d8e65acae3e3d8eb9bab5422aa3b80eb895872ef088">
       <source xml:lang="en">Comparing...</source>
     </trans-unit>
@@ -2461,6 +2471,10 @@
     </trans-unit>
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56d39ec1e8163f0966464f66392c8d028981d568f3a30e02e506d9fbc12b4f8b">
+      <source xml:lang="en">Could not load the database list: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++71e0b348ec348e9236d9c0984d670475cb786378fa5e97176bc94bc4a42826d5">
       <source xml:lang="en">Could not write the configuration.</source>
@@ -5725,6 +5739,9 @@
       <source xml:lang="en">Live</source>
       <note>Badge for the execution plan of a currently running query.</note>
     </trans-unit>
+    <trans-unit id="++CODE++f03d7de80a2115cbb9a72321be592fd2be977e89b81e495a115e9ed40deb3ba2">
+      <source xml:lang="en">Live activity</source>
+    </trans-unit>
     <trans-unit id="++CODE++d166f7cc96ddbc851ad16d9b6b05e6fb43435e3164082d8a0a004f6490eb9716">
       <source xml:lang="en">Live plan of the running statement. Row counts refresh while it runs.</source>
     </trans-unit>
@@ -7159,6 +7176,9 @@
       <source xml:lang="en">Overall, how satisfied are you with {0}?</source>
       <note>{0} is the feature name</note>
     </trans-unit>
+    <trans-unit id="++CODE++d4b1ea5708dd532930a85188b45aff6f0a3ed458500c7577e0127a538eb0d100">
+      <source xml:lang="en">Overview</source>
+    </trans-unit>
     <trans-unit id="++CODE++b24963ea2cbc74b97321a347754137aa207b126695a95c860406098528966b55">
       <source xml:lang="en">Overwrite</source>
     </trans-unit>
@@ -7632,6 +7652,9 @@
     <trans-unit id="++CODE++1ccde94ff3f5c16749c8ae57866958f186e6ce12fa0cfac86bf4b9250cc4af75">
       <source xml:lang="en">Python + Azure SQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++80d2e18c7da9f0be0578da69b1701091a2c91ffc3bbf13fdc734620eb443ce0e">
+      <source xml:lang="en">Queries</source>
+    </trans-unit>
     <trans-unit id="++CODE++b80a37564fbb3c0753202a1f92d5da8ccfb906b244f2842bba2232cea9883abd">
       <source xml:lang="en">Query</source>
     </trans-unit>
@@ -7698,6 +7721,10 @@
     </trans-unit>
     <trans-unit id="++CODE++9bb19ac86101a6dfe00ba121dc8fab54c216992ef8d061c9cf27bd93a4424a91">
       <source xml:lang="en">Query succeeded</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8e7ee5265bf9b3ca624a58c70f47030a90ff04de6bf70e7c15a45fb367035617">
+      <source xml:lang="en">Query {0}</source>
+      <note>{0} is the Query Store query ID</note>
     </trans-unit>
     <trans-unit id="++CODE++deb1a9c8e97e16607d476d2629a1b1d6662cd61971180d3747130b12a2b3a88e">
       <source xml:lang="en">Query {0}</source>
@@ -8673,6 +8700,9 @@
     <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
       <source xml:lang="en">Search connection groups</source>
     </trans-unit>
+    <trans-unit id="++CODE++1cf83a1fe892674a1b2059008782602852d4c3b4221b53634aca36f143cf56e3">
+      <source xml:lang="en">Search databases</source>
+    </trans-unit>
     <trans-unit id="++CODE++bf02e2b6200125d467ce1c048b8124906131963d7af4568a0b538aecede4da47">
       <source xml:lang="en">Search extension shortcut</source>
     </trans-unit>
@@ -9109,6 +9139,10 @@
     <trans-unit id="++CODE++4b80d5f9dd620b5ac11a742d3d138e56e05b6b4ce0cd9575b1ca820590a7fce0">
       <source xml:lang="en">Session not running</source>
     </trans-unit>
+    <trans-unit id="++CODE++4f742214dcdd1630c7713a215ab199941b7486c9af0aa0a88d47b4f57623bcba">
+      <source xml:lang="en">Session {0}</source>
+      <note>{0} is the SQL Server session ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++c365f1cb6d8e84e7476450255ffb4dd9360ed4a895c83b5378238bcc764e39f8">
       <source xml:lang="en">Set Default</source>
     </trans-unit>
@@ -9158,6 +9192,9 @@
     <trans-unit id="++CODE++b22da542e3738190f2e199b6289592b40f09bcc9b373984a97bea17c1b5d619b">
       <source xml:lang="en">Settings for {0}</source>
       <note>{0} is the entity name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7013af4c42fe43802a9e8b0affc4f521fcd126160569969fb2ec09e1b7c422b1">
+      <source xml:lang="en">Setup</source>
     </trans-unit>
     <trans-unit id="++CODE++e44a7e201d0e36e4ebec63f1b5cbf6680ddb6ae18f0dda1f069a4e1d6c561ed7">
       <source xml:lang="en">Setup was canceled. No files were overwritten.</source>

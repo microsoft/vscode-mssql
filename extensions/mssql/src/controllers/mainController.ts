@@ -30,10 +30,8 @@ import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCa
 import { MetadataStore } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import { createPerformanceService, PerformanceService } from "../performance/performanceService";
-import {
-    PerformanceDashboardWebviewController,
-    performanceDashboardTargetForNode,
-} from "../performance/performanceDashboardWebviewController";
+import { performanceDashboardTargetForNode } from "../performance/performanceDashboardWebviewController";
+import { PerformanceDashboards } from "../performance/performanceDashboards";
 import {
     prepareConnection,
     ProfileSecretSource,
@@ -222,6 +220,7 @@ export default class MainController implements vscode.Disposable {
     public sqlNotebookController: SqlNotebookController;
     public cloudDeployService: CloudDeployService;
     public performanceService: PerformanceService;
+    public performanceDashboards: PerformanceDashboards;
     public protocolHandler: MssqlProtocolHandler;
     public azureResourcesIntegration: AzureResourcesExtensionIntegration;
     public fabricDatabaseHubIntegration: FabricDatabaseHubIntegration;
@@ -1153,6 +1152,10 @@ export default class MainController implements vscode.Disposable {
         // Shared by the Copilot tools and webview dialogs; closes its sessions on deactivate.
         this.performanceService = createPerformanceService(this._connectionMgr);
         this._context.subscriptions.push(this.performanceService);
+        this.performanceDashboards = new PerformanceDashboards(
+            this._context,
+            this.performanceService,
+        );
 
         this._sqlDocumentService = new SqlDocumentService(this);
         this.configureQuickQueryService();
@@ -3595,7 +3598,7 @@ export default class MainController implements vscode.Disposable {
             );
             return;
         }
-        new PerformanceDashboardWebviewController(this._context, target).revealToForeground();
+        this.performanceDashboards.open(target);
     }
 
     /**

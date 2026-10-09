@@ -4921,11 +4921,34 @@
     "is null": "is null",
     "is not null": "is not null",
     "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.": "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.",
+    "Breadcrumb": "Breadcrumb",
     "Performance Dashboard": "Performance Dashboard",
     "{0} / {1}/{0} is the server name{1} is the database name": {
         "message": "{0} / {1}",
         "comment": ["{0} is the server name", "{1} is the database name"]
     },
+    "Search databases": "Search databases",
+    "Could not load the database list: {0}/{0} is the error message": {
+        "message": "Could not load the database list: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Overview": "Overview",
+    "Queries": "Queries",
+    "Query {0}/{0} is the Query Store query ID": {
+        "message": "Query {0}",
+        "comment": ["{0} is the Query Store query ID"]
+    },
+    "Compare plans": "Compare plans",
+    "Compare plans {0} and {1}/{0} and {1} are Query Store plan IDs": {
+        "message": "Compare plans {0} and {1}",
+        "comment": ["{0} and {1} are Query Store plan IDs"]
+    },
+    "Live activity": "Live activity",
+    "Session {0}/{0} is the SQL Server session ID": {
+        "message": "Session {0}",
+        "comment": ["{0} is the SQL Server session ID"]
+    },
+    "Setup": "Setup",
     "Search Database Objects": "Search Database Objects",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
