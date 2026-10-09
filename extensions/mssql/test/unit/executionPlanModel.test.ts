@@ -15,8 +15,13 @@ import {
     SearchType,
 } from "../../src/sharedInterfaces/executionPlan";
 import {
+    ExecutionPlanEdgeModel,
     ExecutionPlanModel,
+    formatExecutionPlanRowCount,
     getExecutionPlanEdgeWeight,
+    advanceExecutionPlanEdgeFlow,
+    EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE,
+    EXECUTION_PLAN_FLOW_HOLD_REFRESHES,
     getExpensiveMetricValue,
     getHiddenExecutionPlanElementIds,
     layoutExecutionPlan,
@@ -75,6 +80,79 @@ function node(
 }
 
 suite("ExecutionPlanModel", () => {
+    test("formats edge row counts, shortening large ones and keeping the exact value", () => {
+        expect(formatExecutionPlanRowCount("1234", "en-US")).to.deep.equal({
+            label: "1,234",
+            exact: "1,234",
+        });
+        expect(formatExecutionPlanRowCount("6243720000000", "en-US")).to.deep.equal({
+            label: "6.2T",
+            exact: "6,243,720,000,000",
+        });
+        expect(formatExecutionPlanRowCount("", "en-US")).to.equal(undefined);
+    });
+
+    test("keeps a live plan edge flowing for a few refreshes after its row count last grew", () => {
+        const edge = (id: string, rowCount: number) =>
+            ({ id, rowCount }) as unknown as ExecutionPlanEdgeModel;
+        const refresh = (state: typeof flow.state, rowCount: number) =>
+            advanceExecutionPlanEdgeFlow([edge("scan", rowCount)], state, true);
+
+        let flow = advanceExecutionPlanEdgeFlow(
+            [edge("scan", 10)],
+            EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE,
+            true,
+        );
+        expect([...flow.flowingEdgeIds]).to.deep.equal(["scan"]);
+
+        // Reads that find no new rows keep it flowing until the hold runs out
+        for (let refreshes = 1; refreshes < EXECUTION_PLAN_FLOW_HOLD_REFRESHES; refreshes++) {
+            flow = refresh(flow.state, 10);
+            expect(flow.flowingEdgeIds.has("scan")).to.equal(true);
+        }
+        flow = refresh(flow.state, 10);
+        expect(flow.flowingEdgeIds.has("scan")).to.equal(false);
+
+        // New rows start it again
+        flow = refresh(flow.state, 12);
+        expect(flow.flowingEdgeIds.has("scan")).to.equal(true);
+
+        // An edge that never carried rows doesn't flow, and a finished plan never animates
+        expect(
+            advanceExecutionPlanEdgeFlow(
+                [edge("empty", 0)],
+                EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE,
+                true,
+            ).flowingEdgeIds.size,
+        ).to.equal(0);
+        expect(
+            advanceExecutionPlanEdgeFlow([edge("scan", 50)], flow.state, false).flowingEdgeIds.size,
+        ).to.equal(0);
+    });
+
+    test("keeps every digit of row counts too large for a number, and fractional estimates", () => {
+        expect(formatExecutionPlanRowCount("9007199254740993", "en-US")).to.deep.equal({
+            label: "9007.2T",
+            exact: "9,007,199,254,740,993",
+        });
+        expect(formatExecutionPlanRowCount("12.5", "en-US")).to.deep.equal({
+            label: "12.5",
+            exact: "12.5",
+        });
+        expect(formatExecutionPlanRowCount("0.123456789", "en-US")).to.deep.equal({
+            label: "0.123",
+            exact: "0.123456789",
+        });
+        expect(formatExecutionPlanRowCount("1.50", "en-US")).to.deep.equal({
+            label: "1.5",
+            exact: "1.50",
+        });
+        expect(formatExecutionPlanRowCount("n/a", "en-US")).to.deep.equal({
+            label: "n/a",
+            exact: "n/a",
+        });
+    });
+
     test("normalizes immutably with stable element IDs and deduplicated derived properties", () => {
         const source = node("root", "Root", [node("child", "Child")], {
             properties: [

@@ -46,6 +46,11 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanProviderProps> = ({ chil
                     addedCost: addedCost,
                 });
             },
+            compareExecutionPlan: function (graphIndex: number): void {
+                void extensionRpc.sendNotification(ep.CompareExecutionPlanNotification.type, {
+                    graphIndex,
+                });
+            },
         }),
         [extensionRpc],
     );

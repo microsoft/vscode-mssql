@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Badge, Button, Input, makeStyles, Spinner, tokens } from "@fluentui/react-components";
-import { Checkmark16Regular, Dismiss16Regular, Lightbulb16Filled } from "@fluentui/react-icons";
+import { Input, makeStyles, Spinner, tokens } from "@fluentui/react-components";
+import { Checkmark16Regular, Dismiss16Regular } from "@fluentui/react-icons";
 import {
     KeyboardEvent as ReactKeyboardEvent,
     lazy,
@@ -17,22 +17,18 @@ import {
 } from "react";
 
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
-import {
-    normalizeExecutionPlanQuery,
-    ParsedRecommendation,
-    parseRecommendationDisplayString,
-} from "./executionPlanQuery";
+import { normalizeExecutionPlanQuery } from "./executionPlanQuery";
+import { ExecutionPlanHeader } from "./executionPlanHeader";
+import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
 import { PropertiesPane } from "./properties";
 import { ReactFlowIconStack } from "./reactFlowIconMenu";
-import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useExecutionPlanSelector } from "./executionPlanSelector";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 import { WebviewErrorBoundary } from "../../common/webviewErrorBoundary";
-import { SqlText } from "../../common/sqlText";
 import {
     VscodeFloatingWidget,
     VscodeFloatingWidgetAction,
@@ -76,80 +72,6 @@ const useStyles = makeStyles({
     inputSuffix: {
         color: "var(--vscode-descriptionForeground)",
         fontSize: "12px",
-    },
-    queryCostContainer: {
-        opacity: 1,
-        boxSizing: "border-box",
-        flexShrink: 0,
-        padding: "6px 8px 7px",
-        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-    },
-    queryCostSummary: {
-        color: tokens.colorNeutralForeground1,
-        fontSize: tokens.fontSizeBase200,
-        fontWeight: tokens.fontWeightSemibold,
-        lineHeight: tokens.lineHeightBase200,
-        paddingBottom: "4px",
-    },
-    queryText: {
-        fontSize: "12px",
-        lineHeight: "17px",
-        maxHeight: "17px",
-        paddingTop: "4px",
-        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
-    },
-    recommendations: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        rowGap: "3px",
-        paddingTop: "6px",
-        // caps the header at roughly three recommendations before scrolling, so a plan
-        // with many missing indexes doesn't squeeze the graph out of view
-        maxHeight: "78px",
-        overflowY: "auto",
-    },
-    recommendationButton: {
-        display: "flex",
-        justifyContent: "flex-start",
-        alignItems: "center",
-        columnGap: "6px",
-        width: "100%",
-        minWidth: 0,
-        height: "auto",
-        minHeight: "22px",
-        padding: "2px 6px",
-        borderRadius: tokens.borderRadiusMedium,
-        border: `1px solid ${tokens.colorTransparentStroke}`,
-        backgroundColor: tokens.colorNeutralBackground3,
-        textAlign: "left",
-        ":hover": {
-            backgroundColor: tokens.colorNeutralBackground3Hover,
-            border: `1px solid ${tokens.colorNeutralStroke1}`,
-        },
-        ":hover:active": {
-            backgroundColor: tokens.colorNeutralBackground3Pressed,
-        },
-    },
-    recommendationIcon: {
-        flexShrink: 0,
-        color: tokens.colorPaletteYellowForeground2,
-    },
-    recommendationLabel: {
-        flexShrink: 0,
-        fontSize: "12px",
-        lineHeight: "17px",
-        fontWeight: tokens.fontWeightSemibold,
-        color: tokens.colorNeutralForeground1,
-    },
-    recommendationImpact: {
-        flexShrink: 0,
-    },
-    recommendationScript: {
-        flexGrow: 1,
-        minWidth: 0,
-        fontSize: "12px",
-        lineHeight: "17px",
     },
     queryPlanParent: {
         opacity: 1,
@@ -204,13 +126,6 @@ interface ExecutionPlanGraphProps {
     graphIndex: number;
 }
 
-/** A recommendation split into the parts the header renders separately. */
-interface RecommendationView extends ParsedRecommendation {
-    /** Untouched server string, used as the button's accessible name and tooltip. */
-    accessibleName: string;
-    queryWithDescription: string;
-}
-
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphIndex }) => {
     const classes = useStyles();
     const { themeKind, extensionRpc } = useVscodeWebview();
@@ -220,7 +135,6 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     );
     const [query, setQuery] = useState("");
     const [xml, setXml] = useState("");
-    const [recommendations, setRecommendations] = useState<RecommendationView[]>([]);
     const [cost, setCost] = useState(0);
     const [executionPlanView, setExecutionPlanView] = useState<ExecutionPlanGraphController | null>(
         null,
@@ -231,12 +145,12 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const [findNodeOptions, setFindNodeOptions] = useState<string[]>([]);
     const [highlightOpsClicked, setHighlightOpsClicked] = useState(false);
     const [propertiesClicked, setPropertiesClicked] = useState(false);
+    const [selectedElementId, setSelectedElementId] = useState<string>();
     const [propertiesWidth, setPropertiesWidth] = useState(400);
     const [containerHeight, setContainerHeight] = useState("100%");
     const resizableRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<any | null>(null);
     const graph = executionPlanState?.executionPlanGraphs?.[graphIndex];
-
     const resetTransientUiState = useCallback(() => {
         setZoomNumber(100);
         setCustomZoomClicked(false);
@@ -258,34 +172,28 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
 
         setQuery(normalizeExecutionPlanQuery(graph.query));
         setXml(graph.graphFile.graphFileContent);
-        setRecommendations(
-            (graph.recommendations ?? []).map((recommendation) => ({
-                ...parseRecommendationDisplayString(recommendation.displayString),
-                accessibleName: recommendation.displayString,
-                queryWithDescription: recommendation.queryWithDescription,
-            })),
-        );
     }, [executionPlanState, graph, graphIndex]);
 
+    // A live plan refreshes about once a second. Keep the user's zoom and open panels until a
+    // different statement's plan replaces it.
+    const planIdentity = graph?.isLive ? `live:${graph.query}` : graph;
     useEffect(() => {
         resetTransientUiState();
-    }, [graph, resetTransientUiState]);
+    }, [planIdentity, resetTransientUiState]);
 
-    const handleRendererReady = useCallback(
-        (controller: ExecutionPlanGraphController | null) => {
-            setExecutionPlanView(controller);
-            if (controller) {
-                setFindNodeOptions(controller.getUniqueElementProperties());
-                setCost(controller.getTotalRelativeCost());
-                setZoomNumber(controller.getZoomLevel());
-            } else {
-                setFindNodeOptions([]);
-                setCost(0);
-                resetTransientUiState();
-            }
-        },
-        [resetTransientUiState],
-    );
+    const handleRendererReady = useCallback((controller: ExecutionPlanGraphController | null) => {
+        setExecutionPlanView(controller);
+        if (controller) {
+            setFindNodeOptions(controller.getUniqueElementProperties());
+            setCost(controller.getTotalRelativeCost());
+            setZoomNumber(controller.getZoomLevel());
+        } else {
+            // A new plan resets the view through planIdentity, so a live refresh, which
+            // briefly reports no renderer, keeps it.
+            setFindNodeOptions([]);
+            setCost(0);
+        }
+    }, []);
 
     useEffect(() => {
         if (inputRef && inputRef.current) {
@@ -315,12 +223,6 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
             graphIndex + 1,
             getQueryCostPercentage(),
         );
-    };
-
-    const handleRecommendationClick = (recommendation: RecommendationView) => {
-        // opens the CREATE INDEX script wrapped in its explanatory comment block, without
-        // running it, so the user can review and edit before executing
-        context?.showQuery(recommendation.queryWithDescription);
     };
 
     // this is for resizing the properties panel
@@ -370,11 +272,12 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                 style={{
                     height: containerHeight,
                 }}>
-                <div
+                <ExecutionPlanHeader
                     id="queryCostContainer"
-                    className={classes.queryCostContainer}
+                    graph={graph}
+                    costLabel={getQueryCostString()}
+                    onShowQuery={(planQuery) => context?.showQuery(planQuery)}
                     style={{
-                        background: tokens.colorNeutralBackground2,
                         // 35px is the width of the side toolbar with some extra room for padding
                         width: propertiesClicked
                             ? `calc(100% - ${propertiesWidth}px - 35px)`
@@ -383,60 +286,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             ? `calc(100% - ${propertiesWidth}px - 35px)`
                             : "calc(100% - 35px)",
                     }}
-                    aria-live="polite"
-                    aria-label={
-                        recommendations.length > 0
-                            ? `${getQueryCostString()}, ${query}, ${locConstants.executionPlan.missingIndexRecommendations}`
-                            : `${getQueryCostString()}, ${query}`
-                    }>
-                    <div className={classes.queryCostSummary}>{getQueryCostString()}</div>
-                    <SqlText
-                        className={classes.queryText}
-                        text={query}
-                        singleLine
-                        showLineBreaks
-                        title={query}
-                    />
-                    {recommendations.length > 0 && (
-                        <div
-                            className={classes.recommendations}
-                            role="group"
-                            aria-label={locConstants.executionPlan.missingIndexRecommendations}>
-                            {recommendations.map((recommendation, index) => (
-                                <Button
-                                    key={index}
-                                    appearance="subtle"
-                                    className={classes.recommendationButton}
-                                    icon={
-                                        <Lightbulb16Filled className={classes.recommendationIcon} />
-                                    }
-                                    aria-label={recommendation.accessibleName}
-                                    title={`${recommendation.accessibleName}\n\n${locConstants.executionPlan.openIndexRecommendationScript}`}
-                                    onClick={() => handleRecommendationClick(recommendation)}>
-                                    <span className={classes.recommendationLabel}>
-                                        {locConstants.executionPlan.missingIndex}
-                                    </span>
-                                    {recommendation.impact !== undefined && (
-                                        <Badge
-                                            appearance="tint"
-                                            color="success"
-                                            size="small"
-                                            className={classes.recommendationImpact}>
-                                            {locConstants.executionPlan.missingIndexImpact(
-                                                recommendation.impact.toFixed(1),
-                                            )}
-                                        </Badge>
-                                    )}
-                                    <SqlText
-                                        className={classes.recommendationScript}
-                                        text={recommendation.script}
-                                        singleLine
-                                    />
-                                </Button>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                />
                 <div
                     id={`queryPlanParent${graphIndex + 1}`}
                     className={classes.queryPlanParent}
@@ -474,9 +324,12 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                 }>
                                 <ReactFlowExecutionPlan
                                     root={graph.root}
+                                    isLive={graph.isLive === true}
+                                    liveRefreshId={graph.liveRefreshId}
                                     themeKind={themeKind}
                                     planNumber={graphIndex + 1}
                                     onReady={handleRendererReady}
+                                    onSelectionChange={setSelectedElementId}
                                 />
                             </Suspense>
                         </WebviewErrorBoundary>
@@ -577,6 +430,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             <PropertiesPane
                                 // guaranteed to be non-null
                                 executionPlanView={executionPlanView!}
+                                selectedElementId={selectedElementId}
                                 setPropertiesClicked={setPropertiesClicked}
                                 inputRef={inputRef}
                             />
@@ -599,6 +453,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                     setPropertiesClicked={setPropertiesClicked}
                     query={query}
                     xml={xml}
+                    graphIndex={graphIndex}
                 />
             )}
         </div>

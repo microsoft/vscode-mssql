@@ -8,6 +8,7 @@ import * as vscode from "vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import {
     openExecutionPlanWebview,
+    openExecutionPlanComparisonWebview,
     saveExecutionPlan,
     showPlanXml,
     showQuery,
@@ -15,6 +16,7 @@ import {
 } from "../controllers/sharedExecutionPlanUtils";
 import { sendActionEvent } from "extension-toolkit/vscode";
 import * as qr from "../sharedInterfaces/queryResult";
+import { CompareExecutionPlanNotification } from "../sharedInterfaces/executionPlan";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store, { QueryResultSingletonStore } from "./singletonStore";
@@ -411,16 +413,13 @@ export function registerCommonRequestHandlers(
         return state;
     });
     webviewController.registerReducer("openFileThroughLink", async (state, payload) => {
-        // If the content is an execution plan XML, open it in the execution plan tab
+        // Plans from this result open in its Query Plan tab from the webview. Any other execution
+        // plan XML opens in its own execution plan viewer.
         let formattedText = payload.content;
         if (
             payload.type === Constants.xml &&
             payload.content.startsWith(Constants.queryPlanXmlStart)
         ) {
-            if (state.isExecutionPlan) {
-                state.tabStates.resultPaneTab = qr.QueryResultPaneTabs.ExecutionPlan;
-                return state;
-            }
             openExecutionPlanWebview(
                 webviewViewController.getContext(),
                 webviewViewController.executionPlanService,
@@ -468,6 +467,21 @@ export function registerCommonRequestHandlers(
     });
     webviewController.registerReducer("updateTotalCost", async (state, payload) => {
         return (await updateTotalCost(state, payload)) as qr.QueryResultWebviewState;
+    });
+    webviewController.onNotification(CompareExecutionPlanNotification.type, ({ graphIndex }) => {
+        const state = webviewController.state;
+        openExecutionPlanComparisonWebview(
+            webviewViewController.getContext(),
+            webviewViewController.executionPlanService,
+            webviewViewController.sqlDocumentService,
+            {
+                primary: {
+                    name: state.title ?? LocalizedConstants.executionPlan,
+                    graphs: state.executionPlanState.executionPlanGraphs ?? [],
+                    graphIndex,
+                },
+            },
+        );
     });
     webviewController.onRequest(qr.ShowFilterDisabledMessageRequest.type, async () => {
         vscode.window.showInformationMessage(

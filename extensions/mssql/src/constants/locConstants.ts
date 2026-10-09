@@ -310,11 +310,25 @@ export function msgSaveFailed(error: string) {
         comment: ["{0} is the error message"],
     });
 }
+export const msgSaveResultsWhileLoading = l10n.t(
+    "These results can't be saved until they finish loading.",
+);
 export function msgSaveSucceeded(filePath: string) {
     return l10n.t({
         message: "Successfully saved results to {0}",
         args: [filePath],
         comment: ["{0} is the file path"],
+    });
+}
+export let msgLiveQueryStatisticsUnavailable = l10n.t(
+    "Live query statistics aren't available for this query because its server session couldn't be identified.",
+);
+export function msgLiveQueryStatisticsStopped(error: string) {
+    return l10n.t({
+        message:
+            "Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}",
+        args: [error],
+        comment: ["{0} is the error message"],
     });
 }
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
@@ -831,6 +845,29 @@ export let parameters = l10n.t("Parameters");
 export let loading = l10n.t("Loading");
 export let executionPlan = l10n.t("Execution Plan");
 export let executionPlanFileFilter = l10n.t("SQL Plan Files");
+export let compareExecutionPlans = l10n.t("Compare Execution Plans");
+export let compareExecutionPlansEditor = (index: number) =>
+    l10n.t({
+        message: "Compare Execution Plans {0}",
+        args: [index],
+        comment: ["{0} is the unique comparison editor number"],
+    });
+export let browseForExecutionPlan = l10n.t("Browse for an execution plan...");
+export let selectExecutionPlanToCompare = l10n.t("Select an execution plan to compare");
+export let selectExecutionPlanToReplace = (planName: string) =>
+    l10n.t({
+        message: "Select an execution plan to replace {0}",
+        args: [planName],
+        comment: ["{0} is the name of the execution plan being replaced"],
+    });
+export let executionPlanComparisonFailed = l10n.t("Failed to compare execution plans.");
+export let executionPlanComparisonLoadFailed = l10n.t(
+    "Failed to load the selected execution plan.",
+);
+export let executionPlanComparisonFileContainsNoPlans = l10n.t(
+    "The selected file does not contain an execution plan.",
+);
+export let openExecutionPlan = l10n.t("Open execution plan");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
 export let failedToOpenTextInEditor = (errorMessage: string) =>
@@ -2458,6 +2495,16 @@ export class StatusBar {
     public static notConnectedTooltip = l10n.t("Click to connect to a database");
     public static connectingLabel = l10n.t("Connecting");
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
+    public static serverProcessIdLabel = (serverProcessId: string) => {
+        return l10n.t({
+            message: "SPID: {0}",
+            args: [serverProcessId],
+            comment: ["{0} is the server process ID (SPID) of the connection"],
+        });
+    };
+    public static serverProcessIdTooltip = l10n.t(
+        "Server process ID (SPID) of this editor's connection",
+    );
 }
 
 export class Connection {
@@ -5568,6 +5615,27 @@ export class SqlProjects {
     public static UpdateDotnetLocation: string = l10n.t("Update Location");
 
     public static projectsOutputChannel = l10n.t("Database Projects");
+
+    public static findFileTitle = l10n.t("Find File in Database Projects");
+
+    public static findFilePlaceholder = l10n.t("Search by file name, path, or project");
+
+    public static findFileProjectLoadError(projectFileName: string, error: string): string {
+        return l10n.t({
+            message: "Find File skipped {0} because it could not be loaded: {1}",
+            args: [projectFileName, error],
+            comment: ["{0} is a project file name", "{1} is the error message"],
+        });
+    }
+
+    public static findFileProjectsSkipped(skippedCount: number): string {
+        return l10n.t({
+            message:
+                "Find File skipped {0} project(s) that could not be loaded. See the Database Projects output for details.",
+            args: [skippedCount],
+            comment: ["{0} is the number of projects that could not be loaded"],
+        });
+    }
 
     public static Install: string = l10n.t("Install");
 

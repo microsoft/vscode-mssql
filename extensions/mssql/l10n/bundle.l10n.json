@@ -185,9 +185,15 @@
         "message": "Failed to save results. {0}",
         "comment": ["{0} is the error message"]
     },
+    "These results can't be saved until they finish loading.": "These results can't be saved until they finish loading.",
     "Successfully saved results to {0}/{0} is the file path": {
         "message": "Successfully saved results to {0}",
         "comment": ["{0} is the file path"]
+    },
+    "Live query statistics aren't available for this query because its server session couldn't be identified.": "Live query statistics aren't available for this query because its server session couldn't be identified.",
+    "Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}/{0} is the error message": {
+        "message": "Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}",
+        "comment": ["{0} is the error message"]
     },
     "Select profile to remove": "Select profile to remove",
     "Select profile to edit": "Select profile to edit",
@@ -506,6 +512,21 @@
     "Loading": "Loading",
     "Execution Plan": "Execution Plan",
     "SQL Plan Files": "SQL Plan Files",
+    "Compare Execution Plans": "Compare Execution Plans",
+    "Compare Execution Plans {0}/{0} is the unique comparison editor number": {
+        "message": "Compare Execution Plans {0}",
+        "comment": ["{0} is the unique comparison editor number"]
+    },
+    "Browse for an execution plan...": "Browse for an execution plan...",
+    "Select an execution plan to compare": "Select an execution plan to compare",
+    "Select an execution plan to replace {0}/{0} is the name of the execution plan being replaced": {
+        "message": "Select an execution plan to replace {0}",
+        "comment": ["{0} is the name of the execution plan being replaced"]
+    },
+    "Failed to compare execution plans.": "Failed to compare execution plans.",
+    "Failed to load the selected execution plan.": "Failed to load the selected execution plan.",
+    "The selected file does not contain an execution plan.": "The selected file does not contain an execution plan.",
+    "Open execution plan": "Open execution plan",
     "Script copied to clipboard": "Script copied to clipboard",
     "Copied": "Copied",
     "Failed to open text in editor: {0}/{0} is the error message": {
@@ -1381,6 +1402,11 @@
     "Click to connect to a database": "Click to connect to a database",
     "Connecting": "Connecting",
     "Connection error": "Connection error",
+    "SPID: {0}/{0} is the server process ID (SPID) of the connection": {
+        "message": "SPID: {0}",
+        "comment": ["{0} is the server process ID (SPID) of the connection"]
+    },
+    "Server process ID (SPID) of this editor's connection": "Server process ID (SPID) of this editor's connection",
     "Connecting to {0}.../{0} is the connection display name": {
         "message": "Connecting to {0}...",
         "comment": ["{0} is the connection display name"]
@@ -2715,6 +2741,16 @@
     "Currently installed .NET SDK version is {0}, which is not supported. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK supported version location in settings if already installed.": "Currently installed .NET SDK version is {0}, which is not supported. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK supported version location in settings if already installed.",
     "Update Location": "Update Location",
     "Database Projects": "Database Projects",
+    "Find File in Database Projects": "Find File in Database Projects",
+    "Search by file name, path, or project": "Search by file name, path, or project",
+    "Find File skipped {0} because it could not be loaded: {1}/{0} is a project file name{1} is the error message": {
+        "message": "Find File skipped {0} because it could not be loaded: {1}",
+        "comment": ["{0} is a project file name", "{1} is the error message"]
+    },
+    "Find File skipped {0} project(s) that could not be loaded. See the Database Projects output for details./{0} is the number of projects that could not be loaded": {
+        "message": "Find File skipped {0} project(s) that could not be loaded. See the Database Projects output for details.",
+        "comment": ["{0} is the number of projects that could not be loaded"]
+    },
     "Don't Ask Again": "Don't Ask Again",
     "Build Elements": "Build Elements",
     "Folder Elements": "Folder Elements",
@@ -2772,6 +2808,9 @@
     "Hide password": "Hide password",
     "Expand": "Expand",
     "Collapse": "Collapse",
+    "Show more": "Show more",
+    "Show less": "Show less",
+    "Copy error details": "Copy error details",
     "Get Started": "Get Started",
     "Back": "Back",
     "Warning": "Warning",
@@ -3336,15 +3375,125 @@
     "Toggle Tooltips": "Toggle Tooltips",
     "Properties": "Properties",
     "Execution plan toolbar": "Execution plan toolbar",
+    "Compare Execution Plan": "Compare Execution Plan",
+    "Add execution plan": "Add execution plan",
+    "Replace execution plan": "Replace execution plan",
+    "Reset zoom": "Reset zoom",
+    "Swap plans": "Swap plans",
+    "Replace top plan…": "Replace top plan…",
+    "Replace bottom plan…": "Replace bottom plan…",
+    "Replace left plan…": "Replace left plan…",
+    "Replace right plan…": "Replace right plan…",
+    "Zoom controls": "Zoom controls",
+    "Toggle Minimap": "Toggle Minimap",
+    "Toggle Similar Areas": "Toggle Similar Areas",
+    "Sync Zoom and Scroll": "Sync Zoom and Scroll",
+    "Resize plans": "Resize plans",
+    "Copy Query": "Copy Query",
+    "Dock to the side": "Dock to the side",
+    "Dock to the bottom": "Dock to the bottom",
+    "Minimap": "Minimap",
+    "Plan layout": "Plan layout",
+    "Side by side": "Side by side",
+    "Stacked": "Stacked",
+    "Find in primary plan": "Find in primary plan",
+    "Find in added plan": "Find in added plan",
+    "Primary plan": "Primary plan",
+    "Added plan": "Added plan",
+    "Choose an execution plan to compare.": "Choose an execution plan to compare.",
+    "Loading similar areas in compared plans...": "Loading similar areas in compared plans...",
+    "Comparison properties": "Comparison properties",
+    "Equivalent Properties ({0})/{0} is the number of properties with the same value in both plans": {
+        "message": "Equivalent Properties ({0})",
+        "comment": ["{0} is the number of properties with the same value in both plans"]
+    },
+    "Different Properties ({0})/{0} is the number of properties whose values differ between plans": {
+        "message": "Different Properties ({0})",
+        "comment": ["{0} is the number of properties whose values differ between plans"]
+    },
+    "Not in this plan": "Not in this plan",
+    "Top operation: {0}/{0} is an execution plan operation name": {
+        "message": "Top operation: {0}",
+        "comment": ["{0} is an execution plan operation name"]
+    },
+    "Bottom operation: {0}/{0} is an execution plan operation name": {
+        "message": "Bottom operation: {0}",
+        "comment": ["{0} is an execution plan operation name"]
+    },
+    "Left operation: {0}/{0} is an execution plan operation name": {
+        "message": "Left operation: {0}",
+        "comment": ["{0} is an execution plan operation name"]
+    },
+    "Right operation: {0}/{0} is an execution plan operation name": {
+        "message": "Right operation: {0}",
+        "comment": ["{0} is an execution plan operation name"]
+    },
+    "Value (Top Plan)": "Value (Top Plan)",
+    "Value (Bottom Plan)": "Value (Bottom Plan)",
+    "Value (Left Plan)": "Value (Left Plan)",
+    "Value (Right Plan)": "Value (Right Plan)",
+    "Comparison": "Comparison",
+    "Not equal to": "Not equal to",
+    "Less than": "Less than",
+    "Greater than": "Greater than",
+    "Filter comparison properties...": "Filter comparison properties...",
+    "Select statement": "Select statement",
+    "Statement {0}/{0} is an execution plan statement number": {
+        "message": "Statement {0}",
+        "comment": ["{0} is an execution plan statement number"]
+    },
     "Importance": "Importance",
     "Alphabetical": "Alphabetical",
     "Reverse Alphabetical": "Reverse Alphabetical",
     "Expand All": "Expand All",
     "Collapse All": "Collapse All",
     "Filter for any field...": "Filter for any field...",
+    "View full value of {0}/{0} is the name of an execution plan property": {
+        "message": "View full value of {0}",
+        "comment": ["{0} is the name of an execution plan property"]
+    },
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
     "This execution plan could not be rendered.": "This execution plan could not be rendered.",
+    "Live/Badge for the execution plan of a currently running query.": {
+        "message": "Live",
+        "comment": ["Badge for the execution plan of a currently running query."]
+    },
+    "Unavailable": "Unavailable",
+    "{0} s/{0} is a localized elapsed duration in seconds; s is the abbreviation for seconds.": {
+        "message": "{0} s",
+        "comment": [
+            "{0} is a localized elapsed duration in seconds; s is the abbreviation for seconds."
+        ]
+    },
+    "{0}:{1}:{2}/Elapsed duration, not a time of day: {0} is total hours (may exceed 24), {1} is two-digit minutes, and {2} is two-digit seconds. All numbers are already localized.": {
+        "message": "{0}:{1}:{2}",
+        "comment": [
+            "Elapsed duration, not a time of day: {0} is total hours (may exceed 24), {1} is two-digit minutes, and {2} is two-digit seconds. All numbers are already localized."
+        ]
+    },
+    "Elapsed: {0}": "Elapsed: {0}",
+    "Rows: {0} of {1}/{0} is the actual processed row count; {1} is the optimizer's estimated total row count. Counts are already localized and may be abbreviated.": {
+        "message": "Rows: {0} of {1}",
+        "comment": [
+            "{0} is the actual processed row count; {1} is the optimizer's estimated total row count. Counts are already localized and may be abbreviated."
+        ]
+    },
+    "Rows: {0} of {1} ({2})/{0} is the actual processed row count; {1} is the optimizer's estimated total row count; {2} is their ratio as a localized percentage, which can exceed 100%.": {
+        "message": "Rows: {0} of {1} ({2})",
+        "comment": [
+            "{0} is the actual processed row count; {1} is the optimizer's estimated total row count; {2} is their ratio as a localized percentage, which can exceed 100%."
+        ]
+    },
+    "Estimated query progress: {0}": "Estimated query progress: {0}",
+    "Estimated query progress: <{0}/{0} is a localized percentage. The < symbol means progress is positive but less than that percentage.": {
+        "message": "Estimated query progress: <{0}",
+        "comment": [
+            "{0} is a localized percentage. The < symbol means progress is positive but less than that percentage."
+        ]
+    },
+    "Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.": "Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.",
+    "Live plan of the running statement. Row counts refresh while it runs.": "Live plan of the running statement. Row counts refresh while it runs.",
     "Execution plan {0}, use arrow keys to navigate between nodes/{0} is the one-based execution plan number": {
         "message": "Execution plan {0}, use arrow keys to navigate between nodes",
         "comment": ["{0} is the one-based execution plan number"]
@@ -4795,7 +4944,6 @@
     "Script as Execute": "Script as Execute",
     "Copy Object Name": "Copy Object Name",
     "Not contains": "Not contains",
-    "Not equal to": "Not equal to",
     "Starts with": "Starts with",
     "Ends with": "Ends with",
     "All selected": "All selected",
@@ -4815,13 +4963,11 @@
     "Filter shortcuts": "Filter shortcuts",
     "Force fit columns": "Force fit columns",
     "Freeze columns": "Freeze columns",
-    "Greater than": "Greater than",
     "Greater than or equal to": "Greater than or equal to",
     "Hide column": "Hide column",
     "items": "items",
     "items per page": "items per page",
     "items selected": "items selected",
-    "Less than": "Less than",
     "Less than or equal to": "Less than or equal to",
     "No elements found": "No elements found",
     "No matches found": "No matches found",

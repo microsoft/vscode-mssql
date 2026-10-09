@@ -58,6 +58,26 @@ interface FileWatcherStatus {
     fileWatcher: vscode.FileSystemWatcher;
 }
 
+/** Which project collection a Find File result came from. Reported in telemetry. */
+type ProjectFileKind =
+    | "sqlObjectScript"
+    | "preDeployScript"
+    | "postDeployScript"
+    | "noneDeployScript"
+    | "publishProfile";
+
+interface ProjectFileQuickPickItem extends vscode.QuickPickItem {
+    fileSystemUri: vscode.Uri;
+    projectFileUri: vscode.Uri;
+    fileKind: ProjectFileKind;
+}
+
+interface ProjectFileSearchEntry {
+    entry: FileProjectEntry;
+    iconPath: vscode.ThemeIcon;
+    fileKind: ProjectFileKind;
+}
+
 /**
  * Controller for managing lifecycle of projects
  */
@@ -1603,9 +1623,9 @@ export class ProjectsController {
     /**
      * Opens a file in the editor and adds a file watcher to check if a create table statement has been added
      * @param fileSystemUri uri of file
-     * @param node node of file in the tree
+     * @param node optional node of the file in the tree
      */
-    public async openFileWithWatcher(fileSystemUri: vscode.Uri, _node: FileNode): Promise<void> {
+    public async openFileWithWatcher(fileSystemUri: vscode.Uri, _node?: FileNode): Promise<void> {
         await vscode.commands.executeCommand(constants.vscodeOpenCommand, fileSystemUri);
 
         const fileWatcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(
@@ -2251,6 +2271,148 @@ export class ProjectsController {
         return project.sqlObjectScripts
             .filter((f) => f.fsUri.fsPath.endsWith(constants.sqlFileExtension))
             .map((f) => f.fsUri.fsPath);
+    }
+
+    /**
+     * Searches every file in the open SQL projects, including files below collapsed tree nodes.
+     */
+    public async findFile(): Promise<void> {
+        const projectFiles = await utils.getSqlProjectsInWorkspace();
+        const quickPickItems: ProjectFileQuickPickItem[] = [];
+        let skippedProjectCount = 0;
+
+        for (const projectFile of projectFiles) {
+            let project: Project;
+            try {
+                // No reload: reloading closes the project in SQL Tools Service, which discards the
+                // IntelliSense model that the Projects view built when it opened the project.
+                project = await Project.openProject(projectFile.fsPath);
+            } catch (error) {
+                // Like the Projects view, one unreadable project must not hide the others' files.
+                skippedProjectCount++;
+                this._outputChannel.appendLine(
+                    SqlProjects.findFileProjectLoadError(
+                        path.basename(projectFile.fsPath),
+                        utils.getErrorMessage(error),
+                    ),
+                );
+                continue;
+            }
+
+            // A file linked into several projects is listed once per project, so it can be
+            // revealed through each project's tree; only repeats within one project are dropped.
+            const seenFiles = new Set<string>();
+            const entries: ProjectFileSearchEntry[] = [
+                ...project.sqlObjectScripts.map((entry) => ({
+                    entry,
+                    iconPath: new vscode.ThemeIcon("file-code"),
+                    fileKind: "sqlObjectScript" as const,
+                })),
+                ...project.preDeployScripts.map((entry) => ({
+                    entry,
+                    iconPath: new vscode.ThemeIcon("play"),
+                    fileKind: "preDeployScript" as const,
+                })),
+                ...project.postDeployScripts.map((entry) => ({
+                    entry,
+                    iconPath: new vscode.ThemeIcon("play"),
+                    fileKind: "postDeployScript" as const,
+                })),
+                ...project.noneDeployScripts.map((entry) => ({
+                    entry,
+                    iconPath: new vscode.ThemeIcon("file"),
+                    fileKind: "noneDeployScript" as const,
+                })),
+                ...project.publishProfiles.map((entry) => ({
+                    entry,
+                    iconPath: new vscode.ThemeIcon("cloud-upload"),
+                    fileKind: "publishProfile" as const,
+                })),
+            ];
+
+            for (const { entry, iconPath, fileKind } of entries) {
+                const fileKey = entry.fsUri.toString();
+                if (seenFiles.has(fileKey)) {
+                    continue;
+                }
+
+                seenFiles.add(fileKey);
+                const relativePath = utils.getPlatformSafeFileEntryPath(entry.relativePath);
+                const folder = path.posix.dirname(relativePath);
+                quickPickItems.push({
+                    // The project-relative path is already normalized to forward slashes, so
+                    // this splits correctly whichever platform the project was created on.
+                    label: path.posix.basename(relativePath),
+                    description:
+                        folder === "."
+                            ? project.projectFileName
+                            : `${folder} — ${project.projectFileName}`,
+                    iconPath,
+                    fileSystemUri: entry.fsUri,
+                    projectFileUri: projectFile,
+                    fileKind,
+                });
+            }
+        }
+
+        if (skippedProjectCount > 0) {
+            // Not awaited: the search over the projects that did load should open right away.
+            void vscode.window.showWarningMessage(
+                SqlProjects.findFileProjectsSkipped(skippedProjectCount),
+            );
+        }
+
+        const selectedFile = await vscode.window.showQuickPick(
+            quickPickItems.sort((a, b) => a.label.localeCompare(b.label)),
+            {
+                title: SqlProjects.findFileTitle,
+                placeHolder: SqlProjects.findFilePlaceholder,
+                matchOnDescription: true,
+                matchOnDetail: true,
+            },
+        );
+
+        // Anything other than "reveal" falls back to the default, so a hand-edited value is never
+        // sent to telemetry.
+        const behavior =
+            vscode.workspace.getConfiguration().get<string>(constants.findFileBehaviorSetting) ===
+            constants.FindFileBehavior.Reveal
+                ? constants.FindFileBehavior.Reveal
+                : constants.FindFileBehavior.RevealAndOpen;
+        // Only enumerated values and counts: file names, paths and project names stay local.
+        const telemetryEvent = TelemetryReporter.createActionEvent(
+            TelemetryViews.ProjectController,
+            TelemetryActions.findFile,
+        ).withAdditionalMeasurements({
+            projectCount: projectFiles.length,
+            skippedProjectCount,
+            fileCount: quickPickItems.length,
+        });
+
+        if (!selectedFile) {
+            telemetryEvent.withAdditionalProperties({ behavior, result: "cancelled" }).send();
+            return;
+        }
+
+        const revealed = await utils
+            .getDataWorkspaceExtensionApi()
+            .revealProjectItem(selectedFile.projectFileUri, selectedFile.fileSystemUri);
+        // Reveal-only still opens the file when the tree cannot show it, so a pick is never a
+        // no-op. Opening after the reveal leaves focus in the editor.
+        const opened = behavior !== constants.FindFileBehavior.Reveal || !revealed;
+        if (opened) {
+            await this.openFileWithWatcher(selectedFile.fileSystemUri);
+        }
+
+        telemetryEvent
+            .withAdditionalProperties({
+                behavior,
+                result: "selected",
+                fileKind: selectedFile.fileKind,
+                revealed: String(revealed),
+                opened: String(opened),
+            })
+            .send();
     }
 
     public async getProjectDatabaseSchemaProvider(projectFilePath: string): Promise<string> {

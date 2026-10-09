@@ -15,6 +15,10 @@ import {
     SearchType,
 } from "../../../sharedInterfaces/executionPlan";
 import { locConstants } from "../../common/locConstants";
+import {
+    getExecutionPlanNodeLabelLineCount,
+    getExecutionPlanNodeLabelLines,
+} from "./executionPlanLiveStatistics";
 
 export const EXECUTION_PLAN_NODE_WIDTH = 80;
 export const EXECUTION_PLAN_NODE_HEIGHT = 80;
@@ -92,6 +96,96 @@ export function getExpensiveMetricValue(
         case ExpensiveMetricType.Off:
             return undefined;
     }
+}
+
+/** Row counts below this show exactly; larger ones are shortened, for example to 6.2T. */
+const EXECUTION_PLAN_COMPACT_ROW_COUNT_THRESHOLD = 10_000;
+
+/** The most fractional digits Intl.NumberFormat accepts. */
+const INTL_MAX_FRACTION_DIGITS = 100;
+
+/**
+ * Formats a node's row count for the label on the edge carrying its rows. Large counts are
+ * shortened so the label stays small; the exact count goes in its tooltip.
+ * @returns undefined when the node has no row count.
+ */
+export function formatExecutionPlanRowCount(
+    rowCountDisplayString: string,
+    locale?: string,
+): { label: string; exact: string } | undefined {
+    if (!rowCountDisplayString) {
+        return undefined;
+    }
+    const value = rowCountDisplayString.trim();
+    const rowCount = Number(value);
+    if (!Number.isFinite(rowCount)) {
+        return { label: rowCountDisplayString, exact: rowCountDisplayString };
+    }
+    // Intl formats a numeric string as an exact decimal, so the tooltip keeps every digit of the
+    // source: counts past Number.MAX_SAFE_INTEGER, and an estimate's fractional digits and zeros
+    const fractionDigits = Math.min(
+        /\.(\d+)$/.exec(value)?.[1].length ?? 0,
+        INTL_MAX_FRACTION_DIGITS,
+    );
+    const exact = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: INTL_MAX_FRACTION_DIGITS,
+    }).format(value as Intl.StringNumericLiteral);
+    const label =
+        rowCount < EXECUTION_PLAN_COMPACT_ROW_COUNT_THRESHOLD
+            ? rowCount.toLocaleString(locale)
+            : new Intl.NumberFormat(locale, {
+                  notation: "compact",
+                  maximumFractionDigits: 1,
+              }).format(rowCount);
+    return { label, exact };
+}
+
+/** Refreshes an edge keeps flowing after its row count last grew. */
+export const EXECUTION_PLAN_FLOW_HOLD_REFRESHES = 3;
+
+/** The row counts of a live plan's edges and when each last grew, carried between refreshes. */
+export interface ExecutionPlanEdgeFlowState {
+    rowCounts: ReadonlyMap<string, number>;
+    /** Refreshes since each edge's row count last grew. */
+    refreshesSinceGrowth: ReadonlyMap<string, number>;
+}
+
+export const EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE: ExecutionPlanEdgeFlowState = {
+    rowCounts: new Map(),
+    refreshesSinceGrowth: new Map(),
+};
+
+/**
+ * Advances a live plan's edge flow by one refresh. SQL Server reports in-flight row counts in
+ * bursts, so an edge keeps flowing for a few refreshes after its count last grew instead of
+ * stopping whenever a read finds no new rows. A finished plan has no flowing edges.
+ */
+export function advanceExecutionPlanEdgeFlow(
+    edges: readonly ExecutionPlanEdgeModel[],
+    previous: ExecutionPlanEdgeFlowState,
+    isLive: boolean,
+): { state: ExecutionPlanEdgeFlowState; flowingEdgeIds: ReadonlySet<string> } {
+    if (!isLive) {
+        return { state: EMPTY_EXECUTION_PLAN_EDGE_FLOW_STATE, flowingEdgeIds: new Set() };
+    }
+
+    const rowCounts = new Map<string, number>();
+    const refreshesSinceGrowth = new Map<string, number>();
+    const flowingEdgeIds = new Set<string>();
+    for (const edge of edges) {
+        const grew = edge.rowCount > (previous.rowCounts.get(edge.id) ?? 0);
+        const sinceGrowth = grew
+            ? 0
+            : (previous.refreshesSinceGrowth.get(edge.id) ?? EXECUTION_PLAN_FLOW_HOLD_REFRESHES) +
+              1;
+        rowCounts.set(edge.id, edge.rowCount);
+        refreshesSinceGrowth.set(edge.id, sinceGrowth);
+        if (sinceGrowth < EXECUTION_PLAN_FLOW_HOLD_REFRESHES) {
+            flowingEdgeIds.add(edge.id);
+        }
+    }
+    return { state: { rowCounts, refreshesSinceGrowth }, flowingEdgeIds };
 }
 
 /**
@@ -413,7 +507,9 @@ export function layoutExecutionPlan(
     const maximumChildLevels = new Map<string, number>();
     let rowSpacing = EXECUTION_PLAN_MINIMUM_ROW_SPACING;
 
-    const label = (node: ExecutionPlanNode) => node.subtext.join("\n");
+    const label = (node: ExecutionPlanNode) => getExecutionPlanNodeLabelLines(node).join("\n");
+    const measureLabel = (node: ExecutionPlanNode): number =>
+        node.liveQueryStatistics ? EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH : measureText(label(node));
     const hasBranchingAncestor = (node: ExecutionPlanNode): boolean => {
         let current: ExecutionPlanNode | undefined = node;
         while (current) {
@@ -429,13 +525,14 @@ export function layoutExecutionPlan(
     const setX = (node: ExecutionPlanNode, x: number, level: number): number => {
         levels.set(node.id, level);
         positions.set(node.id, { x, y: 0 });
-        rowSpacing = Math.max(rowSpacing, 45 + Math.max(1, node.subtext.length) * 10);
-
-        const currentWidth = measureText(label(node));
-        const maximumChildWidth = Math.max(
-            0,
-            ...node.children.map((child) => measureText(label(child))),
+        const lines = getExecutionPlanNodeLabelLineCount(node);
+        rowSpacing = Math.max(
+            rowSpacing,
+            node.liveQueryStatistics ? 60 + lines * 14 : 45 + lines * 10,
         );
+
+        const currentWidth = measureLabel(node);
+        const maximumChildWidth = Math.max(0, ...node.children.map(measureLabel));
         let spacing = currentWidth / 2 + maximumChildWidth / 2;
         if (node.children.length > 1 && hasBranchingAncestor(node)) {
             spacing += Math.max(maximumChildWidth - EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH, 0);

@@ -508,9 +508,13 @@ export function useFluentResultGridCommandController({
                     ) ?? [],
                 onApply: async (selected) => {
                     await updateFilterForColumn(grid, column, selected, filterItems);
+                    activeFilterColumnRef.current = undefined;
+                    grid.focus();
                 },
                 onClear: async () => {
                     await updateFilterForColumn(grid, column, []);
+                    activeFilterColumnRef.current = undefined;
+                    grid.focus();
                 },
                 onDismiss: () => {
                     activeFilterColumnRef.current = undefined;

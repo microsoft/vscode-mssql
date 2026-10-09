@@ -50,6 +50,9 @@ import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
 import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
 import { sqlDatabaseProjectsExtensionId } from "./constants/constants";
+import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
+import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
+import { ExecutionPlanComparisonContribution } from "./controllers/executionPlanComparisonContribution";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -70,6 +73,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
         builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
         builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
+        builder.define(ISqlProjectLookup, new ServiceDescriptor(SqlProjectLookup));
 
         const instantiationService = builder.seal();
         context.subscriptions.push(instantiationService);
@@ -140,6 +144,15 @@ class MssqlActivation {
         vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
         registerSqlDataPlane(context);
         await controller.activate();
+
+        context.subscriptions.push(
+            this._instantiationService.createInstance(SqlProjectRefactoringContribution),
+            this._instantiationService.createInstance(
+                ExecutionPlanComparisonContribution,
+                controller.executionPlanService,
+                controller.sqlDocumentService,
+            ),
+        );
 
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
         registerSqlToolsMcpServer(

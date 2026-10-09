@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { NotificationType } from "vscode-jsonrpc";
 import { ApiStatus } from "./webview";
 
 export interface ExecutionPlanWebviewState {
@@ -61,6 +62,14 @@ export interface ExecutionPlanReducers {
     };
 }
 
+/**
+ * Opens a comparison editor with a statement of the plan the webview shows. It changes no webview
+ * state, so it is a notification rather than a reducer, which would send all of the state back.
+ */
+export namespace CompareExecutionPlanNotification {
+    export const type = new NotificationType<{ graphIndex: number }>("executionPlan/compare");
+}
+
 export interface ExecutionPlanProvider {
     /**
      * Gets the execution plan graph from the provider
@@ -90,6 +99,12 @@ export interface ExecutionPlanProvider {
      * @param addedCost the cost of the current execution plan graph
      */
     updateTotalCost(addedCost: number): void;
+
+    /**
+     * Opens a comparison editor with the given statement in its primary pane.
+     * @param graphIndex the statement to compare
+     */
+    compareExecutionPlan(graphIndex: number): void;
 }
 
 export interface ExecutionPlanGraph {
@@ -109,9 +124,30 @@ export interface ExecutionPlanGraph {
      * Query recommendations for optimizing performance
      */
     recommendations: ExecutionPlanRecommendations[];
+    /**
+     * True for the in-flight plan of a statement that is still running, which refreshes with
+     * live row counts until the statement finishes.
+     */
+    isLive?: boolean;
+    /**
+     * Number of the live read this plan came from. It changes only when the plan is read again, so
+     * the view can tell a new read from the same read sent along with other state updates.
+     */
+    liveRefreshId?: number;
+    /** Estimated work completed from pipeline input rows, weighted by refined plan costs. */
+    liveQueryStatistics?: {
+        estimatedProgress?: number;
+        elapsedTimeInMs?: number;
+    };
 }
 
 export interface ExecutionPlanNode {
+    /** Numeric counters from the live ShowPlan XML, independent of translated properties. */
+    liveQueryStatistics?: {
+        actualRows?: string;
+        estimatedRows?: number;
+        elapsedTimeInMs?: number;
+    };
     /**
      * Unique id given to node by the provider
      */
@@ -359,12 +395,15 @@ export interface ExecutionPlanService {
      */
     getExecutionPlan(planFile: ExecutionPlanGraphInfo): Thenable<GetExecutionPlanResult>;
 
-    // /**
-    //  * Compares two execution plans and identifies matching regions in both execution plans.
-    //  * @param firstPlanFile file that contains the first execution plan.
-    //  * @param secondPlanFile file that contains the second execution plan.
-    //  */
-    // compareExecutionPlanGraph(firstPlanFile: ExecutionPlanGraphInfo, secondPlanFile: ExecutionPlanGraphInfo): Thenable<ExecutionPlanComparisonResult>;
+    /**
+     * Compares two execution plans and identifies matching regions in both execution plans.
+     * @param firstPlanFile file that contains the first execution plan.
+     * @param secondPlanFile file that contains the second execution plan.
+     */
+    compareExecutionPlanGraph(
+        firstPlanFile: ExecutionPlanGraphInfo,
+        secondPlanFile: ExecutionPlanGraphInfo,
+    ): Thenable<ExecutionPlanComparisonResult>;
     /**
      * Determines if the provided value is an execution plan and returns the appropriate file extension.
      * @param value String that needs to be checked.

@@ -17,6 +17,8 @@ import * as epUtils from "../../src/controllers/sharedExecutionPlanUtils";
 import { contents } from "../resources/testsqlplan";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { GetExecutionPlanRequest } from "../../src/models/contracts/executionPlan";
+import * as jsonRpc from "vscode-jsonrpc/node";
+import { observeWebviewReady, stubWebviewConnectionRpc } from "./utils";
 
 chai.use(sinonChai);
 
@@ -198,6 +200,45 @@ suite("ExecutionPlanWebviewController", () => {
         expect(result, "State should have an updated total cost").to.deep.equal(mockResultState);
 
         updateTotalCostStub.restore();
+    });
+
+    test("should open a comparison of the statement the webview asks for", () => {
+        const connection = stubWebviewConnectionRpc(sandbox);
+        sandbox
+            .stub(jsonRpc, "createMessageConnection")
+            .returns(connection.connection as unknown as jsonRpc.MessageConnection);
+        const openComparisonStub = sandbox.stub(epUtils, "openExecutionPlanComparisonWebview");
+        const graph = { root: { cost: 1, subTreeCost: 2 } } as ep.ExecutionPlanGraph;
+        const planController = new ExecutionPlanWebviewController(
+            mockContext,
+            mockExecutionPlanService,
+            mockSqlDocumentService,
+            executionPlanContents,
+            xmlPlanFileName,
+        );
+        try {
+            planController.state = {
+                executionPlanState: {
+                    ...mockResultState.executionPlanState,
+                    executionPlanGraphs: [graph],
+                },
+            };
+
+            const compare = connection.notificationHandlers.get(
+                ep.CompareExecutionPlanNotification.type.method,
+            ) as (params: { graphIndex: number }) => void;
+            compare({ graphIndex: 0 });
+
+            expect(openComparisonStub).to.have.been.calledOnceWithExactly(
+                mockContext,
+                mockExecutionPlanService,
+                mockSqlDocumentService,
+                { primary: { name: xmlPlanFileName, graphs: [graph], graphIndex: 0 } },
+            );
+        } finally {
+            observeWebviewReady(planController);
+            planController.dispose();
+        }
     });
 });
 

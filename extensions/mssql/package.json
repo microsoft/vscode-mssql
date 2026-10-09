@@ -63,6 +63,7 @@
         "build:webviews-bundle": "node scripts/bundle-webviews.js",
         "build:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js",
         "build": "node scripts/build.js",
+        "build:e2e": "npm run build:prepare && npm run build:extension-bundle && npm run build:webviews-bundle && npm run build:notebook-renderer-bundle",
         "watch:extension": "run-p -l watch:extension:typecheck watch:extension:emit",
         "watch:extension:typecheck": "tsgo -watch -p tsconfig.extension.json --noEmit --preserveWatchOutput",
         "watch:extension:emit": "tsc -watch -p tsconfig.extension.json --noCheck --preserveWatchOutput",
@@ -73,7 +74,7 @@
         "watch": "npm run build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle watch:notebook-renderer-bundle",
         "lint": "eslint --quiet --cache ./src ./test",
         "localization": "node ../../scripts/localization-extract.js mssql",
-        "smoketest": "npm run instrument && npm run e2eTest",
+        "smoketest": "npm run instrument && node scripts/prepare-e2e-env.js && npm run e2eTest",
         "clean:test-output": "node -e \"require('node:fs').rmSync('out/test/unit', { recursive: true, force: true })\"",
         "pretest": "npm run clean:test-output && npm run build:extension:emit && npm run build:extension-bundle",
         "test": "vscode-test --coverage",
@@ -478,6 +479,16 @@
                     "command": "mssql.disableActualPlan",
                     "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource in mssql.executionPlan.urisWithActualPlanEnabled) && (resourcePath not in mssql.runningQueries)",
                     "group": "navigation@12"
+                },
+                {
+                    "command": "mssql.enableLiveQueryStatistics",
+                    "when": "mssql.preview.liveQueryStatisticsEnabled && editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource not in mssql.executionPlan.urisWithLiveQueryStatisticsEnabled) && (resourcePath not in mssql.runningQueries)",
+                    "group": "navigation@13"
+                },
+                {
+                    "command": "mssql.disableLiveQueryStatistics",
+                    "when": "mssql.preview.liveQueryStatisticsEnabled && editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource in mssql.executionPlan.urisWithLiveQueryStatisticsEnabled) && (resourcePath not in mssql.runningQueries)",
+                    "group": "navigation@14"
                 }
             ],
             "editor/context": [
@@ -969,6 +980,14 @@
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "mssql.enableLiveQueryStatistics",
+                    "when": "mssql.preview.liveQueryStatisticsEnabled"
+                },
+                {
+                    "command": "mssql.disableLiveQueryStatistics",
+                    "when": "mssql.preview.liveQueryStatisticsEnabled"
+                },
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
                     "when": "false"
@@ -1714,6 +1733,25 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.compareExecutionPlans",
+                "title": "%mssql.compareExecutionPlans%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.enableLiveQueryStatistics",
+                "title": "%mssql.enableLiveQueryStatistics%",
+                "category": "MS SQL",
+                "enablement": "mssql.preview.liveQueryStatisticsEnabled",
+                "icon": "$(pulse)"
+            },
+            {
+                "command": "mssql.disableLiveQueryStatistics",
+                "title": "%mssql.disableLiveQueryStatistics%",
+                "category": "MS SQL",
+                "enablement": "mssql.preview.liveQueryStatisticsEnabled",
+                "icon": "$(stop-circle)"
+            },
+            {
                 "command": "mssql.copilot.explainQuery",
                 "title": "%mssql.copilot.explainQuery%",
                 "category": "MS SQL"
@@ -2052,6 +2090,15 @@
                     "default": 60,
                     "minimum": 0,
                     "markdownDescription": "%mssql.metadata.pollSeconds.description%",
+                    "scope": "application"
+                },
+                "mssql.preview.liveQueryStatistics": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "default": null,
+                    "description": "%mssql.preview.liveQueryStatistics.description%",
                     "scope": "application"
                 },
                 "mssql.preview.betaResultsGrid": {
@@ -2712,6 +2759,12 @@
                     "default": true,
                     "scope": "window"
                 },
+                "mssql.statusBar.showServerProcessId": {
+                    "type": "boolean",
+                    "description": "%mssql.statusBar.showServerProcessId.description%",
+                    "default": false,
+                    "scope": "window"
+                },
                 "mssql.format.showParseErrorNotification": {
                     "type": "boolean",
                     "description": "%mssql.format.showParseErrorNotification%",
@@ -3255,10 +3308,21 @@
                     "maximum": 10,
                     "description": "%mssql.resultsGrid.rowPadding%"
                 },
+                "mssql.resultsGrid.rightAlignNumbers": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.resultsGrid.rightAlignNumbers%"
+                },
                 "mssql.query.displayBitAsNumber": {
                     "type": "boolean",
                     "default": true,
                     "description": "%mssql.query.displayBitAsNumber%",
+                    "scope": "window"
+                },
+                "mssql.query.displayUniqueIdentifierInUppercase": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.query.displayUniqueIdentifierInUppercase%",
                     "scope": "window"
                 },
                 "mssql.query.maxCharsToStore": {

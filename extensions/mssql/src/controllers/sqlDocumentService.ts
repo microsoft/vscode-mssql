@@ -717,9 +717,11 @@ export default class SqlDocumentService implements vscode.Disposable {
         // Mark as owned immediately
         this._ownedDocuments.add(doc);
 
-        // Show the document in editor
+        // Show the document in the editor group of the active text editor so new queries open
+        // where the user is working. Let VS Code resolve the active group when a notebook,
+        // custom editor, or webview editor is active instead of a text editor.
         const editor = await vscode.window.showTextDocument(doc, {
-            viewColumn: vscode.ViewColumn.One,
+            viewColumn: vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.Active,
             preserveFocus: false,
             preview: false,
         });

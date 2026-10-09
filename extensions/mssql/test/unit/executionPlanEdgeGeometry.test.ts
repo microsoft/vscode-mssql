@@ -5,21 +5,13 @@
 
 import { expect } from "chai";
 
-import { getExecutionPlanClassicArrowGeometry } from "../../src/webviews/pages/ExecutionPlan/executionPlanEdgeGeometry";
+import { getExecutionPlanArrowGeometry } from "../../src/webviews/pages/ExecutionPlan/executionPlanEdgeGeometry";
 
 suite("ExecutionPlanEdgeGeometry", () => {
-    test("creates a notched classic marker and starts the edge at its notch", () => {
-        const arrow = getExecutionPlanClassicArrowGeometry(100, 50, 2);
+    test("creates a small solid head and starts the edge just inside its base", () => {
+        const arrow = getExecutionPlanArrowGeometry(100, 50);
 
-        expect(arrow.path).to.equal("M 101 50 L 109 46 L 107 50 L 109 54 Z");
+        expect(arrow.path).to.equal("M 100 50 L 108 45.5 L 108 54.5 Z");
         expect(arrow.edgeSourceX).to.equal(107);
-    });
-
-    test("scales the marker with weighted edges and normalizes invalid widths", () => {
-        const weighted = getExecutionPlanClassicArrowGeometry(0, 0, 6);
-        const fallback = getExecutionPlanClassicArrowGeometry(0, 0, Number.NaN);
-
-        expect(weighted.edgeSourceX).to.be.greaterThan(fallback.edgeSourceX);
-        expect(fallback.edgeSourceX).to.equal(5.75);
     });
 });
