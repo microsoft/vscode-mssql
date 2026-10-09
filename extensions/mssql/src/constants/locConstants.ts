@@ -1073,6 +1073,23 @@ export class ObjectExplorer {
     public static NodeDeletionConfirmationYes = l10n.t("Yes");
     public static NodeDeletionConfirmationNo = l10n.t("No");
     public static LoadingNodeLabel = l10n.t("Loading...");
+    public static SelectDatabasePlaceholder = l10n.t("Select a database");
+    public static SelectSchemaPlaceholder = l10n.t("Select a schema");
+    public static SelectTablePlaceholder = l10n.t("Select a table");
+    public static NoDatabasesFound(serverName: string) {
+        return l10n.t({
+            message: "No databases were found on {0}.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    }
+    public static NoTablesFound(databaseName: string) {
+        return l10n.t({
+            message: "No tables were found in {0}.",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    }
     public static GeneratingScript = l10n.t("Generating script...");
     public static FetchingScriptLabel(scriptType: string) {
         return l10n.t({

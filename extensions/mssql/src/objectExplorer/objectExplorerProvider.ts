@@ -123,6 +123,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this._objectExplorerService.addDisconnectedNode(connectionCredentials);
     }
 
+    public async getLoadedNodeChildren(node: TreeNodeInfo): Promise<TreeNodeInfo[]> {
+        return this._objectExplorerService.getLoadedNodeChildren(node);
+    }
+
     public deleteChildrenCache(node: TreeNodeInfo): void {
         this._objectExplorerService.cleanNodeChildren(node);
     }
