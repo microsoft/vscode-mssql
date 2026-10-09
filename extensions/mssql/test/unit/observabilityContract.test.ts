@@ -24,6 +24,7 @@ import {
 import { featureFor, PERF_ATTR_CLASSIFICATION } from "../../src/perf/perfTelemetry";
 
 const SRC_ROOT = path.join(__dirname, "..", "..", "..", "src");
+const EMITTER_IDENTIFIERS = ["Perf", "perfMark", "diag"] as const;
 
 function walk(dir: string, out: string[] = []): string[] {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -68,15 +69,27 @@ function collectObjectKeys(expression: ts.Expression | undefined, target: Set<st
     }
 }
 
-function emittedMarkers(): Map<string, EmittedMarker> {
+let emittedMarkersCache: ReadonlyMap<string, EmittedMarker> | undefined;
+
+function emittedMarkers(): ReadonlyMap<string, EmittedMarker> {
+    if (emittedMarkersCache !== undefined) {
+        return emittedMarkersCache;
+    }
+
     const emitted = new Map<string, EmittedMarker>();
     for (const file of walk(SRC_ROOT)) {
         const source = fs.readFileSync(file, "utf8");
+
+        // Skip files that do not contain any of the tracked identifiers
+        if (!EMITTER_IDENTIFIERS.some((identifier) => source.includes(identifier))) {
+            continue;
+        }
+
         const sourceFile = ts.createSourceFile(
             file,
             source,
             ts.ScriptTarget.Latest,
-            true,
+            false, // setParentNodes
             file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
         );
         const record = (
@@ -161,11 +174,12 @@ function emittedMarkers(): Map<string, EmittedMarker> {
         };
         visit(sourceFile);
     }
-    return emitted;
+    emittedMarkersCache = emitted;
+    return emittedMarkersCache;
 }
 
 suite("Observability Contract conformance", () => {
-    test.skip("every literal emitted marker uses its registry feature bucket", function () {
+    test("every literal emitted marker uses its registry feature bucket", function () {
         if (!fs.existsSync(SRC_ROOT)) {
             this.skip();
         }
