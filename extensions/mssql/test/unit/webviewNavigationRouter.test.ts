@@ -7,8 +7,11 @@ import { expect } from "chai";
 import { RouteDefinition, createRouter } from "../../src/webviews/common/navigation/router";
 import {
     comparedPlanIds,
+    pageQuery,
     performanceDashboardRouter,
     performanceDashboardTabs,
+    settingsSectionOf,
+    withSettings,
 } from "../../src/webviews/pages/PerformanceDashboard/performanceDashboardRoutes";
 
 const title = () => "";
@@ -55,6 +58,9 @@ suite("Webview navigation router", () => {
             "items?plans=4,9",
         );
         expect(router.build("itemPart", { itemId: 7, partId: 8 })).to.equal("items/7/parts/8");
+        expect(router.build("home", {}, { from: "2026-09-28T03:00:00Z" })).to.equal(
+            "home?from=2026-09-28T03:00:00Z",
+        );
     });
 
     test("does not build an unknown route or a route without its parameters", () => {
@@ -111,15 +117,32 @@ suite("Performance dashboard routes", () => {
     const crumbs = (location: string) =>
         router.ancestry(router.match(location)!).map((match) => match.route.title(match));
 
-    test("has the top routes as tabs and opens at the overview", () => {
+    test("has tabs for the overview and queries, and opens at the overview", () => {
         expect(performanceDashboardTabs.map((tab) => tab.id)).to.deep.equal([
             "overview",
             "queries",
-            "activity",
-            "changes",
-            "setup",
         ]);
         expect(router.defaultLocation).to.equal("overview");
+    });
+
+    test("has no pages for removed tabs", () => {
+        for (const location of ["setup", "activity", "changes"]) {
+            expect(router.match(location), location).to.be.undefined;
+        }
+    });
+
+    test("opens the settings dialog over a page with a query value", () => {
+        const overview = router.match("overview?range=7d")!;
+        const withDialog = withSettings(overview, "queryStore");
+
+        expect(withDialog).to.equal("overview?range=7d&settings=queryStore");
+        expect(settingsSectionOf(router.match(withDialog)!)).to.equal("queryStore");
+        expect(pageQuery(router.match(withDialog)!)).to.deep.equal({ range: "7d" });
+        expect(withSettings(router.match(withDialog)!, undefined)).to.equal("overview?range=7d");
+        expect(settingsSectionOf(router.match("overview?settings=unknown")!)).to.be.undefined;
+        expect(withSettings(router.match("queries/913")!, "queryStore")).to.equal(
+            "queries/913?settings=queryStore",
+        );
     });
 
     test("builds the breadcrumb of a plan compare location", () => {
@@ -137,9 +160,5 @@ suite("Performance dashboard routes", () => {
             "Query 913",
             "Compare plans",
         ]);
-    });
-
-    test("builds the breadcrumb of a session location", () => {
-        expect(crumbs("activity/77")).to.deep.equal(["Live activity", "Session 77"]);
     });
 });

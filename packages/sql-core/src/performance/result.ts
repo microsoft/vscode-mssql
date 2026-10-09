@@ -49,6 +49,7 @@ export type MissingDataCode =
     /** The plan change flags of the regressed queries, because the plan read failed. */
     | "regressedPlanChanges"
     | "statementText"
+    /** The requests and sessions of other users (Fabric Warehouse). */
     | "otherUsersRequests"
     | "cpuReadsAndMemory";
 

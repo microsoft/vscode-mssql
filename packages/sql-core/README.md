@@ -3,10 +3,10 @@
 VS Code-independent SQL building blocks and data providers for agents and tools. The package does
 not import `vscode`.
 
-| Import                 | Contents                                                                                                                                       |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sql-core`             | Shared building blocks: the `SqlReader` contract, T-SQL literal functions, platform detection, SQL error categories, and the session preamble. |
-| `sql-core/performance` | Performance providers: Query Store reports and plan forcing, Query Insights top queries, active requests, and blocking chains.                 |
+| Import                 | Contents                                                                                                                                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sql-core`             | Shared building blocks: the `SqlReader` contract, T-SQL literal functions, platform detection, SQL error categories, and the session preamble.                                                   |
+| `sql-core/performance` | Performance providers: Query Store reports, series, query pages, and plan forcing, Query Insights top queries, active requests, blocking chains, sessions, automatic tuning, and resource stats. |
 
 - Callers supply a `SqlReader` that runs T-SQL and returns result sets. The MSSQL extension provides
   readers for the SQL data plane and the headless query executor.
@@ -66,8 +66,9 @@ Database, and SQL database in Fabric:
   1222, which maps to `temporarilyUnavailable`.
 - `change` (the force and unforce batch): `READ COMMITTED` and `LOCK_TIMEOUT 10000`.
 
-Other platforms get only `SET NOCOUNT ON`. Only live DMV reads (active requests) add
-`OPTION (MAXDOP 1)`. Query Store reports do not.
+Other platforms get only `SET NOCOUNT ON`. Only live DMV reads (active requests, sessions, tuning
+recommendations, and `sys.dm_db_resource_stats`) add `OPTION (MAXDOP 1)`. Query Store reports do
+not.
 
 ## Query Store reports
 
@@ -222,10 +223,55 @@ queries of Fabric Data Warehouse and the SQL analytics endpoint from
 `queryinsights.exec_requests_history`. The metrics are `cpu`, `duration`, `executions`, and
 `dataScanned`. Other platforms give `unsupported`.
 
+## Query Store series and query pages
+
+These functions use the Query Store run rules above (probe, `notConfigured`, `queryStoreReadOnly`,
+replica groups). A runtime stats interval counts in a window or bucket when its `start_time` is in
+`[start, end)`.
+
+| Function                    | Data                                                                                                                   |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `runQueryStoreMetricTotals` | One metric of all queries, totaled over 1 to 16 windows.                                                               |
+| `runQueryStoreMetricSeries` | One runtime stats metric of all queries for each time bucket: total, executions, and maximum.                          |
+| `runQueryStoreWaitSeries`   | The wait time of one wait category for each bucket, and its total in up to 16 windows. Not on SQL Server 2016/Synapse. |
+| `runQueryDetails`           | The text, module, and last execution of one query, its totals in the window, and its forced plan.                      |
+| `runQueryExecutionHistory`  | One row for each runtime stats interval of one query: executions, duration, CPU, and logical reads.                    |
+| `runQueryPlans`             | Every plan of one query, with its forcing state and its executions in the window. Not on Synapse.                      |
+
+The series buckets start at whole multiples of the bucket size after 2000-01-01T00:00:00Z. The
+bucket size is the wanted size (1 to 1440 minutes), or the Query Store interval length when that
+is longer. The series have only the buckets with data. On Synapse dedicated pools, the query
+details and history have duration and executions only, and add `queryStoreResourceMetrics`.
+
 ## Live activity
 
 `getActiveRequests(reader, info, options?, now?)` reads the running requests and builds the
 blocking chains on SQL Server, Azure SQL, Fabric, and Synapse.
+
+`readSessionSummary(reader, info, options?, now?)` counts the open user sessions for each login,
+program, and host, from `sys.dm_exec_sessions` (`sys.dm_pdw_exec_sessions` on Synapse dedicated
+pools). On SQL Server, Managed Instance, Azure SQL Database, and SQL database in Fabric, it counts
+the sessions of the current database only, and gives `selfOnly` without the view state permission.
+
+## Automatic tuning and resources
+
+- `readAutomaticTuning(reader, info, options?, now?)` reads `sys.database_automatic_tuning_options`
+  and `sys.dm_db_tuning_recommendations`, with the state, script, index, and plan details from the
+  JSON. SQL Server 2017 and later, Managed Instance, Azure SQL Database, and SQL database in Fabric.
+- `readDatabaseResourceCpu(reader, info, options?, now?)` reads the CPU percent of the last hour
+  from `sys.dm_db_resource_stats`. Azure SQL Database only; run it on the user database.
+- `readServerResourceCpu(reader, info, { databaseName, start, end }, options?, now?)` reads the
+  5-minute CPU percent of about 14 days from `sys.resource_stats`. Azure SQL Database only; the
+  reader must be connected to `master`.
+
+## Helpers
+
+- `summarizePlanShape(showplanXml, maxOperators?)` returns the operators with the highest own cost
+  of the first statement, whether the plan is parallel, and a summary such as
+  `Index Seek IX_Orders_CustomerID → Key Lookup PK_Orders`. It does not run SQL, and it does not
+  throw for truncated XML.
+- `isPerformanceToolQuery(queryText)` is true for the library's own reads, so that query lists
+  can leave them out.
 
 ## Commands
 

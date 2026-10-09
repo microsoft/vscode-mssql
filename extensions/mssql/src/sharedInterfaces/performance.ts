@@ -12,7 +12,7 @@
 import type { PerfResult } from "sql-core/performance";
 
 export type * from "sql-core/performance";
-export type { PlatformInfo, SessionPurpose, SqlPlatform } from "sql-core";
+export type { DatabaseFacts, PlatformInfo, SessionPurpose, SqlPlatform } from "sql-core";
 
 /**
  * Names the connection to inspect. Pass the owner URI of an active connection (Copilot tools

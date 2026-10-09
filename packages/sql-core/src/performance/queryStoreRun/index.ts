@@ -16,3 +16,8 @@ export {
 export * from "./reports";
 export * from "./regressedQueries";
 export * from "./planForcing";
+export * from "./metricTotals";
+export * from "./queryStoreSettings";
+export * from "./metricSeries";
+export * from "./waitSeries";
+export * from "./queryDetails";

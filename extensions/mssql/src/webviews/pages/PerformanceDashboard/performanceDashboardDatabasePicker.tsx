@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
     ListDatabasesRequest,
     PerformanceDashboardReducers,
@@ -16,6 +16,7 @@ import {
     SearchableDropdown,
     SearchableDropdownOptions,
 } from "../../common/searchableDropdown.component";
+import { useExtensionRequest } from "../../common/useExtensionRequest";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 
@@ -32,28 +33,9 @@ export const PerformanceDashboardDatabasePicker = () => {
     const { router, match, navigate } = useNavigation();
     const serverName = usePerformanceDashboardSelector((state) => state.serverName);
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
-    const [databases, setDatabases] = useState<readonly string[]>([]);
-    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
-
-    useEffect(() => {
-        let disposed = false;
-        extensionRpc.sendRequest(ListDatabasesRequest.type).then(
-            (result) => {
-                if (!disposed) {
-                    setDatabases(result.databases);
-                    setErrorMessage(result.errorMessage);
-                }
-            },
-            (error: unknown) => {
-                if (!disposed) {
-                    setErrorMessage(error instanceof Error ? error.message : String(error));
-                }
-            },
-        );
-        return () => {
-            disposed = true;
-        };
-    }, [extensionRpc, databaseName]);
+    const list = useExtensionRequest(ListDatabasesRequest.type, undefined, databaseName);
+    const databases = list.result?.databases ?? [];
+    const errorMessage = list.result?.errorMessage ?? list.errorMessage;
 
     const options = useMemo<SearchableDropdownOptions[]>(() => {
         const names =
@@ -71,7 +53,9 @@ export const PerformanceDashboardDatabasePicker = () => {
             database,
         });
         if (switched) {
-            navigate(router.build(router.topRoute(match).id));
+            // Keep the options of a top page, such as the overview's time range.
+            const top = router.topRoute(match);
+            navigate(router.build(top.id, {}, match.route.id === top.id ? match.query : {}));
         }
     };
 

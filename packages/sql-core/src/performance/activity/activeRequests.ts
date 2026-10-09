@@ -92,7 +92,7 @@ export async function getActiveRequests(
 export function buildSqlEngineActivityQuery(info: PlatformInfo): string {
     return `
 ${sessionPreamble(info)}
-SELECT ${permissionExpression(info)} AS has_permission;
+SELECT ${viewStatePermissionExpression(info)} AS has_permission;
 SELECT
     CONVERT(varchar(11), r.session_id) AS session_id,
     CONVERT(varchar(11), r.request_id) AS request_id,
@@ -157,7 +157,12 @@ function scopeFor(info: PlatformInfo): PerfScope {
     }
 }
 
-function permissionExpression(info: PlatformInfo): string {
+/**
+ * Returns the `HAS_PERMS_BY_NAME` expression that is 1 when the principal sees the sessions and
+ * requests of other users: VIEW DATABASE STATE on Azure SQL Database and SQL database in Fabric,
+ * VIEW SERVER PERFORMANCE STATE on SQL Server 2022 and later, and VIEW SERVER STATE elsewhere.
+ */
+export function viewStatePermissionExpression(info: PlatformInfo): string {
     switch (info.platform) {
         case "azureSqlDatabase":
         case "fabricSqlDatabase":

@@ -6,18 +6,44 @@
 import { locConstants as loc } from "../../common/locConstants";
 import { RouteDefinition, RouteMatch, createRouter } from "../../common/navigation/router";
 
-export type PerformanceDashboardRouteId =
-    | "overview"
-    | "queries"
-    | "query"
-    | "comparePlans"
-    | "activity"
-    | "session"
-    | "changes"
-    | "setup";
+export type PerformanceDashboardRouteId = "overview" | "queries" | "query" | "comparePlans";
 
 export interface PerformanceDashboardRoute extends RouteDefinition {
     readonly id: PerformanceDashboardRouteId;
+    /** Shown as a tab. */
+    readonly tab?: boolean;
+}
+
+/** A section of the settings dialog. */
+export type SettingsSection = "queryStore";
+
+const settingsSections: readonly SettingsSection[] = ["queryStore"];
+
+/**
+ * The query value that opens the settings dialog over any page, at a section. For example
+ * `overview?settings=queryStore`.
+ */
+const settingsParameter = "settings";
+
+/** The settings section that the location opens, if any. */
+export function settingsSectionOf(match: RouteMatch): SettingsSection | undefined {
+    const section = match.query[settingsParameter];
+    return settingsSections.find((candidate) => candidate === section);
+}
+
+/** The query values of a location without the settings dialog. */
+export function pageQuery(match: RouteMatch): Record<string, string> {
+    return Object.fromEntries(
+        Object.entries(match.query).filter(([key]) => key !== settingsParameter),
+    );
+}
+
+/** The location of the same page with the settings dialog open at a section, or closed. */
+export function withSettings(match: RouteMatch, section: SettingsSection | undefined): string {
+    return performanceDashboardRouter.build(match.route.id, match.params, {
+        ...pageQuery(match),
+        [settingsParameter]: section,
+    });
 }
 
 /** The plan IDs of a plan compare location, from `plans=4,9`. */
@@ -32,11 +58,13 @@ const routes: readonly PerformanceDashboardRoute[] = [
     {
         id: "overview",
         path: "overview",
+        tab: true,
         title: () => loc.performanceDashboard.overview,
     },
     {
         id: "queries",
         path: "queries",
+        tab: true,
         title: () => loc.performanceDashboard.queries,
     },
     {
@@ -56,32 +84,11 @@ const routes: readonly PerformanceDashboardRoute[] = [
                 : loc.performanceDashboard.comparePlans;
         },
     },
-    {
-        id: "activity",
-        path: "activity",
-        title: () => loc.performanceDashboard.liveActivity,
-    },
-    {
-        id: "session",
-        path: "activity/:sessionId",
-        parent: "activity",
-        title: (match) => loc.performanceDashboard.session(match.params.sessionId),
-    },
-    {
-        id: "changes",
-        path: "changes",
-        title: () => loc.performanceDashboard.changes,
-    },
-    {
-        id: "setup",
-        path: "setup",
-        title: () => loc.performanceDashboard.setup,
-    },
 ];
 
 export const performanceDashboardRouter = createRouter(routes, "overview");
 
-/** The tabs of the dashboard: the routes without a parent, in table order. */
+/** The tabs of the dashboard, in table order. */
 export const performanceDashboardTabs: readonly PerformanceDashboardRoute[] = routes.filter(
-    (route) => route.parent === undefined,
+    (route) => route.tab,
 );

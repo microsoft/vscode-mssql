@@ -242,7 +242,13 @@ suite("Query Store run functions: state and probes", () => {
 
     test("probeQueryStore returns the metrics, the replicas, and the read-only reason", async () => {
         const reader = scriptedReader([
-            probe({ state: 1, readOnlyReason: 0x10000, metrics: allMetrics, replicaColumn: true }),
+            probe({
+                state: 1,
+                readOnlyReason: 0x10000,
+                metrics: allMetrics,
+                replicaColumn: true,
+                oldestInterval: "2026-09-27 03:00:00.0000000 +00:00",
+            }),
             [
                 resultSet(["ReplicaCount"], [[2]]),
                 resultSet(["replica_name", "replica_group_id"], [["Secondary", 2]]),
@@ -260,8 +266,17 @@ suite("Query Store run functions: state and probes", () => {
                 { replicaGroupId: "1", replicaName: "Primary" },
                 { replicaGroupId: "2", replicaName: "Secondary" },
             ],
+            oldestIntervalStartUtc: "2026-09-27T03:00:00.000Z",
         });
+        assert.match(reader.calls[0], /SELECT MIN\(start_time\) AS oldest_interval_start/);
         assertReadBatches(reader, info);
+    });
+
+    test("probeQueryStore leaves out the oldest interval when Query Store has none", async () => {
+        const reader = scriptedReader([probe({ metrics: allMetrics, oldestInterval: null })]);
+        const result = await perf.probeQueryStore(reader, info, options);
+        assert.equal(result.status, "ready");
+        assert.equal("oldestIntervalStartUtc" in result.data, false);
     });
 
     test("probeQueryStore reports OFF as notConfigured with data", async () => {

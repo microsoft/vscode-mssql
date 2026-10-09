@@ -9,3 +9,4 @@ export * from "./literals";
 export * from "./platform";
 export * from "./session";
 export * from "./databases";
+export * from "./databaseFacts";

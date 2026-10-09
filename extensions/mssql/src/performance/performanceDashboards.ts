@@ -19,6 +19,15 @@ export type PerformanceDashboardFactory = (
     initialLocation: string | undefined,
 ) => PerformanceDashboardWebviewController;
 
+/** The extension's execution plan editors, which the dashboards open plans in. */
+export interface PerformancePlanViewer {
+    open(planXml: string, name: string): void;
+    compare(
+        first: { readonly name: string; readonly planXml: string },
+        second: { readonly name: string; readonly planXml: string },
+    ): Promise<void>;
+}
+
 /** Keeps one open dashboard for each connection and database. */
 export class PerformanceDashboards implements PerformanceDashboardHost {
     private readonly _open = new Map<string, PerformanceDashboardWebviewController>();
@@ -26,6 +35,7 @@ export class PerformanceDashboards implements PerformanceDashboardHost {
     constructor(
         private readonly _context: vscode.ExtensionContext,
         readonly performanceService: PerformanceService,
+        private readonly _planViewer: PerformancePlanViewer,
         private readonly _create: PerformanceDashboardFactory = (context, host, target, location) =>
             new PerformanceDashboardWebviewController(context, host, target, location),
     ) {}
@@ -58,6 +68,17 @@ export class PerformanceDashboards implements PerformanceDashboardHost {
         });
         dashboard.revealToForeground();
         return dashboard;
+    }
+
+    public openPlanXml(planXml: string, name: string): void {
+        this._planViewer.open(planXml, name);
+    }
+
+    public compareExecutionPlans(
+        first: { readonly name: string; readonly planXml: string },
+        second: { readonly name: string; readonly planXml: string },
+    ): Promise<void> {
+        return this._planViewer.compare(first, second);
     }
 
     public switchDatabase(

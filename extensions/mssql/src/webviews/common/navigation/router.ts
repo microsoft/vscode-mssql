@@ -249,9 +249,12 @@ function parseQuery(search: string): RouteParams {
     return query;
 }
 
-/** Encodes a query key or value. Keeps commas readable, for lists such as `plans=4,9`. */
+/**
+ * Encodes a query key or value. Keeps commas and colons readable, for lists such as `plans=4,9`
+ * and times such as `from=2026-09-28T03:00:00Z`.
+ */
 function encodeQueryPart(value: string): string {
-    return encodeURIComponent(value).replace(/%2C/gi, ",");
+    return encodeURIComponent(value).replace(/%2C/gi, ",").replace(/%3A/gi, ":");
 }
 
 function safeDecode(value: string): string | undefined {

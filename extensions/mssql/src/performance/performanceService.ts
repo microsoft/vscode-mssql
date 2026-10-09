@@ -18,12 +18,14 @@
  */
 
 import {
+    DatabaseFacts,
     PlatformInfo,
     SessionPurpose,
     SqlReadOptions,
     SqlReader,
     detectPlatform,
     listDatabases,
+    readDatabaseFacts,
 } from "sql-core";
 import {
     ActiveActivity,
@@ -78,6 +80,36 @@ import {
     runWaitStatsByCategory,
     runWaitStatsQueriesForCategory,
     verifyForcedPlan as readForcedPlanVerification,
+    MetricTotals,
+    MetricTotalsConfig,
+    runQueryStoreMetricTotals,
+    AutomaticTuningInfo,
+    MetricSeries,
+    MetricSeriesConfig,
+    QueryDetails,
+    QueryHistoryInterval,
+    QueryPlanInfo,
+    QueryWindowRequest,
+    ResourceCpuSample,
+    SessionSummary,
+    WaitSeries,
+    WaitSeriesConfig,
+    readAutomaticTuning,
+    readDatabaseResourceCpu,
+    readServerResourceCpu,
+    readSessionSummary,
+    runQueryDetails,
+    runQueryExecutionHistory,
+    runQueryPlans,
+    runQueryStoreMetricSeries,
+    runQueryStoreWaitSeries,
+    AppliedQueryStoreSettingsChange,
+    PreparedQueryStoreSettingsChange,
+    QueryStoreSettingsChange,
+    QueryStoreSettingsInfo,
+    applyQueryStoreSettingsChange as applyQueryStoreSettings,
+    prepareQueryStoreSettingsChange as prepareQueryStoreSettings,
+    readQueryStoreSettings,
 } from "sql-core/performance";
 import ConnectionManager from "../controllers/connectionManager";
 import { PrivatePreviewFeature, previewService } from "../previews/previewService";
@@ -284,6 +316,17 @@ export class PerformanceTarget {
         }));
     }
 
+    /** The service tier and size of the database, for example "GeneralPurpose" and 8 vCores. */
+    databaseFacts(options?: SqlReadOptions): Promise<PerformanceResult<DatabaseFacts>> {
+        return this.run("read", async (reader, info) => ({
+            status: "ready",
+            platform: info.platform,
+            observedAtUtc: new Date().toISOString(),
+            missing: [],
+            data: await readDatabaseFacts(reader, info, options),
+        }));
+    }
+
     // -----------------------------------------------------------------------------------------
     // Query Store
     //
@@ -475,6 +518,112 @@ export class PerformanceTarget {
         options?: PerfRunOptions,
     ): Promise<PerformanceResult<ForcedPlanVerification>> {
         return this.queryStore(readForcedPlanVerification, request, options);
+    }
+
+    /** The Query Store settings, the ALTER permission, and whether a change is allowed. */
+    queryStoreSettings(
+        options?: PerfRunOptions,
+    ): Promise<PerformanceResult<QueryStoreSettingsInfo>> {
+        return this.run("read", (reader, info) => readQueryStoreSettings(reader, info, options));
+    }
+
+    /** Prepares a change of the Query Store settings for review. Changes nothing. */
+    prepareQueryStoreSettingsChange(
+        change: QueryStoreSettingsChange,
+        options?: PerfRunOptions,
+    ): Promise<PerformanceResult<PreparedQueryStoreSettingsChange>> {
+        return this.run("read", (reader, info) =>
+            prepareQueryStoreSettings(reader, info, change, options),
+        );
+    }
+
+    /**
+     * Runs a prepared change of the Query Store settings on the "change" session, after it reads
+     * the settings again. Call it only after the user approved the change.
+     */
+    applyQueryStoreSettingsChange(
+        prepared: PreparedQueryStoreSettingsChange,
+        options?: PerfRunOptions,
+    ): Promise<PerformanceResult<AppliedQueryStoreSettingsChange>> {
+        return this.run("change", (reader, info) =>
+            applyQueryStoreSettings(reader, info, prepared, options),
+        );
+    }
+
+    /** The total of one metric over each window, for example CPU time per day. */
+    metricTotals(
+        config: MetricTotalsConfig,
+        options?: PerfRunOptions,
+    ): Promise<PerformanceResult<MetricTotals>> {
+        return this.queryStore(runQueryStoreMetricTotals, config, options);
+    }
+
+    /** One metric for each time bucket, for example executions per 15 minutes. */
+    metricSeries(
+        config: MetricSeriesConfig,
+        options?: PerfRunOptions,
+    ): Promise<PerformanceResult<MetricSeries>> {
+        return this.queryStore(runQueryStoreMetricSeries, config, options);
+    }
+
+    /** The wait time of one wait category for each time bucket, for example Lock waits. */
+    waitSeries(
+        config: WaitSeriesConfig,
+        options?: PerfRunOptions,
+    ): Promise<PerformanceResult<WaitSeries>> {
+        return this.queryStore(runQueryStoreWaitSeries, config, options);
+    }
+
+    /** The details of one query in a window. */
+    queryDetails(
+        request: QueryWindowRequest,
+        options?: PerfRunOptions,
+    ): Promise<PerformanceResult<QueryDetails>> {
+        return this.queryStore(runQueryDetails, request, options);
+    }
+
+    /** The runtime stats of one query for each Query Store interval in a window. */
+    queryExecutionHistory(
+        request: QueryWindowRequest,
+        options?: PerfRunOptions,
+    ): Promise<PerformanceResult<{ readonly intervals: readonly QueryHistoryInterval[] }>> {
+        return this.queryStore(runQueryExecutionHistory, request, options);
+    }
+
+    /** The plans of one query, with their runs in a window. */
+    queryPlans(
+        request: QueryWindowRequest,
+        options?: PerfRunOptions,
+    ): Promise<PerformanceResult<{ readonly plans: readonly QueryPlanInfo[] }>> {
+        return this.queryStore(runQueryPlans, request, options);
+    }
+
+    /** The user sessions of the database, grouped by login, application, and host. */
+    sessionSummary(options?: SqlReadOptions): Promise<PerformanceResult<SessionSummary>> {
+        return this.run("read", (reader, info) => readSessionSummary(reader, info, options));
+    }
+
+    /** The automatic tuning options and recommendations. */
+    automaticTuning(options?: SqlReadOptions): Promise<PerformanceResult<AutomaticTuningInfo>> {
+        return this.run("read", (reader, info) => readAutomaticTuning(reader, info, options));
+    }
+
+    /** CPU percent of the last hour from sys.dm_db_resource_stats. Azure SQL Database only. */
+    databaseResourceCpu(options?: SqlReadOptions): Promise<PerformanceResult<ResourceCpuSample[]>> {
+        return this.run("read", (reader, info) => readDatabaseResourceCpu(reader, info, options));
+    }
+
+    /**
+     * CPU percent of a database from master.sys.resource_stats (about 14 days). Call it on a
+     * target for the master database. Azure SQL Database only.
+     */
+    serverResourceCpu(
+        request: { readonly databaseName: string; readonly start: Date; readonly end: Date },
+        options?: SqlReadOptions,
+    ): Promise<PerformanceResult<ResourceCpuSample[]>> {
+        return this.run("read", (reader, info) =>
+            readServerResourceCpu(reader, info, request, options),
+        );
     }
 
     /**

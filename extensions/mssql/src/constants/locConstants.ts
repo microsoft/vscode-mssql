@@ -3491,6 +3491,13 @@ export class PerformanceDashboard {
     public static noSavedConnection = l10n.t(
         "Open the performance dashboard from a database in Object Explorer.",
     );
+
+    public static planTitle = (queryId: string, planId: string) =>
+        l10n.t({
+            message: "Query {0} - Plan {1}",
+            args: [queryId, planId],
+            comment: ["{0} is the Query Store query ID", "{1} is the Query Store plan ID"],
+        });
 }
 
 export class SearchDatabase {

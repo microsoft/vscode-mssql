@@ -8,12 +8,15 @@ import "../../index.css";
 import { NavigationProvider } from "../../common/navigation/navigationProvider";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { PerformanceDashboardPage } from "./performanceDashboardPage";
+import { PerformanceDashboardRefreshProvider } from "./performanceDashboardRefresh";
 import { performanceDashboardRouter } from "./performanceDashboardRoutes";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider>
         <NavigationProvider router={performanceDashboardRouter}>
-            <PerformanceDashboardPage />
+            <PerformanceDashboardRefreshProvider>
+                <PerformanceDashboardPage />
+            </PerformanceDashboardRefreshProvider>
         </NavigationProvider>
     </VscodeWebviewProvider>,
 );

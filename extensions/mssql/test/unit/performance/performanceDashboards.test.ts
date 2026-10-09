@@ -72,6 +72,7 @@ suite("PerformanceDashboards", () => {
         dashboards = new PerformanceDashboards(
             stubExtensionContext(sandbox),
             performanceService,
+            { open: sandbox.stub(), compare: sandbox.stub().resolves() },
             factory,
         );
     });

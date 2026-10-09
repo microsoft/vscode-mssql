@@ -755,6 +755,11 @@ export interface QueryStoreCapabilities {
     readonly isQdsRoAvailable: boolean;
     /** The replica groups to report on. Empty without Query Store for secondary replicas. */
     readonly replicas: readonly ReplicaGroupItem[];
+    /**
+     * The start of the oldest runtime stats interval, ISO 8601 UTC: the oldest data that the
+     * reports can show. Absent when Query Store has no interval.
+     */
+    readonly oldestIntervalStartUtc?: string;
 }
 
 /**
@@ -783,7 +788,7 @@ export async function probeQueryStore(
             reader,
             info,
             family,
-            { metrics: true },
+            { metrics: true, oldestInterval: true },
             {
                 signal: options.signal,
                 timeoutMs: options.timeoutMs,
@@ -809,6 +814,9 @@ export async function probeQueryStore(
             availableMetrics: probe.availableMetrics,
             isQdsRoAvailable: probe.isQdsRoAvailable,
             replicas,
+            ...(probe.oldestIntervalStart
+                ? { oldestIntervalStartUtc: probe.oldestIntervalStart.toISOString() }
+                : {}),
         };
         return {
             ...base,

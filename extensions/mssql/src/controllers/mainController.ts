@@ -130,6 +130,7 @@ import { ProfilerService } from "../services/profilerService";
 import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
+import { createMssqlInternalApi } from "./internalApiFactory";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
@@ -1155,6 +1156,18 @@ export default class MainController implements vscode.Disposable {
         this.performanceDashboards = new PerformanceDashboards(
             this._context,
             this.performanceService,
+            {
+                open: (planXml, name) =>
+                    openExecutionPlanWebview(
+                        this._context,
+                        this.executionPlanService,
+                        this.sqlDocumentService,
+                        planXml,
+                        name,
+                    ),
+                compare: (first, second) =>
+                    createMssqlInternalApi(this).compareExecutionPlans(first, second),
+            },
         );
 
         this._sqlDocumentService = new SqlDocumentService(this);
