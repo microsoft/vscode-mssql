@@ -202,6 +202,12 @@
         "vscode-sql-common-features": {
             "uriOwnershipApi": true
         },
+        "authentication": [
+            {
+                "id": "mssql-connection-sharing",
+                "label": "%mssql.connectionSharing.authenticationProviderLabel%"
+            }
+        ],
         "mcpServerDefinitionProviders": [
             {
                 "id": "mssql-sqltools-mcp",

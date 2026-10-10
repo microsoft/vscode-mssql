@@ -19,8 +19,18 @@ declare module "vscode-mssql" {
 
     /** The API provided to other extensions by the mssql extension. */
     export interface IExtension {
-        /** APIs for working with user-approved mssql connections. */
+        /**
+         * APIs for working with user-approved mssql connections.
+         * @deprecated Use {@link IExtension.authenticatedConnectionSharing}, which lets VS Code
+         * verify the calling extension and manage the user's consent.
+         */
         readonly connectionSharing: IConnectionSharingService;
+
+        /**
+         * APIs for working with mssql connections after the user approves access through VS Code's
+         * authentication consent.
+         */
+        readonly authenticatedConnectionSharing: IAuthenticatedConnectionSharingService;
 
         /** APIs for coordinating URI ownership with other database extensions. */
         readonly uriOwnershipApi: UriOwnershipApi;
@@ -2735,7 +2745,8 @@ declare module "vscode-mssql" {
     /**
      * Interface for connection sharing service
      * This service allows external extensions to use connections established by the mssql extension.
-     * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
+     * @deprecated Use {@link IAuthenticatedConnectionSharingService}. This service trusts the
+     * extension ID that callers pass in, so it can't verify which extension is calling.
      */
     export interface IConnectionSharingService {
         /**
@@ -2833,5 +2844,121 @@ declare module "vscode-mssql" {
          * @returns The connection string if the connection is found, or undefined if the connection is not found.
          */
         getConnectionString(extensionId: string, connectionId: string): Promise<string | undefined>;
+    }
+
+    /**
+     * Lets other extensions use connections established by the mssql extension.
+     *
+     * Before calling it, request a session from the {@link authenticationProviderId} authentication
+     * provider. VS Code asks the user to approve your extension the first time, and the user can
+     * revoke access later from the Accounts menu. Pass the session's access token to every method.
+     *
+     * Methods that take a connection URI accept only URIs that {@link connect} returned for the same
+     * session. When the session ends, the connections it opened are closed and its access token
+     * stops working; request a new session to continue.
+     *
+     * @example
+     * const api = mssqlExtension.exports.authenticatedConnectionSharing;
+     * const session = await vscode.authentication.getSession(api.authenticationProviderId, [], {
+     *     createIfNone: true,
+     * });
+     * const connectionUri = await api.connect(session.accessToken, connectionId);
+     * const result = await api.executeSimpleQuery(session.accessToken, connectionUri, "SELECT 1");
+     * await api.disconnect(session.accessToken, connectionUri);
+     */
+    export interface IAuthenticatedConnectionSharingService {
+        /** The ID of the authentication provider to request a session from. */
+        readonly authenticationProviderId: string;
+        /**
+         * Get the connection ID for the active editor.
+         * @param accessToken The access token of a session from {@link authenticationProviderId}.
+         * @returns The connection ID if the active editor is connected, or undefined if it isn't.
+         * @throws Error if there is no active editor or the access token isn't valid.
+         */
+        getActiveEditorConnectionId(accessToken: string): Promise<string | undefined>;
+        /**
+         * Get the active database name for the connection in the active editor.
+         * @param accessToken The access token of a session from {@link authenticationProviderId}.
+         * @returns The database name if the active editor is connected, or undefined if it isn't.
+         * @throws Error if there is no active editor or the access token isn't valid.
+         */
+        getActiveDatabase(accessToken: string): Promise<string | undefined>;
+        /**
+         * Get the database name for a specific connection ID.
+         * @param accessToken The access token of a session from {@link authenticationProviderId}.
+         * @param connectionId The ID of the connection.
+         * @returns The database name, or undefined if the connection is not found.
+         */
+        getDatabaseForConnectionId(
+            accessToken: string,
+            connectionId: string,
+        ): Promise<string | undefined>;
+        /**
+         * Connect to an existing connection using the connection ID.
+         * @param accessToken The access token of a session from {@link authenticationProviderId}.
+         * @param connectionId The ID of the connection.
+         * @param database Optional database name to connect to.
+         * @returns The URI of the new connection.
+         * @throws Error if the connection is not found or cannot be established.
+         */
+        connect(accessToken: string, connectionId: string, database?: string): Promise<string>;
+        /**
+         * Disconnect a connection that {@link connect} opened.
+         * @param accessToken The access token of the session that opened the connection.
+         * @param connectionUri The URI of the connection.
+         */
+        disconnect(accessToken: string, connectionUri: string): Promise<void>;
+        /**
+         * Check whether a connection that {@link connect} opened is still established.
+         * @param accessToken The access token of the session that opened the connection.
+         * @param connectionUri The URI of the connection.
+         * @returns True if the connection is established, false otherwise.
+         */
+        isConnected(accessToken: string, connectionUri: string): Promise<boolean>;
+        /**
+         * Execute a simple query on a connection that {@link connect} opened.
+         * @param accessToken The access token of the session that opened the connection.
+         * @param connectionUri The URI of the connection.
+         * @param queryString The SQL query to execute.
+         */
+        executeSimpleQuery(
+            accessToken: string,
+            connectionUri: string,
+            queryString: string,
+        ): Promise<SimpleExecuteResult>;
+        /**
+         * Get server information for a connection that {@link connect} opened.
+         * @param accessToken The access token of the session that opened the connection.
+         * @param connectionUri The URI of the connection.
+         */
+        getServerInfo(accessToken: string, connectionUri: string): Promise<IServerInfo>;
+        /**
+         * List the databases on the server of a connection that {@link connect} opened.
+         * @param accessToken The access token of the session that opened the connection.
+         * @param connectionUri The URI of the connection.
+         */
+        listDatabases(accessToken: string, connectionUri: string): Promise<string[]>;
+        /**
+         * Script an object from the database of a connection that {@link connect} opened.
+         * @param accessToken The access token of the session that opened the connection.
+         * @param connectionUri The URI of the connection.
+         * @param operation The operation to perform (e.g., ScriptCreate, ScriptDrop, etc.).
+         * @param scriptingObject The object to script, containing its type, schema, name, and parent information.
+         * @returns The scripted SQL string, or undefined if the operation failed.
+         */
+        scriptObject(
+            accessToken: string,
+            connectionUri: string,
+            operation: ScriptOperation,
+            scriptingObject: IScriptingObject,
+        ): Promise<string | undefined>;
+        /**
+         * Get the connection string, including the password, for a specific connection ID.
+         * @param accessToken The access token of a session from {@link authenticationProviderId}.
+         * @param connectionId The ID of the connection.
+         * @returns The connection string.
+         * @throws Error if the connection is not found.
+         */
+        getConnectionString(accessToken: string, connectionId: string): Promise<string | undefined>;
     }
 }

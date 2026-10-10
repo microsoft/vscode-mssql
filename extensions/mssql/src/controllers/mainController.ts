@@ -3404,6 +3404,10 @@ export default class MainController implements vscode.Disposable {
         return this._connectionMgr;
     }
 
+    public get scriptingService(): ScriptingService {
+        return this._scriptingService;
+    }
+
     public set connectionManager(connectionManager: ConnectionManager) {
         this._connectionMgr = connectionManager;
     }

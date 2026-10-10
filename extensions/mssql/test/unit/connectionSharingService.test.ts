@@ -211,15 +211,13 @@ suite("ConnectionSharingService Tests", () => {
             });
         });
 
-        test("shows the retirement toast, opens a feature request, and suppresses it", async () => {
+        test("shows the deprecation toast once and opens the migration guide", async () => {
             secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
             getExtensionStub.withArgs(testExtensionId).returns({
                 id: testExtensionId,
                 packageJSON: { displayName: "Test Extension" },
             });
-            showWarningMessageStub.resolves(
-                LocalizedConstants.ConnectionSharing.FileFeatureRequest,
-            );
+            showWarningMessageStub.resolves(LocalizedConstants.Common.learnMore);
 
             sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
                 document: { uri: vscode.Uri.parse("file:///test.sql") },
@@ -232,9 +230,8 @@ suite("ConnectionSharingService Tests", () => {
             await new Promise((resolve) => setImmediate(resolve));
 
             expect(showWarningMessageStub).to.have.been.calledWith(
-                LocalizedConstants.ConnectionSharing.retirementWarning("Test Extension"),
-                LocalizedConstants.ConnectionSharing.FileFeatureRequest,
-                LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
+                LocalizedConstants.ConnectionSharing.deprecationWarning("Test Extension"),
+                LocalizedConstants.Common.learnMore,
             );
             expect(globalState.update).to.have.been.calledWith(
                 "mssql.connectionSharing.retirementSuppressedExtensions",
@@ -242,22 +239,22 @@ suite("ConnectionSharingService Tests", () => {
             );
             expect(sendActionEventStub).to.have.been.calledWith(
                 TelemetryViews.Connection,
-                TelemetryActions.ConnectionSharingRetirementToast,
+                TelemetryActions.ConnectionSharingDeprecationToast,
                 {
-                    additionalProps: { extensionId: testExtensionId, action: "requestFeature" },
+                    additionalProps: { extensionId: testExtensionId, action: "learnMore" },
                 },
             );
             expect(openExternalStub).to.have.been.calledWithMatch(
                 sinon.match(
                     (uri: vscode.Uri) =>
                         uri.toString() ===
-                        vscode.Uri.parse(Constants.connectionSharingFeatureRequestUrl).toString(),
+                        vscode.Uri.parse(Constants.connectionSharingMigrationGuideUrl).toString(),
                 ),
             );
         });
 
-        test("logs errors from the retirement notification handler", async () => {
-            const notificationError = new Error("Failed to update retirement suppression");
+        test("logs errors from the deprecation notification", async () => {
+            const notificationError = new Error("Failed to show the notification");
             const loggerErrorStub = sandbox.stub(
                 (
                     connectionSharingService as unknown as {
@@ -283,7 +280,7 @@ suite("ConnectionSharingService Tests", () => {
             await new Promise((resolve) => setImmediate(resolve));
 
             expect(loggerErrorStub).to.have.been.calledWithMatch(
-                "Failed to handle the connection-sharing retirement notification.",
+                "Failed to show the connection-sharing deprecation notification.",
                 notificationError,
             );
         });
@@ -312,13 +309,20 @@ suite("ConnectionSharingService Tests", () => {
             );
         });
 
-        test("shows the retirement toast only once per extension in a session", async () => {
+        test("warns only once per extension in a session", async () => {
+            const loggerWarnStub = sandbox.stub(
+                (
+                    connectionSharingService as unknown as {
+                        _logger: { warn(message: string, ...args: unknown[]): void };
+                    }
+                )._logger,
+                "warn",
+            );
             secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
             getExtensionStub.withArgs(testExtensionId).returns({
                 id: testExtensionId,
                 packageJSON: { displayName: "Test Extension" },
             });
-            showWarningMessageStub.resolves(undefined);
             sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
                 document: { uri: vscode.Uri.parse("file:///test.sql") },
             }));
@@ -327,15 +331,19 @@ suite("ConnectionSharingService Tests", () => {
                 "mssql.connectionSharing.getActiveEditorConnectionId",
             );
             await command!(testExtensionId);
-            await Promise.resolve();
+            await new Promise((resolve) => setImmediate(resolve));
+            expect(loggerWarnStub).to.have.been.calledWithMatch(testExtensionId);
             showWarningMessageStub.resetHistory();
+            loggerWarnStub.resetHistory();
 
             await command!(testExtensionId);
+            await new Promise((resolve) => setImmediate(resolve));
 
             expect(showWarningMessageStub).not.to.have.been.called;
+            expect(loggerWarnStub).not.to.have.been.called;
         });
 
-        test("shows the retirement notification when the API call fails without a connection", async () => {
+        test("shows the deprecation notification when the API call fails without a connection", async () => {
             secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
             getExtensionStub.withArgs(testExtensionId).returns({
                 id: testExtensionId,
@@ -355,19 +363,28 @@ suite("ConnectionSharingService Tests", () => {
                     ConnectionSharingErrorCode.NO_ACTIVE_EDITOR,
                 );
             }
+            await new Promise((resolve) => setImmediate(resolve));
 
             expect(showWarningMessageStub).to.have.been.called;
         });
 
-        test("does not show another notification after the extension opts out", async () => {
+        test("doesn't show the toast for an extension warned in an earlier session, but still logs", async () => {
+            const loggerWarnStub = sandbox.stub(
+                (
+                    connectionSharingService as unknown as {
+                        _logger: { warn(message: string, ...args: unknown[]): void };
+                    }
+                )._logger,
+                "warn",
+            );
+            globalStateValues.set("mssql.connectionSharing.retirementSuppressedExtensions", [
+                testExtensionId,
+            ]);
             secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
             getExtensionStub.withArgs(testExtensionId).returns({
                 id: testExtensionId,
                 packageJSON: { displayName: "Test Extension" },
             });
-            showWarningMessageStub.resolves(
-                LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
-            );
             sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
                 document: { uri: vscode.Uri.parse("file:///test.sql") },
             }));
@@ -376,47 +393,10 @@ suite("ConnectionSharingService Tests", () => {
                 "mssql.connectionSharing.getActiveEditorConnectionId",
             );
             await command!(testExtensionId);
-            await Promise.resolve();
-
-            expect(globalState.update).to.have.been.calledWith(
-                "mssql.connectionSharing.retirementSuppressedExtensions",
-                [testExtensionId],
-            );
-            expect(sendActionEventStub).to.have.been.calledWith(
-                TelemetryViews.Connection,
-                TelemetryActions.ConnectionSharingRetirementToast,
-                {
-                    additionalProps: { extensionId: testExtensionId, action: "doNotShowAgain" },
-                },
-            );
-
-            connectionManager.getConnectionInfoFromUri.returns({
-                ...mockConnectionProfile,
-                id: "another-connection-id",
-            } as IConnectionProfile);
-            showWarningMessageStub.resetHistory();
-            await command!(testExtensionId);
+            await new Promise((resolve) => setImmediate(resolve));
 
             expect(showWarningMessageStub).not.to.have.been.called;
-        });
-
-        test("does not show the notification for internal consumers", async () => {
-            const internalExtensionId = "ms-mssql.sql-notebook-controller";
-            secretStorage.get.resolves(JSON.stringify({ [internalExtensionId]: "approved" }));
-            getExtensionStub.withArgs(internalExtensionId).returns({
-                id: internalExtensionId,
-                packageJSON: { displayName: "SQL Database Projects" },
-            });
-            sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
-                document: { uri: vscode.Uri.parse("file:///test.sql") },
-            }));
-
-            const command = registeredCommands.get(
-                "mssql.connectionSharing.getActiveEditorConnectionId",
-            );
-            await command!(internalExtensionId);
-
-            expect(showWarningMessageStub).not.to.have.been.called;
+            expect(loggerWarnStub).to.have.been.calledWithMatch(testExtensionId);
         });
     });
 
