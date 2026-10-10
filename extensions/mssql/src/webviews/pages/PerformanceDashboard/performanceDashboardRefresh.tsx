@@ -10,38 +10,71 @@ import {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react";
 import { useNavigation } from "../../common/navigation/navigationProvider";
+import { clearExtensionRequestCache } from "../../common/useExtensionRequest";
+import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 
 interface RefreshContextValue {
     /** Increases when the user refreshes. Reads include it in their key, so they read again. */
     readonly refreshKey: number;
-    /** When the page last read its data: the last refresh or navigation. */
+    /** When the data of the current view was read: the time that its range ends at. */
     readonly updatedAt: Date;
     refresh(): void;
+    /**
+     * The time that a range ends at, the same for every view of the database with that range
+     * until the user refreshes. So a view that opens again reads the same window, and its reads
+     * come from the cache.
+     */
+    nowFor(anchorKey: string): Date;
 }
 
 const RefreshContext = createContext<RefreshContextValue>({
     refreshKey: 0,
     updatedAt: new Date(),
     refresh: () => undefined,
+    nowFor: () => new Date(),
 });
 
-/** Gives the page a refresh key and the time of the last update. */
+/** The query values of a location that set its time range. */
+export const timeRangeKeys: ReadonlySet<string> = new Set(["range", "from", "to"]);
+
+/** The key of the time anchor of a database and a location's time range. */
+export function timeAnchorKey(
+    databaseName: string,
+    query: Readonly<Record<string, string | undefined>>,
+): string {
+    return [databaseName, ...[...timeRangeKeys].map((key) => query[key] ?? "")].join("|");
+}
+
+/** Gives the page a refresh key, the time anchors of its ranges, and the time of the last read. */
 export const PerformanceDashboardRefreshProvider = ({ children }: { children: ReactNode }) => {
     const { match } = useNavigation();
+    const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const [refreshKey, setRefreshKey] = useState(0);
-    const [updatedAt, setUpdatedAt] = useState(() => new Date());
+    // The anchors of this refresh. A refresh starts new ones, and drops the cached reads.
+    const anchors = useRef(new Map<string, Date>());
 
-    useEffect(() => {
-        setUpdatedAt(new Date());
-    }, [match.location, refreshKey]);
+    const nowFor = useCallback((anchorKey: string) => {
+        let now = anchors.current.get(anchorKey);
+        if (!now) {
+            now = new Date();
+            anchors.current.set(anchorKey, now);
+        }
+        return now;
+    }, []);
+    const refresh = useCallback(() => {
+        clearExtensionRequestCache();
+        anchors.current = new Map();
+        setRefreshKey((key) => key + 1);
+    }, []);
 
-    const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
+    const updatedAt = nowFor(timeAnchorKey(databaseName, match.query));
     const value = useMemo(
-        () => ({ refreshKey, updatedAt, refresh }),
-        [refreshKey, updatedAt, refresh],
+        () => ({ refreshKey, updatedAt, refresh, nowFor }),
+        [refreshKey, updatedAt, refresh, nowFor],
     );
     return <RefreshContext.Provider value={value}>{children}</RefreshContext.Provider>;
 };

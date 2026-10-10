@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useMemo } from "react";
 import {
     GetQueryStoreAvailabilityRequest,
     TimeWindowParams,
@@ -23,7 +22,7 @@ import {
     defaultOverviewTimeRangeId,
     overviewTimeRangePresets,
 } from "./performanceDashboardOverviewModel";
-import { useRefresh } from "./performanceDashboardRefresh";
+import { timeAnchorKey, timeRangeKeys, useRefresh } from "./performanceDashboardRefresh";
 import {
     PerformanceDashboardRoute,
     PerformanceDashboardRouteId,
@@ -36,8 +35,6 @@ export const timeRangeRoutes: ReadonlySet<PerformanceDashboardRouteId> = new Set
     "queries",
     "query",
 ]);
-
-const timeRangeKeys = new Set(["range", "from", "to"]);
 
 export interface ViewTimeRange {
     readonly presets: readonly TimeRangePreset[];
@@ -61,11 +58,10 @@ export function queryLinkRange(query: Readonly<Record<string, string>>): Record<
 export function useViewTimeRange(): ViewTimeRange {
     const { match } = useNavigation<PerformanceDashboardRoute>();
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
-    const { refreshKey } = useRefresh();
-    // A new "now" only when the range, the database, or the refresh changes, so that switching a
-    // tab or a category does not move the window and read everything again.
-    const rangeKey = [...timeRangeKeys].map((key) => match.query[key] ?? "").join("|");
-    const now = useMemo(() => new Date(), [rangeKey, databaseName, refreshKey]);
+    const { nowFor } = useRefresh();
+    // One "now" for the range and the database until a refresh, shared by the views, so that a
+    // view that opens again reads the same window and gets its data from the cache.
+    const now = nowFor(timeAnchorKey(databaseName, match.query));
     const presets = overviewTimeRangePresets();
     const value = timeRangeFromQuery(match.query, presets, defaultOverviewTimeRangeId);
     const range = resolveTimeRange(value, presets, now);

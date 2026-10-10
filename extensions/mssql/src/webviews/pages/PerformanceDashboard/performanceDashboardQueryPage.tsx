@@ -274,17 +274,20 @@ const QueryStats = ({ details }: { details?: QueryDetails }) => {
                     label: text.executionCount,
                     value: details ? formatNumber(details.executionCount) : "",
                 },
-                { label: text.averageDuration, value: duration(details?.avgDurationMs) },
-                { label: text.minimumValue, value: duration(details?.minDurationMs) },
-                { label: text.maximumValue, value: duration(details?.maxDurationMs) },
-                {
-                    label: text.lastExecuted,
-                    value: details?.lastExecutionTime
-                        ? dateTimeFormat.format(new Date(details.lastExecutionTime))
-                        : text.notAvailable,
-                },
-                { label: text.objectName, value: details?.objectName ?? "—" },
+                { label: text.average, value: duration(details?.avgDurationMs) },
+                { label: text.minShort, value: duration(details?.minDurationMs) },
+                { label: text.maxShort, value: duration(details?.maxDurationMs) },
+                // The object only when the query is in one, such as a procedure.
+                ...(details?.objectName
+                    ? [{ label: text.objectName, value: details.objectName }]
+                    : []),
             ]}
+            end={{
+                label: text.lastExecuted,
+                value: details?.lastExecutionTime
+                    ? dateTimeFormat.format(new Date(details.lastExecutionTime))
+                    : text.notAvailable,
+            }}
         />
     );
 };

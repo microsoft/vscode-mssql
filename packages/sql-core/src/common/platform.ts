@@ -32,17 +32,30 @@ export interface PlatformProbe {
 
 /**
  * Reads the values that identify the platform. The batch runs on every supported platform.
+ *
+ * Fabric Data Warehouse and the SQL analytics endpoint do not support `COL_LENGTH`, so the batch
+ * does not check for the Fabric column. It reads the column only for engine edition 11, in dynamic
+ * SQL in a TRY block: on Synapse serverless, which has no such column, the read fails and the
+ * value stays NULL.
  */
 export const platformDetectionQuery = `
 SET NOCOUNT ON;
+DECLARE @engineEdition int = CONVERT(int, SERVERPROPERTY('EngineEdition'));
 DECLARE @dataLakeLogPublishing nvarchar(60) = NULL;
-IF COL_LENGTH('sys.databases', 'data_lake_log_publishing_desc') IS NOT NULL
-    EXEC sp_executesql
-        N'SELECT @value = data_lake_log_publishing_desc FROM sys.databases WHERE name = DB_NAME();',
-        N'@value nvarchar(60) OUTPUT',
-        @value = @dataLakeLogPublishing OUTPUT;
+IF @engineEdition = 11
+BEGIN
+    BEGIN TRY
+        EXEC sp_executesql
+            N'SELECT @value = data_lake_log_publishing_desc FROM sys.databases WHERE name = DB_NAME();',
+            N'@value nvarchar(60) OUTPUT',
+            @value = @dataLakeLogPublishing OUTPUT;
+    END TRY
+    BEGIN CATCH
+        SET @dataLakeLogPublishing = NULL;
+    END CATCH;
+END;
 SELECT
-    CONVERT(int, SERVERPROPERTY('EngineEdition')) AS engine_edition,
+    @engineEdition AS engine_edition,
     CONVERT(nvarchar(128), SERVERPROPERTY('ProductVersion')) AS product_version,
     @dataLakeLogPublishing AS data_lake_log_publishing;
 `;

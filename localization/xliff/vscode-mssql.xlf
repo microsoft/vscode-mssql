@@ -929,9 +929,6 @@
     <trans-unit id="++CODE++e8bc0a878e71790427fa516c7737ba49c516f690bdb1f5e1f1b1caa074473d85">
       <source xml:lang="en">Average busy cores</source>
     </trans-unit>
-    <trans-unit id="++CODE++b49f533ad93bb44981b8695ab3080d9debc0aad0903dba0fe031b36f8cefef20">
-      <source xml:lang="en">Average duration</source>
-    </trans-unit>
     <trans-unit id="++CODE++d233157a2ba894afe8762992540c62b9fc91963de7e01c7556b78170bf131ae4">
       <source xml:lang="en">Average memory</source>
     </trans-unit>
@@ -6456,6 +6453,10 @@
     <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
       <source xml:lang="en">Mandatory (True)</source>
     </trans-unit>
+    <trans-unit id="++CODE++ca4794453da3f56b63b96c536385f6b598e740199fc5c905c25bef3f035aec29">
+      <source xml:lang="en">Max</source>
+      <note>Short for maximum</note>
+    </trans-unit>
     <trans-unit id="++CODE++a1a5936d3b0f8a69fd62c91ed9990d3bd414c5e78c603e2837c65c9f46a93eb8">
       <source xml:lang="en">Max</source>
     </trans-unit>
@@ -6496,9 +6497,6 @@
     </trans-unit>
     <trans-unit id="++CODE++bf18e5cb878e3e2732c578fcc970528f5dbb3bf17ad8378e40d9bb675f5e19af">
       <source xml:lang="en">Maximize results grid</source>
-    </trans-unit>
-    <trans-unit id="++CODE++66c9ab177708cbc6b9770301ef0caa3f4fdcab0e3741a7f555b025a5d7dac2eb">
-      <source xml:lang="en">Maximum</source>
     </trans-unit>
     <trans-unit id="++CODE++727a7d114f4d518ecf4bd4e9b7537c01ad29da3da8b18bdfd84dd539f841d992">
       <source xml:lang="en">Mean</source>
@@ -6610,6 +6608,10 @@
     <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
       <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b8a1ecb66b3dd16e81ae37bae44ad1cb781f1a7f1c48e113aefb47fe34a6e72a">
+      <source xml:lang="en">Min</source>
+      <note>Short for minimum</note>
+    </trans-unit>
     <trans-unit id="++CODE++dea79332147ffe1fb2a81cf9a5bdf0066ddcc625699996ede0ce140e5cb004b1">
       <source xml:lang="en">Min</source>
     </trans-unit>
@@ -6619,9 +6621,6 @@
     </trans-unit>
     <trans-unit id="++CODE++4bad6cff07d217818c512e21b5b33bf51cb09daf95e72f1e2e6e113601b5bd6f">
       <source xml:lang="en">Minimap</source>
-    </trans-unit>
-    <trans-unit id="++CODE++735beee2e390c7979f936104c3cb5a30c752d73d68844eefc028c403aee8229b">
-      <source xml:lang="en">Minimum</source>
     </trans-unit>
     <trans-unit id="++CODE++c02d79e56f113063c85842818c6c44fef7133c8a9a68e6f6adf23c9d9d52c195">
       <source xml:lang="en">Missing &apos;version&apos; entry in {0}</source>

@@ -141,7 +141,7 @@ const useStyles = makeStyles({
         alignItems: "center",
         justifyContent: "space-between",
         gap: "16px",
-        height: "40px",
+        height: "36px",
         boxSizing: "border-box",
         padding: "0 16px",
         borderBottom: lineBorder,
@@ -183,7 +183,7 @@ export const ChartCardSkeleton = ({ chartHeight }: { chartHeight: number }) => {
             <div className={classes.cardHeader}>
                 <div className={classes.cardHeadline}>
                     <SkeletonItem style={{ width: 80, height: 12 }} />
-                    <SkeletonItem style={{ width: 40, height: 20 }} />
+                    <SkeletonItem style={{ width: 40, height: 12 }} />
                     <SkeletonItem style={{ width: 104, height: 12 }} />
                 </div>
                 <SkeletonItem style={{ width: 136, height: 12 }} />

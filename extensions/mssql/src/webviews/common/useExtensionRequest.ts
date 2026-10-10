@@ -25,12 +25,51 @@ interface StoredState<TResult> extends ExtensionRequestState<TResult> {
     readonly requestKey?: string;
 }
 
+/*
+ * The results of the requests, shared by the views of the webview, so that a view that opens
+ * again shows its data at once. A result older than the maximum age shows while the request runs
+ * again. Errors are not kept. The oldest results go when the cache is full.
+ */
+const cacheLimit = 100;
+const cacheMaxAgeMs = 5 * 60_000;
+
+interface CacheEntry {
+    readonly result: unknown;
+    readonly storedAt: number;
+}
+
+const resultCache = new Map<string, CacheEntry>();
+
+function cachedResult(cacheKey: string): CacheEntry | undefined {
+    const entry = resultCache.get(cacheKey);
+    if (entry) {
+        // The most recently used result goes last, so the oldest is first to go.
+        resultCache.delete(cacheKey);
+        resultCache.set(cacheKey, entry);
+    }
+    return entry;
+}
+
+function cacheResult(cacheKey: string, result: unknown): void {
+    resultCache.delete(cacheKey);
+    resultCache.set(cacheKey, { result, storedAt: Date.now() });
+    while (resultCache.size > cacheLimit) {
+        resultCache.delete(resultCache.keys().next().value as string);
+    }
+}
+
+/** Drops the cached results, for example when the user refreshes. */
+export function clearExtensionRequestCache(): void {
+    resultCache.clear();
+}
+
 /**
  * Sends a request to the extension when the component mounts, and again when the parameters or
- * `key` change. Keeps the result in component state, not in the shared webview state. A newer
- * request replaces the result of an older one that finishes later. While `enabled` is false,
- * nothing is sent and the state is not loading. A change of `poll` sends the request again but
- * keeps the result current, for a view that reads the same data on a timer.
+ * `key` change. A cached result of the same request shows at once, and the request runs again
+ * only when the result is older than the maximum age. A newer request replaces the result of an
+ * older one that finishes later. While `enabled` is false, nothing is sent and the state is not
+ * loading. A change of `poll` sends the request again but keeps the result current, for a view
+ * that reads the same data on a timer.
  */
 export function useExtensionRequest<TParams, TResult>(
     type: RequestType<TParams, TResult, void>,
@@ -40,20 +79,42 @@ export function useExtensionRequest<TParams, TResult>(
     poll?: unknown,
 ): ExtensionRequestState<TResult> {
     const { extensionRpc } = useVscodeWebview<unknown, unknown>();
-    const [state, setState] = useState<StoredState<TResult>>({ loading: true });
+    const requestKey = JSON.stringify([params ?? null, key ?? null]);
+    const cacheKey = `${type.method}:${requestKey}`;
+    const [state, setState] = useState<StoredState<TResult>>(() => {
+        const entry = enabled ? cachedResult(cacheKey) : undefined;
+        return entry
+            ? { loading: false, result: entry.result as TResult, requestKey }
+            : { loading: true };
+    });
     const paramsRef = useRef(params);
     paramsRef.current = params;
-    const requestKey = JSON.stringify([params ?? null, key ?? null]);
+    const lastPoll = useRef(poll);
 
     useEffect(() => {
         if (!enabled) {
             setState((previous) => (previous.loading ? { ...previous, loading: false } : previous));
             return;
         }
+        const polled = lastPoll.current !== poll;
+        lastPoll.current = poll;
+        const entry = polled ? undefined : cachedResult(cacheKey);
+        if (entry) {
+            setState((previous) =>
+                previous.requestKey === requestKey && previous.result === entry.result
+                    ? previous
+                    : { loading: false, result: entry.result as TResult, requestKey },
+            );
+            // A live view, which polls, reads again at once; it shows the cached result meanwhile.
+            if (poll === undefined && Date.now() - entry.storedAt < cacheMaxAgeMs) {
+                return;
+            }
+        }
         let current = true;
         setState((previous) => ({ ...previous, loading: true }));
         extensionRpc.sendRequest(type, paramsRef.current).then(
             (result) => {
+                cacheResult(cacheKey, result);
                 if (current) {
                     setState({ loading: false, result, requestKey });
                 }
@@ -71,7 +132,7 @@ export function useExtensionRequest<TParams, TResult>(
         return () => {
             current = false;
         };
-    }, [extensionRpc, type, requestKey, enabled, poll]);
+    }, [extensionRpc, type, requestKey, cacheKey, enabled, poll]);
 
     const { requestKey: resultKey, ...rest } = state;
     const hasOutcome = rest.result !== undefined || rest.errorMessage !== undefined;

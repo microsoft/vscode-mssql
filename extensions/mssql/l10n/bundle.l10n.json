@@ -5050,9 +5050,14 @@
         "comment": ["{0} is the Query Store plan ID"]
     },
     "Not forced": "Not forced",
-    "Average duration": "Average duration",
-    "Minimum": "Minimum",
-    "Maximum": "Maximum",
+    "Min/Short for minimum": {
+        "message": "Min",
+        "comment": ["Short for minimum"]
+    },
+    "Max/Short for maximum": {
+        "message": "Max",
+        "comment": ["Short for maximum"]
+    },
     "Execution history": "Execution history",
     "Plans": "Plans",
     "Query text": "Query text",

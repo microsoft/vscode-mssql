@@ -32,7 +32,7 @@ import { StatusMessage } from "./performanceDashboardStatus";
 
 const panelBorder = "1px solid var(--vscode-panel-border)";
 /** The height of the title row of a chart card, so it does not change as the value loads. */
-const cardHeaderHeight = 40;
+const cardHeaderHeight = 36;
 
 const useStyles = makeStyles({
     panel: {
@@ -41,9 +41,6 @@ const useStyles = makeStyles({
     },
     label: {
         color: tokens.colorNeutralForeground2,
-    },
-    secondary: {
-        color: tokens.colorNeutralForeground3,
     },
     // A panel with a body grows to the bottom of the page, so a grid in it can fill the space.
     panelFill: {
@@ -100,16 +97,22 @@ const useStyles = makeStyles({
         display: "flex",
         flexWrap: "wrap",
         alignItems: "baseline",
-        columnGap: "24px",
+        columnGap: "28px",
         rowGap: "4px",
         minWidth: 0,
     },
-    // A figure: its label, value, and detail on one baseline.
+    // A figure: its label, value, and detail on one baseline, in one text size.
     figure: {
         display: "inline-flex",
         alignItems: "baseline",
-        columnGap: "8px",
+        columnGap: "5px",
         whiteSpace: "nowrap",
+    },
+    figureLabel: {
+        color: tokens.colorNeutralForeground3,
+    },
+    figureValue: {
+        color: tokens.colorNeutralForeground1,
     },
     unit: {
         color: tokens.colorNeutralForeground3,
@@ -173,6 +176,8 @@ export interface ChartCardProps {
     readonly figures?: readonly { readonly label: string; readonly value: string }[];
     /** What the chart shows, on the right of the title row, for example "CPU seconds per hour". */
     readonly unit?: string;
+    /** A figure on the right of the title row, in place of the unit, such as the last run. */
+    readonly endFigure?: { readonly label: string; readonly value: string };
     readonly loading?: boolean;
     /** The chart, below the title row. */
     readonly children?: ReactNode;
@@ -188,6 +193,7 @@ export const ChartCard = ({
     detail,
     figures = [],
     unit,
+    endFigure,
     loading,
     children,
 }: ChartCardProps) => {
@@ -195,18 +201,21 @@ export const ChartCard = ({
     const fadeIn = useFadeInClass();
     const figure = (figureLabel: string, figureValue: string, figureDetail?: string) => (
         <span key={figureLabel} className={classes.figure}>
-            <Text size={300} className={classes.label}>
+            <Text size={200} className={classes.figureLabel}>
                 {figureLabel}
             </Text>
             {loading ? (
-                <ValueSkeleton width={40} height={20} />
+                <ValueSkeleton width={40} height={14} />
             ) : (
-                <Text size={500} weight="semibold" className={fadeIn}>
+                <Text
+                    size={200}
+                    weight="semibold"
+                    className={mergeClasses(classes.figureValue, fadeIn)}>
                     {figureValue}
                 </Text>
             )}
             {figureDetail && (
-                <Text size={300} className={classes.secondary}>
+                <Text size={200} className={classes.figureLabel}>
                     {figureDetail}
                 </Text>
             )}
@@ -223,11 +232,13 @@ export const ChartCard = ({
                     {figure(label, value, detail)}
                     {figures.map((other) => figure(other.label, other.value))}
                 </div>
-                {unit && (
-                    <Text size={300} className={classes.unit}>
-                        {unit}
-                    </Text>
-                )}
+                {endFigure
+                    ? figure(endFigure.label, endFigure.value)
+                    : unit && (
+                          <Text size={200} className={classes.unit}>
+                              {unit}
+                          </Text>
+                      )}
             </div>
             {children && <div className={classes.cardChart}>{children}</div>}
         </section>
@@ -237,14 +248,23 @@ export const ChartCard = ({
 /** Labeled values in one row in a frame, as in the title row of a chart card. */
 export const StatStrip = ({
     stats,
+    end,
     loading,
 }: {
     stats: readonly { readonly label: string; readonly value: string }[];
+    /** A value on the right, such as the last run. */
+    end?: { readonly label: string; readonly value: string };
     loading?: boolean;
 }) => {
     const [first, ...others] = stats;
     return first ? (
-        <ChartCard label={first.label} value={first.value} figures={others} loading={loading} />
+        <ChartCard
+            label={first.label}
+            value={first.value}
+            figures={others}
+            endFigure={end}
+            loading={loading}
+        />
     ) : null;
 };
 
