@@ -74,6 +74,11 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
      * Optional sort order for display in the Object Explorer. Set manually in config JSON.
      */
     order?: number;
+    /**
+     * Optional. When set to false, this connection is hidden from, and cannot be used by, the
+     * Copilot agent tools. Defaults to true. Set manually in config JSON.
+     */
+    allowAgentAccess?: boolean;
     isValidProfile(): boolean;
     isAzureActiveDirectory(): boolean;
 }

@@ -8,6 +8,7 @@ import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
+import { isAgentAccessible } from "./toolsUtils";
 
 export interface ServerProfile {
     profileId: string;
@@ -35,8 +36,8 @@ export class ListServersTool extends ToolBase<undefined> {
     ) {
         // Fetch all servers from the connection store
         const profiles = await this._connectionManager.connectionStore.readAllConnections(false);
-        // Map to server profiles
-        const servers: ServerProfile[] = profiles.map((p) => ({
+        // Map to server profiles, leaving out any that the user has hidden from agents
+        const servers: ServerProfile[] = profiles.filter(isAgentAccessible).map((p) => ({
             profileId: p.id,
             profileName: p.profileName,
             server: p.server,
