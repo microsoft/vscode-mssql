@@ -21,7 +21,8 @@ import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 const CONNECTION_SHARING_PERMISSIONS_KEY = "mssql.connectionSharing.extensionPermissions";
-const CONNECTION_SHARING_RETIREMENT_SUPPRESSED_EXTENSIONS_KEY =
+// Keeps its original name so extensions the user already silenced, or already warned about, stay quiet.
+const CONNECTION_SHARING_DEPRECATION_WARNED_EXTENSIONS_KEY =
     "mssql.connectionSharing.retirementSuppressedExtensions";
 
 type ExtensionPermission = "approved" | "denied";
@@ -37,6 +38,7 @@ export enum ConnectionSharingErrorCode {
     INVALID_CONNECTION_URI = "INVALID_CONNECTION_URI",
     QUERY_EXECUTION_FAILED = "QUERY_EXECUTION_FAILED",
     EXTENSION_NOT_FOUND = "EXTENSION_NOT_FOUND",
+    INVALID_ACCESS_TOKEN = "INVALID_ACCESS_TOKEN",
 }
 
 export class ConnectionSharingError extends Error {
@@ -51,14 +53,18 @@ export class ConnectionSharingError extends Error {
     }
 }
 
-// TODO(api-retirement): Remove this public API after dependent extensions have migrated.
+/**
+ * Backs the deprecated public connection-sharing API. Callers identify themselves with an extension
+ * ID that can't be verified; external callers should move to AuthenticatedConnectionSharingService.
+ */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 export class ConnectionSharingService implements mssql.IConnectionSharingService {
     private _logger: ILogger;
     private readonly _connectionMetadata = new Map<
         string,
         { extensionId: string; authenticationType: string }
     >();
-    private readonly _retirementWarningExtensionIdsShown = new Set<string>();
+    private readonly _deprecationLoggedExtensionIds = new Set<string>();
     constructor(
         private readonly _context: vscode.ExtensionContext,
         private readonly _client: SqlToolsServiceClient,
@@ -371,98 +377,73 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             metadata?.extensionId,
             connectionProfile?.authenticationType?.toString() ?? metadata?.authenticationType,
         );
-        this.showConnectionSharingRetirementWarning(metadata?.extensionId);
+        this.showConnectionSharingDeprecationWarning(metadata?.extensionId);
     }
 
-    private showConnectionSharingRetirementWarning(extensionId?: string): void {
-        if (!extensionId) {
+    /**
+     * Logs that the extension uses this deprecated API once per session, and shows the user a
+     * warning about it only the first time ever.
+     */
+    private showConnectionSharingDeprecationWarning(extensionId?: string): void {
+        if (!extensionId || this._deprecationLoggedExtensionIds.has(extensionId)) {
             return;
         }
+        this._deprecationLoggedExtensionIds.add(extensionId);
+        this._logger.warn(
+            `Extension "${extensionId}" uses the deprecated connection-sharing API. Move to IExtension.authenticatedConnectionSharing.`,
+        );
 
-        if (Constants.internalConnectionSharingExtensionIds.has(extensionId)) {
-            sendActionEvent(
-                TelemetryViews.Connection,
-                TelemetryActions.ConnectionSharingRetirementToast,
-                { additionalProps: { extensionId, action: "suppressedInternalConsumer" } },
-            );
-            return;
-        }
-
-        const suppressedExtensions = this._context.globalState.get<string[]>(
-            CONNECTION_SHARING_RETIREMENT_SUPPRESSED_EXTENSIONS_KEY,
+        const warnedExtensions = this._context.globalState.get<string[]>(
+            CONNECTION_SHARING_DEPRECATION_WARNED_EXTENSIONS_KEY,
             [],
         );
-        if (
-            suppressedExtensions.includes(extensionId) ||
-            this._retirementWarningExtensionIdsShown.has(extensionId)
-        ) {
-            return;
-        }
-
         const extension = vscode.extensions.getExtension(extensionId);
-        if (!extension) {
+        if (warnedExtensions.includes(extensionId) || !extension) {
             return;
         }
 
-        this._retirementWarningExtensionIdsShown.add(extensionId);
         const extensionName = extension.packageJSON.displayName ?? extension.id;
-        sendActionEvent(
-            TelemetryViews.Connection,
-            TelemetryActions.ConnectionSharingRetirementToast,
-            { additionalProps: { extensionId, action: "shown" } },
-        );
         void Promise.resolve(
-            vscode.window.showWarningMessage(
-                LocalizedConstants.ConnectionSharing.retirementWarning(extensionName),
-                LocalizedConstants.ConnectionSharing.FileFeatureRequest,
-                LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
-            ),
+            this._context.globalState.update(CONNECTION_SHARING_DEPRECATION_WARNED_EXTENSIONS_KEY, [
+                ...warnedExtensions,
+                extensionId,
+            ]),
         )
-            .then(async (selection) => {
-                if (selection === LocalizedConstants.ConnectionSharing.FileFeatureRequest) {
-                    sendActionEvent(
-                        TelemetryViews.Connection,
-                        TelemetryActions.ConnectionSharingRetirementToast,
-                        { additionalProps: { extensionId, action: "requestFeature" } },
-                    );
-                    await this.suppressConnectionSharingRetirementWarning(extensionId);
+            .then(() => {
+                sendActionEvent(
+                    TelemetryViews.Connection,
+                    TelemetryActions.ConnectionSharingDeprecationToast,
+                    { additionalProps: { extensionId, action: "shown" } },
+                );
+                return vscode.window.showWarningMessage(
+                    LocalizedConstants.ConnectionSharing.deprecationWarning(extensionName),
+                    LocalizedConstants.Common.learnMore,
+                );
+            })
+            .then((selection) => {
+                const learnMore = selection === LocalizedConstants.Common.learnMore;
+                sendActionEvent(
+                    TelemetryViews.Connection,
+                    TelemetryActions.ConnectionSharingDeprecationToast,
+                    {
+                        additionalProps: {
+                            extensionId,
+                            action: learnMore ? "learnMore" : "dismissed",
+                        },
+                    },
+                );
+                if (learnMore) {
                     void vscode.env.openExternal(
-                        vscode.Uri.parse(Constants.connectionSharingFeatureRequestUrl),
-                    );
-                } else if (
-                    selection === LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension
-                ) {
-                    sendActionEvent(
-                        TelemetryViews.Connection,
-                        TelemetryActions.ConnectionSharingRetirementToast,
-                        { additionalProps: { extensionId, action: "doNotShowAgain" } },
-                    );
-                    await this.suppressConnectionSharingRetirementWarning(extensionId);
-                } else {
-                    sendActionEvent(
-                        TelemetryViews.Connection,
-                        TelemetryActions.ConnectionSharingRetirementToast,
-                        { additionalProps: { extensionId, action: "dismissed" } },
+                        vscode.Uri.parse(Constants.connectionSharingMigrationGuideUrl),
                     );
                 }
             })
             .catch((error) => {
                 this._logger.error(
-                    "Failed to handle the connection-sharing retirement notification.",
+                    "Failed to show the connection-sharing deprecation notification.",
                     error,
                 );
             });
-    }
-
-    private async suppressConnectionSharingRetirementWarning(extensionId: string): Promise<void> {
-        const suppressedExtensions = this._context.globalState.get<string[]>(
-            CONNECTION_SHARING_RETIREMENT_SUPPRESSED_EXTENSIONS_KEY,
-            [],
-        );
-        await this._context.globalState.update(
-            CONNECTION_SHARING_RETIREMENT_SUPPRESSED_EXTENSIONS_KEY,
-            [...new Set([...suppressedExtensions, extensionId])],
-        );
     }
 
     public async getActiveEditorConnectionId(extensionId: string): Promise<string | undefined> {
@@ -485,7 +466,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             extensionId,
             connectionDetails?.authenticationType?.toString(),
         );
-        this.showConnectionSharingRetirementWarning(extensionId);
+        this.showConnectionSharingDeprecationWarning(extensionId);
 
         if (!activeEditor) {
             throw new ConnectionSharingError(
@@ -523,7 +504,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             extensionId,
             connectionDetails?.authenticationType?.toString(),
         );
-        this.showConnectionSharingRetirementWarning(extensionId);
+        this.showConnectionSharingDeprecationWarning(extensionId);
 
         if (!activeEditor) {
             throw new ConnectionSharingError(
@@ -557,7 +538,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             extensionId,
             targetConnection?.authenticationType?.toString(),
         );
-        this.showConnectionSharingRetirementWarning(extensionId);
+        this.showConnectionSharingDeprecationWarning(extensionId);
 
         if (!targetConnection) {
             return undefined; // Connection not found
@@ -580,7 +561,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             extensionId,
             targetConnection?.authenticationType?.toString(),
         );
-        this.showConnectionSharingRetirementWarning(extensionId);
+        this.showConnectionSharingDeprecationWarning(extensionId);
 
         if (!targetConnection) {
             this._logger.error(
@@ -823,7 +804,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             extensionId,
             targetConnection?.authenticationType?.toString(),
         );
-        this.showConnectionSharingRetirementWarning(extensionId);
+        this.showConnectionSharingDeprecationWarning(extensionId);
 
         if (!targetConnection) {
             this._logger.error(

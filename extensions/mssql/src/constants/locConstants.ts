@@ -3313,16 +3313,19 @@ export class QueryEditor {
 }
 
 export class ConnectionSharing {
-    public static retirementWarning(extensionName: string) {
+    public static deprecationWarning(extensionName: string) {
         return l10n.t({
             message:
-                "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
+                "The “{0}” extension uses an older connection-sharing API. Its author should move to the new API, which lets you manage which extensions can use your SQL Server connections from the Accounts menu.",
             args: [extensionName],
             comment: ["{0} is the extension name"],
         });
     }
-    public static FileFeatureRequest = l10n.t("File a feature request");
-    public static DoNotShowAgainForExtension = l10n.t("Don’t show again for this extension");
+    public static authenticationProviderLabel = l10n.t("SQL Server Connections");
+    public static authenticationAccountLabel = l10n.t("Shared connections");
+    public static invalidAccessToken = l10n.t(
+        "The access token is not valid. Request a new session from the SQL Server Connections authentication provider.",
+    );
     public static connectionSharingRequestNotification(extensionName: string) {
         return l10n.t({
             message:
