@@ -56,30 +56,45 @@ export function filledSeriesPoints(
     return points;
 }
 
-/** The time-weighted average CPU percent of the samples in a window, or undefined without samples. */
+/** A value of a resource stats sample: the CPU percent, or another one such as memory. */
+export type ResourceValue = (sample: ResourceCpuSample) => number | undefined;
+
+export const resourceCpu: ResourceValue = (sample) => sample.avgCpuPercent;
+export const resourceStorage: ResourceValue = (sample) => sample.storageMb;
+
+/**
+ * The time-weighted average of a value of the samples in a window, by default the CPU percent,
+ * or undefined without samples.
+ */
 export function averageResourceCpu(
     samples: readonly ResourceCpuSample[],
     start: number,
     end: number,
+    value: ResourceValue = resourceCpu,
 ): number | undefined {
     let weighted = 0;
     let covered = 0;
     for (const sample of samples) {
         const from = Math.max(start, Date.parse(sample.startUtc));
         const to = Math.min(end, Date.parse(sample.endUtc));
-        if (to > from) {
-            weighted += sample.avgCpuPercent * (to - from);
+        const sampleValue = value(sample);
+        if (to > from && sampleValue !== undefined) {
+            weighted += sampleValue * (to - from);
             covered += to - from;
         }
     }
     return covered > 0 ? weighted / covered : undefined;
 }
 
-/** The average CPU percent for each bucket of the range. Buckets without samples are left out. */
+/**
+ * The average of a value for each bucket of the range, by default the CPU percent. Buckets
+ * without samples are left out.
+ */
 export function resourceCpuPoints(
     samples: readonly ResourceCpuSample[],
     range: ResolvedTimeRange,
     bucketMinutes: number,
+    value: ResourceValue = resourceCpu,
 ): TimeSeriesPoint[] {
     const sizeMs = bucketMinutes * minuteMs;
     const points: TimeSeriesPoint[] = [];
@@ -89,34 +104,12 @@ export function resourceCpuPoints(
         start < range.to.getTime() && points.length < maxPoints;
         start += sizeMs
     ) {
-        const average = averageResourceCpu(samples, start, start + sizeMs);
+        const average = averageResourceCpu(samples, start, start + sizeMs, value);
         if (average !== undefined) {
             points.push({ x: new Date(start), y: average });
         }
     }
     return points;
-}
-
-/**
- * The change of the average CPU percent from the previous window to the current one, in percent.
- * Undefined when the samples do not reach back to the start of the previous window.
- */
-export function resourceCpuChange(
-    samples: readonly ResourceCpuSample[],
-    current: { readonly start: number; readonly end: number },
-    previous: { readonly start: number; readonly end: number },
-): number | undefined {
-    const oldest = samples.length > 0 ? Date.parse(samples[0].startUtc) : Infinity;
-    // resource_stats has one row each 5 minutes, so allow one row of slack.
-    if (oldest > previous.start + 5 * minuteMs) {
-        return undefined;
-    }
-    const now = averageResourceCpu(samples, current.start, current.end);
-    const before = averageResourceCpu(samples, previous.start, previous.end);
-    if (now === undefined || before === undefined || before <= 0) {
-        return undefined;
-    }
-    return ((now - before) / before) * 100;
 }
 
 /**

@@ -58,14 +58,18 @@ type QueryTab = "history" | "plans";
 const narrowLayout = "@media (max-width: 900px)";
 
 const useStyles = makeStyles({
+    // Grows to the bottom of the page, so the grid of the tab can fill the space left.
     page: {
         display: "grid",
+        flex: "1 0 auto",
         gridTemplateColumns: "minmax(0, 1fr) clamp(280px, 28vw, 380px)",
+        gridTemplateRows: "auto 1fr",
         gridTemplateAreas: `"header header" "main aside"`,
         columnGap: "24px",
         rowGap: "16px",
         [narrowLayout]: {
             gridTemplateColumns: "minmax(0, 1fr)",
+            gridTemplateRows: "auto 1fr auto",
             gridTemplateAreas: `"header" "main" "aside"`,
         },
     },

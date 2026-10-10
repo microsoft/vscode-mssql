@@ -29,13 +29,15 @@ interface StoredState<TResult> extends ExtensionRequestState<TResult> {
  * Sends a request to the extension when the component mounts, and again when the parameters or
  * `key` change. Keeps the result in component state, not in the shared webview state. A newer
  * request replaces the result of an older one that finishes later. While `enabled` is false,
- * nothing is sent and the state is not loading.
+ * nothing is sent and the state is not loading. A change of `poll` sends the request again but
+ * keeps the result current, for a view that reads the same data on a timer.
  */
 export function useExtensionRequest<TParams, TResult>(
     type: RequestType<TParams, TResult, void>,
     params: TParams,
     key?: unknown,
     enabled: boolean = true,
+    poll?: unknown,
 ): ExtensionRequestState<TResult> {
     const { extensionRpc } = useVscodeWebview<unknown, unknown>();
     const [state, setState] = useState<StoredState<TResult>>({ loading: true });
@@ -69,7 +71,7 @@ export function useExtensionRequest<TParams, TResult>(
         return () => {
             current = false;
         };
-    }, [extensionRpc, type, requestKey, enabled]);
+    }, [extensionRpc, type, requestKey, enabled, poll]);
 
     const { requestKey: resultKey, ...rest } = state;
     const hasOutcome = rest.result !== undefined || rest.errorMessage !== undefined;

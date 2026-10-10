@@ -14,14 +14,9 @@ import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SegmentedControl } from "../../common/segmentedControl";
 import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
-import {
-    formatDuration,
-    formatMegabytes,
-    formatMillisecondsExact,
-    formatNumber,
-    formatShare,
-} from "./performanceDashboardFormat";
+import { formatNumber, formatShare } from "./performanceDashboardFormat";
 import { useFavoriteQueries } from "./performanceDashboardFavorites";
+import { metrics } from "./performanceDashboardMetrics";
 import { InlineSelect, ReadOnlyNotice, isReadOnly, readData } from "./performanceDashboardParts";
 import { PerformanceDashboardQueryList, QueryGridColumn } from "./performanceDashboardQueryGrid";
 import {
@@ -211,7 +206,6 @@ export const PerformanceDashboardQueriesPage = () => {
                 columns={columns}
                 ariaLabel={categoryLabel(category)}
                 favorites={favorites}
-                visibleRows={queryCount}
                 linkQuery={queryLinkRange(match.query)}
                 emptyText={favoritesOnly || search ? text.noMatchingQueries : text.noQueries}
             />
@@ -226,6 +220,8 @@ export function categoryLabel(category: QueryCategory): string {
             return text.highCpuQueries;
         case "duration":
             return text.longestRunningQueries;
+        case "memory":
+            return text.highMemoryQueries;
         case "executions":
             return text.mostFrequentQueries;
         default:
@@ -241,6 +237,8 @@ function categoryShortLabel(category: QueryCategory): string {
             return text.highCpu;
         case "duration":
             return text.longestRunning;
+        case "memory":
+            return text.highMemory;
         case "executions":
             return text.mostFrequent;
         default:
@@ -256,35 +254,27 @@ function categoryMetricName(category: QueryCategory): string {
             return text.cpuTime;
         case "duration":
             return text.durationMetric;
+        case "memory":
+            return text.metricMemory;
         default:
             return text.logicalReadsMetric;
     }
 }
 
 /** The formats of the values of a category: readable, and exact for the tooltip. */
+/** The formats of the values of a category, from the metric catalog: with the unit, and exact. */
 function categoryFormat(category: QueryCategory): {
     format: (value: number) => string;
     exact: (value: number) => string;
 } {
-    switch (category) {
-        case "cpu":
-        case "duration":
-            return { format: formatDuration, exact: formatMillisecondsExact };
-        case "reads":
-            // The reports give reads in KB.
-            return { format: formatMegabytes, exact: formatKilobytesExact };
-        default:
-            return { format: formatNumber, exact: formatNumber };
-    }
-}
-
-function formatKilobytesExact(kilobytes: number): string {
-    return new Intl.NumberFormat(undefined, {
-        style: "unit",
-        unit: "kilobyte",
-        unitDisplay: "short",
-        maximumFractionDigits: 0,
-    }).format(kilobytes);
+    const definition = {
+        cpu: metrics.cpuTime,
+        duration: metrics.duration,
+        memory: metrics.memoryGrant,
+        executions: metrics.executions,
+        reads: metrics.logicalReads,
+    }[category];
+    return { format: definition.display, exact: definition.exact };
 }
 
 export function statisticLabel(statistic: QueryStoreStatistic): string {

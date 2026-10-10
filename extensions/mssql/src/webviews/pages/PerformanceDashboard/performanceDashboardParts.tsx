@@ -5,7 +5,6 @@
 
 import {
     Caption1,
-    InfoLabel,
     Label,
     Link,
     makeStyles,
@@ -20,50 +19,25 @@ import {
     tokens,
     useId,
 } from "@fluentui/react-components";
-import { AreaChart, ChartProps } from "@fluentui/react-charts";
-import { ArrowDown16Regular, ArrowUp16Regular } from "@fluentui/react-icons";
+import { AreaChart, ChartProps, DataVizPalette, getColorFromToken } from "@fluentui/react-charts";
 import { ReactNode, useLayoutEffect, useRef, useState } from "react";
 import type { PerformanceReadResult } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { ExtensionRequestState, isFirstLoad } from "../../common/useExtensionRequest";
-import { dateTimeFormat, formatPercent } from "./performanceDashboardFormat";
+import { dateTimeFormat } from "./performanceDashboardFormat";
 import { PerformanceDashboardRoute, withSettings } from "./performanceDashboardRoutes";
 import { ChartSkeleton, ValueSkeleton, useFadeInClass } from "./performanceDashboardSkeletons";
 import { StatusMessage } from "./performanceDashboardStatus";
 
 const panelBorder = "1px solid var(--vscode-panel-border)";
+/** The height of the title row of a chart card, so it does not change as the value loads. */
+const cardHeaderHeight = 40;
 
 const useStyles = makeStyles({
     panel: {
         border: panelBorder,
         ...shorthands.borderRadius(tokens.borderRadiusMedium),
-    },
-    stats: {
-        display: "flex",
-        flexWrap: "wrap",
-    },
-    // Equal columns with a line between them.
-    stat: {
-        display: "flex",
-        flexDirection: "column",
-        ...shorthands.gap("4px"),
-        flex: "1 1 0",
-        minWidth: "160px",
-        padding: "14px 16px",
-        borderLeft: panelBorder,
-        "&:first-child": {
-            borderLeft: "none",
-        },
-    },
-    chart: {
-        borderTop: panelBorder,
-        padding: "12px 16px 8px",
-    },
-    hero: {
-        fontSize: tokens.fontSizeHero700,
-        lineHeight: tokens.lineHeightHero700,
-        fontWeight: tokens.fontWeightSemibold,
     },
     label: {
         color: tokens.colorNeutralForeground2,
@@ -71,24 +45,19 @@ const useStyles = makeStyles({
     secondary: {
         color: tokens.colorNeutralForeground3,
     },
-    value: {
+    // A panel with a body grows to the bottom of the page, so a grid in it can fill the space.
+    panelFill: {
         display: "flex",
-        alignItems: "center",
-        ...shorthands.gap("4px"),
-        fontSize: tokens.fontSizeBase400,
-        fontWeight: tokens.fontWeightSemibold,
-    },
-    stripValue: {
-        fontSize: tokens.fontSizeBase400,
-        fontWeight: tokens.fontWeightSemibold,
-        whiteSpace: "nowrap",
-        overflowX: "hidden",
-        textOverflow: "ellipsis",
+        flexDirection: "column",
+        flex: "1 0 auto",
     },
     panelChart: {
         padding: "12px 16px 8px",
     },
     panelBody: {
+        display: "flex",
+        flexDirection: "column",
+        flex: "1 0 auto",
         borderTop: panelBorder,
     },
     sectionHeader: {
@@ -110,6 +79,44 @@ const useStyles = makeStyles({
     },
     empty: {
         color: tokens.colorNeutralForeground3,
+    },
+    // A chart card: the headline and the chart's unit in one row over the chart.
+    cardHeader: {
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: "space-between",
+        ...shorthands.gap("4px", "16px"),
+        minHeight: `${cardHeaderHeight}px`,
+        boxSizing: "border-box",
+        padding: "6px 16px",
+    },
+    // The line between the title row and the chart.
+    cardHeaderDivider: {
+        borderBottom: panelBorder,
+    },
+    // The figures of a chart card, apart from each other.
+    headline: {
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "baseline",
+        columnGap: "24px",
+        rowGap: "4px",
+        minWidth: 0,
+    },
+    // A figure: its label, value, and detail on one baseline.
+    figure: {
+        display: "inline-flex",
+        alignItems: "baseline",
+        columnGap: "8px",
+        whiteSpace: "nowrap",
+    },
+    unit: {
+        color: tokens.colorNeutralForeground3,
+        whiteSpace: "nowrap",
+    },
+    cardChart: {
+        padding: "8px 16px 4px 8px",
     },
 });
 
@@ -155,94 +162,79 @@ export const ReadOnlyNotice = () => (
     />
 );
 
-export interface SummaryChange {
+export interface ChartCardProps {
+    /** What the headline value is, before it. */
     readonly label: string;
-    /** A change in percent, or undefined when it is not known. */
-    readonly value: number | undefined;
-}
-
-export interface SummaryCardProps {
-    /** What the headline value is, above it. */
-    readonly label: string;
-    /** Explains how the value is worked out, in an info icon on the label. */
-    readonly info?: string;
     /** The headline value, already formatted. */
     readonly value: string;
-    /** More about the value, below it, for example "of 16 logical CPUs". */
+    /** More about the value, after it, for example "of 16 logical CPUs". */
     readonly detail?: string;
-    readonly changes?: readonly SummaryChange[];
-    /** Other figures, such as the current count. */
+    /** Other figures after the headline, such as the peak. */
     readonly figures?: readonly { readonly label: string; readonly value: string }[];
+    /** What the chart shows, on the right of the title row, for example "CPU seconds per hour". */
+    readonly unit?: string;
     readonly loading?: boolean;
-    /** The chart of the value, in the same panel below the figures. */
+    /** The chart, below the title row. */
     readonly children?: ReactNode;
 }
 
 /**
- * A panel with a headline value, other figures, and the changes against earlier periods in equal
- * columns, and the chart of the value below them.
+ * A chart in a frame with one title row: the headline value and other figures on the left, and
+ * what the chart shows on the right, in place of a y-axis title.
  */
-export const SummaryCard = ({
+export const ChartCard = ({
     label,
-    info,
     value,
     detail,
-    changes = [],
     figures = [],
+    unit,
     loading,
     children,
-}: SummaryCardProps) => {
+}: ChartCardProps) => {
     const classes = useStyles();
     const fadeIn = useFadeInClass();
+    const figure = (figureLabel: string, figureValue: string, figureDetail?: string) => (
+        <span key={figureLabel} className={classes.figure}>
+            <Text size={300} className={classes.label}>
+                {figureLabel}
+            </Text>
+            {loading ? (
+                <ValueSkeleton width={40} height={20} />
+            ) : (
+                <Text size={500} weight="semibold" className={fadeIn}>
+                    {figureValue}
+                </Text>
+            )}
+            {figureDetail && (
+                <Text size={300} className={classes.secondary}>
+                    {figureDetail}
+                </Text>
+            )}
+        </span>
+    );
     return (
         <section className={classes.panel} aria-busy={loading}>
-            <div className={classes.stats}>
-                <div className={classes.stat}>
-                    {info ? (
-                        <InfoLabel size="small" className={classes.label} info={info}>
-                            {label}
-                        </InfoLabel>
-                    ) : (
-                        <Caption1 className={classes.label}>{label}</Caption1>
-                    )}
-                    {loading ? (
-                        <ValueSkeleton width={96} height={36} />
-                    ) : (
-                        <Text className={mergeClasses(classes.hero, fadeIn)}>{value}</Text>
-                    )}
-                    {detail && <Caption1 className={classes.secondary}>{detail}</Caption1>}
+            <div
+                className={mergeClasses(
+                    classes.cardHeader,
+                    children ? classes.cardHeaderDivider : undefined,
+                )}>
+                <div className={classes.headline}>
+                    {figure(label, value, detail)}
+                    {figures.map((other) => figure(other.label, other.value))}
                 </div>
-                {figures.map((figure) => (
-                    <div key={figure.label} className={classes.stat}>
-                        <Caption1 className={classes.label}>{figure.label}</Caption1>
-                        {loading ? (
-                            <ValueSkeleton />
-                        ) : (
-                            <Text className={mergeClasses(classes.value, fadeIn)}>
-                                {figure.value}
-                            </Text>
-                        )}
-                    </div>
-                ))}
-                {changes.map((change) => (
-                    <div key={change.label} className={classes.stat}>
-                        <Caption1 className={classes.label}>{change.label}</Caption1>
-                        {loading ? (
-                            <ValueSkeleton />
-                        ) : (
-                            <span className={fadeIn}>
-                                <Change value={change.value} />
-                            </span>
-                        )}
-                    </div>
-                ))}
+                {unit && (
+                    <Text size={300} className={classes.unit}>
+                        {unit}
+                    </Text>
+                )}
             </div>
-            {children && <div className={classes.chart}>{children}</div>}
+            {children && <div className={classes.cardChart}>{children}</div>}
         </section>
     );
 };
 
-/** Labeled values in equal columns with a line between them, in a frame. */
+/** Labeled values in one row in a frame, as in the title row of a chart card. */
 export const StatStrip = ({
     stats,
     loading,
@@ -250,57 +242,20 @@ export const StatStrip = ({
     stats: readonly { readonly label: string; readonly value: string }[];
     loading?: boolean;
 }) => {
-    const classes = useStyles();
-    const fadeIn = useFadeInClass();
-    return (
-        <section className={classes.panel} aria-busy={loading}>
-            <div className={classes.stats}>
-                {stats.map((stat) => (
-                    <div key={stat.label} className={classes.stat}>
-                        <Caption1 className={classes.label}>{stat.label}</Caption1>
-                        {loading ? (
-                            <ValueSkeleton width={88} />
-                        ) : (
-                            <Text
-                                className={mergeClasses(classes.stripValue, fadeIn)}
-                                title={stat.value}>
-                                {stat.value}
-                            </Text>
-                        )}
-                    </div>
-                ))}
-            </div>
-        </section>
-    );
+    const [first, ...others] = stats;
+    return first ? (
+        <ChartCard label={first.label} value={first.value} figures={others} loading={loading} />
+    ) : null;
 };
 
 /** A chart in a frame, with a table or other content below it in the same frame. */
 export const ChartPanel = ({ chart, children }: { chart: ReactNode; children?: ReactNode }) => {
     const classes = useStyles();
     return (
-        <section className={classes.panel}>
+        <section className={mergeClasses(classes.panel, children ? classes.panelFill : undefined)}>
             <div className={classes.panelChart}>{chart}</div>
             {children && <div className={classes.panelBody}>{children}</div>}
         </section>
-    );
-};
-
-/** A change in percent with an arrow, or N/A. */
-const Change = ({ value }: { value: number | undefined }) => {
-    const classes = useStyles();
-    const text = loc.performanceDashboard;
-    if (value === undefined) {
-        return <Text className={classes.value}>{`— ${text.notAvailable}`}</Text>;
-    }
-    const formatted = formatPercent(Math.abs(value));
-    const up = value >= 0;
-    return (
-        <Text
-            className={classes.value}
-            aria-label={up ? text.increasedBy(formatted) : text.decreasedBy(formatted)}>
-            {up ? <ArrowUp16Regular /> : <ArrowDown16Regular />}
-            {formatted}
-        </Text>
     );
 };
 
@@ -335,41 +290,104 @@ export const SectionHeader = ({ title, count, action, children }: SectionHeaderP
 
 /** The height of a time series chart, with its axes. */
 const chartHeight = 260;
+/** The height of a chart in a chart card, whose title row names the unit. */
+const compactChartHeight = 180;
+/** The height of a chart in a chart card, for placeholders of the same size. */
+export const chartCardChartHeight = compactChartHeight;
+
+/** The length of an interval in words: hour for 1 hour, else 15 minutes or 4 hours. */
+export function intervalName(minutes: number): string {
+    const [value, unit] =
+        minutes % (24 * 60) === 0
+            ? [minutes / (24 * 60), "day"]
+            : minutes % 60 === 0
+              ? [minutes / 60, "hour"]
+              : [minutes, "minute"];
+    const format = new Intl.NumberFormat(undefined, { style: "unit", unit, unitDisplay: "long" });
+    // One unit reads as its name alone: per hour, not per 1 hour.
+    return value === 1
+        ? (format.formatToParts(1).find((part) => part.type === "unit")?.value ?? format.format(1))
+        : format.format(value);
+}
 /** The height of a time series chart, for placeholders of the same size. */
 export const timeSeriesChartHeight = chartHeight;
 /** The space for each x-axis label, so that the labels do not crowd. */
 const xLabelWidth = 120;
 const hourMs = 60 * 60 * 1000;
 
-/** 0, a round middle value, and twice it, so that the top tick is at or above the highest value. */
+/** Five evenly spaced round ticks from 0, so that the top tick is at or above the highest value. */
 export function zeroBasedTicks(max: number): number[] {
+    const intervals = 4;
     if (!(max > 0)) {
         return [0, 1];
     }
-    const rough = max / 2;
+    const rough = max / intervals;
     const magnitude = 10 ** Math.floor(Math.log10(rough));
     const step =
-        [1, 2, 2.5, 5, 10].map((factor) => factor * magnitude).find((value) => value >= rough) ??
-        10 * magnitude;
-    return [0, step, 2 * step];
+        [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]
+            .map((factor) => factor * magnitude)
+            .find((value) => value >= rough) ?? 10 * magnitude;
+    // Rounded, so that 3 × 0.0015 is 0.0045 and not 0.0045000000000000005.
+    return Array.from({ length: intervals + 1 }, (_, index) =>
+        Number((index * step).toPrecision(12)),
+    );
 }
 
 /** About the width of a character of the axis labels, which are the size of a caption. */
 const axisCharacterWidth = 7;
 const minAxisMargin = 40;
+const axisTitleWidth = 24;
 
 /**
  * The left margin of a chart, so that its longest y-axis label fits. The chart reserves a fixed
  * width by default and cuts longer labels, such as 1,000 MB.
  */
-export function yAxisMargin(labels: readonly string[]): number {
+export function yAxisMargin(labels: readonly string[], title?: string): number {
     const longest = labels.reduce((max, label) => Math.max(max, label.length), 0);
-    return Math.max(minAxisMargin, longest * axisCharacterWidth + 16);
+    // A title is rotated beside the labels.
+    return (
+        Math.max(minAxisMargin, longest * axisCharacterWidth + 16) + (title ? axisTitleWidth : 0)
+    );
 }
 
 /** The x-axis ticks for a chart width, so that the labels do not crowd. */
 export function xAxisTickCount(width: number): number {
     return Math.max(2, Math.floor(width / xLabelWidth));
+}
+
+/** The time range that a chart's x-axis spans. */
+export interface ChartRange {
+    readonly from: Date;
+    readonly to: Date;
+}
+
+/**
+ * The x-axis of a time chart. The charts span their data, so with a range the axis gets ticks
+ * spread evenly from its start to its end, which make it span the whole range. Without a range,
+ * for data sampled while a view is open, the axis spans the data.
+ */
+export function xAxisProps(
+    width: number,
+    dates: readonly Date[],
+    range?: ChartRange,
+): {
+    xAxisTickCount?: number;
+    tickValues?: Date[];
+    customDateTimeFormatter: (date: Date) => string;
+} {
+    const count = xAxisTickCount(width);
+    if (!range) {
+        return { xAxisTickCount: count, customDateTimeFormatter: axisDateFormat(dates) };
+    }
+    const from = range.from.getTime();
+    const span = range.to.getTime() - from;
+    return {
+        tickValues: Array.from(
+            { length: count },
+            (_, index) => new Date(from + (span * index) / (count - 1)),
+        ),
+        customDateTimeFormatter: axisDateFormat([range.from, range.to]),
+    };
 }
 
 export const useAxisStyles = makeStyles({
@@ -379,6 +397,21 @@ export const useAxisStyles = makeStyles({
             fontSize: tokens.fontSizeBase200,
             fill: tokens.colorNeutralForeground2,
         },
+    },
+    // The y-axis also has its line, which the charts hide by default.
+    yAxis: {
+        "& text": {
+            fontSize: tokens.fontSizeBase200,
+            fill: tokens.colorNeutralForeground2,
+        },
+        "& path": {
+            display: "inline",
+            stroke: tokens.colorNeutralStroke1,
+        },
+    },
+    title: {
+        fontSize: tokens.fontSizeBase200,
+        fill: tokens.colorNeutralForeground2,
     },
 });
 
@@ -417,6 +450,17 @@ export interface TimeSeriesChartProps {
     /** The read of the chart data. A message replaces the chart; a spinner shows on the first load. */
     readonly read?: ExtensionRequestState<PerformanceReadResult<unknown>>;
     readonly message?: StatusMessage;
+    /** The title beside the y-axis, for example CPU seconds. */
+    readonly yAxisTitle?: string;
+    /** The time range of the view, for an x-axis that spans it. Default: the span of the data. */
+    readonly range?: ChartRange;
+    /**
+     * For a chart card: shorter, with straight lines and no y-axis line or title. The top tick has
+     * the unit, from `format`; the others are plain numbers, from `tickFormat`.
+     */
+    readonly compact?: boolean;
+    /** The y-axis tick labels below the top one. Default: `format`. */
+    readonly tickFormat?: (value: number) => string;
 }
 
 /** A single series over time: an area with a hover tooltip, no legend. */
@@ -427,14 +471,19 @@ export const TimeSeriesChart = ({
     yMax,
     read,
     message,
+    yAxisTitle,
+    range,
+    compact,
+    tickFormat,
 }: TimeSeriesChartProps) => {
     const classes = useStyles();
     const axisClasses = useAxisStyles();
+    const height = compact ? compactChartHeight : chartHeight;
     if (message) {
         return <StatusBar message={message} />;
     }
     if (read && isFirstLoad(read)) {
-        return <ChartSkeleton height={chartHeight} />;
+        return <ChartSkeleton height={height} />;
     }
     if (points.length === 0) {
         return (
@@ -444,11 +493,15 @@ export const TimeSeriesChart = ({
     const maxY = points.reduce((max, point) => Math.max(max, point.y), 0);
     // Round ticks from 0, up to at least the given top, such as 100 for percents.
     const yTicks = zeroBasedTicks(yMax !== undefined ? Math.max(yMax, maxY) : maxY);
+    const topTick = yTicks[yTicks.length - 1];
+    const tickLabel = (value: number) =>
+        value === topTick ? format(value) : (tickFormat ?? format)(value);
     const data: ChartProps = {
         chartTitle: title,
         lineChartData: [
             {
                 legend: title,
+                ...(compact ? { lineOptions: { curve: "linear" as const } } : {}),
                 data: points.map((point) => ({
                     x: point.x,
                     y: point.y,
@@ -459,22 +512,138 @@ export const TimeSeriesChart = ({
         ],
     };
     return (
-        <ChartFrame height={chartHeight}>
+        <ChartFrame height={height}>
             {(width) => (
                 <AreaChart
                     data={data}
                     width={width}
-                    height={chartHeight}
+                    height={height}
                     hideLegend
                     mode="tozeroy"
                     yMinValue={0}
-                    yMaxValue={yTicks[yTicks.length - 1]}
+                    yMaxValue={topTick}
                     yAxisTickValues={yTicks}
-                    yAxisTickFormat={format}
-                    margins={{ left: yAxisMargin(yTicks.map(format)) }}
-                    xAxisTickCount={xAxisTickCount(width)}
-                    customDateTimeFormatter={axisDateFormat(points.map((point) => point.x))}
-                    styles={{ xAxis: axisClasses.axis, yAxis: axisClasses.axis }}
+                    yAxisTickFormat={tickLabel}
+                    margins={{
+                        left: yAxisMargin(yTicks.map(tickLabel), compact ? undefined : yAxisTitle),
+                    }}
+                    yAxisTitle={compact ? undefined : yAxisTitle}
+                    {...xAxisProps(
+                        width,
+                        points.map((point) => point.x),
+                        range,
+                    )}
+                    styles={{
+                        xAxis: axisClasses.axis,
+                        yAxis: compact ? axisClasses.axis : axisClasses.yAxis,
+                        axisTitle: axisClasses.title,
+                    }}
+                    culture={navigator.language}
+                />
+            )}
+        </ChartFrame>
+    );
+};
+
+export interface ThresholdChartProps extends TimeSeriesChartProps {
+    /** A value at or above this is critical, in red. Without it, the whole area is blue. */
+    readonly critical?: number;
+}
+
+/**
+ * A value over time as a shaded area: blue for the value, and red over the intervals at or above
+ * the critical value, with a legend that names both, so the color is not the only cue. The y-axis
+ * has round ticks from 0 and room for its labels.
+ */
+export const ThresholdChart = ({
+    title,
+    points,
+    format,
+    yMax,
+    critical,
+    read,
+    message,
+    yAxisTitle,
+    range,
+    compact,
+    tickFormat,
+}: ThresholdChartProps) => {
+    const classes = useStyles();
+    const axisClasses = useAxisStyles();
+    const height = compact ? compactChartHeight : chartHeight;
+    if (message) {
+        return <StatusBar message={message} />;
+    }
+    if (read && isFirstLoad(read)) {
+        return <ChartSkeleton height={height} />;
+    }
+    if (points.length === 0) {
+        return (
+            <Caption1 className={classes.empty}>{loc.performanceDashboard.noChartData}</Caption1>
+        );
+    }
+    const text = loc.performanceDashboard;
+    const maxY = points.reduce((max, point) => Math.max(max, point.y), 0);
+    const yTicks = zeroBasedTicks(Math.max(maxY, yMax ?? 0));
+    const topTick = yTicks[yTicks.length - 1];
+    const tickLabel = (value: number) =>
+        value === topTick ? format(value) : (tickFormat ?? format)(value);
+    const isCritical = (y: number) => critical !== undefined && y >= critical;
+    const hasCritical = points.some((point) => isCritical(point.y));
+    const series = (legend: string, color: string, y: (point: TimeSeriesPoint) => number) => ({
+        legend,
+        color,
+        ...(compact ? { lineOptions: { curve: "linear" as const } } : {}),
+        data: points.map((point) => ({
+            x: point.x,
+            y: y(point),
+            xAxisCalloutData: dateTimeFormat.format(point.x),
+            yAxisCalloutData: format(point.y),
+        })),
+    });
+    const data: ChartProps = {
+        chartTitle: title,
+        lineChartData: [
+            series(title, getColorFromToken(DataVizPalette.color1), (point) => point.y),
+            // Drawn over the value, so a critical interval is red to the value.
+            ...(hasCritical
+                ? [
+                      series(
+                          text.criticalAtOrAbove(format(critical!)),
+                          getColorFromToken(DataVizPalette.error),
+                          (point) => (isCritical(point.y) ? point.y : 0),
+                      ),
+                  ]
+                : []),
+        ],
+    };
+    return (
+        <ChartFrame height={height}>
+            {(width) => (
+                <AreaChart
+                    data={data}
+                    width={width}
+                    height={height}
+                    mode="tozeroy"
+                    hideLegend={!hasCritical}
+                    yMinValue={0}
+                    yMaxValue={topTick}
+                    yAxisTickValues={yTicks}
+                    yAxisTickFormat={tickLabel}
+                    margins={{
+                        left: yAxisMargin(yTicks.map(tickLabel), compact ? undefined : yAxisTitle),
+                    }}
+                    yAxisTitle={compact ? undefined : yAxisTitle}
+                    {...xAxisProps(
+                        width,
+                        points.map((point) => point.x),
+                        range,
+                    )}
+                    styles={{
+                        xAxis: axisClasses.axis,
+                        yAxis: compact ? axisClasses.axis : axisClasses.yAxis,
+                        axisTitle: axisClasses.title,
+                    }}
                     culture={navigator.language}
                 />
             )}

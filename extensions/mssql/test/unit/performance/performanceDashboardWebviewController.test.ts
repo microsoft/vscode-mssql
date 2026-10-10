@@ -498,8 +498,8 @@ suite("PerformanceDashboardWebviewController", () => {
                 selectedMetric: "cpuTime",
                 selectedStatistic: "total",
                 timeInterval: interval,
-                // The dashboard's own reads are left out, so 20 more are read.
-                topQueriesReturned: 30,
+                // By default the dashboard's own reads are shown, so no more are read.
+                topQueriesReturned: 10,
             });
         });
 

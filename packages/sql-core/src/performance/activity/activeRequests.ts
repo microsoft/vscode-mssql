@@ -14,16 +14,9 @@ import {
     errorResult,
     unsupportedResult,
 } from "../result";
-import {
-    SqlReadOptions,
-    SqlReader,
-    SqlRecord,
-    readNumber,
-    readString,
-    toRecords,
-} from "../../common/sqlReader";
+import { SqlReader, SqlRecord, readNumber, readString, toRecords } from "../../common/sqlReader";
 import { BlockingSummary, buildBlockingChains } from "./blockingChains";
-import { ActiveRequest, IdleSession } from "./types";
+import { ActiveRequest, ActivityReadOptions, IdleSession } from "./types";
 
 export interface ActiveActivity {
     readonly requests: readonly ActiveRequest[];
@@ -61,7 +54,7 @@ WHERE ${idleBlockersFilter}${hint};`;
 export async function getActiveRequests(
     reader: SqlReader,
     info: PlatformInfo,
-    options?: SqlReadOptions,
+    options?: ActivityReadOptions,
     now: Date = new Date(),
 ): Promise<PerfResult<ActiveActivity>> {
     const family = activityFamily(info);
@@ -89,7 +82,7 @@ export async function getActiveRequests(
  * Returns the T-SQL that reads the permission, the requests, and the idle blockers on SQL Server,
  * Managed Instance, Azure SQL Database, and SQL database in Fabric. Exported for tests.
  */
-export function buildSqlEngineActivityQuery(info: PlatformInfo): string {
+export function buildSqlEngineActivityQuery(info: PlatformInfo, excludeOwnSession = true): string {
     return `
 ${sessionPreamble(info)}
 SELECT ${viewStatePermissionExpression(info)} AS has_permission;
@@ -119,7 +112,7 @@ SELECT
 FROM sys.dm_exec_requests AS r
 INNER JOIN sys.dm_exec_sessions AS s ON s.session_id = r.session_id
 OUTER APPLY sys.dm_exec_sql_text(r.sql_handle) AS t
-WHERE s.is_user_process = 1 AND r.session_id <> @@SPID${maxDopOneHint(info)};
+WHERE s.is_user_process = 1${excludeOwnSession ? " AND r.session_id <> @@SPID" : ""}${maxDopOneHint(info)};
 ${idleBlockersQuery(maxDopOneHint(info))}
 `;
 }
@@ -180,11 +173,11 @@ async function readSqlEngine(
     reader: SqlReader,
     info: PlatformInfo,
     source: PerfSource,
-    options: SqlReadOptions | undefined,
+    options: ActivityReadOptions | undefined,
     now: Date,
 ): Promise<PerfResult<ActiveActivity>> {
     const [permissionSet, requestSet, idleSet] = await reader.read(
-        buildSqlEngineActivityQuery(info),
+        buildSqlEngineActivityQuery(info, options?.excludeOwnSession !== false),
         options,
     );
     const hasPermission = readNumber(toRecords(permissionSet)[0] ?? {}, "has_permission") === 1;
@@ -217,7 +210,7 @@ async function addIdleStatementText(
     reader: SqlReader,
     info: PlatformInfo,
     idleSessions: IdleSession[],
-    options: SqlReadOptions | undefined,
+    options: ActivityReadOptions | undefined,
 ): Promise<IdleSession[]> {
     const ids = idleSessions.map((session) => sqlIntLiteral(Number(session.sessionId), 1, 32767));
     const [textSet] = await reader.read(
@@ -248,7 +241,7 @@ async function readSynapseDedicated(
     reader: SqlReader,
     info: PlatformInfo,
     source: PerfSource,
-    options: SqlReadOptions | undefined,
+    options: ActivityReadOptions | undefined,
     now: Date,
 ): Promise<PerfResult<ActiveActivity>> {
     const [requestSet, waitSet] = await reader.read(
@@ -264,7 +257,7 @@ SELECT
     resource_class,
     LEFT(COALESCE(command2, command), 4000) AS statement_text
 FROM sys.dm_pdw_exec_requests
-WHERE status NOT IN ('Completed', 'Failed', 'Cancelled') AND session_id <> SESSION_ID();
+WHERE status NOT IN ('Completed', 'Failed', 'Cancelled')${options?.excludeOwnSession !== false ? " AND session_id <> SESSION_ID()" : ""};
 SELECT
     waiting.request_id,
     waiting.object_type,
@@ -327,7 +320,7 @@ async function readFabricOrServerless(
     info: PlatformInfo,
     family: ActivityFamily,
     source: PerfSource,
-    options: SqlReadOptions | undefined,
+    options: ActivityReadOptions | undefined,
     now: Date,
 ): Promise<PerfResult<ActiveActivity>> {
     const requestsQuery = `
@@ -348,8 +341,7 @@ SELECT
     s.host_name,
     s.program_name
 FROM sys.dm_exec_requests AS r
-INNER JOIN sys.dm_exec_sessions AS s ON s.session_id = r.session_id
-WHERE r.session_id <> @@SPID;`;
+INNER JOIN sys.dm_exec_sessions AS s ON s.session_id = r.session_id${options?.excludeOwnSession !== false ? "\nWHERE r.session_id <> @@SPID" : ""};`;
     // Synapse serverless has no lock views, so it has no idle blockers to read.
     const sql =
         family === "fabricWarehouse"

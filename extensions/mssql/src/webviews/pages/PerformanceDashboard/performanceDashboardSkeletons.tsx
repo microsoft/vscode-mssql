@@ -134,23 +134,25 @@ const useStyles = makeStyles({
     number: {
         flex: "0 0 96px",
     },
-    stats: {
+
+    // The title row of a chart card: the headline on the left, the unit on the right.
+    cardHeader: {
         display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "16px",
+        height: "40px",
+        boxSizing: "border-box",
+        padding: "0 16px",
+        borderBottom: lineBorder,
     },
-    stat: {
+    cardHeadline: {
         display: "flex",
-        flexDirection: "column",
+        alignItems: "center",
         gap: "8px",
-        flex: "1 1 0",
-        padding: "14px 16px",
-        borderLeft: lineBorder,
-        "&:first-child": {
-            borderLeft: "none",
-        },
     },
-    chartArea: {
-        borderTop: lineBorder,
-        padding: "12px 16px 8px",
+    cardChart: {
+        padding: "8px 16px 4px 8px",
     },
 });
 
@@ -173,30 +175,22 @@ export const ChartSkeleton = ({ height }: { height: number }) => {
     );
 };
 
-/** A placeholder for a summary panel: labeled values in columns, and a chart below them. */
-export const SummarySkeleton = ({
-    columns = 3,
-    chartHeight,
-}: {
-    columns?: number;
-    chartHeight?: number;
-}) => {
+/** A placeholder for a chart card: the title row, and the chart below it. */
+export const ChartCardSkeleton = ({ chartHeight }: { chartHeight: number }) => {
     const classes = useStyles();
     return (
         <DelayedSkeleton className={classes.frame}>
-            <div className={classes.stats}>
-                {Array.from({ length: columns }, (_, index) => (
-                    <div key={index} className={classes.stat}>
-                        <SkeletonItem style={{ width: 88, height: 10 }} />
-                        <SkeletonItem style={{ width: index === 0 ? 96 : 64, height: 24 }} />
-                    </div>
-                ))}
-            </div>
-            {chartHeight !== undefined && (
-                <div className={classes.chartArea}>
-                    <ChartSkeleton height={chartHeight} />
+            <div className={classes.cardHeader}>
+                <div className={classes.cardHeadline}>
+                    <SkeletonItem style={{ width: 80, height: 12 }} />
+                    <SkeletonItem style={{ width: 40, height: 20 }} />
+                    <SkeletonItem style={{ width: 104, height: 12 }} />
                 </div>
-            )}
+                <SkeletonItem style={{ width: 136, height: 12 }} />
+            </div>
+            <div className={classes.cardChart}>
+                <ChartSkeleton height={chartHeight} />
+            </div>
         </DelayedSkeleton>
     );
 };

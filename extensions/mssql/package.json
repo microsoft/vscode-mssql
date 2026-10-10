@@ -713,7 +713,7 @@
                 },
                 {
                     "command": "mssql.performance.openDashboard",
-                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/) && mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase|disconnectedDockerContainerDatabase)\\b/) && mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled",
                     "group": "3_MSSQL_databaseDiscover@3"
                 },
                 {
@@ -944,12 +944,12 @@
                 },
                 {
                     "command": "mssql.deleteContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer|DockerContainerDatabase)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer|DockerContainerDatabase|disconnectedDockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@2"
                 },
                 {
                     "command": "mssql.startContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase|disconnectedDockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@3"
                 },
                 {
@@ -2125,6 +2125,11 @@
                     "default": true,
                     "description": "%mssql.preview.betaResultsGrid.description%",
                     "scope": "application"
+                },
+                "mssql.performanceDashboard.hideOwnActivity": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.performanceDashboard.hideOwnActivity.description%"
                 },
                 "mssql.useMsalEntraMfaAuth": {
                     "type": "boolean",

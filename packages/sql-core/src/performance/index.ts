@@ -14,5 +14,6 @@ export * from "./queryStoreRun";
 export * from "./queryInsights/topQueries";
 export * from "./automaticTuning";
 export * from "./resourceStats";
+export * from "./storage";
 export * from "./planShape";
 export * from "./ownQueries";

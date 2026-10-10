@@ -90,12 +90,15 @@ import {
     QueryHistoryInterval,
     QueryPlanInfo,
     QueryWindowRequest,
+    ActivityReadOptions,
+    DatabaseStorage,
     ResourceCpuSample,
     SessionSummary,
     WaitSeries,
     WaitSeriesConfig,
     readAutomaticTuning,
     readDatabaseResourceCpu,
+    readDatabaseStorage,
     readServerResourceCpu,
     readSessionSummary,
     runQueryDetails,
@@ -298,7 +301,7 @@ export class PerformanceTarget {
     }
 
     /** Running requests and blocking chains. */
-    activeRequests(options?: SqlReadOptions): Promise<PerformanceResult<ActiveActivity>> {
+    activeRequests(options?: ActivityReadOptions): Promise<PerformanceResult<ActiveActivity>> {
         return this.run("read", (reader, info) => getActiveRequests(reader, info, options));
     }
 
@@ -599,7 +602,7 @@ export class PerformanceTarget {
     }
 
     /** The user sessions of the database, grouped by login, application, and host. */
-    sessionSummary(options?: SqlReadOptions): Promise<PerformanceResult<SessionSummary>> {
+    sessionSummary(options?: ActivityReadOptions): Promise<PerformanceResult<SessionSummary>> {
         return this.run("read", (reader, info) => readSessionSummary(reader, info, options));
     }
 
@@ -608,7 +611,20 @@ export class PerformanceTarget {
         return this.run("read", (reader, info) => readAutomaticTuning(reader, info, options));
     }
 
-    /** CPU percent of the last hour from sys.dm_db_resource_stats. Azure SQL Database only. */
+    /** The data size, the size limit, and the largest tables. The SQL engine platforms. */
+    databaseStorage(
+        top?: number,
+        options?: SqlReadOptions,
+    ): Promise<PerformanceResult<DatabaseStorage>> {
+        return this.run("read", (reader, info) =>
+            readDatabaseStorage(reader, info, { ...options, top }),
+        );
+    }
+
+    /**
+     * CPU and memory percent of the last hour from sys.dm_db_resource_stats. Azure SQL Database and
+     * SQL database in Fabric.
+     */
     databaseResourceCpu(options?: SqlReadOptions): Promise<PerformanceResult<ResourceCpuSample[]>> {
         return this.run("read", (reader, info) => readDatabaseResourceCpu(reader, info, options));
     }

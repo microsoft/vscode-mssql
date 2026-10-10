@@ -25,6 +25,10 @@ import {
     GetQueryStoreAvailabilityRequest,
     GetResourceConsumptionRequest,
     GetTopQueriesRequest,
+    GetTopQueriesDetailedRequest,
+    GetStorageRequest,
+    GetDashboardSettingsRequest,
+    SetDashboardSettingsRequest,
     ApplyQueryStoreSettingsChangeRequest,
     GetQueryStoreSettingsRequest,
     OpenSqlScriptRequest,
@@ -174,18 +178,39 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
             ),
         );
         this.onRequest(GetTopQueriesRequest.type, ({ metric, statistic, top, ...window }) =>
-            this.read(async (target) =>
-                withoutOwnQueries(
-                    await target.topConsumers({
+            this.read((target) =>
+                this.topQueries(top, (topQueriesReturned) =>
+                    target.topConsumers({
                         selectedMetric: metric,
                         selectedStatistic: statistic ?? "total",
                         timeInterval: toWindow(window),
-                        // Room for the dashboard's own reads, which are left out.
-                        topQueriesReturned: top + ownQueryMargin,
+                        topQueriesReturned,
                     }),
-                    top,
                 ),
             ),
+        );
+        this.onRequest(GetTopQueriesDetailedRequest.type, ({ metric, statistic, top, ...window }) =>
+            this.read((target) =>
+                this.topQueries(top, (topQueriesReturned) =>
+                    target.topConsumersDetailed({
+                        selectedMetric: metric,
+                        selectedStatistic: statistic ?? "total",
+                        timeInterval: toWindow(window),
+                        topQueriesReturned,
+                    }),
+                ),
+            ),
+        );
+        this.onRequest(GetDashboardSettingsRequest.type, () => ({
+            hideOwnActivity: hideOwnActivity(),
+        }));
+        this.onRequest(SetDashboardSettingsRequest.type, async ({ hideOwnActivity }) => {
+            await vscode.workspace
+                .getConfiguration()
+                .update(hideOwnActivitySetting, hideOwnActivity, vscode.ConfigurationTarget.Global);
+        });
+        this.onRequest(GetStorageRequest.type, ({ top }) =>
+            this.read((target) => target.databaseStorage(top)),
         );
         this.onRequest(GetMetricSeriesRequest.type, ({ metric, bucketMinutes, ...window }) =>
             this.read((target) =>
@@ -205,10 +230,10 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
                 ),
         );
         this.onRequest(GetSessionSummaryRequest.type, () =>
-            this.read((target) => target.sessionSummary()),
+            this.read((target) => target.sessionSummary({ excludeOwnSession: hideOwnActivity() })),
         );
         this.onRequest(GetActiveRequestsRequest.type, () =>
-            this.read((target) => target.activeRequests()),
+            this.read((target) => target.activeRequests({ excludeOwnSession: hideOwnActivity() })),
         );
         this.onRequest(GetAutomaticTuningRequest.type, () =>
             this.read((target) => target.automaticTuning()),
@@ -286,6 +311,21 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
         );
     }
 
+    /**
+     * Reads the top queries. With the dashboard's own activity hidden, it reads more and leaves
+     * out the dashboard's own queries; by default it shows every query.
+     */
+    private async topQueries(
+        top: number,
+        read: (count: number) => Promise<PerformanceResult<QueryStoreReport>>,
+    ): Promise<PerformanceResult<QueryStoreReport>> {
+        if (!hideOwnActivity()) {
+            return read(top);
+        }
+        // Room for the dashboard's own reads, which are left out.
+        return withoutOwnQueries(await read(top + ownQueryMargin), top);
+    }
+
     /** Runs a read on the dashboard's database, or returns why the database cannot be read. */
     private async read<T>(
         run: (target: PerformanceTarget) => Promise<PerformanceResult<T>>,
@@ -316,8 +356,9 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
     }
 
     /**
-     * The CPU percent of the database from the resource stats: up to 14 days from master, then
-     * the last hour from the database, which has finer samples. Azure SQL Database only.
+     * The CPU and memory percent of the database from the resource stats: on Azure SQL Database,
+     * up to 14 days from master (with the data size), then the last hour from the database, which
+     * has finer samples. SQL database in Fabric has the last hour only.
      */
     private async resourceCpu(
         window: TimeWindowParams,
@@ -330,7 +371,8 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
         const { start, end } = toWindow(window);
         const firstRecent = recent.data?.[0]?.startUtc;
         let older: ResourceCpuSample[] = [];
-        if (!firstRecent || Date.parse(firstRecent) > start.getTime()) {
+        const fromMaster = (await target.platform()).platform === "azureSqlDatabase";
+        if (fromMaster && (!firstRecent || Date.parse(firstRecent) > start.getTime())) {
             const master = await this._host.performanceService.resolveTarget({
                 ...this._target.reference,
                 database: "master",
@@ -481,6 +523,13 @@ function toWindow(window: TimeWindowParams): { start: Date; end: Date } {
 
 /** The number of extra top queries to read, to replace the dashboard's own reads. */
 const ownQueryMargin = 20;
+
+/** The setting that hides the dashboard's own queries and session. Off by default. */
+const hideOwnActivitySetting = "mssql.performanceDashboard.hideOwnActivity";
+
+function hideOwnActivity(): boolean {
+    return vscode.workspace.getConfiguration().get<boolean>(hideOwnActivitySetting, false);
+}
 
 /** The number of plans whose shape is read. */
 const maxPlanShapes = 20;

@@ -3,28 +3,26 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, shorthands } from "@fluentui/react-components";
-import { GetDatabaseFactsRequest } from "../../../sharedInterfaces/performanceDashboard";
+import { makeStyles } from "@fluentui/react-components";
+import {
+    DatabaseFactsResult,
+    GetDatabaseFactsRequest,
+} from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SegmentedControl } from "../../common/segmentedControl";
 import { useExtensionRequest } from "../../common/useExtensionRequest";
-import { PerformanceDashboardAutoIndexView } from "./performanceDashboardAutoIndexView";
-import { PerformanceDashboardBlockedView } from "./performanceDashboardBlockedView";
-import { PerformanceDashboardConnectionsView } from "./performanceDashboardConnectionsView";
-import { PerformanceDashboardCpuView } from "./performanceDashboardCpuView";
-import { PerformanceDashboardMemoryView } from "./performanceDashboardMemoryView";
-import { PerformanceDashboardRequestsView } from "./performanceDashboardRequestsView";
-import { timeSeriesChartHeight } from "./performanceDashboardParts";
+import { chartCardChartHeight } from "./performanceDashboardParts";
+import { QueryListSection } from "./performanceDashboardQueryListSection";
 import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
-import { SummarySkeleton, TableSkeleton, ValueSkeleton } from "./performanceDashboardSkeletons";
 import {
     OverviewSegment,
-    overviewSegmentLabel,
+    SegmentSpec,
     overviewSegmentParameter,
     overviewSegmentsFor,
 } from "./performanceDashboardSegments";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
+import { ChartCardSkeleton, TableSkeleton, ValueSkeleton } from "./performanceDashboardSkeletons";
 
 const useStyles = makeStyles({
     // Grows to the bottom of the page, so the query grid can fill the space left.
@@ -33,7 +31,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
         flex: "1 0 auto",
         alignItems: "stretch",
-        ...shorthands.gap("16px"),
+        gap: "16px",
     },
     segments: {
         alignSelf: "flex-start",
@@ -41,8 +39,8 @@ const useStyles = makeStyles({
 });
 
 /**
- * The overview: a segment picker and the view of the segment. The segments depend on the
- * platform, and the selected one is in the location, for example `overview?metric=memory`.
+ * The overview: a segment picker and the selected segment. The segments depend on the platform,
+ * and the selected one is in the location, for example `overview?metric=memory`.
  */
 export const PerformanceDashboardOverviewPage = () => {
     const classes = useStyles();
@@ -50,31 +48,31 @@ export const PerformanceDashboardOverviewPage = () => {
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const facts = useExtensionRequest(GetDatabaseFactsRequest.type, undefined, databaseName);
 
-    // Until the platform is known, the shape of the overview: segments, summary, and grid.
+    // Until the platform is known, the shape of the overview: segments, chart card, and grid.
+    const requested = match.query[overviewSegmentParameter] as OverviewSegment | undefined;
     if (facts.loading && !facts.result) {
         return (
             <div className={classes.root}>
                 <ValueSkeleton width={420} height={24} />
-                <SummarySkeleton chartHeight={timeSeriesChartHeight} />
+                <ChartCardSkeleton chartHeight={chartCardChartHeight} />
                 <TableSkeleton />
             </div>
         );
     }
-    const segments = overviewSegmentsFor(facts.result?.platform, facts.result?.majorVersion);
-    const requested = match.query[overviewSegmentParameter] as OverviewSegment | undefined;
-    const segment = requested && segments.includes(requested) ? requested : segments[0];
+    const specs = overviewSegmentsFor(facts.result);
+    const spec = specs.find((candidate) => candidate.id === requested) ?? specs[0];
 
     return (
         <div className={classes.root}>
-            {segments.length > 1 && (
+            {specs.length > 1 && (
                 <SegmentedControl<OverviewSegment>
                     className={classes.segments}
                     size="small"
                     ariaLabel={loc.performanceDashboard.metric}
-                    value={segment}
-                    options={segments.map((value) => ({
-                        value,
-                        label: overviewSegmentLabel(value),
+                    value={spec.id}
+                    options={specs.map((candidate) => ({
+                        value: candidate.id,
+                        label: candidate.label(),
                     }))}
                     onValueChange={(value) =>
                         navigate(
@@ -84,19 +82,35 @@ export const PerformanceDashboardOverviewPage = () => {
                                 {
                                     ...match.query,
                                     [overviewSegmentParameter]:
-                                        value === segments[0] ? undefined : value,
+                                        value === specs[0].id ? undefined : value,
                                 },
                             ),
                         )
                     }
                 />
             )}
-            {segment === "cpu" && <PerformanceDashboardCpuView />}
-            {segment === "memory" && <PerformanceDashboardMemoryView />}
-            {segment === "connections" && <PerformanceDashboardConnectionsView />}
-            {segment === "requests" && <PerformanceDashboardRequestsView />}
-            {segment === "blocked" && <PerformanceDashboardBlockedView />}
-            {segment === "autoIndex" && <PerformanceDashboardAutoIndexView />}
+            {spec && <SegmentView key={spec.id} spec={spec} facts={facts.result} />}
         </div>
+    );
+};
+
+/** A segment: its own view, or its panel and its top queries. */
+const SegmentView = ({
+    spec,
+    facts,
+}: {
+    spec: SegmentSpec;
+    facts: DatabaseFactsResult | undefined;
+}) => {
+    if (spec.view) {
+        const View = spec.view;
+        return <View facts={facts} />;
+    }
+    const Panel = spec.panel?.(facts);
+    return (
+        <>
+            {Panel && <Panel facts={facts} />}
+            {spec.queryList && <QueryListSection spec={spec.queryList} />}
+        </>
     );
 };

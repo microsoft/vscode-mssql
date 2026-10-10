@@ -4955,34 +4955,39 @@
     "Longest running": "Longest running",
     "Most frequent": "Most frequent",
     "High reads": "High reads",
+    "High memory": "High memory",
+    "High memory queries": "High memory queries",
     "duration (ms)": "duration (ms)",
-    "logical reads (KB)": "logical reads (KB)",
     "logical reads (pages)": "logical reads (pages)",
-    "of the DTU limit": "of the DTU limit",
-    "From the resource stats of the database, like the Azure portal: the average CPU percent of the DTU limit. The changes compare each period with the period before it.": "From the resource stats of the database, like the Azure portal: the average CPU percent of the DTU limit. The changes compare each period with the period before it.",
     "Average memory grant per execution": "Average memory grant per execution",
-    "From Query Store: the memory that queries were granted. The changes compare the average grant with the period before.": "From Query Store: the memory that queries were granted. The changes compare the average grant with the period before.",
     "Peak memory grant": "Peak memory grant",
     "Peak memory grant (MB)": "Peak memory grant (MB)",
-    "Max memory grant": "Max memory grant",
-    "High memory grant queries": "High memory grant queries",
-    "Average requests per 15 minutes": "Average requests per 15 minutes",
-    "From Query Store: the executions of the queries that it captured. The changes compare each period with the period before it.": "From Query Store: the executions of the queries that it captured. The changes compare each period with the period before it.",
+    "Peak memory grant per {0}/{0} is the length of a chart interval, for example hour": {
+        "message": "Peak memory grant per {0}",
+        "comment": ["{0} is the length of a chart interval, for example hour"]
+    },
+    "Average requests per {0}/{0} is the length of a chart interval, for example hour": {
+        "message": "Average requests per {0}",
+        "comment": ["{0} is the length of a chart interval, for example hour"]
+    },
+    "Requests per {0}/{0} is the length of a chart interval, for example hour": {
+        "message": "Requests per {0}",
+        "comment": ["{0} is the length of a chart interval, for example hour"]
+    },
+    "Lock wait seconds per {0}/{0} is the length of a chart interval, for example hour": {
+        "message": "Lock wait seconds per {0}",
+        "comment": ["{0} is the length of a chart interval, for example hour"]
+    },
+    "Index actions per {0}/{0} is the length of a chart interval, for example hour": {
+        "message": "Index actions per {0}",
+        "comment": ["{0} is the length of a chart interval, for example hour"]
+    },
     "Total requests": "Total requests",
-    "Requests per {0} minutes/{0} is a number of minutes, for example 15": {
-        "message": "Requests per {0} minutes",
-        "comment": ["{0} is a number of minutes, for example 15"]
-    },
-    "Query Store records statistics every {0} minutes, so the chart shows {0}-minute buckets./{0} is a number of minutes, for example 60": {
-        "message": "Query Store records statistics every {0} minutes, so the chart shows {0}-minute buckets.",
-        "comment": ["{0} is a number of minutes, for example 60"]
-    },
     "Most frequent queries": "Most frequent queries",
     "Longest running queries": "Longest running queries",
     "High read queries": "High read queries",
     "User sessions now": "User sessions now",
     "User sessions": "User sessions",
-    "The database keeps no history of sessions, so the chart shows the counts sampled every 15 seconds while this tab is open.": "The database keeps no history of sessions, so the chart shows the counts sampled every 15 seconds while this tab is open.",
     "Sessions by client": "Sessions by client",
     "Observed {0}/{0} is a time, for example 10:52 AM": {
         "message": "Observed {0}",
@@ -4990,17 +4995,13 @@
     },
     "No user sessions.": "No user sessions.",
     "Login": "Login",
-    "Application": "Application",
     "Host": "Host",
     "Sessions": "Sessions",
-    "Open transactions": "Open transactions",
     "You see only your own session. Seeing all sessions needs VIEW SERVER STATE (SQL Server and Managed Instance) or VIEW DATABASE STATE (Azure SQL Database).": "You see only your own session. Seeing all sessions needs VIEW SERVER STATE (SQL Server and Managed Instance) or VIEW DATABASE STATE (Azure SQL Database).",
     "You see only your own requests. Seeing all requests needs VIEW SERVER STATE (SQL Server and Managed Instance) or VIEW DATABASE STATE (Azure SQL Database).": "You see only your own requests. Seeing all requests needs VIEW SERVER STATE (SQL Server and Managed Instance) or VIEW DATABASE STATE (Azure SQL Database).",
     "Blocked requests now": "Blocked requests now",
     "Head blockers": "Head blockers",
     "Lock wait in range": "Lock wait in range",
-    "Lock wait over last 24 hours": "Lock wait over last 24 hours",
-    "Lock wait over last 7 days": "Lock wait over last 7 days",
     "Lock wait time": "Lock wait time",
     "Blocking chain": "Blocking chain",
     "Observed {0} · {1} sessions/{0} is a time, for example 10:52 AM{1} is a number of sessions": {
@@ -5017,24 +5018,12 @@
         "message": "Blocked by owners that are not sessions: {0}",
         "comment": ["{0} is a list of session IDs with blocker codes"]
     },
-    "Automatic tuning options": "Automatic tuning options",
     "Option": "Option",
-    "Desired": "Desired",
     "Actual": "Actual",
     "Reason": "Reason",
     "Recommendations": "Recommendations",
-    "No recommendations.": "No recommendations.",
-    "State": "State",
-    "Valid since": "Valid since",
-    "Applied by": "Applied by",
-    "Open script": "Open script",
     "Create index": "Create index",
     "Drop index": "Drop index",
-    "Force last good plan": "Force last good plan",
-    "Plan {0} → {1}/{0} is the regressed plan ID{1} is the recommended plan ID": {
-        "message": "Plan {0} → {1}",
-        "comment": ["{0} is the regressed plan ID", "{1} is the recommended plan ID"]
-    },
     "Automatic tuning checks each change for 30 minutes to 72 hours and reverts a change that makes performance worse. A recommendation that you apply with T-SQL is not checked or reverted.": "Automatic tuning checks each change for 30 minutes to 72 hours and reverts a change that makes performance worse. A recommendation that you apply with T-SQL is not checked or reverted.",
     "Query category": "Query category",
     "Rank by": "Rank by",
@@ -5118,6 +5107,7 @@
     "Dispatcher": "Dispatcher",
     "Variant": "Variant",
     "Parallel": "Parallel",
+    "Compiled once": "Compiled once",
     "Compiled {0} times/{0} is a number of compilations": {
         "message": "Compiled {0} times",
         "comment": ["{0} is a number of compilations"]
@@ -5132,8 +5122,11 @@
         "message": "Compare with plan {0}",
         "comment": ["{0} is the Query Store plan ID"]
     },
-    "Open plan": "Open plan",
     "Open plan XML": "Open plan XML",
+    "Actions for plan {0}/{0} is the Query Store plan ID": {
+        "message": "Actions for plan {0}",
+        "comment": ["{0} is the Query Store plan ID"]
+    },
     "Open plan {0} in the execution plan viewer/{0} is the Query Store plan ID": {
         "message": "Open plan {0} in the execution plan viewer",
         "comment": ["{0} is the Query Store plan ID"]
@@ -5209,6 +5202,9 @@
         "comment": ["{0} is a time, for example 3:02 AM"]
     },
     "Query Store": "Query Store",
+    "Dashboard": "Dashboard",
+    "Hide this dashboard's queries and connections": "Hide this dashboard's queries and connections",
+    "Leaves out the queries and the session that this dashboard runs from its query lists, connections, and requests. Off shows everything.": "Leaves out the queries and the session that this dashboard runs from its query lists, connections, and requests. Off shows everything.",
     "Collecting": "Collecting",
     "Read-only": "Read-only",
     "Capturing secondary replicas": "Capturing secondary replicas",
@@ -5234,10 +5230,6 @@
     "On": "On",
     "Auto": "Auto",
     "Custom": "Custom",
-    "{0} days/{0} is a number of days": {
-        "message": "{0} days",
-        "comment": ["{0} is a number of days"]
-    },
     "{0} min/{0} is a number of minutes": {
         "message": "{0} min",
         "comment": ["{0} is a number of minutes"]
@@ -5351,41 +5343,80 @@
         "comment": ["{0} is the number of virtual cores"]
     },
     "CPU": "CPU",
-    "CPU use": "CPU use",
     "Average CPU": "Average CPU",
     "of {0}/{0} is the CPU size, for example 8 vCores": {
         "message": "of {0}",
         "comment": ["{0} is the CPU size, for example 8 vCores"]
     },
     "Average busy cores": "Average busy cores",
-    "Over last 24 hours": "Over last 24 hours",
-    "Over last 7 days": "Over last 7 days",
     "N/A": "N/A",
-    "Up {0}/{0} is a percentage, for example 3.9%": {
-        "message": "Up {0}",
-        "comment": ["{0} is a percentage, for example 3.9%"]
-    },
-    "Down {0}/{0} is a percentage, for example 3.9%": {
-        "message": "Down {0}",
-        "comment": ["{0} is a percentage, for example 3.9%"]
-    },
-    "Estimated from Query Store: the CPU time of the queries that Query Store captured, divided by the elapsed time and {0}. The changes compare each period with the period before it./{0} is the CPU size, for example 8 vCores": {
-        "message": "Estimated from Query Store: the CPU time of the queries that Query Store captured, divided by the elapsed time and {0}. The changes compare each period with the period before it.",
-        "comment": ["{0} is the CPU size, for example 8 vCores"]
-    },
-    "Estimated from Query Store: the CPU time of the queries that Query Store captured, divided by the elapsed time. The changes compare each period with the period before it.": "Estimated from Query Store: the CPU time of the queries that Query Store captured, divided by the elapsed time. The changes compare each period with the period before it.",
     "High CPU usage queries": "High CPU usage queries",
     "Query ID": "Query ID",
     "Top queries by CPU": "Top queries by CPU",
+    "Top queries by memory": "Top queries by memory",
+    "More queries": "More queries",
+    "CPU consumption": "CPU consumption",
+    "Memory consumption": "Memory consumption",
+    "Avg/Short for average, before a metric": {
+        "message": "Avg",
+        "comment": ["Short for average, before a metric"]
+    },
+    "CPU/A metric after a statistic, for example Total CPU": {
+        "message": "CPU",
+        "comment": ["A metric after a statistic, for example Total CPU"]
+    },
+    "memory/A metric after a statistic, for example Total memory": {
+        "message": "memory",
+        "comment": ["A metric after a statistic, for example Total memory"]
+    },
+    "spill/The tempdb space of a query, after a statistic, for example Total spill": {
+        "message": "spill",
+        "comment": ["The tempdb space of a query, after a statistic, for example Total spill"]
+    },
+    "reads/Logical reads, after a statistic, for example Total reads": {
+        "message": "reads",
+        "comment": ["Logical reads, after a statistic, for example Total reads"]
+    },
+    "Used size": "Used size",
+    "Program name": "Program name",
+    "Host name": "Host name",
+    "Login name": "Login name",
+    "Client interface name": "Client interface name",
+    "Critical (≥ {0})/{0} is the threshold, for example 80%": {
+        "message": "Critical (≥ {0})",
+        "comment": ["{0} is the threshold, for example 80%"]
+    },
+    "CPU seconds used by captured queries": "CPU seconds used by captured queries",
+    "CPU seconds": "CPU seconds",
+    "CPU seconds per {0}/{0} is the length of a chart interval, for example 1 hr": {
+        "message": "CPU seconds per {0}",
+        "comment": ["{0} is the length of a chart interval, for example 1 hr"]
+    },
+    "Average memory": "Average memory",
+    "Allocated size": "Allocated size",
+    "Data size": "Data size",
+    "Largest tables": "Largest tables",
+    "The database has no user tables.": "The database has no user tables.",
+    "Schema name": "Schema name",
+    "Index name": "Index name",
+    "Key columns": "Key columns",
+    "Last action": "Last action",
+    "Index recommendations": "Index recommendations",
+    "Index actions in range": "Index actions in range",
+    "Automatic index actions": "Automatic index actions",
+    "The state of the recommendation: Active, Verifying, Success, Reverted, or Expired.": "The state of the recommendation: Active, Verifying, Success, Reverted, or Expired.",
+    "The key columns of the index, in order.": "The key columns of the index, in order.",
+    "When automatic tuning last applied or reverted the recommendation, or else last refreshed it.": "When automatic tuning last applied or reverted the recommendation, or else last refreshed it.",
+    "Created": "Created",
+    "Dropped": "Dropped",
+    "Reverted": "Reverted",
     "1 query": "1 query",
     "{0} queries/{0} is the number of queries": {
         "message": "{0} queries",
         "comment": ["{0} is the number of queries"]
     },
-    "View all queries": "View all queries",
     "Total CPU (ms)": "Total CPU (ms)",
     "CPU time": "CPU time",
-    "CPU / execution": "CPU / execution",
     "{0} of the total of all queries, {1}/{0} is a percentage, for example 91.3%{1} is the exact value, for example 34,630 ms": {
         "message": "{0} of the total of all queries, {1}",
         "comment": [

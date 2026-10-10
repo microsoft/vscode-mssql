@@ -117,6 +117,7 @@ const useStyles = makeStyles({
     numeric: {
         justifyContent: "flex-end",
         textAlign: "right",
+        fontFamily: tokens.fontFamilyMonospace,
         fontVariantNumeric: "tabular-nums",
     },
     queryText: {
@@ -187,7 +188,7 @@ export interface PerformanceDashboardQueryGridProps {
     readonly columns: readonly QueryGridColumn[];
     readonly ariaLabel: string;
     readonly favorites?: QueryGridFavorites;
-    /** The rows that the grid shows at least, before it scrolls. Default 10. */
+    /** The rows that the grid shows at least, before the page scrolls instead. Default 5. */
     readonly visibleRows?: number;
     /** Query values to keep on the query page link, such as the time range. */
     readonly linkQuery?: Readonly<Record<string, string>>;
@@ -203,7 +204,7 @@ export const PerformanceDashboardQueryGrid = ({
     columns,
     ariaLabel,
     favorites,
-    visibleRows = 10,
+    visibleRows = 5,
     linkQuery,
 }: PerformanceDashboardQueryGridProps) => {
     const classes = useStyles();
@@ -340,8 +341,9 @@ export const PerformanceDashboardQueryGrid = ({
     }, [columns, classes]);
     const numericIds = useMemo(() => new Set(columns.map((column) => column.id)), [columns]);
 
-    // The grid shows at least the visible rows, so the page scrolls rather than the grid. With
-    // more space below, the body fills it, but it is never taller than its rows.
+    // The grid fills the space left below its siblings, and the rows scroll under the header. On
+    // a short page, it keeps room for the visible rows, and the page scrolls. It is never taller
+    // than its rows.
     const slot = useRef<HTMLDivElement>(null);
     const slotHeight = useElementHeight(slot);
     const rowsHeight = Math.max(1, rows.length) * rowHeight;
@@ -496,12 +498,7 @@ export const PerformanceDashboardQueryList = ({
         return <StatusBar message={message} />;
     }
     if (isFirstLoad(read) || pending) {
-        return (
-            <TableSkeleton
-                rows={Math.min(grid.visibleRows ?? 10, 10)}
-                numberColumns={grid.columns.length}
-            />
-        );
+        return <TableSkeleton rows={10} numberColumns={grid.columns.length} />;
     }
     if (grid.rows.length === 0) {
         return (

@@ -11,7 +11,12 @@ import { ConnectionProfile } from "../../models/connectionProfile";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as ConnInfo from "../../models/connectionInfo";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
-import { disconnectedDockerContainer, dockerContainer } from "../../constants/constants";
+import {
+    disconnectedDockerContainer,
+    disconnectedDockerContainerDatabase,
+    dockerContainer,
+    dockerContainerDatabase,
+} from "../../constants/constants";
 import { IConnectionProfile } from "../../models/interfaces";
 import * as Constants from "../../constants/constants";
 import { getDefaultConnection } from "../../models/connectionInfo";
@@ -32,7 +37,13 @@ const createDisconnectedNodeContextValue = (
     connectionProfile: ConnectionProfile,
 ): vscodeMssql.TreeNodeContextValue => {
     let nodeSubType = connectionProfile.database ? DATABASE_SUBTYPE : undefined;
-    if (connectionProfile.containerName) nodeSubType = disconnectedDockerContainer;
+    // A container connection with a database keeps the database in its subtype, so the database
+    // commands of the context menu show before it connects too.
+    if (connectionProfile.containerName) {
+        nodeSubType = connectionProfile.database
+            ? disconnectedDockerContainerDatabase
+            : disconnectedDockerContainer;
+    }
     return {
         type: SERVER_NODE_DISCONNECTED,
         filterable: false,
@@ -45,8 +56,10 @@ const createConnectedNodeContextValue = (
     connectionProfile: ConnectionProfile,
 ): vscodeMssql.TreeNodeContextValue => {
     let nodeSubType = connectionProfile.database ? DATABASE_SUBTYPE : undefined;
+    // A container connection with a database keeps the database in its subtype, which the
+    // database commands of the context menu look for.
     if (connectionProfile.containerName) {
-        nodeSubType = dockerContainer;
+        nodeSubType = connectionProfile.database ? dockerContainerDatabase : dockerContainer;
     }
     return {
         type: SERVER_NODE_CONNECTED,
@@ -324,7 +337,9 @@ export class ConnectionNode extends TreeNodeInfo {
         if (this.nodeType === SERVER_NODE_DISCONNECTED) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DOCKER_SERVER_DISCONNECTED);
             this.context = createDisconnectedNodeContextValue(this.connectionProfile);
-            this.nodeSubType = disconnectedDockerContainer;
+            this.nodeSubType = this.connectionProfile.database
+                ? disconnectedDockerContainerDatabase
+                : disconnectedDockerContainer;
         } else if (this.nodeType === SERVER_NODE_CONNECTED) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DOCKER_SERVER_CONNECTED);
             this.context = createConnectedNodeContextValue(this.connectionProfile);

@@ -135,8 +135,9 @@ export function databaseFactsItems(result: DatabaseFactsResult | undefined): Dat
         return [];
     }
     const count = new Intl.NumberFormat();
-    // SQL Server's edition is part of its version. A cloud edition is a tier; Synapse's is
-    // always "DataWarehouse", so it is left out.
+    // SQL Server's edition is part of its version. A cloud edition is a tier. Synapse's is
+    // always "DataWarehouse", and Fabric's "FabricSQLDB" only repeats the version, so they are
+    // left out.
     const boxEdition =
         result?.platform === "sqlServer" && facts?.edition
             ? shortEditionLabel(facts.edition)
@@ -145,13 +146,17 @@ export function databaseFactsItems(result: DatabaseFactsResult | undefined): Dat
         result?.platform !== "sqlServer" &&
         result?.platform !== "azureSqlManagedInstance" &&
         result?.platform !== "synapseDedicated" &&
+        result?.platform !== "fabricSqlDatabase" &&
         facts?.edition
             ? editionLabel(facts.edition)
             : undefined;
-    // A DTU or Synapse objective, such as "S2" or "DW100c". The Basic tier's objective repeats it.
+    // A DTU or Synapse objective, such as "S2" or "DW100c". An objective that repeats the edition,
+    // such as Basic or Fabric's FabricSQLDB, is left out.
     const objective =
         facts?.serviceObjective &&
+        result?.platform !== "fabricSqlDatabase" &&
         !/^(GP|BC|HS)_/i.test(facts.serviceObjective) &&
+        facts.serviceObjective !== facts.edition &&
         facts.serviceObjective !== tier
             ? facts.serviceObjective
             : undefined;

@@ -20,7 +20,7 @@ import {
     shorthands,
     tokens,
 } from "@fluentui/react-components";
-import { Open12Regular, Warning16Regular } from "@fluentui/react-icons";
+import { MoreHorizontal16Regular, Open12Regular, Warning16Regular } from "@fluentui/react-icons";
 import { useState } from "react";
 import type {
     ForcedPlanVerification,
@@ -58,6 +58,7 @@ import { useRefresh } from "./performanceDashboardRefresh";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 import { SimpleGrid } from "./performanceDashboardSimpleGrid";
 import { ChartSkeleton, TableSkeleton } from "./performanceDashboardSkeletons";
+import { metrics } from "./performanceDashboardMetrics";
 import { readStatusMessage } from "./performanceDashboardStatus";
 import { useViewTimeRange } from "./performanceDashboardTimeRange";
 
@@ -66,6 +67,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         ...shorthands.gap("12px"),
+        flex: "1 0 auto",
     },
     plan: {
         display: "flex",
@@ -167,15 +169,17 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
     >();
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const { refreshKey, refresh } = useRefresh();
-    const { window } = useViewTimeRange();
+    const { window, range } = useViewTimeRange();
     const [selection, setSelection] = useState<readonly string[] | undefined>(undefined);
     const [change, setChange] = useState<ChangeStage>({ stage: "idle" });
     const [busy, setBusy] = useState(false);
     const [applyError, setApplyError] = useState<string | undefined>(undefined);
     const [notice, setNotice] = useState<Notice | undefined>(undefined);
     const [verification, setVerification] = useState<ForcedPlanVerification | undefined>(undefined);
+    // The menu of a row: at the pointer for a right-click, or under the row's actions button.
     const [contextMenu, setContextMenu] = useState<
-        { readonly planId: string; readonly target: PositioningVirtualElement } | undefined
+        | { readonly planId: string; readonly target: PositioningVirtualElement | HTMLElement }
+        | undefined
     >(undefined);
 
     const plansRead = useExtensionRequest(GetQueryPlansRequest.type, { queryId, ...window }, [
@@ -229,9 +233,6 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                 ? [...selected.filter((id) => id !== planId), planId].slice(-2)
                 : selected.filter((id) => id !== planId),
         );
-    const single =
-        selected.length === 1 ? plans.find((plan) => plan.planId === selected[0]) : undefined;
-
     const run = async (work: () => Promise<void>) => {
         setBusy(true);
         setNotice(undefined);
@@ -370,11 +371,13 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                             planIds={planIds}
                             colorOf={colorOf}
                             format={formatNumber}
+                            range={range}
                         />
                     }
                 />
             )}
             <SimpleGrid<QueryPlanInfo>
+                fill
                 items={plans}
                 getRowId={(plan) => plan.planId}
                 ariaLabel={text.plans}
@@ -418,18 +421,6 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                         <div className={classes.actions}>
                             <Button
                                 size="small"
-                                disabled={busy || selected.length === 0}
-                                onClick={() => void openPlans(selected)}>
-                                {text.openPlanXml}
-                            </Button>
-                            <Button
-                                size="small"
-                                disabled={busy || !single || change.stage === "review"}
-                                onClick={() => single && void prepareForce(single)}>
-                                {single?.isForced ? text.unforcePlan : text.forcePlan}
-                            </Button>
-                            <Button
-                                size="small"
                                 appearance="primary"
                                 disabled={busy || selected.length !== 2}
                                 onClick={() => void comparePlans(selected[0], selected[1])}>
@@ -442,8 +433,8 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                     {
                         id: "select",
                         header: "",
-                        minWidth: 32,
-                        idealWidth: 32,
+                        control: true,
+                        idealWidth: 40,
                         render: (plan) => (
                             <Checkbox
                                 aria-label={text.selectPlan(plan.planId)}
@@ -455,8 +446,7 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                     {
                         id: "plan",
                         header: text.plan,
-                        minWidth: 70,
-                        idealWidth: 80,
+                        idealWidth: 96,
                         compare: (left, right) => Number(left.planId) - Number(right.planId),
                         render: (plan) => (
                             <span className={classes.plan}>
@@ -478,8 +468,9 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                     {
                         id: "shape",
                         header: text.shape,
+                        grow: true,
                         minWidth: 240,
-                        idealWidth: 460,
+                        idealWidth: 360,
                         render: (plan) => (
                             <PlanShapeCell
                                 plan={plan}
@@ -492,7 +483,7 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                         id: "runs",
                         header: text.runs,
                         numeric: true,
-                        idealWidth: 100,
+                        idealWidth: 96,
                         compare: (left, right) => left.executionCount - right.executionCount,
                         render: (plan) => formatNumber(plan.executionCount),
                     },
@@ -500,31 +491,61 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                         id: "mean",
                         header: text.mean,
                         numeric: true,
-                        idealWidth: 110,
+                        idealWidth: 120,
                         compare: (left, right) =>
                             (left.avgDurationMs ?? -1) - (right.avgDurationMs ?? -1),
                         render: (plan) =>
-                            plan.avgDurationMs !== undefined
-                                ? text.milliseconds(formatNumber(plan.avgDurationMs))
-                                : "—",
+                            plan.avgDurationMs !== undefined ? (
+                                <span title={metrics.duration.exact(plan.avgDurationMs)}>
+                                    {metrics.duration.display(plan.avgDurationMs)}
+                                </span>
+                            ) : (
+                                "—"
+                            ),
                     },
                     {
                         id: "force",
                         header: text.force,
-                        idealWidth: 200,
+                        idealWidth: 180,
                         render: (plan) => <ForceCell plan={plan} />,
+                    },
+                    {
+                        id: "actions",
+                        header: "",
+                        control: true,
+                        idealWidth: 40,
+                        render: (plan) => (
+                            <Button
+                                appearance="subtle"
+                                size="small"
+                                icon={<MoreHorizontal16Regular />}
+                                aria-label={text.planActions(plan.planId)}
+                                title={text.planActions(plan.planId)}
+                                aria-haspopup="menu"
+                                onClick={(event) =>
+                                    setContextMenu({
+                                        planId: plan.planId,
+                                        target: event.currentTarget,
+                                    })
+                                }
+                            />
+                        ),
                     },
                 ]}
             />
             {contextMenuPlan && (
                 <Menu
                     open
-                    positioning={{ target: contextMenu?.target, position: "below", align: "start" }}
+                    positioning={{
+                        target: contextMenu?.target,
+                        position: "below",
+                        align: contextMenu?.target instanceof HTMLElement ? "end" : "start",
+                    }}
                     onOpenChange={(_event, data) => !data.open && setContextMenu(undefined)}>
                     <MenuPopover>
                         <MenuList>
                             <MenuItem onClick={() => void openPlans([contextMenuPlan.planId])}>
-                                {text.openPlanAction}
+                                {text.openPlanXml}
                             </MenuItem>
                             {compareTarget && (
                                 <MenuItem
@@ -596,9 +617,11 @@ const PlanShapeCell = ({
     const details = [
         plan.planType?.toLowerCase() === "compiled plan" ? undefined : planTypeText(plan.planType),
         shape?.parallel || plan.isParallel ? text.parallel : undefined,
-        plan.countCompiles !== undefined
-            ? text.compiledTimes(formatNumber(plan.countCompiles))
-            : undefined,
+        plan.countCompiles === undefined
+            ? undefined
+            : plan.countCompiles === 1
+              ? text.compiledOnce
+              : text.compiledTimes(formatNumber(plan.countCompiles)),
     ].filter(Boolean);
     const summary = shape?.summary || (loading ? text.loadingShape : text.shapeNotAvailable);
     return (

@@ -14,10 +14,10 @@ import { useNavigation } from "../../common/navigation/navigationProvider";
 import { dateTimeFormat } from "./performanceDashboardFormat";
 import {
     ChartFrame,
+    ChartRange,
     InlineSelect,
-    axisDateFormat,
     useAxisStyles,
-    xAxisTickCount,
+    xAxisProps,
     yAxisMargin,
     zeroBasedTicks,
 } from "./performanceDashboardParts";
@@ -171,6 +171,8 @@ export interface PlanSummaryChartProps {
     readonly planIds: readonly string[];
     readonly colorOf: (planId: string) => string;
     readonly format: (value: number) => string;
+    /** The time range of the view, which the x-axis spans. */
+    readonly range?: ChartRange;
 }
 
 /**
@@ -184,6 +186,7 @@ export const PlanSummaryChart = ({
     planIds,
     colorOf,
     format,
+    range,
 }: PlanSummaryChartProps) => {
     const classes = useStyles();
     const axisClasses = useAxisStyles();
@@ -237,10 +240,18 @@ export const PlanSummaryChart = ({
                     yMaxValue={ticks[ticks.length - 1]}
                     yAxisTickValues={ticks}
                     yAxisTickFormat={format}
-                    margins={{ left: yAxisMargin(ticks.map(format)) }}
-                    xAxisTickCount={xAxisTickCount(width)}
-                    customDateTimeFormatter={axisDateFormat(allPoints.map((point) => point.x))}
-                    styles={{ xAxis: axisClasses.axis, yAxis: axisClasses.axis }}
+                    margins={{ left: yAxisMargin(ticks.map(format), historyTitle(metric, view)) }}
+                    yAxisTitle={historyTitle(metric, view)}
+                    {...xAxisProps(
+                        width,
+                        allPoints.map((point) => point.x),
+                        range,
+                    )}
+                    styles={{
+                        xAxis: axisClasses.axis,
+                        yAxis: axisClasses.yAxis,
+                        axisTitle: axisClasses.title,
+                    }}
                     culture={navigator.language}
                 />
             )}

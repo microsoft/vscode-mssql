@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, tokens } from "@fluentui/react-components";
+import { makeStyles, mergeClasses, tokens } from "@fluentui/react-components";
 import { GetDatabaseFactsRequest } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useExtensionRequest } from "../../common/useExtensionRequest";
@@ -43,6 +43,10 @@ const useStyles = makeStyles({
         overflowX: "hidden",
         textOverflow: "ellipsis",
     },
+    // A long server name, such as a Fabric one, is cut; the tooltip has it whole.
+    server: {
+        maxWidth: "36ch",
+    },
     failed: {
         color: tokens.colorPaletteRedForeground1,
         overflowX: "hidden",
@@ -76,7 +80,14 @@ export const PerformanceDashboardConnectionSummary = () => {
             {items.map((item) => (
                 <span key={item.label} className={classes.item}>
                     <span className={classes.label}>{item.label}</span>
-                    <span className={classes.value}>{item.value}</span>
+                    <span
+                        className={mergeClasses(
+                            classes.value,
+                            item.label === text.serverLabel && classes.server,
+                        )}
+                        title={item.value}>
+                        {item.value}
+                    </span>
                 </span>
             ))}
             {failed && <span className={classes.failed}>{failed}</span>}

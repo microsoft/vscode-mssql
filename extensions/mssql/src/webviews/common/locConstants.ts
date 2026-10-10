@@ -3698,48 +3698,50 @@ export class LocConstants {
             longestRunning: l10n.t("Longest running"),
             mostFrequent: l10n.t("Most frequent"),
             highReads: l10n.t("High reads"),
+            highMemory: l10n.t("High memory"),
+            highMemoryQueries: l10n.t("High memory queries"),
             durationMs: l10n.t("duration (ms)"),
-            logicalReadsKb: l10n.t("logical reads (KB)"),
             logicalReadsPages: l10n.t("logical reads (pages)"),
-            ofDtuLimit: l10n.t("of the DTU limit"),
-            cpuFromResourceStats: l10n.t(
-                "From the resource stats of the database, like the Azure portal: the average CPU percent of the DTU limit. The changes compare each period with the period before it.",
-            ),
             averageMemoryGrant: l10n.t("Average memory grant per execution"),
-            memoryGrantInfo: l10n.t(
-                "From Query Store: the memory that queries were granted. The changes compare the average grant with the period before.",
-            ),
             peakMemoryGrant: l10n.t("Peak memory grant"),
             peakMemoryGrantMb: l10n.t("Peak memory grant (MB)"),
-            maxMemoryGrant: l10n.t("Max memory grant"),
-            highMemoryGrantQueries: l10n.t("High memory grant queries"),
-            averageRequestsPer15Minutes: l10n.t("Average requests per 15 minutes"),
-            requestsInfo: l10n.t(
-                "From Query Store: the executions of the queries that it captured. The changes compare each period with the period before it.",
-            ),
+            peakMemoryGrantPerInterval: (interval: string) =>
+                l10n.t({
+                    message: "Peak memory grant per {0}",
+                    args: [interval],
+                    comment: ["{0} is the length of a chart interval, for example hour"],
+                }),
+            averageRequestsPerInterval: (interval: string) =>
+                l10n.t({
+                    message: "Average requests per {0}",
+                    args: [interval],
+                    comment: ["{0} is the length of a chart interval, for example hour"],
+                }),
+            requestsPerInterval: (interval: string) =>
+                l10n.t({
+                    message: "Requests per {0}",
+                    args: [interval],
+                    comment: ["{0} is the length of a chart interval, for example hour"],
+                }),
+            lockWaitSecondsPerInterval: (interval: string) =>
+                l10n.t({
+                    message: "Lock wait seconds per {0}",
+                    args: [interval],
+                    comment: ["{0} is the length of a chart interval, for example hour"],
+                }),
+            indexActionsPerInterval: (interval: string) =>
+                l10n.t({
+                    message: "Index actions per {0}",
+                    args: [interval],
+                    comment: ["{0} is the length of a chart interval, for example hour"],
+                }),
             totalRequests: l10n.t("Total requests"),
-            requestsPerMinutes: (minutes: string) =>
-                l10n.t({
-                    message: "Requests per {0} minutes",
-                    args: [minutes],
-                    comment: ["{0} is a number of minutes, for example 15"],
-                }),
-            coarserBuckets: (minutes: string) =>
-                l10n.t({
-                    message:
-                        "Query Store records statistics every {0} minutes, so the chart shows {0}-minute buckets.",
-                    args: [minutes],
-                    comment: ["{0} is a number of minutes, for example 60"],
-                }),
             mostFrequentQueries: l10n.t("Most frequent queries"),
             longestRunningQueries: l10n.t("Longest running queries"),
             highReadQueries: l10n.t("High read queries"),
             userSessionsNow: l10n.t("User sessions now"),
             userSessions: l10n.t("User sessions"),
             running: l10n.t("Running"),
-            sampledWhileOpen: l10n.t(
-                "The database keeps no history of sessions, so the chart shows the counts sampled every 15 seconds while this tab is open.",
-            ),
             sessionsByClient: l10n.t("Sessions by client"),
             observedAt: (time: string) =>
                 l10n.t({
@@ -3749,10 +3751,8 @@ export class LocConstants {
                 }),
             noSessions: l10n.t("No user sessions."),
             login: l10n.t("Login"),
-            application: l10n.t("Application"),
             host: l10n.t("Host"),
             sessions: l10n.t("Sessions"),
-            openTransactions: l10n.t("Open transactions"),
             sessionsSelfOnly: l10n.t(
                 "You see only your own session. Seeing all sessions needs VIEW SERVER STATE (SQL Server and Managed Instance) or VIEW DATABASE STATE (Azure SQL Database).",
             ),
@@ -3762,8 +3762,6 @@ export class LocConstants {
             blockedRequestsNow: l10n.t("Blocked requests now"),
             headBlockers: l10n.t("Head blockers"),
             lockWaitInRange: l10n.t("Lock wait in range"),
-            lockWaitOverLast24Hours: l10n.t("Lock wait over last 24 hours"),
-            lockWaitOverLast7Days: l10n.t("Lock wait over last 7 days"),
             lockWaitSeconds: l10n.t("Lock wait time"),
             blockingChain: l10n.t("Blocking chain"),
             observedSessions: (time: string, count: string) =>
@@ -3784,29 +3782,14 @@ export class LocConstants {
                     args: [blockers],
                     comment: ["{0} is a list of session IDs with blocker codes"],
                 }),
-            automaticTuningOptions: l10n.t("Automatic tuning options"),
             option: l10n.t("Option"),
-            desiredState: l10n.t("Desired"),
             actualState: l10n.t("Actual"),
             reason: l10n.t("Reason"),
             recommendations: l10n.t("Recommendations"),
-            noRecommendations: l10n.t("No recommendations."),
             recommendationType: l10n.t("Type"),
-            recommendationTarget: l10n.t("Target"),
-            recommendationState: l10n.t("State"),
-            validSince: l10n.t("Valid since"),
-            appliedBy: l10n.t("Applied by"),
             script: l10n.t("Script"),
-            openScript: l10n.t("Open script"),
             createIndex: l10n.t("Create index"),
             dropIndex: l10n.t("Drop index"),
-            forceLastGoodPlan: l10n.t("Force last good plan"),
-            planFromTo: (fromPlanId: string, toPlanId: string) =>
-                l10n.t({
-                    message: "Plan {0} → {1}",
-                    args: [fromPlanId, toPlanId],
-                    comment: ["{0} is the regressed plan ID", "{1} is the recommended plan ID"],
-                }),
             automaticTuningRules: l10n.t(
                 "Automatic tuning checks each change for 30 minutes to 72 hours and reverts a change that makes performance worse. A recommendation that you apply with T-SQL is not checked or reverted.",
             ),
@@ -3915,6 +3898,7 @@ export class LocConstants {
             dispatcherPlan: l10n.t("Dispatcher"),
             variantPlan: l10n.t("Variant"),
             parallel: l10n.t("Parallel"),
+            compiledOnce: l10n.t("Compiled once"),
             compiledTimes: (count: string) =>
                 l10n.t({
                     message: "Compiled {0} times",
@@ -3933,8 +3917,13 @@ export class LocConstants {
                     args: [planId],
                     comment: ["{0} is the Query Store plan ID"],
                 }),
-            openPlanAction: l10n.t("Open plan"),
             openPlanXml: l10n.t("Open plan XML"),
+            planActions: (planId: string) =>
+                l10n.t({
+                    message: "Actions for plan {0}",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
             openPlan: (planId: string) =>
                 l10n.t({
                     message: "Open plan {0} in the execution plan viewer",
@@ -4065,6 +4054,11 @@ export class LocConstants {
                     comment: ["{0} is a time, for example 3:02 AM"],
                 }),
             queryStore: l10n.t("Query Store"),
+            dashboardSettings: l10n.t("Dashboard"),
+            hideOwnActivity: l10n.t("Hide this dashboard's queries and connections"),
+            hideOwnActivityDescription: l10n.t(
+                "Leaves out the queries and the session that this dashboard runs from its query lists, connections, and requests. Off shows everything.",
+            ),
             stateCollecting: l10n.t("Collecting"),
             stateReadOnly: l10n.t("Read-only"),
             stateOff: l10n.t("Off"),
@@ -4104,12 +4098,6 @@ export class LocConstants {
             captureAll: l10n.t("All"),
             captureNone: l10n.t("None"),
             captureCustom: l10n.t("Custom"),
-            days: (count: string) =>
-                l10n.t({
-                    message: "{0} days",
-                    args: [count],
-                    comment: ["{0} is a number of days"],
-                }),
             minutes: (count: string) =>
                 l10n.t({
                     message: "{0} min",
@@ -4273,7 +4261,6 @@ export class LocConstants {
                 }),
             metric: l10n.t("Metric"),
             cpu: l10n.t("CPU"),
-            cpuUse: l10n.t("CPU use"),
             averageCpu: l10n.t("Average CPU"),
             ofCpuSize: (size: string) =>
                 l10n.t({
@@ -4282,34 +4269,87 @@ export class LocConstants {
                     comment: ["{0} is the CPU size, for example 8 vCores"],
                 }),
             averageBusyCores: l10n.t("Average busy cores"),
-            overLast24Hours: l10n.t("Over last 24 hours"),
-            overLast7Days: l10n.t("Over last 7 days"),
             notAvailable: l10n.t("N/A"),
-            increasedBy: (change: string) =>
-                l10n.t({
-                    message: "Up {0}",
-                    args: [change],
-                    comment: ["{0} is a percentage, for example 3.9%"],
-                }),
-            decreasedBy: (change: string) =>
-                l10n.t({
-                    message: "Down {0}",
-                    args: [change],
-                    comment: ["{0} is a percentage, for example 3.9%"],
-                }),
-            cpuEstimateWithCores: (size: string) =>
-                l10n.t({
-                    message:
-                        "Estimated from Query Store: the CPU time of the queries that Query Store captured, divided by the elapsed time and {0}. The changes compare each period with the period before it.",
-                    args: [size],
-                    comment: ["{0} is the CPU size, for example 8 vCores"],
-                }),
-            cpuEstimate: l10n.t(
-                "Estimated from Query Store: the CPU time of the queries that Query Store captured, divided by the elapsed time. The changes compare each period with the period before it.",
-            ),
             highCpuQueries: l10n.t("High CPU usage queries"),
             queryId: l10n.t("Query ID"),
             topQueriesByCpu: l10n.t("Top queries by CPU"),
+            topQueriesByMemory: l10n.t("Top queries by memory"),
+            moreQueries: l10n.t("More queries"),
+            cpuConsumption: l10n.t("CPU consumption"),
+            memoryConsumption: l10n.t("Memory consumption"),
+            storage: l10n.t("Storage"),
+            averageShort: l10n.t({
+                message: "Avg",
+                comment: ["Short for average, before a metric"],
+            }),
+            metricCpu: l10n.t({
+                message: "CPU",
+                comment: ["A metric after a statistic, for example Total CPU"],
+            }),
+            metricDuration: l10n.t({
+                message: "duration",
+                comment: ["A metric after a statistic, for example Total duration"],
+            }),
+            metricMemory: l10n.t({
+                message: "memory",
+                comment: ["A metric after a statistic, for example Total memory"],
+            }),
+            metricSpill: l10n.t({
+                message: "spill",
+                comment: [
+                    "The tempdb space of a query, after a statistic, for example Total spill",
+                ],
+            }),
+            metricReads: l10n.t({
+                message: "reads",
+                comment: ["Logical reads, after a statistic, for example Total reads"],
+            }),
+            connectionCount: l10n.t("Connections"),
+            rowCount: l10n.t("Rows"),
+            usedSize: l10n.t("Used size"),
+            programName: l10n.t("Program name"),
+            hostName: l10n.t("Host name"),
+            loginName: l10n.t("Login name"),
+            clientInterfaceName: l10n.t("Client interface name"),
+            criticalAtOrAbove: (threshold: string) =>
+                l10n.t({
+                    message: "Critical (≥ {0})",
+                    args: [threshold],
+                    comment: ["{0} is the threshold, for example 80%"],
+                }),
+            capturedCpuSeconds: l10n.t("CPU seconds used by captured queries"),
+            cpuSecondsAxis: l10n.t("CPU seconds"),
+            cpuSecondsPerInterval: (interval: string) =>
+                l10n.t({
+                    message: "CPU seconds per {0}",
+                    args: [interval],
+                    comment: ["{0} is the length of a chart interval, for example 1 hr"],
+                }),
+            averageMemory: l10n.t("Average memory"),
+            allocatedSize: l10n.t("Allocated size"),
+            maxSizeLabel: l10n.t("Max size"),
+            dataSize: l10n.t("Data size"),
+            largestTables: l10n.t("Largest tables"),
+            noTables: l10n.t("The database has no user tables."),
+            schemaName: l10n.t("Schema name"),
+            tableName: l10n.t("Table name"),
+            indexName: l10n.t("Index name"),
+            keyColumns: l10n.t("Key columns"),
+            lastAction: l10n.t("Last action"),
+            status: l10n.t("Status"),
+            indexRecommendations: l10n.t("Index recommendations"),
+            indexActionsInRange: l10n.t("Index actions in range"),
+            indexTrend: l10n.t("Automatic index actions"),
+            statusInfo: l10n.t(
+                "The state of the recommendation: Active, Verifying, Success, Reverted, or Expired.",
+            ),
+            keyColumnsInfo: l10n.t("The key columns of the index, in order."),
+            lastActionInfo: l10n.t(
+                "When automatic tuning last applied or reverted the recommendation, or else last refreshed it.",
+            ),
+            indexCreated: l10n.t("Created"),
+            indexDropped: l10n.t("Dropped"),
+            indexReverted: l10n.t("Reverted"),
             queryCount: (count: number) =>
                 count === 1
                     ? l10n.t("1 query")
@@ -4318,11 +4358,9 @@ export class LocConstants {
                           args: [count],
                           comment: ["{0} is the number of queries"],
                       }),
-            viewAllQueries: l10n.t("View all queries"),
             queryText: l10n.t("Query"),
             totalCpuMs: l10n.t("Total CPU (ms)"),
             cpuTime: l10n.t("CPU time"),
-            cpuPerExecution: l10n.t("CPU / execution"),
             shareOfAllQueries: (share: string, value: string) =>
                 l10n.t({
                     message: "{0} of the total of all queries, {1}",

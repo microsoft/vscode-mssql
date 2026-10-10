@@ -19,7 +19,7 @@ import {
 } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
-import { cpuSummaryWindows, relativeChange } from "./performanceDashboardCpuModel";
+import { cpuSummaryWindows } from "./performanceDashboardCpuModel";
 import {
     formatElapsed,
     formatNumber,
@@ -29,7 +29,8 @@ import {
 import {
     SectionHeader,
     StatusBar,
-    SummaryCard,
+    ChartCard,
+    intervalName,
     TimeSeriesChart,
     readData,
 } from "./performanceDashboardParts";
@@ -45,10 +46,12 @@ import { useQueryStoreAvailableFrom, useViewTimeRange } from "./performanceDashb
 const lockWaitCategoryId = 3;
 
 const useStyles = makeStyles({
+    // Grows to the bottom of the page, so the grid can fill the space left.
     view: {
         display: "flex",
         flexDirection: "column",
         ...shorthands.gap("16px"),
+        flex: "1 0 auto",
     },
     note: {
         color: tokens.colorNeutralForeground3,
@@ -120,11 +123,13 @@ export const PerformanceDashboardBlockedView = () => {
     const { range, window, now } = useViewTimeRange();
     const availableFrom = useQueryStoreAvailableFrom();
 
-    const activity = useExtensionRequest(GetActiveRequestsRequest.type, undefined, [
-        databaseName,
-        refreshKey,
+    const activity = useExtensionRequest(
+        GetActiveRequestsRequest.type,
+        undefined,
+        [databaseName, refreshKey],
+        true,
         tick,
-    ]);
+    );
     const waits = useExtensionRequest(
         GetWaitSeriesRequest.type,
         {
@@ -153,7 +158,7 @@ export const PerformanceDashboardBlockedView = () => {
         total: total.totalWaitMs,
         executionCount: 0,
     }));
-    const [inRange, last24Hours, previous24Hours, last7Days, previous7Days] = totals;
+    const [inRange] = totals;
     const points = waitData
         ? filledSeriesPoints(
               waitData.buckets.map((bucket) => ({
@@ -171,51 +176,46 @@ export const PerformanceDashboardBlockedView = () => {
             {activity.result?.status === "selfOnly" && (
                 <StatusBar message={{ intent: "warning", text: text.requestsSelfOnly }} />
             )}
-            <SummaryCard
-                value={current ? formatNumber(current.blocking.blockedCount) : text.notAvailable}
+            <ChartCard
                 label={text.blockedRequestsNow}
-                loading={activity.loading && !current}
+                value={current ? formatNumber(current.blocking.blockedCount) : text.notAvailable}
                 figures={[
-                    ...(current
-                        ? [
-                              {
-                                  label: text.headBlockers,
-                                  value: formatNumber(current.blocking.chains.length),
-                              },
-                          ]
-                        : []),
-                    ...(inRange
-                        ? [{ label: text.lockWaitInRange, value: formatSeconds(inRange.total) }]
-                        : []),
-                ]}
-                changes={
-                    waitsUnsupported
+                    {
+                        label: text.headBlockers,
+                        value: current
+                            ? formatNumber(current.blocking.chains.length)
+                            : text.notAvailable,
+                    },
+                    ...(waitsUnsupported
                         ? []
                         : [
                               {
-                                  label: text.lockWaitOverLast24Hours,
-                                  value: relativeChange(
-                                      last24Hours,
-                                      previous24Hours,
-                                      availableFrom,
-                                  ),
+                                  label: text.lockWaitInRange,
+                                  value: inRange ? formatSeconds(inRange.total) : text.notAvailable,
                               },
-                              {
-                                  label: text.lockWaitOverLast7Days,
-                                  value: relativeChange(last7Days, previous7Days, availableFrom),
-                              },
-                          ]
-                }>
+                          ]),
+                ]}
+                unit={
+                    waitsUnsupported
+                        ? undefined
+                        : text.lockWaitSecondsPerInterval(
+                              intervalName(waitData?.bucketMinutes ?? bucketMinutesFor(range)),
+                          )
+                }
+                loading={activity.loading && !current}>
                 {!waitsUnsupported && (
                     <TimeSeriesChart
+                        compact
                         title={text.lockWaitSeconds}
+                        range={range}
                         points={points}
                         format={(seconds) => formatSeconds(seconds * 1000)}
+                        tickFormat={formatNumber}
                         read={waits}
                         message={readStatusMessage(waits)}
                     />
                 )}
-            </SummaryCard>
+            </ChartCard>
             <SectionHeader title={text.blockingChain}>
                 {observedAt &&
                     text.observedSessions(
@@ -231,6 +231,7 @@ export const PerformanceDashboardBlockedView = () => {
                 current && <Caption1 className={classes.note}>{text.noBlocking}</Caption1>
             ) : (
                 <SimpleGrid
+                    fill
                     items={rows}
                     getRowId={(row) => row.key}
                     ariaLabel={text.blockingChain}

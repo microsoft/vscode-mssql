@@ -42,10 +42,12 @@ import type {
 } from "../../../sharedInterfaces/performance";
 import {
     ApplyQueryStoreSettingsChangeRequest,
+    GetDashboardSettingsRequest,
     GetQueryStoreSettingsRequest,
     PerformanceDashboardReducers,
     PerformanceDashboardState,
     PrepareQueryStoreSettingsChangeRequest,
+    SetDashboardSettingsRequest,
 } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { SegmentedControl } from "../../common/segmentedControl";
@@ -266,6 +268,7 @@ export const PerformanceDashboardQueryStoreSettings = ({ onClose }: { onClose: (
             <>
                 {header}
                 <DrawerBody className={classes.body}>
+                    <DashboardSettingsSection />
                     {section(
                         undefined,
                         unsupported ? (
@@ -346,6 +349,7 @@ export const PerformanceDashboardQueryStoreSettings = ({ onClose }: { onClose: (
         <>
             {header}
             <DrawerBody className={classes.body}>
+                <DashboardSettingsSection />
                 {notice && (
                     <MessageBar intent={notice.intent}>
                         <MessageBarBody>{notice.text}</MessageBarBody>
@@ -415,6 +419,49 @@ export const PerformanceDashboardQueryStoreSettings = ({ onClose }: { onClose: (
                 />
             )}
         </>
+    );
+};
+
+/**
+ * The dashboard's own settings: whether it hides its own queries and session. A change applies
+ * at once, saved as a VS Code setting, and the views read again.
+ */
+const DashboardSettingsSection = () => {
+    const classes = useStyles();
+    const text = loc.performanceDashboard;
+    const { extensionRpc } = useVscodeWebview<
+        PerformanceDashboardState,
+        PerformanceDashboardReducers
+    >();
+    const { refresh } = useRefresh();
+    const read = useExtensionRequest(GetDashboardSettingsRequest.type, undefined);
+    const [hideOwnActivity, setHideOwnActivity] = useState<boolean | undefined>(undefined);
+    const checked = hideOwnActivity ?? read.result?.hideOwnActivity ?? false;
+    return (
+        <section className={classes.section} aria-label={text.dashboardSettings}>
+            <Subtitle2>{text.dashboardSettings}</Subtitle2>
+            <div className={classes.row}>
+                <InfoLabel
+                    className={classes.rowText}
+                    htmlFor="dashboard-hide-own-activity"
+                    info={text.hideOwnActivityDescription}>
+                    {text.hideOwnActivity}
+                </InfoLabel>
+                <Switch
+                    id="dashboard-hide-own-activity"
+                    checked={checked}
+                    disabled={read.loading && !read.result}
+                    onChange={(_event, data) => {
+                        setHideOwnActivity(data.checked);
+                        void extensionRpc
+                            .sendRequest(SetDashboardSettingsRequest.type, {
+                                hideOwnActivity: data.checked,
+                            })
+                            .then(refresh);
+                    }}
+                />
+            </div>
+        </section>
     );
 };
 

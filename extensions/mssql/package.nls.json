@@ -273,6 +273,7 @@
     "mssql.chooseAuthMethod": "Chooses which Authentication method to use",
     "mssql.preview.liveQueryStatistics.description": "Enables the preview Live Query Statistics commands to watch a running query plan refresh with live row counts. When unset, follows mssql.enableExperimentalFeatures. Set to true or false to override that setting.",
     "mssql.preview.betaResultsGrid.description": "Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.",
+    "mssql.performanceDashboard.hideOwnActivity.description": "Leaves out the queries and the session that the performance dashboard runs from its query lists, connections, and requests.",
     "mssql.useMsalEntraMfaAuth.description": "Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.",
     "mssql.authCodeGrant.description": "Prompts users to sign in using their browser.",
     "mssql.deviceCode.description": "Allows users to sign in to input-constrained devices.",

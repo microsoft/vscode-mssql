@@ -13,13 +13,14 @@ import { formatNumber, timeFormat } from "./performanceDashboardFormat";
 import {
     SectionHeader,
     StatusBar,
-    SummaryCard,
+    ChartCard,
     TimeSeriesChart,
     TimeSeriesPoint,
     readData,
 } from "./performanceDashboardParts";
 import { usePolling, useRefresh } from "./performanceDashboardRefresh";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
+import { metrics, simpleMetricColumn, simpleTextColumn } from "./performanceDashboardMetrics";
 import { SimpleGrid, SimpleGridColumn } from "./performanceDashboardSimpleGrid";
 import { TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
@@ -28,10 +29,12 @@ import { readStatusMessage } from "./performanceDashboardStatus";
 const maxSamples = 240;
 
 const useStyles = makeStyles({
+    // Grows to the bottom of the page, so the grid can fill the space left.
     view: {
         display: "flex",
         flexDirection: "column",
         ...shorthands.gap("16px"),
+        flex: "1 0 auto",
     },
     note: {
         color: tokens.colorNeutralForeground3,
@@ -48,11 +51,13 @@ export const PerformanceDashboardConnectionsView = () => {
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const { refreshKey } = useRefresh();
     const tick = usePolling();
-    const sessions = useExtensionRequest(GetSessionSummaryRequest.type, undefined, [
-        databaseName,
-        refreshKey,
+    const sessions = useExtensionRequest(
+        GetSessionSummaryRequest.type,
+        undefined,
+        [databaseName, refreshKey],
+        true,
         tick,
-    ]);
+    );
     const [samples, setSamples] = useState<TimeSeriesPoint[]>([]);
 
     useEffect(() => setSamples([]), [databaseName]);
@@ -79,67 +84,49 @@ export const PerformanceDashboardConnectionsView = () => {
     }
     const selfOnly = sessions.result?.status === "selfOnly";
 
+    // The client of each group of connections: program, host, login, and driver, then the count.
     const columns: SimpleGridColumn<SessionGroup>[] = [
-        {
-            id: "login",
-            header: text.login,
-            render: (group) => group.loginName ?? "—",
-            compare: (left, right) => (left.loginName ?? "").localeCompare(right.loginName ?? ""),
-            idealWidth: 180,
-        },
-        {
-            id: "program",
-            header: text.application,
-            render: (group) => group.programName || "—",
-            compare: (left, right) =>
-                (left.programName ?? "").localeCompare(right.programName ?? ""),
-            idealWidth: 240,
-        },
-        {
-            id: "host",
-            header: text.host,
-            render: (group) => group.hostName || "—",
-            compare: (left, right) => (left.hostName ?? "").localeCompare(right.hostName ?? ""),
-            idealWidth: 160,
-        },
-        {
-            id: "sessions",
-            header: text.sessions,
-            render: (group) => formatNumber(group.sessionCount),
-            compare: (left, right) => left.sessionCount - right.sessionCount,
-            numeric: true,
-        },
-        {
-            id: "running",
-            header: text.running,
-            render: (group) => formatNumber(group.runningCount),
-            compare: (left, right) => left.runningCount - right.runningCount,
-            numeric: true,
-        },
-        {
-            id: "transactions",
-            header: text.openTransactions,
-            render: (group) => formatNumber(group.openTransactionCount),
-            compare: (left, right) => left.openTransactionCount - right.openTransactionCount,
-            numeric: true,
-        },
+        simpleTextColumn<SessionGroup>(
+            "program",
+            text.programName,
+            (group) => group.programName,
+            240,
+        ),
+        simpleTextColumn<SessionGroup>("host", text.hostName, (group) => group.hostName),
+        simpleTextColumn<SessionGroup>("login", text.loginName, (group) => group.loginName),
+        simpleTextColumn<SessionGroup>(
+            "clientInterface",
+            text.clientInterfaceName,
+            (group) => group.clientInterfaceName,
+            220,
+        ),
+        simpleMetricColumn<SessionGroup>(metrics.connections, {
+            id: "connections",
+            value: (group) => group.sessionCount,
+        }),
     ];
 
     return (
         <div className={classes.view}>
             {selfOnly && <StatusBar message={{ intent: "warning", text: text.sessionsSelfOnly }} />}
-            <SummaryCard
-                value={summary ? formatNumber(summary.totalSessions) : text.notAvailable}
+            <ChartCard
                 label={text.userSessionsNow}
-                loading={sessions.loading && !summary}
-                figures={
-                    summary
-                        ? [{ label: text.running, value: formatNumber(summary.runningSessions) }]
-                        : []
-                }>
-                <TimeSeriesChart title={text.userSessions} points={samples} format={formatNumber} />
-            </SummaryCard>
-            <Caption1 className={classes.note}>{text.sampledWhileOpen}</Caption1>
+                value={summary ? formatNumber(summary.totalSessions) : text.notAvailable}
+                figures={[
+                    {
+                        label: text.running,
+                        value: summary ? formatNumber(summary.runningSessions) : text.notAvailable,
+                    },
+                ]}
+                unit={text.userSessions}
+                loading={sessions.loading && !summary}>
+                <TimeSeriesChart
+                    compact
+                    title={text.userSessions}
+                    points={samples}
+                    format={formatNumber}
+                />
+            </ChartCard>
             <SectionHeader title={text.sessionsByClient}>
                 {observedAt && text.observedAt(timeFormat.format(new Date(observedAt)))}
             </SectionHeader>
@@ -147,6 +134,7 @@ export const PerformanceDashboardConnectionsView = () => {
                 <TableSkeleton numberColumns={4} />
             ) : summary && summary.groups.length > 0 ? (
                 <SimpleGrid
+                    fill
                     items={summary.groups}
                     columns={columns}
                     getRowId={(group) =>

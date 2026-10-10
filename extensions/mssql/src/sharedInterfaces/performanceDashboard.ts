@@ -23,6 +23,7 @@ import type {
     QueryPlanInfo,
     QueryStoreMetric,
     QueryStoreReport,
+    DatabaseStorage,
     QueryStoreSettingsChange,
     QueryStoreSettingsInfo,
     QueryStoreStatistic,
@@ -148,6 +149,50 @@ export interface TopQueriesParams extends TimeWindowParams {
  * Reads the queries with the highest statistic of a metric in the window (Top Resource
  * Consumers). The dashboard's own reads of Query Store and the DMVs are left out.
  */
+/**
+ * Reads the top queries ranked by a metric, with the same statistic of every other metric, for
+ * example the memory grant, the tempdb space, and the executions of each query.
+ */
+export namespace GetTopQueriesDetailedRequest {
+    export const type = new RequestType<
+        TopQueriesParams,
+        PerformanceReadResult<QueryStoreReport>,
+        void
+    >("performanceDashboard/getTopQueriesDetailed");
+}
+
+export interface StorageParams {
+    /** The number of tables to return. */
+    readonly top: number;
+}
+
+/** Reads the data size, the size limit, and the largest tables. */
+export namespace GetStorageRequest {
+    export const type = new RequestType<
+        StorageParams,
+        PerformanceReadResult<DatabaseStorage>,
+        void
+    >("performanceDashboard/getStorage");
+}
+
+/** The dashboard's own settings, apart from the database's. */
+export interface DashboardSettings {
+    /** Leaves out the dashboard's own queries and session. Off by default. */
+    readonly hideOwnActivity: boolean;
+}
+
+export namespace GetDashboardSettingsRequest {
+    export const type = new RequestType<void, DashboardSettings, void>(
+        "performanceDashboard/getDashboardSettings",
+    );
+}
+
+export namespace SetDashboardSettingsRequest {
+    export const type = new RequestType<DashboardSettings, void, void>(
+        "performanceDashboard/setDashboardSettings",
+    );
+}
+
 export namespace GetTopQueriesRequest {
     export const type = new RequestType<
         TopQueriesParams,

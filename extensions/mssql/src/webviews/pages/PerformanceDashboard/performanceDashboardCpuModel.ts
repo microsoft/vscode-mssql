@@ -167,6 +167,26 @@ export function cpuChartPoints(
     return points;
 }
 
+/**
+ * The length of the time buckets of an Overall Resource Consumption report, in milliseconds.
+ * Undefined when the report has no buckets.
+ */
+export function cpuBucketMs(report: QueryStoreReport | undefined): number | undefined {
+    const startColumn = findColumn(report, (column) => column.kind === "bucketStartTime");
+    const endColumn = findColumn(report, (column) => column.kind === "bucketEndTime");
+    if (!report || !startColumn || !endColumn) {
+        return undefined;
+    }
+    for (const row of report.rows) {
+        const sizeMs =
+            Date.parse(String(row[endColumn.id])) - Date.parse(String(row[startColumn.id]));
+        if (sizeMs > 0) {
+            return sizeMs;
+        }
+    }
+    return undefined;
+}
+
 export interface TopQueryRow {
     readonly queryId: string;
     readonly queryText: string;

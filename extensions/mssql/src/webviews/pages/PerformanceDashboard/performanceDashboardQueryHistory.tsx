@@ -76,6 +76,8 @@ export const PerformanceDashboardQueryHistory = ({ queryId }: { queryId: string 
             chart={
                 <TimeSeriesChart
                     title={historyTitle(metric, view)}
+                    range={range}
+                    yAxisTitle={historyTitle(metric, view)}
                     points={points}
                     format={formatNumber}
                     read={history}
@@ -83,6 +85,7 @@ export const PerformanceDashboardQueryHistory = ({ queryId }: { queryId: string 
             }>
             {intervals.length > 0 && (
                 <SimpleGrid<QueryHistoryInterval>
+                    fill
                     framed={false}
                     items={[...intervals].reverse()}
                     getRowId={(interval) => interval.startUtc}
