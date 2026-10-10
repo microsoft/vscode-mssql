@@ -18,7 +18,7 @@ import {
     GetWaitSeriesRequest,
 } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
-import { useExtensionRequest } from "../../common/useExtensionRequest";
+import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
 import { cpuSummaryWindows, relativeChange } from "./performanceDashboardCpuModel";
 import {
     formatElapsed,
@@ -37,6 +37,7 @@ import { usePolling, useRefresh } from "./performanceDashboardRefresh";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 import { bucketMinutesFor, filledSeriesPoints } from "./performanceDashboardSeries";
 import { SimpleGrid } from "./performanceDashboardSimpleGrid";
+import { TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 import { useQueryStoreAvailableFrom, useViewTimeRange } from "./performanceDashboardTimeRange";
 
@@ -172,7 +173,7 @@ export const PerformanceDashboardBlockedView = () => {
             )}
             <SummaryCard
                 value={current ? formatNumber(current.blocking.blockedCount) : text.notAvailable}
-                caption={text.blockedRequestsNow}
+                label={text.blockedRequestsNow}
                 loading={activity.loading && !current}
                 figures={[
                     ...(current
@@ -204,17 +205,17 @@ export const PerformanceDashboardBlockedView = () => {
                                   value: relativeChange(last7Days, previous7Days, availableFrom),
                               },
                           ]
-                }
-            />
-            {!waitsUnsupported && (
-                <TimeSeriesChart
-                    title={text.lockWaitSeconds}
-                    points={points}
-                    format={(seconds) => formatSeconds(seconds * 1000)}
-                    read={waits}
-                    message={readStatusMessage(waits)}
-                />
-            )}
+                }>
+                {!waitsUnsupported && (
+                    <TimeSeriesChart
+                        title={text.lockWaitSeconds}
+                        points={points}
+                        format={(seconds) => formatSeconds(seconds * 1000)}
+                        read={waits}
+                        message={readStatusMessage(waits)}
+                    />
+                )}
+            </SummaryCard>
             <SectionHeader title={text.blockingChain}>
                 {observedAt &&
                     text.observedSessions(
@@ -224,6 +225,8 @@ export const PerformanceDashboardBlockedView = () => {
             </SectionHeader>
             {activityMessage ? (
                 <StatusBar message={activityMessage} />
+            ) : isFirstLoad(activity) ? (
+                <TableSkeleton rows={3} numberColumns={4} />
             ) : rows.length === 0 ? (
                 current && <Caption1 className={classes.note}>{text.noBlocking}</Caption1>
             ) : (

@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import type { SessionGroup } from "../../../sharedInterfaces/performance";
 import { GetSessionSummaryRequest } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
-import { useExtensionRequest } from "../../common/useExtensionRequest";
+import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
 import { formatNumber, timeFormat } from "./performanceDashboardFormat";
 import {
     SectionHeader,
@@ -21,6 +21,7 @@ import {
 import { usePolling, useRefresh } from "./performanceDashboardRefresh";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 import { SimpleGrid, SimpleGridColumn } from "./performanceDashboardSimpleGrid";
+import { TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 
 /** The samples that the chart keeps: one hour at one sample each 15 seconds. */
@@ -129,20 +130,22 @@ export const PerformanceDashboardConnectionsView = () => {
             {selfOnly && <StatusBar message={{ intent: "warning", text: text.sessionsSelfOnly }} />}
             <SummaryCard
                 value={summary ? formatNumber(summary.totalSessions) : text.notAvailable}
-                caption={text.userSessionsNow}
+                label={text.userSessionsNow}
                 loading={sessions.loading && !summary}
                 figures={
                     summary
                         ? [{ label: text.running, value: formatNumber(summary.runningSessions) }]
                         : []
-                }
-            />
-            <TimeSeriesChart title={text.userSessions} points={samples} format={formatNumber} />
+                }>
+                <TimeSeriesChart title={text.userSessions} points={samples} format={formatNumber} />
+            </SummaryCard>
             <Caption1 className={classes.note}>{text.sampledWhileOpen}</Caption1>
             <SectionHeader title={text.sessionsByClient}>
                 {observedAt && text.observedAt(timeFormat.format(new Date(observedAt)))}
             </SectionHeader>
-            {summary && summary.groups.length > 0 ? (
+            {isFirstLoad(sessions) ? (
+                <TableSkeleton numberColumns={4} />
+            ) : summary && summary.groups.length > 0 ? (
                 <SimpleGrid
                     items={summary.groups}
                     columns={columns}

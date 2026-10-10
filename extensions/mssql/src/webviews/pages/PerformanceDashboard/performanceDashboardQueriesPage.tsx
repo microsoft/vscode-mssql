@@ -3,21 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    makeStyles,
-    SearchBox,
-    shorthands,
-    Switch,
-    Tab,
-    TabList,
-} from "@fluentui/react-components";
+import { makeStyles, SearchBox, shorthands, Switch } from "@fluentui/react-components";
 import { useEffect, useMemo, useState } from "react";
 import type { QueryStoreStatistic } from "../../../sharedInterfaces/performance";
-import { GetTopQueriesRequest } from "../../../sharedInterfaces/performanceDashboard";
+import {
+    GetMetricTotalsRequest,
+    GetTopQueriesRequest,
+} from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
-import { useExtensionRequest } from "../../common/useExtensionRequest";
-import { formatNumber } from "./performanceDashboardFormat";
+import { SegmentedControl } from "../../common/segmentedControl";
+import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
+import {
+    formatDuration,
+    formatMegabytes,
+    formatMillisecondsExact,
+    formatNumber,
+    formatShare,
+} from "./performanceDashboardFormat";
 import { useFavoriteQueries } from "./performanceDashboardFavorites";
 import { InlineSelect, ReadOnlyNotice, isReadOnly, readData } from "./performanceDashboardParts";
 import { PerformanceDashboardQueryList, QueryGridColumn } from "./performanceDashboardQueryGrid";
@@ -40,13 +43,14 @@ const useStyles = makeStyles({
     page: {
         display: "flex",
         flexDirection: "column",
+        flex: "1 0 auto",
         ...shorthands.gap("16px"),
     },
     controls: {
         display: "flex",
         flexWrap: "wrap",
         alignItems: "center",
-        ...shorthands.gap("12px"),
+        ...shorthands.gap("12px", "20px"),
     },
     grow: {
         flexGrow: 1,
@@ -91,40 +95,63 @@ export const PerformanceDashboardQueriesPage = () => {
         [databaseName, refreshKey],
     );
 
+    // A total has a share of the total of all queries. Other statistics are not parts of a
+    // whole, so their bars compare each query with the highest one.
+    const isTotal = statistic === "total";
+    const totals = useExtensionRequest(
+        GetMetricTotalsRequest.type,
+        { metric, windows: [window] },
+        [databaseName, refreshKey],
+        isTotal,
+    );
+    const whole = isTotal ? readData(totals)?.windows[0]?.total || undefined : undefined;
+
     const rows = useMemo(() => {
         const needle = search.trim().toLowerCase();
-        return queryListRows(readData(topQueries)).filter(
+        const all = queryListRows(readData(topQueries), whole);
+        const highest = all.reduce((max, row) => Math.max(max, row.value ?? 0), 0);
+        return (
+            isTotal
+                ? all
+                : all.map((row) => ({
+                      ...row,
+                      ...(highest > 0 && row.value !== undefined
+                          ? { share: (row.value / highest) * 100 }
+                          : {}),
+                  }))
+        ).filter(
             (row) =>
                 (!favoritesOnly || favorites.queryIds.has(row.queryId)) &&
                 (!needle ||
                     row.queryId.includes(needle) ||
                     row.queryText.toLowerCase().includes(needle)),
         );
-    }, [topQueries, search, favoritesOnly, favorites.queryIds]);
+    }, [topQueries, whole, isTotal, search, favoritesOnly, favorites.queryIds]);
 
     const setQuery = (values: Record<string, string | undefined>) =>
         navigate(router.build("queries", {}, { ...match.query, ...values }));
 
+    const format = categoryFormat(category);
+    const ranked: QueryGridColumn = {
+        id: "value",
+        header:
+            category === "executions"
+                ? text.executionCount
+                : text.rankedMetric(statisticLabel(statistic), categoryMetricName(category)),
+        value: (row) => (category === "executions" ? row.executions : row.value),
+        format: format.format,
+        exact: format.exact,
+        share: (row) => row.share,
+        showShare: isTotal,
+        shareTitle: isTotal
+            ? (share, value) => text.shareOfAllQueries(formatShare(share), format.exact(value))
+            : undefined,
+    };
     const columns: QueryGridColumn[] =
         category === "executions"
-            ? [
-                  {
-                      id: "executions",
-                      header: text.executionCount,
-                      value: (row) => row.executions,
-                      format: formatNumber,
-                  },
-              ]
+            ? [ranked]
             : [
-                  {
-                      id: "value",
-                      header: text.rankedMetric(
-                          statisticLabel(statistic),
-                          categoryMetricLabel(category),
-                      ),
-                      value: (row) => row.value,
-                      format: formatNumber,
-                  },
+                  ranked,
                   {
                       id: "executions",
                       header: text.executionCount,
@@ -135,21 +162,19 @@ export const PerformanceDashboardQueriesPage = () => {
 
     return (
         <div className={classes.page}>
-            <TabList
-                appearance="filled-circular"
-                size="small"
-                selectedValue={category}
-                aria-label={text.queryCategory}
-                onTabSelect={(_event, data) =>
-                    setQuery({ category: data.value === "cpu" ? undefined : String(data.value) })
-                }>
-                {queryCategories.map((value) => (
-                    <Tab key={value} value={value}>
-                        {categoryLabel(value)}
-                    </Tab>
-                ))}
-            </TabList>
             <div className={classes.controls}>
+                <SegmentedControl<QueryCategory>
+                    size="small"
+                    ariaLabel={text.queryCategory}
+                    value={category}
+                    options={queryCategories.map((value) => ({
+                        value,
+                        label: categoryShortLabel(value),
+                    }))}
+                    onValueChange={(value) =>
+                        setQuery({ category: value === "cpu" ? undefined : value })
+                    }
+                />
                 {category !== "executions" && (
                     <InlineSelect<QueryStoreStatistic>
                         label={text.rankBy}
@@ -181,6 +206,7 @@ export const PerformanceDashboardQueriesPage = () => {
             {isReadOnly(topQueries) && <ReadOnlyNotice />}
             <PerformanceDashboardQueryList
                 read={topQueries}
+                pending={isTotal && isFirstLoad(totals)}
                 rows={rows}
                 columns={columns}
                 ariaLabel={categoryLabel(category)}
@@ -207,16 +233,58 @@ export function categoryLabel(category: QueryCategory): string {
     }
 }
 
-function categoryMetricLabel(category: QueryCategory): string {
+/** The label of a category in the category picker. */
+function categoryShortLabel(category: QueryCategory): string {
     const text = loc.performanceDashboard;
     switch (category) {
         case "cpu":
-            return text.cpuMs;
+            return text.highCpu;
         case "duration":
-            return text.durationMs;
+            return text.longestRunning;
+        case "executions":
+            return text.mostFrequent;
         default:
-            return text.logicalReadsKb;
+            return text.highReads;
     }
+}
+
+/** The metric of a category after a statistic, for example the "CPU time" of Total CPU time. */
+function categoryMetricName(category: QueryCategory): string {
+    const text = loc.performanceDashboard;
+    switch (category) {
+        case "cpu":
+            return text.cpuTime;
+        case "duration":
+            return text.durationMetric;
+        default:
+            return text.logicalReadsMetric;
+    }
+}
+
+/** The formats of the values of a category: readable, and exact for the tooltip. */
+function categoryFormat(category: QueryCategory): {
+    format: (value: number) => string;
+    exact: (value: number) => string;
+} {
+    switch (category) {
+        case "cpu":
+        case "duration":
+            return { format: formatDuration, exact: formatMillisecondsExact };
+        case "reads":
+            // The reports give reads in KB.
+            return { format: formatMegabytes, exact: formatKilobytesExact };
+        default:
+            return { format: formatNumber, exact: formatNumber };
+    }
+}
+
+function formatKilobytesExact(kilobytes: number): string {
+    return new Intl.NumberFormat(undefined, {
+        style: "unit",
+        unit: "kilobyte",
+        unitDisplay: "short",
+        maximumFractionDigits: 0,
+    }).format(kilobytes);
 }
 
 export function statisticLabel(statistic: QueryStoreStatistic): string {

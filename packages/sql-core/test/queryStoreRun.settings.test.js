@@ -83,6 +83,8 @@ suite("Query Store settings", () => {
             canAlter: true,
             canChange: true,
             hasWaitStats: true,
+            hasCapturePolicy: true,
+            canTurnOff: true,
         });
         assert.ok(reader.calls[0].startsWith(sessionPreamble(info, "read")));
         assert.match(reader.calls[0], /HAS_PERMS_BY_NAME\(DB_NAME\(\), 'DATABASE', 'ALTER'\)/);
@@ -261,8 +263,8 @@ suite("Query Store settings", () => {
     test("rejects values that are not valid", async () => {
         const reader = scriptedReader([]);
         for (const change of [
-            { operationMode: "off" },
-            { captureMode: "custom" },
+            { operationMode: "paused" },
+            { captureMode: "sometimes" },
             { maxStorageMb: 0 },
             { maxStorageMb: 1.5 },
             { staleQueryThresholdDays: 0 },

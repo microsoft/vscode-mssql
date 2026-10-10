@@ -42,6 +42,7 @@ const useStyles = makeStyles({
     view: {
         display: "flex",
         flexDirection: "column",
+        flex: "1 0 auto",
         ...shorthands.gap("16px"),
     },
 });
@@ -104,7 +105,7 @@ export const PerformanceDashboardMemoryView = () => {
             {isReadOnly(totals) && <ReadOnlyNotice />}
             <SummaryCard
                 value={averageKb !== undefined ? formatMegabytes(averageKb) : text.notAvailable}
-                caption={text.averageMemoryGrant}
+                label={text.averageMemoryGrant}
                 info={text.memoryGrantInfo}
                 loading={totals.loading && windows.length === 0}
                 figures={
@@ -121,15 +122,15 @@ export const PerformanceDashboardMemoryView = () => {
                         label: text.overLast7Days,
                         value: averageChange(last7Days, previous7Days, availableFrom),
                     },
-                ]}
-            />
-            <TimeSeriesChart
-                title={text.peakMemoryGrantMb}
-                points={points}
-                format={(megabytes) => formatMegabytes(megabytes * 1024)}
-                read={series}
-                message={readStatusMessage(series)}
-            />
+                ]}>
+                <TimeSeriesChart
+                    title={text.peakMemoryGrantMb}
+                    points={points}
+                    format={(megabytes) => formatMegabytes(megabytes * 1024)}
+                    read={series}
+                    message={readStatusMessage(series)}
+                />
+            </SummaryCard>
             <SectionHeader title={text.highMemoryGrantQueries} />
             <PerformanceDashboardQueryList
                 read={topQueries}

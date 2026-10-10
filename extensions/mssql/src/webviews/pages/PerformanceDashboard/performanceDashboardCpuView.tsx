@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, shorthands } from "@fluentui/react-components";
+import { Link, makeStyles, shorthands } from "@fluentui/react-components";
 import {
     GetDatabaseFactsRequest,
     GetMetricTotalsRequest,
@@ -12,21 +12,28 @@ import {
     GetTopQueriesRequest,
 } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
-import { useExtensionRequest } from "../../common/useExtensionRequest";
+import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
 import {
-    cpuCapacityMs,
     cpuChartPoints,
     cpuCoreCount,
     cpuSummary,
     cpuSummaryWindows,
 } from "./performanceDashboardCpuModel";
-import { formatNumber, formatPercent } from "./performanceDashboardFormat";
+import {
+    formatDuration,
+    formatMillisecondsExact,
+    formatNumber,
+    formatPercent,
+    formatPercentRounded,
+    formatShare,
+} from "./performanceDashboardFormat";
 import { sizeLabel } from "./performanceDashboardOverviewModel";
 import {
     ReadOnlyNotice,
     SectionHeader,
     StatusBar,
     SummaryCard,
+    SummaryCardProps,
     TimeSeriesChart,
     isReadOnly,
     readData,
@@ -57,6 +64,7 @@ const useStyles = makeStyles({
     view: {
         display: "flex",
         flexDirection: "column",
+        flex: "1 0 auto",
         ...shorthands.gap("16px"),
     },
 });
@@ -72,7 +80,7 @@ export const PerformanceDashboardCpuView = () => {
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const { refreshKey } = useRefresh();
     const key = [databaseName, refreshKey];
-    const { match } = useNavigation<PerformanceDashboardRoute>();
+    const { router, match, navigate } = useNavigation<PerformanceDashboardRoute>();
     const { range, window, now } = useViewTimeRange();
     const availableFrom = useQueryStoreAvailableFrom();
 
@@ -128,93 +136,82 @@ export const PerformanceDashboardCpuView = () => {
     const samples = readData(resourceCpu) ?? [];
     const nowMs = now.getTime();
 
-    let summary;
+    let summary: Omit<SummaryCardProps, "children">;
     let points;
-    let whole: number | undefined;
     if (fromResourceStats) {
         const average = averageResourceCpu(samples, range.from.getTime(), range.to.getTime());
-        summary = (
-            <SummaryCard
-                value={average !== undefined ? formatPercent(average) : text.notAvailable}
-                caption={text.averageCpuUsed}
-                info={text.cpuFromResourceStats}
-                loading={resourceCpu.loading && samples.length === 0}
-                changes={[
-                    {
-                        label: text.overLast24Hours,
-                        value: resourceCpuChange(
-                            samples,
-                            { start: nowMs - dayMs, end: nowMs },
-                            { start: nowMs - 2 * dayMs, end: nowMs - dayMs },
-                        ),
-                    },
-                    {
-                        label: text.overLast7Days,
-                        value: resourceCpuChange(
-                            samples,
-                            { start: nowMs - 7 * dayMs, end: nowMs },
-                            { start: nowMs - 14 * dayMs, end: nowMs - 7 * dayMs },
-                        ),
-                    },
-                ]}
-            />
-        );
+        summary = {
+            label: text.averageCpu,
+            value: average !== undefined ? formatPercentRounded(average) : text.notAvailable,
+            detail: text.ofDtuLimit,
+            info: text.cpuFromResourceStats,
+            loading: resourceCpu.loading && samples.length === 0,
+            changes: [
+                {
+                    label: text.overLast24Hours,
+                    value: resourceCpuChange(
+                        samples,
+                        { start: nowMs - dayMs, end: nowMs },
+                        { start: nowMs - 2 * dayMs, end: nowMs - dayMs },
+                    ),
+                },
+                {
+                    label: text.overLast7Days,
+                    value: resourceCpuChange(
+                        samples,
+                        { start: nowMs - 7 * dayMs, end: nowMs },
+                        { start: nowMs - 14 * dayMs, end: nowMs - 7 * dayMs },
+                    ),
+                },
+            ],
+        };
         points = resourceCpuPoints(samples, range, bucketMinutesFor(range));
-        // Without cores, each query shows its share of the CPU time of all queries.
-        whole = totalsData?.windows[0]?.total || undefined;
     } else {
         const cpu = totalsData ? cpuSummary(totalsData.windows, cores, availableFrom) : undefined;
         const average =
             cpu?.averagePercent !== undefined
-                ? formatPercent(cpu.averagePercent)
+                ? formatPercentRounded(cpu.averagePercent)
                 : cpu?.averageBusyCores !== undefined
                   ? formatNumber(cpu.averageBusyCores)
                   : text.notAvailable;
-        summary = (
-            <SummaryCard
-                value={average}
-                caption={coresLabel ? text.averageCpuUsedOf(coresLabel) : text.averageBusyCores}
-                info={coresLabel ? text.cpuEstimateWithCores(coresLabel) : text.cpuEstimate}
-                loading={totals.loading && !cpu}
-                changes={[
-                    { label: text.overLast24Hours, value: cpu?.change24Hours },
-                    { label: text.overLast7Days, value: cpu?.change7Days },
-                ]}
-            />
-        );
+        summary = {
+            label: coresLabel ? text.averageCpu : text.averageBusyCores,
+            value: average,
+            detail: coresLabel ? text.ofCpuSize(coresLabel) : undefined,
+            info: coresLabel ? text.cpuEstimateWithCores(coresLabel) : text.cpuEstimate,
+            loading: totals.loading && !cpu,
+            changes: [
+                { label: text.overLast24Hours, value: cpu?.change24Hours },
+                { label: text.overLast7Days, value: cpu?.change7Days },
+            ],
+        };
         points = cpuChartPoints(readData(consumption), range, availableFrom, cores);
-        whole = cpuCapacityMs(range, availableFrom, cores);
     }
     const percent = fromResourceStats || cores !== undefined;
     const chartRead = fromResourceStats ? resourceCpu : consumption;
 
-    const rows = queryListRows(readData(topQueries), whole);
+    // Each query shows its share of the CPU time of all queries in the range.
+    const rows = queryListRows(readData(topQueries), totalsData?.windows[0]?.total || undefined);
     const columns: QueryGridColumn[] = [
-        ...(rows.some((row) => row.share !== undefined)
-            ? [
-                  {
-                      id: "share",
-                      header: fromResourceStats ? text.shareOfCpu : text.cpuUse,
-                      value: (row: { share?: number }) => row.share,
-                      format: formatPercent,
-                      bar: true,
-                  },
-              ]
-            : []),
         {
-            id: "total",
-            header: text.totalCpuMs,
+            id: "cpuTime",
+            header: text.cpuTime,
             value: (row) => row.value,
-            format: formatNumber,
+            format: formatDuration,
+            exact: formatMillisecondsExact,
+            share: (row) => row.share,
+            shareTitle: (share, value) =>
+                text.shareOfAllQueries(formatShare(share), formatMillisecondsExact(value)),
         },
         {
             id: "perExecution",
-            header: text.cpuPerExecutionMs,
+            header: text.cpuPerExecution,
             value: (row) =>
                 row.value !== undefined && row.executions > 0
                     ? row.value / row.executions
                     : undefined,
-            format: formatNumber,
+            format: formatDuration,
+            exact: formatMillisecondsExact,
         },
         {
             id: "executions",
@@ -223,25 +220,42 @@ export const PerformanceDashboardCpuView = () => {
             format: formatNumber,
         },
     ];
+    // The Queries view ranks by CPU by default, so the link needs only the time range.
+    const allQueries = router.build("queries", {}, queryLinkRange(match.query));
 
     return (
         <div className={classes.view}>
             {isReadOnly(totals) && <ReadOnlyNotice />}
-            {summary}
-            <TimeSeriesChart
-                title={text.cpuUse}
-                points={points}
-                format={percent ? formatPercent : formatNumber}
-                yMax={percent ? 100 : undefined}
-                read={chartRead}
-                message={readStatusMessage(chartRead)}
+            <SummaryCard {...summary}>
+                <TimeSeriesChart
+                    title={text.cpuUse}
+                    points={points}
+                    format={percent ? formatPercent : formatNumber}
+                    yMax={percent ? 100 : undefined}
+                    read={chartRead}
+                    message={readStatusMessage(chartRead)}
+                />
+            </SummaryCard>
+            <SectionHeader
+                title={text.topQueriesByCpu}
+                count={rows.length > 0 ? text.queryCount(rows.length) : undefined}
+                action={
+                    <Link
+                        href={"#" + allQueries}
+                        onClick={(event) => {
+                            event.preventDefault();
+                            navigate(allQueries);
+                        }}>
+                        {text.viewAllQueries}
+                    </Link>
+                }
             />
-            <SectionHeader title={text.highCpuQueries} />
             <PerformanceDashboardQueryList
                 read={topQueries}
+                pending={isFirstLoad(totals)}
                 rows={rows}
                 columns={columns}
-                ariaLabel={text.highCpuQueries}
+                ariaLabel={text.topQueriesByCpu}
                 linkQuery={queryLinkRange(match.query)}
             />
         </div>

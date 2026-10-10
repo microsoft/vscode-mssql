@@ -62,7 +62,10 @@ export function useViewTimeRange(): ViewTimeRange {
     const { match } = useNavigation<PerformanceDashboardRoute>();
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const { refreshKey } = useRefresh();
-    const now = useMemo(() => new Date(), [match.location, databaseName, refreshKey]);
+    // A new "now" only when the range, the database, or the refresh changes, so that switching a
+    // tab or a category does not move the window and read everything again.
+    const rangeKey = [...timeRangeKeys].map((key) => match.query[key] ?? "").join("|");
+    const now = useMemo(() => new Date(), [rangeKey, databaseName, refreshKey]);
     const presets = overviewTimeRangePresets();
     const value = timeRangeFromQuery(match.query, presets, defaultOverviewTimeRangeId);
     const range = resolveTimeRange(value, presets, now);

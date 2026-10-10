@@ -9,10 +9,8 @@ import {
     createTableColumn,
     Link,
     makeStyles,
-    shorthands,
-    Spinner,
+    mergeClasses,
     TableColumnDefinition,
-    TableColumnSizingOptions,
     tokens,
 } from "@fluentui/react-components";
 import {
@@ -24,55 +22,133 @@ import {
     DataGridRow,
 } from "@fluentui-contrib/react-data-grid-react-window";
 import { Star16Filled, Star16Regular } from "@fluentui/react-icons";
-import { CSSProperties, useMemo } from "react";
+import { CSSProperties, RefObject, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { PerformanceReadResult } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
-import type { ExtensionRequestState } from "../../common/useExtensionRequest";
-import { formatPercent } from "./performanceDashboardFormat";
+import { SqlText } from "../../common/sqlText";
+import { ExtensionRequestState, isFirstLoad } from "../../common/useExtensionRequest";
+import { formatShare } from "./performanceDashboardFormat";
 import { StatusBar } from "./performanceDashboardParts";
 import { QueryListRow } from "./performanceDashboardQueryList";
 import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
+import { TableSkeleton, useFadeInClass } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 
-const rowHeight = 32;
+const rowHeight = 36;
+/** The query text shown in a row. The full text is in the tooltip and on the query page. */
+const maxQueryTextLength = 160;
+const cellBorder = "1px solid var(--vscode-panel-border)";
+const favoriteWidth = 36;
+const idWidth = 88;
+const textMinWidth = 200;
+const numberWidth = 150;
+const shareWidth = 180;
 
 const useStyles = makeStyles({
-    grid: {
-        width: "100%",
+    // The slot takes the space left below the grid's siblings; the frame fits the rows in it.
+    slot: {
+        flex: "1 1 0px",
         minWidth: 0,
     },
-    queryText: {
-        fontFamily: tokens.fontFamilyMonospace,
-        whiteSpace: "nowrap",
-        overflowX: "hidden",
-        textOverflow: "ellipsis",
+    // A narrow grid scrolls sideways in the frame, so the header and the rows move together.
+    frame: {
+        width: "100%",
         minWidth: 0,
+        border: cellBorder,
+        borderRadius: tokens.borderRadiusMedium,
+        overflowX: "auto",
+        overflowY: "hidden",
+    },
+    grid: {
+        width: "100%",
+    },
+    // The virtualized header scrolls sideways on its own; here the frame scrolls instead.
+    header: {
+        backgroundColor: tokens.colorNeutralBackground2,
+        overflowX: "visible",
+    },
+    headerRow: {
+        height: `${rowHeight}px`,
+    },
+    // When the body scrolls, the header keeps the space of its scroll bar, so that the columns
+    // line up with the cells.
+    headerRowGutter: {
+        overflow: "hidden",
+        scrollbarGutter: "stable",
+    },
+    listGutter: {
+        scrollbarGutter: "stable",
+    },
+    // A line between the columns. Headers are on the left; numbers are on the right.
+    cell: {
+        minWidth: 0,
+        borderRight: cellBorder,
+        "&:last-child": {
+            borderRight: "none",
+        },
+    },
+    headerCell: {
+        whiteSpace: "nowrap",
+        color: tokens.colorNeutralForeground2,
+        "&[aria-sort='ascending'], &[aria-sort='descending']": {
+            backgroundColor: tokens.colorNeutralBackground3,
+            color: tokens.colorNeutralForeground1,
+            fontWeight: tokens.fontWeightSemibold,
+        },
+    },
+    favoriteColumn: {
+        flex: `0 0 ${favoriteWidth}px`,
+    },
+    idColumn: {
+        flex: `0 0 ${idWidth}px`,
+    },
+    // A zero basis, so that the column takes the space left and never grows with its text.
+    textColumn: {
+        flex: "1 1 0px",
+        minWidth: `${textMinWidth}px`,
+    },
+    numberColumn: {
+        flex: `0 0 ${numberWidth}px`,
+    },
+    shareColumn: {
+        flex: `0 0 ${shareWidth}px`,
     },
     numeric: {
         justifyContent: "flex-end",
         textAlign: "right",
         fontVariantNumeric: "tabular-nums",
     },
-    share: {
+    queryText: {
+        display: "block",
+        fontFamily: tokens.fontFamilyMonospace,
+        whiteSpace: "nowrap",
+        overflowX: "hidden",
+        textOverflow: "ellipsis",
+        minWidth: 0,
+    },
+    // The share fills the cell from the left, behind the text.
+    shareCell: {
+        position: "relative",
+        alignSelf: "stretch",
         display: "flex",
         alignItems: "center",
         justifyContent: "flex-end",
-        ...shorthands.gap("8px"),
         width: "100%",
     },
-    shareTrack: {
-        flexGrow: 1,
-        maxWidth: "64px",
-        height: "6px",
-        ...shorthands.borderRadius("3px"),
-        backgroundColor: tokens.colorNeutralBackground5,
-        ...shorthands.overflow("hidden"),
-    },
     shareFill: {
-        display: "block",
-        height: "100%",
-        backgroundColor: tokens.colorBrandBackground,
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: "-8px",
+        backgroundColor: "color-mix(in srgb, var(--vscode-charts-blue) 22%, transparent)",
+    },
+    shareText: {
+        position: "relative",
+        whiteSpace: "nowrap",
+    },
+    shareValue: {
+        fontWeight: tokens.fontWeightSemibold,
     },
     favorite: {
         color: tokens.colorPaletteMarigoldForeground1,
@@ -85,8 +161,20 @@ export interface QueryGridColumn {
     readonly header: string;
     readonly value: (row: QueryListRow) => number | undefined;
     readonly format: (value: number) => string;
-    /** Shows a bar for a percent from 0 to 100. */
-    readonly bar?: boolean;
+    /** The exact value, for the tooltip, when the format rounds it. */
+    readonly exact?: (value: number) => string;
+    /**
+     * The share of the value in percent. The cell shows the share and the value, for example
+     * "91.3% / 34.63s", over a bar of the share.
+     */
+    readonly share?: (row: QueryListRow) => number | undefined;
+    /**
+     * False shows only the value over the bar, for a share that is not a part of a whole, such
+     * as an average against the highest average. Default true.
+     */
+    readonly showShare?: boolean;
+    /** The tooltip of a cell with a share. Default: the exact value. */
+    readonly shareTitle?: (share: number, value: number) => string;
 }
 
 export interface QueryGridFavorites {
@@ -99,7 +187,7 @@ export interface PerformanceDashboardQueryGridProps {
     readonly columns: readonly QueryGridColumn[];
     readonly ariaLabel: string;
     readonly favorites?: QueryGridFavorites;
-    /** The rows to show before the grid scrolls. Default 10. */
+    /** The rows that the grid shows at least, before it scrolls. Default 10. */
     readonly visibleRows?: number;
     /** Query values to keep on the query page link, such as the time range. */
     readonly linkQuery?: Readonly<Record<string, string>>;
@@ -107,7 +195,8 @@ export interface PerformanceDashboardQueryGridProps {
 
 /**
  * A virtualized, sortable list of queries: a favorite star, the query ID (a link to the query
- * page), the query text, and number columns.
+ * page), the query text, and number columns. The rows come ranked by the first number column,
+ * so the grid shows that column sorted, from the highest value.
  */
 export const PerformanceDashboardQueryGrid = ({
     rows,
@@ -119,7 +208,7 @@ export const PerformanceDashboardQueryGrid = ({
 }: PerformanceDashboardQueryGridProps) => {
     const classes = useStyles();
     const { router, navigate } = useNavigation<PerformanceDashboardRoute>();
-    const { numeric, queryText, share, shareTrack, shareFill, favorite } = classes;
+    const fadeIn = useFadeInClass();
 
     const definitions = useMemo<TableColumnDefinition<QueryListRow>[]>(() => {
         const text = loc.performanceDashboard;
@@ -140,7 +229,7 @@ export const PerformanceDashboardQueryGrid = ({
                                 size="small"
                                 icon={
                                     isFavorite ? (
-                                        <Star16Filled className={favorite} />
+                                        <Star16Filled className={classes.favorite} />
                                     ) : (
                                         <Star16Regular />
                                     )
@@ -182,9 +271,12 @@ export const PerformanceDashboardQueryGrid = ({
                 compare: (left, right) => left.queryText.localeCompare(right.queryText),
                 renderHeaderCell: () => text.queryText,
                 renderCell: (row) => (
-                    <span className={queryText} title={row.queryText}>
-                        {row.queryText.replace(/\s+/g, " ")}
-                    </span>
+                    <SqlText
+                        className={classes.queryText}
+                        text={shortQueryText(row.queryText)}
+                        singleLine
+                        title={row.queryText}
+                    />
                 ),
             }),
         );
@@ -200,18 +292,32 @@ export const PerformanceDashboardQueryGrid = ({
                         if (value === undefined) {
                             return "—";
                         }
-                        if (!column.bar) {
-                            return column.format(value);
+                        const exact = column.exact?.(value);
+                        const share = column.share?.(row);
+                        if (share === undefined) {
+                            return <span title={exact}>{column.format(value)}</span>;
                         }
                         return (
-                            <span className={share}>
-                                <span className={shareTrack} aria-hidden>
-                                    <span
-                                        className={shareFill}
-                                        style={{ width: `${Math.min(100, value)}%` }}
-                                    />
+                            <span
+                                className={classes.shareCell}
+                                title={column.shareTitle?.(share, value) ?? exact}>
+                                <span
+                                    className={classes.shareFill}
+                                    style={{ width: `calc(${Math.min(100, share)}% + 8px)` }}
+                                    aria-hidden
+                                />
+                                <span className={classes.shareText}>
+                                    {column.showShare === false ? (
+                                        column.format(value)
+                                    ) : (
+                                        <>
+                                            <span className={classes.shareValue}>
+                                                {formatShare(share)}
+                                            </span>
+                                            {` / ${column.format(value)}`}
+                                        </>
+                                    )}
                                 </span>
-                                {formatPercent(value)}
                             </span>
                         );
                     },
@@ -219,96 +325,168 @@ export const PerformanceDashboardQueryGrid = ({
             );
         }
         return list;
-    }, [
-        columns,
-        favorites,
-        router,
-        navigate,
-        linkQuery,
-        queryText,
-        share,
-        shareTrack,
-        shareFill,
-        favorite,
-    ]);
+    }, [columns, favorites, router, navigate, linkQuery, classes]);
 
-    const sizing = useMemo<TableColumnSizingOptions>(() => {
-        const options: TableColumnSizingOptions = {
-            favorite: { minWidth: 32, idealWidth: 32 },
-            queryId: { minWidth: 64, idealWidth: 80 },
-            queryText: { minWidth: 200, idealWidth: 520 },
+    const columnClass = useMemo(() => {
+        const byId: Record<string, string> = {
+            favorite: classes.favoriteColumn,
+            queryId: classes.idColumn,
+            queryText: classes.textColumn,
         };
         for (const column of columns) {
-            options[column.id] = { minWidth: 110, idealWidth: 150 };
+            byId[column.id] = column.share ? classes.shareColumn : classes.numberColumn;
         }
-        return options;
-    }, [columns]);
-
+        return (columnId: string | number) => byId[String(columnId)];
+    }, [columns, classes]);
     const numericIds = useMemo(() => new Set(columns.map((column) => column.id)), [columns]);
-    const height = Math.max(1, Math.min(rows.length, visibleRows)) * rowHeight;
+
+    // The grid shows at least the visible rows, so the page scrolls rather than the grid. With
+    // more space below, the body fills it, but it is never taller than its rows.
+    const slot = useRef<HTMLDivElement>(null);
+    const slotHeight = useElementHeight(slot);
+    const rowsHeight = Math.max(1, rows.length) * rowHeight;
+    const frameBorders = 2;
+    const visibleHeight = Math.max(1, Math.min(rows.length, visibleRows)) * rowHeight;
+    const height =
+        slotHeight > 0
+            ? Math.max(visibleHeight, Math.min(rowsHeight, slotHeight - rowHeight - frameBorders))
+            : visibleHeight;
+    const minSlotHeight = visibleHeight + rowHeight + frameBorders;
+    const bodyScrolls = height < rowsHeight;
+    // Below this width, the frame scrolls sideways. The header and every row are at least this
+    // wide, with 1px for the line after each column.
+    const columnCount = (favorites ? 1 : 0) + 2 + columns.length;
+    const minGridWidth =
+        (favorites ? favoriteWidth : 0) +
+        idWidth +
+        textMinWidth +
+        columns.reduce((sum, column) => sum + (column.share ? shareWidth : numberWidth), 0) +
+        columnCount;
 
     return (
-        <DataGrid
-            className={classes.grid}
-            items={[...rows]}
-            columns={definitions}
-            getRowId={(row: QueryListRow) => row.queryId}
-            sortable
-            resizableColumns
-            columnSizingOptions={sizing}
-            size="small"
-            focusMode="composite"
-            aria-label={ariaLabel}>
-            <DataGridHeader>
-                <DataGridRow>
-                    {({
-                        renderHeaderCell,
-                        columnId,
-                    }: {
-                        renderHeaderCell: () => React.ReactNode;
-                        columnId: string | number;
-                    }) => (
-                        <DataGridHeaderCell
-                            className={numericIds.has(String(columnId)) ? numeric : undefined}>
-                            {renderHeaderCell()}
-                        </DataGridHeaderCell>
-                    )}
-                </DataGridRow>
-            </DataGridHeader>
-            <DataGridBody<QueryListRow> itemSize={rowHeight} height={height} width="100%">
-                {(
-                    { item, rowId }: { item: QueryListRow; rowId: string | number },
-                    style: CSSProperties,
-                ) => (
-                    <DataGridRow<QueryListRow> key={rowId} style={style}>
-                        {({
-                            renderCell,
-                            columnId,
-                        }: {
-                            renderCell: (row: QueryListRow) => React.ReactNode;
-                            columnId: string | number;
-                        }) => (
-                            <DataGridCell
-                                className={numericIds.has(String(columnId)) ? numeric : undefined}>
-                                {renderCell(item)}
-                            </DataGridCell>
+        <div ref={slot} className={classes.slot} style={{ minHeight: minSlotHeight }}>
+            <div className={mergeClasses(classes.frame, fadeIn)}>
+                <DataGrid
+                    className={classes.grid}
+                    style={{ minWidth: minGridWidth }}
+                    items={[...rows]}
+                    columns={definitions}
+                    getRowId={(row: QueryListRow) => row.queryId}
+                    sortable
+                    defaultSortState={
+                        columns[0]
+                            ? { sortColumn: columns[0].id, sortDirection: "descending" }
+                            : undefined
+                    }
+                    size="small"
+                    focusMode="composite"
+                    aria-label={ariaLabel}>
+                    <DataGridHeader className={classes.header}>
+                        <DataGridRow
+                            className={mergeClasses(
+                                classes.headerRow,
+                                bodyScrolls && classes.headerRowGutter,
+                            )}
+                            style={{ minWidth: minGridWidth }}>
+                            {({
+                                renderHeaderCell,
+                                columnId,
+                            }: {
+                                renderHeaderCell: () => React.ReactNode;
+                                columnId: string | number;
+                            }) => (
+                                <DataGridHeaderCell
+                                    className={mergeClasses(
+                                        classes.cell,
+                                        classes.headerCell,
+                                        columnClass(columnId),
+                                    )}>
+                                    {renderHeaderCell()}
+                                </DataGridHeaderCell>
+                            )}
+                        </DataGridRow>
+                    </DataGridHeader>
+                    <DataGridBody<QueryListRow>
+                        itemSize={rowHeight}
+                        height={height}
+                        width={`max(100%, ${minGridWidth}px)`}
+                        listProps={{
+                            className: bodyScrolls ? classes.listGutter : undefined,
+                            // The frame scrolls sideways, not the body. The list sets its
+                            // overflow inline, so this is inline too.
+                            style: { overflowX: "hidden" },
+                        }}>
+                        {(
+                            { item, rowId }: { item: QueryListRow; rowId: string | number },
+                            style: CSSProperties,
+                        ) => (
+                            <DataGridRow<QueryListRow>
+                                key={rowId}
+                                style={{ ...style, minWidth: minGridWidth }}>
+                                {({
+                                    renderCell,
+                                    columnId,
+                                }: {
+                                    renderCell: (row: QueryListRow) => React.ReactNode;
+                                    columnId: string | number;
+                                }) => (
+                                    <DataGridCell
+                                        className={mergeClasses(
+                                            classes.cell,
+                                            columnClass(columnId),
+                                            numericIds.has(String(columnId)) && classes.numeric,
+                                        )}>
+                                        {renderCell(item)}
+                                    </DataGridCell>
+                                )}
+                            </DataGridRow>
                         )}
-                    </DataGridRow>
-                )}
-            </DataGridBody>
-        </DataGrid>
+                    </DataGridBody>
+                </DataGrid>
+            </div>
+        </div>
     );
 };
 
+/** The query text on one line, cut after a fixed length. */
+function shortQueryText(queryText: string): string {
+    const line = queryText.replace(/\s+/g, " ").trim();
+    return line.length > maxQueryTextLength ? `${line.slice(0, maxQueryTextLength)}…` : line;
+}
+
+/** The height of an element, kept up to date as it resizes. */
+function useElementHeight(element: RefObject<HTMLElement | null>): number {
+    const [height, setHeight] = useState(0);
+    useLayoutEffect(() => {
+        const target = element.current;
+        if (!target) {
+            return;
+        }
+        const measure = (next: number) =>
+            setHeight((current) => (Math.abs(current - next) >= 1 ? Math.floor(next) : current));
+        measure(target.getBoundingClientRect().height);
+        const observer = new ResizeObserver((entries) => measure(entries[0].contentRect.height));
+        observer.observe(target);
+        return () => observer.disconnect();
+    }, [element]);
+    return height;
+}
+
 export interface PerformanceDashboardQueryListProps extends PerformanceDashboardQueryGridProps {
-    /** The read of the rows. Its message, a spinner, or the empty text replaces the grid. */
+    /** The read of the rows. Its message, a skeleton, or the empty text replaces the grid. */
     readonly read: ExtensionRequestState<PerformanceReadResult<unknown>>;
+    /**
+     * True while another read that the rows need still runs, such as the total behind the share
+     * bars. The grid shows when the rows are complete, so they do not change as reads finish.
+     */
+    readonly pending?: boolean;
     readonly emptyText?: string;
 }
 
-/** A query grid, or the message, spinner, or empty text of its read. */
+/** A query grid, or the message, skeleton, or empty text of its read. */
 export const PerformanceDashboardQueryList = ({
     read,
+    pending,
     emptyText,
     ...grid
 }: PerformanceDashboardQueryListProps) => {
@@ -317,8 +495,13 @@ export const PerformanceDashboardQueryList = ({
     if (message) {
         return <StatusBar message={message} />;
     }
-    if (read.loading && grid.rows.length === 0) {
-        return <Spinner size="small" label={loc.common.loading} />;
+    if (isFirstLoad(read) || pending) {
+        return (
+            <TableSkeleton
+                rows={Math.min(grid.visibleRows ?? 10, 10)}
+                numberColumns={grid.columns.length}
+            />
+        );
     }
     if (grid.rows.length === 0) {
         return (

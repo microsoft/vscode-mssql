@@ -156,6 +156,7 @@ suite("PerformanceDashboardWebviewController", () => {
             switchDatabase: sinon.SinonStub;
             openPlanXml: sinon.SinonStub;
             compareExecutionPlans: sinon.SinonStub;
+            openSqlScript: sinon.SinonStub;
         };
         let requestHandlers: Map<string, (params: unknown) => unknown>;
 
@@ -169,6 +170,7 @@ suite("PerformanceDashboardWebviewController", () => {
                 switchDatabase: sandbox.stub().returns(true),
                 openPlanXml: sandbox.stub(),
                 compareExecutionPlans: sandbox.stub().resolves(),
+                openSqlScript: sandbox.stub().resolves(),
             };
             requestHandlers = new Map();
             sandbox
@@ -525,6 +527,8 @@ suite("PerformanceDashboardWebviewController", () => {
                 canAlter: true,
                 canChange: true,
                 hasWaitStats: true,
+                hasCapturePolicy: true,
+                canTurnOff: true,
             });
             const prepared = {
                 kind: "queryStoreSettings" as const,

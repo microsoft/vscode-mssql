@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, shorthands, Spinner } from "@fluentui/react-components";
+import { makeStyles, shorthands } from "@fluentui/react-components";
 import { GetDatabaseFactsRequest } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
@@ -15,7 +15,9 @@ import { PerformanceDashboardConnectionsView } from "./performanceDashboardConne
 import { PerformanceDashboardCpuView } from "./performanceDashboardCpuView";
 import { PerformanceDashboardMemoryView } from "./performanceDashboardMemoryView";
 import { PerformanceDashboardRequestsView } from "./performanceDashboardRequestsView";
+import { timeSeriesChartHeight } from "./performanceDashboardParts";
 import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
+import { SummarySkeleton, TableSkeleton, ValueSkeleton } from "./performanceDashboardSkeletons";
 import {
     OverviewSegment,
     overviewSegmentLabel,
@@ -25,9 +27,11 @@ import {
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 
 const useStyles = makeStyles({
+    // Grows to the bottom of the page, so the query grid can fill the space left.
     root: {
         display: "flex",
         flexDirection: "column",
+        flex: "1 0 auto",
         alignItems: "stretch",
         ...shorthands.gap("16px"),
     },
@@ -46,8 +50,15 @@ export const PerformanceDashboardOverviewPage = () => {
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const facts = useExtensionRequest(GetDatabaseFactsRequest.type, undefined, databaseName);
 
+    // Until the platform is known, the shape of the overview: segments, summary, and grid.
     if (facts.loading && !facts.result) {
-        return <Spinner size="small" label={loc.common.loading} />;
+        return (
+            <div className={classes.root}>
+                <ValueSkeleton width={420} height={24} />
+                <SummarySkeleton chartHeight={timeSeriesChartHeight} />
+                <TableSkeleton />
+            </div>
+        );
     }
     const segments = overviewSegmentsFor(facts.result?.platform, facts.result?.majorVersion);
     const requested = match.query[overviewSegmentParameter] as OverviewSegment | undefined;

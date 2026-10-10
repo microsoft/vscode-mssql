@@ -12,7 +12,15 @@ import type {
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { dateTimeFormat } from "./performanceDashboardFormat";
-import { ChartFrame, InlineSelect } from "./performanceDashboardParts";
+import {
+    ChartFrame,
+    InlineSelect,
+    axisDateFormat,
+    useAxisStyles,
+    xAxisTickCount,
+    yAxisMargin,
+    zeroBasedTicks,
+} from "./performanceDashboardParts";
 import { statisticLabel } from "./performanceDashboardQueriesPage";
 import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
 
@@ -24,13 +32,15 @@ const historyViews: readonly HistoryView[] = ["total", "avg", "max", "min"];
 
 const minuteMs = 60_000;
 /** The height of the plan summary chart, with its axes and legend. */
-const chartHeight = 320;
+export const planSummaryChartHeight = 320;
+const chartHeight = planSummaryChartHeight;
 
 const useStyles = makeStyles({
     controls: {
         display: "flex",
         flexWrap: "wrap",
-        ...shorthands.gap("24px"),
+        alignItems: "center",
+        ...shorthands.gap("8px", "20px"),
     },
     empty: {
         color: tokens.colorNeutralForeground3,
@@ -46,6 +56,19 @@ export function historyMetricLabel(metric: HistoryMetric): string {
             return text.logicalReadsPages;
         default:
             return text.durationMs;
+    }
+}
+
+/** The label of a metric on its own, for example "Duration (ms)". */
+function historyMetricOption(metric: HistoryMetric): string {
+    const text = loc.performanceDashboard;
+    switch (metric) {
+        case "cpu":
+            return text.cpuMs;
+        case "reads":
+            return text.logicalReadsPagesOption;
+        default:
+            return text.durationMsOption;
     }
 }
 
@@ -84,7 +107,7 @@ export const HistoryControls = () => {
                 value={metric}
                 options={historyMetrics.map((value) => ({
                     value,
-                    label: historyMetricLabel(value),
+                    label: historyMetricOption(value),
                 }))}
                 onChange={(value) => setQuery({ metric: value === "duration" ? undefined : value })}
             />
@@ -163,6 +186,7 @@ export const PlanSummaryChart = ({
     format,
 }: PlanSummaryChartProps) => {
     const classes = useStyles();
+    const axisClasses = useAxisStyles();
     const text = loc.performanceDashboard;
     const points = new Map<string, { x: Date; y: number }[]>();
     for (const interval of intervals) {
@@ -198,6 +222,10 @@ export const PlanSummaryChart = ({
             })),
         })),
     };
+    const allPoints = [...points.values()].flat();
+    // The scatter chart pads its domain below the lowest point, so it would show a negative
+    // tick. Three ticks from 0 keep the axis like the other charts.
+    const ticks = zeroBasedTicks(allPoints.reduce((max, point) => Math.max(max, point.y), 0));
     return (
         <ChartFrame height={chartHeight}>
             {(width) => (
@@ -206,7 +234,13 @@ export const PlanSummaryChart = ({
                     width={width}
                     height={chartHeight}
                     yMinValue={0}
+                    yMaxValue={ticks[ticks.length - 1]}
+                    yAxisTickValues={ticks}
                     yAxisTickFormat={format}
+                    margins={{ left: yAxisMargin(ticks.map(format)) }}
+                    xAxisTickCount={xAxisTickCount(width)}
+                    customDateTimeFormatter={axisDateFormat(allPoints.map((point) => point.x))}
+                    styles={{ xAxis: axisClasses.axis, yAxis: axisClasses.axis }}
                     culture={navigator.language}
                 />
             )}

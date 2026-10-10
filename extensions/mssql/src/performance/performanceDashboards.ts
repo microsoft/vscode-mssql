@@ -19,13 +19,15 @@ export type PerformanceDashboardFactory = (
     initialLocation: string | undefined,
 ) => PerformanceDashboardWebviewController;
 
-/** The extension's execution plan editors, which the dashboards open plans in. */
+/** The extension's editors, which the dashboards open plans and queries in. */
 export interface PerformancePlanViewer {
     open(planXml: string, name: string): void;
     compare(
         first: { readonly name: string; readonly planXml: string },
         second: { readonly name: string; readonly planXml: string },
     ): Promise<void>;
+    /** Opens T-SQL in a query editor that is connected to the target's database. */
+    openQuery(sql: string, target: PerformanceDashboardTarget): Promise<void>;
 }
 
 /** Keeps one open dashboard for each connection and database. */
@@ -79,6 +81,10 @@ export class PerformanceDashboards implements PerformanceDashboardHost {
         second: { readonly name: string; readonly planXml: string },
     ): Promise<void> {
         return this._planViewer.compare(first, second);
+    }
+
+    public openSqlScript(sql: string, target: PerformanceDashboardTarget): Promise<void> {
+        return this._planViewer.openQuery(sql, target);
     }
 
     public switchDatabase(

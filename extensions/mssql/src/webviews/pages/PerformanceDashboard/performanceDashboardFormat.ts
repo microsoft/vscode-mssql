@@ -48,6 +48,53 @@ export function formatPercent(percent: number): string {
     return smallPercentFormat.format(ratio);
 }
 
+/** A headline percent with at most one decimal, so that 0.0044% shows as 0%. */
+export function formatPercentRounded(percent: number): string {
+    return percentFormat.format(percent / 100);
+}
+
+/** A share of a whole in percent, for example 91.3%, or <0.1% for a small share. */
+export function formatShare(percent: number): string {
+    return percent > 0 && percent < 0.1
+        ? `<${percentFormat.format(0.001)}`
+        : formatPercentRounded(percent);
+}
+
+/** A duration in milliseconds, in the unit that reads best: 0.9ms, 737ms, 34.63s, 6m 12s. */
+export function formatDuration(milliseconds: number): string {
+    const size = Math.abs(milliseconds);
+    if (size < 1000) {
+        return narrowUnit(milliseconds, "millisecond", size < 1 ? 2 : size < 10 ? 1 : 0);
+    }
+    if (size < 60_000) {
+        return narrowUnit(milliseconds / 1000, "second", 2);
+    }
+    return formatElapsed(milliseconds);
+}
+
+/** The exact value in milliseconds, for example "34,630 ms", for a tooltip. */
+export function formatMillisecondsExact(milliseconds: number): string {
+    return new Intl.NumberFormat(undefined, {
+        style: "unit",
+        unit: "millisecond",
+        unitDisplay: "short",
+        maximumFractionDigits: 3,
+    }).format(milliseconds);
+}
+
+function narrowUnit(value: number, unit: "millisecond" | "second", fractionDigits: number): string {
+    return new Intl.NumberFormat(undefined, {
+        style: "unit",
+        unit,
+        unitDisplay: "narrow",
+        maximumFractionDigits: fractionDigits,
+        // Below 1 ms, two significant digits, so 0.04 ms does not show as 0 ms.
+        ...(Math.abs(value) > 0 && Math.abs(value) < 1 && unit === "millisecond"
+            ? { maximumSignificantDigits: 2 }
+            : {}),
+    }).format(value);
+}
+
 /** A size in KB as MB, for example 12.5 MB. */
 export function formatMegabytes(kilobytes: number): string {
     return formatUnit(kilobytes / 1024, "megabyte");

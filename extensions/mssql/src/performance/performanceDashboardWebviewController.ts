@@ -82,6 +82,8 @@ export interface PerformanceDashboardHost {
         first: { readonly name: string; readonly planXml: string },
         second: { readonly name: string; readonly planXml: string },
     ): Promise<void>;
+    /** Opens T-SQL in a query editor connected to the dashboard's server and database. */
+    openSqlScript(sql: string, target: PerformanceDashboardTarget): Promise<void>;
 }
 
 /**
@@ -279,13 +281,9 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
         this.onRequest(ApplyQueryStoreSettingsChangeRequest.type, (prepared) =>
             this.read((target) => target.applyQueryStoreSettingsChange(prepared)),
         );
-        this.onRequest(OpenSqlScriptRequest.type, async ({ sql }) => {
-            const document = await vscode.workspace.openTextDocument({
-                language: "sql",
-                content: sql,
-            });
-            await vscode.window.showTextDocument(document);
-        });
+        this.onRequest(OpenSqlScriptRequest.type, ({ sql }) =>
+            this._host.openSqlScript(sql, this._target),
+        );
     }
 
     /** Runs a read on the dashboard's database, or returns why the database cannot be read. */

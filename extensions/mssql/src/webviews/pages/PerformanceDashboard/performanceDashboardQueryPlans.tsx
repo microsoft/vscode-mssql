@@ -9,14 +9,18 @@ import {
     Checkbox,
     Link,
     makeStyles,
+    Menu,
+    MenuItem,
+    MenuList,
+    MenuPopover,
     MessageBar,
     MessageBarBody,
     MessageBarIntent,
+    PositioningVirtualElement,
     shorthands,
-    Spinner,
-    Text,
     tokens,
 } from "@fluentui/react-components";
+import { Open12Regular, Warning16Regular } from "@fluentui/react-icons";
 import { useState } from "react";
 import type {
     ForcedPlanVerification,
@@ -33,26 +37,27 @@ import {
     GetQueryHistoryRequest,
     GetQueryPlansRequest,
     OpenPlanRequest,
-    OpenSqlScriptRequest,
     PerformanceDashboardReducers,
     PerformanceDashboardState,
     PreparePlanChangeRequest,
     VerifyForcedPlanRequest,
 } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
-import { useExtensionRequest } from "../../common/useExtensionRequest";
+import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { ChangeDialog } from "./performanceDashboardChangeDialog";
 import { formatNumber } from "./performanceDashboardFormat";
-import { SectionHeader, StatusBar, readData } from "./performanceDashboardParts";
+import { ChartPanel, StatusBar, readData } from "./performanceDashboardParts";
 import { usePlanColor } from "./performanceDashboardPlanColors";
 import {
-    HistoryControls,
     PlanSummaryChart,
+    planSummaryChartHeight,
     useHistorySelection,
 } from "./performanceDashboardPlanHistory";
 import { useRefresh } from "./performanceDashboardRefresh";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 import { SimpleGrid } from "./performanceDashboardSimpleGrid";
+import { ChartSkeleton, TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 import { useViewTimeRange } from "./performanceDashboardTimeRange";
 
@@ -85,10 +90,28 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
     },
     shape: {
+        fontWeight: tokens.fontWeightSemibold,
         whiteSpace: "nowrap",
         overflowX: "hidden",
         textOverflow: "ellipsis",
     },
+    planLink: {
+        display: "inline-flex",
+        alignItems: "center",
+        ...shorthands.gap("4px"),
+    },
+    force: {
+        display: "inline-flex",
+        alignItems: "center",
+        ...shorthands.gap("6px"),
+        whiteSpace: "nowrap",
+    },
+    forceWarning: {
+        display: "inline-flex",
+        flexShrink: 0,
+        color: tokens.colorPaletteYellowForeground1,
+    },
+    // The actions for the selected plans, at the bottom of the grid's frame.
     bar: {
         display: "flex",
         flexWrap: "wrap",
@@ -96,8 +119,9 @@ const useStyles = makeStyles({
         justifyContent: "space-between",
         ...shorthands.gap("12px"),
         ...shorthands.padding("10px", "16px"),
-        ...shorthands.border("1px", "solid", "var(--vscode-panel-border)"),
-        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+    },
+    selectionCount: {
+        fontWeight: tokens.fontWeightSemibold,
     },
     actions: {
         display: "flex",
@@ -111,15 +135,6 @@ const useStyles = makeStyles({
         ...shorthands.padding("12px", "16px"),
         ...shorthands.border("1px", "solid", "var(--vscode-panel-border)"),
         ...shorthands.borderRadius(tokens.borderRadiusMedium),
-    },
-    script: {
-        ...shorthands.margin(0),
-        ...shorthands.padding("12px"),
-        ...shorthands.borderRadius(tokens.borderRadiusMedium),
-        backgroundColor: "var(--vscode-textCodeBlock-background)",
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: tokens.fontSizeBase200,
-        whiteSpace: "pre-wrap",
     },
 });
 
@@ -151,19 +166,21 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
         PerformanceDashboardReducers
     >();
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
-    const { refreshKey } = useRefresh();
+    const { refreshKey, refresh } = useRefresh();
     const { window } = useViewTimeRange();
-    const [version, setVersion] = useState(0);
     const [selection, setSelection] = useState<readonly string[] | undefined>(undefined);
     const [change, setChange] = useState<ChangeStage>({ stage: "idle" });
     const [busy, setBusy] = useState(false);
+    const [applyError, setApplyError] = useState<string | undefined>(undefined);
     const [notice, setNotice] = useState<Notice | undefined>(undefined);
     const [verification, setVerification] = useState<ForcedPlanVerification | undefined>(undefined);
+    const [contextMenu, setContextMenu] = useState<
+        { readonly planId: string; readonly target: PositioningVirtualElement } | undefined
+    >(undefined);
 
     const plansRead = useExtensionRequest(GetQueryPlansRequest.type, { queryId, ...window }, [
         databaseName,
         refreshKey,
-        version,
     ]);
     const plans = readData(plansRead)?.plans ?? [];
     const planIds = plans.map((plan) => plan.planId);
@@ -187,8 +204,13 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
     if (message) {
         return <StatusBar message={message} />;
     }
-    if (plansRead.loading && plans.length === 0) {
-        return <Spinner size="small" label={loc.common.loading} />;
+    if (isFirstLoad(plansRead)) {
+        return (
+            <div className={classes.plans}>
+                <ChartPanel chart={<ChartSkeleton height={planSummaryChartHeight} />} />
+                <TableSkeleton rows={3} />
+            </div>
+        );
     }
     if (plans.length === 0) {
         return <Caption1 className={classes.secondary}>{text.noPlans}</Caption1>;
@@ -238,11 +260,11 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
             }
         });
 
-    const comparePlans = () =>
+    const comparePlans = (first: string, second: string) =>
         run(async () => {
             const { opened } = await extensionRpc.sendRequest(ComparePlansRequest.type, {
                 queryId,
-                planIds: [selected[0], selected[1]],
+                planIds: [first, second],
             });
             if (!opened) {
                 setNotice({ intent: "warning", text: text.planCompareFailed });
@@ -252,6 +274,7 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
     const prepare = (kind: PreparedChange["kind"], planId: string) =>
         run(async () => {
             setVerification(undefined);
+            setApplyError(undefined);
             const result = await extensionRpc.sendRequest(PreparePlanChangeRequest.type, {
                 kind,
                 queryId,
@@ -265,8 +288,12 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
             }
         });
 
-    const apply = (prepared: PreparedChange) =>
-        run(async () => {
+    // A failure stays in the change dialog; a success closes it and reloads the whole page, so
+    // the badge, the stats, and the plans show the new state.
+    const apply = async (prepared: PreparedChange) => {
+        setBusy(true);
+        setApplyError(undefined);
+        try {
             const result = await extensionRpc.sendRequest(ApplyPlanChangeRequest.type, prepared);
             if ("data" in result && result.data?.applied) {
                 setChange({
@@ -282,18 +309,19 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                             ? text.planForced(prepared.target.planId)
                             : text.planUnforced(prepared.target.planId),
                 });
+                refresh();
             } else if ("data" in result && result.data) {
-                setChange({ stage: "idle" });
-                setNotice({
-                    intent: "error",
-                    text: result.data.blockers.map(planBlockerText).join(" "),
-                });
+                setApplyError(result.data.blockers.map(planBlockerText).join(" "));
             } else {
                 const status = readStatusMessage({ loading: false, result });
-                setNotice(status ?? { intent: "error", text: text.readFailed(result.status) });
+                setApplyError(status?.text ?? text.readFailed(result.status));
             }
-            setVersion((value) => value + 1);
-        });
+        } catch (error) {
+            setApplyError(text.readFailed(error instanceof Error ? error.message : String(error)));
+        } finally {
+            setBusy(false);
+        }
+    };
 
     const verify = (planId: string, since: string) =>
         run(async () => {
@@ -310,6 +338,17 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
             }
         });
 
+    const prepareForce = (plan: QueryPlanInfo) =>
+        prepare(plan.isForced ? "unforcePlan" : "forcePlan", plan.planId);
+
+    // The row menu compares with another selected plan, when there is one.
+    const contextMenuPlan = contextMenu
+        ? plans.find((plan) => plan.planId === contextMenu.planId)
+        : undefined;
+    const compareTarget = contextMenuPlan
+        ? selected.find((planId) => planId !== contextMenuPlan.planId)
+        : undefined;
+
     return (
         <div className={classes.plans}>
             {notice && (
@@ -317,26 +356,88 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                     <MessageBarBody>{notice.text}</MessageBarBody>
                 </MessageBar>
             )}
-            <SectionHeader title={text.planSummary} />
-            <HistoryControls />
             {historyMessage ? (
                 <StatusBar message={historyMessage} />
-            ) : historyRead.loading && intervals.length === 0 ? (
-                <Spinner size="small" label={loc.common.loading} />
+            ) : isFirstLoad(historyRead) ? (
+                <ChartPanel chart={<ChartSkeleton height={planSummaryChartHeight} />} />
             ) : (
-                <PlanSummaryChart
-                    intervals={intervals}
-                    metric={metric}
-                    view={view}
-                    planIds={planIds}
-                    colorOf={colorOf}
-                    format={formatNumber}
+                <ChartPanel
+                    chart={
+                        <PlanSummaryChart
+                            intervals={intervals}
+                            metric={metric}
+                            view={view}
+                            planIds={planIds}
+                            colorOf={colorOf}
+                            format={formatNumber}
+                        />
+                    }
                 />
             )}
             <SimpleGrid<QueryPlanInfo>
                 items={plans}
                 getRowId={(plan) => plan.planId}
                 ariaLabel={text.plans}
+                isSelected={(plan) => selected.includes(plan.planId)}
+                onRowContextMenu={(plan, event) => {
+                    event.preventDefault();
+                    const { clientX: x, clientY: y } = event;
+                    setContextMenu({
+                        planId: plan.planId,
+                        target: {
+                            getBoundingClientRect: () =>
+                                ({
+                                    x,
+                                    y,
+                                    top: y,
+                                    left: x,
+                                    bottom: y,
+                                    right: x,
+                                    width: 0,
+                                    height: 0,
+                                }) as DOMRect,
+                        },
+                    });
+                }}
+                footer={
+                    <div className={classes.bar}>
+                        <Caption1 className={classes.secondary}>
+                            {selected.length === 0 ? (
+                                text.selectPlans
+                            ) : (
+                                <>
+                                    <span className={classes.selectionCount}>
+                                        {selected.length === 1
+                                            ? text.onePlanSelected
+                                            : text.twoPlansSelected}
+                                    </span>
+                                    {selected.length === 1 && ` · ${text.selectTwoToCompare}`}
+                                </>
+                            )}
+                        </Caption1>
+                        <div className={classes.actions}>
+                            <Button
+                                size="small"
+                                disabled={busy || selected.length === 0}
+                                onClick={() => void openPlans(selected)}>
+                                {text.openPlanXml}
+                            </Button>
+                            <Button
+                                size="small"
+                                disabled={busy || !single || change.stage === "review"}
+                                onClick={() => single && void prepareForce(single)}>
+                                {single?.isForced ? text.unforcePlan : text.forcePlan}
+                            </Button>
+                            <Button
+                                size="small"
+                                appearance="primary"
+                                disabled={busy || selected.length !== 2}
+                                onClick={() => void comparePlans(selected[0], selected[1])}>
+                                {text.comparePlansAction}
+                            </Button>
+                        </div>
+                    </div>
+                }
                 columns={[
                     {
                         id: "select",
@@ -365,9 +466,11 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                                     aria-hidden
                                 />
                                 <Link
+                                    className={classes.planLink}
                                     title={text.openPlan(plan.planId)}
                                     onClick={() => void openPlans([plan.planId])}>
                                     {plan.planId}
+                                    <Open12Regular aria-hidden />
                                 </Link>
                             </span>
                         ),
@@ -394,105 +497,67 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                         render: (plan) => formatNumber(plan.executionCount),
                     },
                     {
-                        id: "meanMs",
-                        header: text.meanMs,
+                        id: "mean",
+                        header: text.mean,
                         numeric: true,
-                        idealWidth: 100,
+                        idealWidth: 110,
                         compare: (left, right) =>
                             (left.avgDurationMs ?? -1) - (right.avgDurationMs ?? -1),
                         render: (plan) =>
                             plan.avgDurationMs !== undefined
-                                ? formatNumber(plan.avgDurationMs)
+                                ? text.milliseconds(formatNumber(plan.avgDurationMs))
                                 : "—",
                     },
                     {
                         id: "force",
                         header: text.force,
-                        idealWidth: 180,
+                        idealWidth: 200,
                         render: (plan) => <ForceCell plan={plan} />,
                     },
                 ]}
             />
-            <div className={classes.bar}>
-                <Caption1 className={classes.secondary}>
-                    {selected.length === 0
-                        ? text.selectPlans
-                        : selected.length === 1
-                          ? text.onePlanSelected(selected[0])
-                          : text.twoPlansSelected(selected[0], selected[1])}
-                </Caption1>
-                <div className={classes.actions}>
-                    <Button
-                        size="small"
-                        disabled={busy || selected.length === 0}
-                        onClick={() => void openPlans(selected)}>
-                        {text.openPlanXml}
-                    </Button>
-                    {single && (
-                        <Button
-                            size="small"
-                            disabled={busy || change.stage === "review"}
-                            onClick={() =>
-                                void prepare(
-                                    single.isForced ? "unforcePlan" : "forcePlan",
-                                    single.planId,
-                                )
-                            }>
-                            {single.isForced ? text.unforcePlan : text.forcePlan}
-                        </Button>
-                    )}
-                    <Button
-                        size="small"
-                        appearance="primary"
-                        disabled={busy || selected.length !== 2}
-                        onClick={() => void comparePlans()}>
-                        {text.comparePlansAction}
-                    </Button>
-                </div>
-            </div>
+            {contextMenuPlan && (
+                <Menu
+                    open
+                    positioning={{ target: contextMenu?.target, position: "below", align: "start" }}
+                    onOpenChange={(_event, data) => !data.open && setContextMenu(undefined)}>
+                    <MenuPopover>
+                        <MenuList>
+                            <MenuItem onClick={() => void openPlans([contextMenuPlan.planId])}>
+                                {text.openPlanAction}
+                            </MenuItem>
+                            {compareTarget && (
+                                <MenuItem
+                                    onClick={() =>
+                                        void comparePlans(compareTarget, contextMenuPlan.planId)
+                                    }>
+                                    {text.comparePlan(compareTarget)}
+                                </MenuItem>
+                            )}
+                            <MenuItem
+                                disabled={busy || change.stage === "review"}
+                                onClick={() => void prepareForce(contextMenuPlan)}>
+                                {contextMenuPlan.isForced ? text.unforcePlan : text.forcePlan}
+                            </MenuItem>
+                        </MenuList>
+                    </MenuPopover>
+                </Menu>
+            )}
             {change.stage === "review" && (
-                <div className={classes.review}>
-                    <Text weight="semibold">
-                        {change.prepared.kind === "forcePlan"
+                <ChangeDialog
+                    title={
+                        change.prepared.kind === "forcePlan"
                             ? text.reviewForcePlan(change.prepared.target.planId)
-                            : text.reviewUnforcePlan(change.prepared.target.planId)}
-                    </Text>
-                    {change.prepared.blockers.map((blocker) => (
-                        <MessageBar key={blocker} intent="error">
-                            <MessageBarBody>{planBlockerText(blocker)}</MessageBarBody>
-                        </MessageBar>
-                    ))}
-                    {change.prepared.warnings.map((warning) => (
-                        <MessageBar key={warning} intent="warning">
-                            <MessageBarBody>{planWarningText(warning)}</MessageBarBody>
-                        </MessageBar>
-                    ))}
-                    <pre className={classes.script}>{change.prepared.sql}</pre>
-                    <div className={classes.actions}>
-                        <Button
-                            size="small"
-                            disabled={busy}
-                            onClick={() => setChange({ stage: "idle" })}>
-                            {loc.common.cancel}
-                        </Button>
-                        <Button
-                            size="small"
-                            onClick={() =>
-                                void extensionRpc.sendRequest(OpenSqlScriptRequest.type, {
-                                    sql: change.prepared.sql,
-                                })
-                            }>
-                            {text.openInQueryEditor}
-                        </Button>
-                        <Button
-                            size="small"
-                            appearance="primary"
-                            disabled={busy || change.prepared.blockers.length > 0}
-                            onClick={() => void apply(change.prepared)}>
-                            {busy ? <Spinner size="tiny" /> : loc.common.apply}
-                        </Button>
-                    </div>
-                </div>
+                            : text.reviewUnforcePlan(change.prepared.target.planId)
+                    }
+                    sql={change.prepared.sql}
+                    blockers={change.prepared.blockers.map(planBlockerText)}
+                    warnings={change.prepared.warnings.map(planWarningText)}
+                    error={applyError}
+                    busy={busy}
+                    onApply={() => void apply(change.prepared)}
+                    onCancel={() => setChange({ stage: "idle" })}
+                />
             )}
             {change.stage === "applied" && change.kind === "forcePlan" && change.appliedAtUtc && (
                 <div className={classes.review}>
@@ -527,8 +592,9 @@ const PlanShapeCell = ({
 }) => {
     const classes = useStyles();
     const text = loc.performanceDashboard;
+    // A compiled plan is the usual type, so only the other types show.
     const details = [
-        planTypeText(plan.planType),
+        plan.planType?.toLowerCase() === "compiled plan" ? undefined : planTypeText(plan.planType),
         shape?.parallel || plan.isParallel ? text.parallel : undefined,
         plan.countCompiles !== undefined
             ? text.compiledTimes(formatNumber(plan.countCompiles))
@@ -547,21 +613,30 @@ const PlanShapeCell = ({
     );
 };
 
+/** The force status on one line, with a warning icon when forcing last failed. */
 const ForceCell = ({ plan }: { plan: QueryPlanInfo }) => {
     const classes = useStyles();
     const text = loc.performanceDashboard;
-    const detail =
+    const failure =
         plan.lastForceFailureReason && plan.lastForceFailureReason !== "NONE"
             ? text.forceFailed(plan.lastForceFailureReason)
-            : plan.isForced
-              ? plan.forcingType === "auto"
-                  ? text.forcedAutomatically
-                  : text.forcedManually
-              : undefined;
+            : undefined;
     return (
-        <span className={classes.stack}>
-            <span>{plan.isForced ? text.forced : text.notForced}</span>
-            {detail && <Caption1 className={classes.secondary}>{detail}</Caption1>}
+        <span className={classes.force}>
+            {!plan.isForced
+                ? text.notForced
+                : plan.forcingType === "auto"
+                  ? text.forcedAutomatically
+                  : text.forcedManually}
+            {failure && (
+                <span
+                    className={classes.forceWarning}
+                    role="img"
+                    aria-label={failure}
+                    title={failure}>
+                    <Warning16Regular />
+                </span>
+            )}
         </span>
     );
 };

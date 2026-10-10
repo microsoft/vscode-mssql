@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { makeStyles, tokens } from "@fluentui/react-components";
+import { Database16Regular } from "@fluentui/react-icons";
 import { useMemo } from "react";
 import {
     ListDatabasesRequest,
@@ -20,12 +22,28 @@ import { useExtensionRequest } from "../../common/useExtensionRequest";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 
+const useStyles = makeStyles({
+    picker: {
+        flexShrink: 0,
+        // The database is the subject of the dashboard, so its name stands out.
+        "& .fui-Button .fui-Text": {
+            fontWeight: tokens.fontWeightSemibold,
+        },
+    },
+    icon: {
+        display: "flex",
+        flexShrink: 0,
+        color: tokens.colorNeutralForeground2,
+    },
+});
+
 /**
  * Shows the dashboard's database and switches to another database of the server. After a switch,
  * the dashboard goes to the tab of its current location, because a query or session ID does not
  * apply to another database.
  */
 export const PerformanceDashboardDatabasePicker = () => {
+    const classes = useStyles();
     const { extensionRpc } = useVscodeWebview<
         PerformanceDashboardState,
         PerformanceDashboardReducers
@@ -66,9 +84,9 @@ export const PerformanceDashboardDatabasePicker = () => {
           : serverName;
 
     return (
-        <span title={tooltip}>
+        <span className={classes.picker} title={tooltip}>
             <SearchableDropdown
-                size="small"
+                size="medium"
                 ariaLabel={loc.performanceDashboard.database}
                 searchBoxPlaceholder={loc.performanceDashboard.searchDatabases}
                 options={options}
@@ -76,6 +94,12 @@ export const PerformanceDashboardDatabasePicker = () => {
                 placeholder={serverName}
                 showPlaceholder={!databaseName}
                 onSelect={(option) => void selectDatabase(option.value)}
+                renderDecoration={() => (
+                    <span className={classes.icon}>
+                        <Database16Regular />
+                    </span>
+                )}
+                style={{ paddingInline: "10px" }}
             />
         </span>
     );

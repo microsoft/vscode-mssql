@@ -13,6 +13,16 @@ export interface ExtensionRequestState<TResult> {
     readonly result?: TResult;
     /** The error text of the last request, when it failed. */
     readonly errorMessage?: string;
+    /**
+     * True when the result or error is of other parameters or another key than the current
+     * ones, for example of the previous category while the new one loads.
+     */
+    readonly stale?: boolean;
+}
+
+interface StoredState<TResult> extends ExtensionRequestState<TResult> {
+    /** The request that the result or error is of. */
+    readonly requestKey?: string;
 }
 
 /**
@@ -28,7 +38,7 @@ export function useExtensionRequest<TParams, TResult>(
     enabled: boolean = true,
 ): ExtensionRequestState<TResult> {
     const { extensionRpc } = useVscodeWebview<unknown, unknown>();
-    const [state, setState] = useState<ExtensionRequestState<TResult>>({ loading: true });
+    const [state, setState] = useState<StoredState<TResult>>({ loading: true });
     const paramsRef = useRef(params);
     paramsRef.current = params;
     const requestKey = JSON.stringify([params ?? null, key ?? null]);
@@ -43,7 +53,7 @@ export function useExtensionRequest<TParams, TResult>(
         extensionRpc.sendRequest(type, paramsRef.current).then(
             (result) => {
                 if (current) {
-                    setState({ loading: false, result });
+                    setState({ loading: false, result, requestKey });
                 }
             },
             (error: unknown) => {
@@ -51,6 +61,7 @@ export function useExtensionRequest<TParams, TResult>(
                     setState({
                         loading: false,
                         errorMessage: error instanceof Error ? error.message : String(error),
+                        requestKey,
                     });
                 }
             },
@@ -60,5 +71,18 @@ export function useExtensionRequest<TParams, TResult>(
         };
     }, [extensionRpc, type, requestKey, enabled]);
 
-    return state;
+    const { requestKey: resultKey, ...rest } = state;
+    const hasOutcome = rest.result !== undefined || rest.errorMessage !== undefined;
+    return { ...rest, stale: enabled && hasOutcome && resultKey !== requestKey };
+}
+
+/**
+ * True while a request has no current result to show: the first load, or a load after the
+ * parameters or the key changed, so the view does not show data of other parameters.
+ */
+export function isFirstLoad(state: ExtensionRequestState<unknown>): boolean {
+    return (
+        state.loading &&
+        (!!state.stale || (state.result === undefined && state.errorMessage === undefined))
+    );
 }

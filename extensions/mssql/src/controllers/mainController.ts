@@ -30,7 +30,10 @@ import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCa
 import { MetadataStore } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import { createPerformanceService, PerformanceService } from "../performance/performanceService";
-import { performanceDashboardTargetForNode } from "../performance/performanceDashboardWebviewController";
+import {
+    PerformanceDashboardTarget,
+    performanceDashboardTargetForNode,
+} from "../performance/performanceDashboardWebviewController";
 import { PerformanceDashboards } from "../performance/performanceDashboards";
 import {
     prepareConnection,
@@ -1167,6 +1170,7 @@ export default class MainController implements vscode.Disposable {
                     ),
                 compare: (first, second) =>
                     createMssqlInternalApi(this).compareExecutionPlans(first, second),
+                openQuery: (sql, target) => this.openPerformanceQuery(sql, target),
             },
         );
 
@@ -1473,6 +1477,35 @@ export default class MainController implements vscode.Disposable {
                 }),
             );
         }
+    }
+
+    /**
+     * Opens T-SQL from a performance dashboard in a query editor that is connected to the
+     * dashboard's connection and database, or not connected when the connection is gone.
+     */
+    private async openPerformanceQuery(
+        sql: string,
+        target: PerformanceDashboardTarget,
+    ): Promise<void> {
+        const { reference, databaseName } = target;
+        const connection =
+            reference.ownerUri !== undefined
+                ? this._connectionMgr.getConnectionInfo(reference.ownerUri)?.credentials
+                : await this._connectionMgr.connectionStore.connectionConfig.getConnectionById(
+                      reference.profileId,
+                  );
+        await this.sqlDocumentService.newQuery({
+            content: sql,
+            ...(connection
+                ? {
+                      connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                      connectionInfo: {
+                          ...connection,
+                          ...(databaseName ? { database: databaseName } : {}),
+                      },
+                  }
+                : { connectionStrategy: ConnectionStrategy.DoNotConnect }),
+        });
     }
 
     private async loadTokenCache(): Promise<void> {

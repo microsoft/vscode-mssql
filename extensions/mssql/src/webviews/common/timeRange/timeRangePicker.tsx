@@ -7,8 +7,9 @@ import {
     Button,
     Caption1,
     Divider,
-    Field,
+    Label,
     makeStyles,
+    mergeClasses,
     MenuItemRadio,
     MenuList,
     Popover,
@@ -17,10 +18,11 @@ import {
     shorthands,
     Text,
     tokens,
+    useId,
 } from "@fluentui/react-components";
 import { DatePicker } from "@fluentui/react-datepicker-compat";
 import { TimePicker, formatDateToTimeString } from "@fluentui/react-timepicker-compat";
-import { ChevronDown16Regular } from "@fluentui/react-icons";
+import { ChevronDown16Regular, Clock16Regular } from "@fluentui/react-icons";
 import { useState } from "react";
 import { locConstants as loc } from "../locConstants";
 import {
@@ -34,40 +36,65 @@ import {
 } from "./timeRange";
 
 const useStyles = makeStyles({
+    trigger: {
+        flexShrink: 0,
+        fontWeight: tokens.fontWeightRegular,
+        ...shorthands.gap("6px"),
+    },
+    clock: {
+        flexShrink: 0,
+        color: tokens.colorNeutralForeground2,
+    },
     surface: {
-        width: "320px",
+        width: "300px",
         ...shorthands.padding("4px", "0", "12px"),
     },
     presets: {
         ...shorthands.padding("0", "4px"),
     },
-    partial: {
+    preset: {
+        "&[aria-checked='true']": {
+            backgroundColor: "var(--vscode-list-activeSelectionBackground)",
+            color: "var(--vscode-list-activeSelectionForeground)",
+            fontWeight: tokens.fontWeightSemibold,
+        },
+    },
+    note: {
+        display: "block",
         color: tokens.colorNeutralForeground3,
+        ...shorthands.padding("8px", "12px"),
     },
     custom: {
         display: "flex",
         flexDirection: "column",
-        ...shorthands.gap("8px"),
-        ...shorthands.padding("8px", "12px", "0"),
+        ...shorthands.gap("10px"),
+        ...shorthands.padding("12px", "12px", "0"),
     },
-    customTitle: {
-        color: tokens.colorBrandForegroundLink,
-    },
-    dateTime: {
+    fields: {
         display: "grid",
-        gridTemplateColumns: "3fr 2fr",
-        ...shorthands.gap("8px"),
+        gridTemplateColumns: "auto minmax(0, 3fr) minmax(0, 2fr)",
+        alignItems: "center",
+        columnGap: "8px",
+        rowGap: "8px",
     },
     picker: {
         minWidth: 0,
     },
-    available: {
-        color: tokens.colorNeutralForeground3,
+    // The date opens its calendar on click, so it needs no calendar icon.
+    date: {
+        "& .fui-Input__contentAfter": {
+            display: "none",
+        },
+    },
+    error: {
+        gridColumn: "2 / -1",
+        color: tokens.colorPaletteRedForeground1,
     },
     actions: {
         display: "flex",
+        justifyContent: "flex-end",
         ...shorthands.gap("8px"),
-        marginTop: "4px",
+        marginTop: "2px",
     },
 });
 
@@ -133,10 +160,11 @@ export const TimeRangePicker = ({
             trapFocus>
             <PopoverTrigger disableButtonEnhancement>
                 <Button
-                    size="small"
+                    className={classes.trigger}
                     icon={<ChevronDown16Regular />}
                     iconPosition="after"
                     aria-label={loc.timeRange.timeRangeLabel(label)}>
+                    <Clock16Regular className={classes.clock} />
                     {label}
                 </Button>
             </PopoverTrigger>
@@ -153,8 +181,8 @@ export const TimeRangePicker = ({
                                 key={preset.id}
                                 name="range"
                                 value={preset.id}
-                                className={partial ? classes.partial : undefined}
-                                secondaryContent={partial ? loc.timeRange.partialData : undefined}
+                                className={classes.preset}
+                                secondaryContent={partial ? loc.timeRange.partial : undefined}
                                 onClick={() => {
                                     onChange({ kind: "preset", presetId: preset.id });
                                     openChanged(false);
@@ -165,39 +193,46 @@ export const TimeRangePicker = ({
                     })}
                 </MenuList>
                 <Divider />
+                {availableFrom && (
+                    <>
+                        <Caption1 className={classes.note}>
+                            {loc.timeRange.dataStarts(dateTimeFormat.format(availableFrom))}
+                        </Caption1>
+                        <Divider />
+                    </>
+                )}
                 {draft && (
                     <div className={classes.custom}>
-                        <Text weight="semibold" className={classes.customTitle}>
-                            {loc.timeRange.customize}
-                        </Text>
-                        <DateTimeField
-                            label={loc.timeRange.from}
-                            dateLabel={loc.timeRange.fromDate}
-                            timeLabel={loc.timeRange.fromTime}
-                            value={draft.from}
-                            minDate={availableFrom}
-                            maxDate={now}
-                            onChange={(from) => setDraft({ ...draft, from })}
-                        />
-                        <DateTimeField
-                            label={loc.timeRange.to}
-                            dateLabel={loc.timeRange.toDate}
-                            timeLabel={loc.timeRange.toTime}
-                            value={draft.to}
-                            minDate={availableFrom}
-                            maxDate={now}
-                            validationMessage={custom ? undefined : loc.timeRange.invalidRange}
-                            onChange={(to) => setDraft({ ...draft, to })}
-                        />
-                        {availableFrom && (
-                            <Caption1 className={classes.available}>
-                                {loc.timeRange.available(
-                                    dateTimeFormat.format(availableFrom),
-                                    dateTimeFormat.format(now),
-                                )}
-                            </Caption1>
-                        )}
+                        <Text weight="semibold">{loc.timeRange.customRange}</Text>
+                        <div className={classes.fields}>
+                            <DateTimeField
+                                label={loc.timeRange.from}
+                                dateLabel={loc.timeRange.fromDate}
+                                timeLabel={loc.timeRange.fromTime}
+                                value={draft.from}
+                                minDate={availableFrom}
+                                maxDate={now}
+                                onChange={(from) => setDraft({ ...draft, from })}
+                            />
+                            <DateTimeField
+                                label={loc.timeRange.to}
+                                dateLabel={loc.timeRange.toDate}
+                                timeLabel={loc.timeRange.toTime}
+                                value={draft.to}
+                                minDate={availableFrom}
+                                maxDate={now}
+                                onChange={(to) => setDraft({ ...draft, to })}
+                            />
+                            {!custom && (
+                                <Caption1 role="alert" className={classes.error}>
+                                    {loc.timeRange.invalidRange}
+                                </Caption1>
+                            )}
+                        </div>
                         <div className={classes.actions}>
+                            <Button size="small" onClick={() => openChanged(false)}>
+                                {loc.common.cancel}
+                            </Button>
                             <Button
                                 appearance="primary"
                                 size="small"
@@ -209,9 +244,6 @@ export const TimeRangePicker = ({
                                     }
                                 }}>
                                 {loc.common.apply}
-                            </Button>
-                            <Button size="small" onClick={() => openChanged(false)}>
-                                {loc.common.cancel}
                             </Button>
                         </div>
                     </div>
@@ -228,11 +260,10 @@ interface DateTimeFieldProps {
     readonly value: Date;
     readonly minDate?: Date;
     readonly maxDate?: Date;
-    readonly validationMessage?: string;
     readonly onChange: (value: Date) => void;
 }
 
-/** A Fluent date picker and time picker for one local date and time. */
+/** A label, a date picker, and a time picker for one local date and time: a row of the grid. */
 const DateTimeField = ({
     label,
     dateLabel,
@@ -240,48 +271,49 @@ const DateTimeField = ({
     value,
     minDate,
     maxDate,
-    validationMessage,
     onChange,
 }: DateTimeFieldProps) => {
     const classes = useStyles();
+    const dateId = useId("time-range-date");
     // The time can be typed, so its text is kept until it is a valid time.
     const [timeText, setTimeText] = useState(formatDateToTimeString(value));
 
     return (
-        <Field label={label} validationMessage={validationMessage}>
-            <div className={classes.dateTime}>
-                <DatePicker
-                    className={classes.picker}
-                    inlinePopup
-                    aria-label={dateLabel}
-                    value={value}
-                    minDate={minDate}
-                    maxDate={maxDate}
-                    formatDate={(date) => (date ? dateFormat.format(date) : "")}
-                    onSelectDate={(date) => {
-                        if (date) {
-                            onChange(withDate(value, date));
-                        }
-                    }}
-                />
-                <TimePicker
-                    className={classes.picker}
-                    inlinePopup
-                    freeform
-                    increment={30}
-                    aria-label={timeLabel}
-                    dateAnchor={value}
-                    selectedTime={value}
-                    value={timeText}
-                    onChange={(event) => setTimeText(event.target.value)}
-                    onTimeChange={(_event, data) => {
-                        if (data.selectedTime) {
-                            onChange(withTime(value, data.selectedTime));
-                            setTimeText(formatDateToTimeString(data.selectedTime));
-                        }
-                    }}
-                />
-            </div>
-        </Field>
+        <>
+            <Label htmlFor={dateId}>{label}</Label>
+            <DatePicker
+                id={dateId}
+                className={mergeClasses(classes.picker, classes.date)}
+                inlinePopup
+                aria-label={dateLabel}
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+                formatDate={(date) => (date ? dateFormat.format(date) : "")}
+                onSelectDate={(date) => {
+                    if (date) {
+                        onChange(withDate(value, date));
+                    }
+                }}
+            />
+            <TimePicker
+                className={classes.picker}
+                inlinePopup
+                freeform
+                increment={30}
+                expandIcon={null}
+                aria-label={timeLabel}
+                dateAnchor={value}
+                selectedTime={value}
+                value={timeText}
+                onChange={(event) => setTimeText(event.target.value)}
+                onTimeChange={(_event, data) => {
+                    if (data.selectedTime) {
+                        onChange(withTime(value, data.selectedTime));
+                        setTimeText(formatDateToTimeString(data.selectedTime));
+                    }
+                }}
+            />
+        </>
     );
 };

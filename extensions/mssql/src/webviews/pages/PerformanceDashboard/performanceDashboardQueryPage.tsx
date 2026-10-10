@@ -4,15 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    Badge,
     Button,
     Caption1,
     makeStyles,
     shorthands,
-    Spinner,
     Subtitle2,
-    Tab,
-    TabList,
-    Text,
     Title3,
     tokens,
 } from "@fluentui/react-components";
@@ -33,11 +30,20 @@ import {
 } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
-import { useExtensionRequest } from "../../common/useExtensionRequest";
+import { SegmentedControl } from "../../common/segmentedControl";
+import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
+import { VscodeEditor } from "../../common/vscodeMonaco";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useFavoriteQueries } from "./performanceDashboardFavorites";
 import { dateTimeFormat, formatNumber } from "./performanceDashboardFormat";
-import { ReadOnlyNotice, StatusBar, isReadOnly, readData } from "./performanceDashboardParts";
+import {
+    ReadOnlyNotice,
+    StatStrip,
+    StatusBar,
+    isReadOnly,
+    readData,
+} from "./performanceDashboardParts";
+import { HistoryControls } from "./performanceDashboardPlanHistory";
 import { PerformanceDashboardQueryHistory } from "./performanceDashboardQueryHistory";
 import { PerformanceDashboardQueryPlans } from "./performanceDashboardQueryPlans";
 import { useRefresh } from "./performanceDashboardRefresh";
@@ -48,86 +54,105 @@ import { useViewTimeRange } from "./performanceDashboardTimeRange";
 
 type QueryTab = "history" | "plans";
 
+/** Below this width, the query text goes below the tabs. */
+const narrowLayout = "@media (max-width: 900px)";
+
 const useStyles = makeStyles({
     page: {
         display: "grid",
-        gridTemplateColumns: "minmax(0, 2fr) minmax(300px, 1fr)",
-        columnGap: "32px",
+        gridTemplateColumns: "minmax(0, 1fr) clamp(280px, 28vw, 380px)",
+        gridTemplateAreas: `"header header" "main aside"`,
+        columnGap: "24px",
         rowGap: "16px",
-        alignItems: "start",
-        "@media (max-width: 1000px)": {
+        [narrowLayout]: {
             gridTemplateColumns: "minmax(0, 1fr)",
+            gridTemplateAreas: `"header" "main" "aside"`,
         },
     },
-    main: {
-        display: "flex",
-        flexDirection: "column",
-        ...shorthands.gap("16px"),
-        minWidth: 0,
-    },
-    title: {
+    header: {
+        gridArea: "header",
         display: "flex",
         alignItems: "center",
         ...shorthands.gap("8px"),
+        minWidth: 0,
     },
     heading: {
         ...shorthands.margin(0),
-    },
-    stats: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-        columnGap: "24px",
-        rowGap: "12px",
-    },
-    stat: {
-        display: "flex",
-        flexDirection: "column",
-        ...shorthands.gap("2px"),
-        minWidth: 0,
-    },
-    secondary: {
-        color: tokens.colorNeutralForeground3,
-    },
-    statValue: {
-        fontWeight: tokens.fontWeightSemibold,
         whiteSpace: "nowrap",
-        overflowX: "hidden",
-        textOverflow: "ellipsis",
-    },
-    preview: {
-        display: "flex",
-        flexDirection: "column",
-        ...shorthands.gap("8px"),
-        minWidth: 0,
-        position: "sticky",
-        top: 0,
-    },
-    code: {
-        display: "grid",
-        gridTemplateColumns: "auto minmax(0, 1fr)",
-        columnGap: "16px",
-        ...shorthands.margin(0),
-        ...shorthands.padding("12px"),
-        ...shorthands.borderRadius(tokens.borderRadiusMedium),
-        backgroundColor: "var(--vscode-textCodeBlock-background)",
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: tokens.fontSizeBase200,
-        maxHeight: "420px",
-        overflowY: "auto",
-    },
-    lineNumber: {
-        color: tokens.colorNeutralForeground4,
-        textAlign: "right",
-        userSelect: "none",
-    },
-    line: {
-        whiteSpace: "pre-wrap",
-        overflowWrap: "anywhere",
     },
     actions: {
         display: "flex",
         flexWrap: "wrap",
         ...shorthands.gap("8px"),
+    },
+    // The stats are over the charts and grids only; the query text is beside them.
+    main: {
+        gridArea: "main",
+        display: "flex",
+        flexDirection: "column",
+        ...shorthands.gap("12px"),
+        minWidth: 0,
+    },
+    // The tabs, and the selects of the charts on the right.
+    toolbar: {
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: "space-between",
+        ...shorthands.gap("8px", "16px"),
+        minHeight: "28px",
+    },
+    tabLabel: {
+        display: "inline-flex",
+        alignItems: "center",
+        ...shorthands.gap("6px"),
+    },
+    // A pill in the text color of the tab, so it shows on the selected and the other tabs.
+    count: {
+        minWidth: "16px",
+        padding: "0 5px",
+        borderRadius: "8px",
+        fontSize: tokens.fontSizeBase100,
+        lineHeight: "16px",
+        textAlign: "center",
+        color: "inherit",
+        backgroundColor: "color-mix(in srgb, currentColor 22%, transparent)",
+    },
+    // The query text is as tall as the tab content, so the page has one scroll bar.
+    aside: {
+        gridArea: "aside",
+        display: "flex",
+        flexDirection: "column",
+        ...shorthands.gap("12px"),
+        minWidth: 0,
+    },
+    // The title, and the actions on the query text.
+    asideTitle: {
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: "space-between",
+        ...shorthands.gap("8px"),
+        minHeight: "28px",
+    },
+    editorFrame: {
+        position: "relative",
+        flexGrow: 1,
+        minHeight: "320px",
+        border: "1px solid var(--vscode-panel-border)",
+        borderRadius: tokens.borderRadiusMedium,
+        overflow: "hidden",
+        [narrowLayout]: {
+            flexGrow: 0,
+            height: "320px",
+        },
+    },
+    editor: {
+        position: "absolute",
+        inset: 0,
+    },
+    secondary: {
+        color: tokens.colorNeutralForeground3,
     },
 });
 
@@ -153,149 +178,184 @@ export const PerformanceDashboardQueryPage = () => {
     const message = readStatusMessage(details);
     const data = readData(details);
     const isFavorite = favorites.queryIds.has(queryId);
+    const queryText = data?.queryText;
+    const planCount = data ? (data.totalPlanCount ?? data.planCount) : undefined;
 
     return (
         <div className={classes.page}>
+            <div className={classes.header}>
+                <Title3 as="h1" className={classes.heading}>
+                    {text.queryNumber(queryId)}
+                </Title3>
+                <Button
+                    appearance="subtle"
+                    size="small"
+                    icon={isFavorite ? <Star20Filled /> : <Star20Regular />}
+                    aria-pressed={isFavorite}
+                    aria-label={
+                        isFavorite ? text.removeFavorite(queryId) : text.addFavorite(queryId)
+                    }
+                    onClick={() => favorites.toggle(queryId, !isFavorite)}
+                />
+                {data?.forcedPlanId && (
+                    <Badge appearance="tint" color="brand" shape="rounded">
+                        {text.planForcedBadge(data.forcedPlanId)}
+                    </Badge>
+                )}
+            </div>
             <div className={classes.main}>
-                <div className={classes.title}>
-                    <Title3 as="h1" className={classes.heading}>
-                        {text.queryNumber(queryId)}
-                    </Title3>
-                    <Button
-                        appearance="subtle"
-                        icon={isFavorite ? <Star20Filled /> : <Star20Regular />}
-                        aria-pressed={isFavorite}
-                        aria-label={
-                            isFavorite ? text.removeFavorite(queryId) : text.addFavorite(queryId)
-                        }
-                        onClick={() => favorites.toggle(queryId, !isFavorite)}
-                    />
-                </div>
                 {isReadOnly(details) && <ReadOnlyNotice />}
                 {message ? (
                     <StatusBar message={message} />
-                ) : details.loading && !data ? (
-                    <Spinner size="small" label={loc.common.loading} />
+                ) : isFirstLoad(details) ? (
+                    <QueryStats />
                 ) : data ? (
                     <QueryStats details={data} />
                 ) : (
                     <Caption1 className={classes.secondary}>{text.queryNotFound}</Caption1>
                 )}
-                <TabList
-                    size="small"
-                    selectedValue={tab}
-                    onTabSelect={(_event, selection) =>
-                        navigate(
-                            router.build("query", match.params, {
-                                ...match.query,
-                                tab:
-                                    selection.value === "history"
-                                        ? undefined
-                                        : String(selection.value),
-                            }),
-                        )
-                    }>
-                    <Tab value="history">{text.executionHistory}</Tab>
-                    <Tab value="plans">
-                        {data
-                            ? text.plansCount(formatNumber(data.totalPlanCount ?? data.planCount))
-                            : text.plans}
-                    </Tab>
-                </TabList>
+                <div className={classes.toolbar}>
+                    <SegmentedControl<QueryTab>
+                        size="small"
+                        ariaLabel={text.queryViews}
+                        value={tab}
+                        options={[
+                            { value: "history", label: text.executionHistory },
+                            {
+                                value: "plans",
+                                label: (
+                                    <span className={classes.tabLabel}>
+                                        {text.plans}
+                                        {planCount !== undefined && (
+                                            <span className={classes.count}>
+                                                {formatNumber(planCount)}
+                                            </span>
+                                        )}
+                                    </span>
+                                ),
+                            },
+                        ]}
+                        onValueChange={(value) =>
+                            navigate(
+                                router.build("query", match.params, {
+                                    ...match.query,
+                                    tab: value === "history" ? undefined : value,
+                                }),
+                            )
+                        }
+                    />
+                    <HistoryControls />
+                </div>
                 {tab === "history" ? (
                     <PerformanceDashboardQueryHistory queryId={queryId} />
                 ) : (
                     <PerformanceDashboardQueryPlans queryId={queryId} />
                 )}
             </div>
-            <QueryPreview queryText={data?.queryText} />
+            <QueryTextPanel queryText={queryText} />
         </div>
     );
 };
 
-const QueryStats = ({ details }: { details: QueryDetails }) => {
-    const classes = useStyles();
+/** The stats of the query, or their labels over placeholders while the details load. */
+const QueryStats = ({ details }: { details?: QueryDetails }) => {
     const text = loc.performanceDashboard;
-    const stat = (label: string, value: string) => (
-        <div className={classes.stat}>
-            <Caption1 className={classes.secondary}>{label}</Caption1>
-            <Text className={classes.statValue} title={value}>
-                {value}
-            </Text>
-        </div>
-    );
-    const ms = (value: number | undefined) =>
-        value === undefined ? text.notAvailable : formatNumber(value);
+    const duration = (value: number | undefined) =>
+        value === undefined ? text.notAvailable : text.milliseconds(formatNumber(value));
     return (
-        <div className={classes.stats}>
-            {stat(text.objectName, details.objectName ?? "—")}
-            {stat(
-                text.lastExecuted,
-                details.lastExecutionTime
-                    ? dateTimeFormat.format(new Date(details.lastExecutionTime))
-                    : text.notAvailable,
-            )}
-            {stat(text.totalExecutionCount, formatNumber(details.executionCount))}
-            {stat(
-                text.forcePlanStatus,
-                details.forcedPlanId ? text.forcedPlan(details.forcedPlanId) : text.notForced,
-            )}
-            {stat(text.minimumDurationMs, ms(details.minDurationMs))}
-            {stat(text.maximumDurationMs, ms(details.maxDurationMs))}
-            {stat(text.averageDurationMs, ms(details.avgDurationMs))}
-        </div>
+        <StatStrip
+            loading={!details}
+            stats={[
+                {
+                    label: text.executionCount,
+                    value: details ? formatNumber(details.executionCount) : "",
+                },
+                { label: text.averageDuration, value: duration(details?.avgDurationMs) },
+                { label: text.minimumValue, value: duration(details?.minDurationMs) },
+                { label: text.maximumValue, value: duration(details?.maxDurationMs) },
+                {
+                    label: text.lastExecuted,
+                    value: details?.lastExecutionTime
+                        ? dateTimeFormat.format(new Date(details.lastExecutionTime))
+                        : text.notAvailable,
+                },
+                { label: text.objectName, value: details?.objectName ?? "—" },
+            ]}
+        />
     );
 };
 
-/** The query text with line numbers, and actions to open or copy it. */
-const QueryPreview = ({ queryText }: { queryText: string | undefined }) => {
+/**
+ * The query text in a read-only editor, as tall as the tab content beside it, with actions to
+ * open it in a query editor on the dashboard's database or copy it.
+ */
+const QueryTextPanel = ({ queryText }: { queryText: string | undefined }) => {
     const classes = useStyles();
     const text = loc.performanceDashboard;
-    const { extensionRpc } = useVscodeWebview<
+    const { extensionRpc, themeKind } = useVscodeWebview<
         PerformanceDashboardState,
         PerformanceDashboardReducers
     >();
     const [copied, setCopied] = useState(false);
-    const lines = (queryText ?? "").split(/\r?\n/);
-
     return (
-        <aside className={classes.preview} aria-label={text.queryPreview}>
-            <Subtitle2>{text.queryPreview}</Subtitle2>
+        <aside className={classes.aside} aria-label={text.queryTextTitle}>
+            <div className={classes.asideTitle}>
+                <Subtitle2>{text.queryTextTitle}</Subtitle2>
+                <div className={classes.actions}>
+                    <Button
+                        size="small"
+                        appearance="primary"
+                        icon={<DocumentText16Regular />}
+                        disabled={!queryText}
+                        onClick={() =>
+                            void extensionRpc.sendRequest(OpenSqlScriptRequest.type, {
+                                sql: queryText ?? "",
+                            })
+                        }>
+                        {text.openInQueryEditor}
+                    </Button>
+                    <Button
+                        size="small"
+                        icon={<Copy16Regular />}
+                        disabled={!queryText}
+                        onClick={() => {
+                            void extensionRpc
+                                .sendRequest(CopyTextRequest.type, { text: queryText ?? "" })
+                                .then(() => setCopied(true));
+                        }}>
+                        {copied ? text.copied : text.copySql}
+                    </Button>
+                </div>
+            </div>
             {queryText ? (
-                <pre className={classes.code}>
-                    {lines.map((line, index) => (
-                        <div key={index} style={{ display: "contents" }}>
-                            <span className={classes.lineNumber}>{index + 1}</span>
-                            <span className={classes.line}>{line || " "}</span>
-                        </div>
-                    ))}
-                </pre>
+                <div className={classes.editorFrame}>
+                    <div className={classes.editor}>
+                        <VscodeEditor
+                            height="100%"
+                            width="100%"
+                            language="sql"
+                            themeKind={themeKind}
+                            value={queryText}
+                            options={{
+                                readOnly: true,
+                                domReadOnly: true,
+                                lineNumbers: "on",
+                                minimap: { enabled: false },
+                                scrollBeyondLastLine: false,
+                                wordWrap: "on",
+                                automaticLayout: true,
+                                folding: false,
+                                renderLineHighlight: "none",
+                                lineDecorationsWidth: 8,
+                                fontSize: 12,
+                                ariaLabel: text.queryTextEditor,
+                            }}
+                        />
+                    </div>
+                </div>
             ) : (
                 <Caption1 className={classes.secondary}>{text.noQueryText}</Caption1>
             )}
-            <div className={classes.actions}>
-                <Button
-                    appearance="primary"
-                    icon={<DocumentText16Regular />}
-                    disabled={!queryText}
-                    onClick={() =>
-                        void extensionRpc.sendRequest(OpenSqlScriptRequest.type, {
-                            sql: queryText ?? "",
-                        })
-                    }>
-                    {text.openInQueryEditor}
-                </Button>
-                <Button
-                    icon={<Copy16Regular />}
-                    disabled={!queryText}
-                    onClick={() => {
-                        void extensionRpc
-                            .sendRequest(CopyTextRequest.type, { text: queryText ?? "" })
-                            .then(() => setCopied(true));
-                    }}>
-                    {copied ? text.copied : text.copySqlScript}
-                </Button>
-            </div>
         </aside>
     );
 };

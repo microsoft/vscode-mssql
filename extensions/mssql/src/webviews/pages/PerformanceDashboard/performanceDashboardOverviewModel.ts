@@ -108,3 +108,62 @@ export function databaseFactsParts(result: DatabaseFactsResult | undefined): str
         size !== edition ? size : undefined,
     ].filter((part): part is string => !!part);
 }
+
+export interface DatabaseFactItem {
+    readonly label: string;
+    readonly value: string;
+}
+
+/** "Enterprise Developer Edition (64-bit)" becomes "Enterprise Developer". */
+export function shortEditionLabel(edition: string): string {
+    return editionLabel(edition)
+        .replace(/\s*\(64-bit\)/i, "")
+        .replace(/\s+Edition$/i, "")
+        .trim();
+}
+
+/**
+ * The labeled facts of the header, for example Version "SQL Server 2025 Enterprise Developer"
+ * and CPUs "16", or Version "Azure SQL Database", Tier "General Purpose", and vCores "8".
+ * Empty without facts.
+ */
+export function databaseFactsItems(result: DatabaseFactsResult | undefined): DatabaseFactItem[] {
+    const text = loc.performanceDashboard;
+    const facts = result?.facts;
+    const platform = platformLabel(result?.platform, result?.majorVersion);
+    if (!platform) {
+        return [];
+    }
+    const count = new Intl.NumberFormat();
+    // SQL Server's edition is part of its version. A cloud edition is a tier; Synapse's is
+    // always "DataWarehouse", so it is left out.
+    const boxEdition =
+        result?.platform === "sqlServer" && facts?.edition
+            ? shortEditionLabel(facts.edition)
+            : undefined;
+    const tier =
+        result?.platform !== "sqlServer" &&
+        result?.platform !== "azureSqlManagedInstance" &&
+        result?.platform !== "synapseDedicated" &&
+        facts?.edition
+            ? editionLabel(facts.edition)
+            : undefined;
+    // A DTU or Synapse objective, such as "S2" or "DW100c". The Basic tier's objective repeats it.
+    const objective =
+        facts?.serviceObjective &&
+        !/^(GP|BC|HS)_/i.test(facts.serviceObjective) &&
+        facts.serviceObjective !== tier
+            ? facts.serviceObjective
+            : undefined;
+    const items: (DatabaseFactItem | undefined)[] = [
+        { label: text.versionLabel, value: boxEdition ? `${platform} ${boxEdition}` : platform },
+        tier ? { label: text.tierLabel, value: tier } : undefined,
+        objective ? { label: text.objectiveLabel, value: objective } : undefined,
+        facts?.vCores !== undefined
+            ? { label: text.vCoresLabel, value: count.format(facts.vCores) }
+            : facts?.logicalCpus !== undefined
+              ? { label: text.cpusLabel, value: count.format(facts.logicalCpus) }
+              : undefined,
+    ];
+    return items.filter((item): item is DatabaseFactItem => !!item);
+}

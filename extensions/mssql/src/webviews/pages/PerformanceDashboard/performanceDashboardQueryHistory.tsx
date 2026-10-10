@@ -3,19 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, shorthands, Spinner } from "@fluentui/react-components";
 import type { QueryHistoryInterval } from "../../../sharedInterfaces/performance";
-import {
-    GetQueryHistoryRequest,
-    GetQueryPlansRequest,
-} from "../../../sharedInterfaces/performanceDashboard";
+import { GetQueryHistoryRequest } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
-import { useExtensionRequest } from "../../common/useExtensionRequest";
+import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
 import { dateTimeFormat, formatNumber, timeFormat } from "./performanceDashboardFormat";
-import { StatusBar, TimeSeriesChart, readData } from "./performanceDashboardParts";
-import { usePlanColor } from "./performanceDashboardPlanColors";
 import {
-    HistoryControls,
+    ChartPanel,
+    StatusBar,
+    TimeSeriesChart,
+    readData,
+    timeSeriesChartHeight,
+} from "./performanceDashboardParts";
+import {
     historyTitle,
     historyValue,
     intervalMinutesOf,
@@ -25,45 +25,16 @@ import { useRefresh } from "./performanceDashboardRefresh";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 import { filledSeriesPoints } from "./performanceDashboardSeries";
 import { SimpleGrid } from "./performanceDashboardSimpleGrid";
+import { ChartSkeleton, TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 import { useQueryStoreAvailableFrom, useViewTimeRange } from "./performanceDashboardTimeRange";
 
-const useStyles = makeStyles({
-    history: {
-        display: "flex",
-        flexDirection: "column",
-        ...shorthands.gap("16px"),
-    },
-    table: {
-        maxHeight: "420px",
-        overflowY: "auto",
-    },
-    plans: {
-        display: "inline-flex",
-        flexWrap: "wrap",
-        alignItems: "center",
-        columnGap: "10px",
-    },
-    plan: {
-        display: "inline-flex",
-        alignItems: "center",
-        ...shorthands.gap("4px"),
-    },
-    swatch: {
-        width: "8px",
-        height: "8px",
-        ...shorthands.borderRadius("2px"),
-        flexShrink: 0,
-    },
-});
-
 /**
  * The runtime stats of the query over the time range, for all plans together: a chart of a
- * metric and statistic, and a table of each Query Store interval with the plans that ran in it.
- * The metric and statistic are in the location.
+ * metric and statistic, and a table of each Query Store interval. The metric and statistic are
+ * in the location; the query page shows their selects.
  */
 export const PerformanceDashboardQueryHistory = ({ queryId }: { queryId: string }) => {
-    const classes = useStyles();
     const text = loc.performanceDashboard;
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const { refreshKey } = useRefresh();
@@ -71,20 +42,22 @@ export const PerformanceDashboardQueryHistory = ({ queryId }: { queryId: string 
     const availableFrom = useQueryStoreAvailableFrom();
     const { metric, view } = useHistorySelection();
 
-    const key = [databaseName, refreshKey];
-    const history = useExtensionRequest(GetQueryHistoryRequest.type, { queryId, ...window }, key);
-    // Every plan of the query, for the same colors as the Plans tab.
-    const plansRead = useExtensionRequest(GetQueryPlansRequest.type, { queryId, ...window }, key);
-    const planIds = (readData(plansRead)?.plans ?? []).map((plan) => plan.planId);
-    const colorOf = usePlanColor(planIds);
+    const history = useExtensionRequest(GetQueryHistoryRequest.type, { queryId, ...window }, [
+        databaseName,
+        refreshKey,
+    ]);
 
     const message = readStatusMessage(history);
     if (message) {
         return <StatusBar message={message} />;
     }
     const intervals = readData(history)?.intervals ?? [];
-    if (history.loading && intervals.length === 0) {
-        return <Spinner size="small" label={loc.common.loading} />;
+    if (isFirstLoad(history)) {
+        return (
+            <ChartPanel chart={<ChartSkeleton height={timeSeriesChartHeight} />}>
+                <TableSkeleton framed={false} rows={3} numberColumns={4} />
+            </ChartPanel>
+        );
     }
 
     const points = filledSeriesPoints(
@@ -96,91 +69,70 @@ export const PerformanceDashboardQueryHistory = ({ queryId }: { queryId: string 
         range,
         availableFrom,
     );
+    const milliseconds = (value: number) => text.milliseconds(formatNumber(value));
 
     return (
-        <div className={classes.history}>
-            <HistoryControls />
-            <TimeSeriesChart
-                title={historyTitle(metric, view)}
-                points={points}
-                format={formatNumber}
-                read={history}
-            />
+        <ChartPanel
+            chart={
+                <TimeSeriesChart
+                    title={historyTitle(metric, view)}
+                    points={points}
+                    format={formatNumber}
+                    read={history}
+                />
+            }>
             {intervals.length > 0 && (
-                <div className={classes.table}>
-                    <SimpleGrid<QueryHistoryInterval>
-                        items={[...intervals].reverse()}
-                        getRowId={(interval) => interval.startUtc}
-                        ariaLabel={text.executionHistory}
-                        columns={[
-                            {
-                                id: "interval",
-                                header: text.timeInterval,
-                                idealWidth: 240,
-                                render: (interval) =>
-                                    text.timeIntervalRange(
-                                        dateTimeFormat.format(new Date(interval.startUtc)),
-                                        timeFormat.format(new Date(interval.endUtc)),
-                                    ),
-                                compare: (left, right) =>
-                                    Date.parse(left.startUtc) - Date.parse(right.startUtc),
-                            },
-                            {
-                                id: "plans",
-                                header: text.plans,
-                                idealWidth: 140,
-                                render: (interval) => (
-                                    <span className={classes.plans}>
-                                        {interval.plans.map((plan) => (
-                                            <span key={plan.planId} className={classes.plan}>
-                                                <span
-                                                    className={classes.swatch}
-                                                    style={{
-                                                        backgroundColor: colorOf(plan.planId),
-                                                    }}
-                                                    aria-hidden
-                                                />
-                                                {plan.planId}
-                                            </span>
-                                        ))}
-                                    </span>
+                <SimpleGrid<QueryHistoryInterval>
+                    framed={false}
+                    items={[...intervals].reverse()}
+                    getRowId={(interval) => interval.startUtc}
+                    ariaLabel={text.executionHistory}
+                    columns={[
+                        {
+                            id: "interval",
+                            header: text.timeInterval,
+                            idealWidth: 260,
+                            render: (interval) =>
+                                text.timeIntervalRange(
+                                    dateTimeFormat.format(new Date(interval.startUtc)),
+                                    timeFormat.format(new Date(interval.endUtc)),
                                 ),
-                            },
-                            {
-                                id: "executions",
-                                header: text.executionCount,
-                                numeric: true,
-                                render: (interval) => formatNumber(interval.executionCount),
-                                compare: (left, right) =>
-                                    left.executionCount - right.executionCount,
-                            },
-                            {
-                                id: "duration",
-                                header: text.totalDurationMs,
-                                numeric: true,
-                                render: (interval) => formatNumber(interval.totalDurationMs),
-                                compare: (left, right) =>
-                                    left.totalDurationMs - right.totalDurationMs,
-                            },
-                            {
-                                id: "cpu",
-                                header: text.totalCpuMs,
-                                numeric: true,
-                                render: (interval) => formatNumber(interval.totalCpuMs),
-                                compare: (left, right) => left.totalCpuMs - right.totalCpuMs,
-                            },
-                            {
-                                id: "reads",
-                                header: text.totalLogicalReadsPages,
-                                numeric: true,
-                                render: (interval) => formatNumber(interval.totalLogicalReads),
-                                compare: (left, right) =>
-                                    left.totalLogicalReads - right.totalLogicalReads,
-                            },
-                        ]}
-                    />
-                </div>
+                            compare: (left, right) =>
+                                Date.parse(left.startUtc) - Date.parse(right.startUtc),
+                        },
+                        {
+                            id: "executions",
+                            header: text.executionCount,
+                            numeric: true,
+                            render: (interval) => formatNumber(interval.executionCount),
+                            compare: (left, right) => left.executionCount - right.executionCount,
+                        },
+                        {
+                            id: "duration",
+                            header: text.totalDuration,
+                            numeric: true,
+                            render: (interval) => milliseconds(interval.totalDurationMs),
+                            compare: (left, right) => left.totalDurationMs - right.totalDurationMs,
+                        },
+                        {
+                            id: "cpu",
+                            header: text.totalCpu,
+                            numeric: true,
+                            render: (interval) => milliseconds(interval.totalCpuMs),
+                            compare: (left, right) => left.totalCpuMs - right.totalCpuMs,
+                        },
+                        {
+                            id: "reads",
+                            header: text.logicalReads,
+                            numeric: true,
+                            render: (interval) =>
+                                text.pages(formatNumber(interval.totalLogicalReads)),
+                            compare: (left, right) =>
+                                left.totalLogicalReads - right.totalLogicalReads,
+                        },
+                    ]}
+                />
             )}
-        </div>
+        </ChartPanel>
     );
 };

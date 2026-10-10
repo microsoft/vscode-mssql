@@ -25,6 +25,9 @@ export function readStatusMessage(
     state: ExtensionRequestState<PerformanceReadResult<unknown>>,
 ): StatusMessage | undefined {
     const text = loc.performanceDashboard;
+    if (state.stale) {
+        return undefined;
+    }
     if (state.errorMessage) {
         return { intent: "error", text: text.readFailed(state.errorMessage) };
     }

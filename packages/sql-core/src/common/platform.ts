@@ -124,6 +124,23 @@ export function hasQueryStoreWaitsAndLogMetrics(info: PlatformInfo): boolean {
     return hasQueryStore(info) && !(info.platform === "sqlServer" && (info.majorVersion ?? 0) < 14);
 }
 
+/**
+ * True when Query Store has the custom capture policy (`QUERY_CAPTURE_POLICY` and the
+ * `capture_policy_*` columns): SQL Server 2019 and later, and the Azure platforms.
+ */
+export function hasQueryStoreCapturePolicy(info: PlatformInfo): boolean {
+    switch (info.platform) {
+        case "sqlServer":
+            return (info.majorVersion ?? 0) >= 15;
+        case "azureSqlManagedInstance":
+        case "azureSqlDatabase":
+        case "fabricSqlDatabase":
+            return true;
+        default:
+            return false;
+    }
+}
+
 export function isFabricWarehouseFamily(info: PlatformInfo): boolean {
     return info.platform === "fabricWarehouse" || info.platform === "fabricSqlAnalyticsEndpoint";
 }

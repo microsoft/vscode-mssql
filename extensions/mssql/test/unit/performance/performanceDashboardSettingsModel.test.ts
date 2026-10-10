@@ -48,13 +48,15 @@ suite("Performance dashboard settings", () => {
         ).to.deep.equal({ maxStorageMb: 2048, waitStatsCapture: "off" });
     });
 
-    test("turns Query Store on from the operation mode, and never sends off or custom", () => {
+    test("turns Query Store on and off from the operation mode", () => {
         const off = { ...settings, actualState: "off" as const };
 
         expect(changeOf({ ...formOf(off), operationMode: "readWrite" }, off)).to.deep.equal({
             operationMode: "readWrite",
         });
-        expect(changeOf({ ...formOf(settings), operationMode: "off" }, settings)).to.deep.equal({});
+        expect(changeOf({ ...formOf(settings), operationMode: "off" }, settings)).to.deep.equal({
+            operationMode: "off",
+        });
         const custom = { ...settings, captureMode: "custom" as const };
         expect(changeOf(formOf(custom), custom)).to.deep.equal({});
         expect(changeOf({ ...formOf(custom), captureMode: "auto" }, custom)).to.deep.equal({

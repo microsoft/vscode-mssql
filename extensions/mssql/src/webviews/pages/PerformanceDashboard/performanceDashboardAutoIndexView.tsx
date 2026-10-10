@@ -10,7 +10,6 @@ import {
     Link,
     makeStyles,
     shorthands,
-    Spinner,
     tokens,
 } from "@fluentui/react-components";
 import type {
@@ -33,6 +32,7 @@ import { useRefresh } from "./performanceDashboardRefresh";
 import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 import { SimpleGrid } from "./performanceDashboardSimpleGrid";
+import { TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 
 const useStyles = makeStyles({
@@ -81,7 +81,7 @@ export const PerformanceDashboardAutoIndexView = () => {
     }
     const data = readData(tuning);
     if (!data) {
-        return tuning.loading ? <Spinner size="small" label={loc.common.loading} /> : null;
+        return tuning.loading ? <TableSkeleton rows={3} /> : null;
     }
     const openScript = (sql: string) =>
         void extensionRpc.sendRequest(OpenSqlScriptRequest.type, { sql });

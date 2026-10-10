@@ -44,6 +44,7 @@ const useStyles = makeStyles({
     view: {
         display: "flex",
         flexDirection: "column",
+        flex: "1 0 auto",
         ...shorthands.gap("16px"),
     },
     note: {
@@ -111,7 +112,7 @@ export const PerformanceDashboardRequestsView = () => {
             {isReadOnly(totals) && <ReadOnlyNotice />}
             <SummaryCard
                 value={perPeriod !== undefined ? formatNumber(perPeriod) : text.notAvailable}
-                caption={text.averageRequestsPer15Minutes}
+                label={text.averageRequestsPer15Minutes}
                 info={text.requestsInfo}
                 loading={totals.loading && windows.length === 0}
                 figures={
@@ -128,15 +129,15 @@ export const PerformanceDashboardRequestsView = () => {
                         label: text.overLast7Days,
                         value: relativeChange(last7Days, previous7Days, availableFrom),
                     },
-                ]}
-            />
-            <TimeSeriesChart
-                title={text.requestsPerMinutes(formatNumber(bucketMinutes))}
-                points={points}
-                format={formatNumber}
-                read={series}
-                message={readStatusMessage(series)}
-            />
+                ]}>
+                <TimeSeriesChart
+                    title={text.requestsPerMinutes(formatNumber(bucketMinutes))}
+                    points={points}
+                    format={formatNumber}
+                    read={series}
+                    message={readStatusMessage(series)}
+                />
+            </SummaryCard>
             {bucketMinutes > requestBucketMinutes && (
                 <Caption1 className={classes.note}>
                     {text.coarserBuckets(formatNumber(bucketMinutes))}

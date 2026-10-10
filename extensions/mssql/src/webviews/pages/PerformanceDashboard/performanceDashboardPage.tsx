@@ -22,8 +22,8 @@ import { useNavigation } from "../../common/navigation/navigationProvider";
 import { RouteParams } from "../../common/navigation/router";
 import { PerformanceDashboardConnectionSummary } from "./performanceDashboardConnectionSummary";
 import { PerformanceDashboardDatabasePicker } from "./performanceDashboardDatabasePicker";
-import { PerformanceDashboardOverviewPage } from "./performanceDashboardOverviewPage";
 import { timeFormat } from "./performanceDashboardFormat";
+import { PerformanceDashboardOverviewPage } from "./performanceDashboardOverviewPage";
 import { PerformanceDashboardQueriesPage } from "./performanceDashboardQueriesPage";
 import { PerformanceDashboardQueryPage } from "./performanceDashboardQueryPage";
 import { useRefresh } from "./performanceDashboardRefresh";
@@ -36,7 +36,7 @@ import {
     settingsSectionOf,
     withSettings,
 } from "./performanceDashboardRoutes";
-import { PerformanceDashboardSettingsDialog } from "./performanceDashboardSettingsDialog";
+import { PerformanceDashboardSettingsDrawer } from "./performanceDashboardSettingsDrawer";
 
 const useStyles = makeStyles({
     root: {
@@ -53,20 +53,27 @@ const useStyles = makeStyles({
     toolbar: {
         display: "flex",
         alignItems: "center",
-        ...shorthands.gap("12px"),
-        ...shorthands.padding("8px", "16px", "4px"),
+        ...shorthands.gap("16px"),
+        ...shorthands.padding("16px", "24px", "8px"),
         minWidth: 0,
     },
     summary: {
         flexGrow: 1,
         minWidth: 0,
     },
+    actions: {
+        display: "flex",
+        alignItems: "center",
+        flexShrink: 0,
+        ...shorthands.gap("12px"),
+    },
     updated: {
         color: tokens.colorNeutralForeground3,
         whiteSpace: "nowrap",
     },
     tabs: {
-        ...shorthands.padding("0", "8px"),
+        // The tabs have their own padding, so the labels line up with the toolbar.
+        ...shorthands.padding("0", "14px"),
     },
     content: {
         display: "flex",
@@ -76,7 +83,7 @@ const useStyles = makeStyles({
         ...shorthands.overflow("auto"),
         // A scroll bar that comes and goes would resize the charts in a loop.
         scrollbarGutter: "stable",
-        ...shorthands.padding("12px", "20px"),
+        ...shorthands.padding("16px", "24px"),
     },
     title: {
         color: "var(--vscode-foreground)",
@@ -106,31 +113,30 @@ export const PerformanceDashboardPage = () => {
                     <div className={classes.summary}>
                         <PerformanceDashboardConnectionSummary />
                     </div>
-                    <Caption1 className={classes.updated}>
-                        {loc.performanceDashboard.updatedAt(timeFormat.format(updatedAt))}
-                    </Caption1>
-                    {timeRangeRoutes.has(match.route.id) && <PerformanceDashboardTimeRange />}
-                    <Tooltip content={loc.performanceDashboard.refresh} relationship="label">
-                        <Button
-                            appearance="subtle"
-                            size="small"
-                            icon={<ArrowClockwise20Regular />}
-                            onClick={refresh}
-                        />
-                    </Tooltip>
-                    <Tooltip content={loc.performanceDashboard.settings} relationship="label">
-                        <Button
-                            appearance="subtle"
-                            size="small"
-                            icon={<Settings20Regular />}
-                            aria-haspopup="dialog"
-                            onClick={() => navigate(withSettings(match, "queryStore"))}
-                        />
-                    </Tooltip>
+                    <div className={classes.actions}>
+                        {timeRangeRoutes.has(match.route.id) && <PerformanceDashboardTimeRange />}
+                        <Caption1 className={classes.updated}>
+                            {loc.performanceDashboard.updatedAt(timeFormat.format(updatedAt))}
+                        </Caption1>
+                        <Tooltip content={loc.common.refresh} relationship="label">
+                            <Button
+                                appearance="subtle"
+                                icon={<ArrowClockwise20Regular />}
+                                onClick={refresh}
+                            />
+                        </Tooltip>
+                        <Tooltip content={loc.performanceDashboard.settings} relationship="label">
+                            <Button
+                                appearance="subtle"
+                                icon={<Settings20Regular />}
+                                aria-haspopup="dialog"
+                                onClick={() => navigate(withSettings(match, "queryStore"))}
+                            />
+                        </Tooltip>
+                    </div>
                 </div>
                 <TabList
                     className={classes.tabs}
-                    size="small"
                     selectedValue={topRoute.id}
                     onTabSelect={(_event, data) => {
                         const tabId = String(data.value);
@@ -160,7 +166,7 @@ export const PerformanceDashboardPage = () => {
                 )}
             </main>
             {settingsSection && (
-                <PerformanceDashboardSettingsDialog
+                <PerformanceDashboardSettingsDrawer
                     section={settingsSection}
                     onClose={() => navigate(withSettings(match, undefined))}
                 />

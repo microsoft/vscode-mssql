@@ -3,88 +3,83 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Divider, makeStyles, mergeClasses, shorthands, tokens } from "@fluentui/react-components";
+import { makeStyles, tokens } from "@fluentui/react-components";
 import { GetDatabaseFactsRequest } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useExtensionRequest } from "../../common/useExtensionRequest";
-import { databaseFactsParts } from "./performanceDashboardOverviewModel";
+import {
+    DatabaseFactItem,
+    databaseFactsItems,
+    databaseFactsParts,
+} from "./performanceDashboardOverviewModel";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 
 const useStyles = makeStyles({
+    // Labeled values on one line; the line is cut at the end when the header is narrow.
     root: {
         display: "flex",
-        alignItems: "center",
-        ...shorthands.gap("10px"),
+        alignItems: "baseline",
+        columnGap: "24px",
+        minWidth: 0,
+        whiteSpace: "nowrap",
+        overflowX: "hidden",
+        textOverflow: "ellipsis",
+        fontSize: tokens.fontSizeBase300,
+        lineHeight: tokens.lineHeightBase300,
+    },
+    item: {
+        display: "inline-flex",
+        alignItems: "baseline",
+        columnGap: "6px",
         minWidth: 0,
     },
-    status: {
-        width: "8px",
-        height: "8px",
-        flexShrink: 0,
-        ...shorthands.borderRadius("50%"),
+    // VS Code's muted text, which stands apart from the values in every theme.
+    label: {
+        color: "var(--vscode-descriptionForeground)",
     },
-    connected: {
-        backgroundColor: tokens.colorPaletteGreenForeground1,
-    },
-    connecting: {
-        backgroundColor: tokens.colorNeutralForeground3,
+    value: {
+        color: "var(--vscode-foreground)",
+        fontWeight: tokens.fontWeightMedium,
+        overflowX: "hidden",
+        textOverflow: "ellipsis",
     },
     failed: {
-        backgroundColor: tokens.colorPaletteRedForeground1,
-    },
-    server: {
-        flexShrink: 0,
-        fontFamily: tokens.fontFamilyMonospace,
-        color: tokens.colorNeutralForeground1,
-    },
-    divider: {
-        flexGrow: 0,
-        height: "16px",
-    },
-    facts: {
-        minWidth: 0,
-        color: tokens.colorNeutralForeground3,
-        whiteSpace: "nowrap",
+        color: tokens.colorPaletteRedForeground1,
         overflowX: "hidden",
         textOverflow: "ellipsis",
     },
 });
 
-/** The connection status, the server, and the platform, tier, and size of the database. */
+/** The server, and the version, tier, and size of the database, as labeled values. */
 export const PerformanceDashboardConnectionSummary = () => {
     const classes = useStyles();
-    const serverName = usePerformanceDashboardSelector((state) => state.serverName);
+    const text = loc.performanceDashboard;
+    // The "tcp:" protocol prefix of a connection string says nothing to the user.
+    const serverName = usePerformanceDashboardSelector((state) =>
+        state.serverName.replace(/^tcp:/i, ""),
+    );
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const facts = useExtensionRequest(GetDatabaseFactsRequest.type, undefined, databaseName);
 
     const errorMessage = facts.result?.errorMessage ?? facts.errorMessage;
-    const status = facts.loading
-        ? { className: classes.connecting, label: loc.performanceDashboard.connecting }
-        : errorMessage
-          ? {
-                className: classes.failed,
-                label: loc.performanceDashboard.connectionFailed(errorMessage),
-            }
-          : { className: classes.connected, label: loc.performanceDashboard.connected };
-    const factsLine = databaseFactsParts(facts.result).join(" · ");
+    const failed = errorMessage ? text.connectionFailed(errorMessage) : "";
+    const items: DatabaseFactItem[] = [
+        { label: text.serverLabel, value: serverName },
+        ...databaseFactsItems(facts.result),
+    ];
+    const title = [serverName, failed || databaseFactsParts(facts.result).join(" · ")]
+        .filter(Boolean)
+        .join(" · ");
 
     return (
-        <div className={classes.root}>
-            <span
-                role="img"
-                aria-label={status.label}
-                title={status.label}
-                className={mergeClasses(classes.status, status.className)}
-            />
-            <span className={classes.server}>{serverName}</span>
-            {factsLine && (
-                <>
-                    <Divider vertical className={classes.divider} />
-                    <span className={classes.facts} title={factsLine}>
-                        {factsLine}
-                    </span>
-                </>
-            )}
+        <div className={classes.root} title={title}>
+            {items.map((item) => (
+                <span key={item.label} className={classes.item}>
+                    <span className={classes.label}>{item.label}</span>
+                    <span className={classes.value}>{item.value}</span>
+                </span>
+            ))}
+            {failed && <span className={classes.failed}>{failed}</span>}
         </div>
     );
 };

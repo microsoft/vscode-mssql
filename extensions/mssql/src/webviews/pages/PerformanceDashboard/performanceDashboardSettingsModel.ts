@@ -4,14 +4,28 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type {
+    QueryStoreCapturePolicy,
     QueryStoreSettings,
     QueryStoreSettingsChange,
 } from "../../../sharedInterfaces/performance";
 
-/** The choices of the Query Store settings form. The current value is added when it differs. */
-export const maxSizeChoicesMb: readonly number[] = [1024, 2048, 4096];
-export const keepDaysChoices: readonly number[] = [14, 30, 60];
-export const intervalChoicesMinutes: readonly number[] = [5, 15, 60];
+/** The values of `INTERVAL_LENGTH_MINUTES` that SQL Server accepts. */
+export const intervalChoicesMinutes: readonly number[] = [1, 5, 10, 15, 30, 60, 1440];
+
+/** The limits of the number settings, as SQL Server accepts them. */
+export const maxWholeNumber = 2_147_483_647;
+export const maxKeepDays = 36_500;
+export const maxFlushMinutes = Math.floor(maxWholeNumber / 60);
+/** `STALE_CAPTURE_POLICY_THRESHOLD` is from 1 hour to 7 days. */
+export const maxCaptureStaleHours = 168;
+
+/** The custom capture policy of SQL Server when a database has none yet. */
+export const defaultCapturePolicy: QueryStoreCapturePolicy = {
+    staleThresholdHours: 24,
+    executionCount: 30,
+    totalCompileCpuTimeMs: 1000,
+    totalExecutionCpuTimeMs: 100,
+};
 
 /** Query Store starts size-based cleanup at this percent of the maximum size. */
 export const cleanupThresholdPercent = 90;
@@ -22,13 +36,16 @@ export type OperationModeChoice = "off" | "readWrite" | "readOnly";
 export interface QueryStoreSettingsForm {
     readonly operationMode: OperationModeChoice;
     readonly captureMode?: QueryStoreSettings["captureMode"];
+    readonly capturePolicy?: QueryStoreCapturePolicy;
     readonly maxStorageMb?: number;
+    readonly sizeBasedCleanup?: "auto" | "off";
     readonly staleQueryThresholdDays?: number;
+    readonly flushIntervalSeconds?: number;
     readonly intervalLengthMinutes?: number;
     readonly waitStatsCapture?: "on" | "off";
 }
 
-/** The choices of a number setting: the presets and the current value, in order. */
+/** The choices of a setting with a list of values: the list and the current value, in order. */
 export function numberChoices(presets: readonly number[], current: number | undefined): number[] {
     const values = new Set(presets);
     if (current !== undefined) {
@@ -54,39 +71,62 @@ export function formOf(settings: QueryStoreSettings): QueryStoreSettingsForm {
     return {
         operationMode: operationModeOf(settings),
         captureMode: settings.captureMode,
+        capturePolicy: settings.capturePolicy,
         maxStorageMb: settings.maxStorageMb,
+        sizeBasedCleanup: settings.sizeBasedCleanup,
         staleQueryThresholdDays: settings.staleQueryThresholdDays,
+        flushIntervalSeconds: settings.flushIntervalSeconds,
         intervalLengthMinutes: settings.intervalLengthMinutes,
         waitStatsCapture: settings.waitStatsCapture,
     };
 }
 
 /**
- * The change of a form: only the values that differ from the settings. A custom capture mode
- * cannot be set here, so it is left out.
+ * True when the form turns Query Store off. Off is a change of its own: the other values do not
+ * apply, so the form leaves them as they are.
  */
+export function turnsOff(form: QueryStoreSettingsForm, settings: QueryStoreSettings): boolean {
+    return form.operationMode === "off" && operationModeOf(settings) !== "off";
+}
+
+/** The change of a form: only the values that differ from the settings. */
 export function changeOf(
     form: QueryStoreSettingsForm,
     settings: QueryStoreSettings,
 ): QueryStoreSettingsChange {
+    if (turnsOff(form, settings)) {
+        return { operationMode: "off" };
+    }
     const current = formOf(settings);
     const change: { -readonly [K in keyof QueryStoreSettingsChange]: QueryStoreSettingsChange[K] } =
         {};
     if (form.operationMode !== current.operationMode && form.operationMode !== "off") {
         change.operationMode = form.operationMode;
     }
-    if (
-        form.captureMode !== current.captureMode &&
-        form.captureMode !== undefined &&
-        form.captureMode !== "custom"
-    ) {
+    if (form.captureMode === "custom") {
+        // A form without a policy keeps the current one, or uses the defaults of a new custom mode.
+        const policy = form.capturePolicy ?? current.capturePolicy ?? defaultCapturePolicy;
+        const policyChanged =
+            form.capturePolicy !== undefined &&
+            JSON.stringify(form.capturePolicy) !== JSON.stringify(current.capturePolicy);
+        if (current.captureMode !== "custom" || policyChanged) {
+            change.captureMode = "custom";
+            change.capturePolicy = policy;
+        }
+    } else if (form.captureMode !== current.captureMode && form.captureMode !== undefined) {
         change.captureMode = form.captureMode;
     }
     if (form.maxStorageMb !== current.maxStorageMb) {
         change.maxStorageMb = form.maxStorageMb;
     }
+    if (form.sizeBasedCleanup !== current.sizeBasedCleanup) {
+        change.sizeBasedCleanup = form.sizeBasedCleanup;
+    }
     if (form.staleQueryThresholdDays !== current.staleQueryThresholdDays) {
         change.staleQueryThresholdDays = form.staleQueryThresholdDays;
+    }
+    if (form.flushIntervalSeconds !== current.flushIntervalSeconds) {
+        change.flushIntervalSeconds = form.flushIntervalSeconds;
     }
     if (form.intervalLengthMinutes !== current.intervalLengthMinutes) {
         change.intervalLengthMinutes = form.intervalLengthMinutes;
