@@ -20,6 +20,7 @@ import {
     DevContainerTemplateId,
     InstallAgentSkillsPluginRequest,
     OpenPromptInChatRequest,
+    OverviewLinkRequest,
     OverviewOpenSource,
     PrerequisiteStatus,
     AGENT_SKILL_PLUGINS,
@@ -1165,6 +1166,30 @@ suite("Overview Webview Controller", () => {
             constants.cmdOpenGithubChat,
             { query: "Connect my Node.js app", isPartialQuery: true },
         );
+    });
+
+    test("reports the opened link in its encoded form", async () => {
+        const requestHandlers = new Map<string, (params: unknown) => Promise<unknown>>();
+        sandbox
+            .stub(OverviewWebviewController.prototype, "onRequest")
+            .callsFake((type, handler) => {
+                requestHandlers.set(type.method, (params) =>
+                    Promise.resolve(handler(params as never, undefined as never)),
+                );
+            });
+        sandbox.stub(vscode.env, "openExternal").resolves(true);
+        controller = createController();
+        const url = "https://aka.ms/vscode-mssql-docs#query-results-pane";
+
+        await requestHandlers.get(OverviewLinkRequest.type.method)!({ url });
+
+        const links = (telemetry.sendActionEvent as sinon.SinonStub)
+            .getCalls()
+            .filter((call) => call.args[1] === TelemetryActions.OpenLink)
+            .map((call) => call.args[2]?.additionalProps.url as string);
+        expect(links).to.have.length(1);
+        expect(links[0]).to.not.include("/");
+        expect(decodeURIComponent(links[0])).to.equal(url);
     });
 
     test("reports each plugin's install against its own activity", async () => {
