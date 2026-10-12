@@ -2472,6 +2472,11 @@
                                 "type": "number",
                                 "minimum": 0,
                                 "description": "%mssql.connection.order%"
+                            },
+                            "allowAgentAccess": {
+                                "type": "boolean",
+                                "default": true,
+                                "description": "%mssql.connection.allowAgentAccess%"
                             }
                         }
                     },

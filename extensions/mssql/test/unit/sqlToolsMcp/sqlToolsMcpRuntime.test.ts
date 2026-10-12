@@ -157,6 +157,76 @@ suite("SQL Tools MCP runtime", () => {
         );
     });
 
+    test("does not list profiles hidden from agents", async () => {
+        const runtime = createRuntime(
+            [
+                profile("profile-1", "Shop", "localhost", "Sales"),
+                hiddenProfile("profile-2", "Payroll", "prod-hr", "Payroll"),
+            ],
+            connectionManager,
+            connectionStore,
+            executor,
+            logger,
+        );
+
+        const result = await runtime.getAvailableConnections();
+
+        expect(result.connections.map((c) => c.name)).to.deep.equal(["Shop"]);
+        expect(JSON.stringify(result)).to.not.include("Payroll");
+        expect(JSON.stringify(result)).to.not.include("prod-hr");
+    });
+
+    test("lists profiles that explicitly allow agent access", async () => {
+        const runtime = createRuntime(
+            [{ ...profile("profile-1", "Shop", "localhost", "Sales"), allowAgentAccess: true }],
+            connectionManager,
+            connectionStore,
+            executor,
+            logger,
+        );
+
+        const result = await runtime.getAvailableConnections();
+
+        expect(result.connections.map((c) => c.name)).to.deep.equal(["Shop"]);
+    });
+
+    test("connect treats a profile hidden from agents as not found", async () => {
+        const runtime = createRuntime(
+            [hiddenProfile("profile-2", "Payroll", "prod-hr", "Payroll")],
+            connectionManager,
+            connectionStore,
+            executor,
+            logger,
+        );
+
+        await expectBridgeFailure(
+            () => runtime.connect({ connectionName: "Payroll" }),
+            BridgeErrorCode.NotFound,
+            "Connection was not found.",
+        );
+    });
+
+    test("registerConnection treats a profile hidden from agents as not found and does not connect", async () => {
+        const runtime = createRuntime(
+            [hiddenProfile("profile-2", "Payroll", "prod-hr", "Payroll")],
+            connectionManager,
+            connectionStore,
+            executor,
+            logger,
+        );
+
+        await expectBridgeFailure(
+            () =>
+                runtime.registerConnection({
+                    connectionName: "registered-payroll",
+                    connectionHandle: "profile-2",
+                }),
+            BridgeErrorCode.NotFound,
+            "Connection was not found.",
+        );
+        expect(connectionManager.connect).to.not.have.been.called;
+    });
+
     test("registers execution context, detects platform context, and executes through STS", async () => {
         const savedProfile = profile("profile-1", "Shop", "localhost", "Sales");
         const runtime = createRuntime(
@@ -699,6 +769,15 @@ function profile(
         server,
         database,
     } as IConnectionProfileWithSource;
+}
+
+function hiddenProfile(
+    id: string,
+    profileName: string,
+    server: string,
+    database: string,
+): IConnectionProfileWithSource {
+    return { ...profile(id, profileName, server, database), allowAgentAccess: false };
 }
 
 function queryResult(batches: HeadlessBatchResult[]): HeadlessQueryResult {

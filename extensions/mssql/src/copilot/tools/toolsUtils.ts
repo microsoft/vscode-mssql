@@ -52,6 +52,14 @@ export function getDisplayNameForTool(connInfo: ConnectionInfo | undefined): str
     }
 }
 
+/**
+ * Whether the Copilot agent tools may see and use the given connection profile. Profiles are
+ * accessible unless the user has explicitly set `allowAgentAccess` to false.
+ */
+export function isAgentAccessible(profile: Pick<IConnectionProfile, "allowAgentAccess">): boolean {
+    return profile.allowAgentAccess !== false;
+}
+
 export function buildChatAgentConnectPrompt(connectionProfile: IConnectionProfile): string {
     const connectTarget = removeUndefinedProperties({
         profileId: connectionProfile.id,
