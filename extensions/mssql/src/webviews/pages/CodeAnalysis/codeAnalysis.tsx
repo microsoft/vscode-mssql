@@ -28,6 +28,7 @@ import { LocConstants } from "../../common/locConstants";
 import {
     SqlCodeAnalysisRule,
     CodeAnalysisRuleSeverity,
+    runRestoreButtonId,
 } from "../../../sharedInterfaces/codeAnalysis";
 import {
     ChevronDown20Regular,
@@ -367,7 +368,11 @@ export const CodeAnalysisDialog = () => {
                 <div className={styles.messageContainer}>
                     <DialogMessage
                         message={message}
-                        onMessageButtonClicked={() => {}}
+                        onMessageButtonClicked={(buttonId) => {
+                            if (buttonId === runRestoreButtonId) {
+                                context.runRestore();
+                            }
+                        }}
                         onCloseMessage={() => context.closeMessage()}
                     />
                 </div>

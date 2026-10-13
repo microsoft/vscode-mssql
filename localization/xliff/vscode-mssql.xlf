@@ -3463,6 +3463,9 @@
     <trans-unit id="++CODE++537dc4696903542ac2dabf4ddc71d8e1410dd1dca3adb30f90a2fe488e981623">
       <source xml:lang="en">Failed to resolve the refactor log for this file: {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++b7ca4c245e84bd2b268efd36d856276a88ddc1c046b512c9a30b4b9b9f49eb37">
+      <source xml:lang="en">Failed to restore the project</source>
+    </trans-unit>
     <trans-unit id="++CODE++c5dfa95897b89c1d17492b4591948b4a1c45ddde07a7e6aeebaaecca6dbdd888">
       <source xml:lang="en">Failed to revert cell: {0}</source>
       <note>{0} is the error message</note>
@@ -6205,14 +6208,23 @@
     <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
       <source xml:lang="en">Restore Panel Size</source>
     </trans-unit>
+    <trans-unit id="++CODE++9cb1d0f0ea037a727a99b2ac4eeca1ad5a99ee8667244ee5cac2d47807f39abb">
+      <source xml:lang="en">Restore SQL project: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++40ccebe29df0e54f847460888e462fd442b6e9bdcb26616e76dd5effec4ac876">
       <source xml:lang="en">Restore as</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a2e56f646f97601328322f8a9d412f5873f7e0e764655a96f88fdcec2a7e02eb">
+      <source xml:lang="en">Restore failed with exit code {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
       <source xml:lang="en">Restore panel size</source>
     </trans-unit>
     <trans-unit id="++CODE++26b4293018ea72418733109f2e245387d9dfcfe7d4083c0c1f29eb1155c98365">
       <source xml:lang="en">Restore properties pane</source>
+    </trans-unit>
+    <trans-unit id="++CODE++68153c132bf1c4050d0ce8d062db3f188e3c69b79b1697cb81395292bbbf8ba7">
+      <source xml:lang="en">Restoring {0}...</source>
     </trans-unit>
     <trans-unit id="++CODE++059715b1246f29c5dd30aa69328e5185f7f5153f5c40a1c3951e16505df5542f">
       <source xml:lang="en">Restrict access to the restored database</source>
@@ -6346,6 +6358,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++641f21b51503fc359d1dff4305c4d6e998c2778f28925d1b7eb855afb448526c">
+      <source xml:lang="en">Run dotnet restore</source>
     </trans-unit>
     <trans-unit id="++CODE++2c757183a36d594602187e88cad67e8e38ab92dd5c9c01ca69eb4c67f465b8e3">
       <source xml:lang="en">Run query on connection &apos;{0}&apos; (ID: {1})?&#10;&#10;Query: {2}</source>

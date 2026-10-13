@@ -276,4 +276,47 @@ suite("ProjectController Tests", () => {
 
         platformStub.restore();
     });
+
+    test("restoreProject should run dotnet restore against the project file", async () => {
+        // Arrange
+        const { executeTaskStub, withProgressStub, triggerTaskCompletion } =
+            setupBuildMocks(sandbox);
+
+        // Act
+        const restorePromise = projectController.restoreProject(projectFilePath);
+        triggerTaskCompletion(0);
+        await restorePromise;
+
+        // Assert
+        expect(executeTaskStub).to.have.been.calledOnce;
+        expect(withProgressStub).to.have.been.calledOnce;
+
+        const taskArg = executeTaskStub.firstCall.args[0] as vscode.Task;
+        const processExec = taskArg.execution as vscode.ProcessExecution;
+
+        expect(processExec.process).to.equal(constants.dotnet);
+        expect(processExec.args).to.deep.equal([constants.restore, projectFilePath]);
+        expect(taskArg.definition.type).to.equal(constants.sqlProjRestoreTaskType);
+        expect(taskArg.name).to.include(projectName);
+    });
+
+    test("restoreProject should reject when the restore task exits non-zero", async () => {
+        // Arrange
+        const { triggerTaskCompletion } = setupBuildMocks(sandbox);
+
+        // Act
+        const restorePromise = projectController.restoreProject(projectFilePath);
+        triggerTaskCompletion(1);
+
+        // Assert
+        let caught: Error | undefined;
+        try {
+            await restorePromise;
+        } catch (error) {
+            caught = error as Error;
+        }
+
+        expect(caught, "a non-zero exit code should surface as an error").to.not.be.undefined;
+        expect(caught?.message, "the exit code should be reported").to.include("1");
+    });
 });

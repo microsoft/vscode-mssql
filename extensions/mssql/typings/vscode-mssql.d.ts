@@ -1440,7 +1440,7 @@ declare module "vscode-mssql" {
         deploymentOptions: DeploymentOptions;
     }
 
-    export interface ValidateStreamingJobResult extends ResultStatus { }
+    export interface ValidateStreamingJobResult extends ResultStatus {}
 
     export interface ParseTSqlScriptResult {
         containsCreateTableStatement: boolean;
@@ -1483,6 +1483,8 @@ declare module "vscode-mssql" {
     export interface GetCodeAnalysisRulesResult extends ResultStatus {
         rules: CodeAnalysisRuleInfo[];
         warning?: string;
+        /** True when a package restore would resolve the reported warning. */
+        restoreRequired?: boolean;
     }
 
     export interface CodeAnalysisRuleOverride {

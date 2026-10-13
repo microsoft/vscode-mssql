@@ -2098,6 +2098,14 @@ export class CodeAnalysis {
     );
     public static failedToSaveRules = l10n.t("Failed to save code analysis rules");
     public static rulesSaved = l10n.t("Code analysis rules saved successfully");
+    public static runRestore = l10n.t("Run dotnet restore");
+    public static restoreProjectTaskLabel = (projectName: string) =>
+        l10n.t("Restore SQL project: {0}", projectName);
+    public static restoringProjectProgress = (projectName: string) =>
+        l10n.t("Restoring {0}...", projectName);
+    public static restoreFailedWithExitCode = (exitCode: number) =>
+        l10n.t("Restore failed with exit code {0}", exitCode);
+    public static restoreFailed = l10n.t("Failed to restore the project");
 }
 
 export class SchemaCompare {

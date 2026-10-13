@@ -282,6 +282,8 @@ export enum TelemetryActions {
     CodeAnalysisRulesSaveError = "CodeAnalysisRulesSaveError",
     CodeAnalysisEnabledOnBuild = "CodeAnalysisEnabledOnBuild",
     CodeAnalysisDisabledOnBuild = "CodeAnalysisDisabledOnBuild",
+    CodeAnalysisRestoreProject = "CodeAnalysisRestoreProject",
+    CodeAnalysisRestoreProjectError = "CodeAnalysisRestoreProjectError",
     // SQL Notebooks
     CreateNotebook = "CreateNotebook",
     ExecuteCell = "ExecuteCell",

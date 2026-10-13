@@ -62,7 +62,11 @@ export class ProjectController {
             );
 
             // Execute the task and wait for completion
-            await this.executeBuildTask(buildTask, projectName);
+            await this.executeTask(
+                buildTask,
+                Loc.PublishProject.BuildingProjectProgress(projectName),
+                Loc.PublishProject.BuildFailedWithExitCode,
+            );
 
             // Return the DACPAC output path
             return projectProperties.dacpacOutputPath;
@@ -71,6 +75,52 @@ export class ProjectController {
             sendErrorEvent(
                 TelemetryViews.SqlProjects,
                 TelemetryActions.BuildProject,
+                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                false,
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Restores the NuGet packages referenced by a SQL project so that analyzer assemblies
+     * referenced by the project are present on disk and match the referenced versions.
+     * @param projectFilePath Path to the .sqlproj file
+     */
+    public async restoreProject(projectFilePath: string): Promise<void> {
+        try {
+            const projectDir = path.dirname(projectFilePath);
+            const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
+            const args: string[] = [constants.restore, projectFilePath];
+
+            const taskDefinition: vscode.TaskDefinition = {
+                type: constants.sqlProjRestoreTaskType,
+                label: Loc.CodeAnalysis.restoreProjectTaskLabel(projectName),
+                command: constants.dotnet,
+                args: args,
+                problemMatcher: constants.msBuildProblemMatcher,
+            };
+
+            const restoreTask = new vscode.Task(
+                taskDefinition,
+                vscode.TaskScope.Workspace,
+                taskDefinition.label,
+                taskDefinition.type,
+                new vscode.ProcessExecution(taskDefinition.command, args, {
+                    cwd: projectDir,
+                }),
+                taskDefinition.problemMatcher,
+            );
+
+            await this.executeTask(
+                restoreTask,
+                Loc.CodeAnalysis.restoringProjectProgress(projectName),
+                Loc.CodeAnalysis.restoreFailedWithExitCode,
+            );
+        } catch (error) {
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.CodeAnalysisRestoreProjectError,
                 error instanceof Error ? error : new Error(getErrorMessage(error)),
                 false,
             );
@@ -113,20 +163,25 @@ export class ProjectController {
     }
 
     /**
-     * Executes a build task and waits for it to complete
-     * @param buildTask The VS Code task to execute
-     * @param projectName Name of the project being built
+     * Executes a task and waits for it to complete
+     * @param task The VS Code task to execute
+     * @param progressTitle Title shown in the progress notification
+     * @param failureMessage Builds the error message from a non-zero exit code
      */
-    private async executeBuildTask(buildTask: vscode.Task, projectName: string): Promise<void> {
+    private async executeTask(
+        task: vscode.Task,
+        progressTitle: string,
+        failureMessage: (exitCode: number) => string,
+    ): Promise<void> {
         return vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
-                title: Loc.PublishProject.BuildingProjectProgress(projectName),
+                title: progressTitle,
                 cancellable: false,
             },
             async () => {
                 // Execute the task
-                const execution = await vscode.tasks.executeTask(buildTask);
+                const execution = await vscode.tasks.executeTask(task);
 
                 // Wait for task completion
                 return new Promise<void>((resolve, reject) => {
@@ -136,13 +191,7 @@ export class ProjectController {
                             if (e.exitCode === 0) {
                                 resolve();
                             } else {
-                                reject(
-                                    new Error(
-                                        Loc.PublishProject.BuildFailedWithExitCode(
-                                            e.exitCode ?? -1,
-                                        ),
-                                    ),
-                                );
+                                reject(new Error(failureMessage(e.exitCode ?? -1)));
                             }
                         }
                     });

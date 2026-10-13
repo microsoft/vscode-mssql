@@ -19,10 +19,15 @@ import {
     GetProjectPropertiesResult,
 } from "vscode-mssql";
 import { CodeAnalysisRuleSeverity } from "../../src/enums";
-import { customRulesCategory, SqlCodeAnalysisRule } from "../../src/sharedInterfaces/codeAnalysis";
+import {
+    customRulesCategory,
+    runRestoreButtonId,
+    SqlCodeAnalysisRule,
+} from "../../src/sharedInterfaces/codeAnalysis";
 import { DialogMessageSpec } from "../../src/sharedInterfaces/dialogMessage";
 import { stubTelemetry, stubWebviewPanel } from "./utils";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
+import { ProjectController } from "../../src/controllers/projectController";
 
 chai.use(sinonChai);
 
@@ -696,6 +701,94 @@ suite("CodeAnalysisWebViewController Tests", () => {
             await getInternalController().loadRules();
 
             expect(controller.state.rules[0].category).to.equal("Performance");
+        });
+    });
+
+    suite("restore required", () => {
+        /**
+         * A restore is the fix for the warning, so it is offered inline on the banner rather than
+         * requiring the user to leave the dialog.
+         */
+        test("offers a restore button when STS reports a restore is required", async () => {
+            createController();
+            dacFxServiceStub.getCodeAnalysisRules.resolves({
+                success: true,
+                errorMessage: undefined,
+                rules: mockRules,
+                warning:
+                    "The project references Contoso.Rules 2.0.0, but version 1.0.0 was restored.",
+                restoreRequired: true,
+            } as GetCodeAnalysisRulesResult);
+
+            await getInternalController().loadRules();
+
+            expect(
+                controller.state.message?.buttons?.map((button) => button.id),
+                "the banner should offer the restore action",
+            ).to.deep.equal([runRestoreButtonId]);
+            expect(
+                controller.state.message?.buttons?.[0].label,
+                "the restore button should be labelled",
+            ).to.equal(ExtLoc.runRestore);
+        });
+
+        /**
+         * A warning a restore cannot fix (such as a duplicate rule ID) must not offer one.
+         */
+        test("omits the restore button when a restore would not fix the warning", async () => {
+            createController();
+            dacFxServiceStub.getCodeAnalysisRules.resolves({
+                success: true,
+                errorMessage: undefined,
+                rules: mockRules,
+                warning: "Two packages declare the rule ER0001.",
+                restoreRequired: false,
+            } as GetCodeAnalysisRulesResult);
+
+            await getInternalController().loadRules();
+
+            expect(
+                controller.state.message?.buttons,
+                "a warning a restore cannot fix should offer no restore action",
+            ).to.be.undefined;
+        });
+
+        test("restores the project and reloads the rules", async () => {
+            createController("c:/work/MyProject.sqlproj");
+            const restoreStub = sandbox
+                .stub(ProjectController.prototype, "restoreProject")
+                .resolves();
+
+            await getInternalController()._reducerHandlers.get("runRestore")!(controller.state, {});
+
+            expect(
+                restoreStub,
+                "the project being viewed should be restored",
+            ).to.have.been.calledOnceWith("c:/work/MyProject.sqlproj");
+            expect(
+                dacFxServiceStub.getCodeAnalysisRules,
+                "rules should be reloaded so restored custom rules appear",
+            ).to.have.been.called;
+            expect(controller.state.isLoading, "loading should end after the reload").to.be.false;
+        });
+
+        test("reports a failed restore without leaving the dialog loading", async () => {
+            createController();
+            sandbox
+                .stub(ProjectController.prototype, "restoreProject")
+                .rejects(new Error("Restore failed with exit code 1"));
+
+            await getInternalController()._reducerHandlers.get("runRestore")!(controller.state, {});
+
+            expect(controller.state.isLoading, "loading should end on failure").to.be.false;
+            expect(
+                controller.state.message?.intent,
+                "a failed restore is an error, not a warning",
+            ).to.equal("error");
+            expect(
+                controller.state.message?.message,
+                "the failure reason should be surfaced",
+            ).to.contain("Restore failed with exit code 1");
         });
     });
 });

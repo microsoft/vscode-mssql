@@ -29,6 +29,7 @@ export const CodeAnalysisStateProvider: React.FC<{ children: React.ReactNode }> 
         () => ({
             close: () => extensionRpc.action("close", {}),
             closeMessage: () => extensionRpc.action("closeMessage", {}),
+            runRestore: () => extensionRpc.action("runRestore", {}),
             saveRules: (rules, closeAfterSave, enableCodeAnalysisOnBuild) =>
                 extensionRpc.action("saveRules", {
                     rules,

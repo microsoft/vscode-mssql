@@ -11,6 +11,9 @@ export { CodeAnalysisRuleSeverity };
 /** Category shown for custom rules that don't specify one. */
 export const customRulesCategory = "Custom Rules";
 
+/** Id of the message bar button that runs a package restore. */
+export const runRestoreButtonId = "runRestore";
+
 /**
  * Represents a SQL code analysis rule
  */
@@ -63,6 +66,8 @@ export interface CodeAnalysisReducers {
     close: {};
     /** Clear the message bar */
     closeMessage: {};
+    /** Restore the project's NuGet packages, then reload the rules */
+    runRestore: {};
     /** Save rule overrides to the .sqlproj file */
     saveRules: {
         rules: SqlCodeAnalysisRule[];
@@ -77,6 +82,7 @@ export interface CodeAnalysisReducers {
 export interface CodeAnalysisProvider {
     close: () => void;
     closeMessage: () => void;
+    runRestore: () => void;
     saveRules: (
         rules: SqlCodeAnalysisRule[],
         closeAfterSave: boolean,

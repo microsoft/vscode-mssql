@@ -12,6 +12,7 @@ import {
     SqlCodeAnalysisRule,
     CodeAnalysisRuleSeverity,
     customRulesCategory,
+    runRestoreButtonId,
 } from "../sharedInterfaces/codeAnalysis";
 import * as constants from "../constants/constants";
 import { CodeAnalysis as Loc } from "../constants/locConstants";
@@ -22,6 +23,7 @@ import { DacFxService } from "../services/dacFxService";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { DialogMessageSpec } from "../sharedInterfaces/dialogMessage";
 import { parseSqlprojRuleOverrides } from "../publishProject/projectUtils";
+import { ProjectController } from "../controllers/projectController";
 
 /**
  * Controller for the Code Analysis dialog webview
@@ -31,6 +33,7 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
     CodeAnalysisReducers
 > {
     private readonly _operationId: string;
+    private readonly _projectController = new ProjectController();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -116,6 +119,31 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
         this.registerReducer("closeMessage", async (state) => {
             state.message = undefined;
             return state;
+        });
+        // Restore the project's packages, then reload the rules so restored custom rules appear
+        this.registerReducer("runRestore", async (state) => {
+            state.message = undefined;
+            state.isLoading = true;
+            this.updateState(state);
+            try {
+                await this._projectController.restoreProject(state.projectFilePath);
+                sendActionEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.CodeAnalysisRestoreProject,
+                    { operationId: this._operationId },
+                );
+            } catch (error) {
+                this.logger.error(`Failed to restore project: ${getErrorMessage(error)}`);
+                this.state.isLoading = false;
+                this.state.message = {
+                    message: `${Loc.restoreFailed}: ${getErrorMessage(error)}`,
+                    intent: "error",
+                } as DialogMessageSpec;
+                return this.state;
+            }
+            // loadRules owns isLoading and the message bar from here on.
+            await this.loadRules();
+            return this.state;
         });
         // Save rule overrides to the .sqlproj
         this.registerReducer("saveRules", async (state, payload) => {
@@ -284,7 +312,15 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
         }
 
         const warning = rulesResult.warning
-            ? ({ message: rulesResult.warning, intent: "warning" } as DialogMessageSpec)
+            ? ({
+                  message: rulesResult.warning,
+                  intent: "warning",
+                  // A restore is the fix for the warning, so offer it inline rather than making the
+                  // user leave the dialog to run it.
+                  buttons: rulesResult.restoreRequired
+                      ? [{ label: Loc.runRestore, id: runRestoreButtonId }]
+                      : undefined,
+              } as DialogMessageSpec)
             : undefined;
 
         const rules = (rulesResult.rules ?? []).map((rule) => {
