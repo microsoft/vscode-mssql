@@ -123,6 +123,15 @@ export function getUriKey(uri: vscode.Uri): string {
 }
 
 /**
+ * Percent-encodes a value, such as a URL, for use as a telemetry property.
+ * @param value The value to encode.
+ * @returns The percent-encoded value.
+ */
+export function encodeForTelemetry(value: string): string {
+    return encodeURIComponent(value);
+}
+
+/**
  * Gets the end-of-line character sequence configured in the editor.
  * @returns The end-of-line character sequence.
  */
