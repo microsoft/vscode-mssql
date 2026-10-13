@@ -26,8 +26,6 @@ export class WorkspaceTreeDataProvider
     dragMimeTypes = ["application/vnd.code.tree.workspacetreedataprovider"];
     private readonly _treeView: vscode.TreeView<WorkspaceTreeItem>;
     private readonly _workspaceProjectsChangedSubscription: vscode.Disposable;
-
-    private readonly _treeView: vscode.TreeView<WorkspaceTreeItem>;
     private _rootItems: WorkspaceTreeItem[] = [];
     private _wrappedItems = new WeakMap<object, WorkspaceTreeItem>();
 
