@@ -4150,7 +4150,7 @@
                 }
             },
             {
-                "title": "Projects",
+                "title": "%sqlDatabaseProjects.Settings%",
                 "properties": {
                     "dataworkspace.excludedProjects": {
                         "type": "array",
@@ -4165,12 +4165,7 @@
                         "type": "boolean",
                         "description": "%projects.showNotAddedProjectsInWorkspacePrompt%",
                         "default": true
-                    }
-                }
-            },
-            {
-                "title": "%sqlDatabaseProjects.Settings%",
-                "properties": {
+                    },
                     "sqlDatabaseProjects.enablePreviewFeatures": {
                         "type": "boolean",
                         "description": "%sqlDatabaseProjects.enablePreviewFeatures%"

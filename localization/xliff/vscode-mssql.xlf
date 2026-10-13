@@ -11899,9 +11899,6 @@
     <trans-unit id="mssql.dacpacDialog.launch">
       <source xml:lang="en">DACPAC/BACPAC Operations...</source>
     </trans-unit>
-    <trans-unit id="sqlDatabaseProjects.Settings">
-      <source xml:lang="en">Database Projects</source>
-    </trans-unit>
     <trans-unit id="sqlDatabaseProjects.displayName">
       <source xml:lang="en">Database Projects</source>
     </trans-unit>
@@ -12231,6 +12228,9 @@
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot</source>
+    </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.Settings">
+      <source xml:lang="en">MSSQL Database Projects</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.description">
       <source xml:lang="en">Make a new connection to a SQL database, or edit existing connections with the connection dialog.&#10;You can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.&#10;[Open Connection Dialog](command:mssql.addObjectExplorer)</source>
