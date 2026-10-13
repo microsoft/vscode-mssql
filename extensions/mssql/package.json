@@ -38,19 +38,7 @@
         "onUri",
         "onCommand:mssql.loadCompletionExtension",
         "onNotebook:jupyter-notebook",
-        "onView:dataworkspace.views.main",
-        "onCommand:mssql.sharedConnections.getActiveEditorConnectionId",
-        "onCommand:mssql.sharedConnections.getActiveDatabase",
-        "onCommand:mssql.sharedConnections.getDatabaseForConnectionId",
-        "onCommand:mssql.sharedConnections.connect",
-        "onCommand:mssql.sharedConnections.disconnect",
-        "onCommand:mssql.sharedConnections.isConnected",
-        "onCommand:mssql.sharedConnections.executeSimpleQuery",
-        "onCommand:mssql.sharedConnections.cancelQuery",
-        "onCommand:mssql.sharedConnections.getServerInfo",
-        "onCommand:mssql.sharedConnections.listDatabases",
-        "onCommand:mssql.sharedConnections.scriptObject",
-        "onCommand:mssql.sharedConnections.getConnectionString"
+        "onView:dataworkspace.views.main"
     ],
     "main": "./dist/extension",
     "l10n": "./l10n",
@@ -1176,6 +1164,54 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.sharedConnections.getActiveEditorConnectionId",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.getActiveDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.getDatabaseForConnectionId",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.connect",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.disconnect",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.isConnected",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.executeSimpleQuery",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.cancelQuery",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.getServerInfo",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.listDatabases",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.scriptObject",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.getConnectionString",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.searchDatabase",
                     "when": "false"
                 },
@@ -1585,6 +1621,66 @@
             {
                 "command": "mssql.buildDataApi",
                 "title": "%mssql.buildDataApi%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.getActiveEditorConnectionId",
+                "title": "%mssql.sharedConnections.getActiveEditorConnectionId%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.getActiveDatabase",
+                "title": "%mssql.sharedConnections.getActiveDatabase%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.getDatabaseForConnectionId",
+                "title": "%mssql.sharedConnections.getDatabaseForConnectionId%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.connect",
+                "title": "%mssql.sharedConnections.connect%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.disconnect",
+                "title": "%mssql.sharedConnections.disconnect%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.isConnected",
+                "title": "%mssql.sharedConnections.isConnected%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.executeSimpleQuery",
+                "title": "%mssql.sharedConnections.executeSimpleQuery%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.cancelQuery",
+                "title": "%mssql.sharedConnections.cancelQuery%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.getServerInfo",
+                "title": "%mssql.sharedConnections.getServerInfo%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.listDatabases",
+                "title": "%mssql.sharedConnections.listDatabases%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.scriptObject",
+                "title": "%mssql.sharedConnections.scriptObject%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.getConnectionString",
+                "title": "%mssql.sharedConnections.getConnectionString%",
                 "category": "MS SQL"
             },
             {

@@ -12478,6 +12478,42 @@
     <trans-unit id="mssql.resultsFontSize">
       <source xml:lang="en">Set the font size for the results grid; set to blank to use the editor size</source>
     </trans-unit>
+    <trans-unit id="mssql.sharedConnections.cancelQuery">
+      <source xml:lang="en">Shared Connections: Cancel Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.sharedConnections.connect">
+      <source xml:lang="en">Shared Connections: Connect</source>
+    </trans-unit>
+    <trans-unit id="mssql.sharedConnections.disconnect">
+      <source xml:lang="en">Shared Connections: Disconnect</source>
+    </trans-unit>
+    <trans-unit id="mssql.sharedConnections.executeSimpleQuery">
+      <source xml:lang="en">Shared Connections: Execute Simple Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.sharedConnections.getActiveDatabase">
+      <source xml:lang="en">Shared Connections: Get Active Database</source>
+    </trans-unit>
+    <trans-unit id="mssql.sharedConnections.getActiveEditorConnectionId">
+      <source xml:lang="en">Shared Connections: Get Active Editor Connection ID</source>
+    </trans-unit>
+    <trans-unit id="mssql.sharedConnections.getConnectionString">
+      <source xml:lang="en">Shared Connections: Get Connection String</source>
+    </trans-unit>
+    <trans-unit id="mssql.sharedConnections.getDatabaseForConnectionId">
+      <source xml:lang="en">Shared Connections: Get Database for Connection</source>
+    </trans-unit>
+    <trans-unit id="mssql.sharedConnections.getServerInfo">
+      <source xml:lang="en">Shared Connections: Get Server Info</source>
+    </trans-unit>
+    <trans-unit id="mssql.sharedConnections.isConnected">
+      <source xml:lang="en">Shared Connections: Is Connected</source>
+    </trans-unit>
+    <trans-unit id="mssql.sharedConnections.listDatabases">
+      <source xml:lang="en">Shared Connections: List Databases</source>
+    </trans-unit>
+    <trans-unit id="mssql.sharedConnections.scriptObject">
+      <source xml:lang="en">Shared Connections: Script Object</source>
+    </trans-unit>
     <trans-unit id="mssql.shortcuts">
       <source xml:lang="en">Shortcuts handled inside MSSQL views</source>
     </trans-unit>

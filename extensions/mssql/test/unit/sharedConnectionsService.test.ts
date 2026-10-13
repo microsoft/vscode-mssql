@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as fs from "fs";
+import * as path from "path";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
@@ -184,6 +186,25 @@ suite("SharedConnectionsService Tests", () => {
                 "getConnectionString",
             ].map((method) => `mssql.sharedConnections.${method}`),
         );
+    });
+
+    test("contributes each command to the manifest, hidden from the Command Palette", () => {
+        // Contributing them lets VS Code activate the extension when one is run before it starts.
+        const manifest = JSON.parse(
+            fs.readFileSync(path.join(__dirname, "..", "..", "..", "package.json"), "utf8"),
+        );
+        const contributed = new Set(
+            manifest.contributes.commands.map((command: { command: string }) => command.command),
+        );
+        const hidden = new Set(
+            manifest.contributes.menus.commandPalette
+                .filter((entry: { when?: string }) => entry.when === "false")
+                .map((entry: { command: string }) => entry.command),
+        );
+        for (const command of registeredCommands.keys()) {
+            expect(contributed.has(command), `${command} is contributed`).to.be.true;
+            expect(hidden.has(command), `${command} is hidden`).to.be.true;
+        }
     });
 
     test("checks the access token passed to a command like the method does", async () => {
