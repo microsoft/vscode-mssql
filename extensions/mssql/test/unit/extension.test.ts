@@ -124,15 +124,21 @@ suite("Extension API Tests", () => {
     test("only exports the supported public APIs", () => {
         expect(Object.keys(vscodeMssql)).to.deep.equal([
             "connectionSharing",
-            "sharedConnections",
+            "getSharedConnectionsApi",
             "uriOwnershipApi",
         ]);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(vscodeMssql.connectionSharing).to.equal(mainController.connectionSharingService);
-        expect(vscodeMssql.sharedConnections).to.be.instanceOf(SharedConnectionsService);
+        expect(vscodeMssql.getSharedConnectionsApi(1)).to.be.instanceOf(SharedConnectionsService);
         expect(vscodeMssql.uriOwnershipApi).to.equal(
             Extension.uriOwnershipCoordinator.uriOwnershipApi,
         );
+    });
+
+    test("rejects a shared connections API version it doesn't support", () => {
+        const getApi = vscodeMssql.getSharedConnectionsApi as (version: number) => unknown;
+
+        expect(() => getApi(2)).to.throw(/Version 2 of the shared connections API/);
     });
 
     test("publishes the activation snapshot used to gate SQL Data Plane UI", () => {

@@ -1,6 +1,6 @@
 # Connection Sharing Sample Extension
 
-A VS Code extension that demonstrates how to use the **MSSQL extension's shared connections API** (`IExtension.sharedConnections`) to work with SQL Server connections from your own extension.
+A VS Code extension that demonstrates how to use the **MSSQL extension's shared connections API** (`IExtension.getSharedConnectionsApi`) to work with SQL Server connections from your own extension.
 
 ## How it works
 
@@ -13,7 +13,7 @@ const mssqlExtension = vscode.extensions.getExtension<mssql.IExtension>("ms-mssq
 if (!mssqlExtension) {
     return; // The MSSQL extension isn't installed.
 }
-const api = (await mssqlExtension.activate()).sharedConnections;
+const api = (await mssqlExtension.activate()).getSharedConnectionsApi(1);
 
 const session = await vscode.authentication.getSession(api.authenticationProviderId, [], {
     createIfNone: true,
@@ -32,6 +32,8 @@ try {
 ```
 
 Methods that take a connection URI accept only URIs that `connect` returned for the same session. If the user signs out, the connections the session opened are closed and the token stops working; request a new session to continue.
+
+`getSharedConnectionsApi` takes the API version your extension was written against. A version changes only for breaking changes, and earlier versions keep working alongside newer ones until they're retired. Asking for a version that the installed MSSQL extension doesn't support throws.
 
 ### Using commands
 
@@ -53,10 +55,10 @@ const connectionId = await vscode.commands.executeCommand<string | undefined>(
 `IExtension.connectionSharing` and the `mssql.connectionSharing.*` commands are deprecated. They identify the caller by an extension ID that the caller passes in, which the MSSQL extension can't verify. To migrate:
 
 1. Request a session as shown above. Use `{ createIfNone: true }` when the user starts an action, or `{ silent: true }` to check for access without prompting.
-2. Replace `connectionSharing` with `sharedConnections`, or the `mssql.connectionSharing.*` commands with `mssql.sharedConnections.*`. The `scriptOperation` command is now `scriptObject`, matching the method.
-3. Pass `session.accessToken` where you passed your extension ID, and add it as the first argument to the methods that take a connection URI (`disconnect`, `isConnected`, `executeSimpleQuery`, `getServerInfo`, `listDatabases`, `scriptObject`).
+2. Replace `connectionSharing` with `getSharedConnectionsApi(1)`, or the `mssql.connectionSharing.*` commands with `mssql.sharedConnections.*`. The `scriptOperation` command is now `scriptObject`, matching the method.
+3. Pass `session.accessToken` where you passed your extension ID, and add it as the first argument to the methods that take a connection URI (`disconnect`, `isConnected`, `executeSimpleQuery`, `cancelQuery`, `getServerInfo`, `listDatabases`, `scriptObject`).
 4. `disconnect`, `isConnected`, and `getServerInfo` now return promises.
-5. Remove calls to `editConnectionSharingPermissions`. The user manages access from the **Accounts** menu.
+5. Remove calls to `editConnectionSharingPermissions` and `clearAllConnectionSharingPermissions`; they have no replacement. The user manages access from the **Accounts** menu: **Manage Trusted Extensions** for individual extensions, or signing out of **SQL Server Connections** to revoke access for all of them.
 
 ## To run
 

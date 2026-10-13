@@ -26,7 +26,7 @@ export async function getConnectionSharingApi(): Promise<ConnectionSharingApi | 
         return;
     }
 
-    const service = (await mssqlExtension.activate())?.sharedConnections;
+    const service = (await mssqlExtension.activate())?.getSharedConnectionsApi(1);
     if (!service) {
         vscode.window.showErrorMessage("Connection sharing service is not available");
         return;

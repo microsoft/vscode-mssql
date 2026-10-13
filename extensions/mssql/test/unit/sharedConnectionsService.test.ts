@@ -21,6 +21,7 @@ import {
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { ScriptingService } from "../../src/scripting/scriptingService";
+import { QueryCancelRequest } from "../../src/models/contracts/queryCancel";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import * as Constants from "../../src/constants/constants";
@@ -160,6 +161,7 @@ suite("SharedConnectionsService Tests", () => {
                 "disconnect",
                 "isConnected",
                 "executeSimpleQuery",
+                "cancelQuery",
                 "getServerInfo",
                 "listDatabases",
                 "scriptObject",
@@ -257,6 +259,24 @@ suite("SharedConnectionsService Tests", () => {
                 type: "Table",
             }),
         ).to.equal("CREATE TABLE t");
+    });
+
+    test("cancels the query on a connection it opened", async () => {
+        const connectionUri = await service.connect(validToken, testConnectionId);
+
+        await service.cancelQuery(validToken, connectionUri);
+
+        expect(client.sendRequest).to.have.been.calledWith(QueryCancelRequest.type, {
+            ownerUri: connectionUri,
+        });
+    });
+
+    test("doesn't cancel the query on a connection it didn't open", async () => {
+        await expectConnectionSharingError(
+            service.cancelQuery(validToken, "file:///query-editor.sql"),
+            ConnectionSharingErrorCode.INVALID_CONNECTION_URI,
+        );
+        expect(client.sendRequest).not.to.have.been.called;
     });
 
     test("rejects a connection URI it didn't open, such as a query editor's", async () => {

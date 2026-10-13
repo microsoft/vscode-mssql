@@ -21,16 +21,21 @@ declare module "vscode-mssql" {
     export interface IExtension {
         /**
          * APIs for working with user-approved mssql connections.
-         * @deprecated Use {@link IExtension.sharedConnections}, which lets VS Code
+         * @deprecated Use {@link IExtension.getSharedConnectionsApi}, which lets VS Code
          * verify the calling extension and manage the user's consent.
          */
         readonly connectionSharing: IConnectionSharingService;
 
         /**
-         * APIs for working with mssql connections after the user approves access through VS Code's
-         * authentication consent.
+         * Returns the APIs for working with mssql connections after the user approves access
+         * through VS Code's authentication consent.
+         *
+         * Pass the API version your extension was written against. A version changes only for
+         * breaking changes, and earlier versions keep working alongside newer ones until they're
+         * retired. A version this release of the mssql extension doesn't support throws.
+         * @param version The API version, currently `1`.
          */
-        readonly sharedConnections: ISharedConnectionsService;
+        getSharedConnectionsApi(version: 1): ISharedConnectionsService;
 
         /** APIs for coordinating URI ownership with other database extensions. */
         readonly uriOwnershipApi: UriOwnershipApi;
@@ -2865,7 +2870,7 @@ declare module "vscode-mssql" {
      * which takes the same arguments, access token first.
      *
      * @example
-     * const api = mssqlExtension.exports.sharedConnections;
+     * const api = mssqlExtension.exports.getSharedConnectionsApi(1);
      * const session = await vscode.authentication.getSession(api.authenticationProviderId, [], {
      *     createIfNone: true,
      * });
@@ -2936,6 +2941,12 @@ declare module "vscode-mssql" {
             connectionUri: string,
             queryString: string,
         ): Promise<SimpleExecuteResult>;
+        /**
+         * Cancel the query running on a connection that {@link connect} opened.
+         * @param accessToken The access token of the session that opened the connection.
+         * @param connectionUri The URI of the connection.
+         */
+        cancelQuery(accessToken: string, connectionUri: string): Promise<void>;
         /**
          * Get server information for a connection that {@link connect} opened.
          * @param accessToken The access token of the session that opened the connection.

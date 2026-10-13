@@ -391,7 +391,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         }
         this._deprecationLoggedExtensionIds.add(extensionId);
         this._logger.warn(
-            `Extension "${extensionId}" uses the deprecated connection-sharing API. Move to IExtension.sharedConnections.`,
+            `Extension "${extensionId}" uses the deprecated connection-sharing API. Move to IExtension.getSharedConnectionsApi(1).`,
         );
 
         const warnedExtensions = this._context.globalState.get<string[]>(
@@ -433,11 +433,13 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
                         },
                     },
                 );
-                if (learnMore) {
-                    void vscode.env.openExternal(
-                        vscode.Uri.parse(Constants.connectionSharingMigrationGuideUrl),
-                    );
+                if (!learnMore) {
+                    return undefined;
                 }
+                // Returned so the handler below also covers a failure to open the guide.
+                return vscode.env.openExternal(
+                    vscode.Uri.parse(Constants.connectionSharingMigrationGuideUrl),
+                );
             })
             .catch((error) => {
                 this._logger.error(

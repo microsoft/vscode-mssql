@@ -54,7 +54,10 @@ import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjec
 import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
 import { ExecutionPlanComparisonContribution } from "./controllers/executionPlanComparisonContribution";
 import { SharedConnectionsAuthenticationProvider } from "./connectionSharing/sharedConnectionsAuthenticationProvider";
-import { SharedConnectionsService } from "./connectionSharing/sharedConnectionsService";
+import {
+    getSharedConnectionsApi,
+    SharedConnectionsService,
+} from "./connectionSharing/sharedConnectionsService";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -233,7 +236,8 @@ class MssqlActivation {
 
         return {
             connectionSharing: controller.connectionSharingService,
-            sharedConnections: sharedConnectionsService,
+            getSharedConnectionsApi: (version: number) =>
+                getSharedConnectionsApi(sharedConnectionsService, version),
             uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         };
     }

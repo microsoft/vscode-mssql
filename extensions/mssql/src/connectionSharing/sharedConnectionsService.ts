@@ -15,6 +15,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { IConnectionProfile } from "../models/interfaces";
 import { logger } from "../models/logger";
+import { QueryCancelRequest } from "../models/contracts/queryCancel";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { ScriptingService } from "../scripting/scriptingService";
 import { ILogger } from "../sharedInterfaces/logger";
@@ -39,6 +40,7 @@ const COMMAND_METHODS = [
     "disconnect",
     "isConnected",
     "executeSimpleQuery",
+    "cancelQuery",
     "getServerInfo",
     "listDatabases",
     "scriptObject",
@@ -46,6 +48,23 @@ const COMMAND_METHODS = [
 ] as const satisfies readonly (keyof mssql.ISharedConnectionsService)[];
 
 type SharedConnectionsMethod = (typeof COMMAND_METHODS)[number];
+
+/**
+ * Returns the version of the shared connections API that a caller asked for through
+ * `IExtension.getSharedConnectionsApi`. Only version 1 exists so far; a later breaking change
+ * would add version 2 here alongside it.
+ */
+export function getSharedConnectionsApi(
+    service: SharedConnectionsService,
+    version: number,
+): mssql.ISharedConnectionsService {
+    if (version === 1) {
+        return service;
+    }
+    throw new Error(
+        `Version ${version} of the shared connections API isn't available in this version of the MSSQL extension, which supports version 1.`,
+    );
+}
 
 /** What a call's telemetry reports about it, filled in as the call resolves its connection. */
 interface CallDetails {
@@ -201,6 +220,13 @@ export class SharedConnectionsService
                 >("query/simpleexecute"),
                 { ownerUri: connectionUri, queryString },
             );
+        });
+    }
+
+    public cancelQuery(accessToken: string, connectionUri: string): Promise<void> {
+        return this.track("cancelQuery", async (call) => {
+            await this.validateActiveConnection(call, accessToken, connectionUri);
+            await this._client.sendRequest(QueryCancelRequest.type, { ownerUri: connectionUri });
         });
     }
 
