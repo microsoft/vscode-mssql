@@ -43,4 +43,5 @@ export enum TelemetryActions {
     rename = "rename",
     move = "move",
     tasksJsonError = "tasksJsonError",
+    findFile = "findFile",
 }

@@ -20,6 +20,7 @@
     "sqlDatabaseProjects.edit": "Edit",
     "sqlDatabaseProjects.rename": "Rename",
     "sqlDatabaseProjects.validateExternalStreamingJob": "Validate External Streaming Job",
+    "sqlDatabaseProjects.findFile": "Find File...",
 
     "sqlDatabaseProjects.newScript": "Add Script",
     "sqlDatabaseProjects.newPreDeploymentScript": "Add Pre-Deployment Script",
@@ -51,5 +52,8 @@
     "sqlDatabaseProjects.microsoftBuildSqlVersion": "Which version of Microsoft.Build.Sql SDK to use for building legacy sql projects. Example: 0.1.7-preview",
     "sqlDatabaseProjects.enablePreviewFeatures": "Enable preview SQL Database Projects features",
     "sqlDatabaseProjects.autoCreateFolders": "Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.",
+    "sqlDatabaseProjects.findFileBehavior": "What happens when you pick a file in Find File.",
+    "sqlDatabaseProjects.findFileBehavior.revealAndOpen": "Reveal the file in the Database Projects view and open it in the editor.",
+    "sqlDatabaseProjects.findFileBehavior.reveal": "Reveal and select the file in the Database Projects view without opening it.",
     "sqlDatabaseProjects.welcome": "No database projects currently open.\n[New Project](command:sqlDatabaseProjects.new)\n[Open Project](command:sqlDatabaseProjects.open)\n[Create Project From Database](command:sqlDatabaseProjects.importDatabase)"
 }

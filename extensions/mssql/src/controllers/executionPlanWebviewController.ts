@@ -10,12 +10,14 @@ import { WebviewPanelController } from "./webviewPanelController";
 import SqlDocumentService from "./sqlDocumentService";
 import {
     createExecutionPlanGraphs,
+    openExecutionPlanComparisonWebview,
     saveExecutionPlan,
     showPlanXml,
     showQuery,
     updateTotalCost,
 } from "./sharedExecutionPlanUtils";
 import { ExecutionPlanService } from "../services/executionPlanService";
+import { executionPlanSourceRegistry } from "./executionPlanSourceRegistry";
 
 export class ExecutionPlanWebviewController extends WebviewPanelController<
     ep.ExecutionPlanWebviewState,
@@ -58,6 +60,9 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                 },
             },
         );
+        this.registerDisposable(
+            executionPlanSourceRegistry.register(xmlPlanFileName, executionPlanContents),
+        );
         void this.initialize();
     }
 
@@ -87,6 +92,20 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
         });
         this.registerReducer("updateTotalCost", async (state, payload) => {
             return updateTotalCost(state, payload);
+        });
+        this.onNotification(ep.CompareExecutionPlanNotification.type, ({ graphIndex }) => {
+            openExecutionPlanComparisonWebview(
+                this._context,
+                this.executionPlanService,
+                this.sqlDocumentService,
+                {
+                    primary: {
+                        name: this.panel.title,
+                        graphs: this.state.executionPlanState.executionPlanGraphs ?? [],
+                        graphIndex,
+                    },
+                },
+            );
         });
     }
 }

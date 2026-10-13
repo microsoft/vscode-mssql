@@ -70,6 +70,7 @@ import {
     RemoteWindowUnsupportedError,
 } from "../agentPlugins/agentPluginsInstaller";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
+import { encodeForTelemetry } from "../utils/utils";
 import * as path from "path";
 import { spawn } from "child_process";
 import * as fs from "fs";
@@ -539,7 +540,7 @@ export class OverviewWebviewController extends WebviewPanelController<
                 TelemetryActions.InstallAgentSkills,
                 {
                     additionalProps: {
-                        source: AGENT_SKILLS_PLUGIN_SOURCE,
+                        source: encodeForTelemetry(AGENT_SKILLS_PLUGIN_SOURCE),
                         plugin: installer.pluginName,
                     },
                 },
@@ -662,7 +663,7 @@ export class OverviewWebviewController extends WebviewPanelController<
         this.onRequest(OverviewLinkRequest.type, async (params: OverviewLinkRequestParams) => {
             await vscode.env.openExternal(vscode.Uri.parse(params.url));
             sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.OpenLink, {
-                additionalProps: { url: params.url },
+                additionalProps: { url: encodeForTelemetry(params.url) },
             });
         });
 

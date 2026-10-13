@@ -12,7 +12,7 @@ import {
     FluentResultGridCommand,
     type FluentResultGridBuiltInCommandId,
 } from "../types/fluentResultGridCommandIds";
-import { isCtrlInsertCopyShortcut } from "../../keyboardUtils";
+import { eventMatchesKey, isCtrlInsertCopyShortcut } from "../../keyboardUtils";
 
 export type FluentResultGridKeyboardShortcutEvent = Pick<
     KeyboardEvent,
@@ -58,17 +58,7 @@ export function fluentResultGridEventMatchesShortcut(
         return false;
     }
 
-    if (combo.code) {
-        return combo.code === event.code;
-    }
-
-    if (combo.key) {
-        const eventKey = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-        const comboKey = combo.key.length === 1 ? combo.key.toLowerCase() : combo.key;
-        return eventKey === comboKey;
-    }
-
-    return false;
+    return eventMatchesKey(event, combo);
 }
 
 export function isFluentResultGridMetaOrCtrlKeyPressed(
@@ -119,7 +109,7 @@ export function getFluentResultGridKeyboardAction(
             !(event.metaKey && event.ctrlKey) &&
             !event.altKey &&
             !event.shiftKey &&
-            event.code === "KeyA")
+            eventMatchesKey(event, { key: "a", code: "KeyA" }))
     ) {
         return { kind: "command", commandId: FluentResultGridCommand.SelectAll };
     }

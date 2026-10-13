@@ -62,6 +62,8 @@ MSSQL uses
 current filtering and command-line options. MSSQL test commands compile the tests and collect
 coverage.
 
+For root-level automation scripts, run `npm run lint:repo` and `npm run test:repo`.
+
 For MSSQL end-to-end smoke tests, copy `extensions/mssql/test/e2e/.env.example` to `.env` in the
 same directory and configure a reachable SQL Server. Then run:
 
