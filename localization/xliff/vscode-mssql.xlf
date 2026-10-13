@@ -163,6 +163,9 @@
     <trans-unit id="++CODE++907050b936fff65138d1b58f40a8f1a783201adedbecf2d2b7b8f888c0ceab5e">
       <source xml:lang="en">2 selected</source>
     </trans-unit>
+    <trans-unit id="++CODE++40d8d22f89cbb251a550912cba4546124e6eeea56603098f03cef9a8c5bb5628">
+      <source xml:lang="en">30 days before</source>
+    </trans-unit>
     <trans-unit id="++CODE++edf70be4cc3997d84703d19bd61ed05b95494ec7d58abb5a78ae4250ddefadcf">
       <source xml:lang="en">32 GB</source>
     </trans-unit>
@@ -171,6 +174,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b63f1f48f79dc3c0319a846b9df813b98c4882df4d8b885b7f74d4ad237cf24f">
       <source xml:lang="en">60 min</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c39de786f9ad63ee4bea2274dc6ab09a1de0a7fc59e3f80970feb5114aa5523">
+      <source xml:lang="en">7 days before</source>
     </trans-unit>
     <trans-unit id="++CODE++380918b946a526640a40df5dced6516794f3d97bbd9e6bb553d037c4439f31c3">
       <source xml:lang="en">=</source>
@@ -316,6 +322,10 @@
     <trans-unit id="++CODE++a391b159a5a2a6b9353e98d7b8ca4b8ffbd82153c2f4850105f6e2ab0e36c8c6">
       <source xml:lang="en">Actions for plan {0}</source>
       <note>{0} is the Query Store plan ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a5266cfb5689704ac0129c8bcfbf9cb1ac478bc023b487a2abfc0650a18dc32f">
+      <source xml:lang="en">Actions for {0}</source>
+      <note>{0} is a table name, for example dbo.Orders</note>
     </trans-unit>
     <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
       <source xml:lang="en">Active filters:</source>
@@ -935,6 +945,9 @@
     <trans-unit id="++CODE++1203f986b245cf9633b5a5e0b62e2bda601752269259410a10d6f09ded6909d1">
       <source xml:lang="en">Average memory grant per execution</source>
     </trans-unit>
+    <trans-unit id="++CODE++27aaaa95190cb06182c8b91238189ddd51bc9a9f4feb24d769aed8f6a5b0b0ec">
+      <source xml:lang="en">Average per execution</source>
+    </trans-unit>
     <trans-unit id="++CODE++ff7b522f4967b745a032e57ca2197daa4826d170e8dfa483d435a555ff8e7861">
       <source xml:lang="en">Average requests per {0}</source>
       <note>{0} is the length of a chart interval, for example hour</note>
@@ -1124,6 +1137,18 @@
     </trans-unit>
     <trans-unit id="++CODE++9b58bb027ad8dd51cee6dfa3d8a10bc1a9cc66cd1bedbbbc4947d7071450614b">
       <source xml:lang="en">Backup to a new media set</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6f43c38ec488f6281abbedabf16441abbf1de98c6e9b8580599fd57011c2054">
+      <source xml:lang="en">Baseline</source>
+      <note>The earlier period that a comparison compares with</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9a6e9a2ef671fa22ce409d2e5427bed347472a277ad19af7de1b7a9879f82107">
+      <source xml:lang="en">Baseline {0}</source>
+      <note>{0} is a measure, for example Avg CPU</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0a7bab16ce0aeb20f7ce076b0d61d285774b055f1373075e59e21b37497f022a">
+      <source xml:lang="en">Baseline · {0} that</source>
+      <note>{0} is a period, for example 30 days before</note>
     </trans-unit>
     <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
       <source xml:lang="en">Batch execution time: {0}</source>
@@ -1339,6 +1364,10 @@
       <note>{0} is the tool function name
 {1} is the SQL tool parameters</note>
     </trans-unit>
+    <trans-unit id="++CODE++f697190fad35353a3667787c524e51f5eaa3cca0618be1450054ef4b7191db2c">
+      <source xml:lang="en">Can grow to {0}</source>
+      <note>{0} is the database size limit</note>
+    </trans-unit>
     <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
       <source xml:lang="en">Cancel</source>
     </trans-unit>
@@ -1465,6 +1494,10 @@
     </trans-unit>
     <trans-unit id="++CODE++292c06f0045a45d044be282b132b7055ae224e18e02b523a451d8ea96fadfd24">
       <source xml:lang="en">Category</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bd76e7f6a65f9cafb993a2403498372e53ae75ce8e484965b7d1d91fa5beb92e">
+      <source xml:lang="en">Change</source>
+      <note>The change from one period to another</note>
     </trans-unit>
     <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
       <source xml:lang="en">Change</source>
@@ -3036,9 +3069,6 @@
     <trans-unit id="++CODE++b5521e491246f30be2e361bccb99dc09eea4223717ce7a282e5f541ad69ed84e">
       <source xml:lang="en">Data flush interval</source>
     </trans-unit>
-    <trans-unit id="++CODE++0db6a0a3bbfd6e3bd2f86d4f230a21d8d7173641236388a9a5590b12c7736859">
-      <source xml:lang="en">Data size</source>
-    </trans-unit>
     <trans-unit id="++CODE++548c5b4d99727c76519438c8f3ae4cdd9fce1c53f1e12fdc4705bfedc47a7a8b">
       <source xml:lang="en">Data source</source>
     </trans-unit>
@@ -4229,6 +4259,9 @@
     </trans-unit>
     <trans-unit id="++CODE++93af2616998cbe789ee5e2ec8e7bb302ebef588858c4f87f69a1d4c2c1d768d8">
       <source xml:lang="en">Executions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3b9094bd77ac83f0b0b367fd435295ea0724ac13c996d2573272e3e608d1a6c8">
+      <source xml:lang="en">Executions (recent / baseline)</source>
     </trans-unit>
     <trans-unit id="++CODE++e6f85bab1a8295e091b4d2324b0e37eeacee571d5d3d7cd29827be17e7a0aa52">
       <source xml:lang="en">Existing Database</source>
@@ -5917,9 +5950,6 @@
     <trans-unit id="++CODE++f89417d53ba776c805f239fe55d55177f66764a88a5ae08085341e904985b900">
       <source xml:lang="en">LRS backup (locally redundant)</source>
     </trans-unit>
-    <trans-unit id="++CODE++97b05ce6bb7977168c217de3d360a161c4978a1e9cec3b8a9fde07867df3bbe6">
-      <source xml:lang="en">Largest tables</source>
-    </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
     </trans-unit>
@@ -7244,6 +7274,9 @@
     <trans-unit id="++CODE++06ee056a2b74c9a72b5a3191ecc4eb8fef75ff62ddcb3b4076c33179ef7fb4ab">
       <source xml:lang="en">No subscriptions found. Please change Azure account or tenant to view available subscriptions.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3459b7f9864581eb036124a3636f03d27200dc76c87809e3df54c569c09d6819">
+      <source xml:lang="en">No tables match the search.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6150f2aa36fc0da88b93d47481d99a988bcafd046bd60d962401893399cd0995">
       <source xml:lang="en">No templates available</source>
     </trans-unit>
@@ -8469,6 +8502,10 @@
     <trans-unit id="++CODE++6aafab6eae72092eb7c25ffb6f34dab1a3eb70f1ef79e6e159f0fe540ca6b675">
       <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</source>
     </trans-unit>
+    <trans-unit id="++CODE++6432f8a3990d412c06d95c284b646d4defcf8f166613f2747d5a81e15a82c8ac">
+      <source xml:lang="en">Recent</source>
+      <note>The recent period of a comparison</note>
+    </trans-unit>
     <trans-unit id="++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93">
       <source xml:lang="en">Recent</source>
     </trans-unit>
@@ -8480,6 +8517,17 @@
     </trans-unit>
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3faa38a0cb6200cd4512867380174fc08f7e19386df8aef9ad19f53365833471">
+      <source xml:lang="en">Recent is the time range at the top. Baseline is the period before it, so the two never overlap. Per execution, periods of different length compare fairly.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac89a8d202749d86f2c907e2db480a7212adc2c55ca0cdd788d3c134b2de5d4d">
+      <source xml:lang="en">Recent {0}</source>
+      <note>{0} is a measure, for example Avg CPU</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0a2506e81cb4ce48656ae304c5930d5cb9667ba11198e672b10fda8929165cfc">
+      <source xml:lang="en">Recent · {0}</source>
+      <note>{0} is a period, for example past 24 hours</note>
     </trans-unit>
     <trans-unit id="++CODE++1f47d8366934f024275d2126cc2693f6ea8e1a6815af400835993032a05dd518">
       <source xml:lang="en">Recheck</source>
@@ -8735,6 +8783,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f8266045b5596ddc5cd3d4af27e2af2af3242d50c27ef97945b665ad805b41f2">
       <source xml:lang="en">Resize the active result grid column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c3c45f64620368b034ba8a6e6d4c315fa5b9791ef22525756bef5c2f237c80d1">
+      <source xml:lang="en">Resize the query text</source>
     </trans-unit>
     <trans-unit id="++CODE++610d2469ca9f85e91ba3c5aff68859fe46b822e0477dd30a07e4b26c3c7ecaa1">
       <source xml:lang="en">Resolving a runtime that can run the CLI</source>
@@ -9120,6 +9171,9 @@
     <trans-unit id="++CODE++63bd75ed5678f58b4971e060437e117233755c5d3ba3b35cfc74bb64a80c5bef">
       <source xml:lang="en">Same database</source>
     </trans-unit>
+    <trans-unit id="++CODE++43eb0b1406027122b75c091cea17af853f79d9a950c46e8158e76b6e88be971b">
+      <source xml:lang="en">Same length before</source>
+    </trans-unit>
     <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
       <source xml:lang="en">Satisfied</source>
     </trans-unit>
@@ -9355,6 +9409,9 @@
     </trans-unit>
     <trans-unit id="++CODE++da92ada9f62a3c48d32510f433e324d463eb9c983b33fe778f0517dcbae55755">
       <source xml:lang="en">Script as Alter</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3a4a2e94c1227e991b2d55800b114ce9ef01970894efa5dade81ab8f14adda8b">
+      <source xml:lang="en">Script as CREATE</source>
     </trans-unit>
     <trans-unit id="++CODE++b0c3c04a510b1ec97731ab7984cca0594c8cd6e4da0f283bd510502ef217306f">
       <source xml:lang="en">Script as Create</source>
@@ -10705,6 +10762,9 @@
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2dfdac828f2577dbce5d977582304c67efd5f4fec02a91373b57dd0be257161c">
+      <source xml:lang="en">The dashboard connection is no longer available.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c1d54be35e12d5fff144d7203a35f058b0df5c54816e18ad219e58f4e944e7dc">
       <source xml:lang="en">The database did not answer in time. Try again. {0}</source>
       <note>{0} is the error message</note>
@@ -10845,6 +10905,9 @@
     <trans-unit id="++CODE++044da47086134e9a85176a52a9b6c7e8f89f587210c49b06b1232fda151e0932">
       <source xml:lang="en">The project {0} has been updated to be an SDK-style project. Click &apos;Learn More&apos; for details on the Microsoft.Build.Sql SDK and ways to simplify the project file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++dd36f92ba48d55456c5b5aa2cf3e1867446acdedc4f8c1ea448149bceb86229a">
+      <source xml:lang="en">The query did not run in the recent or the baseline period.</source>
+    </trans-unit>
     <trans-unit id="++CODE++24123fe00a32890cadd1eec242d44e1d789bb7dba83da914887e14578d29722a">
       <source xml:lang="en">The query has not run since the change.</source>
     </trans-unit>
@@ -10856,6 +10919,9 @@
     </trans-unit>
     <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
       <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a376f4b95da7d2693ee72fe3cf08dd0798dad371c880df2428c67aff5f7ee13c">
+      <source xml:lang="en">The recent period is the time range at the top of the page.</source>
     </trans-unit>
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
@@ -11215,6 +11281,9 @@
       <source xml:lang="en">Total execution time: {0}</source>
       <note>{0} is the elapsed time</note>
     </trans-unit>
+    <trans-unit id="++CODE++52f2dd7df3a0e390091e2cc6a4f32c647127ea70e92e400f5fb5c264bd476a69">
+      <source xml:lang="en">Total per day</source>
+    </trans-unit>
     <trans-unit id="++CODE++128269f39edfd1a7f5d91e3d9e8100ec6ba8c755c39e4ae92390b24da342467b">
       <source xml:lang="en">Total requests</source>
     </trans-unit>
@@ -11546,6 +11615,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4c0dbf02689cc96bec0bd35b335fc970f9b74c451118509160cffe4a51974aea">
       <source xml:lang="en">Used size</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bce68fee5f26107f73ac0b00569a88343496940cad5a629044e9d51189e65f3e">
+      <source xml:lang="en">Used size over time</source>
     </trans-unit>
     <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
       <source xml:lang="en">User</source>
@@ -12211,11 +12283,19 @@
     <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
       <source xml:lang="en">updatingIntelliSense</source>
     </trans-unit>
+    <trans-unit id="++CODE++c8c97860ba32b94e69848c7da37832faf741da044401ee2a3e624b5d1367b487">
+      <source xml:lang="en">used of {0} allocated</source>
+      <note>{0} is the allocated database size</note>
+    </trans-unit>
     <trans-unit id="++CODE++7ff2c6370613ed94cff5b41da2922691d968855c00b28dc39d101079cc59f673">
       <source xml:lang="en">vCores</source>
     </trans-unit>
     <trans-unit id="++CODE++cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619">
       <source xml:lang="en">value</source>
+    </trans-unit>
+    <trans-unit id="++CODE++94813937fb6549cc37566b690da587fb956404f2a4e30b1d4b16cf676d31345e">
+      <source xml:lang="en">vs</source>
+      <note>Short for versus, between two periods</note>
     </trans-unit>
     <trans-unit id="++CODE++5e2c2ec5a3605762cddc1f15b59ca8b6fcb8ffba3a213d0dff806f8ce8ed6ac1">
       <source xml:lang="en">v{0}</source>
@@ -12483,6 +12563,10 @@
     <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
       <source xml:lang="en">{0} password doesn&apos;t match the confirmation password</source>
     </trans-unit>
+    <trans-unit id="++CODE++3712a50d34ecae2e201f60f4d6c2fc5d1e7623e07ad2d6c757d62544e69b7b89">
+      <source xml:lang="en">{0} per day</source>
+      <note>{0} is a measure, for example CPU</note>
+    </trans-unit>
     <trans-unit id="++CODE++e13b197b20b10678a8114eb56d121c6b32568a636f93cfd0397234b194a052de">
       <source xml:lang="en">{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?&#10;&#10;Projects:&#10;{1}</source>
     </trans-unit>
@@ -12545,6 +12629,12 @@
     <trans-unit id="++CODE++1bc61380dfa94d79a64b67b2a483332c51a6263dcf5379519cd36b691f6469e3">
       <source xml:lang="en">{0} stopped successfully.</source>
       <note>{0} stopped successfully.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++de4f6abfa382b2ac41d4d37a5cea3f1c3fc033709d0571b6fea7af04f0d7a077">
+      <source xml:lang="en">{0} table</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f52a5a16e00664b6fdd89dc85aaffca47df05cd83800bcba3978bf4bc9213c0c">
+      <source xml:lang="en">{0} tables</source>
     </trans-unit>
     <trans-unit id="++CODE++80eac4752870080344ecd1df5728e26943a7d2e12c7dbd368a404c43d5b490da">
       <source xml:lang="en">{0} vCores</source>

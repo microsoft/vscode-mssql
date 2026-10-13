@@ -1884,6 +1884,7 @@
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
     },
+    "The dashboard connection is no longer available.": "The dashboard connection is no longer available.",
     "Performance Dashboard - {0}/{0} is the database name": {
         "message": "Performance Dashboard - {0}",
         "comment": ["{0} is the database name"]
@@ -5399,8 +5400,69 @@
     },
     "Average memory": "Average memory",
     "Allocated size": "Allocated size",
-    "Data size": "Data size",
-    "Largest tables": "Largest tables",
+    "Used size over time": "Used size over time",
+    "Resize the query text": "Resize the query text",
+    "Recent/The recent period of a comparison": {
+        "message": "Recent",
+        "comment": ["The recent period of a comparison"]
+    },
+    "Baseline/The earlier period that a comparison compares with": {
+        "message": "Baseline",
+        "comment": ["The earlier period that a comparison compares with"]
+    },
+    "vs/Short for versus, between two periods": {
+        "message": "vs",
+        "comment": ["Short for versus, between two periods"]
+    },
+    "The recent period is the time range at the top of the page.": "The recent period is the time range at the top of the page.",
+    "Same length before": "Same length before",
+    "7 days before": "7 days before",
+    "30 days before": "30 days before",
+    "Average per execution": "Average per execution",
+    "Total per day": "Total per day",
+    "Change/The change from one period to another": {
+        "message": "Change",
+        "comment": ["The change from one period to another"]
+    },
+    "Executions (recent / baseline)": "Executions (recent / baseline)",
+    "The query did not run in the recent or the baseline period.": "The query did not run in the recent or the baseline period.",
+    "Recent is the time range at the top. Baseline is the period before it, so the two never overlap. Per execution, periods of different length compare fairly.": "Recent is the time range at the top. Baseline is the period before it, so the two never overlap. Per execution, periods of different length compare fairly.",
+    "Recent · {0}/{0} is a period, for example past 24 hours": {
+        "message": "Recent · {0}",
+        "comment": ["{0} is a period, for example past 24 hours"]
+    },
+    "Baseline · {0} that/{0} is a period, for example 30 days before": {
+        "message": "Baseline · {0} that",
+        "comment": ["{0} is a period, for example 30 days before"]
+    },
+    "Recent {0}/{0} is a measure, for example Avg CPU": {
+        "message": "Recent {0}",
+        "comment": ["{0} is a measure, for example Avg CPU"]
+    },
+    "Baseline {0}/{0} is a measure, for example Avg CPU": {
+        "message": "Baseline {0}",
+        "comment": ["{0} is a measure, for example Avg CPU"]
+    },
+    "{0} per day/{0} is a measure, for example CPU": {
+        "message": "{0} per day",
+        "comment": ["{0} is a measure, for example CPU"]
+    },
+    "Script as CREATE": "Script as CREATE",
+    "Actions for {0}/{0} is a table name, for example dbo.Orders": {
+        "message": "Actions for {0}",
+        "comment": ["{0} is a table name, for example dbo.Orders"]
+    },
+    "used of {0} allocated/{0} is the allocated database size": {
+        "message": "used of {0} allocated",
+        "comment": ["{0} is the allocated database size"]
+    },
+    "Can grow to {0}/{0} is the database size limit": {
+        "message": "Can grow to {0}",
+        "comment": ["{0} is the database size limit"]
+    },
+    "{0} table": "{0} table",
+    "{0} tables": "{0} tables",
+    "No tables match the search.": "No tables match the search.",
     "The database has no user tables.": "The database has no user tables.",
     "Schema name": "Schema name",
     "Index name": "Index name",

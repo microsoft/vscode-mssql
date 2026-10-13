@@ -18,7 +18,14 @@ import {
     TableColumnSizingOptions,
     tokens,
 } from "@fluentui/react-components";
-import { CSSProperties, MouseEvent, ReactNode, useMemo } from "react";
+import {
+    DataGrid as VirtualDataGrid,
+    DataGridBody as VirtualDataGridBody,
+    DataGridHeader as VirtualDataGridHeader,
+    DataGridRow as VirtualDataGridRow,
+} from "@fluentui-contrib/react-data-grid-react-window";
+import { CSSProperties, MouseEvent, ReactNode, useMemo, useRef } from "react";
+import { useElementHeight } from "./performanceDashboardElementHeight";
 import { useFadeInClass } from "./performanceDashboardSkeletons";
 
 const cellBorder = "1px solid var(--vscode-panel-border)";
@@ -52,6 +59,18 @@ const useStyles = makeStyles({
         right: 0,
         maxHeight: "100%",
         overflowY: "auto",
+    },
+    virtualFrame: {
+        overflowY: "hidden",
+    },
+    // When the virtualized rows scroll, the header keeps the space of their scroll bar, so that
+    // the columns line up with the cells.
+    headerRowGutter: {
+        overflowY: "hidden",
+        scrollbarGutter: "stable",
+    },
+    listGutter: {
+        scrollbarGutter: "stable",
     },
     // The header shade may be translucent, so it lies over the editor background; otherwise the
     // rows show through the header as they scroll under it.
@@ -116,6 +135,19 @@ const useStyles = makeStyles({
     footer: {
         borderTop: cellBorder,
     },
+    // The totals: a row below the rows, in the column widths, in bold.
+    totalsRow: {
+        display: "flex",
+        minHeight: `${rowHeight}px`,
+        borderTop: cellBorder,
+        fontWeight: tokens.fontWeightSemibold,
+    },
+    totalsCell: {
+        display: "flex",
+        alignItems: "center",
+        minWidth: 0,
+        padding: `0 ${tokens.spacingHorizontalS}`,
+    },
 });
 
 export interface SimpleGridColumn<T> {
@@ -143,12 +175,22 @@ export interface SimpleGridProps<T> {
     readonly columns: readonly SimpleGridColumn<T>[];
     readonly getRowId: (item: T) => string;
     readonly ariaLabel: string;
+    /** The initial sort shown in the header. */
+    readonly defaultSort?: {
+        readonly column: string;
+        readonly direction: "ascending" | "descending";
+    };
     readonly rowClassName?: (item: T) => string | undefined;
     /** Highlights a row, for example a selected plan. */
     readonly isSelected?: (item: T) => boolean;
     readonly onRowContextMenu?: (item: T, event: MouseEvent) => void;
     /** Content inside the frame, below the rows, such as the actions for the selected rows. */
     readonly footer?: ReactNode;
+    /**
+     * A row of totals below the rows, by column ID, such as "Total" and a size. It lines up with
+     * the columns when a column grows.
+     */
+    readonly totals?: Readonly<Record<string, ReactNode>>;
     /** False leaves out the frame, for a grid inside another panel. Default true. */
     readonly framed?: boolean;
     /**
@@ -156,20 +198,25 @@ export interface SimpleGridProps<T> {
      * it. The parent must grow to the bottom of the page.
      */
     readonly fill?: boolean;
+    /** Virtualizes rows in a filling grid. */
+    readonly virtualized?: boolean;
 }
 
-/** A small Fluent data grid for lists that do not need virtualization. */
+/** A Fluent data grid for dashboard lists, with optional row virtualization. */
 export function SimpleGrid<T>({
     items,
     columns,
     getRowId,
     ariaLabel,
+    defaultSort,
     rowClassName,
     isSelected,
     onRowContextMenu,
     footer,
+    totals,
     framed = true,
     fill = false,
+    virtualized = false,
 }: SimpleGridProps<T>) {
     const classes = useStyles();
     const fadeIn = useFadeInClass();
@@ -230,6 +277,54 @@ export function SimpleGrid<T>({
     const cellStyle = (columnId: string | number) =>
         fixedLayout ? layout.styles.get(String(columnId)) : undefined;
     const rowStyle = fixedLayout ? { minWidth: layout.minWidth } : undefined;
+    const slot = useRef<HTMLDivElement>(null);
+    const slotHeight = useElementHeight(slot);
+    const rowsHeight = Math.max(1, items.length) * rowHeight;
+    const minBodyHeight = Math.min(Math.max(items.length, 1), minVisibleRows) * rowHeight;
+    const bodyHeight =
+        slotHeight > 0
+            ? Math.max(
+                  minBodyHeight,
+                  Math.min(
+                      rowsHeight,
+                      slotHeight - rowHeight - (footer ? rowHeight + 8 : 0) - (framed ? 2 : 0),
+                  ),
+              )
+            : minBodyHeight;
+    const bodyScrolls = virtualized && bodyHeight < rowsHeight;
+    const Grid = virtualized ? VirtualDataGrid : DataGrid;
+    const GridHeader = virtualized ? VirtualDataGridHeader : DataGridHeader;
+    const GridRow = virtualized ? VirtualDataGridRow : DataGridRow;
+
+    const renderRow = (
+        { item, rowId }: { item: T; rowId: string | number },
+        style?: CSSProperties,
+    ) => (
+        <GridRow<T>
+            key={rowId}
+            className={mergeClasses(
+                classes.row,
+                isSelected?.(item) && classes.selected,
+                rowClassName?.(item),
+            )}
+            style={{ ...rowStyle, ...style }}
+            aria-selected={isSelected ? isSelected(item) : undefined}
+            onContextMenu={
+                onRowContextMenu ? (event: MouseEvent) => onRowContextMenu(item, event) : undefined
+            }>
+            {({ renderCell, columnId }) => (
+                <DataGridCell
+                    className={mergeClasses(
+                        classes.cell,
+                        numericIds.has(String(columnId)) && classes.numeric,
+                        controlIds.has(String(columnId)) && classes.centered,
+                    )}
+                    style={cellStyle(columnId)}>
+                    {renderCell(item)}
+                </DataGridCell>
+            )}
+        </GridRow>
+    );
 
     const grid = (
         <div
@@ -237,23 +332,30 @@ export function SimpleGrid<T>({
                 classes.frame,
                 framed && classes.framed,
                 fill && classes.fillFrame,
+                virtualized && classes.virtualFrame,
                 fadeIn,
             )}>
-            <DataGrid
+            <Grid
                 className={classes.grid}
                 items={[...items]}
                 columns={definitions}
                 getRowId={getRowId}
                 style={rowStyle}
                 sortable={sortable}
+                defaultSortState={
+                    defaultSort
+                        ? { sortColumn: defaultSort.column, sortDirection: defaultSort.direction }
+                        : undefined
+                }
                 resizableColumns={!fixedLayout}
                 columnSizingOptions={fixedLayout ? undefined : sizing}
                 size="small"
                 focusMode="composite"
                 aria-label={ariaLabel}>
-                <DataGridHeader
-                    className={mergeClasses(classes.header, fill && classes.stickyHeader)}>
-                    <DataGridRow style={rowStyle}>
+                <GridHeader className={mergeClasses(classes.header, fill && classes.stickyHeader)}>
+                    <GridRow
+                        className={bodyScrolls ? classes.headerRowGutter : undefined}
+                        style={rowStyle}>
                         {({ renderHeaderCell, columnId }) => (
                             <DataGridHeaderCell
                                 className={mergeClasses(
@@ -265,39 +367,40 @@ export function SimpleGrid<T>({
                                 {renderHeaderCell()}
                             </DataGridHeaderCell>
                         )}
-                    </DataGridRow>
-                </DataGridHeader>
-                <DataGridBody<T>>
-                    {({ item, rowId }) => (
-                        <DataGridRow<T>
-                            key={rowId}
+                    </GridRow>
+                </GridHeader>
+                {virtualized ? (
+                    <VirtualDataGridBody<T>
+                        itemSize={rowHeight}
+                        height={bodyHeight}
+                        width={`max(100%, ${layout.minWidth}px)`}
+                        listProps={{
+                            className: bodyScrolls ? classes.listGutter : undefined,
+                            style: { overflowX: "hidden" },
+                        }}>
+                        {(row, style) => renderRow(row, style)}
+                    </VirtualDataGridBody>
+                ) : (
+                    <DataGridBody<T>>{(row) => renderRow(row)}</DataGridBody>
+                )}
+            </Grid>
+            {totals && (
+                <div role="row" className={classes.totalsRow} style={rowStyle}>
+                    {columns.map((column) => (
+                        <div
+                            key={column.id}
+                            role="gridcell"
                             className={mergeClasses(
-                                classes.row,
-                                isSelected?.(item) && classes.selected,
-                                rowClassName?.(item),
+                                classes.cell,
+                                classes.totalsCell,
+                                column.numeric && classes.numeric,
                             )}
-                            style={rowStyle}
-                            aria-selected={isSelected ? isSelected(item) : undefined}
-                            onContextMenu={
-                                onRowContextMenu
-                                    ? (event: MouseEvent) => onRowContextMenu(item, event)
-                                    : undefined
-                            }>
-                            {({ renderCell, columnId }) => (
-                                <DataGridCell
-                                    className={mergeClasses(
-                                        classes.cell,
-                                        numericIds.has(String(columnId)) && classes.numeric,
-                                        controlIds.has(String(columnId)) && classes.centered,
-                                    )}
-                                    style={cellStyle(columnId)}>
-                                    {renderCell(item)}
-                                </DataGridCell>
-                            )}
-                        </DataGridRow>
-                    )}
-                </DataGridBody>
-            </DataGrid>
+                            style={cellStyle(column.id)}>
+                            {totals[column.id]}
+                        </div>
+                    ))}
+                </div>
+            )}
             {footer && (
                 <div className={mergeClasses(classes.footer, fill && classes.stickyFooter)}>
                     {footer}
@@ -315,7 +418,7 @@ export function SimpleGrid<T>({
         (framed ? 2 : 0) +
         (footer ? rowHeight + 8 : 0);
     return (
-        <div className={classes.slot} style={{ minHeight }}>
+        <div ref={slot} className={classes.slot} style={{ minHeight }}>
             {grid}
         </div>
     );

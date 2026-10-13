@@ -3481,6 +3481,9 @@ export class DacpacDialog {
 }
 
 export class PerformanceDashboard {
+    public static connectionUnavailable = l10n.t(
+        "The dashboard connection is no longer available.",
+    );
     public static title = (databaseName: string) =>
         l10n.t({
             message: "Performance Dashboard - {0}",

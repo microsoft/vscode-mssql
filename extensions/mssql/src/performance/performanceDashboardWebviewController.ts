@@ -27,6 +27,8 @@ import {
     GetTopQueriesRequest,
     GetTopQueriesDetailedRequest,
     GetStorageRequest,
+    SelectTableTop1000Request,
+    ScriptTableCreateRequest,
     GetDashboardSettingsRequest,
     SetDashboardSettingsRequest,
     ApplyQueryStoreSettingsChangeRequest,
@@ -88,6 +90,18 @@ export interface PerformanceDashboardHost {
     ): Promise<void>;
     /** Opens T-SQL in a query editor connected to the dashboard's server and database. */
     openSqlScript(sql: string, target: PerformanceDashboardTarget): Promise<void>;
+    /** Scripts a table SELECT and opens it in a connected query editor. */
+    selectTableTop1000(
+        schemaName: string,
+        tableName: string,
+        target: PerformanceDashboardTarget,
+    ): Promise<void>;
+    /** Scripts a table's CREATE statement and opens it in a connected query editor. */
+    scriptTableCreate(
+        schemaName: string,
+        tableName: string,
+        target: PerformanceDashboardTarget,
+    ): Promise<void>;
 }
 
 /**
@@ -209,8 +223,14 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
                 .getConfiguration()
                 .update(hideOwnActivitySetting, hideOwnActivity, vscode.ConfigurationTarget.Global);
         });
-        this.onRequest(GetStorageRequest.type, ({ top }) =>
-            this.read((target) => target.databaseStorage(top)),
+        this.onRequest(GetStorageRequest.type, () =>
+            this.read((target) => target.databaseStorage()),
+        );
+        this.onRequest(ScriptTableCreateRequest.type, ({ schemaName, tableName }) =>
+            this._host.scriptTableCreate(schemaName, tableName, this._target),
+        );
+        this.onRequest(SelectTableTop1000Request.type, ({ schemaName, tableName }) =>
+            this._host.selectTableTop1000(schemaName, tableName, this._target),
         );
         this.onRequest(GetMetricSeriesRequest.type, ({ metric, bucketMinutes, ...window }) =>
             this.read((target) =>

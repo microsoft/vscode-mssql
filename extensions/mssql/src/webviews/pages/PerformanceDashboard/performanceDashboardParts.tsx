@@ -411,6 +411,11 @@ export function xAxisProps(
 }
 
 export const useAxisStyles = makeStyles({
+    // The chart root clips by default, so its tooltip shrinks to the plot and scrolls. Without
+    // clipping, the tooltip has the room of the page.
+    root: {
+        overflow: "visible",
+    },
     // The default tick labels are 10px; these are the size of a caption.
     axis: {
         "& text": {
@@ -554,6 +559,7 @@ export const TimeSeriesChart = ({
                         range,
                     )}
                     styles={{
+                        root: axisClasses.root,
                         xAxis: axisClasses.axis,
                         yAxis: compact ? axisClasses.axis : axisClasses.yAxis,
                         axisTitle: axisClasses.title,
@@ -660,6 +666,7 @@ export const ThresholdChart = ({
                         range,
                     )}
                     styles={{
+                        root: axisClasses.root,
                         xAxis: axisClasses.axis,
                         yAxis: compact ? axisClasses.axis : axisClasses.yAxis,
                         axisTitle: axisClasses.title,
@@ -719,9 +726,11 @@ export function InlineSelect<T extends string>({
 }
 
 const useChartFrameStyles = makeStyles({
-    // No overflow clipping: the chart tooltips render inside the frame.
+    // No overflow clipping: the chart tooltips render inside the frame. The frame stacks above
+    // the sticky grid headers below it, so a tooltip that extends past the chart is not hidden.
     frame: {
         position: "relative",
+        zIndex: 3,
         width: "100%",
     },
 });

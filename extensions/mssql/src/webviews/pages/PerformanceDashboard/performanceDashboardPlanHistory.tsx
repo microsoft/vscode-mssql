@@ -248,6 +248,7 @@ export const PlanSummaryChart = ({
                         range,
                     )}
                     styles={{
+                        root: axisClasses.root,
                         xAxis: axisClasses.axis,
                         yAxis: axisClasses.yAxis,
                         axisTitle: axisClasses.title,

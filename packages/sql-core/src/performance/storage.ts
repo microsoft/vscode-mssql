@@ -17,7 +17,7 @@ import { PerfResult, errorResult, unsupportedResult } from "./result";
 
 /*
  * The storage of the current database: the size of its data files, the space used in them, the
- * size limit on Azure SQL Database, and the largest tables. Sizes are MB.
+ * size limit on Azure SQL Database, and the user tables. Sizes are MB.
  */
 
 /** A table and its size, from `sys.dm_db_partition_stats`. */
@@ -39,17 +39,10 @@ export interface DatabaseStorage {
     readonly usedMb: number;
     /** The size limit of the database, on Azure SQL Database. */
     readonly maxSizeMb?: number;
-    /** The largest tables by used space, largest first. */
+    /** The user tables by used space, largest first. */
     readonly tables: readonly TableStorage[];
 }
 
-export interface DatabaseStorageOptions extends SqlReadOptions {
-    /** The number of tables to return. Default 10, at most 100. */
-    readonly top?: number;
-}
-
-const defaultTop = 10;
-const maxTop = 100;
 const megabytesPerPage = 8 / 1024;
 
 /** True when the database has its files and partition stats: the SQL engine platforms. */
@@ -66,7 +59,7 @@ export function hasDatabaseStorage(info: PlatformInfo): boolean {
 }
 
 /**
- * Reads the size of the data files, the space used in them, the size limit, and the largest user
+ * Reads the size of the data files, the space used in them, the size limit, and all user
  * tables. SQL Server, Managed Instance, Azure SQL Database, and SQL database in Fabric;
  * `unsupported` elsewhere. The tables need VIEW DATABASE STATE; a missing permission gives
  * `permissionMissing`.
@@ -74,13 +67,13 @@ export function hasDatabaseStorage(info: PlatformInfo): boolean {
 export async function readDatabaseStorage(
     reader: SqlReader,
     info: PlatformInfo,
-    options: DatabaseStorageOptions = {},
+    options: SqlReadOptions = {},
     now: Date = new Date(),
 ): Promise<PerfResult<DatabaseStorage>> {
     if (!hasDatabaseStorage(info)) {
         return unsupportedResult(info, now);
     }
-    const sql = buildDatabaseStorageQuery(info, options.top ?? defaultTop);
+    const sql = buildDatabaseStorageQuery(info);
     try {
         const [fileSet, tableSet] = await reader.read(sql, options);
         const files = toRecords(fileSet)[0];
@@ -110,13 +103,9 @@ export async function readDatabaseStorage(
 
 /**
  * Returns the batch of {@link readDatabaseStorage}: the data files and the size limit, and then
- * the largest user tables. Throws a `RangeError` for a count that is not valid. Exported for
- * tests.
+ * all user tables. Exported for tests.
  */
-export function buildDatabaseStorageQuery(info: PlatformInfo, top: number): string {
-    if (!Number.isInteger(top) || top < 1 || top > maxTop) {
-        throw new RangeError(`The table count must be a whole number from 1 to ${maxTop}.`);
-    }
+export function buildDatabaseStorageQuery(info: PlatformInfo): string {
     return `${sessionPreamble(info, "read")}
 SELECT
     SUM(CAST(f.size AS bigint)) AS allocated_pages,
@@ -124,15 +113,15 @@ SELECT
     CAST(DATABASEPROPERTYEX(DB_NAME(), 'MaxSizeInBytes') AS bigint) AS max_size_bytes
 FROM sys.database_files AS f
 WHERE f.type = 0;
-SELECT TOP (${top})
+SELECT
     s.name AS schema_name,
     t.name AS table_name,
-    SUM(CASE WHEN ps.index_id IN (0, 1) THEN ps.row_count ELSE 0 END) AS row_count,
-    SUM(ps.used_page_count) AS used_pages,
-    SUM(ps.reserved_page_count) AS reserved_pages
-FROM sys.dm_db_partition_stats AS ps
-JOIN sys.tables AS t ON t.object_id = ps.object_id
+    COALESCE(SUM(CASE WHEN ps.index_id IN (0, 1) THEN ps.row_count ELSE 0 END), 0) AS row_count,
+    COALESCE(SUM(ps.used_page_count), 0) AS used_pages,
+    COALESCE(SUM(ps.reserved_page_count), 0) AS reserved_pages
+FROM sys.tables AS t
 JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+LEFT JOIN sys.dm_db_partition_stats AS ps ON ps.object_id = t.object_id
 WHERE t.is_ms_shipped = 0
 GROUP BY s.name, t.name
 ORDER BY used_pages DESC, s.name, t.name${maxDopOneHint(info)};`;

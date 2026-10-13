@@ -32,6 +32,7 @@ import {
     ApplyQueryStoreSettingsChangeRequest,
     GetQueryStoreSettingsRequest,
     OpenSqlScriptRequest,
+    SelectTableTop1000Request,
     PrepareQueryStoreSettingsChangeRequest,
     ListDatabasesRequest,
     ListDatabasesResult,
@@ -157,6 +158,8 @@ suite("PerformanceDashboardWebviewController", () => {
             openPlanXml: sinon.SinonStub;
             compareExecutionPlans: sinon.SinonStub;
             openSqlScript: sinon.SinonStub;
+            selectTableTop1000: sinon.SinonStub;
+            scriptTableCreate: sinon.SinonStub;
         };
         let requestHandlers: Map<string, (params: unknown) => unknown>;
 
@@ -171,6 +174,8 @@ suite("PerformanceDashboardWebviewController", () => {
                 openPlanXml: sandbox.stub(),
                 compareExecutionPlans: sandbox.stub().resolves(),
                 openSqlScript: sandbox.stub().resolves(),
+                selectTableTop1000: sandbox.stub().resolves(),
+                scriptTableCreate: sandbox.stub().resolves(),
             };
             requestHandlers = new Map();
             sandbox
@@ -562,21 +567,27 @@ suite("PerformanceDashboardWebviewController", () => {
             );
         });
 
-        test("opens a script in a new SQL editor", async () => {
-            const document = {} as vscode.TextDocument;
-            const openTextDocument = sandbox
-                .stub(vscode.workspace, "openTextDocument")
-                .resolves(document);
-            const showTextDocument = sandbox.stub(vscode.window, "showTextDocument").resolves();
+        test("delegates SQL script opening to the host", async () => {
             createController(target);
 
             await requestHandlers.get(OpenSqlScriptRequest.type.method)!({ sql: "SELECT 1;" });
 
-            expect(openTextDocument).to.have.been.calledOnceWithExactly({
-                language: "sql",
-                content: "SELECT 1;",
+            expect(host.openSqlScript).to.have.been.calledOnceWithExactly("SELECT 1;", target);
+        });
+
+        test("scripts the selected table on the dashboard target", async () => {
+            createController(target);
+
+            await requestHandlers.get(SelectTableTop1000Request.type.method)!({
+                schemaName: "sales",
+                tableName: "Orders",
             });
-            expect(showTextDocument).to.have.been.calledOnceWith(document);
+
+            expect(host.selectTableTop1000).to.have.been.calledOnceWithExactly(
+                "sales",
+                "Orders",
+                target,
+            );
         });
     });
 });

@@ -31,6 +31,22 @@ suite("database facts", () => {
         assert.match(reader.calls[1], /sys\.dm_user_db_resource_governance/);
     });
 
+    test("reads the vCores of SQL database in Fabric from its resource stats", async () => {
+        const reader = scriptedReader([
+            [resultSet(editionColumns, [["SQL Azure", "FabricSQLDB", "FabricSQLDB"]])],
+            [resultSet(["cpu_limit"], [["16.00"]])],
+        ]);
+
+        assert.deepEqual(await readDatabaseFacts(reader, platforms.fabricSqlDatabase), {
+            edition: "FabricSQLDB",
+            serviceObjective: "FabricSQLDB",
+            vCores: 16,
+        });
+        // Fabric drops the connection on a read of the resource governance view.
+        assert.doesNotMatch(reader.calls[1], /dm_user_db_resource_governance/);
+        assert.match(reader.calls[1], /sys.dm_db_resource_stats/);
+    });
+
     test("leaves out vCores on a DTU tier with less than one vCore", async () => {
         const reader = scriptedReader([
             [resultSet(editionColumns, [["SQL Azure", "Basic", "Basic"]])],

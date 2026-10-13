@@ -19,7 +19,7 @@ import {
     Star20Filled,
     Star20Regular,
 } from "@fluentui/react-icons";
-import { useState } from "react";
+import { CSSProperties, Ref, useRef, useState } from "react";
 import type { QueryDetails } from "../../../sharedInterfaces/performance";
 import {
     CopyTextRequest,
@@ -44,28 +44,35 @@ import {
     readData,
 } from "./performanceDashboardParts";
 import { HistoryControls } from "./performanceDashboardPlanHistory";
+import { PerformanceDashboardQueryCompare } from "./performanceDashboardQueryCompare";
 import { PerformanceDashboardQueryHistory } from "./performanceDashboardQueryHistory";
 import { PerformanceDashboardQueryPlans } from "./performanceDashboardQueryPlans";
 import { useRefresh } from "./performanceDashboardRefresh";
 import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
+import { Splitter, useSideWidth } from "./performanceDashboardSplitter";
 import { readStatusMessage } from "./performanceDashboardStatus";
 import { useViewTimeRange } from "./performanceDashboardTimeRange";
 
-type QueryTab = "history" | "plans";
+type QueryTab = "history" | "compare" | "plans";
 
 /** Below this width, the query text goes below the tabs. */
 const narrowLayout = "@media (max-width: 900px)";
+/** The limits of the query text panel, which the user resizes. */
+const queryTextLimits = { min: 280, maxShare: 0.6, mainMin: 504 };
+const queryTextWidthKey = "performanceDashboard.queryTextWidth";
 
 const useStyles = makeStyles({
     // Grows to the bottom of the page, so the grid of the tab can fill the space left.
+    // The query text is beside the main content, with a divider that resizes it. Its width is
+    // the user's, or the default; it never takes more than 60% of the page.
     page: {
         display: "grid",
         flex: "1 0 auto",
-        gridTemplateColumns: "minmax(0, 1fr) clamp(280px, 28vw, 380px)",
+        gridTemplateColumns:
+            "minmax(0, 1fr) 24px min(var(--query-text-width, clamp(280px, 28vw, 380px)), 60%)",
         gridTemplateRows: "auto 1fr",
-        gridTemplateAreas: `"header header" "main aside"`,
-        columnGap: "24px",
+        gridTemplateAreas: `"header header header" "main splitter aside"`,
         rowGap: "16px",
         [narrowLayout]: {
             gridTemplateColumns: "minmax(0, 1fr)",
@@ -123,6 +130,12 @@ const useStyles = makeStyles({
         backgroundColor: "color-mix(in srgb, currentColor 22%, transparent)",
     },
     // The query text is as tall as the tab content, so the page has one scroll bar.
+    splitter: {
+        gridArea: "splitter",
+        [narrowLayout]: {
+            display: "none",
+        },
+    },
     aside: {
         gridArea: "aside",
         display: "flex",
@@ -173,7 +186,8 @@ export const PerformanceDashboardQueryPage = () => {
     const { window } = useViewTimeRange();
     const favorites = useFavoriteQueries();
     const queryId = match.params.queryId;
-    const tab: QueryTab = match.query.tab === "plans" ? "plans" : "history";
+    const tab: QueryTab =
+        match.query.tab === "plans" || match.query.tab === "compare" ? match.query.tab : "history";
 
     const details = useExtensionRequest(GetQueryDetailsRequest.type, { queryId, ...window }, [
         databaseName,
@@ -184,9 +198,19 @@ export const PerformanceDashboardQueryPage = () => {
     const isFavorite = favorites.queryIds.has(queryId);
     const queryText = data?.queryText;
     const planCount = data ? (data.totalPlanCount ?? data.planCount) : undefined;
+    const page = useRef<HTMLDivElement>(null);
+    const panel = useRef<HTMLElement>(null);
+    const queryTextWidth = useSideWidth(queryTextWidthKey, page, queryTextLimits);
 
     return (
-        <div className={classes.page}>
+        <div
+            ref={page}
+            className={classes.page}
+            style={
+                queryTextWidth.width !== undefined
+                    ? ({ "--query-text-width": `${queryTextWidth.width}px` } as CSSProperties)
+                    : undefined
+            }>
             <div className={classes.header}>
                 <Title3 as="h1" className={classes.heading}>
                     {text.queryNumber(queryId)}
@@ -225,6 +249,7 @@ export const PerformanceDashboardQueryPage = () => {
                         value={tab}
                         options={[
                             { value: "history", label: text.executionHistory },
+                            { value: "compare", label: text.compareTab },
                             {
                                 value: "plans",
                                 label: (
@@ -248,15 +273,26 @@ export const PerformanceDashboardQueryPage = () => {
                             )
                         }
                     />
-                    <HistoryControls />
+                    {tab !== "compare" && <HistoryControls />}
                 </div>
                 {tab === "history" ? (
                     <PerformanceDashboardQueryHistory queryId={queryId} />
+                ) : tab === "compare" ? (
+                    <PerformanceDashboardQueryCompare queryId={queryId} />
                 ) : (
                     <PerformanceDashboardQueryPlans queryId={queryId} />
                 )}
             </div>
-            <QueryTextPanel queryText={queryText} />
+            <Splitter
+                className={classes.splitter}
+                label={text.resizeQueryText}
+                width={queryTextWidth.width}
+                measure={() => panel.current?.getBoundingClientRect().width ?? 0}
+                min={queryTextLimits.min}
+                max={() => queryTextWidth.clamp(Number.MAX_SAFE_INTEGER)}
+                onResize={queryTextWidth.set}
+            />
+            <QueryTextPanel queryText={queryText} panelRef={panel} />
         </div>
     );
 };
@@ -296,7 +332,13 @@ const QueryStats = ({ details }: { details?: QueryDetails }) => {
  * The query text in a read-only editor, as tall as the tab content beside it, with actions to
  * open it in a query editor on the dashboard's database or copy it.
  */
-const QueryTextPanel = ({ queryText }: { queryText: string | undefined }) => {
+const QueryTextPanel = ({
+    queryText,
+    panelRef,
+}: {
+    queryText: string | undefined;
+    panelRef?: Ref<HTMLElement>;
+}) => {
     const classes = useStyles();
     const text = loc.performanceDashboard;
     const { extensionRpc, themeKind } = useVscodeWebview<
@@ -305,7 +347,7 @@ const QueryTextPanel = ({ queryText }: { queryText: string | undefined }) => {
     >();
     const [copied, setCopied] = useState(false);
     return (
-        <aside className={classes.aside} aria-label={text.queryTextTitle}>
+        <aside ref={panelRef} className={classes.aside} aria-label={text.queryTextTitle}>
             <div className={classes.asideTitle}>
                 <Subtitle2>{text.queryTextTitle}</Subtitle2>
                 <div className={classes.actions}>

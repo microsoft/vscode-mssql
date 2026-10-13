@@ -60,6 +60,25 @@ export function formatShare(percent: number): string {
         : formatPercentRounded(percent);
 }
 
+/** A size in MB, in the largest unit below it: 64 KB, 33.9 MB, 1.2 GB, or 2 TB. */
+export function formatStorageSize(megabytes: number): string {
+    const absolute = Math.abs(megabytes);
+    const [value, unit] =
+        absolute >= 1024 * 1024
+            ? [megabytes / (1024 * 1024), "terabyte"]
+            : absolute >= 1024
+              ? [megabytes / 1024, "gigabyte"]
+              : absolute >= 1
+                ? [megabytes, "megabyte"]
+                : [megabytes * 1024, "kilobyte"];
+    return new Intl.NumberFormat(undefined, {
+        style: "unit",
+        unit,
+        unitDisplay: "short",
+        maximumFractionDigits: value >= 100 ? 0 : 1,
+    }).format(value);
+}
+
 /** A size in KB as MB, for example 12.5 MB. */
 export function formatMegabytes(kilobytes: number): string {
     return formatUnit(kilobytes / 1024, "megabyte");

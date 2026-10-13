@@ -332,6 +332,7 @@ const IndexTrendChart = ({
                     margins={{ left: yAxisMargin(ticks.map(formatNumber)) }}
                     {...xAxisProps(width, [], range)}
                     styles={{
+                        root: axisClasses.root,
                         xAxis: axisClasses.axis,
                         yAxis: axisClasses.axis,
                         axisTitle: axisClasses.title,

@@ -22,13 +22,14 @@ import {
     DataGridRow,
 } from "@fluentui-contrib/react-data-grid-react-window";
 import { Star16Filled, Star16Regular } from "@fluentui/react-icons";
-import { CSSProperties, RefObject, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, useMemo, useRef } from "react";
 import type { PerformanceReadResult } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SqlText } from "../../common/sqlText";
 import { ExtensionRequestState, isFirstLoad } from "../../common/useExtensionRequest";
 import { formatShare } from "./performanceDashboardFormat";
+import { useElementHeight } from "./performanceDashboardElementHeight";
 import { StatusBar } from "./performanceDashboardParts";
 import { QueryListRow } from "./performanceDashboardQueryList";
 import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
@@ -454,24 +455,6 @@ export const PerformanceDashboardQueryGrid = ({
 function shortQueryText(queryText: string): string {
     const line = queryText.replace(/\s+/g, " ").trim();
     return line.length > maxQueryTextLength ? `${line.slice(0, maxQueryTextLength)}…` : line;
-}
-
-/** The height of an element, kept up to date as it resizes. */
-function useElementHeight(element: RefObject<HTMLElement | null>): number {
-    const [height, setHeight] = useState(0);
-    useLayoutEffect(() => {
-        const target = element.current;
-        if (!target) {
-            return;
-        }
-        const measure = (next: number) =>
-            setHeight((current) => (Math.abs(current - next) >= 1 ? Math.floor(next) : current));
-        measure(target.getBoundingClientRect().height);
-        const observer = new ResizeObserver((entries) => measure(entries[0].contentRect.height));
-        observer.observe(target);
-        return () => observer.disconnect();
-    }, [element]);
-    return height;
 }
 
 export interface PerformanceDashboardQueryListProps extends PerformanceDashboardQueryGridProps {

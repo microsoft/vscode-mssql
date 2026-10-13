@@ -161,18 +161,30 @@ export namespace GetTopQueriesDetailedRequest {
     >("performanceDashboard/getTopQueriesDetailed");
 }
 
-export interface StorageParams {
-    /** The number of tables to return. */
-    readonly top: number;
+/** Reads the data size, the size limit, and all user tables. */
+export namespace GetStorageRequest {
+    export const type = new RequestType<void, PerformanceReadResult<DatabaseStorage>, void>(
+        "performanceDashboard/getStorage",
+    );
 }
 
-/** Reads the data size, the size limit, and the largest tables. */
-export namespace GetStorageRequest {
-    export const type = new RequestType<
-        StorageParams,
-        PerformanceReadResult<DatabaseStorage>,
-        void
-    >("performanceDashboard/getStorage");
+export interface SelectTableTop1000Params {
+    readonly schemaName: string;
+    readonly tableName: string;
+}
+
+/** Scripts a table SELECT and opens it in a query editor. */
+export namespace SelectTableTop1000Request {
+    export const type = new RequestType<SelectTableTop1000Params, void, void>(
+        "performanceDashboard/selectTableTop1000",
+    );
+}
+
+/** Scripts a table's CREATE statement and opens it in a query editor. */
+export namespace ScriptTableCreateRequest {
+    export const type = new RequestType<SelectTableTop1000Params, void, void>(
+        "performanceDashboard/scriptTableCreate",
+    );
 }
 
 /** The dashboard's own settings, apart from the database's. */

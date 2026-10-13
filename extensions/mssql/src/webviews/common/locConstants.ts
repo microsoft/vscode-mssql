@@ -4326,9 +4326,88 @@ export class LocConstants {
                 }),
             averageMemory: l10n.t("Average memory"),
             allocatedSize: l10n.t("Allocated size"),
-            maxSizeLabel: l10n.t("Max size"),
-            dataSize: l10n.t("Data size"),
-            largestTables: l10n.t("Largest tables"),
+            usedSizeOverTime: l10n.t("Used size over time"),
+            compareTab: l10n.t("Compare"),
+            resizeQueryText: l10n.t("Resize the query text"),
+            compareRecent: l10n.t({
+                message: "Recent",
+                comment: ["The recent period of a comparison"],
+            }),
+            compareBaseline: l10n.t({
+                message: "Baseline",
+                comment: ["The earlier period that a comparison compares with"],
+            }),
+            versus: l10n.t({ message: "vs", comment: ["Short for versus, between two periods"] }),
+            recentSetByRange: l10n.t("The recent period is the time range at the top of the page."),
+            baselineSameLength: l10n.t("Same length before"),
+            baseline7Days: l10n.t("7 days before"),
+            baseline30Days: l10n.t("30 days before"),
+            averagePerExecution: l10n.t("Average per execution"),
+            totalPerDay: l10n.t("Total per day"),
+            change: l10n.t({
+                message: "Change",
+                comment: ["The change from one period to another"],
+            }),
+            executionsRecentBaseline: l10n.t("Executions (recent / baseline)"),
+            noCompareData: l10n.t("The query did not run in the recent or the baseline period."),
+            compareNote: l10n.t(
+                "Recent is the time range at the top. Baseline is the period before it, so the two never overlap. Per execution, periods of different length compare fairly.",
+            ),
+            recentPeriod: (value: string) =>
+                l10n.t({
+                    message: "Recent · {0}",
+                    args: [value],
+                    comment: ["{0} is a period, for example past 24 hours"],
+                }),
+            baselinePeriod: (value: string) =>
+                l10n.t({
+                    message: "Baseline · {0} that",
+                    args: [value],
+                    comment: ["{0} is a period, for example 30 days before"],
+                }),
+            recentColumn: (value: string) =>
+                l10n.t({
+                    message: "Recent {0}",
+                    args: [value],
+                    comment: ["{0} is a measure, for example Avg CPU"],
+                }),
+            baselineColumn: (value: string) =>
+                l10n.t({
+                    message: "Baseline {0}",
+                    args: [value],
+                    comment: ["{0} is a measure, for example Avg CPU"],
+                }),
+            metricPerDay: (value: string) =>
+                l10n.t({
+                    message: "{0} per day",
+                    args: [value],
+                    comment: ["{0} is a measure, for example CPU"],
+                }),
+            scriptAsCreate: l10n.t("Script as CREATE"),
+            tableActions: (table: string) =>
+                l10n.t({
+                    message: "Actions for {0}",
+                    args: [table],
+                    comment: ["{0} is a table name, for example dbo.Orders"],
+                }),
+            indexColumn: l10n.t("Index"),
+            usedOfAllocated: (allocated: string) =>
+                l10n.t({
+                    message: "used of {0} allocated",
+                    args: [allocated],
+                    comment: ["{0} is the allocated database size"],
+                }),
+            canGrowTo: (size: string) =>
+                l10n.t({
+                    message: "Can grow to {0}",
+                    args: [size],
+                    comment: ["{0} is the database size limit"],
+                }),
+            tables: l10n.t("Tables"),
+            tableCount: (count: number) =>
+                count === 1 ? l10n.t("{0} table", count) : l10n.t("{0} tables", count),
+            searchTables: l10n.t("Search tables..."),
+            noMatchingTables: l10n.t("No tables match the search."),
             noTables: l10n.t("The database has no user tables."),
             schemaName: l10n.t("Schema name"),
             tableName: l10n.t("Table name"),

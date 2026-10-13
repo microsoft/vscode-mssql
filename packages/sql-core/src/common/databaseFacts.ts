@@ -44,6 +44,15 @@ const databaseVCoresQuery = `SELECT cpu_limit
 FROM sys.dm_user_db_resource_governance
 WHERE database_id = DB_ID();`;
 
+/**
+ * The vCores of a SQL database in Fabric, from its resource stats. Fabric drops the connection
+ * on any read of sys.dm_user_db_resource_governance, and its DB_ID() is not the database_id of
+ * sys.databases. Needs VIEW DATABASE STATE.
+ */
+const fabricVCoresQuery = `SELECT TOP (1) cpu_limit
+FROM sys.dm_db_resource_stats
+ORDER BY end_time DESC;`;
+
 const managedInstanceSkuQuery = `SELECT TOP (1) sku, virtual_core_count
 FROM master.sys.server_resource_stats
 ORDER BY end_time DESC;`;
@@ -104,7 +113,9 @@ export async function readDatabaseFacts(
         }
         case "azureSqlDatabase":
         case "fabricSqlDatabase": {
-            const governance = await readOptional(databaseVCoresQuery);
+            const governance = await readOptional(
+                info.platform === "fabricSqlDatabase" ? fabricVCoresQuery : databaseVCoresQuery,
+            );
             return withValues({
                 edition: databaseEdition,
                 serviceObjective,

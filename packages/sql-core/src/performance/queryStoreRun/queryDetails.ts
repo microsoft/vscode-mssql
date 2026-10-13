@@ -132,6 +132,12 @@ export interface QueryPlanInfo {
     readonly executionCount: number;
     readonly avgDurationMs?: number;
     readonly avgCpuMs?: number;
+    /** The CPU time of all its executions in the window. */
+    readonly totalCpuMs?: number;
+    /** The memory grant that an execution used, on average, in KB. */
+    readonly avgMemoryKb?: number;
+    /** The memory grants of all its executions in the window, in KB. */
+    readonly totalMemoryKb?: number;
 }
 
 /** A query window with its values checked, for the batch builders. */
@@ -361,6 +367,7 @@ export function buildQueryPlansQuery(
     isQdsRoAvailable: boolean,
 ): string {
     const ms = metricConversionFactor("duration");
+    const kb = metricConversionFactor("memoryConsumption");
     const primary = isPrimary(target);
     const forcingType =
         planColumns.hasPlanForcingType && primary
@@ -387,14 +394,16 @@ export function buildQueryPlansQuery(
     p.last_execution_time,
     ISNULL(w.execution_count, 0) AS execution_count,
     w.total_duration_ms,
-    w.total_cpu_ms
+    w.total_cpu_ms,
+    w.total_memory_kb
 FROM sys.query_store_plan AS p
     LEFT JOIN (
         SELECT
             rs.plan_id,
             SUM(rs.count_executions) AS execution_count,
             CONVERT(float, SUM(rs.avg_duration * rs.count_executions)) * ${ms} AS total_duration_ms,
-            CONVERT(float, SUM(rs.avg_cpu_time * rs.count_executions)) * ${ms} AS total_cpu_ms
+            CONVERT(float, SUM(rs.avg_cpu_time * rs.count_executions)) * ${ms} AS total_cpu_ms,
+            CONVERT(float, SUM(rs.avg_query_max_used_memory * rs.count_executions)) * ${kb} AS total_memory_kb
         FROM sys.query_store_runtime_stats AS rs
             JOIN sys.query_store_runtime_stats_interval AS rsi
                 ON rsi.runtime_stats_interval_id = rs.runtime_stats_interval_id
@@ -556,6 +565,9 @@ function toQueryPlanInfo(record: SqlRecord): QueryPlanInfo {
         executionCount,
         avgDurationMs: average(readNumber(record, "total_duration_ms"), executionCount),
         avgCpuMs: average(readNumber(record, "total_cpu_ms"), executionCount),
+        totalCpuMs: executionCount > 0 ? readNumber(record, "total_cpu_ms") : undefined,
+        avgMemoryKb: average(readNumber(record, "total_memory_kb"), executionCount),
+        totalMemoryKb: executionCount > 0 ? readNumber(record, "total_memory_kb") : undefined,
     });
 }
 

@@ -7,7 +7,7 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import type { IConnectionInfo, SchemaCompareEndpointInfo } from "vscode-mssql";
+import type { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
 import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
@@ -48,6 +48,7 @@ import { IPrompter } from "../prompts/question";
 import { QueryHistoryNode } from "../queryHistory/queryHistoryNode";
 import { QueryHistoryProvider } from "../queryHistory/queryHistoryProvider";
 import { ScriptingService } from "../scripting/scriptingService";
+import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { AzureAccountService } from "../services/azureAccountService";
 import { AzureResourceService } from "../services/azureResourceService";
 import { DacFxService } from "../services/dacFxService";
@@ -83,7 +84,7 @@ import {
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
-import { getErrorMessage, getUriKey, isIConnectionInfo } from "../utils/utils";
+import { getErrorMessage, getUriKey, isIConnectionInfo, uuid } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
@@ -1171,6 +1172,20 @@ export default class MainController implements vscode.Disposable {
                 compare: (first, second) =>
                     createMssqlInternalApi(this).compareExecutionPlans(first, second),
                 openQuery: (sql, target) => this.openPerformanceQuery(sql, target),
+                selectTableTop1000: (schemaName, tableName, target) =>
+                    this.scriptPerformanceTable(
+                        schemaName,
+                        tableName,
+                        ScriptOperation.Select,
+                        target,
+                    ),
+                scriptTableCreate: (schemaName, tableName, target) =>
+                    this.scriptPerformanceTable(
+                        schemaName,
+                        tableName,
+                        ScriptOperation.Create,
+                        target,
+                    ),
             },
         );
 
@@ -1487,6 +1502,22 @@ export default class MainController implements vscode.Disposable {
         sql: string,
         target: PerformanceDashboardTarget,
     ): Promise<void> {
+        const connection = await this.performanceConnection(target);
+        await this.sqlDocumentService.newQuery({
+            content: sql,
+            ...(connection
+                ? {
+                      connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                      connectionInfo: connection,
+                  }
+                : { connectionStrategy: ConnectionStrategy.DoNotConnect }),
+        });
+    }
+
+    /** Resolves the dashboard's connection by its identity and selects the dashboard database. */
+    private async performanceConnection(
+        target: PerformanceDashboardTarget,
+    ): Promise<IConnectionInfo | undefined> {
         const { reference, databaseName } = target;
         const connection =
             reference.ownerUri !== undefined
@@ -1494,18 +1525,57 @@ export default class MainController implements vscode.Disposable {
                 : await this._connectionMgr.connectionStore.connectionConfig.getConnectionById(
                       reference.profileId,
                   );
-        await this.sqlDocumentService.newQuery({
-            content: sql,
-            ...(connection
-                ? {
-                      connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
-                      connectionInfo: {
-                          ...connection,
-                          ...(databaseName ? { database: databaseName } : {}),
-                      },
-                  }
-                : { connectionStrategy: ConnectionStrategy.DoNotConnect }),
-        });
+        return connection
+            ? { ...connection, ...(databaseName ? { database: databaseName } : {}) }
+            : undefined;
+    }
+
+    /**
+     * Scripts a table with the scripting service on the dashboard's database, a SELECT or its
+     * CREATE statement, and opens the script in a connected query editor.
+     */
+    private async scriptPerformanceTable(
+        schemaName: string,
+        tableName: string,
+        operation: ScriptOperation.Select | ScriptOperation.Create,
+        target: PerformanceDashboardTarget,
+    ): Promise<void> {
+        const connection = await this.performanceConnection(target);
+        if (!connection) {
+            await vscode.window.showErrorMessage(
+                LocalizedConstants.PerformanceDashboard.connectionUnavailable,
+            );
+            return;
+        }
+
+        const ownerUri = `performanceDashboardScript://${uuid()}`;
+        try {
+            if (!(await this._connectionMgr.connect(ownerUri, connection))) {
+                return;
+            }
+            const scriptingObject: IScriptingObject = {
+                type: "Table",
+                schema: schemaName,
+                name: tableName,
+            };
+            const serverInfo = this._connectionMgr.getServerInfo(
+                this._connectionMgr.getConnectionInfo(ownerUri)?.credentials ?? connection,
+            );
+            const parameters = this._scriptingService.createScriptingRequestParams(
+                serverInfo,
+                scriptingObject,
+                ownerUri,
+                operation,
+            );
+            const script = await this._scriptingService.script(parameters);
+            if (script) {
+                await this.openPerformanceQuery(script, target);
+            }
+        } finally {
+            if (this._connectionMgr.isConnected(ownerUri)) {
+                await this._connectionMgr.disconnect(ownerUri);
+            }
+        }
     }
 
     private async loadTokenCache(): Promise<void> {

@@ -28,6 +28,18 @@ export interface PerformancePlanViewer {
     ): Promise<void>;
     /** Opens T-SQL in a query editor that is connected to the target's database. */
     openQuery(sql: string, target: PerformanceDashboardTarget): Promise<void>;
+    /** Scripts a table SELECT through the scripting service and opens the query. */
+    selectTableTop1000(
+        schemaName: string,
+        tableName: string,
+        target: PerformanceDashboardTarget,
+    ): Promise<void>;
+    /** Scripts a table's CREATE statement through the scripting service and opens it. */
+    scriptTableCreate(
+        schemaName: string,
+        tableName: string,
+        target: PerformanceDashboardTarget,
+    ): Promise<void>;
 }
 
 /** Keeps one open dashboard for each connection and database. */
@@ -85,6 +97,22 @@ export class PerformanceDashboards implements PerformanceDashboardHost {
 
     public openSqlScript(sql: string, target: PerformanceDashboardTarget): Promise<void> {
         return this._planViewer.openQuery(sql, target);
+    }
+
+    public selectTableTop1000(
+        schemaName: string,
+        tableName: string,
+        target: PerformanceDashboardTarget,
+    ): Promise<void> {
+        return this._planViewer.selectTableTop1000(schemaName, tableName, target);
+    }
+
+    public scriptTableCreate(
+        schemaName: string,
+        tableName: string,
+        target: PerformanceDashboardTarget,
+    ): Promise<void> {
+        return this._planViewer.scriptTableCreate(schemaName, tableName, target);
     }
 
     public switchDatabase(

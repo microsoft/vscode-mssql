@@ -611,14 +611,9 @@ export class PerformanceTarget {
         return this.run("read", (reader, info) => readAutomaticTuning(reader, info, options));
     }
 
-    /** The data size, the size limit, and the largest tables. The SQL engine platforms. */
-    databaseStorage(
-        top?: number,
-        options?: SqlReadOptions,
-    ): Promise<PerformanceResult<DatabaseStorage>> {
-        return this.run("read", (reader, info) =>
-            readDatabaseStorage(reader, info, { ...options, top }),
-        );
+    /** The data size, the size limit, and all user tables. The SQL engine platforms. */
+    databaseStorage(options?: SqlReadOptions): Promise<PerformanceResult<DatabaseStorage>> {
+        return this.run("read", (reader, info) => readDatabaseStorage(reader, info, options));
     }
 
     /**

@@ -76,6 +76,8 @@ suite("PerformanceDashboards", () => {
                 open: sandbox.stub(),
                 compare: sandbox.stub().resolves(),
                 openQuery: sandbox.stub().resolves(),
+                selectTableTop1000: sandbox.stub().resolves(),
+                scriptTableCreate: sandbox.stub().resolves(),
             },
             factory,
         );
