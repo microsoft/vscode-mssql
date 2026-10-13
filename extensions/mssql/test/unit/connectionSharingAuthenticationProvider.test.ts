@@ -8,7 +8,10 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
-import { ConnectionSharingAuthenticationProvider } from "../../src/connectionSharing/connectionSharingAuthenticationProvider";
+import {
+    ACCESS_TOKEN_LIFETIME_MS,
+    ConnectionSharingAuthenticationProvider,
+} from "../../src/connectionSharing/connectionSharingAuthenticationProvider";
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 
@@ -75,7 +78,7 @@ suite("ConnectionSharingAuthenticationProvider Tests", () => {
         );
     });
 
-    test("creates, stores, and validates a session", async () => {
+    test("creates a session and stores only its ID", async () => {
         const authenticationProvider = createProvider();
         const events = captureSessionChanges(authenticationProvider);
 
@@ -84,12 +87,12 @@ suite("ConnectionSharingAuthenticationProvider Tests", () => {
         const session = await authenticationProvider.createSession();
 
         expect(session.accessToken).to.have.length(64);
-        expect(await authenticationProvider.getSessions()).to.deep.equal([session]);
         expect(JSON.parse(secretValues.get(SESSION_STORAGE_KEY)!)).to.deep.equal({
             id: session.id,
-            accessToken: session.accessToken,
         });
-        expect(events).to.deep.equal([{ added: [session], removed: [], changed: [] }]);
+        expect(events).to.deep.equal([
+            { added: [{ ...session, accessToken: "" }], removed: [], changed: [] },
+        ]);
         expect(
             await authenticationProvider.getSessionIdForAccessToken(session.accessToken),
         ).to.equal(session.id);
@@ -97,21 +100,59 @@ suite("ConnectionSharingAuthenticationProvider Tests", () => {
             .undefined;
     });
 
-    test("loads a session stored by an earlier activation", async () => {
+    test("issues a new access token each time the session is requested", async () => {
+        const authenticationProvider = createProvider();
+        const created = await authenticationProvider.createSession();
+
+        const [first] = await authenticationProvider.getSessions();
+        const [second] = await authenticationProvider.getSessions();
+
+        expect([first.id, second.id]).to.deep.equal([created.id, created.id]);
+        const tokens = [created.accessToken, first.accessToken, second.accessToken];
+        expect(new Set(tokens).size).to.equal(3);
+        for (const token of tokens) {
+            expect(await authenticationProvider.getSessionIdForAccessToken(token)).to.equal(
+                created.id,
+            );
+        }
+    });
+
+    test("rejects an access token once it expires", async () => {
+        const clock = sandbox.useFakeTimers({ now: Date.now(), toFake: ["Date"] });
+        const authenticationProvider = createProvider();
+        const session = await authenticationProvider.createSession();
+
+        clock.tick(ACCESS_TOKEN_LIFETIME_MS - 1);
+        expect(
+            await authenticationProvider.getSessionIdForAccessToken(session.accessToken),
+        ).to.equal(session.id);
+
+        clock.tick(1);
+        expect(await authenticationProvider.getSessionIdForAccessToken(session.accessToken)).to.be
+            .undefined;
+        expect(await authenticationProvider.isSessionActive(session.id)).to.be.true;
+    });
+
+    test("restores a stored session but not an access token stored by an earlier build", async () => {
         secretValues.set(
             SESSION_STORAGE_KEY,
             JSON.stringify({ id: "stored-session", accessToken: "stored-token" }),
         );
 
         const authenticationProvider = createProvider();
+        const [session] = await authenticationProvider.getSessions();
 
-        expect(await authenticationProvider.getSessionIdForAccessToken("stored-token")).to.equal(
-            "stored-session",
-        );
+        expect(session.id).to.equal("stored-session");
+        expect(session.accessToken).not.to.equal("stored-token");
+        expect(await authenticationProvider.getSessionIdForAccessToken("stored-token")).to.be
+            .undefined;
+        expect(
+            await authenticationProvider.getSessionIdForAccessToken(session.accessToken),
+        ).to.equal("stored-session");
     });
 
     test("ignores a malformed stored session", async () => {
-        secretValues.set(SESSION_STORAGE_KEY, JSON.stringify({ id: "missing-token" }));
+        secretValues.set(SESSION_STORAGE_KEY, JSON.stringify({ accessToken: "missing-id" }));
 
         const authenticationProvider = createProvider();
 
@@ -125,14 +166,21 @@ suite("ConnectionSharingAuthenticationProvider Tests", () => {
 
         const second = await authenticationProvider.createSession();
 
-        expect(events).to.deep.equal([{ added: [second], removed: [first], changed: [] }]);
+        expect(events).to.deep.equal([
+            {
+                added: [{ ...second, accessToken: "" }],
+                removed: [{ ...first, accessToken: "" }],
+                changed: [],
+            },
+        ]);
         expect(await authenticationProvider.getSessionIdForAccessToken(first.accessToken)).to.be
             .undefined;
     });
 
-    test("removes the session and revokes its access token", async () => {
+    test("removes the session and revokes all of its access tokens", async () => {
         const authenticationProvider = createProvider();
         const session = await authenticationProvider.createSession();
+        const [requested] = await authenticationProvider.getSessions();
         const events = captureSessionChanges(authenticationProvider);
 
         await authenticationProvider.removeSession("another-session");
@@ -141,9 +189,13 @@ suite("ConnectionSharingAuthenticationProvider Tests", () => {
         await authenticationProvider.removeSession(session.id);
 
         expect(secretValues.has(SESSION_STORAGE_KEY)).to.be.false;
-        expect(events).to.deep.equal([{ added: [], removed: [session], changed: [] }]);
-        expect(await authenticationProvider.getSessionIdForAccessToken(session.accessToken)).to.be
-            .undefined;
+        expect(events).to.deep.equal([
+            { added: [], removed: [{ ...session, accessToken: "" }], changed: [] },
+        ]);
+        for (const token of [session.accessToken, requested.accessToken]) {
+            expect(await authenticationProvider.getSessionIdForAccessToken(token)).to.be.undefined;
+        }
+        expect(await authenticationProvider.isSessionActive(session.id)).to.be.false;
     });
 
     test("picks up a session that another window stored", async () => {
@@ -151,19 +203,32 @@ suite("ConnectionSharingAuthenticationProvider Tests", () => {
         const events = captureSessionChanges(authenticationProvider);
         expect(await authenticationProvider.getSessions()).to.deep.equal([]);
 
-        secretValues.set(
-            SESSION_STORAGE_KEY,
-            JSON.stringify({ id: "other-window-session", accessToken: "other-window-token" }),
-        );
+        secretValues.set(SESSION_STORAGE_KEY, JSON.stringify({ id: "other-window-session" }));
         secretChangeEmitter.fire({ key: SESSION_STORAGE_KEY });
         await new Promise((resolve) => setImmediate(resolve));
 
+        const [session] = await authenticationProvider.getSessions();
+        expect(session.id).to.equal("other-window-session");
         expect(
-            await authenticationProvider.getSessionIdForAccessToken("other-window-token"),
+            await authenticationProvider.getSessionIdForAccessToken(session.accessToken),
         ).to.equal("other-window-session");
         expect(events).to.have.length(1);
-        expect(events[0].added?.map((session) => session.id)).to.deep.equal([
-            "other-window-session",
+        expect(events[0].added?.map((added) => added.id)).to.deep.equal(["other-window-session"]);
+    });
+
+    test("revokes this window's access tokens when another window signs out", async () => {
+        const authenticationProvider = createProvider();
+        const session = await authenticationProvider.createSession();
+        const events = captureSessionChanges(authenticationProvider);
+
+        secretValues.delete(SESSION_STORAGE_KEY);
+        secretChangeEmitter.fire({ key: SESSION_STORAGE_KEY });
+        await new Promise((resolve) => setImmediate(resolve));
+
+        expect(await authenticationProvider.getSessionIdForAccessToken(session.accessToken)).to.be
+            .undefined;
+        expect(events).to.deep.equal([
+            { added: [], removed: [{ ...session, accessToken: "" }], changed: [] },
         ]);
     });
 

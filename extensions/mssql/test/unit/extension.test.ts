@@ -10,6 +10,7 @@ import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { IExtension } from "vscode-mssql";
 import MainController from "../../src/controllers/mainController";
+import ConnectionManager from "../../src/controllers/connectionManager";
 import * as Extension from "../../src/extension";
 import { stubExtensionContext } from "./utils";
 import { OverviewWebviewController } from "../../src/controllers/overviewWebviewController";
@@ -21,6 +22,7 @@ import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnership
 import { IconUtils } from "../../src/utils/iconUtils";
 import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
 import { PrivatePreviewContextKey } from "../../src/previews/previewService";
+import { AuthenticatedConnectionSharingService } from "../../src/connectionSharing/authenticatedConnectionSharingService";
 
 const { expect } = chai;
 
@@ -37,6 +39,16 @@ suite("Extension API Tests", () => {
         context = stubExtensionContext(sandbox, { version: "1.0.0" });
 
         const disposable = { dispose: sandbox.stub() } as vscode.Disposable;
+        // Activation registers the connection-sharing authentication provider, which keeps its
+        // session in secret storage.
+        (context as { secrets: vscode.SecretStorage }).secrets = {
+            get: sandbox.stub().resolves(undefined),
+            store: sandbox.stub().resolves(),
+            delete: sandbox.stub().resolves(),
+            keys: sandbox.stub().resolves([]),
+            onDidChange: sandbox.stub().returns(disposable),
+        } as unknown as vscode.SecretStorage;
+        sandbox.stub(vscode.authentication, "registerAuthenticationProvider").returns(disposable);
         const outputChannel = {
             name: "MSSQL",
             logLevel: vscode.LogLevel.Info,
@@ -82,6 +94,10 @@ suite("Extension API Tests", () => {
             sandbox.createStubInstance(SqlToolsServerClient);
         sandbox.stub(sqlToolsClient, "sqlToolsServicePath").get(() => "test/sqltoolsservice");
         sqlToolsClient.onNotification.returns(disposable); // handler stub necessary depending on test execution order
+        // activate() is stubbed, so supply the connection manager it would otherwise create.
+        sandbox
+            .stub(MainController.prototype, "connectionManager")
+            .get(() => ({ client: sqlToolsClient }) as unknown as ConnectionManager);
 
         sandbox.stub(UriOwnershipInitialization, "createUriOwnershipCoordinator").returns({
             uriOwnershipApi: {},
@@ -106,8 +122,16 @@ suite("Extension API Tests", () => {
     });
 
     test("only exports the supported public APIs", () => {
-        expect(Object.keys(vscodeMssql)).to.deep.equal(["connectionSharing", "uriOwnershipApi"]);
+        expect(Object.keys(vscodeMssql)).to.deep.equal([
+            "connectionSharing",
+            "authenticatedConnectionSharing",
+            "uriOwnershipApi",
+        ]);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(vscodeMssql.connectionSharing).to.equal(mainController.connectionSharingService);
+        expect(vscodeMssql.authenticatedConnectionSharing).to.be.instanceOf(
+            AuthenticatedConnectionSharingService,
+        );
         expect(vscodeMssql.uriOwnershipApi).to.equal(
             Extension.uriOwnershipCoordinator.uriOwnershipApi,
         );

@@ -6,6 +6,8 @@ A VS Code extension that demonstrates how to use the **MSSQL extension's authent
 
 The MSSQL extension registers a VS Code authentication provider. Before your extension uses a connection, it requests a session from that provider. The first time, VS Code asks the user whether to allow your extension, and the user can revoke access later from the **Accounts** menu. Pass the session's access token to every API call.
 
+Access tokens expire an hour after they're issued, so request the session each time your extension uses the API instead of storing the token. Once the user has allowed your extension, VS Code returns a new token without prompting.
+
 ```ts
 const mssqlExtension = vscode.extensions.getExtension<mssql.IExtension>("ms-mssql.mssql");
 const api = (await mssqlExtension.activate()).authenticatedConnectionSharing;
@@ -36,16 +38,23 @@ The new API has no command equivalents, because commands can't identify the call
 
 ## To run
 
-1. Compile the mssql extension by running from the repository root:
+1. Build the MSSQL extension by running from the repository root:
 
 ```bash
 npm install
 npm run watch -- --target mssql
 ```
 
-2. Open this sample extension in VS Code
-3. In the Run and Debug view, select the "Run Extension" configuration
-4. It should launch a new VS Code window with the extension activated
+2. Install and build this sample by running from `samples/connection-sharing-sample`:
+
+```bash
+npm install
+npm run compile
+```
+
+3. Open the `samples/connection-sharing-sample` folder in VS Code.
+4. In the Run and Debug view, select the "Run Extension" configuration. It opens a new VS Code window with both the MSSQL extension and this sample loaded.
+5. Connect a query editor to a database, then run **ConnSharing: Connection sharing using APIs** from the Command Palette. The first time, VS Code asks whether to allow the sample to use your SQL Server connections.
 
 ## 🆘 Support
 

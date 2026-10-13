@@ -234,7 +234,7 @@ suite("ConnectionSharingService Tests", () => {
                 LocalizedConstants.Common.learnMore,
             );
             expect(globalState.update).to.have.been.calledWith(
-                "mssql.connectionSharing.retirementSuppressedExtensions",
+                "mssql.connectionSharing.deprecationWarnedExtensions",
                 [testExtensionId],
             );
             expect(sendActionEventStub).to.have.been.calledWith(
@@ -377,7 +377,7 @@ suite("ConnectionSharingService Tests", () => {
                 )._logger,
                 "warn",
             );
-            globalStateValues.set("mssql.connectionSharing.retirementSuppressedExtensions", [
+            globalStateValues.set("mssql.connectionSharing.deprecationWarnedExtensions", [
                 testExtensionId,
             ]);
             secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
@@ -397,6 +397,31 @@ suite("ConnectionSharingService Tests", () => {
 
             expect(showWarningMessageStub).not.to.have.been.called;
             expect(loggerWarnStub).to.have.been.calledWithMatch(testExtensionId);
+        });
+
+        test("shows the toast for an extension the earlier retirement notice silenced", async () => {
+            globalStateValues.set("mssql.connectionSharing.retirementSuppressedExtensions", [
+                testExtensionId,
+            ]);
+            secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
+            getExtensionStub.withArgs(testExtensionId).returns({
+                id: testExtensionId,
+                packageJSON: { displayName: "Test Extension" },
+            });
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
+                document: { uri: vscode.Uri.parse("file:///test.sql") },
+            }));
+
+            const command = registeredCommands.get(
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+            );
+            await command!(testExtensionId);
+            await new Promise((resolve) => setImmediate(resolve));
+
+            expect(showWarningMessageStub).to.have.been.calledWith(
+                LocalizedConstants.ConnectionSharing.deprecationWarning("Test Extension"),
+                LocalizedConstants.Common.learnMore,
+            );
         });
     });
 

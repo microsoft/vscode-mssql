@@ -98,10 +98,8 @@ export class AuthenticatedConnectionSharingService
         }
 
         // The session can end while the connection is opening; don't leave an orphaned connection.
-        if (
-            (await this._authenticationProvider.getSessionIdForAccessToken(accessToken)) !==
-            sessionId
-        ) {
+        // Only the session matters here: the token may expire during a slow connect.
+        if (!(await this._authenticationProvider.isSessionActive(sessionId))) {
             void this._connectionManager.disconnect(connectionUri);
             throw this.invalidAccessTokenError();
         }

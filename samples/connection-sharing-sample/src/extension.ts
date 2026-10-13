@@ -12,7 +12,8 @@ interface ConnectionSharingApi {
 /**
  * Gets the MSSQL connection-sharing API and an access token for it. The first time, VS Code asks
  * the user to allow this extension to use their SQL Server connections. The user can revoke that
- * later from the Accounts menu.
+ * later from the Accounts menu. Call this each time you use the API: the token expires after an
+ * hour, and later calls get a new one without prompting.
  */
 export async function getConnectionSharingApi(): Promise<ConnectionSharingApi | undefined> {
     const mssqlExtension = vscode.extensions.getExtension<mssql.IExtension>(MSSQL_EXTENSION_ID);

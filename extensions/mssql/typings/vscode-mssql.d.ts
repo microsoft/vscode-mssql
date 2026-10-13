@@ -2853,6 +2853,10 @@ declare module "vscode-mssql" {
      * provider. VS Code asks the user to approve your extension the first time, and the user can
      * revoke access later from the Accounts menu. Pass the session's access token to every method.
      *
+     * Access tokens expire an hour after they're issued, so request the session each time you
+     * use this API rather than keeping the token. Once the user has approved your extension, the
+     * request returns a new token without prompting.
+     *
      * Methods that take a connection URI accept only URIs that {@link connect} returned for the same
      * session. When the session ends, the connections it opened are closed and its access token
      * stops working; request a new session to continue.

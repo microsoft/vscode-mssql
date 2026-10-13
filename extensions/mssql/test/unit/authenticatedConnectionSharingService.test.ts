@@ -34,6 +34,7 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
     let authenticationProvider: sinon.SinonStubbedInstance<ConnectionSharingAuthenticationProvider>;
     let sessionChangeEmitter: vscode.EventEmitter<vscode.AuthenticationProviderAuthenticationSessionsChangeEvent>;
     let sessionIdsByToken: Map<string, string>;
+    let activeSessionIds: Set<string>;
     let sendActionEventStub: sinon.SinonStub;
     let service: AuthenticatedConnectionSharingService;
 
@@ -87,6 +88,10 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
         );
         authenticationProvider.getSessionIdForAccessToken.callsFake(async (token: string) =>
             sessionIdsByToken.get(token),
+        );
+        activeSessionIds = new Set([sessionId]);
+        authenticationProvider.isSessionActive.callsFake(async (id: string) =>
+            activeSessionIds.has(id),
         );
         (
             authenticationProvider as unknown as {
@@ -259,6 +264,7 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
 
     test("closes a connection whose session ended while it was opening", async () => {
         connectionManager.connect.callsFake(async () => {
+            activeSessionIds.delete(sessionId);
             sessionIdsByToken.delete(validToken);
             return true;
         });
@@ -268,6 +274,18 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
             ConnectionSharingErrorCode.INVALID_ACCESS_TOKEN,
         );
         expect(connectionManager.disconnect).to.have.been.called;
+    });
+
+    test("keeps a connection whose access token expired while it was opening", async () => {
+        connectionManager.connect.callsFake(async () => {
+            sessionIdsByToken.delete(validToken);
+            return true;
+        });
+
+        const connectionUri = await service.connect(validToken, testConnectionId);
+
+        expect(connectionUri).to.be.a("string");
+        expect(connectionManager.disconnect).not.to.have.been.called;
     });
 
     test("returns the connection string for a saved connection", async () => {

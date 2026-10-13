@@ -21,9 +21,10 @@ import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 const CONNECTION_SHARING_PERMISSIONS_KEY = "mssql.connectionSharing.extensionPermissions";
-// Keeps its original name so extensions the user already silenced, or already warned about, stay quiet.
+// A new key rather than the retirement notice's, so every extension gets the deprecation warning
+// once, including those the earlier notice already warned about or the user silenced.
 const CONNECTION_SHARING_DEPRECATION_WARNED_EXTENSIONS_KEY =
-    "mssql.connectionSharing.retirementSuppressedExtensions";
+    "mssql.connectionSharing.deprecationWarnedExtensions";
 
 type ExtensionPermission = "approved" | "denied";
 type ExtensionPermissionsMap = Record<string, ExtensionPermission>;
