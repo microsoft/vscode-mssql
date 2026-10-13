@@ -20,6 +20,11 @@
                 "category": "ConnSharing"
             },
             {
+                "command": "connection-sharing-sample.commands",
+                "title": "Connection sharing using commands",
+                "category": "ConnSharing"
+            },
+            {
                 "command": "connection-sharing-sample.availableConnections",
                 "title": "Show a count of available connections",
                 "category": "ConnSharing"

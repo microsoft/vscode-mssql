@@ -6,6 +6,7 @@
 import * as mssql from "vscode-mssql";
 import * as vscode from "vscode";
 import { RequestType } from "vscode-languageclient";
+import { Disposable } from "extension-toolkit/base";
 import { sendActionEvent } from "extension-toolkit/vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
@@ -22,18 +23,37 @@ import { ConnectionSharingAuthenticationProvider } from "./connectionSharingAuth
 import { ConnectionSharingError, ConnectionSharingErrorCode } from "./connectionSharingService";
 
 /**
+ * The methods that are also exposed as `mssql.authenticatedConnectionSharing.<method>` commands, for
+ * callers that use commands rather than the extension's exports. A command takes the same
+ * arguments as its method, access token first, so it's checked the same way.
+ */
+const COMMAND_METHODS = [
+    "getActiveEditorConnectionId",
+    "getActiveDatabase",
+    "getDatabaseForConnectionId",
+    "connect",
+    "disconnect",
+    "isConnected",
+    "executeSimpleQuery",
+    "getServerInfo",
+    "listDatabases",
+    "scriptObject",
+    "getConnectionString",
+] as const satisfies readonly (keyof mssql.IAuthenticatedConnectionSharingService)[];
+
+/**
  * Shares mssql connections with extensions that hold a session from
  * {@link ConnectionSharingAuthenticationProvider}. Each connection URI is tied to the session that
  * opened it, so callers can't act on URIs they didn't create, such as a query editor's.
  */
 export class AuthenticatedConnectionSharingService
-    implements mssql.IAuthenticatedConnectionSharingService, vscode.Disposable
+    extends Disposable
+    implements mssql.IAuthenticatedConnectionSharingService
 {
     public readonly authenticationProviderId = Constants.connectionSharingAuthenticationProviderId;
     private readonly _logger: ILogger;
     /** The ID of the session that opened each connection URI. */
     private readonly _connectionSessionIds = new Map<string, string>();
-    private readonly _sessionChangeListener: vscode.Disposable;
 
     constructor(
         private readonly _authenticationProvider: ConnectionSharingAuthenticationProvider,
@@ -41,12 +61,24 @@ export class AuthenticatedConnectionSharingService
         private readonly _connectionManager: ConnectionManager,
         private readonly _scriptingService: ScriptingService,
     ) {
+        super();
         this._logger = logger.withPrefix("AuthenticatedConnectionSharingService");
-        this._sessionChangeListener = this._authenticationProvider.onDidChangeSessions((event) => {
-            for (const session of event.removed ?? []) {
-                this.disconnectSession(session.id);
-            }
-        });
+        this._register(
+            this._authenticationProvider.onDidChangeSessions((event) => {
+                for (const session of event.removed ?? []) {
+                    this.disconnectSession(session.id);
+                }
+            }),
+        );
+        for (const method of COMMAND_METHODS) {
+            const handler = this[method] as (...args: unknown[]) => Promise<unknown>;
+            this._register(
+                vscode.commands.registerCommand(
+                    `${Constants.authenticatedConnectionSharingCommandPrefix}${method}`,
+                    (...args: unknown[]) => handler.apply(this, args),
+                ),
+            );
+        }
     }
 
     public async getActiveEditorConnectionId(accessToken: string): Promise<string | undefined> {
@@ -100,7 +132,10 @@ export class AuthenticatedConnectionSharingService
         // The session can end while the connection is opening; don't leave an orphaned connection.
         // Only the session matters here: the token may expire during a slow connect.
         if (!(await this._authenticationProvider.isSessionActive(sessionId))) {
-            void this._connectionManager.disconnect(connectionUri);
+            this.closeConnectionInBackground(
+                connectionUri,
+                "Failed to close a connection whose session ended while it was opening.",
+            );
             throw this.invalidAccessTokenError();
         }
 
@@ -111,8 +146,10 @@ export class AuthenticatedConnectionSharingService
     public async disconnect(accessToken: string, connectionUri: string): Promise<void> {
         await this.validateOwnedConnectionUri(accessToken, connectionUri);
         this.recordApiCallForUri("disconnect", connectionUri);
-        this._connectionSessionIds.delete(connectionUri);
+        // Keep the ownership until the disconnect succeeds, so a failed one can be retried and is
+        // still closed when the session ends.
         await this._connectionManager.disconnect(connectionUri);
+        this._connectionSessionIds.delete(connectionUri);
     }
 
     public async isConnected(accessToken: string, connectionUri: string): Promise<boolean> {
@@ -193,10 +230,6 @@ export class AuthenticatedConnectionSharingService
             true, // includePassword
             false, // do not include appName
         );
-    }
-
-    public dispose(): void {
-        this._sessionChangeListener.dispose();
     }
 
     /** Returns the ID of the session that issued the access token. */
@@ -280,15 +313,18 @@ export class AuthenticatedConnectionSharingService
                 continue;
             }
             this._connectionSessionIds.delete(connectionUri);
-            void Promise.resolve(this._connectionManager.disconnect(connectionUri)).catch(
-                (error) => {
-                    this._logger.error(
-                        "Failed to close a connection after its session ended.",
-                        error,
-                    );
-                },
+            this.closeConnectionInBackground(
+                connectionUri,
+                "Failed to close a connection after its session ended.",
             );
         }
+    }
+
+    /** Closes a connection without waiting, logging a failure rather than leaving it unhandled. */
+    private closeConnectionInBackground(connectionUri: string, failureMessage: string): void {
+        void Promise.resolve(this._connectionManager.disconnect(connectionUri)).catch((error) => {
+            this._logger.error(failureMessage, error);
+        });
     }
 
     private invalidAccessTokenError(): ConnectionSharingError {

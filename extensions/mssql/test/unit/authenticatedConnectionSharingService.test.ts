@@ -36,6 +36,7 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
     let sessionIdsByToken: Map<string, string>;
     let activeSessionIds: Set<string>;
     let sendActionEventStub: sinon.SinonStub;
+    let registeredCommands: Map<string, (...args: unknown[]) => Promise<unknown>>;
     let service: AuthenticatedConnectionSharingService;
 
     const validToken = "valid-token";
@@ -115,6 +116,13 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
         connectionManager.getConnectionString.resolves("Server=test;");
 
         sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        registeredCommands = new Map();
+        sandbox
+            .stub(vscode.commands, "registerCommand")
+            .callsFake((command: string, callback: (...args: unknown[]) => Promise<unknown>) => {
+                registeredCommands.set(command, callback);
+                return { dispose: sandbox.stub() };
+            });
 
         service = new AuthenticatedConnectionSharingService(
             authenticationProvider,
@@ -133,6 +141,40 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
     test("exposes the authentication provider ID", () => {
         expect(service.authenticationProviderId).to.equal(
             Constants.connectionSharingAuthenticationProviderId,
+        );
+    });
+
+    test("registers a command for each method", () => {
+        expect([...registeredCommands.keys()]).to.have.members(
+            [
+                "getActiveEditorConnectionId",
+                "getActiveDatabase",
+                "getDatabaseForConnectionId",
+                "connect",
+                "disconnect",
+                "isConnected",
+                "executeSimpleQuery",
+                "getServerInfo",
+                "listDatabases",
+                "scriptObject",
+                "getConnectionString",
+            ].map((method) => `mssql.authenticatedConnectionSharing.${method}`),
+        );
+    });
+
+    test("checks the access token passed to a command like the method does", async () => {
+        const connect = registeredCommands.get("mssql.authenticatedConnectionSharing.connect")!;
+        const disconnect = registeredCommands.get(
+            "mssql.authenticatedConnectionSharing.disconnect",
+        )!;
+
+        const connectionUri = (await connect(validToken, testConnectionId)) as string;
+        await disconnect(validToken, connectionUri);
+
+        expect(connectionManager.disconnect).to.have.been.calledWith(connectionUri);
+        await expectConnectionSharingError(
+            connect("not-a-token", testConnectionId),
+            ConnectionSharingErrorCode.INVALID_ACCESS_TOKEN,
         );
     });
 
@@ -286,6 +328,47 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
 
         expect(connectionUri).to.be.a("string");
         expect(connectionManager.disconnect).not.to.have.been.called;
+    });
+
+    test("logs a failed cleanup of a connection whose session ended while it was opening", async () => {
+        const loggerErrorStub = sandbox.stub(
+            (
+                service as unknown as {
+                    _logger: { error(message: string, ...args: unknown[]): void };
+                }
+            )._logger,
+            "error",
+        );
+        connectionManager.connect.callsFake(async () => {
+            activeSessionIds.delete(sessionId);
+            return true;
+        });
+        connectionManager.disconnect.rejects(new Error("disconnect failed"));
+
+        await expectConnectionSharingError(
+            service.connect(validToken, testConnectionId),
+            ConnectionSharingErrorCode.INVALID_ACCESS_TOKEN,
+        );
+        await new Promise((resolve) => setImmediate(resolve));
+
+        expect(loggerErrorStub).to.have.been.calledOnce;
+    });
+
+    test("keeps a connection it opened when disconnecting it fails", async () => {
+        const connectionUri = await service.connect(validToken, testConnectionId);
+        connectionManager.disconnect.rejects(new Error("disconnect failed"));
+
+        try {
+            await service.disconnect(validToken, connectionUri);
+            expect.fail("Expected the disconnect to fail");
+        } catch (error) {
+            expect((error as Error).message).to.equal("disconnect failed");
+        }
+
+        expect(await service.isConnected(validToken, connectionUri)).to.be.true;
+        connectionManager.disconnect.resolves(true);
+        await service.disconnect(validToken, connectionUri);
+        expect(await service.isConnected(validToken, connectionUri)).to.be.false;
     });
 
     test("returns the connection string for a saved connection", async () => {

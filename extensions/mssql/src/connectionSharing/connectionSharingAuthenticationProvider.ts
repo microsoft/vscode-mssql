@@ -106,9 +106,17 @@ export class ConnectionSharingAuthenticationProvider
             return;
         }
 
+        // Update the cache before deleting so the resulting secret change isn't treated as external,
+        // and restore it if the delete fails so the session and its tokens stay usable.
         this._storedSession = Promise.resolve(undefined);
+        try {
+            await this._secrets.delete(SESSION_STORAGE_KEY);
+        } catch (error) {
+            this._storedSession = Promise.resolve(stored);
+            throw error;
+        }
+
         this.revokeAccessTokens(stored.id);
-        await this._secrets.delete(SESSION_STORAGE_KEY);
         this._onDidChangeSessions.fire({
             added: [],
             removed: [toAuthenticationSession(stored)],

@@ -3,6 +3,8 @@ import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 
 const MSSQL_EXTENSION_ID = "ms-mssql.mssql";
+const CONNECTION_SHARING_PROVIDER_ID = "mssql-connection-sharing";
+const CONNECTION_SHARING_COMMAND_PREFIX = "mssql.authenticatedConnectionSharing.";
 
 interface ConnectionSharingApi {
     service: mssql.IAuthenticatedConnectionSharingService;
@@ -48,6 +50,13 @@ export function registerCommands(extensionContext: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             "connection-sharing-sample.apis",
             connectionSharingWithApis,
+        ),
+    );
+
+    extensionContext.subscriptions.push(
+        vscode.commands.registerCommand(
+            "connection-sharing-sample.commands",
+            connectionSharingWithCommands,
         ),
     );
 
@@ -162,6 +171,56 @@ async function connectionSharingWithApis() {
     } catch (error) {
         console.error("Error in API-based connection sharing demo:", error);
         vscode.window.showErrorMessage(`API demo failed: ${error}`);
+    }
+}
+
+/**
+ * The same flow using commands instead of the MSSQL extension's exports, so it needs no typings.
+ * Each command takes the access token first, and calling one activates the MSSQL extension.
+ */
+async function connectionSharingWithCommands() {
+    try {
+        const session = await vscode.authentication.getSession(CONNECTION_SHARING_PROVIDER_ID, [], {
+            createIfNone: true,
+        });
+        const accessToken = session.accessToken;
+
+        const activeConnectionId = await vscode.commands.executeCommand<string | undefined>(
+            `${CONNECTION_SHARING_COMMAND_PREFIX}getActiveEditorConnectionId`,
+            accessToken,
+        );
+        if (!activeConnectionId) {
+            vscode.window.showErrorMessage("No database connection found for the active editor");
+            return;
+        }
+
+        const connectionUri = await vscode.commands.executeCommand<string>(
+            `${CONNECTION_SHARING_COMMAND_PREFIX}connect`,
+            accessToken,
+            activeConnectionId,
+        );
+        try {
+            const databaseListResults = await vscode.commands.executeCommand(
+                `${CONNECTION_SHARING_COMMAND_PREFIX}executeSimpleQuery`,
+                accessToken,
+                connectionUri,
+                "SELECT TOP(10) name AS DatabaseName FROM sys.databases ORDER BY name",
+            );
+            console.log("Database query results:", databaseListResults);
+        } finally {
+            await vscode.commands.executeCommand(
+                `${CONNECTION_SHARING_COMMAND_PREFIX}disconnect`,
+                accessToken,
+                connectionUri,
+            );
+        }
+
+        vscode.window.showInformationMessage(
+            "Connection sharing command demo completed successfully!",
+        );
+    } catch (error) {
+        console.error("Error in command-based connection sharing demo:", error);
+        vscode.window.showErrorMessage(`Command demo failed: ${error}`);
     }
 }
 

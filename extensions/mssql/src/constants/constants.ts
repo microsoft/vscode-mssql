@@ -473,6 +473,7 @@ export const DefaultAdminUsername = "sa";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
 export const connectionSharingAuthenticationProviderId = "mssql-connection-sharing";
+export const authenticatedConnectionSharingCommandPrefix = "mssql.authenticatedConnectionSharing.";
 export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";

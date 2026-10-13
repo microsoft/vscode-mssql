@@ -2861,6 +2861,9 @@ declare module "vscode-mssql" {
      * session. When the session ends, the connections it opened are closed and its access token
      * stops working; request a new session to continue.
      *
+     * Each method is also available as the command `mssql.authenticatedConnectionSharing.<method>`,
+     * which takes the same arguments, access token first.
+     *
      * @example
      * const api = mssqlExtension.exports.authenticatedConnectionSharing;
      * const session = await vscode.authentication.getSession(api.authenticationProviderId, [], {

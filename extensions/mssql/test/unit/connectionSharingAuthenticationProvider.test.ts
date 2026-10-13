@@ -198,6 +198,26 @@ suite("ConnectionSharingAuthenticationProvider Tests", () => {
         expect(await authenticationProvider.isSessionActive(session.id)).to.be.false;
     });
 
+    test("keeps the session and its access tokens when deleting it fails", async () => {
+        const authenticationProvider = createProvider();
+        const session = await authenticationProvider.createSession();
+        const events = captureSessionChanges(authenticationProvider);
+        (secretStorage.delete as sinon.SinonStub).rejects(new Error("delete failed"));
+
+        try {
+            await authenticationProvider.removeSession(session.id);
+            expect.fail("Expected removing the session to fail");
+        } catch (error) {
+            expect((error as Error).message).to.equal("delete failed");
+        }
+
+        expect(events).to.be.empty;
+        expect(await authenticationProvider.isSessionActive(session.id)).to.be.true;
+        expect(
+            await authenticationProvider.getSessionIdForAccessToken(session.accessToken),
+        ).to.equal(session.id);
+    });
+
     test("picks up a session that another window stored", async () => {
         const authenticationProvider = createProvider();
         const events = captureSessionChanges(authenticationProvider);
