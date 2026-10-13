@@ -19,19 +19,21 @@ import { DataWorkspace as locConstants } from "../../constants/locConstants";
 export class WorkspaceTreeDataProvider
     implements
         vscode.TreeDataProvider<WorkspaceTreeItem>,
-        vscode.TreeDragAndDropController<WorkspaceTreeItem>
+        vscode.TreeDragAndDropController<WorkspaceTreeItem>,
+        vscode.Disposable
 {
     dropMimeTypes = ["application/vnd.code.tree.workspacetreedataprovider"];
     dragMimeTypes = ["application/vnd.code.tree.workspacetreedataprovider"];
-
     private readonly _treeView: vscode.TreeView<WorkspaceTreeItem>;
+    private readonly _workspaceProjectsChangedSubscription: vscode.Disposable;
     private _rootItems: WorkspaceTreeItem[] = [];
     private _wrappedItems = new WeakMap<object, WorkspaceTreeItem>();
 
     constructor(private _workspaceService: IWorkspaceService) {
-        this._workspaceService.onDidWorkspaceProjectsChange(() => {
-            return this.refresh();
-        });
+        this._workspaceProjectsChangedSubscription =
+            this._workspaceService.onDidWorkspaceProjectsChange(() => {
+                return this.refresh();
+            });
 
         this._treeView = vscode.window.createTreeView("dataworkspace.views.main", {
             canSelectMany: false,
@@ -46,6 +48,13 @@ export class WorkspaceTreeDataProvider
     readonly onDidChangeTreeData?:
         | vscode.Event<void | WorkspaceTreeItem | null | undefined>
         | undefined = this._onDidChangeTreeData?.event;
+
+    dispose(): void {
+        this._workspaceProjectsChangedSubscription.dispose();
+        this._treeView.dispose();
+        this._onDidChangeTreeData?.dispose();
+        this._onDidChangeTreeData = undefined;
+    }
 
     async refresh(): Promise<void> {
         Logger.log(`Refreshing projects tree`);

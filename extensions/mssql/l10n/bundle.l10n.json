@@ -25,6 +25,9 @@
         "comment": ["{0} is the server, container, or database target being provisioned"]
     },
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
+    "Data Workspace and SQL Database Projects functionality is now included in the SQL Server (mssql) extension. Uninstall Data Workspace 0.7.0 or earlier and SQL Database Projects 1.8.0 or earlier to avoid duplicated user interface elements.": "Data Workspace and SQL Database Projects functionality is now included in the SQL Server (mssql) extension. Uninstall Data Workspace 0.7.0 or earlier and SQL Database Projects 1.8.0 or earlier to avoid duplicated user interface elements.",
+    "Show Extensions": "Show Extensions",
+    "The affected extensions could not be opened. Open the Extensions view and uninstall older Data Workspace and SQL Database Projects extensions.": "The affected extensions could not be opened. Open the Extensions view and uninstall older Data Workspace and SQL Database Projects extensions.",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",
