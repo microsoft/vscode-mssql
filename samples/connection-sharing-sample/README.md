@@ -35,6 +35,27 @@ Methods that take a connection URI accept only URIs that `connect` returned for 
 
 `getSharedConnectionsApi` takes the API version your extension was written against. A version changes only for breaking changes, and earlier versions keep working alongside newer ones until they're retired. Asking for a version that the installed MSSQL extension doesn't support throws.
 
+### Reacting to connection changes
+
+`onDidChangeActiveEditorConnection` fires when the active editor's connection or database changes: switching editors, connecting or disconnecting, or changing database with the database picker or `USE`. It carries no details, so subscribing needs no access token; read the new state with a fresh one.
+
+```ts
+context.subscriptions.push(
+    api.onDidChangeActiveEditorConnection(async () => {
+        const session = await vscode.authentication.getSession(api.authenticationProviderId, [], {
+            silent: true,
+        });
+        if (!session) {
+            return; // The user hasn't allowed this extension.
+        }
+        const connectionId = await api.getActiveEditorConnectionId(session.accessToken);
+        const database = await api.getActiveDatabase(session.accessToken);
+    }),
+);
+```
+
+The sample's **ConnSharing: Watch the active editor's connection** command shows the active database in the status bar this way. Events aren't available as commands.
+
 ### Using commands
 
 Each method is also available as a command named `mssql.sharedConnections.<method>`, which takes the same arguments, access token first. Commands let you use the API without depending on the MSSQL extension's exports or typings, and calling one activates the MSSQL extension if needed. Request the session from the `mssql-shared-connections` provider:

@@ -2981,5 +2981,14 @@ declare module "vscode-mssql" {
          * @throws Error if the connection is not found.
          */
         getConnectionString(accessToken: string, connectionId: string): Promise<string | undefined>;
+        /**
+         * Fires when the active editor's connection or database changes: the user switches to an
+         * editor with a different connection or database, the active editor connects or
+         * disconnects, or its database changes (the database picker, or `USE` in a query). It
+         * carries no details; call {@link getActiveEditorConnectionId} and
+         * {@link getActiveDatabase}, with a fresh access token, to read the new state. Subscribing
+         * needs no access token.
+         */
+        readonly onDidChangeActiveEditorConnection: vscode.Event<void>;
     }
 }

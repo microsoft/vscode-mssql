@@ -42,6 +42,9 @@ suite("SharedConnectionsService Tests", () => {
     let activeSessionIds: Set<string>;
     let sendActionEventStub: sinon.SinonStub;
     let registeredCommands: Map<string, (...args: unknown[]) => Promise<unknown>>;
+    let connectionsChangedEmitter: vscode.EventEmitter<void>;
+    let databaseContextEmitter: vscode.EventEmitter<string>;
+    let activeEditorChangeEmitter: vscode.EventEmitter<vscode.TextEditor | undefined>;
     let service: SharedConnectionsService;
 
     const validToken = "valid-token";
@@ -124,6 +127,16 @@ suite("SharedConnectionsService Tests", () => {
 
         sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
         registeredCommands = new Map();
+        connectionsChangedEmitter = new vscode.EventEmitter<void>();
+        databaseContextEmitter = new vscode.EventEmitter<string>();
+        activeEditorChangeEmitter = new vscode.EventEmitter<vscode.TextEditor | undefined>();
+        Object.assign(connectionManager, {
+            onConnectionsChanged: connectionsChangedEmitter.event,
+            onDidChangeDatabaseContext: databaseContextEmitter.event,
+        });
+        sandbox
+            .stub(vscode.window, "onDidChangeActiveTextEditor")
+            .callsFake(activeEditorChangeEmitter.event);
         sandbox
             .stub(vscode.commands, "registerCommand")
             .callsFake((command: string, callback: (...args: unknown[]) => Promise<unknown>) => {
@@ -142,6 +155,9 @@ suite("SharedConnectionsService Tests", () => {
     teardown(() => {
         service.dispose();
         sessionChangeEmitter.dispose();
+        connectionsChangedEmitter.dispose();
+        databaseContextEmitter.dispose();
+        activeEditorChangeEmitter.dispose();
         sandbox.restore();
     });
 
@@ -534,6 +550,91 @@ suite("SharedConnectionsService Tests", () => {
                     );
                 }
             }
+        });
+    });
+    suite("active editor connection changes", () => {
+        let activeEditorUri: string | undefined;
+        let editorConnections: Map<string, IConnectionProfile>;
+        let changes: number;
+
+        function connection(id: string, database: string): IConnectionProfile {
+            return { ...mockConnectionProfile, id, database } as IConnectionProfile;
+        }
+
+        function switchEditor(uri: string | undefined): void {
+            activeEditorUri = uri;
+            activeEditorChangeEmitter.fire(undefined);
+        }
+
+        setup(() => {
+            activeEditorUri = undefined;
+            editorConnections = new Map();
+            sandbox.stub(vscode.window, "activeTextEditor").get(() =>
+                activeEditorUri
+                    ? ({
+                          document: { uri: vscode.Uri.parse(activeEditorUri) },
+                      } as vscode.TextEditor)
+                    : undefined,
+            );
+            connectionManager.isConnected.callsFake((uri: string) => editorConnections.has(uri));
+            connectionManager.getConnectionInfoFromUri.callsFake((uri: string) =>
+                editorConnections.get(uri),
+            );
+            switchEditor(undefined);
+            changes = 0;
+            service.onDidChangeActiveEditorConnection(() => changes++);
+        });
+
+        test("fires when the active editor switches to another connection or database", () => {
+            editorConnections.set("file:///a.sql", connection("server-1", "Sales"));
+            editorConnections.set("file:///b.sql", connection("server-1", "Sales"));
+            editorConnections.set("file:///c.sql", connection("server-2", "Sales"));
+            editorConnections.set("file:///d.sql", connection("server-2", "Billing"));
+
+            switchEditor("file:///a.sql");
+            expect(changes, "connected editor").to.equal(1);
+            switchEditor("file:///b.sql");
+            expect(changes, "same connection and database").to.equal(1);
+            switchEditor("file:///c.sql");
+            expect(changes, "another connection, same database name").to.equal(2);
+            switchEditor("file:///d.sql");
+            expect(changes, "another database").to.equal(3);
+            switchEditor("file:///notes.md");
+            expect(changes, "editor without a connection").to.equal(4);
+        });
+
+        test("fires when the active editor connects, changes database, or disconnects", () => {
+            switchEditor("file:///a.sql");
+            expect(changes).to.equal(0);
+
+            editorConnections.set("file:///a.sql", connection("server-1", "Sales"));
+            connectionsChangedEmitter.fire();
+            expect(changes, "connected").to.equal(1);
+
+            editorConnections.set("file:///a.sql", connection("server-1", "Billing"));
+            databaseContextEmitter.fire("file:///a.sql");
+            expect(changes, "USE Billing").to.equal(2);
+
+            connectionsChangedEmitter.fire();
+            expect(changes, "another editor's connection changed").to.equal(2);
+
+            editorConnections.delete("file:///a.sql");
+            connectionsChangedEmitter.fire();
+            expect(changes, "disconnected").to.equal(3);
+        });
+
+        test("reports each subscription in telemetry", () => {
+            expect(sendActionEventStub).to.have.been.calledWith(
+                TelemetryViews.Connection,
+                TelemetryActions.SharedConnectionsApiCalled,
+                {
+                    additionalProps: {
+                        method: "onDidChangeActiveEditorConnection",
+                        surface: "api",
+                        outcome: "succeeded",
+                    },
+                },
+            );
         });
     });
 });

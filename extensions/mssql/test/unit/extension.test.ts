@@ -95,9 +95,15 @@ suite("Extension API Tests", () => {
         sandbox.stub(sqlToolsClient, "sqlToolsServicePath").get(() => "test/sqltoolsservice");
         sqlToolsClient.onNotification.returns(disposable); // handler stub necessary depending on test execution order
         // activate() is stubbed, so supply the connection manager it would otherwise create.
-        sandbox
-            .stub(MainController.prototype, "connectionManager")
-            .get(() => ({ client: sqlToolsClient }) as unknown as ConnectionManager);
+        sandbox.stub(MainController.prototype, "connectionManager").get(
+            () =>
+                ({
+                    client: sqlToolsClient,
+                    isConnected: () => false,
+                    onConnectionsChanged: () => disposable,
+                    onDidChangeDatabaseContext: () => disposable,
+                }) as unknown as ConnectionManager,
+        );
 
         sandbox.stub(UriOwnershipInitialization, "createUriOwnershipCoordinator").returns({
             uriOwnershipApi: {},

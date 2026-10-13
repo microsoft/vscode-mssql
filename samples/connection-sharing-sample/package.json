@@ -25,6 +25,11 @@
                 "category": "ConnSharing"
             },
             {
+                "command": "connection-sharing-sample.watchActiveConnection",
+                "title": "Watch the active editor's connection",
+                "category": "ConnSharing"
+            },
+            {
                 "command": "connection-sharing-sample.availableConnections",
                 "title": "Show a count of available connections",
                 "category": "ConnSharing"

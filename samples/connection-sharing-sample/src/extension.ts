@@ -61,6 +61,12 @@ export function registerCommands(extensionContext: vscode.ExtensionContext) {
     );
 
     extensionContext.subscriptions.push(
+        vscode.commands.registerCommand("connection-sharing-sample.watchActiveConnection", () =>
+            watchActiveEditorConnection(extensionContext),
+        ),
+    );
+
+    extensionContext.subscriptions.push(
         vscode.commands.registerCommand(
             "connection-sharing-sample.availableConnections",
             showAvailableConnections,
@@ -222,6 +228,55 @@ async function connectionSharingWithCommands() {
         console.error("Error in command-based connection sharing demo:", error);
         vscode.window.showErrorMessage(`Command demo failed: ${error}`);
     }
+}
+
+let activeEditorConnectionWatcher: vscode.Disposable | undefined;
+
+/**
+ * Shows the active editor's database in the status bar and keeps it current. Subscribing to the
+ * change event needs no access token; reading the details does, so each change requests the
+ * session again, without prompting, rather than reusing a token that expires after an hour.
+ */
+async function watchActiveEditorConnection(
+    extensionContext: vscode.ExtensionContext,
+): Promise<void> {
+    if (activeEditorConnectionWatcher) {
+        vscode.window.showInformationMessage("Already watching the active editor's connection.");
+        return;
+    }
+    const api = await getConnectionSharingApi();
+    if (!api) {
+        return;
+    }
+
+    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+    statusBarItem.tooltip = "The active editor's database, from the MSSQL extension";
+    const showActiveDatabase = async () => {
+        const session = await vscode.authentication.getSession(
+            api.service.authenticationProviderId,
+            [],
+            { silent: true },
+        );
+        const database = session
+            ? await api.service.getActiveDatabase(session.accessToken).catch(() => undefined)
+            : undefined;
+        if (database) {
+            statusBarItem.text = `$(database) ${database}`;
+            statusBarItem.show();
+        } else {
+            statusBarItem.hide();
+        }
+    };
+
+    activeEditorConnectionWatcher = vscode.Disposable.from(
+        statusBarItem,
+        api.service.onDidChangeActiveEditorConnection(() => void showActiveDatabase()),
+    );
+    extensionContext.subscriptions.push(activeEditorConnectionWatcher);
+    await showActiveDatabase();
+    vscode.window.showInformationMessage(
+        "Watching the active editor's connection. Its database is shown in the status bar.",
+    );
 }
 
 async function showAvailableConnections(): Promise<void> {

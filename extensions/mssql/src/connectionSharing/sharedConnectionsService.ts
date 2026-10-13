@@ -88,6 +88,30 @@ export class SharedConnectionsService
     private readonly _connectionSessionIds = new Map<string, string>();
     /** Set while a call made through a command runs, so its telemetry can say so. */
     private readonly _commandCalls = new AsyncLocalStorage<boolean>();
+    private readonly _onDidChangeActiveEditorConnection = this._register(
+        new vscode.EventEmitter<void>(),
+    );
+    /** The active editor's connection and database when last checked, so only real changes fire. */
+    private _activeEditorConnectionKey: string | undefined;
+
+    /**
+     * Fires when the active editor's connection or database changes. It carries no details, so
+     * subscribing needs no access token; each subscription is reported in telemetry.
+     */
+    public readonly onDidChangeActiveEditorConnection: vscode.Event<void> = (
+        listener,
+        thisArgs,
+        disposables,
+    ) => {
+        sendActionEvent(TelemetryViews.Connection, TelemetryActions.SharedConnectionsApiCalled, {
+            additionalProps: {
+                method: "onDidChangeActiveEditorConnection",
+                surface: "api",
+                outcome: "succeeded",
+            },
+        });
+        return this._onDidChangeActiveEditorConnection.event(listener, thisArgs, disposables);
+    };
 
     constructor(
         private readonly _authenticationProvider: SharedConnectionsAuthenticationProvider,
@@ -104,6 +128,16 @@ export class SharedConnectionsService
                 }
             }),
         );
+        // The active editor's connection or database can change by switching editors, connecting or
+        // disconnecting, changing database with the picker (a reconnect), or running `USE`.
+        const checkActiveEditorConnection = () => this.checkActiveEditorConnection();
+        this._register(vscode.window.onDidChangeActiveTextEditor(checkActiveEditorConnection));
+        this._register(this._connectionManager.onConnectionsChanged(checkActiveEditorConnection));
+        this._register(
+            this._connectionManager.onDidChangeDatabaseContext(checkActiveEditorConnection),
+        );
+        this._activeEditorConnectionKey = this.getActiveEditorConnectionKey();
+
         for (const method of COMMAND_METHODS) {
             const handler = this[method] as (...args: unknown[]) => Promise<unknown>;
             this._register(
@@ -284,6 +318,26 @@ export class SharedConnectionsService
                 false, // do not include appName
             );
         });
+    }
+
+    private checkActiveEditorConnection(): void {
+        const key = this.getActiveEditorConnectionKey();
+        if (key !== this._activeEditorConnectionKey) {
+            this._activeEditorConnectionKey = key;
+            this._onDidChangeActiveEditorConnection.fire();
+        }
+    }
+
+    /** The active editor's connection ID and database, or undefined when it isn't connected. */
+    private getActiveEditorConnectionKey(): string | undefined {
+        const uri = vscode.window.activeTextEditor?.document.uri.toString();
+        if (!uri || !this._connectionManager.isConnected(uri)) {
+            return undefined;
+        }
+        const connection = this._connectionManager.getConnectionInfoFromUri(
+            uri,
+        ) as IConnectionProfile;
+        return JSON.stringify([connection?.id, connection?.database]);
     }
 
     /** Runs a call and reports it once it completes, whether it succeeds or fails. */
