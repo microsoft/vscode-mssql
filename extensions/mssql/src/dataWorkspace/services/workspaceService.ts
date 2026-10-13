@@ -14,6 +14,7 @@ import Logger from "../common/logger";
 import { TelemetryReporter, TelemetryViews, TelemetryActions } from "../common/telemetry";
 import { Deferred } from "../common/promise";
 import { DataWorkspace as locConstants } from "../../constants/locConstants";
+import { extensionId } from "../../constants/constants";
 
 const WorkspaceConfigurationName = "dataworkspace";
 const ExcludedProjectsConfigurationName = "excludedProjects";
@@ -29,15 +30,11 @@ export class WorkspaceService implements IWorkspaceService {
     private _isProjectProviderAvailable: boolean = false;
 
     constructor() {
-        Logger.log(`Calling getProjectsInWorkspace() from WorkspaceService constructor`);
         this.updateIfProjectProviderAvailable();
-        this.getProjectsInWorkspace(undefined, true).catch((err) =>
-            Logger.error(`Error initializing projects in workspace ${err}`),
-        );
     }
 
     get isProjectProviderAvailable(): boolean {
-        return this._isProjectProviderAvailable;
+        return this._isProjectProviderAvailable || ProjectProviderRegistry.providers.length > 0;
     }
 
     public updateIfProjectProviderAvailable(): void {
@@ -46,9 +43,9 @@ export class WorkspaceService implements IWorkspaceService {
         );
         const startTime = new Date().getTime();
 
-        this._isProjectProviderAvailable = vscode.extensions.all.some(
-            (e) => e.packageJSON.contributes?.projects?.length > 0,
-        );
+        this._isProjectProviderAvailable =
+            ProjectProviderRegistry.providers.length > 0 ||
+            vscode.extensions.all.some((e) => e.packageJSON.contributes?.projects?.length > 0);
         Logger.log(
             `isProjectProviderAvailable is ${this._isProjectProviderAvailable}. Total time = ${new Date().getTime() - startTime}ms`,
         );
@@ -164,6 +161,10 @@ export class WorkspaceService implements IWorkspaceService {
         Logger.log(`Getting projects in workspace`);
         const startTime = new Date().getTime();
 
+        if (refreshFromDisk && this.getProjectsPromise) {
+            await this.getProjectsPromise.promise;
+        }
+
         if (refreshFromDisk || this.openedProjects === undefined) {
             // always check if nothing cached
             await this.refreshProjectsFromDisk();
@@ -241,6 +242,7 @@ export class WorkspaceService implements IWorkspaceService {
      * Fire event to refresh projects tree
      */
     public refreshProjectsTree(): void {
+        this.openedProjects = undefined;
         this._onDidWorkspaceProjectsChange.fire();
     }
 
@@ -351,6 +353,9 @@ export class WorkspaceService implements IWorkspaceService {
         const projType = projectType ? projectType.toUpperCase() : undefined;
         let extension: vscode.Extension<any>;
         for (extension of vscode.extensions.all) {
+            if (extension.id === extensionId) {
+                continue;
+            }
             const projectTypes =
                 extension.packageJSON.contributes &&
                 (extension.packageJSON.contributes.projects as string[]);

@@ -7,6 +7,7 @@ import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
 import { MAX_TRACE_FILE_SIZE_MB } from "../../src/copilot/inlineCompletionDebug/traceSerializer";
+import { collectConfigurationProperties, ConfigurationContribution } from "./manifestUtils";
 
 const SQL_DATA_PLANE_GATE =
     "mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled";
@@ -34,13 +35,20 @@ interface ExtensionPackageJson {
     contributes: {
         commands: CommandContribution[];
         menus: { commandPalette: CommandPaletteContribution[] };
-        configuration: {
-            properties: Record<
-                string,
-                { default?: unknown; scope?: string; minimum?: number; maximum?: number }
-            >;
-        };
         languageModelChatProviders: LanguageModelChatProviderContribution[];
+        configuration:
+            | ConfigurationContribution<{
+                  default?: unknown;
+                  scope?: string;
+                  minimum?: number;
+                  maximum?: number;
+              }>
+            | ConfigurationContribution<{
+                  default?: unknown;
+                  scope?: string;
+                  minimum?: number;
+                  maximum?: number;
+              }>[];
     };
 }
 
@@ -50,7 +58,7 @@ suite("Private preview manifest", () => {
     ) as ExtensionPackageJson;
 
     test("keeps the umbrella and current private-preview features off by default", () => {
-        const settings = packageJson.contributes.configuration.properties;
+        const settings = collectConfigurationProperties(packageJson.contributes.configuration);
 
         expect(settings["mssql.enableExperimentalFeatures"]?.default).to.equal(false);
         expect(settings["mssql.sqlDataPlane.enabled"]?.default).to.equal(false);
@@ -74,7 +82,7 @@ suite("Private preview manifest", () => {
     });
 
     test("keeps prompt controls global and trace controls machine-local", () => {
-        const settings = packageJson.contributes.configuration.properties;
+        const settings = collectConfigurationProperties(packageJson.contributes.configuration);
         for (const key of [
             "mssql.copilot.inlineCompletions.enabled",
             "mssql.copilot.inlineCompletions.useSchemaContext",
@@ -95,10 +103,9 @@ suite("Private preview manifest", () => {
     });
 
     test("caps the trace file size setting at the limit that loading enforces", () => {
-        const setting =
-            packageJson.contributes.configuration.properties[
-                "mssql.copilot.inlineCompletions.trace.maxFileSizeMB"
-            ];
+        const setting = collectConfigurationProperties(packageJson.contributes.configuration)[
+            "mssql.copilot.inlineCompletions.trace.maxFileSizeMB"
+        ];
         expect(setting?.minimum).to.equal(1);
         expect(setting?.maximum).to.equal(MAX_TRACE_FILE_SIZE_MB);
         expect(setting?.default).to.be.within(1, MAX_TRACE_FILE_SIZE_MB);

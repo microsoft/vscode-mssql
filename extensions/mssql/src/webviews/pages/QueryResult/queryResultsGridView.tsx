@@ -538,6 +538,7 @@ export const QueryResultsGridView = ({
                 const gridClasses = [
                     classes.gridContainer,
                     gridSettings?.alternatingRowColors ? "results-grid--alternating" : "",
+                    gridSettings?.rightAlignNumbers ? "results-grid--right-align-numbers" : "",
                     gridLineClass,
                 ]
                     .filter(Boolean)

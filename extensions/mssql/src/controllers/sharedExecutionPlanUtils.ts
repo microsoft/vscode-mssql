@@ -20,6 +20,8 @@ import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { sqlPlanLanguageId } from "../constants/constants";
 import { executionPlanFileFilter } from "../constants/locConstants";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
+import { ExecutionPlanComparisonWebviewController } from "./executionPlanComparisonWebviewController";
+import { ExecutionPlanComparisonInitialSources } from "../sharedInterfaces/executionPlanComparison";
 
 export function openExecutionPlanWebview(
     context: vscode.ExtensionContext,
@@ -40,6 +42,35 @@ export function openExecutionPlanWebview(
 
     sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.Open);
 }
+
+export function openExecutionPlanComparisonWebview(
+    context: vscode.ExtensionContext,
+    executionPlanService: ExecutionPlanService,
+    sqlDocumentService: SqlDocumentService,
+    /** The plans to start with. Without any, the comparison opens blank. */
+    initialSources: ExecutionPlanComparisonInitialSources = {},
+): void {
+    const sources = [initialSources.primary, initialSources.secondary].filter(
+        (source) => source !== undefined,
+    );
+    // A plan whose statements have not loaded yet has nothing to compare.
+    if (sources.some((source) => source.graphs.length === 0)) {
+        return;
+    }
+    const controller = new ExecutionPlanComparisonWebviewController(
+        context,
+        executionPlanService,
+        sqlDocumentService,
+        initialSources,
+    );
+    controller.revealToForeground();
+
+    sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.Open, {
+        additionalProps: { view: "comparison" },
+        additionalMeasurements: { numberOfPlans: sources.length },
+    });
+}
+
 export async function saveExecutionPlan(
     state: QueryResultWebviewState | ExecutionPlanWebviewState,
     payload: ExecutionPlanReducers["saveExecutionPlan"],

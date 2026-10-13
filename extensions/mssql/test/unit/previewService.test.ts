@@ -8,6 +8,7 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 import {
     CONFIG_PREVIEW_PREFIX,
+    getPreviewConfigKey,
     PrivatePreviewFeature,
     PreviewFeature,
     PreviewFeaturesService,
@@ -93,6 +94,29 @@ suite("PreviewFeaturesService", () => {
             stubMssqlConfig(false, { [TestFeature]: false });
             expect(service.isFeatureEnabled(TestFeature)).to.be.false;
         });
+    });
+
+    suite("live query statistics", () => {
+        for (const { globalEnabled, override, enabled } of [
+            { globalEnabled: false, override: undefined, enabled: false },
+            { globalEnabled: true, override: undefined, enabled: true },
+            { globalEnabled: true, override: null, enabled: true },
+            { globalEnabled: false, override: true, enabled: true },
+            { globalEnabled: true, override: false, enabled: false },
+        ]) {
+            test(`umbrella ${globalEnabled}, override ${override}: ${enabled}`, () => {
+                getConfigurationStub.returns(
+                    createWorkspaceConfiguration({
+                        enableExperimentalFeatures: globalEnabled,
+                        [getPreviewConfigKey(PreviewFeature.LiveQueryStatistics)]: override,
+                    }),
+                );
+
+                expect(service.isFeatureEnabled(PreviewFeature.LiveQueryStatistics)).to.equal(
+                    enabled,
+                );
+            });
+        }
     });
 
     suite("isPrivatePreviewEnabled", () => {

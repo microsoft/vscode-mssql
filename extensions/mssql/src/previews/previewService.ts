@@ -12,6 +12,7 @@ import * as vscode from "vscode";
  */
 export enum PreviewFeature {
     BetaResultsGrid = "betaResultsGrid",
+    LiveQueryStatistics = "liveQueryStatistics",
 }
 
 /**

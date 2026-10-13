@@ -5,6 +5,7 @@
 
 import type { Column } from "slickgrid-react";
 import type { IDbColumn } from "../../../../sharedInterfaces/queryResult";
+import { isNumericSqlType, NUMERIC_CELL_CSS_CLASS } from "../../sqlTypeUtils";
 import {
     FLUENT_RESULT_GRID_DEFAULT_COLUMN_WIDTH,
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
@@ -49,6 +50,7 @@ export function createFluentResultGridColumns({
         sortable: false,
         filterable: true,
         formatter: getFluentResultGridColumnFormatter(column),
+        cssClass: isNumericSqlType(column.dataTypeName) ? NUMERIC_CELL_CSS_CLASS : undefined,
     }));
 
     if (!showRowNumberColumn) {

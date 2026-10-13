@@ -742,6 +742,18 @@ declare module "vscode-mssql" {
         getProjectProperties(projectUri: string): Promise<GetProjectPropertiesResult>;
 
         /**
+         * Get the properties, SQLCMD variables, database references, and items of a project in one request
+         * @param projectUri Absolute path of the project, including .sqlproj
+         */
+        getProjectModel(projectUri: string): Promise<GetProjectModelResult>;
+
+        /**
+         * Find the SQL project that owns a .sql file: the nearest .sqlproj in the file's folder or a parent folder
+         * @param filePath Absolute path of the .sql file
+         */
+        findProjectForFile(filePath: string): Promise<FindProjectForFileResult>;
+
+        /**
          * Set one or more properties on a SQL project.
          * @param projectUri Absolute path of the project, including .sqlproj
          * @param properties Map of property names to their new values
@@ -825,34 +837,10 @@ declare module "vscode-mssql" {
         getDatabaseReferences(projectUri: string): Promise<GetDatabaseReferencesResult>;
 
         /**
-         * Get all the folders in a project
-         * @param projectUri Absolute path of the project, including .sqlproj
-         */
-        getFolders(projectUri: string): Promise<GetFoldersResult>;
-
-        /**
-         * Get all the post-deployment scripts in a project
-         * @param projectUri Absolute path of the project, including .sqlproj
-         */
-        getPostDeploymentScripts(projectUri: string): Promise<GetScriptsResult>;
-
-        /**
-         * Get all the pre-deployment scripts in a project
-         * @param projectUri Absolute path of the project, including .sqlproj
-         */
-        getPreDeploymentScripts(projectUri: string): Promise<GetScriptsResult>;
-
-        /**
          * Get all the SQLCMD variables in a project
          * @param projectUri Absolute path of the project, including .sqlproj
          */
         getSqlCmdVariables(projectUri: string): Promise<GetSqlCmdVariablesResult>;
-
-        /**
-         * Get all the SQL object scripts in a project
-         * @param projectUri Absolute path of the project, including .sqlproj
-         */
-        getSqlObjectScripts(projectUri: string): Promise<GetScriptsResult>;
 
         /**
          * Add a None item to a project
@@ -874,12 +862,6 @@ declare module "vscode-mssql" {
          * @param path Path of the item, including extension, relative to the .sqlproj
          */
         excludeNoneItem(projectUri: string, path: string): Promise<ResultStatus>;
-
-        /**
-         * Get all the None items in a project
-         * @param projectUri Absolute path of the project, including .sqlproj
-         */
-        getNoneItems(projectUri: string): Promise<GetScriptsResult>;
 
         /**
          * Move a None item in a project
@@ -1613,6 +1595,13 @@ declare module "vscode-mssql" {
         projectUri: string;
     }
 
+    export interface FindProjectForFileParams {
+        /**
+         * Absolute path of the file to look up
+         */
+        filePath: string;
+    }
+
     export interface SqlProjectScriptParams extends SqlProjectParams {
         /**
          * Path of the script, including .sql, relative to the .sqlproj
@@ -1848,13 +1837,6 @@ declare module "vscode-mssql" {
         nugetPackageReferences: NugetPackageReference[];
     }
 
-    export interface GetFoldersResult extends ResultStatus {
-        /**
-         * Array of folders contained in the project
-         */
-        folders: string[];
-    }
-
     export interface GetSqlCmdVariablesResult extends ResultStatus {
         /**
          * Array of SQLCMD variables contained in the project
@@ -1862,11 +1844,54 @@ declare module "vscode-mssql" {
         sqlCmdVariables: SqlCmdVariable[];
     }
 
-    export interface GetScriptsResult extends ResultStatus {
+    export interface GetProjectModelResult extends ResultStatus {
         /**
-         * Array of scripts contained in the project
+         * Project properties, as returned by getProjectProperties
          */
-        scripts: string[];
+        properties: GetProjectPropertiesResult;
+        /**
+         * Whether the project is compatible with cross-platform builds
+         */
+        isCrossPlatformCompatible: boolean;
+        /**
+         * Array of SQLCMD variables contained in the project
+         */
+        sqlCmdVariables: SqlCmdVariable[];
+        /**
+         * Database references contained in the project, as returned by getDatabaseReferences
+         */
+        databaseReferences: GetDatabaseReferencesResult;
+        /**
+         * Relative paths of the SQL object scripts (Build items) in the project
+         */
+        sqlObjectScripts: string[];
+        /**
+         * Relative paths of the pre-deployment scripts in the project
+         */
+        preDeploymentScripts: string[];
+        /**
+         * Relative paths of the post-deployment scripts in the project
+         */
+        postDeploymentScripts: string[];
+        /**
+         * Relative paths of the None items in the project, without glob patterns
+         */
+        noneItems: string[];
+        /**
+         * Relative paths of the folders in the project
+         */
+        folders: string[];
+    }
+
+    export interface FindProjectForFileResult extends ResultStatus {
+        /**
+         * Absolute path of the owning .sqlproj, or undefined when the file is not in a project
+         */
+        projectUri?: string;
+        /**
+         * Whether the owning project is currently loaded in SQL Tools Service
+         */
+        isLoaded: boolean;
     }
 
     //#endregion
