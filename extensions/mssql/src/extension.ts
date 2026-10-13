@@ -49,10 +49,13 @@ import { IAccountStore, AccountStore } from "./azure/accountStore";
 import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
 import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
-import { sqlDatabaseProjectsExtensionId } from "./constants/constants";
+import { extensionId } from "./constants/constants";
 import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
 import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
 import { ExecutionPlanComparisonContribution } from "./controllers/executionPlanComparisonContribution";
+import { showLegacyProjectExtensionWarning } from "./legacyProjectExtensionWarning";
+import { logger } from "./models/logger";
+import { getErrorMessage } from "./utils/utils";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -197,17 +200,16 @@ class MssqlActivation {
         await OverviewWebviewController.showWelcomeOnExtensionUpdate(context);
 
         const dataWorkspaceApi = registerDataWorkspace(context);
-        const sqlProjectsShell = vscode.extensions.getExtension(sqlDatabaseProjectsExtensionId);
-        if (dataWorkspaceApi && sqlProjectsShell?.packageJSON.mssqlRuntime === true) {
-            initializeDatabaseProjectsServices(
-                createMssqlInternalApi(controller),
-                dataWorkspaceApi,
+        initializeDatabaseProjectsServices(createMssqlInternalApi(controller), dataWorkspaceApi);
+        const provider = await registerDatabaseProjects(context);
+        context.subscriptions.push(ProjectProviderRegistry.registerProvider(provider, extensionId));
+        dataWorkspaceApi.refreshProjectsTree();
+
+        void showLegacyProjectExtensionWarning().catch((error) => {
+            logger.error(
+                `Failed to show the legacy project extension warning: ${getErrorMessage(error)}`,
             );
-            const provider = await registerDatabaseProjects(context);
-            context.subscriptions.push(
-                ProjectProviderRegistry.registerProvider(provider, sqlDatabaseProjectsExtensionId),
-            );
-        }
+        });
 
         registerPerfApi(context);
         Perf.setActivationState("activated");
