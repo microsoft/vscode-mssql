@@ -135,10 +135,32 @@ suite("Extension API Tests", () => {
         ]);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(vscodeMssql.connectionSharing).to.equal(mainController.connectionSharingService);
-        expect(vscodeMssql.getSharedConnectionsApi(1)).to.be.instanceOf(SharedConnectionsService);
         expect(vscodeMssql.uriOwnershipApi).to.equal(
             Extension.uriOwnershipCoordinator.uriOwnershipApi,
         );
+    });
+
+    test("exposes only the shared connections API's public members", () => {
+        const api = vscodeMssql.getSharedConnectionsApi(1);
+
+        expect(api).not.to.be.instanceOf(SharedConnectionsService);
+        expect(Object.isFrozen(api)).to.be.true;
+        expect(Object.keys(api)).to.have.members([
+            "authenticationProviderId",
+            "onDidChangeActiveEditorConnection",
+            "getActiveEditorConnectionId",
+            "getActiveDatabase",
+            "getDatabaseForConnectionId",
+            "connect",
+            "disconnect",
+            "isConnected",
+            "executeSimpleQuery",
+            "cancelQuery",
+            "getServerInfo",
+            "listDatabases",
+            "scriptObject",
+            "getConnectionString",
+        ]);
     });
 
     test("rejects a shared connections API version it doesn't support", () => {

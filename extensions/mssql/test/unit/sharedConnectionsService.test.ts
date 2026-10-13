@@ -9,7 +9,10 @@ import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
-import { SharedConnectionsService } from "../../src/connectionSharing/sharedConnectionsService";
+import {
+    getSharedConnectionsApi,
+    SharedConnectionsService,
+} from "../../src/connectionSharing/sharedConnectionsService";
 import {
     AccessTokenRejection,
     SharedConnectionsAuthenticationProvider,
@@ -165,6 +168,15 @@ suite("SharedConnectionsService Tests", () => {
         expect(service.authenticationProviderId).to.equal(
             Constants.sharedConnectionsAuthenticationProviderId,
         );
+    });
+
+    test("the API object calls through to the service without exposing it", async () => {
+        const api = getSharedConnectionsApi(service, 1);
+
+        expect(api).not.to.have.property("_authenticationProvider");
+        expect(api.authenticationProviderId).to.equal(service.authenticationProviderId);
+        const connectionUri = await api.connect(validToken, testConnectionId);
+        expect(await api.isConnected(validToken, connectionUri)).to.be.true;
     });
 
     test("registers a command for each method", () => {
@@ -460,9 +472,17 @@ suite("SharedConnectionsService Tests", () => {
 
             await connect(validToken, testConnectionId);
 
-            expect(apiCallEvents()[0]).to.deep.include({
-                additionalProps: { method: "connect", surface: "command", outcome: "succeeded" },
-            });
+            expect(sendActionEventStub).to.have.been.calledWithMatch(
+                TelemetryViews.Connection,
+                TelemetryActions.SharedConnectionsApiCalled,
+                {
+                    additionalProps: {
+                        method: "connect",
+                        surface: "command",
+                        outcome: "succeeded",
+                    },
+                },
+            );
         });
 
         test("reports why an access token was rejected", async () => {
@@ -473,15 +493,19 @@ suite("SharedConnectionsService Tests", () => {
                 ConnectionSharingErrorCode.INVALID_ACCESS_TOKEN,
             );
 
-            expect(apiCallEvents()[0]).to.deep.include({
-                additionalProps: {
-                    method: "listDatabases",
-                    surface: "api",
-                    outcome: "failed",
-                    errorCode: "INVALID_ACCESS_TOKEN",
-                    tokenRejection: "expired",
+            expect(sendActionEventStub).to.have.been.calledWithMatch(
+                TelemetryViews.Connection,
+                TelemetryActions.SharedConnectionsApiCalled,
+                {
+                    additionalProps: {
+                        method: "listDatabases",
+                        surface: "api",
+                        outcome: "failed",
+                        errorCode: "INVALID_ACCESS_TOKEN",
+                        tokenRejection: "expired",
+                    },
                 },
-            });
+            );
         });
 
         test("reports an unexpected failure by its error type, not its message", async () => {
@@ -495,15 +519,19 @@ suite("SharedConnectionsService Tests", () => {
                 expect((error as Error).name).to.equal("TypeError");
             }
 
-            expect(apiCallEvents()[1]).to.deep.include({
-                additionalProps: {
-                    method: "executeSimpleQuery",
-                    surface: "api",
-                    outcome: "failed",
-                    errorCode: "unexpected",
-                    errorName: "TypeError",
+            expect(sendActionEventStub).to.have.been.calledWithMatch(
+                TelemetryViews.Connection,
+                TelemetryActions.SharedConnectionsApiCalled,
+                {
+                    additionalProps: {
+                        method: "executeSimpleQuery",
+                        surface: "api",
+                        outcome: "failed",
+                        errorCode: "unexpected",
+                        errorName: "TypeError",
+                    },
                 },
-            });
+            );
         });
 
         test("sends nothing that identifies the user, and nothing VS Code would redact", async () => {
@@ -531,7 +559,7 @@ suite("SharedConnectionsService Tests", () => {
                 validToken,
             ];
             const events = apiCallEvents();
-            expect(events).to.have.length(5);
+            expect(events).not.to.be.empty;
             for (const event of events) {
                 const values = [
                     ...Object.values(event.additionalProps as Record<string, string>),

@@ -28,7 +28,7 @@ import {
 import { ConnectionSharingError, ConnectionSharingErrorCode } from "./connectionSharingService";
 
 /**
- * The methods that are also exposed as `mssql.sharedConnections.<method>` commands, for
+ * The API's methods. Each is also exposed as an `mssql.sharedConnections.<method>` command, for
  * callers that use commands rather than the extension's exports. A command takes the same
  * arguments as its method, access token first, so it's checked the same way.
  */
@@ -53,13 +53,24 @@ type SharedConnectionsMethod = (typeof COMMAND_METHODS)[number];
  * Returns the version of the shared connections API that a caller asked for through
  * `IExtension.getSharedConnectionsApi`. Only version 1 exists so far; a later breaking change
  * would add version 2 here alongside it.
+ *
+ * Callers get a frozen object with only the public members, not the service itself: its private
+ * fields are reachable at runtime, and they include the authentication provider, which issues
+ * tokens without asking the user.
  */
 export function getSharedConnectionsApi(
     service: SharedConnectionsService,
     version: number,
 ): mssql.ISharedConnectionsService {
     if (version === 1) {
-        return service;
+        const api: Record<string, unknown> = {
+            authenticationProviderId: service.authenticationProviderId,
+            onDidChangeActiveEditorConnection: service.onDidChangeActiveEditorConnection,
+        };
+        for (const method of COMMAND_METHODS) {
+            api[method] = (service[method] as (...args: unknown[]) => unknown).bind(service);
+        }
+        return Object.freeze(api) as unknown as mssql.ISharedConnectionsService;
     }
     throw new Error(
         `Version ${version} of the shared connections API isn't available in this version of the MSSQL extension, which supports version 1.`,

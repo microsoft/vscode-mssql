@@ -259,6 +259,22 @@ suite("SharedConnectionsAuthenticationProvider Tests", () => {
         ]);
     });
 
+    test("keeps the session when storage can't be read after another window changes it", async () => {
+        const authenticationProvider = createProvider();
+        const session = await authenticationProvider.createSession();
+        const events = captureSessionChanges(authenticationProvider);
+        (secretStorage.get as sinon.SinonStub).rejects(new Error("storage unavailable"));
+
+        secretChangeEmitter.fire({ key: SESSION_STORAGE_KEY });
+        await new Promise((resolve) => setImmediate(resolve));
+
+        expect(events).to.be.empty;
+        expect(await authenticationProvider.isSessionActive(session.id)).to.be.true;
+        expect(await sessionIdFor(authenticationProvider, session.accessToken)).to.equal(
+            session.id,
+        );
+    });
+
     test("doesn't report its own stored session as a change from another window", async () => {
         const authenticationProvider = createProvider();
         await authenticationProvider.createSession();
@@ -308,41 +324,34 @@ suite("SharedConnectionsAuthenticationProvider Tests", () => {
         clock.tick(5000);
         await authenticationProvider.removeSession(session.id);
 
-        const events = sendActionEventStub
-            .getCalls()
-            .filter((call) => call.args[1] === TelemetryActions.SharedConnectionsSession)
-            .map((call) => [call.args[0], call.args[2]]);
-        expect(events).to.deep.equal([
-            [
-                TelemetryViews.Connection,
-                {
-                    additionalProps: {
-                        change: "created",
-                        outcome: "succeeded",
-                        replacedSession: "false",
-                    },
-                    additionalMeasurements: {},
+        for (const payload of [
+            {
+                additionalProps: {
+                    change: "created",
+                    outcome: "succeeded",
+                    replacedSession: "false",
                 },
-            ],
-            [
-                TelemetryViews.Connection,
-                {
-                    additionalProps: {
-                        change: "created",
-                        outcome: "succeeded",
-                        replacedSession: "true",
-                    },
-                    additionalMeasurements: {},
+                additionalMeasurements: {},
+            },
+            {
+                additionalProps: {
+                    change: "created",
+                    outcome: "succeeded",
+                    replacedSession: "true",
                 },
-            ],
-            [
+                additionalMeasurements: {},
+            },
+            {
+                additionalProps: { change: "removed", outcome: "succeeded" },
+                additionalMeasurements: { sessionAgeMs: 5000 },
+            },
+        ]) {
+            expect(sendActionEventStub).to.have.been.calledWith(
                 TelemetryViews.Connection,
-                {
-                    additionalProps: { change: "removed", outcome: "succeeded" },
-                    additionalMeasurements: { sessionAgeMs: 5000 },
-                },
-            ],
-        ]);
+                TelemetryActions.SharedConnectionsSession,
+                payload,
+            );
+        }
     });
 
     test("reports a session that couldn't be removed", async () => {

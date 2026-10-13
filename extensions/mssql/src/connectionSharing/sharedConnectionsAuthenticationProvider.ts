@@ -201,7 +201,12 @@ export class SharedConnectionsAuthenticationProvider
 
     private async reloadStoredSession(): Promise<void> {
         const previous = await this._storedSession;
-        const nextRead = this.readStoredSession();
+        // Keep the current session if storage can't be read: failing to read it doesn't mean
+        // another window signed out, and treating it so would revoke tokens and close connections.
+        const nextRead = this.loadStoredSession().catch((error) => {
+            this._logger.error("Failed to reload the connection-sharing session.", error);
+            return previous;
+        });
         this._storedSession = nextRead;
         const next = await nextRead;
         if (previous?.id === next?.id) {
@@ -220,11 +225,21 @@ export class SharedConnectionsAuthenticationProvider
 
     private async readStoredSession(): Promise<StoredSession | undefined> {
         try {
-            const serialized = await this._secrets.get(SESSION_STORAGE_KEY);
-            if (!serialized) {
-                return undefined;
-            }
+            return await this.loadStoredSession();
+        } catch (error) {
+            this._logger.error("Failed to read the connection-sharing session.", error);
+            return undefined;
+        }
+    }
 
+    /** Returns the stored session, or undefined if there's none. Throws if storage can't be read. */
+    private async loadStoredSession(): Promise<StoredSession | undefined> {
+        const serialized = await this._secrets.get(SESSION_STORAGE_KEY);
+        if (!serialized) {
+            return undefined;
+        }
+
+        try {
             // Sessions stored by earlier builds also carry an access token, which is ignored.
             const stored = JSON.parse(serialized) as Partial<StoredSession>;
             if (typeof stored.id === "string") {
@@ -233,10 +248,10 @@ export class SharedConnectionsAuthenticationProvider
                     createdAt: typeof stored.createdAt === "number" ? stored.createdAt : undefined,
                 };
             }
-            this._logger.warn("Ignoring a malformed connection-sharing session.");
-        } catch (error) {
-            this._logger.error("Failed to read the connection-sharing session.", error);
+        } catch {
+            // Treated as malformed below.
         }
+        this._logger.warn("Ignoring a malformed connection-sharing session.");
         return undefined;
     }
 }
