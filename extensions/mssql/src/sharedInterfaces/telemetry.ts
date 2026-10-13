@@ -58,7 +58,8 @@ export enum TelemetryViews {
 export enum TelemetryActions {
     ConnectionSharingApiCalled = "ConnectionSharingApiCalled",
     ConnectionSharingDeprecationToast = "ConnectionSharingDeprecationToast",
-    AuthenticatedConnectionSharingApiCalled = "AuthenticatedConnectionSharingApiCalled",
+    SharedConnectionsApiCalled = "SharedConnectionsApiCalled",
+    SharedConnectionsSession = "SharedConnectionsSession",
     GetDatabaseProjectScriptFiles = "GetDatabaseProjectScriptFiles",
     GetDatabaseProjectSchemaProvider = "GetDatabaseProjectSchemaProvider",
     ListingDatabasesForActiveServer = "ListingDatabasesForActiveServer",

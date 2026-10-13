@@ -56,7 +56,7 @@ export class ConnectionSharingError extends Error {
 
 /**
  * Backs the deprecated public connection-sharing API. Callers identify themselves with an extension
- * ID that can't be verified; external callers should move to AuthenticatedConnectionSharingService.
+ * ID that can't be verified; external callers should move to SharedConnectionsService.
  */
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 export class ConnectionSharingService implements mssql.IConnectionSharingService {
@@ -391,7 +391,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         }
         this._deprecationLoggedExtensionIds.add(extensionId);
         this._logger.warn(
-            `Extension "${extensionId}" uses the deprecated connection-sharing API. Move to IExtension.authenticatedConnectionSharing.`,
+            `Extension "${extensionId}" uses the deprecated connection-sharing API. Move to IExtension.sharedConnections.`,
         );
 
         const warnedExtensions = this._context.globalState.get<string[]>(

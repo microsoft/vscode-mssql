@@ -21,7 +21,7 @@ declare module "vscode-mssql" {
     export interface IExtension {
         /**
          * APIs for working with user-approved mssql connections.
-         * @deprecated Use {@link IExtension.authenticatedConnectionSharing}, which lets VS Code
+         * @deprecated Use {@link IExtension.sharedConnections}, which lets VS Code
          * verify the calling extension and manage the user's consent.
          */
         readonly connectionSharing: IConnectionSharingService;
@@ -30,7 +30,7 @@ declare module "vscode-mssql" {
          * APIs for working with mssql connections after the user approves access through VS Code's
          * authentication consent.
          */
-        readonly authenticatedConnectionSharing: IAuthenticatedConnectionSharingService;
+        readonly sharedConnections: ISharedConnectionsService;
 
         /** APIs for coordinating URI ownership with other database extensions. */
         readonly uriOwnershipApi: UriOwnershipApi;
@@ -2745,7 +2745,7 @@ declare module "vscode-mssql" {
     /**
      * Interface for connection sharing service
      * This service allows external extensions to use connections established by the mssql extension.
-     * @deprecated Use {@link IAuthenticatedConnectionSharingService}. This service trusts the
+     * @deprecated Use {@link ISharedConnectionsService}. This service trusts the
      * extension ID that callers pass in, so it can't verify which extension is calling.
      */
     export interface IConnectionSharingService {
@@ -2861,11 +2861,11 @@ declare module "vscode-mssql" {
      * session. When the session ends, the connections it opened are closed and its access token
      * stops working; request a new session to continue.
      *
-     * Each method is also available as the command `mssql.authenticatedConnectionSharing.<method>`,
+     * Each method is also available as the command `mssql.sharedConnections.<method>`,
      * which takes the same arguments, access token first.
      *
      * @example
-     * const api = mssqlExtension.exports.authenticatedConnectionSharing;
+     * const api = mssqlExtension.exports.sharedConnections;
      * const session = await vscode.authentication.getSession(api.authenticationProviderId, [], {
      *     createIfNone: true,
      * });
@@ -2876,7 +2876,7 @@ declare module "vscode-mssql" {
      *     await api.disconnect(session.accessToken, connectionUri);
      * }
      */
-    export interface IAuthenticatedConnectionSharingService {
+    export interface ISharedConnectionsService {
         /** The ID of the authentication provider to request a session from. */
         readonly authenticationProviderId: string;
         /**

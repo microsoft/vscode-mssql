@@ -3,11 +3,11 @@ import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 
 const MSSQL_EXTENSION_ID = "ms-mssql.mssql";
-const CONNECTION_SHARING_PROVIDER_ID = "mssql-connection-sharing";
-const CONNECTION_SHARING_COMMAND_PREFIX = "mssql.authenticatedConnectionSharing.";
+const SHARED_CONNECTIONS_PROVIDER_ID = "mssql-shared-connections";
+const SHARED_CONNECTIONS_COMMAND_PREFIX = "mssql.sharedConnections.";
 
 interface ConnectionSharingApi {
-    service: mssql.IAuthenticatedConnectionSharingService;
+    service: mssql.ISharedConnectionsService;
     accessToken: string;
 }
 
@@ -26,7 +26,7 @@ export async function getConnectionSharingApi(): Promise<ConnectionSharingApi | 
         return;
     }
 
-    const service = (await mssqlExtension.activate())?.authenticatedConnectionSharing;
+    const service = (await mssqlExtension.activate())?.sharedConnections;
     if (!service) {
         vscode.window.showErrorMessage("Connection sharing service is not available");
         return;
@@ -180,13 +180,13 @@ async function connectionSharingWithApis() {
  */
 async function connectionSharingWithCommands() {
     try {
-        const session = await vscode.authentication.getSession(CONNECTION_SHARING_PROVIDER_ID, [], {
+        const session = await vscode.authentication.getSession(SHARED_CONNECTIONS_PROVIDER_ID, [], {
             createIfNone: true,
         });
         const accessToken = session.accessToken;
 
         const activeConnectionId = await vscode.commands.executeCommand<string | undefined>(
-            `${CONNECTION_SHARING_COMMAND_PREFIX}getActiveEditorConnectionId`,
+            `${SHARED_CONNECTIONS_COMMAND_PREFIX}getActiveEditorConnectionId`,
             accessToken,
         );
         if (!activeConnectionId) {
@@ -195,13 +195,13 @@ async function connectionSharingWithCommands() {
         }
 
         const connectionUri = await vscode.commands.executeCommand<string>(
-            `${CONNECTION_SHARING_COMMAND_PREFIX}connect`,
+            `${SHARED_CONNECTIONS_COMMAND_PREFIX}connect`,
             accessToken,
             activeConnectionId,
         );
         try {
             const databaseListResults = await vscode.commands.executeCommand(
-                `${CONNECTION_SHARING_COMMAND_PREFIX}executeSimpleQuery`,
+                `${SHARED_CONNECTIONS_COMMAND_PREFIX}executeSimpleQuery`,
                 accessToken,
                 connectionUri,
                 "SELECT TOP(10) name AS DatabaseName FROM sys.databases ORDER BY name",
@@ -209,7 +209,7 @@ async function connectionSharingWithCommands() {
             console.log("Database query results:", databaseListResults);
         } finally {
             await vscode.commands.executeCommand(
-                `${CONNECTION_SHARING_COMMAND_PREFIX}disconnect`,
+                `${SHARED_CONNECTIONS_COMMAND_PREFIX}disconnect`,
                 accessToken,
                 connectionUri,
             );

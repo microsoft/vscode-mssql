@@ -12427,7 +12427,7 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.containerVersionLabel">
       <source xml:lang="en">SQL Container Version</source>
     </trans-unit>
-    <trans-unit id="mssql.connectionSharing.authenticationProviderLabel">
+    <trans-unit id="mssql.sharedConnections.authenticationProviderLabel">
       <source xml:lang="en">SQL Server Connections</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.xelEditorDisplayName">

@@ -9,8 +9,11 @@ import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
-import { AuthenticatedConnectionSharingService } from "../../src/connectionSharing/authenticatedConnectionSharingService";
-import { ConnectionSharingAuthenticationProvider } from "../../src/connectionSharing/connectionSharingAuthenticationProvider";
+import { SharedConnectionsService } from "../../src/connectionSharing/sharedConnectionsService";
+import {
+    AccessTokenRejection,
+    SharedConnectionsAuthenticationProvider,
+} from "../../src/connectionSharing/sharedConnectionsAuthenticationProvider";
 import {
     ConnectionSharingError,
     ConnectionSharingErrorCode,
@@ -26,18 +29,19 @@ import * as telemetry from "extension-toolkit/vscode/telemetry";
 
 chai.use(sinonChai);
 
-suite("AuthenticatedConnectionSharingService Tests", () => {
+suite("SharedConnectionsService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let scriptingService: sinon.SinonStubbedInstance<ScriptingService>;
-    let authenticationProvider: sinon.SinonStubbedInstance<ConnectionSharingAuthenticationProvider>;
+    let authenticationProvider: sinon.SinonStubbedInstance<SharedConnectionsAuthenticationProvider>;
     let sessionChangeEmitter: vscode.EventEmitter<vscode.AuthenticationProviderAuthenticationSessionsChangeEvent>;
     let sessionIdsByToken: Map<string, string>;
+    let tokenRejections: Map<string, AccessTokenRejection>;
     let activeSessionIds: Set<string>;
     let sendActionEventStub: sinon.SinonStub;
     let registeredCommands: Map<string, (...args: unknown[]) => Promise<unknown>>;
-    let service: AuthenticatedConnectionSharingService;
+    let service: SharedConnectionsService;
 
     const validToken = "valid-token";
     const sessionId = "session-1";
@@ -85,11 +89,13 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
         sessionChangeEmitter =
             new vscode.EventEmitter<vscode.AuthenticationProviderAuthenticationSessionsChangeEvent>();
         authenticationProvider = sandbox.createStubInstance(
-            ConnectionSharingAuthenticationProvider,
+            SharedConnectionsAuthenticationProvider,
         );
-        authenticationProvider.getSessionIdForAccessToken.callsFake(async (token: string) =>
-            sessionIdsByToken.get(token),
-        );
+        tokenRejections = new Map();
+        authenticationProvider.checkAccessToken.callsFake(async (token: string) => {
+            const id = sessionIdsByToken.get(token);
+            return id ? { sessionId: id } : { rejection: tokenRejections.get(token) ?? "unknown" };
+        });
         activeSessionIds = new Set([sessionId]);
         authenticationProvider.isSessionActive.callsFake(async (id: string) =>
             activeSessionIds.has(id),
@@ -124,7 +130,7 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
                 return { dispose: sandbox.stub() };
             });
 
-        service = new AuthenticatedConnectionSharingService(
+        service = new SharedConnectionsService(
             authenticationProvider,
             client,
             connectionManager,
@@ -140,7 +146,7 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
 
     test("exposes the authentication provider ID", () => {
         expect(service.authenticationProviderId).to.equal(
-            Constants.connectionSharingAuthenticationProviderId,
+            Constants.sharedConnectionsAuthenticationProviderId,
         );
     });
 
@@ -158,15 +164,13 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
                 "listDatabases",
                 "scriptObject",
                 "getConnectionString",
-            ].map((method) => `mssql.authenticatedConnectionSharing.${method}`),
+            ].map((method) => `mssql.sharedConnections.${method}`),
         );
     });
 
     test("checks the access token passed to a command like the method does", async () => {
-        const connect = registeredCommands.get("mssql.authenticatedConnectionSharing.connect")!;
-        const disconnect = registeredCommands.get(
-            "mssql.authenticatedConnectionSharing.disconnect",
-        )!;
+        const connect = registeredCommands.get("mssql.sharedConnections.connect")!;
+        const disconnect = registeredCommands.get("mssql.sharedConnections.disconnect")!;
 
         const connectionUri = (await connect(validToken, testConnectionId)) as string;
         await disconnect(validToken, connectionUri);
@@ -200,10 +204,15 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
         );
         expect(mockConnectionProfile.database).to.equal(testDatabase);
         expect(await service.isConnected(validToken, connectionUri)).to.be.true;
-        expect(sendActionEventStub).to.have.been.calledWith(
+        expect(sendActionEventStub).to.have.been.calledWithMatch(
             TelemetryViews.Connection,
-            TelemetryActions.AuthenticatedConnectionSharingApiCalled,
-            { additionalProps: { method: "connect", authenticationType: "SqlLogin" } },
+            TelemetryActions.SharedConnectionsApiCalled,
+            {
+                additionalProps: { method: "connect", surface: "api", outcome: "succeeded" },
+                additionalMeasurements: { durationMs: sinon.match.number },
+                connectionInfo: { authenticationType: "SqlLogin" },
+                serverInfo: mockServerInfo,
+            },
         );
     });
 
@@ -401,5 +410,110 @@ suite("AuthenticatedConnectionSharingService Tests", () => {
             service.getActiveEditorConnectionId(validToken),
             ConnectionSharingErrorCode.NO_ACTIVE_EDITOR,
         );
+    });
+    suite("telemetry", () => {
+        function apiCallEvents(): Record<string, unknown>[] {
+            return sendActionEventStub
+                .getCalls()
+                .filter((call) => call.args[1] === TelemetryActions.SharedConnectionsApiCalled)
+                .map((call) => call.args[2] as Record<string, unknown>);
+        }
+
+        test("reports a call made through a command", async () => {
+            const connect = registeredCommands.get("mssql.sharedConnections.connect")!;
+
+            await connect(validToken, testConnectionId);
+
+            expect(apiCallEvents()[0]).to.deep.include({
+                additionalProps: { method: "connect", surface: "command", outcome: "succeeded" },
+            });
+        });
+
+        test("reports why an access token was rejected", async () => {
+            tokenRejections.set("expired-token", "expired");
+
+            await expectConnectionSharingError(
+                service.listDatabases("expired-token", "some-uri"),
+                ConnectionSharingErrorCode.INVALID_ACCESS_TOKEN,
+            );
+
+            expect(apiCallEvents()[0]).to.deep.include({
+                additionalProps: {
+                    method: "listDatabases",
+                    surface: "api",
+                    outcome: "failed",
+                    errorCode: "INVALID_ACCESS_TOKEN",
+                    tokenRejection: "expired",
+                },
+            });
+        });
+
+        test("reports an unexpected failure by its error type, not its message", async () => {
+            const connectionUri = await service.connect(validToken, testConnectionId);
+            client.sendRequest.rejects(new TypeError("Invalid object name 'Customers'"));
+
+            try {
+                await service.executeSimpleQuery(validToken, connectionUri, "SELECT 1");
+                expect.fail("Expected the query to fail");
+            } catch (error) {
+                expect((error as Error).name).to.equal("TypeError");
+            }
+
+            expect(apiCallEvents()[1]).to.deep.include({
+                additionalProps: {
+                    method: "executeSimpleQuery",
+                    surface: "api",
+                    outcome: "failed",
+                    errorCode: "unexpected",
+                    errorName: "TypeError",
+                },
+            });
+        });
+
+        test("sends nothing that identifies the user, and nothing VS Code would redact", async () => {
+            connectionManager.getServerInfo.returns({
+                isCloud: false,
+                serverVersion: "16.0.4135.4",
+                serverEdition: "Enterprise Edition: Core-based Licensing (64-bit)",
+                engineEditionId: 3,
+            } as mssql.IServerInfo);
+            const query = "SELECT secret_column FROM dbo.Customers";
+            tokenRejections.set("expired-token", "expired");
+
+            const connectionUri = await service.connect(validToken, testConnectionId);
+            await service.executeSimpleQuery(validToken, connectionUri, query);
+            await service.getConnectionString(validToken, testConnectionId);
+            await service.disconnect(validToken, connectionUri);
+            await service.getServerInfo("expired-token", connectionUri).catch(() => undefined);
+
+            const identifying = [
+                mockConnectionProfile.server,
+                testDatabase,
+                testConnectionId,
+                connectionUri,
+                query,
+                validToken,
+            ];
+            const events = apiCallEvents();
+            expect(events).to.have.length(5);
+            for (const event of events) {
+                const values = [
+                    ...Object.values(event.additionalProps as Record<string, string>),
+                    ...Object.values((event.connectionInfo ?? {}) as Record<string, unknown>),
+                    ...Object.values((event.serverInfo ?? {}) as Record<string, unknown>),
+                ].map(String);
+                for (const value of values) {
+                    for (const text of identifying) {
+                        expect(value).not.to.include(text);
+                    }
+                    // VS Code's telemetry cleaning redacts paths, URLs, emails, and values where a
+                    // word such as "token" or "key" is followed by punctuation.
+                    expect(value).not.to.match(/[\\/@]/);
+                    expect(value).not.to.match(
+                        /(key|token|sig|secret|signature|password|passwd|pwd)[^a-zA-Z0-9]/i,
+                    );
+                }
+            }
+        });
     });
 });

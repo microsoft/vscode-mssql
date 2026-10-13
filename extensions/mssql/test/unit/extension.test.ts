@@ -22,7 +22,7 @@ import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnership
 import { IconUtils } from "../../src/utils/iconUtils";
 import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
 import { PrivatePreviewContextKey } from "../../src/previews/previewService";
-import { AuthenticatedConnectionSharingService } from "../../src/connectionSharing/authenticatedConnectionSharingService";
+import { SharedConnectionsService } from "../../src/connectionSharing/sharedConnectionsService";
 
 const { expect } = chai;
 
@@ -124,14 +124,12 @@ suite("Extension API Tests", () => {
     test("only exports the supported public APIs", () => {
         expect(Object.keys(vscodeMssql)).to.deep.equal([
             "connectionSharing",
-            "authenticatedConnectionSharing",
+            "sharedConnections",
             "uriOwnershipApi",
         ]);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(vscodeMssql.connectionSharing).to.equal(mainController.connectionSharingService);
-        expect(vscodeMssql.authenticatedConnectionSharing).to.be.instanceOf(
-            AuthenticatedConnectionSharingService,
-        );
+        expect(vscodeMssql.sharedConnections).to.be.instanceOf(SharedConnectionsService);
         expect(vscodeMssql.uriOwnershipApi).to.equal(
             Extension.uriOwnershipCoordinator.uriOwnershipApi,
         );

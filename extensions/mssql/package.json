@@ -39,17 +39,17 @@
         "onCommand:mssql.loadCompletionExtension",
         "onNotebook:jupyter-notebook",
         "onView:dataworkspace.views.main",
-        "onCommand:mssql.authenticatedConnectionSharing.getActiveEditorConnectionId",
-        "onCommand:mssql.authenticatedConnectionSharing.getActiveDatabase",
-        "onCommand:mssql.authenticatedConnectionSharing.getDatabaseForConnectionId",
-        "onCommand:mssql.authenticatedConnectionSharing.connect",
-        "onCommand:mssql.authenticatedConnectionSharing.disconnect",
-        "onCommand:mssql.authenticatedConnectionSharing.isConnected",
-        "onCommand:mssql.authenticatedConnectionSharing.executeSimpleQuery",
-        "onCommand:mssql.authenticatedConnectionSharing.getServerInfo",
-        "onCommand:mssql.authenticatedConnectionSharing.listDatabases",
-        "onCommand:mssql.authenticatedConnectionSharing.scriptObject",
-        "onCommand:mssql.authenticatedConnectionSharing.getConnectionString"
+        "onCommand:mssql.sharedConnections.getActiveEditorConnectionId",
+        "onCommand:mssql.sharedConnections.getActiveDatabase",
+        "onCommand:mssql.sharedConnections.getDatabaseForConnectionId",
+        "onCommand:mssql.sharedConnections.connect",
+        "onCommand:mssql.sharedConnections.disconnect",
+        "onCommand:mssql.sharedConnections.isConnected",
+        "onCommand:mssql.sharedConnections.executeSimpleQuery",
+        "onCommand:mssql.sharedConnections.getServerInfo",
+        "onCommand:mssql.sharedConnections.listDatabases",
+        "onCommand:mssql.sharedConnections.scriptObject",
+        "onCommand:mssql.sharedConnections.getConnectionString"
     ],
     "main": "./dist/extension",
     "l10n": "./l10n",
@@ -215,8 +215,8 @@
         },
         "authentication": [
             {
-                "id": "mssql-connection-sharing",
-                "label": "%mssql.connectionSharing.authenticationProviderLabel%"
+                "id": "mssql-shared-connections",
+                "label": "%mssql.sharedConnections.authenticationProviderLabel%"
             }
         ],
         "mcpServerDefinitionProviders": [

@@ -53,8 +53,8 @@ import { sqlDatabaseProjectsExtensionId } from "./constants/constants";
 import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
 import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
 import { ExecutionPlanComparisonContribution } from "./controllers/executionPlanComparisonContribution";
-import { ConnectionSharingAuthenticationProvider } from "./connectionSharing/connectionSharingAuthenticationProvider";
-import { AuthenticatedConnectionSharingService } from "./connectionSharing/authenticatedConnectionSharingService";
+import { SharedConnectionsAuthenticationProvider } from "./connectionSharing/sharedConnectionsAuthenticationProvider";
+import { SharedConnectionsService } from "./connectionSharing/sharedConnectionsService";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -127,10 +127,10 @@ class MssqlActivation {
 
         // Register before the slow startup work: VS Code waits for this provider when another
         // extension requests a connection-sharing session.
-        const connectionSharingAuthenticationProvider = new ConnectionSharingAuthenticationProvider(
+        const sharedConnectionsAuthenticationProvider = new SharedConnectionsAuthenticationProvider(
             context.secrets,
         );
-        context.subscriptions.push(connectionSharingAuthenticationProvider);
+        context.subscriptions.push(sharedConnectionsAuthenticationProvider);
 
         controller = this._instantiationService.createInstance(MainController, context);
         context.subscriptions.push(controller);
@@ -154,13 +154,13 @@ class MssqlActivation {
         registerSqlDataPlane(context);
         await controller.activate();
 
-        const authenticatedConnectionSharingService = new AuthenticatedConnectionSharingService(
-            connectionSharingAuthenticationProvider,
+        const sharedConnectionsService = new SharedConnectionsService(
+            sharedConnectionsAuthenticationProvider,
             controller.connectionManager.client,
             controller.connectionManager,
             controller.scriptingService,
         );
-        context.subscriptions.push(authenticatedConnectionSharingService);
+        context.subscriptions.push(sharedConnectionsService);
 
         context.subscriptions.push(
             this._instantiationService.createInstance(SqlProjectRefactoringContribution),
@@ -233,7 +233,7 @@ class MssqlActivation {
 
         return {
             connectionSharing: controller.connectionSharingService,
-            authenticatedConnectionSharing: authenticatedConnectionSharingService,
+            sharedConnections: sharedConnectionsService,
             uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         };
     }

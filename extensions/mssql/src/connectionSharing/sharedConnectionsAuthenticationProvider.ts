@@ -10,20 +10,30 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
+import { sendActionEvent } from "extension-toolkit/vscode";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
-const SESSION_STORAGE_KEY = "mssql.connectionSharing.authenticationSession";
+const SESSION_STORAGE_KEY = "mssql.sharedConnections.session";
 
 /** How long an access token stays valid after it's issued. */
 export const ACCESS_TOKEN_LIFETIME_MS = 60 * 60 * 1000;
 
 interface StoredSession {
     id: string;
+    /** When the session was created, in milliseconds since the epoch. */
+    createdAt?: number;
 }
 
 interface IssuedAccessToken {
     sessionId: string;
     expiresAt: number;
 }
+
+/** Why an access token was rejected, reported in telemetry. */
+export type AccessTokenRejection = "unknown" | "expired" | "sessionEnded";
+
+/** The session an access token belongs to, or why it was rejected. */
+export type AccessTokenCheck = { sessionId: string } | { rejection: AccessTokenRejection };
 
 /**
  * Lets other extensions request access to mssql connections through VS Code's authentication API.
@@ -37,7 +47,7 @@ interface IssuedAccessToken {
  * trusting loses access once its last token expires. The tokens are kept only in this window's
  * memory; secret storage holds just the session ID, which all windows share.
  */
-export class ConnectionSharingAuthenticationProvider
+export class SharedConnectionsAuthenticationProvider
     extends Disposable
     implements vscode.AuthenticationProvider
 {
@@ -51,7 +61,7 @@ export class ConnectionSharingAuthenticationProvider
 
     constructor(private readonly _secrets: vscode.SecretStorage) {
         super();
-        this._logger = logger.withPrefix("ConnectionSharingAuthenticationProvider");
+        this._logger = logger.withPrefix("SharedConnectionsAuthenticationProvider");
         this._storedSession = this.readStoredSession();
         // Other windows share the stored session, so pick up the sessions they create or remove.
         this._register(
@@ -63,7 +73,7 @@ export class ConnectionSharingAuthenticationProvider
         );
         this._register(
             vscode.authentication.registerAuthenticationProvider(
-                Constants.connectionSharingAuthenticationProviderId,
+                Constants.sharedConnectionsAuthenticationProviderId,
                 LocalizedConstants.ConnectionSharing.authenticationProviderLabel,
                 this,
                 { supportsMultipleAccounts: false },
@@ -78,7 +88,7 @@ export class ConnectionSharingAuthenticationProvider
 
     public async createSession(): Promise<vscode.AuthenticationSession> {
         const previous = await this._storedSession;
-        const stored: StoredSession = { id: randomUUID() };
+        const stored: StoredSession = { id: randomUUID(), createdAt: Date.now() };
 
         // Update the cache before storing so the resulting secret change isn't treated as external.
         this._storedSession = Promise.resolve(stored);
@@ -86,9 +96,13 @@ export class ConnectionSharingAuthenticationProvider
             await this._secrets.store(SESSION_STORAGE_KEY, JSON.stringify(stored));
         } catch (error) {
             this._storedSession = Promise.resolve(previous);
+            sendSessionTelemetry("created", "failed");
             throw error;
         }
 
+        sendSessionTelemetry("created", "succeeded", {
+            replacedSession: String(previous !== undefined),
+        });
         if (previous) {
             this.revokeAccessTokens(previous.id);
         }
@@ -113,9 +127,16 @@ export class ConnectionSharingAuthenticationProvider
             await this._secrets.delete(SESSION_STORAGE_KEY);
         } catch (error) {
             this._storedSession = Promise.resolve(stored);
+            sendSessionTelemetry("removed", "failed");
             throw error;
         }
 
+        sendSessionTelemetry(
+            "removed",
+            "succeeded",
+            {},
+            stored.createdAt !== undefined ? { sessionAgeMs: Date.now() - stored.createdAt } : {},
+        );
         this.revokeAccessTokens(stored.id);
         this._onDidChangeSessions.fire({
             added: [],
@@ -125,19 +146,21 @@ export class ConnectionSharingAuthenticationProvider
     }
 
     /**
-     * Returns the ID of the session that issued the access token, or undefined when the token
-     * has expired or doesn't belong to the current session.
+     * Returns the session that issued the access token, or why the token was rejected: it was never
+     * issued here or was revoked (`unknown`), it `expired`, or its session has since ended.
      */
-    public async getSessionIdForAccessToken(accessToken: string): Promise<string | undefined> {
+    public async checkAccessToken(accessToken: string): Promise<AccessTokenCheck> {
         const issued = this._accessTokens.get(accessToken);
         if (!issued) {
-            return undefined;
+            return { rejection: "unknown" };
         }
         if (Date.now() >= issued.expiresAt) {
             this._accessTokens.delete(accessToken);
-            return undefined;
+            return { rejection: "expired" };
         }
-        return (await this.isSessionActive(issued.sessionId)) ? issued.sessionId : undefined;
+        return (await this.isSessionActive(issued.sessionId))
+            ? { sessionId: issued.sessionId }
+            : { rejection: "sessionEnded" };
     }
 
     /** Returns whether the session is still the current one, regardless of token expiry. */
@@ -205,7 +228,10 @@ export class ConnectionSharingAuthenticationProvider
             // Sessions stored by earlier builds also carry an access token, which is ignored.
             const stored = JSON.parse(serialized) as Partial<StoredSession>;
             if (typeof stored.id === "string") {
-                return { id: stored.id };
+                return {
+                    id: stored.id,
+                    createdAt: typeof stored.createdAt === "number" ? stored.createdAt : undefined,
+                };
             }
             this._logger.warn("Ignoring a malformed connection-sharing session.");
         } catch (error) {
@@ -213,6 +239,23 @@ export class ConnectionSharingAuthenticationProvider
         }
         return undefined;
     }
+}
+
+/**
+ * Reports a session being created, when the user allows an extension access, or removed, when the
+ * user signs out. Only fixed values and durations are sent: nothing that identifies the user, the
+ * session, or their connections.
+ */
+function sendSessionTelemetry(
+    change: "created" | "removed",
+    outcome: "succeeded" | "failed",
+    additionalProps: Record<string, string> = {},
+    additionalMeasurements: Record<string, number> = {},
+): void {
+    sendActionEvent(TelemetryViews.Connection, TelemetryActions.SharedConnectionsSession, {
+        additionalProps: { change, outcome, ...additionalProps },
+        additionalMeasurements,
+    });
 }
 
 /**
@@ -227,7 +270,7 @@ function toAuthenticationSession(
         id: stored.id,
         accessToken,
         account: {
-            id: Constants.connectionSharingAuthenticationProviderId,
+            id: Constants.sharedConnectionsAuthenticationProviderId,
             label: LocalizedConstants.ConnectionSharing.authenticationAccountLabel,
         },
         scopes: [],
