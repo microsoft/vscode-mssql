@@ -408,7 +408,10 @@ suite("SharedConnectionsService Tests", () => {
         );
         await new Promise((resolve) => setImmediate(resolve));
 
-        expect(loggerErrorStub).to.have.been.calledOnce;
+        expect(loggerErrorStub).to.have.been.calledWith(
+            "Failed to close a connection whose session ended while it was opening.",
+            sinon.match.instanceOf(Error).and(sinon.match.has("message", "disconnect failed")),
+        );
     });
 
     test("keeps a connection it opened when disconnecting it fails", async () => {
