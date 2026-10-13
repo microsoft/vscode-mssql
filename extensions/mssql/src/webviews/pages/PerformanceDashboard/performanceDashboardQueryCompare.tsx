@@ -285,8 +285,8 @@ export const PerformanceDashboardQueryCompare = ({ queryId }: { queryId: string 
                     ariaLabel={text.metric}
                     value={metric}
                     options={[
-                        { value: "cpu", label: metrics.cpuTime.name() },
-                        { value: "memory", label: metrics.memoryGrant.name() },
+                        { value: "cpu", label: text.compareCpu },
+                        { value: "memory", label: text.compareMemory },
                     ]}
                     onValueChange={(next) =>
                         setQuery({ compareMetric: next === "cpu" ? undefined : next })

@@ -4260,14 +4260,6 @@ export class LocConstants {
                 }),
             metric: l10n.t("Metric"),
             cpu: l10n.t("CPU"),
-            averageCpu: l10n.t("Average CPU"),
-            ofCpuSize: (size: string) =>
-                l10n.t({
-                    message: "of {0}",
-                    args: [size],
-                    comment: ["{0} is the CPU size, for example 8 vCores"],
-                }),
-            averageBusyCores: l10n.t("Average busy cores"),
             notAvailable: l10n.t("N/A"),
             highCpuQueries: l10n.t("High CPU usage queries"),
             queryId: l10n.t("Query ID"),
@@ -4328,6 +4320,33 @@ export class LocConstants {
             allocatedSize: l10n.t("Allocated size"),
             usedSizeOverTime: l10n.t("Used size over time"),
             compareTab: l10n.t("Compare"),
+            cpuUsed: l10n.t({
+                message: "CPU used",
+                comment: ["The CPU time used in a time range"],
+            }),
+            peak: l10n.t({ message: "Peak", comment: ["The highest value in a time range"] }),
+            peakPerInterval: (interval: string) =>
+                l10n.t({
+                    message: "Peak per {0}",
+                    args: [interval],
+                    comment: ["{0} is the length of a chart interval, for example hour"],
+                }),
+            valueAt: (value: string, time: string) =>
+                l10n.t({
+                    message: "{0} at {1}",
+                    args: [value, time],
+                    comment: ["{0} is a value, for example 1 sec; {1} is a date and time"],
+                }),
+            unitWithSize: (unit: string, size: string) =>
+                l10n.t({
+                    message: "{0} · {1}",
+                    args: [unit, size],
+                    comment: [
+                        "{0} is what a chart shows, for example CPU seconds per hour; {1} is a size, for example 16 logical CPUs",
+                    ],
+                }),
+            compareCpu: l10n.t({ message: "CPU", comment: ["A choice of measure: CPU time"] }),
+            compareMemory: l10n.t({ message: "Memory", comment: ["A choice of measure: memory"] }),
             resizeQueryText: l10n.t("Resize the query text"),
             compareRecent: l10n.t({
                 message: "Recent",

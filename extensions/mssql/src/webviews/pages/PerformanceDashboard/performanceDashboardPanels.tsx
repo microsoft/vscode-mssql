@@ -16,10 +16,9 @@ import {
     cpuBucketMs,
     cpuChartPoints,
     cpuCoreCount,
-    cpuSummary,
     cpuSummaryWindows,
 } from "./performanceDashboardCpuModel";
-import { formatMegabytes, formatNumber, formatPercentRounded } from "./performanceDashboardFormat";
+import { dateTimeFormat, formatMegabytes, formatNumber } from "./performanceDashboardFormat";
 import { sizeLabel } from "./performanceDashboardOverviewModel";
 import {
     ReadOnlyNotice,
@@ -80,35 +79,18 @@ function useReadContext() {
 export const CpuQueryStorePanel = ({ facts }: PanelProps) => {
     const classes = useStyles();
     const text = loc.performanceDashboard;
-    const { key, range, window, now, availableFrom } = useReadContext();
+    const { key, range, window, availableFrom } = useReadContext();
     const databaseFacts = facts?.facts;
     const cores = cpuCoreCount(databaseFacts);
 
-    const totals = useExtensionRequest(
-        GetMetricTotalsRequest.type,
-        { metric: "cpuTime", windows: cpuSummaryWindows(range, now) },
-        key,
-    );
     const consumption = useExtensionRequest(GetResourceConsumptionRequest.type, window, key);
 
-    const blocking = readStatusMessage(totals);
-    if (blocking) {
-        return <StatusBar message={blocking} />;
-    }
     const coresLabel =
         cores === undefined
             ? undefined
             : sizeLabel(
                   cores === databaseFacts?.vCores ? { vCores: cores } : { logicalCpus: cores },
               );
-    const totalsData = readData(totals);
-    const cpu = totalsData ? cpuSummary(totalsData.windows, cores, availableFrom) : undefined;
-    const average =
-        cpu?.averagePercent !== undefined
-            ? formatPercentRounded(cpu.averagePercent)
-            : cpu?.averageBusyCores !== undefined
-              ? formatNumber(cpu.averageBusyCores)
-              : text.notAvailable;
     // Without cores to divide by, a point is the cores in use: the CPU time over the interval.
     // Times the interval, it is the CPU seconds of the interval.
     const report = readData(consumption);
@@ -121,20 +103,31 @@ export const CpuQueryStorePanel = ({ facts }: PanelProps) => {
         cores !== undefined && intervalSeconds > 0
             ? (criticalPercent / 100) * cores * intervalSeconds
             : undefined;
+    // The figures are of the chart: the CPU seconds in the range, and its busiest interval.
+    const totalSeconds = points.reduce((sum, point) => sum + point.y, 0);
+    const peak = points.reduce<(typeof points)[number] | undefined>(
+        (top, point) => (point.y > (top?.y ?? 0) ? point : top),
+        undefined,
+    );
+    const interval = intervalSeconds > 0 ? intervalName(intervalSeconds / 60) : undefined;
+    const unit = interval ? text.cpuSecondsPerInterval(interval) : text.cpuSecondsAxis;
 
     return (
         <div className={classes.panel}>
-            {isReadOnly(totals) && <ReadOnlyNotice />}
+            {isReadOnly(consumption) && <ReadOnlyNotice />}
             <ChartCard
-                label={coresLabel ? text.averageCpu : text.averageBusyCores}
-                value={average}
-                detail={coresLabel ? text.ofCpuSize(coresLabel) : undefined}
-                unit={
-                    intervalSeconds > 0
-                        ? text.cpuSecondsPerInterval(intervalName(intervalSeconds / 60))
-                        : text.cpuSecondsAxis
-                }
-                loading={totals.loading && !cpu}>
+                label={text.cpuUsed}
+                value={report ? formatCpuSeconds(totalSeconds) : text.notAvailable}
+                figures={[
+                    {
+                        label: interval ? text.peakPerInterval(interval) : text.peak,
+                        value: peak
+                            ? text.valueAt(formatCpuSeconds(peak.y), dateTimeFormat.format(peak.x))
+                            : text.notAvailable,
+                    },
+                ]}
+                unit={coresLabel ? text.unitWithSize(unit, coresLabel) : unit}
+                loading={isFirstLoad(consumption)}>
                 <ThresholdChart
                     compact
                     title={text.capturedCpuSeconds}

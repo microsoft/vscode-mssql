@@ -5349,12 +5349,6 @@
         "comment": ["{0} is the number of virtual cores"]
     },
     "CPU": "CPU",
-    "Average CPU": "Average CPU",
-    "of {0}/{0} is the CPU size, for example 8 vCores": {
-        "message": "of {0}",
-        "comment": ["{0} is the CPU size, for example 8 vCores"]
-    },
-    "Average busy cores": "Average busy cores",
     "N/A": "N/A",
     "High CPU usage queries": "High CPU usage queries",
     "Query ID": "Query ID",
@@ -5401,6 +5395,36 @@
     "Average memory": "Average memory",
     "Allocated size": "Allocated size",
     "Used size over time": "Used size over time",
+    "CPU used/The CPU time used in a time range": {
+        "message": "CPU used",
+        "comment": ["The CPU time used in a time range"]
+    },
+    "Peak/The highest value in a time range": {
+        "message": "Peak",
+        "comment": ["The highest value in a time range"]
+    },
+    "Peak per {0}/{0} is the length of a chart interval, for example hour": {
+        "message": "Peak per {0}",
+        "comment": ["{0} is the length of a chart interval, for example hour"]
+    },
+    "{0} at {1}/{0} is a value, for example 1 sec; {1} is a date and time": {
+        "message": "{0} at {1}",
+        "comment": ["{0} is a value, for example 1 sec; {1} is a date and time"]
+    },
+    "{0} · {1}/{0} is what a chart shows, for example CPU seconds per hour; {1} is a size, for example 16 logical CPUs": {
+        "message": "{0} · {1}",
+        "comment": [
+            "{0} is what a chart shows, for example CPU seconds per hour; {1} is a size, for example 16 logical CPUs"
+        ]
+    },
+    "CPU/A choice of measure: CPU time": {
+        "message": "CPU",
+        "comment": ["A choice of measure: CPU time"]
+    },
+    "Memory/A choice of measure: memory": {
+        "message": "Memory",
+        "comment": ["A choice of measure: memory"]
+    },
     "Resize the query text": "Resize the query text",
     "Recent/The recent period of a comparison": {
         "message": "Recent",
