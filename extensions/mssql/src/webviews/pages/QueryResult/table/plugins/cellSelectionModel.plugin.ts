@@ -26,7 +26,7 @@ import {
     isMetaOrCtrlKeyPressed,
 } from "../../../../common/utils";
 import { WebviewAction, WebviewKeyBindings } from "../../../../../sharedInterfaces/webview";
-import { eventMatchesShortcut } from "../../../../common/keyboardUtils";
+import { eventMatchesKey, eventMatchesShortcut } from "../../../../common/keyboardUtils";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -732,7 +732,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
             }
         } else {
             // Basic keyboard support (e.g. notebook renderer without custom keybindings)
-            if (isMetaOrCtrlKeyPressed(e) && keyCode === KeyCode.KeyA) {
+            if (isMetaOrCtrlKeyPressed(e) && eventMatchesKey(e, { key: "a", code: KeyCode.KeyA })) {
                 await this.handleSelectAll();
                 isHandled = true;
             } else if (e.shiftKey && !isMetaOrCtrlKeyPressed(e)) {

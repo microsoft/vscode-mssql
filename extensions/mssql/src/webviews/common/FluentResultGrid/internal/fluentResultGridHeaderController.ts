@@ -45,16 +45,24 @@ function updateFluentResultGridHeaderButtonState({
     const filterButton = headerNode?.querySelector<HTMLButtonElement>(".slick-header-filterbutton");
     const sortButton = headerNode?.querySelector<HTMLButtonElement>(".slick-header-sortbutton");
     const filterValues = filters[columnId]?.filterValues ?? [];
-    filterButton?.classList.toggle("filtered", filterValues.length > 0);
+    const isFiltered = filterValues.length > 0;
+    filterButton?.classList.toggle("filtered", isFiltered);
 
     sortButton?.classList.remove("sorted-asc", "sorted-desc");
+    let sortDirection = "none";
     if (sort?.columnId === columnId) {
         if (sort.direction === "ASC") {
             sortButton?.classList.add("sorted-asc");
+            sortDirection = "asc";
         } else if (sort.direction === "DESC") {
             sortButton?.classList.add("sorted-desc");
+            sortDirection = "desc";
         }
     }
+
+    // Sort and filter state readable without coupling to class names.
+    headerNode?.setAttribute("data-sort-direction", sortDirection);
+    headerNode?.setAttribute("data-filtered", String(isFiltered));
 }
 
 export function isFluentResultGridResizeHandleEvent(eventData: MouseEvent | undefined): boolean {

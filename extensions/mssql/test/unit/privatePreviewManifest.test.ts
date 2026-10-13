@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
+import { collectConfigurationProperties, ConfigurationContribution } from "./manifestUtils";
 
 const SQL_DATA_PLANE_GATE =
     "mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled";
@@ -30,9 +31,9 @@ interface ExtensionPackageJson {
     contributes: {
         commands: CommandContribution[];
         menus: { commandPalette: CommandPaletteContribution[] };
-        configuration: {
-            properties: Record<string, { default?: unknown }>;
-        };
+        configuration:
+            | ConfigurationContribution<{ default?: unknown }>
+            | ConfigurationContribution<{ default?: unknown }>[];
     };
 }
 
@@ -42,7 +43,7 @@ suite("Private preview manifest", () => {
     ) as ExtensionPackageJson;
 
     test("keeps the umbrella and current private-preview features off by default", () => {
-        const settings = packageJson.contributes.configuration.properties;
+        const settings = collectConfigurationProperties(packageJson.contributes.configuration);
 
         expect(settings["mssql.enableExperimentalFeatures"]?.default).to.equal(false);
         expect(settings["mssql.sqlDataPlane.enabled"]?.default).to.equal(false);

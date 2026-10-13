@@ -329,6 +329,92 @@ suite("Status View Tests", () => {
         });
     });
 
+    suite("Server process ID status bar tests", () => {
+        const fileUri = "test_uri";
+        let showServerProcessId: boolean | undefined;
+
+        setup(() => {
+            showServerProcessId = undefined;
+            sandbox.stub(vscode.window, "createStatusBarItem").callsFake(() => {
+                return createMockStatusBarItem();
+            });
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(fileUri);
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: sandbox.stub().callsFake((section: string, defaultValue: unknown) => {
+                    if (section === Constants.configStatusBarShowServerProcessId) {
+                        return showServerProcessId ?? defaultValue;
+                    }
+                    return defaultValue;
+                }),
+            } as unknown as vscode.WorkspaceConfiguration);
+        });
+
+        test("setServerProcessId hides the SPID by default", () => {
+            const statusView = new StatusView();
+            const statusServerProcessId = statusView["getStatusBar"](fileUri).statusServerProcessId;
+
+            statusView.setServerProcessId(fileUri, "57");
+
+            expect(statusServerProcessId.text).to.equal(
+                LocalizedConstants.StatusBar.serverProcessIdLabel("57"),
+            );
+            expect(statusServerProcessId.hide).to.have.been.called;
+            expect(statusServerProcessId.show).to.not.have.been.called;
+            statusView.dispose();
+        });
+
+        test("setServerProcessId shows the SPID when showServerProcessId is enabled", () => {
+            showServerProcessId = true;
+            const statusView = new StatusView();
+            const statusServerProcessId = statusView["getStatusBar"](fileUri).statusServerProcessId;
+
+            statusView.setServerProcessId(fileUri, "57");
+
+            expect(statusServerProcessId.text).to.equal(
+                LocalizedConstants.StatusBar.serverProcessIdLabel("57"),
+            );
+            expect(statusServerProcessId.show).to.have.been.called;
+            statusView.dispose();
+        });
+
+        test("setNotConnected clears the SPID", () => {
+            showServerProcessId = true;
+            const statusView = new StatusView();
+            const statusServerProcessId = statusView["getStatusBar"](fileUri).statusServerProcessId;
+            statusView.setServerProcessId(fileUri, "57");
+
+            statusView.setNotConnected(fileUri);
+
+            expect(statusServerProcessId.text).to.equal("");
+            expect(statusServerProcessId.hide).to.have.been.called;
+            statusView.dispose();
+        });
+
+        test("enabling showServerProcessId shows the SPID without reconnecting", () => {
+            let onDidChangeConfigurationHandler: (e: vscode.ConfigurationChangeEvent) => void;
+            sandbox
+                .stub(vscode.workspace, "onDidChangeConfiguration")
+                .callsFake((handler: (e: vscode.ConfigurationChangeEvent) => void) => {
+                    onDidChangeConfigurationHandler = handler;
+                    return new vscode.Disposable(() => undefined);
+                });
+            const statusView = new StatusView();
+            const statusServerProcessId = statusView["getStatusBar"](fileUri).statusServerProcessId;
+            statusView.setServerProcessId(fileUri, "57");
+            expect(statusServerProcessId.show).to.not.have.been.called;
+
+            showServerProcessId = true;
+            onDidChangeConfigurationHandler({
+                affectsConfiguration: (section: string) =>
+                    section ===
+                    `${Constants.extensionConfigSectionName}.${Constants.configStatusBarShowServerProcessId}`,
+            } as vscode.ConfigurationChangeEvent);
+
+            expect(statusServerProcessId.show).to.have.been.called;
+            statusView.dispose();
+        });
+    });
+
     suite("Colorization tests", () => {
         let getConfigurationStub: sinon.SinonStub;
 

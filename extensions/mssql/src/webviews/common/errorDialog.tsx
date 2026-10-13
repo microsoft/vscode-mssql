@@ -12,26 +12,18 @@ import {
     DialogSurface,
     DialogTitle,
     makeStyles,
-    shorthands,
 } from "@fluentui/react-components";
-import { ErrorCircleRegular } from "@fluentui/react-icons";
 import React from "react";
+import { ErrorMessageDetails } from "./errorMessageDetails";
 
 const useStyles = makeStyles({
     dialogSurface: {
         minWidth: "320px",
-        maxWidth: "420px",
-    },
-    title: {
-        display: "flex",
-        alignItems: "center",
-        columnGap: "8px",
-    },
-    icon: {
-        fontSize: "32px",
+        width: "min(520px, calc(100vw - 32px))",
+        maxWidth: "min(520px, calc(100vw - 32px))",
     },
     content: {
-        ...shorthands.marginBlock("16px", "0"),
+        marginBlock: "16px 0",
     },
 });
 
@@ -55,11 +47,10 @@ export const ErrorDialog: React.FC<ErrorDialogProps> = ({
         <Dialog open={open} modalType="modal" inertTrapFocus>
             <DialogSurface className={classes.dialogSurface}>
                 <DialogBody>
-                    <DialogTitle className={classes.title}>
-                        <ErrorCircleRegular className={classes.icon} />
-                        {title}
-                    </DialogTitle>
-                    <DialogContent className={classes.content}>{message}</DialogContent>
+                    <DialogTitle>{title}</DialogTitle>
+                    <DialogContent className={classes.content}>
+                        <ErrorMessageDetails message={message} />
+                    </DialogContent>
                     <DialogActions>
                         <Button appearance="primary" onClick={onRetry}>
                             {retryLabel}

@@ -16,6 +16,9 @@ import {
 } from "./launchVscodeWithMsSqlExt";
 import { hasTestFailure, screenshotOnFailure } from "./screenshotUtils";
 
+/** Budget for launching VS Code and staging a query; see the beforeAll hook below. */
+const STAGING_TIMEOUT_MS = 5 * 60 * 1000;
+
 export type VsCodeLaunchContext = {
     electronApp: VsCodeAppHandle;
     page: Page;
@@ -60,6 +63,13 @@ export function useSharedVsCodeLifecycle(
     };
 
     test.beforeAll(async () => {
+        // A hook's timeout defaults to the project's per-test timeout, which is sized for a single
+        // grid interaction. This one launches VS Code and then stages a query, and
+        // executeQueryAndWait alone allows two minutes -- so without its own budget the hook dies
+        // at the test timeout before the wait it contains can even expire, taking the whole file
+        // with it. Set here rather than by raising the project timeout, which would also stop
+        // every ordinary test from failing fast.
+        test.setTimeout(STAGING_TIMEOUT_MS);
         context = await launchVsCodeWithMssqlExtension(hooks.launchOptions);
         await hooks.afterLaunch?.(context);
     });

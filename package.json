@@ -9,6 +9,7 @@
         "build:mssql:prod": "node scripts/workspaces.mjs build --target mssql --prod",
         "watch": "node scripts/workspaces.mjs watch",
         "test": "node scripts/workspaces.mjs test",
+        "test:repo": "node --test scripts/*.test.mjs",
         "smoketest": "node scripts/workspaces.mjs smoketest",
         "lint": "node scripts/workspaces.mjs lint",
         "lint:repo": "eslint ./scripts",

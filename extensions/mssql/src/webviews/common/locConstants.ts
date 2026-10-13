@@ -65,6 +65,9 @@ export class LocConstants {
             dismiss: l10n.t("Dismiss"),
             expand: l10n.t("Expand"),
             collapse: l10n.t("Collapse"),
+            showMore: l10n.t("Show more"),
+            showLess: l10n.t("Show less"),
+            copyErrorDetails: l10n.t("Copy error details"),
             error: l10n.t("Error"),
             getStarted: l10n.t("Get Started"),
             back: l10n.t("Back"),
@@ -989,6 +992,88 @@ export class LocConstants {
             toggleTooltips: l10n.t("Toggle Tooltips"),
             properties: l10n.t("Properties"),
             executionPlanToolbar: l10n.t("Execution plan toolbar"),
+            comparePlan: l10n.t("Compare Execution Plan"),
+            compareExecutionPlans: l10n.t("Compare Execution Plans"),
+            addExecutionPlan: l10n.t("Add execution plan"),
+            replaceExecutionPlan: l10n.t("Replace execution plan"),
+            resetZoom: l10n.t("Reset zoom"),
+            swapPlans: l10n.t("Swap plans"),
+            replaceTopPlan: l10n.t("Replace top plan…"),
+            replaceBottomPlan: l10n.t("Replace bottom plan…"),
+            replaceLeftPlan: l10n.t("Replace left plan…"),
+            replaceRightPlan: l10n.t("Replace right plan…"),
+            zoomControls: l10n.t("Zoom controls"),
+            toggleMinimap: l10n.t("Toggle Minimap"),
+            toggleSimilarAreas: l10n.t("Toggle Similar Areas"),
+            syncZoomAndScroll: l10n.t("Sync Zoom and Scroll"),
+            resizePlans: l10n.t("Resize plans"),
+            copyQuery: l10n.t("Copy Query"),
+            dockToSide: l10n.t("Dock to the side"),
+            dockToBottom: l10n.t("Dock to the bottom"),
+            minimap: l10n.t("Minimap"),
+            planLayout: l10n.t("Plan layout"),
+            sideBySide: l10n.t("Side by side"),
+            stacked: l10n.t("Stacked"),
+            findPrimaryPlan: l10n.t("Find in primary plan"),
+            findSecondaryPlan: l10n.t("Find in added plan"),
+            primaryPlan: l10n.t("Primary plan"),
+            addedPlan: l10n.t("Added plan"),
+            choosePlanToCompare: l10n.t("Choose an execution plan to compare."),
+            comparisonLoading: l10n.t("Loading similar areas in compared plans..."),
+            comparisonProperties: l10n.t("Comparison properties"),
+            equivalentProperties: (count: number) =>
+                l10n.t({
+                    message: "Equivalent Properties ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of properties with the same value in both plans"],
+                }),
+            differentProperties: (count: number) =>
+                l10n.t({
+                    message: "Different Properties ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of properties whose values differ between plans"],
+                }),
+            propertyNotInPlan: l10n.t("Not in this plan"),
+            topOperation: (name: string) =>
+                l10n.t({
+                    message: "Top operation: {0}",
+                    args: [name],
+                    comment: ["{0} is an execution plan operation name"],
+                }),
+            bottomOperation: (name: string) =>
+                l10n.t({
+                    message: "Bottom operation: {0}",
+                    args: [name],
+                    comment: ["{0} is an execution plan operation name"],
+                }),
+            leftOperation: (name: string) =>
+                l10n.t({
+                    message: "Left operation: {0}",
+                    args: [name],
+                    comment: ["{0} is an execution plan operation name"],
+                }),
+            rightOperation: (name: string) =>
+                l10n.t({
+                    message: "Right operation: {0}",
+                    args: [name],
+                    comment: ["{0} is an execution plan operation name"],
+                }),
+            valueTopPlan: l10n.t("Value (Top Plan)"),
+            valueBottomPlan: l10n.t("Value (Bottom Plan)"),
+            valueLeftPlan: l10n.t("Value (Left Plan)"),
+            valueRightPlan: l10n.t("Value (Right Plan)"),
+            comparison: l10n.t("Comparison"),
+            notEqual: l10n.t("Not equal to"),
+            lessThan: l10n.t("Less than"),
+            greaterThan: l10n.t("Greater than"),
+            propertyFilter: l10n.t("Filter comparison properties..."),
+            selectStatement: l10n.t("Select statement"),
+            statementNumber: (index: number) =>
+                l10n.t({
+                    message: "Statement {0}",
+                    args: [index],
+                    comment: ["{0} is an execution plan statement number"],
+                }),
             name: l10n.t("Name"),
             value: l10n.t("Value"),
             importance: l10n.t("Importance"),
@@ -1001,9 +1086,69 @@ export class LocConstants {
             previous: l10n.t("Previous"),
             expand: l10n.t("Expand"),
             collapse: l10n.t("Collapse"),
+            viewFullValue: (propertyName: string) =>
+                l10n.t({
+                    message: "View full value of {0}",
+                    args: [propertyName],
+                    comment: ["{0} is the name of an execution plan property"],
+                }),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
             executionPlanRendererError: l10n.t("This execution plan could not be rendered."),
+            live: l10n.t({
+                message: "Live",
+                comment: ["Badge for the execution plan of a currently running query."],
+            }),
+            liveStatisticsUnavailable: l10n.t("Unavailable"),
+            liveDurationSeconds: (seconds: string) =>
+                l10n.t({
+                    message: "{0} s",
+                    args: [seconds],
+                    comment: [
+                        "{0} is a localized elapsed duration in seconds; s is the abbreviation for seconds.",
+                    ],
+                }),
+            liveDurationClock: (hours: string, minutes: string, seconds: string) =>
+                l10n.t({
+                    message: "{0}:{1}:{2}",
+                    args: [hours, minutes, seconds],
+                    comment: [
+                        "Elapsed duration, not a time of day: {0} is total hours (may exceed 24), {1} is two-digit minutes, and {2} is two-digit seconds. All numbers are already localized.",
+                    ],
+                }),
+            liveElapsedTime: (duration: string) => l10n.t("Elapsed: {0}", duration),
+            liveRows: (actual: string, estimated: string) =>
+                l10n.t({
+                    message: "Rows: {0} of {1}",
+                    args: [actual, estimated],
+                    comment: [
+                        "{0} is the actual processed row count; {1} is the optimizer's estimated total row count. Counts are already localized and may be abbreviated.",
+                    ],
+                }),
+            liveRowsWithPercentage: (actual: string, estimated: string, percentage: string) =>
+                l10n.t({
+                    message: "Rows: {0} of {1} ({2})",
+                    args: [actual, estimated, percentage],
+                    comment: [
+                        "{0} is the actual processed row count; {1} is the optimizer's estimated total row count; {2} is their ratio as a localized percentage, which can exceed 100%.",
+                    ],
+                }),
+            liveEstimatedProgress: (percentage: string) =>
+                l10n.t("Estimated query progress: {0}", percentage),
+            liveEstimatedProgressLessThan: (percentage: string) =>
+                l10n.t({
+                    message: "Estimated query progress: <{0}",
+                    args: [percentage],
+                    comment: [
+                        "{0} is a localized percentage. The < symbol means progress is positive but less than that percentage.",
+                    ],
+                }),
+            liveEstimatedProgressDescription: l10n.t(
+                "Estimated from pipeline input rows and plan costs adjusted using observed row counts. Inaccurate row estimates can affect progress; it stays below 100% while the query is running.",
+            ),
+            livePlanDescription: l10n.t(
+                "Live plan of the running statement. Row counts refresh while it runs.",
+            ),
             executionPlanGraph: (planNumber: number) =>
                 l10n.t({
                     message: "Execution plan {0}, use arrow keys to navigate between nodes",

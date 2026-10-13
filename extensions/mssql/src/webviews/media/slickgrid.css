@@ -222,6 +222,11 @@
     background-color: var(--vscode-list-alternatingBackground, rgba(128, 128, 128, 0.05));
 }
 
+/* ── Results grid: right-align numeric columns ── */
+.results-grid--right-align-numbers .slick-cell.numeric-cell {
+    text-align: right;
+}
+
 /* ── Results grid: grid line visibility ── */
 /* All four modes apply an explicit class. "both" overrides the default silver
    borders with VS Code theme colors; other modes additionally clear borders

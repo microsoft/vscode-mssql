@@ -12,6 +12,7 @@ import { getCloudProviderSettings } from "../azure/providerSettings";
 import { getErrorMessage } from "../utils/utils";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { getLogger } from "./logger";
+import { DatabaseEngineEdition } from "../databaseProjects/common/enums";
 
 const logger = getLogger("ConnectionInfo");
 
@@ -376,6 +377,24 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
  */
 export function isAzureSqlDbCompatible(serverTypes: ServerType[]): boolean {
     return serverTypes.includes(ServerType.Azure) || serverTypes.includes(ServerType.Fabric);
+}
+
+/**
+ * Identifies Azure SQL Database, including local SqlDbDev containers, for feature gates
+ * such as Restore. Centralizing detection keeps these gates easy to find and remove as
+ * support changes. Engine edition takes precedence because containers can use localhost;
+ * hostname detection is only a fallback when the edition is missing or unknown.
+ */
+export function isAzureSqlDatabaseConnection(
+    connection: IConnectionInfo,
+    engineEdition?: number,
+): boolean {
+    if (engineEdition !== undefined && engineEdition !== DatabaseEngineEdition.Unknown) {
+        return engineEdition === DatabaseEngineEdition.SqlDatabase;
+    }
+
+    const serverTypes = getServerTypes(connection);
+    return serverTypes.includes(ServerType.Azure) && serverTypes.includes(ServerType.Sql);
 }
 
 /**

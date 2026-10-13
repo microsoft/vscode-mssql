@@ -88,6 +88,13 @@ export const defaultSchemaName = "dbo";
 
 //#region Extension settings
 export const autoCreateFoldersSetting = "sqlDatabaseProjects.autoCreateFolders";
+export const findFileBehaviorSetting = "sqlDatabaseProjects.findFileBehavior";
+
+/** Values of the {@link findFileBehaviorSetting} setting. */
+export enum FindFileBehavior {
+    RevealAndOpen = "revealAndOpen",
+    Reveal = "reveal",
+}
 //#endregion
 
 //#region SqlProj file XML names

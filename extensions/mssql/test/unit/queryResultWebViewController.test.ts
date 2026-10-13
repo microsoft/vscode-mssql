@@ -136,6 +136,14 @@ suite("QueryResultWebviewController", () => {
         expect(controller.getGridSettingsConfig().freezeFirstColumnByDefault).to.be.true;
     });
 
+    test("keeps right-aligned numbers disabled by default and reads an explicit opt-in", () => {
+        expect(controller.getGridSettingsConfig().rightAlignNumbers).to.be.false;
+
+        configuration.get.withArgs(Constants.configResultsGridRightAlignNumbers).returns(true);
+
+        expect(controller.getGridSettingsConfig().rightAlignNumbers).to.be.true;
+    });
+
     test("moves current result to a tab when the setting is enabled through configuration change", async () => {
         openResultsInTabByDefault = true;
         const createPanelControllerStub = sandbox

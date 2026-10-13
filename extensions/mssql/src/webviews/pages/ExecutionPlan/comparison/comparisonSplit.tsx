@@ -1,0 +1,104 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import {
+    KeyboardEvent as ReactKeyboardEvent,
+    PointerEvent as ReactPointerEvent,
+    ReactNode,
+    useRef,
+    useState,
+} from "react";
+
+import { locConstants } from "../../../common/locConstants";
+import { ComparisonOrientation } from "./comparisonModel";
+
+const MIN_RATIO = 0.2;
+const MAX_RATIO = 0.8;
+const KEYBOARD_STEP = 0.05;
+
+function clampRatio(ratio: number): number {
+    return Math.min(MAX_RATIO, Math.max(MIN_RATIO, ratio));
+}
+
+/** Two panes, stacked or side by side, with a draggable sash between them. */
+export function ComparisonSplit({
+    orientation,
+    first,
+    second,
+}: {
+    orientation: ComparisonOrientation;
+    first: ReactNode;
+    second: ReactNode;
+}) {
+    const [ratio, setRatio] = useState(0.5);
+    const splitRef = useRef<HTMLDivElement>(null);
+    const draggingRef = useRef(false);
+    const stacked = orientation === "stacked";
+
+    const resizeFromPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
+        if (!draggingRef.current || !splitRef.current) {
+            return;
+        }
+        const bounds = splitRef.current.getBoundingClientRect();
+        setRatio(
+            clampRatio(
+                stacked
+                    ? (event.clientY - bounds.top) / bounds.height
+                    : (event.clientX - bounds.left) / bounds.width,
+            ),
+        );
+    };
+    const resizeFromKeyboard = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+        const step =
+            event.key === (stacked ? "ArrowUp" : "ArrowLeft")
+                ? -KEYBOARD_STEP
+                : event.key === (stacked ? "ArrowDown" : "ArrowRight")
+                  ? KEYBOARD_STEP
+                  : 0;
+        if (step !== 0) {
+            event.preventDefault();
+            setRatio((current) => clampRatio(current + step));
+        }
+    };
+
+    return (
+        <div
+            ref={splitRef}
+            className={`execution-plan-comparison-split execution-plan-comparison-split-${stacked ? "stacked" : "side-by-side"}`}
+            onPointerMove={resizeFromPointer}
+            onPointerUp={(event) => event.currentTarget.releasePointerCapture(event.pointerId)}
+            // Fires after a release, a cancel, or anything else that ends the capture, so a
+            // cancelled drag does not keep resizing as the pointer moves.
+            onLostPointerCapture={() => {
+                draggingRef.current = false;
+            }}>
+            <div
+                className="execution-plan-comparison-split-pane"
+                style={{ flexBasis: `${ratio * 100}%` }}>
+                {first}
+            </div>
+            <div
+                className="execution-plan-comparison-sash"
+                role="separator"
+                tabIndex={0}
+                aria-label={locConstants.executionPlan.resizePlans}
+                aria-orientation={stacked ? "horizontal" : "vertical"}
+                aria-valuemin={MIN_RATIO * 100}
+                aria-valuemax={MAX_RATIO * 100}
+                aria-valuenow={Math.round(ratio * 100)}
+                onKeyDown={resizeFromKeyboard}
+                onPointerDown={(event) => {
+                    draggingRef.current = true;
+                    event.currentTarget.parentElement?.setPointerCapture(event.pointerId);
+                }}
+            />
+            <div
+                className="execution-plan-comparison-split-pane"
+                style={{ flexBasis: `${(1 - ratio) * 100}%` }}>
+                {second}
+            </div>
+        </div>
+    );
+}

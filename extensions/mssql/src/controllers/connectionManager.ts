@@ -1846,6 +1846,7 @@ export default class ConnectionManager {
         connectionInfo.errorMessage = undefined;
 
         void this.statusView.connectSuccess(fileUri, newCredentials, connectionInfo.serverInfo);
+        this.statusView.setServerProcessId(fileUri, result.serverConnectionId);
 
         this.statusView.languageServiceStatusChanged(
             fileUri,
