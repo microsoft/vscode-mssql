@@ -47,6 +47,8 @@ export interface FluentResultGridControllerResult {
     dataView: FluentResultGridDataView<FluentResultGridDataRow>;
     dataViewKey: number;
     displayedRowCount: number;
+    /** Index of the last frozen column, or -1 when nothing is frozen. */
+    frozenColumnIndex: number;
     clearSelection: () => void;
     focusGrid: () => void;
     gridOptions: GridOption;

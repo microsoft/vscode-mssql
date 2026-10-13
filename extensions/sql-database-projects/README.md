@@ -2,6 +2,9 @@
 
 Database source control where objects are stored as code, integrating with build-time validation and dynamically calculated deployments for database DevOps. Cross-platform and compatible with Visual Studio SQL Server Data Tools (SSDT) for SQL Server, Azure SQL, and Fabric SQL.
 
+> SQL Database Projects functionality is now included in the `SQL Server (mssql)` extension. This
+> extension is retained temporarily as an inert compatibility package for existing installations.
+
 ## Overview
 
 SQL Database Projects for Visual Studio Code provides a way to design, edit, and publish objects to SQL databases from a source controlled project. For a complete development workflow, build and deploy your database projects in CI/CD pipelines, such as [GitHub Actions](https://github.com/azure/sql-action) or Azure DevOps.

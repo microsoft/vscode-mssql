@@ -430,10 +430,14 @@ export const QueryResultSummaryFooter = ({
     }
 
     return (
-        <div className={classes.footer} role="status" aria-live={isExecuting ? "off" : "polite"}>
+        <div
+            className={classes.footer}
+            role="status"
+            aria-live={isExecuting ? "off" : "polite"}
+            data-testid="summary-footer">
             {!hideMetrics && (
                 <div className={classes.metricsGroup}>
-                    <div className={classes.metric}>
+                    <div className={classes.metric} data-metric="rows">
                         <span className={classes.label}>
                             {locConstants.queryResult.rowsAffectedLabel}
                         </span>
@@ -446,7 +450,7 @@ export const QueryResultSummaryFooter = ({
                     <span className={classes.divider} aria-hidden="true">
                         |
                     </span>
-                    <div className={classes.metric}>
+                    <div className={classes.metric} data-metric="time">
                         <span className={classes.label}>{locConstants.queryResult.timeLabel}</span>
                         <Tooltip
                             withArrow
@@ -460,7 +464,7 @@ export const QueryResultSummaryFooter = ({
                 </div>
             )}
             <div className={classes.spacer} />
-            <div className={classes.selectionSegment}>
+            <div className={classes.selectionSegment} data-metric="selection">
                 <span className={classes.divider} aria-hidden="true">
                     |
                 </span>

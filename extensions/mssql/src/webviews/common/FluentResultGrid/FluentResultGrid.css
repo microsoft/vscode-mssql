@@ -477,6 +477,12 @@
     pointer-events: none !important;
 }
 
+/* Cells are flex containers, so alignment is done with justify-content rather than text-align. */
+.results-grid--right-align-numbers .fluent-result-grid .slick-cell.numeric-cell,
+.fluent-result-grid.results-grid--right-align-numbers .slick-cell.numeric-cell {
+    justify-content: flex-end;
+}
+
 .results-grid--gridlines-horizontal .fluent-result-grid .slick-cell {
     border-right-color: transparent;
     border-bottom-color: var(--fluent-result-grid-border-color);

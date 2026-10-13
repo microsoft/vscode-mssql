@@ -20,6 +20,7 @@ void run(
                 DacpacDialog: "src/webviews/pages/DacpacDialog/index.tsx",
                 deployment: "src/webviews/pages/Deployment/index.tsx",
                 executionPlan: "src/webviews/pages/ExecutionPlan/index.tsx",
+                executionPlanComparison: "src/webviews/pages/ExecutionPlan/comparison/index.tsx",
                 flatFileImport: "src/webviews/pages/FlatFileImport/index.tsx",
                 tableDesigner: "src/webviews/pages/TableDesigner/index.tsx",
                 objectExplorerFilter: "src/webviews/pages/ObjectExplorerFilter/index.tsx",

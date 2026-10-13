@@ -15,7 +15,6 @@ export const changelogConfig: ChangelogWebviewState = {
             {
                 title: locConstants.Changelog.gettingStartedPageTitle,
                 description: locConstants.Changelog.gettingStartedPageDescription,
-                isPreview: true,
             },
             {
                 title: locConstants.Changelog.sqlFormatterTitle,

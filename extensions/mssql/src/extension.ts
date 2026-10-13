@@ -49,7 +49,13 @@ import { IAccountStore, AccountStore } from "./azure/accountStore";
 import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
 import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
-import { sqlDatabaseProjectsExtensionId } from "./constants/constants";
+import { extensionId } from "./constants/constants";
+import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
+import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
+import { ExecutionPlanComparisonContribution } from "./controllers/executionPlanComparisonContribution";
+import { showLegacyProjectExtensionWarning } from "./legacyProjectExtensionWarning";
+import { logger } from "./models/logger";
+import { getErrorMessage } from "./utils/utils";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -70,6 +76,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
         builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
         builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
+        builder.define(ISqlProjectLookup, new ServiceDescriptor(SqlProjectLookup));
 
         const instantiationService = builder.seal();
         context.subscriptions.push(instantiationService);
@@ -141,6 +148,15 @@ class MssqlActivation {
         registerSqlDataPlane(context);
         await controller.activate();
 
+        context.subscriptions.push(
+            this._instantiationService.createInstance(SqlProjectRefactoringContribution),
+            this._instantiationService.createInstance(
+                ExecutionPlanComparisonContribution,
+                controller.executionPlanService,
+                controller.sqlDocumentService,
+            ),
+        );
+
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
         registerSqlToolsMcpServer(
             context,
@@ -184,17 +200,16 @@ class MssqlActivation {
         await OverviewWebviewController.showWelcomeOnExtensionUpdate(context);
 
         const dataWorkspaceApi = registerDataWorkspace(context);
-        const sqlProjectsShell = vscode.extensions.getExtension(sqlDatabaseProjectsExtensionId);
-        if (dataWorkspaceApi && sqlProjectsShell?.packageJSON.mssqlRuntime === true) {
-            initializeDatabaseProjectsServices(
-                createMssqlInternalApi(controller),
-                dataWorkspaceApi,
+        initializeDatabaseProjectsServices(createMssqlInternalApi(controller), dataWorkspaceApi);
+        const provider = await registerDatabaseProjects(context);
+        context.subscriptions.push(ProjectProviderRegistry.registerProvider(provider, extensionId));
+        dataWorkspaceApi.refreshProjectsTree();
+
+        void showLegacyProjectExtensionWarning().catch((error) => {
+            logger.error(
+                `Failed to show the legacy project extension warning: ${getErrorMessage(error)}`,
             );
-            const provider = await registerDatabaseProjects(context);
-            context.subscriptions.push(
-                ProjectProviderRegistry.registerProvider(provider, sqlDatabaseProjectsExtensionId),
-            );
-        }
+        });
 
         registerPerfApi(context);
         Perf.setActivationState("activated");

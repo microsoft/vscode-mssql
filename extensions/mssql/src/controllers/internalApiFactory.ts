@@ -6,10 +6,22 @@
 import * as vscodeMssql from "vscode-mssql";
 import { IConnectionInfo } from "vscode-mssql";
 import MainController from "./mainController";
+import { loadComparisonGraphs } from "./executionPlanComparisonWebviewController";
+import { openExecutionPlanComparisonWebview } from "./sharedExecutionPlanUtils";
 import * as utils from "../models/utils";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
-/** Internal services used by the in-process SQL Database Projects feature. */
+/** A showplan to open in an execution plan comparison. */
+export interface ExecutionPlanToCompare {
+    /** Display name, such as the plan's file name. */
+    name: string;
+    /** Showplan XML, as saved in a .sqlplan file. */
+    planXml: string;
+    /** Statement to show first. Defaults to the first statement. */
+    statementIndex?: number;
+}
+
+/** Internal services used by in-process features such as SQL Database Projects. */
 export interface MssqlInternalApi {
     readonly dacFx: vscodeMssql.IDacFxService;
     readonly schemaCompare: vscodeMssql.ISchemaCompareService;
@@ -21,6 +33,15 @@ export interface MssqlInternalApi {
     listDatabases(connectionUri: string): Promise<string[]>;
     getDatabaseNameFromTreeNode(node: vscodeMssql.ITreeNodeInfo): string;
     getServerInfo(connectionInfo: IConnectionInfo): vscodeMssql.IServerInfo;
+    /**
+     * Opens an execution plan comparison with the first plan in the primary pane and the second
+     * in the secondary one. Panes without a plan start empty, for the user to add one. Rejects
+     * when a plan cannot be parsed.
+     */
+    compareExecutionPlans(
+        first?: ExecutionPlanToCompare,
+        second?: ExecutionPlanToCompare,
+    ): Promise<void>;
 }
 
 /**
@@ -65,6 +86,24 @@ export function createMssqlInternalApi(controller: MainController): MssqlInterna
         azureResourceService: controller.azureResourceService,
         getServerInfo: (connectionInfo: IConnectionInfo) => {
             return controller.connectionManager.getServerInfo(connectionInfo);
+        },
+        compareExecutionPlans: async (first, second) => {
+            const load = async (plan: ExecutionPlanToCompare | undefined) =>
+                plan && {
+                    name: plan.name,
+                    graphs: await loadComparisonGraphs(
+                        controller.executionPlanService,
+                        plan.planXml,
+                    ),
+                    graphIndex: plan.statementIndex ?? 0,
+                };
+            const [primary, secondary] = await Promise.all([load(first), load(second)]);
+            openExecutionPlanComparisonWebview(
+                controller.context,
+                controller.executionPlanService,
+                controller.sqlDocumentService,
+                { primary, secondary },
+            );
         },
     };
 }

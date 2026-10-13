@@ -76,6 +76,7 @@ export interface QueryExecutionCompleteEvent {
     totalElapsedMilliseconds: number;
     hasError: boolean;
     isFullExecutionComplete: boolean;
+    isCanceled?: boolean;
     isRefresh?: boolean;
 }
 
@@ -117,13 +118,18 @@ export default class QueryRunner {
     private _batchSets: BatchSummary[] = [];
     private _batchSetMessages: { [batchId: number]: IResultMessage[] } = {};
     private _isExecuting: boolean;
+    private _isCanceled = false;
     private _totalElapsedMilliseconds: number;
     private _hasCompleted: boolean;
     private _isSqlCmd: boolean = false;
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
+    private _queryDocumentText: string | undefined;
+    private _currentBatchQuery: string | undefined;
     private _registeredNotificationUris = new Set<string>();
     private _executionSource: QueryExecutionSource = "document";
+    private _serverConnectionId: string | undefined;
+    private _executionPlanOptions: ExecutionPlanOptions | undefined;
     private _orphanedQueryRecoveryTimer: ReturnType<typeof setTimeout> | undefined;
     private static _runningQueries = [];
 
@@ -236,6 +242,25 @@ export default class QueryRunner {
         return this._executionSource;
     }
 
+    /**
+     * Gets the server session id (SPID) running the current query, once its first batch starts.
+     */
+    get serverConnectionId(): string | undefined {
+        return this._serverConnectionId;
+    }
+
+    /** Executed batch text, captured before submission so editor changes cannot alter it. */
+    get currentBatchQuery(): string | undefined {
+        return this._currentBatchQuery;
+    }
+
+    /**
+     * Gets the execution plan options requested for the current query execution.
+     */
+    get executionPlanOptions(): ExecutionPlanOptions | undefined {
+        return this._executionPlanOptions;
+    }
+
     get isSqlCmd(): boolean {
         return this._isSqlCmd;
     }
@@ -254,12 +279,18 @@ export default class QueryRunner {
 
     // PUBLIC METHODS ======================================================
 
+    /** Whether cancellation was requested for this execution, including after completion. */
+    public get isCanceled(): boolean {
+        return this._isCanceled;
+    }
+
     /**
      * Cancels the currently running query.
      * @returns A promise that resolves to the result of the cancel operation.
      * @throws An error if the cancellation fails or times out.
      */
     public async cancel(options?: { silent?: boolean }): Promise<QueryCancelResult> {
+        this._isCanceled ||= this._isExecuting;
         const cancelQueryActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.CancelQuery,
@@ -366,6 +397,7 @@ export default class QueryRunner {
         executionPlanOptions?: ExecutionPlanOptions,
     ): Promise<void> {
         this._executionSource = "document";
+        this._executionPlanOptions = executionPlanOptions;
 
         let optionsParams: QueryExecuteStatementParams = {
             ownerUri: this._ownerUri,
@@ -403,6 +435,8 @@ export default class QueryRunner {
                 endLine: 0,
                 endColumn: 0,
             });
+            const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
+            this._queryDocumentText = doc.getText();
             this.markQuerySubmitted();
             await this._client.sendRequest(QueryExecuteStatementRequest.type, optionsParams);
             this._startEmitter.fire(this.uri);
@@ -425,6 +459,7 @@ export default class QueryRunner {
         promise?: Deferred<boolean>,
     ): Promise<void> {
         this._executionSource = "document";
+        this._executionPlanOptions = executionPlanOptions;
 
         const queryType = selection ? "selection" : "document";
         const runQueryActivity = startActivity(
@@ -468,6 +503,7 @@ export default class QueryRunner {
 
             // Getting query text
             const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
+            this._queryDocumentText = doc.getText();
             let queryString: string;
             if (selection) {
                 let range = new vscode.Range(
@@ -504,6 +540,7 @@ export default class QueryRunner {
      */
     public async runQueryString(query: string, promise?: Deferred<boolean>): Promise<void> {
         this._executionSource = "quickQuery";
+        this._executionPlanOptions = undefined;
 
         const executeParams: QueryExecuteStringParams = {
             ownerUri: this._ownerUri,
@@ -534,6 +571,7 @@ export default class QueryRunner {
             // Everything that marks the editor as executing happens inside this try block so
             // that any failure before the request is sent is cleaned up below.
             this.setupQueryExecution(undefined);
+            this._queryDocumentText = query;
             this._uriToQueryStringMap.set(this._ownerUri, query);
             if (promise) {
                 this._uriToQueryPromiseMap.set(this._ownerUri, promise);
@@ -560,7 +598,11 @@ export default class QueryRunner {
     public setupQueryExecution(_selection?: ISelectionData): void {
         this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
+        this._isCanceled = false;
         this._totalElapsedMilliseconds = 0;
+        this._serverConnectionId = undefined;
+        this._queryDocumentText = undefined;
+        this._currentBatchQuery = undefined;
         // Update the status view to show that we're executing
         this._statusView.executingQuery(this.uri);
 
@@ -603,6 +645,10 @@ export default class QueryRunner {
                 result.ownerUri,
                 Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
             );
+            // The SPID can change when the connection reconnects, so refresh it after every run.
+            if (result.serverConnectionId) {
+                this._statusView.setServerProcessId(result.ownerUri, result.serverConnectionId);
+            }
             Perf.marker("mssql.query.complete", "end", {
                 rowCount: this._batchSets.reduce(
                     (total, batch) =>
@@ -628,6 +674,7 @@ export default class QueryRunner {
                 totalElapsedMilliseconds: this._totalElapsedMilliseconds,
                 hasError,
                 isFullExecutionComplete: true,
+                isCanceled: this._isCanceled,
             });
         }
         sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.QueryExecutionCompleted);
@@ -635,6 +682,22 @@ export default class QueryRunner {
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
         let batch = result.batchSummary;
+        this._serverConnectionId = result.serverConnectionId ?? this._serverConnectionId;
+        const selection = batch.selection;
+        if (this._queryDocumentText !== undefined && selection) {
+            const lines = this._queryDocumentText.split("\n");
+            const batchLines = lines.slice(selection.startLine, selection.endLine + 1);
+            if (batchLines.length > 0) {
+                batchLines[batchLines.length - 1] = batchLines[batchLines.length - 1].slice(
+                    0,
+                    selection.endColumn,
+                );
+                batchLines[0] = batchLines[0].slice(selection.startColumn);
+                this._currentBatchQuery = batchLines.join("\n");
+            }
+        } else {
+            this._currentBatchQuery = this.getQueryString(this.uri);
+        }
 
         // Set the result sets as an empty array so that as result sets complete we can add to the list
         batch.resultSetSummaries = [];
@@ -649,6 +712,15 @@ export default class QueryRunner {
 
     public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
         let batch: BatchSummary = result.batchSummary;
+
+        // Keep the completion each result set already reported, which Save As checks while the
+        // query runs. A result set that failed partway never reported it, so it stays incomplete.
+        const previousResultSets = this._batchSets[batch.id]?.resultSetSummaries;
+        for (const resultSet of batch.resultSetSummaries ?? []) {
+            if (previousResultSets?.[resultSet.id]?.complete) {
+                resultSet.complete = true;
+            }
+        }
 
         // Store the batch again to get the rest of the data
         this._batchSets[batch.id] = batch;
@@ -693,6 +765,9 @@ export default class QueryRunner {
     ): Promise<void> {
         let resultSet = result.resultSetSummary;
         let batchSet = this._batchSets[resultSet.batchId];
+
+        // Every row has been read once this arrives, whether or not the service set the flag
+        resultSet.complete = true;
 
         // Store the result set in the batch and emit that a result set has completed
         batchSet.resultSetSummaries[resultSet.id] = resultSet;
@@ -776,6 +851,7 @@ export default class QueryRunner {
             totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError: !!error,
             isFullExecutionComplete: false,
+            isCanceled: this._isCanceled,
         });
         this._statusView.executedQuery(this._ownerUri);
         this.unregisterAllNotificationUris();
