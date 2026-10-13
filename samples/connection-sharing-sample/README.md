@@ -58,7 +58,7 @@ const connectionId = await vscode.commands.executeCommand<string | undefined>(
 2. Replace `connectionSharing` with `getSharedConnectionsApi(1)`, or the `mssql.connectionSharing.*` commands with `mssql.sharedConnections.*`. The `scriptOperation` command is now `scriptObject`, matching the method.
 3. Pass `session.accessToken` where you passed your extension ID, and add it as the first argument to the methods that take a connection URI (`disconnect`, `isConnected`, `executeSimpleQuery`, `cancelQuery`, `getServerInfo`, `listDatabases`, `scriptObject`).
 4. `disconnect`, `isConnected`, and `getServerInfo` now return promises.
-5. Remove calls to `editConnectionSharingPermissions` and `clearAllConnectionSharingPermissions`; they have no replacement. The user manages access from the **Accounts** menu: **Manage Trusted Extensions** for individual extensions, or signing out of **SQL Server Connections** to revoke access for all of them.
+5. Remove calls to `editConnectionSharingPermissions` and `clearAllConnectionSharingPermissions`; they have no replacement. The user manages access from the **Accounts** menu: **Manage Trusted Extensions** for individual extensions, or signing out of the **Shared connections** account under **SQL Server (mssql)** to revoke access for all of them.
 
 ## To run
 

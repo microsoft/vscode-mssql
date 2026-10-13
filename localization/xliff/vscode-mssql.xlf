@@ -8322,9 +8322,6 @@
     <trans-unit id="++CODE++c529337b22fc1e5e5a799b0b874d7c13f2b90d25995fbfa54c644cc174d3d0e5">
       <source xml:lang="en">SQL Server (mssql)</source>
     </trans-unit>
-    <trans-unit id="++CODE++5abbd97d50e40cc1f60e206dc85b4b90bca29983509e4ba83e29915f9db571e6">
-      <source xml:lang="en">SQL Server Connections</source>
-    </trans-unit>
     <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
       <source xml:lang="en">SQL Server Container SA Password</source>
     </trans-unit>
@@ -9864,8 +9861,8 @@
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
     </trans-unit>
-    <trans-unit id="++CODE++a6447e409ab90ba54a3d8605721b95a1c7fca6fa1d541e5ee61a9f3337b0b6fb">
-      <source xml:lang="en">The access token is not valid. Request a new session from the SQL Server Connections authentication provider.</source>
+    <trans-unit id="++CODE++721a1a43ab38999b26d5406e59d2dc5ea14c9cabaa8eb79d3b3905c38372e6b5">
+      <source xml:lang="en">The access token is not valid. Request a new session from the SQL Server (mssql) authentication provider.</source>
     </trans-unit>
     <trans-unit id="++CODE++ea8d8a637c6aaa3d1fd33f3fa440906f5304c43a5eb605965a64271c4532f2aa">
       <source xml:lang="en">The active Data API builder configuration changed after it was read. Run mssql_dab operation &apos;get_state&apos; again before retrying; do not open another designer.</source>
@@ -12428,7 +12425,7 @@
       <source xml:lang="en">SQL Container Version</source>
     </trans-unit>
     <trans-unit id="mssql.sharedConnections.authenticationProviderLabel">
-      <source xml:lang="en">SQL Server Connections</source>
+      <source xml:lang="en">SQL Server (mssql)</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.xelEditorDisplayName">
       <source xml:lang="en">SQL Server Extended Events Log</source>

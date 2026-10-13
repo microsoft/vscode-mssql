@@ -3321,10 +3321,10 @@ export class ConnectionSharing {
             comment: ["{0} is the extension name"],
         });
     }
-    public static authenticationProviderLabel = l10n.t("SQL Server Connections");
+    public static authenticationProviderLabel = l10n.t("SQL Server (mssql)");
     public static authenticationAccountLabel = l10n.t("Shared connections");
     public static invalidAccessToken = l10n.t(
-        "The access token is not valid. Request a new session from the SQL Server Connections authentication provider.",
+        "The access token is not valid. Request a new session from the SQL Server (mssql) authentication provider.",
     );
     public static connectionSharingRequestNotification(extensionName: string) {
         return l10n.t({

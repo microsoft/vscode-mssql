@@ -1805,9 +1805,9 @@
         "message": "The “{0}” extension uses an older connection-sharing API. Its author should move to the new API, which lets you manage which extensions can use your SQL Server connections from the Accounts menu.",
         "comment": ["{0} is the extension name"]
     },
-    "SQL Server Connections": "SQL Server Connections",
+    "SQL Server (mssql)": "SQL Server (mssql)",
     "Shared connections": "Shared connections",
-    "The access token is not valid. Request a new session from the SQL Server Connections authentication provider.": "The access token is not valid. Request a new session from the SQL Server Connections authentication provider.",
+    "The access token is not valid. Request a new session from the SQL Server (mssql) authentication provider.": "The access token is not valid. Request a new session from the SQL Server (mssql) authentication provider.",
     "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
         "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
         "comment": ["{0} is the extension name"]
@@ -2011,7 +2011,6 @@
         "comment": ["{0} is the error message returned from the import helper."]
     },
     "This connection's group has not been selected, so this connection will be imported to the root.": "This connection's group has not been selected, so this connection will be imported to the root.",
-    "SQL Server (mssql)": "SQL Server (mssql)",
     "Getting Started": "Getting Started",
     "Connect, build, and learn": "Connect, build, and learn",
     "The template file '{0}' already exists. What would you like to do?/{0} is a file path relative to the workspace folder.": {
