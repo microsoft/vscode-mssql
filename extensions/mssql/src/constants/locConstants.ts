@@ -43,6 +43,16 @@ export class SqlToolsMcp {
     public static serverLabel = l10n.t("SQL Tools (MSSQL)");
 }
 
+export class LegacyProjectExtensionWarning {
+    public static message = l10n.t(
+        "Data Workspace and SQL Database Projects functionality is now included in the SQL Server (mssql) extension. Uninstall Data Workspace 0.7.0 or earlier and SQL Database Projects 1.8.0 or earlier to avoid duplicated user interface elements.",
+    );
+    public static showExtensions = l10n.t("Show Extensions");
+    public static showExtensionsFailed = l10n.t(
+        "The affected extensions could not be opened. Open the Extensions view and uninstall older Data Workspace and SQL Database Projects extensions.",
+    );
+}
+
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");

@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
+import { collectConfigurationProperties, ConfigurationContribution } from "./manifestUtils";
 
 interface ConfigurationProperty {
     type: string;
@@ -19,9 +20,9 @@ interface ConfigurationProperty {
 
 interface PackageManifest {
     contributes: {
-        configuration: {
-            properties: Record<string, ConfigurationProperty>;
-        };
+        configuration:
+            | ConfigurationContribution<ConfigurationProperty>
+            | ConfigurationContribution<ConfigurationProperty>[];
     };
 }
 
@@ -86,7 +87,7 @@ const expectedFormatterDefaults: Record<string, boolean | number | string> = {
 function getConfigurationProperties(): Record<string, ConfigurationProperty> {
     const packagePath = path.join(__dirname, "..", "..", "..", "package.json");
     const packageManifest = JSON.parse(fs.readFileSync(packagePath, "utf8")) as PackageManifest;
-    return packageManifest.contributes.configuration.properties;
+    return collectConfigurationProperties(packageManifest.contributes.configuration);
 }
 
 function getPackageNls(): Record<string, string> {
