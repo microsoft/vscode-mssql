@@ -6,6 +6,13 @@
 import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
+import { collectConfigurationProperties } from "./manifestUtils";
+
+interface ConfigurationSetting {
+    default: unknown;
+    type: string[];
+    scope: string;
+}
 
 suite("Live query statistics preview manifest", () => {
     const { contributes } = JSON.parse(
@@ -15,7 +22,10 @@ suite("Live query statistics preview manifest", () => {
     const commands = ["mssql.enableLiveQueryStatistics", "mssql.disableLiveQueryStatistics"];
 
     test("defaults to the umbrella and permits explicit true and false overrides", () => {
-        const setting = contributes.configuration.properties["mssql.preview.liveQueryStatistics"];
+        const settings = collectConfigurationProperties<ConfigurationSetting>(
+            contributes.configuration,
+        );
+        const setting = settings["mssql.preview.liveQueryStatistics"];
 
         expect(setting.default).to.be.null;
         expect(setting.type).to.have.members(["boolean", "null"]);
