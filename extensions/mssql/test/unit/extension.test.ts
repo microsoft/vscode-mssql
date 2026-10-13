@@ -23,6 +23,11 @@ import { IconUtils } from "../../src/utils/iconUtils";
 import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
 import { PrivatePreviewContextKey } from "../../src/previews/previewService";
 import { SharedConnectionsService } from "../../src/connectionSharing/sharedConnectionsService";
+import * as DataWorkspaceRegistration from "../../src/dataWorkspace/dataWorkspaceRegistration";
+import * as DatabaseProjectsExtension from "../../src/databaseProjects/extension";
+import * as DatabaseProjectsServiceLocator from "../../src/databaseProjects/serviceLocator";
+import { ProjectProviderRegistry } from "../../src/dataWorkspace/common/projectProviderRegistry";
+import { IExtension as IDataWorkspaceExtension } from "dataworkspace";
 
 const { expect } = chai;
 
@@ -89,6 +94,18 @@ suite("Extension API Tests", () => {
         sandbox.stub(UserSurvey, "createInstance").returns();
         sandbox.stub(VscodeHttpClient.prototype, "warnOnInvalidProxySettings").returns();
         sandbox.stub(MainController.prototype, "activate").resolves(true);
+        sandbox.stub(DataWorkspaceRegistration, "registerDataWorkspace").returns({
+            refreshProjectsTree: sandbox.stub(),
+        } as unknown as IDataWorkspaceExtension);
+        sandbox.stub(DatabaseProjectsServiceLocator, "initializeDatabaseProjectsServices");
+        sandbox
+            .stub(DatabaseProjectsExtension, "registerDatabaseProjects")
+            .resolves(
+                {} as unknown as Awaited<
+                    ReturnType<typeof DatabaseProjectsExtension.registerDatabaseProjects>
+                >,
+            );
+        sandbox.stub(ProjectProviderRegistry, "registerProvider").returns(disposable);
 
         const sqlToolsClient: sinon.SinonStubbedInstance<SqlToolsServerClient> =
             sandbox.createStubInstance(SqlToolsServerClient);
