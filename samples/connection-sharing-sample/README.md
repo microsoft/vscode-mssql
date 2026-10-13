@@ -24,8 +24,11 @@ if (!connectionId) {
     return; // The active editor isn't connected.
 }
 const connectionUri = await api.connect(session.accessToken, connectionId);
-const result = await api.executeSimpleQuery(session.accessToken, connectionUri, "SELECT 1");
-await api.disconnect(session.accessToken, connectionUri);
+try {
+    const result = await api.executeSimpleQuery(session.accessToken, connectionUri, "SELECT 1");
+} finally {
+    await api.disconnect(session.accessToken, connectionUri);
+}
 ```
 
 Methods that take a connection URI accept only URIs that `connect` returned for the same session. If the user signs out, the connections the session opened are closed and the token stops working; request a new session to continue.

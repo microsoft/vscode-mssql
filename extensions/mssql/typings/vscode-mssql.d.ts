@@ -2870,8 +2870,11 @@ declare module "vscode-mssql" {
      *     createIfNone: true,
      * });
      * const connectionUri = await api.connect(session.accessToken, connectionId);
-     * const result = await api.executeSimpleQuery(session.accessToken, connectionUri, "SELECT 1");
-     * await api.disconnect(session.accessToken, connectionUri);
+     * try {
+     *     const result = await api.executeSimpleQuery(session.accessToken, connectionUri, "SELECT 1");
+     * } finally {
+     *     await api.disconnect(session.accessToken, connectionUri);
+     * }
      */
     export interface IAuthenticatedConnectionSharingService {
         /** The ID of the authentication provider to request a session from. */
