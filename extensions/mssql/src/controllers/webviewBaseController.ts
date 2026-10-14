@@ -430,7 +430,10 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             const reducer = this._reducerHandlers.get(action.type);
             if (reducer) {
                 try {
-                    this.state = await reducer(this.state, action.payload);
+                    const nextState = await reducer(this.state, action.payload);
+                    if (!this._isDisposed) {
+                        this.state = nextState;
+                    }
                     this.logger.debug(`Reducer action succeeded: ${action.type as string}`);
                     reducerActivity.end(ActivityStatus.Succeeded);
                 } catch (error) {
@@ -608,6 +611,11 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
      * @param value The new state object
      */
     public set state(value: State) {
+        if (this._isDisposed) {
+            this.logger.debug("Skipping state update because the webview controller is disposed");
+            return;
+        }
+
         this._state = value;
         void this.sendNotification(StateChangeNotification.type<State>(), value);
     }
