@@ -8,7 +8,6 @@ import { AccountStore } from "../azure/accountStore";
 import * as Constants from "../constants/constants";
 import * as vscodeMssql from "vscode-mssql";
 import { AzureAuthType } from "./contracts/azure";
-import { ConfigTarget } from "../connectionconfig/connectionconfig";
 
 // interfaces
 export enum ContentType {
@@ -69,7 +68,12 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
     emptyPasswordInput: boolean;
     azureAuthType: AzureAuthType;
     accountStore: AccountStore;
-    configSource: ConfigTarget;
+    configSource: vscode.ConfigurationTarget;
+    /**
+     * URI of the workspace folder that stores this profile. Present only when configSource is
+     * WorkspaceFolder.
+     */
+    workspaceFolderUri?: string;
     /**
      * Optional sort order for display in the Object Explorer. Set manually in config JSON.
      */
@@ -81,7 +85,12 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
 export interface IConnectionGroup {
     id: string;
     name: string;
-    configSource: ConfigTarget;
+    configSource: vscode.ConfigurationTarget;
+    /**
+     * URI of the workspace folder that stores this group. Present only when configSource is
+     * WorkspaceFolder.
+     */
+    workspaceFolderUri?: string;
     parentId?: string;
     color?: string;
     description?: string;

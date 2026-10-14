@@ -25,13 +25,15 @@ suite("ConnectionConfig Tests", () => {
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let showWarningStub: sinon.SinonStub;
     let showQuickPickStub: sinon.SinonStub;
-    let workspaceConfiguration: vscode.WorkspaceConfiguration;
     let updateConfigurationStub: sinon.SinonStub;
     let rootConfigurationGetStub: sinon.SinonStub;
+    let mockWorkspaceFolders: vscode.WorkspaceFolder[];
+    let mockWorkspaceFile: vscode.Uri | undefined;
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
     let mockGlobalConfigData: Map<string, any> = new Map();
     let mockWorkspaceConfigData: Map<string, any> = new Map();
+    let mockWorkspaceFolderConfigData: Map<string, Map<string, any>> = new Map();
     /* eslint-enable @typescript-eslint/no-explicit-any */
 
     setup(() => {
@@ -39,52 +41,51 @@ suite("ConnectionConfig Tests", () => {
 
         mockGlobalConfigData = new Map();
         mockWorkspaceConfigData = new Map();
+        mockWorkspaceFolderConfigData = new Map();
+        mockWorkspaceFolders = [];
+        mockWorkspaceFile = undefined;
         messageBoxes = stubMessageBoxes(sandbox);
         showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
         rootConfigurationGetStub = sandbox.stub();
-        updateConfigurationStub = sandbox.stub().callsFake(async (key, value, target) => {
-            const targetStore =
-                target === ConfigurationTarget.Workspace ||
-                target === ConfigurationTarget.WorkspaceFolder
-                    ? mockWorkspaceConfigData
-                    : mockGlobalConfigData;
-            targetStore.set(key, deepClone(value));
-        });
+        updateConfigurationStub = sandbox.stub().resolves();
 
-        const mockConfiguration = {
-            get: (setting: string) => mockGlobalConfigData.get(setting),
-            inspect: (setting: string) => {
-                let result;
-                if (setting === Constants.connectionsArrayName) {
-                    result = {
-                        globalValue: mockGlobalConfigData.get(Constants.connectionsArrayName) || [],
-                        workspaceValue:
-                            mockWorkspaceConfigData.get(Constants.connectionsArrayName) || [],
-                        workspaceFolderValue: [],
-                    };
-                } else if (setting === Constants.connectionGroupsArrayName) {
-                    result = {
-                        globalValue:
-                            mockGlobalConfigData.get(Constants.connectionGroupsArrayName) || [],
-                        workspaceValue:
-                            mockWorkspaceConfigData.get(Constants.connectionGroupsArrayName) || [],
-                        workspaceFolderValue: [],
-                    };
-                } else {
-                    result = { globalValue: undefined };
+        sandbox.stub(vscode.workspace, "workspaceFolders").get(() => mockWorkspaceFolders);
+        sandbox.stub(vscode.workspace, "workspaceFile").get(() => mockWorkspaceFile);
+        sandbox
+            .stub(vscode.workspace, "getConfiguration")
+            .callsFake((section?: string, resource?: vscode.Uri) => {
+                if (section === Constants.extensionName) {
+                    const workspaceFolderStore = resource
+                        ? mockWorkspaceFolderConfigData.get(resource.toString())
+                        : undefined;
+                    return {
+                        get: (setting: string) => mockGlobalConfigData.get(setting),
+                        inspect: (setting: string) =>
+                            deepClone({
+                                globalValue: mockGlobalConfigData.get(setting) || [],
+                                workspaceValue: mockWorkspaceConfigData.get(setting) || [],
+                                workspaceFolderValue: workspaceFolderStore?.get(setting) || [],
+                            }),
+                        update: async (
+                            key: string,
+                            value: unknown,
+                            target: ConfigurationTarget,
+                        ) => {
+                            await updateConfigurationStub(key, value, target, resource?.toString());
+                            const targetStore =
+                                target === ConfigurationTarget.WorkspaceFolder
+                                    ? workspaceFolderStore
+                                    : target === ConfigurationTarget.Workspace
+                                      ? mockWorkspaceConfigData
+                                      : mockGlobalConfigData;
+                            targetStore?.set(key, deepClone(value));
+                        },
+                    } as unknown as vscode.WorkspaceConfiguration;
                 }
-                return deepClone(result);
-            },
-            update: updateConfigurationStub,
-        };
-        workspaceConfiguration = mockConfiguration as unknown as vscode.WorkspaceConfiguration;
-
-        sandbox.stub(vscode.workspace, "getConfiguration").callsFake((section?: string) => {
-            if (section === Constants.extensionName) {
-                return workspaceConfiguration;
-            }
-            return { get: rootConfigurationGetStub } as unknown as vscode.WorkspaceConfiguration;
-        });
+                return {
+                    get: rootConfigurationGetStub,
+                } as unknown as vscode.WorkspaceConfiguration;
+            });
 
         sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
 
@@ -330,6 +331,44 @@ suite("ConnectionConfig Tests", () => {
                 ? mockWorkspaceConfigData
                 : mockGlobalConfigData;
         return deepClone(store.get(Constants.connectionGroupsArrayName) || []);
+    }
+
+    function addMockWorkspaceFolder(name: string, index: number): vscode.WorkspaceFolder {
+        const workspaceFolder = {
+            name,
+            index,
+            uri: vscode.Uri.file(`/workspace/${name}`),
+        };
+        mockWorkspaceFolders.push(workspaceFolder);
+        mockWorkspaceFile ??= vscode.Uri.file("/workspace/test.code-workspace");
+        mockWorkspaceFolderConfigData.set(workspaceFolder.uri.toString(), new Map());
+        return workspaceFolder;
+    }
+
+    function setWorkspaceFolderData(uri: vscode.Uri, setting: string, value: unknown[]): void {
+        mockWorkspaceFolderConfigData.get(uri.toString())?.set(setting, deepClone(value));
+    }
+
+    function getWorkspaceFolderData<T>(uri: vscode.Uri, setting: string): T {
+        return deepClone(mockWorkspaceFolderConfigData.get(uri.toString())?.get(setting));
+    }
+
+    function createStoredProfile(id: string, groupId: string): IConnectionProfile {
+        return {
+            id,
+            groupId,
+            server: id,
+            authenticationType: "Integrated",
+            profileName: id,
+        } as IConnectionProfile;
+    }
+
+    function createStoredGroup(id: string, name: string): IConnectionGroup {
+        return {
+            id,
+            name,
+            parentId: ConnectionConfig.ROOT_GROUP_ID,
+        } as IConnectionGroup;
     }
 
     suite("Functions", () => {
@@ -824,6 +863,247 @@ suite("ConnectionConfig Tests", () => {
                 expect(workspaceOnly[0].id).to.equal("workspace-conn");
             });
 
+            test("loads connections and groups from every workspace folder", async () => {
+                const folderOne = addMockWorkspaceFolder("folder-one", 0);
+                const folderTwo = addMockWorkspaceFolder("folder-two", 1);
+                setWorkspaceFolderData(folderOne.uri, Constants.connectionGroupsArrayName, [
+                    createStoredGroup("folder-one-group", "Folder One Group"),
+                ]);
+                setWorkspaceFolderData(folderOne.uri, Constants.connectionsArrayName, [
+                    createStoredProfile("folder-one-connection", "folder-one-group"),
+                ]);
+                setWorkspaceFolderData(folderTwo.uri, Constants.connectionGroupsArrayName, [
+                    createStoredGroup("folder-two-group", "Folder Two Group"),
+                ]);
+                setWorkspaceFolderData(folderTwo.uri, Constants.connectionsArrayName, [
+                    createStoredProfile("folder-two-connection", "folder-two-group"),
+                ]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                const connections = connConfig.getConnectionsFromSettings(
+                    ConfigurationTarget.WorkspaceFolder,
+                );
+                const groups = (await connConfig.getGroups()).filter(
+                    (group) => group.configSource === ConfigurationTarget.WorkspaceFolder,
+                );
+
+                expect(connections.map((connection) => connection.id)).to.have.members([
+                    "folder-one-connection",
+                    "folder-two-connection",
+                ]);
+                expect(connections).to.satisfy((items: IConnectionProfile[]) =>
+                    items.every(
+                        (connection) =>
+                            connection.configSource === ConfigurationTarget.WorkspaceFolder &&
+                            connection.workspaceFolderUri !== undefined,
+                    ),
+                );
+                expect(
+                    connections.find((connection) => connection.id === "folder-one-connection")
+                        ?.workspaceFolderUri,
+                ).to.equal(folderOne.uri.toString());
+                expect(
+                    connections.find((connection) => connection.id === "folder-two-connection")
+                        ?.workspaceFolderUri,
+                ).to.equal(folderTwo.uri.toString());
+                expect(groups.map((group) => group.id)).to.have.members([
+                    "folder-one-group",
+                    "folder-two-group",
+                ]);
+                expect(groups).to.satisfy((items: IConnectionGroup[]) =>
+                    items.every(
+                        (group) =>
+                            group.configSource === ConfigurationTarget.WorkspaceFolder &&
+                            group.workspaceFolderUri !== undefined,
+                    ),
+                );
+            });
+
+            test("loads single-folder connections and groups once through workspace settings", async () => {
+                const folder = addMockWorkspaceFolder("single-folder", 0);
+                mockWorkspaceFile = undefined;
+                const profiles = [
+                    createStoredProfile("single-folder-connection", "single-folder-group"),
+                ];
+                const groups = [createStoredGroup("single-folder-group", "Single Folder Group")];
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, profiles);
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, groups);
+                setWorkspaceFolderData(folder.uri, Constants.connectionsArrayName, profiles);
+                setWorkspaceFolderData(folder.uri, Constants.connectionGroupsArrayName, groups);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                const connections = await connConfig.getConnections();
+                expect(connections).to.have.lengthOf(1);
+                expect(connections[0]).to.include({
+                    id: "single-folder-connection",
+                    configSource: ConfigurationTarget.Workspace,
+                });
+                expect(connections[0]).not.to.have.property("workspaceFolderUri");
+                const loadedGroups = await connConfig.getGroups();
+                expect(loadedGroups.map((group) => group.id)).to.have.members([
+                    ConnectionConfig.ROOT_GROUP_ID,
+                    "single-folder-group",
+                ]);
+                expect(connConfig.getGroupById("single-folder-group")).to.include({
+                    configSource: ConfigurationTarget.Workspace,
+                });
+                expect(connConfig.getConnectionsFromSettings(ConfigurationTarget.WorkspaceFolder))
+                    .to.be.empty;
+                expect(updateConfigurationStub).not.to.have.been.called;
+            });
+
+            test("updates a single-folder connection in workspace settings without duplicating it globally", async () => {
+                addMockWorkspaceFolder("single-folder", 0);
+                mockWorkspaceFile = undefined;
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                    createStoredProfile("single-folder-connection", ConnectionConfig.ROOT_GROUP_ID),
+                ]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                await connConfig.updateConnection({
+                    ...createStoredProfile(
+                        "single-folder-connection",
+                        ConnectionConfig.ROOT_GROUP_ID,
+                    ),
+                    profileName: "Updated Single Folder",
+                });
+
+                expect(getStoredConnections(ConfigurationTarget.Workspace)).to.have.lengthOf(1);
+                expect(getStoredConnections(ConfigurationTarget.Workspace)[0].profileName).to.equal(
+                    "Updated Single Folder",
+                );
+                expect(getStoredConnections(ConfigurationTarget.Global)).to.be.empty;
+                expect(updateConfigurationStub).to.have.been.calledWith(
+                    Constants.connectionsArrayName,
+                    getStoredConnections(ConfigurationTarget.Workspace),
+                    ConfigurationTarget.Workspace,
+                    undefined,
+                );
+            });
+
+            test("updates a workspace-folder connection only in its source folder", async () => {
+                const folderOne = addMockWorkspaceFolder("folder-one", 0);
+                const folderTwo = addMockWorkspaceFolder("folder-two", 1);
+                setWorkspaceFolderData(folderOne.uri, Constants.connectionsArrayName, [
+                    createStoredProfile("folder-one-connection", ConnectionConfig.ROOT_GROUP_ID),
+                ]);
+                setWorkspaceFolderData(folderTwo.uri, Constants.connectionsArrayName, [
+                    createStoredProfile("folder-two-connection", ConnectionConfig.ROOT_GROUP_ID),
+                ]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                const folderOneConnection = connConfig
+                    .getConnectionsFromSettings()
+                    .find((connection) => connection.id === "folder-one-connection");
+                if (!folderOneConnection) {
+                    throw new Error("Expected folder-one connection");
+                }
+
+                await connConfig.updateConnection({
+                    ...folderOneConnection,
+                    profileName: "Updated Folder One",
+                });
+
+                expect(
+                    getWorkspaceFolderData<IConnectionProfile[]>(
+                        folderOne.uri,
+                        Constants.connectionsArrayName,
+                    )[0].profileName,
+                ).to.equal("Updated Folder One");
+                expect(
+                    getWorkspaceFolderData<IConnectionProfile[]>(
+                        folderTwo.uri,
+                        Constants.connectionsArrayName,
+                    )[0].profileName,
+                ).to.equal("folder-two-connection");
+                expect(mockWorkspaceConfigData.get(Constants.connectionsArrayName)).to.be.undefined;
+            });
+
+            test("removes a workspace-folder connection only from its source folder", async () => {
+                const folderOne = addMockWorkspaceFolder("folder-one", 0);
+                const folderTwo = addMockWorkspaceFolder("folder-two", 1);
+                setWorkspaceFolderData(folderOne.uri, Constants.connectionsArrayName, [
+                    createStoredProfile("folder-one-connection", ConnectionConfig.ROOT_GROUP_ID),
+                ]);
+                setWorkspaceFolderData(folderTwo.uri, Constants.connectionsArrayName, [
+                    createStoredProfile("folder-two-connection", ConnectionConfig.ROOT_GROUP_ID),
+                ]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                const folderOneConnection = connConfig
+                    .getConnectionsFromSettings()
+                    .find((connection) => connection.id === "folder-one-connection");
+                if (!folderOneConnection) {
+                    throw new Error("Expected folder-one connection");
+                }
+
+                const removed = await connConfig.removeConnection({
+                    ...folderOneConnection,
+                    workspaceFolderUri: undefined,
+                });
+
+                expect(removed).to.be.true;
+                expect(
+                    getWorkspaceFolderData<IConnectionProfile[]>(
+                        folderOne.uri,
+                        Constants.connectionsArrayName,
+                    ),
+                ).to.deep.equal([]);
+                expect(
+                    getWorkspaceFolderData<IConnectionProfile[]>(
+                        folderTwo.uri,
+                        Constants.connectionsArrayName,
+                    )[0].id,
+                ).to.equal("folder-two-connection");
+                expect(mockWorkspaceConfigData.get(Constants.connectionsArrayName)).to.be.undefined;
+            });
+
+            test("updates a workspace-folder group only in its source folder", async () => {
+                const folderOne = addMockWorkspaceFolder("folder-one", 0);
+                const folderTwo = addMockWorkspaceFolder("folder-two", 1);
+                setWorkspaceFolderData(folderOne.uri, Constants.connectionGroupsArrayName, [
+                    createStoredGroup("folder-one-group", "Folder One Group"),
+                ]);
+                setWorkspaceFolderData(folderTwo.uri, Constants.connectionGroupsArrayName, [
+                    createStoredGroup("folder-two-group", "Folder Two Group"),
+                ]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                const folderOneGroup = connConfig.getGroupById("folder-one-group");
+                if (!folderOneGroup) {
+                    throw new Error("Expected folder-one group");
+                }
+
+                await connConfig.updateGroup({
+                    ...folderOneGroup,
+                    name: "Updated Folder One Group",
+                });
+
+                expect(
+                    getWorkspaceFolderData<IConnectionGroup[]>(
+                        folderOne.uri,
+                        Constants.connectionGroupsArrayName,
+                    )[0].name,
+                ).to.equal("Updated Folder One Group");
+                expect(
+                    getWorkspaceFolderData<IConnectionGroup[]>(
+                        folderTwo.uri,
+                        Constants.connectionGroupsArrayName,
+                    )[0].name,
+                ).to.equal("Folder Two Group");
+                expect(mockWorkspaceConfigData.get(Constants.connectionGroupsArrayName)).to.be
+                    .undefined;
+            });
+
             test("getConnectionsFromSettings filters orphaned connections once", async () => {
                 mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
                     {
@@ -878,6 +1158,85 @@ suite("ConnectionConfig Tests", () => {
                 expect(savedWorkspace).to.have.lengthOf(1);
                 expect(savedWorkspace[0].id).to.equal("workspace-profile");
                 expect(savedWorkspace[0]).to.not.have.property("configSource");
+            });
+
+            test("addConnection infers configSource using the existing ID", async () => {
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "existing",
+                        groupId: ConnectionConfig.ROOT_GROUP_ID,
+                        server: "workspace",
+                        authenticationType: "Integrated",
+                        profileName: "Old Name",
+                    } as IConnectionProfile,
+                ]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                await connConfig.addConnection({
+                    id: "existing",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    server: "workspace",
+                    authenticationType: "Integrated",
+                    profileName: "Updated Name",
+                } as IConnectionProfile);
+
+                const workspaceConnections = getStoredConnections(ConfigurationTarget.Workspace);
+                const globalConnections = getStoredConnections(ConfigurationTarget.Global);
+
+                expect(workspaceConnections).to.have.lengthOf(1);
+                expect(workspaceConnections[0].profileName).to.equal("Updated Name");
+                expect(globalConnections).to.have.lengthOf(0);
+            });
+
+            test("removeConnection only updates the profile's config source", async () => {
+                const globalProfile = {
+                    id: "global-profile",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    server: "global",
+                    authenticationType: "Integrated",
+                    profileName: "Global Profile",
+                } as IConnectionProfile;
+                const workspaceProfile = {
+                    id: "workspace-profile",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    server: "workspace",
+                    authenticationType: "Integrated",
+                    profileName: "Workspace Profile",
+                } as IConnectionProfile;
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [globalProfile]);
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [workspaceProfile]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                const removed = await connConfig.removeConnection(workspaceProfile);
+
+                expect(removed).to.be.true;
+                expect(getStoredConnections(ConfigurationTarget.Global)).to.deep.equal([
+                    globalProfile,
+                ]);
+                expect(getStoredConnections(ConfigurationTarget.Workspace)).to.deep.equal([]);
+            });
+
+            test("addConnection skips writing an unchanged profile", async () => {
+                const profile = {
+                    id: "existing",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    server: "global",
+                    authenticationType: "Integrated",
+                    profileName: "Existing Profile",
+                } as IConnectionProfile;
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [profile]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                updateConfigurationStub.resetHistory();
+
+                await connConfig.addConnection({ ...profile });
+
+                expect(updateConfigurationStub).to.not.have.been.called;
             });
 
             test("updateConnection infers configSource using the existing ID", async () => {
