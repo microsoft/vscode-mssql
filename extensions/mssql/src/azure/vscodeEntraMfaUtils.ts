@@ -46,7 +46,8 @@ const tokensSinceClear = new Map<string, string>();
  * cannot be cleared from here, so the next request for each token is made with a claims challenge.
  */
 export function clearVscodeEntraTokenCache(): void {
-    tokenCacheClearedAt = Math.floor(Date.now() / 1000);
+    // Each clear needs its own challenge, so never reuse the previous clear's time.
+    tokenCacheClearedAt = Math.max(Math.floor(Date.now() / 1000), (tokenCacheClearedAt ?? 0) + 1);
     tokensSinceClear.clear();
     logger.info(
         `VS Code accounts token cache cleared at ${tokenCacheClearedAt}; the next request for each token will force a refresh.`,
@@ -208,13 +209,15 @@ export async function acquireTokenFromVscodeAccountForResource(
         );
 
         if (session) {
-            tokensSinceClear.set(tokenKey, session.accessToken);
-
             if (session.accessToken === cachedToken) {
                 logger.warn(
                     `VS Code returned the cached token for ${resourceEndpoint} again after a forced refresh; it may not reflect recent group or role changes.`,
                 );
             } else {
+                // If the cache was cleared again during the refresh, this token predates that clear.
+                if (tokenCacheClearedAt === clearedAt) {
+                    tokensSinceClear.set(tokenKey, session.accessToken);
+                }
                 logger.info(
                     `Got a new token for ${resourceEndpoint} after a forced refresh; expires on ${describeExpiry(session.accessToken)}`,
                 );

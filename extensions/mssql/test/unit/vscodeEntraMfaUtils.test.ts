@@ -223,8 +223,36 @@ suite("vscodeEntraMfaUtils", () => {
             const result = await acquireToken();
 
             expect(result.token.token).to.equal("cached-token");
-            expect(warn).to.have.been.calledOnce;
-            expect(warn.firstCall.args[0]).to.include("returned the cached token");
+            expect(warn).to.have.been.calledWithMatch("returned the cached token");
+            expect(isVscodeEntraTokenStale("cached-token")).to.be.true;
+        });
+
+        test("uses a different challenge for another clear in the same second", async () => {
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
+            await acquireToken();
+            getSession.reset();
+            clearVscodeEntraTokenCache();
+            getSession.onFirstCall().resolves(createSession("refreshed-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-again-token"));
+
+            await acquireToken();
+
+            expect(getSession.secondCall.args[1].wwwAuthenticate).to.equal(
+                expectedChallenge(clearedAt + 1),
+            );
+        });
+
+        test("keeps a token stale if the cache is cleared during its refresh", async () => {
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().callsFake(async () => {
+                clearVscodeEntraTokenCache();
+                return createSession("refreshed-token");
+            });
+
+            await acquireToken();
+
+            expect(isVscodeEntraTokenStale("refreshed-token")).to.be.true;
         });
 
         test("does not treat a missing token as stale", () => {
