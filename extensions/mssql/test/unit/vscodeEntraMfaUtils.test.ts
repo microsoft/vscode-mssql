@@ -16,6 +16,7 @@ import {
 import * as sinon from "sinon";
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import { mockAccounts, mockTenants } from "./azureHelperStubs";
+import { Logger } from "../../src/models/logger";
 
 suite("vscodeEntraMfaUtils", () => {
     let sandbox: sinon.SinonSandbox;
@@ -213,6 +214,17 @@ suite("vscodeEntraMfaUtils", () => {
                 expectedChallenge(clearedAt + 60),
             );
             expect(isVscodeEntraTokenStale("refreshed-token")).to.be.true;
+        });
+
+        test("warns when VS Code returns the cached token after a forced refresh", async () => {
+            const warn = sandbox.stub(Logger.prototype, "warn");
+            getSession.resolves(createSession("cached-token"));
+
+            const result = await acquireToken();
+
+            expect(result.token.token).to.equal("cached-token");
+            expect(warn).to.have.been.calledOnce;
+            expect(warn.firstCall.args[0]).to.include("returned the cached token");
         });
 
         test("does not treat a missing token as stale", () => {

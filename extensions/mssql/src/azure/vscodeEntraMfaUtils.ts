@@ -11,6 +11,10 @@ import { IProviderResources, IToken } from "../models/contracts/azure";
 import { getCloudProviderSettings } from "./providerSettings";
 import { VsCodeAzureHelper, getDefaultTenantId } from "../connectionconfig/azureHelpers";
 import * as locConstants from "../constants/locConstants";
+import { getLogger } from "../models/logger";
+import { epochToDisplay } from "../models/utils";
+
+const logger = getLogger("Entra Auth");
 
 export interface VscodeEntraSqlTokenInfo {
     account: vscode.AuthenticationSessionAccountInformation;
@@ -44,6 +48,9 @@ const tokensSinceClear = new Map<string, string>();
 export function clearVscodeEntraTokenCache(): void {
     tokenCacheClearedAt = Math.floor(Date.now() / 1000);
     tokensSinceClear.clear();
+    logger.info(
+        `VS Code accounts token cache cleared at ${tokenCacheClearedAt}; the next request for each token will force a refresh.`,
+    );
 }
 
 /**
@@ -186,6 +193,11 @@ export async function acquireTokenFromVscodeAccountForResource(
         clearedAt !== undefined &&
         session.accessToken !== tokensSinceClear.get(tokenKey)
     ) {
+        const cachedToken = session.accessToken;
+        logger.info(
+            `Forcing a token refresh for ${resourceEndpoint} with tenantId '${resolvedTenantId}' because the token cache was cleared at ${clearedAt}; cached token expires on ${describeExpiry(cachedToken)}`,
+        );
+
         session = await getSessionForAccount(
             {
                 wwwAuthenticate: getForceRefreshChallenge(clearedAt),
@@ -197,6 +209,16 @@ export async function acquireTokenFromVscodeAccountForResource(
 
         if (session) {
             tokensSinceClear.set(tokenKey, session.accessToken);
+
+            if (session.accessToken === cachedToken) {
+                logger.warn(
+                    `VS Code returned the cached token for ${resourceEndpoint} again after a forced refresh; it may not reflect recent group or role changes.`,
+                );
+            } else {
+                logger.info(
+                    `Got a new token for ${resourceEndpoint} after a forced refresh; expires on ${describeExpiry(session.accessToken)}`,
+                );
+            }
         }
     }
 
@@ -268,6 +290,15 @@ function getForceRefreshChallenge(clearedAt: number): string {
         access_token: { nbf: { essential: true, value: String(clearedAt) } },
     });
     return `Bearer claims="${Buffer.from(claims).toString("base64")}"`;
+}
+
+function describeExpiry(accessToken: string): string {
+    const expiresOn = getTokenExpiration(accessToken);
+    if (expiresOn === undefined) {
+        return "unknown";
+    }
+    const expiry = epochToDisplay(expiresOn * 1000);
+    return `${expiresOn} (${expiry.iso}, ${expiry.relative})`;
 }
 
 function getTokenExpiration(accessToken: string): number | undefined {
