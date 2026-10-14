@@ -48,9 +48,13 @@ chai.use(sinonChai);
 
 type MainControllerTestAccess = {
     validateTextDocumentHasFocus(): boolean;
+    onToggleSqlCmd(): Promise<void>;
     _outputContentProvider: {
         runCurrentStatement: sinon.SinonStub;
         runQuery: sinon.SinonStub;
+        getQueryRunner?: sinon.SinonStub;
+        createQueryRunner?: sinon.SinonStub;
+        toggleSqlCmd?: sinon.SinonStub;
     };
     _statusview: unknown;
     openCopilotChatFromUi(args?: CopilotChat.OpenFromUiArgs): Promise<void>;
@@ -150,6 +154,42 @@ suite("MainController Tests", function () {
             result,
             "Expected validateTextDocumentHasFocus to return true when the active document URI is not undefined",
         ).to.be.true;
+    });
+
+    test("onToggleSqlCmd rejects non-SQL editors", async () => {
+        sandbox.stub(Utils, "getActiveTextEditorUri").returns("file:///test/readme.md");
+        sandbox.stub(Utils, "isEditingSqlFile").returns(false);
+
+        await accessMainController(mainController).onToggleSqlCmd();
+
+        expect(messageBoxes.showWarningMessage).to.have.been.calledWith(
+            LocalizedConstants.msgOpenSqlFile,
+        );
+    });
+
+    test("onToggleSqlCmd uses the resulting mode for a newly created runner", async () => {
+        const uri = "file:///test/query.sql";
+        sandbox.stub(Utils, "getActiveTextEditorUri").returns(uri);
+        sandbox.stub(Utils, "isEditingSqlFile").returns(true);
+        sandbox.stub(vscode.window, "activeTextEditor").value(createMockTextEditor(uri));
+        const outputContentProvider = {
+            getQueryRunner: sandbox.stub().returns(undefined),
+            createQueryRunner: sandbox.stub().resolves({ isSqlCmd: true }),
+            toggleSqlCmd: sandbox.stub().resolves(false),
+        };
+        const statusView = {
+            sqlCmdModeChanged: sandbox.stub(),
+        };
+        const controller = accessMainController(mainController);
+        controller._outputContentProvider =
+            outputContentProvider as typeof controller._outputContentProvider;
+        controller._statusview = statusView;
+
+        await controller.onToggleSqlCmd();
+
+        expect(outputContentProvider.createQueryRunner).to.have.been.calledOnce;
+        expect(connectionManager.onChooseLanguageFlavor).to.have.been.calledWith(true, false);
+        expect(statusView.sqlCmdModeChanged).to.have.been.calledWith(uri, false);
     });
 
     test("onManageProfiles should call the connection manager to manage profiles", async () => {

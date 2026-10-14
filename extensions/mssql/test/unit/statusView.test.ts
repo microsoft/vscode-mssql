@@ -415,6 +415,73 @@ suite("Status View Tests", () => {
         });
     });
 
+    suite("SQLCMD mode", () => {
+        const fileUri = "file:///workspace/query.sql";
+        let statusView: StatusView;
+        let enableSqlCmdByDefault: boolean;
+
+        setup(() => {
+            enableSqlCmdByDefault = false;
+            sandbox.stub(vscode.window, "createStatusBarItem").callsFake(() => {
+                return createMockStatusBarItem();
+            });
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(fileUri);
+            sandbox.stub(vscode.workspace, "getConfiguration").callsFake((_section, scope) => {
+                return {
+                    get: (key: string, defaultValue: unknown) =>
+                        key === Constants.configEnableSqlCmdByDefault &&
+                        scope?.toString() === fileUri
+                            ? enableSqlCmdByDefault
+                            : defaultValue,
+                } as vscode.WorkspaceConfiguration;
+            });
+            statusView = new StatusView();
+        });
+
+        teardown(() => {
+            statusView.dispose();
+        });
+
+        test("defaults new editors to SQLCMD off", () => {
+            statusView.sqlCmdModeChanged(fileUri);
+
+            expect(statusView.getSqlCmdMode(fileUri)).to.equal(false);
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                LocalizedConstants.StatusBar.sqlCmdModeOffLabel,
+            );
+        });
+
+        test("captures the resource-specific SQLCMD default once", () => {
+            enableSqlCmdByDefault = true;
+            statusView.sqlCmdModeChanged(fileUri);
+            enableSqlCmdByDefault = false;
+
+            statusView.setNotConnected(fileUri);
+
+            expect(statusView.getSqlCmdMode(fileUri)).to.equal(true);
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                LocalizedConstants.StatusBar.sqlCmdModeOnLabel,
+            );
+        });
+
+        test("preserves a manual override when the connection changes", async () => {
+            enableSqlCmdByDefault = true;
+            statusView.sqlCmdModeChanged(fileUri, false);
+
+            statusView.setNotConnected(fileUri);
+            await statusView.connectSuccess(
+                fileUri,
+                { server: "testServer", database: "testDatabase" } as IConnectionProfile,
+                {} as IServerInfo,
+            );
+
+            expect(statusView.getSqlCmdMode(fileUri)).to.equal(false);
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                LocalizedConstants.StatusBar.sqlCmdModeOffLabel,
+            );
+        });
+    });
+
     suite("Colorization tests", () => {
         let getConfigurationStub: sinon.SinonStub;
 

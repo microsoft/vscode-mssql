@@ -35,6 +35,7 @@ class FileStatusBar {
     public statusLanguageService: vscode.StatusBarItem;
     // Item for SQLCMD Mode
     public sqlCmdMode: vscode.StatusBarItem;
+    public isSqlCmd: boolean;
     // Item for Row Count
     public rowCount: vscode.StatusBarItem;
     // Item for execution time
@@ -163,6 +164,9 @@ export default class StatusView implements vscode.Disposable {
     // Create status bar item if needed
     private createStatusBar(fileUri: string): void {
         let bar = new FileStatusBar();
+        bar.isSqlCmd = vscode.workspace
+            .getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(fileUri))
+            .get<boolean>(Constants.configEnableSqlCmdByDefault, false);
         // set language flavor priority as always 90 since it's to show to the right of the file type
         bar.statusLanguageFlavor = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Right,
@@ -266,7 +270,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.color = undefined;
         this.showStatusBarItem(fileUri, bar.statusConnection);
         bar.statusLanguageService.text = "";
-        this.sqlCmdModeChanged(fileUri, false);
+        this.sqlCmdModeChanged(fileUri);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
 
@@ -359,7 +363,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.color = await this.getConnectionColor(bar.connectionId);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
-        this.sqlCmdModeChanged(fileUri, false);
+        this.sqlCmdModeChanged(fileUri);
     }
 
     public async updateConnectionColors(): Promise<void> {
@@ -491,9 +495,19 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
     }
 
-    public sqlCmdModeChanged(fileUri: string, isSqlCmd: boolean = false): void {
+    /**
+     * Returns the SQLCMD mode selected for an editor.
+     */
+    public getSqlCmdMode(fileUri: string): boolean {
+        return this.getStatusBar(fileUri).isSqlCmd;
+    }
+
+    public sqlCmdModeChanged(fileUri: string, isSqlCmd?: boolean): void {
         let bar = this.getStatusBar(fileUri);
-        bar.sqlCmdMode.text = isSqlCmd ? "SQLCMD: On" : "SQLCMD: Off";
+        bar.isSqlCmd = isSqlCmd ?? bar.isSqlCmd;
+        bar.sqlCmdMode.text = bar.isSqlCmd
+            ? LocalizedConstants.StatusBar.sqlCmdModeOnLabel
+            : LocalizedConstants.StatusBar.sqlCmdModeOffLabel;
         bar.sqlCmdMode.command = Constants.cmdToggleSqlCmd;
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
     }

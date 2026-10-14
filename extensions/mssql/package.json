@@ -2801,6 +2801,12 @@
                         "description": "%mssql.query.completionSoundFile.description%",
                         "scope": "window"
                     },
+                    "mssql.query.enableSqlCmdByDefault": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.query.enableSqlCmdByDefault.description%",
+                        "scope": "resource"
+                    },
                     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": {
                         "type": "boolean",
                         "default": false,

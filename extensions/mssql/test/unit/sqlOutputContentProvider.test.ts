@@ -18,6 +18,7 @@ import sinonChai from "sinon-chai";
 import { IDbColumn, ISelectionData } from "../../src/models/interfaces";
 import {
     ExecutionPlanOptions,
+    QueryExecuteOptionsRequest,
     QueryExecuteSubsetResult,
 } from "../../src/models/contracts/queryExecute";
 import { ExecutionPlanGraph } from "../../src/sharedInterfaces/executionPlan";
@@ -480,6 +481,58 @@ suite("SqlOutputProvider Tests using mocks", () => {
         await contentProvider.runQuery(statusViewInstance, "test_uri", undefined, "test_title");
         testQueryRunner = contentProvider.getQueryRunner("test_uri");
         expect(testQueryRunner).to.not.be.undefined;
+    });
+
+    test("applies SQLCMD default before the first query runs", async () => {
+        const uri = "file:///workspace/query.sql";
+        const client = sandbox.createStubInstance(SqlToolsServiceClient);
+        let resolveInitialization: () => void;
+        const initializationRequest = new Promise<void>((resolve) => {
+            resolveInitialization = resolve;
+        });
+        client.sendRequest
+            .withArgs(QueryExecuteOptionsRequest.type, sinon.match.object)
+            .returns(initializationRequest);
+        sandbox.stub(SqlToolsServiceClient, "instance").get(() => client);
+        statusView.getSqlCmdMode.withArgs(uri).returns(true);
+        const runQuery = sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
+
+        const execution = contentProvider.runQuery(statusViewInstance, uri, undefined, "Query");
+        await Promise.resolve();
+
+        expect(contentProvider.getQueryRunner(uri)).to.not.be.undefined;
+        expect(runQuery).to.not.have.been.called;
+
+        resolveInitialization();
+        await execution;
+
+        expect(runQuery).to.have.been.calledOnce;
+        expect(contentProvider.getQueryRunner(uri).isSqlCmd).to.equal(true);
+    });
+
+    test("does not return a runner closed during SQLCMD initialization", async () => {
+        const uri = "file:///workspace/query.sql";
+        const client = sandbox.createStubInstance(SqlToolsServiceClient);
+        let resolveInitialization: () => void;
+        const initializationRequest = new Promise<void>((resolve) => {
+            resolveInitialization = resolve;
+        });
+        client.sendRequest.resolves(true);
+        client.sendRequest
+            .withArgs(QueryExecuteOptionsRequest.type, sinon.match.object)
+            .returns(initializationRequest);
+        sandbox.stub(SqlToolsServiceClient, "instance").get(() => client);
+        statusView.getSqlCmdMode.withArgs(uri).returns(true);
+
+        const creation = contentProvider.createQueryRunner(statusViewInstance, uri, "Query");
+        await Promise.resolve();
+        expect(contentProvider.getQueryRunner(uri)).to.not.be.undefined;
+
+        await contentProvider.cleanupRunner(uri);
+        resolveInitialization();
+
+        expect(await creation).to.be.undefined;
+        expect(contentProvider.getQueryRunner(uri)).to.be.undefined;
     });
 
     test("runQueryString dispatches SQL through the editor's result pipeline", async () => {

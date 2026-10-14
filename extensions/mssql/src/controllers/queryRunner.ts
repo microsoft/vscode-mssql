@@ -122,6 +122,9 @@ export default class QueryRunner {
     private _totalElapsedMilliseconds: number;
     private _hasCompleted: boolean;
     private _isSqlCmd: boolean = false;
+    private _desiredSqlCmdMode: boolean = false;
+    private _sqlCmdModeUpdate: Promise<void> = Promise.resolve();
+    private _sqlCmdModeUpdateVersion: number = 0;
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
     private _queryDocumentText: string | undefined;
@@ -267,6 +270,7 @@ export default class QueryRunner {
 
     set isSqlCmd(value: boolean) {
         this._isSqlCmd = value;
+        this._desiredSqlCmdMode = value;
     }
 
     get hasCompleted(): boolean {
@@ -1589,16 +1593,50 @@ export default class QueryRunner {
         }
     }
 
-    public async toggleSqlCmd(): Promise<boolean> {
-        const queryExecuteOptions: QueryExecutionOptions = { options: {} };
-        queryExecuteOptions.options["isSqlCmdMode"] = !this.isSqlCmd;
-        const queryExecuteOptionsParams: QueryExecutionOptionsParams = {
-            ownerUri: this.uri,
-            options: queryExecuteOptions,
-        };
-        await this._client.sendRequest(QueryExecuteOptionsRequest.type, queryExecuteOptionsParams);
-        this._isSqlCmd = !this._isSqlCmd;
-        return true;
+    public toggleSqlCmd(): Promise<boolean> {
+        return this.setSqlCmdMode(!this._desiredSqlCmdMode);
+    }
+
+    /**
+     * Updates SQLCMD execution mode after any previously requested mode change completes.
+     */
+    public async setSqlCmdMode(isSqlCmd: boolean): Promise<boolean> {
+        const updateVersion = ++this._sqlCmdModeUpdateVersion;
+        this._desiredSqlCmdMode = isSqlCmd;
+
+        const update = this._sqlCmdModeUpdate.then(async () => {
+            if (this._isSqlCmd === isSqlCmd) {
+                return;
+            }
+
+            const queryExecuteOptions: QueryExecutionOptions = {
+                options: { isSqlCmdMode: isSqlCmd },
+            };
+            const queryExecuteOptionsParams: QueryExecutionOptionsParams = {
+                ownerUri: this.uri,
+                options: queryExecuteOptions,
+            };
+            await this._client.sendRequest(
+                QueryExecuteOptionsRequest.type,
+                queryExecuteOptionsParams,
+            );
+            this._isSqlCmd = isSqlCmd;
+        });
+
+        this._sqlCmdModeUpdate = update.then(
+            () => undefined,
+            () => undefined,
+        );
+
+        try {
+            await update;
+            return isSqlCmd;
+        } catch (error) {
+            if (this._sqlCmdModeUpdateVersion === updateVersion) {
+                this._desiredSqlCmdMode = this._isSqlCmd;
+            }
+            throw error;
+        }
     }
 
     private sendBatchTimeMessage(batchId: number, executionTime: string): void {

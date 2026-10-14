@@ -815,18 +815,65 @@ suite("Query Runner tests", () => {
         }
     });
 
-    test("Toggle SQLCMD Mode sends request", async () => {
-        let queryUri = "test_uri";
-        let queryRunner = createQueryRunner(queryUri, queryUri);
-        expect(queryRunner.isSqlCmd, "Query Runner should have SQLCMD false be default").is.equal(
-            false,
-        );
-        testSqlToolsServerClient.sendRequest
-            .withArgs(QueryExecuteContracts.QueryExecuteOptionsRequest.type, sinon.match.object)
-            .resolves(true);
-        await queryRunner.toggleSqlCmd();
+    for (const initialMode of [false, true]) {
+        test(`Toggle SQLCMD mode from ${initialMode} sends the resulting mode`, async () => {
+            const queryRunner = createQueryRunner();
+            queryRunner.isSqlCmd = initialMode;
+            testSqlToolsServerClient.sendRequest.resolves(true);
+
+            const result = await queryRunner.toggleSqlCmd();
+
+            expect(result).to.equal(!initialMode);
+            expect(queryRunner.isSqlCmd).to.equal(!initialMode);
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+                QueryExecuteContracts.QueryExecuteOptionsRequest.type,
+                {
+                    ownerUri: standardUri,
+                    options: { options: { isSqlCmdMode: !initialMode } },
+                },
+            );
+        });
+    }
+
+    test("failed SQLCMD update leaves the applied mode unchanged", async () => {
+        const queryRunner = createQueryRunner();
+        const error = new Error("SQLCMD update failed");
+        testSqlToolsServerClient.sendRequest.rejects(error);
+
+        let actualError: unknown;
+        try {
+            await queryRunner.setSqlCmdMode(true);
+        } catch (caughtError) {
+            actualError = caughtError;
+        }
+
+        expect(actualError).to.equal(error);
+        expect(queryRunner.isSqlCmd).to.equal(false);
+    });
+
+    test("serializes a toggle behind pending default-mode initialization", async () => {
+        const queryRunner = createQueryRunner();
+        let resolveInitialization: () => void;
+        const initializationRequest = new Promise<void>((resolve) => {
+            resolveInitialization = resolve;
+        });
+        testSqlToolsServerClient.sendRequest.onFirstCall().returns(initializationRequest);
+        testSqlToolsServerClient.sendRequest.onSecondCall().resolves(true);
+
+        const initialization = queryRunner.setSqlCmdMode(true);
+        const toggle = queryRunner.toggleSqlCmd();
+        await Promise.resolve();
+
         expect(testSqlToolsServerClient.sendRequest).to.have.been.calledOnce;
-        expect(queryRunner.isSqlCmd, "SQLCMD Mode should be switched").is.equal(true);
+        resolveInitialization();
+        await Promise.all([initialization, toggle]);
+
+        expect(testSqlToolsServerClient.sendRequest).to.have.been.calledTwice;
+        expect(testSqlToolsServerClient.sendRequest.secondCall.args[1]).to.deep.equal({
+            ownerUri: standardUri,
+            options: { options: { isSqlCmdMode: false } },
+        });
+        expect(queryRunner.isSqlCmd).to.equal(false);
     });
 
     test("updateQueryRunnerUri migrates internal URI keyed state while query is executing", () => {

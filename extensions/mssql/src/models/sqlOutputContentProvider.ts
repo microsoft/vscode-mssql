@@ -1016,6 +1016,11 @@ export class SqlOutputContentProvider {
             this._queryResultsMap.set(uri, queryRunnerState);
         }
 
+        await queryRunner.setSqlCmdMode(statusView.getSqlCmdMode(uri) === true);
+        if (this._queryResultsMap.get(queryRunner.uri)?.queryRunner !== queryRunner) {
+            return;
+        }
+
         return queryRunner;
     }
 

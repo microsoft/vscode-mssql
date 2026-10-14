@@ -28,6 +28,8 @@ import {
     stubInstantiationService,
     stubTelemetry,
 } from "./utils";
+import StatusView from "../../src/views/statusView";
+import { LanguageFlavorChangedNotification } from "../../src/models/contracts/languageService";
 
 chai.use(sinonChai);
 
@@ -36,6 +38,8 @@ suite("SqlDocumentService Tests", () => {
     let document: vscode.TextDocument;
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let statusView: sinon.SinonStubbedInstance<StatusView>;
+    let sqlToolsClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let sqlDocumentService: SqlDocumentService;
     let docUri: string;
     let docUriCallback: string;
@@ -81,6 +85,8 @@ suite("SqlDocumentService Tests", () => {
 
         sqlDocumentService = new SqlDocumentService(mainController);
         mainController.sqlDocumentService = sqlDocumentService;
+        statusView = sandbox.createStubInstance(StatusView);
+        sqlDocumentService["_statusview"] = statusView;
 
         // Ensure the connection manager is properly set in the service
         sqlDocumentService["_connectionManager"] = connectionManager;
@@ -98,9 +104,11 @@ suite("SqlDocumentService Tests", () => {
             has: sandbox.stub().returns(false),
             delete: sandbox.stub(),
         };
-        sandbox.stub(SqlToolsServerClient, "instance").value({
+        sqlToolsClient = {
             diagnosticCollection: mockDiagnosticCollection,
-        });
+            sendNotification: sandbox.stub().resolves(),
+        } as unknown as sinon.SinonStubbedInstance<SqlToolsServerClient>;
+        sandbox.stub(SqlToolsServerClient, "instance").value(sqlToolsClient);
 
         setupConnectionManagerMocks(connectionManager);
     });
@@ -511,6 +519,36 @@ suite("SqlDocumentService Tests", () => {
         await openSqlDocumentAfterSaveOrRenameDelay(document);
 
         expect(connectionManager.onDidOpenTextDocument).to.have.been.calledWithExactly(document);
+    });
+
+    test("onDidOpenTextDocument initializes configured SQLCMD language mode", async () => {
+        statusView.getSqlCmdMode.returns(true);
+
+        await openSqlDocumentAfterSaveOrRenameDelay(document);
+
+        expect(sqlToolsClient.sendNotification).to.have.been.calledWith(
+            LanguageFlavorChangedNotification.type,
+            {
+                uri: document.uri.toString(),
+                language: "sqlcmd",
+                flavor: Constants.mssqlProviderName,
+            },
+        );
+    });
+
+    test("onDidOpenTextDocument logs SQLCMD language initialization failure", async () => {
+        const error = new Error("Language notification failed");
+        statusView.getSqlCmdMode.returns(true);
+        sqlToolsClient.sendNotification.rejects(error);
+        const warn = sandbox.stub(sqlDocumentService["_logger"], "warn");
+
+        await openSqlDocumentAfterSaveOrRenameDelay(document);
+
+        expect(warn).to.have.been.calledWithExactly(
+            "Failed to initialize SQLCMD language mode",
+            { uri: document.uri.toString() },
+            error,
+        );
     });
 
     test("onDidOpenTextDocument should skip notebook cell documents", async () => {
@@ -1087,7 +1125,7 @@ suite("SqlDocumentService Tests", () => {
             });
 
             expect(mockLanguageFlavorChanged).to.have.been.calledOnce;
-            expect(mockSqlCmdModeChanged).to.have.been.calledOnceWith(sinon.match.string, false);
+            expect(mockSqlCmdModeChanged).to.have.been.calledOnceWith(sinon.match.string);
         });
     });
 
