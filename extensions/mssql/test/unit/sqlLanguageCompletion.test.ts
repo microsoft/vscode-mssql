@@ -589,7 +589,7 @@ suite("sqlLanguage native completion: latency budget", () => {
             expect(result!.items.length).to.be.greaterThan(0);
         }
         samples.sort((a, b) => a - b);
-        const p95 = samples[Math.floor(samples.length * 0.95)];
+        const p95 = samples[Math.ceil(samples.length * 0.95) - 1];
         // eslint-disable-next-line no-console
         console.log(
             `      completion latency warm: median ${samples[10].toFixed(2)}ms p95 ${p95.toFixed(2)}ms`,
