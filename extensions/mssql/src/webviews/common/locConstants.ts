@@ -2925,6 +2925,8 @@ export class LocConstants {
                 }),
             name: l10n.t("Name"),
             enterConnectionGroupName: l10n.t("Enter connection group name"),
+            parentGroup: l10n.t("Parent group"),
+            root: l10n.t("Root"),
             description: l10n.t("Description"),
             enterDescription: l10n.t("Enter description (optional)"),
             color: l10n.t("Color"),
@@ -2933,6 +2935,9 @@ export class LocConstants {
             hue: l10n.t("Hue"),
             saturation: l10n.t("Saturation"),
             brightness: l10n.t("Brightness"),
+            organizationNote: l10n.t(
+                "You can also drag and drop connections and groups in the Connections view to reorganize them. Connections and groups can define an order property; items with an order are sorted by that value, then alphabetically.",
+            ),
         };
     }
 

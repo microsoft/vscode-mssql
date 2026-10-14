@@ -7186,6 +7186,9 @@
     <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
       <source xml:lang="en">Parameters</source>
     </trans-unit>
+    <trans-unit id="++CODE++ffd307ce81d2fc14aa150a7cc680a982a48c9859b0e2aaa31c3d6f740bb868e5">
+      <source xml:lang="en">Parent group</source>
+    </trans-unit>
     <trans-unit id="++CODE++5cafcd08f15a2a6ce49d703f1da5861c94ec134cc92984cc6b2f67965c31b5ee">
       <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
     </trans-unit>
@@ -8162,6 +8165,9 @@
     <trans-unit id="++CODE++a6c1bdc89b00a0cb7647e7a9bec75ef2d64ff6c15590b5de937d2f4ecf1091d9">
       <source xml:lang="en">Right operation: {0}</source>
       <note>{0} is an execution plan operation name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++44cb005ee2e65d9cc817b0a083579369fb6c24a4be728cb43fd9d4c3ca7f4c2e">
+      <source xml:lang="en">Root</source>
     </trans-unit>
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
@@ -10937,6 +10943,9 @@
     </trans-unit>
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6ff422c7284617006ddc3e8be3e22e69389c8b12dc4b2e926789da1bc115cecd">
+      <source xml:lang="en">You can also drag and drop connections and groups in the Connections view to reorganize them. Connections and groups can define an order property; items with an order are sorted by that value, then alphabetically.</source>
     </trans-unit>
     <trans-unit id="++CODE++ee6604b8608c95bcd41d746470a4afd5a0254262421599e83cf70c4ebe40255c">
       <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>

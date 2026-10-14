@@ -2041,11 +2041,12 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
-        this.registerCommand(Constants.cmdConnectionGroupCreate);
-        this._event.on(Constants.cmdConnectionGroupCreate, () => {
+        this.registerCommandWithArgs(Constants.cmdConnectionGroupCreate);
+        this._event.on(Constants.cmdConnectionGroupCreate, (node?: ConnectionGroupNode) => {
             const connGroupDialog = this._instantiationService.createInstance(
                 ConnectionGroupWebviewController,
                 undefined,
+                node instanceof ConnectionGroupNode ? node.connectionGroup.id : undefined,
             );
             connGroupDialog.revealToForeground();
         });
@@ -2055,6 +2056,7 @@ export default class MainController implements vscode.Disposable {
             const connGroupDialog = this._instantiationService.createInstance(
                 ConnectionGroupWebviewController,
                 node.connectionGroup,
+                undefined,
             );
             connGroupDialog.revealToForeground();
         });

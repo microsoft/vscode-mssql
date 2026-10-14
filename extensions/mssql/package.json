@@ -696,9 +696,14 @@
                     "group": "0_MSSQL_connectionGroups@0"
                 },
                 {
-                    "command": "mssql.connectionGroups.edit",
+                    "command": "mssql.connectionGroups.create",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
                     "group": "0_MSSQL_connectionGroups@1"
+                },
+                {
+                    "command": "mssql.connectionGroups.edit",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "group": "0_MSSQL_connectionGroups@2"
                 },
                 {
                     "command": "mssql.connectionGroups.delete",

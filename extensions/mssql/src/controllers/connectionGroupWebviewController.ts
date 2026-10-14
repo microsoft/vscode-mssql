@@ -36,20 +36,16 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
 
     constructor(
         private connectionGroupToEdit: IConnectionGroup | undefined,
+        parentGroupId: string | undefined,
         @IExtensionContextService contextService: IExtensionContextService,
         @IConnectionConfig private connectionConfig: ConnectionConfig,
     ) {
+        const groups = connectionConfig.getGroupsFromSettings();
         super(
             contextService.context,
             "connectionGroup",
             "ConnectionGroup",
-            {
-                existingGroupName: connectionGroupToEdit?.name,
-                name: connectionGroupToEdit?.name || "",
-                description: connectionGroupToEdit?.description || "",
-                color: connectionGroupToEdit?.color || "",
-                message: "",
-            },
+            getConnectionGroupDialogState(groups, connectionGroupToEdit, parentGroupId),
             {
                 title: connectionGroupToEdit
                     ? Loc.ConnectionGroup.editExistingGroup(connectionGroupToEdit.name)
@@ -94,6 +90,7 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
                         name: payload.name,
                         description: payload.description,
                         color: payload.color,
+                        parentId: payload.parentId,
                     });
                 } else {
                     this.logger.debug("Creating new connection group", payload);
@@ -126,23 +123,110 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
     }
 }
 
-export function createConnectionGroupFromSpec(spec: ConnectionGroupState): IConnectionGroup {
+export function createConnectionGroupFromSpec(spec: ConnectionGroupSpec): IConnectionGroup {
     return {
         name: spec.name,
         description: spec.description,
         color: spec.color,
+        parentId: spec.parentId,
         id: uuid(),
         configSource: vscode.ConfigurationTarget.Global,
     };
 }
 
 /**
+ * Builds connection group dialog state, excluding parent choices that would create a cycle.
+ */
+export function getConnectionGroupDialogState(
+    groups: IConnectionGroup[],
+    connectionGroupToEdit?: IConnectionGroup,
+    parentGroupId?: string,
+): ConnectionGroupState {
+    const excludedGroupIds = new Set<string>();
+    if (connectionGroupToEdit) {
+        excludedGroupIds.add(connectionGroupToEdit.id);
+
+        let foundDescendant = true;
+        while (foundDescendant) {
+            foundDescendant = false;
+            for (const group of groups) {
+                if (
+                    group.parentId &&
+                    excludedGroupIds.has(group.parentId) &&
+                    !excludedGroupIds.has(group.id)
+                ) {
+                    excludedGroupIds.add(group.id);
+                    foundDescendant = true;
+                }
+            }
+        }
+    }
+
+    const groupsById = new Map(groups.map((group) => [group.id, group]));
+    const parentGroups = groups
+        .filter((group) => !excludedGroupIds.has(group.id))
+        .map((group) => ({
+            id: group.id,
+            name: getParentGroupDisplayName(group, groupsById),
+            isRoot: group.id === ConnectionConfig.ROOT_GROUP_ID,
+        }))
+        .sort((a, b) => {
+            if (a.isRoot !== b.isRoot) {
+                return a.isRoot ? -1 : 1;
+            }
+            return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+        });
+    const rootGroup = parentGroups.find((group) => group.isRoot);
+    const requestedParentId =
+        parentGroupId ?? connectionGroupToEdit?.parentId ?? rootGroup?.id ?? "";
+
+    return {
+        existingGroupName: connectionGroupToEdit?.name,
+        name: connectionGroupToEdit?.name || "",
+        description: connectionGroupToEdit?.description || "",
+        color: connectionGroupToEdit?.color || "",
+        parentId: parentGroups.some((group) => group.id === requestedParentId)
+            ? requestedParentId
+            : (rootGroup?.id ?? parentGroups[0]?.id ?? ""),
+        parentGroups,
+        message: "",
+    };
+}
+
+function getParentGroupDisplayName(
+    group: IConnectionGroup,
+    groupsById: Map<string, IConnectionGroup>,
+): string {
+    const path = [group.name];
+    const visitedGroupIds = new Set([group.id]);
+    let parentId = group.parentId;
+
+    while (parentId && parentId !== ConnectionConfig.ROOT_GROUP_ID) {
+        if (visitedGroupIds.has(parentId)) {
+            break;
+        }
+        visitedGroupIds.add(parentId);
+
+        const parent = groupsById.get(parentId);
+        if (!parent) {
+            break;
+        }
+        path.unshift(parent.name);
+        parentId = parent.parentId;
+    }
+
+    return path.join(" / ");
+}
+
+/**
  * Shared function to get the default properties for the Create Connection Group dialog.
  */
-export function getDefaultConnectionGroupDialogProps(): CreateConnectionGroupDialogProps {
+export function getDefaultConnectionGroupDialogProps(
+    groups: IConnectionGroup[],
+): CreateConnectionGroupDialogProps {
     return {
         type: "createConnectionGroup",
-        props: {} as ConnectionGroupState,
+        props: getConnectionGroupDialogState(groups),
     };
 }
 

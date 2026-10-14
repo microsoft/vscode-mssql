@@ -12,6 +12,7 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
+    Dropdown,
     Input,
     Textarea,
     MessageBar,
@@ -20,6 +21,7 @@ import {
     Popover,
     PopoverTrigger,
     PopoverSurface,
+    Option,
 } from "@fluentui/react-components";
 import {
     ColorArea,
@@ -103,7 +105,9 @@ export const ConnectionGroupDialog = ({
     const [description, setDescription] = useState(state.description || "");
     const [color, setColor] = useState(intialHsvColor);
     const [pickerColor, setPickerColor] = useState(intialHsvColor);
+    const [parentId, setParentId] = useState(state.parentId);
     const [popoverOpen, setPopoverOpen] = useState(false);
+    const selectedParent = state.parentGroups.find((group) => group.id === parentId);
     const dialogTitle = state.existingGroupName
         ? Loc.connectionGroups.editConnectionGroup(state.existingGroupName)
         : Loc.connectionGroups.createNew;
@@ -125,6 +129,7 @@ export const ConnectionGroupDialog = ({
                 color:
                     new TinyColor(color).toHexString(false /* allow3Char */).toUpperCase() ||
                     undefined,
+                parentId,
             });
         }
     }
@@ -173,6 +178,24 @@ export const ConnectionGroupDialog = ({
                     required
                     placeholder={Loc.connectionGroups.enterConnectionGroupName}
                 />
+            </Field>
+            <Field className={formStyles.formComponentDiv} label={Loc.connectionGroups.parentGroup}>
+                <Dropdown
+                    value={
+                        selectedParent?.isRoot
+                            ? Loc.connectionGroups.root
+                            : (selectedParent?.name ?? "")
+                    }
+                    selectedOptions={parentId ? [parentId] : []}
+                    onOptionSelect={(_event, data) => {
+                        setParentId(data.optionValue ?? "");
+                    }}>
+                    {state.parentGroups.map((group) => (
+                        <Option key={group.id} value={group.id}>
+                            {group.isRoot ? Loc.connectionGroups.root : group.name}
+                        </Option>
+                    ))}
+                </Dropdown>
             </Field>
             <Field className={formStyles.formComponentDiv} label={Loc.connectionGroups.description}>
                 <Textarea
@@ -248,6 +271,7 @@ export const ConnectionGroupDialog = ({
                     </Popover>
                 </div>
             </Field>
+            <MessageBar intent="info">{Loc.connectionGroups.organizationNote}</MessageBar>
         </form>
     );
 

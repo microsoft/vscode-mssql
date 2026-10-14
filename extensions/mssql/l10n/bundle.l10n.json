@@ -4528,6 +4528,8 @@
         "comment": ["{0} is the name of the connection group being edited"]
     },
     "Enter connection group name": "Enter connection group name",
+    "Parent group": "Parent group",
+    "Root": "Root",
     "Enter description (optional)": "Enter description (optional)",
     "Color": "Color",
     "Choose color": "Choose color",
@@ -4535,6 +4537,7 @@
     "Hue": "Hue",
     "Saturation": "Saturation",
     "Brightness": "Brightness",
+    "You can also drag and drop connections and groups in the Connections view to reorganize them. Connections and groups can define an order property; items with an order are sorted by that value, then alphabetically.": "You can also drag and drop connections and groups in the Connections view to reorganize them. Connections and groups can define an order property; items with an order are sorted by that value, then alphabetically.",
     "Loading deployment": "Loading deployment",
     "New SQL database": "New SQL database",
     "Choose an option to provision a database": "Choose an option to provision a database",
