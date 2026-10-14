@@ -180,6 +180,49 @@ export namespace SelectTableTop1000Request {
     );
 }
 
+/** A measure that the platform of a database keeps over time. */
+export type PlatformMetricKind = "cpu" | "memory" | "storage" | "logins" | "requests" | "blocked";
+
+export interface PlatformMetricPoint {
+    /** The start of the bucket, ISO 8601 UTC. */
+    readonly startUtc: string;
+    /** Undefined in JSON as null: the platform has no value for the bucket. */
+    readonly value: number | null;
+}
+
+/**
+ * The history of a measure from the platform of a database: Azure Monitor for Azure SQL Database
+ * and Managed Instance, and the SQL workload of Fabric for SQL database in Fabric.
+ */
+export interface PlatformMetricSeries {
+    readonly source: "azureMonitor" | "fabric";
+    readonly kind: PlatformMetricKind;
+    /** vCores in use, a percent of the limit, MB, or a count in each bucket. */
+    readonly unit: "vCores" | "percent" | "megabytes" | "count";
+    readonly bucketMinutes: number;
+    readonly points: readonly PlatformMetricPoint[];
+    /** The vCore limit for CPU in vCores, or the allocated MB for storage, when known. */
+    readonly limit?: number;
+}
+
+/** A series, or why the platform could not be read; the dashboard then reads the database. */
+export interface PlatformMetricResult {
+    readonly series?: PlatformMetricSeries;
+    readonly reason?: string;
+}
+
+export interface PlatformMetricParams extends TimeWindowParams {
+    readonly kind: PlatformMetricKind;
+    readonly platform?: SqlPlatform;
+}
+
+/** Reads the history of a measure from the platform of the database. */
+export namespace GetPlatformMetricRequest {
+    export const type = new RequestType<PlatformMetricParams, PlatformMetricResult, void>(
+        "performanceDashboard/getPlatformMetric",
+    );
+}
+
 /** Scripts a table's CREATE statement and opens it in a query editor. */
 export namespace ScriptTableCreateRequest {
     export const type = new RequestType<SelectTableTop1000Params, void, void>(

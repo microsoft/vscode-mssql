@@ -933,6 +933,9 @@
     <trans-unit id="++CODE++b38ae2c5b84529e8027b43a69c8ce9426a3cb081dae97b77bdcd2fdc5a9df742">
       <source xml:lang="en">Average</source>
     </trans-unit>
+    <trans-unit id="++CODE++efad36e3fcd4c8a1ec05070b9fe985633419397fc7cae2f44b7951c30286bde6">
+      <source xml:lang="en">Average CPU</source>
+    </trans-unit>
     <trans-unit id="++CODE++d233157a2ba894afe8762992540c62b9fc91963de7e01c7556b78170bf131ae4">
       <source xml:lang="en">Average memory</source>
     </trans-unit>
@@ -996,6 +999,9 @@
     </trans-unit>
     <trans-unit id="++CODE++aa3e45296e9592fa302b1adc67d9b4467e467a4ffa11fee0c0430063a3372707">
       <source xml:lang="en">Azure MFA</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1eb995eacc6832d3b818b0216fcff7853553e7aa6313ec6989b2eec0074ce953">
+      <source xml:lang="en">Azure Monitor</source>
     </trans-unit>
     <trans-unit id="++CODE++bbe331f8e32243066afbce22f5a989fac4ccc48b7f8902da20c35b50117276af">
       <source xml:lang="en">Azure SQL Database</source>
@@ -1328,6 +1334,9 @@
     </trans-unit>
     <trans-unit id="++CODE++db9a4c7d4c195ebf80068dd04120accce1cbfbef342bb43a53cbd651eb96e37b">
       <source xml:lang="en">CPU</source>
+    </trans-unit>
+    <trans-unit id="++CODE++94083288561321749c1e02b2e4e9c4db6bd2aa7985d96b74f5f1b4cadd5809a5">
+      <source xml:lang="en">CPU % of limit</source>
     </trans-unit>
     <trans-unit id="++CODE++9f158c7179189aaec446b5301093b0ca185091854d7aefb6430d28ee753466af">
       <source xml:lang="en">CPU (ms)</source>
@@ -4488,6 +4497,9 @@
     <trans-unit id="++CODE++0556bfb755c73e8c60da1230c38f26ce0eaf79dc7bd5f5368371d561e5eab52f">
       <source xml:lang="en">Extremely likely</source>
     </trans-unit>
+    <trans-unit id="++CODE++de7b2b8384b81848fa58aef4ac6208b14f283d08c6a3f1090d32855d46fb8e74">
+      <source xml:lang="en">Fabric</source>
+    </trans-unit>
     <trans-unit id="++CODE++ce973c12f6c3371202fc82770629424f5dff2aeaf8fda4b6a5e2f91156c13af3">
       <source xml:lang="en">Fabric API error occurred ({0}): {1}</source>
       <note>{0} is the error code
@@ -6033,6 +6045,10 @@
     <trans-unit id="++CODE++19d5a0a0a9c5159918790f72c1a36cae7489b531aa68fbf99356cff1dd9f9fd9">
       <source xml:lang="en">Let GitHub Copilot guide your migration from assessment through validation — recommend a target and method, build the prerequisite plan, size the Azure SQL SKU, run the migration, and validate the data afterwards.</source>
     </trans-unit>
+    <trans-unit id="++CODE++06ce7e01c1caadb3c67d14c517ae37aeaccb793f239487667a4b8b30176fa0aa">
+      <source xml:lang="en">Limit</source>
+      <note>The most that a database may use</note>
+    </trans-unit>
     <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
       <source xml:lang="en">Line {0}</source>
       <note>{0} is the line number</note>
@@ -6382,6 +6398,13 @@
     <trans-unit id="++CODE++b2d6201d8ce459ebfda7baaaa0858a2aefc854d7120428de1fd4803700928446">
       <source xml:lang="en">Login name</source>
     </trans-unit>
+    <trans-unit id="++CODE++70453ff88eb8bba8572b0d14047a5ef966f75418537d63f79ac4bdb1e16d5937">
+      <source xml:lang="en">Logins in range</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a9abcf931a0c8f7dbb19406dfea243cbb44599f7c559c17b6abd7a4fe0cc26d">
+      <source xml:lang="en">Logins per {0}</source>
+      <note>{0} is the length of a chart interval, for example hour</note>
+    </trans-unit>
     <trans-unit id="++CODE++ea2100dc89ae9fe21fa9b08ab1bf18662dca1e53a3eebd7d03afebcaf5d57515">
       <source xml:lang="en">Logs</source>
     </trans-unit>
@@ -6549,8 +6572,14 @@
     <trans-unit id="++CODE++c3963aedaac6c83c04cf8fb997b479c61e66b3caeecfadd2f2d4bd5b0aef1778">
       <source xml:lang="en">Memory</source>
     </trans-unit>
+    <trans-unit id="++CODE++dab2b9dfdce051eae7e40a9fe80ec297b8325016c86b483fe8f16afb913994bf">
+      <source xml:lang="en">Memory % of limit</source>
+    </trans-unit>
     <trans-unit id="++CODE++1bafb8bc6b296a356a61c8b2a233a7ec2de5b22694f154997fd3ea28d2340ca0">
       <source xml:lang="en">Memory consumption</source>
+    </trans-unit>
+    <trans-unit id="++CODE++999526830b7ff71f425bdc6f280ac9a84896760d8c042f1fa85dd457a4e2ee2f">
+      <source xml:lang="en">Memory used</source>
     </trans-unit>
     <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
       <source xml:lang="en">Message</source>
@@ -6739,6 +6768,10 @@
     </trans-unit>
     <trans-unit id="++CODE++7b8aed7d017259cfb3ce05042f1ac40ad018d4c90351fb62d3a41b8a066e33e8">
       <source xml:lang="en">More queries</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0f9663bf7f466f7e1d7add3a7ed3974c8616c44de994bdc0004b68a89503069b">
+      <source xml:lang="en">Most blocked requests at once, per {0}</source>
+      <note>{0} is the length of a chart interval, for example hour</note>
     </trans-unit>
     <trans-unit id="++CODE++aec644415fff6887fc7dedf9225800873fc837b77ee62cc381e598bcd959a1df">
       <source xml:lang="en">Most frequent</source>
@@ -7830,6 +7863,9 @@
     <trans-unit id="++CODE++8247dd4000656b52aa69bf56045a585052abd547ac4552c178cf428c680cb6f6">
       <source xml:lang="en">Peak</source>
       <note>The highest value in a time range</note>
+    </trans-unit>
+    <trans-unit id="++CODE++06eaa8e68ca6b408f482d555c383cd5ee14a2b0a255443a5e3c57faffaa29a25">
+      <source xml:lang="en">Peak blocked</source>
     </trans-unit>
     <trans-unit id="++CODE++147c73d3beab1fc246a32366f542629c58498affffc41b3a00c5061d9fcc1322">
       <source xml:lang="en">Peak memory grant</source>
@@ -12304,6 +12340,9 @@
     <trans-unit id="++CODE++7ff2c6370613ed94cff5b41da2922691d968855c00b28dc39d101079cc59f673">
       <source xml:lang="en">vCores</source>
     </trans-unit>
+    <trans-unit id="++CODE++657479f48560278d03cfe783bbeee4517227f9c0c16330fd3192edae7d85e5e8">
+      <source xml:lang="en">vCores used</source>
+    </trans-unit>
     <trans-unit id="++CODE++cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619">
       <source xml:lang="en">value</source>
     </trans-unit>
@@ -12654,6 +12693,10 @@
     <trans-unit id="++CODE++f52a5a16e00664b6fdd89dc85aaffca47df05cd83800bcba3978bf4bc9213c0c">
       <source xml:lang="en">{0} tables</source>
     </trans-unit>
+    <trans-unit id="++CODE++b429f799a4469cffb468c44e54dce0fc2f1c6cc211b36805bfcbfb9a863ec213">
+      <source xml:lang="en">{0} vCores</source>
+      <note>{0} is a number of vCores, for example 1.25</note>
+    </trans-unit>
     <trans-unit id="++CODE++80eac4752870080344ecd1df5728e26943a7d2e12c7dbd368a404c43d5b490da">
       <source xml:lang="en">{0} vCores</source>
       <note>{0} is the number of virtual cores</note>
@@ -12686,6 +12729,10 @@
     <trans-unit id="++CODE++3918da79939f1c2c188e043a6bae374cee6b61b0b131f55c4701fe7341da6152">
       <source xml:lang="en">{0} · {1}</source>
       <note>{0} is what a chart shows, for example CPU seconds per hour; {1} is a size, for example 16 logical CPUs</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9dd110a1b6150030a084da8c74762fb7280fd869345b41624e804652542c1924">
+      <source xml:lang="en">{0} · {1}</source>
+      <note>{0} is what a chart shows, for example vCores used; {1} is where the data comes from, for example Azure Monitor</note>
     </trans-unit>
     <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
       <source xml:lang="en">{0}, +{1} more</source>

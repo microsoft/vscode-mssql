@@ -160,6 +160,7 @@ suite("PerformanceDashboardWebviewController", () => {
             openSqlScript: sinon.SinonStub;
             selectTableTop1000: sinon.SinonStub;
             scriptTableCreate: sinon.SinonStub;
+            readPlatformMetric: sinon.SinonStub;
         };
         let requestHandlers: Map<string, (params: unknown) => unknown>;
 
@@ -176,6 +177,7 @@ suite("PerformanceDashboardWebviewController", () => {
                 openSqlScript: sandbox.stub().resolves(),
                 selectTableTop1000: sandbox.stub().resolves(),
                 scriptTableCreate: sandbox.stub().resolves(),
+                readPlatformMetric: sandbox.stub().resolves({ reason: "test" }),
             };
             requestHandlers = new Map();
             sandbox

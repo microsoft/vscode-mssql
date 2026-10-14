@@ -35,7 +35,7 @@ import { locConstants as loc } from "../../common/locConstants";
 import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { formatNumber, formatStorageSize as formatSize } from "./performanceDashboardFormat";
-import { PanelProps } from "./performanceDashboardPanels";
+import { PanelProps, usePlatformMetric } from "./performanceDashboardPanels";
 import {
     SectionHeader,
     StatusBar,
@@ -212,11 +212,15 @@ export const PerformanceDashboardStorageView = ({ facts }: PanelProps) => {
         true,
         hasHistory ? undefined : tick,
     );
+    // The size history: from the platform (Azure Monitor or Fabric) when it can be read, or else
+    // from master on Azure SQL Database, or else the sizes read while the view is open.
+    const platform = usePlatformMetric("storage", facts);
+    const masterHistory = hasHistory && !platform.pending && !platform.series;
     const history = useExtensionRequest(
         GetResourceCpuRequest.type,
         { startUtc: range.from.toISOString(), endUtc: range.to.toISOString() },
         key,
-        hasHistory,
+        masterHistory,
     );
     const [samples, setSamples] = useState<TimeSeriesPoint[]>([]);
     const [search, setSearch] = useState("");
@@ -333,14 +337,19 @@ export const PerformanceDashboardStorageView = ({ facts }: PanelProps) => {
         return <StatusBar message={message} />;
     }
 
-    const points = hasHistory
-        ? resourceCpuPoints(
-              readData(history) ?? [],
-              range,
-              bucketMinutesFor(range),
-              resourceStorage,
-          )
-        : samples;
+    const points = platform.series
+        ? platform.series.points
+              .filter((point) => point.value !== null)
+              .map((point) => ({ x: new Date(point.startUtc), y: point.value as number }))
+        : masterHistory
+          ? resourceCpuPoints(
+                readData(history) ?? [],
+                range,
+                bucketMinutesFor(range),
+                resourceStorage,
+            )
+          : samples;
+    const rangedHistory = !!platform.series || masterHistory;
 
     return (
         <div className={classes.view}>
@@ -383,18 +392,25 @@ export const PerformanceDashboardStorageView = ({ facts }: PanelProps) => {
                     </div>
                     <div className={classes.legend}>
                         <span className={classes.swatch} />
-                        {text.usedSize}
+                        {platform.series
+                            ? text.unitWithSource(
+                                  text.usedSize,
+                                  platform.series.source === "fabric"
+                                      ? text.sourceFabric
+                                      : text.sourceAzureMonitor,
+                              )
+                            : text.usedSize}
                     </div>
                 </div>
                 <div className={classes.chart}>
                     <TimeSeriesChart
                         compact
                         title={text.usedSizeOverTime}
-                        range={hasHistory ? range : undefined}
+                        range={rangedHistory ? range : undefined}
                         points={points}
                         format={formatSize}
-                        read={hasHistory ? history : undefined}
-                        message={hasHistory ? readStatusMessage(history) : undefined}
+                        read={masterHistory ? history : undefined}
+                        message={masterHistory ? readStatusMessage(history) : undefined}
                     />
                 </div>
             </section>

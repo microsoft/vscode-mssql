@@ -20,6 +20,13 @@ import {
 } from "./performanceDashboardParts";
 import { usePolling, useRefresh } from "./performanceDashboardRefresh";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
+import {
+    PanelProps,
+    platformPoints,
+    platformUnit,
+    usePlatformMetric,
+} from "./performanceDashboardPanels";
+import { useViewTimeRange } from "./performanceDashboardTimeRange";
 import { metrics, simpleMetricColumn, simpleTextColumn } from "./performanceDashboardMetrics";
 import { SimpleGrid, SimpleGridColumn } from "./performanceDashboardSimpleGrid";
 import { TableSkeleton } from "./performanceDashboardSkeletons";
@@ -42,10 +49,11 @@ const useStyles = makeStyles({
 });
 
 /**
- * The user sessions of the database now, grouped by login, application, and host. The views
- * keep no history, so the chart shows the counts sampled while the tab is open.
+ * The user sessions of the database now, grouped by login, application, and host. The chart has
+ * the logins of each interval from the platform when it keeps them (Azure Monitor or Fabric);
+ * the views keep no history, so otherwise it has the counts sampled while the tab is open.
  */
-export const PerformanceDashboardConnectionsView = () => {
+export const PerformanceDashboardConnectionsView = ({ facts }: PanelProps) => {
     const classes = useStyles();
     const text = loc.performanceDashboard;
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
@@ -59,6 +67,9 @@ export const PerformanceDashboardConnectionsView = () => {
         tick,
     );
     const [samples, setSamples] = useState<TimeSeriesPoint[]>([]);
+    const { range } = useViewTimeRange();
+    const logins = usePlatformMetric("logins", facts).series;
+    const loginPoints = logins ? platformPoints(logins) : undefined;
 
     useEffect(() => setSamples([]), [databaseName]);
 
@@ -117,15 +128,35 @@ export const PerformanceDashboardConnectionsView = () => {
                         label: text.running,
                         value: summary ? formatNumber(summary.runningSessions) : text.notAvailable,
                     },
+                    ...(loginPoints
+                        ? [
+                              {
+                                  label: text.loginsInRange,
+                                  value: formatNumber(
+                                      loginPoints.reduce((sum, point) => sum + point.y, 0),
+                                  ),
+                              },
+                          ]
+                        : []),
                 ]}
-                unit={text.userSessions}
+                unit={logins ? platformUnit(logins) : text.userSessions}
                 loading={sessions.loading && !summary}>
-                <TimeSeriesChart
-                    compact
-                    title={text.userSessions}
-                    points={samples}
-                    format={formatNumber}
-                />
+                {logins && loginPoints ? (
+                    <TimeSeriesChart
+                        compact
+                        title={platformUnit(logins)}
+                        range={range}
+                        points={loginPoints}
+                        format={formatNumber}
+                    />
+                ) : (
+                    <TimeSeriesChart
+                        compact
+                        title={text.userSessions}
+                        points={samples}
+                        format={formatNumber}
+                    />
+                )}
             </ChartCard>
             <SectionHeader title={text.sessionsByClient}>
                 {observedAt && text.observedAt(timeFormat.format(new Date(observedAt)))}

@@ -10,12 +10,7 @@ import { PerformanceDashboardAutoIndexView } from "./performanceDashboardAutoInd
 import { PerformanceDashboardBlockedView } from "./performanceDashboardBlockedView";
 import { PerformanceDashboardConnectionsView } from "./performanceDashboardConnectionsView";
 import { metrics, queryMetricColumn } from "./performanceDashboardMetrics";
-import {
-    CpuQueryStorePanel,
-    MemoryGrantPanel,
-    PanelProps,
-    RequestsPanel,
-} from "./performanceDashboardPanels";
+import { CpuPanel, MemoryPanel, PanelProps, RequestsPanel } from "./performanceDashboardPanels";
 import { QueryListSpec } from "./performanceDashboardQueryListSection";
 import { PerformanceDashboardStorageView } from "./performanceDashboardStorageView";
 
@@ -82,7 +77,7 @@ export const segmentSpecs: readonly SegmentSpec[] = [
         id: "cpu",
         label: () => loc.performanceDashboard.cpuConsumption,
         available: hasQueryStore,
-        panel: () => CpuQueryStorePanel,
+        panel: () => CpuPanel,
         queryList: {
             title: () => loc.performanceDashboard.topQueriesByCpu,
             metric: "cpuTime",
@@ -107,7 +102,7 @@ export const segmentSpecs: readonly SegmentSpec[] = [
         id: "memory",
         label: () => loc.performanceDashboard.memoryConsumption,
         available: hasQueryStore,
-        panel: () => MemoryGrantPanel,
+        panel: () => MemoryPanel,
         queryList: {
             title: () => loc.performanceDashboard.topQueriesByMemory,
             metric: "memoryConsumption",

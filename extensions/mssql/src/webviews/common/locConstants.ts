@@ -4320,6 +4320,42 @@ export class LocConstants {
             allocatedSize: l10n.t("Allocated size"),
             usedSizeOverTime: l10n.t("Used size over time"),
             compareTab: l10n.t("Compare"),
+            averageCpu: l10n.t("Average CPU"),
+            limit: l10n.t({ message: "Limit", comment: ["The most that a database may use"] }),
+            vCoresValue: (count: string) =>
+                l10n.t({
+                    message: "{0} vCores",
+                    args: [count],
+                    comment: ["{0} is a number of vCores, for example 1.25"],
+                }),
+            vCoresUsed: l10n.t("vCores used"),
+            loginsPerInterval: (interval: string) =>
+                l10n.t({
+                    message: "Logins per {0}",
+                    args: [interval],
+                    comment: ["{0} is the length of a chart interval, for example hour"],
+                }),
+            loginsInRange: l10n.t("Logins in range"),
+            peakBlockedPerInterval: (interval: string) =>
+                l10n.t({
+                    message: "Most blocked requests at once, per {0}",
+                    args: [interval],
+                    comment: ["{0} is the length of a chart interval, for example hour"],
+                }),
+            peakBlocked: l10n.t("Peak blocked"),
+            cpuPercentOfLimit: l10n.t("CPU % of limit"),
+            memoryPercentOfLimit: l10n.t("Memory % of limit"),
+            memoryUsed: l10n.t("Memory used"),
+            sourceAzureMonitor: l10n.t("Azure Monitor"),
+            sourceFabric: l10n.t("Fabric"),
+            unitWithSource: (unit: string, source: string) =>
+                l10n.t({
+                    message: "{0} · {1}",
+                    args: [unit, source],
+                    comment: [
+                        "{0} is what a chart shows, for example vCores used; {1} is where the data comes from, for example Azure Monitor",
+                    ],
+                }),
             cpuUsed: l10n.t({
                 message: "CPU used",
                 comment: ["The CPU time used in a time range"],

@@ -11,6 +11,10 @@ import {
     performanceDashboardTargetForDatabase,
 } from "./performanceDashboardWebviewController";
 import { PerformanceService } from "./performanceService";
+import type {
+    PlatformMetricParams,
+    PlatformMetricResult,
+} from "../sharedInterfaces/performanceDashboard";
 
 export type PerformanceDashboardFactory = (
     context: vscode.ExtensionContext,
@@ -40,6 +44,11 @@ export interface PerformancePlanViewer {
         tableName: string,
         target: PerformanceDashboardTarget,
     ): Promise<void>;
+    /** Reads the history of a measure from the platform of the target's database. */
+    readPlatformMetric(
+        params: PlatformMetricParams,
+        target: PerformanceDashboardTarget,
+    ): Promise<PlatformMetricResult>;
 }
 
 /** Keeps one open dashboard for each connection and database. */
@@ -113,6 +122,13 @@ export class PerformanceDashboards implements PerformanceDashboardHost {
         target: PerformanceDashboardTarget,
     ): Promise<void> {
         return this._planViewer.scriptTableCreate(schemaName, tableName, target);
+    }
+
+    public readPlatformMetric(
+        params: PlatformMetricParams,
+        target: PerformanceDashboardTarget,
+    ): Promise<PlatformMetricResult> {
+        return this._planViewer.readPlatformMetric(params, target);
     }
 
     public switchDatabase(

@@ -395,12 +395,20 @@ export function xAxisProps(
     tickValues?: Date[];
     customDateTimeFormatter: (date: Date) => string;
 } {
-    const count = xAxisTickCount(width);
     if (!range) {
-        return { xAxisTickCount: count, customDateTimeFormatter: axisDateFormat(dates) };
+        return {
+            xAxisTickCount: xAxisTickCount(width),
+            customDateTimeFormatter: axisDateFormat(dates),
+        };
     }
     const from = range.from.getTime();
     const span = range.to.getTime() - from;
+    // The labels of a range over 3 days are days, so the ticks are at least a day apart and no
+    // day shows twice.
+    const count =
+        span > dayLabelSpanMs
+            ? Math.max(2, Math.min(xAxisTickCount(width), Math.floor(span / (24 * hourMs)) + 1))
+            : xAxisTickCount(width);
     return {
         tickValues: Array.from(
             { length: count },
@@ -447,6 +455,8 @@ const axisDayHourFormat = new Intl.DateTimeFormat(undefined, {
     hour: "numeric",
 });
 const axisDayFormat = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
+/** The longest span with hours in the x-axis labels; longer spans show days. */
+const dayLabelSpanMs = 72 * hourMs;
 
 /** The x-axis label format for the span of the chart: the time, the day and hour, or the day. */
 export function axisDateFormat(dates: readonly Date[]): (date: Date) => string {
@@ -455,7 +465,7 @@ export function axisDateFormat(dates: readonly Date[]): (date: Date) => string {
     const format =
         span <= 36 * hourMs
             ? axisTimeFormat
-            : span <= 72 * hourMs
+            : span <= dayLabelSpanMs
               ? axisDayHourFormat
               : axisDayFormat;
     return (date) => format.format(date);

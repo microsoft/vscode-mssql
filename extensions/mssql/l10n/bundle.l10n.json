@@ -5399,6 +5399,37 @@
     "Average memory": "Average memory",
     "Allocated size": "Allocated size",
     "Used size over time": "Used size over time",
+    "Average CPU": "Average CPU",
+    "Limit/The most that a database may use": {
+        "message": "Limit",
+        "comment": ["The most that a database may use"]
+    },
+    "{0} vCores/{0} is a number of vCores, for example 1.25": {
+        "message": "{0} vCores",
+        "comment": ["{0} is a number of vCores, for example 1.25"]
+    },
+    "vCores used": "vCores used",
+    "Logins per {0}/{0} is the length of a chart interval, for example hour": {
+        "message": "Logins per {0}",
+        "comment": ["{0} is the length of a chart interval, for example hour"]
+    },
+    "Logins in range": "Logins in range",
+    "Most blocked requests at once, per {0}/{0} is the length of a chart interval, for example hour": {
+        "message": "Most blocked requests at once, per {0}",
+        "comment": ["{0} is the length of a chart interval, for example hour"]
+    },
+    "Peak blocked": "Peak blocked",
+    "CPU % of limit": "CPU % of limit",
+    "Memory % of limit": "Memory % of limit",
+    "Memory used": "Memory used",
+    "Azure Monitor": "Azure Monitor",
+    "Fabric": "Fabric",
+    "{0} · {1}/{0} is what a chart shows, for example vCores used; {1} is where the data comes from, for example Azure Monitor": {
+        "message": "{0} · {1}",
+        "comment": [
+            "{0} is what a chart shows, for example vCores used; {1} is where the data comes from, for example Azure Monitor"
+        ]
+    },
     "CPU used/The CPU time used in a time range": {
         "message": "CPU used",
         "comment": ["The CPU time used in a time range"]

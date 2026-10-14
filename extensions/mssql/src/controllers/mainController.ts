@@ -35,6 +35,11 @@ import {
     performanceDashboardTargetForNode,
 } from "../performance/performanceDashboardWebviewController";
 import { PerformanceDashboards } from "../performance/performanceDashboards";
+import { PlatformMetricsReader } from "../performance/platformMetrics";
+import type {
+    PlatformMetricParams,
+    PlatformMetricResult,
+} from "../sharedInterfaces/performanceDashboard";
 import {
     prepareConnection,
     ProfileSecretSource,
@@ -194,6 +199,8 @@ export default class MainController implements vscode.Disposable {
     private _backgroundTaskLogContentProvider: BackgroundTaskLogContentProvider;
     private _backgroundTasksProvider: BackgroundTasksProvider;
     private _scriptingService: ScriptingService;
+    /** Reads CPU, memory, and storage history from Azure Monitor and Fabric for the dashboard. */
+    private readonly _platformMetrics = new PlatformMetricsReader();
     private _queryHistoryRegistered: boolean = false;
     private _availableCommands: string[] | undefined;
     private _logger: ILogger;
@@ -1179,6 +1186,7 @@ export default class MainController implements vscode.Disposable {
                         ScriptOperation.Select,
                         target,
                     ),
+                readPlatformMetric: (params, target) => this.readPlatformMetric(params, target),
                 scriptTableCreate: (schemaName, tableName, target) =>
                     this.scriptPerformanceTable(
                         schemaName,
@@ -1511,6 +1519,26 @@ export default class MainController implements vscode.Disposable {
                       connectionInfo: connection,
                   }
                 : { connectionStrategy: ConnectionStrategy.DoNotConnect }),
+        });
+    }
+
+    /**
+     * Reads the history of a measure from the platform of a dashboard's database: Azure Monitor
+     * or Fabric. Without it, the dashboard reads the database.
+     */
+    private async readPlatformMetric(
+        params: PlatformMetricParams,
+        target: PerformanceDashboardTarget,
+    ): Promise<PlatformMetricResult> {
+        const connection = await this.performanceConnection(target);
+        if (!connection) {
+            return { reason: LocalizedConstants.PerformanceDashboard.connectionUnavailable };
+        }
+        return this._platformMetrics.read(connection, {
+            kind: params.kind,
+            platform: params.platform,
+            start: new Date(params.startUtc),
+            end: new Date(params.endUtc),
         });
     }
 

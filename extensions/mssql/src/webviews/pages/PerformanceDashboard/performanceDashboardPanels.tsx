@@ -4,11 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, tokens } from "@fluentui/react-components";
+import type { SqlPlatform } from "../../../sharedInterfaces/performance";
 import {
     DatabaseFactsResult,
     GetMetricSeriesRequest,
     GetMetricTotalsRequest,
+    GetPlatformMetricRequest,
     GetResourceConsumptionRequest,
+    PlatformMetricKind,
+    PlatformMetricSeries,
 } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
@@ -18,12 +22,19 @@ import {
     cpuCoreCount,
     cpuSummaryWindows,
 } from "./performanceDashboardCpuModel";
-import { dateTimeFormat, formatMegabytes, formatNumber } from "./performanceDashboardFormat";
+import {
+    dateTimeFormat,
+    formatMegabytes,
+    formatNumber,
+    formatPercentRounded,
+    formatStorageSize,
+} from "./performanceDashboardFormat";
 import { sizeLabel } from "./performanceDashboardOverviewModel";
 import {
     ReadOnlyNotice,
     StatusBar,
     ChartCard,
+    chartCardChartHeight,
     intervalName,
     ThresholdChart,
     TimeSeriesChart,
@@ -33,12 +44,15 @@ import {
 import { useRefresh } from "./performanceDashboardRefresh";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 import { bucketMinutesFor, dataStart, filledSeriesPoints } from "./performanceDashboardSeries";
+import { ChartCardSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 import { useQueryStoreAvailableFrom, useViewTimeRange } from "./performanceDashboardTimeRange";
 
 /*
  * The panels of the overview segments: a summary of a measure, and its chart in the same frame.
- * Each panel reads Query Store, so the panels are the same on every platform.
+ * CPU, memory, and storage come from the platform when it keeps them: Azure Monitor for Azure SQL
+ * Database and Managed Instance, and Fabric for SQL database in Fabric. Without them, for example
+ * without an Azure sign-in or on SQL Server, the panels read Query Store in the database.
  */
 
 /** A value at or above this percent of the capacity is critical. */
@@ -62,6 +76,76 @@ export interface PanelProps {
     readonly facts: DatabaseFactsResult | undefined;
 }
 
+/** The measures that each platform keeps, which the panels read from it. */
+const platformMetricKinds: Partial<Record<SqlPlatform, readonly PlatformMetricKind[]>> = {
+    azureSqlDatabase: ["cpu", "memory", "storage", "logins"],
+    // Managed Instance reports CPU for the instance; no memory, and storage of the instance.
+    azureSqlManagedInstance: ["cpu"],
+    fabricSqlDatabase: ["cpu", "memory", "storage", "logins", "requests", "blocked"],
+};
+
+/**
+ * The history of a measure from the platform of the database, for the view's time range. Pending
+ * while the platform reads; no series when the platform does not keep the measure or cannot be
+ * read, and the panel then reads the database.
+ */
+export function usePlatformMetric(
+    kind: PlatformMetricKind,
+    facts: DatabaseFactsResult | undefined,
+) {
+    const { key, window } = useReadContext();
+    const platform = facts?.platform;
+    const enabled = !!platform && (platformMetricKinds[platform]?.includes(kind) ?? false);
+    const read = useExtensionRequest(
+        GetPlatformMetricRequest.type,
+        { ...window, kind, ...(platform ? { platform } : {}) },
+        key,
+        enabled,
+    );
+    return {
+        pending: enabled && isFirstLoad(read),
+        series: enabled && !read.stale ? read.result?.series : undefined,
+    };
+}
+
+/** The measures that count activity, where an interval without a value had none. */
+const activityKinds: ReadonlySet<PlatformMetricKind> = new Set([
+    "cpu",
+    "logins",
+    "requests",
+    "blocked",
+]);
+
+/**
+ * The points of a platform series. The platforms report no value for an interval without
+ * activity, so for activity a missing value is 0, as the Fabric portal shows it. Memory and
+ * storage are levels, so a missing value is left out rather than shown as 0.
+ */
+export function platformPoints(series: PlatformMetricSeries) {
+    const zeroWhenMissing = activityKinds.has(series.kind);
+    return series.points
+        .filter((point) => point.value !== null || zeroWhenMissing)
+        .map((point) => ({ x: new Date(point.startUtc), y: point.value ?? 0 }));
+}
+
+/** What a platform series shows and where it comes from, for the unit row of a card. */
+export function platformUnit(series: PlatformMetricSeries): string {
+    const text = loc.performanceDashboard;
+    const interval = intervalName(series.bucketMinutes);
+    const name = {
+        cpu: series.unit === "vCores" ? text.vCoresUsed : text.cpuPercentOfLimit,
+        memory: series.unit === "percent" ? text.memoryPercentOfLimit : text.memoryUsed,
+        storage: text.usedSize,
+        logins: text.loginsPerInterval(interval),
+        requests: text.requestsPerInterval(interval),
+        blocked: text.peakBlockedPerInterval(interval),
+    }[series.kind];
+    return text.unitWithSource(
+        name,
+        series.source === "fabric" ? text.sourceFabric : text.sourceAzureMonitor,
+    );
+}
+
 /** The Query Store reads of a view: the database and refresh key, and the time range. */
 function useReadContext() {
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
@@ -71,10 +155,113 @@ function useReadContext() {
     return { key: [databaseName, refreshKey], availableFrom, ...time };
 }
 
+/** CPU from the platform when it keeps it, or else from Query Store. */
+export const CpuPanel = ({ facts }: PanelProps) => {
+    const platform = usePlatformMetric("cpu", facts);
+    if (platform.pending) {
+        return <ChartCardSkeleton chartHeight={chartCardChartHeight} />;
+    }
+    return platform.series ? (
+        <PlatformMetricCard series={platform.series} facts={facts} />
+    ) : (
+        <CpuQueryStorePanel facts={facts} />
+    );
+};
+
+/** Memory from the platform when it keeps it, or else the memory grants in Query Store. */
+export const MemoryPanel = ({ facts }: PanelProps) => {
+    const platform = usePlatformMetric("memory", facts);
+    if (platform.pending) {
+        return <ChartCardSkeleton chartHeight={chartCardChartHeight} />;
+    }
+    return platform.series ? (
+        <PlatformMetricCard series={platform.series} facts={facts} />
+    ) : (
+        <MemoryGrantPanel facts={facts} />
+    );
+};
+
 /**
- * CPU from Query Store, on every platform: the CPU time of the captured queries against the
- * cores, and the CPU seconds of each interval. An interval is critical at 80% of the CPU
- * seconds that the cores have in it.
+ * A measure from the platform: its average and peak in the range, and its chart, critical at 80%
+ * of the limit when the limit is known. The unit row names the platform as the source.
+ */
+const PlatformMetricCard = ({
+    series,
+    facts,
+}: {
+    series: PlatformMetricSeries;
+    facts: DatabaseFactsResult | undefined;
+}) => {
+    const classes = useStyles();
+    const text = loc.performanceDashboard;
+    const { range } = useReadContext();
+    const points = platformPoints(series);
+    const average =
+        points.length > 0
+            ? points.reduce((sum, point) => sum + point.y, 0) / points.length
+            : undefined;
+    const peak = points.reduce<(typeof points)[number] | undefined>(
+        (top, point) => (point.y > (top?.y ?? -1) ? point : top),
+        undefined,
+    );
+    const vCoreLimit =
+        series.unit === "vCores" ? (series.limit ?? facts?.facts?.vCores) : undefined;
+    const format = (value: number) => {
+        switch (series.unit) {
+            case "vCores":
+                // Two significant digits below 1, so 0.006 vCores does not show as 0 or 0.01.
+                return text.vCoresValue(formatNumber(value));
+            case "percent":
+                return formatPercentRounded(value);
+            case "megabytes":
+                return formatStorageSize(value);
+            case "count":
+                return formatNumber(value);
+        }
+    };
+    const critical =
+        series.unit === "percent"
+            ? criticalPercent
+            : vCoreLimit
+              ? (criticalPercent / 100) * vCoreLimit
+              : undefined;
+
+    return (
+        <div className={classes.panel}>
+            <ChartCard
+                label={series.kind === "cpu" ? text.averageCpu : text.averageMemory}
+                value={average !== undefined ? format(average) : text.notAvailable}
+                figures={[
+                    {
+                        label: text.peak,
+                        value: peak
+                            ? text.valueAt(format(peak.y), dateTimeFormat.format(peak.x))
+                            : text.notAvailable,
+                    },
+                    ...(vCoreLimit
+                        ? [{ label: text.limit, value: text.vCoresValue(formatNumber(vCoreLimit)) }]
+                        : []),
+                ]}
+                unit={platformUnit(series)}>
+                <ThresholdChart
+                    compact
+                    title={platformUnit(series)}
+                    range={range}
+                    points={points}
+                    format={format}
+                    tickFormat={formatNumber}
+                    critical={critical}
+                    {...(series.unit === "percent" ? { yMax: 100 } : {})}
+                />
+            </ChartCard>
+        </div>
+    );
+};
+
+/**
+ * CPU from Query Store: the CPU time of the captured queries against the cores, and the CPU
+ * seconds of each interval. An interval is critical at 80% of the CPU seconds that the cores
+ * have in it.
  */
 export const CpuQueryStorePanel = ({ facts }: PanelProps) => {
     const classes = useStyles();
@@ -157,8 +344,8 @@ function formatCpuSeconds(seconds: number): string {
 }
 
 /**
- * Memory from Query Store, on every platform: the average grant for each execution, the peak
- * grant, and the peak grant of each interval. Query Store has no memory limit to compare with, so no interval
+ * Memory from Query Store: the average grant for each execution, the peak grant, and the peak
+ * grant of each interval. Query Store has no memory limit to compare with, so no interval
  * is critical.
  */
 export const MemoryGrantPanel = (_props: PanelProps) => {
@@ -228,11 +415,45 @@ export const MemoryGrantPanel = (_props: PanelProps) => {
     );
 };
 
+/** Requests from the platform when it keeps them, or else the executions in Query Store. */
+export const RequestsPanel = ({ facts }: PanelProps) => {
+    const classes = useStyles();
+    const text = loc.performanceDashboard;
+    const { range } = useReadContext();
+    const platform = usePlatformMetric("requests", facts);
+    if (platform.pending) {
+        return <ChartCardSkeleton chartHeight={chartCardChartHeight} />;
+    }
+    if (!platform.series) {
+        return <RequestsQueryStorePanel facts={facts} />;
+    }
+    const series = platform.series;
+    const points = platformPoints(series);
+    const total = points.reduce((sum, point) => sum + point.y, 0);
+    return (
+        <div className={classes.panel}>
+            <ChartCard
+                label={text.averageRequestsPerInterval(intervalName(series.bucketMinutes))}
+                value={points.length > 0 ? formatNumber(total / points.length) : text.notAvailable}
+                figures={[{ label: text.totalRequests, value: formatNumber(total) }]}
+                unit={platformUnit(series)}>
+                <TimeSeriesChart
+                    compact
+                    title={platformUnit(series)}
+                    range={range}
+                    points={points}
+                    format={formatNumber}
+                />
+            </ChartCard>
+        </div>
+    );
+};
+
 /**
  * The requests from Query Store: the executions of each 15 minutes, or of each Query Store interval
  * when it is longer, and their changes. The average is per bucket of the chart, so they agree.
  */
-export const RequestsPanel = (_props: PanelProps) => {
+const RequestsQueryStorePanel = (_props: PanelProps) => {
     const classes = useStyles();
     const text = loc.performanceDashboard;
     const { key, range, window, now, availableFrom } = useReadContext();

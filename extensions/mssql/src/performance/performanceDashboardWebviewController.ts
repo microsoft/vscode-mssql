@@ -28,6 +28,9 @@ import {
     GetTopQueriesDetailedRequest,
     GetStorageRequest,
     SelectTableTop1000Request,
+    GetPlatformMetricRequest,
+    PlatformMetricParams,
+    PlatformMetricResult,
     ScriptTableCreateRequest,
     GetDashboardSettingsRequest,
     SetDashboardSettingsRequest,
@@ -102,6 +105,11 @@ export interface PerformanceDashboardHost {
         tableName: string,
         target: PerformanceDashboardTarget,
     ): Promise<void>;
+    /** Reads the history of a measure from the platform of the target's database. */
+    readPlatformMetric(
+        params: PlatformMetricParams,
+        target: PerformanceDashboardTarget,
+    ): Promise<PlatformMetricResult>;
 }
 
 /**
@@ -225,6 +233,9 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
         });
         this.onRequest(GetStorageRequest.type, () =>
             this.read((target) => target.databaseStorage()),
+        );
+        this.onRequest(GetPlatformMetricRequest.type, (params) =>
+            this._host.readPlatformMetric(params, this._target),
         );
         this.onRequest(ScriptTableCreateRequest.type, ({ schemaName, tableName }) =>
             this._host.scriptTableCreate(schemaName, tableName, this._target),

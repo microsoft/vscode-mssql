@@ -41,6 +41,12 @@ import { SimpleGrid } from "./performanceDashboardSimpleGrid";
 import { TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 import { useQueryStoreAvailableFrom, useViewTimeRange } from "./performanceDashboardTimeRange";
+import {
+    PanelProps,
+    platformPoints,
+    platformUnit,
+    usePlatformMetric,
+} from "./performanceDashboardPanels";
 
 /** sys.query_store_wait_stats.wait_category of Lock waits. */
 const lockWaitCategoryId = 3;
@@ -114,13 +120,17 @@ export function blockingRows(chains: readonly BlockingNode[]): BlockingRow[] {
  * Blocking now, as a tree of the head blockers and the sessions that wait for them, refreshed
  * while the tab is visible; and the Lock wait time over the time range, from Query Store.
  */
-export const PerformanceDashboardBlockedView = () => {
+export const PerformanceDashboardBlockedView = ({ facts }: PanelProps) => {
     const classes = useStyles();
     const text = loc.performanceDashboard;
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const { refreshKey } = useRefresh();
     const tick = usePolling();
     const { range, window, now } = useViewTimeRange();
+    // The blocked requests of each interval from the platform (Fabric) when it keeps them, in
+    // place of the lock waits in Query Store.
+    const blocked = usePlatformMetric("blocked", facts).series;
+    const blockedPoints = blocked ? platformPoints(blocked) : undefined;
     const availableFrom = useQueryStoreAvailableFrom();
 
     const activity = useExtensionRequest(
@@ -186,34 +196,60 @@ export const PerformanceDashboardBlockedView = () => {
                             ? formatNumber(current.blocking.chains.length)
                             : text.notAvailable,
                     },
-                    ...(waitsUnsupported
-                        ? []
-                        : [
+                    ...(blockedPoints
+                        ? [
                               {
-                                  label: text.lockWaitInRange,
-                                  value: inRange ? formatSeconds(inRange.total) : text.notAvailable,
+                                  label: text.peakBlocked,
+                                  value: formatNumber(
+                                      blockedPoints.reduce(
+                                          (top, point) => Math.max(top, point.y),
+                                          0,
+                                      ),
+                                  ),
                               },
-                          ]),
+                          ]
+                        : waitsUnsupported
+                          ? []
+                          : [
+                                {
+                                    label: text.lockWaitInRange,
+                                    value: inRange
+                                        ? formatSeconds(inRange.total)
+                                        : text.notAvailable,
+                                },
+                            ]),
                 ]}
                 unit={
-                    waitsUnsupported
-                        ? undefined
-                        : text.lockWaitSecondsPerInterval(
-                              intervalName(waitData?.bucketMinutes ?? bucketMinutesFor(range)),
-                          )
+                    blocked
+                        ? platformUnit(blocked)
+                        : waitsUnsupported
+                          ? undefined
+                          : text.lockWaitSecondsPerInterval(
+                                intervalName(waitData?.bucketMinutes ?? bucketMinutesFor(range)),
+                            )
                 }
                 loading={activity.loading && !current}>
-                {!waitsUnsupported && (
+                {blocked && blockedPoints ? (
                     <TimeSeriesChart
                         compact
-                        title={text.lockWaitSeconds}
+                        title={platformUnit(blocked)}
                         range={range}
-                        points={points}
-                        format={(seconds) => formatSeconds(seconds * 1000)}
-                        tickFormat={formatNumber}
-                        read={waits}
-                        message={readStatusMessage(waits)}
+                        points={blockedPoints}
+                        format={formatNumber}
                     />
+                ) : (
+                    !waitsUnsupported && (
+                        <TimeSeriesChart
+                            compact
+                            title={text.lockWaitSeconds}
+                            range={range}
+                            points={points}
+                            format={(seconds) => formatSeconds(seconds * 1000)}
+                            tickFormat={formatNumber}
+                            read={waits}
+                            message={readStatusMessage(waits)}
+                        />
+                    )
                 )}
             </ChartCard>
             <SectionHeader title={text.blockingChain}>
