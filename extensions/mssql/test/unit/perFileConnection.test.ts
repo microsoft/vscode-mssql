@@ -360,12 +360,16 @@ suite("Per File Connection Tests", () => {
         parameters.connection.databaseName = "myOtherDatabase";
         parameters.connection.userName = connectionCreds.user;
 
+        const databaseContextChanges: string[] = [];
+        connectionManager.onDidChangeDatabaseContext((uri) => databaseContextChanges.push(uri));
+
         const notificationObject = connectionManager.handleConnectionChangedNotification();
         notificationObject.call(connectionManager, parameters);
 
         expect(connectionManager.getConnectionInfo(testFile).credentials.database).to.equal(
             "myOtherDatabase",
         );
+        expect(databaseContextChanges).to.deep.equal([testFile]);
     });
 
     test("Should use actual database name instead of <default>", async () => {

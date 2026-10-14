@@ -2,7 +2,9 @@
 
 ## Overview
 
-This extension provides shared functionality for database projects in Visual Studio Code. It is required by the `SQL Database Projects` extension and is installed automatically with it.
+Database Projects functionality is now included in the `SQL Server (mssql)` extension. This
+extension is retained temporarily as an inert compatibility package for existing installations and
+does not contribute commands, settings, or views.
 
 ## Code of Conduct
 

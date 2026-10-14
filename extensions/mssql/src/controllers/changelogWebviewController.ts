@@ -16,6 +16,7 @@ import { changelogConfig } from "../configurations/changelog";
 import { resolveChangelogAction } from "../configurations/changelogActions";
 import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { encodeForTelemetry } from "../utils/utils";
 
 export class ChangelogWebviewController extends WebviewPanelController<
     ChangelogWebviewState,
@@ -44,7 +45,7 @@ export class ChangelogWebviewController extends WebviewPanelController<
             await vscode.env.openExternal(uri);
             sendActionEvent(TelemetryViews.ChangelogPage, TelemetryActions.OpenLink, {
                 additionalProps: {
-                    url: params.url,
+                    url: encodeForTelemetry(params.url),
                 },
             });
         });

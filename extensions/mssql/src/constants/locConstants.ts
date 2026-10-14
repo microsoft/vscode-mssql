@@ -43,6 +43,16 @@ export class SqlToolsMcp {
     public static serverLabel = l10n.t("SQL Tools (MSSQL)");
 }
 
+export class LegacyProjectExtensionWarning {
+    public static message = l10n.t(
+        "Data Workspace and SQL Database Projects functionality is now included in the SQL Server (mssql) extension. Uninstall Data Workspace 0.7.0 or earlier and SQL Database Projects 1.8.0 or earlier to avoid duplicated user interface elements.",
+    );
+    public static showExtensions = l10n.t("Show Extensions");
+    public static showExtensionsFailed = l10n.t(
+        "The affected extensions could not be opened. Open the Extensions view and uninstall older Data Workspace and SQL Database Projects extensions.",
+    );
+}
+
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");
@@ -3313,16 +3323,19 @@ export class QueryEditor {
 }
 
 export class ConnectionSharing {
-    public static retirementWarning(extensionName: string) {
+    public static deprecationWarning(extensionName: string) {
         return l10n.t({
             message:
-                "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
+                "The “{0}” extension uses an older connection-sharing API. Its author should move to the new API, which lets you manage which extensions can use your SQL Server connections from the Accounts menu.",
             args: [extensionName],
             comment: ["{0} is the extension name"],
         });
     }
-    public static FileFeatureRequest = l10n.t("File a feature request");
-    public static DoNotShowAgainForExtension = l10n.t("Don’t show again for this extension");
+    public static authenticationProviderLabel = l10n.t("SQL Server (mssql)");
+    public static authenticationAccountLabel = l10n.t("Shared connections");
+    public static invalidAccessToken = l10n.t(
+        "The access token is not valid. Request a new session from the SQL Server (mssql) authentication provider.",
+    );
     public static connectionSharingRequestNotification(extensionName: string) {
         return l10n.t({
             message:

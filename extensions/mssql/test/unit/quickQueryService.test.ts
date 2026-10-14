@@ -26,6 +26,7 @@ import {
     resolveQuickQueryConnectionOptions,
 } from "../../src/quickQueries/quickQueryService";
 import { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
+import { collectConfigurationProperties, ConfigurationContribution } from "./manifestUtils";
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -271,17 +272,19 @@ suite("Quick Query Service", () => {
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
             contributes: {
                 commands: { command: string }[];
-                configuration: {
-                    properties: Record<
-                        string,
-                        {
-                            default?: QuickQuerySlot[];
-                            items?: {
-                                properties?: Record<string, unknown>;
-                            };
-                        }
-                    >;
-                };
+                configuration:
+                    | ConfigurationContribution<{
+                          default?: QuickQuerySlot[];
+                          items?: {
+                              properties?: Record<string, unknown>;
+                          };
+                      }>
+                    | ConfigurationContribution<{
+                          default?: QuickQuerySlot[];
+                          items?: {
+                              properties?: Record<string, unknown>;
+                          };
+                      }>[];
             };
         };
 
@@ -292,8 +295,9 @@ suite("Quick Query Service", () => {
             expect(commandIds.has(getQuickQueryCommandId(slotNumber))).to.equal(true);
         }
 
-        const quickQueryConfiguration =
-            packageJson.contributes.configuration.properties["mssql.quickQueries"];
+        const quickQueryConfiguration = collectConfigurationProperties(
+            packageJson.contributes.configuration,
+        )["mssql.quickQueries"];
         expect(quickQueryConfiguration.default).to.have.length(quickQueryCount);
         for (let slotNumber = 1; slotNumber <= quickQueryCount; slotNumber++) {
             const defaultSlot = quickQueryConfiguration.default[slotNumber - 1];
