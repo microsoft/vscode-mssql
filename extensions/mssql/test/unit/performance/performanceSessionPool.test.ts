@@ -12,6 +12,7 @@ import {
     PerformanceSessionPool,
     dataPlaneSettings,
     performanceApplicationName,
+    resumeOpenTimeoutMs,
 } from "../../../src/performance/performanceSessionPool";
 import { FakeConnectionService, fakeHost, testConnection } from "./dataPlaneFakes";
 
@@ -235,6 +236,83 @@ suite("Performance session pool", () => {
             expect(
                 (await pool.session(testConnection(), "Db3", "read").ensureOpen())?.reason,
             ).to.equal("authenticationUnsupported");
+        });
+
+        /** A login that the server dropped or did not finish, as a resuming database does. */
+        const resumingError = (code: string) =>
+            new SqlDataPlaneError(
+                DataPlaneErrorCodes.unavailable,
+                "Connection Timeout Expired.",
+                true,
+                {
+                    backend: { kind: "sts2-jsonrpc", code },
+                },
+            );
+
+        test("retries a dropped or unfinished login until the database resumes", async () => {
+            const resumingPool = new PerformanceSessionPool(fakeHost(service), {
+                retryDelayMs: 1,
+                resumeWaitMs: 5_000,
+            });
+            service.openErrors.push(
+                resumingError("Sts2.ConnectionFailed.Network"),
+                resumingError("Sts2.ConnectionFailed.Timeout"),
+                resumingError("Sts2.ConnectionFailed.Timeout"),
+            );
+
+            expect(
+                await resumingPool.session(testConnection(), "Db1", "read").ensureOpen(),
+            ).to.equal(undefined);
+            expect(service.openParams).to.have.length(4);
+            // The retries have time for the database to come online.
+            for (const params of service.openParams.slice(1)) {
+                expect(params.openTimeoutMs).to.equal(resumeOpenTimeoutMs);
+            }
+            resumingPool.dispose();
+        });
+
+        test("says that a paused database may be resuming when the wait ends", async () => {
+            const resumingPool = new PerformanceSessionPool(fakeHost(service), {
+                retryDelayMs: 1,
+                resumeWaitMs: 50,
+            });
+            service.openError = resumingError("Sts2.ConnectionFailed.Timeout");
+
+            const unavailable = await resumingPool
+                .session(testConnection(), "Db1", "read")
+                .ensureOpen();
+
+            expect(service.openParams.length).to.be.greaterThan(1);
+            expect(unavailable?.reason).to.equal("connectionFailed");
+            expect(unavailable?.detail).to.match(/paused serverless database/);
+            expect(unavailable?.detail).to.match(/Connection Timeout Expired/);
+            resumingPool.dispose();
+        });
+
+        test("stops retrying when the pool is disposed", async () => {
+            const resumingPool = new PerformanceSessionPool(fakeHost(service), {
+                retryDelayMs: 20,
+                resumeWaitMs: 60_000,
+            });
+            service.openError = resumingError("Sts2.ConnectionFailed.Network");
+
+            const opening = resumingPool.session(testConnection(), "Db1", "read").ensureOpen();
+            await new Promise((resolve) => setTimeout(resolve, 30));
+            resumingPool.dispose();
+            const unavailable = await opening;
+            const attempts = service.openParams.length;
+            await new Promise((resolve) => setTimeout(resolve, 60));
+
+            expect(unavailable?.reason).to.equal("connectionFailed");
+            expect(service.openParams).to.have.length(attempts);
+        });
+
+        test("does not retry other open failures", async () => {
+            service.openErrors.push(new Error("Login failed."));
+
+            await pool.session(testConnection(), "Db1", "read").ensureOpen();
+
+            expect(service.openParams).to.have.length(1);
         });
 
         test("fails reads with a connection error when the session does not open", async () => {

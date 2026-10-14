@@ -132,7 +132,6 @@ SELECT
     start_time,
     end_time,
     avg_cpu_percent,
-    avg_memory_usage_percent,
     storage_in_megabytes
 FROM sys.resource_stats
 WHERE database_name = ${sqlNStringLiteral(name)}
@@ -170,7 +169,7 @@ function toServerSamples(resultSet: SqlResultSet | undefined): ResourceCpuSample
             startUtc: start.toISOString(),
             endUtc: end.toISOString(),
             avgCpuPercent: readNumber(record, "avg_cpu_percent") ?? 0,
-            ...optionalNumber("avgMemoryPercent", readNumber(record, "avg_memory_usage_percent")),
+            // master.sys.resource_stats has no memory column; only sys.dm_db_resource_stats does.
             ...optionalNumber("storageMb", readNumber(record, "storage_in_megabytes")),
         });
     }

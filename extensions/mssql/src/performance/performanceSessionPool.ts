@@ -17,6 +17,7 @@
  */
 
 import { SessionPurpose, SqlReadOptions, SqlReader } from "sql-core";
+import * as LocalizedConstants from "../constants/locConstants";
 import {
     DataPlaneErrorCodes,
     ISqlConnectionService,
@@ -27,6 +28,7 @@ import {
     PreparedConnection,
     UnsupportedProfileAuthenticationError,
 } from "../services/metadata/profileAuthAdapter";
+import { STS2_ERROR_CODES } from "../services/sts2/wire/v2";
 import {
     PerformanceUnavailable,
     PerformanceUnavailableReason,
@@ -40,6 +42,16 @@ import {
 
 export const performanceApplicationName = "vscode-mssql-performance";
 export const defaultIdleTimeoutMs = 5 * 60_000;
+/**
+ * The open timeout of a retry after a dropped or unfinished login. A paused serverless database
+ * can take about a minute to resume.
+ */
+export const resumeOpenTimeoutMs = 60_000;
+/** How long the pool keeps retrying a dropped or unfinished login before it gives up. */
+export const defaultResumeWaitMs = 3 * 60_000;
+/** The pause before the first retry; each retry waits longer, up to {@link maxRetryDelayMs}. */
+export const defaultRetryDelayMs = 2_000;
+const maxRetryDelayMs = 10_000;
 
 /** The settings that turn on the SQL data plane. Both must be on when the window loads. */
 export const dataPlaneSettings: readonly string[] = [
@@ -63,6 +75,10 @@ export interface PerformanceDataPlaneHost {
 export interface PerformanceSessionPoolOptions {
     readonly idleTimeoutMs?: number;
     readonly openTimeoutMs?: number;
+    /** How long to keep retrying a dropped or unfinished login. Default 3 minutes. */
+    readonly resumeWaitMs?: number;
+    /** The pause before the first retry. Default 2 seconds. */
+    readonly retryDelayMs?: number;
     readonly reader?: DataPlaneSqlReaderOptions;
 }
 
@@ -277,19 +293,54 @@ class PooledSession implements PerformanceSession, DataPlaneSessionSource {
         } catch (error) {
             throw new SessionOpenError("dataPlaneUnavailable", errorMessage(error));
         }
-        let session: ISqlSession;
-        try {
-            session = await service.openSession({
+        const openSession = (openTimeoutMs: number | undefined) =>
+            service.openSession({
                 profile: connection.profileRef,
                 ...(this.database ? { database: this.database } : {}),
                 applicationName: performanceApplicationName,
                 auth: connection.auth,
-                ...(this._options.openTimeoutMs
-                    ? { openTimeoutMs: this._options.openTimeoutMs }
-                    : {}),
+                ...(openTimeoutMs ? { openTimeoutMs } : {}),
             });
-        } catch (error) {
-            throw new SessionOpenError(openFailureReason(service, error), errorMessage(error));
+        // A login that is dropped or does not finish, as when a paused serverless database
+        // resumes, is retried until the database is online or the wait ends. Each retry has time
+        // for the login, and waits longer before it. Reads that need the session wait meanwhile.
+        const giveUpAt = Date.now() + (this._options.resumeWaitMs ?? defaultResumeWaitMs);
+        let retryDelay = this._options.retryDelayMs ?? defaultRetryDelayMs;
+        let retries = 0;
+        let session: ISqlSession | undefined;
+        while (!session) {
+            try {
+                session = await openSession(
+                    retries === 0
+                        ? this._options.openTimeoutMs
+                        : Math.max(this._options.openTimeoutMs ?? 0, resumeOpenTimeoutMs),
+                );
+            } catch (error) {
+                const transient = isTransientOpenFailure(error);
+                if (!transient || this._disposed || epoch !== this._epoch) {
+                    throw new SessionOpenError(
+                        openFailureReason(service, error),
+                        errorMessage(error),
+                    );
+                }
+                if (Date.now() + retryDelay >= giveUpAt) {
+                    throw new SessionOpenError(
+                        openFailureReason(service, error),
+                        LocalizedConstants.PerformanceDashboard.connectionMayBeResuming(
+                            errorMessage(error),
+                        ),
+                    );
+                }
+                await delay(retryDelay);
+                retryDelay = Math.min(retryDelay * 2, maxRetryDelayMs);
+                retries++;
+                if (this._disposed || epoch !== this._epoch) {
+                    throw new SessionOpenError(
+                        "connectionFailed",
+                        "The session closed while it opened.",
+                    );
+                }
+            }
         }
         if (this._disposed || epoch !== this._epoch) {
             void disposeSession(session);
@@ -362,6 +413,23 @@ function openFailureReason(
     return service.availability.state === "unavailable"
         ? "dataPlaneUnavailable"
         : "connectionFailed";
+}
+
+/**
+ * True for an open that reached the server but whose login was dropped or did not finish, which
+ * a retry can fix.
+ */
+function isTransientOpenFailure(error: unknown): boolean {
+    return (
+        error instanceof SqlDataPlaneError &&
+        error.retryable &&
+        (error.backend?.code === STS2_ERROR_CODES.connectionFailedNetwork ||
+            error.backend?.code === STS2_ERROR_CODES.connectionFailedTimeout)
+    );
+}
+
+function delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function disposeSession(session: ISqlSession): Promise<void> {

@@ -3484,6 +3484,13 @@ export class PerformanceDashboard {
     public static connectionUnavailable = l10n.t(
         "The dashboard connection is no longer available.",
     );
+    public static connectionMayBeResuming = (detail: string) =>
+        l10n.t({
+            message:
+                "The server did not finish the login. A paused serverless database can take a minute to resume, so try again shortly. {0}",
+            args: [detail],
+            comment: ["{0} is the error from the server"],
+        });
     public static title = (databaseName: string) =>
         l10n.t({
             message: "Performance Dashboard - {0}",

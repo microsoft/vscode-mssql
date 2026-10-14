@@ -702,6 +702,22 @@ function mapOpenError(error: unknown): SqlDataPlaneError {
             backend: { kind: "sts2-jsonrpc", code },
         });
     }
+    // The service reached the server, but the login was dropped or did not finish, as when a
+    // paused serverless database resumes. Keep the server's reason, and allow a retry.
+    if (
+        code === STS2_ERROR_CODES.connectionFailedNetwork ||
+        code === STS2_ERROR_CODES.connectionFailedTimeout
+    ) {
+        const message = error instanceof Error && error.message ? error.message : undefined;
+        return new SqlDataPlaneError(
+            DataPlaneErrorCodes.unavailable,
+            message ?? "The connection to the server failed.",
+            true,
+            {
+                backend: { kind: "sts2-jsonrpc", code },
+            },
+        );
+    }
     return new SqlDataPlaneError(
         DataPlaneErrorCodes.unavailable,
         "SQL Tools Service v2 is unavailable.",

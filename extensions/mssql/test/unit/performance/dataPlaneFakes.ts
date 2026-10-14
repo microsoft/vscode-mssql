@@ -240,11 +240,16 @@ export class FakeConnectionService implements ISqlConnectionService {
     readonly openParams: OpenSessionParams[] = [];
     /** When set, the next opens fail with this error. */
     openError: unknown;
+    /** Errors for the next opens, one each, before `openError`. */
+    readonly openErrors: unknown[] = [];
 
     constructor(public respond: QueryResponder = () => ({})) {}
 
     async openSession(params: OpenSessionParams): Promise<ISqlSession> {
         this.openParams.push(params);
+        if (this.openErrors.length > 0) {
+            throw this.openErrors.shift();
+        }
         if (this.openError) {
             throw this.openError;
         }

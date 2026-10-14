@@ -10984,6 +10984,10 @@
     <trans-unit id="++CODE++30dc10f2e5d6502d78b8e778df18e5f010e5ec3fa432d4e92c526d86a84375e0">
       <source xml:lang="en">The selected {0} file &apos;{1}&apos; does not exist or is not a file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++771923640d0a31ba118808084e13aea67762e43e09c715c28bd6a22473abdb1a">
+      <source xml:lang="en">The server did not finish the login. A paused serverless database can take a minute to resume, so try again shortly. {0}</source>
+      <note>{0} is the error from the server</note>
+    </trans-unit>
     <trans-unit id="++CODE++221a6647042e962a326162fd3dcdd7a1e01f628fb4eedc3ecc4b2c33038109fe">
       <source xml:lang="en">The service is no longer running a query for this editor. The editor&apos;s execution state has been reset.</source>
     </trans-unit>

@@ -1885,6 +1885,10 @@
         "comment": ["{0} is the file path"]
     },
     "The dashboard connection is no longer available.": "The dashboard connection is no longer available.",
+    "The server did not finish the login. A paused serverless database can take a minute to resume, so try again shortly. {0}/{0} is the error from the server": {
+        "message": "The server did not finish the login. A paused serverless database can take a minute to resume, so try again shortly. {0}",
+        "comment": ["{0} is the error from the server"]
+    },
     "Performance Dashboard - {0}/{0} is the database name": {
         "message": "Performance Dashboard - {0}",
         "comment": ["{0} is the database name"]

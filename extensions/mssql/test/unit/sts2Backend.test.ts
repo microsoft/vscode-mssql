@@ -708,6 +708,41 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect(diagnosticJson).to.include("SqlDataPlane.Auth");
     });
 
+    test("open failure keeps the reason of a dropped or timed-out login, and allows a retry", async () => {
+        for (const code of ["Sts2.ConnectionFailed.Network", "Sts2.ConnectionFailed.Timeout"]) {
+            const rpc = standardRpc();
+            rpc.responders.set(STS2_METHODS.connectionOpen, () => {
+                const error = new Error(
+                    "Connection failed: Connection Timeout Expired. The timeout period elapsed during the post-login phase.",
+                );
+                (error as { data?: unknown }).data = { code };
+                throw error;
+            });
+            const backend = new Sts2Backend(rpc);
+            await backend.start();
+            try {
+                await backend.openSession({
+                    profile: PROFILE,
+                    applicationName: "test",
+                    auth: { passwordProvider: async () => "pw-canary-x" },
+                });
+                expect.fail("open should throw");
+            } catch (error) {
+                const dpError = error as {
+                    code: string;
+                    message: string;
+                    retryable: boolean;
+                    backend?: { code?: string };
+                };
+                expect(dpError.code).to.equal("SqlDataPlane.Unavailable");
+                expect(dpError.message).to.include("post-login phase");
+                expect(dpError.retryable).to.equal(true);
+                expect(dpError.backend?.code).to.equal(code);
+                expect(dpError.message).to.not.include("pw-canary-x");
+            }
+        }
+    });
+
     test("AzureMFA profile resolves one token and sends canonical accessToken auth", async () => {
         const rpc = standardRpc();
         const backend = new Sts2Backend(rpc);
