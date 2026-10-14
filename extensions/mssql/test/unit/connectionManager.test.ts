@@ -88,6 +88,7 @@ suite("ConnectionManager Tests", () => {
     });
 
     teardown(() => {
+        vscodeEntraMfaUtils.resetVscodeEntraTokenCacheForTest();
         sandbox.restore();
     });
 
@@ -755,14 +756,6 @@ suite("ConnectionManager Tests", () => {
         let acquireTokenStub: sinon.SinonStub;
 
         const expiresOn = Math.floor(Date.now() / 1000) + 3600;
-        const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
-        const cachedToken = `${encode({ alg: "none" })}.${encode({
-            aud: "https://database.windows.net/",
-            oid: "user-object-id",
-            tid: "tenant-1",
-            iat: 1000,
-            exp: expiresOn,
-        })}.signature`;
 
         setup(() => {
             stubUseMsalEntraMfaAuthConfig(sandbox, false);
@@ -785,7 +778,7 @@ suite("ConnectionManager Tests", () => {
                 authenticationType: "AzureMFA",
                 accountId: "account-1",
                 tenantId: "tenant-1",
-                azureAccountToken: cachedToken,
+                azureAccountToken: "cached-token",
                 expiresOn,
             } as IConnectionInfo;
             connectionManager["_keyVaultTokenCache"].set("key-vault-request", {

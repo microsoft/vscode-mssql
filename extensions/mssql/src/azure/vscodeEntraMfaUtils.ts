@@ -28,60 +28,40 @@ interface WwwAuthenticateRequest {
     readonly fallbackScopes?: readonly string[];
 }
 
-interface AccessTokenClaims {
-    aud?: string;
-    exp?: number;
-    iat?: number;
-    oid?: string;
-    tid?: string;
-}
+/** Time the user last cleared the Entra token cache, in seconds since the epoch. */
+let tokenCacheClearedAt: number | undefined;
 
 /**
- * Challenge that makes VS Code's Microsoft auth provider skip its token cache. The native broker
- * (WAM on Windows) ignores `forceRefresh` and signing out does not remove its tokens, so a claims
- * request is the only way to get a new token before the cached one expires. VS Code requests
- * `{"access_token":{}}` for the same purpose.
+ * Token accepted since the last clear, per resource, account and tenant. Any other token VS Code
+ * returns, including an older one the broker still has cached, is stale.
  */
-const forceRefreshChallenge = `Bearer claims="${Buffer.from('{"access_token":{}}').toString("base64")}"`;
-
-/** Set when the user clears the Entra token cache; tokens are then stale until force-refreshed. */
-let tokenCacheCleared = false;
-
-/**
- * `iat` of the last force-refreshed token per user, tenant and resource. The broker can keep
- * returning an older token to requests without claims, so tokens issued before this are stale too.
- */
-const forceRefreshedTokenIssuedAt = new Map<string, number>();
+const tokensSinceClear = new Map<string, string>();
 
 /**
  * Discards the VS Code accounts tokens the extension has seen. VS Code's auth provider cache
  * cannot be cleared from here, so the next request for each token is made with a claims challenge.
  */
 export function clearVscodeEntraTokenCache(): void {
-    tokenCacheCleared = true;
-    forceRefreshedTokenIssuedAt.clear();
+    tokenCacheClearedAt = Math.floor(Date.now() / 1000);
+    tokensSinceClear.clear();
 }
 
 /**
- * Returns true if the access token was cached before the Entra token cache was last cleared,
- * e.g. it may not reflect group membership or PIM role changes made since it was issued.
+ * Returns true if the access token was obtained before the Entra token cache was last cleared,
+ * so it may not reflect group membership or PIM role changes made since then.
  */
 export function isVscodeEntraTokenStale(accessToken: string | undefined): boolean {
-    if (!tokenCacheCleared || !accessToken) {
-        return false;
-    }
-
-    const claims = getTokenClaims(accessToken);
-    const key = getTokenCacheKey(claims);
-    if (!key) {
-        return false;
-    }
-
-    const forceRefreshedIssuedAt = forceRefreshedTokenIssuedAt.get(key);
     return (
-        forceRefreshedIssuedAt === undefined ||
-        (typeof claims.iat === "number" && claims.iat < forceRefreshedIssuedAt)
+        tokenCacheClearedAt !== undefined &&
+        !!accessToken &&
+        !Array.from(tokensSinceClear.values()).includes(accessToken)
     );
+}
+
+/** Forgets any token cache clear. For tests only. */
+export function resetVscodeEntraTokenCacheForTest(): void {
+    tokenCacheClearedAt = undefined;
+    tokensSinceClear.clear();
 }
 
 /**
@@ -199,19 +179,24 @@ export async function acquireTokenFromVscodeAccountForResource(
 
     let session = await getSessionForAccount(resourceEndpoint, resolvedTenantId, account);
 
-    if (session && isVscodeEntraTokenStale(session.accessToken)) {
+    const clearedAt = tokenCacheClearedAt;
+    const tokenKey = `${resourceEndpoint}|${account.id}|${resolvedTenantId}`;
+    if (
+        session &&
+        clearedAt !== undefined &&
+        session.accessToken !== tokensSinceClear.get(tokenKey)
+    ) {
         session = await getSessionForAccount(
-            { wwwAuthenticate: forceRefreshChallenge, fallbackScopes: [resourceEndpoint] },
+            {
+                wwwAuthenticate: getForceRefreshChallenge(clearedAt),
+                fallbackScopes: [resourceEndpoint],
+            },
             resolvedTenantId,
             account,
         );
 
         if (session) {
-            const claims = getTokenClaims(session.accessToken);
-            const key = getTokenCacheKey(claims);
-            if (key) {
-                forceRefreshedTokenIssuedAt.set(key, claims.iat ?? 0);
-            }
+            tokensSinceClear.set(tokenKey, session.accessToken);
         }
     }
 
@@ -271,30 +256,33 @@ async function getSessionForAccount(
     );
 }
 
-function getTokenExpiration(accessToken: string): number | undefined {
-    const exp = getTokenClaims(accessToken).exp;
-    return typeof exp === "number" ? exp : undefined;
+/**
+ * Challenge that makes VS Code's Microsoft auth provider skip its token cache. The native broker
+ * (WAM on Windows) ignores `forceRefresh` and signing out does not remove its tokens, so a claims
+ * request is the only way to get a new token before the cached one expires. The broker caches
+ * tokens by the claims requested, so each clear asks for a token issued after it, in the format
+ * Entra uses for continuous access evaluation challenges.
+ */
+function getForceRefreshChallenge(clearedAt: number): string {
+    const claims = JSON.stringify({
+        access_token: { nbf: { essential: true, value: String(clearedAt) } },
+    });
+    return `Bearer claims="${Buffer.from(claims).toString("base64")}"`;
 }
 
-function getTokenClaims(accessToken: string): AccessTokenClaims {
+function getTokenExpiration(accessToken: string): number | undefined {
     try {
         const tokenParts = accessToken.split(".");
         if (tokenParts.length < 2) {
-            return {};
+            return undefined;
         }
 
         const tokenBody = tokenParts[1].replace(/-/g, "+").replace(/_/g, "/");
-        return JSON.parse(Buffer.from(tokenBody, "base64").toString("utf8")) ?? {};
+        const claims = JSON.parse(Buffer.from(tokenBody, "base64").toString("utf8"));
+        return typeof claims.exp === "number" ? claims.exp : undefined;
     } catch {
-        return {};
-    }
-}
-
-function getTokenCacheKey(claims: AccessTokenClaims): string | undefined {
-    if (!claims.aud || !claims.oid || !claims.tid) {
         return undefined;
     }
-    return `${claims.tid}|${claims.oid}|${claims.aud}`;
 }
 
 export class MissingEntraAuthAccountError extends Error {

@@ -11,6 +11,7 @@ import {
     acquireTokenFromVscodeAccountForResource,
     clearVscodeEntraTokenCache,
     isVscodeEntraTokenStale,
+    resetVscodeEntraTokenCacheForTest,
 } from "../../src/azure/vscodeEntraMfaUtils";
 import * as sinon from "sinon";
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
@@ -106,18 +107,22 @@ suite("vscodeEntraMfaUtils", () => {
     suite("after the token cache is cleared", () => {
         const resource = "https://database.windows.net/";
         const tenantId = "22222222-2222-2222-2222-222222222222";
+        const clearedAt = 1_800_000_000;
 
-        function createToken(claims: Record<string, unknown>): string {
-            const encode = (value: object) =>
-                Buffer.from(JSON.stringify(value)).toString("base64url");
-            return `${encode({ alg: "none" })}.${encode({
-                aud: resource,
-                oid: "user-object-id",
-                tid: tenantId,
-                exp: Math.floor(Date.now() / 1000) + 3600,
-                ...claims,
-            })}.signature`;
-        }
+        let getSession: sinon.SinonStub;
+
+        setup(() => {
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                .resolves([mockAccounts.signedInAccount]);
+            getSession = sandbox.stub(vscode.authentication, "getSession");
+            sandbox.useFakeTimers({ now: clearedAt * 1000, toFake: ["Date"] });
+            clearVscodeEntraTokenCache();
+        });
+
+        teardown(() => {
+            resetVscodeEntraTokenCacheForTest();
+        });
 
         function createSession(accessToken: string): vscode.AuthenticationSession {
             return {
@@ -128,18 +133,10 @@ suite("vscodeEntraMfaUtils", () => {
             };
         }
 
-        const cachedToken = createToken({ iat: 1000 });
-        const refreshedToken = createToken({ iat: 2000 });
-
-        let getSession: sinon.SinonStub;
-
-        setup(() => {
-            sandbox
-                .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
-                .resolves([mockAccounts.signedInAccount]);
-            getSession = sandbox.stub(vscode.authentication, "getSession");
-            clearVscodeEntraTokenCache();
-        });
+        function expectedChallenge(time: number): string {
+            const claims = `{"access_token":{"nbf":{"essential":true,"value":"${time}"}}}`;
+            return `Bearer claims="${Buffer.from(claims).toString("base64")}"`;
+        }
 
         function acquireToken() {
             return acquireTokenFromVscodeAccountForResource(
@@ -150,56 +147,75 @@ suite("vscodeEntraMfaUtils", () => {
         }
 
         test("re-requests the cached token with a claims challenge", async () => {
-            getSession.onFirstCall().resolves(createSession(cachedToken));
-            getSession.onSecondCall().resolves(createSession(refreshedToken));
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
 
             const result = await acquireToken();
 
-            expect(result.token.token).to.equal(refreshedToken);
+            expect(result.token.token).to.equal("refreshed-token");
             expect(getSession).to.have.been.calledTwice;
             const [, request, options] = getSession.secondCall.args;
-            const claims = Buffer.from('{"access_token":{}}').toString("base64");
-            expect(request.wwwAuthenticate).to.equal(`Bearer claims="${claims}"`);
+            expect(request.wwwAuthenticate).to.equal(expectedChallenge(clearedAt));
             expect(request.fallbackScopes).to.include(`${resource}.default`);
             expect(request.fallbackScopes).to.include(`VSCODE_TENANT:${tenantId}`);
             expect(options).to.deep.include({
                 silent: true,
                 account: mockAccounts.signedInAccount,
             });
-            expect(isVscodeEntraTokenStale(refreshedToken)).to.be.false;
+            expect(isVscodeEntraTokenStale("cached-token")).to.be.true;
+            expect(isVscodeEntraTokenStale("refreshed-token")).to.be.false;
         });
 
         test("uses the refreshed token without another challenge", async () => {
-            getSession.onFirstCall().resolves(createSession(cachedToken));
-            getSession.onSecondCall().resolves(createSession(refreshedToken));
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
             await acquireToken();
             getSession.reset();
-            getSession.resolves(createSession(refreshedToken));
+            getSession.resolves(createSession("refreshed-token"));
 
             const result = await acquireToken();
 
-            expect(result.token.token).to.equal(refreshedToken);
+            expect(result.token.token).to.equal("refreshed-token");
             expect(getSession).to.have.been.calledOnce;
         });
 
-        test("challenges again if the provider returns a token older than the refreshed one", async () => {
-            getSession.onFirstCall().resolves(createSession(cachedToken));
-            getSession.onSecondCall().resolves(createSession(refreshedToken));
+        test("challenges again if the provider returns the cached token again", async () => {
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
             await acquireToken();
             getSession.reset();
-            getSession.onFirstCall().resolves(createSession(cachedToken));
-            getSession.onSecondCall().resolves(createSession(refreshedToken));
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
 
             const result = await acquireToken();
 
-            expect(result.token.token).to.equal(refreshedToken);
+            expect(result.token.token).to.equal("refreshed-token");
             expect(getSession).to.have.been.calledTwice;
-            expect(getSession.secondCall.args[1]).to.have.property("wwwAuthenticate");
+            expect(getSession.secondCall.args[1].wwwAuthenticate).to.equal(
+                expectedChallenge(clearedAt),
+            );
         });
 
-        test("treats tokens it cannot identify as not stale", () => {
-            expect(isVscodeEntraTokenStale(cachedToken)).to.be.true;
-            expect(isVscodeEntraTokenStale("access-token")).to.be.false;
+        test("uses a different challenge after another clear", async () => {
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
+            await acquireToken();
+            getSession.reset();
+            sandbox.clock.tick(60_000);
+            clearVscodeEntraTokenCache();
+            getSession.onFirstCall().resolves(createSession("refreshed-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-again-token"));
+
+            const result = await acquireToken();
+
+            expect(result.token.token).to.equal("refreshed-again-token");
+            expect(getSession.secondCall.args[1].wwwAuthenticate).to.equal(
+                expectedChallenge(clearedAt + 60),
+            );
+            expect(isVscodeEntraTokenStale("refreshed-token")).to.be.true;
+        });
+
+        test("does not treat a missing token as stale", () => {
             expect(isVscodeEntraTokenStale(undefined)).to.be.false;
         });
     });
