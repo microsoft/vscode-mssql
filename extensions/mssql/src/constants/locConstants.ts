@@ -1823,6 +1823,9 @@ export class QueryResult {
 }
 
 export class AzureSqlContainer {
+    public static experimentalFeaturesRequired = l10n.t(
+        "Azure SQL Database local containers require mssql.enableExperimentalFeatures to be enabled.",
+    );
     public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
     public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
     public static portInUse = l10n.t("This port is already in use. Choose a different port.");

@@ -909,6 +909,9 @@
     <trans-unit id="++CODE++bc2a386616d4df1bf0313bdc4a7161a6c66b93554d20c9ad2dd3bc8ffe04e4ad">
       <source xml:lang="en">Azure SQL Database is not supported for restore.</source>
     </trans-unit>
+    <trans-unit id="++CODE++69d9ac3a1329b7740357da619f6535e119b40dc2df04a2b87a188ade4d06c2f5">
+      <source xml:lang="en">Azure SQL Database local containers require mssql.enableExperimentalFeatures to be enabled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++5f86b5c1fcc74565d367aa57714835e7aa082f59a4b063b1e24f441e6d5f247e">
       <source xml:lang="en">Azure SQL Dev Hub</source>
     </trans-unit>

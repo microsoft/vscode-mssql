@@ -11,9 +11,48 @@ import * as localContainers from "../../src/deployment/localContainersHelpers";
 import { DeploymentWebviewState } from "../../src/sharedInterfaces/deployment";
 import { LocalContainersState } from "../../src/sharedInterfaces/localContainers";
 import { stubTelemetry } from "./utils";
+import { previewService } from "../../src/previews/previewService";
+import MainController from "../../src/controllers/mainController";
+import ConnectionManager from "../../src/controllers/connectionManager";
+import { ConnectionUI } from "../../src/views/connectionUI";
 
 chai.use(sinonChai);
 const { expect } = chai;
+
+suite("Azure SQL container availability", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => sandbox.restore());
+
+    test("defaults to disabled before deployment state initialization", () => {
+        expect(new DeploymentWebviewState().isAzureSqlContainerEnabled).to.be.false;
+    });
+
+    for (const enabled of [false, true]) {
+        test(`exposes experimental feature availability when ${enabled}`, async () => {
+            sandbox.stub(previewService, "experimentalFeaturesEnabled").get(() => enabled);
+            const controller = sandbox.createStubInstance(DeploymentWebviewController);
+            const mainController = sandbox.createStubInstance(MainController);
+            const connectionManager = sandbox.createStubInstance(ConnectionManager);
+            const connectionUI = sandbox.createStubInstance(ConnectionUI);
+            connectionUI.getConnectionGroupOptions.resolves([]);
+            sandbox.stub(connectionManager, "connectionUI").get(() => connectionUI);
+            sandbox.stub(mainController, "connectionManager").get(() => connectionManager);
+            controller.mainController = mainController;
+            const state = new DeploymentWebviewState();
+            sandbox.stub(controller, "state").get(() => state);
+
+            await DeploymentWebviewController.prototype["initialize"].call(controller);
+
+            expect(state.isAzureSqlContainerEnabled).to.equal(enabled);
+            expect(controller.updateState).to.have.been.called;
+        });
+    }
+});
 
 suite("Deployment dialog closing", () => {
     let sandbox: sinon.SinonSandbox;
