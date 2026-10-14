@@ -2134,6 +2134,9 @@
     <trans-unit id="++CODE++56417c812e9849fa389e329e3239fd0a5abc5778b3ff738ce7c6d3c49f8739df">
       <source xml:lang="en">Connection profile not found. Please create a new connection using the Connection Dialog.</source>
     </trans-unit>
+    <trans-unit id="++CODE++dcd8669f447f6b2c4ecdfcb6281599e7c32e1f08a0491aa0a03d3a9b7cd7de78">
+      <source xml:lang="en">Connection profiles and groups can be also be reorganized into different connection groups by dragging and dropping them in the Connections view.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
       <source xml:lang="en">Connection sharing permission denied for extension: &apos;{0}&apos;. Use the permission management commands to change this.</source>
       <note>{0} is the extension ID</note>
@@ -10944,9 +10947,6 @@
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
     </trans-unit>
-    <trans-unit id="++CODE++6ff422c7284617006ddc3e8be3e22e69389c8b12dc4b2e926789da1bc115cecd">
-      <source xml:lang="en">You can also drag and drop connections and groups in the Connections view to reorganize them. Connections and groups can define an order property; items with an order are sorted by that value, then alphabetically.</source>
-    </trans-unit>
     <trans-unit id="++CODE++ee6604b8608c95bcd41d746470a4afd5a0254262421599e83cf70c4ebe40255c">
       <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>
     </trans-unit>
@@ -11638,11 +11638,11 @@
     <trans-unit id="mssql.saveAsExcel.boldHeaderRow">
       <source xml:lang="en">**Used when column headers are enabled.** When true, make the header row bold when saving results as an Excel file</source>
     </trans-unit>
-    <trans-unit id="mssql.addObjectExplorer">
-      <source xml:lang="en">Add Connection</source>
-    </trans-unit>
     <trans-unit id="mssql.connectionGroups.create">
-      <source xml:lang="en">Add Connection Group</source>
+      <source xml:lang="en">Add Connection Group...</source>
+    </trans-unit>
+    <trans-unit id="mssql.addObjectExplorer">
+      <source xml:lang="en">Add Connection...</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.addDatabaseReference">
       <source xml:lang="en">Add Database Reference</source>
@@ -11984,7 +11984,7 @@
       <source xml:lang="en">Edit .sqlproj File</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.edit">
-      <source xml:lang="en">Edit Connection Group</source>
+      <source xml:lang="en">Edit Connection Group...</source>
     </trans-unit>
     <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
       <source xml:lang="en">Edit Connection Sharing Permissions</source>

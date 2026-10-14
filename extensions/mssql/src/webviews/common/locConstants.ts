@@ -2937,7 +2937,7 @@ export class LocConstants {
             saturation: l10n.t("Saturation"),
             brightness: l10n.t("Brightness"),
             organizationNote: l10n.t(
-                "You can also drag and drop connections and groups in the Connections view to reorganize them. Connections and groups can define an order property; items with an order are sorted by that value, then alphabetically.",
+                "Connection profiles and groups can be also be reorganized into different connection groups by dragging and dropping them in the Connections view.",
             ),
         };
     }

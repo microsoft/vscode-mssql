@@ -4537,7 +4537,7 @@
     "Hue": "Hue",
     "Saturation": "Saturation",
     "Brightness": "Brightness",
-    "You can also drag and drop connections and groups in the Connections view to reorganize them. Connections and groups can define an order property; items with an order are sorted by that value, then alphabetically.": "You can also drag and drop connections and groups in the Connections view to reorganize them. Connections and groups can define an order property; items with an order are sorted by that value, then alphabetically.",
+    "Connection profiles and groups can be also be reorganized into different connection groups by dragging and dropping them in the Connections view.": "Connection profiles and groups can be also be reorganized into different connection groups by dragging and dropping them in the Connections view.",
     "Loading deployment": "Loading deployment",
     "New SQL database": "New SQL database",
     "Choose an option to provision a database": "Choose an option to provision a database",
