@@ -1684,6 +1684,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     preparedConnection.groupId,
                 );
             (preparedConnection as IConnectionProfile).configSource = connectionGroup.configSource;
+            (preparedConnection as IConnectionProfile).workspaceFolderUri =
+                connectionGroup.workspaceFolderUri;
         }
 
         return preparedConnection;
@@ -1918,6 +1920,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         // clear management properties that aren't serialized
         delete (connectionDraft as IConnectionProfileWithSource).configSource;
+        delete (connectionDraft as IConnectionProfileWithSource).workspaceFolderUri;
 
         this._connectionBeingEdited = undefined;
         this.state.connectionProfile = connectionDraft;

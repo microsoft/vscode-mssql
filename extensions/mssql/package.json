@@ -2268,7 +2268,8 @@
                                 "description": "%mssql.connectionGroup.order%"
                             }
                         }
-                    }
+                    },
+                    "scope": "resource"
                 },
                 "mssql.connections": {
                     "type": "array",
