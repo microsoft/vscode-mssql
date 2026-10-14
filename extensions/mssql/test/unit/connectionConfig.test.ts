@@ -586,6 +586,58 @@ suite("ConnectionConfig Tests", () => {
                 expect(addedGroup?.parentId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
             });
 
+            test("addGroup inherits a workspace parent's config location", async () => {
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                    createStoredGroup("workspace-parent", "Workspace Parent"),
+                ]);
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                await connConfig.addGroup({
+                    name: "Workspace Child",
+                    id: undefined,
+                    parentId: "workspace-parent",
+                    configSource: ConfigurationTarget.Global,
+                });
+
+                const workspaceGroups = getStoredGroups(ConfigurationTarget.Workspace);
+                const childGroup = workspaceGroups.find(
+                    (group) => group.name === "Workspace Child",
+                );
+                expect(childGroup?.parentId).to.equal("workspace-parent");
+                expect(
+                    getStoredGroups(ConfigurationTarget.Global).some(
+                        (group) => group.name === "Workspace Child",
+                    ),
+                ).to.be.false;
+            });
+
+            test("addGroup inherits a workspace folder parent's config location", async () => {
+                const folder = addMockWorkspaceFolder("folder-parent", 0);
+                setWorkspaceFolderData(folder.uri, Constants.connectionGroupsArrayName, [
+                    createStoredGroup("folder-parent", "Folder Parent"),
+                ]);
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                const newGroup: IConnectionGroup = {
+                    name: "Folder Child",
+                    id: undefined,
+                    parentId: "folder-parent",
+                    configSource: ConfigurationTarget.Global,
+                };
+                await connConfig.addGroup(newGroup);
+
+                const folderGroups = getWorkspaceFolderData<IConnectionGroup[]>(
+                    folder.uri,
+                    Constants.connectionGroupsArrayName,
+                );
+                const childGroup = folderGroups.find((group) => group.name === "Folder Child");
+                expect(childGroup?.parentId).to.equal("folder-parent");
+                expect(newGroup.configSource).to.equal(ConfigurationTarget.WorkspaceFolder);
+                expect(newGroup.workspaceFolderUri).to.equal(folder.uri.toString());
+            });
+
             test("removeGroup removes an existing group", async () => {
                 const testGroup = {
                     name: "Test Group",

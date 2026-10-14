@@ -280,6 +280,55 @@ suite("ConnectionDialogWebviewController Tests", () => {
             ).to.be.false;
         });
 
+        suite("Configuration location", () => {
+            test("new connection inherits its workspace parent location", async () => {
+                connectionConfig.getGroupById.resetBehavior();
+                connectionConfig.getGroupById.returns({
+                    id: "workspace-parent",
+                    name: "Workspace Parent",
+                    parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    configSource: vscode.ConfigurationTarget.Workspace,
+                });
+
+                const preparedConnection = await controller["prepareConnectionForSave"]({
+                    server: "test-server",
+                    authenticationType: AuthenticationType.Integrated,
+                    groupId: "workspace-parent",
+                } as IConnectionDialogProfile);
+
+                expect((preparedConnection as IConnectionProfileWithSource).configSource).to.equal(
+                    vscode.ConfigurationTarget.Workspace,
+                );
+                expect((preparedConnection as IConnectionProfileWithSource).workspaceFolderUri).to
+                    .be.undefined;
+            });
+
+            test("new connection inherits its workspace folder parent location", async () => {
+                const workspaceFolderUri = vscode.Uri.file("/workspace/folder").toString();
+                connectionConfig.getGroupById.resetBehavior();
+                connectionConfig.getGroupById.returns({
+                    id: "folder-parent",
+                    name: "Folder Parent",
+                    parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    configSource: vscode.ConfigurationTarget.WorkspaceFolder,
+                    workspaceFolderUri,
+                });
+
+                const preparedConnection = await controller["prepareConnectionForSave"]({
+                    server: "test-server",
+                    authenticationType: AuthenticationType.Integrated,
+                    groupId: "folder-parent",
+                } as IConnectionDialogProfile);
+
+                expect((preparedConnection as IConnectionProfileWithSource).configSource).to.equal(
+                    vscode.ConfigurationTarget.WorkspaceFolder,
+                );
+                expect(
+                    (preparedConnection as IConnectionProfileWithSource).workspaceFolderUri,
+                ).to.equal(workspaceFolderUri);
+            });
+        });
+
         test("should hide the recent profile name when the saved profile database differs", async () => {
             const sharedSavedConnection = {
                 id: "shared-profile-id",

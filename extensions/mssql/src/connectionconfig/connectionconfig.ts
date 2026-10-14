@@ -373,6 +373,17 @@ export class ConnectionConfig implements IConnectionConfig {
         }
 
         const groups = this.getRawGroupsFromSettings();
+
+        if (group.parentId !== ConnectionConfig.ROOT_GROUP_ID) {
+            const parentGroup = groups.find((candidate) => candidate.id === group.parentId);
+
+            if (!parentGroup) {
+                throw new Error(`Parent connection group with ID ${group.parentId} not found`);
+            }
+
+            this.applyConfigLocation(group, this.resolveGroupConfigLocation(parentGroup, groups));
+        }
+
         groups.push(group);
         return this.writeConnectionGroupsToSettings(groups);
     }
