@@ -9,6 +9,8 @@ import {
     areCompatibleEntraAccountIds,
     getVscodeEntraAccountOptions,
     acquireTokenFromVscodeAccountForResource,
+    clearVscodeEntraTokenCache,
+    isVscodeEntraTokenStale,
 } from "../../src/azure/vscodeEntraMfaUtils";
 import * as sinon from "sinon";
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
@@ -99,6 +101,107 @@ suite("vscodeEntraMfaUtils", () => {
 
         expect(result.tenantId).to.equal(expectedTenantId);
         expect(getTenantsForAccount).to.have.been.calledOnceWith(mockAccounts.signedInAccount);
+    });
+
+    suite("after the token cache is cleared", () => {
+        const resource = "https://database.windows.net/";
+        const tenantId = "22222222-2222-2222-2222-222222222222";
+
+        function createToken(claims: Record<string, unknown>): string {
+            const encode = (value: object) =>
+                Buffer.from(JSON.stringify(value)).toString("base64url");
+            return `${encode({ alg: "none" })}.${encode({
+                aud: resource,
+                oid: "user-object-id",
+                tid: tenantId,
+                exp: Math.floor(Date.now() / 1000) + 3600,
+                ...claims,
+            })}.signature`;
+        }
+
+        function createSession(accessToken: string): vscode.AuthenticationSession {
+            return {
+                id: "session-id",
+                accessToken,
+                account: mockAccounts.signedInAccount,
+                scopes: [],
+            };
+        }
+
+        const cachedToken = createToken({ iat: 1000 });
+        const refreshedToken = createToken({ iat: 2000 });
+
+        let getSession: sinon.SinonStub;
+
+        setup(() => {
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                .resolves([mockAccounts.signedInAccount]);
+            getSession = sandbox.stub(vscode.authentication, "getSession");
+            clearVscodeEntraTokenCache();
+        });
+
+        function acquireToken() {
+            return acquireTokenFromVscodeAccountForResource(
+                resource,
+                mockAccounts.signedInAccount.id,
+                tenantId,
+            );
+        }
+
+        test("re-requests the cached token with a claims challenge", async () => {
+            getSession.onFirstCall().resolves(createSession(cachedToken));
+            getSession.onSecondCall().resolves(createSession(refreshedToken));
+
+            const result = await acquireToken();
+
+            expect(result.token.token).to.equal(refreshedToken);
+            expect(getSession).to.have.been.calledTwice;
+            const [, request, options] = getSession.secondCall.args;
+            const claims = Buffer.from('{"access_token":{}}').toString("base64");
+            expect(request.wwwAuthenticate).to.equal(`Bearer claims="${claims}"`);
+            expect(request.fallbackScopes).to.include(`${resource}.default`);
+            expect(request.fallbackScopes).to.include(`VSCODE_TENANT:${tenantId}`);
+            expect(options).to.deep.include({
+                silent: true,
+                account: mockAccounts.signedInAccount,
+            });
+            expect(isVscodeEntraTokenStale(refreshedToken)).to.be.false;
+        });
+
+        test("uses the refreshed token without another challenge", async () => {
+            getSession.onFirstCall().resolves(createSession(cachedToken));
+            getSession.onSecondCall().resolves(createSession(refreshedToken));
+            await acquireToken();
+            getSession.reset();
+            getSession.resolves(createSession(refreshedToken));
+
+            const result = await acquireToken();
+
+            expect(result.token.token).to.equal(refreshedToken);
+            expect(getSession).to.have.been.calledOnce;
+        });
+
+        test("challenges again if the provider returns a token older than the refreshed one", async () => {
+            getSession.onFirstCall().resolves(createSession(cachedToken));
+            getSession.onSecondCall().resolves(createSession(refreshedToken));
+            await acquireToken();
+            getSession.reset();
+            getSession.onFirstCall().resolves(createSession(cachedToken));
+            getSession.onSecondCall().resolves(createSession(refreshedToken));
+
+            const result = await acquireToken();
+
+            expect(result.token.token).to.equal(refreshedToken);
+            expect(getSession).to.have.been.calledTwice;
+            expect(getSession.secondCall.args[1]).to.have.property("wwwAuthenticate");
+        });
+
+        test("treats tokens it cannot identify as not stale", () => {
+            expect(isVscodeEntraTokenStale(cachedToken)).to.be.true;
+            expect(isVscodeEntraTokenStale("access-token")).to.be.false;
+            expect(isVscodeEntraTokenStale(undefined)).to.be.false;
+        });
     });
 
     suite("areCompatibleEntraAccountIds", () => {

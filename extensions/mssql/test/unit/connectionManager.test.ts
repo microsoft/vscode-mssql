@@ -751,6 +751,59 @@ suite("ConnectionManager Tests", () => {
         });
     });
 
+    suite("refreshEntraTokenIfNeeded - VS Code accounts path", () => {
+        let acquireTokenStub: sinon.SinonStub;
+
+        const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+        const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
+        const cachedToken = `${encode({ alg: "none" })}.${encode({
+            aud: "https://database.windows.net/",
+            oid: "user-object-id",
+            tid: "tenant-1",
+            iat: 1000,
+            exp: expiresOn,
+        })}.signature`;
+
+        setup(() => {
+            stubUseMsalEntraMfaAuthConfig(sandbox, false);
+            mockAzureController = sandbox.createStubInstance(MsalAzureController);
+            connectionManager = createConnectionManager();
+            connectionManager.azureController = mockAzureController;
+            acquireTokenStub = sandbox
+                .stub(vscodeEntraMfaUtils, "acquireTokenFromVscodeAccountForResource")
+                .resolves({
+                    account: { id: "account-1", label: "Test User" },
+                    session: { account: { label: "user@example.com" } },
+                    tenantId: "tenant-1",
+                    token: { token: "refreshed-token", expiresOn },
+                } as unknown as vscodeEntraMfaUtils.VscodeEntraSqlTokenInfo);
+        });
+
+        test("refreshes an unexpired token cached before the token cache was cleared", async () => {
+            const connectionInfo = {
+                server: "test-server",
+                authenticationType: "AzureMFA",
+                accountId: "account-1",
+                tenantId: "tenant-1",
+                azureAccountToken: cachedToken,
+                expiresOn,
+            } as IConnectionInfo;
+            connectionManager["_keyVaultTokenCache"].set("key-vault-request", {
+                key: "account-1",
+                token: "key-vault-token",
+                tokenType: "Bearer",
+                expiresOn,
+            });
+
+            connectionManager.onClearAzureTokenCache();
+            await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
+
+            expect(connectionManager["_keyVaultTokenCache"].size).to.equal(0);
+            expect(acquireTokenStub).to.have.been.calledOnce;
+            expect(connectionInfo.azureAccountToken).to.equal("refreshed-token");
+        });
+    });
+
     suite("prepareConnectionInfo", () => {
         let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
