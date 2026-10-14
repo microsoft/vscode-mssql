@@ -12,7 +12,6 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
-    Dropdown,
     Input,
     Textarea,
     MessageBar,
@@ -21,7 +20,6 @@ import {
     Popover,
     PopoverTrigger,
     PopoverSurface,
-    Option,
 } from "@fluentui/react-components";
 import {
     ColorArea,
@@ -40,6 +38,11 @@ import { useState } from "react";
 import { KeyCode } from "../../common/keys";
 import { DialogPageShell } from "../../common/dialogPageShell";
 import { ConnectionSubDialogDisplayType } from "../../../sharedInterfaces/connectionDialog";
+import {
+    renderColorSwatch,
+    SearchableDropdown,
+    SearchableDropdownOptions,
+} from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
     previewColor: {
@@ -107,7 +110,12 @@ export const ConnectionGroupDialog = ({
     const [pickerColor, setPickerColor] = useState(intialHsvColor);
     const [parentId, setParentId] = useState(state.parentId);
     const [popoverOpen, setPopoverOpen] = useState(false);
-    const selectedParent = state.parentGroups.find((group) => group.id === parentId);
+    const parentGroupOptions: SearchableDropdownOptions[] = state.parentGroups.map((group) => ({
+        value: group.id,
+        text: group.isRoot ? Loc.connectionGroups.root : group.name,
+        color: group.color,
+    }));
+    const selectedParent = parentGroupOptions.find((group) => group.value === parentId);
     const dialogTitle = state.existingGroupName
         ? Loc.connectionGroups.editConnectionGroup(state.existingGroupName)
         : Loc.connectionGroups.createNew;
@@ -180,23 +188,17 @@ export const ConnectionGroupDialog = ({
                 />
             </Field>
             <Field className={formStyles.formComponentDiv} label={Loc.connectionGroups.parentGroup}>
-                <Dropdown
-                    value={
-                        selectedParent?.isRoot
-                            ? Loc.connectionGroups.root
-                            : (selectedParent?.name ?? "")
-                    }
-                    selectedOptions={parentId ? [parentId] : []}
-                    onOptionSelect={(_event, data) => {
-                        setParentId(data.optionValue ?? "");
-                    }}>
-                    {state.parentGroups.map((group) => (
-                        <Option key={group.id} value={group.id}>
-                            {group.isRoot ? Loc.connectionGroups.root : group.name}
-                        </Option>
-                    ))}
-                </Dropdown>
+                <SearchableDropdown
+                    options={parentGroupOptions}
+                    selectedOption={selectedParent}
+                    searchBoxPlaceholder={Loc.connectionGroups.searchConnectionGroups}
+                    ariaLabel={Loc.connectionGroups.parentGroup}
+                    size="small"
+                    onSelect={(option) => setParentId(option.value)}
+                    renderDecoration={(option) => renderColorSwatch(option.color)}
+                />
             </Field>
+            <MessageBar intent="info">{Loc.connectionGroups.organizationNote}</MessageBar>
             <Field className={formStyles.formComponentDiv} label={Loc.connectionGroups.description}>
                 <Textarea
                     value={description}
@@ -271,7 +273,6 @@ export const ConnectionGroupDialog = ({
                     </Popover>
                 </div>
             </Field>
-            <MessageBar intent="info">{Loc.connectionGroups.organizationNote}</MessageBar>
         </form>
     );
 

@@ -2927,6 +2927,7 @@ export class LocConstants {
             enterConnectionGroupName: l10n.t("Enter connection group name"),
             parentGroup: l10n.t("Parent group"),
             root: l10n.t("Root"),
+            searchConnectionGroups: l10n.t("Search connection groups"),
             description: l10n.t("Description"),
             enterDescription: l10n.t("Enter description (optional)"),
             color: l10n.t("Color"),

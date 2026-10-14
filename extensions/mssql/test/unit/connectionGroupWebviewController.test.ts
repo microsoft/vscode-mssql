@@ -39,6 +39,7 @@ suite("ConnectionGroupWebviewController Tests", () => {
                 id: "parent",
                 name: "Parent",
                 parentId: ConnectionConfig.ROOT_GROUP_ID,
+                color: "#0078D4",
                 configSource: vscode.ConfigurationTarget.Global,
             },
             {
@@ -87,6 +88,7 @@ suite("ConnectionGroupWebviewController Tests", () => {
         expect(state.parentGroups[0]).to.deep.equal({
             id: ConnectionConfig.ROOT_GROUP_ID,
             name: ConnectionConfig.ROOT_GROUP_ID,
+            color: undefined,
             isRoot: true,
         });
     });
@@ -97,6 +99,9 @@ suite("ConnectionGroupWebviewController Tests", () => {
         expect(state.parentId).to.equal("child");
         expect(state.parentGroups.find((group) => group.id === "child")?.name).to.equal(
             "Parent / Child",
+        );
+        expect(state.parentGroups.find((group) => group.id === "parent")?.color).to.equal(
+            "#0078D4",
         );
     });
 

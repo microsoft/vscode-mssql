@@ -48,6 +48,7 @@ export interface ConnectionGroupState {
 export interface ConnectionGroupParentOption {
     id: string;
     name: string;
+    color?: string;
     isRoot?: boolean;
 }
 

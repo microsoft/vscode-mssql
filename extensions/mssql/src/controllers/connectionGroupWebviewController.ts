@@ -168,6 +168,7 @@ export function getConnectionGroupDialogState(
         .map((group) => ({
             id: group.id,
             name: getParentGroupDisplayName(group, groupsById),
+            color: group.color,
             isRoot: group.id === ConnectionConfig.ROOT_GROUP_ID,
         }))
         .sort((a, b) => {
