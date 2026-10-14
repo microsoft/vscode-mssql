@@ -67,6 +67,9 @@ const useStyles = makeStyles({
         alignItems: "center",
         gap: "15px",
     },
+    organizationNote: {
+        margin: "24px",
+    },
 });
 
 // A few known "good" colors from the Fluent color palette
@@ -198,7 +201,9 @@ export const ConnectionGroupDialog = ({
                     renderDecoration={(option) => renderColorSwatch(option.color)}
                 />
             </Field>
-            <MessageBar intent="info">{Loc.connectionGroups.organizationNote}</MessageBar>
+            <MessageBar className={styles.organizationNote} intent="info">
+                {Loc.connectionGroups.organizationNote}
+            </MessageBar>
             <Field className={formStyles.formComponentDiv} label={Loc.connectionGroups.description}>
                 <Textarea
                     value={description}
