@@ -2041,14 +2041,25 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
-        this.registerCommandWithArgs(Constants.cmdConnectionGroupCreate);
-        this._event.on(Constants.cmdConnectionGroupCreate, (node?: ConnectionGroupNode) => {
+        const openCreateConnectionGroupDialog = (parentGroupId?: string) => {
             const connGroupDialog = this._instantiationService.createInstance(
                 ConnectionGroupWebviewController,
                 undefined,
-                node instanceof ConnectionGroupNode ? node.connectionGroup.id : undefined,
+                parentGroupId,
             );
             connGroupDialog.revealToForeground();
+        };
+
+        this.registerCommand(Constants.cmdConnectionGroupCreate);
+        this._event.on(Constants.cmdConnectionGroupCreate, () => {
+            openCreateConnectionGroupDialog();
+        });
+
+        this.registerCommandWithArgs(Constants.cmdConnectionGroupCreateChild);
+        this._event.on(Constants.cmdConnectionGroupCreateChild, (node: ConnectionGroupNode) => {
+            if (node instanceof ConnectionGroupNode) {
+                openCreateConnectionGroupDialog(node.connectionGroup.id);
+            }
         });
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupEdit);
