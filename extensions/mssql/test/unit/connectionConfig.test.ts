@@ -755,9 +755,7 @@ suite("ConnectionConfig Tests", () => {
                 const connConfig = new ConnectionConfig();
                 await connConfig.initialized;
 
-                const groups = (await connConfig.getGroups()).filter(
-                    (group) => group.configSource === ConfigurationTarget.WorkspaceFolder,
-                );
+                const groups = await connConfig.getGroups();
 
                 expect(groups).to.have.lengthOf(3);
                 expect(groups.map((g) => g.name)).to.have.members(["ROOT", "Group 1", "Group 2"]);
@@ -887,7 +885,9 @@ suite("ConnectionConfig Tests", () => {
                 const connections = connConfig.getConnectionsFromSettings(
                     ConfigurationTarget.WorkspaceFolder,
                 );
-                const groups = await connConfig.getGroups();
+                const groups = (await connConfig.getGroups()).filter(
+                    (group) => group.configSource === ConfigurationTarget.WorkspaceFolder,
+                );
 
                 expect(connections.map((connection) => connection.id)).to.have.members([
                     "folder-one-connection",
@@ -918,6 +918,72 @@ suite("ConnectionConfig Tests", () => {
                             group.configSource === ConfigurationTarget.WorkspaceFolder &&
                             group.workspaceFolderUri !== undefined,
                     ),
+                );
+            });
+
+            test("loads single-folder connections and groups once through workspace settings", async () => {
+                const folder = addMockWorkspaceFolder("single-folder", 0);
+                mockWorkspaceFile = undefined;
+                const profiles = [
+                    createStoredProfile("single-folder-connection", "single-folder-group"),
+                ];
+                const groups = [createStoredGroup("single-folder-group", "Single Folder Group")];
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, profiles);
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, groups);
+                setWorkspaceFolderData(folder.uri, Constants.connectionsArrayName, profiles);
+                setWorkspaceFolderData(folder.uri, Constants.connectionGroupsArrayName, groups);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                const connections = await connConfig.getConnections();
+                expect(connections).to.have.lengthOf(1);
+                expect(connections[0]).to.include({
+                    id: "single-folder-connection",
+                    configSource: ConfigurationTarget.Workspace,
+                });
+                expect(connections[0]).not.to.have.property("workspaceFolderUri");
+                const loadedGroups = await connConfig.getGroups();
+                expect(loadedGroups.map((group) => group.id)).to.have.members([
+                    ConnectionConfig.ROOT_GROUP_ID,
+                    "single-folder-group",
+                ]);
+                expect(connConfig.getGroupById("single-folder-group")).to.include({
+                    configSource: ConfigurationTarget.Workspace,
+                });
+                expect(connConfig.getConnectionsFromSettings(ConfigurationTarget.WorkspaceFolder))
+                    .to.be.empty;
+                expect(updateConfigurationStub).not.to.have.been.called;
+            });
+
+            test("updates a single-folder connection in workspace settings without duplicating it globally", async () => {
+                addMockWorkspaceFolder("single-folder", 0);
+                mockWorkspaceFile = undefined;
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                    createStoredProfile("single-folder-connection", ConnectionConfig.ROOT_GROUP_ID),
+                ]);
+
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                await connConfig.updateConnection({
+                    ...createStoredProfile(
+                        "single-folder-connection",
+                        ConnectionConfig.ROOT_GROUP_ID,
+                    ),
+                    profileName: "Updated Single Folder",
+                });
+
+                expect(getStoredConnections(ConfigurationTarget.Workspace)).to.have.lengthOf(1);
+                expect(getStoredConnections(ConfigurationTarget.Workspace)[0].profileName).to.equal(
+                    "Updated Single Folder",
+                );
+                expect(getStoredConnections(ConfigurationTarget.Global)).to.be.empty;
+                expect(updateConfigurationStub).to.have.been.calledWith(
+                    Constants.connectionsArrayName,
+                    getStoredConnections(ConfigurationTarget.Workspace),
+                    ConfigurationTarget.Workspace,
+                    undefined,
                 );
             });
 

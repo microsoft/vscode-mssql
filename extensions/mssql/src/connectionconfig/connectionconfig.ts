@@ -1068,6 +1068,7 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     private getWorkspaceFolderLocations(): ConfigLocation[] {
+        // Single-folder settings are already exposed as workspaceValue; avoid reading them twice.
         if (!vscode.workspace.workspaceFile) {
             return [];
         }
