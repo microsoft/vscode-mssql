@@ -3439,6 +3439,9 @@ export class ConnectionConfig {
                 "{1} is the selected parent connection group",
             ],
         });
+    public static groupHierarchyContainsCycle = l10n.t(
+        "Connection groups cannot be added because their parent hierarchy contains a cycle.",
+    );
     public static moveToDifferentSaveLocation = (
         itemName: string,
         currentLocation: string,

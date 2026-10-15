@@ -75,6 +75,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
 
         connectionConfigStub = sandbox.createStubInstance(ConnectionConfig);
         connectionConfigStub.addGroup.resolves();
+        connectionConfigStub.addGroups.resolves();
         connectionConfigStub.getConnections.resolves([]);
         connectionConfigStub.getGroups.resolves([]);
 
@@ -344,9 +345,11 @@ suite("AzureDataStudioMigrationWebviewController", () => {
 
         await controller["importHelper"](state);
 
-        expect(connectionConfigStub.addGroup, "Only selected groups should be persisted").to.have
-            .been.calledOnce;
-        const addedGroup = connectionConfigStub.addGroup.getCall(0).args[0];
+        expect(connectionConfigStub.addGroups, "Selected groups should be persisted together").to
+            .have.been.calledOnce;
+        const addedGroups = connectionConfigStub.addGroups.firstCall.args[0];
+        expect(addedGroups, "Only selected groups should be persisted").to.have.lengthOf(1);
+        const addedGroup = addedGroups[0];
         expect(addedGroup.parentId, "Missing parents should fall back to root group").to.equal(
             ConnectionConfig.ROOT_GROUP_ID,
         );
@@ -450,12 +453,21 @@ suite("AzureDataStudioMigrationWebviewController", () => {
 
         await controller["importHelper"](state);
 
-        expect(connectionConfigStub.addGroup).to.have.been.calledTwice;
-        expect(connectionConfigStub.addGroup.firstCall.args[0].id).to.equal("parent-group");
-        expect(connectionConfigStub.addGroup.secondCall.args[0]).to.include({
-            id: "child-group",
-            parentId: "parent-group",
-        });
+        expect(connectionConfigStub.addGroups).to.have.been.calledOnce;
+        expect(connectionConfigStub.addGroups.firstCall.args[0]).to.deep.equal([
+            {
+                id: "child-group",
+                name: "Child Group",
+                parentId: "parent-group",
+                configSource: vscode.ConfigurationTarget.Global,
+            },
+            {
+                id: "parent-group",
+                name: "Parent Group",
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
+                configSource: vscode.ConfigurationTarget.Global,
+            },
+        ]);
     });
 
     test("updateConnectionStatus reflects sql password and Entra account requirements", () => {

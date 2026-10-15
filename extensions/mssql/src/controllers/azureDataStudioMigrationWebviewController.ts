@@ -36,7 +36,6 @@ import {
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { getErrorMessage } from "../utils/utils";
-import { orderItemsParentFirst } from "../utils/hierarchyUtils";
 import { ConnectionConfig, IConnectionConfig } from "../connectionconfig/connectionconfig";
 import { Deferred } from "../protocol";
 import { AzureAccountService } from "../services/azureAccountService";
@@ -505,19 +504,7 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
                 return groupToImport;
             });
 
-            const { orderedItems, unresolvedItems } = orderItemsParentFirst(
-                groupsToImport,
-                (group) => group.id,
-                (group) => group.parentId,
-                new Set([ConnectionConfig.ROOT_GROUP_ID, ...this._existingGroupIds.keys()]),
-            );
-            for (const group of unresolvedItems) {
-                group.parentId = ConnectionConfig.ROOT_GROUP_ID;
-            }
-
-            for (const groupToAdd of [...orderedItems, ...unresolvedItems]) {
-                await this.connectionConfig.addGroup(groupToAdd);
-            }
+            await this.connectionConfig.addGroups(groupsToImport);
 
             activity.update({ additionalProps: { step: "2_importingConnections" } });
 

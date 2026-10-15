@@ -147,6 +147,53 @@ suite("ConnectionConfig Tests", () => {
             expect(savedConnections[0].groupId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
         });
 
+        test("Initialization batches all group and connection repairs into one write each", async () => {
+            const legacyRootId = "legacy-root-id";
+            mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                { name: "ROOT", id: legacyRootId },
+                { name: "Child Group", parentId: legacyRootId },
+            ]);
+            mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                {
+                    groupId: legacyRootId,
+                    server: "server",
+                    authenticationType: "Integrated",
+                    profileName: "Test Profile",
+                    connectionString: "Server=server",
+                },
+            ]);
+
+            const connConfig = new ConnectionConfig();
+            await connConfig.initialized;
+
+            const groupWrites = updateConfigurationStub
+                .getCalls()
+                .filter((call) => call.args[0] === Constants.connectionGroupsArrayName);
+            const connectionWrites = updateConfigurationStub
+                .getCalls()
+                .filter((call) => call.args[0] === Constants.connectionsArrayName);
+            expect(groupWrites).to.have.lengthOf(1);
+            expect(connectionWrites).to.have.lengthOf(1);
+
+            const savedGroups = mockGlobalConfigData.get(
+                Constants.connectionGroupsArrayName,
+            ) as IConnectionGroup[];
+            expect(savedGroups.find((group) => group.name === "Child Group")).to.include({
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
+            });
+            expect(savedGroups.find((group) => group.name === "Child Group")?.id).to.be.a("string")
+                .and.not.empty;
+
+            const savedConnections = mockGlobalConfigData.get(
+                Constants.connectionsArrayName,
+            ) as IConnectionProfile[];
+            expect(savedConnections[0]).to.include({
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            });
+            expect(savedConnections[0].id).to.be.a("string").and.not.empty;
+            expect(savedConnections[0]).not.to.have.property("connectionString");
+        });
+
         test("Initialization adds IDs to groups without IDs", async () => {
             mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
                 { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
@@ -775,6 +822,68 @@ suite("ConnectionConfig Tests", () => {
                 expect(error?.message).to.equal(
                     LocalizedConstants.ConnectionConfig.parentGroupNotFound("missing-parent"),
                 );
+            });
+
+            test("addGroups orders child-first input and writes once", async () => {
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                updateConfigurationStub.resetHistory();
+
+                await connConfig.addGroups([
+                    {
+                        id: "child-group",
+                        name: "Child Group",
+                        parentId: "parent-group",
+                        configSource: ConfigurationTarget.Global,
+                    },
+                    {
+                        id: "parent-group",
+                        name: "Parent Group",
+                        parentId: ConnectionConfig.ROOT_GROUP_ID,
+                        configSource: ConfigurationTarget.Global,
+                    },
+                ]);
+
+                const savedGroups = mockGlobalConfigData.get(
+                    Constants.connectionGroupsArrayName,
+                ) as IConnectionGroup[];
+                expect(savedGroups.map((group) => group.id)).to.deep.equal([
+                    ConnectionConfig.ROOT_GROUP_ID,
+                    "parent-group",
+                    "child-group",
+                ]);
+                expect(updateConfigurationStub).to.have.been.calledOnce;
+            });
+
+            test("addGroups rejects cyclic input without writing", async () => {
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                updateConfigurationStub.resetHistory();
+                let error: Error | undefined;
+
+                try {
+                    await connConfig.addGroups([
+                        {
+                            id: "group-a",
+                            name: "Group A",
+                            parentId: "group-b",
+                            configSource: ConfigurationTarget.Global,
+                        },
+                        {
+                            id: "group-b",
+                            name: "Group B",
+                            parentId: "group-a",
+                            configSource: ConfigurationTarget.Global,
+                        },
+                    ]);
+                } catch (caughtError) {
+                    error = caughtError as Error;
+                }
+
+                expect(error?.message).to.equal(
+                    LocalizedConstants.ConnectionConfig.groupHierarchyContainsCycle,
+                );
+                expect(updateConfigurationStub).to.not.have.been.called;
             });
 
             test("updateGroup rejects a stale parent selection that would create a cycle", async () => {

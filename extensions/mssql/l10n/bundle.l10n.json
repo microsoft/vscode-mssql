@@ -1866,6 +1866,7 @@
             "{1} is the selected parent connection group"
         ]
     },
+    "Connection groups cannot be added because their parent hierarchy contains a cycle.": "Connection groups cannot be added because their parent hierarchy contains a cycle.",
     "'{0}' is saved to {1}, but '{2}' is saved to {3}. Would you like to update the save location for {0}?/{0} is the connection profile or group name{1} is the item's current configuration location{2} is the new parent group name{3} is the new parent group's configuration location": {
         "message": "'{0}' is saved to {1}, but '{2}' is saved to {3}. Would you like to update the save location for {0}?",
         "comment": [

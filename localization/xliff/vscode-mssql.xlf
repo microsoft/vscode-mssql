@@ -2129,6 +2129,9 @@
       <note>{0} is the group name
 {1} is the group ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++343353e44c00ea7849d081f1c30bfbc2522c2acd6a4de7d93c31f878a720ccf0">
+      <source xml:lang="en">Connection groups cannot be added because their parent hierarchy contains a cycle.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
       <source xml:lang="en">Connection groups to import</source>
     </trans-unit>
