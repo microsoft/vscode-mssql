@@ -7,14 +7,15 @@
 
 ### What's new in 1.47.0
 
-- Released the MSSQL Getting Started page as generally available (GA), with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources
-- Added execution plan comparison with side-by-side and top-and-bottom layouts, synchronized zoom, operator matching, and property filtering, plus live query statistics with animated row-count updates while queries run
-- Improved execution plan navigation, scrolling, edge rendering, tab consistency, and access to full property values
-- Added support for creating and managing Azure SQL local containers
-- Added file search to SQL Database Projects, including a Find File command, toolbar action, and Ctrl+F/Cmd+F shortcut that reveal the selected file in the project tree
-- Improved query results with optional right-aligned numbers and uppercase `uniqueidentifier` values, Ctrl+A support on non-US keyboards, and protection against saving partial result sets
-- Added an optional status bar display for the active connection's server process ID (SPID) with the `mssql.statusBar.showServerProcessId` setting
-- Added Excel export settings to include and format headers, freeze the header row, enable filtering, and automatically size columns
+- Released the MSSQL Getting Started page as generally available (GA), with one-click Microsoft SQL Agent skills installation, dev container templates, walkthroughs, and learning resources
+- Added execution plan comparison with side-by-side layouts, operator matching, and property filtering, plus live query statistics with animated row-count updates while queries run
+- Added quick file search to the SQL Database Projects view (`Ctrl/Cmd` + `F`), helping users to quickly find the script they need across their SQL projects
+- Added an optional status bar display for the active connection's server process ID (SPID). Enable with `mssql.statusBar.showServerProcessId`
+- Fixed issues with execution plan rendering and navigation, and added access to full property values
+- Fixed bugs and issues related to usability in the Query Results grid
+- Improved Excel export experience with formatted headers, frozen header rows, enable filtering, and automatically size columns
+
+Thank you to @ckaczor for contributing the Excel export improvements!
 
 ## Version 1.46.0
 
