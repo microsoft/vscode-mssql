@@ -756,6 +756,64 @@ suite("ConnectionConfig Tests", () => {
                 expect(addedGroup?.parentId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
             });
 
+            test("addGroup reports a localized error when its parent no longer exists", async () => {
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                let error: Error | undefined;
+
+                try {
+                    await connConfig.addGroup({
+                        id: "new-group",
+                        name: "New Group",
+                        parentId: "missing-parent",
+                        configSource: ConfigurationTarget.Global,
+                    });
+                } catch (caughtError) {
+                    error = caughtError as Error;
+                }
+
+                expect(error?.message).to.equal(
+                    LocalizedConstants.ConnectionConfig.parentGroupNotFound("missing-parent"),
+                );
+            });
+
+            test("updateGroup rejects a stale parent selection that would create a cycle", async () => {
+                mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                    createStoredGroup("group-a", "Group A"),
+                    createStoredGroup("group-b", "Group B"),
+                ]);
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                const groupA = connConfig.getGroupById("group-a");
+                const staleGroupB = connConfig.getGroupById("group-b");
+                if (!groupA || !staleGroupB) {
+                    throw new Error("Expected both test groups");
+                }
+
+                await connConfig.updateGroup({
+                    ...groupA,
+                    parentId: "group-b",
+                });
+
+                let error: Error | undefined;
+                try {
+                    await connConfig.updateGroup({
+                        ...staleGroupB,
+                        parentId: "group-a",
+                    });
+                } catch (caughtError) {
+                    error = caughtError as Error;
+                }
+
+                expect(error?.message).to.equal(
+                    LocalizedConstants.ConnectionConfig.groupMoveCreatesCycle("Group B", "Group A"),
+                );
+                expect(connConfig.getGroupById("group-a")?.parentId).to.equal("group-b");
+                expect(connConfig.getGroupById("group-b")?.parentId).to.equal(
+                    ConnectionConfig.ROOT_GROUP_ID,
+                );
+            });
+
             test("addGroup inherits a workspace parent's config location", async () => {
                 mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
                     createStoredGroup("workspace-parent", "Workspace Parent"),

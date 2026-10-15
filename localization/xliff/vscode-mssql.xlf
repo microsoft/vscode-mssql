@@ -2119,6 +2119,11 @@
       <source xml:lang="en">Connection failed: {0}</source>
       <note>{0} is the error message from the connection attempt</note>
     </trans-unit>
+    <trans-unit id="++CODE++08b87ee477e78326a6a12a27995b088e58cdb713ae40c381bde7b9a9a1864e8e">
+      <source xml:lang="en">Connection group &apos;{0}&apos; cannot be moved under &apos;{1}&apos; because that would create a cycle.</source>
+      <note>{0} is the connection group being moved
+{1} is the selected parent connection group</note>
+    </trans-unit>
     <trans-unit id="++CODE++4af9562e151d82d6647b49a0ebb192051f470999bc80f52dfe8fa8d23aa3ff95">
       <source xml:lang="en">Connection group with the same ID is already imported: {0} (ID: {1})</source>
       <note>{0} is the group name
@@ -7199,6 +7204,10 @@
     </trans-unit>
     <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
       <source xml:lang="en">Parameters</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e262868168cfbc61b5c71e9d73571ca772307af3ad606198029c7ad2a0dc5373">
+      <source xml:lang="en">Parent connection group with ID &apos;{0}&apos; was not found.</source>
+      <note>{0} is the missing parent connection group ID</note>
     </trans-unit>
     <trans-unit id="++CODE++ffd307ce81d2fc14aa150a7cc680a982a48c9859b0e2aaa31c3d6f740bb868e5">
       <source xml:lang="en">Parent group</source>

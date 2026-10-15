@@ -3423,6 +3423,22 @@ export class ConnectionGroup {
 }
 
 export class ConnectionConfig {
+    public static parentGroupNotFound = (parentId: string) =>
+        l10n.t({
+            message: "Parent connection group with ID '{0}' was not found.",
+            args: [parentId],
+            comment: ["{0} is the missing parent connection group ID"],
+        });
+    public static groupMoveCreatesCycle = (groupName: string, parentGroupName: string) =>
+        l10n.t({
+            message:
+                "Connection group '{0}' cannot be moved under '{1}' because that would create a cycle.",
+            args: [groupName, parentGroupName],
+            comment: [
+                "{0} is the connection group being moved",
+                "{1} is the selected parent connection group",
+            ],
+        });
     public static moveToDifferentSaveLocation = (
         itemName: string,
         currentLocation: string,

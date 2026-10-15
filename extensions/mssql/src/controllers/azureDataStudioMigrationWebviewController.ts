@@ -36,6 +36,7 @@ import {
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { getErrorMessage } from "../utils/utils";
+import { orderItemsParentFirst } from "../utils/hierarchyUtils";
 import { ConnectionConfig, IConnectionConfig } from "../connectionconfig/connectionconfig";
 import { Deferred } from "../protocol";
 import { AzureAccountService } from "../services/azureAccountService";
@@ -491,17 +492,30 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
                 ...this._existingGroupIds.keys(),
                 ...selectedGroups.keys(),
             ]);
-
-            for (const group of selectedGroups.values()) {
-                const groupToAdd: interfaces.IConnectionGroup = {
+            const groupsToImport = [...selectedGroups.values()].map((group) => {
+                const groupToImport: interfaces.IConnectionGroup = {
                     ...group.group,
                     configSource: vscode.ConfigurationTarget.Global,
                 };
 
-                if (!validGroupIds.has(groupToAdd.parentId)) {
-                    groupToAdd.parentId = ConnectionConfig.ROOT_GROUP_ID;
+                if (!validGroupIds.has(groupToImport.parentId)) {
+                    groupToImport.parentId = ConnectionConfig.ROOT_GROUP_ID;
                 }
 
+                return groupToImport;
+            });
+
+            const { orderedItems, unresolvedItems } = orderItemsParentFirst(
+                groupsToImport,
+                (group) => group.id,
+                (group) => group.parentId,
+                new Set([ConnectionConfig.ROOT_GROUP_ID, ...this._existingGroupIds.keys()]),
+            );
+            for (const group of unresolvedItems) {
+                group.parentId = ConnectionConfig.ROOT_GROUP_ID;
+            }
+
+            for (const groupToAdd of [...orderedItems, ...unresolvedItems]) {
                 await this.connectionConfig.addGroup(groupToAdd);
             }
 

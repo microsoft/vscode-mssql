@@ -386,12 +386,7 @@ export class ConnectionConfig implements IConnectionConfig {
         const groups = this.getRawGroupsFromSettings();
 
         if (group.parentId !== ConnectionConfig.ROOT_GROUP_ID) {
-            const parentGroup = groups.find((candidate) => candidate.id === group.parentId);
-
-            if (!parentGroup) {
-                throw new Error(`Parent connection group with ID ${group.parentId} not found`);
-            }
-
+            const parentGroup = this.getParentGroupOrThrow(group.parentId, groups);
             this.applyConfigLocation(group, this.resolveGroupConfigLocation(parentGroup, groups));
         }
 
@@ -502,6 +497,7 @@ export class ConnectionConfig implements IConnectionConfig {
         }
 
         const existingGroup = groups[index];
+        this.validateGroupParent(updatedGroup, groups);
         const location = await this.resolveLocationAfterParentChange(
             updatedGroup.name,
             this.resolveGroupConfigLocation(existingGroup, groups),
@@ -1085,12 +1081,10 @@ export class ConnectionConfig implements IConnectionConfig {
             return currentLocation;
         }
 
-        const parentGroup = this.getRawGroupsFromSettings().find(
-            (group) => group.id === updatedParentId,
+        const parentGroup = this.getParentGroupOrThrow(
+            updatedParentId,
+            this.getRawGroupsFromSettings(),
         );
-        if (!parentGroup) {
-            throw new Error(`Parent connection group with ID ${updatedParentId} not found`);
-        }
 
         const parentLocation = this.resolveGroupConfigLocation(parentGroup);
         if (
@@ -1144,6 +1138,41 @@ export class ConnectionConfig implements IConnectionConfig {
                 }
                 return LocalizedConstants.ConnectionConfig.workspaceFolderConfig(folderName);
             }
+        }
+    }
+
+    private getParentGroupOrThrow(parentId: string, groups: IConnectionGroup[]): IConnectionGroup {
+        const parentGroup = groups.find((group) => group.id === parentId);
+        if (!parentGroup) {
+            throw new Error(LocalizedConstants.ConnectionConfig.parentGroupNotFound(parentId));
+        }
+        return parentGroup;
+    }
+
+    private validateGroupParent(updatedGroup: IConnectionGroup, groups: IConnectionGroup[]): void {
+        if (!updatedGroup.parentId || updatedGroup.parentId === ConnectionConfig.ROOT_GROUP_ID) {
+            return;
+        }
+
+        const selectedParent = this.getParentGroupOrThrow(updatedGroup.parentId, groups);
+        const visitedGroupIds = new Set([updatedGroup.id]);
+        let ancestor = selectedParent;
+
+        while (ancestor.id !== ConnectionConfig.ROOT_GROUP_ID) {
+            if (visitedGroupIds.has(ancestor.id)) {
+                throw new Error(
+                    LocalizedConstants.ConnectionConfig.groupMoveCreatesCycle(
+                        updatedGroup.name,
+                        selectedParent.name,
+                    ),
+                );
+            }
+
+            visitedGroupIds.add(ancestor.id);
+            if (!ancestor.parentId || ancestor.parentId === ConnectionConfig.ROOT_GROUP_ID) {
+                return;
+            }
+            ancestor = this.getParentGroupOrThrow(ancestor.parentId, groups);
         }
     }
 

@@ -414,6 +414,50 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         );
     });
 
+    test("importHelper saves selected groups parent-first when input is child-first", async () => {
+        controller["_existingGroupIds"] = new Map([
+            [ConnectionConfig.ROOT_GROUP_ID, ConnectionConfig.ROOT_GROUP_ID],
+        ]);
+        const state: AzureDataStudioMigrationWebviewState = {
+            adsConfigPath: "settings.json",
+            connectionGroups: [
+                {
+                    group: {
+                        id: "child-group",
+                        name: "Child Group",
+                        parentId: "parent-group",
+                    },
+                    status: MigrationStatus.Ready,
+                    statusMessage: "",
+                    selected: true,
+                },
+                {
+                    group: {
+                        id: "parent-group",
+                        name: "Parent Group",
+                        parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    },
+                    status: MigrationStatus.Ready,
+                    statusMessage: "",
+                    selected: true,
+                },
+            ],
+            connections: [],
+            importSettings: false,
+            settings: [],
+            dialog: undefined,
+        };
+
+        await controller["importHelper"](state);
+
+        expect(connectionConfigStub.addGroup).to.have.been.calledTwice;
+        expect(connectionConfigStub.addGroup.firstCall.args[0].id).to.equal("parent-group");
+        expect(connectionConfigStub.addGroup.secondCall.args[0]).to.include({
+            id: "child-group",
+            parentId: "parent-group",
+        });
+    });
+
     test("updateConnectionStatus reflects sql password and Entra account requirements", () => {
         controller["_existingConnectionIds"] = new Map([
             ["existing-conn-id", "Existing Connection Name"],
