@@ -71,6 +71,92 @@ suite("ConnectionStore Tests", () => {
         await connectionStore.initialized; // Wait for initialization to complete
     });
 
+    test("updateProfile updates the saved profile and credentials", async () => {
+        mockConnectionConfig.updateConnection.resolves(true);
+        connectionStore = new ConnectionStore(
+            mockContextService,
+            mockCredentialStore,
+            mockConnectionConfig,
+            mockLogger,
+        );
+        await connectionStore.initialized;
+        const profile = {
+            ...sqlAuthConn,
+            id: "profile-id",
+            password: "secret",
+            savePassword: true,
+            azureAccountToken: "token",
+        } as IConnectionProfile;
+
+        const updated = await connectionStore.updateProfile(profile);
+
+        expect(updated).to.be.true;
+        expect(mockConnectionConfig.updateConnection).to.have.been.calledOnce;
+        expect(mockConnectionConfig.updateConnection.firstCall.args[0]).to.include({
+            id: "profile-id",
+            password: "",
+            azureAccountToken: "token",
+        });
+        expect(mockCredentialStore.saveCredential).to.have.been.calledOnce;
+    });
+
+    test("updateProfile does not update credentials when the profile update is cancelled", async () => {
+        mockConnectionConfig.updateConnection.resolves(false);
+        connectionStore = new ConnectionStore(
+            mockContextService,
+            mockCredentialStore,
+            mockConnectionConfig,
+            mockLogger,
+        );
+        await connectionStore.initialized;
+        const profile = {
+            ...sqlAuthConn,
+            id: "profile-id",
+            password: "secret",
+            savePassword: true,
+        } as IConnectionProfile;
+
+        const updated = await connectionStore.updateProfile(profile, {
+            ...profile,
+            server: "old-server",
+        });
+
+        expect(updated).to.be.false;
+        expect(mockCredentialStore.saveCredential).to.not.have.been.called;
+        expect(mockCredentialStore.deleteCredential).to.not.have.been.called;
+    });
+
+    test("updateProfile cleans up the original profile after a successful update", async () => {
+        mockConnectionConfig.updateConnection.resolves(true);
+        connectionStore = new ConnectionStore(
+            mockContextService,
+            mockCredentialStore,
+            mockConnectionConfig,
+            mockLogger,
+        );
+        await connectionStore.initialized;
+        const originalProfile = {
+            ...sqlAuthConn,
+            id: "profile-id",
+            server: "old-server",
+            password: "old-secret",
+            savePassword: true,
+        } as IConnectionProfile;
+        const updatedProfile = {
+            ...originalProfile,
+            server: "new-server",
+            password: "new-secret",
+        };
+
+        const updated = await connectionStore.updateProfile(updatedProfile, originalProfile);
+
+        expect(updated).to.be.true;
+        expect(mockCredentialStore.deleteCredential).to.have.been.calledWith(
+            ConnectionStore.formatCredentialIdForCred(originalProfile),
+        );
+        expect(mockCredentialStore.saveCredential).to.have.been.calledOnce;
+    });
+
     test("formatCredentialId", () => {
         const testServer = "localhost";
         const testDatabase = "TestDb";

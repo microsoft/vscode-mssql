@@ -1855,6 +1855,29 @@
         "message": "Edit Connection Group - {0}",
         "comment": ["{0} is the connection group name"]
     },
+    "'{0}' is saved to {1}, but '{2}' is saved to {3}. Would you like to update the save location for {0}?/{0} is the connection profile or group name{1} is the item's current configuration location{2} is the new parent group name{3} is the new parent group's configuration location": {
+        "message": "'{0}' is saved to {1}, but '{2}' is saved to {3}. Would you like to update the save location for {0}?",
+        "comment": [
+            "{0} is the connection profile or group name",
+            "{1} is the item's current configuration location",
+            "{2} is the new parent group name",
+            "{3} is the new parent group's configuration location"
+        ]
+    },
+    "Update to {0}/{0} is a configuration location": {
+        "message": "Update to {0}",
+        "comment": ["{0} is a configuration location"]
+    },
+    "Leave in {0}/{0} is a configuration location": {
+        "message": "Leave in {0}",
+        "comment": ["{0} is a configuration location"]
+    },
+    "global config": "global config",
+    "workspace config": "workspace config",
+    "workspace folder config ({0})/{0} is the workspace folder name": {
+        "message": "workspace folder config ({0})",
+        "comment": ["{0} is the workspace folder name"]
+    },
     "Data-tier Application": "Data-tier Application",
     "File path is required": "File path is required",
     "File not found": "File not found",

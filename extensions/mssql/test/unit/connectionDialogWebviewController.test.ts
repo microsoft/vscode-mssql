@@ -1197,6 +1197,55 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(controller.state.editingConnectionDisplayName).to.not.be.undefined;
         });
 
+        test("saveWithoutConnecting updates an edited connection", async () => {
+            connectionStore.updateProfile.resolves(true);
+            const testConnection = {
+                id: "saved-profile-id",
+                profileName: "Test Server to Edit",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.Integrated,
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionDialogProfile;
+            await controller["_reducerHandlers"].get("loadConnectionForEdit")(controller.state, {
+                connection: testConnection,
+            });
+
+            await controller["_reducerHandlers"].get("saveWithoutConnecting")(controller.state, {});
+
+            expect(connectionStore.updateProfile).to.have.been.calledOnce;
+            expect(connectionStore.updateProfile.firstCall.args[1]).to.deep.include(testConnection);
+            expect(connectionStore.saveProfile).to.not.have.been.called;
+            expect(connectionStore.removeProfile).to.not.have.been.called;
+            expect(mockObjectExplorerProvider.removeConnectionNodes).to.have.been.calledOnce;
+            expect(controller["_connectionBeingEdited"]).to.be.undefined;
+            expect(controller.state.connectionStatus).to.equal(ApiStatus.Loaded);
+        });
+
+        test("saveWithoutConnecting keeps an edited connection open when updating is cancelled", async () => {
+            connectionStore.updateProfile.resolves(false);
+            const testConnection = {
+                id: "saved-profile-id",
+                profileName: "Test Server to Edit",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.Integrated,
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
+            } as IConnectionDialogProfile;
+            await controller["_reducerHandlers"].get("loadConnectionForEdit")(controller.state, {
+                connection: testConnection,
+            });
+
+            await controller["_reducerHandlers"].get("saveWithoutConnecting")(controller.state, {});
+
+            expect(connectionStore.updateProfile).to.have.been.calledOnce;
+            expect(connectionStore.saveProfile).to.not.have.been.called;
+            expect(connectionStore.removeProfile).to.not.have.been.called;
+            expect(mockObjectExplorerProvider.removeConnectionNodes).to.not.have.been.called;
+            expect(controller["_connectionBeingEdited"]).to.deep.include(testConnection);
+            expect(controller.state.connectionStatus).to.equal(ApiStatus.NotStarted);
+        });
+
         test("loadConnectionAsNewDraft", async () => {
             controller.state.formMessage = { message: "Sample error" };
             connectionManager.connect.resolves(true);

@@ -49,7 +49,7 @@ export interface IConnectionConfig {
     getConnectionById(id: string): Promise<IConnectionProfile | undefined>;
     addConnection(profile: IConnectionProfile): Promise<void>;
     removeConnection(profile: IConnectionProfile): Promise<boolean>;
-    updateConnection(updatedProfile: IConnectionProfile): Promise<void>;
+    updateConnection(updatedProfile: IConnectionProfile): Promise<boolean>;
 
     /**
      * Populates any missing metadata (group, ID, config source) on the given profile.
@@ -62,7 +62,7 @@ export interface IConnectionConfig {
     getGroupById(id: string): IConnectionGroup | undefined;
     addGroup(group: IConnectionGroup): Promise<void>;
     removeGroup(id: string, contentAction?: "delete" | "move"): Promise<boolean>;
-    updateGroup(updatedGroup: IConnectionGroup): Promise<void>;
+    updateGroup(updatedGroup: IConnectionGroup): Promise<boolean>;
 }
 
 /**
@@ -302,17 +302,28 @@ export class ConnectionConfig implements IConnectionConfig {
         return found;
     }
 
-    public async updateConnection(updatedProfile: IConnectionProfile): Promise<void> {
+    public async updateConnection(updatedProfile: IConnectionProfile): Promise<boolean> {
         const allProfiles = this.getRawConnectionsFromSettings();
-        const location = this.resolveConnectionConfigLocation(updatedProfile, allProfiles);
-        const profiles = allProfiles.filter((conn) => this.isSameConfigLocation(conn, location));
-        const index = profiles.findIndex((p) => p.id === updatedProfile.id);
+        const index = allProfiles.findIndex((profile) => profile.id === updatedProfile.id);
         if (index === -1) {
             throw new Error(`Connection with ID ${updatedProfile.id} not found`);
         }
+
+        const existingProfile = allProfiles[index];
+        const location = await this.resolveLocationAfterParentChange(
+            getConnectionDisplayName(updatedProfile),
+            this.resolveConnectionConfigLocation(existingProfile, allProfiles),
+            existingProfile.groupId,
+            updatedProfile.groupId,
+        );
+        if (!location) {
+            return false;
+        }
+
         this.applyConfigLocation(updatedProfile, location);
-        profiles[index] = updatedProfile;
-        await this.writeConnectionsToSettings(profiles, location);
+        allProfiles[index] = updatedProfile;
+        await this.writeConnectionsToSettings(allProfiles);
+        return true;
     }
 
     //#endregion
@@ -483,20 +494,28 @@ export class ConnectionConfig implements IConnectionConfig {
         return true;
     }
 
-    public async updateGroup(updatedGroup: IConnectionGroup): Promise<void> {
+    public async updateGroup(updatedGroup: IConnectionGroup): Promise<boolean> {
         const groups = this.getRawGroupsFromSettings();
         const index = groups.findIndex((g) => g.id === updatedGroup.id);
         if (index === -1) {
             throw Error(`Connection group with ID ${updatedGroup.id} not found when updating`);
-        } else {
-            this.applyConfigLocation(
-                updatedGroup,
-                this.resolveGroupConfigLocation(updatedGroup, groups),
-            );
-            groups[index] = updatedGroup;
         }
 
-        return await this.writeConnectionGroupsToSettings(groups);
+        const existingGroup = groups[index];
+        const location = await this.resolveLocationAfterParentChange(
+            updatedGroup.name,
+            this.resolveGroupConfigLocation(existingGroup, groups),
+            existingGroup.parentId,
+            updatedGroup.parentId,
+        );
+        if (!location) {
+            return false;
+        }
+
+        this.applyConfigLocation(updatedGroup, location);
+        groups[index] = updatedGroup;
+        await this.writeConnectionGroupsToSettings(groups);
+        return true;
     }
 
     //#endregion
@@ -1050,6 +1069,82 @@ export class ConnectionConfig implements IConnectionConfig {
         }
 
         return { configSource };
+    }
+
+    private async resolveLocationAfterParentChange(
+        itemName: string,
+        currentLocation: ConfigLocation,
+        currentParentId: string | undefined,
+        updatedParentId: string | undefined,
+    ): Promise<ConfigLocation | undefined> {
+        if (
+            !updatedParentId ||
+            updatedParentId === ConnectionConfig.ROOT_GROUP_ID ||
+            updatedParentId === currentParentId
+        ) {
+            return currentLocation;
+        }
+
+        const parentGroup = this.getRawGroupsFromSettings().find(
+            (group) => group.id === updatedParentId,
+        );
+        if (!parentGroup) {
+            throw new Error(`Parent connection group with ID ${updatedParentId} not found`);
+        }
+
+        const parentLocation = this.resolveGroupConfigLocation(parentGroup);
+        if (
+            this.getConfigLocationKey(parentLocation) === this.getConfigLocationKey(currentLocation)
+        ) {
+            return currentLocation;
+        }
+
+        const currentLocationName = this.getConfigLocationDisplayName(currentLocation);
+        const parentLocationName = this.getConfigLocationDisplayName(parentLocation);
+        const updateSaveLocation =
+            LocalizedConstants.ConnectionConfig.updateSaveLocation(parentLocationName);
+        const leaveSaveLocation =
+            LocalizedConstants.ConnectionConfig.leaveSaveLocation(currentLocationName);
+        const choice = await vscode.window.showInformationMessage(
+            LocalizedConstants.ConnectionConfig.moveToDifferentSaveLocation(
+                itemName,
+                currentLocationName,
+                parentGroup.name,
+                parentLocationName,
+            ),
+            { modal: true },
+            updateSaveLocation,
+            leaveSaveLocation,
+        );
+
+        switch (choice) {
+            case updateSaveLocation:
+                return parentLocation;
+            case leaveSaveLocation:
+                return currentLocation;
+            default:
+                return undefined;
+        }
+    }
+
+    private getConfigLocationDisplayName(location: ConfigLocation): string {
+        switch (location.configSource) {
+            case ConfigurationTarget.Global:
+                return LocalizedConstants.ConnectionConfig.globalConfig;
+            case ConfigurationTarget.Workspace:
+                return LocalizedConstants.ConnectionConfig.workspaceConfig;
+            case ConfigurationTarget.WorkspaceFolder: {
+                const folderName = vscode.workspace.workspaceFolders?.find(
+                    (folder) => folder.uri.toString() === location.workspaceFolderUri,
+                )?.name;
+                if (!folderName) {
+                    throw new Error(
+                        `Workspace folder for configuration location '${location.workspaceFolderUri}' not found`,
+                    );
+                }
+                return LocalizedConstants.ConnectionConfig.workspaceFolderConfig(folderName);
+            }
+        }
     }
 
     private applyConfigLocation(

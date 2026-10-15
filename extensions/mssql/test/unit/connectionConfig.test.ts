@@ -415,8 +415,8 @@ suite("ConnectionConfig Tests", () => {
                     id: "profile-id",
                     groupId: ConnectionConfig.ROOT_GROUP_ID,
                     server: "TestServer",
-                    authenticationType: "Integrated",
                     profileName: "Test Profile",
+                    authenticationType: "Integrated",
                 } as IConnectionProfile;
 
                 mockGlobalConfigData.set(Constants.connectionsArrayName, [testConnProfile]);
@@ -559,6 +559,176 @@ suite("ConnectionConfig Tests", () => {
                 expect(
                     mockGlobalConfigData.get(Constants.connectionsArrayName)[0].profileName,
                 ).to.deep.equal("Updated Profile");
+            });
+
+            test("updateConnection can move a connection to its parent's configuration location", async () => {
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "profile-id",
+                        groupId: ConnectionConfig.ROOT_GROUP_ID,
+                        server: "TestServer",
+                        profileName: "Test Profile",
+                    } as IConnectionProfile,
+                ]);
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                    {
+                        id: "workspace-group",
+                        name: "Workspace Group",
+                        parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    },
+                ]);
+                messageBoxes.showInformationMessage.resolves(
+                    LocalizedConstants.ConnectionConfig.updateSaveLocation(
+                        LocalizedConstants.ConnectionConfig.workspaceConfig,
+                    ),
+                );
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                const connection = (await connConfig.getConnections())[0];
+                const updated = await connConfig.updateConnection({
+                    ...connection,
+                    groupId: "workspace-group",
+                });
+
+                expect(updated).to.be.true;
+                expect(
+                    messageBoxes.showInformationMessage.calledOnceWith(
+                        LocalizedConstants.ConnectionConfig.moveToDifferentSaveLocation(
+                            "Test Profile",
+                            LocalizedConstants.ConnectionConfig.globalConfig,
+                            "Workspace Group",
+                            LocalizedConstants.ConnectionConfig.workspaceConfig,
+                        ),
+                        { modal: true },
+                        LocalizedConstants.ConnectionConfig.updateSaveLocation(
+                            LocalizedConstants.ConnectionConfig.workspaceConfig,
+                        ),
+                        LocalizedConstants.ConnectionConfig.leaveSaveLocation(
+                            LocalizedConstants.ConnectionConfig.globalConfig,
+                        ),
+                    ),
+                ).to.be.true;
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)).to.deep.equal([]);
+                expect(
+                    mockWorkspaceConfigData.get(Constants.connectionsArrayName),
+                ).to.have.lengthOf(1);
+                expect(mockWorkspaceConfigData.get(Constants.connectionsArrayName)[0]).to.include({
+                    id: "profile-id",
+                    groupId: "workspace-group",
+                });
+            });
+
+            test("updateConnection can keep the current configuration location", async () => {
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "profile-id",
+                        groupId: ConnectionConfig.ROOT_GROUP_ID,
+                        server: "TestServer",
+                    } as IConnectionProfile,
+                ]);
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                    {
+                        id: "workspace-group",
+                        name: "Workspace Group",
+                        parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    },
+                ]);
+                messageBoxes.showInformationMessage.resolves(
+                    LocalizedConstants.ConnectionConfig.leaveSaveLocation(
+                        LocalizedConstants.ConnectionConfig.globalConfig,
+                    ),
+                );
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                const connection = (await connConfig.getConnections())[0];
+                const updated = await connConfig.updateConnection({
+                    ...connection,
+                    groupId: "workspace-group",
+                });
+
+                expect(updated).to.be.true;
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)).to.have.lengthOf(
+                    1,
+                );
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)[0]).to.include({
+                    id: "profile-id",
+                    groupId: "workspace-group",
+                });
+                expect(mockWorkspaceConfigData.get(Constants.connectionsArrayName)).to.be.undefined;
+            });
+
+            test("updateConnection does not persist a cancelled move", async () => {
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "profile-id",
+                        groupId: ConnectionConfig.ROOT_GROUP_ID,
+                        server: "TestServer",
+                    } as IConnectionProfile,
+                ]);
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                    {
+                        id: "workspace-group",
+                        name: "Workspace Group",
+                        parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    },
+                ]);
+                messageBoxes.showInformationMessage.resolves(undefined);
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                const connection = (await connConfig.getConnections())[0];
+                const updated = await connConfig.updateConnection({
+                    ...connection,
+                    groupId: "workspace-group",
+                });
+
+                expect(updated).to.be.false;
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)).to.have.lengthOf(
+                    1,
+                );
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)[0]).to.include({
+                    id: "profile-id",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                });
+                expect(mockWorkspaceConfigData.get(Constants.connectionsArrayName)).to.be.undefined;
+            });
+
+            test("updateConnection moves to root without changing configuration location", async () => {
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "profile-id",
+                        groupId: "global-group",
+                        server: "TestServer",
+                    } as IConnectionProfile,
+                ]);
+                mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                    {
+                        id: "global-group",
+                        name: "Global Group",
+                        parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    },
+                ]);
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+
+                const connection = (await connConfig.getConnections())[0];
+                const updated = await connConfig.updateConnection({
+                    ...connection,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                });
+
+                expect(updated).to.be.true;
+                expect(messageBoxes.showInformationMessage).to.not.have.been.called;
+                expect(
+                    mockWorkspaceConfigData.get(Constants.connectionsArrayName),
+                ).to.have.lengthOf(1);
+                expect(mockWorkspaceConfigData.get(Constants.connectionsArrayName)[0]).to.include({
+                    id: "profile-id",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                });
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)).to.be.undefined;
             });
         });
 
@@ -1154,6 +1324,127 @@ suite("ConnectionConfig Tests", () => {
                 ).to.equal("Folder Two Group");
                 expect(mockWorkspaceConfigData.get(Constants.connectionGroupsArrayName)).to.be
                     .undefined;
+            });
+
+            test("updateGroup can move a group to its parent's configuration location", async () => {
+                mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                    createStoredGroup("global-group", "Global Group"),
+                ]);
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                    createStoredGroup("workspace-parent", "Workspace Parent"),
+                ]);
+                messageBoxes.showInformationMessage.resolves(
+                    LocalizedConstants.ConnectionConfig.updateSaveLocation(
+                        LocalizedConstants.ConnectionConfig.workspaceConfig,
+                    ),
+                );
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                const group = connConfig.getGroupById("global-group");
+                if (!group) {
+                    throw new Error("Expected global group");
+                }
+
+                const updated = await connConfig.updateGroup({
+                    ...group,
+                    parentId: "workspace-parent",
+                });
+
+                expect(updated).to.be.true;
+                expect(messageBoxes.showInformationMessage).to.have.been.calledOnce;
+                expect(
+                    mockGlobalConfigData
+                        .get(Constants.connectionGroupsArrayName)
+                        .some((savedGroup: IConnectionGroup) => savedGroup.id === "global-group"),
+                ).to.be.false;
+                expect(
+                    mockWorkspaceConfigData
+                        .get(Constants.connectionGroupsArrayName)
+                        .find((savedGroup: IConnectionGroup) => savedGroup.id === "global-group"),
+                ).to.include({
+                    parentId: "workspace-parent",
+                });
+            });
+
+            test("updateGroup does not persist a cancelled move", async () => {
+                mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                    createStoredGroup("global-group", "Global Group"),
+                ]);
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                    createStoredGroup("workspace-parent", "Workspace Parent"),
+                ]);
+                messageBoxes.showInformationMessage.resolves(undefined);
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                const group = connConfig.getGroupById("global-group");
+                if (!group) {
+                    throw new Error("Expected global group");
+                }
+
+                const updated = await connConfig.updateGroup({
+                    ...group,
+                    parentId: "workspace-parent",
+                });
+
+                expect(updated).to.be.false;
+                expect(
+                    mockGlobalConfigData
+                        .get(Constants.connectionGroupsArrayName)
+                        .find((savedGroup: IConnectionGroup) => savedGroup.id === "global-group"),
+                ).to.include({
+                    parentId: ConnectionConfig.ROOT_GROUP_ID,
+                });
+                expect(
+                    mockWorkspaceConfigData
+                        .get(Constants.connectionGroupsArrayName)
+                        .some((savedGroup: IConnectionGroup) => savedGroup.id === "global-group"),
+                ).to.be.false;
+            });
+
+            test("cross-folder move choices include the workspace folder names", async () => {
+                const folderOne = addMockWorkspaceFolder("folder-one", 0);
+                const folderTwo = addMockWorkspaceFolder("folder-two", 1);
+                setWorkspaceFolderData(folderOne.uri, Constants.connectionsArrayName, [
+                    createStoredProfile("folder-one-connection", ConnectionConfig.ROOT_GROUP_ID),
+                ]);
+                setWorkspaceFolderData(folderTwo.uri, Constants.connectionGroupsArrayName, [
+                    createStoredGroup("folder-two-parent", "Folder Two Parent"),
+                ]);
+                const folderOneLocation =
+                    LocalizedConstants.ConnectionConfig.workspaceFolderConfig("folder-one");
+                const folderTwoLocation =
+                    LocalizedConstants.ConnectionConfig.workspaceFolderConfig("folder-two");
+                messageBoxes.showInformationMessage.resolves(
+                    LocalizedConstants.ConnectionConfig.leaveSaveLocation(folderOneLocation),
+                );
+                const connConfig = new ConnectionConfig();
+                await connConfig.initialized;
+                const connection = connConfig
+                    .getConnectionsFromSettings()
+                    .find((candidate) => candidate.id === "folder-one-connection");
+                if (!connection) {
+                    throw new Error("Expected folder-one connection");
+                }
+
+                const updated = await connConfig.updateConnection({
+                    ...connection,
+                    groupId: "folder-two-parent",
+                });
+
+                expect(updated).to.be.true;
+                expect(
+                    messageBoxes.showInformationMessage.calledOnceWith(
+                        LocalizedConstants.ConnectionConfig.moveToDifferentSaveLocation(
+                            "folder-one-connection",
+                            folderOneLocation,
+                            "Folder Two Parent",
+                            folderTwoLocation,
+                        ),
+                        { modal: true },
+                        LocalizedConstants.ConnectionConfig.updateSaveLocation(folderTwoLocation),
+                        LocalizedConstants.ConnectionConfig.leaveSaveLocation(folderOneLocation),
+                    ),
+                ).to.be.true;
             });
 
             test("getConnectionsFromSettings filters orphaned connections once", async () => {

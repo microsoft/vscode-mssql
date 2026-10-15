@@ -3422,6 +3422,46 @@ export class ConnectionGroup {
     };
 }
 
+export class ConnectionConfig {
+    public static moveToDifferentSaveLocation = (
+        itemName: string,
+        currentLocation: string,
+        parentGroupName: string,
+        parentLocation: string,
+    ) =>
+        l10n.t({
+            message:
+                "'{0}' is saved to {1}, but '{2}' is saved to {3}. Would you like to update the save location for {0}?",
+            args: [itemName, currentLocation, parentGroupName, parentLocation],
+            comment: [
+                "{0} is the connection profile or group name",
+                "{1} is the item's current configuration location",
+                "{2} is the new parent group name",
+                "{3} is the new parent group's configuration location",
+            ],
+        });
+    public static updateSaveLocation = (location: string) =>
+        l10n.t({
+            message: "Update to {0}",
+            args: [location],
+            comment: ["{0} is a configuration location"],
+        });
+    public static leaveSaveLocation = (location: string) =>
+        l10n.t({
+            message: "Leave in {0}",
+            args: [location],
+            comment: ["{0} is a configuration location"],
+        });
+    public static globalConfig = l10n.t("global config");
+    public static workspaceConfig = l10n.t("workspace config");
+    public static workspaceFolderConfig = (folderName: string) =>
+        l10n.t({
+            message: "workspace folder config ({0})",
+            args: [folderName],
+            comment: ["{0} is the workspace folder name"],
+        });
+}
+
 export class DacpacDialog {
     public static Title = l10n.t("Data-tier Application");
     public static FilePathRequired = l10n.t("File path is required");

@@ -53,6 +53,11 @@ export interface IConnectionStore {
         profile: IConnectionProfile,
         forceWritePlaintextPassword?: boolean,
     ): Promise<IConnectionProfile>;
+    updateProfile(
+        profile: IConnectionProfile,
+        originalProfile?: IConnectionProfile,
+        forceWritePlaintextPassword?: boolean,
+    ): Promise<boolean>;
     getRecentlyUsedConnections(limit?: number): IConnectionInfo[];
     addRecentlyUsed(conn: IConnectionInfo): Promise<void>;
     clearRecentlyUsed(): Promise<boolean>;
@@ -393,19 +398,7 @@ export class ConnectionStore implements IConnectionStore {
     ): Promise<IConnectionProfile> {
         this._connectionConfig.populateMissingConnectionMetadata(profile);
 
-        // Add the profile to the saved list, taking care to clear out the password field if necessary
-        let savedProfile: IConnectionProfile;
-        if (profile.authenticationType === Utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
-            savedProfile = Object.assign({}, profile, {
-                azureAccountToken: "",
-            });
-        } else {
-            if (forceWritePlaintextPassword) {
-                savedProfile = Object.assign({}, profile);
-            } else {
-                savedProfile = Object.assign({}, profile, { password: "" });
-            }
-        }
+        const savedProfile = this.prepareProfileForStorage(profile, forceWritePlaintextPassword);
 
         await this._connectionConfig.addConnection(savedProfile);
 
@@ -413,6 +406,46 @@ export class ConnectionStore implements IConnectionStore {
             ConnInfo.fixupConnectionCredentials(profile);
         }
         return profile;
+    }
+
+    /**
+     * Updates an existing connection profile and its saved password.
+     * @returns false when the user cancels a configuration-location change.
+     */
+    public async updateProfile(
+        profile: IConnectionProfile,
+        originalProfile?: IConnectionProfile,
+        forceWritePlaintextPassword?: boolean,
+    ): Promise<boolean> {
+        this._connectionConfig.populateMissingConnectionMetadata(profile);
+        const savedProfile = this.prepareProfileForStorage(profile, forceWritePlaintextPassword);
+
+        if (!(await this._connectionConfig.updateConnection(savedProfile))) {
+            return false;
+        }
+
+        if (originalProfile) {
+            await this.removeProfileArtifacts(originalProfile);
+        }
+        if (await this.saveProfilePasswordIfNeeded(profile)) {
+            ConnInfo.fixupConnectionCredentials(profile);
+        }
+        return true;
+    }
+
+    private prepareProfileForStorage(
+        profile: IConnectionProfile,
+        forceWritePlaintextPassword?: boolean,
+    ): IConnectionProfile {
+        if (profile.authenticationType === Utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
+            return Object.assign({}, profile, {
+                azureAccountToken: "",
+            });
+        }
+
+        return forceWritePlaintextPassword
+            ? Object.assign({}, profile)
+            : Object.assign({}, profile, { password: "" });
     }
 
     /**
@@ -615,15 +648,19 @@ export class ConnectionStore implements IConnectionStore {
     ): Promise<boolean> {
         let profileFound = await this._connectionConfig.removeConnection(profile);
         if (profileFound) {
-            // Remove the profile from the recently used list if necessary
-            await this.removeRecentlyUsed(profile, keepCredentialStore);
-
-            // Now remove password from credential store. Currently do not care about status unless an error occurred
-            if (profile.savePassword === true && !keepCredentialStore) {
-                await this.deleteCredential(profile);
-            }
-
+            await this.removeProfileArtifacts(profile, keepCredentialStore);
             return profileFound;
+        }
+    }
+
+    private async removeProfileArtifacts(
+        profile: IConnectionProfile,
+        keepCredentialStore: boolean = false,
+    ): Promise<void> {
+        await this.removeRecentlyUsed(profile, keepCredentialStore);
+
+        if (profile.savePassword === true && !keepCredentialStore) {
+            await this.deleteCredential(profile);
         }
     }
 

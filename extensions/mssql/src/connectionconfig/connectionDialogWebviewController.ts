@@ -1366,6 +1366,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (!cleanedConnection) {
             return state;
         }
+        const wasEditingConnection = this._connectionBeingEdited !== undefined;
 
         try {
             if (action === ConnectionSubmitAction.TestConnection) {
@@ -1382,8 +1383,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             if (action === ConnectionSubmitAction.SaveWithoutConnecting) {
                 const preparedConnection = await this.prepareConnectionForSave(cleanedConnection);
-                await this.removeEditedConnectionIfNeeded();
-                await this.saveProfileStep(preparedConnection, state);
+                if (!(await this.saveProfileStep(preparedConnection, state))) {
+                    this.state.connectionStatus = ApiStatus.NotStarted;
+                    this.updateState();
+                    return state;
+                }
                 this.state.connectionStatus = ApiStatus.Loaded;
                 this.updateState();
                 await this.panel.dispose();
@@ -1397,8 +1401,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             const preparedConnection = await this.prepareConnectionForSave(cleanedConnection);
-            await this.removeEditedConnectionIfNeeded();
-            await this.saveProfileStep(preparedConnection, state);
+            if (!(await this.saveProfileStep(preparedConnection, state))) {
+                this.state.connectionStatus = ApiStatus.NotStarted;
+                this.updateState();
+                return state;
+            }
             await this.connectAndRevealStep(preparedConnection, state);
 
             this.state.connectionStatus = ApiStatus.Loaded;
@@ -1408,7 +1415,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 additionalProps: {
                     result: "success",
                     submitAction: action,
-                    newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
+                    newOrEditedConnection: wasEditingConnection ? "edited" : "new",
                     connectionInputType: this.state.selectedInputMode,
                     authMode: this.state.connectionProfile.authenticationType,
                     serverTypes: getServerTypes(this.state.connectionProfile).join(","),
@@ -1693,7 +1700,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         return preparedConnection;
     }
 
-    private async removeEditedConnectionIfNeeded(): Promise<void> {
+    private async removeEditedConnectionNodeIfNeeded(): Promise<void> {
         if (!this._connectionBeingEdited) {
             return;
         }
@@ -1701,23 +1708,31 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this._mainController.connectionManager.getUriForConnection(this._connectionBeingEdited);
         await this._objectExplorerProvider.removeConnectionNodes([this._connectionBeingEdited]);
 
-        await this._mainController.connectionManager.connectionStore.removeProfile(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            this._connectionBeingEdited as any,
-        );
-
         this._connectionBeingEdited = undefined;
     }
 
     private async saveProfileStep(
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
-    ): Promise<void> {
-        await this._mainController.connectionManager.connectionStore.saveProfile(
-            connection as IConnectionProfile,
-        );
+    ): Promise<boolean> {
+        if (this._connectionBeingEdited) {
+            const updated =
+                await this._mainController.connectionManager.connectionStore.updateProfile(
+                    connection as IConnectionProfile,
+                    this._connectionBeingEdited as IConnectionProfile,
+                );
+            if (!updated) {
+                return false;
+            }
+            await this.removeEditedConnectionNodeIfNeeded();
+        } else {
+            await this._mainController.connectionManager.connectionStore.saveProfile(
+                connection as IConnectionProfile,
+            );
+        }
         await this.updateLoadedConnections(state);
         this.updateState(state);
+        return true;
     }
 
     private async connectAndRevealStep(

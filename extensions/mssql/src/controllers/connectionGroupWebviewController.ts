@@ -85,13 +85,16 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
             try {
                 if (this.connectionGroupToEdit) {
                     this.logger.debug("Updating existing connection group", payload);
-                    await this.connectionConfig.updateGroup({
+                    const updated = await this.connectionConfig.updateGroup({
                         ...this.connectionGroupToEdit,
                         name: payload.name,
                         description: payload.description,
                         color: payload.color,
                         parentId: payload.parentId,
                     });
+                    if (!updated) {
+                        return state;
+                    }
                 } else {
                     this.logger.debug("Creating new connection group", payload);
                     await this.connectionConfig.addGroup(createConnectionGroupFromSpec(payload));
