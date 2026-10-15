@@ -32,6 +32,13 @@
       <source xml:lang="en">&apos;{0}&apos; is a system database, so it isn&apos;t tracked in the Fabric Database Hub.</source>
       <note>{0} is the name of the system database, such as &apos;master&apos;</note>
     </trans-unit>
+    <trans-unit id="++CODE++bdfd593f36a0f18f0ae7950325e319779792268c31a50bbcf3d2483d2b6ace96">
+      <source xml:lang="en">&apos;{0}&apos; is saved to {1}, but &apos;{2}&apos; is saved to {3}. Would you like to update the save location for {0}?</source>
+      <note>{0} is the connection profile or group name
+{1} is the item&apos;s current configuration location
+{2} is the new parent group name
+{3} is the new parent group&apos;s configuration location</note>
+    </trans-unit>
     <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
       <source xml:lang="en">&apos;{0}&apos; started.</source>
       <note>{0} is the service name</note>
@@ -2112,10 +2119,18 @@
       <source xml:lang="en">Connection failed: {0}</source>
       <note>{0} is the error message from the connection attempt</note>
     </trans-unit>
+    <trans-unit id="++CODE++08b87ee477e78326a6a12a27995b088e58cdb713ae40c381bde7b9a9a1864e8e">
+      <source xml:lang="en">Connection group &apos;{0}&apos; cannot be moved under &apos;{1}&apos; because that would create a cycle.</source>
+      <note>{0} is the connection group being moved
+{1} is the selected parent connection group</note>
+    </trans-unit>
     <trans-unit id="++CODE++4af9562e151d82d6647b49a0ebb192051f470999bc80f52dfe8fa8d23aa3ff95">
       <source xml:lang="en">Connection group with the same ID is already imported: {0} (ID: {1})</source>
       <note>{0} is the group name
 {1} is the group ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++343353e44c00ea7849d081f1c30bfbc2522c2acd6a4de7d93c31f878a720ccf0">
+      <source xml:lang="en">Connection groups cannot be added because their parent hierarchy contains a cycle.</source>
     </trans-unit>
     <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
       <source xml:lang="en">Connection groups to import</source>
@@ -2133,6 +2148,9 @@
     </trans-unit>
     <trans-unit id="++CODE++56417c812e9849fa389e329e3239fd0a5abc5778b3ff738ce7c6d3c49f8739df">
       <source xml:lang="en">Connection profile not found. Please create a new connection using the Connection Dialog.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dcd8669f447f6b2c4ecdfcb6281599e7c32e1f08a0491aa0a03d3a9b7cd7de78">
+      <source xml:lang="en">Connection profiles and groups can be also be reorganized into different connection groups by dragging and dropping them in the Connections view.</source>
     </trans-unit>
     <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
       <source xml:lang="en">Connection sharing permission denied for extension: &apos;{0}&apos;. Use the permission management commands to change this.</source>
@@ -5578,6 +5596,10 @@
     <trans-unit id="++CODE++30fce9502ece39e0039f09e8ada05d1e1aba9016c153517af2d595e846c0f05d">
       <source xml:lang="en">Learning paths, tutorials, samples, and community.</source>
     </trans-unit>
+    <trans-unit id="++CODE++21e68c50434460787cb91ec1352da87bf2dfa44c2b2352f5ac154a55a71f27d0">
+      <source xml:lang="en">Leave in {0}</source>
+      <note>{0} is a configuration location</note>
+    </trans-unit>
     <trans-unit id="++CODE++998276d04826bfa9ef42b723a5004ca0d28262fbf2b15899520378a43d93ecc9">
       <source xml:lang="en">Leave the source database in the restoring state</source>
     </trans-unit>
@@ -7186,6 +7208,13 @@
     <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
       <source xml:lang="en">Parameters</source>
     </trans-unit>
+    <trans-unit id="++CODE++e262868168cfbc61b5c71e9d73571ca772307af3ad606198029c7ad2a0dc5373">
+      <source xml:lang="en">Parent connection group with ID &apos;{0}&apos; was not found.</source>
+      <note>{0} is the missing parent connection group ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ffd307ce81d2fc14aa150a7cc680a982a48c9859b0e2aaa31c3d6f740bb868e5">
+      <source xml:lang="en">Parent group</source>
+    </trans-unit>
     <trans-unit id="++CODE++5cafcd08f15a2a6ce49d703f1da5861c94ec134cc92984cc6b2f67965c31b5ee">
       <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
     </trans-unit>
@@ -8162,6 +8191,9 @@
     <trans-unit id="++CODE++a6c1bdc89b00a0cb7647e7a9bec75ef2d64ff6c15590b5de937d2f4ecf1091d9">
       <source xml:lang="en">Right operation: {0}</source>
       <note>{0} is an execution plan operation name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++44cb005ee2e65d9cc817b0a083579369fb6c24a4be728cb43fd9d4c3ca7f4c2e">
+      <source xml:lang="en">Root</source>
     </trans-unit>
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
@@ -10549,6 +10581,10 @@
     <trans-unit id="++CODE++81b0538c480bf2f63a2346db5fa0618f5aa96be47c6039c1fc7d877c1c2dd120">
       <source xml:lang="en">Update project from database</source>
     </trans-unit>
+    <trans-unit id="++CODE++5204a488029325932cd5843fe8a63aef8a9e113852ad77be943c76a4c1b86923">
+      <source xml:lang="en">Update to {0}</source>
+      <note>{0} is a configuration location</note>
+    </trans-unit>
     <trans-unit id="++CODE++8671756ce1f486e98ffd9b8be6825b3f751e4bd700c84b0585a449f494aff99f">
       <source xml:lang="en">Update {0} for cross-platform support?</source>
     </trans-unit>
@@ -11087,6 +11123,9 @@
     <trans-unit id="++CODE++034a0062488256f14c8b14d025ec3988b148938f7f9db94ca0ac73f4b3614d8a">
       <source xml:lang="en">folder</source>
     </trans-unit>
+    <trans-unit id="++CODE++905954d25726f93ea0b44d700e2f03126cc767130c48ee8d4fdba94b76357ffe">
+      <source xml:lang="en">global config</source>
+    </trans-unit>
     <trans-unit id="++CODE++f792652c06ffa9d795e75118a7c8329290a516dfd060a9ee0163093db50664f1">
       <source xml:lang="en">greater than</source>
     </trans-unit>
@@ -11192,6 +11231,13 @@
     <trans-unit id="++CODE++5e2c2ec5a3605762cddc1f15b59ca8b6fcb8ffba3a213d0dff806f8ce8ed6ac1">
       <source xml:lang="en">v{0}</source>
       <note>{0} is the extension version, e.g. 1.46.0</note>
+    </trans-unit>
+    <trans-unit id="++CODE++bf86b0ee83e159bc8ea10a71647fda5e6a50968cf37740870a0c144f1fa050df">
+      <source xml:lang="en">workspace config</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f953970c7aa2936f644a4573ff44f6d95d49e6a16825a3a1626c2a9d0551d942">
+      <source xml:lang="en">workspace folder config ({0})</source>
+      <note>{0} is the workspace folder name</note>
     </trans-unit>
     <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
       <source xml:lang="en">x of y selected</source>
@@ -11629,11 +11675,11 @@
     <trans-unit id="mssql.saveAsExcel.boldHeaderRow">
       <source xml:lang="en">**Used when column headers are enabled.** When true, make the header row bold when saving results as an Excel file</source>
     </trans-unit>
-    <trans-unit id="mssql.addObjectExplorer">
-      <source xml:lang="en">Add Connection</source>
-    </trans-unit>
     <trans-unit id="mssql.connectionGroups.create">
-      <source xml:lang="en">Add Connection Group</source>
+      <source xml:lang="en">Add Connection Group...</source>
+    </trans-unit>
+    <trans-unit id="mssql.addObjectExplorer">
+      <source xml:lang="en">Add Connection...</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.addDatabaseReference">
       <source xml:lang="en">Add Database Reference</source>
@@ -11975,7 +12021,7 @@
       <source xml:lang="en">Edit .sqlproj File</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.edit">
-      <source xml:lang="en">Edit Connection Group</source>
+      <source xml:lang="en">Edit Connection Group...</source>
     </trans-unit>
     <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
       <source xml:lang="en">Edit Connection Sharing Permissions</source>

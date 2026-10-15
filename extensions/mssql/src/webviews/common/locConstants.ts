@@ -2925,6 +2925,9 @@ export class LocConstants {
                 }),
             name: l10n.t("Name"),
             enterConnectionGroupName: l10n.t("Enter connection group name"),
+            parentGroup: l10n.t("Parent group"),
+            root: l10n.t("Root"),
+            searchConnectionGroups: l10n.t("Search connection groups"),
             description: l10n.t("Description"),
             enterDescription: l10n.t("Enter description (optional)"),
             color: l10n.t("Color"),
@@ -2933,6 +2936,9 @@ export class LocConstants {
             hue: l10n.t("Hue"),
             saturation: l10n.t("Saturation"),
             brightness: l10n.t("Brightness"),
+            organizationNote: l10n.t(
+                "Connection profiles and groups can be also be reorganized into different connection groups by dragging and dropping them in the Connections view.",
+            ),
         };
     }
 
