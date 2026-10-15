@@ -33,8 +33,9 @@ suite("Azure SQL container availability", () => {
     });
 
     for (const enabled of [false, true]) {
-        test(`exposes experimental feature availability when ${enabled}`, async () => {
-            sandbox.stub(previewService, "experimentalFeaturesEnabled").get(() => enabled);
+        test(`exposes Azure SQL container availability when ${enabled}`, async () => {
+            sandbox.stub(previewService, "azureSqlContainersEnabled").get(() => enabled);
+            sandbox.stub(previewService, "experimentalFeaturesEnabled").get(() => !enabled);
             const controller = sandbox.createStubInstance(DeploymentWebviewController);
             const mainController = sandbox.createStubInstance(MainController);
             const connectionManager = sandbox.createStubInstance(ConnectionManager);

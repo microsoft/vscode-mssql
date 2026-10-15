@@ -85,7 +85,7 @@ export class DeploymentWebviewController extends FormWebviewController<
             this.state.formState.groupId = initialConnectionGroup;
         }
         this.state.initialDeploymentType = initialDeploymentType;
-        this.state.isAzureSqlContainerEnabled = previewService.experimentalFeaturesEnabled;
+        this.state.isAzureSqlContainerEnabled = previewService.azureSqlContainersEnabled;
         this.state.connectionGroupOptions =
             await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
         this.registerRpcHandlers();

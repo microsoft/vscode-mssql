@@ -23,7 +23,6 @@ import {
     AzureSqlContainerProvisioningStep,
     AzureSqlDatabaseRequests,
     ContainerEngine,
-    ContainerEnginePrerequisite,
 } from "../../src/sharedInterfaces/azureSqlDatabase";
 import { AzureSqlContainer } from "../../src/constants/locConstants";
 import * as dockerUtils from "../../src/docker/dockerUtils";
@@ -38,20 +37,15 @@ import {
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import { BackgroundTaskState } from "../../src/backgroundTasks/backgroundTasksService";
 import { CancellationToken } from "vscode-jsonrpc";
-import { previewService } from "../../src/previews/previewService";
 
 chai.use(sinonChai);
 const { expect } = chai;
 
 suite("Azure SQL container configuration", () => {
     let sandbox: sinon.SinonSandbox;
-    let experimentalFeaturesEnabled: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        experimentalFeaturesEnabled = sandbox
-            .stub(previewService, "experimentalFeaturesEnabled")
-            .get(() => true);
     });
 
     teardown(() => {
@@ -75,85 +69,6 @@ suite("Azure SQL container configuration", () => {
         return controller.onRequest.withArgs(AzureSqlDatabaseRequests.ValidateContainerPort)
             .firstCall.args[1];
     };
-
-    test("blocks all new container requests when experimental features are disabled", async () => {
-        experimentalFeaturesEnabled.get(() => false);
-        const controller = sandbox.createStubInstance(DeploymentWebviewController);
-        registerAzureSqlRpcHandlers(controller);
-        const token = CancellationToken.None;
-        const form = validForm();
-        const operations = {
-            validateForm: () =>
-                controller.onRequest
-                    .withArgs(AzureSqlDatabaseRequests.ValidateContainerForm)
-                    .firstCall.args[1](form, token),
-            prepareForm: () =>
-                controller.onRequest
-                    .withArgs(AzureSqlDatabaseRequests.PrepareContainerForm)
-                    .firstCall.args[1](form, token),
-            validatePort: () =>
-                controller.onRequest
-                    .withArgs(AzureSqlDatabaseRequests.ValidateContainerPort)
-                    .firstCall.args[1]({ engine: ContainerEngine.Docker, port: "1433" }, token),
-            generatePort: () =>
-                controller.onRequest
-                    .withArgs(AzureSqlDatabaseRequests.GenerateContainerPort)
-                    .firstCall.args[1]({ engine: ContainerEngine.Docker, startPort: 1433 }, token),
-            generateName: () =>
-                controller.onRequest
-                    .withArgs(AzureSqlDatabaseRequests.GenerateContainerName)
-                    .firstCall.args[1](undefined, token),
-            detectEngines: () =>
-                controller.onRequest
-                    .withArgs(AzureSqlDatabaseRequests.DetectContainerEngines)
-                    .firstCall.args[1](undefined, token),
-            checkPrerequisite: () =>
-                controller.onRequest
-                    .withArgs(AzureSqlDatabaseRequests.CheckContainerEnginePrerequisite)
-                    .firstCall.args[1](
-                        {
-                            engine: ContainerEngine.Docker,
-                            prerequisite: ContainerEnginePrerequisite.Installation,
-                        },
-                        token,
-                    ),
-            provision: () =>
-                controller.onRequest
-                    .withArgs(AzureSqlDatabaseRequests.RunContainerProvisioningStep)
-                    .firstCall.args[1](
-                        {
-                            engine: ContainerEngine.Docker,
-                            step: AzureSqlContainerProvisioningStep.PullImage,
-                            form,
-                        },
-                        token,
-                    ),
-        };
-
-        for (const [operation, invoke] of Object.entries(operations)) {
-            let error: unknown;
-            try {
-                await invoke();
-            } catch (caught) {
-                error = caught;
-            }
-            expect(error, operation).to.be.instanceOf(Error);
-            expect((error as Error).message, operation).to.equal(
-                AzureSqlContainer.experimentalFeaturesRequired,
-            );
-        }
-    });
-
-    test("allows cancellation even when experimental features are disabled", async () => {
-        experimentalFeaturesEnabled.get(() => false);
-        const controller = sandbox.createStubInstance(DeploymentWebviewController);
-        registerAzureSqlRpcHandlers(controller);
-        const cancel = controller.onRequest.withArgs(
-            AzureSqlDatabaseRequests.CancelContainerProvisioning,
-        ).firstCall.args[1];
-
-        await cancel(undefined, CancellationToken.None);
-    });
 
     test("accepts the default configuration with a valid password and accepted terms", () => {
         expect(validateAzureSqlContainerForm(validForm())).to.deep.equal({});

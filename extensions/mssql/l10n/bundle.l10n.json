@@ -1030,7 +1030,6 @@
         "comment": ["{0} is the error message"]
     },
     "The query results panel failed to load. Please try running the query again.": "The query results panel failed to load. Please try running the query again.",
-    "Azure SQL Database local containers require mssql.enableExperimentalFeatures to be enabled.": "Azure SQL Database local containers require mssql.enableExperimentalFeatures to be enabled.",
     "Provisioning Azure SQL Database container": "Provisioning Azure SQL Database container",
     "Enter a port number between 1 and 65535.": "Enter a port number between 1 and 65535.",
     "This port is already in use. Choose a different port.": "This port is already in use. Choose a different port.",

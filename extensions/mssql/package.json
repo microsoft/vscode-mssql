@@ -2762,6 +2762,15 @@
                         "markdownDescription": "%mssql.metadata.pollSeconds.description%",
                         "scope": "application"
                     },
+                    "mssql.preview.azureSqlContainers": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ],
+                        "default": null,
+                        "description": "%mssql.preview.azureSqlContainers.description%",
+                        "scope": "application"
+                    },
                     "mssql.preview.liveQueryStatistics": {
                         "type": [
                             "boolean",

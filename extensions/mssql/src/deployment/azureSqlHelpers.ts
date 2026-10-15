@@ -31,7 +31,6 @@ import {
 } from "./deploymentBackgroundTasks";
 import { DeploymentType } from "../sharedInterfaces/deployment";
 import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
-import { previewService } from "../previews/previewService";
 import {
     isValidPortNumber,
     validatePort,
@@ -138,7 +137,6 @@ export function registerAzureSqlRpcHandlers(
     deploymentController: DeploymentWebviewController,
 ): void {
     const validateForm = (form: AzureSqlContainerForm) => {
-        ensureAzureSqlContainerEnabled();
         const errors = validateAzureSqlContainerForm(form);
         if (
             !deploymentController.state.connectionGroupOptions.some(
@@ -151,7 +149,6 @@ export function registerAzureSqlRpcHandlers(
     };
     deploymentController.onRequest(AzureSqlDatabaseRequests.ValidateContainerForm, validateForm);
     deploymentController.onRequest(AzureSqlDatabaseRequests.PrepareContainerForm, async (form) => {
-        ensureAzureSqlContainerEnabled();
         const result = await prepareAzureSqlContainerForm(form);
         return {
             form: result.form,
@@ -162,7 +159,6 @@ export function registerAzureSqlRpcHandlers(
     deploymentController.onRequest(
         AzureSqlDatabaseRequests.ValidateContainerPort,
         async ({ port }) => {
-            ensureAzureSqlContainerEnabled();
             if (port && !isValidPortNumber(port)) {
                 return AzureSqlContainer.invalidPort;
             }
@@ -173,7 +169,6 @@ export function registerAzureSqlRpcHandlers(
     deploymentController.onRequest(
         AzureSqlDatabaseRequests.GenerateContainerPort,
         async ({ startPort = defaultPortNumber }) => {
-            ensureAzureSqlContainerEnabled();
             const port = await dockerUtils.findAvailablePort(startPort);
             if (port <= 0) {
                 throw new Error(AzureSqlContainer.portDetectionFailed);
@@ -182,22 +177,17 @@ export function registerAzureSqlRpcHandlers(
         },
     );
 
-    deploymentController.onRequest(AzureSqlDatabaseRequests.GenerateContainerName, async () => {
-        ensureAzureSqlContainerEnabled();
-        return generateAzureSqlContainerName();
-    });
+    deploymentController.onRequest(AzureSqlDatabaseRequests.GenerateContainerName, async () =>
+        generateAzureSqlContainerName(),
+    );
 
-    deploymentController.onRequest(AzureSqlDatabaseRequests.DetectContainerEngines, async () => {
-        ensureAzureSqlContainerEnabled();
-        return detectContainerEngines();
-    });
+    deploymentController.onRequest(AzureSqlDatabaseRequests.DetectContainerEngines, async () =>
+        detectContainerEngines(),
+    );
 
     deploymentController.onRequest(
         AzureSqlDatabaseRequests.CheckContainerEnginePrerequisite,
-        async (payload) => {
-            ensureAzureSqlContainerEnabled();
-            return checkContainerEnginePrerequisite(payload.engine, payload.prerequisite);
-        },
+        async (payload) => checkContainerEnginePrerequisite(payload.engine, payload.prerequisite),
     );
 
     deploymentController.onRequest(
@@ -228,12 +218,6 @@ export function registerAzureSqlRpcHandlers(
     deploymentController.onRequest(AzureSqlDatabaseRequests.CancelContainerProvisioning, async () =>
         cancelAzureSqlContainerProvisioning(deploymentController),
     );
-}
-
-function ensureAzureSqlContainerEnabled(): void {
-    if (!previewService.experimentalFeaturesEnabled) {
-        throw new Error(AzureSqlContainer.experimentalFeaturesRequired);
-    }
 }
 
 export async function prepareAzureSqlContainerForm(
@@ -290,8 +274,6 @@ function startAzureSqlContainerDeployment(
     startStep: AzureSqlContainerProvisioningStep,
     previousResults?: Map<AzureSqlContainerProvisioningStep, AzureSqlContainerProvisioningResult>,
 ): AzureSqlContainerDeployment {
-    // Existing deployments can still report progress and be canceled after opting out.
-    ensureAzureSqlContainerEnabled();
     const abortController = new AbortController();
     const stepResults = new Map(previousResults);
     const stepCompletions = new Map<

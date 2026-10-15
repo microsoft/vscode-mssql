@@ -96,6 +96,27 @@ suite("PreviewFeaturesService", () => {
         });
     });
 
+    suite("azureSqlContainersEnabled", () => {
+        for (const globalEnabled of [undefined, false, true]) {
+            for (const override of [undefined, null, false, true]) {
+                test(`umbrella ${globalEnabled}, override ${override}`, () => {
+                    getConfigurationStub.returns(
+                        createWorkspaceConfiguration({
+                            enableExperimentalFeatures: globalEnabled,
+                            [getPreviewConfigKey(PreviewFeature.AzureSqlContainers)]: override,
+                        }),
+                    );
+
+                    const enabled = override ?? globalEnabled ?? false;
+                    expect(service.azureSqlContainersEnabled).to.equal(enabled);
+                    expect(
+                        service.getNonDefaultOverrides()[PreviewFeature.AzureSqlContainers],
+                    ).to.equal(enabled !== (globalEnabled ?? false) ? enabled : undefined);
+                });
+            }
+        }
+    });
+
     suite("live query statistics", () => {
         for (const { globalEnabled, override, enabled } of [
             { globalEnabled: false, override: undefined, enabled: false },
