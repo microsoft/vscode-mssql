@@ -10616,6 +10616,9 @@
     <trans-unit id="++CODE++2058e7768297cdc1b7cbeb655cd4f06450ec8900fad7f2b06367934185d5967a">
       <source xml:lang="en">This server supports Microsoft Entra ID and SQL Authentication.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9613e48bf5e19f3fa1df8e82ca65780c475d08ebc40fb027d7300b15a608a901">
+      <source xml:lang="en">This session exceeds the Debug Console history loading limit (8 MB or 20,000 events). Open a smaller session or inspect the session files directly.</source>
+    </trans-unit>
     <trans-unit id="++CODE++30bc13b49dca001aeab4b8447c759c4f374ff741a22f914a7db838cf7aa507e8">
       <source xml:lang="en">This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.</source>
     </trans-unit>

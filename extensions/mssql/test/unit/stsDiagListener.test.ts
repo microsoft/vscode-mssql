@@ -6,7 +6,11 @@
 import { expect } from "chai";
 import * as http from "http";
 import { diag, DiagnosticSink } from "../../src/diagnostics/diagnosticsCore";
-import { startStsDiagListener, stopStsDiagListener } from "../../src/diagnostics/stsDiagListener";
+import {
+    getStsDiagEnvironment,
+    startStsDiagListener,
+    stopStsDiagListener,
+} from "../../src/diagnostics/stsDiagListener";
 import { DiagEvent } from "../../src/sharedInterfaces/debugConsole";
 
 async function post(url: string, authorization: string, body: string): Promise<number> {
@@ -59,8 +63,9 @@ suite("STS diagnostics listener", () => {
         diag.addSink(sink);
         await startStsDiagListener();
 
-        const url = process.env["STS_DIAG_URL"];
-        const token = process.env["STS_DIAG_TOKEN"];
+        expect(process.env["STS_DIAG_TOKEN"]).to.equal(undefined);
+        const url = getStsDiagEnvironment()["STS_DIAG_URL"];
+        const token = getStsDiagEnvironment()["STS_DIAG_TOKEN"];
         expect(url).to.be.a("string");
         expect(token).to.be.a("string");
 
@@ -80,6 +85,7 @@ suite("STS diagnostics listener", () => {
                 method: "query/execute",
                 count: 3,
                 password: "secret-canary",
+                ["field-name-secret-canary"]: "value",
                 sql: "SELECT private_data",
                 nested: { refused: true },
             },
@@ -124,8 +130,8 @@ suite("STS diagnostics listener", () => {
         };
         diag.addSink(sink);
         await startStsDiagListener();
-        const url = process.env["STS_DIAG_URL"]!;
-        const token = process.env["STS_DIAG_TOKEN"]!;
+        const url = getStsDiagEnvironment()["STS_DIAG_URL"]!;
+        const token = getStsDiagEnvironment()["STS_DIAG_TOKEN"]!;
 
         const fields: Record<string, unknown> = { text: "y".repeat(10_000) };
         for (let i = 0; i < 40; i++) {

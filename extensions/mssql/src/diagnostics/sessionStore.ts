@@ -11,6 +11,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import * as LocalizedConstants from "../constants/locConstants";
 import { containedPath, isContainedPath } from "./containedPath";
 import {
     DiagEvent,
@@ -66,7 +67,7 @@ function readTail(file: string, size: number, bytes: number): string {
     }
 }
 
-function isSessionManifest(value: unknown, directoryName: string): value is SessionManifest {
+export function isSessionManifest(value: unknown, directoryName: string): value is SessionManifest {
     if (typeof value !== "object" || value === null) {
         return false;
     }
@@ -301,11 +302,17 @@ export class SessionStore {
             return [];
         }
         const events: DiagEvent[] = [];
+        let loadedBytes = 0;
         for (const entry of fs
             .readdirSync(eventsDir, { withFileTypes: true })
             .sort((a, b) => a.name.localeCompare(b.name))) {
             if (!entry.isFile() || !entry.name.endsWith(".jsonl")) {
                 continue;
+            }
+            const file = containedPath(this.storeRoot, path.join(eventsDir, entry.name));
+            loadedBytes += fs.statSync(file).size;
+            if (loadedBytes > 8 * 1024 * 1024 || events.length > 20_000) {
+                throw new Error(LocalizedConstants.debugConsoleSessionTooLarge);
             }
             try {
                 for (const line of fs
@@ -330,6 +337,9 @@ export class SessionStore {
             } catch {
                 // unreadable segment: keep what we have (honest partial)
             }
+        }
+        if (events.length > 20_000) {
+            throw new Error(LocalizedConstants.debugConsoleSessionTooLarge);
         }
         return events.sort((a, b) => a.seq - b.seq);
     }

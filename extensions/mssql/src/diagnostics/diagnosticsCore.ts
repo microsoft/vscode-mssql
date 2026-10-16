@@ -15,6 +15,7 @@
  * Instrumentation must never throw into the product.
  */
 
+import { randomUUID } from "crypto";
 import {
     CaptureMode,
     CapturePolicy,
@@ -172,7 +173,7 @@ export class DiagnosticsCore {
 
     constructor() {
         const stamp = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
-        this.sessionId = `sess_${stamp}_${process.pid}`;
+        this.sessionId = `sess_${stamp}_${process.pid}_${randomUUID()}`;
     }
 
     // --- sinks ---------------------------------------------------------------

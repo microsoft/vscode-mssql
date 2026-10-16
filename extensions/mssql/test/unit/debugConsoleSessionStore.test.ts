@@ -14,6 +14,8 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { SessionStore } from "../../src/diagnostics/sessionStore";
+import { SessionDiagSink } from "../../src/diagnostics/sinks";
+import { DiagnosticsCore } from "../../src/diagnostics/diagnosticsCore";
 import {
     DIAG_SCHEMA_VERSION,
     DiagEvent,
@@ -78,6 +80,41 @@ function writeSession(
 
 suite("Debug Console session store", () => {
     let root: string;
+
+    test("capture restart preserves prior segment metadata and events", () => {
+        const first = new SessionDiagSink(root, "s", "redacted", "p", {});
+        first.tryWrite(event(1));
+        first.close();
+        const resumed = new SessionDiagSink(root, "s", "redacted", "p", {});
+        resumed.tryWrite(event(2));
+        resumed.close();
+        const manifest = JSON.parse(
+            fs.readFileSync(path.join(root, "sessions", "s", "manifest.json"), "utf8"),
+        );
+        expect(manifest.eventCount).to.equal(2);
+        expect(new SessionStore(root).validateStore().issues).to.deep.equal([]);
+        expect(
+            manifest.segments.map((segment: { events: number }) => segment.events),
+        ).to.deep.equal([1, 1]);
+        expect(
+            new SessionStore(root).eventsForSource("store:s").map((row) => row.seq),
+        ).to.deep.equal([1, 2]);
+    });
+
+    test("session identities differ within the same timestamp and process", () => {
+        expect(new DiagnosticsCore().sessionId).not.to.equal(new DiagnosticsCore().sessionId);
+    });
+
+    test("oversized historical sessions are refused before loading their contents", () => {
+        writeSession(root, "s", new Date().toISOString(), "closed");
+        fs.writeFileSync(
+            path.join(root, "sessions", "s", "events", "segment-000001.jsonl"),
+            Buffer.alloc(8 * 1024 * 1024 + 1),
+        );
+        expect(() => new SessionStore(root).eventsForSource("store:s")).to.throw(
+            "history loading limit",
+        );
+    });
 
     setup(() => {
         root = fs.mkdtempSync(path.join(os.tmpdir(), "dc-store-"));

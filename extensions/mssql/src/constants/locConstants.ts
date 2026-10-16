@@ -6034,6 +6034,10 @@ export class SqlProjects {
     public static stderr = l10n.t("    stderr: ");
 }
 
+export const debugConsoleSessionTooLarge = l10n.t(
+    "This session exceeds the Debug Console history loading limit (8 MB or 20,000 events). Open a smaller session or inspect the session files directly.",
+);
+
 export class SessionDiag {
     public static invalidCaptureMode = l10n.t("Unsupported diagnostics capture mode.");
     public static privatePreviewRequired = l10n.t(

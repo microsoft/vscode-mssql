@@ -2945,6 +2945,7 @@
     "    >>> {0}   … exited with signal: {1}": "    >>> {0}   … exited with signal: {1}",
     "    stdout: ": "    stdout: ",
     "    stderr: ": "    stderr: ",
+    "This session exceeds the Debug Console history loading limit (8 MB or 20,000 events). Open a smaller session or inspect the session files directly.": "This session exceeds the Debug Console history loading limit (8 MB or 20,000 events). Open a smaller session or inspect the session files directly.",
     "Unsupported diagnostics capture mode.": "Unsupported diagnostics capture mode.",
     "Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.": "Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.",
     "Delete all": "Delete all",

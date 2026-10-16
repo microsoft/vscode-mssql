@@ -56,6 +56,22 @@ suite("Perf run import", () => {
         }
     });
 
+    test("invalid epoch and monotonic clocks are skipped before event construction", () => {
+        const valid = JSON.parse(marker("mssql.query.submit", 1000000));
+        const bad = [
+            { ...valid, monotonicNs: "abc" },
+            { ...valid, timestampUnixNs: "9".repeat(100) },
+            { ...valid, timestampUnixNs: "-1" },
+        ];
+        fs.writeFileSync(
+            path.join(root, "markers.jsonl"),
+            [...bad, valid].map((row) => JSON.stringify(row)).join("\n"),
+        );
+        const events = importPerfRep(root, "rep");
+        expect(events.filter((row) => row.type === "mssql.query.submit")).to.have.length(1);
+        expect(parseMarkerLines([JSON.stringify(bad[1])])).to.deep.equal([]);
+    });
+
     test("untrusted marker attributes retain approved counts and conceal arbitrary text", () => {
         fs.writeFileSync(
             path.join(root, "markers.jsonl"),

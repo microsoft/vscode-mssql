@@ -26,7 +26,12 @@ import {
     PerfMetricSample,
     PerfRunInfo,
 } from "../sharedInterfaces/debugConsole";
-import { importClassification, importedEventType } from "./importClassification";
+import {
+    importClassification,
+    importedEventType,
+    importedFieldKey,
+    validMarkerClock,
+} from "./importClassification";
 import { CAPTURE_POLICIES, classify } from "./redaction";
 
 interface HarnessMarker {
@@ -226,7 +231,11 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
         for (const trimmed of bounded.lines) {
             try {
                 const marker = JSON.parse(trimmed) as HarnessMarker;
-                if (typeof marker.name !== "string" || typeof marker.timestampUnixNs !== "string") {
+                if (
+                    typeof marker.name !== "string" ||
+                    !validMarkerClock(marker.timestampUnixNs) ||
+                    (marker.monotonicNs !== undefined && !validMarkerClock(marker.monotonicNs))
+                ) {
                     skippedLines++;
                     continue;
                 }
@@ -274,7 +283,11 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                     event.payload = {};
                     for (const [key, value] of Object.entries(marker.attrs)) {
                         const cls = importClassification(key, value, marker.name);
-                        event.payload[key] = classify(value, cls, CAPTURE_POLICIES.redacted);
+                        event.payload[importedFieldKey(key)] = classify(
+                            value,
+                            cls,
+                            CAPTURE_POLICIES.redacted,
+                        );
                         if (cls !== "diagnostic.metadata") {
                             event.cls.max = cls;
                             event.cls.redactedFields++;
