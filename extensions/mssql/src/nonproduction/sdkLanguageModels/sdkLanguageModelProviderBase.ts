@@ -155,8 +155,16 @@ export abstract class SdkLanguageModelProviderBase {
         let usage: SdkProviderUsage | undefined;
 
         try {
+            if (token.isCancellationRequested) {
+                result = "cancelled";
+                return;
+            }
             this.assertEnabled();
             const apiKey = await this.resolveApiKey();
+            if (token.isCancellationRequested) {
+                result = "cancelled";
+                return;
+            }
             this.assertEnabled();
             if (!apiKey) {
                 this.sendErrorTelemetry("auth");

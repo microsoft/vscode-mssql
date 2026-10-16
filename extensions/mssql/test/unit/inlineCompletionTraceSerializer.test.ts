@@ -104,6 +104,22 @@ suite("Inline completion trace serializer", () => {
     test("shares one hard file size limit between saving and loading", () => {
         expect(MAX_TRACE_LOAD_BYTES).to.equal(MAX_TRACE_FILE_BYTES);
     });
+
+    test("bounds metadata even when no events remain", () => {
+        const metadata = createMetadata();
+        metadata.overrides.customSystemPrompt = "巨大".repeat(8192);
+        const trace = serializeSessionTrace([], metadata, { maxFileSizeMB: 0.004 });
+        expect(trace._truncated).to.equal(true);
+        expect(trace.overrides.customSystemPrompt).to.equal(null);
+        expect(Buffer.byteLength(serializeTraceFile(trace), "utf8")).to.be.at.most(4194);
+        expect(metadata.overrides.customSystemPrompt).to.have.length(16384);
+    });
+
+    test("refuses a budget too small for a minimal trace", () => {
+        expect(() =>
+            serializeSessionTrace([], createMetadata(), { maxFileSizeMB: 0.000001 }),
+        ).to.throw(RangeError);
+    });
 });
 
 function createMetadata() {

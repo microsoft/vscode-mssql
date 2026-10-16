@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as LocalizedConstants from "../../constants/locConstants";
 import {
     InlineCompletionDebugEvent,
     InlineCompletionDebugExportData,
@@ -158,6 +159,19 @@ function truncateTraceToMaxSize(
         Buffer.byteLength(serializeTraceFile(truncatedTrace), "utf8") > maxBytes
     ) {
         truncatedTrace.events.shift();
+    }
+
+    if (Buffer.byteLength(serializeTraceFile(truncatedTrace), "utf8") > maxBytes) {
+        // Metadata can exceed the budget even after every event has been removed.
+        // Preserve the override shape but omit its values from this truncated trace.
+        truncatedTrace.overrides = Object.fromEntries(
+            Object.keys(truncatedTrace.overrides).map((key) => [key, null]),
+        ) as unknown as InlineCompletionDebugOverrides;
+        truncatedTrace._savedAt = truncatedTrace._savedAt.slice(0, 128);
+        truncatedTrace._extensionVersion = truncatedTrace._extensionVersion.slice(0, 128);
+    }
+    if (Buffer.byteLength(serializeTraceFile(truncatedTrace), "utf8") > maxBytes) {
+        throw new RangeError(LocalizedConstants.inlineCompletionTraceSizeTooSmall);
     }
 
     return truncatedTrace;
