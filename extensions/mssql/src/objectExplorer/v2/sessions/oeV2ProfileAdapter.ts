@@ -17,6 +17,7 @@ import { ObjectExplorerV2 } from "../../../constants/locConstants";
 import { connectionDisplayLabel } from "../tree/oeV2ConnectionLabel";
 
 export interface OeV2StoredProfile {
+    order?: number;
     id?: string;
     server?: string;
     database?: string;
@@ -40,6 +41,8 @@ export interface OeV2StoredProfile {
 }
 
 export interface OeV2StoredGroup {
+    order?: number;
+    description?: string;
     id?: string;
     name?: string;
     parentId?: string;
@@ -64,6 +67,8 @@ export interface OeV2ProfileRecord {
 }
 
 export interface OeV2GroupRecord {
+    readonly order?: number;
+    readonly description?: string;
     readonly groupId: string;
     readonly name: string;
     readonly parentId?: string;
@@ -138,6 +143,8 @@ export async function readProfileTree(source: ConnectionProfileSource): Promise<
         .map((group) => ({
             groupId: group.id!,
             name: group.name ?? ObjectExplorerV2.unnamedGroup,
+            order: group.order,
+            description: group.description,
             ...(group.parentId ? { parentId: group.parentId } : {}),
             ...(group.color ? { color: group.color } : {}),
         }));

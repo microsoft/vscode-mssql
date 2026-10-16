@@ -25,6 +25,61 @@ import { copyNameForNode } from "../../src/objectExplorer/v2/commands/oeV2Native
 import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 
 suite("Object Explorer v2 command primitives (B19)", () => {
+    test("saved ordering and group descriptions match classic, with groups before connections", async () => {
+        const { rootChildren } = await import("../../src/objectExplorer/v2/tree/oeV2NodeFactory");
+        const tree = await readProfileTree({
+            readAllConnectionGroups: async () => [
+                { id: "ROOT", name: "ROOT" },
+                { id: "g1", name: "Alpha", parentId: "ROOT" },
+                { id: "g2", name: "Zulu", parentId: "ROOT", order: 0, description: "Production" },
+            ],
+            readAllConnections: async () => [
+                { id: "a", server: "srv", profileName: "Alpha", order: -1 },
+                { id: "b", server: "srv", profileName: "beta", order: NaN },
+                { id: "c", server: "srv", profileName: "Charlie", order: Infinity },
+                { id: "z", server: "srv", profileName: "Zulu", order: 0 },
+                { id: "d", server: "srv", profileName: "delta", order: 1 },
+                { id: "e", server: "srv", profileName: "Echo", order: 1 },
+            ],
+        });
+        const nodes = rootChildren(tree);
+        expect(nodes.map((node) => node.label)).to.deep.equal([
+            "Zulu",
+            "Alpha",
+            "Zulu",
+            "delta",
+            "Echo",
+            "Alpha",
+            "beta",
+            "Charlie",
+        ]);
+        expect(nodes[0].tooltip).to.equal("Production");
+    });
+
+    test("database-scoped connections use database icons and containers retain their own icons", async () => {
+        const { connectionNode } = await import("../../src/objectExplorer/v2/tree/oeV2NodeFactory");
+        const tree = await readProfileTree({
+            readAllConnectionGroups: async () => [],
+            readAllConnections: async () => [
+                { id: "server", server: "srv" },
+                { id: "db", server: "srv", database: "AppDb" },
+                { id: "container", server: "srv", database: "AppDb", containerName: "sql" },
+            ],
+        });
+        for (const [state, suffix] of [
+            ["connected", "green"],
+            ["disconnected", "red"],
+        ] as const) {
+            expect(
+                tree.profiles.map((profile) => connectionNode(profile, { state }).icon),
+            ).to.deep.equal([
+                `Server_${suffix}`,
+                `Database_${suffix}`,
+                `DockerContainer_${suffix}`,
+            ]);
+        }
+    });
+
     test("bracketQuote: adversarial identifiers are contained", () => {
         expect(bracketQuote("Orders")).to.equal("[Orders]");
         expect(bracketQuote("evil]name")).to.equal("[evil]]name]");

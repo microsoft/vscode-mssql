@@ -118,7 +118,13 @@ suite("Object Explorer v2 command registry (B25)", () => {
         expect(commandFlagsFor({ kind: "object", objectKind: "view" })).to.deep.equal([]);
         expect(commandFlagsFor({ kind: "databaseFolder", database: "AppDb" })).to.deep.equal([]);
         expect(commandFlagsFor({ kind: "lostConnection" })).to.deep.equal([
+            "oe2:cmd=profiler",
             "oe2:cmd=copyConnectionString",
+            "oe2:cmd=copilotChat",
+            "oe2:cmd=copilotAgent",
+            "oe2:cmd=schemaCompare",
+            "oe2:cmd=dacpac",
+            "oe2:cmd=newNotebook",
         ]);
     });
 
@@ -241,7 +247,10 @@ suite("Object Explorer v2 legacy redirect (B25)", () => {
     }
 
     test("backup on a database node invokes the classic command with a database-scoped legacy node", async () => {
-        const outcome = await redirectToClassic("backupDatabase", databaseNode(), fakeDeps());
+        const deps = fakeDeps();
+        const ensure = sinon.spy(deps.handoff, "ensureOwnerUri");
+        const outcome = await redirectToClassic("backupDatabase", databaseNode(), deps);
+        expect(ensure.firstCall.args[4]).to.equal("h2");
         expect(outcome.ok).to.equal(true);
         sinon.assert.calledOnce(execute);
         const [command, arg] = execute.firstCall.args as [string, TreeNodeInfo];
@@ -276,6 +285,45 @@ suite("Object Explorer v2 legacy redirect (B25)", () => {
         const [command, arg] = execute.firstCall.args as [string, TreeNodeInfo];
         expect(command).to.equal("mssql.restoreDatabase");
         expect(arg.nodeType).to.equal("Server");
+    });
+
+    test("profiler uses the database-filtered classic route only for database contexts", async () => {
+        for (const node of [
+            databaseNode(),
+            serverNode("AppDb"),
+            { ...serverNode("AppDb"), kind: "disconnectedConnection" as const },
+        ]) {
+            const outcome = await redirectToClassic("profiler", node, fakeDeps());
+            expect(outcome.ok).to.equal(true);
+            expect(execute.lastCall.args[0]).to.equal("mssql.profiler.launchFromDatabase");
+            const adapted = execute.lastCall.args[1] as TreeNodeInfo;
+            expect(adapted.nodeType).to.equal("Database");
+            expect(adapted.metadata.name).to.equal("AppDb");
+        }
+        await redirectToClassic("profiler", serverNode(), fakeDeps());
+        expect(execute.lastCall.args[0]).to.equal("mssql.profiler.launchFromObjectExplorer");
+    });
+
+    test("classic actions remain available on disconnected profiles without opening OE v2", async () => {
+        const node = { ...serverNode(), kind: "disconnectedConnection" as const };
+        for (const feature of [
+            "schemaCompare",
+            "dacpacDialog",
+            "createNotebook",
+            "chatWithDatabase",
+            "chatWithDatabaseAgent",
+        ]) {
+            const deps = fakeDeps();
+            const ensure = sinon.spy(deps.handoff, "ensureOwnerUri");
+            const result = await redirectToClassic(feature, node, deps);
+            expect(result.ok, feature).to.equal(true);
+            expect((execute.lastCall.args[1] as TreeNodeInfo).connectionProfile.server).to.equal(
+                "srv",
+            );
+            expect(ensure.called, feature).to.equal(
+                feature === "schemaCompare" || feature === "dacpacDialog",
+            );
+        }
     });
 
     test("schema compare receives the selected node plus an unset target", async () => {

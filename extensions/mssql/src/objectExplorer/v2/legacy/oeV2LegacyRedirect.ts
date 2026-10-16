@@ -39,8 +39,10 @@ export interface RedirectOutcome {
  */
 function effectiveNode(policy: LegacyCommandPolicy, node: OeV2Node): OeV2Node {
     if (
-        policy.databaseScoped &&
-        node.kind === "connectedServer" &&
+        (policy.databaseScoped || policy.feature === "profiler") &&
+        (node.kind === "connectedServer" ||
+            node.kind === "disconnectedConnection" ||
+            node.kind === "lostConnection") &&
         node.database !== undefined &&
         node.connectionId !== undefined
     ) {
@@ -93,6 +95,7 @@ export async function redirectToClassic(
                   facts.fingerprint,
                   profile,
                   feature,
+                  policy.level,
               );
     if (ownerUri === undefined) {
         return { ok: false }; // handoff connect failed (already surfaced)
@@ -116,7 +119,9 @@ export async function redirectToClassic(
                 throw new Error(ObjectExplorerV2.legacyNodeNotAdaptable);
             }
             await vscode.commands.executeCommand(
-                policy.classicCommand,
+                feature === "profiler" && adapted.nodeType === "Database"
+                    ? "mssql.profiler.launchFromDatabase"
+                    : policy.classicCommand,
                 adapted,
                 ...(policy.additionalCommandArguments ?? []),
             );

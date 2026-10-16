@@ -91,6 +91,7 @@ interface ConnectionRuntime {
 const DEFAULT_SETTINGS: OeV2BrowseSettings = { groupBySchema: false, showSystemDatabases: true };
 
 export class OeV2TreeController {
+    private disposed = false;
     private tree: OeV2ProfileTree | undefined;
     private listeners = new Set<(node?: OeV2Node) => void>();
     private runtimes = new Map<string, ConnectionRuntime>();
@@ -200,13 +201,16 @@ export class OeV2TreeController {
 
     /** Explicit connect: opens the data-plane session + metadata coordinator. */
     async connectProfile(connectionId: string): Promise<boolean> {
+        if (this.disposed) {
+            return false;
+        }
         this.explicitlyDisconnected.delete(connectionId);
         const { sessions, secrets, tokens, coordinatorFactory } = this.deps;
         if (!sessions || !secrets || !coordinatorFactory) {
             return false;
         }
         const profile = await this.findProfile(connectionId);
-        if (!profile) {
+        if (!profile || this.disposed) {
             return false;
         }
         let prepared: PreparedConnection;
@@ -229,7 +233,7 @@ export class OeV2TreeController {
             this.releaseRuntime(connectionId);
         }
         const session = await sessions.connect(connectionId, prepared);
-        if (session.state !== "connected") {
+        if (this.disposed || session.state !== "connected") {
             return false;
         }
         if (!this.runtimes.has(connectionId)) {
@@ -572,6 +576,7 @@ export class OeV2TreeController {
     }
 
     dispose(): void {
+        this.disposed = true;
         this.registrySubscription?.dispose();
         for (const runtime of this.runtimes.values()) {
             runtime.subscription.dispose();
@@ -769,7 +774,7 @@ export class OeV2TreeController {
         this.runtimes.delete(connectionId);
     }
 
-    /** Stored profile + server fingerprint for the legacy handoff door. */
+    /** Stored profile + database-sensitive fingerprint for the legacy handoff door. */
     async handoffFacts(
         connectionId: string,
     ): Promise<{ stored: Record<string, unknown>; fingerprint: string } | undefined> {
@@ -777,11 +782,12 @@ export class OeV2TreeController {
         if (!profile) {
             return undefined;
         }
-        // h0 features (e.g. Copy Connection String) work on DISCONNECTED
-        // profiles — prepare the saved profile on demand when no live
-        // session exists (no secret is resolved; providers stay lazy).
-        let prepared = this.deps.sessions?.get(connectionId)?.prepared;
-        if (!prepared && this.deps.secrets) {
+        // Use the same saved profile for both identity and payload: a live
+        // session may still represent the old database during reconciliation.
+        // This also supports h0 commands on disconnected profiles without
+        // resolving any secrets; credential providers remain lazy.
+        let prepared: PreparedConnection | undefined;
+        if (this.deps.secrets) {
             try {
                 prepared = prepareConnection(profile.stored, this.deps.secrets, this.deps.tokens);
             } catch {
@@ -793,7 +799,7 @@ export class OeV2TreeController {
         }
         return {
             stored: profile.stored as Record<string, unknown>,
-            fingerprint: prepared.serverFingerprint,
+            fingerprint: prepared.profileRef.profileFingerprint,
         };
     }
 

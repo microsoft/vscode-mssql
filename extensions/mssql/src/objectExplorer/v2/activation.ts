@@ -303,13 +303,20 @@ export function activateObjectExplorerV2(
         knownProfiles = current;
         const activeController = controller;
         const activeHandoff = handoff;
-        if (!previous || !activeController) {
+        const isCurrent = () => deps.isEnabled() && controller === activeController;
+        if (!previous || !activeController || !isCurrent()) {
             return;
         }
         const { added, retired } = diffProfileConnectionSnapshots(previous, current);
         for (const connectionId of retired) {
             await activeHandoff?.close(connectionId);
+            if (!isCurrent()) {
+                return;
+            }
             await activeController.retireProfile(connectionId);
+            if (!isCurrent()) {
+                return;
+            }
         }
         // Invalidate the cached profile tree before connecting additions so
         // findProfile observes the same snapshot that produced this diff.

@@ -58,7 +58,10 @@ const dbScopedConnection = (facts: OeV2CommandTargetFacts) =>
 /** v1 `type=Database || subType=(Database|DockerContainerDatabase)`. */
 const databaseish = (facts: OeV2CommandTargetFacts) =>
     facts.kind === "database" || dbScopedConnection(facts);
-const anyConnectedServer = (facts: OeV2CommandTargetFacts) => facts.kind === "connectedServer";
+const anyConnection = (facts: OeV2CommandTargetFacts) =>
+    facts.kind === "connectedServer" ||
+    facts.kind === "disconnectedConnection" ||
+    facts.kind === "lostConnection";
 const tableObject = (facts: OeV2CommandTargetFacts) =>
     facts.kind === "object" && facts.objectKind === "table";
 
@@ -126,12 +129,14 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
             {
                 flag: "profiler",
                 menuGroup: "4_MSSQL_discoverAndProfile@2",
-                appliesTo: serverScoped,
+                appliesTo: (facts) => anyConnection(facts) && facts.database === undefined,
             },
             {
                 flag: "profilerDb",
                 menuGroup: "3_MSSQL_databaseDiscover@2",
-                appliesTo: databaseish,
+                appliesTo: (facts) =>
+                    facts.kind === "database" ||
+                    (anyConnection(facts) && facts.database !== undefined),
             },
         ],
     },
@@ -232,7 +237,7 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
                 flag: "copilotChat",
                 menuGroup: "6_MSSQL_copilot@1",
                 appliesTo: (facts) =>
-                    anyConnectedServer(facts) || facts.kind === "database" || tableObject(facts),
+                    anyConnection(facts) || facts.kind === "database" || tableObject(facts),
                 extraWhen: COPILOT_INSTALLED,
             },
         ],
@@ -246,7 +251,7 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
                 flag: "copilotAgent",
                 menuGroup: "6_MSSQL_copilot@2",
                 appliesTo: (facts) =>
-                    anyConnectedServer(facts) || facts.kind === "database" || tableObject(facts),
+                    anyConnection(facts) || facts.kind === "database" || tableObject(facts),
                 extraWhen: COPILOT_INSTALLED,
             },
         ],
@@ -260,7 +265,7 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
             {
                 flag: "schemaCompare",
                 menuGroup: "7_MSSQL_compareAndDacpac@1",
-                appliesTo: (facts) => anyConnectedServer(facts) || facts.kind === "database",
+                appliesTo: (facts) => anyConnection(facts) || facts.kind === "database",
             },
         ],
     },
@@ -272,7 +277,7 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
             {
                 flag: "dacpac",
                 menuGroup: "7_MSSQL_compareAndDacpac@2",
-                appliesTo: (facts) => anyConnectedServer(facts) || facts.kind === "database",
+                appliesTo: (facts) => anyConnection(facts) || facts.kind === "database",
             },
         ],
     },
@@ -285,7 +290,7 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
             {
                 flag: "newNotebook",
                 menuGroup: "8_MSSQL_sqlProjectsAndNotebooks@2",
-                appliesTo: (facts) => anyConnectedServer(facts) || facts.kind === "database",
+                appliesTo: (facts) => anyConnection(facts) || facts.kind === "database",
             },
         ],
     },

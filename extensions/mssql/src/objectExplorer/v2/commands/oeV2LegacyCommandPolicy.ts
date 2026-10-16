@@ -59,14 +59,14 @@ export const LEGACY_COMMAND_POLICIES: readonly LegacyCommandPolicy[] = [
         feature: "profiler",
         classicCommand: "mssql.profiler.launchFromObjectExplorer",
         level: "h2",
-        nodeKinds: ["connectedServer", "database"],
+        nodeKinds: ["connectedServer", "disconnectedConnection", "lostConnection", "database"],
     },
     {
         feature: "schemaCompare",
         classicCommand: "mssql.schemaCompare",
         level: "h2",
         // v1 parity: Compare Schemas… appears on servers AND databases.
-        nodeKinds: ["connectedServer", "database"],
+        nodeKinds: ["connectedServer", "disconnectedConnection", "lostConnection", "database"],
         // The classic handler only inspects source/target when it receives at
         // least two positional arguments. Preserve the selected v2 node as
         // the source and leave the target unset.
@@ -127,7 +127,7 @@ export const LEGACY_COMMAND_POLICIES: readonly LegacyCommandPolicy[] = [
         feature: "dacpacDialog",
         classicCommand: "mssql.dacpacDialog.launch",
         level: "h2",
-        nodeKinds: ["connectedServer", "database"],
+        nodeKinds: ["connectedServer", "disconnectedConnection", "lostConnection", "database"],
     },
     {
         feature: "copyConnectionString",
@@ -139,21 +139,33 @@ export const LEGACY_COMMAND_POLICIES: readonly LegacyCommandPolicy[] = [
         feature: "chatWithDatabase",
         classicCommand: "mssql.objectExplorerChatWithDatabase",
         level: "h0",
-        nodeKinds: ["connectedServer", "database", "object"],
+        nodeKinds: [
+            "connectedServer",
+            "disconnectedConnection",
+            "lostConnection",
+            "database",
+            "object",
+        ],
         objectKinds: ["table"],
     },
     {
         feature: "chatWithDatabaseAgent",
         classicCommand: "mssql.objectExplorerChatWithDatabaseInAgentMode",
         level: "h0",
-        nodeKinds: ["connectedServer", "database", "object"],
+        nodeKinds: [
+            "connectedServer",
+            "disconnectedConnection",
+            "lostConnection",
+            "database",
+            "object",
+        ],
         objectKinds: ["table"],
     },
     {
         feature: "createNotebook",
         classicCommand: "mssql.notebooks.createNotebook",
         level: "h0",
-        nodeKinds: ["connectedServer", "database"],
+        nodeKinds: ["connectedServer", "disconnectedConnection", "lostConnection", "database"],
     },
 ];
 

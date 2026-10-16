@@ -21,6 +21,7 @@
 import { diag } from "../../../diagnostics/diagnosticsCore";
 import { IConnectionProfile } from "../../../models/interfaces";
 import { randomUUID } from "crypto";
+import type { HandoffLevel } from "../commands/oeV2LegacyCommandPolicy";
 
 export interface HandoffConnectionSeam {
     connect(ownerUri: string, profile: IConnectionProfile): Promise<boolean>;
@@ -38,9 +39,14 @@ export interface OeV2HandoffOptions {
 }
 
 export class OeV2ClassicHandoffService {
+    private disposed = false;
+    private generations = new Map<string, number>();
     private entries = new Map<string, HandoffEntry>();
     /** Coalesces simultaneous legacy commands for one v2 connection. */
-    private pending = new Map<string, Promise<HandoffEntry | undefined>>();
+    private pending = new Map<
+        string,
+        { fingerprint: string; creation: Promise<HandoffEntry | undefined> }
+    >();
 
     constructor(
         private readonly connections: HandoffConnectionSeam,
@@ -56,44 +62,78 @@ export class OeV2ClassicHandoffService {
         fingerprint: string,
         profile: IConnectionProfile,
         feature: string,
+        level: Exclude<HandoffLevel, "h0"> = "h1",
     ): Promise<string | undefined> {
+        if (this.disposed) {
+            return undefined;
+        }
         const existing = this.entries.get(connectionId);
         if (existing) {
             if (existing.fingerprint !== fingerprint) {
                 // The saved profile changed while v2 remained active. Never
                 // reuse a classic connection that targets the old profile.
-                await this.close(connectionId);
+                return this.replaceOwner(connectionId, fingerprint, profile, feature, level);
             } else {
-                this.emitHandoff(feature, "reused");
+                this.emitHandoff(feature, "reused", level);
                 return existing.ownerUri;
             }
         }
         const pending = this.pending.get(connectionId);
         if (pending) {
-            const joined = await pending;
-            this.emitHandoff(feature, joined ? "reused" : "connectFailed");
+            if (pending.fingerprint !== fingerprint) {
+                return this.replaceOwner(connectionId, fingerprint, profile, feature, level);
+            }
+            const joined = await pending.creation;
+            this.emitHandoff(feature, joined ? "reused" : "connectFailed", level);
             return joined?.ownerUri;
         }
-        const creation = this.createEntry(fingerprint, profile, feature);
-        this.pending.set(connectionId, creation);
+        const attempt = {
+            fingerprint,
+            creation: this.createEntry(fingerprint, profile, feature, level).then(async (entry) => {
+                if (this.disposed || this.pending.get(connectionId) !== attempt) {
+                    if (entry) {
+                        await this.connections.disconnect(entry.ownerUri).catch(() => undefined);
+                    }
+                    return undefined;
+                }
+                if (entry) {
+                    this.entries.set(connectionId, entry);
+                }
+                return entry;
+            }),
+        };
+        this.pending.set(connectionId, attempt);
         try {
-            const entry = await creation;
-            if (!entry) {
-                return undefined;
-            }
-            this.entries.set(connectionId, entry);
-            return entry.ownerUri;
+            return (await attempt.creation)?.ownerUri;
         } finally {
-            if (this.pending.get(connectionId) === creation) {
+            if (this.pending.get(connectionId) === attempt) {
                 this.pending.delete(connectionId);
             }
         }
+    }
+
+    private async replaceOwner(
+        connectionId: string,
+        fingerprint: string,
+        profile: IConnectionProfile,
+        feature: string,
+        level: Exclude<HandoffLevel, "h0">,
+    ): Promise<string | undefined> {
+        const closing = this.close(connectionId);
+        const generation = this.generations.get(connectionId);
+        await closing;
+        // An explicit disconnect while replacement waits must cancel the replacement too.
+        if (this.generations.get(connectionId) !== generation) {
+            return undefined;
+        }
+        return this.ensureOwnerUri(connectionId, fingerprint, profile, feature, level);
     }
 
     private async createEntry(
         fingerprint: string,
         profile: IConnectionProfile,
         feature: string,
+        level: Exclude<HandoffLevel, "h0">,
     ): Promise<HandoffEntry | undefined> {
         const nonce = this.options.uriNonce?.() ?? randomUUID();
         const ownerUri = `objectexplorerv2://handoff/${fingerprint.slice(0, 12)}/${nonce}`;
@@ -104,7 +144,7 @@ export class OeV2ClassicHandoffService {
             .connect(ownerUri, { ...profile })
             .catch(() => false);
         if (!connected) {
-            this.emitHandoff(feature, "connectFailed");
+            this.emitHandoff(feature, "connectFailed", level);
             return undefined;
         }
         const entry: HandoffEntry = { ownerUri, fingerprint };
@@ -116,7 +156,7 @@ export class OeV2ClassicHandoffService {
                 fingerprint: { raw: fingerprint.slice(0, 12), cls: "diagnostic.metadata" },
             },
         });
-        this.emitHandoff(feature, "created");
+        this.emitHandoff(feature, "created", level);
         return entry;
     }
 
@@ -126,31 +166,38 @@ export class OeV2ClassicHandoffService {
 
     /** Close the handoff connection for a v2 connection (disconnect path). */
     async close(connectionId: string): Promise<void> {
+        this.generations.set(connectionId, (this.generations.get(connectionId) ?? 0) + 1);
         // If connect is still in flight, join it so an immediately-following
         // disconnect/deactivate cannot leave the newly-opened URI unowned.
-        await this.pending.get(connectionId)?.catch(() => undefined);
+        const pending = this.pending.get(connectionId);
+        this.pending.delete(connectionId);
         const entry = this.entries.get(connectionId);
-        if (!entry) {
-            return;
-        }
         this.entries.delete(connectionId);
-        await this.connections.disconnect(entry.ownerUri).catch(() => undefined);
+        await Promise.all([
+            pending?.creation.catch(() => undefined),
+            entry ? this.connections.disconnect(entry.ownerUri).catch(() => undefined) : undefined,
+        ]);
     }
 
     dispose(): void {
+        this.disposed = true;
         for (const connectionId of new Set([...this.entries.keys(), ...this.pending.keys()])) {
             void this.close(connectionId);
         }
     }
 
-    private emitHandoff(feature: string, outcome: string): void {
+    private emitHandoff(
+        feature: string,
+        outcome: string,
+        level: Exclude<HandoffLevel, "h0">,
+    ): void {
         diag.emit({
             feature: "objectExplorer",
             kind: "event",
             type: "objectExplorerV2.command.handoff",
             fields: {
                 handoffFeature: { raw: feature, cls: "diagnostic.metadata" },
-                level: { raw: "h1", cls: "diagnostic.metadata" },
+                level: { raw: level, cls: "diagnostic.metadata" },
                 outcome: { raw: outcome, cls: "diagnostic.metadata" },
             },
         });

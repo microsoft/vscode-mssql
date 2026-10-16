@@ -61,6 +61,7 @@ interface Entry {
 }
 
 export class OeV2SessionRegistry {
+    private disposed = false;
     private entries = new Map<string, Entry>();
     private listeners = new Set<(connectionId: string) => void>();
 
@@ -105,6 +106,9 @@ export class OeV2SessionRegistry {
         connectionId: string,
         prepared: PreparedConnection,
     ): Promise<OeV2ConnectionSession> {
+        if (this.disposed) {
+            return { connectionId, state: "disconnected" };
+        }
         const existing = this.entries.get(connectionId);
         const preparedFingerprint =
             prepared.profileRef?.profileFingerprint ?? prepared.serverFingerprint;
@@ -127,6 +131,9 @@ export class OeV2SessionRegistry {
             // state listener. Retire it before replacing the map slot so a
             // reconnect cannot orphan data-plane state.
             await this.retire(existing);
+            if (this.disposed) {
+                return { connectionId, state: "disconnected" };
+            }
         }
         const entry: Entry = {
             connectionId,
@@ -302,6 +309,7 @@ export class OeV2SessionRegistry {
     }
 
     dispose(): void {
+        this.disposed = true;
         for (const entry of this.entries.values()) {
             void this.retire(entry);
         }

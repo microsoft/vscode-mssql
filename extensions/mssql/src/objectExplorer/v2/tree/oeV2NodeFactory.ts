@@ -7,7 +7,7 @@
  * Pure node builders (oe_view_design §9): profile-tree records → OeV2Node.
  * No network calls, no vscode — icon NAMES only, resolved at the edge.
  * Ordering mirrors classic getRootNodes: groups first, then connections,
- * both alphabetical.
+ * both ordered by saved order then case-insensitive label.
  */
 
 import {
@@ -26,6 +26,22 @@ import { NOT_APPLICABLE, OeV2Node } from "./oeV2Node";
 import { encodePath } from "./oeV2Path";
 import { ObjectExplorerV2 } from "../../../constants/locConstants";
 
+/** Same ordering as classic ConnectionGroupNode, without importing its VS Code layer. */
+function compareOrder(
+    a: number | undefined,
+    b: number | undefined,
+    aLabel: string,
+    bLabel: string,
+): number {
+    const valid = (value: number | undefined) =>
+        typeof value === "number" && Number.isFinite(value) && value >= 0;
+    const aOrder = valid(a) ? a! : Infinity;
+    const bOrder = valid(b) ? b! : Infinity;
+    return aOrder === bOrder
+        ? aLabel.toLowerCase().localeCompare(bLabel.toLowerCase())
+        : aOrder - bOrder;
+}
+
 export function connectionGroupNode(group: OeV2GroupRecord): OeV2Node {
     const path = { kind: "connectionGroup" as const, groupId: group.groupId };
     return {
@@ -33,6 +49,7 @@ export function connectionGroupNode(group: OeV2GroupRecord): OeV2Node {
         path,
         kind: "connectionGroup",
         label: group.name,
+        ...(group.description ? { tooltip: group.description } : {}),
         collapsible: true,
         readiness: NOT_APPLICABLE,
         capabilities: capabilitiesFor("connectionGroup"),
@@ -118,10 +135,14 @@ export function connectionNode(
             facts.state === "connected"
                 ? containerName
                     ? "DockerContainer_green"
-                    : "Server_green"
+                    : profile.database
+                      ? "Database_green"
+                      : "Server_green"
                 : containerName
                   ? "DockerContainer_red"
-                  : "Server_red",
+                  : profile.database
+                    ? "Database_red"
+                    : "Server_red",
     };
 }
 
@@ -148,7 +169,7 @@ export function childrenOfGroup(
 ): OeV2Node[] {
     const subgroups = tree.groups
         .filter((group) => group.parentId === groupId && group.groupId !== groupId)
-        .sort((a, z) => a.name.localeCompare(z.name))
+        .sort((a, z) => compareOrder(a.order, z.order, a.name, z.name))
         .map(connectionGroupNode);
     const isRootLevel = groupId === tree.rootGroupId;
     const members = tree.profiles
@@ -159,7 +180,7 @@ export function childrenOfGroup(
                 // harness/settings-written profiles often omit groupId).
                 (isRootLevel && profile.groupId === undefined),
         )
-        .sort((a, z) => a.displayName.localeCompare(z.displayName));
+        .sort((a, z) => compareOrder(a.stored.order, z.stored.order, a.displayName, z.displayName));
     // K6 disambiguation: siblings that tie on the full v1 label get the
     // differing properties appended to their tooltips.
     const byLabel = new Map<string, OeV2ProfileRecord[]>();
