@@ -44,6 +44,9 @@ import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServ
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
 import { isInlineCompletionFeatureEnabled } from "./copilot/inlineCompletionFeatureGate";
 import { registerSdkLanguageModelProviders } from "./nonproduction/sdkLanguageModels";
+import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
+import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
+import { startStsDiagListener, stopStsDiagListener } from "./diagnostics/stsDiagListener";
 import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
 import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
@@ -51,7 +54,11 @@ import { IAccountStore, AccountStore } from "./azure/accountStore";
 import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
 import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
-import { PrivatePreviewContextKey } from "./previews/previewService";
+import {
+    PrivatePreviewContextKey,
+    PrivatePreviewFeature,
+    previewService,
+} from "./previews/previewService";
 import { extensionId } from "./constants/constants";
 import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
 import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
@@ -73,6 +80,37 @@ let activation: MssqlActivation | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     initializeExtensionToolkit();
+
+    const debugConsoleActiveAtActivation = previewService.isPrivatePreviewEnabled(
+        PrivatePreviewFeature.DebugConsole,
+    );
+    const sessionDiagnosticsActiveAtActivation = previewService.isPrivatePreviewEnabled(
+        PrivatePreviewFeature.SessionDiagnostics,
+    );
+    void vscode.commands.executeCommand(
+        "setContext",
+        PrivatePreviewContextKey.DebugConsoleActive,
+        debugConsoleActiveAtActivation,
+    );
+    void vscode.commands.executeCommand(
+        "setContext",
+        PrivatePreviewContextKey.SessionDiagnosticsActive,
+        sessionDiagnosticsActiveAtActivation,
+    );
+
+    if (debugConsoleActiveAtActivation || sessionDiagnosticsActiveAtActivation) {
+        // Install before the first activation marker so enabled session capture
+        // includes the complete activation lifecycle.
+        const diagnosticsManager = new DiagnosticsManager(context, {
+            debugConsoleActiveAtActivation,
+            sessionDiagnosticsActiveAtActivation,
+        });
+        context.subscriptions.push(diagnosticsManager);
+        if (debugConsoleActiveAtActivation) {
+            registerDebugConsole(context, diagnosticsManager);
+        }
+    }
+
     Perf.setActivationState("activating");
     Perf.marker("mssql.activate.begin", "begin");
 
@@ -171,6 +209,17 @@ class MssqlActivation {
         // Exposed for testing purposes
         vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
         registerSqlDataPlane(context);
+
+        // Start before SQL Tools Service spawns so the child inherits the
+        // diagnostics endpoint and token. The listener only accepts bounded,
+        // authenticated local batches and emits classified metadata.
+        if (
+            Perf.enabled ||
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.DebugConsole) ||
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SessionDiagnostics)
+        ) {
+            await startStsDiagListener();
+        }
         await controller.activate();
 
         const sharedConnectionsService = new SharedConnectionsService(
@@ -258,6 +307,7 @@ class MssqlActivation {
     }
 
     async deactivate(): Promise<void> {
+        stopStsDiagListener();
         if (controller) {
             await controller.deactivate();
             controller.dispose();

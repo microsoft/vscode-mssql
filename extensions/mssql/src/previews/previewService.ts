@@ -26,6 +26,8 @@ export enum PrivatePreviewFeature {
     SqlDataPlane = "mssql.sqlDataPlane.enabled",
     MetadataCache = "mssql.metadataCache.enabled",
     AiInlineCompletions = "mssql.copilot.inlineCompletions.enabled",
+    DebugConsole = "mssql.debugConsole.enabled",
+    SessionDiagnostics = "mssql.sessionDiag.enabled",
     ObjectExplorerV2 = "mssql.objectExplorer.v2.enabled",
 }
 
@@ -38,6 +40,8 @@ export enum PrivatePreviewContextKey {
     SqlDataPlaneActive = "mssql.privatePreview.sqlDataPlaneActive",
     MetadataCacheActive = "mssql.privatePreview.metadataCacheActive",
     AiInlineCompletionsActive = "mssql.privatePreview.aiInlineCompletionsActive",
+    DebugConsoleActive = "mssql.privatePreview.debugConsoleActive",
+    SessionDiagnosticsActive = "mssql.privatePreview.sessionDiagnosticsActive",
     ObjectExplorerV2Active = "mssql.privatePreview.objectExplorerV2Active",
 }
 

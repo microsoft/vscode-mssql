@@ -15,6 +15,10 @@ const METADATA_CACHE_GATE =
     "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled";
 const AI_INLINE_COMPLETIONS_GATE =
     "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled";
+const DEBUG_CONSOLE_GATE =
+    "mssql.privatePreview.debugConsoleActive && config.mssql.enableExperimentalFeatures && config.mssql.debugConsole.enabled";
+const SESSION_DIAGNOSTICS_GATE =
+    "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled";
 const OBJECT_EXPLORER_V2_GATE =
     "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled";
 
@@ -71,6 +75,8 @@ suite("Private preview manifest", () => {
         expect(settings["mssql.enableExperimentalFeatures"]?.default).to.equal(false);
         expect(settings["mssql.sqlDataPlane.enabled"]?.default).to.equal(false);
         expect(settings["mssql.metadataCache.enabled"]?.default).to.equal(false);
+        expect(settings["mssql.debugConsole.enabled"]?.default).to.equal(false);
+        expect(settings["mssql.sessionDiag.enabled"]?.default).to.equal(false);
         expect(settings["mssql.objectExplorer.v2.enabled"]?.default).to.equal(false);
         expect(settings["mssql.copilot.inlineCompletions.enabled"]?.default).to.equal(false);
         expect(settings["mssql.copilot.inlineCompletions.useSchemaContext"]?.default).to.equal(
@@ -167,6 +173,22 @@ suite("Private preview manifest", () => {
         expect(commandPalette("mssql.metadataCache.disableOfflineMode").when).to.equal(
             `${METADATA_CACHE_GATE} && config.mssql.metadataCache.offlineMode`,
         );
+    });
+
+    test("requires activation snapshots and complete paths for diagnostics commands", () => {
+        expect(command("mssql.openDebugConsole").enablement).to.equal(DEBUG_CONSOLE_GATE);
+        expect(commandPalette("mssql.openDebugConsole").when).to.equal(DEBUG_CONSOLE_GATE);
+
+        for (const commandId of [
+            "mssql.sessionDiag.enable",
+            "mssql.sessionDiag.disable",
+            "mssql.sessionDiag.elevateCapture",
+            "mssql.sessionDiag.clear",
+            "mssql.sessionDiag.openStorageFolder",
+        ]) {
+            expect(command(commandId).enablement).to.equal(SESSION_DIAGNOSTICS_GATE);
+            expect(commandPalette(commandId).when).to.equal(SESSION_DIAGNOSTICS_GATE);
+        }
     });
 
     test("keeps every Object Explorer v2 UI surface behind the complete private-preview gate", () => {

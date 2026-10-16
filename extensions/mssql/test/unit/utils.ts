@@ -279,6 +279,7 @@ export function stubExtensionContext(
         },
         extensionUri: vscode.Uri.parse("file://testExtensionPath"),
         extensionPath: "testExtensionPath",
+        globalStorageUri: vscode.Uri.file("globalStorage"),
         subscriptions: [],
         logUri: vscode.Uri.parse("file://testLogPath"),
     } as unknown as vscode.ExtensionContext;
