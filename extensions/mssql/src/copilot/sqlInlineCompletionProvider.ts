@@ -1069,15 +1069,16 @@ export function buildCompletionRules(inferredSystemQuery: boolean, intentMode: b
 
 function buildSharedPreamble(inferredSystemQuery: boolean): string {
     return `Shared rules:
-- Use only the tables, views, procedures, functions, columns, parameters, keys, and system objects listed in the schema context. Do not invent local database objects.
+- Use only user-defined tables, views, procedures, functions, columns, parameters, and keys supplied in the schema context. Do not invent local database objects.
+- For database discovery or administration requests, you may query documented built-in SQL Server catalogs, INFORMATION_SCHEMA views, and DMVs using their standard columns even when schema context is absent. For example, to discover tables in the current database, query sys.tables (name, schema_id) joined to sys.schemas (schema_id, name). Generate a query; never invent the actual table names or query results.
 - Return no markdown, fences, backticks, quotes, labels, or explanations — raw SQL only.
-- If the schema context does not contain enough information to satisfy the request, return exactly an empty string. Do not explain why, apologize, mention missing schema context, emit placeholder text such as SELECT, or say that you are returning an empty string.
+- If the request needs user-defined objects or columns that are not supplied in the schema context, return exactly an empty string. This restriction does not prevent queries using known built-in catalogs or SQL expressions that need no database metadata. Do not explain why, apologize, mention missing schema context, emit placeholder text such as SELECT, or say that you are returning an empty string.
 - Empty string means emit no characters at all; never write prose such as "the document is complete", "done", or "return empty string".
 - The document suffix and current line suffix are authoritative context. Generate text that composes naturally with both; if no natural completion fits before the suffix, return exactly an empty string.
 - Nearby SQL diagnostics are advisory context for avoiding syntax errors. Use them only to improve the inserted SQL, never to explain an error.
 - Use the recent document prefix to avoid repeating nearby declarations, CTE names, temp tables, aliases, or setup statements.
 - Prefer the simplest canonical query that satisfies the request. Do not add extra joins, columns, filters, aliases, or system objects unless the request or schema context requires them.
-- System affinity: inferredSystemQuery=${inferredSystemQuery ? "true" : "false"} — if true, prefer sys.* / INFORMATION_SCHEMA.* / DMV objects from the listed system objects; if false, prefer user tables, views, procedures, and functions.
+- System affinity hint: inferredSystemQuery=${inferredSystemQuery ? "true" : "false"}. Database discovery requests should use built-in catalogs even when this hint is false. Otherwise, prefer supplied system objects when true and supplied user objects when false.
 - Prefer schema-qualified names.`;
 }
 
