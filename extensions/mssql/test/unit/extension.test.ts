@@ -10,6 +10,7 @@ import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { IExtension } from "vscode-mssql";
 import MainController from "../../src/controllers/mainController";
+import ConnectionManager from "../../src/controllers/connectionManager";
 import * as Extension from "../../src/extension";
 import { stubExtensionContext } from "./utils";
 import { OverviewWebviewController } from "../../src/controllers/overviewWebviewController";
@@ -21,6 +22,7 @@ import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnership
 import { IconUtils } from "../../src/utils/iconUtils";
 import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
 import { PrivatePreviewContextKey } from "../../src/previews/previewService";
+import { SharedConnectionsService } from "../../src/connectionSharing/sharedConnectionsService";
 import * as DataWorkspaceRegistration from "../../src/dataWorkspace/dataWorkspaceRegistration";
 import * as DatabaseProjectsExtension from "../../src/databaseProjects/extension";
 import * as DatabaseProjectsServiceLocator from "../../src/databaseProjects/serviceLocator";
@@ -42,6 +44,16 @@ suite("Extension API Tests", () => {
         context = stubExtensionContext(sandbox, { version: "1.0.0" });
 
         const disposable = { dispose: sandbox.stub() } as vscode.Disposable;
+        // Activation registers the connection-sharing authentication provider, which keeps its
+        // session in secret storage.
+        (context as { secrets: vscode.SecretStorage }).secrets = {
+            get: sandbox.stub().resolves(undefined),
+            store: sandbox.stub().resolves(),
+            delete: sandbox.stub().resolves(),
+            keys: sandbox.stub().resolves([]),
+            onDidChange: sandbox.stub().returns(disposable),
+        } as unknown as vscode.SecretStorage;
+        sandbox.stub(vscode.authentication, "registerAuthenticationProvider").returns(disposable);
         const outputChannel = {
             name: "MSSQL",
             logLevel: vscode.LogLevel.Info,
@@ -99,6 +111,16 @@ suite("Extension API Tests", () => {
             sandbox.createStubInstance(SqlToolsServerClient);
         sandbox.stub(sqlToolsClient, "sqlToolsServicePath").get(() => "test/sqltoolsservice");
         sqlToolsClient.onNotification.returns(disposable); // handler stub necessary depending on test execution order
+        // activate() is stubbed, so supply the connection manager it would otherwise create.
+        sandbox.stub(MainController.prototype, "connectionManager").get(
+            () =>
+                ({
+                    client: sqlToolsClient,
+                    isConnected: () => false,
+                    onConnectionsChanged: () => disposable,
+                    onDidChangeDatabaseContext: () => disposable,
+                }) as unknown as ConnectionManager,
+        );
 
         sandbox.stub(UriOwnershipInitialization, "createUriOwnershipCoordinator").returns({
             uriOwnershipApi: {},
@@ -123,11 +145,45 @@ suite("Extension API Tests", () => {
     });
 
     test("only exports the supported public APIs", () => {
-        expect(Object.keys(vscodeMssql)).to.deep.equal(["connectionSharing", "uriOwnershipApi"]);
+        expect(Object.keys(vscodeMssql)).to.deep.equal([
+            "connectionSharing",
+            "getSharedConnectionsApi",
+            "uriOwnershipApi",
+        ]);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(vscodeMssql.connectionSharing).to.equal(mainController.connectionSharingService);
         expect(vscodeMssql.uriOwnershipApi).to.equal(
             Extension.uriOwnershipCoordinator.uriOwnershipApi,
         );
+    });
+
+    test("exposes only the shared connections API's public members", () => {
+        const api = vscodeMssql.getSharedConnectionsApi(1);
+
+        expect(api).not.to.be.instanceOf(SharedConnectionsService);
+        expect(Object.isFrozen(api)).to.be.true;
+        expect(Object.keys(api)).to.have.members([
+            "authenticationProviderId",
+            "onDidChangeActiveEditorConnection",
+            "getActiveEditorConnectionId",
+            "getActiveDatabase",
+            "getDatabaseForConnectionId",
+            "connect",
+            "disconnect",
+            "isConnected",
+            "executeSimpleQuery",
+            "cancelQuery",
+            "getServerInfo",
+            "listDatabases",
+            "scriptObject",
+            "getConnectionString",
+        ]);
+    });
+
+    test("rejects a shared connections API version it doesn't support", () => {
+        const getApi = vscodeMssql.getSharedConnectionsApi as (version: number) => unknown;
+
+        expect(() => getApi(2)).to.throw(/Version 2 of the shared connections API/);
     });
 
     test("publishes activation snapshots used to gate private-preview UI", () => {

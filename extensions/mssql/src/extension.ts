@@ -61,6 +61,11 @@ import { extensionId } from "./constants/constants";
 import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
 import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
 import { ExecutionPlanComparisonContribution } from "./controllers/executionPlanComparisonContribution";
+import { SharedConnectionsAuthenticationProvider } from "./connectionSharing/sharedConnectionsAuthenticationProvider";
+import {
+    getSharedConnectionsApi,
+    SharedConnectionsService,
+} from "./connectionSharing/sharedConnectionsService";
 import { showLegacyProjectExtensionWarning } from "./legacyProjectExtensionWarning";
 import { logger } from "./models/logger";
 import { getErrorMessage } from "./utils/utils";
@@ -165,6 +170,13 @@ class MssqlActivation {
         // Create the coordinator early so uriOwnershipApi is available for export.
         uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
 
+        // Register before the slow startup work: VS Code waits for this provider when another
+        // extension requests a connection-sharing session.
+        const sharedConnectionsAuthenticationProvider = new SharedConnectionsAuthenticationProvider(
+            context.secrets,
+        );
+        context.subscriptions.push(sharedConnectionsAuthenticationProvider);
+
         controller = this._instantiationService.createInstance(MainController, context);
         context.subscriptions.push(controller);
         context.subscriptions.push(telemetryReporter);
@@ -197,6 +209,14 @@ class MssqlActivation {
             await startStsDiagListener();
         }
         await controller.activate();
+
+        const sharedConnectionsService = new SharedConnectionsService(
+            sharedConnectionsAuthenticationProvider,
+            controller.connectionManager.client,
+            controller.connectionManager,
+            controller.scriptingService,
+        );
+        context.subscriptions.push(sharedConnectionsService);
 
         context.subscriptions.push(
             this._instantiationService.createInstance(SqlProjectRefactoringContribution),
@@ -268,6 +288,8 @@ class MssqlActivation {
 
         return {
             connectionSharing: controller.connectionSharingService,
+            getSharedConnectionsApi: (version: number) =>
+                getSharedConnectionsApi(sharedConnectionsService, version),
             uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         };
     }

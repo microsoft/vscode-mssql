@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.47.0",
+    "version": "1.48.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -201,6 +201,12 @@
         "vscode-sql-common-features": {
             "uriOwnershipApi": true
         },
+        "authentication": [
+            {
+                "id": "mssql-shared-connections",
+                "label": "%mssql.sharedConnections.authenticationProviderLabel%"
+            }
+        ],
         "mcpServerDefinitionProviders": [
             {
                 "id": "mssql-sqltools-mcp",
@@ -243,6 +249,12 @@
                 {
                     "id": "objectExplorer",
                     "name": "%extension.connections%",
+                    "icon": "media/objectTypes/Database.svg"
+                },
+                {
+                    "id": "mssql.objectExplorerV2",
+                    "name": "%mssql.objectExplorerV2.viewName%",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled",
                     "icon": "media/objectTypes/Database.svg"
                 },
                 {
@@ -617,6 +629,26 @@
                     "group": "navigation"
                 },
                 {
+                    "command": "mssql.objectExplorerV2.addConnection",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.create",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2",
+                    "group": "navigation@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.enableGroupBySchema",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && !config.mssql.objectExplorer.v2.groupBySchema",
+                    "group": "navigation@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.disableGroupBySchema",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && config.mssql.objectExplorer.v2.groupBySchema",
+                    "group": "navigation@4"
+                },
+                {
                     "command": "mssql.showOverviewInObjectExplorer",
                     "when": "view == objectExplorer && !mssql.overviewVisible",
                     "group": "1_overview"
@@ -658,6 +690,186 @@
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "mssql.objectExplorerV2.connect",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canConnect\\b/",
+                    "group": "2_MSSQL_connection@0"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.disconnect",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canDisconnect\\b/",
+                    "group": "2_MSSQL_connection@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.cancelConnect",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCancelConnect\\b/",
+                    "group": "2_MSSQL_connection@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.cancelConnect",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCancelConnect\\b/",
+                    "group": "inline"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editConnection",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(disconnectedConnection|connectedServer|connectingConnection|lostConnection)\\b/",
+                    "group": "2_MSSQL_connection@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.refresh",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canRefresh\\b/",
+                    "group": "1_MSSQL_primary@90"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.filter",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canFilter\\b/",
+                    "group": "3_oe2_filter@0"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.clearFilters",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canFilter\\b/",
+                    "group": "3_oe2_filter@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyName",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCopyName\\b/",
+                    "group": "1_MSSQL_primary@94"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyQualifiedName",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCopyQualifiedName\\b/",
+                    "group": "1_MSSQL_primary@95"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.create",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=connectionGroup\\b/",
+                    "group": "0_oe2_groups@0"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.edit",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=connectionGroup\\b/",
+                    "group": "0_oe2_groups@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.delete",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=connectionGroup\\b/",
+                    "group": "0_oe2_groups@9"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.moveToGroup",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(disconnectedConnection|connectedServer|connectingConnection|lostConnection)\\b/",
+                    "group": "2_MSSQL_connection@5"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.refresh",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canRefresh\\b/",
+                    "group": "inline@9999"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.removeConnection",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(disconnectedConnection|connectedServer|lostConnection)\\b/",
+                    "group": "2_MSSQL_connection@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editTableData",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=editTableData\\b/",
+                    "group": "2b_MSSQL_tableActions@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editTable",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=editTable\\b/",
+                    "group": "2b_MSSQL_tableActions@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.schemaDesigner",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=schemaDesigner\\b/",
+                    "group": "2a_MSSQL_databaseDesign@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.buildDataApi",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=buildDataApi\\b/",
+                    "group": "2a_MSSQL_databaseDesign@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.search",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=search\\b/",
+                    "group": "3_MSSQL_databaseDiscover@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.launchProfiler",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=profiler\\b/",
+                    "group": "4_MSSQL_discoverAndProfile@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.launchProfiler",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=profilerDb\\b/",
+                    "group": "3_MSSQL_databaseDiscover@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.renameDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=renameDatabase\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.backupDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=backup\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.restoreDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=restore\\b/",
+                    "group": "3_MSSQL_instanceDatabaseActions@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.restoreDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=restoreDb\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.importData",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=importDataSrv\\b/",
+                    "group": "3_MSSQL_instanceDatabaseActions@4"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.importData",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=importData\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@4"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.dropDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=dropDatabase\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@5"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyConnectionString",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copyConnectionString\\b/",
+                    "group": "2_MSSQL_connection@4"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.chatWithDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copilotChat\\b/ && mssql.copilot.isGHCInstalled",
+                    "group": "6_MSSQL_copilot@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.chatWithDatabaseAgent",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copilotAgent\\b/ && mssql.copilot.isGHCInstalled",
+                    "group": "6_MSSQL_copilot@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.schemaCompare",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=schemaCompare\\b/",
+                    "group": "7_MSSQL_compareAndDacpac@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.dacpacDialog",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=dacpac\\b/",
+                    "group": "7_MSSQL_compareAndDacpac@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.newNotebook",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=newNotebook\\b/",
+                    "group": "8_MSSQL_sqlProjectsAndNotebooks@2"
+                },
                 {
                     "command": "mssql.objectExplorer.openOverview",
                     "when": "view == objectExplorer && viewItem == overview",
@@ -1187,6 +1399,150 @@
             ],
             "commandPalette": [
                 {
+                    "command": "mssql.objectExplorerV2.showStatus",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.refresh",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.openClassicObjectExplorer",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connect",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.disconnect",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.cancelConnect",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editConnection",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyName",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyQualifiedName",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.filter",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.clearFilters",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.search",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.backupDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.restoreDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.launchProfiler",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.schemaCompare",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editTable",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editTableData",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.schemaDesigner",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.buildDataApi",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.renameDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.dropDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.importData",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyConnectionString",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.chatWithDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.chatWithDatabaseAgent",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.dacpacDialog",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.newNotebook",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.removeConnection",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.addConnection",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.create",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.enableGroupBySchema",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && !config.mssql.objectExplorer.v2.groupBySchema"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.disableGroupBySchema",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && config.mssql.objectExplorer.v2.groupBySchema"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.edit",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.connectionGroups.delete",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.moveToGroup",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.enableLiveQueryStatistics",
                     "when": "mssql.preview.liveQueryStatisticsEnabled"
                 },
@@ -1385,6 +1741,54 @@
                 },
                 {
                     "command": "mssql.buildDataApi",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.getActiveEditorConnectionId",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.getActiveDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.getDatabaseForConnectionId",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.connect",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.disconnect",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.isConnected",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.executeSimpleQuery",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.cancelQuery",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.getServerInfo",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.listDatabases",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.scriptObject",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.sharedConnections.getConnectionString",
                     "when": "false"
                 },
                 {
@@ -1642,6 +2046,238 @@
                 "title": "%mssql.sessionDiag.openStorageFolder%",
                 "category": "MS SQL",
                 "enablement": "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.showStatus",
+                "title": "%mssql.objectExplorerV2.showStatus%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.refresh",
+                "title": "%mssql.objectExplorerV2.refresh%",
+                "category": "MS SQL",
+                "icon": "$(refresh)",
+                "shortTitle": "%mssql.refreshObjectExplorerNode%",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.openClassicObjectExplorer",
+                "title": "%mssql.objectExplorerV2.openClassicObjectExplorer%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.connect",
+                "title": "%mssql.objectExplorerV2.connect%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.disconnect",
+                "title": "%mssql.disconnect%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.cancelConnect",
+                "title": "%mssql.objectExplorerV2.cancelConnect%",
+                "category": "MS SQL",
+                "icon": "$(stop-circle)",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.editConnection",
+                "title": "%mssql.editConnection%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.copyName",
+                "title": "%mssql.objectExplorerV2.copyName%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.copyQualifiedName",
+                "title": "%mssql.copyObjectName%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.filter",
+                "title": "%mssql.objectExplorerV2.filter%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.clearFilters",
+                "title": "%mssql.objectExplorerV2.clearFilters%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.search",
+                "title": "%mssql.searchDatabase%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.backupDatabase",
+                "title": "%mssql.objectExplorerV2.backupDatabase%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.restoreDatabase",
+                "title": "%mssql.objectExplorerV2.restoreDatabase%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.launchProfiler",
+                "title": "%mssql.objectExplorerV2.launchProfiler%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.schemaCompare",
+                "title": "%mssql.objectExplorerV2.schemaCompare%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.editTable",
+                "title": "%mssql.objectExplorerV2.editTable%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.editTableData",
+                "title": "%mssql.objectExplorerV2.editTableData%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.schemaDesigner",
+                "title": "%mssql.objectExplorerV2.schemaDesigner%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.buildDataApi",
+                "title": "%mssql.objectExplorerV2.buildDataApi%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.renameDatabase",
+                "title": "%mssql.objectExplorerV2.renameDatabase%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.dropDatabase",
+                "title": "%mssql.objectExplorerV2.dropDatabase%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.importData",
+                "title": "%mssql.objectExplorerV2.importData%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.copyConnectionString",
+                "title": "%mssql.objectExplorerV2.copyConnectionString%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.chatWithDatabase",
+                "title": "%mssql.objectExplorerV2.chatWithDatabase%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.chatWithDatabaseAgent",
+                "title": "%mssql.objectExplorerV2.chatWithDatabaseAgent%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.dacpacDialog",
+                "title": "%mssql.objectExplorerV2.dacpacDialog%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.newNotebook",
+                "title": "%mssql.objectExplorerV2.newNotebook%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.removeConnection",
+                "title": "%mssql.removeObjectExplorerNode%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.addConnection",
+                "title": "%mssql.addObjectExplorer%",
+                "category": "MS SQL",
+                "icon": {
+                    "light": "media/addNewConnection_light.svg",
+                    "dark": "media/addNewConnection_dark.svg"
+                },
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.connectionGroups.create",
+                "title": "%mssql.connectionGroups.create%",
+                "category": "MS SQL",
+                "icon": "$(new-folder)",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.enableGroupBySchema",
+                "title": "%mssql.objectExplorer.enableGroupBySchema%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/groupBySchemaEnabled_dark.svg",
+                    "light": "media/groupBySchemaEnabled_light.svg"
+                },
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.disableGroupBySchema",
+                "title": "%mssql.objectExplorer.disableGroupBySchema%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/groupBySchemaDisabled_dark.svg",
+                    "light": "media/groupBySchemaDisabled_light.svg"
+                },
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.connectionGroups.edit",
+                "title": "%mssql.objectExplorerV2.connectionGroups.edit%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.connectionGroups.delete",
+                "title": "%mssql.objectExplorerV2.connectionGroups.delete%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.moveToGroup",
+                "title": "%mssql.objectExplorerV2.moveToGroup%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
             },
             {
                 "command": "mssql.runQuery",
@@ -1986,6 +2622,66 @@
             {
                 "command": "mssql.buildDataApi",
                 "title": "%mssql.buildDataApi%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.getActiveEditorConnectionId",
+                "title": "%mssql.sharedConnections.getActiveEditorConnectionId%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.getActiveDatabase",
+                "title": "%mssql.sharedConnections.getActiveDatabase%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.getDatabaseForConnectionId",
+                "title": "%mssql.sharedConnections.getDatabaseForConnectionId%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.connect",
+                "title": "%mssql.sharedConnections.connect%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.disconnect",
+                "title": "%mssql.sharedConnections.disconnect%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.isConnected",
+                "title": "%mssql.sharedConnections.isConnected%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.executeSimpleQuery",
+                "title": "%mssql.sharedConnections.executeSimpleQuery%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.cancelQuery",
+                "title": "%mssql.sharedConnections.cancelQuery%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.getServerInfo",
+                "title": "%mssql.sharedConnections.getServerInfo%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.listDatabases",
+                "title": "%mssql.sharedConnections.listDatabases%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.scriptObject",
+                "title": "%mssql.sharedConnections.scriptObject%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sharedConnections.getConnectionString",
+                "title": "%mssql.sharedConnections.getConnectionString%",
                 "category": "MS SQL"
             },
             {
@@ -2568,6 +3264,12 @@
         ],
         "keybindings": [
             {
+                "command": "mssql.objectExplorerV2.copyQualifiedName",
+                "key": "ctrl+c",
+                "mac": "cmd+c",
+                "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && focusedView == mssql.objectExplorerV2"
+            },
+            {
                 "command": "mssql.runQuery",
                 "key": "ctrl+shift+e",
                 "mac": "cmd+shift+e",
@@ -2608,6 +3310,24 @@
                 "type": "object",
                 "title": "%mssql.Configuration%",
                 "properties": {
+                    "mssql.objectExplorer.v2.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "%mssql.objectExplorer.v2.enabled.description%",
+                        "scope": "application"
+                    },
+                    "mssql.objectExplorer.v2.groupBySchema": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.objectExplorer.v2.groupBySchema.description%",
+                        "scope": "window"
+                    },
+                    "mssql.objectExplorer.v2.showSystemDatabases": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%mssql.objectExplorer.v2.showSystemDatabases.description%",
+                        "scope": "window"
+                    },
                     "mssql.enableExperimentalFeatures": {
                         "type": "boolean",
                         "default": false,
@@ -2884,7 +3604,8 @@
                                     "description": "%mssql.connectionGroup.order%"
                                 }
                             }
-                        }
+                        },
+                        "scope": "resource"
                     },
                     "mssql.connections": {
                         "type": "array",

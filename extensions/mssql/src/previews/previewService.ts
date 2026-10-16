@@ -11,6 +11,7 @@ import * as vscode from "vscode";
  * allowing per-feature overrides of the global `mssql.enableExperimentalFeatures` flag.
  */
 export enum PreviewFeature {
+    AzureSqlContainers = "azureSqlContainers",
     BetaResultsGrid = "betaResultsGrid",
     LiveQueryStatistics = "liveQueryStatistics",
 }
@@ -26,6 +27,7 @@ export enum PrivatePreviewFeature {
     MetadataCache = "mssql.metadataCache.enabled",
     DebugConsole = "mssql.debugConsole.enabled",
     SessionDiagnostics = "mssql.sessionDiag.enabled",
+    ObjectExplorerV2 = "mssql.objectExplorer.v2.enabled",
 }
 
 /**
@@ -38,6 +40,7 @@ export enum PrivatePreviewContextKey {
     MetadataCacheActive = "mssql.privatePreview.metadataCacheActive",
     DebugConsoleActive = "mssql.privatePreview.debugConsoleActive",
     SessionDiagnosticsActive = "mssql.privatePreview.sessionDiagnosticsActive",
+    ObjectExplorerV2Active = "mssql.privatePreview.objectExplorerV2Active",
 }
 
 export const CONFIG_PREVIEW_PREFIX = "mssql.preview.";
@@ -76,6 +79,16 @@ export class PreviewFeaturesService {
             return subFlag;
         }
         return this.experimentalFeaturesEnabled;
+    }
+
+    public get azureSqlContainersEnabled(): boolean {
+        return (
+            vscode.workspace
+                .getConfiguration()
+                .get<
+                    boolean | undefined
+                >(getPreviewConfigKey(PreviewFeature.AzureSqlContainers), false) ?? false
+        );
     }
 
     /**

@@ -159,6 +159,15 @@ export default class ConnectionManager {
     public readonly onSuccessfulConnection: vscode.Event<ConnectionSuccessfulEvent> =
         this._onSuccessfulConnectionEmitter.event;
 
+    private _onDidChangeDatabaseContextEmitter: vscode.EventEmitter<string> =
+        new vscode.EventEmitter<string>();
+    /**
+     * Fires with the owner URI when a connection's database changes without reconnecting, such as
+     * through a `USE` statement.
+     */
+    public readonly onDidChangeDatabaseContext: vscode.Event<string> =
+        this._onDidChangeDatabaseContextEmitter.event;
+
     public initialized: Deferred<void> = new Deferred<void>();
 
     private _entraLogger: ILogger;
@@ -620,6 +629,7 @@ export default class ConnectionManager {
                 );
 
                 self._logger.info(logMessage);
+                self._onDidChangeDatabaseContextEmitter.fire(event.ownerUri);
             }
         };
     }
