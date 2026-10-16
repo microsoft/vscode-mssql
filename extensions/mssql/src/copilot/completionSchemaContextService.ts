@@ -34,13 +34,12 @@ import { DatabaseCatalogLease, MetadataStore } from "../services/metadata/metada
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import {
     prepareConnection,
-    profilePrincipal,
+    buildProfileRef,
     ProfileTokenSource,
     ResolvedAuthKind,
     resolveAuthKind,
     StoredConnectionProfile,
 } from "../services/metadata/profileAuthAdapter";
-import { profileFingerprint } from "../services/metadata/profileFingerprint";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { InlineCompletionDebugSchemaContextOverrides } from "../sharedInterfaces/inlineCompletionDebug";
 import {
@@ -82,6 +81,9 @@ export interface CompletionMetadataResolveOptions {
 
 /** Narrow classic-connection seams (stubbed in tests). */
 export interface ClassicConnectionFacts {
+    id?: string;
+    port?: string | number;
+    savePassword?: boolean;
     server?: string;
     database?: string;
     user?: string;
@@ -142,11 +144,10 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
         }
         // In-memory LRU key only — the store derives the non-reversible
         // fingerprints from the same facts via prepareConnection.
-        const fingerprint = profileFingerprint({
-            ...facts,
-            user: profilePrincipal(facts),
-            authKind,
-        });
+        const fingerprint = JSON.stringify([
+            buildProfileRef(facts).profileFingerprint,
+            facts.id ?? "",
+        ]);
 
         let acquisition = this.acquisitions.get(fingerprint);
         if (!acquisition) {
@@ -188,6 +189,9 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
         try {
             const stored: StoredConnectionProfile = {
                 server: facts.server!,
+                ...(facts.id !== undefined ? { id: facts.id } : {}),
+                ...(facts.port !== undefined ? { port: facts.port } : {}),
+                ...(facts.savePassword !== undefined ? { savePassword: facts.savePassword } : {}),
                 ...(facts.database ? { database: facts.database } : {}),
                 ...(facts.user ? { user: facts.user } : {}),
                 ...(facts.email ? { email: facts.email } : {}),

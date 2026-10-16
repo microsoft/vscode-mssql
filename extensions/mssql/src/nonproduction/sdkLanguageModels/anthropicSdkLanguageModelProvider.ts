@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as LocalizedConstants from "../../constants/locConstants";
 import Anthropic, { type ClientOptions } from "@anthropic-ai/sdk";
 import type {
     Message,
@@ -187,20 +188,22 @@ export class AnthropicSdkLanguageModelProvider extends SdkLanguageModelProviderB
 export function mapAnthropicError(error: unknown): vscode.LanguageModelError {
     if (error instanceof Anthropic.AuthenticationError) {
         return vscode.LanguageModelError.NoPermissions(
-            "Anthropic API authentication failed. Check your API key.",
+            LocalizedConstants.copilotSdkAuthenticationFailed("Anthropic"),
         );
     }
     if (error instanceof Anthropic.RateLimitError) {
-        return vscode.LanguageModelError.Blocked("Anthropic API rate limit exceeded.");
+        return vscode.LanguageModelError.Blocked(
+            LocalizedConstants.copilotSdkRateLimitExceeded("Anthropic"),
+        );
     }
     if (error instanceof Anthropic.BadRequestError) {
         return new vscode.LanguageModelError(
-            `Anthropic API rejected the request: ${error.message}`,
+            LocalizedConstants.copilotSdkRequestRejected("Anthropic", error.message),
         );
     }
     if (error instanceof Anthropic.APIError) {
         return new vscode.LanguageModelError(
-            `Anthropic API error (${error.status}): ${error.message}`,
+            LocalizedConstants.copilotSdkApiError("Anthropic", error.status, error.message),
         );
     }
     return new vscode.LanguageModelError(getSdkErrorMessage(error));

@@ -100,6 +100,15 @@ suite("Non-production build channels", () => {
             ),
         );
 
+        // Reverse ownership checks catch new SDK contributions omitted from the stripping map.
+        const sdk = contributions.sdkLanguageModels;
+        const owned = (ids: Iterable<string>) =>
+            [...ids].filter((id) => id.startsWith("mssql.copilot.sdkProviders."));
+        expect(owned(declaredSettings)).to.have.members(sdk.configuration ?? []);
+        expect(owned(declaredCommands)).to.have.members(sdk.commands ?? []);
+        expect(owned(paletteCommands)).to.have.members(sdk.commands ?? []);
+        expect([...declaredProviders]).to.have.members(sdk.languageModelChatProviders ?? []);
+
         for (const [area, spec] of Object.entries(contributions)) {
             if (area.startsWith("$")) {
                 continue;

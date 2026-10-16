@@ -161,7 +161,7 @@ export abstract class SdkLanguageModelProviderBase {
             if (!apiKey) {
                 this.sendErrorTelemetry("auth");
                 throw vscode.LanguageModelError.NoPermissions(
-                    `${this.providerLabel} API key is not configured.`,
+                    LocalizedConstants.copilotSdkKeyNotConfigured(this.providerLabel),
                 );
             }
 
@@ -245,7 +245,7 @@ export abstract class SdkLanguageModelProviderBase {
     protected assertEnabled(): void {
         if (!this.isEnabled()) {
             throw vscode.LanguageModelError.NoPermissions(
-                `${this.providerLabel} SDK language models are disabled.`,
+                LocalizedConstants.copilotSdkProviderDisabled(this.providerLabel),
             );
         }
     }

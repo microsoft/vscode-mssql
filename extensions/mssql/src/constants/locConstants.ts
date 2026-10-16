@@ -6100,3 +6100,18 @@ export function inlineCompletionTraceSaveFailed(errorMessage: string): string {
 
 export const inlineCompletionTraceOpenFolder = l10n.t("Open folder");
 export const inlineCompletionTraceOpenOutput = l10n.t("Open output");
+
+export const copilotSdkAuthenticationFailed = (provider: string) =>
+    l10n.t("{0} API authentication failed. Check your API key.", provider);
+export const copilotSdkRateLimitExceeded = (provider: string) =>
+    l10n.t("{0} API rate limit exceeded.", provider);
+export const copilotSdkRequestRejected = (provider: string, message: string) =>
+    l10n.t("{0} API rejected the request: {1}", provider, message);
+export const copilotSdkApiError = (provider: string, status: number | undefined, message: string) =>
+    l10n.t("{0} API error ({1}): {2}", provider, String(status), message);
+export const copilotSdkKeyNotConfigured = (provider: string) =>
+    l10n.t("{0} API key is not configured.", provider);
+export const copilotSdkProviderDisabled = (provider: string) =>
+    l10n.t("{0} SDK language models are disabled.", provider);
+export const copilotSdkTextOnly = (provider: string) =>
+    l10n.t("{0} only handles text content.", provider);

@@ -120,6 +120,8 @@ export class SqlInlineCompletionProvider
 {
     private readonly _logger = logger.withPrefix("SqlInlineCompletion");
     private readonly _disposables: vscode.Disposable[] = [];
+    private readonly _activeRequests = new Set<vscode.CancellationTokenSource>();
+    private _disposed = false;
     private readonly _cachedModels = new Map<string, vscode.LanguageModelChat | undefined>();
     private _recentAcceptedIntentCompletion: RecentAcceptedIntentCompletion | undefined;
 
@@ -132,6 +134,9 @@ export class SqlInlineCompletionProvider
                 this.clearModelCache();
             }),
             vscode.workspace.onDidChangeConfiguration((e) => {
+                if (!isInlineCompletionFeatureEnabled()) {
+                    for (const request of this._activeRequests) request.cancel();
+                }
                 if (
                     e.affectsConfiguration(Constants.configCopilotInlineCompletionsProfile) ||
                     e.affectsConfiguration(Constants.configCopilotInlineCompletionsModelFamily) ||
@@ -157,11 +162,39 @@ export class SqlInlineCompletionProvider
     }
 
     public dispose(): void {
+        this._disposed = true;
+        for (const request of this._activeRequests) request.cancel();
         this._disposables.forEach((d) => d.dispose());
         this.clearModelCache();
     }
 
     public async provideInlineCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        context: vscode.InlineCompletionContext,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.InlineCompletionItem[] | vscode.InlineCompletionList> {
+        if (this._disposed || !this.isEnabledForDocument(document) || token.isCancellationRequested)
+            return [];
+        const request = new vscode.CancellationTokenSource();
+        const cancellation = token.onCancellationRequested(() => request.cancel());
+        this._activeRequests.add(request);
+        try {
+            if (token.isCancellationRequested) request.cancel();
+            return await this.provideInlineCompletionItemsCore(
+                document,
+                position,
+                context,
+                request.token,
+            );
+        } finally {
+            this._activeRequests.delete(request);
+            cancellation.dispose();
+            request.dispose();
+        }
+    }
+
+    private async provideInlineCompletionItemsCore(
         document: vscode.TextDocument,
         position: vscode.Position,
         context: vscode.InlineCompletionContext,
@@ -650,6 +683,10 @@ export class SqlInlineCompletionProvider
                 }
             }
 
+            if (token.isCancellationRequested || !this.isEnabledForDocument(document)) {
+                recordDebugEvent("cancelled");
+                return [];
+            }
             recordPendingStage("waitingForModelResponse");
             modelCallStarted = true;
             const response = await withTimeout(
@@ -709,6 +746,8 @@ export class SqlInlineCompletionProvider
             finalCompletionText = normalizeCompletionEndOfLine(finalCompletionText, document.eol);
 
             if (
+                token.isCancellationRequested ||
+                !this.isEnabledForDocument(document) ||
                 document.version !== requestDocumentVersion ||
                 document.offsetAt(position) !== requestOffset
             ) {

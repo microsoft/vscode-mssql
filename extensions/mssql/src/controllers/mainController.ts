@@ -1245,6 +1245,9 @@ export default class MainController implements vscode.Disposable {
                     return undefined;
                 }
                 return {
+                    id: (credentials as IConnectionProfile).id,
+                    port: credentials.port,
+                    savePassword: (credentials as IConnectionProfile).savePassword,
                     server: credentials.server,
                     database: credentials.database,
                     user: credentials.user,

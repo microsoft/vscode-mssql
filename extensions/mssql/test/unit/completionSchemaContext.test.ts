@@ -294,6 +294,58 @@ suite("Completion schema context bridge (MD-4 golden parity)", () => {
         expect(disposeCalls).to.equal(1);
     });
 
+    test("classic resolver preserves profile credentials and separates custom-port acquisitions", async () => {
+        const snapshot = fixtureSnapshot();
+        let port = 1444;
+        const endpoints: string[] = [];
+        const credentialIds: Array<string | undefined> = [];
+        const lease = {
+            ensureFresh: async () => ({
+                snapshot,
+                generation: snapshot.generation,
+                source: "memory",
+                freshness: "validated",
+                waitedMs: 0,
+            }),
+            dispose: () => {},
+        };
+        const resolver = new ClassicCompletionMetadataResolver(
+            {
+                getConnectionFacts: () => ({
+                    id: "saved-profile",
+                    server: "localhost",
+                    port,
+                    database: "Db1",
+                    user: "sa",
+                    authenticationType: "SqlLogin",
+                }),
+                lookupPassword: async (facts) => {
+                    credentialIds.push(facts.id);
+                    return "password";
+                },
+            },
+            undefined,
+            () => ({
+                acquireDatabase: async (prepared) => {
+                    endpoints.push(prepared.profileRef.server);
+                    expect(await prepared.auth.passwordProvider!()).to.equal("password");
+                    return lease as unknown as DatabaseCatalogLease;
+                },
+            }),
+            () => true,
+        );
+        try {
+            const document = { uri: { toString: () => "file:///query.sql" } } as never;
+            await resolver.resolve(document);
+            port = 1555;
+            await resolver.resolve(document);
+            expect(endpoints).to.deep.equal(["localhost,1444", "localhost,1555"]);
+            expect(credentialIds).to.deep.equal(["saved-profile", "saved-profile"]);
+        } finally {
+            resolver.dispose();
+        }
+    });
+
     test("classic resolver disposes a lease that arrives after resolver disposal", async () => {
         let completeAcquire: ((lease: DatabaseCatalogLease) => void) | undefined;
         let disposeCalls = 0;

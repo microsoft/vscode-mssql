@@ -36,9 +36,16 @@ suite("SqlInlineCompletionProvider Tests", () => {
     let configuredModelFamily: string;
     let modelVendors: string[];
     let enabledCategories: string[];
+    let requestCancellation: vscode.CancellationTokenSource;
+    let configurationChanged: (event: vscode.ConfigurationChangeEvent) => unknown;
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        requestCancellation = new vscode.CancellationTokenSource();
+        sandbox.stub(vscode.workspace, "onDidChangeConfiguration").callsFake((listener) => {
+            configurationChanged = listener;
+            return { dispose: () => {} };
+        });
         stubTelemetry(sandbox);
         experimentalFeaturesEnabled = true;
         inlineCompletionFeatureEnabled = true;
@@ -108,6 +115,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
 
     teardown(() => {
         provider.dispose();
+        requestCancellation.dispose();
         inlineCompletionDebugStore.clearEvents();
         inlineCompletionDebugStore.setPanelOpen(false);
         inlineCompletionDebugStore.replaceOverrides({
@@ -124,6 +132,45 @@ suite("SqlInlineCompletionProvider Tests", () => {
             allowAutomaticTriggers: null,
         });
         sandbox.restore();
+    });
+
+    test("disabling the feature during schema work prevents model submission", async () => {
+        schemaContextService.getSchemaContext.callsFake(async () => {
+            inlineCompletionFeatureEnabled = false;
+            return undefined;
+        });
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, 8),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+                selectedCompletionInfo: undefined,
+            },
+            requestCancellation.token,
+        );
+        expect(items).to.deep.equal([]);
+        expect(sendRequestStub).not.to.have.been.called;
+    });
+
+    test("disabling the gate cancels an in-flight request and discards its response", async () => {
+        schemaContextService.getSchemaContext.resolves(undefined);
+        sendRequestStub.callsFake(async (_messages, _options, token: vscode.CancellationToken) => {
+            experimentalFeaturesEnabled = false;
+            configurationChanged({ affectsConfiguration: () => true });
+            expect(token.isCancellationRequested).to.equal(true);
+            return createChatResponse("FROM dbo.Customers");
+        });
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, 8),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+                selectedCompletionInfo: undefined,
+            },
+            requestCancellation.token,
+        );
+        expect(items).to.deep.equal([]);
+        expect(sendRequestStub).to.have.been.calledOnce;
     });
 
     test("includes active editor schema context in the language model prompt", async () => {
@@ -145,7 +192,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.have.lengthOf(1);
@@ -175,7 +222,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         const messages: vscode.LanguageModelChatMessage[] = sendRequestStub.firstCall.args[0];
@@ -198,7 +245,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.have.lengthOf(1);
@@ -218,7 +265,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(schemaContextService.getSchemaContext).to.not.have.been.called;
@@ -239,7 +286,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
                 {
                     triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
                 } as vscode.InlineCompletionContext,
-                { isCancellationRequested: false } as vscode.CancellationToken,
+                requestCancellation.token,
             );
 
             expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal(
@@ -261,7 +308,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal(" AS CustomerName");
@@ -288,7 +335,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal(".databases");
@@ -306,7 +353,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal("databases");
@@ -323,7 +370,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal("dbo.Customers");
@@ -340,7 +387,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal(
@@ -361,7 +408,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal(
@@ -380,7 +427,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal(
@@ -408,7 +455,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         const userMessageText = getMessageText(sendRequestStub.firstCall.args[0][1]);
@@ -452,7 +499,7 @@ ORDER BY qs.execution_count DESC`;
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -479,7 +526,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -500,7 +547,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         const requestOptions = sendRequestStub.firstCall.args[1];
@@ -522,7 +569,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         const event = inlineCompletionDebugStore.getEvents()[0];
@@ -547,7 +594,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.have.lengthOf(1);
@@ -564,7 +611,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -580,7 +627,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -596,7 +643,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -612,7 +659,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -629,7 +676,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -645,7 +692,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -661,7 +708,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -677,7 +724,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -695,7 +742,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.have.lengthOf(1);
@@ -741,7 +788,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         await provider.provideInlineCompletionItems(
@@ -750,7 +797,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(continuationSendRequest).to.have.been.calledOnce;
@@ -779,7 +826,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(configuredSendRequest).to.have.been.calledOnce;
@@ -795,7 +842,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(
@@ -837,7 +884,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.have.lengthOf(1);
@@ -930,7 +977,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.have.lengthOf(1);
@@ -952,7 +999,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.have.lengthOf(1);
@@ -971,7 +1018,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -989,7 +1036,7 @@ ORDER BY qs.total_worker_time DESC;`,
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.have.lengthOf(1);
@@ -1028,7 +1075,7 @@ ORDER BY s.login_time DESC;`;
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -1052,7 +1099,7 @@ ORDER BY s.login_time DESC;`;
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.have.lengthOf(1);
@@ -1095,7 +1142,7 @@ ORDER BY qs.total_worker_time DESC;`;
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.have.lengthOf(1);
@@ -1133,7 +1180,7 @@ ORDER BY qs.total_worker_time DESC;`;
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal("SELECT\r\n    1;");
@@ -1153,7 +1200,7 @@ ORDER BY qs.total_worker_time DESC;`;
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);
@@ -1184,7 +1231,7 @@ ORDER BY qs.total_worker_time DESC;`;
             {
                 triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
             } as vscode.InlineCompletionContext,
-            { isCancellationRequested: false } as vscode.CancellationToken,
+            requestCancellation.token,
         );
 
         expect(items).to.deep.equal([]);

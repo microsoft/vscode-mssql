@@ -3,11 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as fs from "fs";
+import * as path from "path";
+import { inlineCompletionDebugStore } from "../../src/copilot/inlineCompletionDebug/inlineCompletionDebugStore";
+import { InlineCompletionDebugEvent } from "../../src/sharedInterfaces/inlineCompletionDebug";
+import { stubExtensionContext } from "./utils";
 import * as vscode from "vscode";
 import { expect } from "chai";
 import * as sinon from "sinon";
 import * as Constants from "../../src/constants/constants";
 import {
+    saveInlineCompletionTraceOnDeactivate,
+    saveInlineCompletionTraceNow,
     DEFAULT_TRACE_FOLDER_NAME,
     DEFAULT_TRACE_MAX_FILE_SIZE_MB,
     getConfiguredTraceFolder,
@@ -23,6 +30,38 @@ suite("Inline completion trace persistence", () => {
     });
 
     teardown(() => sandbox.restore());
+
+    test("shutdown logs save failures without waiting for interactive UI", async () => {
+        const configuration = {
+            get: (key: string, fallback: unknown) =>
+                key === Constants.configCopilotInlineCompletionsTraceCaptureEnabled
+                    ? true
+                    : fallback,
+        } as vscode.WorkspaceConfiguration;
+        sandbox.stub(vscode.workspace, "getConfiguration").returns(configuration);
+        const fixture = JSON.parse(
+            fs.readFileSync(
+                path.resolve(
+                    __dirname,
+                    "../../../test/unit/fixtures/inlineCompletionTraces/mssql-copilot-trace-2026-04-01T03-36-23-841Z.json",
+                ),
+                "utf8",
+            ),
+        ) as { events: InlineCompletionDebugEvent[] };
+        sandbox.stub(inlineCompletionDebugStore, "getEvents").returns(fixture.events);
+        sandbox.stub(fs.promises, "mkdir").rejects(new Error("write denied"));
+        const warning = sandbox.stub(vscode.window, "showWarningMessage").resolves(undefined);
+        const context = {
+            ...stubExtensionContext(sandbox),
+            globalStorageUri: vscode.Uri.file(path.resolve("test-trace-storage")),
+        };
+        expect((await saveInlineCompletionTraceOnDeactivate(context)).error).to.include(
+            "write denied",
+        );
+        expect(warning).not.to.have.been.called;
+        expect((await saveInlineCompletionTraceNow(context)).error).to.include("write denied");
+        expect(warning).to.have.been.calledOnce;
+    });
 
     test("relative configured trace folders fall back to extension storage", () => {
         sandbox.stub(vscode.workspace, "getConfiguration").returns({

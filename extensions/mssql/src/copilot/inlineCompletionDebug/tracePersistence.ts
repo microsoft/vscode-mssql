@@ -35,12 +35,15 @@ export async function saveInlineCompletionTraceOnDeactivate(
         return { skipped: "captureDisabled" };
     }
 
-    return saveInlineCompletionTraceNow(context, { skipIfEmpty: true });
+    return saveInlineCompletionTraceNow(context, {
+        skipIfEmpty: true,
+        showErrorNotification: false,
+    });
 }
 
 export async function saveInlineCompletionTraceNow(
     context: vscode.ExtensionContext,
-    options: { skipIfEmpty?: boolean } = {},
+    options: { skipIfEmpty?: boolean; showErrorNotification?: boolean } = {},
 ): Promise<SaveInlineCompletionTraceResult> {
     const events = inlineCompletionDebugStore.getEvents();
     if (events.length === 0 && options.skipIfEmpty) {
@@ -70,7 +73,9 @@ export async function saveInlineCompletionTraceNow(
     } catch (error) {
         const message = LocalizedConstants.inlineCompletionTraceSaveFailed(getErrorMessage(error));
         traceLogger.warn(message);
-        await showTraceWriteWarning(folder, message);
+        if (options.showErrorNotification !== false) {
+            await showTraceWriteWarning(folder, message);
+        }
         return { error: message };
     }
 }

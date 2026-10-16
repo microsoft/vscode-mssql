@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as LocalizedConstants from "../../constants/locConstants";
 import type { MessageParam } from "@anthropic-ai/sdk/resources/messages";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
@@ -80,7 +81,9 @@ export function textOfMessage(
                 return part.value;
             }
 
-            throw new vscode.LanguageModelError(`${providerLabel} only handles text content.`);
+            throw new vscode.LanguageModelError(
+                LocalizedConstants.copilotSdkTextOnly(providerLabel),
+            );
         })
         .join("");
 }

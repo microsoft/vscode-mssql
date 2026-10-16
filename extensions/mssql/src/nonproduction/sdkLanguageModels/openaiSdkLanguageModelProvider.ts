@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as LocalizedConstants from "../../constants/locConstants";
 import OpenAI, { type ClientOptions } from "openai";
 import type {
     ChatCompletionChunk,
@@ -158,18 +159,22 @@ export class OpenAiSdkLanguageModelProvider extends SdkLanguageModelProviderBase
 export function mapOpenAiError(error: unknown): vscode.LanguageModelError {
     if (error instanceof OpenAI.AuthenticationError) {
         return vscode.LanguageModelError.NoPermissions(
-            "OpenAI API authentication failed. Check your API key.",
+            LocalizedConstants.copilotSdkAuthenticationFailed("OpenAI"),
         );
     }
     if (error instanceof OpenAI.RateLimitError) {
-        return vscode.LanguageModelError.Blocked("OpenAI API rate limit exceeded.");
+        return vscode.LanguageModelError.Blocked(
+            LocalizedConstants.copilotSdkRateLimitExceeded("OpenAI"),
+        );
     }
     if (error instanceof OpenAI.BadRequestError) {
-        return new vscode.LanguageModelError(`OpenAI API rejected the request: ${error.message}`);
+        return new vscode.LanguageModelError(
+            LocalizedConstants.copilotSdkRequestRejected("OpenAI", error.message),
+        );
     }
     if (error instanceof OpenAI.APIError) {
         return new vscode.LanguageModelError(
-            `OpenAI API error (${error.status}): ${error.message}`,
+            LocalizedConstants.copilotSdkApiError("OpenAI", error.status, error.message),
         );
     }
     return new vscode.LanguageModelError(getSdkErrorMessage(error));

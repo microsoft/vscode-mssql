@@ -11727,8 +11727,17 @@
       <note>{0} is the one-based position of the selected schema difference
 {1} is the total number of visible schema differences</note>
     </trans-unit>
+    <trans-unit id="++CODE++244e9a452ed5b376bb0ec7d5161e489ab950a8c7a0ba8948d811b32e4d5f8288">
+      <source xml:lang="en">{0} API authentication failed. Check your API key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c3867ba3d8cd0840155273f7fa073ae0451a6df0bca76bf7627c1514b38f77aa">
+      <source xml:lang="en">{0} API error ({1}): {2}</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d131b652d4b61f23ff665b992750c048e308d44dc7923de015b26c8c9936d55">
       <source xml:lang="en">{0} API key cleared.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++413af4e4cb880de3929c3b716dd474c0c34c93bd5ac5fd13617f8b2e049aac1f">
+      <source xml:lang="en">{0} API key is not configured.</source>
     </trans-unit>
     <trans-unit id="++CODE++1f60f2e72dfdce2d9dc7dd22a95f9694b30c2e7cab120be5b5ec2eb27f2aaad2">
       <source xml:lang="en">{0} API key is required.</source>
@@ -11739,8 +11748,17 @@
     <trans-unit id="++CODE++0599d0e3e836977c1b39f76d9d7f9344fdd1b44528c77f7074841f03660740de">
       <source xml:lang="en">{0} API keys should start with {1}.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7844bdb12977316627ffb76c9269a7d9613640056e0bc26cf90c355ef8c82c0b">
+      <source xml:lang="en">{0} API rate limit exceeded.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++963fab3eafe241de93abaf81c5a3ec2b0978451431dd6ba347ecbbed6f4d08fc">
+      <source xml:lang="en">{0} API rejected the request: {1}</source>
+    </trans-unit>
     <trans-unit id="++CODE++08fefe04a78a12b9e4ac61ac107a5237d5d6993e0dc8c6706949b4c9fe54ca6f">
       <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2e4a8d54824349107a9f32cd027c66548aab1cb7024d6bcc83a7aecb2792160a">
+      <source xml:lang="en">{0} SDK language models are disabled.</source>
     </trans-unit>
     <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
       <source xml:lang="en">{0} accounts</source>
@@ -11913,6 +11931,9 @@
       <source xml:lang="en">{0} of {1} tenants</source>
       <note>{0} is the number of tenants with active sessions
 {1} is the total number of tenants</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9ac25cdb59fa0a68ad388e03e48c5feaa9317b37ed9fdc7cb07c3d93fb8e7b8e">
+      <source xml:lang="en">{0} only handles text content.</source>
     </trans-unit>
     <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
       <source xml:lang="en">{0} password doesn&apos;t match the confirmation password</source>
