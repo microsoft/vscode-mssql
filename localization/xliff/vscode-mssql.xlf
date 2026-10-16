@@ -10465,6 +10465,9 @@
       <source xml:lang="en">The template file &apos;{0}&apos; already exists. What would you like to do?</source>
       <note>{0} is a file path relative to the workspace folder.</note>
     </trans-unit>
+    <trans-unit id="++CODE++1792bff72798c3e74a516cb1dfb348359aac3f479d29bb080125f0ba1ff92312">
+      <source xml:lang="en">The trace file size limit is too small to store trace metadata.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ffddd09d152fe9f3cba52295dbe9d9d805bebbd5f293342539031ed1be27b70e">
       <source xml:lang="en">The workspace already has a dev container configuration.</source>
     </trans-unit>

@@ -113,6 +113,29 @@ suite("AnthropicSdkLanguageModelProvider", () => {
         expect(showInformationMessage.called).to.equal(false);
     });
 
+    test("cancellation during key resolution does not start a response stream", async () => {
+        const context = createSdkExtensionContext();
+        const source = new vscode.CancellationTokenSource();
+        sandbox.stub(context.secrets, "get").callsFake(async () => {
+            source.cancel();
+            return "sk-test";
+        });
+        const stream = sandbox.stub();
+        const provider = new AnthropicSdkLanguageModelProvider(context, {
+            apiKeys: new SdkApiKeyResolver(context),
+            clientFactory: () => createClient(stream),
+        });
+        await provider.provideLanguageModelChatResponse(
+            defaultModel(),
+            [vscode.LanguageModelChatMessage.User("rules")],
+            {},
+            { report: sandbox.stub() },
+            source.token,
+        );
+        expect(stream.called).to.equal(false);
+        source.dispose();
+    });
+
     test("user-defined additional models appear in the catalog", async () => {
         configuration[Constants.configCopilotSdkProvidersAnthropicAdditionalModels] = [
             {

@@ -2975,6 +2975,7 @@
     "{0} API rate limit exceeded.": "{0} API rate limit exceeded.",
     "{0} API rejected the request: {1}": "{0} API rejected the request: {1}",
     "{0} API error ({1}): {2}": "{0} API error ({1}): {2}",
+    "The trace file size limit is too small to store trace metadata.": "The trace file size limit is too small to store trace metadata.",
     "{0} API key is not configured.": "{0} API key is not configured.",
     "{0} SDK language models are disabled.": "{0} SDK language models are disabled.",
     "{0} only handles text content.": "{0} only handles text content.",

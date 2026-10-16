@@ -6109,6 +6109,9 @@ export const copilotSdkRequestRejected = (provider: string, message: string) =>
     l10n.t("{0} API rejected the request: {1}", provider, message);
 export const copilotSdkApiError = (provider: string, status: number | undefined, message: string) =>
     l10n.t("{0} API error ({1}): {2}", provider, String(status), message);
+export const inlineCompletionTraceSizeTooSmall = l10n.t(
+    "The trace file size limit is too small to store trace metadata.",
+);
 export const copilotSdkKeyNotConfigured = (provider: string) =>
     l10n.t("{0} API key is not configured.", provider);
 export const copilotSdkProviderDisabled = (provider: string) =>
