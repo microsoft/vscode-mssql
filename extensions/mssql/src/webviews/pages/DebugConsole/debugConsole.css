@@ -98,8 +98,10 @@ body,
     display: flex;
     align-items: center;
     gap: 6px;
-    border: 1px solid var(--dc-input-border);
-    background: var(--dc-input-bg);
+    border: 1px solid var(--vscode-dropdown-border, var(--dc-input-border));
+    background: var(--vscode-dropdown-background, var(--dc-input-bg));
+    color: var(--vscode-dropdown-foreground, var(--dc-text));
+    font-family: inherit;
     border-radius: 5px;
     height: 28px;
     padding: 0 8px;
