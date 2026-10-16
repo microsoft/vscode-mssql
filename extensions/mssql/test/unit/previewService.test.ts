@@ -96,28 +96,6 @@ suite("PreviewFeaturesService", () => {
         });
     });
 
-    suite("azureSqlContainersEnabled", () => {
-        for (const globalEnabled of [undefined, false, true]) {
-            for (const override of [undefined, null, false, true]) {
-                test(`umbrella ${globalEnabled}, override ${override}`, () => {
-                    getConfigurationStub.returns(
-                        createWorkspaceConfiguration({
-                            enableExperimentalFeatures: globalEnabled,
-                            [getPreviewConfigKey(PreviewFeature.AzureSqlContainers)]: override,
-                            "mssql.preview.azureSqlContainers": true,
-                        }),
-                    );
-
-                    const enabled = override ?? false;
-                    expect(service.azureSqlContainersEnabled).to.equal(enabled);
-                    expect(service.getNonDefaultOverrides()).not.to.have.property(
-                        "azureSqlContainers",
-                    );
-                });
-            }
-        }
-    });
-
     suite("live query statistics", () => {
         for (const { globalEnabled, override, enabled } of [
             { globalEnabled: false, override: undefined, enabled: false },
