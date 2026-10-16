@@ -258,8 +258,7 @@ export class Links {
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const feedbackUrl = "https://aka.ms/vscode-mssql-bug";
-export const connectionSharingFeatureRequestUrl =
-    "https://github.com/microsoft/vscode-mssql/issues/new?template=2-mssql-feature-request.yml";
+export const connectionSharingMigrationGuideUrl = "https://aka.ms/mssql-connection-sharing";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
 export const createDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
@@ -471,11 +470,8 @@ export const AzureSqlServerName = "Azure SQL server";
 export const DefaultSqlPortNumber = "1433";
 export const DefaultAdminUsername = "sa";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
-export const internalConnectionSharingExtensionIds: ReadonlySet<string> = new Set([
-    extensionId,
-    "ms-mssql.sql-notebook-controller",
-    "microsoft.schema-compare",
-]);
+export const sharedConnectionsAuthenticationProviderId = "mssql-shared-connections";
+export const sharedConnectionsCommandPrefix = "mssql.sharedConnections.";
 export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";

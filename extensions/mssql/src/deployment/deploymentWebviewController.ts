@@ -39,6 +39,7 @@ import {
 } from "../sharedInterfaces/azureSqlDatabase";
 import { findFirstFavoriteOption } from "../sharedInterfaces/form";
 import * as azureSql from "./azureSqlHelpers";
+import { previewService } from "../previews/previewService";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
 const DEPLOYMENT_FAVORITES_STATE_KEY = "mssql.deploymentResourceFavorites";
@@ -84,6 +85,7 @@ export class DeploymentWebviewController extends FormWebviewController<
             this.state.formState.groupId = initialConnectionGroup;
         }
         this.state.initialDeploymentType = initialDeploymentType;
+        this.state.isAzureSqlContainerEnabled = previewService.azureSqlContainersEnabled;
         this.state.connectionGroupOptions =
             await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
         this.registerRpcHandlers();
@@ -301,7 +303,9 @@ export class DeploymentWebviewController extends FormWebviewController<
         localContainers.registerLocalContainersReducers(this);
         fabricProvisioning.registerFabricProvisioningReducers(this);
         azureSqlDatabase.registerAzureSqlDatabaseReducers(this);
-        azureSql.registerAzureSqlRpcHandlers(this);
+        if (previewService.azureSqlContainersEnabled) {
+            azureSql.registerAzureSqlRpcHandlers(this);
+        }
     }
 
     private applyFavoritesToFormComponents(state: DeploymentWebviewState): void {

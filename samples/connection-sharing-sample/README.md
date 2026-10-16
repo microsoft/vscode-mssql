@@ -1,29 +1,105 @@
 # Connection Sharing Sample Extension
 
-> [!WARNING]
-> **Deprecated:** The MSSQL connection sharing API and commands demonstrated by this sample will be retired and will not be available in a future release. Existing integrations will continue to work until then, but extension authors should remove this dependency and avoid adopting it for new integrations.
+A VS Code extension that demonstrates how to use the **MSSQL extension's shared connections API** (`IExtension.getSharedConnectionsApi`) to work with SQL Server connections from your own extension.
 
-A VS Code extension that demonstrates how to use the **MSSQL Extension's Connection Sharing API** to interact with SQL Server databases from within your own extensions.
+## How it works
 
-## 📋 Overview
+The MSSQL extension registers a VS Code authentication provider. Before your extension uses a connection, it requests a session from that provider. The first time, VS Code asks the user whether to allow your extension, and the user can revoke access later from the **Accounts** menu. Pass the session's access token to every API call.
 
-This sample extension showcases two different approaches to leverage database connections established by the MSSQL extension:
+Access tokens expire an hour after they're issued, so request the session each time your extension uses the API instead of storing the token. Once the user has allowed your extension, VS Code returns a new token without prompting.
 
-1. **Command-based approach** - Using VS Code's command execution system
-2. **Direct API approach** - Using the MSSQL extension's exported API directly
+```ts
+const mssqlExtension = vscode.extensions.getExtension<mssql.IExtension>("ms-mssql.mssql");
+if (!mssqlExtension) {
+    return; // The MSSQL extension isn't installed.
+}
+const api = (await mssqlExtension.activate()).getSharedConnectionsApi(1);
 
-## To run:
+const session = await vscode.authentication.getSession(api.authenticationProviderId, [], {
+    createIfNone: true,
+});
 
-1. Compile the mssql extension by running from the repository root:
+const connectionId = await api.getActiveEditorConnectionId(session.accessToken);
+if (!connectionId) {
+    return; // The active editor isn't connected.
+}
+const connectionUri = await api.connect(session.accessToken, connectionId);
+try {
+    const result = await api.executeSimpleQuery(session.accessToken, connectionUri, "SELECT 1");
+} finally {
+    await api.disconnect(session.accessToken, connectionUri);
+}
+```
+
+Methods that take a connection URI accept only URIs that `connect` returned for the same session. If the user signs out, the connections the session opened are closed and the token stops working; request a new session to continue.
+
+`getSharedConnectionsApi` takes the API version your extension was written against. A version changes only for breaking changes, and earlier versions keep working alongside newer ones until they're retired. Asking for a version that the installed MSSQL extension doesn't support throws.
+
+### Reacting to connection changes
+
+`onDidChangeActiveEditorConnection` fires when the active editor's connection or database changes: switching editors, connecting or disconnecting, or changing database with the database picker or `USE`. It carries no details, so subscribing needs no access token; read the new state with a fresh one.
+
+```ts
+context.subscriptions.push(
+    api.onDidChangeActiveEditorConnection(async () => {
+        const session = await vscode.authentication.getSession(api.authenticationProviderId, [], {
+            silent: true,
+        });
+        if (!session) {
+            return; // The user hasn't allowed this extension.
+        }
+        const connectionId = await api.getActiveEditorConnectionId(session.accessToken);
+        const database = await api.getActiveDatabase(session.accessToken);
+    }),
+);
+```
+
+The sample's **ConnSharing: Watch the active editor's connection** command shows the active database in the status bar this way. Events aren't available as commands.
+
+### Using commands
+
+Each method is also available as a command named `mssql.sharedConnections.<method>`, which takes the same arguments, access token first. Commands let you use the API without depending on the MSSQL extension's exports or typings, and calling one activates the MSSQL extension if needed. Request the session from the `mssql-shared-connections` provider:
+
+```ts
+const session = await vscode.authentication.getSession("mssql-shared-connections", [], {
+    createIfNone: true,
+});
+
+const connectionId = await vscode.commands.executeCommand<string | undefined>(
+    "mssql.sharedConnections.getActiveEditorConnectionId",
+    session.accessToken,
+);
+```
+
+## Migrating from the older API
+
+`IExtension.connectionSharing` and the `mssql.connectionSharing.*` commands are deprecated. They identify the caller by an extension ID that the caller passes in, which the MSSQL extension can't verify. To migrate:
+
+1. Request a session as shown above. Use `{ createIfNone: true }` when the user starts an action, or `{ silent: true }` to check for access without prompting.
+2. Replace `connectionSharing` with `getSharedConnectionsApi(1)`, or the `mssql.connectionSharing.*` commands with `mssql.sharedConnections.*`. The `scriptOperation` command is now `scriptObject`, matching the method.
+3. Pass `session.accessToken` where you passed your extension ID, and add it as the first argument to the methods that take a connection URI (`disconnect`, `isConnected`, `executeSimpleQuery`, `cancelQuery`, `getServerInfo`, `listDatabases`, `scriptObject`).
+4. `disconnect`, `isConnected`, and `getServerInfo` now return promises.
+5. Remove calls to `editConnectionSharingPermissions` and `clearAllConnectionSharingPermissions`; they have no replacement. The user manages access from the **Accounts** menu: **Manage Trusted Extensions** for individual extensions, or signing out of the **Shared connections** account under **SQL Server (mssql)** to revoke access for all of them.
+
+## To run
+
+1. Build the MSSQL extension by running from the repository root:
 
 ```bash
 npm install
 npm run watch -- --target mssql
 ```
 
-2. Open this sample extension in VS Code
-3. In the Run and Debug view, select the "Run Extension" configuration
-4. It should launch a new VS Code window with the extension activated
+2. Install and build this sample by running from `samples/connection-sharing-sample`:
+
+```bash
+npm install
+npm run compile
+```
+
+3. Open the `samples/connection-sharing-sample` folder in VS Code.
+4. In the Run and Debug view, select the "Run Extension" configuration. It opens a new VS Code window with both the MSSQL extension and this sample loaded.
+5. Connect a query editor to a database, then run **ConnSharing: Connection sharing using APIs** from the Command Palette. The first time, VS Code asks whether to allow the sample to use your SQL Server connections.
 
 ## 🆘 Support
 

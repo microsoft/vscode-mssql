@@ -203,6 +203,47 @@ suite("WebviewController Tests", () => {
         );
     });
 
+    test("Should ignore state assignment after disposal", () => {
+        controller.dispose();
+        sendNotificationStub.resetHistory();
+
+        controller.state = { count: 6 };
+
+        expect(controller.state, "State is updated after disposal").to.deep.equal({ count: 0 });
+        expect(sendNotificationStub, "Notification is sent after disposal").to.not.have.been.called;
+    });
+
+    test("Should ignore updateState after disposal", () => {
+        controller.dispose();
+        sendNotificationStub.resetHistory();
+
+        controller.updateState({ count: 6 });
+
+        expect(controller.state, "State is updated after disposal").to.deep.equal({ count: 0 });
+        expect(sendNotificationStub, "Notification is sent after disposal").to.not.have.been.called;
+    });
+
+    test("Should not update state when a reducer disposes the controller", async () => {
+        controller.registerReducer("increment", (state, payload) => {
+            controller.dispose();
+            return { count: state.count + payload.amount };
+        });
+        const requestCall = onRequestStub
+            .getCalls()
+            .find((call) => call.args[0].method === ReducerRequest.type<TestReducers>().method);
+        expect(requestCall, "ReducerRequest handler is not registered").to.exist;
+        const handler = requestCall.args[1];
+        sendNotificationStub.resetHistory();
+
+        await handler({ type: "increment", payload: { amount: 6 } });
+
+        expect(controller.state, "State is updated after reducer disposal").to.deep.equal({
+            count: 0,
+        });
+        expect(sendNotificationStub, "Notification is sent after reducer disposal").to.not.have.been
+            .called;
+    });
+
     test("Should dispose properly", () => {
         const disposable = {
             dispose: sandbox.stub(),
