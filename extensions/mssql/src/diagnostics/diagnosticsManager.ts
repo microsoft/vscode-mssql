@@ -115,7 +115,10 @@ export class DiagnosticsManager implements vscode.Disposable {
     private applySettings(): void {
         const config = vscode.workspace.getConfiguration();
         const enabled = this.isSessionDiagnosticsEnabled();
-        const mode = config.get<CaptureMode>(SETTING_MODE, "redacted");
+        const configuredMode = config.get<CaptureMode>(SETTING_MODE, "redacted");
+        const mode = ["off", "redacted", "digest", "full"].includes(configuredMode)
+            ? configuredMode
+            : "off";
         if (enabled && mode !== "off") {
             // Full capture is never enabled from settings alone; it requires
             // the explicit, time-bounded elevation command.
@@ -134,6 +137,9 @@ export class DiagnosticsManager implements vscode.Disposable {
         mode: CaptureMode,
         options?: { reason?: string; durationMinutes?: number },
     ): void {
+        if (!["off", "redacted", "digest", "full"].includes(mode)) {
+            throw new Error(LocConstants.SessionDiag.invalidCaptureMode);
+        }
         if (!this.isSessionDiagnosticsEnabled()) {
             this.disableCapture();
             throw new Error(LocConstants.SessionDiag.privatePreviewRequired);

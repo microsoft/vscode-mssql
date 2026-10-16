@@ -354,12 +354,18 @@ export class SessionStore {
             if (query.statuses && !query.statuses.includes(event.status)) return false;
             if (
                 query.minDurationMs !== undefined &&
-                (event.durationMs === undefined || event.durationMs < query.minDurationMs)
+                (event.durationMs === undefined ||
+                    (query.minDurationExclusive
+                        ? event.durationMs <= query.minDurationMs
+                        : event.durationMs < query.minDurationMs))
             )
                 return false;
             if (
                 query.maxDurationMs !== undefined &&
-                (event.durationMs === undefined || event.durationMs > query.maxDurationMs)
+                (event.durationMs === undefined ||
+                    (query.maxDurationExclusive
+                        ? event.durationMs >= query.maxDurationMs
+                        : event.durationMs > query.maxDurationMs))
             )
                 return false;
             if (query.traceId && event.traceId !== query.traceId) return false;

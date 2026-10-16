@@ -68,7 +68,7 @@ suite("STS diagnostics listener", () => {
         expect(received).to.deep.equal([]);
 
         const wireEvent = {
-            type: "sts.rpc.dispatch.end",
+            type: "sts.sql.executeReader",
             feature: "rpc",
             kind: "span",
             status: "warning",
@@ -90,7 +90,7 @@ suite("STS diagnostics listener", () => {
         await eventually(() => received.length === 1);
 
         expect(received[0]).to.include({
-            type: "sts.rpc.dispatch.end",
+            type: "sts.sql.executeReader",
             feature: "rpc",
             kind: "span",
             status: "warning",
@@ -132,7 +132,7 @@ suite("STS diagnostics listener", () => {
             fields[`f${i}`] = i;
         }
         const wireEvent = {
-            type: "sts.unknown.thing",
+            type: "sts.sql.SELECT private-canary",
             feature: "somethingElse",
             kind: "event",
             epochMs: 1_000,
@@ -144,6 +144,8 @@ suite("STS diagnostics listener", () => {
         const payload = received[0].payload ?? {};
         // Unknown feature buckets collapse to "sts" instead of minting names from the wire.
         expect(received[0].feature).to.equal("sts");
+        expect(received[0].type).to.equal("sts.sql.unknown");
+        expect(JSON.stringify(received)).not.to.include("private-canary");
         // Strings are bounded and the truncation is accounted, not silent.
         expect(payload["text"].v).to.equal(undefined);
         expect(payload["text"].handling).to.equal("tokenized");

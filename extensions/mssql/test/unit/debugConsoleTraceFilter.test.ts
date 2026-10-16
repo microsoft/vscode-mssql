@@ -73,6 +73,30 @@ function makeEvent(partial: Partial<DiagEvent> & { type: string }): DiagEvent {
 }
 
 suite("Store duration filters", () => {
+    test("strict duration operators exclude boundaries while inclusive operators retain them", () => {
+        const store = new SessionStore("/nonexistent");
+        const events = [99.5, 100, 100.5].map((durationMs) =>
+            makeEvent({ type: "duration", durationMs }),
+        );
+        for (const [expression, expected] of [
+            ["dur>100", [100.5]],
+            ["dur>=100", [100, 100.5]],
+            ["dur<100", [99.5]],
+            ["dur<=100", [99.5, 100]],
+            ["dur>100 dur>=100", [100.5]],
+        ] as const) {
+            const result = store.query(
+                events,
+                applyTraceFilter({ sourceId: "s" }, parseTraceFilter(expression)),
+                [],
+            );
+            expect(
+                result.rows.map((row) => (row as DiagEvent).durationMs),
+                expression,
+            ).to.deep.equal(expected);
+        }
+    });
+
     test("minDurationMs excludes shorter and duration-less events", () => {
         const store = new SessionStore("/nonexistent");
         const events = [

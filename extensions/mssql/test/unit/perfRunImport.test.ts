@@ -75,6 +75,40 @@ suite("Perf run import", () => {
         expect(JSON.stringify(events)).not.to.include("private message");
     });
 
+    test("untrusted event names and phases never become plaintext envelope metadata", () => {
+        fs.writeFileSync(
+            path.join(root, "markers.jsonl"),
+            marker("rpc.SELECT private-canary.end", 1000000),
+        );
+        const events = importPerfRep(root, "rep");
+        expect(events[0].type).to.equal("rpc.unknown.end");
+        expect(JSON.stringify(events)).not.to.include("private-canary");
+    });
+
+    test("metrics import skips linked runs and scenarios", () => {
+        const source = path.join(root, "source");
+        const external = path.join(root, "external");
+        fs.mkdirSync(path.join(source, "run", "scenarios"), { recursive: true });
+        fs.mkdirSync(path.join(external, "reps", "rep-00"), { recursive: true });
+        fs.writeFileSync(
+            path.join(external, "reps", "rep-00", "result.json"),
+            JSON.stringify({
+                status: "passed",
+                repId: 0,
+                metrics: [{ name: "private-canary", value: 1, official: true }],
+            }),
+        );
+        fs.symlinkSync(external, path.join(source, "linked-run"), "junction");
+        fs.symlinkSync(
+            external,
+            path.join(source, "run", "scenarios", "linked-scenario"),
+            "junction",
+        );
+        const result = importPerfMetrics(source);
+        expect(result.samples).to.deep.equal([]);
+        expect(result.runs.map((run) => run.runId)).to.deep.equal(["run"]);
+    });
+
     test("readJsonlBounded refuses lines by UTF-8 bytes, not UTF-16 code units", () => {
         const file = path.join(root, "lines.jsonl");
         // 3 bytes per char: a line under the cap in code units but over it in bytes.
@@ -241,7 +275,7 @@ suite("Perf run import", () => {
             "{not json",
         ]);
         expect(markers).to.have.length(1);
-        expect(markers[0].name).to.equal("c");
+        expect(markers[0].name).to.equal("import.unknown");
         expect(markers[0].attrs["durationMs"]).to.equal(2);
     });
 

@@ -18,7 +18,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { containedPath } from "./containedPath";
+import { containedPath, isContainedPath } from "./containedPath";
 import {
     DIAG_SCHEMA_VERSION,
     DiagEvent,
@@ -26,7 +26,7 @@ import {
     PerfMetricSample,
     PerfRunInfo,
 } from "../sharedInterfaces/debugConsole";
-import { importClassification } from "./importClassification";
+import { importClassification, importedEventType } from "./importClassification";
 import { CAPTURE_POLICIES, classify } from "./redaction";
 
 interface HarnessMarker {
@@ -243,7 +243,7 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                     pid: marker.process.pid,
                     feature: featureFor(marker.name),
                     kind: marker.phase === "counter" ? "metric" : "event",
-                    type: marker.name,
+                    type: importedEventType(marker.name),
                     status: marker.attrs?.["error"] === true ? "error" : "ok",
                     traceId,
                     cls: {
@@ -251,7 +251,10 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                         redactedFields: 0,
                         policyId: "policy_perf_import",
                     },
-                    tags: ["imported", `phase:${marker.phase}`],
+                    tags: [
+                        "imported",
+                        `phase:${["begin", "end", "instant", "counter"].includes(marker.phase) ? marker.phase : "unknown"}`,
+                    ],
                 };
                 // Forwarded diagnostic spans (STS dispatcher/SqlCommand/SMO/
                 // DacFx) travel as instant markers with a durationMs attr —
@@ -421,16 +424,16 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
 /** Find the most marker-rich rep of a run directory. */
 export function importPerfRun(runDir: string): { label: string; events: DiagEvent[] } | undefined {
     const scenariosDir = path.join(runDir, "scenarios");
-    if (!fs.existsSync(scenariosDir)) {
+    if (!isContainedPath(runDir, scenariosDir) || !fs.existsSync(scenariosDir)) {
         return undefined;
     }
     let best: { repDir: string; label: string; size: number } | undefined;
-    for (const scenario of fs.readdirSync(scenariosDir)) {
+    for (const scenario of safeEntries(runDir, scenariosDir)) {
         const repsDir = path.join(scenariosDir, scenario, "reps");
-        if (!fs.existsSync(repsDir)) continue;
-        for (const rep of fs.readdirSync(repsDir)) {
+        if (!isContainedPath(runDir, repsDir) || !fs.existsSync(repsDir)) continue;
+        for (const rep of safeEntries(runDir, repsDir)) {
             const markers = path.join(repsDir, rep, "markers.jsonl");
-            if (fs.existsSync(markers)) {
+            if (isContainedPath(runDir, markers) && fs.existsSync(markers)) {
                 const size = fs.statSync(markers).size;
                 if (!best || size > best.size) {
                     best = {
@@ -466,11 +469,22 @@ interface PerfMetricsImport {
 /** Per-root memo keyed on a cheap fingerprint (run names + summary.json mtimes). */
 const metricsCache = new Map<string, { fingerprint: string; value: PerfMetricsImport }>();
 
+function safeEntries(root: string, dir: string): string[] {
+    try {
+        return fs
+            .readdirSync(containedPath(root, dir), { withFileTypes: true })
+            .filter((entry) => entry.isDirectory() && !entry.isSymbolicLink())
+            .map((entry) => entry.name);
+    } catch {
+        return [];
+    }
+}
+
 function metricsFingerprint(perfRunsRoot: string, runNames: string[]): string {
     return runNames
         .map((name) => {
             try {
-                return `${name}:${fs.statSync(path.join(perfRunsRoot, name, "summary.json")).mtimeMs}`;
+                return `${name}:${fs.statSync(containedPath(perfRunsRoot, path.join(perfRunsRoot, name, "summary.json"))).mtimeMs}`;
             } catch {
                 return `${name}:-`;
             }
@@ -485,10 +499,10 @@ function metricsFingerprint(perfRunsRoot: string, runNames: string[]): string {
 export function importPerfMetrics(perfRunsRoot: string): PerfMetricsImport {
     const samples: PerfMetricSample[] = [];
     const runs: PerfRunInfo[] = [];
-    if (!fs.existsSync(perfRunsRoot)) {
+    if (!isContainedPath(perfRunsRoot, perfRunsRoot) || !fs.existsSync(perfRunsRoot)) {
         return { samples, runs };
     }
-    const runNames = fs.readdirSync(perfRunsRoot).sort();
+    const runNames = safeEntries(perfRunsRoot, perfRunsRoot).sort();
     const fingerprint = metricsFingerprint(perfRunsRoot, runNames);
     const cached = metricsCache.get(perfRunsRoot);
     if (cached && cached.fingerprint === fingerprint) {
@@ -497,7 +511,7 @@ export function importPerfMetrics(perfRunsRoot: string): PerfMetricsImport {
     for (const runName of runNames) {
         const runDir = path.join(perfRunsRoot, runName);
         const scenariosDir = path.join(runDir, "scenarios");
-        if (!fs.existsSync(scenariosDir)) continue;
+        if (!isContainedPath(perfRunsRoot, scenariosDir) || !fs.existsSync(scenariosDir)) continue;
         const createdUtc = parseRunTimestamp(runName);
         const warmupRepetitions = readWarmupRepetitions(runDir);
         let status = "unknown";
@@ -505,7 +519,10 @@ export function importPerfMetrics(perfRunsRoot: string): PerfMetricsImport {
         let environmentHash: string | undefined;
         try {
             const summary = JSON.parse(
-                fs.readFileSync(path.join(runDir, "summary.json"), "utf8"),
+                fs.readFileSync(
+                    containedPath(perfRunsRoot, path.join(runDir, "summary.json")),
+                    "utf8",
+                ),
             ) as { status?: string; passType?: string; environmentHash?: string };
             status = summary.status ?? "unknown";
             passType = summary.passType;
@@ -514,14 +531,17 @@ export function importPerfMetrics(perfRunsRoot: string): PerfMetricsImport {
             // no summary: keep unknown status, still list the run
         }
         let scenarioCount = 0;
-        for (const scenario of fs.readdirSync(scenariosDir)) {
+        for (const scenario of safeEntries(runDir, scenariosDir)) {
             const repsDir = path.join(scenariosDir, scenario, "reps");
-            if (!fs.existsSync(repsDir)) continue;
+            if (!isContainedPath(runDir, repsDir) || !fs.existsSync(repsDir)) continue;
             scenarioCount++;
-            for (const rep of fs.readdirSync(repsDir)) {
+            for (const rep of safeEntries(runDir, repsDir)) {
                 try {
                     const parsed: unknown = JSON.parse(
-                        fs.readFileSync(path.join(repsDir, rep, "result.json"), "utf8"),
+                        fs.readFileSync(
+                            containedPath(perfRunsRoot, path.join(repsDir, rep, "result.json")),
+                            "utf8",
+                        ),
                     );
                     if (typeof parsed !== "object" || parsed === null) continue;
                     const result = parsed as {

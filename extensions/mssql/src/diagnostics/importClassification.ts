@@ -24,6 +24,7 @@ const NUMERIC_METADATA = new Set([
     "diag",
     "warmup",
     "officialEligible",
+    "perf_heapDeltaKB",
 ]);
 /** Unknown wire/imported fields never become plaintext, even during elevation. */
 export function importClassification(
@@ -51,10 +52,46 @@ export function importClassification(
                       (entry.prefix !== undefined && eventType.startsWith(entry.prefix)),
               );
     if (
+        entry?.attrs[key] === "diagnosticMetric" &&
+        typeof value === "number" &&
+        Number.isFinite(value)
+    )
+        return "diagnostic.metadata";
+    if (
         entry?.attrs[key] === "structuralMetadata" &&
         (value === null || ["string", "number", "boolean"].includes(typeof value))
     ) {
         return "diagnostic.metadata";
     }
     return "secret";
+}
+
+const registeredTypes = new Set(
+    OBS_CONTRACT.events.flatMap((entry) => (entry.name ? [entry.name] : [])),
+);
+const stsTypes = new Set([
+    "sts.sql.connectionOpen",
+    "sts.sql.executeReader",
+    "sts.smo.refresh",
+    "sts.smo.expand",
+    "sts.dacfx.schemaDesigner.createSession",
+    "sts.dacfx.schemaDesigner.generateScript",
+    "sts.dacfx.schemaDesigner.publish",
+    "sts.dacfx.tableDesigner.initialize",
+    "sts.dacfx.tableDesigner.processEdit",
+    "sts.dacfx.tableDesigner.publish",
+    "sts.dacfx.tableDesigner.generateScript",
+    "sts.dacfx.tableDesigner.previewReport",
+]);
+/** Dynamic families retain their family and pairing phase, never untrusted suffix text. */
+export function importedEventType(name: string): string {
+    if (registeredTypes.has(name) || stsTypes.has(name)) return name;
+    const family = OBS_CONTRACT.events.find(
+        (entry) => entry.prefix !== undefined && name.startsWith(entry.prefix),
+    );
+    if (family?.prefix) {
+        const phase = /\.(begin|end)$/.exec(name)?.[0] ?? "";
+        return family.prefix + "unknown" + phase;
+    }
+    return "import.unknown";
 }

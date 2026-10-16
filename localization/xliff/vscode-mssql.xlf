@@ -10959,6 +10959,9 @@
     <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
       <source xml:lang="en">Unsupported data types detected</source>
     </trans-unit>
+    <trans-unit id="++CODE++952d5f61b3687595e26384bfb537192096b8a71ece069bd1bd78da10381e688b">
+      <source xml:lang="en">Unsupported diagnostics capture mode.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
       <source xml:lang="en">Unsupported platform for Docker: {0}</source>
       <note>{0} is the platform name of the machine</note>

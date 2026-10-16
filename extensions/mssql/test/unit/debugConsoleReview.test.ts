@@ -64,6 +64,35 @@ suite("Debug Console review regressions", () => {
         }
     });
 
+    test("marker dumps classify complete lines and discard malformed or truncated tails", async () => {
+        const provider = new DirectoryHistoryProvider("test", root);
+        const service = new PerfHistoryService(stubExtensionContext(sandbox), () => {});
+        sandbox.stub(service, "ensureIndexed").resolves(provider);
+        const rep = provider.repDir("run", "scenario", 0);
+        fs.mkdirSync(rep, { recursive: true });
+        const marker = JSON.stringify({
+            name: "secret-canary",
+            timestampUnixNs: "1000",
+            phase: "secret-phase",
+            attrs: { durationMs: 3, password: "secret-canary" },
+        });
+        fs.writeFileSync(
+            path.join(rep, "markers.jsonl"),
+            marker + "\n" + "secret-canary".repeat(50000),
+        );
+        const result = await service.dump({
+            sourceId: "test",
+            runId: "run",
+            scenarioId: "scenario",
+            repId: 0,
+            file: "markersHead",
+        });
+        expect(result.truncated).to.equal(true);
+        expect(result.text).not.to.include("secret-canary");
+        expect(result.text).not.to.include("secret-phase");
+        expect(JSON.parse(result.text).attrs.durationMs).to.equal(3);
+    });
+
     test("backfill keeps recovered events queryable and respects the archive bound", () => {
         const event = (seq: number) => ({ seq }) as DiagEvent;
         const archive = [5, 6, 7, 8].map(event);

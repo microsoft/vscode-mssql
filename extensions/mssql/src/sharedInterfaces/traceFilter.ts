@@ -25,7 +25,9 @@ export interface ParsedTraceFilter {
     features?: string[];
     statuses?: DiagStatus[];
     minDurationMs?: number;
+    minDurationExclusive?: boolean;
     maxDurationMs?: number;
+    maxDurationExclusive?: boolean;
     /** Tokens that could not be parsed (surfaced in the UI, never ignored silently). */
     invalid: string[];
 }
@@ -68,9 +70,19 @@ export function parseTraceFilter(input: string): ParsedTraceFilter {
             }
             const op = durMatch[1];
             if (op === ">" || op === ">=") {
-                out.minDurationMs = ms;
+                if (out.minDurationMs === undefined || ms > out.minDurationMs) {
+                    out.minDurationMs = ms;
+                    out.minDurationExclusive = op === ">";
+                } else if (ms === out.minDurationMs && op === ">") {
+                    out.minDurationExclusive = true;
+                }
             } else {
-                out.maxDurationMs = ms;
+                if (out.maxDurationMs === undefined || ms < out.maxDurationMs) {
+                    out.maxDurationMs = ms;
+                    out.maxDurationExclusive = op === "<";
+                } else if (ms === out.maxDurationMs && op === "<") {
+                    out.maxDurationExclusive = true;
+                }
             }
             continue;
         }
@@ -119,7 +131,17 @@ export function applyTraceFilter(base: EventQuery, parsed: ParsedTraceFilter): E
         ...(parsed.processes ? { processes: parsed.processes } : {}),
         ...(parsed.features ? { features: parsed.features } : {}),
         ...(parsed.statuses ? { statuses: parsed.statuses } : {}),
-        ...(parsed.minDurationMs !== undefined ? { minDurationMs: parsed.minDurationMs } : {}),
-        ...(parsed.maxDurationMs !== undefined ? { maxDurationMs: parsed.maxDurationMs } : {}),
+        ...(parsed.minDurationMs !== undefined
+            ? {
+                  minDurationMs: parsed.minDurationMs,
+                  minDurationExclusive: parsed.minDurationExclusive === true,
+              }
+            : {}),
+        ...(parsed.maxDurationMs !== undefined
+            ? {
+                  maxDurationMs: parsed.maxDurationMs,
+                  maxDurationExclusive: parsed.maxDurationExclusive === true,
+              }
+            : {}),
     };
 }

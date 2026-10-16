@@ -16,7 +16,7 @@
 
 import * as crypto from "crypto";
 import * as http from "http";
-import { importClassification } from "./importClassification";
+import { importClassification, importedEventType } from "./importClassification";
 import { DataClassification } from "../sharedInterfaces/debugConsole";
 import { diag } from "./diagnosticsCore";
 
@@ -42,7 +42,6 @@ const MAX_BODY_BYTES = 4 * 1024 * 1024;
 const MAX_FIELDS = 32;
 const MAX_FIELD_CHARS = 256;
 const MAX_KEY_CHARS = 64;
-const MAX_TYPE_CHARS = 128;
 /** Feature buckets the STS emitter is contracted to use (StsDiag.cs callers). */
 const STS_FEATURES: ReadonlySet<string> = new Set([
     "rpc",
@@ -197,7 +196,9 @@ function ingest(event: StsDiagWireEvent): void {
                 ? event.feature
                 : "sts",
         kind: event.kind === "span" ? "span" : "event",
-        type: event.type.slice(0, MAX_TYPE_CHARS),
+        type: event.type.startsWith("sts.")
+            ? importedEventType(event.type).replace(/^import\.unknown$/, "sts.unknown")
+            : "sts.unknown",
         status: event.status === "error" ? "error" : event.status === "warning" ? "warning" : "ok",
         process: "sqlToolsService",
         ...(typeof event.pid === "number" && Number.isFinite(event.pid) ? { pid: event.pid } : {}),

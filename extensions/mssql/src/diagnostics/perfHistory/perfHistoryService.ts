@@ -11,6 +11,7 @@
  */
 
 import * as fs from "fs";
+import { importClassification, importedEventType } from "../importClassification";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as LocConstants from "../../constants/locConstants";
@@ -732,7 +733,13 @@ export class PerfHistoryService {
                 const buffer = Buffer.alloc(size);
                 fs.readSync(fd, buffer, 0, size, 0);
                 let text = buffer.toString("utf8");
-                if (query.file !== "markersHead" && !truncated) {
+                if (query.file === "markersHead") {
+                    const lines = text.split("\n");
+                    if (truncated) lines.pop(); // A partial final line is never displayed raw.
+                    text = parseMarkerLines(lines)
+                        .map((marker) => JSON.stringify(marker))
+                        .join("\n");
+                } else if (!truncated) {
                     try {
                         const parsed: unknown = JSON.parse(text);
                         text = JSON.stringify(
@@ -793,12 +800,22 @@ export function parseMarkerLines(lines: string[]): ParsedMarker[] {
             continue;
         }
         markers.push({
-            name: candidate.name,
-            phase: typeof candidate.phase === "string" ? candidate.phase : "",
+            name: importedEventType(candidate.name),
+            phase:
+                typeof candidate.phase === "string" &&
+                ["begin", "end", "instant", "counter"].includes(candidate.phase)
+                    ? candidate.phase
+                    : "unknown",
             timestampUnixNs: candidate.timestampUnixNs,
             attrs:
                 typeof candidate.attrs === "object" && candidate.attrs !== null
-                    ? (candidate.attrs as Record<string, unknown>)
+                    ? Object.fromEntries(
+                          Object.entries(candidate.attrs).filter(
+                              ([key, value]) =>
+                                  importClassification(key, value, candidate.name) ===
+                                  "diagnostic.metadata",
+                          ),
+                      )
                     : {},
         });
     }

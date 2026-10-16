@@ -6035,6 +6035,7 @@ export class SqlProjects {
 }
 
 export class SessionDiag {
+    public static invalidCaptureMode = l10n.t("Unsupported diagnostics capture mode.");
     public static privatePreviewRequired = l10n.t(
         "Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.",
     );

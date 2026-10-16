@@ -322,6 +322,9 @@ export class DiagnosticsCore {
      * with PERF_MODE (synthetic data by contract) treated as full-capture.
      */
     public setCaptureMode(mode: CaptureMode, options?: { reason?: string; durationMs?: number }) {
+        if (!["off", "redacted", "digest", "full"].includes(mode)) {
+            throw new Error("Unsupported diagnostics capture mode");
+        }
         if (this.policyRevertTimer) {
             clearTimeout(this.policyRevertTimer);
             this.policyRevertTimer = undefined;

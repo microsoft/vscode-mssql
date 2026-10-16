@@ -2945,6 +2945,7 @@
     "    >>> {0}   … exited with signal: {1}": "    >>> {0}   … exited with signal: {1}",
     "    stdout: ": "    stdout: ",
     "    stderr: ": "    stderr: ",
+    "Unsupported diagnostics capture mode.": "Unsupported diagnostics capture mode.",
     "Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.": "Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.",
     "Delete all": "Delete all",
     "Delete {0} locally stored diagnostic session(s)? The current session keeps recording if capture is on./{0} is the number of locally stored diagnostic sessions": {

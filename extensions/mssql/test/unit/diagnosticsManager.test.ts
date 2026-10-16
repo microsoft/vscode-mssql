@@ -85,6 +85,10 @@ suite("DiagnosticsManager private preview", () => {
                 .stub(vscode.window, "showQuickPick")
                 .resolves({ label: "5", minutes: 5 } as vscode.QuickPickItem);
             await handlers.get("mssql.sessionDiag.elevateCapture")!();
+            expect(() => manager.applyCaptureMode("fullfoo" as never)).to.throw("Unsupported");
+            expect(() => diag.setCaptureMode("fullfoo" as never)).to.throw("Unsupported");
+            expect(diag.captureMode).to.equal("full");
+            expect(manager.storeActive).to.equal(true);
             diag.flushAll();
             const events = manager.store.eventsForSource(`store:${diag.sessionId}`);
             const elevated = events.find((event) => event.type === "sessionDiag.elevated");

@@ -246,7 +246,9 @@ export interface EventQuery {
     includeViewerInternal?: boolean;
     /** Duration filters (events without durationMs never match when set). */
     minDurationMs?: number;
+    minDurationExclusive?: boolean;
     maxDurationMs?: number;
+    maxDurationExclusive?: boolean;
 }
 
 export interface EventQueryResult {
