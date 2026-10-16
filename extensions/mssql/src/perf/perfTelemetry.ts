@@ -72,6 +72,7 @@ export function featureFor(name: string): string {
     if (name.startsWith("mssql.oe") || name.startsWith("objectExplorerV2.")) {
         return "objectExplorer";
     }
+    if (name.startsWith("sqlDataPlane.")) return "sqlDataPlane";
     if (name.startsWith("sqlLanguage.") || name.startsWith("sqlScripting.")) {
         return "sqlLanguage";
     }

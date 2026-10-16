@@ -42,6 +42,8 @@ import {
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
+import { isInlineCompletionFeatureEnabled } from "./copilot/inlineCompletionFeatureGate";
+import { registerSdkLanguageModelProviders } from "./nonproduction/sdkLanguageModels";
 import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
 import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
@@ -49,6 +51,7 @@ import { IAccountStore, AccountStore } from "./azure/accountStore";
 import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
 import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
+import { PrivatePreviewContextKey } from "./previews/previewService";
 import { extensionId } from "./constants/constants";
 import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
 import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
@@ -146,6 +149,16 @@ class MssqlActivation {
         initializeWebviewLocalizationCache();
 
         IconUtils.initialize(context.extensionUri);
+
+        const inlineCompletionsActive = isInlineCompletionFeatureEnabled();
+        await vscode.commands.executeCommand(
+            "setContext",
+            PrivatePreviewContextKey.AiInlineCompletionsActive,
+            inlineCompletionsActive,
+        );
+        if (inlineCompletionsActive) {
+            registerSdkLanguageModelProviders(context);
+        }
 
         // Check if GitHub Copilot is installed
         const copilotExtension = vscode.extensions.getExtension("github.copilot-chat");

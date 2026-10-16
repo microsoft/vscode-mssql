@@ -9,6 +9,11 @@ const { promisify } = require("util");
 const logger = require("../../../scripts/terminal-logger");
 const path = require("path");
 const { cleanSqlToolsMcpInstallFolder, installSqlToolsMcp } = require("./install-sqltools-mcp");
+const {
+    readBuildChannelRecord,
+    resolveBuildChannel,
+    stripManifestForChannel,
+} = require("./build-channels");
 
 const args = process.argv.slice(2);
 let isOnline = args.includes("--online");
@@ -137,6 +142,38 @@ async function cleanMcpInstallFolder() {
 function packageExtension(packageName = null, preRelease = false) {
     logger.step("Packaging extension with vsce...");
 
+    // Build-channel manifest gating (src/nonproduction/README.md): the VSIX
+    // manifest must not advertise contributions whose implementation the
+    // bundle excludes, and the bundle must have been built for the same
+    // channel this packaging run targets.
+    const channel = resolveBuildChannel(args);
+    const record = readBuildChannelRecord();
+    if (!record) {
+        throw new Error(
+            "dist/build-channel.json not found - build the extension before packaging.",
+        );
+    }
+    if (record.channel !== channel) {
+        throw new Error(
+            `Bundle was built for channel '${record.channel}' but packaging requested ` +
+                `'${channel}'. Rebuild with the matching channel.`,
+        );
+    }
+
+    const originalManifest = fs.readFileSync(PACKAGE_JSON_PATH, "utf8");
+    const packageJson = JSON.parse(originalManifest);
+    const summary = stripManifestForChannel(packageJson, channel);
+    const stripped = Object.values(summary.removed).some((count) => count > 0);
+    if (stripped) {
+        writePackageJson(packageJson);
+        logger.info(
+            `Channel '${channel}': removed ${summary.removed.settings} settings, ` +
+                `${summary.removed.commands} commands, ${summary.removed.commandPalette} ` +
+                `palette entries, and ${summary.removed.languageModelChatProviders} ` +
+                `language-model providers for excluded areas [${summary.excludedAreas.join(", ")}].`,
+        );
+    }
+
     try {
         const vsceArgs = ["exec", "--", "vsce", "package", "--no-dependencies"];
 
@@ -158,6 +195,11 @@ function packageExtension(packageName = null, preRelease = false) {
     } catch (error) {
         logger.error(`Packaging failed: ${error.message}`);
         throw error;
+    } finally {
+        if (stripped) {
+            fs.writeFileSync(PACKAGE_JSON_PATH, originalManifest, "utf8");
+            logger.info("Restored the original package.json manifest.");
+        }
     }
 }
 
