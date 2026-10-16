@@ -11,11 +11,12 @@
  * is active), giving the Debug Console live dispatcher/SqlCommand/SMO spans.
  *
  * The STS emitter never sends SQL text, object names, or row values — fields
- * arrive as protocol metadata and are classified as such.
+ * are checked against a narrow metadata allowlist; unknown fields are concealed.
  */
 
 import * as crypto from "crypto";
 import * as http from "http";
+import { importClassification } from "./importClassification";
 import { DataClassification } from "../sharedInterfaces/debugConsole";
 import { diag } from "./diagnosticsCore";
 
@@ -159,16 +160,19 @@ function ingest(event: StsDiagWireEvent): void {
             // durations, type names) — bounded here regardless.
             if (value.length > MAX_FIELD_CHARS) {
                 truncated++;
-                fields[key] = { raw: value.slice(0, MAX_FIELD_CHARS), cls: "diagnostic.metadata" };
+                fields[key] = {
+                    raw: value.slice(0, MAX_FIELD_CHARS),
+                    cls: importClassification(key, value),
+                };
             } else {
-                fields[key] = { raw: value, cls: "diagnostic.metadata" };
+                fields[key] = { raw: value, cls: importClassification(key, value) };
             }
         } else if (
             (typeof value === "number" && Number.isFinite(value)) ||
             typeof value === "boolean" ||
             value === null
         ) {
-            fields[key] = { raw: value, cls: "diagnostic.metadata" };
+            fields[key] = { raw: value, cls: importClassification(key, value) };
         }
     }
     if (truncated > 0) {

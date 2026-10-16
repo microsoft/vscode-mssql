@@ -56,6 +56,25 @@ suite("Perf run import", () => {
         }
     });
 
+    test("untrusted marker attributes retain approved counts and conceal arbitrary text", () => {
+        fs.writeFileSync(
+            path.join(root, "markers.jsonl"),
+            marker("mssql.query.submit", 1000000, {
+                count: 3,
+                password: "secret-canary",
+                sql: "SELECT private_data",
+                note: "private message",
+            }),
+        );
+        const events = importPerfRep(root, "rep");
+        expect(events).to.have.length(1);
+        expect(events[0].payload?.count.v).to.equal(3);
+        expect(events[0].cls.redactedFields).to.equal(3);
+        expect(JSON.stringify(events)).not.to.include("secret-canary");
+        expect(JSON.stringify(events)).not.to.include("SELECT private_data");
+        expect(JSON.stringify(events)).not.to.include("private message");
+    });
+
     test("readJsonlBounded refuses lines by UTF-8 bytes, not UTF-16 code units", () => {
         const file = path.join(root, "lines.jsonl");
         // 3 bytes per char: a line under the cap in code units but over it in bytes.

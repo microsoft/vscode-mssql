@@ -11,6 +11,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { containedPath, isContainedPath } from "./containedPath";
 import {
     DiagEvent,
     DebugSource,
@@ -101,6 +102,25 @@ function isSessionManifest(value: unknown, directoryName: string): value is Sess
     );
 }
 
+function isClassifiedValue(value: unknown): boolean {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+    const field = value as Record<string, unknown>;
+    return (
+        typeof field.cls === "string" &&
+        ["plain", "redacted", "digest", "tokenized", "truncated", "omitted"].includes(
+            String(field.handling),
+        ) &&
+        (field.v === undefined ||
+            field.v === null ||
+            typeof field.v === "string" ||
+            typeof field.v === "boolean" ||
+            (typeof field.v === "number" && Number.isFinite(field.v))) &&
+        (field.digest === undefined || typeof field.digest === "string") &&
+        (field.len === undefined ||
+            (typeof field.len === "number" && Number.isFinite(field.len) && field.len >= 0))
+    );
+}
+
 function isDiagEvent(value: unknown): value is DiagEvent {
     if (typeof value !== "object" || value === null) {
         return false;
@@ -125,13 +145,15 @@ function isDiagEvent(value: unknown): value is DiagEvent {
         typeof event.type === "string" &&
         typeof event.status === "string" &&
         classification !== undefined &&
+        classification !== null &&
         typeof classification.max === "string" &&
         typeof classification.redactedFields === "number" &&
         typeof classification.policyId === "string" &&
         (event.payload === undefined ||
             (typeof event.payload === "object" &&
                 event.payload !== null &&
-                !Array.isArray(event.payload))) &&
+                !Array.isArray(event.payload) &&
+                Object.values(event.payload).every(isClassifiedValue))) &&
         (event.tags === undefined ||
             (Array.isArray(event.tags) && event.tags.every((tag) => typeof tag === "string")))
     );
@@ -147,7 +169,7 @@ export class SessionStore {
 
     public listLocalSessions(): Array<{ manifest: SessionManifest; dir: string }> {
         const sessionsDir = path.join(this.storeRoot, "sessions");
-        if (!fs.existsSync(sessionsDir)) {
+        if (!isContainedPath(this.storeRoot, sessionsDir) || !fs.existsSync(sessionsDir)) {
             return [];
         }
         const sessions: Array<{ manifest: SessionManifest; dir: string }> = [];
@@ -158,7 +180,9 @@ export class SessionStore {
             const dir = path.join(sessionsDir, entry.name);
             const manifestPath = path.join(dir, "manifest.json");
             try {
-                const parsed: unknown = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+                const parsed: unknown = JSON.parse(
+                    fs.readFileSync(containedPath(this.storeRoot, manifestPath), "utf8"),
+                );
                 if (!isSessionManifest(parsed, entry.name)) {
                     continue;
                 }
@@ -273,7 +297,7 @@ export class SessionStore {
 
     private loadSessionEvents(sessionId: string): DiagEvent[] {
         const eventsDir = path.join(this.storeRoot, "sessions", sessionId, "events");
-        if (!fs.existsSync(eventsDir)) {
+        if (!isContainedPath(this.storeRoot, eventsDir) || !fs.existsSync(eventsDir)) {
             return [];
         }
         const events: DiagEvent[] = [];
@@ -285,7 +309,10 @@ export class SessionStore {
             }
             try {
                 for (const line of fs
-                    .readFileSync(path.join(eventsDir, entry.name), "utf8")
+                    .readFileSync(
+                        containedPath(this.storeRoot, path.join(eventsDir, entry.name)),
+                        "utf8",
+                    )
                     .split("\n")) {
                     const trimmed = line.trim();
                     if (!trimmed) {
@@ -420,8 +447,10 @@ export class SessionStore {
         let total = 0;
         try {
             const eventsDir = path.join(session.dir, "events");
-            for (const file of fs.readdirSync(eventsDir)) {
-                total += fs.statSync(path.join(eventsDir, file)).size;
+            for (const file of fs.readdirSync(containedPath(this.storeRoot, eventsDir))) {
+                total += fs.lstatSync(
+                    containedPath(this.storeRoot, path.join(eventsDir, file)),
+                ).size;
             }
         } catch {
             // unreadable: treat as zero (age/count rules still apply)
@@ -458,6 +487,10 @@ export class SessionStore {
                     continue;
                 }
                 const file = path.join(dir, "events", segment.file);
+                if (!isContainedPath(this.storeRoot, file)) {
+                    issues.push(`${label}: unsafe segment path in manifest`);
+                    continue;
+                }
                 if (!fs.existsSync(file)) {
                     if (segment.events > 0) {
                         issues.push(
@@ -541,7 +574,9 @@ export class SessionStore {
         const cacheable = options?.cacheable ?? true;
         if (cacheable) {
             try {
-                const parsed: unknown = JSON.parse(fs.readFileSync(sidecar, "utf8"));
+                const parsed: unknown = JSON.parse(
+                    fs.readFileSync(containedPath(this.storeRoot, sidecar), "utf8"),
+                );
                 if (isHistorySummary(parsed)) {
                     return parsed;
                 }
@@ -555,7 +590,11 @@ export class SessionStore {
         const summary = compute(events);
         if (cacheable) {
             try {
-                fs.writeFileSync(sidecar, JSON.stringify(summary), "utf8");
+                fs.writeFileSync(
+                    containedPath(this.storeRoot, sidecar),
+                    JSON.stringify(summary),
+                    "utf8",
+                );
             } catch {
                 // sidecar is an optimization; the summary is still returned
             }

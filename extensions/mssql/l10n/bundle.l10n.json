@@ -2981,6 +2981,8 @@
         "message": "MSSQL session diagnostics capturing ({0}, local only).",
         "comment": ["{0} is the capture mode (redacted or digest)"]
     },
+    "Result exceeds the preview size limit and cannot be safely redacted.": "Result exceeds the preview size limit and cannot be safely redacted.",
+    "Result contains invalid JSON and cannot be safely redacted.": "Result contains invalid JSON and cannot be safely redacted.",
     "MSSQL Debug Console": "MSSQL Debug Console",
     "Enable mssql.enableExperimentalFeatures and mssql.debugConsole.enabled, then reload the window to use the MSSQL Debug Console.": "Enable mssql.enableExperimentalFeatures and mssql.debugConsole.enabled, then reload the window to use the MSSQL Debug Console.",
     "Restart VS Code so SQL Tools Service diagnostics are included in the Debug Console.": "Restart VS Code so SQL Tools Service diagnostics are included in the Debug Console.",

@@ -238,7 +238,8 @@ function TopBar() {
                         for (const gap of liveGaps) {
                             if (
                                 gap.backfillStatus === "notStarted" ||
-                                gap.backfillStatus === "failed"
+                                gap.backfillStatus === "failed" ||
+                                gap.backfillStatus === "partial"
                             ) {
                                 void backfillGap(gap);
                             }

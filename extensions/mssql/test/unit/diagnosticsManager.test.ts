@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+import { diag } from "../../src/diagnostics/diagnosticsCore";
 import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
@@ -50,6 +54,46 @@ suite("DiagnosticsManager private preview", () => {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    test("capture can be stopped and restarted without disabling the preview", async () => {
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), "dc-manager-"));
+        settings.set("enableExperimentalFeatures", true);
+        settings.set("mssql.sessionDiag.enabled", true);
+        settings.set("mssql.sessionDiag.captureMode", "off");
+        settings.set("mssql.sessionDiag.storePath", root);
+        const manager = new DiagnosticsManager(context, {
+            debugConsoleActiveAtActivation: false,
+            sessionDiagnosticsActiveAtActivation: true,
+        });
+        try {
+            await handlers.get("mssql.sessionDiag.enable")!();
+            expect(manager.storeActive).to.be.true;
+            expect(diag.captureMode).to.equal("redacted");
+            await handlers.get("mssql.sessionDiag.disable")!();
+            expect(manager.storeActive).to.be.false;
+            expect(configuration.update).to.have.been.calledWith(
+                "mssql.sessionDiag.captureMode",
+                "off",
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(configuration.update).not.to.have.been.calledWith("mssql.sessionDiag.enabled");
+            await handlers.get("mssql.sessionDiag.enable")!();
+            expect(manager.storeActive).to.be.true;
+            sandbox.stub(vscode.window, "showInputBox").resolves("password=private-canary");
+            sandbox
+                .stub(vscode.window, "showQuickPick")
+                .resolves({ label: "5", minutes: 5 } as vscode.QuickPickItem);
+            await handlers.get("mssql.sessionDiag.elevateCapture")!();
+            diag.flushAll();
+            const events = manager.store.eventsForSource(`store:${diag.sessionId}`);
+            const elevated = events.find((event) => event.type === "sessionDiag.elevated");
+            expect(elevated?.payload?.reason.handling).to.equal("tokenized");
+            expect(JSON.stringify(events)).not.to.include("private-canary");
+        } finally {
+            manager.dispose();
+            fs.rmSync(root, { recursive: true, force: true });
+        }
     });
 
     test("does not allow a live setting change to bypass the activation snapshot", () => {

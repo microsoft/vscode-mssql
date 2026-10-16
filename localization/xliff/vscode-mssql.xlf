@@ -8415,6 +8415,12 @@
     <trans-unit id="++CODE++8a66883c25fec3e51a96c6f97d77739a4abce1854f79266e074e7c1a5f74abf5">
       <source xml:lang="en">Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.</source>
     </trans-unit>
+    <trans-unit id="++CODE++33b4b934b25ec49383ac7df979e33e517867ea03aef64320ee3cdf2ebf87dff8">
+      <source xml:lang="en">Result contains invalid JSON and cannot be safely redacted.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a00895859cc07e04d4f412129ec61a76b8b3d1af0b496755bd81a309a3707415">
+      <source xml:lang="en">Result exceeds the preview size limit and cannot be safely redacted.</source>
+    </trans-unit>
     <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
       <source xml:lang="en">Results</source>
     </trans-unit>

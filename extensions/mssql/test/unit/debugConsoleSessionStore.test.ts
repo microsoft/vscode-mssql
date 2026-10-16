@@ -91,6 +91,41 @@ suite("Debug Console session store", () => {
         }
     });
 
+    test("malformed classified payloads are skipped without breaking subsequent queries", () => {
+        writeSession(root, "s", "2026-01-01T00:00:00.000Z", "closed");
+        const file = path.join(root, "sessions", "s", "events", "segment-000001.jsonl");
+        const malformed = [
+            null,
+            42,
+            "raw",
+            { cls: "public", handling: "plain", v: {} },
+            { cls: "public", handling: "digest", digest: 5 },
+        ];
+        fs.appendFileSync(
+            file,
+            malformed
+                .map((value, i) => JSON.stringify({ ...event(3 + i), payload: { bad: value } }))
+                .join("\n") + "\n",
+        );
+        const store = new SessionStore(root);
+        const events = store.eventsForSource("store:s");
+        expect(events).to.have.length(2);
+        expect(() =>
+            store.query(events, { sourceId: "store:s", text: "anything" }, []),
+        ).not.to.throw();
+    });
+
+    test("events directory junctions are refused by queries and store validation", () => {
+        writeSession(root, "s", "2026-01-01T00:00:00.000Z", "closed");
+        const dir = path.join(root, "sessions", "s", "events");
+        const external = path.join(root, "external");
+        fs.renameSync(dir, external);
+        fs.symlinkSync(external, dir, "junction");
+        const store = new SessionStore(root);
+        expect(store.eventsForSource("store:s")).to.deep.equal([]);
+        expect(store.validateStore().issues.join(" ")).to.include("unsafe segment");
+    });
+
     test("retention protects only the current session — an interrupted 'active' session is evictable", () => {
         writeSession(root, "old-crashed", "2026-01-01T00:00:00.000Z", "active");
         writeSession(root, "old-closed", "2026-01-02T00:00:00.000Z", "closed");

@@ -11,6 +11,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { mergeBackfill } from "../diagnostics/liveArchive";
 import * as vscode from "vscode";
 import * as LocConstants from "../constants/locConstants";
 import { PrivatePreviewFeature, previewService } from "../previews/previewService";
@@ -343,7 +344,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
 
         // Recover a live-tail gap from the session store's journal — the
         // payoff for always-on capture: overflow drops become recoverable.
-        this.onRequest(DcBackfillGapRequest.type, async ({ fromSeq, throughSeq }) => {
+        this.onRequest(DcBackfillGapRequest.type, async ({ gapId, fromSeq, throughSeq }) => {
             if (!this.diagnostics.storeActive) {
                 return {
                     ok: false,
@@ -364,14 +365,21 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                         reason: `range ${fromSeq}–${throughSeq} not in the store (evicted by the store buffer before flush)`,
                     };
                 }
+                this.liveArchive = mergeBackfill(this.liveArchive, events, LIVE_ARCHIVE_CAP);
+                const retained = this.liveArchive.filter(
+                    (event) => event.seq >= fromSeq && event.seq <= throughSeq,
+                );
                 const expected = throughSeq - fromSeq + 1;
+                const status =
+                    retained.length >= expected ? ("succeeded" as const) : ("partial" as const);
+                const gap = this.liveGaps.find((entry) => entry.gapId === gapId);
+                if (gap) gap.backfillStatus = status;
                 return {
                     ok: true,
-                    events,
-                    status:
-                        events.length >= expected ? ("succeeded" as const) : ("partial" as const),
-                    ...(events.length < expected
-                        ? { reason: `${events.length} of ${expected} recovered` }
+                    events: retained,
+                    status,
+                    ...(retained.length < expected
+                        ? { reason: `${retained.length} of ${expected} recovered` }
                         : {}),
                 };
             } catch (error) {
@@ -419,7 +427,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                     fields: {
                         reason: {
                             raw: request.reason ?? "elevated from Debug Console",
-                            cls: "user.text",
+                            cls: "secret",
                         },
                         ...(request.durationMinutes !== undefined
                             ? {
@@ -597,7 +605,8 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             }
             // Honest label: an elevated (full) source is not redacted.
             const fullCapture =
-                sourceId === this.liveSourceId
+                events.some((event) => event.cls.policyId === "policy_full_elevated") ||
+                (sourceId === this.liveSourceId
                     ? diag.captureMode === "full"
                     : this.diagnostics.store
                           .listLocalSessions()
@@ -605,7 +614,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                               (s) =>
                                   `store:${s.manifest.sessionId}` === sourceId &&
                                   s.manifest.captureMode === "full",
-                          );
+                          ));
             const target = await vscode.window.showSaveDialog({
                 title: fullCapture
                     ? LocConstants.DebugConsole.exportTitleFull

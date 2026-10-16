@@ -76,7 +76,13 @@ suite("STS diagnostics listener", () => {
             startEpochMs: 1_500,
             durationMs: 500,
             pid: 42,
-            fields: { method: "query/execute", count: 3, nested: { refused: true } },
+            fields: {
+                method: "query/execute",
+                count: 3,
+                password: "secret-canary",
+                sql: "SELECT private_data",
+                nested: { refused: true },
+            },
         };
         expect(
             await post(url!, `Bearer ${token}`, `${JSON.stringify(wireEvent)}\nmalformed-json\n`),
@@ -102,6 +108,8 @@ suite("STS diagnostics listener", () => {
         });
         expect(received[0].payload?.["count"].v).to.equal(3);
         expect(received[0].payload).not.to.have.property("nested");
+        expect(JSON.stringify(received)).not.to.include("secret-canary");
+        expect(JSON.stringify(received)).not.to.include("SELECT private_data");
 
         const oversized = "x".repeat(4 * 1024 * 1024 + 1);
         expect(await post(url!, `Bearer ${token}`, oversized)).to.equal(413);
@@ -137,7 +145,9 @@ suite("STS diagnostics listener", () => {
         // Unknown feature buckets collapse to "sts" instead of minting names from the wire.
         expect(received[0].feature).to.equal("sts");
         // Strings are bounded and the truncation is accounted, not silent.
-        expect(String(payload["text"].v)).to.have.length(256);
+        expect(payload["text"].v).to.equal(undefined);
+        expect(payload["text"].handling).to.equal("tokenized");
+        expect(JSON.stringify(received)).not.to.include("y".repeat(256));
         expect(payload["stsDiag.truncatedFields"].v).to.equal(1);
         // 32 wire fields kept (+2 accounting fields); the rest are counted as dropped.
         expect(payload["stsDiag.droppedFields"].v).to.equal(9);

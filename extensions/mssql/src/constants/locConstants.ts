@@ -6098,6 +6098,12 @@ export class SessionDiag {
 }
 
 export class DebugConsole {
+    public static resultDumpTooLarge = l10n.t(
+        "Result exceeds the preview size limit and cannot be safely redacted.",
+    );
+    public static resultDumpInvalid = l10n.t(
+        "Result contains invalid JSON and cannot be safely redacted.",
+    );
     public static panelTitle = l10n.t("MSSQL Debug Console");
     public static enableSettingFirst = l10n.t(
         "Enable mssql.enableExperimentalFeatures and mssql.debugConsole.enabled, then reload the window to use the MSSQL Debug Console.",

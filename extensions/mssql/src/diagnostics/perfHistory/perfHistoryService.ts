@@ -716,8 +716,16 @@ export class PerfHistoryService {
             };
         }
         try {
+            filePath = provider.containedPath(filePath);
             const stat = fs.statSync(filePath);
             const truncated = stat.size > DUMP_CAP_BYTES;
+            if (query.file === "result" && truncated) {
+                return {
+                    text: LocConstants.DebugConsole.resultDumpTooLarge,
+                    truncated: true,
+                    path: filePath,
+                };
+            }
             const fd = fs.openSync(filePath, "r");
             try {
                 const size = Math.min(stat.size, DUMP_CAP_BYTES);
@@ -733,7 +741,9 @@ export class PerfHistoryService {
                             2,
                         );
                     } catch {
-                        // keep raw
+                        if (query.file === "result") {
+                            text = LocConstants.DebugConsole.resultDumpInvalid;
+                        }
                     }
                 }
                 return { text, truncated, path: filePath };

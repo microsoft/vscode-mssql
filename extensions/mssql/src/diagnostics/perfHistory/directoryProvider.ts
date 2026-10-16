@@ -16,6 +16,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { containedPath } from "../containedPath";
 import {
     PagedRuns,
     PerfArtifactRef,
@@ -337,7 +338,7 @@ export class DirectoryHistoryProvider {
     // --- index lifecycle -------------------------------------------------------
 
     private indexPath(): string {
-        return path.join(this.root, INDEX_FILE);
+        return this.containedPath(path.join(this.root, INDEX_FILE));
     }
 
     private loadPersistedIndex(): void {
@@ -471,17 +472,17 @@ export class DirectoryHistoryProvider {
 
     /** Cheap change detector: run dir mtime + summary.json mtime+size. */
     private fingerprint(runName: string): string | undefined {
-        const runDir = path.join(this.root, runName);
         try {
+            const runDir = this.containedPath(path.join(this.root, runName));
             const dirStat = fs.statSync(runDir);
             let summaryPart = "nosummary";
             try {
-                const s = fs.statSync(path.join(runDir, "summary.json"));
+                const s = fs.statSync(this.containedPath(path.join(runDir, "summary.json")));
                 summaryPart = `${s.mtimeMs}:${s.size}`;
             } catch {
                 // runs without summary.json are still indexable from reps
             }
-            if (!fs.existsSync(path.join(runDir, "scenarios"))) {
+            if (!fs.existsSync(this.containedPath(path.join(runDir, "scenarios")))) {
                 return undefined;
             }
             return `${INDEX_VERSION}:${Math.floor(dirStat.mtimeMs)}:${summaryPart}`;
@@ -492,8 +493,8 @@ export class DirectoryHistoryProvider {
 
     /** Read one run directory into the index (the only heavy-ish path). */
     private indexRun(runName: string): IndexedRun | undefined {
-        const runDir = path.join(this.root, runName);
-        const scenariosDir = path.join(runDir, "scenarios");
+        const runDir = this.containedPath(path.join(this.root, runName));
+        const scenariosDir = this.containedPath(path.join(runDir, "scenarios"));
         if (!fs.existsSync(scenariosDir)) {
             return undefined;
         }
@@ -506,7 +507,7 @@ export class DirectoryHistoryProvider {
         } = {};
         try {
             const parsed: unknown = JSON.parse(
-                fs.readFileSync(path.join(runDir, "summary.json"), "utf8"),
+                fs.readFileSync(this.containedPath(path.join(runDir, "summary.json")), "utf8"),
             );
             if (isRecord(parsed)) {
                 summary = parsed;
@@ -523,12 +524,12 @@ export class DirectoryHistoryProvider {
         let dirty: boolean | undefined;
         const wallSamples: number[] = [];
         for (const scenarioId of safeReaddir(scenariosDir)) {
-            const repsDir = path.join(scenariosDir, scenarioId, "reps");
+            const repsDir = this.containedPath(path.join(scenariosDir, scenarioId, "reps"));
             const reps: IndexedRep[] = [];
             const artifactKinds = new Set<string>();
             let validationFailures = 0;
             for (const repName of safeReaddir(repsDir)) {
-                const repDir = path.join(repsDir, repName);
+                const repDir = this.containedPath(path.join(repsDir, repName));
                 let result: {
                     repId?: number;
                     status?: string;
@@ -545,7 +546,10 @@ export class DirectoryHistoryProvider {
                 } = {};
                 try {
                     const parsed: unknown = JSON.parse(
-                        fs.readFileSync(path.join(repDir, "result.json"), "utf8"),
+                        fs.readFileSync(
+                            this.containedPath(path.join(repDir, "result.json")),
+                            "utf8",
+                        ),
                     );
                     if (!isRecord(parsed)) {
                         continue; // valid JSON, wrong shape: not countable
@@ -601,14 +605,18 @@ export class DirectoryHistoryProvider {
                     }
                 }
                 // Cheap artifact presence probes (stat only, never parsed here).
-                if (fs.existsSync(path.join(repDir, "markers.jsonl"))) {
+                if (fs.existsSync(this.containedPath(path.join(repDir, "markers.jsonl")))) {
                     artifactKinds.add("markers");
                 }
-                if (fs.existsSync(path.join(repDir, "soak-iterations.jsonl"))) {
+                if (fs.existsSync(this.containedPath(path.join(repDir, "soak-iterations.jsonl")))) {
                     artifactKinds.add("soak");
                 }
-                const artifactsDir = path.join(repDir, "artifacts");
-                if (fs.existsSync(path.join(artifactsDir, "sql", "sql-activity.jsonl"))) {
+                const artifactsDir = this.containedPath(path.join(repDir, "artifacts"));
+                if (
+                    fs.existsSync(
+                        this.containedPath(path.join(artifactsDir, "sql", "sql-activity.jsonl")),
+                    )
+                ) {
                     artifactKinds.add("sqlActivity");
                 }
                 for (const file of safeReaddir(artifactsDir)) {
@@ -826,16 +834,20 @@ export class DirectoryHistoryProvider {
     public scenarioDetails(query: PerfScenarioDetailsQuery): PerfScenarioDetails {
         this.loadPersistedIndex();
         const scenario = this.scenarioOf(query.runId, query.scenarioId);
-        const repsDir = path.join(this.root, query.runId, "scenarios", query.scenarioId, "reps");
-        const warmupRepetitions = readWarmupRepetitions(path.join(this.root, query.runId));
+        const repsDir = this.containedPath(
+            path.join(this.root, query.runId, "scenarios", query.scenarioId, "reps"),
+        );
+        const warmupRepetitions = readWarmupRepetitions(
+            this.containedPath(path.join(this.root, query.runId)),
+        );
         const reps: PerfRepRow[] = [];
         const validations: PerfValidationRow[] = [];
         const artifacts: PerfArtifactRef[] = [];
         for (const repName of safeReaddir(repsDir)) {
-            const repDir = path.join(repsDir, repName);
+            const repDir = this.containedPath(path.join(repsDir, repName));
             try {
                 const result = JSON.parse(
-                    fs.readFileSync(path.join(repDir, "result.json"), "utf8"),
+                    fs.readFileSync(this.containedPath(path.join(repDir, "result.json")), "utf8"),
                 ) as {
                     repId?: number;
                     status?: string;
@@ -858,7 +870,9 @@ export class DirectoryHistoryProvider {
                 if (repId === undefined) {
                     continue;
                 }
-                const hasMarkers = fs.existsSync(path.join(repDir, "markers.jsonl"));
+                const hasMarkers = fs.existsSync(
+                    this.containedPath(path.join(repDir, "markers.jsonl")),
+                );
                 const failureReason = failureReasonOf(result);
                 reps.push({
                     repId,
@@ -884,7 +898,7 @@ export class DirectoryHistoryProvider {
                     });
                 }
                 for (const artifactFile of ["markers.jsonl", "soak-iterations.jsonl"]) {
-                    const p = path.join(repDir, artifactFile);
+                    const p = this.containedPath(path.join(repDir, artifactFile));
                     if (fs.existsSync(p)) {
                         artifacts.push({
                             kind: artifactFile === "markers.jsonl" ? "markers" : "soak",
@@ -894,7 +908,9 @@ export class DirectoryHistoryProvider {
                         });
                     }
                 }
-                const sqlPath = path.join(repDir, "artifacts", "sql", "sql-activity.jsonl");
+                const sqlPath = this.containedPath(
+                    path.join(repDir, "artifacts", "sql", "sql-activity.jsonl"),
+                );
                 if (fs.existsSync(sqlPath)) {
                     artifacts.push({
                         kind: "sqlActivity",
@@ -973,7 +989,10 @@ export class DirectoryHistoryProvider {
         let summary: { passType?: string; environmentHash?: string; status?: string } = {};
         try {
             summary = JSON.parse(
-                fs.readFileSync(path.join(this.root, query.runId, "summary.json"), "utf8"),
+                fs.readFileSync(
+                    this.containedPath(path.join(this.root, query.runId, "summary.json")),
+                    "utf8",
+                ),
             );
         } catch {
             importWarnings.push("summary.json missing or unreadable");
@@ -1012,8 +1031,8 @@ export class DirectoryHistoryProvider {
         if (!this.index.runs[runId]) {
             return { ok: false, error: `'${runId}' is not an indexed run in this source` };
         }
-        const runDir = path.join(this.root, runId);
         try {
+            const runDir = this.containedPath(path.join(this.root, runId));
             let exists = false;
             try {
                 const stat = fs.lstatSync(runDir);
@@ -1044,25 +1063,22 @@ export class DirectoryHistoryProvider {
      * (imports are untrusted input — including our own UI channel).
      */
     public repDir(runId: string, scenarioId: string, repId: number): string {
-        const candidate = path.join(
-            this.root,
-            runId,
-            "scenarios",
-            scenarioId,
-            "reps",
-            `rep-${String(repId).padStart(2, "0")}`,
+        const candidate = this.containedPath(
+            path.join(
+                this.root,
+                runId,
+                "scenarios",
+                scenarioId,
+                "reps",
+                `rep-${String(repId).padStart(2, "0")}`,
+            ),
         );
         return this.containedPath(candidate);
     }
 
     /** Resolve a path and refuse anything outside this source's root. */
     public containedPath(candidate: string): string {
-        const resolvedRoot = path.resolve(this.root);
-        const resolved = path.resolve(candidate);
-        if (resolved !== resolvedRoot && !resolved.startsWith(resolvedRoot + path.sep)) {
-            throw new Error(`path escapes the run source root: ${candidate}`);
-        }
-        return resolved;
+        return containedPath(this.root, candidate);
     }
 }
 
@@ -1106,7 +1122,10 @@ export function mergeGroup(key: string, members: PerfScenarioRow[]): PerfScenari
 
 function safeReaddir(dir: string): string[] {
     try {
-        return fs.readdirSync(dir);
+        return fs
+            .readdirSync(dir, { withFileTypes: true })
+            .filter((entry) => !entry.isSymbolicLink())
+            .map((entry) => entry.name);
     } catch {
         return [];
     }

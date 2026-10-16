@@ -119,7 +119,10 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
                         g.gapId === gap.gapId ? { ...g, backfillStatus: outcome.status } : g,
                     ),
                 );
-                if (!outcome.ok && outcome.reason) {
+                if (outcome.ok) {
+                    setDataVersion((version) => version + 1);
+                }
+                if (outcome.reason) {
                     setNotice(`Backfill ${outcome.status}: ${outcome.reason}`);
                 }
             } catch (error) {

@@ -9,7 +9,7 @@
  * Console renders harness runs with the same pages as live sessions.
  *
  * Imports are untrusted input. Marker attrs are contract-governed metadata
- * and import plain; SQL text from sql-activity.jsonl is REAL query text
+ * and only registered metadata imports plain; SQL text from sql-activity.jsonl is REAL query text
  * whenever the harness ran with captureSqlText against a real server, so it
  * goes through the normal sql.text policy (digest — grouping survives,
  * plaintext never enters diagnostics). Files are read under a size cap and
@@ -18,6 +18,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { containedPath } from "./containedPath";
 import {
     DIAG_SCHEMA_VERSION,
     DiagEvent,
@@ -25,6 +26,7 @@ import {
     PerfMetricSample,
     PerfRunInfo,
 } from "../sharedInterfaces/debugConsole";
+import { importClassification } from "./importClassification";
 import { CAPTURE_POLICIES, classify } from "./redaction";
 
 interface HarnessMarker {
@@ -92,6 +94,7 @@ export interface BoundedJsonl {
 export function readJsonlBounded(file: string, maxFileBytes = MAX_JSONL_FILE_BYTES): BoundedJsonl {
     let size: number;
     try {
+        file = containedPath(path.parse(path.resolve(file)).root, file);
         size = fs.statSync(file).size;
     } catch {
         return { lines: [], refusedLines: 0, refusedReason: "unreadable" };
@@ -160,7 +163,10 @@ export function parseJsonc(text: string): unknown {
 export function readWarmupRepetitions(runDir: string): number {
     try {
         const config = parseJsonc(
-            fs.readFileSync(path.join(runDir, "run-config.snapshot.jsonc"), "utf8"),
+            fs.readFileSync(
+                containedPath(runDir, path.join(runDir, "run-config.snapshot.jsonc")),
+                "utf8",
+            ),
         ) as { warmupRepetitions?: unknown } | undefined;
         const value = config?.warmupRepetitions;
         return typeof value === "number" && value > 0 ? Math.floor(value) : 0;
@@ -264,11 +270,12 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                 if (marker.attrs) {
                     event.payload = {};
                     for (const [key, value] of Object.entries(marker.attrs)) {
-                        event.payload[key] = {
-                            v: value,
-                            cls: "diagnostic.metadata",
-                            handling: "plain",
-                        };
+                        const cls = importClassification(key, value, marker.name);
+                        event.payload[key] = classify(value, cls, CAPTURE_POLICIES.redacted);
+                        if (cls !== "diagnostic.metadata") {
+                            event.cls.max = cls;
+                            event.cls.redactedFields++;
+                        }
                     }
                 }
                 events.push(event);

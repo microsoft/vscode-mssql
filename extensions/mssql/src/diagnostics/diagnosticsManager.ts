@@ -142,7 +142,7 @@ export class DiagnosticsManager implements vscode.Disposable {
             this.disableCapture();
             void vscode.workspace
                 .getConfiguration()
-                .update(SETTING_ENABLED, false, vscode.ConfigurationTarget.Global);
+                .update(SETTING_MODE, "off", vscode.ConfigurationTarget.Global);
             return;
         }
         if (mode === "full") {
@@ -157,9 +157,6 @@ export class DiagnosticsManager implements vscode.Disposable {
             return;
         }
         this.enableCapture(mode);
-        void vscode.workspace
-            .getConfiguration()
-            .update(SETTING_ENABLED, true, vscode.ConfigurationTarget.Global);
         void vscode.workspace
             .getConfiguration()
             .update(SETTING_MODE, mode, vscode.ConfigurationTarget.Global);
@@ -259,15 +256,11 @@ export class DiagnosticsManager implements vscode.Disposable {
                 }),
             );
 
-        register("mssql.sessionDiag.enable", async () => {
-            await vscode.workspace
-                .getConfiguration()
-                .update(SETTING_ENABLED, true, vscode.ConfigurationTarget.Global);
+        register("mssql.sessionDiag.enable", () => {
+            this.applyCaptureMode("redacted");
         });
-        register("mssql.sessionDiag.disable", async () => {
-            await vscode.workspace
-                .getConfiguration()
-                .update(SETTING_ENABLED, false, vscode.ConfigurationTarget.Global);
+        register("mssql.sessionDiag.disable", () => {
+            this.applyCaptureMode("off");
         });
         register("mssql.sessionDiag.clear", async () => {
             const sessions = this.store.listLocalSessions();
@@ -312,7 +305,7 @@ export class DiagnosticsManager implements vscode.Disposable {
                 type: "sessionDiag.elevated",
                 status: "warning",
                 fields: {
-                    reason: { raw: reason, cls: "user.text" },
+                    reason: { raw: reason, cls: "secret" },
                     durationMinutes: { raw: minutes, cls: "diagnostic.metadata" },
                 },
             });

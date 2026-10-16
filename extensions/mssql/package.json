@@ -4943,6 +4943,7 @@
                     "mssql.sessionDiag.captureMode": {
                         "type": "string",
                         "enum": [
+                            "off",
                             "redacted",
                             "digest"
                         ],
