@@ -13,7 +13,10 @@ import {
 } from "../../src/copilot/languageModels/shared/modelDisplay";
 import { matchLanguageModelChatToSelector } from "../../src/copilot/languageModelSelection";
 import { selectPreferredModel } from "../../src/copilot/sqlInlineCompletionProvider";
-import { inlineCompletionDebugPresetProfiles } from "../../src/copilot/inlineCompletionDebug/inlineCompletionDebugProfiles";
+import {
+    inlineCompletionDebugPresetProfiles,
+    getInlineCompletionModelPreferenceForCategory,
+} from "../../src/copilot/inlineCompletionDebug/inlineCompletionDebugProfiles";
 
 function fakeModel(
     overrides: Partial<vscode.LanguageModelChat> & { vendor: string; id: string },
@@ -90,65 +93,88 @@ suite("matchLanguageModelChatToSelector", () => {
 });
 
 suite("selectPreferredModel", () => {
-    test("uses provider order as the tie-breaker for matching model families", () => {
-        const models = [
-            fakeModel({
-                vendor: "anthropic-api",
-                id: "claude-sonnet-4-6",
-                family: "claude-sonnet",
-                version: "claude-sonnet-4-6",
-            }),
-            fakeModel({
-                vendor: "copilot",
-                id: "claude-sonnet-4-6",
-                family: "claude-sonnet",
-                version: "claude-sonnet-4-6",
-            }),
-        ];
+    const available = (...ids: string[]) => ids.map((id) => fakeModel({ vendor: "copilot", id }));
 
-        const matched = selectPreferredModel(models);
-        expect(matched?.vendor).to.equal("copilot");
-        expect(matched?.id).to.equal("claude-sonnet-4-6");
-    });
-
-    test("chooses the best available version inside a preferred provider", () => {
-        const models = [
-            fakeModel({
-                vendor: "copilot",
-                id: "claude-sonnet-4-5",
-                family: "claude-sonnet",
-                version: "claude-sonnet-4-5",
-            }),
-            fakeModel({
-                vendor: "copilot",
-                id: "claude-sonnet-4-6",
-                family: "claude-sonnet",
-                version: "claude-sonnet-4-6",
-            }),
-        ];
-
-        const matched = selectPreferredModel(models);
-        expect(matched?.id).to.equal("claude-sonnet-4-6");
-    });
-
-    test("focused profile uses the intent-oriented model preference", () => {
-        const focused = inlineCompletionDebugPresetProfiles.find(
-            (profile) => profile.id === "focused",
+    for (const profile of inlineCompletionDebugPresetProfiles) {
+        test(
+            profile.id + " prefers Sol for intent over previous defaults and other current models",
+            () => {
+                const models = available(
+                    "claude-sonnet-4-6",
+                    "gpt-5.5",
+                    "gpt-6-astra",
+                    "claude-sonnet-5.5",
+                    "gpt-6-sol",
+                    "gpt-6.1-sol",
+                );
+                expect(
+                    selectPreferredModel(
+                        models,
+                        getInlineCompletionModelPreferenceForCategory(profile, "intent"),
+                    )?.id,
+                ).to.equal("gpt-6.1-sol");
+            },
         );
-        const models = [
-            fakeModel({
-                vendor: "copilot",
-                id: "claude-sonnet-4-6",
-                family: "claude-sonnet",
-            }),
-            fakeModel({
-                vendor: "anthropic-api",
-                id: "claude-haiku-4-5",
-                family: "claude-haiku",
-            }),
-        ];
+        if (profile.enabledCategories.includes("continuation")) {
+            test(profile.id + " prefers Luna for continuation independently of intent", () => {
+                const models = available(
+                    "claude-haiku-4-5",
+                    "gpt-5.4-mini",
+                    "gpt-6.1-sol",
+                    "claude-haiku-5.5",
+                    "gpt-6-luna",
+                );
+                expect(
+                    selectPreferredModel(
+                        models,
+                        getInlineCompletionModelPreferenceForCategory(profile, "continuation"),
+                    )?.id,
+                ).to.equal("gpt-6-luna");
+            });
+        }
+    }
 
-        const matched = selectPreferredModel(models, focused?.modelPreference);
-        expect(matched?.family).to.equal("claude-sonnet");
+    test("matches normalized display names when a provider uses opaque IDs", () => {
+        const models = [
+            fakeModel({ vendor: "copilot", id: "opaque-id", family: "gpt", name: "GPT-6.1 Sol" }),
+            ...available("gpt-6-sol"),
+        ];
+        expect(selectPreferredModel(models)?.id).to.equal("opaque-id");
+    });
+
+    test("prefers Copilot when the same preferred model is exposed by another provider", () => {
+        const models = [
+            fakeModel({ vendor: "openai-api", id: "gpt-6.1-sol" }),
+            ...available("gpt-6.1-sol"),
+        ];
+        expect(selectPreferredModel(models)?.vendor).to.equal("copilot");
+    });
+
+    test("uses available current alternatives when Sol and Luna are unavailable", () => {
+        const balanced = inlineCompletionDebugPresetProfiles.find(
+            (profile) => profile.id === "balanced",
+        )!;
+        const models = available("gpt-5.5", "claude-haiku-5.5", "claude-sonnet-5.5");
+        expect(selectPreferredModel(models, balanced.modelPreference)?.id).to.equal(
+            "claude-sonnet-5.5",
+        );
+        expect(selectPreferredModel(models, balanced.continuationModelPreference)?.id).to.equal(
+            "claude-haiku-5.5",
+        );
+    });
+
+    test("accepts newly discovered models and never invents unavailable ones", () => {
+        expect(selectPreferredModel(available("future-model"))?.id).to.equal("future-model");
+        expect(selectPreferredModel([])).to.equal(undefined);
+    });
+
+    test("explicit vendor/model selectors can select either role's preferred model", () => {
+        const models = available("gpt-6.1-sol", "gpt-6-luna");
+        expect(matchLanguageModelChatToSelector(models, "copilot/gpt-6.1-sol")?.id).to.equal(
+            "gpt-6.1-sol",
+        );
+        expect(matchLanguageModelChatToSelector(models, "copilot/gpt-6-luna")?.id).to.equal(
+            "gpt-6-luna",
+        );
     });
 });

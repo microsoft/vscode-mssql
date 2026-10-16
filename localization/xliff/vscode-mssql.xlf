@@ -13228,10 +13228,10 @@
       <source xml:lang="en">Optional OpenAI-compatible API base URL for a proxy, gateway, or Azure OpenAI endpoint.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.inlineCompletions.modelFamily.description">
-      <source xml:lang="en">Optional language model selector used for SQL inline completions. Accepts a vendor/id selector or a bare family name. Leave empty to use the active completion profile.</source>
+      <source xml:lang="en">Optional language model selector for SQL inline completions, such as copilot/gpt-6.1-sol. Accepts a vendor/id selector or a bare family name. Leave empty to use the active profile, which prefers GPT-6.1 Sol for intent. Only models available to your account are used.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.inlineCompletions.continuationModelFamily.description">
-      <source xml:lang="en">Optional language model selector used only for continuation completions. Leave empty to use the active profile or default model.</source>
+      <source xml:lang="en">Optional language model selector used only for continuation completions, such as copilot/gpt-6-luna. Leave empty to use the active profile, which prefers GPT-6 Luna for continuation. Only models available to your account are used.</source>
     </trans-unit>
     <trans-unit id="mssql.debugConsole.perfRunsRoot.description">
       <source xml:lang="en">Optional path to a perftest perf-runs directory used as the default Perf Test History source.</source>
