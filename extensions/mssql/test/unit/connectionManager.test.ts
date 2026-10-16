@@ -88,6 +88,7 @@ suite("ConnectionManager Tests", () => {
     });
 
     teardown(() => {
+        vscodeEntraMfaUtils.resetVscodeEntraTokenCacheForTest();
         sandbox.restore();
     });
 
@@ -748,6 +749,51 @@ suite("ConnectionManager Tests", () => {
             connectionManager.onClearAzureTokenCache();
 
             expect(mockAzureController.clearTokenCache).to.have.been.calledOnce;
+        });
+    });
+
+    suite("refreshEntraTokenIfNeeded - VS Code accounts path", () => {
+        let acquireTokenStub: sinon.SinonStub;
+
+        const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+
+        setup(() => {
+            stubUseMsalEntraMfaAuthConfig(sandbox, false);
+            mockAzureController = sandbox.createStubInstance(MsalAzureController);
+            connectionManager = createConnectionManager();
+            connectionManager.azureController = mockAzureController;
+            acquireTokenStub = sandbox
+                .stub(vscodeEntraMfaUtils, "acquireTokenFromVscodeAccountForResource")
+                .resolves({
+                    account: { id: "account-1", label: "Test User" },
+                    session: { account: { label: "user@example.com" } },
+                    tenantId: "tenant-1",
+                    token: { token: "refreshed-token", expiresOn },
+                } as unknown as vscodeEntraMfaUtils.VscodeEntraSqlTokenInfo);
+        });
+
+        test("refreshes an unexpired token cached before the token cache was cleared", async () => {
+            const connectionInfo = {
+                server: "test-server",
+                authenticationType: "AzureMFA",
+                accountId: "account-1",
+                tenantId: "tenant-1",
+                azureAccountToken: "cached-token",
+                expiresOn,
+            } as IConnectionInfo;
+            connectionManager["_keyVaultTokenCache"].set("key-vault-request", {
+                key: "account-1",
+                token: "key-vault-token",
+                tokenType: "Bearer",
+                expiresOn,
+            });
+
+            connectionManager.onClearAzureTokenCache();
+            await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
+
+            expect(connectionManager["_keyVaultTokenCache"].size).to.equal(0);
+            expect(acquireTokenStub).to.have.been.calledOnce;
+            expect(connectionInfo.azureAccountToken).to.equal("refreshed-token");
         });
     });
 
