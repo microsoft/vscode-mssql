@@ -1992,8 +1992,8 @@
     <trans-unit id="++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da">
       <source xml:lang="en">Connect the active SQL document to a database</source>
     </trans-unit>
-    <trans-unit id="++CODE++3fdbe57593c6d64d856e2ed2dd8c554c6a02f5b70e07928ca40d95c29a90ccb1">
-      <source xml:lang="en">Connect this profile in Object Explorer v2 first.</source>
+    <trans-unit id="++CODE++d03aa5c1cbd3c2bed3c193f11f186b25638cdfcbe2a70c1af3867ead64cdf7cd">
+      <source xml:lang="en">Connect this profile in Connections (Private Preview) first.</source>
     </trans-unit>
     <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
       <source xml:lang="en">Connect to Database</source>
@@ -2238,6 +2238,15 @@
     </trans-unit>
     <trans-unit id="++CODE++dc273117482b4429ada500ecd2e0c75532454194892cb901ca64cc7df369fdf6">
       <source xml:lang="en">Connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++667becd097c0617a1f7c02fbe6ad67c563025db76df1b78a793d4df8c322ef3f">
+      <source xml:lang="en">Connections (Private Preview) could not connect.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b7ae8dcb73822998da20be3ed3a66be89401108c3696bbb18add3f9fe17141c">
+      <source xml:lang="en">Connections (Private Preview) could not connect: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++74745928bda968839e528406953d729bd7a5a370ae2a3bed4b6da2f9d29fa45d">
+      <source xml:lang="en">Connections (Private Preview) requires the SQL Data Plane. Enable mssql.sqlDataPlane.enabled, then reload.</source>
     </trans-unit>
     <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
       <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
@@ -4831,8 +4840,8 @@
     <trans-unit id="++CODE++6912047d1e34810c689d86abbaaff16d03c52fddb02d0a438654cbfae32e926b">
       <source xml:lang="en">Filter Changes</source>
     </trans-unit>
-    <trans-unit id="++CODE++e9e38ca778846da5c0aba34f92acd2b8b5be8e0e70521e742d6cd62d0b43f933">
-      <source xml:lang="en">Filter Object Explorer v2 Folder</source>
+    <trans-unit id="++CODE++4ef32a3b6d10c3aa869df918984051ec1705e1604a0abded977b3d7480d31464">
+      <source xml:lang="en">Filter Connections (Private Preview) Folder</source>
     </trans-unit>
     <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
       <source xml:lang="en">Filter Options</source>
@@ -6137,6 +6146,9 @@
     <trans-unit id="++CODE++ac71b6a015738ee5338790cb940cf29b65310494e9c98aba9894dac78b05e4ca">
       <source xml:lang="en">MSSQL - VS Code walkthrough</source>
     </trans-unit>
+    <trans-unit id="++CODE++d677d7b3ce2fbecfefeb30a60f0a459a8e880eb9d4c530cbe79d1858fac7dc92">
+      <source xml:lang="en">MSSQL Connections (Private Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++895f683141b67b4ff55760d7d677938918d00efa0293d62fceae133b953767e5">
       <source xml:lang="en">MSSQL Database Management Keymap extension.</source>
     </trans-unit>
@@ -6152,9 +6164,6 @@
     <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
       <source xml:lang="en">MSSQL Notebook connected to {0}</source>
       <note>{0} is the connection label</note>
-    </trans-unit>
-    <trans-unit id="++CODE++f25716553dd92d832e01ca466ebf533739c98e3ae16948278269ce3b4d8f0bd0">
-      <source xml:lang="en">MSSQL Object Explorer v2</source>
     </trans-unit>
     <trans-unit id="++CODE++f7fc6e80cfc472d01f0cbe63665cda3c32d6d6ef2539b7e7cb27b1f22709a050">
       <source xml:lang="en">MSSQL extension icon</source>
@@ -7120,15 +7129,6 @@
     </trans-unit>
     <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
       <source xml:lang="en">Object Explorer Filter</source>
-    </trans-unit>
-    <trans-unit id="++CODE++1d1d5d567532b171b4108c3400f31357808e67114ef9c312b8001a3dad7b6183">
-      <source xml:lang="en">Object Explorer v2 could not connect.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++63ebc6dc27390ab4a34aae1159082305ddbb1583f670b6ce1b59bb139b978b7d">
-      <source xml:lang="en">Object Explorer v2 could not connect: {0}</source>
-    </trans-unit>
-    <trans-unit id="++CODE++88d408f49dc1cc8f0a5e919295cf15c6fe84a19afa43073c720a8715e3d25efc">
-      <source xml:lang="en">Object Explorer v2 requires the SQL Data Plane. Enable mssql.sqlDataPlane.enabled, then reload.</source>
     </trans-unit>
     <trans-unit id="++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c">
       <source xml:lang="en">Object Type</source>
@@ -8896,15 +8896,15 @@
     <trans-unit id="++CODE++36dd2a82c1cf2db5f8b72cbfec8b79e93211e6700e6ce7311f083bd86a626137">
       <source xml:lang="en">Script.PreDeployment</source>
     </trans-unit>
+    <trans-unit id="++CODE++3107490fec0b0f1473f9c015e3241f8227355d32611003204de614aed62c78c5">
+      <source xml:lang="en">Search Connections (Private Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
       <source xml:lang="en">Search Database Objects</source>
     </trans-unit>
     <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
       <source xml:lang="en">Search Database Objects - {0}</source>
       <note>{0} is the server name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++03155141a76d698d2f174d78717b159ee7cddda3c99550a4ecfe9189342823bc">
-      <source xml:lang="en">Search Object Explorer v2</source>
     </trans-unit>
     <trans-unit id="++CODE++d71978f988aebbe4865b042a84a83d9ac8fa9b10cdf55bd3f07bb2b58bd168aa">
       <source xml:lang="en">Search Property Lists</source>
@@ -10284,8 +10284,8 @@
     <trans-unit id="++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11">
       <source xml:lang="en">The language model did not return any output.</source>
     </trans-unit>
-    <trans-unit id="++CODE++cdb9528c32d9febfbae3c99e3f6b5116bdcd8d0bcc77222f534e4c0ea80e8525">
-      <source xml:lang="en">The legacy feature could not run with an Object Explorer v2 node ({0}). Use Classic Object Explorer for this command.</source>
+    <trans-unit id="++CODE++933c7bc449ab4dc6cbbcb7f53054f8f75138f85f5dfca7e30fa14b2ff87f7223">
+      <source xml:lang="en">The legacy feature could not run with a Connections (Private Preview) node ({0}). Use Classic Object Explorer for this command.</source>
     </trans-unit>
     <trans-unit id="++CODE++56b03896b84cffa8cabcfcbee375fe8ac177fff10b9a9712425fcc9edd65b112">
       <source xml:lang="en">The local database runs inside a container, so you&apos;ll need a container engine. Docker is pre-selected as a common default; any of the options below will work. Install one to continue.</source>
@@ -10906,8 +10906,8 @@
     <trans-unit id="++CODE++c83ce937073615b8c93e7c38ed529e567ff2c01f291f92e3b4d08245018f362b">
       <source xml:lang="en">Usage limits exceeded. Try again later, or consider optimizing your requests.</source>
     </trans-unit>
-    <trans-unit id="++CODE++288f4d9f67eedc4b956916fc4f29f2c1f9f7585b81342fbde3f8081677fdf5b2">
-      <source xml:lang="en">Use &apos;Connect&apos; on this profile to browse (Object Explorer v2 preview).</source>
+    <trans-unit id="++CODE++c323afda5b4057041e66e4af77ef6d0b0bca7ffa705764a600729e8767a25eb6">
+      <source xml:lang="en">Use &apos;Connect&apos; on this profile to browse in Connections (Private Preview).</source>
     </trans-unit>
     <trans-unit id="++CODE++655e7662b4eed2bd100c5c729d7f16166715ef315856643bbd03b9ec3b1c4249">
       <source xml:lang="en">Use 8–128 characters with characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.</source>
@@ -12313,6 +12313,12 @@
     <trans-unit id="extension.connections">
       <source xml:lang="en">Connections</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.viewName">
+      <source xml:lang="en">Connections (Private Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.showStatus">
+      <source xml:lang="en">Connections (Private Preview): Show Status</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.showGridLines">
       <source xml:lang="en">Control which grid lines are visible in the results grid.</source>
     </trans-unit>
@@ -12471,6 +12477,9 @@
     </trans-unit>
     <trans-unit id="mssql.enableActualPlan">
       <source xml:lang="en">Enable Actual Plan (MSSQL)</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.v2.enabled.description">
+      <source xml:lang="en">Enable Connections (Private Preview). Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Reload the window after changing any required setting. Classic Object Explorer remains available.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
       <source xml:lang="en">Enable Group By Schema</source>
@@ -12671,7 +12680,7 @@
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.v2.groupBySchema.description">
-      <source xml:lang="en">Group supported Object Explorer v2 database objects by schema.</source>
+      <source xml:lang="en">Group supported Connections (Private Preview) database objects by schema.</source>
     </trans-unit>
     <trans-unit id="mssql.hideOverviewInObjectExplorer">
       <source xml:lang="en">Hide</source>
@@ -12856,12 +12865,6 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.altText">
       <source xml:lang="en">Object Explorer filters</source>
     </trans-unit>
-    <trans-unit id="mssql.objectExplorerV2.viewName">
-      <source xml:lang="en">Object Explorer v2 (Private Preview)</source>
-    </trans-unit>
-    <trans-unit id="mssql.objectExplorerV2.showStatus">
-      <source xml:lang="en">Object Explorer v2: Show Status</source>
-    </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
       <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
     </trans-unit>
@@ -12999,9 +13002,6 @@
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
-    </trans-unit>
-    <trans-unit id="mssql.objectExplorer.v2.enabled.description">
-      <source xml:lang="en">Private preview. Enable Object Explorer v2. Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Reload the window after changing any required setting. Classic Object Explorer remains available.</source>
     </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.enabled.description">
       <source xml:lang="en">Private preview. Enable the STS v2-backed SQL Data Plane for preview consumers. Requires mssql.enableExperimentalFeatures and SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing either setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
@@ -13247,7 +13247,7 @@
       <source xml:lang="en">Show only vertical grid lines</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.v2.showSystemDatabases.description">
-      <source xml:lang="en">Show system databases in Object Explorer v2.</source>
+      <source xml:lang="en">Show system databases in Connections (Private Preview).</source>
     </trans-unit>
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>

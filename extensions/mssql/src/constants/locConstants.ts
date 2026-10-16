@@ -1128,7 +1128,7 @@ export class ObjectExplorer {
     public static ConnectionStringCopied = l10n.t("Connection string copied to clipboard");
 }
 
-/** User-visible strings for the private-preview Object Explorer v2 surface. */
+/** User-visible strings for the Connections (Private Preview) surface. */
 export class ObjectExplorerV2 {
     private static readonly folderLabels = new Map<string, string>([
         ["Databases", l10n.t("Databases")],
@@ -1247,21 +1247,21 @@ export class ObjectExplorerV2 {
     public static dataPlaneUnavailable = l10n.t("SQL Data Plane is disabled or unavailable.");
     public static connectionLost = l10n.t("Connection lost. Reconnect from the context menu.");
     public static dataPlaneRequired = l10n.t(
-        "Object Explorer v2 requires the SQL Data Plane. Enable mssql.sqlDataPlane.enabled, then reload.",
+        "Connections (Private Preview) requires the SQL Data Plane. Enable mssql.sqlDataPlane.enabled, then reload.",
     );
     public static noSavedProfiles = l10n.t(
         "No saved connection profiles. Create one with 'MS SQL: Add Connection'.",
     );
     public static connectHint = l10n.t(
-        "Use 'Connect' on this profile to browse (Object Explorer v2 preview).",
+        "Use 'Connect' on this profile to browse in Connections (Private Preview).",
     );
     public static savedConnectionNotFound = l10n.t(
         "That connection could not be found in saved connections.",
     );
-    public static outputChannelName = l10n.t("MSSQL Object Explorer v2");
-    public static filterTitle = l10n.t("Filter Object Explorer v2 Folder");
+    public static outputChannelName = l10n.t("MSSQL Connections (Private Preview)");
+    public static filterTitle = l10n.t("Filter Connections (Private Preview) Folder");
     public static filterPrompt = l10n.t("Enter text to match object names");
-    public static searchTitle = l10n.t("Search Object Explorer v2");
+    public static searchTitle = l10n.t("Search Connections (Private Preview)");
     public static searchPrompt = l10n.t("Enter an object name or prefix");
     public static moveConnectionTitle = l10n.t("Move connection to group");
     public static rootGroup = l10n.t("(Root)");
@@ -1304,7 +1304,7 @@ export class ObjectExplorerV2 {
         "This action needs a database. Use a database node.",
     );
     public static legacyActionConnectFirst = l10n.t(
-        "Connect this profile in Object Explorer v2 first.",
+        "Connect this profile in Connections (Private Preview) first.",
     );
     public static legacyNodeNotAdaptable = l10n.t(
         "The selected node cannot be used with this legacy feature.",
@@ -1312,8 +1312,8 @@ export class ObjectExplorerV2 {
 
     public static couldNotConnect(reason?: string): string {
         return reason
-            ? l10n.t("Object Explorer v2 could not connect: {0}", reason)
-            : l10n.t("Object Explorer v2 could not connect.");
+            ? l10n.t("Connections (Private Preview) could not connect: {0}", reason)
+            : l10n.t("Connections (Private Preview) could not connect.");
     }
     public static connectingFor(seconds: number): string {
         return l10n.t("connecting… ({0}s)", seconds);
@@ -1329,7 +1329,7 @@ export class ObjectExplorerV2 {
     }
     public static legacyFeatureFailed(reason: string): string {
         return l10n.t(
-            "The legacy feature could not run with an Object Explorer v2 node ({0}). Use Classic Object Explorer for this command.",
+            "The legacy feature could not run with a Connections (Private Preview) node ({0}). Use Classic Object Explorer for this command.",
             reason,
         );
     }
