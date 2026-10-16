@@ -15,7 +15,6 @@ import {
 } from "../../src/previews/previewService";
 import { createWorkspaceConfiguration } from "./stubs";
 import { TestFeature } from "./utils";
-import { configEnableAzureSqlContainers } from "../../src/constants/constants";
 
 suite("PreviewFeaturesService", () => {
     let sandbox: sinon.SinonSandbox;
@@ -104,7 +103,7 @@ suite("PreviewFeaturesService", () => {
                     getConfigurationStub.returns(
                         createWorkspaceConfiguration({
                             enableExperimentalFeatures: globalEnabled,
-                            [configEnableAzureSqlContainers]: override,
+                            [getPreviewConfigKey(PreviewFeature.AzureSqlContainers)]: override,
                             "mssql.preview.azureSqlContainers": true,
                         }),
                     );

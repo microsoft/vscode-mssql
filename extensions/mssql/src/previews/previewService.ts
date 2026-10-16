@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { configEnableAzureSqlContainers } from "../constants/constants";
 
 /**
  * String enum of all preview feature names.
@@ -12,6 +11,7 @@ import { configEnableAzureSqlContainers } from "../constants/constants";
  * allowing per-feature overrides of the global `mssql.enableExperimentalFeatures` flag.
  */
 export enum PreviewFeature {
+    AzureSqlContainers = "azureSqlContainers",
     BetaResultsGrid = "betaResultsGrid",
     LiveQueryStatistics = "liveQueryStatistics",
 }
@@ -79,7 +79,9 @@ export class PreviewFeaturesService {
         return (
             vscode.workspace
                 .getConfiguration()
-                .get<boolean>(configEnableAzureSqlContainers, false) ?? false
+                .get<
+                    boolean | undefined
+                >(getPreviewConfigKey(PreviewFeature.AzureSqlContainers), false) ?? false
         );
     }
 

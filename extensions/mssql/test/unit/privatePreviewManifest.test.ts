@@ -6,8 +6,8 @@
 import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
-import { configEnableAzureSqlContainers } from "../../src/constants/constants";
 import { collectConfigurationProperties, ConfigurationContribution } from "./manifestUtils";
+import { getPreviewConfigKey, PreviewFeature } from "../../src/previews/previewService";
 
 const SQL_DATA_PLANE_GATE =
     "mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled";
@@ -50,7 +50,9 @@ suite("Private preview manifest", () => {
     test("does not list Azure SQL container flags in Settings", () => {
         const settings = collectConfigurationProperties(packageJson.contributes.configuration);
 
-        expect(settings).not.to.have.property(configEnableAzureSqlContainers);
+        expect(settings).not.to.have.property(
+            getPreviewConfigKey(PreviewFeature.AzureSqlContainers),
+        );
         expect(settings).not.to.have.property("mssql.preview.azureSqlContainers");
     });
 
