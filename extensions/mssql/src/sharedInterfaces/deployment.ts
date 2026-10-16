@@ -33,6 +33,7 @@ export class DeploymentWebviewState
     errorMessage?: string;
     deploymentType: DeploymentType = DeploymentType.LocalContainers;
     initialDeploymentType?: DeploymentType;
+    isAzureSqlContainerEnabled: boolean = false;
     dialog: IDialogProps | undefined;
     deploymentTypeState: DeploymentTypeState = {} as DeploymentTypeState;
     formState: DeploymentFormState = {} as DeploymentFormState;
