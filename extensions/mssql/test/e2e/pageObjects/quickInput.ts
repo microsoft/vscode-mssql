@@ -209,6 +209,11 @@ export const VsCodeCommand = {
         filter: "MS SQL: Change Connection",
         label: "MS SQL: Change Connection (MSSQL)",
     },
+    mssqlBackupDatabase: {
+        filter: "MS SQL: Backup Database",
+        label: "MS SQL: Backup Database...",
+    },
+    mssqlImportData: { filter: "MS SQL: Import Data", label: "MS SQL: Import Data..." },
 } as const satisfies Record<string, PaletteCommand>;
 
 function getPaletteModifier(): string {
