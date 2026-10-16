@@ -303,7 +303,9 @@ export class DeploymentWebviewController extends FormWebviewController<
         localContainers.registerLocalContainersReducers(this);
         fabricProvisioning.registerFabricProvisioningReducers(this);
         azureSqlDatabase.registerAzureSqlDatabaseReducers(this);
-        azureSql.registerAzureSqlRpcHandlers(this);
+        if (previewService.azureSqlContainersEnabled) {
+            azureSql.registerAzureSqlRpcHandlers(this);
+        }
     }
 
     private applyFavoritesToFormComponents(state: DeploymentWebviewState): void {

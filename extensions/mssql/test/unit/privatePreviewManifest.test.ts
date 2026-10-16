@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
+import { configEnableAzureSqlContainers } from "../../src/constants/constants";
 import { collectConfigurationProperties, ConfigurationContribution } from "./manifestUtils";
 
 const SQL_DATA_PLANE_GATE =
@@ -44,6 +45,13 @@ suite("Private preview manifest", () => {
         expect(settings["mssql.enableExperimentalFeatures"]?.default).to.equal(false);
         expect(settings["mssql.sqlDataPlane.enabled"]?.default).to.equal(false);
         expect(settings["mssql.metadataCache.enabled"]?.default).to.equal(false);
+    });
+
+    test("does not list Azure SQL container flags in Settings", () => {
+        const settings = collectConfigurationProperties(packageJson.contributes.configuration);
+
+        expect(settings).not.to.have.property(configEnableAzureSqlContainers);
+        expect(settings).not.to.have.property("mssql.preview.azureSqlContainers");
     });
 
     test("requires the activation snapshot and umbrella before SQL Data Plane UI is visible", () => {

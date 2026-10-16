@@ -15,6 +15,7 @@ import {
 } from "../../src/previews/previewService";
 import { createWorkspaceConfiguration } from "./stubs";
 import { TestFeature } from "./utils";
+import { configEnableAzureSqlContainers } from "../../src/constants/constants";
 
 suite("PreviewFeaturesService", () => {
     let sandbox: sinon.SinonSandbox;
@@ -103,15 +104,16 @@ suite("PreviewFeaturesService", () => {
                     getConfigurationStub.returns(
                         createWorkspaceConfiguration({
                             enableExperimentalFeatures: globalEnabled,
-                            [getPreviewConfigKey(PreviewFeature.AzureSqlContainers)]: override,
+                            [configEnableAzureSqlContainers]: override,
+                            "mssql.preview.azureSqlContainers": true,
                         }),
                     );
 
-                    const enabled = override ?? globalEnabled ?? false;
+                    const enabled = override ?? false;
                     expect(service.azureSqlContainersEnabled).to.equal(enabled);
-                    expect(
-                        service.getNonDefaultOverrides()[PreviewFeature.AzureSqlContainers],
-                    ).to.equal(enabled !== (globalEnabled ?? false) ? enabled : undefined);
+                    expect(service.getNonDefaultOverrides()).not.to.have.property(
+                        "azureSqlContainers",
+                    );
                 });
             }
         }
