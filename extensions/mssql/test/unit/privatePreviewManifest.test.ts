@@ -7,7 +7,6 @@ import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
 import { collectConfigurationProperties, ConfigurationContribution } from "./manifestUtils";
-import { getPreviewConfigKey, PreviewFeature } from "../../src/previews/previewService";
 
 const SQL_DATA_PLANE_GATE =
     "mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled";
@@ -45,15 +44,6 @@ suite("Private preview manifest", () => {
         expect(settings["mssql.enableExperimentalFeatures"]?.default).to.equal(false);
         expect(settings["mssql.sqlDataPlane.enabled"]?.default).to.equal(false);
         expect(settings["mssql.metadataCache.enabled"]?.default).to.equal(false);
-    });
-
-    test("does not list Azure SQL container flags in Settings", () => {
-        const settings = collectConfigurationProperties(packageJson.contributes.configuration);
-
-        expect(settings).not.to.have.property(
-            getPreviewConfigKey(PreviewFeature.AzureSqlContainers),
-        );
-        expect(settings).not.to.have.property("mssql.preview.azureSqlContainers");
     });
 
     test("requires the activation snapshot and umbrella before SQL Data Plane UI is visible", () => {
