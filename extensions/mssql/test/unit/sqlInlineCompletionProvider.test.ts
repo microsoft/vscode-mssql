@@ -986,6 +986,38 @@ ORDER BY qs.total_worker_time DESC;`,
         );
     });
 
+    test("table discovery intent permits built-in catalogs with schema sharing disabled", async () => {
+        useSchemaContextEnabled = false;
+        const sql =
+            "SELECT s.name, t.name FROM sys.tables AS t JOIN sys.schemas AS s ON s.schema_id = t.schema_id;";
+        sendRequestStub.resolves(createChatResponse(sql));
+        const line = "-- which tables are in this database?";
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument(line, "file:///query.sql"),
+            new vscode.Position(0, line.length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            requestCancellation.token,
+        );
+        expect(schemaContextService.getSchemaContext.called).to.equal(false);
+        expect(items).to.have.lengthOf(1);
+        expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal("\n" + sql);
+        const messages = sendRequestStub.firstCall.args[0] as vscode.LanguageModelChatMessage[];
+        const prompt = messages
+            .flatMap((message) =>
+                message.content.map((part) =>
+                    part instanceof vscode.LanguageModelTextPart ? part.value : "",
+                ),
+            )
+            .join("\n");
+        expect(prompt).to.include("even when schema context is absent");
+        expect(prompt).to.include("never invent the actual table names or query results");
+        expect(prompt).to.include(
+            "If the request needs user-defined objects or columns that are not supplied",
+        );
+    });
+
     test("starts intent-mode completion on a new line for question-style comment prompts", async () => {
         schemaContextService.getSchemaContext.resolves(undefined);
         sendRequestStub.resolves(
