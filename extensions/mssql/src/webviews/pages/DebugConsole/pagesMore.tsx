@@ -97,6 +97,8 @@ function pairOccurrences(events: DiagEvent[], beginType: string, endType: string
                 const sameProcess =
                     begin.monotonicNs !== undefined &&
                     event.monotonicNs !== undefined &&
+                    /^\d{1,22}$/.test(begin.monotonicNs) &&
+                    /^\d{1,22}$/.test(event.monotonicNs) &&
                     begin.process === event.process;
                 const durationMs = sameProcess
                     ? Number(BigInt(event.monotonicNs!) - BigInt(begin.monotonicNs!)) / 1e6

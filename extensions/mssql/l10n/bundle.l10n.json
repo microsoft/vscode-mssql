@@ -2979,6 +2979,7 @@
     "{0} API key is not configured.": "{0} API key is not configured.",
     "{0} SDK language models are disabled.": "{0} SDK language models are disabled.",
     "{0} only handles text content.": "{0} only handles text content.",
+    "This session exceeds the Debug Console history loading limit (8 MB or 20,000 events). Open a smaller session or inspect the session files directly.": "This session exceeds the Debug Console history loading limit (8 MB or 20,000 events). Open a smaller session or inspect the session files directly.",
     "Unsupported diagnostics capture mode.": "Unsupported diagnostics capture mode.",
     "Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.": "Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.",
     "Delete all": "Delete all",

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { OBS_CONTRACT } from "../sharedInterfaces/observabilityContract.generated";
+import { createHash } from "crypto";
 import { DataClassification } from "../sharedInterfaces/diagnostics";
 const NUMERIC_METADATA = new Set([
     "count",
@@ -26,6 +27,27 @@ const NUMERIC_METADATA = new Set([
     "officialEligible",
     "perf_heapDeltaKB",
 ]);
+const knownKeys = new Set([
+    ...NUMERIC_METADATA,
+    "method",
+    "password",
+    "sql",
+    "text",
+    ...OBS_CONTRACT.events.flatMap((entry) => Object.keys(entry.attrs)),
+]);
+/** Unknown field names are untrusted data too. Keep only an opaque correlation key. */
+export function importedFieldKey(key: string): string {
+    return knownKeys.has(key)
+        ? key
+        : `field_${createHash("sha256").update(key).digest("hex").slice(0, 16)}`;
+}
+export function validMarkerClock(value: unknown): value is string {
+    return (
+        typeof value === "string" &&
+        /^\d{1,22}$/.test(value) &&
+        BigInt(value) <= 8_640_000_000_000_000_000_000n
+    );
+}
 /** Unknown wire/imported fields never become plaintext, even during elevation. */
 export function importClassification(
     key: string,

@@ -6,7 +6,7 @@
 /**
  * Loopback listener for SQL Tools Service diagnostics. The extension starts
  * this before STS spawns and passes STS_DIAG_URL/STS_DIAG_TOKEN via the
- * inherited environment; StsDiag on the service side batches NDJSON events
+ * STS-only launch environment; StsDiag on the service side batches NDJSON events
  * here. Events flow into the diagnostics core (which drops them when no sink
  * is active), giving the Debug Console live dispatcher/SqlCommand/SMO spans.
  *
@@ -16,7 +16,7 @@
 
 import * as crypto from "crypto";
 import * as http from "http";
-import { importClassification, importedEventType } from "./importClassification";
+import { importClassification, importedEventType, importedFieldKey } from "./importClassification";
 import { DataClassification } from "../sharedInterfaces/debugConsole";
 import { diag } from "./diagnosticsCore";
 
@@ -33,6 +33,10 @@ interface StsDiagWireEvent {
 }
 
 let server: http.Server | undefined;
+let launchEnvironment: NodeJS.ProcessEnv = {};
+export function getStsDiagEnvironment(): NodeJS.ProcessEnv {
+    return { ...launchEnvironment };
+}
 const MAX_BODY_BYTES = 4 * 1024 * 1024;
 /**
  * Defense in depth on what the service is trusted to send: every scalar is
@@ -41,7 +45,6 @@ const MAX_BODY_BYTES = 4 * 1024 * 1024;
  */
 const MAX_FIELDS = 32;
 const MAX_FIELD_CHARS = 256;
-const MAX_KEY_CHARS = 64;
 /** Feature buckets the STS emitter is contracted to use (StsDiag.cs callers). */
 const STS_FEATURES: ReadonlySet<string> = new Set([
     "rpc",
@@ -124,8 +127,10 @@ export async function startStsDiagListener(): Promise<void> {
     }
     const address = candidate.address();
     if (address && typeof address === "object") {
-        process.env["STS_DIAG_URL"] = `http://127.0.0.1:${address.port}/`;
-        process.env["STS_DIAG_TOKEN"] = token;
+        launchEnvironment = {
+            STS_DIAG_URL: `http://127.0.0.1:${address.port}/`,
+            STS_DIAG_TOKEN: token,
+        };
     }
     candidate.unref();
 }
@@ -133,15 +138,15 @@ export async function startStsDiagListener(): Promise<void> {
 export function stopStsDiagListener(): void {
     server?.close();
     server = undefined;
-    delete process.env["STS_DIAG_URL"];
-    delete process.env["STS_DIAG_TOKEN"];
+    launchEnvironment = {};
 }
 
 function ingest(event: StsDiagWireEvent): void {
     if (
         typeof event.type !== "string" ||
         typeof event.epochMs !== "number" ||
-        !Number.isFinite(event.epochMs)
+        !Number.isFinite(event.epochMs) ||
+        Math.abs(event.epochMs) > 8_640_000_000_000_000
     ) {
         return;
     }
@@ -153,7 +158,7 @@ function ingest(event: StsDiagWireEvent): void {
             dropped++;
             continue;
         }
-        const key = rawKey.slice(0, MAX_KEY_CHARS);
+        const key = importedFieldKey(rawKey);
         if (typeof value === "string") {
             // STS emitter contract: protocol metadata only (methods, counts,
             // durations, type names) — bounded here regardless.
@@ -181,7 +186,9 @@ function ingest(event: StsDiagWireEvent): void {
         fields["stsDiag.droppedFields"] = { raw: dropped, cls: "diagnostic.metadata" };
     }
     const startEpochMs =
-        typeof event.startEpochMs === "number" && Number.isFinite(event.startEpochMs)
+        typeof event.startEpochMs === "number" &&
+        Number.isFinite(event.startEpochMs) &&
+        Math.abs(event.startEpochMs) <= 8_640_000_000_000_000
             ? event.startEpochMs
             : event.epochMs;
     const durationMs =

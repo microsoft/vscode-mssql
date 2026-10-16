@@ -11,7 +11,7 @@
  */
 
 import * as fs from "fs";
-import { importClassification, importedEventType } from "../importClassification";
+import { importClassification, importedEventType, validMarkerClock } from "../importClassification";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as LocConstants from "../../constants/locConstants";
@@ -792,11 +792,7 @@ export function parseMarkerLines(lines: string[]): ParsedMarker[] {
             continue;
         }
         const candidate = parsed as Partial<ParsedMarker>;
-        if (
-            typeof candidate.name !== "string" ||
-            typeof candidate.timestampUnixNs !== "string" ||
-            !/^\d+$/.test(candidate.timestampUnixNs)
-        ) {
+        if (typeof candidate.name !== "string" || !validMarkerClock(candidate.timestampUnixNs)) {
             continue;
         }
         markers.push({

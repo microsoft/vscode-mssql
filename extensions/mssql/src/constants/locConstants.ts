@@ -6118,6 +6118,10 @@ export const copilotSdkProviderDisabled = (provider: string) =>
     l10n.t("{0} SDK language models are disabled.", provider);
 export const copilotSdkTextOnly = (provider: string) =>
     l10n.t("{0} only handles text content.", provider);
+export const debugConsoleSessionTooLarge = l10n.t(
+    "This session exceeds the Debug Console history loading limit (8 MB or 20,000 events). Open a smaller session or inspect the session files directly.",
+);
+
 export class SessionDiag {
     public static invalidCaptureMode = l10n.t("Unsupported diagnostics capture mode.");
     public static privatePreviewRequired = l10n.t(
