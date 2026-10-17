@@ -107,7 +107,16 @@ import {
 } from "../copilot/completionSchemaContextService";
 import { CopilotEnableSettingsGuard } from "../copilot/copilotEnableSettingsGuard";
 import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
-import { saveInlineCompletionTraceOnDeactivate } from "../copilot/inlineCompletionDebug/tracePersistence";
+import { saveInlineCompletionTraceOnDeactivateJournalAware } from "../copilot/inlineCompletionDebug/journalPrimaryPersistence";
+import { InlineCompletionDebugController } from "../copilot/inlineCompletionDebug/inlineCompletionDebugController";
+import { configureCompletionsDebugHost } from "../diagnostics/completionsDebugConsoleHost";
+import {
+    initializeCompletionsCaptureJournal,
+    flushCompletionsCaptureJournalOnDeactivate,
+} from "../copilot/inlineCompletionDebug/completionsJournalBinding";
+import { configureCompletionsReplayRunPersistence } from "../copilot/inlineCompletionDebug/completionsReplayRunPersistence";
+import { ObservabilityBundleManager } from "../diagnostics/sessionBundle/bundleManager";
+import { diag } from "../diagnostics/diagnosticsCore";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
 import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
@@ -227,6 +236,8 @@ export default class MainController implements vscode.Disposable {
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
     public cloudDeployService: CloudDeployService;
+    public inlineCompletionDebugController: InlineCompletionDebugController | undefined;
+    private completionBundles: ObservabilityBundleManager | undefined;
     public inlineCompletionSchemaContextService: CompletionSchemaContextService | undefined;
     public protocolHandler: MssqlProtocolHandler;
     public azureResourcesIntegration: AzureResourcesExtensionIntegration;
@@ -307,7 +318,12 @@ export default class MainController implements vscode.Disposable {
      */
     public async deactivate(): Promise<void> {
         this._logger.debug("Extension de-activated.");
-        await saveInlineCompletionTraceOnDeactivate(this._context);
+        await saveInlineCompletionTraceOnDeactivateJournalAware(this._context);
+        await flushCompletionsCaptureJournalOnDeactivate();
+        this.inlineCompletionDebugController?.dispose();
+        await this.completionBundles?.dispose();
+        configureCompletionsDebugHost(undefined);
+        configureCompletionsReplayRunPersistence(undefined);
         await MetadataStoreService.get().flush();
         await this.onDisconnect();
         this._shortcutsConfigurationController?.dispose();
@@ -1274,6 +1290,55 @@ export default class MainController implements vscode.Disposable {
         const provider = new SqlInlineCompletionProvider(this._context, schemaContextService);
         const copilotEnableSettingsGuard = new CopilotEnableSettingsGuard(this._context);
         this.inlineCompletionSchemaContextService = schemaContextService;
+        configureCompletionsDebugHost({ extensionContext: this._context, schemaContextService });
+        const storeRoot = path.join(this._context.globalStorageUri.fsPath, "completion-debug");
+        this.completionBundles = new ObservabilityBundleManager({
+            storeRoot,
+            currentHostSessionId: diag.sessionId,
+            provenance: {
+                extensionVersion: this._context.extension.packageJSON.version,
+                vscodeVersion: vscode.version,
+                platform: process.platform,
+            },
+        });
+        initializeCompletionsCaptureJournal(this._context, {
+            storeRoot,
+            hostSessionId: diag.sessionId,
+            bundleManager: this.completionBundles,
+        });
+        configureCompletionsReplayRunPersistence({
+            storeRoot,
+            hostSessionId: diag.sessionId,
+            bundleRegistrar: this.completionBundles,
+        });
+        this.registerCommand(Constants.cmdOpenInlineCompletionDebug);
+        this._event.on(Constants.cmdOpenInlineCompletionDebug, async () => {
+            if (!isInlineCompletionFeatureEnabled()) return;
+            const standalone = vscode.workspace
+                .getConfiguration()
+                .get<boolean>("mssql.copilot.inlineCompletions.debug.standalonePanel", false);
+            if (
+                !standalone &&
+                previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.DebugConsole) &&
+                (await vscode.commands.getCommands(true)).includes("mssql.openDebugConsole")
+            ) {
+                void vscode.commands.executeCommand("mssql.openDebugConsole", {
+                    page: "completions",
+                });
+                return;
+            }
+            if (!isInlineCompletionFeatureEnabled()) return;
+            if (
+                !this.inlineCompletionDebugController ||
+                this.inlineCompletionDebugController.isDisposed
+            ) {
+                this.inlineCompletionDebugController = new InlineCompletionDebugController(
+                    this._context,
+                    schemaContextService,
+                );
+            }
+            this.inlineCompletionDebugController.revealToForeground(vscode.ViewColumn.Active);
+        });
         this._context.subscriptions.push(
             schemaContextService,
             provider,

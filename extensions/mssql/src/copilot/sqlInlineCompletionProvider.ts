@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from "path";
+import { diag } from "../diagnostics/diagnosticsCore";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -179,14 +180,39 @@ export class SqlInlineCompletionProvider
         const request = new vscode.CancellationTokenSource();
         const cancellation = token.onCancellationRequested(() => request.cancel());
         this._activeRequests.add(request);
+        const span = diag.startSpan({
+            feature: "completions",
+            kind: "span",
+            type: "completions.request",
+            fields: {
+                trigger: {
+                    raw:
+                        context.triggerKind === vscode.InlineCompletionTriggerKind.Automatic
+                            ? "automatic"
+                            : "invoke",
+                    cls: "diagnostic.metadata",
+                },
+            },
+        });
         try {
             if (token.isCancellationRequested) request.cancel();
-            return await this.provideInlineCompletionItemsCore(
+            const result = await this.provideInlineCompletionItemsCore(
                 document,
                 position,
                 context,
                 request.token,
+                span.traceId,
             );
+            span.end("ok", {
+                itemCount: {
+                    raw: Array.isArray(result) ? result.length : result.items.length,
+                    cls: "diagnostic.metadata",
+                },
+            });
+            return result;
+        } catch (error) {
+            span.fail(error);
+            throw error;
         } finally {
             this._activeRequests.delete(request);
             cancellation.dispose();
@@ -199,6 +225,7 @@ export class SqlInlineCompletionProvider
         position: vscode.Position,
         context: vscode.InlineCompletionContext,
         token: vscode.CancellationToken,
+        requestTraceId: string,
     ): Promise<vscode.InlineCompletionItem[] | vscode.InlineCompletionList> {
         if (!this.isEnabledForDocument(document) || context.selectedCompletionInfo) {
             return [];
@@ -315,6 +342,9 @@ export class SqlInlineCompletionProvider
         let skipReason: string | undefined;
         let pendingStage = "starting";
 
+        const eventLink = shouldCaptureDebug
+            ? inlineCompletionDebugStore.createEventLink({ traceId: requestTraceId })
+            : undefined;
         const modelStartedAt = Date.now();
         let pendingDebugEventId: string | undefined;
         const createDebugEvent = (
@@ -322,6 +352,7 @@ export class SqlInlineCompletionProvider
             error?: unknown,
             timestamp: number = Date.now(),
         ): Omit<InlineCompletionDebugEvent, "id"> => ({
+            ...(eventLink ? { link: eventLink } : {}),
             timestamp,
             documentUri: document.uri.toString(),
             documentFileName: path.basename(document.fileName || document.uri.fsPath),
@@ -3327,4 +3358,63 @@ function findLastNonEmptyLineBefore(
     }
 
     return -1;
+}
+
+// Increment when prompt/sanitizer behavior changes so replay provenance remains explicit.
+export const INLINE_COMPLETION_PROMPT_BUILDER_VERSION = "2";
+export const INLINE_COMPLETION_SANITIZER_VERSION = "1";
+
+/** The document/editor context slice one completion request is built from. */
+export interface InlineCompletionDocumentContext {
+    documentUri: string;
+    documentFileName: string;
+    languageId: string;
+    line: number;
+    column: number;
+    linePrefix: string;
+    lineSuffix: string;
+    statementPrefix: string;
+    recentPrefix: string;
+    suffix: string;
+    inferredSystemQuery: boolean;
+    detectedIntentMode: boolean;
+    sqlDiagnosticsText: string;
+}
+
+/**
+ * Extract the SAME context windows the live completion provider builds, for
+ * an arbitrary document + position (WI-3.4 `liveDocumentScenario`: replay
+ * re-executes against the current active document state through exactly the
+ * production extraction path — same window sizes, same statement-boundary
+ * logic, same diagnostics formatting).
+ */
+export function extractInlineCompletionDocumentContext(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+): InlineCompletionDocumentContext {
+    const line = document.lineAt(position.line);
+    const linePrefix = line.text.slice(0, position.character);
+    const lineSuffix = line.text.slice(position.character);
+    const statementPrefix = getStatementAwarePrefixWindow(
+        document,
+        position,
+        statementPrefixWindowChars,
+    );
+    const recentPrefix = getRecentDocumentPrefixWindow(document, position, recentPrefixWindowChars);
+    const suffix = getSuffixWindow(document, position, suffixWindowChars);
+    return {
+        documentUri: document.uri.toString(),
+        documentFileName: document.fileName.split(/[\\/]/).pop() ?? document.fileName,
+        languageId: document.languageId,
+        line: position.line,
+        column: position.character,
+        linePrefix,
+        lineSuffix,
+        statementPrefix,
+        recentPrefix,
+        suffix,
+        inferredSystemQuery: inferSystemQuery(statementPrefix, linePrefix),
+        detectedIntentMode: detectIntentMode(statementPrefix, linePrefix),
+        sqlDiagnosticsText: formatNearbySqlDiagnosticsForPrompt(document, position),
+    };
 }

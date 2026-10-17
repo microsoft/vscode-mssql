@@ -64,6 +64,8 @@ export function featureFor(name: string): string {
         return "activation";
     }
     if (name.startsWith("mssql.command")) return "shell";
+    if (name.startsWith("completions.")) return "completions";
+    if (name.startsWith("replay.")) return "replay";
     if (name.startsWith("mssql.connection")) return "connection";
     if (name.startsWith("mssql.sts")) return "stsLifecycle";
     if (name.startsWith("mssql.queryResults")) return "queryResults";
@@ -104,6 +106,12 @@ export function featureFor(name: string): string {
 export const PERF_ATTR_CLASSIFICATION: Readonly<Record<string, DataClassification>> = {
     nodePath: "object.name",
     nodeType: "diagnostic.metadata",
+    childCount: "diagnostic.metadata",
+    batchId: "diagnostic.metadata",
+    resultId: "diagnostic.metadata",
+    rowStart: "diagnostic.metadata",
+    numberOfRows: "diagnostic.metadata",
+    rowsReturned: "diagnostic.metadata",
     objects: "diagnostic.metadata",
     objectName: "object.name",
     documentUri: "source.path",

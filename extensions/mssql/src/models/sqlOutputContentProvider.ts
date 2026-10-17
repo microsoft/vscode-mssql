@@ -25,6 +25,7 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
 import { getLogger } from "./logger";
 import * as Utils from "./utils";
+import { Perf } from "../perf/perfTelemetry";
 // Use CommonJS import here because lodash/throttle is CJS; default ESM-style import
 // can transpile to throttle_1.default and fail at runtime in unit tests.
 import throttle = require("lodash/throttle");
@@ -244,17 +245,37 @@ export class SqlOutputContentProvider {
 
     //#region  Request Handlers
 
-    public rowRequestHandler(
+    public async rowRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         rowStart: number,
         numberOfRows: number,
     ): Promise<ResultSetSubset> {
-        return this._queryResultsMap
-            .get(uri)
-            .queryRunner.getRows(rowStart, numberOfRows, batchId, resultId)
-            .then((r) => r.resultSubset);
+        Perf.marker("mssql.resultsGrid.windowFetch.begin", "begin", {
+            batchId,
+            resultId,
+            rowStart,
+            numberOfRows,
+        });
+        let rowsReturned = 0;
+        let failed = true;
+        try {
+            const result = await this._queryResultsMap
+                .get(uri)
+                .queryRunner.getRows(rowStart, numberOfRows, batchId, resultId);
+            rowsReturned = result.resultSubset?.rows?.length ?? 0;
+            failed = false;
+            return result.resultSubset;
+        } finally {
+            Perf.marker("mssql.resultsGrid.windowFetch.end", "end", {
+                batchId,
+                resultId,
+                rowStart,
+                rowsReturned,
+                failed,
+            });
+        }
     }
 
     public configRequestHandler(uri: string): Promise<Interfaces.IResultsConfig> {

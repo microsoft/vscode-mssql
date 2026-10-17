@@ -24,7 +24,7 @@ const CUSTOM_PROMPT_SAVED_AT_MEMENTO_KEY =
 
 export interface SaveInlineCompletionTraceResult {
     filePath?: string;
-    skipped?: "captureDisabled" | "empty";
+    skipped?: "captureDisabled" | "empty" | "journalPrimary";
     error?: string;
 }
 
@@ -177,4 +177,10 @@ async function showTraceWriteWarning(folder: string, message: string): Promise<v
     } else if (selection === openOutput) {
         traceLogger.show();
     }
+}
+
+export function getTraceJournalPrimarySetting(): boolean {
+    return vscode.workspace
+        .getConfiguration()
+        .get<boolean>("mssql.copilot.inlineCompletions.trace.journalPrimary", false);
 }

@@ -293,7 +293,7 @@ class MssqlActivation {
             );
         });
 
-        registerPerfApi(context);
+        registerPerfApi(context, { getController: () => controller });
         Perf.setActivationState("activated");
         Perf.marker("mssql.activate.end", "end");
         Perf.flush();

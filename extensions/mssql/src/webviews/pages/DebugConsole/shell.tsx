@@ -19,6 +19,8 @@ import {
     SqlActivityPage,
 } from "./pagesMore";
 import { HistoryPage } from "./pagesPerf";
+import { CompletionsPage } from "./completionsPage";
+import { locConstants } from "../../common/locConstants";
 import { PerfHistoryPage } from "./pagesPerfHistory";
 
 const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon: string }> }> = [
@@ -39,6 +41,7 @@ const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon
             { id: "connections", label: "Connections", icon: "⌁" },
             { id: "query", label: "Query & Results", icon: "▶" },
             { id: "oe", label: "Object Explorer", icon: "⌥" },
+            { id: "completions", label: locConstants.inlineCompletionDebug.completions, icon: "✦" },
         ],
     },
     {
@@ -347,6 +350,9 @@ export function DebugConsoleApp() {
     const { route } = useDc();
     let page: React.ReactNode;
     switch (route.page) {
+        case "completions":
+            page = <CompletionsPage />;
+            break;
         case "overview":
             page = <OverviewPage />;
             break;

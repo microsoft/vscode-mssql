@@ -581,5 +581,9 @@
     "sqlDatabaseProjects.findFile": "Find File...",
     "sqlDatabaseProjects.findFileBehavior": "What happens when you pick a file in Find File.",
     "sqlDatabaseProjects.findFileBehavior.revealAndOpen": "Reveal the file in the Database Projects view and open it in the editor.",
-    "sqlDatabaseProjects.findFileBehavior.reveal": "Reveal and select the file in the Database Projects view without opening it."
+    "sqlDatabaseProjects.findFileBehavior.reveal": "Reveal and select the file in the Database Projects view without opening it.",
+    "mssql.copilot.inlineCompletions.debug.standalonePanel": "Open the legacy standalone Copilot Completion Debug panel instead of the Debug Console Completions page.",
+    "mssql.copilot.inlineCompletions.trace.journalPrimary": "Experimental (observability-lab workflow): treat the local capture journal as the primary trace record. Explicit save/export assembles a v2 trace from the journal, and the legacy deactivate trace file is skipped when the journal stream is healthy. Requires trace.captureEnabled.",
+    "mssql.openInlineCompletionDebug": "MSSQL: Open Inline Completion Debug",
+    "mssql.copilot.inlineCompletion.refreshSchemaContext": "Refresh AI Completion Schema Context (Private Preview)"
 }

@@ -884,6 +884,10 @@ register({
         displayName: "MSSQL Debug Console opens without errors",
         tags: ["diagnostics", "webview"],
         profileMode: "warmed",
+        userSettings: {
+            "mssql.enableExperimentalFeatures": true,
+            "mssql.debugConsole.enabled": true,
+        },
         setup: ACTIVATE_STEPS,
         measure: {
             start: { type: "beforeFirstAction" },
