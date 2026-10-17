@@ -23,7 +23,6 @@ import {
     CompletionsStatusInfo,
     DcCompletionsEnableRequest,
     DcCompletionsStatusRequest,
-    DcOpenCompletionsViewerRequest,
     DcQueryEventsRequest,
     DiagEvent,
 } from "../../../sharedInterfaces/debugConsole";
@@ -90,13 +89,25 @@ export function CompletionsPage() {
             .finally(() => setBusy(false));
     };
 
-    const openViewer = () => {
-        void rpc.sendRequest(DcOpenCompletionsViewerRequest.type, undefined).then((result) => {
-            if (!result.ok) {
-                setMessage(result.error ?? "Could not open the debug viewer.");
-            }
-        });
-    };
+    if (status?.featureEnabled) {
+        return (
+            <div className="dc-completions-viewer">
+                <ConsoleCompletionsDebugStateProvider>
+                    <Suspense
+                        fallback={
+                            <div className="dc-muted">
+                                {locConstants.inlineCompletionDebug.loadingDebugTools}
+                            </div>
+                        }>
+                        <InlineCompletionDebugApp
+                            layout="fill"
+                            sessionsDatasetHint={route.completionsDatasetSession}
+                        />
+                    </Suspense>
+                </ConsoleCompletionsDebugStateProvider>
+            </div>
+        );
+    }
 
     const field = (e: DiagEvent, name: string): string => {
         const value = e.payload?.[name]?.v;
@@ -147,30 +158,11 @@ export function CompletionsPage() {
                             {status.traceCaptureEnabled ? "on" : "off"}
                         </div>
                         <div style={{ display: "flex", gap: 8 }}>
-                            {status.featureEnabled ? (
-                                <button
-                                    className="dc-btn"
-                                    disabled={busy}
-                                    onClick={() => setEnabled(false)}>
-                                    {locConstants.inlineCompletionDebug.disableAICompletions}
-                                </button>
-                            ) : (
-                                <button
-                                    className="dc-btn primary"
-                                    disabled={busy}
-                                    onClick={() => setEnabled(true)}>
-                                    {locConstants.inlineCompletionDebug.enableAICompletions}
-                                </button>
-                            )}
                             <button
-                                className="dc-btn"
-                                disabled={!status.featureEnabled}
-                                onClick={openViewer}
-                                title={
-                                    locConstants.inlineCompletionDebug
-                                        .fullFidelityPromptsResponsesSchemaContextReplay
-                                }>
-                                {locConstants.inlineCompletionDebug.openInlineCompletionDebugViewer}
+                                className="dc-btn primary"
+                                disabled={busy}
+                                onClick={() => setEnabled(true)}>
+                                {locConstants.inlineCompletionDebug.enableAICompletions}
                             </button>
                         </div>
                         {message ? (
@@ -196,85 +188,51 @@ export function CompletionsPage() {
                     <div className="dc-muted">{locConstants.inlineCompletionDebug.loading}</div>
                 )}
             </div>
-            {status?.featureEnabled ? (
-                // The complete shared Inline Completion Debug app (Live |
-                // Sessions | replay drawer) — direct component reuse, driven
-                // over the typed thin transport by the console provider. The
-                // page fills the content area; every pane scrolls internally.
-                <div
-                    className="dc-card"
-                    style={{
-                        flexGrow: 1,
-                        minHeight: 480,
-                        padding: 0,
-                        overflow: "hidden",
-                    }}>
-                    <ConsoleCompletionsDebugStateProvider>
-                        <Suspense
-                            fallback={
-                                <div className="dc-muted" style={{ padding: 12 }}>
-                                    {locConstants.inlineCompletionDebug.loadingDebugTools}
-                                </div>
-                            }>
-                            {/* WI-4.4 deep link: a History "Completions n"
-                                chip routes here with the host session whose
-                                stored captures should join the dataset. */}
-                            <InlineCompletionDebugApp
-                                layout="fill"
-                                sessionsDatasetHint={route.completionsDatasetSession}
-                            />
-                        </Suspense>
-                    </ConsoleCompletionsDebugStateProvider>
+            <div className="dc-card">
+                <div className="dc-card-title">
+                    {locConstants.inlineCompletionDebug.liveActivitySubstrateRedacted}
                 </div>
-            ) : (
-                <div className="dc-card">
-                    <div className="dc-card-title">
-                        {locConstants.inlineCompletionDebug.liveActivitySubstrateRedacted}
-                    </div>
-                    {events.length === 0 ? (
-                        <EmptyState
-                            title={
-                                locConstants.inlineCompletionDebug.noCompletionActivityInThisSource
-                            }
-                            body="Requests, stages, results and latency appear here as you type in a .sql editor. Prompt and response text never rides these events — use the debug viewer for full fidelity."
-                        />
-                    ) : (
-                        <table className="dc-table">
-                            <thead>
-                                <tr>
-                                    <th>{locConstants.inlineCompletionDebug.time}</th>
-                                    <th>{locConstants.inlineCompletionDebug.type}</th>
-                                    <th>{locConstants.inlineCompletionDebug.status}</th>
-                                    <th>{locConstants.inlineCompletionDebug.triggerStage}</th>
-                                    <th>{locConstants.inlineCompletionDebug.result}</th>
-                                    <th>{locConstants.inlineCompletionDebug.latency}</th>
+                {events.length === 0 ? (
+                    <EmptyState
+                        title={locConstants.inlineCompletionDebug.noCompletionActivityInThisSource}
+                        body="Requests, stages, results and latency appear here as you type in a .sql editor. Prompt and response text never rides these events — use the debug viewer for full fidelity."
+                    />
+                ) : (
+                    <table className="dc-table">
+                        <thead>
+                            <tr>
+                                <th>{locConstants.inlineCompletionDebug.time}</th>
+                                <th>{locConstants.inlineCompletionDebug.type}</th>
+                                <th>{locConstants.inlineCompletionDebug.status}</th>
+                                <th>{locConstants.inlineCompletionDebug.triggerStage}</th>
+                                <th>{locConstants.inlineCompletionDebug.result}</th>
+                                <th>{locConstants.inlineCompletionDebug.latency}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {events.map((e) => (
+                                <tr key={e.eventId}>
+                                    <td className="dc-mono">{formatTime(e.epochMs)}</td>
+                                    <td className="dc-mono">{e.type}</td>
+                                    <td>{e.status}</td>
+                                    <td className="dc-mono">
+                                        {field(e, "trigger") || field(e, "stage")}
+                                    </td>
+                                    <td className="dc-mono">{field(e, "result")}</td>
+                                    <td className="dc-mono">
+                                        {field(e, "latencyMs") ||
+                                            (e.durationMs !== undefined
+                                                ? locConstants.inlineCompletionDebug.value0Ms(
+                                                      String(Math.round(e.durationMs)),
+                                                  )
+                                                : "")}
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {events.map((e) => (
-                                    <tr key={e.eventId}>
-                                        <td className="dc-mono">{formatTime(e.epochMs)}</td>
-                                        <td className="dc-mono">{e.type}</td>
-                                        <td>{e.status}</td>
-                                        <td className="dc-mono">
-                                            {field(e, "trigger") || field(e, "stage")}
-                                        </td>
-                                        <td className="dc-mono">{field(e, "result")}</td>
-                                        <td className="dc-mono">
-                                            {field(e, "latencyMs") ||
-                                                (e.durationMs !== undefined
-                                                    ? locConstants.inlineCompletionDebug.value0Ms(
-                                                          String(Math.round(e.durationMs)),
-                                                      )
-                                                    : "")}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
-            )}
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
         </>
     );
 }

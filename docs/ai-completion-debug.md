@@ -23,6 +23,14 @@ Run **MSSQL: Open Inline Completion Debug**. It opens the Debug Console's
 `mssql.copilot.inlineCompletions.debug.standalonePanel` to `true` to use the separate
 viewer instead. All preview flags and standalone mode default to off.
 
+The integrated page keeps the console's navigation and session toolbar visible.
+When completions are enabled, the Live/Sessions tools fill the page; setup guidance
+is shown only while the feature is disabled. Live records events while the viewer
+is open. Use **Record closed** to retain live events after closing it, or enable
+trace collection on **Sessions** for saved captures. Expand the trace-file list,
+choose **Add** on a capture, then open **Replay** and **Matrix...** to configure
+profile/schema experiments.
+
 The Live view shows completion requests, outcomes, prompts, model responses,
 timings, and acceptance. Profile, model, schema, prompt, and debounce controls
 apply session overrides. Editing unrelated controls preserves schema and category

@@ -351,7 +351,8 @@ export function DebugConsoleApp() {
     let page: React.ReactNode;
     switch (route.page) {
         case "completions":
-            return <CompletionsPage />;
+            page = <CompletionsPage />;
+            break;
         case "overview":
             page = <OverviewPage />;
             break;

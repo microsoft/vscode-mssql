@@ -956,6 +956,13 @@ body,
 .dc-page > * {
     flex-shrink: 0;
 }
+.dc-page > .dc-completions-viewer {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
 .dc-page-header {
     display: flex;
     align-items: baseline;
