@@ -1,0 +1,2468 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { locConstants } from "../../../common/locConstants";
+import { type WheelEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+    Button,
+    Checkbox,
+    Dropdown,
+    Field,
+    Input,
+    Option,
+    Text,
+    Tooltip as FluentTooltip,
+    makeStyles,
+    mergeClasses,
+    shorthands,
+    tokens,
+} from "@fluentui/react-components";
+import {
+    AddRegular,
+    ArrowDownloadRegular,
+    ArrowSyncRegular,
+    ChevronDown16Regular,
+    ChevronLeft16Regular,
+    ChevronRight16Regular,
+    FolderOpenRegular,
+    SaveRegular,
+} from "@fluentui/react-icons";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Line,
+    LineChart,
+    ResponsiveContainer,
+    Tooltip as RechartsTooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
+import {
+    InlineCompletionAnalysisDimension,
+    InlineCompletionAnalysisFilters,
+    InlineCompletionCohortSelection,
+    InlineCompletionPivotRow,
+    InlineCompletionRateMetric,
+    computeInlineCompletionMetrics,
+    computeInlineCompletionRateMetrics,
+    createFacetCounts,
+    filterInlineCompletionEvents,
+    filterInlineCompletionEventsByCohort,
+    getEventDimension,
+    inlineCompletionCohortSelectionOptions,
+    pivotInlineCompletionEvents,
+} from "../../../../sharedInterfaces/inlineCompletionAnalysis";
+import {
+    InlineCompletionDebugEvent,
+    InlineCompletionDebugTraceIndexEntry,
+    storedSessionFileKeysForHostSession,
+} from "../../../../sharedInterfaces/inlineCompletionDebug";
+import { useInlineCompletionDebugContext } from "../inlineCompletionDebugStateProvider";
+import { useInlineCompletionDebugSelector } from "../inlineCompletionDebugSelector";
+import { InlineCompletionDebugEventGrid } from "../components/EventGrid";
+import { InlineCompletionDebugDetailPane } from "../components/DetailPane";
+import { ReplayCartButton } from "../components/ReplayCartButton";
+
+const dimensions: Array<{ key: InlineCompletionAnalysisDimension; label: string }> = [
+    { key: "model", label: locConstants.inlineCompletionDebug.model2 },
+    { key: "profile", label: locConstants.inlineCompletionDebug.profile2 },
+    { key: "schemaMode", label: locConstants.inlineCompletionDebug.schemaBudget },
+    { key: "schemaSizeKind", label: locConstants.inlineCompletionDebug.schemaSize },
+    { key: "intentMode", label: locConstants.inlineCompletionDebug.intent },
+    { key: "result", label: locConstants.inlineCompletionDebug.result2 },
+    { key: "trigger", label: locConstants.inlineCompletionDebug.trigger },
+    { key: "language", label: locConstants.inlineCompletionDebug.language },
+    { key: "inferredSystemQuery", label: locConstants.inlineCompletionDebug.systemQuery },
+    { key: "completionCategory", label: locConstants.inlineCompletionDebug.completionKind },
+    { key: "replayRun", label: locConstants.inlineCompletionDebug.replayRun },
+    { key: "replayMatrixCell", label: locConstants.inlineCompletionDebug.matrixCell },
+    { key: "replaySourceEvent", label: locConstants.inlineCompletionDebug.replaySource },
+    { key: "replayMode", label: locConstants.inlineCompletionDebug.replayMode },
+    { key: "replayTrace", label: locConstants.inlineCompletionDebug.replayTrace },
+    { key: "provenanceCohort", label: locConstants.inlineCompletionDebug.cohort },
+];
+const visibleDimensions = dimensions.filter((dimension) => dimension.key !== "language");
+
+const chartMargin = { top: 0, right: 8, bottom: 0, left: 0 };
+const axisTick = {
+    fill: "var(--vscode-descriptionForeground)",
+    fontSize: 11,
+};
+const tooltipStyle = {
+    backgroundColor: "var(--vscode-editorWidget-background)",
+    borderColor: "var(--vscode-panel-border)",
+    color: "var(--vscode-foreground)",
+};
+
+function scrollHorizontallyOnWheel(event: WheelEvent<HTMLElement>): void {
+    const element = event.currentTarget;
+    const maxScrollLeft = element.scrollWidth - element.clientWidth;
+    if (maxScrollLeft <= 0) {
+        return;
+    }
+
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    if (delta === 0) {
+        return;
+    }
+
+    const nextScrollLeft = Math.max(0, Math.min(maxScrollLeft, element.scrollLeft + delta));
+    if (nextScrollLeft === element.scrollLeft) {
+        return;
+    }
+
+    element.scrollLeft = nextScrollLeft;
+    event.preventDefault();
+}
+
+const useStyles = makeStyles({
+    root: {
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+        backgroundColor: "var(--vscode-editor-background)",
+        color: "var(--vscode-foreground)",
+        ...shorthands.overflow("hidden"),
+    },
+    dataset: {
+        flexShrink: 0,
+        backgroundColor: "var(--vscode-sideBar-background)",
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    datasetHeader: {
+        display: "flex",
+        flexWrap: "nowrap",
+        gap: "8px",
+        alignItems: "center",
+        minHeight: "34px",
+        overflowX: "auto",
+        overflowY: "hidden",
+        ...shorthands.padding("0", "8px"),
+    },
+    folderText: {
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        flexShrink: 0,
+        width: "min(520px, 42vw)",
+        minWidth: "220px",
+        overflowX: "hidden",
+        whiteSpace: "nowrap",
+        fontFamily: "var(--vscode-editor-font-family, Consolas, monospace)",
+        color: "var(--vscode-descriptionForeground)",
+    },
+    folderPath: {
+        minWidth: 0,
+        overflowX: "hidden",
+        textOverflow: "ellipsis",
+    },
+    fileListToggle: {
+        flexShrink: 0,
+    },
+    datasetActions: {
+        display: "flex",
+        gap: "4px",
+        alignItems: "center",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
+    },
+    enableTraceButton: {
+        maxWidth: "190px",
+    },
+    traceToggleActions: {
+        display: "flex",
+        gap: "2px",
+        alignItems: "center",
+    },
+    datasetTable: {
+        display: "grid",
+        gridTemplateColumns: "34px minmax(230px, 1fr) 66px 180px 72px 82px 108px 108px 152px",
+        maxHeight: "176px",
+        overflowY: "auto",
+        ...shorthands.borderTop("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    sourceBadge: {
+        display: "inline-block",
+        fontSize: tokens.fontSizeBase100,
+        lineHeight: "14px",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        color: "var(--vscode-descriptionForeground)",
+        ...shorthands.border("1px", "solid", "var(--vscode-panel-border)"),
+        ...shorthands.borderRadius("2px"),
+        ...shorthands.padding("0", "4px"),
+    },
+    tableHeader: {
+        position: "sticky",
+        top: 0,
+        zIndex: 1,
+        backgroundColor: "var(--vscode-sideBar-background)",
+        color: "var(--vscode-descriptionForeground)",
+        textTransform: "uppercase",
+        fontSize: tokens.fontSizeBase100,
+        letterSpacing: "0.04em",
+    },
+    datasetCell: {
+        minHeight: "24px",
+        display: "flex",
+        alignItems: "center",
+        minWidth: 0,
+        ...shorthands.padding("0", "8px"),
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+        fontSize: tokens.fontSizeBase200,
+    },
+    mono: {
+        fontFamily: "var(--vscode-editor-font-family, Consolas, monospace)",
+    },
+    truncate: {
+        overflowX: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    savedCell: {
+        whiteSpace: "nowrap",
+    },
+    summary: {
+        display: "grid",
+        gridTemplateColumns: "repeat(7, minmax(120px, 1fr))",
+        flexShrink: 0,
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    statTile: {
+        minHeight: "52px",
+        ...shorthands.padding("6px", "10px"),
+        ...shorthands.borderRight("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    statLabel: {
+        color: "var(--vscode-descriptionForeground)",
+        textTransform: "uppercase",
+        fontSize: tokens.fontSizeBase100,
+        letterSpacing: "0.05em",
+    },
+    statValue: {
+        display: "block",
+        marginTop: "3px",
+        fontSize: tokens.fontSizeBase400,
+        lineHeight: "18px",
+    },
+    statHint: {
+        display: "block",
+        marginTop: "1px",
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: "16px",
+    },
+    metricsStrip: {
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+        minHeight: "22px",
+        overflowX: "auto",
+        overflowY: "hidden",
+        whiteSpace: "nowrap",
+        fontSize: tokens.fontSizeBase200,
+        fontVariantNumeric: "tabular-nums",
+        ...shorthands.padding("2px", "10px"),
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    metricChip: {
+        flexShrink: 0,
+    },
+    metricChipLabel: {
+        color: "var(--vscode-descriptionForeground)",
+        textTransform: "uppercase",
+        fontSize: tokens.fontSizeBase100,
+        letterSpacing: "0.04em",
+    },
+    metricChipCounts: {
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase100,
+    },
+    cohortRow: {
+        display: "flex",
+        gap: "3px",
+    },
+    cohortButton: {
+        minWidth: 0,
+        height: "22px",
+        ...shorthands.padding("0", "8px"),
+    },
+    body: {
+        ...shorthands.flex(1),
+        minHeight: 0,
+    },
+    workspace: {
+        display: "flex",
+        height: "100%",
+        minHeight: 0,
+    },
+    workspacePanels: {
+        ...shorthands.flex(1),
+        minWidth: 0,
+        minHeight: 0,
+    },
+    collapsedFilters: {
+        width: "34px",
+        flexShrink: 0,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        backgroundColor: "var(--vscode-sideBar-background)",
+        ...shorthands.padding("4px", "0"),
+        ...shorthands.borderRight("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    collapsedFiltersButton: {
+        minWidth: "28px",
+        width: "28px",
+    },
+    filters: {
+        height: "100%",
+        minHeight: 0,
+        minWidth: 0,
+        overflowY: "auto",
+        backgroundColor: "var(--vscode-sideBar-background)",
+    },
+    filterHeader: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "8px",
+        minHeight: "36px",
+        ...shorthands.padding("0", "10px"),
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    filterHeaderActions: {
+        display: "flex",
+        gap: "2px",
+        alignItems: "center",
+    },
+    facet: {
+        ...shorthands.padding("10px"),
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    facetTitle: {
+        display: "flex",
+        justifyContent: "space-between",
+        color: "var(--vscode-descriptionForeground)",
+        textTransform: "uppercase",
+        fontSize: tokens.fontSizeBase100,
+        letterSpacing: "0.05em",
+        marginBottom: "6px",
+    },
+    facetRow: {
+        position: "relative",
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) auto",
+        alignItems: "center",
+        minHeight: "25px",
+        columnGap: "8px",
+    },
+    facetBar: {
+        position: "absolute",
+        left: "24px",
+        top: "4px",
+        bottom: "4px",
+        backgroundColor: "var(--vscode-list-hoverBackground)",
+        pointerEvents: "none",
+    },
+    facetCheckbox: {
+        minWidth: 0,
+        zIndex: 1,
+    },
+    facetCount: {
+        zIndex: 1,
+        color: "var(--vscode-descriptionForeground)",
+        fontVariantNumeric: "tabular-nums",
+    },
+    numericFilters: {
+        display: "grid",
+        gridTemplateColumns: "1fr",
+        gap: "8px",
+    },
+    main: {
+        height: "100%",
+        minHeight: 0,
+        minWidth: 0,
+        overflowY: "auto",
+    },
+    controls: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        flexWrap: "nowrap",
+        gap: "8px",
+        minHeight: "34px",
+        overflowX: "auto",
+        overflowY: "hidden",
+        ...shorthands.padding("3px", "8px"),
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    controlGroup: {
+        display: "flex",
+        alignItems: "center",
+        flexWrap: "nowrap",
+        gap: "6px",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
+    },
+    dimensionDropdown: {
+        minWidth: "220px",
+    },
+    compactButton: {
+        flexShrink: 1,
+        height: "28px",
+        minWidth: 0,
+        maxWidth: "136px",
+        overflowX: "hidden",
+        whiteSpace: "nowrap",
+        ...shorthands.padding("0", "8px"),
+        "& .fui-Button__icon": {
+            flexShrink: 0,
+        },
+        "& .fui-Button__content": {
+            minWidth: 0,
+            overflowX: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+        },
+    },
+    pivotMeta: {
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase200,
+    },
+    pivotTable: {
+        width: "100%",
+        borderCollapse: "collapse",
+        tableLayout: "fixed",
+        fontSize: tokens.fontSizeBase200,
+    },
+    pivotNameColumn: {
+        width: "22%",
+    },
+    pivotCountColumn: {
+        width: "6%",
+    },
+    pivotSampleColumn: {
+        width: "8%",
+    },
+    pivotMetricColumn: {
+        width: "7.5%",
+    },
+    pivotSchemaColumn: {
+        width: "11%",
+    },
+    pivotHeaderCell: {
+        position: "sticky",
+        top: 0,
+        zIndex: 1,
+        textAlign: "right",
+        color: "var(--vscode-descriptionForeground)",
+        backgroundColor: "var(--vscode-editor-background)",
+        textTransform: "uppercase",
+        fontSize: tokens.fontSizeBase100,
+        letterSpacing: "0.04em",
+        ...shorthands.padding("7px", "8px"),
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    pivotHeaderName: {
+        textAlign: "left",
+    },
+    pivotCell: {
+        textAlign: "right",
+        fontVariantNumeric: "tabular-nums",
+        ...shorthands.padding("7px", "8px"),
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    pivotNameCell: {
+        textAlign: "left",
+        fontFamily: "var(--vscode-editor-font-family, Consolas, monospace)",
+        overflowWrap: "break-word",
+        wordBreak: "normal",
+    },
+    pivotRow: {
+        cursor: "pointer",
+        ":hover": {
+            backgroundColor: "var(--vscode-list-hoverBackground)",
+        },
+    },
+    selectedPivotRow: {
+        backgroundColor: "var(--vscode-list-activeSelectionBackground)",
+        color: "var(--vscode-list-activeSelectionForeground)",
+    },
+    lowConfidence: {
+        opacity: 0.72,
+    },
+    sampleCell: {
+        minWidth: "58px",
+    },
+    sampleTrack: {
+        height: "5px",
+        backgroundColor: "var(--vscode-editorWidget-background)",
+    },
+    sampleFill: {
+        height: "5px",
+    },
+    sideCharts: {
+        height: "100%",
+        minHeight: 0,
+        minWidth: 0,
+        overflowY: "auto",
+        backgroundColor: "var(--vscode-sideBar-background)",
+    },
+    chartPanel: {
+        ...shorthands.padding("8px", "10px"),
+        ...shorthands.borderBottom("1px", "solid", "var(--vscode-panel-border)"),
+    },
+    chartBox: {
+        width: "100%",
+        height: "132px",
+    },
+    chartEmpty: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase200,
+        minHeight: "132px",
+    },
+    chartTitle: {
+        color: "var(--vscode-descriptionForeground)",
+        textTransform: "uppercase",
+        fontSize: tokens.fontSizeBase100,
+        letterSpacing: "0.05em",
+        marginBottom: "6px",
+    },
+    chartRow: {
+        display: "grid",
+        gridTemplateColumns: "minmax(82px, 1fr) 54px minmax(92px, 1.2fr)",
+        gap: "8px",
+        alignItems: "center",
+        minHeight: "26px",
+    },
+    barTrack: {
+        height: "10px",
+        backgroundColor: "var(--vscode-editorWidget-background)",
+        overflowX: "hidden",
+    },
+    stackedBar: {
+        display: "flex",
+        height: "12px",
+        backgroundColor: "var(--vscode-editorWidget-background)",
+    },
+    accepted: {
+        backgroundColor: "#53cdb8",
+    },
+    rejected: {
+        backgroundColor: "#d7daa0",
+    },
+    cancelled: {
+        backgroundColor: "#8f8f8f",
+    },
+    skipped: {
+        backgroundColor: "#b8b8b8",
+    },
+    error: {
+        backgroundColor: "#e06c75",
+    },
+    tokenIn: {
+        backgroundColor: "#5aa9e6",
+    },
+    tokenOut: {
+        backgroundColor: "#53cdb8",
+    },
+    sparkline: {
+        width: "100%",
+        height: "128px",
+    },
+    resizeHandle: {
+        height: "2px",
+        backgroundColor: "var(--vscode-focusBorder)",
+    },
+    horizontalResizeHandle: {
+        width: "2px",
+        flexShrink: 0,
+        backgroundColor: "var(--vscode-panel-border)",
+        cursor: "col-resize",
+        ":hover": {
+            backgroundColor: "var(--vscode-focusBorder)",
+        },
+        ":focus-visible": {
+            backgroundColor: "var(--vscode-focusBorder)",
+            outlineStyle: "none",
+        },
+    },
+    drilldown: {
+        height: "100%",
+        minHeight: 0,
+    },
+    drillGrid: {
+        height: "100%",
+        minHeight: 0,
+    },
+    drillDetail: {
+        height: "100%",
+        minHeight: 0,
+    },
+    empty: {
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--vscode-descriptionForeground)",
+        ...shorthands.padding("24px"),
+        textAlign: "center",
+    },
+    emptyState: {
+        flex: 1,
+        minHeight: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        ...shorthands.padding("32px"),
+        textAlign: "center",
+    },
+    emptyStateContent: {
+        display: "grid",
+        gap: "10px",
+        justifyItems: "center",
+        maxWidth: "620px",
+    },
+    emptyTitle: {
+        fontSize: tokens.fontSizeBase500,
+        fontWeight: tokens.fontWeightSemibold,
+    },
+    emptyDescription: {
+        color: "var(--vscode-descriptionForeground)",
+        lineHeight: tokens.lineHeightBase400,
+    },
+    emptyPath: {
+        fontFamily: "var(--vscode-editor-font-family, Consolas, monospace)",
+        overflowWrap: "anywhere",
+    },
+    emptyActions: {
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        gap: "8px",
+        marginTop: "4px",
+    },
+});
+
+export function SessionsTab({
+    active,
+    datasetSessionHint,
+}: {
+    active: boolean;
+    /** WI-4.4 deep link: include+load this host session's stored captures. */
+    datasetSessionHint?: string;
+}) {
+    const classes = useStyles();
+    const sessions = useInlineCompletionDebugSelector((state) => state.sessions);
+    const {
+        sessionsActivated,
+        sessionsRefresh,
+        sessionsToggleTrace,
+        sessionsSetAllTraces,
+        sessionsLoadIncluded,
+        sessionsAddFile,
+        sessionsChangeFolder,
+        sessionsEnableTraceCollection,
+        replaySessionEvent,
+        addEventsToReplayCart,
+    } = useInlineCompletionDebugContext();
+    const [filters, setFilters] = useState<InlineCompletionAnalysisFilters>({});
+    // WI-4.1 default cohort: Live (liveUser only) — replay results are never
+    // counted as user acceptance by construction, imports never pollute
+    // quality rates. Switching cohort is explicit and visible, never silent.
+    const [cohort, setCohort] = useState<InlineCompletionCohortSelection>("live");
+    const [primaryDimension, setPrimaryDimension] =
+        useState<InlineCompletionAnalysisDimension>("model");
+    const [secondaryDimension, setSecondaryDimension] = useState<
+        InlineCompletionAnalysisDimension | "none"
+    >("none");
+    const [selectedPivotKey, setSelectedPivotKey] = useState<string | undefined>();
+    const [selectedEventKey, setSelectedEventKey] = useState<string | undefined>();
+    const [filtersCollapsed, setFiltersCollapsed] = useState(false);
+    const [gridResizeToken, setGridResizeToken] = useState(0);
+    const [appliedDatasetHint, setAppliedDatasetHint] = useState<string | undefined>();
+
+    useEffect(() => {
+        if (active) {
+            sessionsActivated();
+        }
+    }, [active, sessionsActivated]);
+
+    // WI-4.4 deep link: once the trace index is available, include every
+    // stored-session entry that belongs to the hinted host session; the
+    // auto-load effect below then loads them. Applied once per hint value.
+    useEffect(() => {
+        if (
+            !active ||
+            datasetSessionHint === undefined ||
+            datasetSessionHint === appliedDatasetHint
+        ) {
+            return;
+        }
+        if (sessions.loading || sessions.traceIndex.length === 0) {
+            return; // wait for the index scan the activation triggered
+        }
+        const fileKeys = storedSessionFileKeysForHostSession(
+            sessions.traceIndex,
+            datasetSessionHint,
+        );
+        for (const fileKey of fileKeys) {
+            const entry = sessions.traceIndex.find((candidate) => candidate.fileKey === fileKey);
+            if (entry && !entry.included) {
+                sessionsToggleTrace(fileKey, true);
+            }
+        }
+        // No matching entries = the session has no stored captures (or they
+        // were retained away) — honest no-op; the tab still opened.
+        setAppliedDatasetHint(datasetSessionHint);
+    }, [
+        active,
+        appliedDatasetHint,
+        datasetSessionHint,
+        sessions.loading,
+        sessions.traceIndex,
+        sessionsToggleTrace,
+    ]);
+
+    useEffect(() => {
+        if (!active) {
+            return;
+        }
+        const includedKeys = new Set(
+            sessions.traceIndex.filter((entry) => entry.included).map((entry) => entry.fileKey),
+        );
+        const hasUnloadedIncluded = sessions.traceIndex.some(
+            (entry) => entry.included && !entry.loaded && !entry.loadError,
+        );
+        if (includedKeys.size > 0 && hasUnloadedIncluded && !sessions.loading) {
+            sessionsLoadIncluded();
+        }
+    }, [active, sessions.loading, sessions.traceIndex, sessionsLoadIncluded]);
+
+    const includedFileKeys = useMemo(
+        () =>
+            new Set(
+                sessions.traceIndex.filter((entry) => entry.included).map((entry) => entry.fileKey),
+            ),
+        [sessions.traceIndex],
+    );
+    const sessionEventDataset = useMemo(() => {
+        const eventKeys = new WeakMap<InlineCompletionDebugEvent, string>();
+        const eventSources = new WeakMap<InlineCompletionDebugEvent, string>();
+        const sessionEvents: InlineCompletionDebugEvent[] = [];
+        const entryByFileKey = new Map(
+            sessions.traceIndex.map((entry) => [entry.fileKey, entry] as const),
+        );
+
+        for (const loaded of sessions.loadedTraces) {
+            if (!includedFileKeys.has(loaded.fileKey)) {
+                continue;
+            }
+            // WI-4.1: stamp the trace entry's source kind onto each event so
+            // cohort derivation can classify imported files as externalImport
+            // (§8.1) without the analysis functions reaching for the index.
+            const entry = entryByFileKey.get(loaded.fileKey);
+            const traceSourceKind =
+                entry?.sourceKind ?? (entry?.imported === true ? "imported" : "folder");
+
+            loaded.trace.events.forEach((event, index) => {
+                const sourceLabel = loaded.trace._savedAt ?? loaded.fileKey;
+                const eventWithSource: InlineCompletionDebugEvent = {
+                    ...event,
+                    locals: {
+                        ...event.locals,
+                        replaySessionSourceLabel: sourceLabel,
+                        traceSourceKind,
+                    },
+                };
+                eventKeys.set(
+                    eventWithSource,
+                    createSessionEventKey(loaded.fileKey, event.id, index),
+                );
+                eventSources.set(eventWithSource, sourceLabel);
+                sessionEvents.push(eventWithSource);
+            });
+        }
+
+        return { events: sessionEvents, eventKeys, eventSources };
+    }, [includedFileKeys, sessions.loadedTraces, sessions.traceIndex]);
+    // WI-4.1: the cohort applies BEFORE filters/facets/pivots/summary — the
+    // whole tab sees one cohort at a time, selected explicitly in the rail.
+    const allEvents = sessionEventDataset.events;
+    const events = useMemo(
+        () => filterInlineCompletionEventsByCohort(allEvents, cohort),
+        [allEvents, cohort],
+    );
+    const cohortExcludedCount = allEvents.length - events.length;
+    const getSessionEventKey = useCallback(
+        (event: InlineCompletionDebugEvent, index: number) =>
+            sessionEventDataset.eventKeys.get(event) ??
+            createSessionEventKey("unknown-trace", event.id, index),
+        [sessionEventDataset],
+    );
+    const filteredEvents = useMemo(
+        () => filterInlineCompletionEvents(events, filters),
+        [events, filters],
+    );
+    const summaryMetrics = useMemo(
+        () => computeInlineCompletionMetrics(filteredEvents),
+        [filteredEvents],
+    );
+    // The §8.2 named metric table over the current cohort+filters (WI-4.1).
+    const rateMetrics = useMemo(
+        () => computeInlineCompletionRateMetrics(filteredEvents),
+        [filteredEvents],
+    );
+    const cohortLabel =
+        inlineCompletionCohortSelectionOptions.find((option) => option.id === cohort)?.label ??
+        cohort;
+    const pivotRows = useMemo(
+        () =>
+            pivotInlineCompletionEvents(
+                filteredEvents,
+                primaryDimension,
+                secondaryDimension === "none" ? undefined : secondaryDimension,
+            ),
+        [filteredEvents, primaryDimension, secondaryDimension],
+    );
+    const flatPivotRows = useMemo(() => flattenPivotRows(pivotRows), [pivotRows]);
+    const selectedPivot = useMemo(
+        () => flatPivotRows.find((row) => row.key === selectedPivotKey),
+        [flatPivotRows, selectedPivotKey],
+    );
+    const drilldownEvents = selectedPivot?.events ?? [];
+    const selectedEvent = useMemo(
+        () =>
+            drilldownEvents.find(
+                (event, index) => getSessionEventKey(event, index) === selectedEventKey,
+            ),
+        [drilldownEvents, getSessionEventKey, selectedEventKey],
+    );
+
+    useEffect(() => {
+        if (selectedPivotKey && !flatPivotRows.some((row) => row.key === selectedPivotKey)) {
+            setSelectedPivotKey(undefined);
+            setSelectedEventKey(undefined);
+        }
+    }, [flatPivotRows, selectedPivotKey]);
+
+    useEffect(() => {
+        if (!selectedPivot) {
+            return;
+        }
+
+        const selectedEventStillVisible =
+            selectedEventKey !== undefined &&
+            drilldownEvents.some(
+                (event, index) => getSessionEventKey(event, index) === selectedEventKey,
+            );
+        if (selectedEventStillVisible) {
+            return;
+        }
+
+        const firstEvent = drilldownEvents[0];
+        setSelectedEventKey(firstEvent ? getSessionEventKey(firstEvent, 0) : undefined);
+    }, [drilldownEvents, getSessionEventKey, selectedEventKey, selectedPivot]);
+
+    const updateFacet = useCallback(
+        (dimension: InlineCompletionAnalysisDimension, value: string, checked: boolean) => {
+            setFilters((current) => updateFacetFilter(current, dimension, value, checked));
+        },
+        [],
+    );
+
+    const setLatencyBound = useCallback((key: "min" | "max", value: string) => {
+        const numericValue = value.trim() === "" ? undefined : Number(value);
+        setFilters((current) => ({
+            ...current,
+            latencyRange: {
+                ...current.latencyRange,
+                [key]: Number.isFinite(numericValue) ? numericValue : undefined,
+            },
+        }));
+    }, []);
+    const addSessionEventsToReplayCart = useCallback(
+        (eventsToAdd: InlineCompletionDebugEvent[]) => {
+            addEventsToReplayCart(
+                eventsToAdd.map((event) => ({
+                    event,
+                    sourceLabel:
+                        asString(event.locals.replaySessionSourceLabel) ??
+                        sessionEventDataset.eventSources.get(event) ??
+                        locConstants.inlineCompletionDebug.detailText92,
+                })),
+            );
+        },
+        [addEventsToReplayCart, sessionEventDataset],
+    );
+    const showTraceCollectionEmptyState =
+        !sessions.traceCaptureEnabled &&
+        sessions.traceIndex.length === 0 &&
+        sessions.loadedTraces.length === 0 &&
+        !sessions.loading;
+
+    return (
+        <div className={classes.root}>
+            <DatasetSelector
+                traceFolder={sessions.traceFolder}
+                traceCaptureEnabled={sessions.traceCaptureEnabled}
+                entries={sessions.traceIndex}
+                loading={sessions.loading}
+                onRefresh={sessionsRefresh}
+                onChangeFolder={sessionsChangeFolder}
+                onEnableTraceCollection={sessionsEnableTraceCollection}
+                onAddFile={sessionsAddFile}
+                onToggleTrace={sessionsToggleTrace}
+                onSetAllTraces={sessionsSetAllTraces}
+            />
+            {sessions.error ? <div className={classes.empty}>{sessions.error}</div> : null}
+            {!sessions.error && showTraceCollectionEmptyState ? (
+                <TraceCollectionEmptyState
+                    traceFolder={sessions.traceFolder}
+                    onEnableTraceCollection={sessionsEnableTraceCollection}
+                    onAddFile={sessionsAddFile}
+                />
+            ) : null}
+            {!sessions.error && !showTraceCollectionEmptyState ? (
+                <>
+                    <SummaryTiles
+                        metrics={summaryMetrics}
+                        rateMetrics={rateMetrics}
+                        cohortLabel={cohortLabel}
+                        traceCount={sessions.traceIndex.filter((entry) => entry.included).length}
+                        configCount={countConfigs(filteredEvents)}
+                    />
+                    <MetricsStrip rateMetrics={rateMetrics} cohortLabel={cohortLabel} />
+                    <PanelGroup
+                        direction="vertical"
+                        className={classes.body}
+                        onLayout={() => setGridResizeToken((value) => value + 1)}>
+                        <Panel defaultSize={selectedPivot ? 62 : 100} minSize={34}>
+                            <div className={classes.workspace}>
+                                {filtersCollapsed ? (
+                                    <div className={classes.collapsedFilters}>
+                                        <FluentTooltip
+                                            content={locConstants.inlineCompletionDebug.showFilters}
+                                            relationship="label">
+                                            <Button
+                                                appearance="subtle"
+                                                size="small"
+                                                className={classes.collapsedFiltersButton}
+                                                icon={<ChevronRight16Regular />}
+                                                onClick={() => setFiltersCollapsed(false)}
+                                            />
+                                        </FluentTooltip>
+                                    </div>
+                                ) : null}
+                                <PanelGroup
+                                    key={filtersCollapsed ? "filters-collapsed" : "filters-open"}
+                                    direction="horizontal"
+                                    className={classes.workspacePanels}
+                                    onLayout={() => setGridResizeToken((value) => value + 1)}>
+                                    {!filtersCollapsed ? (
+                                        <>
+                                            <Panel defaultSize={14} minSize={14} maxSize={34}>
+                                                <FilterRail
+                                                    events={events}
+                                                    filters={filters}
+                                                    cohort={cohort}
+                                                    cohortExcludedCount={cohortExcludedCount}
+                                                    onCohortChange={setCohort}
+                                                    onFacetChange={updateFacet}
+                                                    onClear={() => setFilters({})}
+                                                    onCollapse={() => setFiltersCollapsed(true)}
+                                                    onLatencyBoundChange={setLatencyBound}
+                                                />
+                                            </Panel>
+                                            <PanelResizeHandle
+                                                className={classes.horizontalResizeHandle}
+                                            />
+                                        </>
+                                    ) : null}
+                                    <Panel defaultSize={filtersCollapsed ? 64 : 54} minSize={34}>
+                                        <div className={classes.main}>
+                                            <div
+                                                className={classes.controls}
+                                                onWheel={scrollHorizontallyOnWheel}>
+                                                <div className={classes.controlGroup}>
+                                                    <Text>
+                                                        {locConstants.inlineCompletionDebug.groupBy}
+                                                    </Text>
+                                                    <DimensionDropdown
+                                                        value={primaryDimension}
+                                                        onChange={setPrimaryDimension}
+                                                    />
+                                                    <Text>
+                                                        {locConstants.inlineCompletionDebug.thenBy}
+                                                    </Text>
+                                                    <SecondaryDimensionDropdown
+                                                        value={secondaryDimension}
+                                                        onChange={setSecondaryDimension}
+                                                    />
+                                                </div>
+                                                <div className={classes.controlGroup}>
+                                                    <Text className={classes.pivotMeta}>
+                                                        {filteredEvents.length.toLocaleString()}{" "}
+                                                        {locConstants.inlineCompletionDebug.events3}
+                                                    </Text>
+                                                    <Button
+                                                        className={classes.compactButton}
+                                                        size="small"
+                                                        icon={<ArrowDownloadRegular />}
+                                                        onClick={() =>
+                                                            exportPivotCsv(
+                                                                flatPivotRows,
+                                                                primaryDimension,
+                                                            )
+                                                        }>
+                                                        {
+                                                            locConstants.inlineCompletionDebug
+                                                                .exportCSV
+                                                        }
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            {flatPivotRows.length > 0 ? (
+                                                <PivotTable
+                                                    rows={flatPivotRows}
+                                                    selectedKey={selectedPivotKey}
+                                                    onSelect={(row) => {
+                                                        setSelectedPivotKey(row.key);
+                                                        const firstEvent = row.events[0];
+                                                        setSelectedEventKey(
+                                                            firstEvent
+                                                                ? getSessionEventKey(firstEvent, 0)
+                                                                : undefined,
+                                                        );
+                                                    }}
+                                                    primaryDimension={primaryDimension}
+                                                />
+                                            ) : (
+                                                <div className={classes.empty}>
+                                                    {
+                                                        locConstants.inlineCompletionDebug
+                                                            .noLoadedEventsMatchTheCurrentDataset
+                                                    }
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Panel>
+                                    <PanelResizeHandle className={classes.horizontalResizeHandle} />
+                                    <Panel defaultSize={filtersCollapsed ? 36 : 32} minSize={22}>
+                                        <ChartsPanel rows={flatPivotRows} events={filteredEvents} />
+                                    </Panel>
+                                </PanelGroup>
+                            </div>
+                        </Panel>
+                        {selectedPivot ? (
+                            <>
+                                <PanelResizeHandle className={classes.resizeHandle} />
+                                <Panel defaultSize={38} minSize={22}>
+                                    <PanelGroup
+                                        direction="horizontal"
+                                        className={classes.drilldown}
+                                        onLayout={() => setGridResizeToken((value) => value + 1)}>
+                                        <Panel defaultSize={42} minSize={24}>
+                                            <div className={classes.drillGrid}>
+                                                <InlineCompletionDebugEventGrid
+                                                    events={drilldownEvents}
+                                                    onSelectEvent={setSelectedEventKey}
+                                                    autoScroll={false}
+                                                    resizeToken={gridResizeToken}
+                                                    onCopyEventPayload={copySessionEventPayload}
+                                                    onReplayEvent={replaySessionEvent}
+                                                    onAddEventsToReplayCart={
+                                                        addSessionEventsToReplayCart
+                                                    }
+                                                    showReplay={true}
+                                                    alwaysShowVerticalScroll={false}
+                                                    getEventKey={getSessionEventKey}
+                                                />
+                                            </div>
+                                        </Panel>
+                                        <PanelResizeHandle
+                                            className={classes.horizontalResizeHandle}
+                                        />
+                                        <Panel defaultSize={58} minSize={28}>
+                                            <div className={classes.drillDetail}>
+                                                <InlineCompletionDebugDetailPane
+                                                    event={selectedEvent}
+                                                    onCopyEventPayload={copySessionEventPayload}
+                                                />
+                                            </div>
+                                        </Panel>
+                                    </PanelGroup>
+                                </Panel>
+                            </>
+                        ) : null}
+                    </PanelGroup>
+                </>
+            ) : null}
+        </div>
+    );
+}
+
+function TraceCollectionEmptyState({
+    traceFolder,
+    onEnableTraceCollection,
+    onAddFile,
+}: {
+    traceFolder: string;
+    onEnableTraceCollection: () => void;
+    onAddFile: () => void;
+}) {
+    const classes = useStyles();
+    return (
+        <div className={classes.emptyState}>
+            <div className={classes.emptyStateContent}>
+                <Text className={classes.emptyTitle}>
+                    {locConstants.inlineCompletionDebug.traceCollectionIsOff}
+                </Text>
+                <Text className={classes.emptyDescription}>
+                    {
+                        locConstants.inlineCompletionDebug
+                            .enableCollectionToSaveInlineCompletionSessions
+                    }{" "}
+                    <span className={classes.emptyPath}>{traceFolder}</span>
+                    {locConstants.inlineCompletionDebug.orAddExistingTraceJSONFiles}
+                </Text>
+                <div className={classes.emptyActions}>
+                    <Button
+                        appearance="primary"
+                        icon={<SaveRegular />}
+                        onClick={onEnableTraceCollection}>
+                        {locConstants.inlineCompletionDebug.enableTraceCollection}
+                    </Button>
+                    <Button icon={<AddRegular />} onClick={onAddFile}>
+                        {locConstants.inlineCompletionDebug.addTraceFile}
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function DatasetSelector({
+    traceFolder,
+    traceCaptureEnabled,
+    entries,
+    loading,
+    onRefresh,
+    onChangeFolder,
+    onEnableTraceCollection,
+    onAddFile,
+    onToggleTrace,
+    onSetAllTraces,
+}: {
+    traceFolder: string;
+    traceCaptureEnabled: boolean;
+    entries: InlineCompletionDebugTraceIndexEntry[];
+    loading: boolean;
+    onRefresh: () => void;
+    onChangeFolder: () => void;
+    onEnableTraceCollection: () => void;
+    onAddFile: () => void;
+    onToggleTrace: (fileKey: string, included: boolean) => void;
+    onSetAllTraces: (included: boolean) => void;
+}) {
+    const classes = useStyles();
+    const [fileListOpen, setFileListOpen] = useState(false);
+    const included = entries.filter((entry) => entry.included);
+    const eventCount = included.reduce((sum, entry) => sum + entry.eventCount, 0);
+    const range = getDatasetRange(included);
+    const allIncluded = entries.length > 0 && included.length === entries.length;
+    const noneIncluded = included.length === 0;
+
+    return (
+        <div className={classes.dataset}>
+            <div className={classes.datasetHeader} onWheel={scrollHorizontallyOnWheel}>
+                <div className={classes.folderText}>
+                    <FluentTooltip
+                        content={
+                            fileListOpen
+                                ? locConstants.inlineCompletionDebug.hideTraceFiles
+                                : locConstants.inlineCompletionDebug.showTraceFiles
+                        }
+                        relationship="label">
+                        <Button
+                            appearance="subtle"
+                            size="small"
+                            className={classes.fileListToggle}
+                            icon={
+                                fileListOpen ? <ChevronDown16Regular /> : <ChevronRight16Regular />
+                            }
+                            onClick={() => setFileListOpen((value) => !value)}
+                        />
+                    </FluentTooltip>
+                    <span className={classes.folderPath}>
+                        {locConstants.inlineCompletionDebug.fOLDERNbspNbsp}
+                        {traceFolder}
+                    </span>
+                </div>
+                <div className={classes.datasetActions}>
+                    <Text className={classes.pivotMeta}>
+                        {included.length}/{entries.length}{" "}
+                        {locConstants.inlineCompletionDebug.traces}
+                        {eventCount.toLocaleString()} {locConstants.inlineCompletionDebug.events3}
+                        {range ? ` · ${range}` : ""}
+                    </Text>
+                    <ReplayCartButton />
+                    {!traceCaptureEnabled ? (
+                        <Button
+                            className={mergeClasses(
+                                classes.compactButton,
+                                classes.enableTraceButton,
+                            )}
+                            appearance="primary"
+                            icon={<SaveRegular />}
+                            size="small"
+                            onClick={onEnableTraceCollection}>
+                            {locConstants.inlineCompletionDebug.enableTraceCollection2}
+                        </Button>
+                    ) : null}
+                    <div className={classes.traceToggleActions}>
+                        <FluentTooltip
+                            content={locConstants.inlineCompletionDebug.selectAllTraces}
+                            relationship="label">
+                            <Button
+                                className={classes.compactButton}
+                                appearance="subtle"
+                                size="small"
+                                disabled={allIncluded || entries.length === 0}
+                                onClick={() => onSetAllTraces(true)}>
+                                {locConstants.inlineCompletionDebug.all}
+                            </Button>
+                        </FluentTooltip>
+                        <FluentTooltip
+                            content={locConstants.inlineCompletionDebug.deselectAllTraces}
+                            relationship="label">
+                            <Button
+                                className={classes.compactButton}
+                                appearance="subtle"
+                                size="small"
+                                disabled={noneIncluded || entries.length === 0}
+                                onClick={() => onSetAllTraces(false)}>
+                                {locConstants.inlineCompletionDebug.none}
+                            </Button>
+                        </FluentTooltip>
+                    </div>
+                    <Button
+                        className={classes.compactButton}
+                        icon={<ArrowSyncRegular />}
+                        size="small"
+                        onClick={onRefresh}
+                        disabled={loading}>
+                        {locConstants.inlineCompletionDebug.refresh}
+                    </Button>
+                    <Button
+                        className={classes.compactButton}
+                        icon={<FolderOpenRegular />}
+                        size="small"
+                        onClick={onChangeFolder}>
+                        {locConstants.inlineCompletionDebug.changeFolder}
+                    </Button>
+                    <Button
+                        className={classes.compactButton}
+                        icon={<AddRegular />}
+                        size="small"
+                        onClick={onAddFile}>
+                        {locConstants.inlineCompletionDebug.addFile}
+                    </Button>
+                </div>
+            </div>
+            {fileListOpen ? (
+                <div className={classes.datasetTable}>
+                    {[
+                        "",
+                        locConstants.inlineCompletionDebug.detailText93,
+                        locConstants.inlineCompletionDebug.detailText94,
+                        locConstants.inlineCompletionDebug.detailText95,
+                        locConstants.inlineCompletionDebug.detailText96,
+                        locConstants.inlineCompletionDebug.detailText97,
+                        locConstants.inlineCompletionDebug.detailText98,
+                        locConstants.inlineCompletionDebug.detailText99,
+                        locConstants.inlineCompletionDebug.detailText100,
+                    ].map((label) => (
+                        <div
+                            key={label || "checkbox"}
+                            className={mergeClasses(classes.datasetCell, classes.tableHeader)}>
+                            {label}
+                        </div>
+                    ))}
+                    {entries.map((entry) => (
+                        <TraceRow key={entry.fileKey} entry={entry} onToggleTrace={onToggleTrace} />
+                    ))}
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+function TraceRow({
+    entry,
+    onToggleTrace,
+}: {
+    entry: InlineCompletionDebugTraceIndexEntry;
+    onToggleTrace: (fileKey: string, included: boolean) => void;
+}) {
+    const classes = useStyles();
+    const { addSessionToReplayCart, replaySessionNow } = useInlineCompletionDebugContext();
+    return (
+        <>
+            <div className={classes.datasetCell}>
+                <Checkbox
+                    checked={entry.included}
+                    onChange={(_, data) => onToggleTrace(entry.fileKey, data.checked === true)}
+                />
+            </div>
+            <div
+                className={mergeClasses(classes.datasetCell, classes.mono, classes.truncate)}
+                title={
+                    entry.loadError ??
+                    locConstants.inlineCompletionDebug.detailText101(String(entry.path))
+                }
+                onContextMenu={(event) => {
+                    event.preventDefault();
+                    addSessionToReplayCart(entry.fileKey);
+                }}>
+                {entry.filename}
+            </div>
+            <div className={classes.datasetCell}>
+                <span className={classes.sourceBadge} title={traceSourceTitle(entry)}>
+                    {traceSourceLabel(entry)}
+                </span>
+            </div>
+            <div className={mergeClasses(classes.datasetCell, classes.mono, classes.savedCell)}>
+                {entry.savedAt ? formatShortDate(entry.savedAt) : "--"}
+            </div>
+            <div className={mergeClasses(classes.datasetCell, classes.mono)}>
+                {entry.eventCount.toLocaleString()}
+            </div>
+            <div className={mergeClasses(classes.datasetCell, classes.mono)}>
+                {formatBytes(entry.fileSizeBytes)}
+            </div>
+            <div className={mergeClasses(classes.datasetCell, classes.truncate)}>
+                {entry.profile ?? "--"}
+            </div>
+            <div className={mergeClasses(classes.datasetCell, classes.truncate)}>
+                {entry.schemaMode ?? entry.schemaSizeKind ?? "--"}
+            </div>
+            <div className={classes.datasetCell}>
+                <div className={classes.traceToggleActions}>
+                    <Button
+                        className={classes.compactButton}
+                        size="small"
+                        disabled={entry.eventCount === 0}
+                        onClick={() => addSessionToReplayCart(entry.fileKey)}>
+                        {locConstants.inlineCompletionDebug.add}
+                    </Button>
+                    <Button
+                        className={classes.compactButton}
+                        size="small"
+                        disabled={entry.eventCount === 0}
+                        onClick={() => replaySessionNow(entry.fileKey)}>
+                        {locConstants.inlineCompletionDebug.run}
+                    </Button>
+                </div>
+            </div>
+        </>
+    );
+}
+
+function SummaryTiles({
+    metrics,
+    rateMetrics,
+    cohortLabel,
+    traceCount,
+    configCount,
+}: {
+    metrics: ReturnType<typeof computeInlineCompletionMetrics>;
+    rateMetrics: InlineCompletionRateMetric[];
+    cohortLabel: string;
+    traceCount: number;
+    configCount: number;
+}) {
+    const classes = useStyles();
+    const acceptance = rateMetrics.find((metric) => metric.id === "acceptanceRate");
+    return (
+        <div className={classes.summary}>
+            <StatTile
+                label={locConstants.inlineCompletionDebug.events4}
+                value={metrics.count.toLocaleString()}
+                hint={locConstants.inlineCompletionDebug.value0Traces(String(traceCount))}
+                title={locConstants.inlineCompletionDebug.cohort01Terminal2PendingQueued(
+                    String(cohortLabel),
+                    String(metrics.terminalCount.toLocaleString()),
+                    String(metrics.nonTerminalCount.toLocaleString()),
+                )}
+            />
+            <StatTile
+                label={locConstants.inlineCompletionDebug.latencyMean}
+                value={formatDuration(metrics.latencyMean)}
+                hint={locConstants.inlineCompletionDebug.p950(
+                    String(formatDuration(metrics.latencyP95)),
+                )}
+            />
+            <StatTile
+                label={locConstants.inlineCompletionDebug.latencyP99}
+                value={formatDuration(metrics.latencyP99)}
+                hint={locConstants.inlineCompletionDebug.max0(
+                    String(formatDuration(metrics.latencyMax)),
+                )}
+            />
+            <StatTile
+                label={locConstants.inlineCompletionDebug.acceptRate}
+                value={acceptance?.rate !== undefined ? formatPercent(acceptance.rate) : "—"}
+                hint={locConstants.inlineCompletionDebug.value01Shown(
+                    String(metrics.acceptedCount),
+                    String(metrics.shownCount),
+                )}
+                title={formatRateMetricTitle(acceptance, cohortLabel)}
+            />
+            <StatTile
+                label={locConstants.inlineCompletionDebug.inputTokens}
+                value={formatCompact(metrics.inputTokensSum)}
+                hint={locConstants.inlineCompletionDebug.avg0(
+                    String(formatCompact(metrics.inputTokensMean)),
+                )}
+            />
+            <StatTile
+                label={locConstants.inlineCompletionDebug.outputTokens}
+                value={formatCompact(metrics.outputTokensSum)}
+                hint={locConstants.inlineCompletionDebug.avg0(
+                    String(formatCompact(metrics.outputTokensMean)),
+                )}
+            />
+            <StatTile
+                label={locConstants.inlineCompletionDebug.configs}
+                value={configCount.toLocaleString()}
+                hint={locConstants.inlineCompletionDebug.detailText102}
+            />
+        </div>
+    );
+}
+
+function StatTile({
+    label,
+    value,
+    hint,
+    title,
+}: {
+    label: string;
+    value: string;
+    hint: string;
+    title?: string;
+}) {
+    const classes = useStyles();
+    return (
+        <div className={classes.statTile} title={title}>
+            <Text className={classes.statLabel}>{label}</Text>
+            <Text className={classes.statValue}>
+                {value}
+                <span className={classes.statHint}>{hint}</span>
+            </Text>
+        </div>
+    );
+}
+
+function formatRateMetricTitle(
+    metric: InlineCompletionRateMetric | undefined,
+    cohortLabel: string,
+): string | undefined {
+    if (!metric) {
+        return undefined;
+    }
+    return locConstants.inlineCompletionDebug.detailText103(
+        String(metric.label),
+        String(metric.numeratorLabel),
+        String(metric.denominatorLabel),
+        String(metric.numerator),
+        String(metric.denominator),
+        String(cohortLabel),
+    );
+}
+
+/**
+ * The full §8.2 metric table as one dense strip (WI-4.1). Every chip shows
+ * numerator/denominator inline and its exact populations + cohort in the
+ * tooltip; an empty denominator renders "—", never a fabricated 0%.
+ */
+function MetricsStrip({
+    rateMetrics,
+    cohortLabel,
+}: {
+    rateMetrics: InlineCompletionRateMetric[];
+    cohortLabel: string;
+}) {
+    const classes = useStyles();
+    return (
+        <div className={classes.metricsStrip} onWheel={scrollHorizontallyOnWheel}>
+            {/* The active cohort stays visible even when the rail collapses. */}
+            <span
+                className={classes.metricChip}
+                title={locConstants.inlineCompletionDebug.value81ProvenanceCohortAppliedToEvery}>
+                <span className={classes.metricChipLabel}>
+                    {locConstants.inlineCompletionDebug.cohort}
+                </span>{" "}
+                {cohortLabel}
+            </span>
+            {rateMetrics.map((metric) => (
+                <span
+                    key={metric.id}
+                    className={classes.metricChip}
+                    title={formatRateMetricTitle(metric, cohortLabel)}>
+                    <span className={classes.metricChipLabel}>{metric.label}</span>{" "}
+                    {metric.rate !== undefined ? formatPercent(metric.rate) : "—"}
+                    <span className={classes.metricChipCounts}>
+                        {" "}
+                        {metric.numerator}/{metric.denominator}
+                    </span>
+                </span>
+            ))}
+        </div>
+    );
+}
+
+function FilterRail({
+    events,
+    filters,
+    cohort,
+    cohortExcludedCount,
+    onCohortChange,
+    onFacetChange,
+    onClear,
+    onCollapse,
+    onLatencyBoundChange,
+}: {
+    events: InlineCompletionDebugEvent[];
+    filters: InlineCompletionAnalysisFilters;
+    cohort: InlineCompletionCohortSelection;
+    cohortExcludedCount: number;
+    onCohortChange: (cohort: InlineCompletionCohortSelection) => void;
+    onFacetChange: (
+        dimension: InlineCompletionAnalysisDimension,
+        value: string,
+        checked: boolean,
+    ) => void;
+    onClear: () => void;
+    onCollapse: () => void;
+    onLatencyBoundChange: (key: "min" | "max", value: string) => void;
+}) {
+    const classes = useStyles();
+    return (
+        <div className={classes.filters}>
+            <div className={classes.filterHeader}>
+                <Text className={classes.statLabel}>
+                    {locConstants.inlineCompletionDebug.filters}
+                </Text>
+                <div className={classes.filterHeaderActions}>
+                    <Button appearance="subtle" size="small" onClick={onClear}>
+                        {locConstants.inlineCompletionDebug.clear}
+                    </Button>
+                    <FluentTooltip
+                        content={locConstants.inlineCompletionDebug.collapseFilters}
+                        relationship="label">
+                        <Button
+                            appearance="subtle"
+                            size="small"
+                            icon={<ChevronLeft16Regular />}
+                            onClick={onCollapse}
+                        />
+                    </FluentTooltip>
+                </div>
+            </div>
+            <CohortSelector
+                cohort={cohort}
+                excludedCount={cohortExcludedCount}
+                onChange={onCohortChange}
+            />
+            {visibleDimensions.map((dimension) => (
+                <Facet
+                    key={dimension.key}
+                    dimension={dimension.key}
+                    title={dimension.label}
+                    counts={createFacetCounts(events, dimension.key)}
+                    selected={getSelectedFacetValues(filters, dimension.key)}
+                    onChange={onFacetChange}
+                />
+            ))}
+            <div className={classes.facet}>
+                <div className={classes.facetTitle}>
+                    {locConstants.inlineCompletionDebug.latency2}
+                </div>
+                <div className={classes.numericFilters}>
+                    <Field label={locConstants.inlineCompletionDebug.minMs}>
+                        <Input
+                            size="small"
+                            type="number"
+                            value={filters.latencyRange?.min?.toString() ?? ""}
+                            onChange={(_, data) => onLatencyBoundChange("min", data.value)}
+                        />
+                    </Field>
+                    <Field label={locConstants.inlineCompletionDebug.maxMs}>
+                        <Input
+                            size="small"
+                            type="number"
+                            value={filters.latencyRange?.max?.toString() ?? ""}
+                            onChange={(_, data) => onLatencyBoundChange("max", data.value)}
+                        />
+                    </Field>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * WI-4.1 cohort selector (§8.1): a compact segmented control at the top of
+ * the filter rail — the default is Live (liveUser only); Replay and All are
+ * explicit, visible choices, never silent. The excluded count keeps the
+ * cohort's effect honest at a glance.
+ */
+function CohortSelector({
+    cohort,
+    excludedCount,
+    onChange,
+}: {
+    cohort: InlineCompletionCohortSelection;
+    excludedCount: number;
+    onChange: (cohort: InlineCompletionCohortSelection) => void;
+}) {
+    const classes = useStyles();
+    return (
+        <div className={classes.facet}>
+            <div className={classes.facetTitle}>
+                <span>{locConstants.inlineCompletionDebug.cohort}</span>
+                {excludedCount > 0 ? (
+                    <span
+                        title={
+                            locConstants.inlineCompletionDebug
+                                .eventsHiddenByTheCurrentCohortSelection
+                        }>
+                        {excludedCount.toLocaleString()}{" "}
+                        {locConstants.inlineCompletionDebug.excluded}
+                    </span>
+                ) : null}
+            </div>
+            <div className={classes.cohortRow}>
+                {inlineCompletionCohortSelectionOptions.map((option) => (
+                    <FluentTooltip
+                        key={option.id}
+                        content={option.description}
+                        relationship="description">
+                        <Button
+                            className={classes.cohortButton}
+                            size="small"
+                            appearance={cohort === option.id ? "primary" : "secondary"}
+                            onClick={() => onChange(option.id)}>
+                            {option.label}
+                        </Button>
+                    </FluentTooltip>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function Facet({
+    dimension,
+    title,
+    counts,
+    selected,
+    onChange,
+}: {
+    dimension: InlineCompletionAnalysisDimension;
+    title: string;
+    counts: Array<{ value: string; count: number }>;
+    selected: string[];
+    onChange: (
+        dimension: InlineCompletionAnalysisDimension,
+        value: string,
+        checked: boolean,
+    ) => void;
+}) {
+    const classes = useStyles();
+    const max = counts[0]?.count ?? 1;
+    return (
+        <div className={classes.facet}>
+            <div className={classes.facetTitle}>{title}</div>
+            {counts.slice(0, 12).map((item) => (
+                <div key={item.value} className={classes.facetRow}>
+                    <div
+                        className={classes.facetBar}
+                        style={{ width: `${Math.max(4, (item.count / max) * 78)}%` }}
+                    />
+                    <Checkbox
+                        className={classes.facetCheckbox}
+                        checked={selected.includes(item.value)}
+                        label={item.value}
+                        onChange={(_, data) =>
+                            onChange(dimension, item.value, data.checked === true)
+                        }
+                    />
+                    <Text className={classes.facetCount}>{item.count.toLocaleString()}</Text>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function DimensionDropdown({
+    value,
+    onChange,
+}: {
+    value: InlineCompletionAnalysisDimension;
+    onChange: (value: InlineCompletionAnalysisDimension) => void;
+}) {
+    const classes = useStyles();
+    return (
+        <Dropdown
+            size="small"
+            className={classes.dimensionDropdown}
+            selectedOptions={[value]}
+            value={visibleDimensions.find((dimension) => dimension.key === value)?.label ?? value}
+            onOptionSelect={(_, data) =>
+                onChange(data.optionValue as InlineCompletionAnalysisDimension)
+            }>
+            {visibleDimensions.map((dimension) => (
+                <Option key={dimension.key} value={dimension.key}>
+                    {dimension.label}
+                </Option>
+            ))}
+        </Dropdown>
+    );
+}
+
+function SecondaryDimensionDropdown({
+    value,
+    onChange,
+}: {
+    value: InlineCompletionAnalysisDimension | "none";
+    onChange: (value: InlineCompletionAnalysisDimension | "none") => void;
+}) {
+    const classes = useStyles();
+    const label =
+        value === "none"
+            ? locConstants.inlineCompletionDebug.none2
+            : (visibleDimensions.find((dimension) => dimension.key === value)?.label ?? value);
+    return (
+        <Dropdown
+            size="small"
+            className={classes.dimensionDropdown}
+            selectedOptions={[value]}
+            value={label}
+            onOptionSelect={(_, data) =>
+                onChange(data.optionValue as InlineCompletionAnalysisDimension | "none")
+            }>
+            <Option value="none">{locConstants.inlineCompletionDebug.none2}</Option>
+            {visibleDimensions.map((dimension) => (
+                <Option key={dimension.key} value={dimension.key}>
+                    {dimension.label}
+                </Option>
+            ))}
+        </Dropdown>
+    );
+}
+
+function PivotTable({
+    rows,
+    selectedKey,
+    primaryDimension,
+    onSelect,
+}: {
+    rows: InlineCompletionPivotRow[];
+    selectedKey: string | undefined;
+    primaryDimension: InlineCompletionAnalysisDimension;
+    onSelect: (row: InlineCompletionPivotRow) => void;
+}) {
+    const classes = useStyles();
+    const maxCount = Math.max(1, ...rows.map((row) => row.metrics.count));
+    const primaryLabel = dimensions.find((dimension) => dimension.key === primaryDimension)?.label;
+    return (
+        <table className={classes.pivotTable}>
+            <colgroup>
+                <col className={classes.pivotNameColumn} />
+                <col className={classes.pivotCountColumn} />
+                <col className={classes.pivotSampleColumn} />
+                {Array.from({ length: 7 }).map((_, index) => (
+                    <col key={index} className={classes.pivotMetricColumn} />
+                ))}
+                <col className={classes.pivotSchemaColumn} />
+            </colgroup>
+            <thead>
+                <tr>
+                    <th className={mergeClasses(classes.pivotHeaderCell, classes.pivotHeaderName)}>
+                        {primaryLabel ?? locConstants.inlineCompletionDebug.detailText104}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.n}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.sample}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.latMean}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.latP95}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.latP99}
+                    </th>
+                    <th
+                        className={classes.pivotHeaderCell}
+                        title={
+                            locConstants.inlineCompletionDebug.acceptedAcceptedShownNotAccepted82
+                        }>
+                        {locConstants.inlineCompletionDebug.accept}
+                    </th>
+                    <th
+                        className={classes.pivotHeaderCell}
+                        title={
+                            locConstants.inlineCompletionDebug.errorTerminalsAllTerminalRequests
+                        }>
+                        {locConstants.inlineCompletionDebug.errors}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.inTok}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.outTok}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.schemaChars}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows.map((row) => (
+                    <tr
+                        key={row.key}
+                        className={mergeClasses(
+                            classes.pivotRow,
+                            row.key === selectedKey && classes.selectedPivotRow,
+                            row.metrics.count < 30 && classes.lowConfidence,
+                        )}
+                        onClick={() => onSelect(row)}>
+                        <td className={mergeClasses(classes.pivotCell, classes.pivotNameCell)}>
+                            {row.label}
+                        </td>
+                        <td className={classes.pivotCell}>{row.metrics.count.toLocaleString()}</td>
+                        <td className={mergeClasses(classes.pivotCell, classes.sampleCell)}>
+                            <SampleIndicator count={row.metrics.count} maxCount={maxCount} />
+                        </td>
+                        <td className={classes.pivotCell}>
+                            {formatDuration(row.metrics.latencyMean)}
+                        </td>
+                        <td className={classes.pivotCell}>
+                            {formatDuration(row.metrics.latencyP95)}
+                        </td>
+                        <td className={classes.pivotCell}>
+                            {formatDuration(row.metrics.latencyP99)}
+                        </td>
+                        <td className={classes.pivotCell}>
+                            {formatPercent(row.metrics.acceptRate)}
+                        </td>
+                        <td className={classes.pivotCell}>
+                            {formatPercent(row.metrics.errorRate)}
+                        </td>
+                        <td className={classes.pivotCell}>
+                            {formatCompact(row.metrics.inputTokensMean)}
+                        </td>
+                        <td className={classes.pivotCell}>
+                            {formatCompact(row.metrics.outputTokensMean)}
+                        </td>
+                        <td className={classes.pivotCell}>
+                            {formatCompact(row.metrics.meanSchemaContextChars)}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+}
+
+function SampleIndicator({ count, maxCount }: { count: number; maxCount: number }) {
+    const classes = useStyles();
+    const color =
+        count < 30 ? "var(--vscode-descriptionForeground)" : count < 200 ? "#d7daa0" : "#53cdb8";
+    return (
+        <div className={classes.sampleTrack}>
+            <div
+                className={classes.sampleFill}
+                style={{
+                    width: `${Math.max(6, (count / maxCount) * 100)}%`,
+                    backgroundColor: color,
+                }}
+            />
+        </div>
+    );
+}
+
+function ChartsPanel({
+    rows,
+    events,
+}: {
+    rows: InlineCompletionPivotRow[];
+    events: InlineCompletionDebugEvent[];
+}) {
+    const classes = useStyles();
+    const groupData = rows.slice(0, 10).map((row) => ({
+        name: row.label,
+        latencyP95: Math.round(row.metrics.latencyP95),
+        inputTokens: Math.round(row.metrics.inputTokensMean),
+        outputTokens: Math.round(row.metrics.outputTokensMean),
+        accepted: row.metrics.acceptedCount,
+        rejected: row.metrics.rejectedCount,
+        cancelled: row.metrics.cancelledCount,
+        skipped: row.metrics.skippedCount,
+        error: row.metrics.errorCount,
+    }));
+    const timeSeriesData = useMemo(() => createTimeSeriesPoints(events), [events]);
+    const groupChartHeight = getGroupChartHeight(groupData.length);
+    const hasGroupData = groupData.length > 0;
+    const hasTimeSeriesData = timeSeriesData.length > 0;
+    return (
+        <div className={classes.sideCharts}>
+            <div className={classes.chartPanel}>
+                <div className={classes.chartTitle}>
+                    {locConstants.inlineCompletionDebug.byGroupLatencyP95}
+                </div>
+                <div className={classes.chartBox} style={{ height: groupChartHeight }}>
+                    {hasGroupData ? (
+                        <ResponsiveContainer>
+                            <BarChart data={groupData} layout="vertical" margin={chartMargin}>
+                                <CartesianGrid
+                                    stroke="var(--vscode-panel-border)"
+                                    horizontal={false}
+                                />
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    type="category"
+                                    dataKey="name"
+                                    width={112}
+                                    tick={axisTick}
+                                    interval={0}
+                                />
+                                <RechartsTooltip
+                                    contentStyle={tooltipStyle}
+                                    formatter={(value) =>
+                                        locConstants.inlineCompletionDebug.detailText105(
+                                            String(value),
+                                        )
+                                    }
+                                />
+                                <Bar dataKey="latencyP95" fill="#5aa9e6" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className={classes.chartEmpty}>
+                            {locConstants.inlineCompletionDebug.noData}
+                        </div>
+                    )}
+                </div>
+            </div>
+            <div className={classes.chartPanel}>
+                <div className={classes.chartTitle}>
+                    {locConstants.inlineCompletionDebug.acceptanceFunnel}
+                </div>
+                <div className={classes.chartBox} style={{ height: groupChartHeight }}>
+                    {hasGroupData ? (
+                        <ResponsiveContainer>
+                            <BarChart data={groupData} layout="vertical" margin={chartMargin}>
+                                <CartesianGrid
+                                    stroke="var(--vscode-panel-border)"
+                                    horizontal={false}
+                                />
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    type="category"
+                                    dataKey="name"
+                                    width={112}
+                                    tick={axisTick}
+                                    interval={0}
+                                />
+                                <RechartsTooltip contentStyle={tooltipStyle} />
+                                <Bar dataKey="accepted" stackId="result" fill="#53cdb8" />
+                                <Bar dataKey="rejected" stackId="result" fill="#d7daa0" />
+                                <Bar dataKey="cancelled" stackId="result" fill="#8f8f8f" />
+                                <Bar dataKey="skipped" stackId="result" fill="#b8b8b8" />
+                                <Bar dataKey="error" stackId="result" fill="#e06c75" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className={classes.chartEmpty}>
+                            {locConstants.inlineCompletionDebug.noData}
+                        </div>
+                    )}
+                </div>
+            </div>
+            <div className={classes.chartPanel}>
+                <div className={classes.chartTitle}>
+                    {locConstants.inlineCompletionDebug.tokenCostInOut}
+                </div>
+                <div className={classes.chartBox} style={{ height: groupChartHeight }}>
+                    {hasGroupData ? (
+                        <ResponsiveContainer>
+                            <BarChart data={groupData} layout="vertical" margin={chartMargin}>
+                                <CartesianGrid
+                                    stroke="var(--vscode-panel-border)"
+                                    horizontal={false}
+                                />
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    type="category"
+                                    dataKey="name"
+                                    width={112}
+                                    tick={axisTick}
+                                    interval={0}
+                                />
+                                <RechartsTooltip contentStyle={tooltipStyle} />
+                                <Bar dataKey="inputTokens" stackId="tokens" fill="#5aa9e6" />
+                                <Bar dataKey="outputTokens" stackId="tokens" fill="#53cdb8" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className={classes.chartEmpty}>
+                            {locConstants.inlineCompletionDebug.noData}
+                        </div>
+                    )}
+                </div>
+            </div>
+            <div className={classes.chartPanel}>
+                <div className={classes.chartTitle}>
+                    {locConstants.inlineCompletionDebug.timeSeriesLatencyP95}
+                </div>
+                <div className={classes.chartBox}>
+                    {hasTimeSeriesData ? (
+                        <ResponsiveContainer>
+                            <LineChart data={timeSeriesData} margin={chartMargin}>
+                                <CartesianGrid
+                                    stroke="var(--vscode-panel-border)"
+                                    vertical={false}
+                                />
+                                <XAxis dataKey="bucket" tick={axisTick} minTickGap={16} />
+                                <YAxis tick={axisTick} width={42} />
+                                <RechartsTooltip
+                                    contentStyle={tooltipStyle}
+                                    labelFormatter={(_, points) =>
+                                        points?.[0]?.payload?.range ??
+                                        locConstants.inlineCompletionDebug.detailText106
+                                    }
+                                    formatter={(value) =>
+                                        locConstants.inlineCompletionDebug.detailText107(
+                                            String(value),
+                                        )
+                                    }
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="latencyP95"
+                                    stroke="#53cdb8"
+                                    dot={false}
+                                    strokeWidth={2}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className={classes.chartEmpty}>
+                            {locConstants.inlineCompletionDebug.noData}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function getGroupChartHeight(rowCount: number): number {
+    if (rowCount <= 8) {
+        return 132;
+    }
+
+    return Math.min(240, 198 + Math.max(0, rowCount - 10) * 18);
+}
+
+function updateFacetFilter(
+    filters: InlineCompletionAnalysisFilters,
+    dimension: InlineCompletionAnalysisDimension,
+    value: string,
+    checked: boolean,
+): InlineCompletionAnalysisFilters {
+    const key = getFilterKey(dimension);
+    if (!key) {
+        return filters;
+    }
+
+    const currentValues = getSelectedFacetValues(filters, dimension);
+    const nextValues = checked
+        ? Array.from(new Set([...currentValues, value]))
+        : currentValues.filter((item) => item !== value);
+    return {
+        ...filters,
+        [key]: coerceFilterValues(dimension, nextValues),
+    };
+}
+
+function copySessionEventPayload(
+    event: InlineCompletionDebugEvent,
+    kind:
+        | "id"
+        | "json"
+        | "prompt"
+        | "systemPrompt"
+        | "userPrompt"
+        | "rawResponse"
+        | "sanitizedResponse",
+): void {
+    let text = "";
+    switch (kind) {
+        case "id":
+            text = event.id;
+            break;
+        case "json":
+            text = JSON.stringify(event, undefined, 2);
+            break;
+        case "prompt":
+            text = event.promptMessages
+                .map((message, index) => `#${index + 1} ${message.role}\n${message.content}`)
+                .join("\n\n");
+            break;
+        case "systemPrompt":
+            text = event.promptMessages[0]?.content ?? "";
+            break;
+        case "userPrompt":
+            text = event.promptMessages[1]?.content ?? "";
+            break;
+        case "rawResponse":
+            text = event.rawResponse;
+            break;
+        case "sanitizedResponse":
+            text = event.sanitizedResponse ?? event.finalCompletionText ?? "";
+            break;
+    }
+
+    void navigator.clipboard?.writeText(text);
+}
+
+function getSelectedFacetValues(
+    filters: InlineCompletionAnalysisFilters,
+    dimension: InlineCompletionAnalysisDimension,
+): string[] {
+    switch (dimension) {
+        case "model":
+            return filters.models ?? [];
+        case "profile":
+            return filters.profiles ?? [];
+        case "schemaMode":
+            return filters.schemaModes ?? [];
+        case "schemaSizeKind":
+            return filters.schemaSizeKinds ?? [];
+        case "intentMode":
+            return (filters.intentModes ?? []).map((value) => (value ? "on" : "off"));
+        case "result":
+            return filters.results ?? [];
+        case "trigger":
+            return filters.triggers ?? [];
+        case "language":
+            return filters.languages ?? [];
+        case "inferredSystemQuery":
+            return (filters.inferredSystemQuery ?? []).map((value) => (value ? "yes" : "no"));
+        case "completionCategory":
+            return [];
+        case "replayTrace":
+            return filters.replayTraces ?? [];
+        case "replayRun":
+            return filters.replayRuns ?? [];
+        case "replayMatrixCell":
+            return filters.replayMatrixCells ?? [];
+        case "replaySourceEvent":
+            return filters.replaySourceEvents ?? [];
+        case "replayMode":
+            return filters.replayModes ?? [];
+        case "provenanceCohort":
+            return filters.provenanceCohorts ?? [];
+    }
+}
+
+function getFilterKey(
+    dimension: InlineCompletionAnalysisDimension,
+): keyof InlineCompletionAnalysisFilters | undefined {
+    switch (dimension) {
+        case "model":
+            return "models";
+        case "profile":
+            return "profiles";
+        case "schemaMode":
+            return "schemaModes";
+        case "schemaSizeKind":
+            return "schemaSizeKinds";
+        case "intentMode":
+            return "intentModes";
+        case "result":
+            return "results";
+        case "trigger":
+            return "triggers";
+        case "language":
+            return "languages";
+        case "inferredSystemQuery":
+            return "inferredSystemQuery";
+        case "completionCategory":
+            return undefined;
+        case "replayTrace":
+            return "replayTraces";
+        case "replayRun":
+            return "replayRuns";
+        case "replayMatrixCell":
+            return "replayMatrixCells";
+        case "replaySourceEvent":
+            return "replaySourceEvents";
+        case "replayMode":
+            return "replayModes";
+        case "provenanceCohort":
+            return "provenanceCohorts";
+    }
+}
+
+function coerceFilterValues(
+    dimension: InlineCompletionAnalysisDimension,
+    values: string[],
+): string[] | boolean[] {
+    if (dimension === "intentMode" || dimension === "inferredSystemQuery") {
+        return values.map((value) => value === "on" || value === "yes");
+    }
+    return values;
+}
+
+function flattenPivotRows(rows: InlineCompletionPivotRow[]): InlineCompletionPivotRow[] {
+    return rows.flatMap((row) => [
+        row,
+        ...(row.children ?? []).map((child) => ({
+            ...child,
+            key: `${row.key}/${child.key}`,
+            label: `${row.label} / ${child.label}`,
+        })),
+    ]);
+}
+
+function createSessionEventKey(
+    fileKey: string,
+    eventId: string | undefined,
+    index: number,
+): string {
+    return `${fileKey}#${index}#${eventId || "missing-id"}`;
+}
+
+function exportPivotCsv(
+    rows: InlineCompletionPivotRow[],
+    dimension: InlineCompletionAnalysisDimension,
+) {
+    const header = [
+        "dimension",
+        "group",
+        "count",
+        "latencyMean",
+        "latencyP95",
+        "latencyP99",
+        "acceptRate",
+        "cancelRate",
+        "rejectRate",
+        "errorRate",
+        "inputTokensMean",
+        "inputTokensSum",
+        "outputTokensMean",
+        "outputTokensSum",
+        "meanCompletionLength",
+        "meanSchemaContextChars",
+        "meanSchemaObjectCount",
+    ];
+    const lines = [
+        header.join(","),
+        ...rows.map((row) =>
+            [
+                dimension,
+                row.label,
+                row.metrics.count,
+                Math.round(row.metrics.latencyMean),
+                Math.round(row.metrics.latencyP95),
+                Math.round(row.metrics.latencyP99),
+                row.metrics.acceptRate,
+                row.metrics.cancelRate,
+                row.metrics.rejectRate,
+                row.metrics.errorRate,
+                row.metrics.inputTokensMean,
+                row.metrics.inputTokensSum,
+                row.metrics.outputTokensMean,
+                row.metrics.outputTokensSum,
+                row.metrics.meanCompletionLength,
+                row.metrics.meanSchemaContextChars,
+                row.metrics.meanSchemaObjectCount,
+            ]
+                .map(csvCell)
+                .join(","),
+        ),
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `mssql-copilot-trace-aggregation-${Date.now()}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+}
+
+function createTimeSeriesPoints(
+    events: InlineCompletionDebugEvent[],
+): Array<{ bucket: string; range: string; latencyP95: number }> {
+    if (events.length === 0) {
+        return [];
+    }
+    const sorted = [...events].sort((left, right) => left.timestamp - right.timestamp);
+    const bucketCount = Math.min(24, Math.max(6, Math.ceil(Math.sqrt(sorted.length))));
+    const min = sorted[0]?.timestamp ?? 0;
+    const max = sorted[sorted.length - 1]?.timestamp ?? min;
+    const span = Math.max(1, max - min);
+    const bucketSpan = span / bucketCount;
+    const buckets = Array.from({ length: bucketCount }, () => [] as InlineCompletionDebugEvent[]);
+    for (const event of sorted) {
+        const index = Math.min(
+            bucketCount - 1,
+            Math.floor(((event.timestamp - min) / span) * bucketCount),
+        );
+        buckets[index]?.push(event);
+    }
+    return buckets.map((bucket, index) => ({
+        bucket: formatTimeAxisLabel(min + bucketSpan * index, span),
+        range: `${formatTimeAxisLabel(min + bucketSpan * index, span)}-${formatTimeAxisLabel(
+            min + bucketSpan * (index + 1),
+            span,
+        )}`,
+        latencyP95: Math.round(computeInlineCompletionMetrics(bucket).latencyP95),
+    }));
+}
+
+function formatTimeAxisLabel(timestamp: number, span: number): string {
+    return new Date(timestamp).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: span <= 15 * 60 * 1000 ? "2-digit" : undefined,
+        hour12: false,
+    });
+}
+
+function countConfigs(events: InlineCompletionDebugEvent[]): number {
+    return new Set(
+        events.map((event) =>
+            [
+                getEventDimension(event, "model"),
+                getEventDimension(event, "profile"),
+                getEventDimension(event, "schemaMode"),
+                getEventDimension(event, "intentMode"),
+            ].join("|"),
+        ),
+    ).size;
+}
+
+function getDatasetRange(entries: InlineCompletionDebugTraceIndexEntry[]): string | undefined {
+    const starts = entries
+        .map((entry) => entry.dateRange?.start)
+        .filter((value): value is number => typeof value === "number");
+    const ends = entries
+        .map((entry) => entry.dateRange?.end)
+        .filter((value): value is number => typeof value === "number");
+    if (starts.length === 0 || ends.length === 0) {
+        return undefined;
+    }
+    return `${formatDateOnly(Math.min(...starts))} -> ${formatDateOnly(Math.max(...ends))}`;
+}
+
+/** Compact source badge text (WI-2.5); older entries fall back to the imported flag. */
+function traceSourceLabel(entry: InlineCompletionDebugTraceIndexEntry): string {
+    if (entry.sourceKind === "storedSession") {
+        return "session";
+    }
+    if (entry.sourceKind === "imported" || (entry.sourceKind === undefined && entry.imported)) {
+        return "import";
+    }
+    return "file";
+}
+
+function traceSourceTitle(entry: InlineCompletionDebugTraceIndexEntry): string {
+    if (entry.sourceKind === "storedSession") {
+        return locConstants.inlineCompletionDebug.detailText108;
+    }
+    if (entry.sourceKind === "imported" || (entry.sourceKind === undefined && entry.imported)) {
+        return locConstants.inlineCompletionDebug.detailText109;
+    }
+    return locConstants.inlineCompletionDebug.detailText110;
+}
+
+function formatShortDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+    })}`;
+}
+
+function formatDateOnly(value: number): string {
+    return new Date(value).toLocaleDateString();
+}
+
+function formatBytes(value: number): string {
+    if (value >= 1024 * 1024) {
+        return locConstants.inlineCompletionDebug.detailText111(
+            String((value / (1024 * 1024)).toFixed(1)),
+        );
+    }
+    return locConstants.inlineCompletionDebug.detailText112(String((value / 1024).toFixed(1)));
+}
+
+function formatDuration(value: number): string {
+    if (value >= 1000) {
+        return locConstants.inlineCompletionDebug.detailText113(
+            String((value / 1000).toFixed(value >= 10_000 ? 1 : 2)),
+        );
+    }
+    return locConstants.inlineCompletionDebug.detailText114(String(Math.round(value)));
+}
+
+function formatPercent(value: number): string {
+    return `${(value * 100).toFixed(1)}%`;
+}
+
+function asString(value: unknown): string | undefined {
+    return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function formatCompact(value: number): string {
+    if (!Number.isFinite(value)) {
+        return "0";
+    }
+    if (Math.abs(value) >= 1_000_000) {
+        return locConstants.inlineCompletionDebug.detailText115(
+            String((value / 1_000_000).toFixed(1)),
+        );
+    }
+    if (Math.abs(value) >= 1_000) {
+        return locConstants.inlineCompletionDebug.detailText116(String((value / 1_000).toFixed(1)));
+    }
+    return `${Math.round(value)}`;
+}
+
+function csvCell(value: unknown): string {
+    const text = String(value ?? "");
+    return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}

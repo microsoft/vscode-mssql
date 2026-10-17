@@ -41,6 +41,7 @@ export interface DcRoute {
     page: DcPage;
     traceId?: string;
     eventId?: string;
+    completionsDatasetSession?: string;
 }
 
 interface DcContextValue {

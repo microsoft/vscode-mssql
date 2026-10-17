@@ -64,6 +64,8 @@ export function featureFor(name: string): string {
         return "activation";
     }
     if (name.startsWith("mssql.command")) return "shell";
+    if (name.startsWith("completions.")) return "completions";
+    if (name.startsWith("replay.")) return "replay";
     if (name.startsWith("mssql.connection")) return "connection";
     if (name.startsWith("mssql.sts")) return "stsLifecycle";
     if (name.startsWith("mssql.queryResults")) return "queryResults";

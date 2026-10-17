@@ -83,6 +83,7 @@
         "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/webviews-coverage\" --include=\"src/webviews/pages/**/*.tsx\""
     },
     "devDependencies": {
+        "@anthropic-ai/sdk": "^0.91.1",
         "@azure/core-paging": "^1.6.2",
         "@ctrl/tinycolor": "^4.2.0",
         "@dagrejs/dagre": "^1.1.4",
@@ -129,6 +130,7 @@
         "monaco-editor": "0.53.0",
         "npm-run-all": "^4.1.5",
         "nyc": "^18.0.0",
+        "openai": "^6.34.0",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
         "react-markdown": "^9.0.1",
@@ -144,9 +146,7 @@
         "vscode-oniguruma": "^2.0.1",
         "vscode-textmate": "^9.3.2",
         "xliff": "^6.2.1",
-        "yargs": "^17.7.2",
-        "@anthropic-ai/sdk": "^0.91.1",
-        "openai": "^6.34.0"
+        "yargs": "^17.7.2"
     },
     "dependencies": {
         "@azure/arm-maintenance": "^1.0.0-beta.2",
@@ -179,6 +179,7 @@
         "plist": "^3.0.6",
         "pretty-data": "^0.40.0",
         "promisify-child-process": "^3.1.1",
+        "recharts": "^3.10.1",
         "semver": "^7.7.4",
         "shallow-equal": "^3.1.0",
         "strip-json-comments": "^5.0.1",
@@ -2017,6 +2018,14 @@
                 },
                 {
                     "command": "sqlDatabaseProjects.openDocumentation"
+                },
+                {
+                    "command": "mssql.openInlineCompletionDebug",
+                    "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+                },
+                {
+                    "command": "mssql.copilot.inlineCompletion.refreshSchemaContext",
+                    "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
                 }
             ],
             "webview/context": [
@@ -3322,6 +3331,16 @@
                 "title": "%sqlDatabaseProjects.findFile%",
                 "category": "%sqlDatabaseProjects.displayName%",
                 "icon": "$(search)"
+            },
+            {
+                "command": "mssql.openInlineCompletionDebug",
+                "title": "%mssql.openInlineCompletionDebug%",
+                "enablement": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+            },
+            {
+                "command": "mssql.copilot.inlineCompletion.refreshSchemaContext",
+                "title": "%mssql.copilot.inlineCompletion.refreshSchemaContext%",
+                "enablement": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
             }
         ],
         "keybindings": [
@@ -5362,6 +5381,18 @@
                         "default": false,
                         "markdownDescription": "%mssql.debugConsole.richSnapshotHeartbeat.description%",
                         "scope": "application"
+                    },
+                    "mssql.copilot.inlineCompletions.debug.standalonePanel": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.copilot.inlineCompletions.debug.standalonePanel%",
+                        "scope": "window"
+                    },
+                    "mssql.copilot.inlineCompletions.trace.journalPrimary": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.copilot.inlineCompletions.trace.journalPrimary%",
+                        "scope": "window"
                     }
                 }
             },

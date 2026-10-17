@@ -23,6 +23,7 @@ import { createTestDocument, stubTelemetry } from "./utils";
 chai.use(sinonChai);
 
 suite("SqlInlineCompletionProvider Tests", () => {
+    let viewerLease: { dispose(): void } | undefined;
     let sandbox: sinon.SinonSandbox;
     let schemaContextService: sinon.SinonStubbedInstance<CompletionSchemaContextService>;
     let provider: SqlInlineCompletionProvider;
@@ -117,7 +118,8 @@ suite("SqlInlineCompletionProvider Tests", () => {
         provider.dispose();
         requestCancellation.dispose();
         inlineCompletionDebugStore.clearEvents();
-        inlineCompletionDebugStore.setPanelOpen(false);
+        viewerLease?.dispose();
+        viewerLease = undefined;
         inlineCompletionDebugStore.replaceOverrides({
             profileId: null,
             modelSelector: null,
@@ -559,7 +561,7 @@ ORDER BY qs.total_worker_time DESC;`,
     });
 
     test("records token counts for debug events when the selected model supports countTokens", async () => {
-        inlineCompletionDebugStore.setPanelOpen(true);
+        viewerLease = inlineCompletionDebugStore.acquireViewer("test");
         schemaContextService.getSchemaContext.resolves(undefined);
         sendRequestStub.resolves(createChatResponse("FROM dbo.Customers"));
 

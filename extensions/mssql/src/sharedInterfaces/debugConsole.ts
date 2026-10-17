@@ -334,6 +334,7 @@ export interface AnomalySummary {
  * can deep-link a page (initialPage / dc/navigate) without stringly names.
  */
 export type DcPageId =
+    | "completions"
     | "overview"
     | "trace"
     | "waterfall"
@@ -427,6 +428,7 @@ export interface SqlActivityResult {
 // RPC types (extension host <-> Debug Console webview)
 // ---------------------------------------------------------------------------
 
+import { InlineCompletionDebugWebviewState } from "./inlineCompletionDebug";
 import { NotificationType, RequestType } from "vscode-jsonrpc";
 
 export interface SourceOverview {
@@ -614,4 +616,90 @@ export namespace DcCaptureChangedNotification {
     export const type = new NotificationType<{ mode: CaptureMode; expiresEpochMs?: number }>(
         "dc/captureChanged",
     );
+}
+
+// Completions enablement + viewer launch (Debug Console Completions page) --
+
+/** Serializable enablement snapshot for the Completions page. */
+export interface CompletionsStatusInfo {
+    experimentalEnabled: boolean;
+    useSchemaContext: boolean;
+    featureEnabled: boolean;
+    copilotSqlDisabled: boolean;
+    schemaContextProfile: string;
+    modelFamily: string;
+    modelVendors: string[];
+    includeSqlDiagnostics: boolean;
+    traceCaptureEnabled: boolean;
+}
+
+export namespace DcCompletionsStatusRequest {
+    export const type = new RequestType<void, CompletionsStatusInfo, void>("dc/completionsStatus");
+}
+
+export namespace DcCompletionsEnableRequest {
+    export const type = new RequestType<{ enable: boolean }, CompletionsStatusInfo, void>(
+        "dc/completionsEnable",
+    );
+}
+
+export namespace DcOpenCompletionsViewerRequest {
+    export const type = new RequestType<void, { ok: boolean; error?: string }, void>(
+        "dc/openCompletionsViewer",
+    );
+}
+
+// Console-hosted Inline Completion Debug --------------------------------------
+// The Completions page hosts the full shared Inline Completion Debug app. The
+// config/sessions/replay slices ride this pull-based state request — with
+// `omitEvents: true` the live event bodies are stripped and the page reads
+// live rows over the thin dc/completionLiveRows transport instead (WI-1.4).
+// Legacy callers that pass no params keep getting the unmodified full state.
+// dc/icDebugAction (reducer-named actions, full state on the response) and
+// the dc/icDebugChanged poke remain for compatibility; the typed surface
+// lives in completionsDebugRpc.ts.
+
+export interface DcIcDebugStateParams {
+    /** Strip live event bodies; read live rows via dc/completionLiveRows. */
+    omitEvents?: boolean;
+}
+
+export namespace DcIcDebugStateRequest {
+    export const type = new RequestType<
+        DcIcDebugStateParams | undefined,
+        InlineCompletionDebugWebviewState,
+        void
+    >("dc/icDebugState");
+}
+
+export namespace DcIcDebugActionRequest {
+    export const type = new RequestType<
+        { name: string; payload?: unknown },
+        InlineCompletionDebugWebviewState,
+        void
+    >("dc/icDebugAction");
+}
+
+export namespace DcIcDebugChangedNotification {
+    export const type = new NotificationType<void>("dc/icDebugChanged");
+}
+
+export interface BundleHealthRow {
+    hostSessionId: string;
+    bundleId: string;
+    status: "active" | "closed" | "partial";
+    artifacts: number;
+    /** Catalog changes not yet written (debounce window or write failure). */
+    dirty: boolean;
+    queueDepth: number;
+    writesCompleted: number;
+    consecutiveWriteFailures: number;
+    lastWriteUtc?: string;
+    /**
+     * Latest ring↔journal reconciliation outcome for the session (WI-2.8;
+     * absent until the reconcile command has run). Health-only — never
+     * persisted into bundle.json.
+     */
+    lastReconciliation?: { atUtc: string; matches: boolean; mismatchCount: number };
+    issues: string[];
 }

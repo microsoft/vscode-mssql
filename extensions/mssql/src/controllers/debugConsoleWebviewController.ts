@@ -9,6 +9,30 @@
  * The webview is a renderer — every query/aggregation runs here.
  */
 
+import {
+    ConsoleCompletionsDebugHost,
+    createConsoleCompletionsDebugHost,
+    createEmptyConsoleCompletionsDebugState,
+    createGateOffCompletionEventDetailResult,
+    createGateOffCompletionLiveRowsResult,
+    createGateOffIcDebugCapabilities,
+    createGateOffIcDebugCommandResult,
+    projectIcDebugStateResult,
+} from "../diagnostics/completionsDebugConsoleHost";
+import {
+    DcCompletionEventDetailRequest,
+    DcCompletionLiveRowsRequest,
+    DcIcDebugCapabilitiesRequest,
+    DcIcDebugChanged2Notification,
+    DcIcDebugCommandRequest,
+} from "../sharedInterfaces/completionsDebugRpc";
+import {
+    getCompletionsEnablementStatus,
+    enableAiCompletions,
+    disableAiCompletions,
+} from "../copilot/inlineCompletionEnablement";
+import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
+import * as Constants from "../constants/constants";
 import * as fs from "fs";
 import * as path from "path";
 import { mergeBackfill } from "../diagnostics/liveArchive";
@@ -16,6 +40,12 @@ import * as vscode from "vscode";
 import * as LocConstants from "../constants/locConstants";
 import { PrivatePreviewFeature, previewService } from "../previews/previewService";
 import {
+    DcCompletionsStatusRequest,
+    DcCompletionsEnableRequest,
+    DcOpenCompletionsViewerRequest,
+    DcIcDebugStateRequest,
+    DcIcDebugActionRequest,
+    DcIcDebugChangedNotification,
     DcGetHistoryRequest,
     HistoryActionTrend,
     HistorySessionRow,
@@ -93,6 +123,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
     private subscribed = false;
     private perfRunCounter = 0;
     private readonly perfHistory: PerfHistoryService;
+    private icDebugHost: ConsoleCompletionsDebugHost | undefined;
     public disposed = false;
 
     constructor(
@@ -177,6 +208,8 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         });
         this.panel.onDidDispose(() => {
             this.disposed = true;
+            this.icDebugHost?.dispose();
+            this.icDebugHost = undefined;
             diag.removeSink(this.liveTail.id);
             diag.removeSink(archiveSinkId);
             removeCaptureModeListener();
@@ -267,7 +300,101 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         });
     }
 
+    private ensureIcDebugHost(): ConsoleCompletionsDebugHost | undefined {
+        if (this.disposed || !isInlineCompletionFeatureEnabled()) {
+            this.icDebugHost?.dispose();
+            this.icDebugHost = undefined;
+            return undefined;
+        }
+        if (!this.icDebugHost && isInlineCompletionFeatureEnabled()) {
+            const host = createConsoleCompletionsDebugHost();
+            if (host) {
+                host.onDidChange(() => {
+                    if (!this.disposed) {
+                        void this.sendNotification(DcIcDebugChangedNotification.type, undefined);
+                    }
+                });
+                // Typed sibling (WI-1.2): revision + changed domains on the
+                // same throttle; the legacy void poke above keeps firing.
+                host.onDidChange2((payload) => {
+                    if (!this.disposed) {
+                        void this.sendNotification(DcIcDebugChanged2Notification.type, payload);
+                    }
+                });
+                this.icDebugHost = host;
+            }
+        }
+        return this.icDebugHost;
+    }
+
     private registerHandlers(): void {
+        // Completions page: enablement + full-viewer launch. The page shows
+        // substrate activity (redacted protocol metadata); prompt/response
+        // fidelity lives in the dedicated Inline Completion Debug panel.
+        this.onRequest(DcCompletionsStatusRequest.type, async () =>
+            getCompletionsEnablementStatus(),
+        );
+
+        this.onRequest(DcCompletionsEnableRequest.type, async ({ enable }) =>
+            enable ? enableAiCompletions() : disableAiCompletions(),
+        );
+
+        this.onRequest(DcOpenCompletionsViewerRequest.type, async () => {
+            if (!isInlineCompletionFeatureEnabled()) {
+                return {
+                    ok: false,
+                    error: LocConstants.InlineCompletionDebug.enableCompletionsFirst,
+                };
+            }
+            await vscode.commands.executeCommand(Constants.cmdOpenInlineCompletionDebug);
+            return { ok: true };
+        });
+
+        // Console-hosted Inline Completion Debug: the host wraps the singleton
+        // capture store; it comes up lazily on the first state pull and only
+        // while the feature gate is on. When gated off, the page gets the
+        // honest empty default state instead. omitEvents (WI-1.4) strips live
+        // event bodies — the page reads those over dc/completionLiveRows.
+        this.onRequest(DcIcDebugStateRequest.type, async (params) => {
+            const host = this.ensureIcDebugHost();
+            return projectIcDebugStateResult(
+                host ? host.getState() : createEmptyConsoleCompletionsDebugState(),
+                params,
+            );
+        });
+
+        this.onRequest(DcIcDebugActionRequest.type, async ({ name, payload }) => {
+            const host = this.ensureIcDebugHost();
+            return host
+                ? host.dispatchAction(name, payload)
+                : createEmptyConsoleCompletionsDebugState();
+        });
+
+        // Typed, versioned Inline Completion Debug RPC (WI-1.2/WI-1.3):
+        // capabilities handshake, validated command dispatch, thin cursor-paged
+        // live rows, and section-lazy event detail. Additive — the legacy
+        // state/action/changed trio above keeps working until the webview
+        // migrates. Gate-off mirrors the state handler: honest empties.
+        this.onRequest(DcIcDebugCapabilitiesRequest.type, async () => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.getCapabilities() : createGateOffIcDebugCapabilities();
+        });
+
+        this.onRequest(DcIcDebugCommandRequest.type, async (params) => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.dispatchCommand(params) : createGateOffIcDebugCommandResult();
+        });
+
+        this.onRequest(DcCompletionLiveRowsRequest.type, async (params) => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.getLiveRows(params) : createGateOffCompletionLiveRowsResult();
+        });
+
+        this.onRequest(DcCompletionEventDetailRequest.type, async (params) => {
+            const host = this.ensureIcDebugHost();
+            return host ? host.getEventDetail(params) : createGateOffCompletionEventDetailResult();
+        });
+
         this.onRequest(DcListSourcesRequest.type, async () => this.listSources());
 
         this.onRequest(DcQueryEventsRequest.type, async (query) =>

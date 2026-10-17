@@ -127,6 +127,13 @@ suite("Private preview manifest", () => {
     });
 
     test("keeps AI provider commands out of the default UI", () => {
+        for (const commandId of [
+            "mssql.openInlineCompletionDebug",
+            "mssql.copilot.inlineCompletion.refreshSchemaContext",
+        ]) {
+            expect(command(commandId).enablement).to.equal(AI_INLINE_COMPLETIONS_GATE);
+            expect(commandPalette(commandId).when).to.equal(AI_INLINE_COMPLETIONS_GATE);
+        }
         for (const provider of ["anthropic", "openai", "xai"]) {
             for (const action of ["setApiKey", "clearApiKey"]) {
                 const commandId = `mssql.copilot.sdkProviders.${provider}.${action}`;

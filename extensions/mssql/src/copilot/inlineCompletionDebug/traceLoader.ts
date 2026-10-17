@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { normalizeFeatureTraceFile } from "../../diagnostics/featureCapture/traceCodec";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -81,6 +82,7 @@ export async function indexTraceFile(
             included: options.included,
             loaded: false,
             imported: options.imported,
+            sourceKind: options.imported ? "imported" : "folder",
             loadError: getErrorMessage(error),
         };
     }
@@ -104,6 +106,14 @@ export function normalizeTraceFile(
     value: unknown,
     source: string,
 ): InlineCompletionDebugExportData {
+    if (isRecord(value) && value.schema !== undefined) {
+        const normalized = normalizeFeatureTraceFile(value, source, {
+            featureLabel: "an inline completion",
+            expectedFeatureId: "completions",
+        });
+        const validated = normalizeTraceFile({ ...normalized, schema: undefined }, source);
+        return { ...normalized, ...validated } as InlineCompletionDebugExportData;
+    }
     if (!isRecord(value) || !Array.isArray(value.events)) {
         throw new Error(`${source} is not an inline completion trace JSON file.`);
     }

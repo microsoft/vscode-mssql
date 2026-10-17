@@ -216,3 +216,5 @@ export function createInlineCompletionDebugPresetOverrides(
         customSystemPrompt: null,
     };
 }
+
+export const INLINE_COMPLETION_PROFILE_DEFINITIONS_VERSION = 2;

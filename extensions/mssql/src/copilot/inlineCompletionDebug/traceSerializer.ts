@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { FeatureTraceRedaction } from "../../diagnostics/featureCapture/traceCodec";
 import * as LocalizedConstants from "../../constants/locConstants";
 import {
     InlineCompletionDebugEvent,
@@ -184,3 +185,22 @@ function cloneJson<T>(value: T): T {
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
+
+/** Share the reviewed redaction rules with durable journals and v2 trace exports. */
+export const inlineCompletionTraceRedaction: FeatureTraceRedaction = {
+    redactedKeys: REDACTED_KEYS,
+    redactSpecial: (key, value) => {
+        if (key === "locals") return redactLocalStrings(value);
+        if (key === "error" && isRecord(value))
+            return {
+                message: REDACTED,
+                ...(typeof value.name === "string" ? { name: value.name } : {}),
+            };
+        if (key === "promptMessages" && Array.isArray(value))
+            return value.map((message) =>
+                isRecord(message) ? { ...message, content: REDACTED } : message,
+            );
+        if (key === "schemaContextFormatted") return REDACTED;
+        return undefined;
+    },
+};

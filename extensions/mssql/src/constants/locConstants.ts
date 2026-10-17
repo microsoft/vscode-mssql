@@ -6219,3 +6219,40 @@ export class DebugConsole {
     public static addBundleTitle = l10n.t("Import a perf-runs bundle directory (read-only)");
     public static addDirectoryTitle = l10n.t("Open a perf-runs directory");
 }
+
+export const InlineCompletionDebug = {
+    journalInactive: (setting: string) =>
+        l10n.t('Completions journal is not active — enable "{0}" to capture it.', setting),
+    datasetLoadCancelled: l10n.t("Dataset load cancelled because it exceeds 100,000 events."),
+    useThisFolder: l10n.t("Use this folder"),
+    chooseOtherFolder: l10n.t("Choose other folder"),
+    enableCompletionsFirst: l10n.t("Enable AI completions first."),
+    traceTooLarge: l10n.t("The trace exceeds the 64 MB import limit."),
+    completionsJournalHasNoRecordsForThe: l10n.t(
+        "Completions journal has no records for the current capture epoch yet.",
+    ),
+    value0FullReport1: (value0: string, value1: string) =>
+        l10n.t("{0} Full report: {1}", value0, value1),
+    completionsJournalReconciliationFailed0: (value0: string) =>
+        l10n.t("Completions journal reconciliation failed: {0}", value0),
+    copilotCompletionDebug: l10n.t("Copilot Completion Debug"),
+    someEventsWereNoLongerInThe: l10n.t(
+        "Some events were no longer in the live ring and were not added to the replay cart.",
+    ),
+    capturedSchema: l10n.t("Captured schema"),
+    value0X1: (value0: string, value1: string) => l10n.t("{0} x {1}", value0, value1),
+    theSelectedTraceDatasetContains0Events: (value0: string) =>
+        l10n.t(
+            "The selected trace dataset contains {0} events. Loading it may use significant memory.",
+            value0,
+        ),
+    loadTraces: l10n.t("Load traces"),
+    addInlineCompletionTraceFile: l10n.t("Add Inline Completion Trace File"),
+    chooseInlineCompletionTraceFolder: l10n.t("Choose Inline Completion Trace Folder"),
+    enableInlineCompletionTraceCollectionAndSave: (value0: string) =>
+        l10n.t("Enable inline completion trace collection and save trace files to {0}?", value0),
+    databaseSyncIsNotYetImplementedTraces: (value0: string) =>
+        l10n.t("Database sync is not yet implemented. Traces are currently saved to: {0}", value0),
+    exportInlineCompletionDebugSession: l10n.t("Export Inline Completion Debug Session"),
+    importInlineCompletionDebugSession: l10n.t("Import Inline Completion Debug Session"),
+};
