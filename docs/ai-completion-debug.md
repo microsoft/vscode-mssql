@@ -68,6 +68,11 @@ Replay Lab pages, central upload, and the general session-bundle integration. Th
 existing Connections v2 boundary is unchanged. The debug-console performance
 scenario now seeds its preview settings before activation.
 
+The classic grid/window and Object Explorer performance probes are also restored
+from the refactor under `PERF_MODE=1`, together with OE expansion and query-cancel
+markers. The probes are unavailable in ordinary extension sessions. This lets the
+existing performance scenarios assert actual product row and child counts.
+
 Validation uses the combined tree: extension/toolkit unit tests, repository tests,
 the performance harness suites (including a disposable local SQL integration
 database), editor/grid tests, and live classic-query/OE performance scenarios.

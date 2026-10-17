@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import * as sinon from "sinon";
+import { Perf } from "../../src/perf/perfTelemetry";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import {
@@ -240,6 +241,7 @@ suite("OE Service Tests", () => {
         });
 
         test("expandNode should handle standard node expansion successfully", async () => {
+            const marker = sandbox.stub(Perf, "marker");
             sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake((_: string) => undefined);
             // Mock node and session ID
             const mockNode = new TreeNodeInfo(
@@ -311,6 +313,10 @@ suite("OE Service Tests", () => {
             // Verify the result
             expect(result, "Expand node should return children").to.be.not.undefined;
             expect(result!.length, "Expand node should return 2 children").to.equal(2);
+            expect(marker).to.have.been.calledWithMatch("mssql.oe.expand.end", "end", {
+                childCount: 2,
+                error: false,
+            });
 
             // Verify telemetry was started correctly; constructor initialization may emit additional telemetry.
             expect(

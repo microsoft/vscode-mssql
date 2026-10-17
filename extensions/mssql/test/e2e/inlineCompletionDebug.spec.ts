@@ -12,6 +12,7 @@ for (const standalone of [false, true]) {
         const getContext = useSharedVsCodeLifecycle({
             launchOptions: {
                 initialConfig: {
+                    "mssql.showChangelogOnUpdate": false,
                     "mssql.enableExperimentalFeatures": true,
                     "mssql.copilot.inlineCompletions.enabled": true,
                     "mssql.debugConsole.enabled": true,
