@@ -83,6 +83,9 @@ suite("PythonNotebookController", () => {
         sandbox
             .stub(vscode.workspace, "onDidChangeConfiguration")
             .callsFake(configurationChanges.event);
+        sandbox
+            .stub(vscode.commands, "registerCommand")
+            .callsFake(() => new vscode.Disposable(() => undefined));
         commands = sandbox.stub(vscode.commands, "executeCommand").resolves();
         commands.withArgs("notebook.selectKernel").resolves(false);
         sandbox.stub(vscode.window, "showNotebookDocument").callsFake(async () => {
@@ -186,11 +189,14 @@ suite("PythonNotebookController", () => {
     });
 
     teardown(async () => {
-        await controller.dispose();
-        status.dispose();
-        changes.dispose();
-        configurationChanges.dispose();
-        sandbox.restore();
+        try {
+            await controller?.dispose();
+        } finally {
+            status?.dispose();
+            changes?.dispose();
+            configurationChanges?.dispose();
+            sandbox.restore();
+        }
     });
 
     function cell(source: string, languageId = "python"): vscode.NotebookCell {
