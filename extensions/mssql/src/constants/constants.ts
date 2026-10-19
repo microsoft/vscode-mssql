@@ -344,6 +344,7 @@ export const configPersistQueryResultTabs = "persistQueryResultTabs";
 export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
+export const configEnableSqlCmdByDefault = "query.enableSqlCmdByDefault";
 export const configQueryCompletionSoundEnabled = "query.playCompletionSound";
 export const configQueryCompletionSoundFile = "query.completionSoundFile";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";

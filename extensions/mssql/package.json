@@ -2789,6 +2789,12 @@
                         "description": "%mssql.openQueryResultsInTabByDefault.description%",
                         "scope": "application"
                     },
+                    "mssql.query.enableSqlCmdByDefault": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.query.enableSqlCmdByDefault.description%",
+                        "scope": "resource"
+                    },
                     "mssql.query.playCompletionSound": {
                         "type": "boolean",
                         "default": false,

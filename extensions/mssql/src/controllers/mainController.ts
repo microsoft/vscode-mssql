@@ -14,6 +14,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CloudDeployService } from "../cloudDeploy/cloudDeployService";
 import SqlToolsServerClient from "../languageservice/serviceclient";
+import { changeSqlCmdModeForFile } from "../languageservice/utils";
 import { Perf } from "../perf/perfTelemetry";
 import * as ConnInfo from "../models/connectionInfo";
 import {
@@ -419,8 +420,8 @@ export default class MainController implements vscode.Disposable {
                 },
             );
             this.registerCommand(Constants.cmdToggleSqlCmd);
-            this._event.on(Constants.cmdToggleSqlCmd, async () => {
-                await this.onToggleSqlCmd();
+            this._event.on(Constants.cmdToggleSqlCmd, () => {
+                this.onToggleSqlCmd();
             });
             this.registerCommand(Constants.cmdAadRemoveAccount);
             this._event.on(Constants.cmdAadRemoveAccount, () =>
@@ -2832,27 +2833,16 @@ export default class MainController implements vscode.Disposable {
     /**
      * Handles the command to toggle SQLCMD mode
      */
-    private async onToggleSqlCmd(): Promise<void> {
-        let isSqlCmd: boolean;
+    private onToggleSqlCmd(): void {
         const uri = Utils.getActiveTextEditorUri();
-        if (!uri) {
+        if (!uri || !Utils.isEditingSqlFile()) {
             vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return;
         }
-        const queryRunner = this._outputContentProvider.getQueryRunner(uri);
-        // if a query runner exists, use it
-        if (queryRunner) {
-            isSqlCmd = queryRunner.isSqlCmd;
-        } else {
-            // otherwise create a new query runner
-            isSqlCmd = false;
-            const editor = vscode.window.activeTextEditor;
-            const title = path.basename(editor?.document.fileName ?? uri);
-            await this._outputContentProvider.createQueryRunner(this._statusview, uri, title);
-        }
-        await this._outputContentProvider.toggleSqlCmd(uri);
-        await this._connectionMgr.onChooseLanguageFlavor(true, !isSqlCmd);
-        this._statusview.sqlCmdModeChanged(uri, !isSqlCmd);
+        const isSqlCmd = !this._statusview.getSqlCmdMode(uri);
+        this._outputContentProvider.setSqlCmdMode(uri, isSqlCmd);
+        this._statusview.sqlCmdModeChanged(uri, isSqlCmd);
+        changeSqlCmdModeForFile(SqlToolsServerClient.instance, uri, isSqlCmd);
     }
 
     /**

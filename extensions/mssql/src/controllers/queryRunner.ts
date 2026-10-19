@@ -25,9 +25,6 @@ import {
     QueryExecuteSubsetRequest,
     QueryExecuteMessageParams,
     QueryExecuteBatchNotificationParams,
-    QueryExecuteOptionsRequest,
-    QueryExecutionOptionsParams,
-    QueryExecutionOptions,
     ExecutionPlanOptions,
     QueryConnectionUriChangeRequest,
     QueryConnectionUriChangeParams,
@@ -404,6 +401,7 @@ export default class QueryRunner {
             line: line,
             column: column,
             executionPlanOptions: executionPlanOptions,
+            isSqlCmdMode: this._isSqlCmd,
         };
 
         const runStatementActivity = startActivity(
@@ -499,6 +497,7 @@ export default class QueryRunner {
                 ownerUri: this._ownerUri,
                 executionPlanOptions: executionPlanOptions,
                 querySelection: selection,
+                isSqlCmdMode: this._isSqlCmd,
             };
 
             // Getting query text
@@ -1587,18 +1586,6 @@ export default class QueryRunner {
         if (this._requestID === requestId) {
             this._onSummaryChangedEmitter.fire(summary);
         }
-    }
-
-    public async toggleSqlCmd(): Promise<boolean> {
-        const queryExecuteOptions: QueryExecutionOptions = { options: {} };
-        queryExecuteOptions.options["isSqlCmdMode"] = !this.isSqlCmd;
-        const queryExecuteOptionsParams: QueryExecutionOptionsParams = {
-            ownerUri: this.uri,
-            options: queryExecuteOptions,
-        };
-        await this._client.sendRequest(QueryExecuteOptionsRequest.type, queryExecuteOptionsParams);
-        this._isSqlCmd = !this._isSqlCmd;
-        return true;
     }
 
     private sendBatchTimeMessage(batchId: number, executionTime: string): void {

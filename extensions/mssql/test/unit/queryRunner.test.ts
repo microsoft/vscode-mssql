@@ -815,18 +815,41 @@ suite("Query Runner tests", () => {
         }
     });
 
-    test("Toggle SQLCMD Mode sends request", async () => {
-        let queryUri = "test_uri";
-        let queryRunner = createQueryRunner(queryUri, queryUri);
-        expect(queryRunner.isSqlCmd, "Query Runner should have SQLCMD false be default").is.equal(
-            false,
+    test("SQLCMD mode is off by default", () => {
+        const queryRunner = createQueryRunner();
+        expect(queryRunner.isSqlCmd).to.equal(false);
+    });
+
+    test("runQuery sends the SQLCMD mode with the execute request", async () => {
+        const queryRunner = createQueryRunner();
+        queryRunner.isSqlCmd = true;
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1",
+        } as vscode.TextDocument);
+
+        await queryRunner.runQuery(standardSelection);
+
+        expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+            QueryExecuteContracts.QueryExecuteRequest.type,
+            sinon.match({ ownerUri: standardUri, isSqlCmdMode: true }),
         );
-        testSqlToolsServerClient.sendRequest
-            .withArgs(QueryExecuteContracts.QueryExecuteOptionsRequest.type, sinon.match.object)
-            .resolves(true);
-        await queryRunner.toggleSqlCmd();
-        expect(testSqlToolsServerClient.sendRequest).to.have.been.calledOnce;
-        expect(queryRunner.isSqlCmd, "SQLCMD Mode should be switched").is.equal(true);
+    });
+
+    test("runStatement sends the SQLCMD mode with the execute request", async () => {
+        const queryRunner = createQueryRunner();
+        queryRunner.isSqlCmd = true;
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1",
+        } as vscode.TextDocument);
+
+        await queryRunner.runStatement(1, 1);
+
+        expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+            QueryExecuteContracts.QueryExecuteStatementRequest.type,
+            sinon.match({ ownerUri: standardUri, isSqlCmdMode: true }),
+        );
     });
 
     test("updateQueryRunnerUri migrates internal URI keyed state while query is executing", () => {
@@ -936,6 +959,7 @@ suite("Query Runner tests", () => {
             line: line,
             column: column,
             executionPlanOptions: executionPlanOptions,
+            isSqlCmdMode: false,
         };
 
         expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(

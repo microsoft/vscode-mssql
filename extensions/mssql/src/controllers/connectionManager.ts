@@ -1027,23 +1027,9 @@ export default class ConnectionManager {
         return true;
     }
 
-    public async onChooseLanguageFlavor(
-        isSqlCmdMode: boolean = false,
-        isSqlCmd: boolean = false,
-    ): Promise<boolean> {
+    public async onChooseLanguageFlavor(): Promise<boolean> {
         const fileUri = Utils.getActiveTextEditorUri();
         if (fileUri && Utils.isEditingSqlFile()) {
-            if (isSqlCmdMode) {
-                SqlToolsServerClient.instance.sendNotification(
-                    LanguageServiceContracts.LanguageFlavorChangedNotification.type,
-                    <LanguageServiceContracts.DidChangeLanguageFlavorParams>{
-                        uri: fileUri,
-                        language: isSqlCmd ? "sqlcmd" : "sql",
-                        flavor: "MSSQL",
-                    },
-                );
-                return true;
-            }
             const flavor = await this.connectionUI.promptLanguageFlavor();
             if (!flavor) {
                 return false;

@@ -157,6 +157,63 @@ suite("Status View Tests", () => {
         statusView.dispose();
     });
 
+    suite("SQLCMD mode status bar tests", () => {
+        const fileUri = "file:///test.sql";
+        let enableSqlCmdByDefault: boolean;
+
+        setup(() => {
+            enableSqlCmdByDefault = false;
+            sandbox.stub(vscode.window, "createStatusBarItem").callsFake(() => {
+                return createMockStatusBarItem();
+            });
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(fileUri);
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: (key: string, defaultValue?: unknown) =>
+                    key === Constants.configEnableSqlCmdByDefault
+                        ? enableSqlCmdByDefault
+                        : defaultValue,
+            } as unknown as vscode.WorkspaceConfiguration);
+        });
+
+        test("editors start with SQLCMD mode on when enableSqlCmdByDefault is enabled", () => {
+            enableSqlCmdByDefault = true;
+            const statusView = new StatusView();
+
+            statusView.sqlCmdModeChanged(fileUri);
+
+            expect(statusView.getSqlCmdMode(fileUri)).to.be.true;
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                LocalizedConstants.StatusBar.sqlCmdModeOnLabel,
+            );
+            statusView.dispose();
+        });
+
+        test("editors start with SQLCMD mode off when enableSqlCmdByDefault is disabled", () => {
+            const statusView = new StatusView();
+
+            statusView.sqlCmdModeChanged(fileUri);
+
+            expect(statusView.getSqlCmdMode(fileUri)).to.be.false;
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                LocalizedConstants.StatusBar.sqlCmdModeOffLabel,
+            );
+            statusView.dispose();
+        });
+
+        test("connection state changes preserve the editor's SQLCMD mode", () => {
+            const statusView = new StatusView();
+            statusView.sqlCmdModeChanged(fileUri, true);
+
+            statusView.setNotConnected(fileUri);
+
+            expect(statusView.getSqlCmdMode(fileUri)).to.be.true;
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                LocalizedConstants.StatusBar.sqlCmdModeOnLabel,
+            );
+            statusView.dispose();
+        });
+    });
+
     suite("Query execution status bar tests", () => {
         const fileUri = "test_uri";
 

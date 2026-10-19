@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { languageId } from "../constants/constants";
+import { languageId, mssqlProviderName } from "../constants/constants";
 import {
     DidChangeLanguageFlavorParams,
     LanguageFlavorChangedNotification,
@@ -23,4 +23,23 @@ export function changeLanguageServiceForFile(
         flavor: flavor,
     } as DidChangeLanguageFlavorParams);
     statusView.languageFlavorChanged(uri, flavor);
+}
+
+/**
+ * Tells the language service whether to treat the file as a SQLCMD script, which suppresses
+ * T-SQL diagnostics for SQLCMD commands and variables.
+ * @param client SQL Tools Service client
+ * @param uri URI of the file
+ * @param isSqlCmd whether the file is in SQLCMD mode
+ */
+export function changeSqlCmdModeForFile(
+    client: SqlToolsServiceClient,
+    uri: string,
+    isSqlCmd: boolean,
+): void {
+    client.sendNotification(LanguageFlavorChangedNotification.type, {
+        uri: uri,
+        language: isSqlCmd ? "sqlcmd" : languageId,
+        flavor: mssqlProviderName,
+    } as DidChangeLanguageFlavorParams);
 }

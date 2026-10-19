@@ -439,9 +439,32 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(queryRunner).to.be.undefined;
     });
 
-    test("toggleSqlCmd should do nothing if no queryRunner exists", async () => {
-        let result = await contentProvider.toggleSqlCmd("test_uri");
-        expect(result).to.be.false;
+    test("setSqlCmdMode should do nothing if no queryRunner exists", () => {
+        expect(() => contentProvider.setSqlCmdMode("test_uri", true)).to.not.throw();
+        expect(contentProvider.getQueryRunner("test_uri")).to.be.undefined;
+    });
+
+    test("setSqlCmdMode should update the existing queryRunner", () => {
+        const queryRunner = { isSqlCmd: false } as QueryRunner;
+        contentProvider.setResultsMap = new Map([
+            ["test_uri", { queryRunner } as QueryRunnerState],
+        ]);
+
+        contentProvider.setSqlCmdMode("test_uri", true);
+
+        expect(queryRunner.isSqlCmd).to.be.true;
+    });
+
+    test("createQueryRunner should initialize SQLCMD mode from the status view", async () => {
+        statusView.getSqlCmdMode.withArgs(testUri).returns(true);
+
+        const queryRunner = await contentProvider.createQueryRunner(
+            statusViewInstance,
+            testUri,
+            testUri,
+        );
+
+        expect(queryRunner?.isSqlCmd).to.be.true;
     });
 
     test("Test queryResultsMap getters and setters", () => {
