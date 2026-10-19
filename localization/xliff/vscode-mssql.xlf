@@ -142,9 +142,6 @@
     <trans-unit id="++CODE++41966414bb7dcf966a79335f288d9615934480c6315e27c1f05204051a130187">
       <source xml:lang="en">.NET + Azure SQL</source>
     </trans-unit>
-    <trans-unit id="++CODE++5a6a421bc967796a40a026b19290c06ab0a638fef27243f6be009d7413cf5c83">
-      <source xml:lang="en">.NET Aspire + Azure SQL</source>
-    </trans-unit>
     <trans-unit id="++CODE++14b36d7e04c3dc59133b74857a6bc90ca1805b3090ae3509207bcc78db9ecc1a">
       <source xml:lang="en">0 rows</source>
     </trans-unit>
@@ -792,6 +789,9 @@
     </trans-unit>
     <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
       <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8029d4a7871f10c42ee941b8d1fe0beff6540d9f7c5c11834b8d7809be65adaf">
+      <source xml:lang="en">Aspire + Azure SQL</source>
     </trans-unit>
     <trans-unit id="++CODE++22817472d075bababa93435b2f2b9aa766fa207678c1498422496d96ffd97d0e">
       <source xml:lang="en">Assemblies</source>
