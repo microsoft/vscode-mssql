@@ -9,3 +9,14 @@ updates:
       interval: "weekly"
     cooldown:
       default-days: 7
+  - package-ecosystem: "pip"
+    directories:
+      - "/extensions/mssql/python"
+      - "/extensions/mssql/test/python"
+    groups:
+      python-notebooks:
+        patterns: ["*"]
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7

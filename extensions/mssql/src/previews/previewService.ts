@@ -14,6 +14,7 @@ export enum PreviewFeature {
     AzureSqlContainers = "azureSqlContainers",
     BetaResultsGrid = "betaResultsGrid",
     LiveQueryStatistics = "liveQueryStatistics",
+    PythonNotebooks = "pythonNotebooks",
 }
 
 /**

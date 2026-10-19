@@ -68,6 +68,26 @@ jobs:
 
           find ./extensions/mssql -maxdepth 1 -name "*.vsix" -print | sort
 
+      - name: MSSQL - Verify packaged Python runtime
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          root = Path("extensions/mssql")
+          for vsix in sorted(root.glob("mssql-*.vsix")):
+              with ZipFile(vsix) as package:
+                  for asset in ("mssql_notebook.py", "mssql_notebook_dependencies.py", "requirements.txt"):
+                      assert package.read(f"extension/python/{asset}") == (root / "python" / asset).read_bytes(), f"{vsix.name}: {asset} differs from source"
+                  assert not any(name.endswith((".pyc", ".pyo", "/.env")) or "__pycache__" in name for name in package.namelist()), f"{vsix.name}: contains private environment or Python bytecode"
+                  manifest = json.loads(package.read("extension/package.json"))
+                  configuration = manifest["contributes"]["configuration"]
+                  groups = configuration if isinstance(configuration, list) else [configuration]
+                  settings = {key: value for group in groups for key, value in group["properties"].items()}
+                  assert settings["mssql.preview.pythonNotebooks"]["default"] is None, f"{vsix.name}: Python Preview must inherit by default"
+              print(f"Verified Python runtime: {vsix.name}")
+
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -113,6 +133,17 @@ jobs:
       - name: MSSQL - Install test dependencies
         working-directory: ./extensions/mssql
         run: npm ci
+
+      - name: Setup Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.11"
+
+      - name: MSSQL - Install Python notebook test dependencies
+        run: python -m pip install -r extensions/mssql/test/python/requirements.txt
+
+      - name: MSSQL - Verify native Python runtime and readiness
+        run: npm --prefix extensions/mssql run test:python
 
       - name: Download MSSQL VSIX files
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1

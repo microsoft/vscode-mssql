@@ -47,6 +47,7 @@ import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { PlatformInformation } from "../../src/models/platform";
+import { connectNotebookIntellisense } from "../../src/notebooks/notebookIntellisenseConnection";
 
 chai.use(sinonChai);
 
@@ -204,6 +205,78 @@ suite("ConnectionManager Tests", () => {
 
             expect(await pending).to.equal(params);
             expect(perfMarkerStub).to.not.have.been.called;
+        });
+
+        test("cancelled notebook metadata connections await cancellation and discard late notifications", async () => {
+            const source = new vscode.CancellationTokenSource();
+            const ownerUri = "mssql-python-notebook-sql:/cancelled.sql";
+            mockServiceClient.sendRequest.resolves(true);
+            const pending = connectNotebookIntellisense(
+                connectionManager,
+                ownerUri,
+                { options: {} },
+                source.token,
+            );
+            source.cancel();
+            expect(await pending).to.equal(undefined);
+            await connectionManager.handleConnectionCompleteNotification()({
+                ownerUri,
+                connectionId: "late",
+            } as ConnectionContracts.ConnectionCompleteParams);
+            expect(mockServiceClient.sendRequest).to.have.been.calledWith(
+                ConnectionContracts.CancelConnectRequest.type,
+                { ownerUri },
+            );
+            expect(mockServiceClient.sendRequest).to.have.been.calledWith(
+                ConnectionContracts.DisconnectRequest.type,
+                { ownerUri },
+            );
+            expect(connectionManager["_uriToConnectionCompleteParamsMap"].has(ownerUri)).to.equal(
+                false,
+            );
+            source.dispose();
+        });
+
+        test("a stale notebook cancellation cannot disconnect a newer metadata connection", async () => {
+            const previous = new vscode.CancellationTokenSource();
+            const next = new vscode.CancellationTokenSource();
+            const ownerUri = "mssql-python-notebook-sql:/retry.sql";
+            const cancelling = new Deferred<boolean>();
+            const cancelStarted = new Deferred<void>();
+            mockServiceClient.sendRequest.callsFake(async (type) => {
+                if (type === ConnectionContracts.CancelConnectRequest.type) {
+                    cancelStarted.resolve();
+                    return cancelling.promise;
+                }
+                return true;
+            });
+            const oldAttempt = connectNotebookIntellisense(
+                connectionManager,
+                ownerUri,
+                { options: {} },
+                previous.token,
+            );
+            previous.cancel();
+            await cancelStarted.promise;
+            const newAttempt = connectNotebookIntellisense(
+                connectionManager,
+                ownerUri,
+                { options: {} },
+                next.token,
+            );
+            await connectionManager.handleConnectionCompleteNotification()({
+                ownerUri,
+                connectionId: "new-connection",
+            } as ConnectionContracts.ConnectionCompleteParams);
+            expect((await newAttempt)?.connectionId).to.equal("new-connection");
+            cancelling.resolve(true);
+            expect(await oldAttempt).to.equal(undefined);
+            expect(mockServiceClient.sendRequest).not.to.have.been.calledWith(
+                ConnectionContracts.DisconnectRequest.type,
+                { ownerUri },
+            );
+            previous.dispose();
+            next.dispose();
         });
     });
 
@@ -663,6 +736,60 @@ suite("ConnectionManager Tests", () => {
                 expiresOn: 0,
                 uri: "file:///test.sql",
             });
+        });
+        test("uses only the authorized callback for a private notebook projection", async () => {
+            const uri = "mssql-python-notebook-sql:/authorized.sql";
+            const refresh = sandbox
+                .stub()
+                .resolves({ token: "notebook-token", expiresOn: 9999999999 });
+            const registration = connectionManager.registerNotebookTokenProvider(
+                uri,
+                "account-id",
+                "tenant-id",
+                refresh,
+            );
+            await invokeHandler(makeParams({ uri }));
+            expect(sendNotificationStub).to.have.been.calledWith(
+                ConnectionContracts.TokenRefreshedNotification.type,
+                { uri, token: "notebook-token", expiresOn: 9999999999 },
+            );
+            expect(acquireTokenStub).not.to.have.been.called;
+            registration.dispose();
+            sendNotificationStub.resetHistory();
+            await invokeHandler(makeParams({ uri }));
+            expect(sendNotificationStub).to.have.been.calledWith(
+                ConnectionContracts.TokenRefreshedNotification.type,
+                { uri, token: "", expiresOn: 0 },
+            );
+            expect(acquireTokenStub).not.to.have.been.called;
+        });
+
+        test("rejects a mismatched notebook projection identity and a refresh revoked during acquisition", async () => {
+            const uri = "mssql-python-notebook-sql:/revoked.sql";
+            let resolve!: (value: { token: string; expiresOn: number }) => void;
+            const refresh = sandbox.stub().returns(
+                new Promise((done) => {
+                    resolve = done;
+                }),
+            );
+            const registration = connectionManager.registerNotebookTokenProvider(
+                uri,
+                "account-id",
+                "tenant-id",
+                refresh,
+            );
+            await invokeHandler(makeParams({ uri, accountId: "wrong-account" }));
+            expect(refresh).not.to.have.been.called;
+            connectionManager.handleRefreshTokenNotification()(makeParams({ uri }));
+            registration.dispose();
+            resolve({ token: "too-late", expiresOn: 9999999999 });
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(sendNotificationStub).not.to.have.been.calledWith(
+                sinon.match.any,
+                sinon.match({ token: "too-late" }),
+            );
+            expect(acquireTokenStub).not.to.have.been.called;
         });
     });
 

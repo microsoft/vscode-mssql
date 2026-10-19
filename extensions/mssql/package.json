@@ -77,6 +77,8 @@
         "clean:test-output": "node -e \"require('node:fs').rmSync('out/test/unit', { recursive: true, force: true })\"",
         "pretest": "npm run clean:test-output && npm run build:extension:emit && npm run build:extension-bundle",
         "test": "vscode-test --coverage",
+        "test:python": "python -m unittest discover -s test/python -p test_mssql_notebook.py && python -m unittest discover -s test/python -p test_mssql_notebook_dependencies.py",
+        "test:python:integration": "python -m unittest discover -s test/python -p test_mssql_notebook_integration.py",
         "package": "node scripts/package-extension.js",
         "install:sqltools-mcp": "node scripts/install-sqltools-mcp.js",
         "instrument": "nyc instrument ./dist/views ./dist/views --in-place",
@@ -114,6 +116,7 @@
         "@typescript/native-preview": "^7.0.0-dev.20260507.1",
         "@vscode/l10n": "^0.0.18",
         "@vscode/l10n-dev": "^0.0.35",
+        "@vscode/jupyter-extension": "^1.1.0",
         "@vscode/test-cli": "^0.0.15",
         "@vscode/test-electron": "^3.1.0",
         "@vscode/vsce": "^4.0.0",
@@ -1022,6 +1025,11 @@
                     "group": "8_MSSQL_sqlProjectsAndNotebooks@2"
                 },
                 {
+                    "command": "mssql.notebooks.createPythonNotebook",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ && mssql.pythonNotebookEnabled && isWorkspaceTrusted",
+                    "group": "8_MSSQL_sqlProjectsAndNotebooks@3"
+                },
+                {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|HistoryTable)\\b/",
                     "group": "1_MSSQL_primary@1"
@@ -1395,6 +1403,18 @@
                     "command": "sqlDatabaseProjects.openDocumentation",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
                     "group": "z_dbProjectsDocs@1"
+                }
+            ],
+            "notebook/toolbar": [
+                {
+                    "command": "mssql.notebooks.connectPythonNotebook",
+                    "when": "notebookType == jupyter-notebook && mssql.pythonNotebook && !mssql.pythonNotebookConnected && mssql.pythonNotebookEnabled && isWorkspaceTrusted && !virtualWorkspace",
+                    "group": "navigation@20"
+                },
+                {
+                    "command": "mssql.notebooks.disconnectPythonNotebook",
+                    "when": "notebookType == jupyter-notebook && mssql.pythonNotebook && mssql.pythonNotebookConnected && mssql.pythonNotebookEnabled && isWorkspaceTrusted && !virtualWorkspace",
+                    "group": "navigation@20"
                 }
             ],
             "commandPalette": [
@@ -2945,6 +2965,34 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.notebooks.createPythonNotebook",
+                "title": "%mssql.notebooks.createPythonNotebook%",
+                "category": "MS SQL",
+                "enablement": "mssql.pythonNotebookEnabled && isWorkspaceTrusted && !virtualWorkspace"
+            },
+            {
+                "command": "mssql.notebooks.connectPythonNotebook",
+                "title": "%mssql.notebooks.connectPythonNotebook%",
+                "shortTitle": "%mssql.notebooks.connectPythonNotebook.shortTitle%",
+                "icon": "$(plug)",
+                "category": "MS SQL",
+                "enablement": "mssql.pythonNotebookEnabled && isWorkspaceTrusted && !virtualWorkspace && notebookType == jupyter-notebook && !mssql.pythonNotebookConnecting"
+            },
+            {
+                "command": "mssql.notebooks.disconnectPythonNotebook",
+                "title": "%mssql.notebooks.disconnectPythonNotebook%",
+                "shortTitle": "%mssql.notebooks.disconnectPythonNotebook.shortTitle%",
+                "icon": "$(debug-disconnect)",
+                "category": "MS SQL",
+                "enablement": "mssql.pythonNotebookEnabled && isWorkspaceTrusted && !virtualWorkspace && notebookType == jupyter-notebook"
+            },
+            {
+                "command": "mssql.notebooks.setupPythonNotebook",
+                "title": "%mssql.notebooks.setupPythonNotebook%",
+                "category": "MS SQL",
+                "enablement": "mssql.pythonNotebookEnabled && isWorkspaceTrusted && !virtualWorkspace && notebookType == jupyter-notebook"
+            },
+            {
                 "command": "mssql.notebooks.changeDatabase",
                 "title": "%mssql.notebooks.changeDatabase%",
                 "category": "MS SQL"
@@ -3381,6 +3429,15 @@
                         "type": "boolean",
                         "default": true,
                         "description": "%mssql.preview.betaResultsGrid.description%",
+                        "scope": "application"
+                    },
+                    "mssql.preview.pythonNotebooks": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ],
+                        "default": null,
+                        "description": "%mssql.preview.pythonNotebooks.description%",
                         "scope": "application"
                     },
                     "mssql.useMsalEntraMfaAuth": {

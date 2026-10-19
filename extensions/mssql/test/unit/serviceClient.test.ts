@@ -27,6 +27,15 @@ import * as LanguageServiceContracts from "../../src/models/contracts/languageSe
 import { Logger } from "../../src/models/logger";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { stubMessageBoxes, stubTelemetry, stubVscodeEnv } from "./utils";
+import {
+    LanguageClient,
+    DidOpenTextDocumentNotification,
+    DidChangeTextDocumentNotification,
+    DidCloseTextDocumentNotification,
+    CompletionRequest,
+    HoverRequest,
+    SignatureHelpRequest,
+} from "vscode-languageclient/node";
 
 chai.use(sinonChai);
 
@@ -82,6 +91,293 @@ suite("Service Client tests", () => {
             dotnetRuntimeProvider,
         );
     }
+
+    suite("embedded notebook SQL documents", () => {
+        test("synchronizes a private SQL document without opening an editor", async () => {
+            const languageClient = sandbox.createStubInstance(LanguageClient);
+            languageClient.isRunning.returns(true);
+            languageClient.sendNotification.resolves();
+            sandbox
+                .stub(languageClient, "onDidChangeState")
+                .get(() => () => new vscode.Disposable(() => undefined));
+            const service = createServiceClient();
+            service["client"] = languageClient;
+            const uri = vscode.Uri.parse("mssql-python-notebook-sql:/owned.sql");
+            const opened = sandbox.stub(vscode.workspace, "openTextDocument");
+            const document = await service.openEmbeddedSqlDocument(uri, "SELECT 1", 1);
+            await document.update("SELECT 2", 2);
+            document.dispose();
+            expect(languageClient.sendNotification).to.have.been.calledWith(
+                DidOpenTextDocumentNotification.type,
+                {
+                    textDocument: {
+                        uri: uri.toString(),
+                        languageId: "sql",
+                        version: 1,
+                        text: "SELECT 1",
+                    },
+                },
+            );
+            expect(languageClient.sendNotification).to.have.been.calledWith(
+                DidChangeTextDocumentNotification.type,
+                {
+                    textDocument: { uri: uri.toString(), version: 2 },
+                    contentChanges: [
+                        {
+                            range: {
+                                start: { line: 0, character: 0 },
+                                end: { line: 0, character: 8 },
+                            },
+                            text: "SELECT 2",
+                        },
+                    ],
+                },
+            );
+            expect(languageClient.sendNotification).to.have.been.calledWith(
+                DidCloseTextDocumentNotification.type,
+                { textDocument: { uri: uri.toString() } },
+            );
+            expect(opened).not.to.have.been.called;
+        });
+
+        test("tracks replacement ranges across multiline, UTF-16, and empty projections", async () => {
+            const languageClient = sandbox.createStubInstance(LanguageClient);
+            languageClient.isRunning.returns(true);
+            languageClient.sendNotification.resolves();
+            sandbox
+                .stub(languageClient, "onDidChangeState")
+                .get(() => () => new vscode.Disposable(() => undefined));
+            const service = createServiceClient();
+            service["client"] = languageClient;
+            const uri = vscode.Uri.parse("mssql-python-notebook-sql:/changing.sql");
+            const document = await service.openEmbeddedSqlDocument(
+                uri,
+                "\r\nSELECT N'\u{1f680}'",
+                1,
+            );
+            const changes = [
+                { text: "\nSELECT 2\n", end: { line: 1, character: 12 } },
+                { text: "", end: { line: 2, character: 0 } },
+                { text: "SELECT 3", end: { line: 0, character: 0 } },
+                { text: "\nSELECT 4", end: { line: 0, character: 8 } },
+            ];
+            try {
+                for (const [index, change] of changes.entries()) {
+                    await document.update("obsolete text", 1);
+                    await document.update(change.text, index + 2);
+                    expect(languageClient.sendNotification).to.have.been.calledWith(
+                        DidChangeTextDocumentNotification.type,
+                        {
+                            textDocument: { uri: uri.toString(), version: index + 2 },
+                            contentChanges: [
+                                {
+                                    range: {
+                                        start: { line: 0, character: 0 },
+                                        end: change.end,
+                                    },
+                                    text: change.text,
+                                },
+                            ],
+                        },
+                    );
+                }
+            } finally {
+                document.dispose();
+            }
+        });
+
+        test("forwards cancellation and maps completion and signature trigger kinds", async () => {
+            const languageClient = sandbox.createStubInstance(LanguageClient);
+            languageClient.isRunning.returns(true);
+            languageClient.sendNotification.resolves();
+            sandbox
+                .stub(languageClient, "onDidChangeState")
+                .get(() => () => new vscode.Disposable(() => undefined));
+            languageClient.sendRequest.resolves(null);
+            const service = createServiceClient();
+            service["client"] = languageClient;
+            const uri = vscode.Uri.parse("mssql-python-notebook-sql:/requests.sql");
+            const document = await service.openEmbeddedSqlDocument(uri, "\nSELECT ", 1);
+            const source = new vscode.CancellationTokenSource();
+            try {
+                await document.completion(
+                    new vscode.Position(1, 7),
+                    {
+                        triggerKind: vscode.CompletionTriggerKind.Invoke,
+                        triggerCharacter: undefined,
+                    },
+                    source.token,
+                );
+                await document.hover(new vscode.Position(1, 2), source.token);
+                await document.signatureHelp(
+                    new vscode.Position(1, 7),
+                    {
+                        triggerKind: vscode.SignatureHelpTriggerKind.Invoke,
+                        isRetrigger: false,
+                        triggerCharacter: undefined,
+                        activeSignatureHelp: undefined,
+                    },
+                    source.token,
+                );
+                for (const type of [
+                    CompletionRequest.type,
+                    HoverRequest.type,
+                    SignatureHelpRequest.type,
+                ]) {
+                    expect(languageClient.sendRequest).to.have.been.calledWith(
+                        type,
+                        sinon.match({ textDocument: { uri: uri.toString() } }),
+                        source.token,
+                    );
+                }
+                expect(languageClient.sendRequest).to.have.been.calledWith(
+                    CompletionRequest.type,
+                    sinon.match({ context: { triggerKind: 1 } }),
+                    source.token,
+                );
+                expect(languageClient.sendRequest).to.have.been.calledWith(
+                    SignatureHelpRequest.type,
+                    sinon.match({ context: { triggerKind: 1 } }),
+                    source.token,
+                );
+                await document.completion(
+                    new vscode.Position(1, 7),
+                    {
+                        triggerKind: vscode.CompletionTriggerKind.TriggerCharacter,
+                        triggerCharacter: ".",
+                    },
+                    source.token,
+                );
+                await document.signatureHelp(
+                    new vscode.Position(1, 7),
+                    {
+                        triggerKind: vscode.SignatureHelpTriggerKind.TriggerCharacter,
+                        triggerCharacter: ",",
+                        isRetrigger: true,
+                        activeSignatureHelp: undefined,
+                    },
+                    source.token,
+                );
+                expect(languageClient.sendRequest).to.have.been.calledWith(
+                    CompletionRequest.type,
+                    sinon.match({ context: { triggerKind: 2, triggerCharacter: "." } }),
+                    source.token,
+                );
+                expect(languageClient.sendRequest).to.have.been.calledWith(
+                    SignatureHelpRequest.type,
+                    sinon.match({
+                        context: { triggerKind: 2, triggerCharacter: ",", isRetrigger: true },
+                    }),
+                    source.token,
+                );
+            } finally {
+                document.dispose();
+                source.dispose();
+            }
+        });
+
+        test("converts rich SQL authoring results without losing insertion or parameter metadata", async () => {
+            const languageClient = sandbox.createStubInstance(LanguageClient);
+            languageClient.isRunning.returns(true);
+            languageClient.sendNotification.resolves();
+            sandbox
+                .stub(languageClient, "onDidChangeState")
+                .get(() => () => new vscode.Disposable(() => undefined));
+            const converters = new LanguageClient(
+                "notebook-test",
+                "Notebook Test",
+                { command: "unused" },
+                { documentSelector: [] },
+            );
+            sandbox
+                .stub(languageClient, "protocol2CodeConverter")
+                .get(() => converters.protocol2CodeConverter);
+            const range = { start: { line: 1, character: 7 }, end: { line: 1, character: 8 } };
+            languageClient.sendRequest.withArgs(sinon.match.same(CompletionRequest.type)).resolves({
+                isIncomplete: true,
+                items: [
+                    {
+                        label: "catalog_column",
+                        detail: "int",
+                        kind: 5,
+                        insertTextFormat: 2,
+                        textEdit: { newText: "${1:catalog_column}", insert: range, replace: range },
+                        commitCharacters: [","],
+                        data: { owner: "private" },
+                    },
+                ],
+            });
+            languageClient.sendRequest.withArgs(sinon.match.same(HoverRequest.type)).resolves({
+                contents: { kind: "markdown", value: "**catalog_column** int" },
+                range,
+            });
+            languageClient.sendRequest
+                .withArgs(sinon.match.same(SignatureHelpRequest.type))
+                .resolves({
+                    signatures: [
+                        {
+                            label: "SUBSTRING(expression, start, length)",
+                            documentation: null,
+                            parameters: [
+                                { label: "expression", documentation: null },
+                                { label: "start", documentation: null },
+                                { label: "length", documentation: null },
+                            ],
+                        },
+                    ],
+                    activeSignature: 0,
+                    activeParameter: 1,
+                });
+            const service = createServiceClient();
+            service["client"] = languageClient;
+            const document = await service.openEmbeddedSqlDocument(
+                vscode.Uri.parse("mssql-python-notebook-sql:/rich.sql"),
+                "\nSELECT x",
+                1,
+            );
+            const source = new vscode.CancellationTokenSource();
+            try {
+                const result = await document.completion(
+                    new vscode.Position(1, 8),
+                    {
+                        triggerKind: vscode.CompletionTriggerKind.Invoke,
+                        triggerCharacter: undefined,
+                    },
+                    source.token,
+                );
+                expect(result).to.be.instanceOf(vscode.CompletionList);
+                const list = result as vscode.CompletionList;
+                expect(list.isIncomplete).to.equal(true);
+                expect(list.items[0].insertText).to.be.instanceOf(vscode.SnippetString);
+                expect(list.items[0].range).to.deep.equal({
+                    inserting: new vscode.Range(1, 7, 1, 8),
+                    replacing: new vscode.Range(1, 7, 1, 8),
+                });
+                expect(list.items[0].commitCharacters).to.deep.equal([","]);
+                const hover = await document.hover(new vscode.Position(1, 8), source.token);
+                expect(hover?.range).to.deep.equal(new vscode.Range(1, 7, 1, 8));
+                expect((hover?.contents[0] as vscode.MarkdownString).value).to.equal(
+                    "**catalog_column** int",
+                );
+                const signature = await document.signatureHelp(
+                    new vscode.Position(1, 8),
+                    {
+                        triggerKind: vscode.SignatureHelpTriggerKind.Invoke,
+                        triggerCharacter: undefined,
+                        isRetrigger: false,
+                        activeSignatureHelp: undefined,
+                    },
+                    source.token,
+                );
+                expect(signature?.activeParameter).to.equal(1);
+                expect(signature?.signatures[0].parameters[1].label).to.equal("start");
+            } finally {
+                document.dispose();
+                source.dispose();
+                await converters.dispose();
+            }
+        });
+    });
 
     function outputChannelShowStub(): sinon.SinonStub {
         return loggerShowStub;

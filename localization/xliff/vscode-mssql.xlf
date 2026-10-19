@@ -19,6 +19,12 @@
     <trans-unit id="++CODE++fd10453f63e5c663d4e640ea9cbe1adcc832b6fed0454e62686773ac486ce64d">
       <source xml:lang="en"> is required.</source>
     </trans-unit>
+    <trans-unit id="++CODE++abff58beb37980f5490250e37677839b7ef95a22bec504c622f19880d43a159a">
+      <source xml:lang="en"># MSSQL Python Notebook (Preview)&#10;&#10;Choose **Connect** in the notification or **Connect SQL** in the notebook toolbar. Select a Python kernel when prompted. MSSQL starts only a safe `pass` initialization cell, never your SQL cells, and offers to install missing dependencies with your approval.&#10;&#10;Only kernels on the same host as the MSSQL extension are supported. Connecting explicitly grants notebook code access to the selected database and runtime credentials. Credentials are not saved in this notebook, but query outputs may contain sensitive data.&#10;&#10;After restarting the kernel or reopening this notebook, choose **Reconnect** or **Connect SQL**. This notebook has its own SQL session; it does not share temporary tables or transactions with a SQL editor.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2eed234faa8df55bf962601a4cbda72d45942641fc0c850f010331b69598f98a">
+      <source xml:lang="en">## SQL and Python&#10;&#10;`%%tsql --bind df` stores one result as a DataFrame. Use `--all --bind results` for multiple results. Use `--params query_values` with an existing Python list or tuple and SQL `?` placeholders; values are not interpolated into SQL.&#10;&#10;Results are limited to 10,000 rows per result set by default. Use a positive `--max-rows N` to raise the bound. Exceeding the limit does not replace existing bound variables.&#10;&#10;`mssql.query(sql, params)` uses the same connection as the magic. Statements use autocommit; manage explicit transactions with T-SQL BEGIN TRANSACTION, COMMIT, and ROLLBACK. Failed SQL is never automatically replayed.&#10;&#10;After connecting, SQL completion, hover, and signature help are available in the SQL body of `%%tsql` cells. IntelliSense uses the selected database&apos;s catalog, not the Python execution session: cross-cell temporary tables and later USE statements are not tracked. SQL diagnostics and automatic DataFrame uploads are not included in this preview.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fd3bd9305a1a7d5dfd79fa21b626163609a8f298aab892396554e74842a84f9b">
       <source xml:lang="en">$(check) Copied messages</source>
     </trans-unit>
@@ -542,6 +548,9 @@
     <trans-unit id="++CODE++222b823b4b06fbaee8182e65844c15a278fe21f952490451c025e85fed20945f">
       <source xml:lang="en">All severities</source>
     </trans-unit>
+    <trans-unit id="++CODE++9e13a3f6b6d6d4a9f0b36fc16adff81397d46e0ba4cf75620dd39dfa4d84d666">
+      <source xml:lang="en">Allow Kernel Access</source>
+    </trans-unit>
     <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
       <source xml:lang="en">Allow Null</source>
     </trans-unit>
@@ -553,6 +562,10 @@
     </trans-unit>
     <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
       <source xml:lang="en">Allow null</source>
+    </trans-unit>
+    <trans-unit id="++CODE++264c1bae7fb2ad194405e24d72abe28662cbff052e87b18aca6ca7bd3807ce2e">
+      <source xml:lang="en">Allow this Python kernel to use the MSSQL connection to {0}, database {1}? Notebook code will have database access and can read credentials in this kernel&apos;s memory. SQL IntelliSense uses an additional connection to the same database.</source>
+      <note>{0} is the selected server; {1} is the selected database</note>
     </trans-unit>
     <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
       <source xml:lang="en">Allow this extension to access your connections</source>
@@ -1980,6 +1993,9 @@
     <trans-unit id="++CODE++d85445782fcd41fd94f9a2dbdfcc262fbceb71c36276d639ed676e7a469cfb1c">
       <source xml:lang="en">Connect &amp; run your first query</source>
     </trans-unit>
+    <trans-unit id="++CODE++7266242c1031e4234d4890f48f0f7718f11b72c6b15721c12039be598baa481e">
+      <source xml:lang="en">Connect SQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++43c15a3d486896f82ab40f1ffdecb61639f434b3b0d3898b5541bd491b42e56e">
       <source xml:lang="en">Connect a database, start from a template, or learn something new.</source>
     </trans-unit>
@@ -1991,6 +2007,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da">
       <source xml:lang="en">Connect the active SQL document to a database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6709898ab8592c297fee3b1455cf36958e471bb3484dc378097485217a3bb2a">
+      <source xml:lang="en">Connect this Python notebook to a SQL database to use %%tsql and database-aware SQL IntelliSense.</source>
     </trans-unit>
     <trans-unit id="++CODE++d03aa5c1cbd3c2bed3c193f11f186b25638cdfcbe2a70c1af3867ead64cdf7cd">
       <source xml:lang="en">Connect this profile in Connections (Private Preview) first.</source>
@@ -2539,6 +2558,12 @@
     </trans-unit>
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ae3e1f90137ce2fcbd7d94aafd7b60b9c00f0288e9e0638b9dc1c0bb75398b43">
+      <source xml:lang="en">Could not obtain the selected connection&apos;s credentials. Check its authentication settings and reconnect.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++28af5a75d62e35f4cd9aece1862c33150fa0703acfd8c76b92848a2714cae3c2">
+      <source xml:lang="en">Could not start a local Python kernel. Select a Python kernel and use Connect SQL in the notebook toolbar to try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++71e0b348ec348e9236d9c0984d670475cb786378fa5e97176bc94bc4a42826d5">
       <source xml:lang="en">Could not write the configuration.</source>
@@ -3282,6 +3307,9 @@
     <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
       <source xml:lang="en">Disconnect</source>
     </trans-unit>
+    <trans-unit id="++CODE++04781a37302c19d3bce8dee59274a984c69d6acaba95eb760e0cab12f8cbc001">
+      <source xml:lang="en">Disconnect SQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++60e53a3c0e015fb417236c455fedf4985a7cddfc2721329be1e11ac9e284626d">
       <source xml:lang="en">Disconnect from connection &apos;{0}&apos; (ID: {1})?</source>
       <note>{0} is the connection display name
@@ -3551,6 +3579,9 @@
     <trans-unit id="++CODE++c60bd510aadca4cca8a64d535f63600d29ea21be9532ea0fa74c907d5c676311">
       <source xml:lang="en">Enable all rules in {0}</source>
       <note>{0} is the category name, e.g. Design</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1bc3cd34cdaf26f9efdf42e10891b239958dd38073bc10a58a00c70e35c0755e">
+      <source xml:lang="en">Enable mssql.preview.pythonNotebooks to use Python notebooks (Preview). When unset, this feature follows mssql.enableExperimentalFeatures.</source>
     </trans-unit>
     <trans-unit id="++CODE++fb0bb2387237028dc70c4153c6f199ba4dcf1d78c143ac148621a822e41d2f04">
       <source xml:lang="en">Enable or disable SQLCMD mode for the active SQL document</source>
@@ -5519,6 +5550,9 @@
     <trans-unit id="++CODE++7d5a4174a3753666f30d8be2beadced4087df37a4af22a189e7b5abc55e1c382">
       <source xml:lang="en">Initializing DAB configuration...</source>
     </trans-unit>
+    <trans-unit id="++CODE++f0072daf5066ed3a1d67d9de26917379929a666bbd2594ff9e8022a42485b3c3">
+      <source xml:lang="en">Initializing MSSQL Python notebook</source>
+    </trans-unit>
     <trans-unit id="++CODE++8aa318eb7eaa233aada0d332bec14cb6a631c8fda25deb2c7d4f402888f1b1e2">
       <source xml:lang="en">Insert</source>
     </trans-unit>
@@ -5528,17 +5562,32 @@
     <trans-unit id="++CODE++569ca49f4aaf7846e952c1d4aeca72febd0b79fa1c4f9db08fd3127551218572">
       <source xml:lang="en">Install</source>
     </trans-unit>
+    <trans-unit id="++CODE++ede6f4a344b9f6ce1dbab8c03bac45dbd6c58e597de50cceff443fa5e5a6855a">
+      <source xml:lang="en">Install Dependencies and Connect</source>
+    </trans-unit>
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
     </trans-unit>
     <trans-unit id="++CODE++b637f48231c287ed10c7c8f2dc3078f0eb4535efd992d75b15b940b06ecebcc5">
       <source xml:lang="en">Install a container engine to continue</source>
     </trans-unit>
+    <trans-unit id="++CODE++f3c0a99c0d0839b4fe8e7992f03e443ab913fa1bb9216e94d22fbee710a8c992">
+      <source xml:lang="en">Install in Selected Kernel</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea37170478c135fe5621105f676ae5cdb160b763078a28d661098d6d6b2959b2">
       <source xml:lang="en">Install the Azure CLI</source>
     </trans-unit>
     <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
       <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9efcff9342c375051f49966be462ae1d902710c274a85ca07ee40af7804ffb36">
+      <source xml:lang="en">Install the Microsoft Python and Jupyter extensions to use Python notebooks.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ced010c35522de85d9f80eb3638bf5c08587f267b4418cd573c26d2ff5b8eb43">
+      <source xml:lang="en">Install the reviewed MSSQL notebook dependencies in the selected Python kernel? This changes that Python environment and downloads packages from its configured package index. Afterwards, restart the kernel and reconnect. Restarting clears all Python variables.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0b5aeaa59a783f697775c8843424327897f4bfc013cce0a92af294ee77ebc644">
+      <source xml:lang="en">Installing MSSQL Python notebook dependencies</source>
     </trans-unit>
     <trans-unit id="++CODE++07ae7fd684564e68cac0181cc95916cb616319dfe87d79129cfcef36ea83a328">
       <source xml:lang="en">Installing...</source>
@@ -5569,6 +5618,9 @@
     </trans-unit>
     <trans-unit id="++CODE++be759ac049ae65292d4234f25f6ac2ee943a42ca44fa6cad06ef9394201c8f4d">
       <source xml:lang="en">Invalid SQL connection string</source>
+    </trans-unit>
+    <trans-unit id="++CODE++267e75872be4cb87bfae2bcd2c402c4a5a972caaec78936cc4c226992909e1f5">
+      <source xml:lang="en">Invalid T-SQL magic arguments. Use --bind name, --params name, --all, or --max-rows N.</source>
     </trans-unit>
     <trans-unit id="++CODE++604cd45c57feb58b304a4d821fbb1df3611dabd706ece140be1c19abc4c8150a">
       <source xml:lang="en">Invalid column reference. Use either id OR name.</source>
@@ -6158,6 +6210,9 @@
     <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
       <source xml:lang="en">MSSQL Notebook connected to {0}</source>
       <note>{0} is the connection label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2d601206fe05129e74cd351db7faa353062dc85a3fb442613740871d737452b1">
+      <source xml:lang="en">MSSQL Python Notebook Connection</source>
     </trans-unit>
     <trans-unit id="++CODE++f7fc6e80cfc472d01f0cbe63665cda3c32d6d6ef2539b7e7cb27b1f22709a050">
       <source xml:lang="en">MSSQL extension icon</source>
@@ -7041,6 +7096,9 @@
     <trans-unit id="++CODE++2abe6ce3689dddb31a75faaafb1a7293649d60f93bff0e48a87e7d5ddd7f2530">
       <source xml:lang="en">Not Equals</source>
     </trans-unit>
+    <trans-unit id="++CODE++ccb4c324f516c63335c648ee08a66b8cc78737d26156f0c84707cd0ee4235492">
+      <source xml:lang="en">Not Now</source>
+    </trans-unit>
     <trans-unit id="++CODE++6d54f9ecea632e075385f044d66bfd47b2f26322cec751084d0f45b0532cf7ba">
       <source xml:lang="en">Not Started</source>
     </trans-unit>
@@ -7204,6 +7262,9 @@
     <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
       <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
     </trans-unit>
+    <trans-unit id="++CODE++c0e864d2ffbdeefb1863e65fe57bfbf86ff4cdee3d7c68774791b3b1831aea6d">
+      <source xml:lang="en">Open Jupyter Extension</source>
+    </trans-unit>
     <trans-unit id="++CODE++6eea76036450348a3e6a4b9ba6a0671c1c8e40f855def50a88ac9eeae75d01bd">
       <source xml:lang="en">Open Keyboard Shortcuts editor.</source>
     </trans-unit>
@@ -7248,6 +7309,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d1ab50ea589d4321bc62687dd41df20c604129c9967966a7c372bdfa691ececb">
       <source xml:lang="en">Open a new query</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c1145274ec7c1105918f24e57314dc40ca6c79d39067b7c4fac5d708b063827a">
+      <source xml:lang="en">Open an MSSQL Python notebook before running this command.</source>
     </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
@@ -7856,6 +7920,24 @@
     <trans-unit id="++CODE++1ccde94ff3f5c16749c8ae57866958f186e6ce12fa0cfac86bf4b9250cc4af75">
       <source xml:lang="en">Python + Azure SQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++a69513988979013f520b13479e6955bc92115a4ea917500bf7fcfb57b99b8e38">
+      <source xml:lang="en">Python notebook connected. Use %%tsql or mssql.query() to query the selected database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a4666ee9a6887e8621031aba28413dba9dbe997528017d4c993846dd03e93b52">
+      <source xml:lang="en">Python notebook connections are not supported in virtual workspaces.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++27d8b6838d769e63768a609bf29d69c181da3a3f26de57ab30d0df864e6a1d61">
+      <source xml:lang="en">Python notebook credential access revoked.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ed4571c2eacf3b91c0ac05ce3bf8987fe19c2b242b579760f3d2dd0c0f7da5b9">
+      <source xml:lang="en">Python notebook dependencies installed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf4c6a16ea3025c2006a7125aef00536207ad29ce9c1be4ad48fb3bdd464d28c">
+      <source xml:lang="en">Python notebook initialization failed. Check the selected kernel, dependencies, and connection settings, then reconnect.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8959775b18ac2d64d8a498c1bab506445fbe3805bc09a617f31e58da25f92d08">
+      <source xml:lang="en">Python notebook token authentication currently supports the Azure commercial SQL scope only.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b80a37564fbb3c0753202a1f92d5da8ccfb906b244f2842bba2232cea9883abd">
       <source xml:lang="en">Query</source>
     </trans-unit>
@@ -7916,6 +7998,9 @@
     </trans-unit>
     <trans-unit id="++CODE++222d8657e6ce5036c2c4e9baf67ab52aeb5b35c12ff05d913296ea5cefad1f9c">
       <source xml:lang="en">Query failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e268dbeb31b7b3a4b0f1105c4245b777ff998c8179365052c3d3770a427e613">
+      <source xml:lang="en">Query parameters must be an existing Python list or tuple. Use ? placeholders in SQL.</source>
     </trans-unit>
     <trans-unit id="++CODE++14ad88fc2a2fb0b956145de48523cd88f888a882a24322919567d744b8e74e70">
       <source xml:lang="en">Query quick actions</source>
@@ -8026,6 +8111,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef">
       <source xml:lang="en">Recommended</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18">
+      <source xml:lang="en">Reconnect</source>
     </trans-unit>
     <trans-unit id="++CODE++8cb3da9c49a18274300475b2f9dbf9edd0a194821a1ce05c7d8351ffee8abdaa">
       <source xml:lang="en">Record shortcut</source>
@@ -8282,6 +8370,9 @@
     </trans-unit>
     <trans-unit id="++CODE++95406bd493976ce712503844fbd35244d22c5c1b142705d4dbeb7b7f6d959a12">
       <source xml:lang="en">Resources &amp; feedback</source>
+    </trans-unit>
+    <trans-unit id="++CODE++20ba5edc7eb0f1362760cc441ce6b1ca87e3bd9f6e4a0079ffcc1e4761549008">
+      <source xml:lang="en">Restart Kernel</source>
     </trans-unit>
     <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
       <source xml:lang="en">Restore</source>
@@ -8558,6 +8649,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e74a95e3a6af01ffd48fa366bdcc8b0d75763b2dc1e2dc9a6db717eb0c4c920d">
       <source xml:lang="en">SQL Formatter</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4ed2dbc3b8a5425cc274cb62486a4a662bb796864d549130b41f03483c3872a8">
+      <source xml:lang="en">SQL IntelliSense is unavailable for this Python notebook. SQL execution is still available. Check the notebook connection and reconnect if its settings have changed.</source>
     </trans-unit>
     <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
       <source xml:lang="en">SQL Login</source>
@@ -10175,12 +10269,33 @@
     <trans-unit id="++CODE++c06982c71f4f2dfffed0ad092518601746d30dc2386af195c3e836f87e5eb300">
       <source xml:lang="en">The Dev Containers extension is required to reopen this folder in a container.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3251b2c15bdac2063276f7d277ca9c22ebd61d6f1e0516953b70585ae8804fa7">
+      <source xml:lang="en">The Microsoft Python driver could not connect. Check the selected connection&apos;s authentication and TLS settings.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e447d5c5392284aafc9b356874735a8e64f616761af6557dbf29cc517f5de465">
+      <source xml:lang="en">The Python kernel cannot access its MSSQL credential session. Use a kernel on the same host as MSSQL and reconnect.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
     <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
       <source xml:lang="en">The SQL Server extension couldn&apos;t start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++407238613f1552bdb0c9b41d551031d74a48ece99987f774e81fe2bf2fde6319">
+      <source xml:lang="en">The SQL driver connection is unavailable. Reconnect the notebook before retrying. No result was bound.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0f3c595e6207cc46ebb186e09fe4f4e1265473eabf9467619ec7c42d3ab3c0ac">
+      <source xml:lang="en">The SQL operation failed or timed out. Check the server and connection before retrying. No result was bound.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++164b5b4eef9af2f7b12bc4f5b689efb8ccb17a9c90b1086460f9ced08a56207c">
+      <source xml:lang="en">The SQL query failed. Check the SQL, parameters, connection, and permissions. No result was bound.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2801d6e9032599436c301cdb4bf06c5f98433654726af23d88dadc557521b572">
+      <source xml:lang="en">The SQL query has a programming error. Check its syntax, object names, parameters, and permissions. No result was bound.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6f77bca0bd625ee80fd709689dafa9ad1b7efd327db7e65cc76165e4c6d43e4a">
+      <source xml:lang="en">The SQL query violated a data constraint. Check keys, null values, and related data. No result was bound.</source>
     </trans-unit>
     <trans-unit id="++CODE++72c65e70a4db945f4b9dccbbdda3aaeade2926ad368b312dd0d820995250e9f8">
       <source xml:lang="en">The Schema Compare extension must be installed to a update a project from a database.</source>
@@ -10222,6 +10337,9 @@
     <trans-unit id="++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e">
       <source xml:lang="en">The connection with ID &apos;{0}&apos; does not have the &apos;server&apos; property set and is being ignored.  Please set the &apos;server&apos; property on this connection in order to use it.</source>
       <note>{0} is the connection ID for the connection that has been ignored</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3e2ac9f1bbb4c0bdc39413846c511b0dd14cc04dfdcbe696be99144a3bae4d68">
+      <source xml:lang="en">The connection&apos;s target or security settings changed. Disconnect and connect the Python notebook again.</source>
     </trans-unit>
     <trans-unit id="++CODE++9e157e2e4c433d963de65edac5ffc84fdfcf02d13a0f07d348b9da33ad60d851">
       <source xml:lang="en">The container &apos;{0}&apos; is also used by other saved connections:&#10;{1}&#10;&#10;Deleting it will remove both the container and this connection from VS Code, and the other connections will stop working.&#10;&#10;Are you sure you want to continue?</source>
@@ -10320,6 +10438,9 @@
     <trans-unit id="++CODE++644a28f160d2df093fab1a8c94e5176f21c1af3bee1915315edd409d14397021">
       <source xml:lang="en">The name of the index.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a984e81a04f47b3e05507fb3012368d0ddbe0d42dc967e513faa65916748e2d9">
+      <source xml:lang="en">The notebook&apos;s credential access was revoked, but its Python connection could not be confirmed closed. Restart the kernel to close it.</source>
+    </trans-unit>
     <trans-unit id="++CODE++272506f9c62042553eaf9c72b757e5be6cfceeb0cc13c88115850578f6483bb9">
       <source xml:lang="en">The password must be 8–128 characters long.</source>
     </trans-unit>
@@ -10338,16 +10459,34 @@
     <trans-unit id="++CODE++1a8f5ee7653df34f60fb72efebdd9ef164005d91939502c2fefcf6982d6631a4">
       <source xml:lang="en">The query results panel failed to load. Please try running the query again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b666c73be4a4ece6372d4af9870868edb59f68715de8ab10b954665a26e9f833">
+      <source xml:lang="en">The query returned multiple result sets. Use --all to bind an ordered list of DataFrames.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++be7ebfa2784097d6d7b4e08c3b76241b969ab75d872d696e2f0c95fae6a0f513">
+      <source xml:lang="en">The query was canceled. No result was bound.</source>
+    </trans-unit>
     <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
       <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
     </trans-unit>
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
     </trans-unit>
+    <trans-unit id="++CODE++347f4d1261f673df22214cad8484f94b8349a069b9be1462953251289018fca6">
+      <source xml:lang="en">The result exceeds the row limit, or the limit is invalid. Filter the query or specify a positive --max-rows value. No result was bound.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e81ca725d9476dbb71e74973d96d7cb10be7f8515b56b2ea3a450cf6f97d95bc">
+      <source xml:lang="en">The selected MSSQL account and tenant could not be used. Sign in to that account and reconnect; another identity will not be selected automatically.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c83a03f61e77f44ea6635c2d61242ec3ae51d998a467ef5825d1d46b55c0bd98">
+      <source xml:lang="en">The selected MSSQL connection is no longer available. Create a notebook from an existing connection.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0b65d3fd6576bdfa711342fec4cf5109c3d3af8de31aab0ac2e93d7b3493db2b">
+      <source xml:lang="en">The selected Python kernel needs Python 3.10 or later, mssql-python 1.16.0, pandas, and IPython. Choose Install Dependencies and Connect to set it up.</source>
     </trans-unit>
     <trans-unit id="++CODE++dcc368e5cecae7f8a0551b1a10f920940276c11de668e2c7e38cd72bfc755563">
       <source xml:lang="en">The selected clone path &apos;{0}&apos; does not exist or is not a directory.</source>
@@ -10394,6 +10533,9 @@
     <trans-unit id="++CODE++ccf13c4e33fc0204cb223ea33f27de0018976f1459b4835ba0b8f74a13ce8f71">
       <source xml:lang="en">The skills list couldn&apos;t be loaded from GitHub. Check your connection and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++669aeaf65bee0dbe39477068d9a8110e0389c27c5921776b72c8c0a43b607668">
+      <source xml:lang="en">The statement completed without a tabular result. No empty DataFrame was created.</source>
+    </trans-unit>
     <trans-unit id="++CODE++13c88dccbc0c16d34702d4b664c78552a13156f154731119eaaa1dfc41be428d">
       <source xml:lang="en">The system database references need to be updated to build the project &apos;{0}&apos;. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
     </trans-unit>
@@ -10437,6 +10579,12 @@
     <trans-unit id="++CODE++daa046e501b37f0ac84d850cbf56de02041133e4051c8b675e5ef799f4fb42fa">
       <source xml:lang="en">These results can&apos;t be saved until they finish loading.</source>
     </trans-unit>
+    <trans-unit id="++CODE++1a299132e87448739d69601fbd8ee4ffe8424dbf486def2c12ca6ff66668a674">
+      <source xml:lang="en">This Python kernel is already connected to another MSSQL notebook. Select a separate kernel.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6063a4269cd86e3c9e13ec2ff25fe6c02ddbc2913b9767347d1f9f7ae38fc2e7">
+      <source xml:lang="en">This Python notebook is disconnected. Run Connect Python Notebook.</source>
+    </trans-unit>
     <trans-unit id="++CODE++18ed82a9118c40f6f10f5294e16fdd48d4b5e3979134318ea1cb9c4de7680136">
       <source xml:lang="en">This action is not available here.</source>
     </trans-unit>
@@ -10448,6 +10596,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
       <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d74e1e418615c3c87012ff3063e1e6de1def67d024684edb064974a98f45420b">
+      <source xml:lang="en">This connection has authentication or advanced settings that Python notebooks do not support yet.</source>
     </trans-unit>
     <trans-unit id="++CODE++329810295b47ce5776d407fc4e50a37485233d7dd613d772d86a0ce05d79dc9a">
       <source xml:lang="en">This connection requires {0}, which {1} does not support.</source>
@@ -10496,8 +10647,17 @@
     <trans-unit id="++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84">
       <source xml:lang="en">This file name is reserved for use by Windows. Choose another name and try again</source>
     </trans-unit>
+    <trans-unit id="++CODE++3f61e5c08be467d186d78226ce5585f73afd0a3b33d799f76ba5c8d1caeea5ad">
+      <source xml:lang="en">This kernel already has a tsql magic or mssql variable. Disconnect the existing session or restart the kernel.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dc433be13daaccb784a94d558ffcd0f34b6853cddc5fce922ad3dad7c8b24367">
+      <source xml:lang="en">This kernel must restart to use the installed notebook dependencies safely. Restarting clears all Python variables. After restarting, reconnect to SQL; your notebook cells will not be rerun automatically.</source>
+    </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++01d87ee9b5034a808c8dcf9dc42728a0ef1ae9c29726212ca8a47600c4b78e81">
+      <source xml:lang="en">This notebook&apos;s Python kernel has restarted or stopped. Reconnect to use %%tsql and SQL IntelliSense again. SQL cells will not be rerun automatically.</source>
     </trans-unit>
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
@@ -10655,6 +10815,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
       <source xml:lang="en">Truncate the transaction log</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c6ffeaf436794395ccdb13196033491e8794e8568597f692338dcbd29676d67f">
+      <source xml:lang="en">Trust this workspace before connecting a Python notebook or installing its dependencies.</source>
     </trans-unit>
     <trans-unit id="++CODE++d7f5ff6e4dad9f838e47b0ebe6e7599c967ad07620a3329436b4887f723d649e">
       <source xml:lang="en">Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.</source>
@@ -10926,6 +11089,9 @@
     </trans-unit>
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4e9604949af9ae03ba0a033055ceb0898a05c24e12c91b9b83ffd431e22150a9">
+      <source xml:lang="en">Use a Python variable name that is not reserved and does not start with an underscore.</source>
     </trans-unit>
     <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
       <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
@@ -11246,6 +11412,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8746aa4543652187c8719dbebc36f0609e31bbc53b14ed2ca12b0207c9e79345">
       <source xml:lang="en">Windows Authentication</source>
+    </trans-unit>
+    <trans-unit id="++CODE++da8b80d31ab7fec76d962a552874efae503f3785b141232877a6f19fd50d17fc">
+      <source xml:lang="en">Windows integrated authentication requires a Python kernel running on Windows.</source>
     </trans-unit>
     <trans-unit id="++CODE++8fd327e952b1908d7b6e1208d2d1fe2af7a479232accca6c08eebc9c8bb8094e">
       <source xml:lang="en">Wire up a SQL trigger and an HTTP endpoint, verified locally against your data.</source>
@@ -11609,6 +11778,9 @@
     <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
       <source xml:lang="en">test</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b1fcc9c1a5d2b6a1305d0e72e1dff4d9fe986d8e14da710b446f6ae08daadbe">
+      <source xml:lang="en">the login&apos;s default database</source>
+    </trans-unit>
     <trans-unit id="++CODE++eb045d78d273107348b0300c01d29b7552d622abbc6faf81b3ec55359aa9950c">
       <source xml:lang="en">undefined</source>
     </trans-unit>
@@ -11668,6 +11840,10 @@
       <source xml:lang="en">{0} / {1}</source>
       <note>{0} is the one-based position of the selected schema difference
 {1} is the total number of visible schema differences</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c6a44f1be07b23a6aae83cfc7248eb458d1492158eb6e7b0ecb253772254b14d">
+      <source xml:lang="en">{0} / {1}</source>
+      <note>{0} is the connected server; {1} is the actual connected database</note>
     </trans-unit>
     <trans-unit id="++CODE++08fefe04a78a12b9e4ac61ac107a5237d5d6993e0dc8c6706949b4c9fe54ca6f">
       <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
@@ -12295,6 +12471,12 @@
     <trans-unit id="mssql.connect">
       <source xml:lang="en">Connect (MSSQL)</source>
     </trans-unit>
+    <trans-unit id="mssql.notebooks.connectPythonNotebook">
+      <source xml:lang="en">Connect Python Notebook (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.connectPythonNotebook.shortTitle">
+      <source xml:lang="en">Connect SQL</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
       <source xml:lang="en">Connect to a SQL Database</source>
     </trans-unit>
@@ -12426,6 +12608,12 @@
     </trans-unit>
     <trans-unit id="mssql.disconnect">
       <source xml:lang="en">Disconnect (MSSQL)</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.disconnectPythonNotebook">
+      <source xml:lang="en">Disconnect Python Notebook (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.disconnectPythonNotebook.shortTitle">
+      <source xml:lang="en">Disconnect SQL</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries.name">
       <source xml:lang="en">Display name for this Quick Query.</source>
@@ -12561,6 +12749,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
       <source xml:lang="en">Enabled</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.pythonNotebooks.description">
+      <source xml:lang="en">Enables Python notebooks with %%tsql and database-aware SQL IntelliSense. When unset, follows mssql.enableExperimentalFeatures. Set to true or false to override that setting.</source>
     </trans-unit>
     <trans-unit id="mssql.enableConnectionPooling">
       <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;. Note: May keep serverless databases active and prevent auto-pausing.</source>
@@ -12819,6 +13010,9 @@
     </trans-unit>
     <trans-unit id="mssql.newDeployment">
       <source xml:lang="en">New Deployment</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.createPythonNotebook">
+      <source xml:lang="en">New Python Notebook (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerNewQuery">
       <source xml:lang="en">New Query</source>
@@ -13191,6 +13385,9 @@
     </trans-unit>
     <trans-unit id="mssql.metadataCache.offlineMode.description">
       <source xml:lang="en">Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.</source>
+    </trans-unit>
+    <trans-unit id="mssql.notebooks.setupPythonNotebook">
+      <source xml:lang="en">Set Up Python Notebook Dependencies (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.resultsFontFamily">
       <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>

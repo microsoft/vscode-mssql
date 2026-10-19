@@ -27,6 +27,9 @@ const {
 } = require("@vscode/test-electron");
 
 const PREREQUISITE_EXTENSION_IDS = ["ms-dotnettools.vscode-dotnet-runtime"];
+if (process.env["MSSQL_PYTHON_NOTEBOOK_SMOKE"] === "1") {
+    PREREQUISITE_EXTENSION_IDS.push("ms-python.python", "ms-toolsai.jupyter");
+}
 
 function getTemplateRoot() {
     if (process.env["E2E_EXTENSIONS_TEMPLATE"]) {
@@ -41,7 +44,14 @@ function getTemplateRoot() {
  * presence means a previous run (or a restored cache) already populated the directory.
  */
 function isTemplatePopulated(templateDir) {
-    return fs.existsSync(path.join(templateDir, "extensions.json"));
+    const manifest = path.join(templateDir, "extensions.json");
+    if (!fs.existsSync(manifest)) {
+        return false;
+    }
+    const extensions = JSON.parse(fs.readFileSync(manifest, "utf8"));
+    return PREREQUISITE_EXTENSION_IDS.every((id) =>
+        extensions.some((extension) => extension.identifier?.id === id),
+    );
 }
 
 async function main() {

@@ -1,0 +1,3 @@
+mssql-python==1.16.0
+pandas>=2.2,<3
+ipython>=8,<10

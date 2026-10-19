@@ -50,6 +50,7 @@ export enum TelemetryViews {
     Profiler = "Profiler",
     Restore = "Restore",
     SqlNotebooks = "SqlNotebooks",
+    PythonNotebooks = "PythonNotebooks",
     ServiceClient = "ServiceClient",
     SqlToolsMcp = "SqlToolsMcp",
     ProtocolHandler = "ProtocolHandler",
@@ -313,6 +314,7 @@ export enum TelemetryActions {
     CodeAnalysisDisabledOnBuild = "CodeAnalysisDisabledOnBuild",
     // SQL Notebooks
     CreateNotebook = "CreateNotebook",
+    NotebookSetupDependencies = "NotebookSetupDependencies",
     ExecuteCell = "ExecuteCell",
     MagicCommand = "MagicCommand",
     NotebookConnect = "NotebookConnect",
