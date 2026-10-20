@@ -4,7 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node";
+import {
+    LanguageClient,
+    ServerOptions,
+    TransportKind,
+    CompletionRequest,
+    CompletionResolveRequest,
+    HoverRequest,
+    SignatureHelpRequest,
+    DidOpenTextDocumentNotification,
+    DidChangeTextDocumentNotification,
+    DidCloseTextDocumentNotification,
+    State,
+    CompletionTriggerKind as ProtocolCompletionTriggerKind,
+    SignatureHelpTriggerKind as ProtocolSignatureHelpTriggerKind,
+} from "vscode-languageclient/node";
 import {
     type CloseHandlerResult,
     LanguageClientOptions,
@@ -57,6 +71,29 @@ type ServiceLaunchType =
     | "portableInstalled"
     | "portableDownloaded"
     | "platformDownloaded";
+
+export interface EmbeddedSqlDocument extends vscode.Disposable {
+    readonly isClosed?: boolean;
+    update(text: string, version: number): Promise<void>;
+    completion(
+        position: vscode.Position,
+        context: vscode.CompletionContext,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.CompletionList | vscode.CompletionItem[] | undefined>;
+    resolveCompletion(
+        item: vscode.CompletionItem,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.CompletionItem>;
+    hover(
+        position: vscode.Position,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.Hover | undefined>;
+    signatureHelp(
+        position: vscode.Position,
+        context: vscode.SignatureHelpContext,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.SignatureHelp | undefined>;
+}
 
 /** First SQL Tools Service build that accepts `--enable-sts2`. */
 export const MINIMUM_STS2_SERVICE_VERSION = "6.0.20260825.2";
@@ -468,6 +505,9 @@ export default class SqlToolsServiceClient {
             },
             errorHandler: new LanguageClientErrorHandler(Constants.sqlToolsServiceName),
             middleware: {
+                handleDiagnostics: (uri, diagnostics, next) => {
+                    if (uri.scheme !== Constants.pythonNotebookSqlUriScheme) next(uri, diagnostics);
+                },
                 provideCompletionItem: async (document, position, context, token, next) => {
                     const result = await next(document, position, context, token);
                     const count = Array.isArray(result)
@@ -776,6 +816,167 @@ export default class SqlToolsServiceClient {
      * @param params The params to pass with the request
      * @returns A thenable object for when the request receives a response
      */
+    public async openEmbeddedSqlDocument(
+        uri: vscode.Uri,
+        text: string,
+        version: number,
+    ): Promise<EmbeddedSqlDocument> {
+        const client = this.client;
+        if (uri.scheme !== Constants.pythonNotebookSqlUriScheme || !client?.isRunning()) {
+            throw new Error("SQL notebook language service is unavailable.");
+        }
+        const identifier = { uri: uri.toString() };
+        let closed = false;
+        let currentVersion = version;
+        let currentText = text;
+        const check = () => {
+            if (closed || !client.isRunning() || client !== this.client) {
+                throw new vscode.CancellationError();
+            }
+        };
+        const listener = client.onDidChangeState((event) => {
+            if (event.newState !== State.Running) closed = true;
+        });
+        try {
+            await client.sendNotification(DidOpenTextDocumentNotification.type, {
+                textDocument: { ...identifier, languageId: "sql", version, text },
+            });
+        } catch (error) {
+            listener.dispose();
+            throw error;
+        }
+        return {
+            get isClosed() {
+                return closed;
+            },
+            update: async (newText, newVersion) => {
+                check();
+                if (newVersion <= currentVersion) return;
+                const lines = currentText.split(/\r\n|\r|\n/);
+                await client.sendNotification(DidChangeTextDocumentNotification.type, {
+                    textDocument: { ...identifier, version: newVersion },
+                    contentChanges: [
+                        {
+                            // STS advertises incremental sync and requires a replacement range.
+                            range: {
+                                start: { line: 0, character: 0 },
+                                end: {
+                                    line: lines.length - 1,
+                                    character: lines[lines.length - 1].length,
+                                },
+                            },
+                            text: newText,
+                        },
+                    ],
+                });
+                currentVersion = newVersion;
+                currentText = newText;
+            },
+            completion: async (position, context, token) => {
+                check();
+                const result = await client.sendRequest(
+                    CompletionRequest.type,
+                    {
+                        textDocument: identifier,
+                        position: { line: position.line, character: position.character },
+                        context: {
+                            triggerKind:
+                                context.triggerKind ===
+                                vscode.CompletionTriggerKind.TriggerCharacter
+                                    ? ProtocolCompletionTriggerKind.TriggerCharacter
+                                    : context.triggerKind ===
+                                        vscode.CompletionTriggerKind.TriggerForIncompleteCompletions
+                                      ? ProtocolCompletionTriggerKind.TriggerForIncompleteCompletions
+                                      : ProtocolCompletionTriggerKind.Invoked,
+                            triggerCharacter: context.triggerCharacter,
+                        },
+                    },
+                    token,
+                );
+                check();
+                return result
+                    ? client.protocol2CodeConverter.asCompletionResult(result, undefined, token)
+                    : undefined;
+            },
+            resolveCompletion: async (item, token) => {
+                check();
+                if (!client.initializeResult?.capabilities.completionProvider?.resolveProvider)
+                    return item;
+                const result = await client.sendRequest(
+                    CompletionResolveRequest.type,
+                    client.code2ProtocolConverter.asCompletionItem(item),
+                    token,
+                );
+                check();
+                return client.protocol2CodeConverter.asCompletionItem(result);
+            },
+            hover: async (position, token) => {
+                check();
+                const result = await client.sendRequest(
+                    HoverRequest.type,
+                    {
+                        textDocument: identifier,
+                        position: { line: position.line, character: position.character },
+                    },
+                    token,
+                );
+                check();
+                return result ? client.protocol2CodeConverter.asHover(result) : undefined;
+            },
+            signatureHelp: async (position, context, token) => {
+                check();
+                const result = await client.sendRequest(
+                    SignatureHelpRequest.type,
+                    {
+                        textDocument: identifier,
+                        position: { line: position.line, character: position.character },
+                        context: {
+                            triggerKind:
+                                context.triggerKind ===
+                                vscode.SignatureHelpTriggerKind.TriggerCharacter
+                                    ? ProtocolSignatureHelpTriggerKind.TriggerCharacter
+                                    : context.triggerKind ===
+                                        vscode.SignatureHelpTriggerKind.ContentChange
+                                      ? ProtocolSignatureHelpTriggerKind.ContentChange
+                                      : ProtocolSignatureHelpTriggerKind.Invoked,
+                            triggerCharacter: context.triggerCharacter,
+                            isRetrigger: context.isRetrigger,
+                        },
+                    },
+                    token,
+                );
+                check();
+                if (!result) return undefined;
+                // STS emits null for optional fields that the LSP converter expects to be undefined.
+                return client.protocol2CodeConverter.asSignatureHelp(
+                    {
+                        ...result,
+                        signatures: (result.signatures ?? []).map((signature) => ({
+                            ...signature,
+                            documentation: signature.documentation ?? undefined,
+                            parameters: signature.parameters ?? undefined,
+                        })),
+                    },
+                    token,
+                );
+            },
+            dispose: () => {
+                listener.dispose();
+                if (closed) return;
+                closed = true;
+                if (client.isRunning()) {
+                    void client
+                        .sendNotification(DidCloseTextDocumentNotification.type, {
+                            textDocument: identifier,
+                        })
+                        .catch(() =>
+                            logger.warn("Python notebook IntelliSense document cleanup failed."),
+                        );
+                }
+            },
+        };
+    }
+
     public sendRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Thenable<R> {
         if (this.client !== undefined) {
             return this.client.sendRequest(type, params as RequestParam<P>);

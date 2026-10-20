@@ -77,6 +77,21 @@ jobs:
         run: |
           npm ci
 
+      - name: Install Python notebook test dependencies
+        run: |
+          python3 -m venv "$RUNNER_TEMP/mssql-python-notebooks"
+          "$RUNNER_TEMP/mssql-python-notebooks/bin/python" -m pip install -r extensions/mssql/test/python/requirements.txt
+          echo "$RUNNER_TEMP/mssql-python-notebooks/bin" >> "$GITHUB_PATH"
+          echo "MSSQL_NOTEBOOK_PYTHON=$RUNNER_TEMP/mssql-python-notebooks/bin/python" >> "$GITHUB_ENV"
+
+      - name: Test Python notebook helper
+        run: npm --prefix extensions/mssql run test:python
+
+      - name: Audit Python notebook runtime dependencies
+        run: |
+          python -m pip install pip-audit==2.10.1
+          python -m pip_audit --strict -r extensions/mssql/python/requirements.txt
+
       - name: Stamp build as pull request version
         run: |
           node scripts/stamp-prerelease-version.mjs "${{ github.run_id }}" --label pr
@@ -192,8 +207,24 @@ jobs:
           fi
         working-directory: ./extensions/mssql
 
+      - name: Test Python notebook Microsoft driver
+        env:
+          MSSQL_NOTEBOOK_TEST_SERVER: localhost,1433
+          MSSQL_NOTEBOOK_TEST_DATABASE: master
+          MSSQL_NOTEBOOK_TEST_USER: sa
+          MSSQL_NOTEBOOK_TEST_PASSWORD: ${{ env.PASSWORD }}
+          MSSQL_NOTEBOOK_TEST_TRUST_CERTIFICATE: "1"
+        run: python3 -m unittest discover -s extensions/mssql/test/python -p test_mssql_notebook_integration.py
+
       - name: Run smoke tests
         continue-on-error: true
+        env:
+          MSSQL_PYTHON_NOTEBOOK_SMOKE: "1"
+          MSSQL_NOTEBOOK_TEST_SERVER: localhost,1433
+          MSSQL_NOTEBOOK_TEST_DATABASE: master
+          MSSQL_NOTEBOOK_TEST_USER: sa
+          MSSQL_NOTEBOOK_TEST_PASSWORD: ${{ env.PASSWORD }}
+          MSSQL_NOTEBOOK_TEST_TRUST_CERTIFICATE: "1"
         run: |
           set +e  # Don't exit on errors
           export VS_CODE_VERSION=stable

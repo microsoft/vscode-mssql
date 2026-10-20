@@ -19,6 +19,168 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 - 📖 [Read the documentation](https://aka.ms/vscode-mssql-docs): Get started or go deep with our official docs
 - 🗺️ [Check out the roadmap](https://aka.ms/vscode-mssql-roadmap#2026): See what's coming next, including upcoming features and improvements
 
+## Python notebooks (Preview)
+
+Enable `mssql.preview.pythonNotebooks` in a trusted, non-virtual workspace. When unset,
+it follows `mssql.enableExperimentalFeatures`; an explicit `true` or `false` overrides
+that umbrella setting without changing other Preview features. Right-click
+an Object Explorer connection or database and select **New Python Notebook (Preview)**.
+Alternatively, open or create a regular Python notebook and add a `%%tsql` cell.
+MSSQL offers an actionable **Connect** notification; **Not Now** dismisses it without
+granting access. Ordinary Python notebooks without T-SQL magic are not prompted.
+The notebook remembers that connection's ID and the selected database, not the active SQL
+editor's connection. The Command Palette command also lets you choose a saved connection.
+When neither the notebook nor its saved profile names a database, the connection uses
+the login's default database, not an implicit `master` override.
+Existing SQL notebooks do not require Python or Jupyter and are unchanged.
+
+### Set up and connect
+
+1. Install Microsoft's **Python** (`ms-python.python`) and **Jupyter**
+   (`ms-toolsai.jupyter`) VS Code extensions.
+2. Choose **Connect** in the notification or **Connect SQL** in the notebook toolbar.
+   A regular notebook first offers a saved-connection picker. Select a local Python 3.10+
+   kernel when prompted. If necessary, MSSQL inserts or reuses a safe `pass` cell and runs
+   only that cell to start the kernel; it never runs your SQL or other Python cells for setup.
+3. Approve kernel access. If dependencies are missing, choose **Install Dependencies and Connect**.
+   Installation requires separate explicit consent and uses the selected kernel's Python environment. Prefer a
+   dedicated virtual environment. The reviewed dependencies are Microsoft's
+   `mssql-python==1.16.0`, pandas 2.2.x or later within 2.x, and IPython 8.x or 9.x; see
+   [requirements.txt](python/requirements.txt). Installing them does not install a separate
+   system ODBC driver. After installation, approve **Restart Kernel**, then choose
+   **Reconnect**. Restarting clears all Python variables, and no user cells are replayed.
+   An already-loaded package that differs from its installed version also requires restart;
+   package metadata alone is not treated as proof that the running kernel is ready.
+4. Jupyter may also request permission for MSSQL to execute initialization code. After connecting,
+   use `%%tsql` normally. The notebook toolbar offers **Disconnect SQL**, and the status bar
+   displays the connected server and actual database.
+
+After a kernel restart, choose **Reconnect** in the notification or **Connect SQL** in the
+toolbar. Reopening a notebook also requires explicit connection approval. SQL is never
+automatically replayed. Dismissing a notification leaves the toolbar action available.
+The existing Command Palette commands remain available as optional shortcuts.
+
+The selected kernel must run on the **same host as the MSSQL extension host**. Remote
+Jupyter servers and cross-host credential forwarding are not supported. A remote VS Code
+workspace works only when its MSSQL extension and Python kernel are colocated.
+
+The execution bridge implements SQL login, Windows integrated authentication with a Windows
+kernel, and Microsoft Entra MFA using the exact MSSQL account and tenant in Azure's
+commercial cloud. No alternate identity or Azure CLI credential is selected automatically.
+Missing accounts and unsupported advanced connection options require an explicit reconnect
+or configuration change. Follow the Python driver's supported-platform requirements.
+Live verification covers Windows x64 kernels with SQL Express using integrated authentication
+and the Azure SQL Database container using SQL authentication. The container checks assert
+`EngineEdition = 5` and execute a saved mixed SQL/Python notebook in a real kernel.
+
+| Environment                                                   | Python notebook validation                                                                                                                 |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Windows x64, SQL Express, Windows authentication              | Live driver, mixed notebook, and installed-VSIX UI tests                                                                                   |
+| Windows x64, Azure SQL Database container, SQL authentication | Live driver and saved mixed-notebook tests                                                                                                 |
+| Linux x64/ARM64, macOS Intel/Apple silicon, Windows ARM64     | Pinned driver wheels exist; native runtime and VSIX launch checks are configured in CI but require successful runs before claiming support |
+| Microsoft Entra MFA                                           | Credential-selection unit coverage only; live account/tenant verification is outstanding                                                   |
+| Remote VS Code workspace with colocated kernel                | Host guards are unit tested; an end-to-end remote-workspace run is outstanding                                                             |
+
+The pinned driver publishes macOS wheels requiring macOS 15 or later and Linux wheels for
+glibc 2.28 or later (plus musl builds); see the
+[driver distributions](https://pypi.org/project/mssql-python/1.16.0/#files).
+Wheel availability and successful unit tests do not establish live authentication or
+end-to-end platform support. Unverified rows above are release gates, not implied passes.
+
+### Exchange results and Python values
+
+```python
+%%tsql --bind df
+SELECT TOP (100) name, object_id FROM sys.objects;
+```
+
+A following Python cell can use `df`, for example `df["object_id"].max()`. Pass values
+back to SQL through an existing Python list or tuple:
+
+```python
+query_values = ["example"]
+```
+
+```python
+%%tsql --bind matches --params query_values
+SELECT name FROM sys.objects WHERE name = ?;
+```
+
+Values are bound by the driver, never interpolated into SQL. Do not use Python f-strings
+to construct SQL containing untrusted values. `mssql.query(sql, params)` returns the same
+DataFrame types using the same live connection. `--all --bind results` returns an ordered
+list for multiple tabular results. Duplicate column names and driver-returned Decimal,
+integer, null, binary, and datetime values are preserved using pandas object dtypes.
+
+Each result is limited to **10,000 rows** by default. `--max-rows N` explicitly raises
+that bound. A result of 10,001 rows fails rather than silently truncating or replacing a
+previously bound variable. This is a row bound, not a byte bound: large values or many
+result sets can still consume substantial kernel memory. Non-tabular statements do not
+manufacture an empty DataFrame.
+
+### Database-aware SQL IntelliSense
+
+Keep every code cell set to **Python** and put `%%tsql` on its own first line.
+After **Connect Python Notebook (Preview)** succeeds, the SQL body supports:
+
+- Catalog-aware database, schema, table, view, and column completion, including same-cell SQL
+  aliases. Type `.` or invoke **Trigger Suggest** (`Ctrl+Space` on Windows/Linux).
+- Hover for SQL object and type information.
+- Function signature help on `(` and `,`, including the active parameter.
+
+The magic header/options and ordinary Python cells remain outside the SQL provider;
+Python/Jupyter tooling stays enabled. No cell execution is needed for suggestions.
+Inside the SQL body, SQL suggestions rank ahead of competing Python kernel suggestions.
+For example, complete tables after `FROM dbo.`, schemas after `FROM Northwind.`, or
+database names after `USE `. Ordinary Python cells retain their normal completion ordering.
+Server-qualified/four-part names follow SQL Tools Service support, just as in a regular
+SQL editor; database enumeration after a server name is not guaranteed.
+SQL diagnostics are deferred; independently supplied Python diagnostics may still appear.
+SQL execution errors show localized programming, data-constraint, operational/timeout,
+or driver-connection guidance where the driver provides that category. Raw driver text,
+SQL, parameter values, and credentials are not included in those errors.
+
+IntelliSense opens an additional metadata connection using the exact approved connection
+and the actual database selected by the Python connection. It does not borrow an active
+SQL editor's connection, execute cell SQL, or inspect Python variables. Temporary tables
+created in other cells and later database changes made with `USE` are not reflected in
+this metadata connection. Reconnect the notebook to change its authoring target.
+Metadata-service failures produce a nonmodal warning without disabling SQL execution.
+
+### Session, transactions, and privacy
+
+- SQL magic and Python share their own driver session, including temporary tables. They
+  do not share a SQL editor's session, transactions, or temporary tables.
+- Create temporary tables in a separate, unparameterized batch before using them with
+  `--params` or `mssql.query(sql, params)`. A temporary table created inside a
+  parameterized batch belongs to that prepared-execution scope and does not survive
+  into later cells.
+- Statements use autocommit. For a cross-cell transaction, execute `BEGIN TRANSACTION` in
+  a separate SQL cell or `mssql.query()` call, then execute parameterized statements,
+  and explicitly `COMMIT` or `ROLLBACK`. Starting an open transaction inside a
+  parameterized batch can produce SQL Server error 266 because of prepared-execution
+  scope. Failed statements are never automatically replayed.
+- Queries default to a 30-second timeout unless the connection profile configures one.
+  Zero means unlimited. Use Jupyter's interrupt/restart controls for cancellation; the
+  synchronous driver's interrupt responsiveness is not guaranteed. Cursors are closed
+  when execution finishes, fails, or raises `KeyboardInterrupt`.
+- Run **Disconnect Python Notebook (Preview)** to revoke future credential delivery and
+  cancel pending connection initialization and close the helper's driver connection.
+  Changing the approved profile's target or security settings requires fresh consent.
+  Reconnect explicitly after reopening or restarting
+  the kernel. Kernel changes, restarts, notebook close, disabling experimental features,
+  and extension disposal revoke authorization.
+- Notebook metadata contains a connection reference only. Bootstrap capabilities,
+  passwords, and tokens are not written to cells or normal execution history. Notebook
+  code is trusted code with database access and can read credentials in kernel memory.
+  Revocation cannot erase credentials already delivered or retroactively invalidate a
+  database session. Only authorize kernels and notebooks you trust.
+- Saved query outputs may contain sensitive data. Review or clear outputs before
+  sharing or committing notebooks.
+
+Automatic DataFrame uploads and Spark execution are not included.
+This opt-in Preview is not a claim of Microsoft internal release approval.
+
 ## Features
 
 The MSSQL extension provides a rich set of capabilities for SQL development. Each capability links to its detailed documentation on Microsoft Learn.

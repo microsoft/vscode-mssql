@@ -1,0 +1,4 @@
+-r ../../python/requirements.txt
+testcontainers>=4.13,<5
+ipykernel>=6,<8
+nbclient>=0.10,<0.11

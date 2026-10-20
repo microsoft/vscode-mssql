@@ -5,6 +5,7 @@
 
 // Collection of Non-localizable Constants
 export const languageId = "sql";
+export const pythonNotebookSqlUriScheme = "mssql-python-notebook-sql";
 export const extensionId = "ms-mssql.mssql";
 export const extensionName = "mssql";
 export const extensionConfigSectionName = "mssql";
@@ -177,6 +178,11 @@ export const cmdRestoreDatabase = "mssql.restoreDatabase";
 export const cmdLaunchProfiler = "mssql.profiler.launchFromObjectExplorer";
 export const cmdFlatFileImport = "mssql.flatFileImport";
 export const cmdNotebooksCreate = "mssql.notebooks.createNotebook";
+export const cmdNotebooksCreatePython = "mssql.notebooks.createPythonNotebook";
+export const cmdNotebooksConnectPython = "mssql.notebooks.connectPythonNotebook";
+export const cmdNotebooksDisconnectPython = "mssql.notebooks.disconnectPythonNotebook";
+export const cmdNotebooksSetupPython = "mssql.notebooks.setupPythonNotebook";
+export const pythonNotebookMetadataKey = "mssqlPythonNotebook";
 export const cmdNotebooksChangeDatabase = "mssql.notebooks.changeDatabase";
 export const cmdNotebooksChangeConnection = "mssql.notebooks.changeConnection";
 export const cmdNotebooksCopyCellMessages = "mssql.notebooks.copyCellMessages";

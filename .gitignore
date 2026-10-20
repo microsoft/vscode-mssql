@@ -60,6 +60,8 @@ localization/l10n/
 # Cache and tooling
 .eslintcache
 .nyc_output
+extensions/mssql/python/__pycache__/
+extensions/mssql/test/python/__pycache__/
 *.tsbuildinfo
 samples/connection-sharing-sample/dist
 .claude/

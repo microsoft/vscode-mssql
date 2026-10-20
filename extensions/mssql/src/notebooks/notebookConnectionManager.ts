@@ -9,13 +9,7 @@ import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "../controllers/queryNotificationHandler";
-import {
-    ConnectionRequest,
-    ConnectParams,
-    ConnectionCompleteParams,
-    DisconnectRequest,
-    DisconnectParams,
-} from "../models/contracts/connection";
+import { DisconnectRequest, DisconnectParams } from "../models/contracts/connection";
 import { generateQueryUri } from "../models/utils";
 import * as LocalizedConstants from "../constants/locConstants";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
@@ -25,6 +19,7 @@ import {
     HeadlessQueryExecutor,
     HeadlessQueryResult,
 } from "../queryExecution/headlessQueryExecutor";
+import { connectNotebookIntellisense } from "./notebookIntellisenseConnection";
 
 /**
  * Manages the active database connection for a notebook.
@@ -48,8 +43,6 @@ import {
  * IntelliSense registration before treating the attempt as failed so a
  * later trigger can retry it.
  */
-const CELL_CONNECT_COMPLETE_TIMEOUT_MS = 30000;
-
 export class NotebookConnectionManager implements vscode.Disposable {
     private connectionUri: string | undefined;
     private connectionInfo: IConnectionInfo | undefined;
@@ -455,34 +448,14 @@ export class NotebookConnectionManager implements vscode.Disposable {
         // The connect request only acknowledges that a connection attempt STARTED;
         // the actual outcome arrives via the connection/complete notification.
         // Register for it before sending the request so the result isn't missed.
-        const completePromise = this.connectionMgr.expectConnectionComplete(cellDocumentUri);
-
         try {
-            const params: ConnectParams = {
-                ownerUri: cellDocumentUri,
-                connection: connectionDetails,
-            };
-
-            const result = await this.connectionMgr.sendRequest(ConnectionRequest.type, params);
-
-            if (result !== true) {
-                this.connectionMgr.cancelConnectionCompleteExpectation(
-                    cellDocumentUri,
-                    completePromise,
-                );
-                if (generation === this.connectionGeneration) {
-                    this.registeredCellUris.delete(cellDocumentUri);
-                }
-                this.log.warn(
-                    `[connectCellForIntellisense] STS did not accept connect request (result=${String(result)}) cell=${cellDocumentUri}`,
-                );
-                return;
-            }
-
-            const completeParams = await this.waitForCellConnectionComplete(
+            const cancellation = new vscode.CancellationTokenSource();
+            const completeParams = await connectNotebookIntellisense(
+                this.connectionMgr,
                 cellDocumentUri,
-                completePromise,
-            );
+                connectionDetails,
+                cancellation.token,
+            ).finally(() => cancellation.dispose());
 
             if (generation !== this.connectionGeneration) {
                 this.log.trace(
@@ -522,43 +495,12 @@ export class NotebookConnectionManager implements vscode.Disposable {
                 `[connectCellForIntellisense] STS connection complete connectionId=${completeParams.connectionId} cell=${cellDocumentUri}`,
             );
         } catch (err: any) {
-            this.connectionMgr.cancelConnectionCompleteExpectation(
-                cellDocumentUri,
-                completePromise,
-            );
             if (generation === this.connectionGeneration) {
                 this.registeredCellUris.delete(cellDocumentUri);
             }
             this.log.warn(
                 `[connectCellForIntellisense] sendRequest failed: ${err.message} cell=${cellDocumentUri}`,
             );
-        }
-    }
-
-    /**
-     * Awaits the connection/complete notification for a cell registration,
-     * resolving undefined if it doesn't arrive within the timeout.
-     */
-    private async waitForCellConnectionComplete(
-        cellDocumentUri: string,
-        completePromise: Promise<ConnectionCompleteParams>,
-    ): Promise<ConnectionCompleteParams | undefined> {
-        let timer: ReturnType<typeof setTimeout> | undefined;
-        const timeoutPromise = new Promise<undefined>((resolve) => {
-            timer = setTimeout(() => {
-                this.connectionMgr.cancelConnectionCompleteExpectation(
-                    cellDocumentUri,
-                    completePromise,
-                );
-                resolve(undefined);
-            }, CELL_CONNECT_COMPLETE_TIMEOUT_MS);
-        });
-        try {
-            return await Promise.race([completePromise, timeoutPromise]);
-        } finally {
-            if (timer !== undefined) {
-                clearTimeout(timer);
-            }
         }
     }
 

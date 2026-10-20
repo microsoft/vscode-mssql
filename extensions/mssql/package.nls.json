@@ -1,4 +1,11 @@
 {
+    "mssql.notebooks.createPythonNotebook": "New Python Notebook (Preview)",
+    "mssql.notebooks.connectPythonNotebook": "Connect Python Notebook (Preview)",
+    "mssql.notebooks.connectPythonNotebook.shortTitle": "Connect SQL",
+    "mssql.notebooks.disconnectPythonNotebook": "Disconnect Python Notebook (Preview)",
+    "mssql.notebooks.disconnectPythonNotebook.shortTitle": "Disconnect SQL",
+    "mssql.notebooks.setupPythonNotebook": "Set Up Python Notebook Dependencies (Preview)",
+    "mssql.preview.pythonNotebooks.description": "Enables Python notebooks with %%tsql and database-aware SQL IntelliSense. When unset, follows mssql.enableExperimentalFeatures. Set to true or false to override that setting.",
     "mssql.runQuery": "Execute Query (MSSQL)",
     "mssql.runCurrentStatement": "Execute Selection or Current Statement (MSSQL)",
     "mssql.cancelQuery": "Cancel Query (MSSQL)",

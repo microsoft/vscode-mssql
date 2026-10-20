@@ -144,6 +144,14 @@ export default class ConnectionManager {
         Deferred<ConnectionContracts.ConnectionCompleteParams>
     >;
     private _keyVaultTokenCache: Map<string, IToken> = new Map<string, IToken>();
+    private readonly notebookTokenProviders = new Map<
+        string,
+        {
+            accountId: string;
+            tenantId: string;
+            refresh: () => Promise<{ token: string; expiresOn: number }>;
+        }
+    >();
     private _accountService: AccountService;
     private _firewallService: FirewallService;
     public azureController: AzureController;
@@ -168,6 +176,11 @@ export default class ConnectionManager {
     public readonly onDidChangeDatabaseContext: vscode.Event<string> =
         this._onDidChangeDatabaseContextEmitter.event;
 
+    private readonly intellisenseReadyEmitter = new vscode.EventEmitter<string>();
+    public get onIntellisenseReady(): vscode.Event<string> {
+        return this.intellisenseReadyEmitter.event;
+    }
+
     public initialized: Deferred<void> = new Deferred<void>();
 
     private _entraLogger: ILogger;
@@ -191,6 +204,7 @@ export default class ConnectionManager {
             string,
             Deferred<ConnectionContracts.ConnectionCompleteParams>
         >();
+        this.context.subscriptions.push(this.intellisenseReadyEmitter);
 
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
@@ -523,6 +537,7 @@ export default class ConnectionManager {
     public handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.IntelliSenseReadyParams> {
         // Using a lambda here to perform variable capture on the 'this' reference
         return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
+            this.intellisenseReadyEmitter.fire(event.ownerUri);
             this._statusView.languageServiceStatusChanged(
                 event.ownerUri,
                 LocalizedConstants.intelliSenseUpdatedStatus,
@@ -639,6 +654,21 @@ export default class ConnectionManager {
      * Acquires a fresh token using VS Code accounts or MSAL, then sends
      * account/tokenRefreshed back to the service.
      */
+    public registerNotebookTokenProvider(
+        uri: string,
+        accountId: string,
+        tenantId: string,
+        refresh: () => Promise<{ token: string; expiresOn: number }>,
+    ): vscode.Disposable {
+        const provider = { accountId, tenantId, refresh };
+        this.notebookTokenProviders.set(uri, provider);
+        return new vscode.Disposable(() => {
+            if (this.notebookTokenProviders.get(uri) === provider) {
+                this.notebookTokenProviders.delete(uri);
+            }
+        });
+    }
+
     public handleRefreshTokenNotification(): NotificationHandler<ConnectionContracts.RefreshTokenParams> {
         const self = this;
         return (params: ConnectionContracts.RefreshTokenParams): void => {
@@ -654,6 +684,36 @@ export default class ConnectionManager {
                         { token: "", expiresOn: 0, uri: params.uri },
                     );
                 };
+
+                if (params.uri.startsWith(Constants.pythonNotebookSqlUriScheme + ":")) {
+                    const provider = self.notebookTokenProviders.get(params.uri);
+                    if (
+                        !provider ||
+                        provider.accountId !== params.accountId ||
+                        provider.tenantId !== params.tenantId
+                    ) {
+                        sendFailureNotification();
+                        return;
+                    }
+                    try {
+                        const token = await provider.refresh();
+                        if (self.notebookTokenProviders.get(params.uri) !== provider) {
+                            sendFailureNotification();
+                            return;
+                        }
+                        await self.client.sendNotification(
+                            ConnectionContracts.TokenRefreshedNotification.type,
+                            {
+                                uri: params.uri,
+                                ...token,
+                            },
+                        );
+                    } catch {
+                        self._logger?.warn("Python notebook IntelliSense token refresh failed.");
+                        sendFailureNotification();
+                    }
+                    return;
+                }
 
                 try {
                     let token: string | undefined;

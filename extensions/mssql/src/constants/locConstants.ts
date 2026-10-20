@@ -923,6 +923,159 @@ export let deploymentScriptAlreadyExists = (fileName: string) =>
     });
 export let overwriteDeploymentScript = l10n.t("Overwrite");
 
+export class PythonNotebooks {
+    public static errors = {
+        disabled: l10n.t(
+            "Enable mssql.preview.pythonNotebooks to use Python notebooks (Preview). When unset, this feature follows mssql.enableExperimentalFeatures.",
+        ),
+        trust: l10n.t(
+            "Trust this workspace before connecting a Python notebook or installing its dependencies.",
+        ),
+        virtual: l10n.t("Python notebook connections are not supported in virtual workspaces."),
+        notebook: l10n.t("Open an MSSQL Python notebook before running this command."),
+        kernel: l10n.t(
+            "Could not start a local Python kernel. Select a Python kernel and use Connect SQL in the notebook toolbar to try again.",
+        ),
+        extension: l10n.t(
+            "Install the Microsoft Python and Jupyter extensions to use Python notebooks.",
+        ),
+        dependencies: l10n.t(
+            "The selected Python kernel needs Python 3.10 or later, mssql-python 1.16.0, pandas, and IPython. Choose Install Dependencies and Connect to set it up.",
+        ),
+        connectionMissing: l10n.t(
+            "The selected MSSQL connection is no longer available. Create a notebook from an existing connection.",
+        ),
+        credentials: l10n.t(
+            "Could not obtain the selected connection's credentials. Check its authentication settings and reconnect.",
+        ),
+        unsupported: l10n.t(
+            "This connection has authentication or advanced settings that Python notebooks do not support yet.",
+        ),
+        profileChanged: l10n.t(
+            "The connection's target or security settings changed. Disconnect and connect the Python notebook again.",
+        ),
+        identity: l10n.t(
+            "The selected MSSQL account and tenant could not be used. Sign in to that account and reconnect; another identity will not be selected automatically.",
+        ),
+        initialization: l10n.t(
+            "Python notebook initialization failed. Check the selected kernel, dependencies, and connection settings, then reconnect.",
+        ),
+        cleanup: l10n.t(
+            "The notebook's credential access was revoked, but its Python connection could not be confirmed closed. Restart the kernel to close it.",
+        ),
+        kernelInUse: l10n.t(
+            "This Python kernel is already connected to another MSSQL notebook. Select a separate kernel.",
+        ),
+    };
+    public static runtimeMessages = {
+        arguments: l10n.t(
+            "Invalid T-SQL magic arguments. Use --bind name, --params name, --all, or --max-rows N.",
+        ),
+        parameters: l10n.t(
+            "Query parameters must be an existing Python list or tuple. Use ? placeholders in SQL.",
+        ),
+        identifier: l10n.t(
+            "Use a Python variable name that is not reserved and does not start with an underscore.",
+        ),
+        limit: l10n.t(
+            "The result exceeds the row limit, or the limit is invalid. Filter the query or specify a positive --max-rows value. No result was bound.",
+        ),
+        multiple: l10n.t(
+            "The query returned multiple result sets. Use --all to bind an ordered list of DataFrames.",
+        ),
+        disconnected: l10n.t("This Python notebook is disconnected. Run Connect Python Notebook."),
+        queryFailed: l10n.t(
+            "The SQL query failed. Check the SQL, parameters, connection, and permissions. No result was bound.",
+        ),
+        queryProgrammingFailed: l10n.t(
+            "The SQL query has a programming error. Check its syntax, object names, parameters, and permissions. No result was bound.",
+        ),
+        queryIntegrityFailed: l10n.t(
+            "The SQL query violated a data constraint. Check keys, null values, and related data. No result was bound.",
+        ),
+        queryOperationalFailed: l10n.t(
+            "The SQL operation failed or timed out. Check the server and connection before retrying. No result was bound.",
+        ),
+        queryInterfaceFailed: l10n.t(
+            "The SQL driver connection is unavailable. Reconnect the notebook before retrying. No result was bound.",
+        ),
+        connectFailed: l10n.t(
+            "The Microsoft Python driver could not connect. Check the selected connection's authentication and TLS settings.",
+        ),
+        brokerFailed: l10n.t(
+            "The Python kernel cannot access its MSSQL credential session. Use a kernel on the same host as MSSQL and reconnect.",
+        ),
+        conflict: l10n.t(
+            "This kernel already has a tsql magic or mssql variable. Disconnect the existing session or restart the kernel.",
+        ),
+        scope: l10n.t(
+            "Python notebook token authentication currently supports the Azure commercial SQL scope only.",
+        ),
+        windowsOnly: l10n.t(
+            "Windows integrated authentication requires a Python kernel running on Windows.",
+        ),
+        noResults: l10n.t(
+            "The statement completed without a tabular result. No empty DataFrame was created.",
+        ),
+        cancelled: l10n.t("The query was canceled. No result was bound."),
+    };
+    public static installExtensions = l10n.t("Open Jupyter Extension");
+    public static connect = l10n.t("Connect");
+    public static reconnect = l10n.t("Reconnect");
+    public static notNow = l10n.t("Not Now");
+    public static connectSql = l10n.t("Connect SQL");
+    public static disconnectSql = l10n.t("Disconnect SQL");
+    public static connectionStatusName = l10n.t("MSSQL Python Notebook Connection");
+    public static connectPrompt = l10n.t(
+        "Connect this Python notebook to a SQL database to use %%tsql and database-aware SQL IntelliSense.",
+    );
+    public static reconnectPrompt = l10n.t(
+        "This notebook's Python kernel has restarted or stopped. Reconnect to use %%tsql and SQL IntelliSense again. SQL cells will not be rerun automatically.",
+    );
+    public static installAndConnect = l10n.t("Install Dependencies and Connect");
+    public static connectionStatus(server: string, database: string): string {
+        return l10n.t({
+            message: "{0} / {1}",
+            args: [server, database],
+            comment: ["{0} is the connected server; {1} is the actual connected database"],
+        });
+    }
+    public static allow = l10n.t("Allow Kernel Access");
+    public static defaultDatabase = l10n.t("the login's default database");
+    public static install = l10n.t("Install in Selected Kernel");
+    public static consent(server: string, database: string) {
+        return l10n.t({
+            message:
+                "Allow this Python kernel to use the MSSQL connection to {0}, database {1}? Notebook code will have database access and can read credentials in this kernel's memory. SQL IntelliSense uses an additional connection to the same database.",
+            args: [server, database],
+            comment: ["{0} is the selected server; {1} is the selected database"],
+        });
+    }
+    public static installConsent = l10n.t(
+        "Install the reviewed MSSQL notebook dependencies in the selected Python kernel? This changes that Python environment and downloads packages from its configured package index. Afterwards, restart the kernel and reconnect. Restarting clears all Python variables.",
+    );
+    public static restartKernel = l10n.t("Restart Kernel");
+    public static restartConsent = l10n.t(
+        "This kernel must restart to use the installed notebook dependencies safely. Restarting clears all Python variables. After restarting, reconnect to SQL; your notebook cells will not be rerun automatically.",
+    );
+    public static connected = l10n.t(
+        "Python notebook connected. Use %%tsql or mssql.query() to query the selected database.",
+    );
+    public static disconnected = l10n.t("Python notebook credential access revoked.");
+    public static intellisenseUnavailable = l10n.t(
+        "SQL IntelliSense is unavailable for this Python notebook. SQL execution is still available. Check the notebook connection and reconnect if its settings have changed.",
+    );
+    public static installed = l10n.t("Python notebook dependencies installed.");
+    public static working = l10n.t("Initializing MSSQL Python notebook");
+    public static setup = l10n.t("Installing MSSQL Python notebook dependencies");
+    public static introduction = l10n.t(
+        "# MSSQL Python Notebook (Preview)\n\nChoose **Connect** in the notification or **Connect SQL** in the notebook toolbar. Select a Python kernel when prompted. MSSQL starts only a safe `pass` initialization cell, never your SQL cells, and offers to install missing dependencies with your approval.\n\nOnly kernels on the same host as the MSSQL extension are supported. Connecting explicitly grants notebook code access to the selected database and runtime credentials. Credentials are not saved in this notebook, but query outputs may contain sensitive data.\n\nAfter restarting the kernel or reopening this notebook, choose **Reconnect** or **Connect SQL**. This notebook has its own SQL session; it does not share temporary tables or transactions with a SQL editor.",
+    );
+    public static examples = l10n.t(
+        "## SQL and Python\n\n`%%tsql --bind df` stores one result as a DataFrame. Use `--all --bind results` for multiple results. Use `--params query_values` with an existing Python list or tuple and SQL `?` placeholders; values are not interpolated into SQL.\n\nResults are limited to 10,000 rows per result set by default. Use a positive `--max-rows N` to raise the bound. Exceeding the limit does not replace existing bound variables.\n\n`mssql.query(sql, params)` uses the same connection as the magic. Statements use autocommit; manage explicit transactions with T-SQL BEGIN TRANSACTION, COMMIT, and ROLLBACK. Failed SQL is never automatically replayed.\n\nAfter connecting, SQL completion, hover, and signature help are available in the SQL body of `%%tsql` cells. IntelliSense uses the selected database's catalog, not the Python execution session: cross-cell temporary tables and later USE statements are not tracked. SQL diagnostics and automatic DataFrame uploads are not included in this preview.",
+    );
+}
+
 export class Notebooks {
     // Status bar
     public static statusBarClickToChangeConnection = l10n.t("MSSQL: Click to change connection");

@@ -51,3 +51,6 @@ AGENTS.md
 codeql.yml
 coverconfig.json
 test-results/**
+**/__pycache__/**
+**/*.pyc
+**/*.pyo

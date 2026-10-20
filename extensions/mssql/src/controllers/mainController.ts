@@ -100,6 +100,7 @@ import {
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
+import { PythonNotebookController } from "../notebooks/pythonNotebookController";
 import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
@@ -779,6 +780,9 @@ export default class MainController implements vscode.Disposable {
                 this._context.workspaceState,
             );
             this._context.subscriptions.push(this.sqlNotebookController);
+            this._context.subscriptions.push(
+                new PythonNotebookController(this._context, this._connectionMgr),
+            );
 
             this.registerCommandWithArgs(Constants.cmdNotebooksCreate);
             this._event.on(Constants.cmdNotebooksCreate, async (args: any) => {
