@@ -65,6 +65,7 @@ import {
 } from "./sharedDisasterRecoveryUtils";
 import { ConnectionProfile } from "../models/connectionProfile";
 import ConnectionManager from "./connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { getServerTypes, ServerType } from "../models/connectionInfo";
 
 export class BackupDatabaseWebviewController extends ObjectManagementWebviewController<
@@ -101,6 +102,10 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.start();
     }
 
+    protected override get telemetryContext() {
+        return getConnectionTelemetryInfo(this.connectionManager, this.profile);
+    }
+
     protected async initializeDialog(): Promise<void> {
         const backupModel = new BackupDatabaseViewModel();
 
@@ -132,6 +137,8 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             );
             this.updateViewModel(backupModel);
             sendErrorEvent(TelemetryViews.Backup, TelemetryActions.InitializeBackup, {
+                connectionInfo: this.profile,
+                serverInfo: this.connectionManager.getServerInfo(this.profile),
                 error: new Error(LocConstants.BackupDatabase.couldNotConnectToDatabase("")),
                 includeErrorMessage: true,
             });
@@ -157,6 +164,8 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 backupConfigError || LocConstants.BackupDatabase.unableToLoadBackupConfig;
             this.updateViewModel(backupModel);
             sendErrorEvent(TelemetryViews.Backup, TelemetryActions.InitializeBackup, {
+                connectionInfo: this.profile,
+                serverInfo: this.connectionManager.getServerInfo(this.profile),
                 error: new Error(LocConstants.BackupDatabase.unableToLoadBackupConfig),
                 includeErrorMessage: true,
             });
@@ -236,12 +245,18 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 if (includesBackupLocation) {
                     this.panel.dispose();
                     this.dispose();
-                    sendActionEvent(TelemetryViews.Backup, TelemetryActions.FinishBackup);
+                    sendActionEvent(TelemetryViews.Backup, TelemetryActions.FinishBackup, {
+                        connectionInfo: this.profile,
+                        serverInfo: this.connectionManager.getServerInfo(this.profile),
+                    });
                 }
             }
         });
 
-        sendActionEvent(TelemetryViews.Backup, TelemetryActions.InitializeBackup);
+        sendActionEvent(TelemetryViews.Backup, TelemetryActions.InitializeBackup, {
+            connectionInfo: this.profile,
+            serverInfo: this.connectionManager.getServerInfo(this.profile),
+        });
 
         this.registerBackupRpcHandlers();
         backupModel.loadState = ApiStatus.Loaded;
@@ -301,6 +316,8 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             const backupViewModel = this.backupViewModel(state);
 
             sendActionEvent(TelemetryViews.Backup, TelemetryActions.Backup, {
+                connectionInfo: this.profile,
+                serverInfo: this.connectionManager.getServerInfo(this.profile),
                 additionalProps: {
                     backupToUrl:
                         backupViewModel.type === DisasterRecoveryType.Url ? "true" : "false",
@@ -317,7 +334,10 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.registerReducer("openBackupScript", async (state, _payload) => {
             void this.backupHelper(TaskExecutionMode.script, state);
 
-            sendActionEvent(TelemetryViews.Backup, TelemetryActions.ScriptBackup);
+            sendActionEvent(TelemetryViews.Backup, TelemetryActions.ScriptBackup, {
+                connectionInfo: this.profile,
+                serverInfo: this.connectionManager.getServerInfo(this.profile),
+            });
             return state;
         });
 
@@ -363,6 +383,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             this as WebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, any>,
             this.fileBrowserService,
             defaultBackupFileTypes,
+            this.connectionManager,
         );
 
         // Override default file browser submitFilePath reducer

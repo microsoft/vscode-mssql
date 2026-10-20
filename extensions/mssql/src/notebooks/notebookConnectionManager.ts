@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
 import ConnectionManager from "../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "../controllers/queryNotificationHandler";
@@ -224,6 +225,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.log.debug(
                 `[promptAndConnect] server=${connectionInfo.server}, database=${connectionInfo.database}`,
             );
+            activity.update(getConnectionTelemetryInfo(this.connectionMgr, connectionInfo));
             const uri = await this.connectInternal(connectionInfo);
             this.log.debug(`[promptAndConnect] connect() → URI=${uri}`);
 
@@ -234,7 +236,10 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.connectionUri = uri;
             this.connectionInfo = connectionInfo;
             this.invalidateCellRegistrations();
-            activity.end(ActivityStatus.Succeeded);
+            activity.end(
+                ActivityStatus.Succeeded,
+                getConnectionTelemetryInfo(this.connectionMgr, connectionInfo),
+            );
             return uri;
         } catch (err) {
             activity.endFailed(new Error("Connection prompt failed or was cancelled"));
@@ -250,7 +255,10 @@ export class NotebookConnectionManager implements vscode.Disposable {
         const activity = startActivity(
             TelemetryViews.SqlNotebooks,
             TelemetryActions.NotebookConnect,
-            { additionalProps: { method: "objectExplorer" } },
+            {
+                ...getConnectionTelemetryInfo(this.connectionMgr, connectionInfo),
+                additionalProps: { method: "objectExplorer" },
+            },
         );
         try {
             const server = connectionInfo.server;
@@ -267,7 +275,10 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.connectionInfo = { ...connectionInfo, database: actualDb || database };
             this.connectionLabel = formatConnectionLabel(server, actualDb || database);
             this.invalidateCellRegistrations();
-            activity.end(ActivityStatus.Succeeded);
+            activity.end(
+                ActivityStatus.Succeeded,
+                getConnectionTelemetryInfo(this.connectionMgr, this.connectionInfo),
+            );
             return uri;
         } catch (err) {
             activity.endFailed(new Error("Failed to connect with provided connection profile"));
@@ -296,7 +307,11 @@ export class NotebookConnectionManager implements vscode.Disposable {
         }
         this.log.debug(`[changeDatabase] Switching to [${database}]`);
 
-        sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.NotebookChangeDatabase);
+        sendActionEvent(
+            TelemetryViews.SqlNotebooks,
+            TelemetryActions.NotebookChangeDatabase,
+            getConnectionTelemetryInfo(this.connectionMgr, this.connectionInfo),
+        );
 
         // Disconnect current connection
         if (this.connectionUri) {
@@ -348,7 +363,11 @@ export class NotebookConnectionManager implements vscode.Disposable {
     disconnect(): void {
         this.log.debug(`[disconnect] URI=${this.connectionUri ?? "none"}`);
         if (this.connectionUri) {
-            sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.NotebookDisconnect);
+            sendActionEvent(
+                TelemetryViews.SqlNotebooks,
+                TelemetryActions.NotebookDisconnect,
+                getConnectionTelemetryInfo(this.connectionMgr, this.connectionInfo),
+            );
             this.connectionSharingService.disconnect(this.connectionUri);
         }
         this.connectionUri = undefined;

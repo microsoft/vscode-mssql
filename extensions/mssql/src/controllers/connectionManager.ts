@@ -558,6 +558,8 @@ export default class ConnectionManager {
                     LocalizedConstants.msgYes,
                     LocalizedConstants.msgNo,
                 );
+                const connectionInfo = this.getConnectionInfoFromUri(event.ownerUri);
+                const serverInfo = this.getServerInfo(connectionInfo);
 
                 if (selectedOption === LocalizedConstants.msgYes) {
                     changeLanguageServiceForFile(
@@ -570,7 +572,11 @@ export default class ConnectionManager {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { additionalProps: { selectedOption: LocalizedConstants.msgYes } },
+                        {
+                            additionalProps: { selectedOption: LocalizedConstants.msgYes },
+                            connectionInfo,
+                            serverInfo,
+                        },
                     );
 
                     await vscode.workspace
@@ -591,13 +597,21 @@ export default class ConnectionManager {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { additionalProps: { selectedOption: LocalizedConstants.msgNo } },
+                        {
+                            additionalProps: { selectedOption: LocalizedConstants.msgNo },
+                            connectionInfo,
+                            serverInfo,
+                        },
                     );
                 } else {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { additionalProps: { selectedOption: LocalizedConstants.dismiss } },
+                        {
+                            additionalProps: { selectedOption: LocalizedConstants.dismiss },
+                            connectionInfo,
+                            serverInfo,
+                        },
                     );
                 }
             }
@@ -616,6 +630,20 @@ export default class ConnectionManager {
                 connectionInfo.credentials.server = event.connection.serverName;
                 connectionInfo.credentials.database = event.connection.databaseName;
                 connectionInfo.credentials.user = event.connection.userName;
+                connectionInfo.serverInfo = event.serverInfo
+                    ? {
+                          ...event.serverInfo,
+                          serverTypes: getServerTypes(connectionInfo.credentials),
+                      }
+                    : {
+                          ...connectionInfo.serverInfo,
+                          databaseServiceTier: undefined,
+                          databaseServiceObjective: undefined,
+                      };
+                self._connectionCredentialsToServerInfoMap.set(
+                    connectionInfo.credentials,
+                    connectionInfo.serverInfo,
+                );
 
                 void self._statusView.connectSuccess(
                     event.ownerUri,
@@ -644,6 +672,8 @@ export default class ConnectionManager {
         return (params: ConnectionContracts.RefreshTokenParams): void => {
             void (async () => {
                 const useVscodeAccountsForEntraMFA = !getUseMsalEntraMfaAuthConfig();
+                const connectionInfo = self.getConnectionInfoFromUri(params.uri);
+                const serverInfo = self.getServerInfo(connectionInfo);
 
                 // Always send a tokenRefreshed notification back to STS so it can unblock
                 // IntelliSense (via TokenUpdateUris). On failure, send empty token/expiresOn=0;
@@ -681,6 +711,8 @@ export default class ConnectionManager {
                                     ),
                                     includeErrorMessage: true,
                                     errorCode: "missingAccountId",
+                                    connectionInfo,
+                                    serverInfo,
                                     additionalProps: {
                                         useVscodeAccountsForEntraMFA: String(
                                             useVscodeAccountsForEntraMFA,
@@ -709,6 +741,8 @@ export default class ConnectionManager {
                                     error: new Error("Account not found in account store"),
                                     includeErrorMessage: true,
                                     errorCode: "accountNotFound",
+                                    connectionInfo,
+                                    serverInfo,
                                     additionalProps: {
                                         useVscodeAccountsForEntraMFA: String(
                                             useVscodeAccountsForEntraMFA,
@@ -749,6 +783,8 @@ export default class ConnectionManager {
                                 error: new Error("Token refresh did not produce a token"),
                                 includeErrorMessage: true,
                                 errorCode: "tokenNotRefreshed",
+                                connectionInfo,
+                                serverInfo,
                                 additionalProps: {
                                     useVscodeAccountsForEntraMFA: String(
                                         useVscodeAccountsForEntraMFA,
@@ -778,6 +814,8 @@ export default class ConnectionManager {
                                 ),
                                 includeErrorMessage: true,
                                 errorCode: "serviceClientUnavailable",
+                                connectionInfo,
+                                serverInfo,
                                 additionalProps: {
                                     useVscodeAccountsForEntraMFA: String(
                                         useVscodeAccountsForEntraMFA,
@@ -800,6 +838,8 @@ export default class ConnectionManager {
                         TelemetryViews.ConnectionManager,
                         TelemetryActions.RefreshTokenNotification,
                         {
+                            connectionInfo,
+                            serverInfo,
                             additionalProps: {
                                 useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
                             },
@@ -832,6 +872,8 @@ export default class ConnectionManager {
                                 error instanceof Error ? error : new Error(getErrorMessage(error)),
                             includeErrorMessage: false,
                             errorCode: "exception",
+                            connectionInfo,
+                            serverInfo,
                             additionalProps: {
                                 useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
                             },
@@ -1280,6 +1322,8 @@ export default class ConnectionManager {
                     "Azure MFA connection missing accountId in refreshEntraTokenIfNeeded",
                 ),
                 includeErrorMessage: true,
+                connectionInfo,
+                serverInfo: this.getServerInfo(connectionInfo),
             });
             throw new Error(LocalizedConstants.cannotConnect);
         }
@@ -1561,6 +1605,8 @@ export default class ConnectionManager {
             /**
              * Connection was successful
              */
+
+            result.serverInfo.serverTypes = getServerTypes(connectionInfo.credentials);
 
             await this.handleConnectionSuccess(fileUri, connectionInfo, result);
             connectionActivity.end(ActivityStatus.Succeeded, {
@@ -2064,6 +2110,10 @@ export default class ConnectionManager {
         const cancelActivity = startActivity(
             TelemetryViews.ConnectionManager,
             TelemetryActions.CancelConnection,
+            {
+                connectionInfo: this.getConnectionInfoFromUri(fileUri),
+                serverInfo: this.getServerInfo(this.getConnectionInfoFromUri(fileUri)),
+            },
         );
         let cancelRequestCompleted = false;
         setTimeout(() => {

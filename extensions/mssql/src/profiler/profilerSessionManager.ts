@@ -11,7 +11,7 @@ import {
     ProfilerSessionCreatedParams,
     ProfilerSessionTemplate,
 } from "../models/contracts/profiler";
-import { sendActionEvent } from "extension-toolkit/vscode";
+import { sendActionEvent, TelemetryEventOptions } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /**
@@ -33,7 +33,17 @@ export class ProfilerSessionManager {
      * Creates a new ProfilerSessionManager.
      * @param _profilerService - The profiler service for RPC calls
      */
-    constructor(private readonly _profilerService: ProfilerService) {}
+    constructor(
+        private readonly _profilerService: ProfilerService,
+        private readonly _getConnectionTelemetryInfo: (
+            uri: string,
+        ) => TelemetryEventOptions = () => ({}),
+    ) {}
+
+    /** Returns cached connection metadata for an explicit profiling session's owner URI. */
+    public getConnectionTelemetryInfo(ownerUri: string): TelemetryEventOptions {
+        return this._getConnectionTelemetryInfo(ownerUri);
+    }
 
     /**
      * Gets the sessions map.
@@ -139,6 +149,7 @@ export class ProfilerSessionManager {
         session.startedAt = Date.now();
         const isFromFile = session.sessionType === SessionType.File;
         sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionStarted, {
+            ...this.getConnectionTelemetryInfo(session.ownerUri),
             additionalProps: {
                 sessionId,
                 engineType: session.engineType,

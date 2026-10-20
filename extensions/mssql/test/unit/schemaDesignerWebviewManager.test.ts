@@ -89,6 +89,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
         treeNode.updateConnectionProfile = sandbox.stub();
 
         mockMainController.connectionManager = {
+            getServerInfo: sandbox.stub(),
             createConnectionDetails: sandbox.stub().returns({
                 server: "localhost",
                 database: databaseName,

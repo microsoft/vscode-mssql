@@ -5,7 +5,13 @@
 
 import * as vscode from "vscode";
 import { CopilotService } from "../services/copilotService";
-import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    startActivity,
+    TelemetryEventOptions,
+} from "extension-toolkit/vscode";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import * as Constants from "../constants/constants";
 import {
     GetNextMessageResponse,
@@ -73,6 +79,7 @@ export const createSqlAgentRequestHandler = (
         const logger = getRequestLogger();
         let conversationUri = getNextConversationUri();
         let connectionUri = Utils.getActiveTextEditorUri() ?? "";
+        let telemetryContext: TelemetryEventOptions = {};
         logger.debug("In handler");
         logger.debug(
             `Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`,
@@ -294,6 +301,13 @@ export const createSqlAgentRequestHandler = (
             }
 
             const connection = controller.connectionManager.getConnectionInfo(connectionUri);
+            if (connection) {
+                telemetryContext = getConnectionTelemetryInfo(
+                    controller.connectionManager,
+                    connection.credentials,
+                );
+                activity.update(telemetryContext);
+            }
             if (!connectionUri || !connection) {
                 logger.trace(
                     "No connection URI/connection was found. Sending prompt to default language model.",
@@ -452,6 +466,7 @@ export const createSqlAgentRequestHandler = (
                     copilotService,
                     correlationId,
                     logger,
+                    telemetryContext,
                 );
 
                 // Reset for the next iteration
@@ -489,6 +504,7 @@ export const createSqlAgentRequestHandler = (
                             referenceTexts,
                             correlationId,
                             logger,
+                            telemetryContext,
                         );
 
                         replyText = text;
@@ -525,7 +541,7 @@ export const createSqlAgentRequestHandler = (
                 }
             }
         } catch (err) {
-            handleError(err, stream, correlationId, logger);
+            handleError(err, stream, correlationId, logger, telemetryContext);
         }
 
         return {
@@ -551,11 +567,13 @@ export const createSqlAgentRequestHandler = (
         copilotService: CopilotService,
         correlationId: string,
         logger: ILogger,
+        telemetryContext: TelemetryEventOptions = {},
     ): Promise<GetNextMessageResponse> {
         logger.trace("in processToolCalls");
 
         if (sqlTools.length === 0) {
             sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+                ...telemetryContext,
                 error: new Error("No tools to process."),
                 includeErrorMessage: true,
                 additionalProps: { correlationId: correlationId },
@@ -591,6 +609,7 @@ export const createSqlAgentRequestHandler = (
 
                 // Log telemetry for the unhandled error
                 sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+                    ...telemetryContext,
                     error: error instanceof Error ? error : new Error("Unknown tool call error"),
                     includeErrorMessage: true,
                     additionalProps: {
@@ -787,6 +806,7 @@ export const createSqlAgentRequestHandler = (
         tools: LanguageModelChatTool[],
         correlationId: string,
         logger: ILogger,
+        telemetryContext: TelemetryEventOptions = {},
     ): Promise<{
         replyText: string;
         toolsCalled: { tool: LanguageModelChatTool; parameters: string }[];
@@ -813,6 +833,7 @@ export const createSqlAgentRequestHandler = (
                     stream,
                     correlationId,
                     logger,
+                    telemetryContext,
                 );
                 if (tool) {
                     logger.trace(`Pushing ${tool.functionName} to toolsCalled`);
@@ -835,6 +856,7 @@ export const createSqlAgentRequestHandler = (
         referenceTexts: string[],
         correlationId: string,
         logger: ILogger,
+        telemetryContext: TelemetryEventOptions = {},
     ): Promise<{
         text: string;
         tools: { tool: LanguageModelChatTool; parameters: string }[];
@@ -861,6 +883,7 @@ export const createSqlAgentRequestHandler = (
             result.tools,
             correlationId,
             logger,
+            telemetryContext,
         );
 
         logger.trace("Finished handling request LLM message.");
@@ -878,6 +901,7 @@ export const createSqlAgentRequestHandler = (
         stream: vscode.ChatResponseStream,
         correlationId: string,
         logger: ILogger,
+        telemetryContext: TelemetryEventOptions = {},
     ): Promise<{
         sqlTool: LanguageModelChatTool | undefined;
         sqlToolParameters: string | undefined;
@@ -909,6 +933,7 @@ export const createSqlAgentRequestHandler = (
             sqlToolParameters = JSON.stringify(part.input);
         } catch (err) {
             sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+                ...telemetryContext,
                 error: new Error(
                     `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${getErrorMessage(err)})`,
                 ),
@@ -933,6 +958,7 @@ export const createSqlAgentRequestHandler = (
         }
 
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ToolCall, {
+            ...telemetryContext,
             additionalProps: {
                 toolName: tool.functionName,
                 toolDescription: tool.functionDescription,
@@ -950,6 +976,7 @@ export const createSqlAgentRequestHandler = (
         stream: vscode.ChatResponseStream,
         correlationId: string,
         logger: ILogger,
+        telemetryContext: TelemetryEventOptions = {},
     ): void {
         logger.trace("in handleLanguageModelError");
         logger.error("Language Model Error:", getErrorMessage(err), "Code:", err.code);
@@ -964,6 +991,7 @@ export const createSqlAgentRequestHandler = (
         const errorMessage = errorMessages[err.code] || loc.unexpectedError;
 
         sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+            ...telemetryContext,
             error: new Error(getErrorMessage(err)),
             includeErrorMessage: false,
             errorCode: err.code || "Unknown",
@@ -1041,11 +1069,12 @@ export const createSqlAgentRequestHandler = (
         stream: vscode.ChatResponseStream,
         correlationId: string,
         logger: ILogger,
+        telemetryContext: TelemetryEventOptions = {},
     ): void {
         logger.trace("in handleError");
 
         if (err instanceof vscode.LanguageModelError) {
-            handleLanguageModelError(err, stream, correlationId, logger);
+            handleLanguageModelError(err, stream, correlationId, logger, telemetryContext);
         } else if (err instanceof Error) {
             logger.error("Unhandled Error:", {
                 message: err.message,
@@ -1053,6 +1082,7 @@ export const createSqlAgentRequestHandler = (
             });
 
             sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+                ...telemetryContext,
                 error: new Error(`An error occurred with: ${getErrorMessage(err)}`),
                 includeErrorMessage: false,
                 additionalProps: {
@@ -1067,6 +1097,7 @@ export const createSqlAgentRequestHandler = (
             logger.error("Unknown Error Type:", getErrorMessage(err));
 
             sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+                ...telemetryContext,
                 error: new Error(`Unknown Error Type: ${getErrorMessage(err)}`),
                 includeErrorMessage: false,
                 additionalProps: {

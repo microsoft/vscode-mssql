@@ -5,6 +5,7 @@
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import ConnectionManager from "../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import {
     ScriptingRequest,
     IScriptingParams,
@@ -202,6 +203,7 @@ export class ScriptingService {
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ScriptNode,
             {
+                ...getConnectionTelemetryInfo(this._connectionManager, node.connectionProfile),
                 additionalProps: {
                     operation: this.stringifyScriptOperation(operation),
                     nodeType: node.nodeType,
@@ -493,6 +495,7 @@ export class ScriptingService {
             TelemetryViews.ScriptingService,
             TelemetryActions.Script,
             {
+                ...getConnectionTelemetryInfo(this._connectionManager, scriptingParams.ownerURI),
                 additionalProps: {
                     operation: this.stringifyScriptOperation(scriptingParams.operation),
                 },

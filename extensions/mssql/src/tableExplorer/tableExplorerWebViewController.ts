@@ -16,6 +16,7 @@ import {
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
@@ -108,6 +109,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         this.registerRpcHandlers();
     }
 
+    protected override get telemetryContext() {
+        return getConnectionTelemetryInfo(
+            this._connectionManager,
+            this._targetNode?.connectionProfile,
+        );
+    }
+
     private onEditSessionReady(result: EditSessionReadyParams): void {
         if (result.success) {
             this.state.ownerUri = result.ownerUri;
@@ -115,6 +123,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.updateState();
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.EditSessionReady, {
+                connectionInfo: this._targetNode?.connectionProfile,
+                serverInfo: this._connectionManager.getServerInfo(
+                    this._targetNode?.connectionProfile,
+                ),
                 additionalProps: {
                     operationId: this.operationId,
                 },
@@ -148,6 +160,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         }
 
         sendErrorEvent(TelemetryViews.TableExplorer, TelemetryActions.EditSessionReady, {
+            connectionInfo: this._targetNode?.connectionProfile,
+            serverInfo: this._connectionManager.getServerInfo(this._targetNode?.connectionProfile),
             error: new Error("Edit session failed to initialize"),
             includeErrorMessage: true,
             additionalProps: {
@@ -167,6 +181,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             TelemetryViews.TableExplorer,
             TelemetryActions.Initialize,
             {
+                connectionInfo: this._targetNode?.connectionProfile,
+                serverInfo: this._connectionManager.getServerInfo(
+                    this._targetNode?.connectionProfile,
+                ),
                 correlationId: uuid(),
                 additionalProps: {
                     startTime: startTime.toString(),
@@ -492,6 +510,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.CommitChanges,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -560,6 +582,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.LoadSubset,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -650,6 +676,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.CreateRow,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -729,6 +759,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.DeleteRow,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -856,6 +890,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.UpdateCell,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1014,6 +1052,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RevertCell,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1144,6 +1186,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RevertRow,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1282,6 +1328,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.GenerateScript,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1353,6 +1403,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.debug(`Opening script in SQL editor - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
+                connectionInfo: this._targetNode?.connectionProfile,
+                serverInfo: this._connectionManager.getServerInfo(
+                    this._targetNode?.connectionProfile,
+                ),
                 additionalProps: {
                     operationId: this.operationId,
                     context: "scriptEditor",
@@ -1389,6 +1443,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.debug(`Copying script to clipboard - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.CopyResults, {
+                connectionInfo: this._targetNode?.connectionProfile,
+                serverInfo: this._connectionManager.getServerInfo(
+                    this._targetNode?.connectionProfile,
+                ),
                 additionalProps: {
                     operationId: this.operationId,
                     context: "script",
@@ -1428,6 +1486,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Close, {
+                connectionInfo: this._targetNode?.connectionProfile,
+                serverInfo: this._connectionManager.getServerInfo(
+                    this._targetNode?.connectionProfile,
+                ),
                 additionalProps: {
                     operationId: this.operationId,
                     context: "scriptPane",
@@ -1457,6 +1519,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.SaveResults,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1554,6 +1620,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.debug(`Showing table query pane - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.ShowTableQuery, {
+                connectionInfo: this._targetNode?.connectionProfile,
+                serverInfo: this._connectionManager.getServerInfo(
+                    this._targetNode?.connectionProfile,
+                ),
                 additionalProps: {
                     operationId: this.operationId,
                 },
@@ -1585,6 +1655,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RunTableQuery,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1712,6 +1786,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.ModifyTable,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1765,6 +1843,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 TelemetryViews.TableExplorer,
                 TelemetryActions.ViewTableDiagram,
                 {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     correlationId: uuid(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1833,6 +1915,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 });
                 await vscode.window.showTextDocument(doc, { preview: false });
                 sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
+                    connectionInfo: this._targetNode?.connectionProfile,
+                    serverInfo: this._connectionManager.getServerInfo(
+                        this._targetNode?.connectionProfile,
+                    ),
                     additionalProps: {
                         operationId: this.operationId,
                         context: "showSql",

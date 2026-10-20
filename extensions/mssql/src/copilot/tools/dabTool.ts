@@ -8,6 +8,7 @@ import { ToolBase } from "./toolBase";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import ConnectionManager from "../../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../../utils/telemetryUtils";
 import { SchemaDesignerWebviewManager } from "../../schemaDesigner/schemaDesignerWebviewManager";
 import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesignerWebviewController";
 import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
@@ -125,6 +126,13 @@ export class DabTool extends ToolBase<DabToolParams> {
         super();
     }
 
+    protected override getTelemetryContext(input: DabToolParams) {
+        return input.operation === "show"
+            ? getConnectionTelemetryInfo(this._connectionManager, input.connectionId)
+            : (SchemaDesignerWebviewManager.getInstance().getActiveDesigner()?.telemetryContext ??
+                  {});
+    }
+
     async call(
         options: vscode.LanguageModelToolInvocationOptions<DabToolParams>,
         _token: vscode.CancellationToken,
@@ -132,6 +140,7 @@ export class DabTool extends ToolBase<DabToolParams> {
         const json = (obj: unknown) => JSON.stringify(obj);
         const schemaDesignerManager = SchemaDesignerWebviewManager.getInstance();
         const { operation } = options.input;
+        let telemetryContext = this.getTelemetryContext(options.input);
 
         const sendToolTelemetry = (params: {
             operation: DabToolOperation;
@@ -141,6 +150,7 @@ export class DabTool extends ToolBase<DabToolParams> {
         }) => {
             try {
                 sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.DabTool, {
+                    ...telemetryContext,
                     additionalProps: {
                         operation: params.operation,
                         success: String(params.success),
@@ -266,6 +276,7 @@ export class DabTool extends ToolBase<DabToolParams> {
                 }
 
                 const connCreds = resolvedConnection.connectionInfo.credentials;
+                telemetryContext = getConnectionTelemetryInfo(this._connectionManager, connCreds);
                 const designer = await this._showDab(
                     resolvedConnection.ownerUri,
                     connCreds.database,
@@ -300,6 +311,8 @@ export class DabTool extends ToolBase<DabToolParams> {
                 sendToolTelemetry({ operation, success: false, reason: err.reason });
                 return json(err);
             }
+
+            telemetryContext = activeDesigner.telemetryContext ?? {};
 
             if (operation === "get_state") {
                 const state = await activeDesigner.getDabToolState();

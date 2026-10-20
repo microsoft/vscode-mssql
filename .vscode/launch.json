@@ -2,6 +2,25 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "MSSQL: Local STS telemetry",
+            "type": "extensionHost",
+            "request": "launch",
+            "args": ["--extensionDevelopmentPath=${workspaceFolder}/extensions/mssql"],
+            "outFiles": [
+                "${workspaceFolder}/extensions/mssql/dist/**/*.js",
+                "${workspaceFolder}/extensions/mssql/out/**/*.js",
+                "${workspaceFolder}/packages/extension-toolkit/dist/**/*.js"
+            ],
+            "sourceMaps": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/extensions/mssql/dist/**",
+                "${workspaceFolder}/packages/extension-toolkit/dist/**"
+            ],
+            "env": {
+                "MSSQL_SQLTOOLSSERVICE": "${workspaceFolder}/../sqltoolsservice/artifacts/telemetry-local"
+            }
+        },
+        {
             "name": "Run All Extensions",
             "type": "extensionHost",
             "request": "launch",

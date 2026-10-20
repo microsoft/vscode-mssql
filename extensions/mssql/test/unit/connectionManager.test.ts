@@ -8,10 +8,11 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
-import { IToken, IConnectionInfo } from "vscode-mssql";
+import { IToken, IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import ConnectionManager, {
+    ConnectionInfo,
     getSqlConnectionErrorType,
     serverlessWakeMaxRetryAttempts,
     SqlConnectionErrorType,
@@ -157,6 +158,59 @@ suite("ConnectionManager Tests", () => {
     suite("Functionality tests", () => {
         setup(() => {
             connectionManager = createConnectionManager();
+        });
+
+        test("refreshes cached database tier and endpoint tags after a context change", () => {
+            const uri = "file:///tier-test.sql";
+            const connection = new ConnectionInfo();
+            connection.credentials = { server: "localhost", database: "old" } as IConnectionInfo;
+            connection.connectionId = "connection-id";
+            connection.connecting = false;
+            connection.serverInfo = {
+                engineEditionId: 5,
+                databaseServiceTier: "Standard",
+            } as IServerInfo;
+            connectionManager["_connections"][uri] = connection;
+
+            connectionManager.handleConnectionChangedNotification()({
+                ownerUri: uri,
+                connection: { serverName: "localhost", databaseName: "new", userName: "user" },
+                serverInfo: {
+                    ...connection.serverInfo,
+                    databaseServiceTier: "General Purpose",
+                    databaseServiceObjective: "GP_Gen5_2",
+                },
+            });
+
+            expect(connectionManager.getServerInfo(connection.credentials)).to.include({
+                databaseServiceTier: "General Purpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            });
+            expect(connection.serverInfo.serverTypes).to.deep.equal(["Local", "SQL"]);
+        });
+
+        test("does not attribute the previous database tier to older-service context changes", () => {
+            const uri = "file:///tier-test.sql";
+            const connection = new ConnectionInfo();
+            connection.credentials = { server: "localhost", database: "old" } as IConnectionInfo;
+            connection.connectionId = "connection-id";
+            connection.connecting = false;
+            connection.serverInfo = {
+                engineEditionId: 5,
+                databaseServiceTier: "Standard",
+                databaseServiceObjective: "S0",
+            } as IServerInfo;
+            connectionManager["_connections"][uri] = connection;
+
+            connectionManager.handleConnectionChangedNotification()({
+                ownerUri: uri,
+                connection: { serverName: "localhost", databaseName: "new", userName: "user" },
+            });
+
+            const serverInfo = connectionManager.getServerInfo(connection.credentials);
+            expect(serverInfo.engineEditionId).to.equal(5);
+            expect(serverInfo.databaseServiceTier).to.equal(undefined);
+            expect(serverInfo.databaseServiceObjective).to.equal(undefined);
         });
 
         test("strips a trailing comma from the server", () => {

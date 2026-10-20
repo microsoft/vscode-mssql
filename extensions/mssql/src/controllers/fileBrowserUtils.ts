@@ -9,11 +9,15 @@ import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterface
 import { WebviewPanelController } from "./webviewPanelController";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
+import ConnectionManager from "./connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 
+/** Registers the server-backed file browser reducers and their owner-connection telemetry. */
 export function registerFileBrowserReducers<TResult>(
     controller: WebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, TResult>,
     fileBrowserService: FileBrowserService,
     fileBrowserFilters?: string[],
+    connectionManager?: ConnectionManager,
 ): void {
     controller.registerReducer("openFileBrowser", async (state, payload) => {
         const result = await fileBrowserService.openFileBrowser(
@@ -25,9 +29,14 @@ export function registerFileBrowserReducers<TResult>(
         );
         if (result && result.succeeded) {
             state.fileBrowserState = fileBrowserService.fileBrowserState;
-            sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserOpen);
+            sendActionEvent(
+                TelemetryViews.FileBrowser,
+                TelemetryActions.FileBrowserOpen,
+                getConnectionTelemetryInfo(connectionManager, payload.ownerUri),
+            );
         } else {
             sendErrorEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserOpen, {
+                ...getConnectionTelemetryInfo(connectionManager, payload.ownerUri),
                 error: new Error(result ? result.message : "Unknown error"),
                 includeErrorMessage: false,
             });
@@ -38,9 +47,14 @@ export function registerFileBrowserReducers<TResult>(
         const result = await fileBrowserService.expandFilePath(payload.ownerUri, payload.nodePath);
         if (result && result.succeeded) {
             state.fileBrowserState = fileBrowserService.fileBrowserState;
-            sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserExpand);
+            sendActionEvent(
+                TelemetryViews.FileBrowser,
+                TelemetryActions.FileBrowserExpand,
+                getConnectionTelemetryInfo(connectionManager, payload.ownerUri),
+            );
         } else {
             sendErrorEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserExpand, {
+                ...getConnectionTelemetryInfo(connectionManager, payload.ownerUri),
                 error: new Error(result ? result.message : "Unknown error"),
                 includeErrorMessage: false,
             });
@@ -55,16 +69,25 @@ export function registerFileBrowserReducers<TResult>(
             // If no property name is provided, update the default selectedPath
             state.fileBrowserState.selectedPath = payload.selectedPath;
         }
-        sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserSubmitFilePath);
+        sendActionEvent(
+            TelemetryViews.FileBrowser,
+            TelemetryActions.FileBrowserSubmitFilePath,
+            getConnectionTelemetryInfo(connectionManager, state.ownerUri),
+        );
         return state;
     });
     controller.registerReducer("closeFileBrowser", async (state, payload) => {
         const result = await fileBrowserService.closeFileBrowser(payload.ownerUri);
         if (result && result.succeeded) {
             state.fileBrowserState = fileBrowserService.fileBrowserState;
-            sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserClose);
+            sendActionEvent(
+                TelemetryViews.FileBrowser,
+                TelemetryActions.FileBrowserClose,
+                getConnectionTelemetryInfo(connectionManager, payload.ownerUri),
+            );
         } else {
             sendErrorEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserClose, {
+                ...getConnectionTelemetryInfo(connectionManager, payload.ownerUri),
                 error: new Error(result ? result.message : "Unknown error"),
                 includeErrorMessage: false,
             });
@@ -86,10 +109,14 @@ export function registerFileBrowserReducers<TResult>(
                     sendActionEvent(
                         TelemetryViews.FileBrowser,
                         TelemetryActions.FileBrowserDialog,
-                        { additionalProps: { isOpen: "true" } },
+                        {
+                            ...getConnectionTelemetryInfo(connectionManager, state.ownerUri),
+                            additionalProps: { isOpen: "true" },
+                        },
                     );
                 } else {
                     sendErrorEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserDialog, {
+                        ...getConnectionTelemetryInfo(connectionManager, state.ownerUri),
                         error: new Error(result ? result.message : "Unknown error"),
                         includeErrorMessage: false,
                         additionalProps: { isOpen: "true" },
@@ -107,6 +134,7 @@ export function registerFileBrowserReducers<TResult>(
             // Close the file browser dialog
             state.dialog = undefined;
             sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserDialog, {
+                ...getConnectionTelemetryInfo(connectionManager, state.ownerUri),
                 additionalProps: {
                     isOpen: "false",
                 },

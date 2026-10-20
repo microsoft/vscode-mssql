@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { shallowEqualObjects } from "shallow-equal";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getAccounts, getTenants, VsCodeAzureHelper, VsCodeAzureAuth } from "./azureHelpers";
@@ -358,7 +359,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("loadConnectionForEdit", async (state, payload) => {
-            sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadConnection);
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadConnection,
+                getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    payload.connection,
+                ),
+            );
             await this.setConnectionForEdit(payload.connection);
 
             return state;
@@ -366,6 +374,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("loadConnectionAsNewDraft", async (state, payload) => {
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadConnection, {
+                ...getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    payload.connection,
+                ),
                 additionalProps: {
                     mode: "newDraft",
                 },
@@ -407,6 +419,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 state.dialog = undefined;
 
                 sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule, {
+                    ...getConnectionTelemetryInfo(
+                        this._mainController.connectionManager,
+                        state.connectionProfile,
+                    ),
                     error: err,
                     includeErrorMessage: false,
                     errorType: err.Name,
@@ -419,7 +435,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule);
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.AddFirewallRule,
+                getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    state.connectionProfile,
+                ),
+            );
 
             state.dialog = undefined;
             this.updateState(state);
@@ -549,6 +572,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         TelemetryViews.ConnectionDialog,
                         TelemetryActions.LoadFromConnectionString,
                         {
+                            ...getConnectionTelemetryInfo(
+                                this._mainController.connectionManager,
+                                ConnectionCredentials.createConnectionInfo(connDetails),
+                            ),
                             additionalProps: {
                                 result: "unsupportedAuthType",
                                 details: connDetails.options.authenticationType,
@@ -576,6 +603,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryViews.ConnectionDialog,
                     TelemetryActions.LoadFromConnectionString,
                     {
+                        ...getConnectionTelemetryInfo(
+                            this._mainController.connectionManager,
+                            state.connectionProfile,
+                        ),
                         additionalProps: {
                             result: "success",
                         },
@@ -1403,6 +1434,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState();
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
+                ...getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    preparedConnection,
+                ),
                 additionalProps: {
                     result: "success",
                     submitAction: action,
@@ -1423,6 +1458,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState();
 
             sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
+                ...getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    state.connectionProfile,
+                ),
                 error,
                 additionalProps: {
                     submitAction: action,
@@ -1511,6 +1550,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState(state);
 
             sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
+                ...getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    state.connectionProfile,
+                ),
                 error,
                 includeErrorMessage: false,
                 additionalProps: {
@@ -1776,6 +1819,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             if (!handleFirewallErrorResult.result) {
                 sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule, {
+                    ...getConnectionTelemetryInfo(
+                        this._mainController.connectionManager,
+                        result.credentials,
+                    ),
                     error: new Error(result.errorMessage),
                     // Parse failed because it couldn't detect an IP address, so that'd be the only PII.
                     includeErrorMessage: true,
@@ -1839,6 +1886,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.connectionStatus = ApiStatus.Error;
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
+                ...getConnectionTelemetryInfo(
+                    this._mainController.connectionManager,
+                    result.credentials,
+                ),
                 additionalProps: {
                     result: "connectionError",
                     errorNumber: String(result.errorNumber),

@@ -58,6 +58,12 @@ export class QueryResultWebviewController extends WebviewViewController<
     public actualPlanStatuses: string[] = [];
     private _sqlDocumentService: SqlDocumentService;
 
+    protected override get telemetryContext() {
+        return this.state?.uri
+            ? (this._sqlOutputContentProvider?.getConnectionTelemetryInfo(this.state.uri) ?? {})
+            : {};
+    }
+
     constructor(
         context: vscode.ExtensionContext,
         private _executionPlanService: ExecutionPlanService,
@@ -427,6 +433,7 @@ export class QueryResultWebviewController extends WebviewViewController<
         // the panel if ready is delayed or never arrives.
         void controller.whenWebviewReady().catch((e) => {
             sendErrorEvent(TelemetryViews.QueryResult, TelemetryActions.CreatePanelController, {
+                ...this._sqlOutputContentProvider.getConnectionTelemetryInfo(uri),
                 error: e instanceof Error ? e : new Error(String(e)),
                 includeErrorMessage: true,
             });
@@ -706,6 +713,7 @@ export class QueryResultWebviewController extends WebviewViewController<
 
             const error = new Error(`No query result state found for uri ${uri}`);
             sendErrorEvent(TelemetryViews.QueryResult, TelemetryActions.GetQueryResultState, {
+                ...this._sqlOutputContentProvider.getConnectionTelemetryInfo(uri),
                 error: new Error(`No query result state found for uri`),
                 includeErrorMessage: false,
             });

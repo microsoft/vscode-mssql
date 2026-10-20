@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import MainController from "../controllers/mainController";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
@@ -398,11 +399,15 @@ export async function handleChatCommand(
         requiresConnection: commandDef.requiresConnection.toString(),
         hasConnection: isConnectionActive(controller, connectionUri).toString(),
     };
+    const telemetryContext = commandDef.requiresConnection
+        ? getConnectionTelemetryInfo(controller.connectionManager, connectionUri)
+        : {};
 
     try {
         // Check connection requirements - verify connection is actually active
         if (commandDef.requiresConnection && !isConnectionActive(controller, connectionUri)) {
             sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
+                ...telemetryContext,
                 additionalProps: {
                     ...telemetryProperties,
                     success: "false",
@@ -429,6 +434,7 @@ export async function handleChatCommand(
         if (commandDef.type === CommandType.Simple && commandDef.handler) {
             await commandDef.handler(stream, controller, connectionUri);
             sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
+                ...telemetryContext,
                 additionalProps: {
                     ...telemetryProperties,
                     success: "true",
@@ -440,6 +446,7 @@ export async function handleChatCommand(
         // Handle prompt substitute commands
         if (commandDef.type === CommandType.PromptSubstitute && commandDef.promptTemplate) {
             sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
+                ...telemetryContext,
                 additionalProps: {
                     ...telemetryProperties,
                     success: "true",
@@ -452,6 +459,7 @@ export async function handleChatCommand(
         }
 
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
+            ...telemetryContext,
             additionalProps: {
                 ...telemetryProperties,
                 success: "false",
@@ -461,6 +469,7 @@ export async function handleChatCommand(
         return { handled: false };
     } catch (error) {
         sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
+            ...telemetryContext,
             error,
             includeErrorMessage: false,
             additionalProps: {

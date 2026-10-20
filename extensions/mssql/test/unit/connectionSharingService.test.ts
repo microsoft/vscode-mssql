@@ -305,6 +305,8 @@ suite("ConnectionSharingService Tests", () => {
                         authenticationType: "SqlLogin",
                         extensionId: testExtensionId,
                     },
+                    connectionInfo: mockConnectionProfile,
+                    serverInfo: mockServerInfo,
                 },
             );
         });
@@ -501,6 +503,8 @@ suite("ConnectionSharingService Tests", () => {
                         authenticationType: "unknown",
                         extensionId: testExtensionId,
                     },
+                    connectionInfo: undefined,
+                    serverInfo: undefined,
                 },
             );
             expect(connectionManager.getConnectionInfoFromUri).not.to.have.been.called;
@@ -943,6 +947,8 @@ suite("ConnectionSharingService Tests", () => {
                         authenticationType: "SqlLogin",
                         extensionId: "unknown",
                     },
+                    connectionInfo: mockConnectionProfile,
+                    serverInfo: mockServerInfo,
                 },
             );
             expect(client.sendRequest).to.have.been.called;
@@ -955,7 +961,7 @@ suite("ConnectionSharingService Tests", () => {
             const result = command!(testConnectionUri);
 
             expect(result).to.deep.equal(mockServerInfo);
-            expect(connectionManager.getServerInfo).to.have.been.calledOnce;
+            expect(connectionManager.getServerInfo).to.have.been.calledWith(mockConnectionProfile);
         });
 
         test("should throw error for invalid connection uri", () => {

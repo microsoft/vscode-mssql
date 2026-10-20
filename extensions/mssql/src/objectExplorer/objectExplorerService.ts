@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import ConnectionManager, {
     serverlessWakeMaxRetryAttempts,
@@ -220,6 +221,7 @@ export class ObjectExplorerService {
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
             {
+                ...getConnectionTelemetryInfo(this._connectionManager, node.connectionProfile),
                 additionalProps: {
                     nodeType: node.nodeType,
                     nodeSubType: node.nodeSubType,
@@ -863,6 +865,7 @@ export class ObjectExplorerService {
             TelemetryViews.ObjectExplorer,
             TelemetryActions.CreateSession,
             {
+                ...getConnectionTelemetryInfo(this._connectionManager, connectionInfo),
                 additionalProps: {
                     connectionType: connectionInfo?.authenticationType ?? "newConnection",
                 },
@@ -875,6 +878,10 @@ export class ObjectExplorerService {
             this._logger.error("Failed to prepare connection profile");
             return undefined;
         }
+
+        createSessionActivity.update(
+            getConnectionTelemetryInfo(this._connectionManager, connectionProfile),
+        );
 
         const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionProfile);
 
@@ -942,6 +949,7 @@ export class ObjectExplorerService {
                     connectionProfile,
                 );
                 createSessionActivity.end(ActivityStatus.Succeeded, {
+                    ...getConnectionTelemetryInfo(this._connectionManager, connectionProfile),
                     additionalProps: {
                         connectionType: connectionProfile.authenticationType,
                     },
@@ -1023,7 +1031,11 @@ export class ObjectExplorerService {
 
         // Local container, ensure it is started
         if (connectionProfile.containerName) {
-            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.ConnectToContainer);
+            sendActionEvent(
+                TelemetryViews.LocalContainers,
+                TelemetryActions.ConnectToContainer,
+                getConnectionTelemetryInfo(this._connectionManager, connectionProfile),
+            );
             try {
                 const containerNode = this.getConnectionNodeFromProfile(connectionProfile);
                 // start docker and docker container

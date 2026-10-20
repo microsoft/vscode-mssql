@@ -235,6 +235,9 @@ export class ProfilerWebviewController extends WebviewPanelController<
                     TelemetryViews.Profiler,
                     TelemetryActions.ProfilerCloseWarningShown,
                     {
+                        ...this._sessionManager.getConnectionTelemetryInfo(
+                            this._currentSession.ownerUri,
+                        ),
                         additionalProps: {
                             sessionId: this._currentSession.id,
                             userAction: "Discarded",
@@ -254,6 +257,9 @@ export class ProfilerWebviewController extends WebviewPanelController<
                     TelemetryViews.Profiler,
                     TelemetryActions.ProfilerCloseWarningShown,
                     {
+                        ...this._sessionManager.getConnectionTelemetryInfo(
+                            this._currentSession.ownerUri,
+                        ),
                         additionalProps: {
                             sessionId: this._currentSession.id,
                             userAction: "Cancelled",
@@ -482,6 +488,9 @@ export class ProfilerWebviewController extends WebviewPanelController<
                         TelemetryViews.Profiler,
                         TelemetryActions.ProfilerFilterApplied,
                         {
+                            ...this._sessionManager.getConnectionTelemetryInfo(
+                                this._currentSession.ownerUri,
+                            ),
                             additionalProps: {
                                 sessionId: this._currentSession.id,
                                 filters: pairs.join(","),
@@ -603,6 +612,9 @@ export class ProfilerWebviewController extends WebviewPanelController<
                                     TelemetryViews.Profiler,
                                     TelemetryActions.ProfilerExportDone,
                                     {
+                                        ...this._sessionManager.getConnectionTelemetryInfo(
+                                            this._currentSession.ownerUri,
+                                        ),
                                         additionalProps: {
                                             sessionId: this._currentSession.id,
                                             exportFormat: "csv",

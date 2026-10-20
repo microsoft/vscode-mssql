@@ -258,13 +258,17 @@ export function startActivity(
     const activityUpdateAdditionalMeasurementsBase: TelemetryEventMeasures = {
         ...startActivityAdditionalMeasurements,
     };
+    let activityConnectionInfo = connectionInfo;
+    let activityServerInfo = serverInfo;
 
     function update({
         additionalProps = {},
         additionalMeasurements = {},
-        connectionInfo,
-        serverInfo,
+        connectionInfo = activityConnectionInfo,
+        serverInfo = activityServerInfo,
     }: TelemetryEventOptions = {}): void {
+        activityConnectionInfo = connectionInfo;
+        activityServerInfo = serverInfo;
         const updateCallStack = includeCallStack ? captureCallStack() : undefined;
         sendActionEvent(telemetryView, telemetryAction, {
             additionalProps: {
@@ -288,8 +292,8 @@ export function startActivity(
         {
             additionalProps = {},
             additionalMeasurements = {},
-            connectionInfo,
-            serverInfo,
+            connectionInfo = activityConnectionInfo,
+            serverInfo = activityServerInfo,
         }: TelemetryEventOptions = {},
     ): void {
         const endCallStack = includeCallStack ? captureCallStack() : undefined;
@@ -317,8 +321,8 @@ export function startActivity(
         errorType?: string,
         additionalProps?: TelemetryEventProperties,
         additionalMeasurements?: TelemetryEventMeasures,
-        connectionInfo?: ConnectionInfo,
-        serverInfo?: ServerInfo,
+        connectionInfo: ConnectionInfo | undefined = activityConnectionInfo,
+        serverInfo: ServerInfo | undefined = activityServerInfo,
     ): void {
         includeErrorMessage = includeErrorMessage ?? false;
         const endFailedCallStack = includeCallStack ? captureCallStack() : undefined;

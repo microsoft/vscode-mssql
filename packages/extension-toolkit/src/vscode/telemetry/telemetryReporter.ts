@@ -16,6 +16,9 @@ export interface ServerInfo {
     serverVersion?: string;
     serverEdition?: string;
     engineEditionId?: string | number;
+    databaseServiceTier?: string;
+    databaseServiceObjective?: string;
+    serverTypes?: readonly string[];
 }
 
 export interface TelemetryEventProperties {
@@ -126,6 +129,9 @@ class TelemetryEventImpl implements TelemetryEvent {
                     serverInfo.engineEditionId === undefined
                         ? ""
                         : String(serverInfo.engineEditionId),
+                databaseServiceTier: serverInfo.databaseServiceTier ?? "",
+                databaseServiceObjective: serverInfo.databaseServiceObjective ?? "",
+                serverTypes: serverInfo.serverTypes?.join(",") ?? "",
             });
         } else {
             console.error(

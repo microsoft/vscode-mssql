@@ -158,6 +158,9 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.SaveResultsWebviewRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.SaveResults, {
+            ...webviewViewController
+                .getSqlOutputContentProvider()
+                .getConnectionTelemetryInfo(message.uri),
             additionalProps: {
                 correlationId: correlationId,
                 format: message.format,
@@ -178,6 +181,9 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopySelectionRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            ...webviewViewController
+                .getSqlOutputContentProvider()
+                .getConnectionTelemetryInfo(message.uri),
             additionalProps: {
                 correlationId: correlationId,
             },
@@ -196,6 +202,9 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyHeadersRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyHeaders, {
+            ...webviewViewController
+                .getSqlOutputContentProvider()
+                .getConnectionTelemetryInfo(message.uri),
             additionalProps: {
                 correlationId: correlationId,
             },
@@ -212,6 +221,9 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsCsvRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            ...webviewViewController
+                .getSqlOutputContentProvider()
+                .getConnectionTelemetryInfo(message.uri),
             additionalProps: {
                 correlationId: correlationId,
                 format: "csv",
@@ -229,6 +241,9 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsJsonRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            ...webviewViewController
+                .getSqlOutputContentProvider()
+                .getConnectionTelemetryInfo(message.uri),
             additionalProps: {
                 correlationId: correlationId,
                 format: "json",
@@ -246,6 +261,9 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsInClauseRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            ...webviewViewController
+                .getSqlOutputContentProvider()
+                .getConnectionTelemetryInfo(message.uri),
             additionalProps: {
                 correlationId: correlationId,
                 format: "in-clause",
@@ -263,6 +281,9 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsInsertIntoRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            ...webviewViewController
+                .getSqlOutputContentProvider()
+                .getConnectionTelemetryInfo(message.uri),
             additionalProps: {
                 correlationId: correlationId,
                 format: "insert-into",
@@ -426,6 +447,9 @@ export function registerCommonRequestHandlers(
                 webviewViewController.sqlDocumentService,
                 payload.content,
                 Constants.queryPlan,
+                webviewViewController
+                    .getSqlOutputContentProvider()
+                    .getConnectionTelemetryInfo(state.uri),
             );
             return state;
         } else if (payload.type === Constants.xml) {
@@ -452,7 +476,13 @@ export function registerCommonRequestHandlers(
         return state;
     });
     webviewController.registerReducer("saveExecutionPlan", async (state, payload) => {
-        return (await saveExecutionPlan(state, payload)) as qr.QueryResultWebviewState;
+        return (await saveExecutionPlan(
+            state,
+            payload,
+            webviewViewController
+                .getSqlOutputContentProvider()
+                .getConnectionTelemetryInfo(state.uri),
+        )) as qr.QueryResultWebviewState;
     });
     webviewController.registerReducer("showPlanXml", async (state, payload) => {
         return (await showPlanXml(state, payload)) as qr.QueryResultWebviewState;

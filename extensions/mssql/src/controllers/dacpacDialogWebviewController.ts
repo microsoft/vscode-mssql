@@ -9,6 +9,7 @@ import * as fs from "fs";
 import { existsSync } from "fs";
 import { homedir } from "os";
 import ConnectionManager from "./connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { DacFxService } from "../services/dacFxService";
 import { IConnectionProfile } from "../models/interfaces";
 import * as vscodeMssql from "vscode-mssql";
@@ -47,6 +48,10 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     dacpacDialog.DacpacDialogResult
 > {
     private _ownerUri: string;
+
+    protected override get telemetryContext() {
+        return getConnectionTelemetryInfo(this.connectionManager, this._ownerUri);
+    }
 
     constructor(
         context: vscode.ExtensionContext,
@@ -307,6 +312,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogDeployDacpac,
             {
+                ...getConnectionTelemetryInfo(this.connectionManager, params.ownerUri),
                 additionalProps: {
                     isNewDatabase: params.isNewDatabase.toString(),
                 },
@@ -371,6 +377,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogExtractDacpac,
+            getConnectionTelemetryInfo(this.connectionManager, params.ownerUri),
         );
 
         try {
@@ -432,6 +439,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogImportBacpac,
+            getConnectionTelemetryInfo(this.connectionManager, params.ownerUri),
         );
 
         try {
@@ -491,6 +499,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogExportBacpac,
+            getConnectionTelemetryInfo(this.connectionManager, params.ownerUri),
         );
 
         try {

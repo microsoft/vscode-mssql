@@ -17,12 +17,17 @@ import {
     updateTotalCost,
 } from "./sharedExecutionPlanUtils";
 import { ExecutionPlanService } from "../services/executionPlanService";
+import { TelemetryEventOptions } from "extension-toolkit/vscode";
 import { executionPlanSourceRegistry } from "./executionPlanSourceRegistry";
 
 export class ExecutionPlanWebviewController extends WebviewPanelController<
     ep.ExecutionPlanWebviewState,
     ep.ExecutionPlanReducers
 > {
+    protected override get telemetryContext(): TelemetryEventOptions {
+        return this._connectionTelemetryInfo ?? {};
+    }
+
     constructor(
         context: vscode.ExtensionContext,
         public executionPlanService: ExecutionPlanService, // public for testing purposes
@@ -31,6 +36,7 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
         // needs ts-ignore because linter doesn't recognize that fileName is being used in the call to super
         // @ts-ignore
         xmlPlanFileName: string,
+        private readonly _connectionTelemetryInfo: TelemetryEventOptions = {},
     ) {
         super(
             context,
@@ -79,10 +85,11 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                 this.executionPlanService,
                 [this.executionPlanContents],
                 "SqlplanFile",
+                this.telemetryContext,
             );
         });
         this.registerReducer("saveExecutionPlan", async (state, payload) => {
-            return saveExecutionPlan(state, payload);
+            return saveExecutionPlan(state, payload, this.telemetryContext);
         });
         this.registerReducer("showPlanXml", async (state, payload) => {
             return showPlanXml(state, payload);

@@ -65,6 +65,8 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Create ConnectionManager mock manually (createStubInstance doesn't handle getters/event emitters well)
         mockConnectionManager = {
+            getServerInfo: sandbox.stub(),
+            getConnectionInfo: sandbox.stub(),
             listDatabases: sandbox.stub().resolves([]),
             getConnectionString: sandbox.stub().resolves(""),
             parseConnectionString: sandbox.stub().resolves({} as ConnectionDetails),
@@ -1540,6 +1542,22 @@ suite("PublishProjectWebViewController Tests", () => {
         const expectedServerTypes = `${ServerType.Azure},${ServerType.Sql}`;
         controller["_connectionUri"] = "mssql://azure-connection";
         controller["_serverTypes"] = expectedServerTypes;
+        const connectionInfo = {
+            server: "publish-server",
+            database: "TestDB",
+            authenticationType: "SqlLogin",
+        } as mssql.IConnectionInfo;
+        const serverInfo = {
+            serverTypes: [ServerType.Azure, ServerType.Sql],
+            databaseServiceTier: "GeneralPurpose",
+            databaseServiceObjective: "GP_S_Gen5_1",
+        } as mssql.IServerInfo;
+        mockConnectionManager.getConnectionInfo
+            .withArgs("mssql://azure-connection")
+            .returns({ credentials: connectionInfo } as ReturnType<
+                ConnectionManager["getConnectionInfo"]
+            >);
+        mockConnectionManager.getServerInfo.withArgs(connectionInfo).returns(serverInfo);
 
         // Verify PublishProject success event includes serverTypes
         await controller["publishToDatabase"](
@@ -1553,6 +1571,8 @@ suite("PublishProjectWebViewController Tests", () => {
         );
         expect(publishCall, "PublishProject telemetry should be emitted").to.exist;
         expect(publishCall[2]?.additionalProps?.serverTypes).to.equal(expectedServerTypes);
+        expect(publishCall[2]?.connectionInfo).to.equal(connectionInfo);
+        expect(publishCall[2]?.serverInfo).to.equal(serverInfo);
 
         // Verify GenerateScript failure event includes serverTypes (exercises the !result.success path)
         await controller["generateDeploymentScript"](
@@ -1565,6 +1585,8 @@ suite("PublishProjectWebViewController Tests", () => {
         );
         expect(scriptErrorCall, "GenerateScript error telemetry should be emitted").to.exist;
         expect(scriptErrorCall[2]?.additionalProps?.serverTypes).to.equal(expectedServerTypes);
+        expect(scriptErrorCall[2]?.connectionInfo).to.equal(connectionInfo);
+        expect(scriptErrorCall[2]?.serverInfo).to.equal(serverInfo);
     });
 
     //#region SqlPackage Command Generation Tests

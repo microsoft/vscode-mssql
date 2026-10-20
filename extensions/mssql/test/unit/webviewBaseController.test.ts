@@ -27,6 +27,7 @@ import {
     StateChangeNotification,
 } from "../../src/sharedInterfaces/webview";
 import * as Constants from "../../src/constants/constants";
+import { TelemetryEventOptions } from "extension-toolkit/vscode";
 
 chai.use(sinonChai);
 
@@ -46,10 +47,11 @@ suite("WebviewController Tests", () => {
     let onDidChangeConfigurationStub: sinon.SinonStub;
     let getConfigurationStub: sinon.SinonStub;
     let configChangeHandlers: Array<(e: vscode.ConfigurationChangeEvent) => void>;
+    let telemetry: ReturnType<typeof stubTelemetry>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        stubTelemetry(sandbox);
+        telemetry = stubTelemetry(sandbox);
 
         configChangeHandlers = [];
         getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration").callsFake(() => {
@@ -129,6 +131,76 @@ suite("WebviewController Tests", () => {
             onNotificationStub,
             "SendErrorEventNotification handler is not registered",
         ).to.have.been.calledWith(SendErrorEventNotification.type, sinon.match.any);
+    });
+
+    test("forwards a webview action with the owning view's explicit connection context", () => {
+        const connectionInfo = {
+            server: "example.database.windows.net",
+            authenticationType: "AzureMFA",
+        };
+        controller.connectionTelemetry = {
+            connectionInfo,
+            serverInfo: { serverVersion: "16.0", databaseServiceTier: "GeneralPurpose" },
+        };
+        const handler = onNotificationStub
+            .getCalls()
+            .find((call) => call.args[0] === SendActionEventNotification.type)!.args[1];
+
+        handler({
+            telemetryView: "BoundView",
+            telemetryAction: "BoundAction",
+            additionalProps: { result: "success" },
+        });
+
+        expect(telemetry.sendActionEvent).to.have.been.calledWith(
+            "BoundView",
+            "BoundAction",
+            sinon.match({
+                ...controller.connectionTelemetry,
+                additionalProps: { result: "success" },
+            }),
+        );
+    });
+
+    test("forwards a webview error with the owning connection rather than webview-supplied metadata", () => {
+        const connectionInfo = { server: "localhost", authenticationType: "SqlLogin" };
+        controller.connectionTelemetry = {
+            connectionInfo,
+        };
+        const handler = onNotificationStub
+            .getCalls()
+            .find((call) => call.args[0] === SendErrorEventNotification.type)!.args[1];
+        const error = new Error("operation failed");
+
+        handler({
+            telemetryView: "BoundView",
+            telemetryAction: "BoundError",
+            error,
+            includeErrorMessage: false,
+            connectionInfo: { server: "untrusted-webview-server" },
+        });
+
+        expect(telemetry.sendErrorEvent).to.have.been.calledWith(
+            "BoundView",
+            "BoundError",
+            sinon.match({
+                connectionInfo: controller.connectionTelemetry.connectionInfo,
+                error,
+                includeErrorMessage: false,
+            }),
+        );
+    });
+
+    test("keeps a global webview action context-free", () => {
+        const handler = onNotificationStub
+            .getCalls()
+            .find((call) => call.args[0] === SendActionEventNotification.type)!.args[1];
+        handler({ telemetryView: "GlobalView", telemetryAction: "GlobalAction" });
+        const call = telemetry.sendActionEvent
+            .getCalls()
+            .find((call) => call.args[0] === "GlobalView")!;
+        expect(call.args[2].connectionInfo).to.equal(undefined);
+        expect(call.args[2].serverInfo).to.equal(undefined);
     });
 
     test("Should send initial keybindings notification", () => {
@@ -318,6 +390,11 @@ interface TestReducers {
 
 class TestWebviewController extends WebviewBaseController<TestState, TestReducers> {
     public _webview: TestWebView;
+    public connectionTelemetry: TelemetryEventOptions = {};
+
+    protected override get telemetryContext(): TelemetryEventOptions {
+        return this.connectionTelemetry ?? {};
+    }
 
     constructor(context: vscode.ExtensionContext, sourceFile: string, initialData: TestState) {
         super(context, sourceFile, initialData);

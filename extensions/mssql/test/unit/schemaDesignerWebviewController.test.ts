@@ -144,6 +144,7 @@ suite("SchemaDesignerWebviewController tests", () => {
         } as any;
 
         mockMainController.connectionManager = {
+            getServerInfo: sandbox.stub(),
             getConnectionInfo: sandbox.stub().returns({
                 credentials: {
                     server: "localhost",
@@ -1733,7 +1734,10 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(sendActionEventStub).to.have.been.calledWithExactly(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.StartDabDeployment,
-                { additionalProps: { target: "dabCli", outcome: "success" } },
+                {
+                    ...ctrl.telemetryContext,
+                    additionalProps: { target: "dabCli", outcome: "success" },
+                },
             );
             expect(JSON.stringify(sendActionEventStub.lastCall.args)).to.not.contain("private-");
         });
@@ -1767,6 +1771,7 @@ suite("SchemaDesignerWebviewController tests", () => {
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.StopDabDeployment,
                 {
+                    ...ctrl.telemetryContext,
                     additionalProps: {
                         target: "docker",
                         outcome: "failure",

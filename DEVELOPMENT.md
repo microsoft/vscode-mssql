@@ -78,3 +78,50 @@ When localization sources change, run the repository-wide extraction:
 ```bash
 npm run localization
 ```
+
+## Connection-aware telemetry
+
+Pass operation-specific `connectionInfo` and `serverInfo` to `sendActionEvent`, `sendErrorEvent`,
+and `startActivity` when available. Do not use an unrelated active editor's connection for global
+events. Activities retain their initial connection/server metadata for updates and completion;
+`update` can supply metadata learned after the activity started.
+
+`serverEngineEdition` and `serverEdition` identify engine families and SQL Server editions.
+`serverTypes` contains the existing endpoint-derived tags (for example, `Azure,SQL` or
+`Fabric,SQL`), attached to server info when a connection succeeds. These complement the engine
+edition; endpoint tags alone do not identify Managed Instance or guarantee physical on-premises
+hosting.
+
+STS also returns `databaseServiceTier` and `databaseServiceObjective`, queried using
+`DATABASEPROPERTYEX(DB_NAME(), 'Edition')` and `DATABASEPROPERTYEX(DB_NAME(), 'ServiceObjective')`
+in the existing server-information query. These are database-scoped, refreshed on database context
+changes, and blank in telemetry when unavailable (including older STS versions).
+These SQL properties identify Azure SQL tiers/objectives, but **do not distinguish the modern
+Azure SQL free offer from paid serverless databases**. That requires authoritative Azure Resource
+Manager [`properties.useFreeLimit`](https://learn.microsoft.com/rest/api/sql/databases/get#database)
+offer metadata and Azure resource read permissions; never label all General Purpose/serverless
+databases as free.
+Neither these properties nor endpoint tags measure actual spending or Fabric capacity.
+
+### Testing with local SQL Tools Service
+
+With this repository and `sqltoolsservice` checked out as sibling directories, run from their parent
+directory:
+
+```bash
+dotnet publish sqltoolsservice/src/Microsoft.SqlTools.ServiceLayer/Microsoft.SqlTools.ServiceLayer.csproj \
+  --no-restore -c Debug -o sqltoolsservice/artifacts/telemetry-local
+npm --prefix vscode-mssql run build -- --target mssql
+```
+
+Select **MSSQL: Local STS telemetry** in Run and Debug, then press F5. This configuration uses the
+local publish folder via `MSSQL_SQLTOOLSSERVICE`, without replacing the normal extension setup.
+Connect to each engine/database of interest, execute a query or use a database feature, and switch
+databases to check that database-scoped metadata is refreshed.
+
+To inspect payloads without sending telemetry, set a breakpoint in `TelemetryEventImpl.send` in
+`packages/extension-toolkit/src/vscode/telemetry/telemetryReporter.ts` and inspect `this._properties`.
+The bundled extension's source map includes this source. No telemetry connection string is required
+for breakpoint inspection. To see actual emitted telemetry in **Developer: Show Telemetry**, supply
+your existing development `MSSQL_APP_INSIGHTS_KEY` through the launch environment and enable
+telemetry in the Extension Development Host. Do not commit telemetry credentials.

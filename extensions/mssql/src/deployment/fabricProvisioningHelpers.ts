@@ -28,6 +28,7 @@ import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWeb
 import { fetchUserGroups } from "../azure/utils";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCredentials } from "../models/connectionCredentials";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
@@ -706,6 +707,7 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
     if (!state.database) return;
     const startTime = Date.now();
+    let telemetryConnection: IConnectionDialogProfile | undefined;
     state.connectionLoadState = ApiStatus.Loading;
     updateFabricProvisioningState(deploymentController, state);
 
@@ -729,6 +731,7 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
         databaseConnectionProfile.groupId = state.formState.groupId;
         databaseConnectionProfile.authenticationType = AuthenticationType.AzureMFA;
         databaseConnectionProfile.accountId = state.formState.accountId;
+        telemetryConnection = databaseConnectionProfile;
 
         // Connect to database
         const profile =
@@ -757,6 +760,10 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,
             {
+                ...getConnectionTelemetryInfo(
+                    deploymentController.mainController.connectionManager,
+                    databaseConnectionProfile,
+                ),
                 additionalProps: {},
                 additionalMeasurements: {
                     connectToDatabaseLoadTimeInMs: Date.now() - startTime,
@@ -771,7 +778,14 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,
-            { error: err, includeErrorMessage: false },
+            {
+                ...getConnectionTelemetryInfo(
+                    deploymentController.mainController.connectionManager,
+                    telemetryConnection,
+                ),
+                error: err,
+                includeErrorMessage: false,
+            },
         );
     }
     updateFabricProvisioningState(deploymentController, state);
