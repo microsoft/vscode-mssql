@@ -5,7 +5,7 @@
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Button, Card, Link, makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { ErrorCircleRegular, GiftRegular, LockClosedRegular } from "@fluentui/react-icons";
+import { ErrorCircleRegular, LockClosedRegular } from "@fluentui/react-icons";
 import { FormField } from "../../../common/forms/form.component";
 import {
     AzureSqlDatabaseContextProps,
@@ -445,8 +445,7 @@ export const AzureSqlDatabaseFormPage: React.FC<AzureSqlDatabaseFormPageProps> =
             <div className={classes.sidebarDiv}>
                 <Card className={classes.sidebarCard}>
                     <span className={classes.sidebarCardHeader}>
-                        <GiftRegular fontSize={16} />
-                        {locConstants.azureSqlDatabase.freeOfferApplied}
+                        {locConstants.azureSqlDatabase.freeTierApplied}
                     </span>
                     <div className={classes.sidebarDivider} />
                     <Text size={200}>{locConstants.azureSqlDatabase.monthlyLimits}</Text>

@@ -3114,7 +3114,7 @@ export class LocConstants {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
             azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database"),
             azureSqlDatabaseDescription: l10n.t(
-                "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
+                "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.",
             ),
             chooseDeploymentOption: l10n.t("Choose how to run Azure SQL Database"),
             localContainer: l10n.t("Local container (Preview)"),
@@ -3123,7 +3123,7 @@ export class LocConstants {
             ),
             free: l10n.t("Free"),
             freeDescription: l10n.t(
-                "Try Azure SQL Database at no cost with the free tier offer — a fully managed cloud database, ready for your app, ORM, or migration tools.",
+                "Try Azure SQL Database at no cost with the free tier — a fully managed cloud database, ready for your app, ORM, or migration tools.",
             ),
             localContainerTbd: l10n.t("TBD"),
             localContainerWizardTitle: l10n.t("(Preview) New Azure SQL Database - Container"),
@@ -3287,7 +3287,7 @@ export class LocConstants {
             savePassword: l10n.t("Save password"),
             userNameIsRequired: l10n.t("User name is required"),
             passwordIsRequired: l10n.t("Password is required"),
-            freeLimitBehavior: l10n.t("Behavior when free offer limit is reached"),
+            freeLimitBehavior: l10n.t("Behavior when free tier limit is reached"),
             autoPauseOption: l10n.t("Auto-pause the database until next month"),
             autoPauseDescription: l10n.t(
                 "Database pauses until the next billing cycle when free amount is renewed.",
@@ -3297,9 +3297,9 @@ export class LocConstants {
                 "Additional usage beyond the free amount will be charged at serverless rates.",
             ),
             continueChargesWarning: l10n.t(
-                "Your database will continue running after the free offer limit and you will be charged for overages.",
+                "Your database will continue running after the free tier limit and you will be charged for overages.",
             ),
-            freeOfferApplied: l10n.t("Free offer applied"),
+            freeTierApplied: l10n.t("Free tier applied"),
             monthlyLimits: l10n.t("Monthly limits"),
             freeVCoreLimit: l10n.t("100K vCore seconds"),
             freeStorageLimit: l10n.t("32 GB storage + 32 GB backup"),
