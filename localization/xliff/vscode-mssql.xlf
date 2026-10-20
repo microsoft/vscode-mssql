@@ -1071,8 +1071,8 @@
     <trans-unit id="++CODE++9bb725005055412c75a8e8d1fb5a0780595174ac8bbe5a24f768647bd4e4debe">
       <source xml:lang="en">Before</source>
     </trans-unit>
-    <trans-unit id="++CODE++bd9e4be7933baafca2a9806ee618f7371c78f98b06064c26600bb18992282fde">
-      <source xml:lang="en">Behavior when free offer limit is reached</source>
+    <trans-unit id="++CODE++2f4966d9ecc53fdbcbdd356cde9196675fb786f919bcf538b96a00891e8a97e9">
+      <source xml:lang="en">Behavior when free tier limit is reached</source>
     </trans-unit>
     <trans-unit id="++CODE++c1ea3f5e7aa473034872296473c7fcf9c79344355ba4fd003120627f6ec1a5f7">
       <source xml:lang="en">Between</source>
@@ -5088,8 +5088,8 @@
     <trans-unit id="++CODE++101e791740d73043fdbe1492a661f8c4194d1881957dc2ba8f08d2739474ae53">
       <source xml:lang="en">Free compute &amp; storage</source>
     </trans-unit>
-    <trans-unit id="++CODE++1da20df88686d477364e048fe92b392449ad8e0f1226ff2903d0d54cae8a24c8">
-      <source xml:lang="en">Free offer applied</source>
+    <trans-unit id="++CODE++c12cf70d21352437b716a76c78594849271e7699d8f37a01b10a4a3c7621270f">
+      <source xml:lang="en">Free tier applied</source>
     </trans-unit>
     <trans-unit id="++CODE++bb2f46cfafa54c18afeb7e7efc7ccf3b2d72b160c0381d2ad116e8f7139be42d">
       <source xml:lang="en">Freeze columns</source>
@@ -10656,11 +10656,11 @@
     <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
       <source xml:lang="en">Truncate the transaction log</source>
     </trans-unit>
-    <trans-unit id="++CODE++d7f5ff6e4dad9f838e47b0ebe6e7599c967ad07620a3329436b4887f723d649e">
-      <source xml:lang="en">Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.</source>
+    <trans-unit id="++CODE++35ab6441ab2035c69e2f496ec51319ca8e0bb84ca1ef6b5c6f3c715b90200aab">
+      <source xml:lang="en">Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.</source>
     </trans-unit>
-    <trans-unit id="++CODE++9066bcf86086f787cb18707f7e21b7a999aad096ef7628b8396765d020da8f97">
-      <source xml:lang="en">Try Azure SQL Database at no cost with the free tier offer — a fully managed cloud database, ready for your app, ORM, or migration tools.</source>
+    <trans-unit id="++CODE++a6ad83aa61def89d0a2bc23f61f91102da392701c49a76fc3dae6f1199f42f89">
+      <source xml:lang="en">Try Azure SQL Database at no cost with the free tier — a fully managed cloud database, ready for your app, ORM, or migration tools.</source>
     </trans-unit>
     <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
       <source xml:lang="en">Try adjusting your search or filters</source>
@@ -11344,8 +11344,8 @@
       <source xml:lang="en">Your current IP {0} will be added automatically.</source>
       <note>{0} is the current IP address</note>
     </trans-unit>
-    <trans-unit id="++CODE++fba27c1cc726f650cd3eceb3a036cce31854cde7aa2ad9fe4a073c12417098c4">
-      <source xml:lang="en">Your database will continue running after the free offer limit and you will be charged for overages.</source>
+    <trans-unit id="++CODE++68f88eedfc37704e4626ec89c48f0901a60f476c4e2b33a178c87cb09771f40b">
+      <source xml:lang="en">Your database will continue running after the free tier limit and you will be charged for overages.</source>
     </trans-unit>
     <trans-unit id="++CODE++20082bf42822ccf6b53770a9f51230df781d30b42a43691ef534a3ccef0cb044">
       <source xml:lang="en">Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.</source>
