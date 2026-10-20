@@ -5568,7 +5568,7 @@
     "Explore AI-assisted SQL development, from queries to schemas and data APIs.": "Explore AI-assisted SQL development, from queries to schemas and data APIs.",
     "Launch a preconfigured code template with a local SQL container and your app stack, giving you everything needed to start developing locally.": "Launch a preconfigured code template with a local SQL container and your app stack, giving you everything needed to start developing locally.",
     ".NET + Azure SQL": ".NET + Azure SQL",
-    ".NET Aspire + Azure SQL": ".NET Aspire + Azure SQL",
+    "Aspire + Azure SQL": "Aspire + Azure SQL",
     "Node.js + Azure SQL": "Node.js + Azure SQL",
     "Python + Azure SQL": "Python + Azure SQL",
     "Dev container \u000b C# \u000b .NET": "Dev container \u000b C# \u000b .NET",

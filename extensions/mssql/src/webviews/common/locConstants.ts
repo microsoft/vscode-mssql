@@ -4607,7 +4607,7 @@ export class LocConstants {
                 "Launch a preconfigured code template with a local SQL container and your app stack, giving you everything needed to start developing locally.",
             ),
             devContainerDotNet: l10n.t(".NET + Azure SQL"),
-            devContainerDotNetAspire: l10n.t(".NET Aspire + Azure SQL"),
+            devContainerDotNetAspire: l10n.t("Aspire + Azure SQL"),
             devContainerNode: l10n.t("Node.js + Azure SQL"),
             devContainerPython: l10n.t("Python + Azure SQL"),
             devContainerDotNetSubtitle: l10n.t("Dev container \u00b7 C# \u00b7 .NET"),
