@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { screenshot } from "./utils/screenshotUtils";
+import { randomUUID } from "crypto";
 import {
     addDatabaseConnection,
     enterTextIntoQueryEditor,
-    executeQuery,
+    executeQueryAndWait,
+    getWebviewByTitle,
     openNewQueryEditor,
 } from "./utils/testHelpers";
 import {
@@ -44,15 +46,16 @@ test.describe("MSSQL Extension - Query Execution", async () => {
             );
         },
         beforeClose: async ({ page: vsCodePage }) => {
+            if (getDatabaseName()) {
+                return;
+            }
             await openNewQueryEditor(vsCodePage);
             const dropTestDatabaseScript = `
 USE master;
 ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
 DROP DATABASE TestDB;`;
             await enterTextIntoQueryEditor(vsCodePage, dropTestDatabaseScript);
-            await executeQuery(vsCodePage);
-
-            await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
+            await executeQueryAndWait(vsCodePage);
         },
     });
 
@@ -66,27 +69,33 @@ DROP DATABASE TestDB;`;
         await openNewQueryEditor(vsCodePage);
         await screenshot(vsCodePage, testInfo, "NewEditorOpened");
 
-        const createTestDB = "CREATE DATABASE TestDB;";
-        await enterTextIntoQueryEditor(vsCodePage, createTestDB);
-        await screenshot(vsCodePage, testInfo, "CreateDbTyped");
-        await executeQuery(vsCodePage);
-        await screenshot(vsCodePage, testInfo, "CreateDbExecuted");
+        const databaseName = getDatabaseName();
+        if (!databaseName) {
+            const createTestDB = "CREATE DATABASE TestDB;";
+            await enterTextIntoQueryEditor(vsCodePage, createTestDB);
+            await screenshot(vsCodePage, testInfo, "CreateDbTyped");
+            await executeQueryAndWait(vsCodePage);
+            await screenshot(vsCodePage, testInfo, "CreateDbExecuted");
 
-        await screenshot(vsCodePage, testInfo, "NewEditorOpened2");
-        await openNewQueryEditor(vsCodePage);
+            await screenshot(vsCodePage, testInfo, "NewEditorOpened2");
+            await openNewQueryEditor(vsCodePage);
+        }
 
+        const tableName = `TestTable_${randomUUID().replace(/-/g, "")}`;
         const sqlScript = `
-USE TestDB;
-CREATE TABLE TestTable (ID INT PRIMARY KEY, Name VARCHAR(50), Age INT);
-INSERT INTO TestTable (ID, Name, Age) VALUES (1, 'Doe', 30);
-SELECT Name FROM TestTable;`;
+${databaseName ? "" : "USE TestDB;"}
+CREATE TABLE dbo.${tableName} (ID INT PRIMARY KEY, Name VARCHAR(50), Age INT);
+INSERT INTO dbo.${tableName} (ID, Name, Age) VALUES (1, 'Doe', 30);
+SELECT Name FROM dbo.${tableName};
+DROP TABLE dbo.${tableName};`;
 
         await enterTextIntoQueryEditor(vsCodePage, sqlScript);
         await screenshot(vsCodePage, testInfo, "CreateTableTyped");
-        await executeQuery(vsCodePage);
+        await executeQueryAndWait(vsCodePage);
         await screenshot(vsCodePage, testInfo, "CreateTableExecuted");
 
-        const nameQueryResult = await vsCodePage.getByText("Doe");
+        const resultsFrame = await getWebviewByTitle(vsCodePage, "Query Results");
+        const nameQueryResult = resultsFrame.getByText("Doe", { exact: true });
         await expect(nameQueryResult).toBeVisible({ timeout: 10000 });
     });
 });

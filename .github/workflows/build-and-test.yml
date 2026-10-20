@@ -16,6 +16,12 @@ on:
       - main
       - "release/**"
   workflow_dispatch:
+    inputs:
+      AZURE_SQL_CONTAINER_E2E_ENABLED:
+        description: Run E2E tests against the Azure SQL Database container
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   build-and-test:
@@ -419,3 +425,154 @@ jobs:
           else
             echo "  ✅ All checks passed!"
           fi
+
+  azure-sql-container-e2e:
+    name: Azure SQL container E2E
+    needs: build-and-test
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.AZURE_SQL_CONTAINER_E2E_ENABLED &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    env:
+      AZURE_SQL_CONTAINER_REGISTRY: sqldbpreview-dpgaeqhmgphzd4bk.azurecr.io
+      AZURE_SQL_CONTAINER_IMAGE: sqldbpreview-dpgaeqhmgphzd4bk.azurecr.io/azure-sql/db-dev:latest
+      VS_CODE_VERSION_NAME: stable
+      SERVER_NAME: "127.0.0.1"
+      DATABASE_NAME: mssql_e2e
+      AUTHENTICATION_TYPE: SQL Login
+      USER_NAME: sa
+      SAVE_PASSWORD: "No"
+      PROFILE_NAME: test-azure-sql
+      E2E_USE_VSIX: "true"
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Sign in to Azure SQL preview registry
+        env:
+          REGISTRY_USERNAME: ${{ secrets.AZURE_SQL_CONTAINER_REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.AZURE_SQL_CONTAINER_REGISTRY_PASSWORD }}
+        run: |
+          if [[ -z "$REGISTRY_USERNAME" || -z "$REGISTRY_PASSWORD" ]]; then
+            echo "::error::Azure SQL container E2E requires AZURE_SQL_CONTAINER_REGISTRY_USERNAME and AZURE_SQL_CONTAINER_REGISTRY_PASSWORD secrets."
+            exit 1
+          fi
+          printf '%s' "$REGISTRY_PASSWORD" | docker login "$AZURE_SQL_CONTAINER_REGISTRY" \
+            --username "$REGISTRY_USERNAME" --password-stdin
+
+      - name: Setup Node.js
+        uses: ./.github/actions/setup-node
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download MSSQL VSIX
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mssql-vsix
+          path: ./extensions/mssql/azure-sql-vsix
+
+      - name: Install E2E system dependencies
+        working-directory: ./extensions/mssql
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libkrb5-dev \
+            libxss1 dbus xvfb libgtk-3-0 libgbm1
+          npx playwright install --with-deps
+
+      - name: Start Azure SQL container and provision test database
+        run: |
+          PASSWORD="Aa1%$(openssl rand -hex 16)"
+          echo "::add-mask::$PASSWORD"
+          echo "PASSWORD=$PASSWORD" >> "$GITHUB_ENV"
+          export SQLCMDPASSWORD="$PASSWORD"
+          docker pull "$AZURE_SQL_CONTAINER_IMAGE"
+          docker run --name azure-sql-e2e \
+            -e ACCEPT_EULA=Y -e MSSQL_SA_PASSWORD="$PASSWORD" \
+            -p 127.0.0.1:1433:1433 -d "$AZURE_SQL_CONTAINER_IMAGE"
+
+          SERVER_READY=false
+          for i in {1..150}; do
+            if docker exec -e SQLCMDPASSWORD azure-sql-e2e /opt/mssql-tools18/bin/sqlcmd \
+              -S localhost -U sa -C -l 2 -b -Q "SELECT 1;" > /dev/null 2>&1; then
+              SERVER_READY=true
+              break
+            fi
+            if [[ "$(docker inspect --format '{{.State.Running}}' azure-sql-e2e)" != "true" ]]; then
+              echo "::error::Azure SQL container exited before becoming ready."
+              exit 1
+            fi
+            sleep 2
+          done
+          if [[ "$SERVER_READY" != "true" ]]; then
+            echo "::error::Azure SQL container did not become ready in time."
+            exit 1
+          fi
+
+          docker exec -e SQLCMDPASSWORD azure-sql-e2e /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -C -b -Q "CREATE DATABASE [$DATABASE_NAME];"
+          docker exec -e SQLCMDPASSWORD azure-sql-e2e /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -C -b -d "$DATABASE_NAME" \
+            -Q "IF CONVERT(int, SERVERPROPERTY('EngineEdition')) <> 5 THROW 51000, 'Expected Azure SQL Database engine.', 1; SELECT DB_NAME() AS database_name, @@VERSION AS engine_version;"
+
+      - name: Run Azure SQL E2E tests
+        working-directory: ./extensions/mssql
+        run: |
+          mapfile -t VSIX_FILES < <(find "$PWD/azure-sql-vsix" -name "*.vsix" -type f)
+          if [[ "${#VSIX_FILES[@]}" != "1" ]]; then
+            echo "::error::Expected exactly one MSSQL VSIX artifact."
+            exit 1
+          fi
+          export BUILT_VSIX_PATH="${VSIX_FILES[0]}"
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" \
+            bash -c 'node scripts/prepare-e2e-env.js && npx playwright test'
+
+      - name: Azure SQL E2E test report
+        if: ${{ !cancelled() }}
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
+        with:
+          name: Azure SQL container E2E report
+          path: ./extensions/mssql/test-reports/smoke-results.xml
+          reporter: jest-junit
+          fail-on-error: true
+          fail-on-empty: false
+
+      - name: Collect Azure SQL container diagnostics
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p azure-sql-diagnostics
+          if docker container inspect azure-sql-e2e > /dev/null 2>&1; then
+            docker logs azure-sql-e2e > azure-sql-diagnostics/container.log 2>&1
+            docker inspect --format '{{.Image}} {{.State.Status}} {{.State.ExitCode}}' \
+              azure-sql-e2e > azure-sql-diagnostics/container-state.txt
+            docker image inspect --format '{{json .RepoDigests}}' "$AZURE_SQL_CONTAINER_IMAGE" \
+              > azure-sql-diagnostics/image-digests.json
+          fi
+
+      - name: Upload Azure SQL E2E artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: azure-sql-container-e2e-results
+          path: |
+            ./extensions/mssql/test-reports/
+            ./extensions/mssql/test-results/
+            ./azure-sql-diagnostics/
+          retention-days: 7
+
+      - name: Clean up Azure SQL container and registry session
+        if: always()
+        run: |
+          if docker container inspect azure-sql-e2e > /dev/null 2>&1; then
+            docker rm -f azure-sql-e2e
+          fi
+          docker logout "$AZURE_SQL_CONTAINER_REGISTRY"

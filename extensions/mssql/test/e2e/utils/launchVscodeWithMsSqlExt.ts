@@ -102,7 +102,7 @@ export async function launchVsCodeWithMssqlExtension(
 }> {
     const config: mssqlExtensionLaunchConfig = {
         initialConfig: DEFAULT_USER_CONFIG,
-        useVsix: false,
+        useVsix: process.env["E2E_USE_VSIX"] === "true",
         ...options,
     };
 

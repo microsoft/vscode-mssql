@@ -5,6 +5,7 @@
 
 import {
     getAuthenticationType,
+    getDatabaseName,
     getPassword,
     getServerName,
     getUserName,
@@ -133,7 +134,7 @@ export function getGridLaunchConfig(overrides: Record<string, unknown> = {}) {
             {
                 profileName: GRID_PROFILE_NAME,
                 server: getServerName(),
-                database: "master",
+                database: getDatabaseName() || "master",
                 authenticationType:
                     getAuthenticationType() === "SQL Login" ? "SqlLogin" : "Integrated",
                 user: getUserName(),
