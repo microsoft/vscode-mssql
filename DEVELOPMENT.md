@@ -74,7 +74,7 @@ npm run smoketest -- --target mssql
 ### Azure SQL Database container CI
 
 The **Build and Test (Unit + E2E)** workflow has an opt-in **Azure SQL container E2E**
-job in addition to the existing SQL Server tests. To enable it, obtain private-preview
+job that replaces the SQL Server smoke tests for that run. To enable it, obtain private-preview
 registry access using the [container setup guide](https://microsoft.github.io/azure-sql-database-container/getting-started.html),
 then configure these GitHub Actions repository secrets:
 
@@ -89,12 +89,17 @@ variable is required. Alternatively, dispatch it from the CLI:
 gh workflow run build-and-test.yml --repo microsoft/vscode-mssql --ref your-branch -f AZURE_SQL_CONTAINER_E2E_ENABLED=true
 ```
 
+When checked, the build job skips SQL Server smoke-test setup, execution, reporting,
+and smoke-coverage merging; it still builds the extensions and runs unit tests.
+Its coverage report contains unit-test coverage only. When unchecked, or for automatic
+runs, the existing SQL Server smoke tests run and the Azure SQL job is skipped.
+
 The job skips automatic PR, push, and scheduled runs, as well as Dependabot events.
 When enabled, missing credentials fail the job explicitly. It downloads the same MSSQL
 VSIX produced by the build job, provisions `mssql_e2e` in a disposable Azure SQL
 Database container, and runs both Playwright projects on VS Code Stable. Reports,
-traces, screenshots, and container diagnostics are uploaded separately from the SQL
-Server run; Azure SQL E2E failures fail their job.
+traces, screenshots, and container diagnostics are uploaded as Azure SQL artifacts;
+Azure SQL E2E failures fail their job.
 
 To run the same tests locally against an already-provisioned container, set the
 connection values in `extensions/mssql/test/e2e/.env`, including `DATABASE_NAME` for

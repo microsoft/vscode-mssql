@@ -164,12 +164,14 @@ jobs:
           fail-on-error: false
 
       - name: Build mappings for Webviews
+        if: ${{ !inputs.AZURE_SQL_CONTAINER_E2E_ENABLED }}
         continue-on-error: true
         run: |
           cd ./extensions/mssql
           npm run build:webviews-bundle
 
       - name: Setup environment for smoke tests
+        if: ${{ !inputs.AZURE_SQL_CONTAINER_E2E_ENABLED }}
         run: |
           echo "Setting up environment for smoke tests"
           PASS_LOWER="$(LC_ALL=C tr -dc 'a-z' < /dev/urandom | head -c 1)"
@@ -199,6 +201,7 @@ jobs:
         working-directory: ./extensions/mssql
 
       - name: Run smoke tests
+        if: ${{ !inputs.AZURE_SQL_CONTAINER_E2E_ENABLED }}
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
@@ -215,6 +218,7 @@ jobs:
           echo "mssql_smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
 
       - name: Upload Smoke Test Screenshots and Videos
+        if: ${{ !inputs.AZURE_SQL_CONTAINER_E2E_ENABLED }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: smoke-test-failure-screenshots
@@ -223,7 +227,7 @@ jobs:
 
       - name: Smoke Test Report
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
-        if: success() || failure()
+        if: ${{ !inputs.AZURE_SQL_CONTAINER_E2E_ENABLED && (success() || failure()) }}
         with:
           name: "Smoke Test Report"
           path: ./test-reports/**/smoke-results.xml
@@ -233,6 +237,7 @@ jobs:
           fail-on-error: false
 
       - name: Merge Smoke and Unit Test Coverage Reports
+        if: ${{ !inputs.AZURE_SQL_CONTAINER_E2E_ENABLED }}
         run: |
           if [ -f extensions/mssql/test/resources/mergeReports.js ]; then
             node extensions/mssql/test/resources/mergeReports.js extensions/mssql/coverage/coverage-e2e/cobertura-coverage.xml extensions/mssql/coverage/cobertura-coverage.xml
