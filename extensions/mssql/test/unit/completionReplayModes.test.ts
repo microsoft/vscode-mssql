@@ -283,12 +283,15 @@ suite("Completion replay modes (WI-3.4)", () => {
         expect(provenance?.model.resolvedId).to.equal("fake-model");
     });
 
-    test("replay joins the same known object suffix as live completion without changing comment text", async () => {
-        for (const [statementPrefix, expected] of [
-            ["select *\nfrom sys.a", "ll_objects"],
-            ["/* comment\nfrom sys.a", " ll_objects"],
+    test("replay applies the same identifier boundary fixes as live completion", async () => {
+        for (const [statementPrefix, modelText, expected] of [
+            ["select *\nfrom sys.a", "ll_objects", "ll_objects"],
+            ["/* comment\nfrom sys.a", "ll_objects", " ll_objects"],
+            ["select *\nfrom sys.", ".tables", "tables"],
+            ["/* comment\nfrom sys.", ".tables", ".tables"],
+            ["select *\nfrom master.", ".sysobjects", ".sysobjects"],
         ]) {
-            const harness = createHarness({ modelText: "ll_objects" });
+            const harness = createHarness({ modelText });
             try {
                 const event = sourceEvent();
                 const recorded = await harness.service.replaySourceEvent(
@@ -296,7 +299,11 @@ suite("Completion replay modes (WI-3.4)", () => {
                         ...event,
                         usedSchemaContext: false,
                         schemaContextFormatted: undefined,
-                        locals: { ...event.locals, statementPrefix, linePrefix: "from sys.a" },
+                        locals: {
+                            ...event.locals,
+                            statementPrefix,
+                            linePrefix: statementPrefix.split("\n").pop(),
+                        },
                     },
                     { overrides: replayConfig("frozenPrompt") },
                 );
