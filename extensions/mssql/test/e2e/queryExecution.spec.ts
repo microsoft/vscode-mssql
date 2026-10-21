@@ -71,6 +71,10 @@ test.describe("MSSQL Extension - Query Execution", async () => {
 
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: {
+            // Without an OS keyring (the Linux CI runner has none) saving the connection password
+            // never finishes, so the connection is never published to the editor toolbar. The
+            // basic store keeps secrets in VS Code itself; it has no effect on Windows or macOS.
+            extraLaunchArgs: ["--password-store=basic"],
             initialConfig: {
                 ...DEFAULT_USER_CONFIG,
                 // Save As then takes a typed path instead of opening the OS dialog.
@@ -97,6 +101,11 @@ test.describe("MSSQL Extension - Query Execution", async () => {
                 savePassword,
                 profileName,
             );
+            // The dialog closes once its connection succeeds. Tests copy that connection into
+            // new editors, so they must not start before it exists.
+            await expect(
+                vsCodePage.locator('[role="tab"][aria-label^="Connection Dialog"]'),
+            ).toBeHidden({ timeout: 60 * 1000 });
         },
         beforeClose: async ({ page: vsCodePage }) => {
             await openNewQueryEditor(vsCodePage);
@@ -115,6 +124,14 @@ DROP DATABASE TestDB;`;
         }
         fs.rmSync(scriptsDir, { recursive: true, force: true });
     });
+
+    /**
+     * A fresh folder for each test, so a retry or a repeated run never finds a file from an
+     * earlier attempt (Save As would ask to overwrite it, Quick Open would reuse its editor).
+     */
+    function createTestDir(): string {
+        return fs.mkdtempSync(path.join(scriptsDir, "test-"));
+    }
 
     test.beforeEach(async ({}, testInfo) => {
         const { page: vsCodePage } = getContext();
@@ -154,7 +171,7 @@ SELECT Name FROM TestTable;`;
         const { page: vsCodePage } = getContext();
         const toolbar = new EditorTitleActions(vsCodePage);
         // Spaces, the ampersand and the parentheses are all percent-encoded in the file URI.
-        const filePath = path.join(scriptsDir, "My Scripts", "Sales & Ops (Q1).sql");
+        const filePath = path.join(createTestDir(), "My Scripts", "Sales & Ops (Q1).sql");
         fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
         // New editors copy the connection made in afterLaunch.
@@ -166,6 +183,7 @@ SELECT Name FROM TestTable;`;
         const saveDialog = new QuickInput(vsCodePage);
         await expect(saveDialog.widget).toBeVisible();
         await saveDialog.input.fill(filePath);
+        await expect(saveDialog.input).toHaveValue(filePath);
         await saveDialog.input.press("Enter");
 
         await expect(getActiveEditorTab(vsCodePage)).toContainText(path.basename(filePath), {
@@ -177,7 +195,7 @@ SELECT Name FROM TestTable;`;
     test("Toolbar actions work on a SQL file opened from disk", async () => {
         const { page: vsCodePage } = getContext();
         const toolbar = new EditorTitleActions(vsCodePage);
-        const filePath = path.join(scriptsDir, "long-running.sql");
+        const filePath = path.join(createTestDir(), "long-running.sql");
         // Long enough to check the toolbar while it runs. The test cancels it instead of waiting.
         fs.writeFileSync(filePath, "WAITFOR DELAY '00:00:30';\n");
 

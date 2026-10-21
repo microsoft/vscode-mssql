@@ -84,11 +84,12 @@ export async function openFileFromDisk(vsCodePage: Page, filePath: string): Prom
     await quickOpen.open();
     await quickOpen.filter(filePath);
     // Quick Open draws its file results outside the quick input widget, so QuickInput.pick
-    // cannot see them. Wait for the result row, then accept it.
-    await expect(vsCodePage.locator(".monaco-list-row", { hasText: fileName }).first()).toBeVisible(
-        { timeout: 15 * 1000 },
-    );
-    await quickOpen.input.press("Enter");
+    // cannot see them. Click the result row itself rather than pressing Enter, which accepts
+    // whichever row is active.
+    await vsCodePage
+        .getByRole("option", { name: fileName })
+        .first()
+        .click({ timeout: 15 * 1000 });
     await expect(getActiveEditorTab(vsCodePage)).toContainText(fileName, { timeout: 15 * 1000 });
 }
 

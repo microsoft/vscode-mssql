@@ -6,6 +6,12 @@
 import { expect, Locator, Page } from "@playwright/test";
 
 /**
+ * Upper bound for a single click or menu transition. Without it a click waits for the whole
+ * test timeout when its target never becomes actionable.
+ */
+const ACTION_TIMEOUT = 10 * 1000;
+
+/**
  * Page object for the action toolbar in the title of the active editor group.
  *
  * VS Code shows at most nine actions in that toolbar and moves the rest under "More Actions..."
@@ -69,8 +75,8 @@ export class EditorTitleActions {
             return available;
         }
 
-        await this.openOverflowMenu();
         try {
+            await this.openOverflowMenu();
             for (const label of notInline) {
                 if ((await this.overflowItem(label).count()) > 0) {
                     available.push(label);
@@ -91,7 +97,15 @@ export class EditorTitleActions {
         await expect
             .poll(
                 async () => {
-                    const found = new Set(await this.findAvailable([...available, ...unavailable]));
+                    let found: Set<string>;
+                    try {
+                        found = new Set(await this.findAvailable([...available, ...unavailable]));
+                    } catch (error) {
+                        // expect.poll stops at the first error its callback throws. The toolbar
+                        // can re-render while the overflow menu is read, so report the error as
+                        // a mismatch and poll again.
+                        return { error: error instanceof Error ? error.message : String(error) };
+                    }
                     return {
                         missing: available.filter((label) => !found.has(label)),
                         unexpected: unavailable.filter((label) => found.has(label)),
@@ -105,26 +119,33 @@ export class EditorTitleActions {
             .toEqual({ missing: [], unexpected: [] });
     }
 
-    /** Runs the action from wherever VS Code placed it. */
+    /**
+     * Runs the action from wherever VS Code placed it.
+     *
+     * Not retried: running a toggle such as Enable Actual Plan twice would undo it.
+     */
     async click(label: string): Promise<void> {
         await this.expectActions({ available: [label] });
         if (await this.inline(label).isVisible()) {
-            await this.inline(label).click();
+            await this.inline(label).click({ timeout: ACTION_TIMEOUT });
             return;
         }
         await this.openOverflowMenu();
-        await this.overflowItem(label).click();
-        await expect(this.overflowMenu).toBeHidden();
+        await this.overflowItem(label).click({ timeout: ACTION_TIMEOUT });
+        await expect(this.overflowMenu).toBeHidden({ timeout: ACTION_TIMEOUT });
     }
 
     private async openOverflowMenu(): Promise<void> {
-        await this.moreActions.click();
-        await expect(this.overflowMenu).toBeVisible();
+        await this.moreActions.click({ timeout: ACTION_TIMEOUT });
+        await expect(this.overflowMenu).toBeVisible({ timeout: ACTION_TIMEOUT });
     }
 
+    /** Closes the overflow menu if it is open. Safe to call when it is not. */
     private async closeOverflowMenu(): Promise<void> {
-        await this.page.keyboard.press("Escape");
-        await expect(this.overflowMenu).toBeHidden();
+        if (await this.overflowMenu.isVisible()) {
+            await this.page.keyboard.press("Escape");
+        }
+        await expect(this.overflowMenu).toBeHidden({ timeout: ACTION_TIMEOUT });
     }
 }
 
