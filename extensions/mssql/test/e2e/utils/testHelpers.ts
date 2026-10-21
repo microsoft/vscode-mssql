@@ -74,6 +74,29 @@ export async function openNewQueryEditor(vsCodePage: Page): Promise<void> {
     await new QuickInput(vsCodePage).run(VsCodeCommand.mssqlNewQuery);
 }
 
+/**
+ * Opens a file through Quick Open, which offers any absolute path, even outside the workspace,
+ * and waits for it to become the active editor.
+ */
+export async function openFileFromDisk(vsCodePage: Page, filePath: string): Promise<void> {
+    const fileName = path.basename(filePath);
+    const quickOpen = new QuickInput(vsCodePage);
+    await quickOpen.open();
+    await quickOpen.filter(filePath);
+    // Quick Open draws its file results outside the quick input widget, so QuickInput.pick
+    // cannot see them. Wait for the result row, then accept it.
+    await expect(vsCodePage.locator(".monaco-list-row", { hasText: fileName }).first()).toBeVisible(
+        { timeout: 15 * 1000 },
+    );
+    await quickOpen.input.press("Enter");
+    await expect(getActiveEditorTab(vsCodePage)).toContainText(fileName, { timeout: 15 * 1000 });
+}
+
+/** The active tab of the active editor group. */
+export function getActiveEditorTab(vsCodePage: Page): Locator {
+    return vsCodePage.locator(".editor-group-container.active .tab.active");
+}
+
 export async function disconnect(vsCodePage: Page): Promise<void> {
     await vsCodePage.keyboard.press(`${getModifierKey()}+P`);
     await vsCodePage.keyboard.type(">MS SQL: Disconnect");
