@@ -3,9 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/** Session History — cross-session trace aggregates from the Session Diag
- *  store. Harness/self-test run history lives in the Perf Test History page
- *  (pagesPerfHistory.tsx). */
+/** Session History. */
 
 import { DcGetHistoryRequest, HistorySummary } from "../../../sharedInterfaces/debugConsole";
 import { TrendChart } from "./charts";

@@ -333,18 +333,7 @@ export interface AnomalySummary {
  * Console page ids — the shell's routing vocabulary. Kept here so the host
  * can deep-link a page (initialPage / dc/navigate) without stringly names.
  */
-export type DcPageId =
-    | "overview"
-    | "trace"
-    | "waterfall"
-    | "perf"
-    | "history"
-    | "sql"
-    | "connections"
-    | "query"
-    | "oe"
-    | "exports"
-    | "settings";
+export type DcPageId = "trace" | "waterfall" | "history" | "exports" | "settings";
 
 export interface DebugConsoleState {
     /** Initial snapshot pushed to the webview. */
@@ -354,7 +343,7 @@ export interface DebugConsoleState {
     captureExpiresEpochMs?: number;
     provenance: ProvenanceSummary;
     fixtureMode: boolean;
-    /** Deep-link: page the shell shows on first load (default: overview). */
+    /** Deep-link: page the shell shows on first load (default: trace). */
     initialPage?: DcPageId;
 }
 

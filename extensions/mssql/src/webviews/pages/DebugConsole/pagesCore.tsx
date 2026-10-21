@@ -3,22 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/** Core Debug Console pages: Overview, Consolidated Trace, Waterfall. */
+/** Core Debug Console pages: Consolidated Trace and Waterfall. */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
     CauseTreeNode,
     DcGetCauseTreeRequest,
-    DcGetOverviewRequest,
-    DcGetWaterfallRequest,
     DcGetTraceQualityRequest,
+    DcGetWaterfallRequest,
     DcListTracesRequest,
     DcQueryEventsRequest,
     DiagEvent,
     DiagProcess,
     EventQueryResult,
     GapRecord,
-    SourceOverview,
     TraceQualityReport,
     UserActionSummary,
     WaterfallModel,
@@ -29,7 +27,6 @@ import {
     EmptyState,
     formatDuration,
     formatTime,
-    Kpi,
     LinkButton,
     PageHeader,
     PROCESS_COLOR,
@@ -42,307 +39,6 @@ import {
 import { applyTraceFilter, parseTraceFilter } from "../../../sharedInterfaces/traceFilter";
 import { useDc } from "./state";
 import { WaterfallView } from "./waterfallView";
-
-// ---------------------------------------------------------------------------
-// Overview
-// ---------------------------------------------------------------------------
-
-/** Correlation health: how well-stitched the current source is. */
-function TraceQualityCard({ sourceId, dataVersion }: { sourceId: string; dataVersion: number }) {
-    const { rpc } = useDc();
-    const { data: report } = useRpcQuery(
-        () => rpc.sendRequest(DcGetTraceQualityRequest.type, { sourceId }),
-        [rpc, sourceId, dataVersion],
-    );
-    if (!report || report.totalEvents === 0) {
-        return null;
-    }
-    const tone = report.score === "good" ? "ok" : report.score === "fair" ? "warn" : "error";
-    return (
-        <div className="dc-card">
-            <div className="dc-card-title">
-                Trace quality
-                <span className="right">
-                    <span className={`dc-pill ${tone}`}>{report.score}</span>
-                </span>
-            </div>
-            <div className="dc-kv">
-                <span className="k">Correlated</span>
-                <span className="v">
-                    {report.orphanCount === 0
-                        ? "all product markers joined to traces"
-                        : `${report.orphanCount} orphan(s) · ${(report.orphanRatio * 100).toFixed(0)}% of correlatable markers`}
-                </span>
-                <span className="k">Pairs</span>
-                <span className="v">
-                    {report.unmatchedPairs.length === 0
-                        ? "begin/end balanced"
-                        : `${report.unmatchedPairs.length} unbalanced: ${report.unmatchedPairs
-                              .slice(0, 3)
-                              .map((pair) => `${pair.name} (${pair.begins}/${pair.ends})`)
-                              .join(", ")}`}
-                </span>
-                {report.longLivedRoots.length > 0 ? (
-                    <>
-                        <span className="k">Leaked roots</span>
-                        <span className="v">
-                            {report.longLivedRoots.length} trace(s) past the TTL — widest{" "}
-                            {formatDuration(report.longLivedRoots[0].durationMs)}
-                        </span>
-                    </>
-                ) : null}
-                <span className="k">Diagnostic bars</span>
-                <span className="v">
-                    {report.epochAlignedCount} epoch-aligned (hatched, never official)
-                </span>
-            </div>
-            {report.notes.length > 0 ? (
-                <ul className="dc-muted" style={{ margin: "6px 0 0", paddingLeft: 18 }}>
-                    {report.notes.map((note, index) => (
-                        <li key={index} style={{ fontSize: 11.5 }}>
-                            {note}
-                        </li>
-                    ))}
-                </ul>
-            ) : null}
-        </div>
-    );
-}
-
-export function OverviewPage() {
-    const {
-        rpc,
-        activeSourceId,
-        navigate,
-        captureMode,
-        setCaptureMode,
-        dataVersion,
-        sources,
-        importPerfRun,
-    } = useDc();
-    const {
-        data: overview,
-        error: overviewError,
-        refresh: reloadOverview,
-    } = useRpcQuery<SourceOverview>(
-        () => rpc.sendRequest(DcGetOverviewRequest.type, { sourceId: activeSourceId }),
-        [rpc, activeSourceId, dataVersion],
-    );
-
-    if (overviewError) {
-        return (
-            <>
-                <PageHeader title="Overview" />
-                <RpcError error={overviewError} retry={reloadOverview} />
-            </>
-        );
-    }
-    if (!overview) {
-        return <PageHeader title="Overview" sub="Loading…" />;
-    }
-    const { kpis, actions, anomalies } = overview;
-    if (kpis.events === 0 && captureMode === "off" && activeSourceId.startsWith("live:")) {
-        return (
-            <>
-                <PageHeader title="Overview" />
-                <EmptyState
-                    title="Session diagnostics are off"
-                    body="Turn on local Session Diag to capture classified, redacted traces for this VS Code session. Nothing is uploaded. The live view still shows events while the console is open.">
-                    <div style={{ display: "flex", gap: 8 }}>
-                        <button
-                            className="dc-btn primary"
-                            onClick={() => setCaptureMode("redacted")}>
-                            Enable redacted capture
-                        </button>
-                        <button className="dc-btn" onClick={importPerfRun}>
-                            Import perf run…
-                        </button>
-                    </div>
-                </EmptyState>
-            </>
-        );
-    }
-    return (
-        <>
-            <PageHeader
-                title="Overview"
-                sub="Session triage — what's captured, what's slow, what changed."
-            />
-            <div className="dc-kpis">
-                <Kpi label="Events" value={kpis.events.toLocaleString()} />
-                <Kpi
-                    label="Errors"
-                    value={kpis.errors}
-                    tone={kpis.errors > 0 ? "error" : undefined}
-                />
-                <Kpi
-                    label="Warnings"
-                    value={kpis.warnings}
-                    tone={kpis.warnings > 0 ? "warn" : undefined}
-                />
-                <Kpi
-                    label="Live-tail gaps"
-                    value={kpis.gaps}
-                    note={kpis.gaps > 0 ? "backfillable" : undefined}
-                    tone={kpis.gaps > 0 ? "warn" : undefined}
-                />
-                {kpis.slowestActionMs !== undefined ? (
-                    <Kpi
-                        label="Slowest action"
-                        value={formatDuration(kpis.slowestActionMs)}
-                        note={kpis.slowestActionLabel}
-                    />
-                ) : null}
-                <Kpi label="SQL commands" value={kpis.sqlCommands} />
-                <Kpi label="Capture mode" value={kpis.captureMode} note="local only" />
-                <Kpi label="Redacted fields" value={kpis.redactedFields.toLocaleString()} />
-            </div>
-            <div className="dc-two-col">
-                <div className="dc-card">
-                    <div className="dc-card-title">
-                        Recent user actions
-                        <span className="right">
-                            <LinkButton onClick={() => navigate({ page: "trace" })}>
-                                open in Trace →
-                            </LinkButton>
-                        </span>
-                    </div>
-                    <div className="dc-table-wrap" style={{ border: "none" }}>
-                        <table className="dc-table">
-                            <thead>
-                                <tr>
-                                    <th>Start</th>
-                                    <th>Action</th>
-                                    <th>Feature</th>
-                                    <th className="num">Dur</th>
-                                    <th>Status</th>
-                                    <th className="num">SQL</th>
-                                    <th className="num">Render</th>
-                                    <th className="num">Events</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {actions.map((action) => (
-                                    <tr
-                                        key={action.traceId}
-                                        {...activatable(() =>
-                                            navigate({
-                                                page: "waterfall",
-                                                traceId: action.traceId,
-                                            }),
-                                        )}
-                                        onClick={() =>
-                                            navigate({ page: "waterfall", traceId: action.traceId })
-                                        }>
-                                        <td className="dc-mono">
-                                            {formatTime(action.startEpochMs)}
-                                        </td>
-                                        <td>{action.label}</td>
-                                        <td className="dc-muted">{action.feature}</td>
-                                        <td className="num dc-mono">
-                                            {formatDuration(action.durationMs)}
-                                        </td>
-                                        <td>
-                                            <StatusPill status={action.status} />
-                                        </td>
-                                        <td className="num dc-mono">{action.sqlCommands}</td>
-                                        <td className="num dc-mono">
-                                            {action.renderMs !== undefined
-                                                ? formatDuration(action.renderMs)
-                                                : "—"}
-                                        </td>
-                                        <td className="num dc-mono">{action.eventCount}</td>
-                                    </tr>
-                                ))}
-                                {actions.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={8} className="dc-muted">
-                                            Use MSSQL features — connect, run a query, expand Object
-                                            Explorer — and actions appear here.
-                                        </td>
-                                    </tr>
-                                ) : null}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div>
-                    <TraceQualityCard sourceId={activeSourceId} dataVersion={dataVersion} />
-                    <div className="dc-card-title" style={{ marginBottom: 8 }}>
-                        Anomalies
-                    </div>
-                    {anomalies.length === 0 ? (
-                        <div className="dc-muted">Nothing anomalous detected in this source.</div>
-                    ) : (
-                        anomalies.map((anomaly) => (
-                            <div className={`dc-anomaly ${anomaly.severity}`} key={anomaly.id}>
-                                <div className="title">{anomaly.title}</div>
-                                <div className="detail">{anomaly.detail}</div>
-                                <LinkButton
-                                    style={{ fontSize: 11.5 }}
-                                    onClick={() =>
-                                        navigate({
-                                            page:
-                                                anomaly.page === "waterfall"
-                                                    ? "waterfall"
-                                                    : "trace",
-                                            ...(anomaly.traceId
-                                                ? { traceId: anomaly.traceId }
-                                                : {}),
-                                        })
-                                    }>
-                                    Open in {anomaly.page === "waterfall" ? "Waterfall" : "Trace"} →
-                                </LinkButton>
-                            </div>
-                        ))
-                    )}
-                    <div className="dc-card" style={{ marginTop: 10 }}>
-                        <div className="dc-card-title">Sessions &amp; imported runs</div>
-                        {sources.map((source) => (
-                            <div
-                                key={source.id}
-                                style={{
-                                    display: "flex",
-                                    gap: 8,
-                                    alignItems: "center",
-                                    padding: "3px 0",
-                                }}>
-                                <span
-                                    className="dc-live-dot"
-                                    style={{
-                                        background:
-                                            source.kind === "liveSession"
-                                                ? "var(--dc-ok)"
-                                                : "var(--dc-proc-system)",
-                                    }}
-                                />
-                                <span
-                                    style={{
-                                        flex: 1,
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                    }}>
-                                    {source.label}
-                                </span>
-                                <span className="dc-pill diag">{source.kind}</span>
-                                <span className="dc-mono dc-muted">
-                                    {source.eventCount?.toLocaleString() ?? ""}
-                                </span>
-                            </div>
-                        ))}
-                        <LinkButton style={{ fontSize: 11.5 }} onClick={importPerfRun}>
-                            Import perf run…
-                        </LinkButton>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
-}
-
-// ---------------------------------------------------------------------------
-// Consolidated Trace
-// ---------------------------------------------------------------------------
 
 const DETAIL_TABS = ["Summary", "Payload", "Cause", "Privacy", "Raw"] as const;
 
