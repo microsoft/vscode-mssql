@@ -618,39 +618,39 @@
                 },
                 {
                     "command": "mssql.deployNewDatabase",
-                    "when": "view == objectExplorer",
+                    "when": "view == objectExplorer || view == mssql.objectExplorerV2",
                     "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 },
                 {
                     "command": "mssql.shortcutsConfiguration.open",
-                    "when": "view == objectExplorer",
+                    "when": "view == objectExplorer || view == mssql.objectExplorerV2",
                     "title": "%mssql.shortcutsConfiguration.open%",
                     "group": "navigation"
                 },
                 {
                     "command": "mssql.objectExplorerV2.addConnection",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2",
-                    "group": "navigation@1"
+                    "group": "navigation"
                 },
                 {
                     "command": "mssql.objectExplorerV2.connectionGroups.create",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2",
-                    "group": "navigation@2"
+                    "group": "navigation"
                 },
                 {
                     "command": "mssql.objectExplorerV2.enableGroupBySchema",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && !config.mssql.objectExplorer.v2.groupBySchema",
-                    "group": "navigation@3"
+                    "group": "navigation"
                 },
                 {
                     "command": "mssql.objectExplorerV2.disableGroupBySchema",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && config.mssql.objectExplorer.v2.groupBySchema",
-                    "group": "navigation@4"
+                    "group": "navigation"
                 },
                 {
                     "command": "mssql.showOverviewInObjectExplorer",
-                    "when": "view == objectExplorer && !mssql.overviewVisible",
+                    "when": "(view == objectExplorer || view == mssql.objectExplorerV2) && !mssql.overviewVisible",
                     "group": "1_overview"
                 },
                 {
@@ -872,12 +872,12 @@
                 },
                 {
                     "command": "mssql.objectExplorer.openOverview",
-                    "when": "view == objectExplorer && viewItem == overview",
+                    "when": "(view == objectExplorer || view == mssql.objectExplorerV2) && viewItem == overview",
                     "group": "navigation@1"
                 },
                 {
                     "command": "mssql.hideOverviewInObjectExplorer",
-                    "when": "view == objectExplorer && viewItem == overview",
+                    "when": "(view == objectExplorer || view == mssql.objectExplorerV2) && viewItem == overview",
                     "group": "navigation@2"
                 },
                 {

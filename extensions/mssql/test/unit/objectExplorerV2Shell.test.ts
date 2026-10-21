@@ -56,6 +56,7 @@ function fakeSource(overrides?: Partial<ConnectionProfileSource>): ConnectionPro
 suite("Object Explorer v2 shell (B17)", () => {
     test("path codec: round-trips every kind incl. hostile identifiers", () => {
         const paths: OeV2Path[] = [
+            { kind: "overview" },
             { kind: "root" },
             { kind: "connectionGroup", groupId: HOSTILE },
             { kind: "connection", connectionId: "p1" },

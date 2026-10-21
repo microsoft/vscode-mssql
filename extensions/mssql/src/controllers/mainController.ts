@@ -1556,6 +1556,8 @@ export default class MainController implements vscode.Disposable {
         this._objectExplorerProvider =
             objectExplorerProvider ?? new ObjectExplorerProvider(this._connectionMgr);
 
+        const overviewVisibilityChanged = new vscode.EventEmitter<boolean>();
+        this._context.subscriptions.push(overviewVisibilityChanged);
         const isOverviewVisible =
             this._context.globalState.get<boolean>(overviewVisibilityStorageKey, true) ?? true;
         this._objectExplorerProvider.setOverviewVisibility(isOverviewVisible);
@@ -1573,6 +1575,7 @@ export default class MainController implements vscode.Disposable {
                 isVisible,
             );
             this._objectExplorerProvider.setOverviewVisibility(isVisible);
+            overviewVisibilityChanged.fire(isVisible);
         };
 
         this._context.subscriptions.push(
@@ -1617,6 +1620,14 @@ export default class MainController implements vscode.Disposable {
                 legacyConnections: this._connectionMgr,
                 groupConfig: () => this._connectionMgr.connectionStore.connectionConfig,
                 isEnabled: objectExplorerV2Enabled,
+                overviewVisibility: {
+                    isVisible: () =>
+                        this._context.globalState.get<boolean>(
+                            overviewVisibilityStorageKey,
+                            true,
+                        ) ?? true,
+                    onDidChange: overviewVisibilityChanged.event,
+                },
             });
         }
 
