@@ -23,15 +23,6 @@ export interface VscodeEntraSqlTokenInfo {
     token: IToken;
 }
 
-/**
- * Mirrors `vscode.AuthenticationWwwAuthenticateRequest` (VS Code 1.105+), which the
- * `@types/vscode` version used by this extension does not declare yet.
- */
-interface WwwAuthenticateRequest {
-    readonly wwwAuthenticate: string;
-    readonly fallbackScopes?: readonly string[];
-}
-
 /** Time the user last cleared the Entra token cache, in seconds since the epoch. */
 let tokenCacheClearedAt: number | undefined;
 
@@ -264,7 +255,7 @@ export function getCloudResourceEndpoint(endpoint: keyof IProviderResources): st
  * Gets a session silently, falling back to an interactive request if VS Code has none.
  */
 async function getSessionForAccount(
-    scopeOrRequest: string | WwwAuthenticateRequest,
+    scopeOrRequest: string | vscode.AuthenticationWwwAuthenticateRequest,
     tenantId: string,
     account: vscode.AuthenticationSessionAccountInformation,
 ): Promise<vscode.AuthenticationSession | undefined> {
