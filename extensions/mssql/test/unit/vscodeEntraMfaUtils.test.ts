@@ -10,8 +10,10 @@ import {
     getVscodeEntraAccountOptions,
     acquireTokenFromVscodeAccountForResource,
     clearVscodeEntraTokenCache,
+    initializeVscodeEntraTokenCacheState,
     isVscodeEntraTokenStale,
     resetVscodeEntraTokenCacheForTest,
+    tokenCacheClearStateKey,
 } from "../../src/azure/vscodeEntraMfaUtils";
 import * as sinon from "sinon";
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
@@ -111,19 +113,42 @@ suite("vscodeEntraMfaUtils", () => {
         const clearedAt = 1_800_000_000;
 
         let getSession: sinon.SinonStub;
+        let globalState: vscode.Memento;
 
-        setup(() => {
+        setup(async () => {
             sandbox
                 .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
                 .resolves([mockAccounts.signedInAccount]);
             getSession = sandbox.stub(vscode.authentication, "getSession");
             sandbox.useFakeTimers({ now: clearedAt * 1000, toFake: ["Date"] });
-            clearVscodeEntraTokenCache();
+            globalState = createGlobalState();
+            initializeVscodeEntraTokenCacheState(globalState);
+            await clearVscodeEntraTokenCache();
         });
 
         teardown(() => {
             resetVscodeEntraTokenCacheForTest();
         });
+
+        /** Global state that stores serialized copies of values, as VS Code does. */
+        function createGlobalState(): vscode.Memento {
+            const values = new Map<string, string>();
+            return {
+                keys: () => Array.from(values.keys()),
+                get: (key: string) => {
+                    const value = values.get(key);
+                    return value === undefined ? undefined : JSON.parse(value);
+                },
+                update: async (key: string, value: unknown) => {
+                    values.set(key, JSON.stringify(value));
+                },
+            } as vscode.Memento;
+        }
+
+        function reloadWindow(): void {
+            resetVscodeEntraTokenCacheForTest();
+            initializeVscodeEntraTokenCacheState(globalState);
+        }
 
         function createSession(accessToken: string): vscode.AuthenticationSession {
             return {
@@ -203,7 +228,7 @@ suite("vscodeEntraMfaUtils", () => {
             await acquireToken();
             getSession.reset();
             sandbox.clock.tick(60_000);
-            clearVscodeEntraTokenCache();
+            await clearVscodeEntraTokenCache();
             getSession.onFirstCall().resolves(createSession("refreshed-token"));
             getSession.onSecondCall().resolves(createSession("refreshed-again-token"));
 
@@ -232,7 +257,7 @@ suite("vscodeEntraMfaUtils", () => {
             getSession.onSecondCall().resolves(createSession("refreshed-token"));
             await acquireToken();
             getSession.reset();
-            clearVscodeEntraTokenCache();
+            await clearVscodeEntraTokenCache();
             getSession.onFirstCall().resolves(createSession("refreshed-token"));
             getSession.onSecondCall().resolves(createSession("refreshed-again-token"));
 
@@ -246,13 +271,67 @@ suite("vscodeEntraMfaUtils", () => {
         test("keeps a token stale if the cache is cleared during its refresh", async () => {
             getSession.onFirstCall().resolves(createSession("cached-token"));
             getSession.onSecondCall().callsFake(async () => {
-                clearVscodeEntraTokenCache();
+                await clearVscodeEntraTokenCache();
                 return createSession("refreshed-token");
             });
 
             await acquireToken();
 
             expect(isVscodeEntraTokenStale("refreshed-token")).to.be.true;
+        });
+
+        test("still forces a refresh after the window is reloaded", async () => {
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
+            await acquireToken();
+            getSession.reset();
+            reloadWindow();
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
+
+            const result = await acquireToken();
+
+            expect(result.token.token).to.equal("refreshed-token");
+            expect(getSession.secondCall.args[1].wwwAuthenticate).to.equal(
+                expectedChallenge(clearedAt),
+            );
+            expect(isVscodeEntraTokenStale("cached-token")).to.be.true;
+        });
+
+        test("uses a token refreshed before the window was reloaded without another challenge", async () => {
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
+            await acquireToken();
+            getSession.reset();
+            reloadWindow();
+            getSession.resolves(createSession("refreshed-token"));
+
+            const result = await acquireToken();
+
+            expect(result.token.token).to.equal("refreshed-token");
+            expect(getSession).to.have.been.calledOnce;
+        });
+
+        test("does not save access tokens in global state", async () => {
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
+
+            await acquireToken();
+
+            const saved = JSON.stringify(globalState.get(tokenCacheClearStateKey));
+            expect(saved).to.not.include("refreshed-token");
+            expect(saved).to.not.include("cached-token");
+        });
+
+        test("stops forcing refreshes once tokens from before the clear have expired", async () => {
+            sandbox.clock.tick((28 * 60 * 60 + 1) * 1000);
+            getSession.resolves(createSession("cached-token"));
+
+            const result = await acquireToken();
+
+            expect(result.token.token).to.equal("cached-token");
+            expect(getSession).to.have.been.calledOnce;
+            expect(isVscodeEntraTokenStale("cached-token")).to.be.false;
         });
 
         test("does not treat a missing token as stale", () => {

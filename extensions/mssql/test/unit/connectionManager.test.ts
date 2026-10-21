@@ -404,6 +404,35 @@ suite("ConnectionManager Tests", () => {
                 "tenant-id",
             );
         });
+
+        test("does not reuse a Key Vault token cached by a refresh in flight when the token cache was cleared", async () => {
+            const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+            acquireTokenStub.onFirstCall().callsFake(async () => {
+                await connectionManager.onClearAzureTokenCache();
+                return { token: { key: "akv-key", token: "pre-clear-token", expiresOn } };
+            });
+            acquireTokenStub.onSecondCall().resolves({
+                token: { key: "akv-key", token: "post-clear-token", expiresOn },
+            });
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccounts").resolves([]);
+            connectionManager["selectAccount"] = sandbox.stub().resolves("account-id");
+            connectionManager["selectTenantId"] = sandbox.stub().resolves("tenant-id");
+
+            const params: RequestSecurityTokenParams = {
+                accountId: undefined,
+                tenantId: "",
+                resource: "",
+                provider: "",
+                authority: "",
+                scopes: [],
+            };
+
+            await connectionManager["handleSecurityTokenRequest"](params);
+            const result = await connectionManager["handleSecurityTokenRequest"](params);
+
+            expect(result.token).to.equal("post-clear-token");
+            expect(acquireTokenStub).to.have.been.calledTwice;
+        });
     });
 
     suite("should acquire token for AKV when accountId is not specified (MSAL)", () => {
@@ -746,7 +775,7 @@ suite("ConnectionManager Tests", () => {
         });
 
         test("onClearAzureTokenCache clears the MSAL token cache", async () => {
-            connectionManager.onClearAzureTokenCache();
+            await connectionManager.onClearAzureTokenCache();
 
             expect(mockAzureController.clearTokenCache).to.have.been.calledOnce;
         });
@@ -788,7 +817,7 @@ suite("ConnectionManager Tests", () => {
                 expiresOn,
             });
 
-            connectionManager.onClearAzureTokenCache();
+            await connectionManager.onClearAzureTokenCache();
             await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
 
             expect(connectionManager["_keyVaultTokenCache"].size).to.equal(0);
