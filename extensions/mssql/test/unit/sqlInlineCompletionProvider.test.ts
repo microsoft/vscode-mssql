@@ -402,6 +402,13 @@ suite("SqlInlineCompletionProvider Tests", () => {
             ["FROM master.", ".sysobjects", ".sysobjects"],
             ["FROM AppDb.", ".Customers", ".Customers"],
             ["FROM LinkedServer.AppDb.", ".Customers", ".Customers"],
+            ["FROM sys.", ".tables.OtherObject", ".tables.OtherObject"],
+            [
+                "FROM sys.",
+                ".tables /* separator */ .OtherObject",
+                ".tables /* separator */ .OtherObject",
+            ],
+            ["FROM sys.", ".tables.", ".tables."],
             ["FROM AppDb.sys.", ".tables", ".tables"],
             ["FROM sys..", ".tables", ".tables"],
             ["SELECT sys.", ".tables", ".tables"],
