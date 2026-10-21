@@ -18,7 +18,10 @@ import {
 } from "../connectionconfig/azureHelpers";
 import {
     acquireTokenFromVscodeAccountForResource,
+    clearVscodeEntraTokenCache,
     getCloudResourceEndpoint,
+    initializeVscodeEntraTokenCacheState,
+    isVscodeEntraTokenStale,
     MissingEntraAuthAccountError,
 } from "../azure/vscodeEntraMfaUtils";
 import * as Constants from "../constants/constants";
@@ -200,6 +203,10 @@ export default class ConnectionManager {
         }
 
         this._entraLogger = logger.withPrefix("Entra Auth");
+
+        if (context?.globalState) {
+            initializeVscodeEntraTokenCacheState(context.globalState);
+        }
 
         if (!this.azureController) {
             this.azureController = new MsalAzureController(
@@ -1234,7 +1241,10 @@ export default class ConnectionManager {
         if (!getUseMsalEntraMfaAuthConfig()) {
             const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
 
+            const isStale = isVscodeEntraTokenStale(connectionInfo.azureAccountToken);
+
             if (
+                !isStale &&
                 AzureController.isTokenValid(
                     connectionInfo.azureAccountToken,
                     connectionInfo.expiresOn,
@@ -1247,7 +1257,9 @@ export default class ConnectionManager {
             }
 
             this._entraLogger?.debug(
-                `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) expired at ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}) and needs to be refreshed.`,
+                isStale
+                    ? `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) was cached before the Entra token cache was cleared and needs to be refreshed.`
+                    : `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) expired at ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}) and needs to be refreshed.`,
             );
 
             const tokenInfo = await acquireTokenFromVscodeAccountForResource(
@@ -2247,7 +2259,9 @@ export default class ConnectionManager {
         }
     }
 
-    public onClearAzureTokenCache(): void {
+    public async onClearAzureTokenCache(): Promise<void> {
+        this._keyVaultTokenCache.clear();
+        await clearVscodeEntraTokenCache();
         this.azureController.clearTokenCache();
         vscode.window.showInformationMessage(LocalizedConstants.Accounts.clearedEntraTokenCache);
     }
@@ -2369,7 +2383,11 @@ export default class ConnectionManager {
         // Cache check is independent of auth provider
         if (this._keyVaultTokenCache.has(cacheKey)) {
             const cached = this._keyVaultTokenCache.get(cacheKey)!;
-            if (AzureController.isTokenExpired(cached.expiresOn)) {
+            // A refresh in flight when the token cache was cleared can cache a pre-clear token.
+            if (
+                AzureController.isTokenExpired(cached.expiresOn) ||
+                (!getUseMsalEntraMfaAuthConfig() && isVscodeEntraTokenStale(cached.token))
+            ) {
                 this._keyVaultTokenCache.delete(cacheKey);
             } else {
                 return {

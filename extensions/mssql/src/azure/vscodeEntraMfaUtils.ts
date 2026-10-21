@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as crypto from "crypto";
 import * as vscode from "vscode";
 import { AzureTenant, getSessionFromVSCode } from "@microsoft/vscode-azext-azureauth";
 
@@ -11,12 +12,104 @@ import { IProviderResources, IToken } from "../models/contracts/azure";
 import { getCloudProviderSettings } from "./providerSettings";
 import { VsCodeAzureHelper, getDefaultTenantId } from "../connectionconfig/azureHelpers";
 import * as locConstants from "../constants/locConstants";
+import { getLogger } from "../models/logger";
+import { epochToDisplay } from "../models/utils";
+import { getErrorMessage } from "../utils/utils";
+
+const logger = getLogger("Entra Auth");
 
 export interface VscodeEntraSqlTokenInfo {
     account: vscode.AuthenticationSessionAccountInformation;
     session: vscode.AuthenticationSession;
     tenantId: string;
     token: IToken;
+}
+
+interface TokenCacheClearState {
+    /** Time the user last cleared the Entra token cache, in seconds since the epoch. */
+    clearedAt: number;
+    /**
+     * SHA-256 hash of the token accepted since the clear, per resource, account and tenant. Any
+     * other token VS Code returns, including an older one the broker still has cached, is stale.
+     */
+    tokenHashes: Record<string, string>;
+}
+
+/** Global state key that keeps the last clear across window reloads. */
+export const tokenCacheClearStateKey = "mssql.entraTokenCacheClear";
+
+/**
+ * Longest an Entra access token can be valid (28 hours, for continuous access evaluation tokens).
+ * After this, no token issued before the clear can be returned, so the clear no longer applies.
+ */
+const maxAccessTokenLifetimeSeconds = 28 * 60 * 60;
+
+let clearStateStore: vscode.Memento | undefined;
+let clearState: TokenCacheClearState | undefined;
+
+/**
+ * Restores the last token cache clear from global state. The broker keeps tokens across window
+ * reloads, so without this a reload would let it return a token cached before the clear.
+ */
+export function initializeVscodeEntraTokenCacheState(store: vscode.Memento): void {
+    clearStateStore = store;
+    clearState = store.get<TokenCacheClearState>(tokenCacheClearStateKey);
+}
+
+/**
+ * Discards the VS Code accounts tokens the extension has seen. VS Code's auth provider cache
+ * cannot be cleared from here, so the next request for each token is made with a claims challenge.
+ */
+export async function clearVscodeEntraTokenCache(): Promise<void> {
+    // Each clear needs its own challenge, so never reuse the previous clear's time.
+    const clearedAt = Math.max(nowInSeconds(), (getClearState()?.clearedAt ?? 0) + 1);
+    clearState = { clearedAt, tokenHashes: {} };
+    logger.info(
+        `VS Code accounts token cache cleared at ${clearedAt}; the next request for each token will force a refresh.`,
+    );
+    await saveClearState();
+}
+
+/**
+ * Returns true if the access token was obtained before the Entra token cache was last cleared,
+ * so it may not reflect group membership or PIM role changes made since then.
+ */
+export function isVscodeEntraTokenStale(accessToken: string | undefined): boolean {
+    const state = getClearState();
+    return (
+        state !== undefined &&
+        !!accessToken &&
+        !Object.values(state.tokenHashes).includes(hashToken(accessToken))
+    );
+}
+
+/** Forgets any token cache clear. For tests only. */
+export function resetVscodeEntraTokenCacheForTest(): void {
+    clearStateStore = undefined;
+    clearState = undefined;
+}
+
+function getClearState(): TokenCacheClearState | undefined {
+    if (clearState && nowInSeconds() - clearState.clearedAt > maxAccessTokenLifetimeSeconds) {
+        return undefined;
+    }
+    return clearState;
+}
+
+async function saveClearState(): Promise<void> {
+    try {
+        await clearStateStore?.update(tokenCacheClearStateKey, clearState);
+    } catch (error) {
+        logger.error(`Failed to save the Entra token cache clear: ${getErrorMessage(error)}`);
+    }
+}
+
+function hashToken(accessToken: string): string {
+    return crypto.createHash("sha256").update(accessToken).digest("base64");
+}
+
+function nowInSeconds(): number {
+    return Math.floor(Date.now() / 1000);
 }
 
 /**
@@ -132,16 +225,47 @@ export async function acquireTokenFromVscodeAccountForResource(
         );
     }
 
-    const session =
-        (await getSessionFromVSCode(resourceEndpoint, resolvedTenantId, {
-            createIfNone: false,
-            silent: true,
+    let session = await getSessionForAccount(resourceEndpoint, resolvedTenantId, account);
+
+    const state = getClearState();
+    const clearedAt = state?.clearedAt;
+    const tokenKey = `${resourceEndpoint}|${account.id}|${resolvedTenantId}`;
+    if (
+        session &&
+        clearedAt !== undefined &&
+        hashToken(session.accessToken) !== state?.tokenHashes[tokenKey]
+    ) {
+        const cachedToken = session.accessToken;
+        logger.info(
+            `Forcing a token refresh for ${resourceEndpoint} with tenantId '${resolvedTenantId}' because the token cache was cleared at ${clearedAt}; cached token expires on ${describeExpiry(cachedToken)}`,
+        );
+
+        session = await getSessionForAccount(
+            {
+                wwwAuthenticate: getForceRefreshChallenge(clearedAt),
+                fallbackScopes: [resourceEndpoint],
+            },
+            resolvedTenantId,
             account,
-        })) ??
-        (await getSessionFromVSCode(resourceEndpoint, resolvedTenantId, {
-            createIfNone: true,
-            account,
-        }));
+        );
+
+        if (session) {
+            if (session.accessToken === cachedToken) {
+                logger.warn(
+                    `VS Code returned the cached token for ${resourceEndpoint} again after a forced refresh; it may not reflect recent group or role changes.`,
+                );
+            } else {
+                // If the cache was cleared again during the refresh, this token predates that clear.
+                if (clearState?.clearedAt === clearedAt) {
+                    clearState.tokenHashes[tokenKey] = hashToken(session.accessToken);
+                    await saveClearState();
+                }
+                logger.info(
+                    `Got a new token for ${resourceEndpoint} after a forced refresh; expires on ${describeExpiry(session.accessToken)}`,
+                );
+            }
+        }
+    }
 
     if (!session) {
         throw new Error(
@@ -176,6 +300,50 @@ export function getCloudResourceEndpoint(endpoint: keyof IProviderResources): st
     }
 
     return resource.endpoint;
+}
+
+/**
+ * Gets a session silently, falling back to an interactive request if VS Code has none.
+ */
+async function getSessionForAccount(
+    scopeOrRequest: string | vscode.AuthenticationWwwAuthenticateRequest,
+    tenantId: string,
+    account: vscode.AuthenticationSessionAccountInformation,
+): Promise<vscode.AuthenticationSession | undefined> {
+    return (
+        (await getSessionFromVSCode(scopeOrRequest, tenantId, {
+            createIfNone: false,
+            silent: true,
+            account,
+        })) ??
+        (await getSessionFromVSCode(scopeOrRequest, tenantId, {
+            createIfNone: true,
+            account,
+        }))
+    );
+}
+
+/**
+ * Challenge that makes VS Code's Microsoft auth provider skip its token cache. The native broker
+ * (WAM on Windows) ignores `forceRefresh` and signing out does not remove its tokens, so a claims
+ * request is the only way to get a new token before the cached one expires. The broker caches
+ * tokens by the claims requested, so each clear asks for a token issued after it, in the format
+ * Entra uses for continuous access evaluation challenges.
+ */
+function getForceRefreshChallenge(clearedAt: number): string {
+    const claims = JSON.stringify({
+        access_token: { nbf: { essential: true, value: String(clearedAt) } },
+    });
+    return `Bearer claims="${Buffer.from(claims).toString("base64")}"`;
+}
+
+function describeExpiry(accessToken: string): string {
+    const expiresOn = getTokenExpiration(accessToken);
+    if (expiresOn === undefined) {
+        return "unknown";
+    }
+    const expiry = epochToDisplay(expiresOn * 1000);
+    return `${expiresOn} (${expiry.iso}, ${expiry.relative})`;
 }
 
 function getTokenExpiration(accessToken: string): number | undefined {
