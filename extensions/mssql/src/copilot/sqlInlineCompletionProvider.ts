@@ -35,7 +35,7 @@ import {
     SqlInlineCompletionSchemaObject,
 } from "./completionSchemaContextCore";
 import { CompletionSchemaContextService } from "./completionSchemaContextService";
-import { lex, TokenKind } from "../sqlLanguage/core/lexer";
+import { lex, nextSignificant, TokenKind } from "../sqlLanguage/core/lexer";
 import {
     isNameKind,
     namePartText,
@@ -1795,7 +1795,12 @@ function isRepeatedSchemaDot(
         return false;
     }
     const suffix = completionText.slice(1);
-    const [objectToken] = lex(suffix).tokens;
+    const suffixTokens = lex(suffix).tokens;
+    const objectToken = suffixTokens[0];
+    const nextToken = suffixTokens[nextSignificant(suffixTokens, 1)];
+    if (nextToken && suffix.slice(nextToken.start, nextToken.end) === ".") {
+        return false; // A longer multipart name may intentionally omit its database or schema.
+    }
     return (
         isNameKind(objectToken.kind) &&
         !objectToken.unterminated &&
