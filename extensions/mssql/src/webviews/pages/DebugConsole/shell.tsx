@@ -9,38 +9,19 @@ import { useEffect, useState } from "react";
 import { DcExportRequest } from "../../../sharedInterfaces/debugConsole";
 import { describeError } from "./common";
 import { DcPage, useDc } from "./state";
-import { OverviewPage, TracePage, WaterfallPage } from "./pagesCore";
-import {
-    ConnectionsPage,
-    ExportsPage,
-    ObjectExplorerPage,
-    QueryResultsPage,
-    SettingsPage,
-    SqlActivityPage,
-} from "./pagesMore";
+import { TracePage, WaterfallPage } from "./pagesCore";
+import { ExportsPage, SettingsPage } from "./pagesMore";
 import { HistoryPage } from "./pagesPerf";
 import { CompletionsPage } from "./completionsPage";
 import { locConstants } from "../../common/locConstants";
-import { PerfHistoryPage } from "./pagesPerfHistory";
 
 const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon: string }> }> = [
     {
         group: "Common",
         items: [
-            { id: "overview", label: "Overview", icon: "◫" },
             { id: "trace", label: "Consolidated Trace", icon: "≣" },
             { id: "waterfall", label: "Waterfall", icon: "𝄜" },
-            { id: "perf", label: "Perf Test History", icon: "∿" },
             { id: "history", label: "Session History", icon: "◷" },
-        ],
-    },
-    {
-        group: "Feature pages",
-        items: [
-            { id: "sql", label: "SQL Activity", icon: "⛁" },
-            { id: "connections", label: "Connections", icon: "⌁" },
-            { id: "query", label: "Query & Results", icon: "▶" },
-            { id: "oe", label: "Object Explorer", icon: "⌥" },
             { id: "completions", label: locConstants.inlineCompletionDebug.completions, icon: "✦" },
         ],
     },
@@ -353,32 +334,14 @@ export function DebugConsoleApp() {
         case "completions":
             page = <CompletionsPage />;
             break;
-        case "overview":
-            page = <OverviewPage />;
-            break;
         case "trace":
             page = <TracePage />;
             break;
         case "waterfall":
             page = <WaterfallPage />;
             break;
-        case "perf":
-            page = <PerfHistoryPage />;
-            break;
         case "history":
             page = <HistoryPage />;
-            break;
-        case "sql":
-            page = <SqlActivityPage />;
-            break;
-        case "connections":
-            page = <ConnectionsPage />;
-            break;
-        case "query":
-            page = <QueryResultsPage />;
-            break;
-        case "oe":
-            page = <ObjectExplorerPage />;
             break;
         case "exports":
             page = <ExportsPage />;
@@ -387,7 +350,7 @@ export function DebugConsoleApp() {
             page = <SettingsPage />;
             break;
         default:
-            page = <OverviewPage />;
+            page = <TracePage />;
     }
     return (
         <div className="dc-shell">

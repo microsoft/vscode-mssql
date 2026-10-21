@@ -22,7 +22,6 @@ import {
     DebugSource,
     DcCaptureChangedNotification,
     DcBackfillGapRequest,
-    DcImportPerfRunRequest,
     DcListSourcesRequest,
     DcLivePushNotification,
     DcNavigateNotification,
@@ -63,7 +62,6 @@ interface DcContextValue {
     captureExpiresEpochMs: number | undefined;
     setCaptureMode: (mode: CaptureMode, reason?: string, durationMinutes?: number) => void;
     refreshSources: () => void;
-    importPerfRun: () => void;
     search: string;
     setSearch: (text: string) => void;
     dataVersion: number;
@@ -93,7 +91,7 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
     // Live is not a mode the user toggles — it IS the current-session source.
     // ("" = initial state before the host pushes the live source id.)
     const isLive = activeSourceId === "" || activeSourceId.startsWith("live:");
-    const [route, navigate] = useState<DcRoute>({ page: "overview" });
+    const [route, navigate] = useState<DcRoute>({ page: "trace" });
     // The webview keeps NO event buffer of its own: every page queries the
     // host (which owns the archive) and re-queries on dataVersion, so live
     // pushes only bump the version. Gaps are tracked for the backfill UX.
@@ -259,21 +257,6 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
         [rpc],
     );
 
-    const importPerfRun = useCallback(() => {
-        rpc.sendRequest(DcImportPerfRunRequest.type).then(
-            (list) => {
-                if (list) {
-                    setSources(list);
-                    const perfRun = list.filter((s) => s.kind === "perfRun").pop();
-                    if (perfRun) {
-                        setActiveSourceId(perfRun.id);
-                    }
-                }
-            },
-            (error: unknown) => setNotice(`Import failed: ${describeError(error)}`),
-        );
-    }, [rpc]);
-
     const value = useMemo<DcContextValue>(
         () => ({
             state,
@@ -293,7 +276,6 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
             captureExpiresEpochMs,
             setCaptureMode,
             refreshSources,
-            importPerfRun,
             search,
             setSearch,
             dataVersion,
@@ -312,7 +294,6 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
             captureExpiresEpochMs,
             setCaptureMode,
             refreshSources,
-            importPerfRun,
             search,
             dataVersion,
         ],
