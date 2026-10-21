@@ -361,6 +361,65 @@ suite("SqlInlineCompletionProvider Tests", () => {
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal("databases");
     });
 
+    test("removes an echoed schema dot without schema sharing or a metadata request", async () => {
+        useSchemaContextEnabled = false;
+        sendRequestStub.resolves(createChatResponse(".tables"));
+        const text = "select *\nfrom sys.";
+        const position = new vscode.Position(1, "from sys.".length);
+        const items = (await provider.provideInlineCompletionItems(
+            createTestDocument(text, "file:///query.sql"),
+            position,
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+                selectedCompletionInfo: undefined,
+            },
+            requestCancellation.token,
+        )) as vscode.InlineCompletionItem[];
+
+        expect(items).to.have.lengthOf(1);
+        expect(text + items[0].insertText).to.equal("select *\nfrom sys.tables");
+        expect(items[0].range).to.deep.equal(new vscode.Range(position, position));
+        expect(schemaContextService.getSchemaContext).to.not.have.been.called;
+    });
+
+    test("removes repeated dots only for known schema/object references", () => {
+        const context: SqlInlineCompletionSchemaContext = {
+            schemas: ["dbo"],
+            tables: [{ name: "dbo.Customers", columns: [] }],
+            views: [],
+            masterSymbols: [],
+        };
+        for (const [prefix, response, expected] of [
+            ["FROM sys.", ".tables", "tables"],
+            ["FROM [sys].", ".[tables] AS t", "[tables] AS t"],
+            ['FROM "sys".', '."tables"', '"tables"'],
+            ["FROM sys.", "tables", "tables"],
+            ["FROM sys", ".tables", ".tables"],
+            ["FROM dbo.", ".Customers", "Customers"],
+            ["FROM dbo.", ".Unknown", ".Unknown"],
+            ["FROM master.", ".sysobjects", ".sysobjects"],
+            ["FROM AppDb.", ".Customers", ".Customers"],
+            ["FROM LinkedServer.AppDb.", ".Customers", ".Customers"],
+            ["FROM AppDb.sys.", ".tables", ".tables"],
+            ["FROM sys..", ".tables", ".tables"],
+            ["SELECT sys.", ".tables", ".tables"],
+            ["SELECT 1.", ".5", ".5"],
+            ["-- FROM sys.", ".tables", ".tables"],
+            ["SELECT 'first line\nFROM sys.", ".tables", ".tables"],
+            ["/* first line\nFROM sys.", ".tables", ".tables"],
+            ["FROM [sys.", ".tables", ".tables"],
+        ]) {
+            const linePrefix = prefix.split("\n").pop()!;
+            expect(
+                fixLeadingWhitespace(response, linePrefix, context, false, prefix),
+                prefix,
+            ).to.equal(expected);
+        }
+        expect(
+            fixLeadingWhitespace(".customers", "FROM dbo.", { ...context, caseSensitive: true }),
+        ).to.equal(".customers");
+    });
+
     test("joins a system-object suffix without schema sharing or a metadata request", async () => {
         useSchemaContextEnabled = false;
         sendRequestStub.resolves(createChatResponse("ll_objects"));
