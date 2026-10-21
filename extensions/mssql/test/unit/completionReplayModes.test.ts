@@ -283,6 +283,31 @@ suite("Completion replay modes (WI-3.4)", () => {
         expect(provenance?.model.resolvedId).to.equal("fake-model");
     });
 
+    test("replay joins the same known object suffix as live completion without changing comment text", async () => {
+        for (const [statementPrefix, expected] of [
+            ["select *\nfrom sys.a", "ll_objects"],
+            ["/* comment\nfrom sys.a", " ll_objects"],
+        ]) {
+            const harness = createHarness({ modelText: "ll_objects" });
+            try {
+                const event = sourceEvent();
+                const recorded = await harness.service.replaySourceEvent(
+                    {
+                        ...event,
+                        usedSchemaContext: false,
+                        schemaContextFormatted: undefined,
+                        locals: { ...event.locals, statementPrefix, linePrefix: "from sys.a" },
+                    },
+                    { overrides: replayConfig("frozenPrompt") },
+                );
+                expect(recorded?.result, statementPrefix).to.equal("success");
+                expect(recorded?.finalCompletionText, statementPrefix).to.equal(expected);
+            } finally {
+                harness.service.dispose();
+            }
+        }
+    });
+
     test("rebuildCapturedContext rebuilds the prompt over captured schema; no retrieval", async () => {
         const harness = createHarness({ schemaService: "ok" });
         const recorded = await harness.service.replaySourceEvent(sourceEvent(), {

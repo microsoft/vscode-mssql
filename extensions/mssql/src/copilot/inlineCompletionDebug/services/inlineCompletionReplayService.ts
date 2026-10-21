@@ -897,6 +897,7 @@ export class InlineCompletionReplayService {
                 linePrefix,
                 undefined,
                 intentMode,
+                statementPrefix,
             );
             finalCompletionText = suppressDocumentSuffixOverlap(finalCompletionText, suffix);
             const result = !sanitizedResponse

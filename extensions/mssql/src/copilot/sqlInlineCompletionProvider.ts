@@ -36,6 +36,9 @@ import {
     SqlInlineCompletionSchemaObject,
 } from "./completionSchemaContextCore";
 import { CompletionSchemaContextService } from "./completionSchemaContextService";
+import { lex, TokenKind } from "../sqlLanguage/core/lexer";
+import { prevSignificant, readChainAround } from "../sqlLanguage/core/nameChain";
+import { findSystemObject } from "../sqlLanguage/data/systemObjectCatalog";
 import {
     InlineCompletionCategory,
     InlineCompletionDebugEvent,
@@ -772,6 +775,7 @@ export class SqlInlineCompletionProvider
                 linePrefix,
                 schemaContextForPrompt,
                 intentMode,
+                statementPrefix,
             );
             finalCompletionText = suppressDocumentSuffixOverlap(finalCompletionText, suffix);
             finalCompletionText = normalizeCompletionEndOfLine(finalCompletionText, document.eol);
@@ -1732,6 +1736,7 @@ export function fixLeadingWhitespace(
     linePrefix: string,
     schemaContext: SqlInlineCompletionSchemaContext | undefined,
     intentMode: boolean = false,
+    statementPrefix: string = linePrefix,
 ): string | undefined {
     if (!completionText) {
         return undefined;
@@ -1762,6 +1767,10 @@ export function fixLeadingWhitespace(
         return completionText;
     }
 
+    if (continuesKnownObjectName(completionText, statementPrefix, schemaContext)) {
+        return completionText;
+    }
+
     if (newLineClausePattern.test(completionText)) {
         return "\n" + completionText;
     }
@@ -1778,6 +1787,65 @@ export function fixLeadingWhitespace(
         return " " + completionText;
     }
     return completionText;
+}
+
+/** Only join a partial qualified name when the completed name has positive catalog evidence. */
+function continuesKnownObjectName(
+    completionText: string,
+    statementPrefix: string,
+    context: SqlInlineCompletionSchemaContext | undefined,
+): boolean {
+    const suffix = /^[a-zA-Z0-9_$]+/.exec(completionText)?.[0];
+    if (!suffix) {
+        return false;
+    }
+
+    // Use the statement to keep strings and multiline comments out of this repair.
+    const { tokens } = lex(statementPrefix);
+    const index = tokens.length - 2; // The lexer ends with an EOF token.
+    if (tokens[index]?.kind !== TokenKind.Identifier) {
+        return false;
+    }
+    const { parts, spans } = readChainAround(statementPrefix, tokens, index);
+    if (parts.length !== 2) {
+        return false;
+    }
+    const nameIndex = tokens.findIndex((token) => token.start === spans[0].start);
+    const precedingKeyword = tokens[prevSignificant(tokens, nameIndex)]?.keyword?.id;
+    // A dotted expression can also be alias.column. Only use object metadata
+    // immediately after a keyword that introduces an object reference.
+    if (
+        !precedingKeyword ||
+        !/^(FROM|JOIN|UPDATE|INTO|MERGE|EXEC|EXECUTE)$/.test(precedingKeyword)
+    ) {
+        return false;
+    }
+    const [schema, partialName] = parts;
+    const knownNames = [
+        ...(context?.tables ?? []).map((table) => table.name),
+        ...(context?.views ?? []).map((view) => view.name),
+        ...(context?.routines ?? []).map((routine) => routine.name),
+        ...(context?.systemObjects ?? []).map((object) => object.name),
+        ...(context?.tableNameOnlyInventory ?? []),
+        ...(context?.viewNameOnlyInventory ?? []),
+        ...(context?.routineNameOnlyInventory ?? []),
+        ...(context?.masterSymbols ?? []),
+    ];
+    const isKnown = (name: string): boolean => {
+        const qualifiedName = `${schema}.${name}`;
+        return (
+            !!findSystemObject(schema, name, context?.engineEdition) ||
+            knownNames.some((known) =>
+                context?.caseSensitive
+                    ? known === qualifiedName
+                    : known.toLowerCase() === qualifiedName.toLowerCase(),
+            )
+        );
+    };
+
+    // A complete object followed by an alias is ambiguous, even if concatenation
+    // happens to name another object (dbo.User + s versus dbo.Users).
+    return !isKnown(partialName) && isKnown(partialName + suffix);
 }
 
 function normalizeCompletionEndOfLine(completionText: string, endOfLine: vscode.EndOfLine): string {
