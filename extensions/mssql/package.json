@@ -20,7 +20,7 @@
     },
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/mssql/README.md",
     "engines": {
-        "vscode": "^1.140.0"
+        "vscode": "^1.105.0"
     },
     "categories": [
         "Programming Languages",
@@ -107,7 +107,7 @@
         "@types/sinon": "^10.0.12",
         "@types/sinon-chai": "^4.0.0",
         "@types/tmp": "0.0.28",
-        "@types/vscode": "1.140.0",
+        "@types/vscode": "1.105.0",
         "@types/vscode-webview": "^1.57.5",
         "@types/which": "^3.0.4",
         "@types/xmldom": "^0.1.34",
