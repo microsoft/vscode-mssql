@@ -13,8 +13,8 @@
  * Privacy split (deliberate): while the feature gate is OFF this page renders
  * substrate DiagEvents only — protocol metadata (trigger, stages, result,
  * latency), never prompt or document text. Once the gate is ON, the hosted
- * debug experience shows the same full-fidelity events (prompts, responses,
- * schema context) as the standalone viewer — this is the gated debug surface.
+ * debug experience shows full-fidelity events (prompts, responses, and schema
+ * context) within the gated debug surface.
  */
 
 import { locConstants } from "../../common/locConstants";
@@ -100,7 +100,6 @@ export function CompletionsPage() {
                             </div>
                         }>
                         <InlineCompletionDebugApp
-                            layout="fill"
                             sessionsDatasetHint={route.completionsDatasetSession}
                         />
                     </Suspense>

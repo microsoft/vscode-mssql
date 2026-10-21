@@ -215,7 +215,6 @@ export class LocConstants {
             fullFidelityPromptsResponsesSchemaContextReplay: l10n.t(
                 "Full fidelity: prompts, responses, schema context, replay",
             ),
-            openInlineCompletionDebugViewer: l10n.t("Open Inline Completion Debug viewer"),
             enableWrites: l10n.t("Enable writes"),
             andQuietsGitHubCopilotForSQL: l10n.t("and quiets GitHub Copilot for SQL ("),
             githubCopilotEnableSqlFalse: l10n.t("github.copilot.enable.sql = false"),

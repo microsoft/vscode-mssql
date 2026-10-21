@@ -631,12 +631,6 @@ export namespace DcCompletionsEnableRequest {
     );
 }
 
-export namespace DcOpenCompletionsViewerRequest {
-    export const type = new RequestType<void, { ok: boolean; error?: string }, void>(
-        "dc/openCompletionsViewer",
-    );
-}
-
 // Console-hosted Inline Completion Debug --------------------------------------
 // The Completions page hosts the full shared Inline Completion Debug app. The
 // config/sessions/replay slices ride this pull-based state request — with

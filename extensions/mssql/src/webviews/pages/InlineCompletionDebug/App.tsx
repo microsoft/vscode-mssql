@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useEffect, useMemo, useState } from "react";
-import { makeStyles, mergeClasses, shorthands } from "@fluentui/react-components";
+import { makeStyles, shorthands } from "@fluentui/react-components";
 import { InlineCompletionDebugPage } from "./inlineCompletionDebug";
 import { InlineCompletionDebugTab, InlineCompletionDebugTabBar } from "./TabBar";
 import { SessionsTab } from "./sessions/SessionsTab";
@@ -15,16 +15,11 @@ const useStyles = makeStyles({
     root: {
         display: "flex",
         flexDirection: "column",
-        height: "100vh",
+        height: "100%",
         width: "100%",
         backgroundColor: "var(--vscode-editor-background)",
         color: "var(--vscode-foreground)",
         ...shorthands.overflow("hidden"),
-    },
-    // Hosted inside another shell (Debug Console page): fill the container,
-    // never the viewport — the shell owns the page chrome.
-    rootFill: {
-        height: "100%",
     },
     content: {
         ...shorthands.flex(1),
@@ -36,11 +31,8 @@ const useStyles = makeStyles({
 });
 
 export function InlineCompletionDebugApp({
-    layout = "viewport",
     sessionsDatasetHint,
 }: {
-    /** "viewport" = standalone panel (100vh); "fill" = hosted in a shell. */
-    layout?: "viewport" | "fill";
     /**
      * WI-4.4 deep link: a host session id whose stored capture sessions
      * should be included+loaded in the Sessions dataset. Setting it also
@@ -75,10 +67,7 @@ export function InlineCompletionDebugApp({
         sessions.lastRefreshedAt !== undefined || sessions.traceIndex.length > 0;
 
     return (
-        <div
-            className={
-                layout === "fill" ? mergeClasses(classes.root, classes.rootFill) : classes.root
-            }>
+        <div className={classes.root}>
             <InlineCompletionDebugTabBar
                 activeTab={activeTab}
                 liveCount={liveCount}

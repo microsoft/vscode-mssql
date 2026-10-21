@@ -556,7 +556,6 @@ export const configCopilotSdkProvidersXAiBaseUrl = "mssql.copilot.sdkProviders.x
 export const configCopilotSdkProvidersXAiTimeout = "mssql.copilot.sdkProviders.xai.timeout";
 export const configCopilotSdkProvidersXAiEnv = "mssql.copilot.sdkProviders.xai.env";
 
-export const cmdOpenInlineCompletionDebug = "mssql.openInlineCompletionDebug";
 export const configCopilotInlineCompletionsSchemaContext =
     "mssql.copilot.inlineCompletions.schemaContext";
 export const configCopilotInlineCompletionsTraceJournalPrimary =

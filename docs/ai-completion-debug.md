@@ -18,10 +18,8 @@ Set these workspace or user settings, then reload the Extension Development Host
 }
 ```
 
-Run **MSSQL: Open Inline Completion Debug**. It opens the Debug Console's
-**Completions** page. Set
-`mssql.copilot.inlineCompletions.debug.standalonePanel` to `true` to use the separate
-viewer instead. All preview flags and standalone mode default to off.
+Run **MS SQL: Open Debug Console**, then select **Completions**. The console
+starts on **Consolidated Trace**. All preview flags default to off.
 
 The integrated page keeps the console's navigation and session toolbar visible.
 When completions are enabled, the Live/Sessions tools fill the page; setup guidance
@@ -66,7 +64,7 @@ extraction.
 
 ## Extraction boundary
 
-Included: both completion viewers, shared command/state services, capture journals,
+Included: the integrated Completions page, shared command/state services, capture journals,
 saved completion sessions, replay queues/matrices, trace analysis, and model/settings
 experiments. Existing cancellation, privacy, schema, and model fixes from #22863
 are retained.

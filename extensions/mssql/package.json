@@ -2020,10 +2020,6 @@
                     "command": "sqlDatabaseProjects.openDocumentation"
                 },
                 {
-                    "command": "mssql.openInlineCompletionDebug",
-                    "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
-                },
-                {
                     "command": "mssql.copilot.inlineCompletion.refreshSchemaContext",
                     "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
                 }
@@ -3331,11 +3327,6 @@
                 "title": "%sqlDatabaseProjects.findFile%",
                 "category": "%sqlDatabaseProjects.displayName%",
                 "icon": "$(search)"
-            },
-            {
-                "command": "mssql.openInlineCompletionDebug",
-                "title": "%mssql.openInlineCompletionDebug%",
-                "enablement": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
             },
             {
                 "command": "mssql.copilot.inlineCompletion.refreshSchemaContext",
@@ -5381,12 +5372,6 @@
                         "default": false,
                         "markdownDescription": "%mssql.debugConsole.richSnapshotHeartbeat.description%",
                         "scope": "application"
-                    },
-                    "mssql.copilot.inlineCompletions.debug.standalonePanel": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "%mssql.copilot.inlineCompletions.debug.standalonePanel%",
-                        "scope": "window"
                     },
                     "mssql.copilot.inlineCompletions.trace.journalPrimary": {
                         "type": "boolean",

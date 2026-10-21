@@ -32,7 +32,6 @@ import {
     disableAiCompletions,
 } from "../copilot/inlineCompletionEnablement";
 import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
-import * as Constants from "../constants/constants";
 import * as fs from "fs";
 import * as path from "path";
 import { mergeBackfill } from "../diagnostics/liveArchive";
@@ -42,7 +41,6 @@ import { PrivatePreviewFeature, previewService } from "../previews/previewServic
 import {
     DcCompletionsStatusRequest,
     DcCompletionsEnableRequest,
-    DcOpenCompletionsViewerRequest,
     DcIcDebugStateRequest,
     DcIcDebugActionRequest,
     DcIcDebugChangedNotification,
@@ -328,9 +326,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
     }
 
     private registerHandlers(): void {
-        // Completions page: enablement + full-viewer launch. The page shows
-        // substrate activity (redacted protocol metadata); prompt/response
-        // fidelity lives in the dedicated Inline Completion Debug panel.
+        // Completions page enablement. The page hosts the full completion viewer.
         this.onRequest(DcCompletionsStatusRequest.type, async () =>
             getCompletionsEnablementStatus(),
         );
@@ -338,17 +334,6 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         this.onRequest(DcCompletionsEnableRequest.type, async ({ enable }) =>
             enable ? enableAiCompletions() : disableAiCompletions(),
         );
-
-        this.onRequest(DcOpenCompletionsViewerRequest.type, async () => {
-            if (!isInlineCompletionFeatureEnabled()) {
-                return {
-                    ok: false,
-                    error: LocConstants.InlineCompletionDebug.enableCompletionsFirst,
-                };
-            }
-            await vscode.commands.executeCommand(Constants.cmdOpenInlineCompletionDebug);
-            return { ok: true };
-        });
 
         // Console-hosted Inline Completion Debug: the host wraps the singleton
         // capture store; it comes up lazily on the first state pull and only

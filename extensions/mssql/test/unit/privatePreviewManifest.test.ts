@@ -127,13 +127,9 @@ suite("Private preview manifest", () => {
     });
 
     test("keeps AI provider commands out of the default UI", () => {
-        for (const commandId of [
-            "mssql.openInlineCompletionDebug",
-            "mssql.copilot.inlineCompletion.refreshSchemaContext",
-        ]) {
-            expect(command(commandId).enablement).to.equal(AI_INLINE_COMPLETIONS_GATE);
-            expect(commandPalette(commandId).when).to.equal(AI_INLINE_COMPLETIONS_GATE);
-        }
+        const refreshCommandId = "mssql.copilot.inlineCompletion.refreshSchemaContext";
+        expect(command(refreshCommandId).enablement).to.equal(AI_INLINE_COMPLETIONS_GATE);
+        expect(commandPalette(refreshCommandId).when).to.equal(AI_INLINE_COMPLETIONS_GATE);
         for (const provider of ["anthropic", "openai", "xai"]) {
             for (const action of ["setApiKey", "clearApiKey"]) {
                 const commandId = `mssql.copilot.sdkProviders.${provider}.${action}`;
@@ -141,6 +137,20 @@ suite("Private preview manifest", () => {
                 expect(commandPalette(commandId).when).to.equal(AI_INLINE_COMPLETIONS_GATE);
             }
         }
+    });
+
+    test("uses the Debug Console entry point for completion debugging", () => {
+        const obsoleteCommand = "mssql.openInlineCompletionDebug";
+        expect(packageJson.contributes.commands.map((entry) => entry.command)).to.not.include(
+            obsoleteCommand,
+        );
+        expect(
+            packageJson.contributes.menus.commandPalette.map((entry) => entry.command),
+        ).to.not.include(obsoleteCommand);
+        expect(
+            collectConfigurationProperties(packageJson.contributes.configuration),
+        ).to.not.have.property("mssql.copilot.inlineCompletions.debug.standalonePanel");
+        expect(command("mssql.openDebugConsole").enablement).to.equal(DEBUG_CONSOLE_GATE);
     });
 
     test("keeps AI language-model providers out of the default UI", () => {

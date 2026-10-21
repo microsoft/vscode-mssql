@@ -6226,7 +6226,6 @@ export const InlineCompletionDebug = {
     datasetLoadCancelled: l10n.t("Dataset load cancelled because it exceeds 100,000 events."),
     useThisFolder: l10n.t("Use this folder"),
     chooseOtherFolder: l10n.t("Choose other folder"),
-    enableCompletionsFirst: l10n.t("Enable AI completions first."),
     traceTooLarge: l10n.t("The trace exceeds the 64 MB import limit."),
     completionsJournalHasNoRecordsForThe: l10n.t(
         "Completions journal has no records for the current capture epoch yet.",
@@ -6235,7 +6234,6 @@ export const InlineCompletionDebug = {
         l10n.t("{0} Full report: {1}", value0, value1),
     completionsJournalReconciliationFailed0: (value0: string) =>
         l10n.t("Completions journal reconciliation failed: {0}", value0),
-    copilotCompletionDebug: l10n.t("Copilot Completion Debug"),
     someEventsWereNoLongerInThe: l10n.t(
         "Some events were no longer in the live ring and were not added to the replay cart.",
     ),

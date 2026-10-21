@@ -2567,9 +2567,6 @@
       <source xml:lang="en">Copilot Changes ({0})</source>
       <note>{0} is the number of copilot changes</note>
     </trans-unit>
-    <trans-unit id="++CODE++5572e3dd5f6a8e92e5eca137c1c6646bdc46de7212ac3841b01f639afaf8e6b9">
-      <source xml:lang="en">Copilot Completion Debug</source>
-    </trans-unit>
     <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
       <source xml:lang="en">Copy</source>
     </trans-unit>
@@ -3827,9 +3824,6 @@
     </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c7ff4cd3bc91e08d9d255db45050d82b4c3055f551822882f4dd46896c300b0f">
-      <source xml:lang="en">Enable AI completions first.</source>
     </trans-unit>
     <trans-unit id="++CODE++034129a4d06ead784ef9eb0b8eaf2fb961df433a4461b6575a46956147030d12">
       <source xml:lang="en">Enable Code Analysis on Build</source>
@@ -7866,9 +7860,6 @@
     </trans-unit>
     <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
       <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
-    </trans-unit>
-    <trans-unit id="++CODE++289ae51e907c3e3cf562aed08f0d482a27b3ba1cf4e250b2169fd3441ee7e1b7">
-      <source xml:lang="en">Open Inline Completion Debug viewer</source>
     </trans-unit>
     <trans-unit id="++CODE++6eea76036450348a3e6a4b9ba6a0671c1c8e40f855def50a88ac9eeae75d01bd">
       <source xml:lang="en">Open Keyboard Shortcuts editor.</source>
@@ -14229,9 +14220,6 @@
     <trans-unit id="sqlDatabaseProjects.Settings">
       <source xml:lang="en">MSSQL Database Projects</source>
     </trans-unit>
-    <trans-unit id="mssql.openInlineCompletionDebug">
-      <source xml:lang="en">MSSQL: Open Inline Completion Debug</source>
-    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.description">
       <source xml:lang="en">Make a new connection to a SQL database, or edit existing connections with the connection dialog.&#10;You can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.&#10;[Open Connection Dialog](command:mssql.addObjectExplorer)</source>
     </trans-unit>
@@ -14444,9 +14432,6 @@
     </trans-unit>
     <trans-unit id="mssql.showChangelogOnUpdate">
       <source xml:lang="en">Open the Getting Started page with release notes after extension updates</source>
-    </trans-unit>
-    <trans-unit id="mssql.copilot.inlineCompletions.debug.standalonePanel">
-      <source xml:lang="en">Open the legacy standalone Copilot Completion Debug panel instead of the Debug Console Completions page.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.sdkProviders.openai.timeout.description">
       <source xml:lang="en">OpenAI API request timeout in milliseconds.</source>
