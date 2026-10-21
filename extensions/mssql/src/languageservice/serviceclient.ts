@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node";
+import { getStsDiagEnvironment } from "../diagnostics/stsDiagListener";
 import {
     type CloseHandlerResult,
     LanguageClientOptions,
@@ -742,6 +743,7 @@ export default class SqlToolsServiceClient {
             command,
             args,
             transport: TransportKind.stdio,
+            options: { env: { ...process.env, ...getStsDiagEnvironment() } },
         };
     }
 

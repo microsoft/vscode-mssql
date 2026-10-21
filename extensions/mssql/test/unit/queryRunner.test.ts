@@ -593,6 +593,7 @@ suite("Query Runner tests", () => {
         runner.setupQueryExecution();
         testSqlToolsServerClient.sendRequest.resolves({});
         await runner.cancel();
+        expect(perfMarkerStub).to.have.been.calledWith("mssql.query.cancelled", "instant");
         runner.handleQueryComplete({ ownerUri: standardUri, batchSummaries: [] });
         expect(completed).to.have.been.calledWith(
             sinon.match({ hasError: false, isCanceled: true }),

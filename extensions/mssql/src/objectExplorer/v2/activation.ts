@@ -28,7 +28,7 @@ import { SqlDataPlaneService } from "../../services/sqlDataPlane/sqlDataPlaneSer
 import { vscodeFallbackInteraction } from "../../services/sqlDataPlane/vscodeFallbackInteraction";
 import type { IConnectionProfile } from "../../models/interfaces";
 import type { IConnectionStore } from "../../models/connectionStore";
-import { ObjectExplorerV2Provider } from "./objectExplorerV2Provider";
+import { ObjectExplorerV2Provider, OverviewVisibility } from "./objectExplorerV2Provider";
 import { OeV2MetadataCoordinator } from "./metadata/oeV2MetadataCoordinator";
 import { oeV2Settings } from "./settings";
 import {
@@ -64,6 +64,7 @@ export interface OeV2ActivationDeps {
     readonly groupConfig?: () => ConnectionConfig | undefined;
     /** Live private-preview gate: umbrella + SQL Data Plane + OE v2. */
     readonly isEnabled: () => boolean;
+    readonly overviewVisibility?: OverviewVisibility;
 }
 
 export function activateObjectExplorerV2(
@@ -117,7 +118,7 @@ export function activateObjectExplorerV2(
                 };
             },
         });
-        const provider = new ObjectExplorerV2Provider(controller);
+        const provider = new ObjectExplorerV2Provider(controller, deps.overviewVisibility);
         const view = vscode.window.createTreeView("mssql.objectExplorerV2", {
             treeDataProvider: provider,
             showCollapseAll: true,
