@@ -4678,9 +4678,6 @@
     <trans-unit id="++CODE++d0e630682672f2b6b56c63df15456611545c8e883d6d670e3133647fd6a6994d">
       <source xml:lang="en">FKs/object</source>
     </trans-unit>
-    <trans-unit id="++CODE++43330c450ed40a0bc86502385247a50bd4385da7042c00e603d79db707ff4ec5">
-      <source xml:lang="en">FOLDER&amp;nbsp;&amp;nbsp;</source>
-    </trans-unit>
     <trans-unit id="++CODE++ce973c12f6c3371202fc82770629424f5dff2aeaf8fda4b6a5e2f91156c13af3">
       <source xml:lang="en">Fabric API error occurred ({0}): {1}</source>
       <note>{0} is the error code

@@ -522,7 +522,7 @@ export class LocConstants {
             addTraceFile: l10n.t("Add Trace File"),
             hideTraceFiles: l10n.t("Hide trace files"),
             showTraceFiles: l10n.t("Show trace files"),
-            fOLDERNbspNbsp: l10n.t("FOLDER&nbsp;&nbsp;"),
+            folder: l10n.t("Folder"),
             traces: l10n.t("traces ·"),
             enableTraceCollection2: l10n.t("Enable trace collection"),
             selectAllTraces: l10n.t("Select all traces"),

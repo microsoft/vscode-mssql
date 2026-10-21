@@ -99,6 +99,7 @@ test.describe("AI completion debug in Debug Console", () => {
         await viewer.getByRole("button", { name: "Refresh", exact: true }).click();
         await expect(viewer.getByRole("tab", { name: /^Sessions/ })).toContainText("1 traces");
         await viewer.getByRole("button", { name: "Show trace files", exact: true }).click();
+        await page.screenshot({ path: testInfo.outputPath("sessions.png") });
         await viewer.getByRole("button", { name: "Add", exact: true }).click();
         await viewer
             .getByRole("button", { name: "Open the replay trace builder", exact: true })
@@ -110,7 +111,7 @@ test.describe("AI completion debug in Debug Console", () => {
         // Exercise keyboard dismissal as well as mouse activation of the drawer.
         await viewer.getByLabel("Cancel", { exact: true }).press("Enter");
         await expect(viewer.getByText("Run config matrix", { exact: true })).toBeHidden();
-        await page.screenshot({ path: testInfo.outputPath("sessions.png") });
+        await page.screenshot({ path: testInfo.outputPath("replay.png") });
         await live.press("Enter");
         await expect(viewer.getByRole("combobox", { name: "Profile", exact: true })).toBeVisible();
         await page.setViewportSize({ width: 1100, height: 760 });

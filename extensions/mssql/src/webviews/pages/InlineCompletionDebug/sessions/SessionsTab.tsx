@@ -156,6 +156,10 @@ const useStyles = makeStyles({
         fontFamily: "var(--vscode-editor-font-family, Consolas, monospace)",
         color: "var(--vscode-descriptionForeground)",
     },
+    folderLabel: {
+        flexShrink: 0,
+        textTransform: "uppercase",
+    },
     folderPath: {
         minWidth: 0,
         overflowX: "hidden",
@@ -1203,8 +1207,10 @@ function DatasetSelector({
                             onClick={() => setFileListOpen((value) => !value)}
                         />
                     </FluentTooltip>
-                    <span className={classes.folderPath}>
-                        {locConstants.inlineCompletionDebug.fOLDERNbspNbsp}
+                    <span className={classes.folderLabel}>
+                        {locConstants.inlineCompletionDebug.folder}
+                    </span>
+                    <span className={classes.folderPath} title={traceFolder}>
                         {traceFolder}
                     </span>
                 </div>
