@@ -37,7 +37,12 @@ import {
 } from "./completionSchemaContextCore";
 import { CompletionSchemaContextService } from "./completionSchemaContextService";
 import { lex, TokenKind } from "../sqlLanguage/core/lexer";
-import { prevSignificant, readChainAround } from "../sqlLanguage/core/nameChain";
+import {
+    isNameKind,
+    namePartText,
+    prevSignificant,
+    readChainAround,
+} from "../sqlLanguage/core/nameChain";
 import { findSystemObject } from "../sqlLanguage/data/systemObjectCatalog";
 import {
     InlineCompletionCategory,
@@ -1158,7 +1163,7 @@ Continuation-mode rules:
 - If you cannot generate SQL that should be inserted at the cursor, return exactly an empty string. Do not provide an explanation, diagnosis, apology, note, or reason.
 - Do not end with a semicolon. Do not emit multiple clauses chained together.
 - If the cursor is after a non-whitespace character, choose the right leading space or newline. New clauses such as WHERE, JOIN, APPLY, GROUP BY, ORDER BY, OPTION, FOR JSON, and FOR XML should start on a new line.
-- When completing a qualified name, preserve the dot. If the cursor is after sys and sys.databases is available, return .databases.
+- When completing a qualified name, return only the missing suffix. After sys return .databases; after sys. return databases; after sys.da return tabases. Never repeat a dot or identifier fragment already before the cursor. Keep intentional omitted-schema notation such as master..sysobjects intact.
 - JOIN context: infer join predicates from actual PK/FK metadata and compatible column names. Never write a same-side tautology such as T.Col = T.Col.`;
 }
 
@@ -1759,6 +1764,10 @@ export function fixLeadingWhitespace(
         return `\n${completionText.replace(/^\s+/, "")}`;
     }
 
+    if (isRepeatedSchemaDot(completionText, statementPrefix, schemaContext)) {
+        return completionText.slice(1);
+    }
+
     if (/[\s.]$/.test(linePrefix) || /^[\s.]/.test(completionText)) {
         return completionText;
     }
@@ -1787,6 +1796,42 @@ export function fixLeadingWhitespace(
         return " " + completionText;
     }
     return completionText;
+}
+
+/** Repair an echoed schema separator, while preserving database..object notation. */
+function isRepeatedSchemaDot(
+    completionText: string,
+    statementPrefix: string,
+    context: SqlInlineCompletionSchemaContext | undefined,
+): boolean {
+    if (!statementPrefix.endsWith(".") || !completionText.startsWith(".")) {
+        return false;
+    }
+    const { tokens } = lex(statementPrefix);
+    const dotIndex = tokens.length - 2;
+    if (tokens[dotIndex]?.kind !== TokenKind.Punctuation) {
+        return false; // Dots inside strings, comments, and quoted identifiers are not separators.
+    }
+    const nameIndex = prevSignificant(tokens, dotIndex);
+    if (nameIndex < 0 || !isNameKind(tokens[nameIndex].kind)) {
+        return false;
+    }
+    const { parts } = readChainAround(statementPrefix, tokens, nameIndex);
+    const precedingKeyword = tokens[prevSignificant(tokens, nameIndex)]?.keyword?.id;
+    if (
+        parts.length !== 1 ||
+        !precedingKeyword ||
+        !/^(FROM|JOIN|UPDATE|INTO|MERGE|EXEC|EXECUTE)$/.test(precedingKeyword)
+    ) {
+        return false;
+    }
+    const suffix = completionText.slice(1);
+    const [objectToken] = lex(suffix).tokens;
+    return (
+        isNameKind(objectToken.kind) &&
+        !objectToken.unterminated &&
+        isKnownQualifiedObject(parts[0], namePartText(suffix, objectToken), context)
+    );
 }
 
 /** Only join a partial qualified name when the completed name has positive catalog evidence. */
@@ -1821,6 +1866,23 @@ function continuesKnownObjectName(
         return false;
     }
     const [schema, partialName] = parts;
+    // A complete object followed by an alias is ambiguous, even if concatenation
+    // happens to name another object (dbo.User + s versus dbo.Users).
+    return (
+        !isKnownQualifiedObject(schema, partialName, context) &&
+        isKnownQualifiedObject(schema, partialName + suffix, context)
+    );
+}
+
+function isKnownQualifiedObject(
+    schema: string,
+    name: string,
+    context: SqlInlineCompletionSchemaContext | undefined,
+): boolean {
+    if (findSystemObject(schema, name, context?.engineEdition)) {
+        return true;
+    }
+    const qualifiedName = `${schema}.${name}`;
     const knownNames = [
         ...(context?.tables ?? []).map((table) => table.name),
         ...(context?.views ?? []).map((view) => view.name),
@@ -1831,21 +1893,11 @@ function continuesKnownObjectName(
         ...(context?.routineNameOnlyInventory ?? []),
         ...(context?.masterSymbols ?? []),
     ];
-    const isKnown = (name: string): boolean => {
-        const qualifiedName = `${schema}.${name}`;
-        return (
-            !!findSystemObject(schema, name, context?.engineEdition) ||
-            knownNames.some((known) =>
-                context?.caseSensitive
-                    ? known === qualifiedName
-                    : known.toLowerCase() === qualifiedName.toLowerCase(),
-            )
-        );
-    };
-
-    // A complete object followed by an alias is ambiguous, even if concatenation
-    // happens to name another object (dbo.User + s versus dbo.Users).
-    return !isKnown(partialName) && isKnown(partialName + suffix);
+    return knownNames.some((known) =>
+        context?.caseSensitive
+            ? known === qualifiedName
+            : known.toLowerCase() === qualifiedName.toLowerCase(),
+    );
 }
 
 function normalizeCompletionEndOfLine(completionText: string, endOfLine: vscode.EndOfLine): string {
