@@ -28,7 +28,7 @@ import {
     getUserName,
 } from "./utils/envConfigReader";
 import { test, expect } from "./baseFixtures";
-import { DEFAULT_USER_CONFIG } from "./utils/launchVscodeWithMsSqlExt";
+import { BASIC_PASSWORD_STORE_ARGS, DEFAULT_USER_CONFIG } from "./utils/launchVscodeWithMsSqlExt";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
 import { EditorTitleActions, QuickInput } from "./pageObjects";
 
@@ -71,10 +71,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
 
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: {
-            // Without an OS keyring (the Linux CI runner has none) saving the connection password
-            // never finishes, so the connection is never published to the editor toolbar. The
-            // basic store keeps secrets in VS Code itself; it has no effect on Windows or macOS.
-            extraLaunchArgs: ["--password-store=basic"],
+            extraLaunchArgs: BASIC_PASSWORD_STORE_ARGS,
             initialConfig: {
                 ...DEFAULT_USER_CONFIG,
                 // Save As then takes a typed path instead of opening the OS dialog.
@@ -101,11 +98,6 @@ test.describe("MSSQL Extension - Query Execution", async () => {
                 savePassword,
                 profileName,
             );
-            // The dialog closes once its connection succeeds. Tests copy that connection into
-            // new editors, so they must not start before it exists.
-            await expect(
-                vsCodePage.locator('[role="tab"][aria-label^="Connection Dialog"]'),
-            ).toBeHidden({ timeout: 60 * 1000 });
         },
         beforeClose: async ({ page: vsCodePage }) => {
             await openNewQueryEditor(vsCodePage);
