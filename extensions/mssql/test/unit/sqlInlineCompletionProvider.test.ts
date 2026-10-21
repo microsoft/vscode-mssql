@@ -12,12 +12,14 @@ import * as Constants from "../../src/constants/constants";
 import {
     buildCompletionRules,
     detectIntentComment,
+    fixLeadingWhitespace,
     intentModeMaxTokens,
     sanitizeInlineCompletionText,
     SqlInlineCompletionProvider,
 } from "../../src/copilot/sqlInlineCompletionProvider";
 import { inlineCompletionDebugStore } from "../../src/copilot/inlineCompletionDebug/inlineCompletionDebugStore";
 import { CompletionSchemaContextService } from "../../src/copilot/completionSchemaContextService";
+import { SqlInlineCompletionSchemaContext } from "../../src/copilot/completionSchemaContextCore";
 import { createTestDocument, stubTelemetry } from "./utils";
 
 chai.use(sinonChai);
@@ -357,6 +359,91 @@ suite("SqlInlineCompletionProvider Tests", () => {
         );
 
         expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal("databases");
+    });
+
+    test("joins a system-object suffix without schema sharing or a metadata request", async () => {
+        useSchemaContextEnabled = false;
+        sendRequestStub.resolves(createChatResponse("ll_objects"));
+        const text = "select *\nfrom sys.a";
+        const position = new vscode.Position(1, "from sys.a".length);
+        const items = (await provider.provideInlineCompletionItems(
+            createTestDocument(text, "file:///query.sql"),
+            position,
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+                selectedCompletionInfo: undefined,
+            },
+            requestCancellation.token,
+        )) as vscode.InlineCompletionItem[];
+
+        expect(items).to.have.lengthOf(1);
+        expect(text + items[0].insertText).to.equal("select *\nfrom sys.all_objects");
+        expect(items[0].range).to.deep.equal(new vscode.Range(position, position));
+        expect(schemaContextService.getSchemaContext).to.not.have.been.called;
+    });
+
+    test("joins only exact known qualified object continuations", () => {
+        const context: SqlInlineCompletionSchemaContext = {
+            schemas: ["dbo"],
+            tables: [{ name: "dbo.Customers", columns: [] }],
+            views: [],
+            tableNameOnlyInventory: ["dbo.Orders"],
+            masterSymbols: [],
+        };
+        for (const [prefix, response] of [
+            ["FROM dbo.Cus", "tomers AS c"],
+            ["FROM dbo.Ord", "ers"],
+            ["FROM [sys].a", "ll_objects"],
+            ["FROM SYS.A", "LL_OBJECTS"],
+        ]) {
+            expect(fixLeadingWhitespace(response, prefix, context), prefix).to.equal(response);
+        }
+        expect(fixLeadingWhitespace("tom", "FROM dbo.Cus", context)).to.equal(" tom");
+        expect(fixLeadingWhitespace("tomers", "FROM other.Cus", context)).to.equal(" tomers");
+        expect(fixLeadingWhitespace("tomers", "FROM dbo.cus", context)).to.equal("tomers");
+        expect(
+            fixLeadingWhitespace("tomers", "FROM dbo.cus", { ...context, caseSensitive: true }),
+        ).to.equal(" tomers");
+    });
+
+    test("preserves spaces for complete names, aliases, and ambiguous or unknown continuations", () => {
+        const context: SqlInlineCompletionSchemaContext = {
+            schemas: ["dbo"],
+            tables: [
+                { name: "dbo.User", columns: [] },
+                { name: "dbo.Users", columns: [] },
+            ],
+            views: [],
+            masterSymbols: [],
+        };
+        for (const [prefix, response, expected] of [
+            ["FROM sys.all_objects", "a", " a"],
+            ["FROM sys.all_objects", "AS a", " AS a"],
+            ["FROM sys.all_objects", "WHERE type = 'U'", "\nWHERE type = 'U'"],
+            ["FROM dbo.User", "s", " s"],
+            ["FROM sys.unknown", "suffix", " suffix"],
+            ["FROM sys.a ", "ll_objects", "ll_objects"],
+            ["FROM sys.a", " ll_objects", " ll_objects"],
+            ["SELECT a", "ll_objects", " ll_objects"],
+            ["SELECT sys.a", "ll_objects", " ll_objects"],
+        ]) {
+            expect(fixLeadingWhitespace(response, prefix, context), prefix).to.equal(expected);
+        }
+    });
+
+    test("does not infer object continuations inside strings or comments", () => {
+        for (const statement of [
+            "SELECT 'sys.a",
+            "SELECT 'first line\nsys.a",
+            "-- sys.a",
+            "/* first line\nsys.a",
+        ]) {
+            const linePrefix = statement.split("\n").pop()!;
+            expect(
+                fixLeadingWhitespace("ll_objects", linePrefix, undefined, false, statement),
+                statement,
+            ).to.equal(" ll_objects");
+        }
     });
 
     test("does not add leading whitespace when the line prefix already ends with a space", async () => {
