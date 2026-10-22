@@ -24,6 +24,7 @@
 import { ConfigGroupV1 } from "../../sharedInterfaces/configGroup";
 import { ReplayLabConfigGroupV1 } from "../../sharedInterfaces/replayLabRpc";
 import { inlineCompletionSchemaBudgetProfileIds } from "../../sharedInterfaces/inlineCompletionDebug";
+import type { SqlInlineCompletionSchemaBudgetOverrides } from "../../copilot/completionSchemaContextCore";
 
 /** The content-bearing key that collapses to a boolean flag. */
 export const CUSTOM_SYSTEM_PROMPT_KEY = "customSystemPrompt";
@@ -74,6 +75,18 @@ const SCHEMA_BUDGET_KEYS = [
     "maxViews",
     "maxRoutines",
     "maxColumnsPerObject",
+    "smallSchemaMaxColumnsPerObject",
+    "largeSchemaMaxColumnsPerObject",
+    "maxFetchedTables",
+    "maxFetchedViews",
+    "largeTableNameOnlyInventory",
+    "largeViewNameOnlyInventory",
+    "outlierNameOnlyInventory",
+    "maxFetchedSchemas",
+    "maxMasterSymbols",
+    "maxFetchedRoutines",
+    "largeRoutineNameOnlyInventory",
+    "inventoryChunkSize",
     "maxForeignKeys",
     "maxTableNameOnlyInventory",
     "maxViewNameOnlyInventory",
@@ -91,7 +104,7 @@ const SCHEMA_BUDGET_KEYS = [
     "columnNameRelevanceWeight",
     "defaultSchemaWeight",
     "cacheTtlMs",
-];
+] satisfies readonly (keyof SqlInlineCompletionSchemaBudgetOverrides)[];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value);

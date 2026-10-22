@@ -27,6 +27,8 @@ import {
 } from "../sharedInterfaces/webview";
 import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 
+import * as fs from "fs";
+import * as path from "path";
 import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
 import { LoggerMethod, ILogger, LogEvent } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
@@ -55,6 +57,14 @@ import { Perf } from "../perf/perfTelemetry";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { PerfEnableNotification, PerfWebviewMarkNotification } from "../sharedInterfaces/perf";
 
+export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
+
+/**
+ * Cache-buster for UNHASHED webview entry assets (see _getHtmlTemplate).
+ * One stamp per extension-host session: new host = fresh fetch, same host =
+ * normal caching.
+ */
+const WEBVIEW_ASSET_STAMP = Date.now().toString(36);
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
     private _disposables: vscode.Disposable[] = [];
@@ -121,6 +131,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
      */
     private _webviewReady: Deferred<void> = new Deferred<void>();
     private _isWebviewReady: boolean = false;
+    private _webviewReadyTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
 
     private _state: State;
     private _isFirstLoad: boolean = true;
@@ -153,6 +164,14 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         viewId?: string,
     ) {
         this.logger = logger.withPrefix(viewId ?? "WebviewBaseController");
+
+        // Not every controller awaits whenWebviewReady(); a panel restored by
+        // hot exit can be disposed before its webview ever loads (e.g. tab
+        // context menu "Close All" over never-revealed editors), and the
+        // dispose-time rejection below must not surface as an unhandled
+        // rejection when nobody is waiting. whenWebviewReady() returns the
+        // raw promise, so real waiters still observe the rejection.
+        this._webviewReady.promise.catch(() => undefined);
 
         this._connectionReader = new WebviewControllerMessageReader();
         this._connectionWriter = new WebviewControllerMessageWriter(this.logger);
@@ -262,22 +281,58 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         this._disposables.push(disposable);
     }
 
+    /**
+     * Per-surface Content-Security-Policy (VEC-5 P0; opt-in per controller so
+     * existing webviews are untouched until each surface is proven safe).
+     * When enabled, the policy denies EVERYTHING by default and allows only
+     * what a local-content webview needs: extension-served scripts (nonce),
+     * styles, images, and fonts. `connect-src 'none'` = the surface can make
+     * ZERO network requests — the Vector Workbench's offline guarantee is
+     * enforced by the platform, not by code review.
+     */
+    protected cspOptions(): { enabled: boolean; allowWorker?: boolean } {
+        return { enabled: false };
+    }
+
     protected _getHtmlTemplate() {
         const nonce = getNonce();
+        // VS Code's webview service worker caches resources by URL, and the
+        // ENTRY bundle/stylesheet names are unhashed (queryStudio.js, ….css):
+        // after a rebuild a new webview can silently render a STALE cached
+        // bundle (chunks are content-hashed; only entries are at risk). The
+        // per-host-session stamp busts that cache on every extension-host
+        // start while still caching within a session.
+        const assetStamp = `?v=${WEBVIEW_ASSET_STAMP}`;
 
         const baseUrl = this._getWebview().asWebviewUri(
             vscode.Uri.joinPath(this._context.extensionUri, "dist", "views"),
         );
         const baseUrlString = baseUrl.toString() + "/";
+        const csp = this.cspOptions();
+        const cspSource = this._getWebview().cspSource;
+        // Monaco spawns its editor worker from a blob: URL — surfaces that
+        // opt into allowWorker get `worker-src blob:` alongside the
+        // extension origin; connect-src stays 'none' regardless.
+        const cspMeta = csp.enabled
+            ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' ${cspSource} blob:; style-src ${cspSource} 'unsafe-inline'; img-src ${cspSource} data:; font-src ${cspSource}; connect-src ${csp.allowWorker ? cspSource : "'none'"};${csp.allowWorker ? ` worker-src ${cspSource} blob:;` : ""}">`
+            : "";
+        // BOOT-2: modulepreload the entry's static-closure chunks (manifest
+        // emitted at bundle time) — the browser otherwise discovers ESM
+        // static imports only AFTER parsing each module (a fetch waterfall).
+        const preloads = preloadChunksFor(this._context.extensionPath, this._sourceFile)
+            .map((chunk) => `<link rel="modulepreload" nonce="${nonce}" href="${chunk}">`)
+            .join("\n\t\t\t\t\t");
 
         return `
 		<!DOCTYPE html>
 			<html lang="en">
 				<head>
 					<meta charset="UTF-8">
+					${cspMeta}
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<title>mssqlwebview</title>
 					<base href="${baseUrlString}"> <!-- Required for loading relative resources in the webview -->
+					${preloads}
 				<style>
 					html, body {
 						margin: 0;
@@ -288,9 +343,9 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
 				</style>
 				</head>
 				<body>
-					<link rel="stylesheet" href="${this._sourceFile}.css">
+					<link rel="stylesheet" href="${this._sourceFile}.css${assetStamp}">
 					<div id="root"></div>
-				  	<script type="module" nonce="${nonce}" src="${this._sourceFile}.js"></script> <!-- since our bundles are in esm format we need to use type="module" -->
+					<script type="module" nonce="${nonce}" src="${this._sourceFile}.js${assetStamp}"></script> <!-- since our bundles are in esm format we need to use type="module" -->
 				</body>
 			</html>
 		`;
@@ -510,6 +565,26 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             token: CancellationToken,
         ): TResult | Promise<TResult> => {
             this.logger.debug(`Request received from webview: ${type.method}`);
+            // Debug Console diagnostics: one span per webview request gives
+            // product-wide coverage of every dialog/designer (Table Designer,
+            // Schema Designer, Edit Data, Connection Dialog, Object
+            // Management, Schema Compare, ...). Near no-op when no sink is
+            // active; method + controller id are protocol metadata.
+            // The Debug Console's own RPC traffic (dc/* polling, waterfall and
+            // trace queries) is viewer-internal: it must never join the active
+            // user-action root trace (it would extend completed scenarios
+            // forever) and is excluded from analysis by default.
+            const isViewerInternal = this._sourceFile === "debugConsole";
+            const diagSpan = diag.anySinkActive
+                ? diag.startSpan({
+                      feature: `webview.${this._sourceFile}`,
+                      kind: "request",
+                      type: `webview.${this._sourceFile}.${type.method}`,
+                      ...(isViewerInternal
+                          ? { traceId: `viewer_${diag.sessionId}`, tags: ["viewerInternal"] }
+                          : {}),
+                  })
+                : undefined;
             const handlerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.OnRequest,
@@ -528,6 +603,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                         (res) => {
                             this.logger.debug(`Request succeeded: ${type.method}`);
                             handlerActivity.end(ActivityStatus.Succeeded);
+                            diagSpan?.end("ok");
                             return res;
                         },
                         (error) => {
@@ -535,17 +611,20 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                                 `Request failed: ${type.method} - ${getErrorMessage(error)}`,
                             );
                             handlerActivity.endFailed(error, false);
+                            diagSpan?.fail(error);
                             throw error;
                         },
                     );
                 } else {
                     this.logger.debug(`Request succeeded: ${type.method}`);
                     handlerActivity.end(ActivityStatus.Succeeded);
+                    diagSpan?.end("ok");
                     return result;
                 }
             } catch (error) {
                 this.logger.error(`Request failed: ${type.method} - ${getErrorMessage(error)}`);
                 handlerActivity.endFailed(error, false);
+                diagSpan?.fail(error);
                 throw error;
             }
         };
@@ -582,7 +661,12 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             return Promise.resolve();
         }
         if (this._isDisposed) {
-            throw new Error("Cannot send notification on disposed controller");
+            // A disposed webview can't receive anything: dropping the
+            // notification is the only correct delivery. Throwing here made
+            // in-flight work fail AFTER its real outcome (e.g. the connection
+            // dialog's post-connect state push raced its own auto-close and
+            // reported "Cannot send notification on disposed controller").
+            return Promise.resolve();
         }
         sendActionEvent(TelemetryViews.WebviewController, TelemetryActions.SendNotification, {
             additionalProps: {
@@ -669,16 +753,35 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         this._onDisposed.fire();
         this._disposables.forEach((d) => d.dispose());
         this._isDisposed = true;
+        if (this._webviewReadyTimeoutHandle !== undefined) {
+            clearTimeout(this._webviewReadyTimeoutHandle);
+            this._webviewReadyTimeoutHandle = undefined;
+        }
         this._webviewReady.reject(new Error(LocalizedConstants.Webview.webviewDisposedBeforeReady));
     }
 
     /**
      * Waits for the webview to become ready. This is useful for ensuring that the webview is ready to receive messages before sending any.
-     * @returns A promise that resolves when the webview is ready or rejects if the webview is disposed first.
+     * @param timeoutMs Optional timeout in milliseconds to wait for the webview to become ready. Defaults to 5 seconds.
+     * @returns A promise that resolves when the webview is ready or rejects if there is an error or timeout.
      */
-    public whenWebviewReady(): Promise<void> {
+    public whenWebviewReady(timeoutMs: number = WEBVIEW_INIT_TIMEOUT_MS): Promise<void> {
         if (this._isWebviewReady) {
             return Promise.resolve();
+        }
+
+        if (this._webviewReadyTimeoutHandle === undefined) {
+            this._webviewReadyTimeoutHandle = setTimeout(() => {
+                this._webviewReadyTimeoutHandle = undefined;
+                this._webviewReady.reject(
+                    new Error(
+                        LocalizedConstants.Webview.webviewNotReadyTimeout(
+                            this._sourceFile,
+                            timeoutMs,
+                        ),
+                    ),
+                );
+            }, timeoutMs);
         }
 
         return this._webviewReady.promise;
@@ -690,6 +793,10 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         }
 
         this._isWebviewReady = true;
+        if (this._webviewReadyTimeoutHandle !== undefined) {
+            clearTimeout(this._webviewReadyTimeoutHandle);
+            this._webviewReadyTimeoutHandle = undefined;
+        }
         this._webviewReady.resolve();
     }
 
@@ -703,3 +810,26 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
 }
 
 export type ReducerResponse<T> = T | Promise<T>;
+
+/**
+ * BOOT-2: static-closure chunk names per webview entry, from the manifest
+ * the bundler emits beside the views. Read once, cached for the process —
+ * missing manifest (older build) degrades to no preloads, never a throw.
+ */
+let preloadManifest: Record<string, string[]> | undefined | null;
+
+function preloadChunksFor(extensionPath: string, sourceFile: string): string[] {
+    if (preloadManifest === undefined) {
+        try {
+            preloadManifest = JSON.parse(
+                fs.readFileSync(
+                    path.join(extensionPath, "dist", "views", "preload-manifest.json"),
+                    "utf8",
+                ),
+            ) as Record<string, string[]>;
+        } catch {
+            preloadManifest = null;
+        }
+    }
+    return preloadManifest?.[sourceFile] ?? [];
+}

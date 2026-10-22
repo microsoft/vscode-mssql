@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useRef } from "react";
+import { useCallback, useContext, useEffect, useRef } from "react";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { ExecutionPlanGraph } from "./executionPlanGraph";
+import { ExecutionPlanGraph, ExecutionPlanGraphViewState } from "./executionPlanGraph";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
@@ -44,21 +44,53 @@ export interface ExecutionPlanRevealRequest {
     graphIndex: number;
 }
 
+export interface ExecutionPlanPageViewState {
+    pageScrollTop: number;
+    graphs: Record<string, ExecutionPlanGraphViewState>;
+}
+
 interface ExecutionPlanPageProps {
     autoLoad?: boolean;
+    active?: boolean;
+    initialViewState?: ExecutionPlanPageViewState;
+    onViewStateChange?: (state: ExecutionPlanPageViewState) => void;
     /** Plan to scroll into view. Pass it only while the page is visible, so it can be measured. */
     revealRequest?: ExecutionPlanRevealRequest;
 }
 
-export const ExecutionPlanPage = ({ autoLoad = true, revealRequest }: ExecutionPlanPageProps) => {
+export const ExecutionPlanPage = ({
+    autoLoad = true,
+    revealRequest,
+    active = true,
+    initialViewState,
+    onViewStateChange,
+}: ExecutionPlanPageProps) => {
     const classes = useStyles();
     const context = useContext(ExecutionPlanContext);
     const containerRef = useRef<HTMLDivElement>(null);
     const revealedRequestRef = useRef<ExecutionPlanRevealRequest | undefined>(undefined);
+    const viewState = useRef<ExecutionPlanPageViewState>({
+        pageScrollTop: initialViewState?.pageScrollTop ?? 0,
+        graphs: { ...initialViewState?.graphs },
+    });
+    const onChange = useRef(onViewStateChange);
+    onChange.current = onViewStateChange;
+    const updateGraph = useCallback((index: number, state: ExecutionPlanGraphViewState) => {
+        viewState.current = {
+            ...viewState.current,
+            graphs: { ...viewState.current.graphs, [index]: state },
+        };
+        onChange.current?.(viewState.current);
+    }, []);
     const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
         (s) => s.executionPlanState,
     );
     const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
+    useEffect(() => {
+        if (active && loadState === ApiStatus.Loaded && containerRef.current) {
+            containerRef.current.scrollTop = viewState.current.pageScrollTop;
+        }
+    }, [active, loadState]);
     useEffect(() => {
         if (
             autoLoad &&
@@ -106,7 +138,14 @@ export const ExecutionPlanPage = ({ autoLoad = true, revealRequest }: ExecutionP
             case ApiStatus.Loaded:
                 const executionPlanGraphs = executionPlanState?.executionPlanGraphs ?? [];
                 return executionPlanGraphs.map((_, index) => (
-                    <ExecutionPlanGraph key={index} graphIndex={index} />
+                    <ExecutionPlanGraph
+                        key={index}
+                        graphIndex={index}
+                        initialViewState={initialViewState?.graphs[index]}
+                        onViewStateChange={
+                            onViewStateChange ? (state) => updateGraph(index, state) : undefined
+                        }
+                    />
                 ));
             case ApiStatus.Error:
                 return (
@@ -119,7 +158,18 @@ export const ExecutionPlanPage = ({ autoLoad = true, revealRequest }: ExecutionP
     };
 
     return (
-        <div ref={containerRef} className={classes.outerDiv}>
+        <div
+            ref={containerRef}
+            className={classes.outerDiv}
+            onScroll={() => {
+                if (active) {
+                    viewState.current = {
+                        ...viewState.current,
+                        pageScrollTop: containerRef.current?.scrollTop ?? 0,
+                    };
+                    onChange.current?.(viewState.current);
+                }
+            }}>
             {renderMainContent()}
         </div>
     );

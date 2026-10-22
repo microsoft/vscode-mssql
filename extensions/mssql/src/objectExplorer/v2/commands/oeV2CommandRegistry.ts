@@ -68,6 +68,22 @@ const tableObject = (facts: OeV2CommandTargetFacts) =>
 const COPILOT_INSTALLED = "mssql.copilot.isGHCInstalled";
 
 export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
+    {
+        id: "mssql.objectExplorerV2.newQuery",
+        feature: "newQuery",
+        route: "native",
+        placements: [
+            {
+                flag: "newQuery",
+                menuGroup: "1_MSSQL_primary@1",
+                appliesTo: (facts) =>
+                    anyConnection(facts) || facts.kind === "database" || tableObject(facts),
+                extraWhen:
+                    "mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled",
+            },
+        ],
+    },
+
     // -------------------------------------------------------- 2b_tableActions
     {
         id: "mssql.objectExplorerV2.editTableData",

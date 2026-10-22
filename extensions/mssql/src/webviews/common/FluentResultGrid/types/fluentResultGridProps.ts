@@ -36,8 +36,15 @@ export interface FluentResultGridBehaviorProps {
     inMemoryDataProcessingThreshold?: number;
     gridSettings?: GridSettings;
     rowHeight?: number;
+    /** Windowed-source fetch size in rows (QO-7); default 50. */
+    windowSize?: number;
+    /** Autosize data-sample row bound (QO-7b); default 50. */
+    autosizeSampleRows?: number;
+    /** Autosize column-width ceiling in px; default FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH. */
+    autosizeMaxColumnWidth?: number;
     toolbar?: FluentResultGridToolbarOptions;
     commands?: FluentResultGridCommandConfiguration;
+    enableColumnReorder?: boolean;
     viewMode?: FluentResultGridViewMode;
     canToggleViewMode?: boolean;
     canToggleMaximize?: boolean;
@@ -53,6 +60,12 @@ export interface FluentResultGridCallbackProps {
         displaySelection?: readonly ISlickRange[],
     ) => MaybePromise<void>;
     onInMemoryDataProcessingThresholdExceeded?: () => MaybePromise<void>;
+    /** Called after SlickGrid has created and initialized its live grid instance. */
+    onGridCreated?: () => void;
+    /** Called for SlickGrid's post-render event. */
+    onGridRendered?: () => void;
+    /** Called when a previously created live grid instance is released. */
+    onGridDisposed?: () => void;
 }
 
 export interface FluentResultGridProps
@@ -69,4 +82,13 @@ export interface FluentResultGridProps
 export interface FluentResultGridHandle {
     focusGrid: () => void;
     clearSelection?: () => void;
+    /**
+     * Select every data cell, or report that restored view state already has
+     * the full range selected. Returns false before grid creation.
+     */
+    selectAll: () => "selected" | "alreadySelected" | false;
+    /** Scroll a source row to the top; returns false before grid creation. */
+    scrollToRow: (rowIndex: number) => boolean;
+    /** Reveal a zero-based data column; returns false before grid creation. */
+    scrollToColumn: (columnIndex: number) => boolean;
 }

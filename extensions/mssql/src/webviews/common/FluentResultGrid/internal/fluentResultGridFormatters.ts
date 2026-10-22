@@ -19,6 +19,14 @@ function isDbCellValue(value: unknown): value is { displayValue: string; isNull:
     );
 }
 
+function hasDocumentLanguage(value: unknown): boolean {
+    if (!isDbCellValue(value)) {
+        return false;
+    }
+    const languageId = (value as { languageId?: unknown }).languageId;
+    return languageId === "xml" || languageId === "json";
+}
+
 function getCellDisplayValue(cellValue: string): string {
     const valueToDisplay = cellValue.length > 250 ? `${cellValue.slice(0, 250)}...` : cellValue;
     return valueToDisplay.replace(/(\r\n|\n|\r)/g, "↵");
@@ -120,7 +128,7 @@ export function getFluentResultGridColumnFormatter(
     const maxDistinctRows = 20;
 
     return ((row, _cell, value) => {
-        if (shouldRenderAsHyperlink) {
+        if (shouldRenderAsHyperlink || hasDocumentLanguage(value)) {
             return getHyperlinkCellFormatterResult(value);
         }
 

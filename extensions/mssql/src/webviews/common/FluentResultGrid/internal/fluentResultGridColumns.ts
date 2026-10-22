@@ -34,9 +34,11 @@ export function getFluentResultGridColumnIndexFromColumn(
 
 export function createFluentResultGridColumns({
     columnInfo,
+    enableColumnReorder = true,
     showRowNumberColumn = true,
 }: {
     columnInfo: IDbColumn[];
+    enableColumnReorder?: boolean;
     showRowNumberColumn?: boolean;
 }): Column<FluentResultGridDataRow>[] {
     const columns: Column<FluentResultGridDataRow>[] = columnInfo.map((column, index) => ({
@@ -46,7 +48,7 @@ export function createFluentResultGridColumns({
         field: index.toString(),
         width: FLUENT_RESULT_GRID_DEFAULT_COLUMN_WIDTH,
         minWidth: 50,
-        reorderable: true,
+        reorderable: enableColumnReorder,
         sortable: false,
         filterable: true,
         formatter: getFluentResultGridColumnFormatter(column),
