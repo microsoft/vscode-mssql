@@ -346,7 +346,9 @@ export class SessionStore {
 
     public query(events: DiagEvent[], query: EventQuery, gaps: GapRecord[]): EventQueryResult {
         const limit = Math.min(query.limit ?? 500, MAX_QUERY_LIMIT);
-        const text = query.text?.toLowerCase();
+        const textTerms = [query.text ?? "", ...(query.textTerms ?? [])]
+            .map((term) => term.toLowerCase())
+            .filter(Boolean);
         const filtered = events.filter((event) => {
             if (!query.includeViewerInternal && event.tags?.includes("viewerInternal")) {
                 return false;
@@ -381,10 +383,10 @@ export class SessionStore {
             if (query.traceId && event.traceId !== query.traceId) return false;
             if (query.fromSeq !== undefined && event.seq < query.fromSeq) return false;
             if (query.beforeSeq !== undefined && event.seq >= query.beforeSeq) return false;
-            if (text) {
+            if (textTerms.length > 0) {
                 const haystack =
                     `${event.type} ${event.feature} ${event.traceId ?? ""} ${event.eventId} ${searchableDigests(event)}`.toLowerCase();
-                if (!haystack.includes(text)) return false;
+                if (!textTerms.every((term) => haystack.includes(term))) return false;
             }
             return true;
         });

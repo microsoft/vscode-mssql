@@ -14,8 +14,13 @@ import { completionDebugTrace } from "./fixtures/completionDebugTrace";
 
 test.describe("AI completion debug in Debug Console", () => {
     const traceFolder = path.join(os.tmpdir(), `mssql-completion-debug-${randomUUID()}`);
+    const workspaceFolder = path.join(os.tmpdir(), `mssql-completion-workspace-${randomUUID()}`);
+    test.beforeAll(async () => {
+        await fs.mkdir(workspaceFolder, { recursive: true });
+    });
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: {
+            extraLaunchArgs: [workspaceFolder],
             initialConfig: {
                 "mssql.showChangelogOnUpdate": false,
                 "mssql.enableExperimentalFeatures": true,
@@ -32,6 +37,10 @@ test.describe("AI completion debug in Debug Console", () => {
         beforeClose: async () => {
             await fs.rm(traceFolder, { recursive: true, force: true });
         },
+    });
+    test.afterAll(async () => {
+        // VS Code keeps the open workspace locked on Windows until it exits.
+        await fs.rm(workspaceFolder, { recursive: true, force: true });
     });
 
     test("opens live experiments and saved sessions", async ({}, testInfo) => {
@@ -51,6 +60,12 @@ test.describe("AI completion debug in Debug Console", () => {
             .click();
         const live = viewer.getByRole("tab", { name: /^Live/ });
         await expect(live).toBeVisible();
+        const recordClosed = viewer.getByRole("button").filter({ hasText: "Record closed" });
+        await expect(recordClosed).toHaveAttribute("aria-pressed", "false");
+        await recordClosed.click();
+        await expect(recordClosed).toHaveAttribute("aria-pressed", "true");
+        await recordClosed.click();
+        await expect(recordClosed).toHaveAttribute("aria-pressed", "false");
         await expect(viewer.getByRole("combobox", { name: "Profile", exact: true })).toBeVisible();
         await expect(viewer.getByRole("combobox", { name: "Model", exact: true })).toBeVisible();
         const profile = viewer.getByRole("combobox", { name: "Profile", exact: true });
@@ -100,15 +115,17 @@ test.describe("AI completion debug in Debug Console", () => {
         await expect(viewer.getByRole("tab", { name: /^Sessions/ })).toContainText("1 traces");
         await viewer.getByRole("button", { name: "Show trace files", exact: true }).click();
         await page.screenshot({ path: testInfo.outputPath("sessions.png") });
-        await viewer.getByRole("button", { name: "Add", exact: true }).click();
+        // Exercise keyboard activation for replay controls; mouse activation
+        // in this Electron smoke has been intermittent.
+        await viewer.getByRole("button", { name: "Add", exact: true }).press("Enter");
         await viewer
             .getByRole("button", { name: "Open the replay trace builder", exact: true })
-            .click();
+            .press("Enter");
         await expect(viewer.getByText("Replay Trace Builder", { exact: true })).toBeInViewport();
-        await viewer.getByRole("button", { name: "Matrix...", exact: true }).click();
+        await viewer.getByRole("button", { name: "Matrix...", exact: true }).press("Enter");
         await expect(viewer.getByText("Run config matrix", { exact: true })).toBeInViewport();
         await page.screenshot({ path: testInfo.outputPath("experiments.png") });
-        // Exercise keyboard dismissal as well as mouse activation of the drawer.
+        // Exercise keyboard dismissal and tab navigation after configuring replay.
         await viewer.getByLabel("Cancel", { exact: true }).press("Enter");
         await expect(viewer.getByText("Run config matrix", { exact: true })).toBeHidden();
         await page.screenshot({ path: testInfo.outputPath("replay.png") });

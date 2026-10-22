@@ -232,7 +232,10 @@ export interface EventQuery {
     kinds?: DiagKind[];
     statuses?: DiagStatus[];
     traceId?: string;
+    /** A literal phrase from the global search field. */
     text?: string;
+    /** Independent substring conditions, ANDed with each other and with text. */
+    textTerms?: string[];
     fromSeq?: number;
     /** Page size; server clamps. */
     limit?: number;

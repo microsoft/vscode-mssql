@@ -20,7 +20,7 @@
 import { DiagProcess, DiagStatus, EventQuery } from "./debugConsole";
 
 export interface ParsedTraceFilter {
-    text?: string;
+    textTerms?: string[];
     processes?: DiagProcess[];
     features?: string[];
     statuses?: DiagStatus[];
@@ -118,7 +118,7 @@ export function parseTraceFilter(input: string): ParsedTraceFilter {
         words.push(token);
     }
     if (words.length > 0) {
-        out.text = words.join(" ");
+        out.textTerms = words;
     }
     return out;
 }
@@ -127,7 +127,9 @@ export function parseTraceFilter(input: string): ParsedTraceFilter {
 export function applyTraceFilter(base: EventQuery, parsed: ParsedTraceFilter): EventQuery {
     return {
         ...base,
-        ...(parsed.text ? { text: base.text ? `${base.text} ${parsed.text}` : parsed.text } : {}),
+        ...(parsed.textTerms
+            ? { textTerms: [...(base.textTerms ?? []), ...parsed.textTerms] }
+            : {}),
         ...(parsed.processes ? { processes: parsed.processes } : {}),
         ...(parsed.features ? { features: parsed.features } : {}),
         ...(parsed.statuses ? { statuses: parsed.statuses } : {}),

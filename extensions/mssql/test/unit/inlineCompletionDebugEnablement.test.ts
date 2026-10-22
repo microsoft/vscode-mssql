@@ -5,7 +5,9 @@
 
 import * as vscode from "vscode";
 import * as sinon from "sinon";
-import { expect } from "chai";
+import * as Constants from "../../src/constants/constants";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import {
     disableAiCompletions,
     enableAiCompletions,
@@ -24,6 +26,9 @@ import {
 } from "../../src/copilot/inlineCompletionDebug/inlineCompletionDebugStore";
 import { defaultInlineCompletionModelPreference } from "../../src/copilot/inlineCompletionDebug/inlineCompletionDebugProfiles";
 import { InlineCompletionDebugEvent } from "../../src/sharedInterfaces/inlineCompletionDebug";
+
+const { expect } = chai;
+chai.use(sinonChai);
 
 suite("Completion debug private-preview integration", () => {
     const sandbox = sinon.createSandbox();
@@ -57,6 +62,31 @@ suite("Completion debug private-preview integration", () => {
         configureCompletionsDebugHost(undefined);
         sandbox.restore();
     });
+
+    for (const hasWorkspace of [false, true]) {
+        test(`capture settings write to User settings with workspace=${hasWorkspace}`, async () => {
+            sandbox
+                .stub(vscode.workspace, "workspaceFolders")
+                .value(
+                    hasWorkspace
+                        ? [{ uri: vscode.Uri.file("/test-workspace"), name: "test", index: 0 }]
+                        : undefined,
+                );
+            const host = createDefaultInlineCompletionDebugHostServices();
+            for (const [key, value] of [
+                [Constants.configCopilotInlineCompletionsDebugRecordWhenClosed, true],
+                [Constants.configCopilotInlineCompletionsTraceCaptureEnabled, true],
+                [Constants.configCopilotInlineCompletionsTraceFolder, "/test-traces"],
+            ] as const) {
+                await host.updateConfiguration(key, value);
+                expect(update).to.have.been.calledWith(
+                    key,
+                    value,
+                    vscode.ConfigurationTarget.Global,
+                );
+            }
+        });
+    }
 
     test("editing a model preserves schema and category opt-outs", () => {
         sandbox.stub(vscode.lm, "selectChatModels").resolves([]);

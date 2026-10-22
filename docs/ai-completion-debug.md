@@ -9,7 +9,8 @@ change removes the temporary PR base and merge-order requirements.
 
 ## Enable and open
 
-Set these workspace or user settings, then reload the Extension Development Host:
+Set these in **User settings**, then reload the Extension Development Host.
+These application-scoped flags do not take effect in workspace settings:
 
 ```json
 {

@@ -34,7 +34,7 @@ suite("Trace filter expressions", () => {
         const parsed = parseTraceFilter("status:error feat:query type:submit slow");
         expect(parsed.statuses).to.deep.equal(["error"]);
         expect(parsed.features).to.deep.equal(["query"]);
-        expect(parsed.text).to.equal("submit slow");
+        expect(parsed.textTerms).to.deep.equal(["submit", "slow"]);
         expect(parsed.invalid).to.deep.equal([]);
     });
 
@@ -45,12 +45,13 @@ suite("Trace filter expressions", () => {
 
     test("applyTraceFilter merges into an EventQuery with expression precedence", () => {
         const merged = applyTraceFilter(
-            { sourceId: "s", text: "existing" },
+            { sourceId: "s", text: "existing phrase", textTerms: ["previous"] },
             parseTraceFilter("dur>50 proc:sts extra"),
         );
         expect(merged.minDurationMs).to.equal(50);
         expect(merged.processes).to.deep.equal(["sqlToolsService"]);
-        expect(merged.text).to.equal("existing extra");
+        expect(merged.text).to.equal("existing phrase");
+        expect(merged.textTerms).to.deep.equal(["previous", "extra"]);
     });
 });
 
@@ -72,7 +73,44 @@ function makeEvent(partial: Partial<DiagEvent> & { type: string }): DiagEvent {
     };
 }
 
-suite("Store duration filters", () => {
+suite("Store trace filters", () => {
+    test("global search and filter terms match independently in any order", () => {
+        const store = new SessionStore("/nonexistent");
+        const match = makeEvent({ type: "mssql.query.submit", traceId: "trace123" });
+        const events = [
+            match,
+            makeEvent({ type: "mssql.query.cancel", traceId: "trace123" }),
+            makeEvent({ type: "mssql.query.submit", traceId: "trace456" }),
+            makeEvent({ type: "mssql.query.submit", traceId: "trace123", status: "error" }),
+        ];
+        for (const [text, expression] of [
+            ["trace123", "type:submit status:ok"],
+            ["", "trace123 type:SUBMIT status:ok"],
+            ["", "submit TRACE123 status:ok"],
+        ]) {
+            const query = applyTraceFilter({ sourceId: "s", text }, parseTraceFilter(expression));
+            expect(store.query(events, query, []).rows).to.deep.equal([match]);
+        }
+        const missing = applyTraceFilter(
+            { sourceId: "s", text: "trace123" },
+            parseTraceFilter("type:submit absent"),
+        );
+        expect(store.query(events, missing, []).rows).to.deep.equal([]);
+    });
+
+    test("global search preserves literal phrase matching and empty queries match all", () => {
+        const store = new SessionStore("/nonexistent");
+        const event = makeEvent({ type: "mssql.query.submit", traceId: "trace123" });
+        expect(
+            store.query([event], { sourceId: "s", text: "submit query" }, []).rows,
+        ).to.deep.equal([event]);
+        expect(
+            store.query([event], { sourceId: "s", text: "submit trace123" }, []).rows,
+        ).to.deep.equal([]);
+        const empty = applyTraceFilter({ sourceId: "s" }, parseTraceFilter("  "));
+        expect(store.query([event], empty, []).rows).to.deep.equal([event]);
+    });
+
     test("strict duration operators exclude boundaries while inclusive operators retain them", () => {
         const store = new SessionStore("/nonexistent");
         const events = [99.5, 100, 100.5].map((durationMs) =>
