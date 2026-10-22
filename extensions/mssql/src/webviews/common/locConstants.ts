@@ -3685,7 +3685,12 @@ export class LocConstants {
             azureSqlDatabaseDescription: l10n.t(
                 "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.",
             ),
-            chooseDeploymentOption: l10n.t("Choose how to run Azure SQL Database"),
+            chooseDeploymentOption: l10n.t("Choose a deployment option for Azure SQL Database"),
+            deployLocalDatabase: l10n.t("Deploy a local database"),
+            deployLocalDatabaseDescription: l10n.t(
+                "Create a free Azure SQL Database and deploy schema from a database running in a local container.",
+            ),
+            deployLocalDatabaseTbd: l10n.t("TBD"),
             localContainer: l10n.t("Local container (Preview)"),
             localContainerDescription: l10n.t(
                 "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.",

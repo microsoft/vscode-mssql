@@ -1658,6 +1658,9 @@
     <trans-unit id="++CODE++3b961516b68d49db85d3ded5bc5c1129e02be1a647845d77b1eb2ab5260284cb">
       <source xml:lang="en">Choose a database from the list below</source>
     </trans-unit>
+    <trans-unit id="++CODE++2d204f8ae49718e6c35512118785ecbac7a1765a407a553e239fdb325a310320">
+      <source xml:lang="en">Choose a deployment option for Azure SQL Database</source>
+    </trans-unit>
     <trans-unit id="++CODE++f374a2978746011d60b5e1785696b4f2c1fe9165edc4f876767d2f1282240cb2">
       <source xml:lang="en">Choose a hostname for the container</source>
     </trans-unit>
@@ -1675,9 +1678,6 @@
     </trans-unit>
     <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
       <source xml:lang="en">Choose color</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d0a50b3c66ed08ff5e7bb4903c4593ac6050d5493dccbfbf9442a0466bf2c2cc">
-      <source xml:lang="en">Choose how to run Azure SQL Database</source>
     </trans-unit>
     <trans-unit id="++CODE++33cae60710d18883f5948aa5911afb6dd1569629731526de9d6fbf18856274a0">
       <source xml:lang="en">Choose other folder</source>
@@ -2824,6 +2824,9 @@
     <trans-unit id="++CODE++477e49a037fdbc58507e0dd4b1d9b89896bbc8d8dfb513d120680ddd1c5c8d34">
       <source xml:lang="en">Create a database on your local SQL Server instance.</source>
     </trans-unit>
+    <trans-unit id="++CODE++4ac9360ad3e8feafc1e295aebbca6ee5f4b814c2812f06b97d1394dfb60a5e1f">
+      <source xml:lang="en">Create a free Azure SQL Database and deploy schema from a database running in a local container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4e18c3ff33b564efde61c0544543d5e2f16e08aa89314ff3f32da35532e0e859">
       <source xml:lang="en">Create a local SQL Server container for your app.</source>
     </trans-unit>
@@ -3365,6 +3368,9 @@
     </trans-unit>
     <trans-unit id="++CODE++796590e031547b420cb30aea63caa00543f57651e3244a8823b769a5f1a1a74e">
       <source xml:lang="en">Deploy a .dacpac file to a new or existing SQL database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2e160653fa0fe57ac428321bcdb901fd358f39046f9186deb92ef79a4ed92094">
+      <source xml:lang="en">Deploy a local database</source>
     </trans-unit>
     <trans-unit id="++CODE++592bd375fa7c9d7ab616ecb3debb297c018a80c6a903167afbd6f1c4d68b0d0b">
       <source xml:lang="en">Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.</source>

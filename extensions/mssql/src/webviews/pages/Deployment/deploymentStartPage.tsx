@@ -42,7 +42,7 @@ const useStyles = makeStyles({
     },
 });
 
-type AzureSqlDatabasePage = "deploymentType" | "localContainer";
+type AzureSqlDatabasePage = "deploymentType" | "localContainer" | "deployLocalDatabase";
 
 export const DeploymentStartPage = () => {
     const classes = useStyles();
@@ -232,6 +232,22 @@ export const DeploymentStartPage = () => {
         );
     }
 
+    if (azureSqlDatabasePage === "deployLocalDatabase" && isAzureSqlContainerEnabled) {
+        return (
+            <DialogPageShell
+                icon={<AzureSqlDatabaseIcon aria-hidden="true" />}
+                title={locConstants.azureSqlDatabase.deployLocalDatabase}
+                footerStart={
+                    <Button appearance="secondary" onClick={() => context.dispose()}>
+                        {locConstants.common.cancel}
+                    </Button>
+                }
+                footerEnd={previousButton(() => setAzureSqlDatabasePage("deploymentType"))}>
+                <Text>{locConstants.azureSqlDatabase.deployLocalDatabaseTbd}</Text>
+            </DialogPageShell>
+        );
+    }
+
     if (azureSqlDatabasePage === "deploymentType") {
         return (
             <div className={classes.outerDiv}>
@@ -258,6 +274,9 @@ export const DeploymentStartPage = () => {
                         }
                         onLocalContainerSelected={() => setAzureSqlDatabasePage("localContainer")}
                         onFreeDeploymentSelected={handleFreeAzureSqlDatabaseSelected}
+                        onDeployLocalDatabaseSelected={() =>
+                            setAzureSqlDatabasePage("deployLocalDatabase")
+                        }
                     />
                 </DialogPageShell>
             </div>
