@@ -8,7 +8,13 @@ import * as fs from "fs";
 import * as path from "path";
 import { test, expect } from "./baseFixtures";
 import { getGridLaunchConfig } from "./grid/gridLaunchConfig";
-import { clickMenuItem, getCell, openHeaderContextMenu } from "./grid/gridActions";
+import {
+    clickMenuItem,
+    getCell,
+    GRID_COMMAND_LABELS,
+    openCellContextMenu,
+    openHeaderContextMenu,
+} from "./grid/gridActions";
 import {
     clearClipboard,
     getModifierKey,
@@ -110,6 +116,67 @@ test.describe("Query Studio grid parity", () => {
             }
         });
     });
+
+    for (const method of ["drag", "shift-click", "keyboard"] as const) {
+        test(`Ctrl+C copies a rectangular subset selected by ${method} in live and pinned grids`, async () => {
+            const { electronApp, page } = getContext();
+            await withClipboardLock(async () => {
+                for (const { resultGrid, resultFrame } of [
+                    { resultGrid: grid, resultFrame: studio },
+                    { resultGrid: pinnedGrid, resultFrame: pinned },
+                ]) {
+                    // Begin outside the grid, as a user returning from SQL editing would.
+                    await studio.locator(".monaco-editor .view-lines").click();
+                    await page.keyboard.press(
+                        getModifierKey() === "Meta" ? "Meta+ArrowUp" : "Control+Home",
+                    );
+                    for (let i = 0; i < "PRINT".length; i++) {
+                        await page.keyboard.press("Shift+ArrowRight");
+                    }
+                    await clearClipboard(electronApp);
+                    const start = getCell(resultGrid, 0, 1);
+                    const end = getCell(resultGrid, 1, 2);
+                    if (method === "drag") {
+                        await start.dragTo(end);
+                    } else {
+                        await start.click();
+                        if (method === "shift-click") {
+                            await end.click({ modifiers: ["Shift"] });
+                        } else {
+                            await page.keyboard.press("Shift+ArrowRight");
+                            await page.keyboard.press("Shift+ArrowDown");
+                        }
+                    }
+                    await expect(resultGrid.locator(".slick-cell.selected")).toHaveCount(4);
+                    await expect
+                        .poll(() =>
+                            resultGrid.evaluate((element) =>
+                                element.contains(document.activeElement),
+                            ),
+                        )
+                        .toBe(true);
+                    await page.keyboard.press(`${getModifierKey()}+C`);
+                    await expect
+                        .poll(async () => (await readClipboard(electronApp)).replace(/\r\n/g, "\n"))
+                        .toBe("label\tamount\n  spaced  value\t1.25\n123\t2.25");
+
+                    await clearClipboard(electronApp);
+                    await openCellContextMenu(resultGrid, 0, 1);
+                    await clickMenuItem(resultFrame, GRID_COMMAND_LABELS.copy);
+                    await expect
+                        .poll(async () => (await readClipboard(electronApp)).replace(/\r\n/g, "\n"))
+                        .toBe("label\tamount\n  spaced  value\t1.25\n123\t2.25");
+
+                    // Clearing the stale DOM selection must preserve Monaco's SQL selection.
+                    await studio.locator('.monaco-editor [role="textbox"]').focus();
+                    await page.keyboard.press(`${getModifierKey()}+C`);
+                    await expect.poll(() => readClipboard(electronApp)).toBe("PRINT");
+                    // Leave no SQL selection for later tests that rerun the full fixture.
+                    await page.keyboard.press("ArrowRight");
+                }
+            });
+        });
+    }
 
     test("GUID values display and copy in uppercase by default while text preserves its case", async () => {
         const { electronApp, page } = getContext();
