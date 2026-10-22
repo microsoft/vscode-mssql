@@ -83,6 +83,7 @@
         "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/webviews-coverage\" --include=\"src/webviews/pages/**/*.tsx\""
     },
     "devDependencies": {
+        "@anthropic-ai/sdk": "^0.91.1",
         "@azure/core-paging": "^1.6.2",
         "@ctrl/tinycolor": "^4.2.0",
         "@dagrejs/dagre": "^1.1.4",
@@ -129,6 +130,7 @@
         "monaco-editor": "0.53.0",
         "npm-run-all": "^4.1.5",
         "nyc": "^18.0.0",
+        "openai": "^6.34.0",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
         "react-markdown": "^9.0.1",
@@ -177,6 +179,7 @@
         "plist": "^3.0.6",
         "pretty-data": "^0.40.0",
         "promisify-child-process": "^3.1.1",
+        "recharts": "^3.10.1",
         "semver": "^7.7.4",
         "shallow-equal": "^3.1.0",
         "strip-json-comments": "^5.0.1",
@@ -618,39 +621,39 @@
                 },
                 {
                     "command": "mssql.deployNewDatabase",
-                    "when": "view == objectExplorer",
+                    "when": "view == objectExplorer || view == mssql.objectExplorerV2",
                     "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 },
                 {
                     "command": "mssql.shortcutsConfiguration.open",
-                    "when": "view == objectExplorer",
+                    "when": "view == objectExplorer || view == mssql.objectExplorerV2",
                     "title": "%mssql.shortcutsConfiguration.open%",
                     "group": "navigation"
                 },
                 {
                     "command": "mssql.objectExplorerV2.addConnection",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2",
-                    "group": "navigation@1"
+                    "group": "navigation"
                 },
                 {
                     "command": "mssql.objectExplorerV2.connectionGroups.create",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2",
-                    "group": "navigation@2"
+                    "group": "navigation"
                 },
                 {
                     "command": "mssql.objectExplorerV2.enableGroupBySchema",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && !config.mssql.objectExplorer.v2.groupBySchema",
-                    "group": "navigation@3"
+                    "group": "navigation"
                 },
                 {
                     "command": "mssql.objectExplorerV2.disableGroupBySchema",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && config.mssql.objectExplorer.v2.groupBySchema",
-                    "group": "navigation@4"
+                    "group": "navigation"
                 },
                 {
                     "command": "mssql.showOverviewInObjectExplorer",
-                    "when": "view == objectExplorer && !mssql.overviewVisible",
+                    "when": "(view == objectExplorer || view == mssql.objectExplorerV2) && !mssql.overviewVisible",
                     "group": "1_overview"
                 },
                 {
@@ -872,12 +875,12 @@
                 },
                 {
                     "command": "mssql.objectExplorer.openOverview",
-                    "when": "view == objectExplorer && viewItem == overview",
+                    "when": "(view == objectExplorer || view == mssql.objectExplorerV2) && viewItem == overview",
                     "group": "navigation@1"
                 },
                 {
                     "command": "mssql.hideOverviewInObjectExplorer",
-                    "when": "view == objectExplorer && viewItem == overview",
+                    "when": "(view == objectExplorer || view == mssql.objectExplorerV2) && viewItem == overview",
                     "group": "navigation@2"
                 },
                 {
@@ -1399,6 +1402,30 @@
             ],
             "commandPalette": [
                 {
+                    "command": "mssql.copilot.sdkProviders.anthropic.setApiKey",
+                    "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+                },
+                {
+                    "command": "mssql.copilot.sdkProviders.anthropic.clearApiKey",
+                    "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+                },
+                {
+                    "command": "mssql.copilot.sdkProviders.openai.setApiKey",
+                    "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+                },
+                {
+                    "command": "mssql.copilot.sdkProviders.openai.clearApiKey",
+                    "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+                },
+                {
+                    "command": "mssql.copilot.sdkProviders.xai.setApiKey",
+                    "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+                },
+                {
+                    "command": "mssql.copilot.sdkProviders.xai.clearApiKey",
+                    "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+                },
+                {
                     "command": "mssql.objectExplorerV2.showStatus",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
                 },
@@ -1606,6 +1633,30 @@
                 {
                     "command": "mssql.runQueryWithUriOwnership",
                     "when": "false"
+                },
+                {
+                    "command": "mssql.openDebugConsole",
+                    "when": "mssql.privatePreview.debugConsoleActive && config.mssql.enableExperimentalFeatures && config.mssql.debugConsole.enabled"
+                },
+                {
+                    "command": "mssql.sessionDiag.enable",
+                    "when": "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled"
+                },
+                {
+                    "command": "mssql.sessionDiag.disable",
+                    "when": "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled"
+                },
+                {
+                    "command": "mssql.sessionDiag.elevateCapture",
+                    "when": "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled"
+                },
+                {
+                    "command": "mssql.sessionDiag.clear",
+                    "when": "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled"
+                },
+                {
+                    "command": "mssql.sessionDiag.openStorageFolder",
+                    "when": "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled"
                 },
                 {
                     "command": "mssql.sqlDataPlane.showStatus",
@@ -1967,6 +2018,10 @@
                 },
                 {
                     "command": "sqlDatabaseProjects.openDocumentation"
+                },
+                {
+                    "command": "mssql.copilot.inlineCompletion.refreshSchemaContext",
+                    "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
                 }
             ],
             "webview/context": [
@@ -1987,6 +2042,78 @@
             ]
         },
         "commands": [
+            {
+                "command": "mssql.copilot.sdkProviders.anthropic.setApiKey",
+                "title": "%mssql.copilot.sdkProviders.anthropic.setApiKey%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+            },
+            {
+                "command": "mssql.copilot.sdkProviders.anthropic.clearApiKey",
+                "title": "%mssql.copilot.sdkProviders.anthropic.clearApiKey%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+            },
+            {
+                "command": "mssql.copilot.sdkProviders.openai.setApiKey",
+                "title": "%mssql.copilot.sdkProviders.openai.setApiKey%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+            },
+            {
+                "command": "mssql.copilot.sdkProviders.openai.clearApiKey",
+                "title": "%mssql.copilot.sdkProviders.openai.clearApiKey%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+            },
+            {
+                "command": "mssql.copilot.sdkProviders.xai.setApiKey",
+                "title": "%mssql.copilot.sdkProviders.xai.setApiKey%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+            },
+            {
+                "command": "mssql.copilot.sdkProviders.xai.clearApiKey",
+                "title": "%mssql.copilot.sdkProviders.xai.clearApiKey%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+            },
+            {
+                "command": "mssql.openDebugConsole",
+                "title": "%mssql.openDebugConsole%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.debugConsoleActive && config.mssql.enableExperimentalFeatures && config.mssql.debugConsole.enabled"
+            },
+            {
+                "command": "mssql.sessionDiag.enable",
+                "title": "%mssql.sessionDiag.enable%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled"
+            },
+            {
+                "command": "mssql.sessionDiag.disable",
+                "title": "%mssql.sessionDiag.disable%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled"
+            },
+            {
+                "command": "mssql.sessionDiag.elevateCapture",
+                "title": "%mssql.sessionDiag.elevateCapture%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled"
+            },
+            {
+                "command": "mssql.sessionDiag.clear",
+                "title": "%mssql.sessionDiag.clear%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled"
+            },
+            {
+                "command": "mssql.sessionDiag.openStorageFolder",
+                "title": "%mssql.sessionDiag.openStorageFolder%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled"
+            },
             {
                 "command": "mssql.objectExplorerV2.showStatus",
                 "title": "%mssql.objectExplorerV2.showStatus%",
@@ -3200,6 +3327,11 @@
                 "title": "%sqlDatabaseProjects.findFile%",
                 "category": "%sqlDatabaseProjects.displayName%",
                 "icon": "$(search)"
+            },
+            {
+                "command": "mssql.copilot.inlineCompletion.refreshSchemaContext",
+                "title": "%mssql.copilot.inlineCompletion.refreshSchemaContext%",
+                "enablement": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
             }
         ],
         "keybindings": [
@@ -3250,6 +3382,311 @@
                 "type": "object",
                 "title": "%mssql.Configuration%",
                 "properties": {
+                    "mssql.copilot.inlineCompletions.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.copilot.inlineCompletions.enabled.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.inlineCompletions.useSchemaContext": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.copilot.inlineCompletions.useSchemaContext.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.inlineCompletions.includeSqlDiagnostics": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.copilot.inlineCompletions.includeSqlDiagnostics.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.inlineCompletions.profile": {
+                        "type": "string",
+                        "default": "balanced",
+                        "enum": [
+                            "focused",
+                            "balanced",
+                            "broad"
+                        ],
+                        "enumDescriptions": [
+                            "%mssql.copilot.inlineCompletions.profile.focused%",
+                            "%mssql.copilot.inlineCompletions.profile.balanced%",
+                            "%mssql.copilot.inlineCompletions.profile.broad%"
+                        ],
+                        "description": "%mssql.copilot.inlineCompletions.profile.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.inlineCompletions.modelFamily": {
+                        "type": "string",
+                        "default": "",
+                        "description": "%mssql.copilot.inlineCompletions.modelFamily.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.inlineCompletions.continuationModelFamily": {
+                        "type": "string",
+                        "default": "",
+                        "description": "%mssql.copilot.inlineCompletions.continuationModelFamily.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.inlineCompletions.modelVendors": {
+                        "type": "array",
+                        "default": [
+                            "copilot",
+                            "anthropic-api",
+                            "openai-api",
+                            "xai-api"
+                        ],
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "copilot",
+                                "anthropic-api",
+                                "openai-api",
+                                "xai-api"
+                            ]
+                        },
+                        "uniqueItems": true,
+                        "description": "%mssql.copilot.inlineCompletions.modelVendors.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.inlineCompletions.enabledCategories": {
+                        "type": "array",
+                        "default": [
+                            "continuation",
+                            "intent"
+                        ],
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "continuation",
+                                "intent"
+                            ]
+                        },
+                        "uniqueItems": true,
+                        "description": "%mssql.copilot.inlineCompletions.enabledCategories.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.inlineCompletions.debug.recordWhenClosed": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.copilot.inlineCompletions.debug.recordWhenClosed.description%",
+                        "scope": "machine"
+                    },
+                    "mssql.copilot.inlineCompletions.trace.captureEnabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.copilot.inlineCompletions.trace.captureEnabled.description%",
+                        "scope": "machine"
+                    },
+                    "mssql.copilot.inlineCompletions.trace.folder": {
+                        "type": "string",
+                        "default": "",
+                        "description": "%mssql.copilot.inlineCompletions.trace.folder.description%",
+                        "scope": "machine"
+                    },
+                    "mssql.copilot.inlineCompletions.trace.redactPrompts": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%mssql.copilot.inlineCompletions.trace.redactPrompts.description%",
+                        "scope": "machine"
+                    },
+                    "mssql.copilot.inlineCompletions.trace.maxFileSizeMB": {
+                        "type": "number",
+                        "default": 50,
+                        "minimum": 1,
+                        "maximum": 64,
+                        "description": "%mssql.copilot.inlineCompletions.trace.maxFileSizeMB.description%",
+                        "scope": "machine"
+                    },
+                    "mssql.copilot.sdkProviders.anthropic.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.copilot.sdkProviders.anthropic.enabled.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.anthropic.additionalModels": {
+                        "type": "array",
+                        "default": [],
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "displayName",
+                                "family"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "displayName": {
+                                    "type": "string"
+                                },
+                                "family": {
+                                    "type": "string"
+                                },
+                                "version": {
+                                    "type": "string"
+                                },
+                                "maxInputTokens": {
+                                    "type": "number"
+                                },
+                                "maxOutputTokens": {
+                                    "type": "number"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "description": "%mssql.copilot.sdkProviders.anthropic.additionalModels.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.anthropic.baseUrl": {
+                        "type": "string",
+                        "default": "",
+                        "description": "%mssql.copilot.sdkProviders.anthropic.baseUrl.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.anthropic.timeout": {
+                        "type": "number",
+                        "default": 60000,
+                        "minimum": 1,
+                        "description": "%mssql.copilot.sdkProviders.anthropic.timeout.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.anthropic.env": {
+                        "type": "object",
+                        "default": {},
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "%mssql.copilot.sdkProviders.anthropic.env.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.openai.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.copilot.sdkProviders.openai.enabled.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.openai.additionalModels": {
+                        "type": "array",
+                        "default": [],
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "displayName",
+                                "family"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "displayName": {
+                                    "type": "string"
+                                },
+                                "family": {
+                                    "type": "string"
+                                },
+                                "version": {
+                                    "type": "string"
+                                },
+                                "maxInputTokens": {
+                                    "type": "number"
+                                },
+                                "maxOutputTokens": {
+                                    "type": "number"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "description": "%mssql.copilot.sdkProviders.openai.additionalModels.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.openai.baseUrl": {
+                        "type": "string",
+                        "default": "",
+                        "description": "%mssql.copilot.sdkProviders.openai.baseUrl.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.openai.timeout": {
+                        "type": "number",
+                        "default": 60000,
+                        "minimum": 1,
+                        "description": "%mssql.copilot.sdkProviders.openai.timeout.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.openai.env": {
+                        "type": "object",
+                        "default": {},
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "%mssql.copilot.sdkProviders.openai.env.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.xai.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.copilot.sdkProviders.xai.enabled.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.xai.additionalModels": {
+                        "type": "array",
+                        "default": [],
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "displayName",
+                                "family"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "displayName": {
+                                    "type": "string"
+                                },
+                                "family": {
+                                    "type": "string"
+                                },
+                                "version": {
+                                    "type": "string"
+                                },
+                                "maxInputTokens": {
+                                    "type": "number"
+                                },
+                                "maxOutputTokens": {
+                                    "type": "number"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "description": "%mssql.copilot.sdkProviders.xai.additionalModels.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.xai.baseUrl": {
+                        "type": "string",
+                        "default": "",
+                        "description": "%mssql.copilot.sdkProviders.xai.baseUrl.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.xai.timeout": {
+                        "type": "number",
+                        "default": 60000,
+                        "minimum": 1,
+                        "description": "%mssql.copilot.sdkProviders.xai.timeout.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.sdkProviders.xai.env": {
+                        "type": "object",
+                        "default": {},
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "%mssql.copilot.sdkProviders.xai.env.description%",
+                        "scope": "application"
+                    },
                     "mssql.objectExplorer.v2.enabled": {
                         "type": "boolean",
                         "default": false,
@@ -4867,6 +5304,80 @@
                         "type": "boolean",
                         "description": "%mssql.showChangelogOnUpdate%",
                         "default": true
+                    },
+                    "mssql.sessionDiag.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "%mssql.sessionDiag.enabled.description%",
+                        "scope": "application"
+                    },
+                    "mssql.sessionDiag.storePath": {
+                        "type": "string",
+                        "default": "",
+                        "markdownDescription": "%mssql.sessionDiag.storePath.description%",
+                        "scope": "application"
+                    },
+                    "mssql.sessionDiag.captureMode": {
+                        "type": "string",
+                        "enum": [
+                            "off",
+                            "redacted",
+                            "digest"
+                        ],
+                        "default": "redacted",
+                        "markdownDescription": "%mssql.sessionDiag.captureMode.description%",
+                        "scope": "application"
+                    },
+                    "mssql.sessionDiag.maxSessions": {
+                        "type": "number",
+                        "minimum": 1,
+                        "default": 10,
+                        "markdownDescription": "%mssql.sessionDiag.maxSessions.description%",
+                        "scope": "application"
+                    },
+                    "mssql.sessionDiag.maxAgeDays": {
+                        "type": "number",
+                        "minimum": 1,
+                        "default": 14,
+                        "markdownDescription": "%mssql.sessionDiag.maxAgeDays.description%",
+                        "scope": "application"
+                    },
+                    "mssql.sessionDiag.maxTotalMB": {
+                        "type": "number",
+                        "minimum": 1,
+                        "default": 512,
+                        "markdownDescription": "%mssql.sessionDiag.maxTotalMB.description%",
+                        "scope": "application"
+                    },
+                    "mssql.debugConsole.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "%mssql.debugConsole.enabled.description%",
+                        "scope": "application"
+                    },
+                    "mssql.debugConsole.perfRunsRoot": {
+                        "type": "string",
+                        "default": "",
+                        "markdownDescription": "%mssql.debugConsole.perfRunsRoot.description%",
+                        "scope": "application"
+                    },
+                    "mssql.debugConsole.richCollection": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "%mssql.debugConsole.richCollection.description%",
+                        "scope": "application"
+                    },
+                    "mssql.debugConsole.richSnapshotHeartbeat": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "%mssql.debugConsole.richSnapshotHeartbeat.description%",
+                        "scope": "application"
+                    },
+                    "mssql.copilot.inlineCompletions.trace.journalPrimary": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.copilot.inlineCompletions.trace.journalPrimary%",
+                        "scope": "window"
                     }
                 }
             },
@@ -7276,6 +7787,32 @@
                     "light": "editor.foreground",
                     "dark": "editor.foreground"
                 }
+            }
+        ],
+        "languageModelChatProviders": [
+            {
+                "id": "anthropic-api",
+                "vendor": "anthropic-api",
+                "label": "Anthropic API",
+                "displayName": "Anthropic API",
+                "managementCommand": "mssql.copilot.sdkProviders.anthropic.setApiKey",
+                "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+            },
+            {
+                "id": "openai-api",
+                "vendor": "openai-api",
+                "label": "OpenAI API",
+                "displayName": "OpenAI API",
+                "managementCommand": "mssql.copilot.sdkProviders.openai.setApiKey",
+                "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
+            },
+            {
+                "id": "xai-api",
+                "vendor": "xai-api",
+                "label": "xAI API",
+                "displayName": "xAI API",
+                "managementCommand": "mssql.copilot.sdkProviders.xai.setApiKey",
+                "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
             }
         ],
         "viewsWelcome": [

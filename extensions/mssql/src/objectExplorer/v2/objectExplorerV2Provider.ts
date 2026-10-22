@@ -10,19 +10,55 @@
  */
 
 import * as vscode from "vscode";
+import {
+    cmdObjectExplorerCollapseOrExpandByDefault,
+    cmdOpenOverview,
+} from "../../constants/constants";
+import { Overview } from "../../constants/locConstants";
+import { OverviewOpenSource } from "../../sharedInterfaces/overview";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
-import { OeV2Node } from "./tree/oeV2Node";
+import { NOT_APPLICABLE, OeV2Node } from "./tree/oeV2Node";
 import { nodeContextValue } from "./tree/oeV2NodeFactory";
+import { encodePath } from "./tree/oeV2Path";
 import { OeV2TreeController } from "./tree/oeV2TreeController";
+
+/** Shared Getting Started preference owned by the extension host. */
+export interface OverviewVisibility {
+    isVisible(): boolean;
+    readonly onDidChange: vscode.Event<boolean>;
+}
 
 export class ObjectExplorerV2Provider implements vscode.TreeDataProvider<OeV2Node> {
     private changeEmitter = new vscode.EventEmitter<OeV2Node | undefined>();
     readonly onDidChangeTreeData = this.changeEmitter.event;
     private controllerSubscription: { dispose(): void };
+    private overviewSubscription: vscode.Disposable | undefined;
+    private readonly initialGroupState = vscode.workspace
+        .getConfiguration("mssql")
+        .get<boolean>(cmdObjectExplorerCollapseOrExpandByDefault, false)
+        ? vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.Expanded;
+    private readonly overviewNode: OeV2Node = {
+        id: encodePath({ kind: "overview" }),
+        path: { kind: "overview" },
+        kind: "overview",
+        label: Overview.OverviewTreeNodeLabel,
+        description: Overview.OverviewTreeNodeDescription,
+        tooltip: Overview.OverviewTreeNodeDescription,
+        collapsible: false,
+        readiness: NOT_APPLICABLE,
+        capabilities: {},
+    };
 
-    constructor(readonly controller: OeV2TreeController) {
+    constructor(
+        readonly controller: OeV2TreeController,
+        private readonly overviewVisibility?: OverviewVisibility,
+    ) {
         this.controllerSubscription = controller.onDidChange((node) =>
             this.changeEmitter.fire(node),
+        );
+        this.overviewSubscription = overviewVisibility?.onDidChange(() =>
+            this.changeEmitter.fire(undefined),
         );
     }
 
@@ -30,7 +66,9 @@ export class ObjectExplorerV2Provider implements vscode.TreeDataProvider<OeV2Nod
         const item = new vscode.TreeItem(
             node.label,
             node.collapsible
-                ? vscode.TreeItemCollapsibleState.Collapsed
+                ? node.kind === "connectionGroup"
+                    ? this.initialGroupState
+                    : vscode.TreeItemCollapsibleState.Collapsed
                 : vscode.TreeItemCollapsibleState.None,
         );
         item.id = node.id;
@@ -41,7 +79,15 @@ export class ObjectExplorerV2Provider implements vscode.TreeDataProvider<OeV2Nod
         if (node.tooltip) {
             item.tooltip = node.tooltip;
         }
-        if (node.kind === "loading") {
+        if (node.kind === "overview") {
+            item.contextValue = "overview";
+            item.iconPath = new vscode.ThemeIcon("compass");
+            item.command = {
+                title: Overview.OverviewTreeNodeLabel,
+                command: cmdOpenOverview,
+                arguments: [{ source: OverviewOpenSource.TreeNode }],
+            };
+        } else if (node.kind === "loading") {
             item.iconPath = new vscode.ThemeIcon("loading~spin");
         } else if (node.kind === "connectingConnection") {
             // B27: connecting connections spin like loading children do.
@@ -60,11 +106,18 @@ export class ObjectExplorerV2Provider implements vscode.TreeDataProvider<OeV2Nod
         return item;
     }
 
-    getChildren(node?: OeV2Node): Promise<OeV2Node[]> {
-        return this.controller.children(node);
+    async getChildren(node?: OeV2Node): Promise<OeV2Node[]> {
+        if (node?.kind === "overview") {
+            return [];
+        }
+        const children = await this.controller.children(node);
+        return !node && (this.overviewVisibility?.isVisible() ?? true)
+            ? [this.overviewNode, ...children]
+            : children;
     }
 
     dispose(): void {
+        this.overviewSubscription?.dispose();
         this.controllerSubscription.dispose();
         this.changeEmitter.dispose();
     }
