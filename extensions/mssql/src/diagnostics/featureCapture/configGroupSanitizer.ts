@@ -23,6 +23,7 @@
 
 import { ConfigGroupV1 } from "../../sharedInterfaces/configGroup";
 import { ReplayLabConfigGroupV1 } from "../../sharedInterfaces/replayLabRpc";
+import { inlineCompletionSchemaBudgetProfileIds } from "../../sharedInterfaces/inlineCompletionDebug";
 
 /** The content-bearing key that collapses to a boolean flag. */
 export const CUSTOM_SYSTEM_PROMPT_KEY = "customSystemPrompt";
@@ -31,9 +32,8 @@ export const CUSTOM_SYSTEM_PROMPT_FLAG_KEY = "customSystemPromptUsed";
 /**
  * Keys of feature replay configs that are safe metadata. Anything not listed
  * — notably `customSystemPrompt` (user text) and unknown future keys — is
- * dropped by every sanitizer below. One flat set on purpose: feature key
- * spaces do not collide, and a single list keeps the wire and the disk
- * boundary provably identical.
+ * dropped by every sanitizer below. Schema settings additionally require a
+ * nested projection because imported objects can contain arbitrary descendants.
  */
 export const SAFE_CONFIG_GROUP_KEYS: ReadonlySet<string> = new Set([
     // completions replay config
@@ -61,6 +61,75 @@ export const SAFE_CONFIG_GROUP_KEYS: ReadonlySet<string> = new Set([
     CUSTOM_SYSTEM_PROMPT_FLAG_KEY,
 ]);
 
+const SCHEMA_ENUM_VALUES: Record<string, readonly string[]> = {
+    budgetProfile: inlineCompletionSchemaBudgetProfileIds,
+    columnRepresentation: ["compact", "types", "verbose"],
+    messageOrder: ["rules-then-data", "data-then-rules"],
+    schemaContextChannel: ["inline-with-data", "separate-message"],
+};
+const SCHEMA_BOOLEAN_KEYS = ["schemaSizeAdaptive", "includeRoutines", "relevanceTermRecencyBias"];
+const SCHEMA_BUDGET_KEYS = [
+    "maxSchemas",
+    "maxTables",
+    "maxViews",
+    "maxRoutines",
+    "maxColumnsPerObject",
+    "maxForeignKeys",
+    "maxTableNameOnlyInventory",
+    "maxViewNameOnlyInventory",
+    "maxRoutineNameOnlyInventory",
+    "maxSystemObjects",
+    "maxSchemaContextRelevanceTerms",
+    "maxParametersPerRoutine",
+    "smallSchemaThreshold",
+    "largeSchemaThreshold",
+    "outlierSchemaThreshold",
+    "maxPromptChars",
+    "maxPromptTokens",
+    "foreignKeyExpansionDepth",
+    "foreignKeyExpansionObjectCap",
+    "columnNameRelevanceWeight",
+    "defaultSchemaWeight",
+    "cacheTtlMs",
+];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** Keep only typed schema knobs; never copy an imported subtree verbatim. */
+function sanitizeSchemaContext(value: unknown): Record<string, unknown> | null | undefined {
+    if (value === null) {
+        return null;
+    }
+    if (!isRecord(value)) {
+        return undefined;
+    }
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, allowed] of Object.entries(SCHEMA_ENUM_VALUES)) {
+        const field = value[key];
+        if (typeof field === "string" && allowed.includes(field)) {
+            sanitized[key] = field;
+        }
+    }
+    for (const key of SCHEMA_BOOLEAN_KEYS) {
+        if (typeof value[key] === "boolean") {
+            sanitized[key] = value[key];
+        }
+    }
+    if (isRecord(value.budgetOverrides)) {
+        const budget: Record<string, number> = {};
+        for (const key of SCHEMA_BUDGET_KEYS) {
+            const field = value.budgetOverrides[key];
+            if (typeof field === "number" && Number.isFinite(field)) {
+                budget[key] = field;
+            }
+        }
+        sanitized.budgetOverrides = budget;
+    }
+    return sanitized;
+}
+
 function hadCustomSystemPrompt(record: Record<string, unknown> | undefined): boolean {
     if (!record) {
         return false;
@@ -80,7 +149,10 @@ function sanitizeConfigRecord(
     const sanitized: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(record ?? {})) {
         if (SAFE_CONFIG_GROUP_KEYS.has(key) && value !== undefined) {
-            sanitized[key] = value;
+            const safeValue = key === "schemaContext" ? sanitizeSchemaContext(value) : value;
+            if (safeValue !== undefined) {
+                sanitized[key] = safeValue;
+            }
         }
     }
     if (hadCustomSystemPrompt(record)) {
@@ -122,16 +194,8 @@ export function sanitizeConfigGroupForPersistence(group: ConfigGroupV1): ConfigG
  * §7.6 persist-time fix).
  */
 export function sanitizeReplayLabConfigGroup(group: ConfigGroupV1): ReplayLabConfigGroupV1 {
-    const overridesSummary: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(group.partialOverrides ?? {})) {
-        if (
-            SAFE_CONFIG_GROUP_KEYS.has(key) &&
-            key !== CUSTOM_SYSTEM_PROMPT_FLAG_KEY &&
-            value !== undefined
-        ) {
-            overridesSummary[key] = value;
-        }
-    }
+    const overridesSummary = sanitizeConfigRecord(group.partialOverrides);
+    delete overridesSummary[CUSTOM_SYSTEM_PROMPT_FLAG_KEY];
     const effective = group.effectiveConfig ?? {};
     const replayMode = effective.replayMode ?? group.partialOverrides?.replayMode;
     return {
