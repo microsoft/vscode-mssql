@@ -68,6 +68,7 @@ export interface GridSettings {
     freezeFirstColumnByDefault?: boolean;
     showGridLines?: GridLinesMode;
     rowPadding?: number | null;
+    rightAlignNumbers?: boolean;
 }
 
 export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
@@ -169,6 +170,8 @@ export interface ResultSetSummary {
     batchId: number;
     rowCount: number;
     columnInfo: IDbColumn[];
+    /** True once every row has been read, so the row count is final. */
+    complete?: boolean;
 }
 
 export interface IDbColumn {
@@ -483,7 +486,10 @@ export namespace GetRowsRequest {
 export interface SetGridScrollPositionParams {
     uri: string;
     gridId: string;
+    /** Index of the top visible row. */
     scrollTop: number;
+    /** Pixel offset within the top visible row. */
+    scrollTopOffset?: number;
     scrollLeft: number;
 }
 
@@ -501,7 +507,10 @@ export interface GetGridScrollPositionParams {
 }
 
 export interface GetGridScrollPositionResponse {
+    /** Index of the top visible row. */
     scrollTop: number;
+    /** Pixel offset within the top visible row. */
+    scrollTopOffset?: number;
     scrollLeft: number;
 }
 

@@ -19,6 +19,7 @@ import { ILogger } from "../../src/sharedInterfaces/logger";
 import { logger as baseLogger } from "../../src/models/logger";
 import { PreviewFeature, previewService } from "../../src/previews/previewService";
 import { IInstantiationService, InstantiationService } from "extension-toolkit/base";
+import * as AzureUtils from "../../src/azure/utils";
 
 // Stubs the telemetry code
 export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
@@ -30,6 +31,45 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
         sendActionEvent: stubber.stub(telemetry, "sendActionEvent").callsFake(() => {}),
         sendErrorEvent: stubber.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
     };
+}
+
+/**
+ * Creates the small TextDocument surface needed by text-processing unit tests.
+ */
+export function createTestDocument(text: string, uri: string): vscode.TextDocument {
+    const lines = text.split(/\r?\n/);
+    const lineOffsets: number[] = [0];
+    const lineBreakPattern = /\r?\n/g;
+    let lineBreak: RegExpExecArray | null;
+    while ((lineBreak = lineBreakPattern.exec(text)) !== null) {
+        lineOffsets.push(lineBreak.index + lineBreak[0].length);
+    }
+
+    function offsetAt(position: vscode.Position): number {
+        return (lineOffsets[position.line] ?? text.length) + position.character;
+    }
+
+    return {
+        uri: vscode.Uri.parse(uri),
+        languageId: "sql",
+        version: 1,
+        eol: text.includes("\r\n") ? vscode.EndOfLine.CRLF : vscode.EndOfLine.LF,
+        lineCount: lines.length,
+        offsetAt,
+        lineAt: (line: number) => ({
+            text: lines[line] ?? "",
+            range: new vscode.Range(
+                new vscode.Position(line, 0),
+                new vscode.Position(line, (lines[line] ?? "").length),
+            ),
+        }),
+        getText: (range?: vscode.Range) => {
+            if (!range) {
+                return text;
+            }
+            return text.slice(offsetAt(range.start), offsetAt(range.end));
+        },
+    } as unknown as vscode.TextDocument;
 }
 
 /**
@@ -239,6 +279,7 @@ export function stubExtensionContext(
         },
         extensionUri: vscode.Uri.parse("file://testExtensionPath"),
         extensionPath: "testExtensionPath",
+        globalStorageUri: vscode.Uri.file("globalStorage"),
         subscriptions: [],
         logUri: vscode.Uri.parse("file://testLogPath"),
     } as unknown as vscode.ExtensionContext;
@@ -390,6 +431,10 @@ export function stubPreviewService(
     sandbox
         .stub(previewService, "isFeatureEnabled")
         .callsFake((feature: PreviewFeature) => previews[feature] ?? experimentalFeaturesEnabled);
+}
+
+export function stubUseMsalEntraMfaAuthConfig(sandbox: sinon.SinonSandbox, enabled: boolean): void {
+    sandbox.stub(AzureUtils, "getUseMsalEntraMfaAuthConfig").returns(enabled);
 }
 
 /**

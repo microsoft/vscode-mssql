@@ -7,7 +7,7 @@ import { expect } from "chai";
 import type { VscodeEntraSqlTokenInfo } from "../../src/azure/vscodeEntraMfaUtils";
 import { diag } from "../../src/diagnostics/diagnosticsCore";
 import { VscodeSqlTokenSource } from "../../src/services/sqlDataPlane/vscodeSqlTokenSource";
-import type { DiagEvent } from "../../src/sharedInterfaces/debugConsole";
+import type { DiagEvent } from "../../src/sharedInterfaces/diagnostics";
 
 function tokenInfo(
     token: string,

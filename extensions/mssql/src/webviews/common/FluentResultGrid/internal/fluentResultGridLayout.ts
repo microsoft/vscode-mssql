@@ -73,6 +73,27 @@ export function useFluentResultGridLayout({
 }): FluentResultGridLayoutController {
     const frozenPaneWheelCleanupRef = useRef<(() => void) | undefined>(undefined);
     const autoSizeRequestIdRef = useRef(0);
+    const autoSizeCanvasContextRef = useRef<CanvasRenderingContext2D | null | undefined>(undefined);
+
+    const getAutoSizeCanvasContext = useCallback(() => {
+        if (autoSizeCanvasContextRef.current === undefined) {
+            autoSizeCanvasContextRef.current = document.createElement("canvas").getContext("2d");
+        }
+
+        const canvasContext = autoSizeCanvasContextRef.current;
+        if (!canvasContext) {
+            return undefined;
+        }
+
+        const computedStyle = containerRef.current
+            ? window.getComputedStyle(containerRef.current)
+            : undefined;
+        const fontSize =
+            parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
+        const fontFamily = computedStyle?.fontFamily || "monospace";
+        canvasContext.font = `${fontSize}px ${fontFamily}`;
+        return canvasContext;
+    }, [containerRef]);
 
     const refreshFrozenColumnLayout = useCallback(
         (grid: SlickGrid) => {
@@ -216,7 +237,7 @@ export function useFluentResultGridLayout({
                 return true;
             }
 
-            const canvasContext = document.createElement("canvas").getContext("2d");
+            const canvasContext = getAutoSizeCanvasContext();
             if (!canvasContext) {
                 return true;
             }
@@ -344,17 +365,10 @@ export function useFluentResultGridLayout({
      */
     const autoSizeColumnByContent = useCallback(
         async (grid: SlickGrid, columnId: string): Promise<void> => {
-            const canvasContext = document.createElement("canvas").getContext("2d");
+            const canvasContext = getAutoSizeCanvasContext();
             if (!canvasContext) {
                 return;
             }
-
-            const computedStyle = containerRef.current
-                ? window.getComputedStyle(containerRef.current)
-                : undefined;
-            const fontSize =
-                parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
-            canvasContext.font = `${fontSize}px ${computedStyle?.fontFamily ?? "monospace"}`;
 
             await autoSizeFluentResultGridColumnByContent({
                 grid,
@@ -373,7 +387,7 @@ export function useFluentResultGridLayout({
                 measureText: (text) => canvasContext.measureText(text).width,
             });
         },
-        [containerRef, dataView, latestRowCountRef],
+        [dataView, getAutoSizeCanvasContext, latestRowCountRef],
     );
 
     return {

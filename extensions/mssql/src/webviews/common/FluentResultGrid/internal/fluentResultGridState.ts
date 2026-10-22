@@ -9,7 +9,10 @@ import type {
     IDbColumn,
     ResultSetSummary,
 } from "../../../../sharedInterfaces/queryResult";
-import type { FluentResultGridState } from "../types/fluentResultGridState";
+import type {
+    FluentResultGridScrollPosition,
+    FluentResultGridState,
+} from "../types/fluentResultGridState";
 import {
     FLUENT_RESULT_GRID_DEFAULT_COLUMN_WIDTH,
     FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE,
@@ -56,6 +59,44 @@ export function shouldApplyFluentResultGridFrozenOptions(
         (options.frozenColumn ?? -1) !== columnIndex ||
         options.skipFreezeColumnValidation !== true
     );
+}
+
+export function getFluentResultGridScrollTopOffset(grid: SlickGrid, topRow: number): number {
+    const rowHeight = grid.getOptions().rowHeight;
+    const viewportNode = grid.getViewportNode(0, topRow);
+    const rowBox = grid.getCellNodeBox(topRow, 0);
+    if (
+        typeof rowHeight !== "number" ||
+        rowHeight <= 0 ||
+        !viewportNode ||
+        !rowBox ||
+        !Number.isFinite(viewportNode.scrollTop) ||
+        !Number.isFinite(rowBox.top)
+    ) {
+        return 0;
+    }
+
+    return Math.min(rowHeight, Math.max(0, viewportNode.scrollTop - rowBox.top));
+}
+
+export function restoreFluentResultGridVerticalScrollPosition(
+    grid: SlickGrid,
+    scrollPosition: FluentResultGridScrollPosition,
+): void {
+    const rowHeight = grid.getOptions().rowHeight;
+    if (
+        typeof rowHeight !== "number" ||
+        rowHeight <= 0 ||
+        typeof scrollPosition.scrollTopOffset !== "number" ||
+        !Number.isFinite(scrollPosition.scrollTopOffset)
+    ) {
+        grid.scrollRowToTop(scrollPosition.scrollTop);
+        return;
+    }
+
+    const offset = Math.min(rowHeight, Math.max(0, scrollPosition.scrollTopOffset));
+    grid.scrollTo(scrollPosition.scrollTop * rowHeight + offset);
+    grid.render();
 }
 
 export function getFluentResultGridInitialFrozenColumnIndex(
@@ -171,6 +212,24 @@ export function restoreFluentResultGridColumnWidths(
     });
 }
 
+export function areFluentResultGridColumnLayoutsEqual(
+    currentColumns: readonly Column<FluentResultGridDataRow>[],
+    nextColumns: readonly Column<FluentResultGridDataRow>[],
+): boolean {
+    return (
+        currentColumns.length === nextColumns.length &&
+        currentColumns.every((column, index) => {
+            const nextColumn = nextColumns[index];
+            return (
+                nextColumn !== undefined &&
+                column.id === nextColumn.id &&
+                column.width === nextColumn.width &&
+                Boolean(column.hidden) === Boolean(nextColumn.hidden)
+            );
+        })
+    );
+}
+
 function isFluentResultGridStateDataColumn(column: Column<FluentResultGridDataRow>): boolean {
     return column.id !== FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID && !column.excludeFromGridMenu;
 }
@@ -237,6 +296,7 @@ export function getFluentResultGridStateForEmit({
         scrollPosition: {
             scrollLeft: viewport.leftPx,
             scrollTop: viewport.top,
+            scrollTopOffset: getFluentResultGridScrollTopOffset(grid, viewport.top),
         },
     };
 }

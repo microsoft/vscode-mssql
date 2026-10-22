@@ -5,43 +5,20 @@
 
 /**
  * Session Diag lifecycle: reads settings, manages the store sink, registers
- * user-facing commands, and instruments root user actions. Everything here is
+ * user-facing commands, and exposes capture state. Everything here is
  * privacy-first: capture is OFF by default, local-only, never uploaded, and
  * secrets are never persisted regardless of settings.
  */
 
 import * as path from "path";
 import * as vscode from "vscode";
-import { initializeCompletionsCaptureJournal } from "../copilot/inlineCompletionDebug/completionsJournalBinding";
-import { configureCompletionsReplayRunPersistence } from "../copilot/inlineCompletionDebug/completionsReplayRunPersistence";
-import { configureQsReplayRunPersistence } from "../queryStudio/replay/qsReplayRunPersistence";
+import * as LocConstants from "../constants/locConstants";
 import { CaptureMode, ProvenanceSummary } from "../sharedInterfaces/debugConsole";
-import { diag, newTraceId } from "./diagnosticsCore";
-import { reconcileReplayRunsOnStartup } from "./featureCapture/replayRunRepository";
+import { diag } from "./diagnosticsCore";
 import { richStats } from "./richCollection";
-import {
-    ObservabilityBundleManager,
-    diagManifestToArtifactInput,
-} from "./sessionBundle/bundleManager";
 import { SessionDiagSink } from "./sinks";
 import { SessionStore } from "./sessionStore";
-
-/** Dialog seam so destructive commands are testable without vscode UI. */
-export interface DiagnosticsDialogs {
-    /** Modal confirm; resolves true when the user picked the confirm label. */
-    confirm(message: string, confirmLabel: string): Promise<boolean>;
-}
-
-const vscodeDialogs: DiagnosticsDialogs = {
-    async confirm(message: string, confirmLabel: string): Promise<boolean> {
-        const choice = await vscode.window.showWarningMessage(
-            message,
-            { modal: true },
-            confirmLabel,
-        );
-        return choice === confirmLabel;
-    },
-};
+import { PrivatePreviewFeature, previewService } from "../previews/previewService";
 
 const SETTING_ENABLED = "mssql.sessionDiag.enabled";
 const SETTING_MODE = "mssql.sessionDiag.captureMode";
@@ -49,39 +26,36 @@ const SETTING_MAX_SESSIONS = "mssql.sessionDiag.maxSessions";
 const SETTING_MAX_AGE_DAYS = "mssql.sessionDiag.maxAgeDays";
 const SETTING_RICH = "mssql.debugConsole.richCollection";
 const ENV_RICH = "MSSQL_COLLECT_ALL_THE_DATA";
+/**
+ * Retention lists, stats and deletes whole session directories. It must never
+ * run inside activate() (this manager is constructed before the first
+ * activation marker), so it is deferred off the activation path.
+ */
+const RETENTION_DELAY_MS = 15_000;
 
-/** Commands whose invocation forms a root user action (a new trace). */
-const ROOT_COMMANDS = new Set([
-    "mssql.runQuery",
-    "mssql.runCurrentStatement",
-    "mssql.cancelQuery",
-    "mssql.connect",
-    "mssql.disconnect",
-    "mssql.newQuery",
-    "mssql.refreshObjectExplorerNode",
-    "mssql.schemaCompare",
-]);
+export interface DiagnosticsManagerOptions {
+    debugConsoleActiveAtActivation: boolean;
+    sessionDiagnosticsActiveAtActivation: boolean;
+}
 
 export class DiagnosticsManager implements vscode.Disposable {
     private storeSink: SessionDiagSink | undefined;
     private statusItem: vscode.StatusBarItem | undefined;
+    private retentionTimer: NodeJS.Timeout | undefined;
     public readonly store: SessionStore;
     public readonly provenance: ProvenanceSummary;
-    /** Sole writer of per-session bundle.json catalogs (WI-2.3). */
-    public readonly bundleManager: ObservabilityBundleManager;
-    private readonly dialogs: DiagnosticsDialogs;
 
     constructor(
         private readonly context: vscode.ExtensionContext,
-        dialogs?: DiagnosticsDialogs,
+        private readonly options: DiagnosticsManagerOptions,
     ) {
-        this.dialogs = dialogs ?? vscodeDialogs;
         // Store location is configurable so always-on capture can land traces
         // wherever the user wants (takes effect on restart).
-        const configuredRoot = vscode.workspace
+        const configuredStorePath = vscode.workspace
             .getConfiguration()
-            .get<string>("mssql.sessionDiag.storePath", "")
-            ?.trim();
+            .get<unknown>("mssql.sessionDiag.storePath", "");
+        const configuredRoot =
+            typeof configuredStorePath === "string" ? configuredStorePath.trim() : "";
         this.store = new SessionStore(
             configuredRoot || path.join(context.globalStorageUri.fsPath, "session-diag"),
         );
@@ -91,72 +65,35 @@ export class DiagnosticsManager implements vscode.Disposable {
             ...(packageJson.version !== undefined ? { extensionVersion: packageJson.version } : {}),
             vscodeVersion: vscode.version,
         };
-        this.bundleManager = new ObservabilityBundleManager({
-            storeRoot: this.store.storeRoot,
-            currentHostSessionId: diag.sessionId,
-            provenance: {
-                ...(packageJson.version !== undefined
-                    ? { extensionVersion: packageJson.version }
-                    : {}),
-                vscodeVersion: vscode.version,
-                platform: process.platform,
-            },
-        });
-        // Startup repair is non-blocking: stale `active` bundles from dead
-        // sessions become `partial`; activation never waits on it.
-        void this.bundleManager.reconcileOnStartup().catch(() => {
-            // reconcile reports its own issues; never disturb activation
-        });
-        // WI-2.4: completions capture-journal dual-write (M2 dark journal),
-        // gated by the Amendment C settings mapping. Failure-isolated: a
-        // journal that cannot start never affects completions or the ring.
-        initializeCompletionsCaptureJournal(context, {
-            storeRoot: this.store.storeRoot,
-            hostSessionId: diag.sessionId,
-            bundleManager: this.bundleManager,
-        });
-        // WI-3.3: durable replay-run persistence for the completions Replay
-        // Lab (per-viewer repositories over this store root), plus restart
-        // honesty — runs a dead session left running become `partial`.
-        configureCompletionsReplayRunPersistence({
-            storeRoot: this.store.storeRoot,
-            hostSessionId: diag.sessionId,
-            bundleRegistrar: this.bundleManager,
-            provenance: { ...this.provenance },
-        });
-        // WI-3.6: Query Studio replay runs persist through the same durable
-        // repository/catalog, so the Replay Lab lists them next to
-        // completions runs (featureId "queryStudio").
-        configureQsReplayRunPersistence({
-            storeRoot: this.store.storeRoot,
-            hostSessionId: diag.sessionId,
-            bundleRegistrar: this.bundleManager,
-            provenance: { ...this.provenance },
-        });
-        void reconcileReplayRunsOnStartup({
-            storeRoot: this.store.storeRoot,
-            currentHostSessionId: diag.sessionId,
-        }).catch(() => {
-            // reconcile reports its own issues; never disturb activation
-        });
         this.applySettings();
         this.applyRichSetting();
         context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration((change) => {
                 if (
                     change.affectsConfiguration(SETTING_ENABLED) ||
-                    change.affectsConfiguration(SETTING_MODE)
+                    change.affectsConfiguration(SETTING_MODE) ||
+                    change.affectsConfiguration("mssql.enableExperimentalFeatures")
                 ) {
                     this.applySettings();
                 }
-                if (change.affectsConfiguration(SETTING_RICH)) {
+                if (
+                    change.affectsConfiguration(SETTING_RICH) ||
+                    change.affectsConfiguration("mssql.debugConsole.enabled") ||
+                    change.affectsConfiguration("mssql.enableExperimentalFeatures")
+                ) {
                     this.applyRichSetting();
+                    this.updateStatusItem();
                 }
             }),
         );
-        this.registerCommands();
-        this.instrumentRootCommands();
-        diag.onCaptureModeChanged(() => this.updateStatusItem());
+        if (this.options.sessionDiagnosticsActiveAtActivation) {
+            this.registerCommands();
+        }
+        const removeCaptureModeListener = diag.onCaptureModeChanged((mode) => {
+            this.storeSink?.updateCapturePolicy(mode, diag.capturePolicy.policyId);
+            this.updateStatusItem();
+        });
+        context.subscriptions.push({ dispose: removeCaptureModeListener });
     }
 
     // --- settings --------------------------------------------------------------
@@ -165,7 +102,7 @@ export class DiagnosticsManager implements vscode.Disposable {
     private applyRichSetting(): void {
         const fromSetting = vscode.workspace.getConfiguration().get<boolean>(SETTING_RICH, false);
         const fromEnv = process.env[ENV_RICH] === "1";
-        if (fromSetting) {
+        if (fromSetting && this.isDebugConsoleEnabled()) {
             richStats.enable("setting");
         } else {
             richStats.disable("setting");
@@ -177,8 +114,11 @@ export class DiagnosticsManager implements vscode.Disposable {
 
     private applySettings(): void {
         const config = vscode.workspace.getConfiguration();
-        const enabled = config.get<boolean>(SETTING_ENABLED, false);
-        const mode = config.get<CaptureMode>(SETTING_MODE, "redacted");
+        const enabled = this.isSessionDiagnosticsEnabled();
+        const configuredMode = config.get<CaptureMode>(SETTING_MODE, "redacted");
+        const mode = ["off", "redacted", "digest", "full"].includes(configuredMode)
+            ? configuredMode
+            : "off";
         if (enabled && mode !== "off") {
             // Full capture is never enabled from settings alone; it requires
             // the explicit, time-bounded elevation command.
@@ -197,11 +137,18 @@ export class DiagnosticsManager implements vscode.Disposable {
         mode: CaptureMode,
         options?: { reason?: string; durationMinutes?: number },
     ): void {
+        if (!["off", "redacted", "digest", "full"].includes(mode)) {
+            throw new Error(LocConstants.SessionDiag.invalidCaptureMode);
+        }
+        if (!this.isSessionDiagnosticsEnabled()) {
+            this.disableCapture();
+            throw new Error(LocConstants.SessionDiag.privatePreviewRequired);
+        }
         if (mode === "off") {
             this.disableCapture();
             void vscode.workspace
                 .getConfiguration()
-                .update(SETTING_ENABLED, false, vscode.ConfigurationTarget.Global);
+                .update(SETTING_MODE, "off", vscode.ConfigurationTarget.Global);
             return;
         }
         if (mode === "full") {
@@ -218,50 +165,61 @@ export class DiagnosticsManager implements vscode.Disposable {
         this.enableCapture(mode);
         void vscode.workspace
             .getConfiguration()
-            .update(SETTING_ENABLED, true, vscode.ConfigurationTarget.Global);
-        void vscode.workspace
-            .getConfiguration()
             .update(SETTING_MODE, mode, vscode.ConfigurationTarget.Global);
     }
 
     private enableCapture(mode: CaptureMode): void {
-        diag.setCaptureMode(mode);
+        // An active time-bounded elevation survives a settings edit: it ends
+        // on its own deadline (with an elevation.expired event), never
+        // silently through a configuration-change replay. An explicit disable
+        // still wins (disableCapture).
+        if (diag.captureMode !== "full") {
+            diag.setCaptureMode(mode);
+        }
         if (!this.storeSink) {
             try {
                 this.storeSink = new SessionDiagSink(
                     this.store.storeRoot,
                     diag.sessionId,
-                    mode,
+                    diag.captureMode,
                     diag.capturePolicy.policyId,
                     this.provenance,
-                    // Bundle catalog: register-or-update the diagStream
-                    // artifact from the manifest the sink just wrote. The
-                    // descriptor input copies primitives synchronously; the
-                    // manager debounces the actual bundle.json write.
-                    (manifest) =>
-                        void this.bundleManager.registerArtifact(
-                            manifest.sessionId,
-                            diagManifestToArtifactInput(manifest),
-                        ),
                 );
                 diag.addSink(this.storeSink);
                 diag.emit({
                     feature: "sessionDiag",
                     type: "sessionDiag.enabled",
-                    fields: { mode: { raw: mode, cls: "diagnostic.metadata" } },
+                    fields: { captureMode: { raw: diag.captureMode, cls: "diagnostic.metadata" } },
                 });
-                const config = vscode.workspace.getConfiguration();
-                this.store.enforceRetention(
-                    config.get<number>(SETTING_MAX_SESSIONS, 10),
-                    config.get<number>(SETTING_MAX_AGE_DAYS, 14),
-                    config.get<number>("mssql.sessionDiag.maxTotalMB", 512) * 1024 * 1024,
-                );
+                this.scheduleRetention();
             } catch {
                 // Store unavailable: capture stays off; product unaffected.
                 this.storeSink = undefined;
             }
         }
         this.updateStatusItem();
+    }
+
+    /** Deferred, unref'd, best-effort; protects only the current session. */
+    private scheduleRetention(): void {
+        if (this.retentionTimer) {
+            return;
+        }
+        this.retentionTimer = setTimeout(() => {
+            this.retentionTimer = undefined;
+            try {
+                const config = vscode.workspace.getConfiguration();
+                this.store.enforceRetention(
+                    config.get<number>(SETTING_MAX_SESSIONS, 10),
+                    config.get<number>(SETTING_MAX_AGE_DAYS, 14),
+                    config.get<number>("mssql.sessionDiag.maxTotalMB", 512) * 1024 * 1024,
+                    diag.sessionId,
+                );
+            } catch {
+                // retention is best effort; surfaced by the next listing
+            }
+        }, RETENTION_DELAY_MS);
+        this.retentionTimer.unref?.();
     }
 
     private disableCapture(): void {
@@ -274,140 +232,129 @@ export class DiagnosticsManager implements vscode.Disposable {
         this.updateStatusItem();
     }
 
+    private isDebugConsoleEnabled(): boolean {
+        return (
+            this.options.debugConsoleActiveAtActivation &&
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.DebugConsole)
+        );
+    }
+
+    private isSessionDiagnosticsEnabled(): boolean {
+        return (
+            this.options.sessionDiagnosticsActiveAtActivation &&
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SessionDiagnostics)
+        );
+    }
+
     // --- commands ---------------------------------------------------------------
 
     private registerCommands(): void {
         const register = (command: string, handler: (...args: unknown[]) => unknown) =>
-            this.context.subscriptions.push(vscode.commands.registerCommand(command, handler));
+            this.context.subscriptions.push(
+                vscode.commands.registerCommand(command, (...args: unknown[]) => {
+                    if (!this.isSessionDiagnosticsEnabled()) {
+                        void vscode.window.showInformationMessage(
+                            LocConstants.SessionDiag.privatePreviewRequired,
+                        );
+                        return;
+                    }
+                    return handler(...args);
+                }),
+            );
 
-        register("mssql.sessionDiag.enable", async () => {
-            await vscode.workspace
-                .getConfiguration()
-                .update(SETTING_ENABLED, true, vscode.ConfigurationTarget.Global);
+        register("mssql.sessionDiag.enable", () => {
+            this.applyCaptureMode("redacted");
         });
-        register("mssql.sessionDiag.disable", async () => {
-            await vscode.workspace
-                .getConfiguration()
-                .update(SETTING_ENABLED, false, vscode.ConfigurationTarget.Global);
+        register("mssql.sessionDiag.disable", () => {
+            this.applyCaptureMode("off");
         });
         register("mssql.sessionDiag.clear", async () => {
             const sessions = this.store.listLocalSessions();
+            const deleteAll = LocConstants.SessionDiag.deleteAll;
             const choice = await vscode.window.showWarningMessage(
-                `Delete ${sessions.length} locally stored diagnostic session(s)? The current session keeps recording if capture is on.`,
+                LocConstants.SessionDiag.clearConfirm(sessions.length),
                 { modal: true },
-                "Delete all",
+                deleteAll,
             );
-            if (choice === "Delete all") {
+            if (choice === deleteAll) {
                 const { removed } = this.store.clearAll(diag.sessionId);
                 void vscode.window.showInformationMessage(
-                    `Removed ${removed} diagnostic session(s).`,
+                    LocConstants.SessionDiag.removedSessions(removed),
                 );
             }
-        });
-        register("mssql.sessionDiag.clearSensitiveCaptures", async () => {
-            // "Clear sensitive captures" is deliberately separate from
-            // "Clear all diagnostics" (§9.4): rich feature captures and
-            // replay runs go; metadata-only diag streams stay.
-            const confirmed = await this.dialogs.confirm(
-                "Delete all locally stored rich feature captures and replay runs? Metadata-only diagnostic sessions are preserved.",
-                "Delete sensitive captures",
-            );
-            if (!confirmed) {
-                return;
-            }
-            const result = await this.bundleManager.deleteSensitiveArtifacts();
-            const detail =
-                result.issues.length > 0 ? ` ${result.issues.length} issue(s) reported.` : "";
-            void vscode.window.showInformationMessage(
-                `Removed ${result.removedDirectories} sensitive capture folder(s) across ` +
-                    `${result.sessionsScanned} session(s); diagnostic sessions preserved.${detail}`,
-            );
         });
         register("mssql.sessionDiag.openStorageFolder", async () => {
             await vscode.env.openExternal(vscode.Uri.file(this.store.storeRoot));
         });
         register("mssql.sessionDiag.elevateCapture", async () => {
             const reason = await vscode.window.showInputBox({
-                prompt: "Reason for elevated (full) capture — recorded in the session log",
-                placeHolder: "e.g. reproducing bug #1234",
+                prompt: LocConstants.SessionDiag.elevateReasonPrompt,
+                placeHolder: LocConstants.SessionDiag.elevateReasonPlaceholder,
             });
             if (!reason) {
                 return;
             }
             const duration = await vscode.window.showQuickPick(
-                ["5 minutes", "15 minutes", "30 minutes"],
-                { title: "Elevated capture duration (auto-reverts)" },
+                [5, 15, 30].map((minutes) => ({
+                    label: LocConstants.SessionDiag.minutes(minutes),
+                    minutes,
+                })),
+                { title: LocConstants.SessionDiag.elevateDurationTitle },
             );
             if (!duration) {
                 return;
             }
-            const minutes = Number(duration.split(" ")[0]);
-            diag.setCaptureMode("full", { reason, durationMs: minutes * 60_000 });
+            const minutes = duration.minutes;
+            this.applyCaptureMode("full", { reason, durationMinutes: minutes });
             diag.emit({
                 feature: "sessionDiag",
                 type: "sessionDiag.elevated",
                 status: "warning",
                 fields: {
-                    reason: { raw: reason, cls: "user.text" },
-                    minutes: { raw: minutes, cls: "diagnostic.metadata" },
+                    reason: { raw: reason, cls: "secret" },
+                    durationMinutes: { raw: minutes, cls: "diagnostic.metadata" },
                 },
             });
             this.updateStatusItem();
         });
     }
 
-    // --- root-action instrumentation ------------------------------------------------
-
-    /**
-     * Wrap root user commands so each invocation opens a trace. Uses command
-     * interception via executeCommand wrapper registration — VS Code offers no
-     * global command hook, so we instrument our own commands at dispatch by
-     * re-registering thin wrappers is NOT possible; instead feature code calls
-     * diag.withTrace at its entry points. This helper only emits the
-     * user-action envelope for commands invoked through the palette/UI.
-     */
-    private instrumentRootCommands(): void {
-        // Emission happens in the Perf facade command markers (mssql.command.*)
-        // and feature entry points; here we bind command begin markers to new
-        // traces by listening to our own emitted events is unnecessary —
-        // feature instrumentation below covers the high-priority areas.
-        void ROOT_COMMANDS;
-    }
-
     public updateStatusItem(): void {
-        const consoleEnabled = vscode.workspace
-            .getConfiguration()
-            .get<boolean>("mssql.debugConsole.enabled", true);
-        if (!consoleEnabled) {
+        if (!this.isSessionDiagnosticsEnabled()) {
             this.statusItem?.hide();
             return;
         }
+        const consoleEnabled = this.isDebugConsoleEnabled();
         if (!this.statusItem) {
             this.statusItem = vscode.window.createStatusBarItem(
                 "mssql.sessionDiag",
                 vscode.StatusBarAlignment.Right,
                 90,
             );
-            this.statusItem.name = "MSSQL Session Diagnostics";
-            this.statusItem.command = "mssql.openDebugConsole";
+            this.statusItem.name = LocConstants.SessionDiag.statusName;
             this.context.subscriptions.push(this.statusItem);
         }
+        this.statusItem.command = consoleEnabled ? "mssql.openDebugConsole" : undefined;
         const mode = diag.captureMode;
         if (mode === "off") {
-            this.statusItem.text = "$(circle-slash) MSSQL Diag";
-            this.statusItem.tooltip =
-                "MSSQL session diagnostics: capture off. Click to open the Debug Console.";
+            this.statusItem.text = LocConstants.SessionDiag.statusOff;
+            this.statusItem.tooltip = consoleEnabled
+                ? LocConstants.SessionDiag.statusOffTooltip
+                : LocConstants.SessionDiag.statusOffTooltipNoConsole;
             this.statusItem.backgroundColor = undefined;
         } else if (mode === "full") {
-            this.statusItem.text = "$(record) MSSQL Diag: FULL";
-            this.statusItem.tooltip =
-                "Elevated (full) capture is active and time-bounded. Click to open the Debug Console.";
+            this.statusItem.text = LocConstants.SessionDiag.statusFull;
+            this.statusItem.tooltip = consoleEnabled
+                ? LocConstants.SessionDiag.statusFullTooltip
+                : LocConstants.SessionDiag.statusFullTooltipNoConsole;
             this.statusItem.backgroundColor = new vscode.ThemeColor(
                 "statusBarItem.warningBackground",
             );
         } else {
-            this.statusItem.text = `$(shield) MSSQL Diag: ${mode}`;
-            this.statusItem.tooltip = `MSSQL session diagnostics capturing (${mode}, local only). Click to open the Debug Console.`;
+            this.statusItem.text = LocConstants.SessionDiag.statusMode(mode);
+            this.statusItem.tooltip = consoleEnabled
+                ? LocConstants.SessionDiag.statusModeTooltip(mode)
+                : LocConstants.SessionDiag.statusModeTooltipNoConsole(mode);
             this.statusItem.backgroundColor = undefined;
         }
         this.statusItem.show();
@@ -423,21 +370,15 @@ export class DiagnosticsManager implements vscode.Disposable {
     }
 
     public dispose(): void {
-        // Sink close rewrites the manifest (final catalog notification),
-        // then the bundle flush barrier lands the catalog immediately.
-        this.storeSink?.close();
-        void this.bundleManager.dispose();
+        if (this.retentionTimer) {
+            clearTimeout(this.retentionTimer);
+            this.retentionTimer = undefined;
+        }
+        if (this.storeSink) {
+            diag.removeSink(this.storeSink.id);
+            this.storeSink = undefined;
+        }
+        richStats.disable("setting");
+        richStats.disable("env");
     }
-}
-
-/** Helper for feature code: run an operation under a fresh root trace. */
-export function withRootAction<T>(label: string, feature: string, fn: () => T): T {
-    const traceId = newTraceId(label);
-    diag.emit({
-        feature,
-        type: `userAction.${label.replace(/\s+/g, "")}`,
-        traceId,
-        tags: ["rootAction"],
-    });
-    return diag.withTrace(traceId, fn);
 }

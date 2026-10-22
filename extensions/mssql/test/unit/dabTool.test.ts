@@ -58,7 +58,7 @@ suite("DabTool Tests", () => {
         };
     };
 
-    const createUnsupportedTable = (
+    const createKeylessTable = (
         id: string,
         schemaName: string,
         tableName: string,
@@ -69,6 +69,28 @@ suite("DabTool Tests", () => {
                 id: `${id}-name`,
                 name: "Name",
                 dataType: "nvarchar",
+                isPrimaryKey: false,
+            } as SchemaDesigner.Column,
+        ],
+    });
+
+    const createUnsupportedTable = (
+        id: string,
+        schemaName: string,
+        tableName: string,
+    ): SchemaDesigner.Table => ({
+        ...createTable(id, schemaName, tableName),
+        columns: [
+            {
+                id: `${id}-id`,
+                name: "Id",
+                dataType: "int",
+                isPrimaryKey: true,
+            } as SchemaDesigner.Column,
+            {
+                id: `${id}-geo`,
+                name: "Geo",
+                dataType: "sys.geography",
                 isPrimaryKey: false,
             } as SchemaDesigner.Column,
         ],
@@ -144,6 +166,33 @@ suite("DabTool Tests", () => {
         sqlToolsMcpConnectionRegistry.clear();
         sandbox.restore();
     });
+
+    const establishEditSession = async (
+        designer: sinon.SinonStubbedInstance<SchemaDesignerWebviewController>,
+        version = "dabcfg_before",
+    ) => {
+        designer.getDabToolState.resolves({
+            returnState: "summary",
+            stateOmittedReason: "entity_count_over_threshold",
+            version,
+            summary: {
+                entityCount: 151,
+                enabledEntityCount: 100,
+                apiTypes: [Dab.ApiType.Rest],
+            },
+        });
+
+        const result = JSON.parse(
+            await dabTool.call(
+                {
+                    input: { operation: "get_state" },
+                } as vscode.LanguageModelToolInvocationOptions<DabToolParams>,
+                mockToken,
+            ),
+        );
+        expect(result.success).to.equal(true);
+        designer.getDabToolState.resetHistory();
+    };
 
     suite("Tool behavior", () => {
         test("returns invalid_request when show is missing connection reference", async () => {
@@ -357,7 +406,6 @@ suite("DabTool Tests", () => {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_abc",
                         targetHint: { server: "localhost", database: "WrongDb" },
                         changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
                     },
@@ -386,7 +434,6 @@ suite("DabTool Tests", () => {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_abc",
                         targetHint: { server: "localhost", database: "AdventureWorks" },
                         changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
                     },
@@ -422,12 +469,12 @@ suite("DabTool Tests", () => {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
 
             const options = {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_before",
                         targetHint: { server: "localhost", database: "adventureworks" },
                         changes: [{ type: "set_all_entities_enabled", isEnabled: true }],
                     },
@@ -438,6 +485,95 @@ suite("DabTool Tests", () => {
             const parsed = JSON.parse(await dabTool.call(options, mockToken));
             expect(parsed.success).to.equal(true);
             expect(mockDesigner.applyDabToolChanges.calledOnce).to.equal(true);
+            expect(mockDesigner.applyDabToolChanges.firstCall.args[0].expectedVersion).to.equal(
+                "dabcfg_before",
+            );
+        });
+
+        test("apply_changes advances the internal edit version after success", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => "localhost");
+            sandbox.stub(mockDesigner as any, "database").get(() => "AdventureWorks");
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
+
+            mockDesigner.applyDabToolChanges.onFirstCall().resolves({
+                success: true,
+                appliedChanges: 1,
+                returnState: "summary",
+                stateOmittedReason: "caller_requested_summary",
+                version: "dabcfg_after_first_apply",
+                summary: {
+                    entityCount: 1,
+                    enabledEntityCount: 1,
+                    apiTypes: [Dab.ApiType.Rest],
+                },
+            });
+            mockDesigner.applyDabToolChanges.onSecondCall().resolves({
+                success: true,
+                appliedChanges: 1,
+                returnState: "summary",
+                stateOmittedReason: "caller_requested_summary",
+                version: "dabcfg_after_second_apply",
+                summary: {
+                    entityCount: 1,
+                    enabledEntityCount: 0,
+                    apiTypes: [Dab.ApiType.Rest],
+                },
+            });
+            const options = {
+                input: {
+                    operation: "apply_changes",
+                    payload: {
+                        changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            await dabTool.call(options, mockToken);
+            await dabTool.call(options, mockToken);
+
+            expect(mockDesigner.applyDabToolChanges.firstCall.args[0].expectedVersion).to.equal(
+                "dabcfg_before",
+            );
+            expect(mockDesigner.applyDabToolChanges.secondCall.args[0].expectedVersion).to.equal(
+                "dabcfg_after_first_apply",
+            );
+        });
+
+        test("edit sessions are scoped to the designer that get_state read", async () => {
+            const firstDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            const secondDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            for (const designer of [firstDesigner, secondDesigner]) {
+                sandbox.stub(designer as any, "server").get(() => "localhost");
+                sandbox.stub(designer as any, "database").get(() => "AdventureWorks");
+            }
+            const getActiveDesigner = sandbox.stub().returns(firstDesigner);
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
+                getActiveDesigner,
+            } as any);
+            await establishEditSession(firstDesigner);
+            getActiveDesigner.returns(secondDesigner);
+
+            const result = JSON.parse(
+                await dabTool.call(
+                    {
+                        input: {
+                            operation: "apply_changes",
+                            payload: {
+                                changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
+                            },
+                        },
+                    } as vscode.LanguageModelToolInvocationOptions<DabToolParams>,
+                    mockToken,
+                ),
+            );
+
+            expect(result.reason).to.equal("state_required");
+            expect(secondDesigner.applyDabToolChanges.called).to.equal(false);
         });
 
         test("returns invalid_request for unknown operation", async () => {
@@ -461,7 +597,7 @@ suite("DabTool Tests", () => {
             expect(parsed.database).to.equal("AdventureWorks");
         });
 
-        test("returns invalid_request when apply_changes is missing expectedVersion", async () => {
+        test("returns state_required when apply_changes has no edit session", async () => {
             const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
             const managerStub = {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
@@ -479,8 +615,9 @@ suite("DabTool Tests", () => {
 
             const parsed = JSON.parse(await dabTool.call(options, mockToken));
             expect(parsed.success).to.equal(false);
-            expect(parsed.reason).to.equal("invalid_request");
-            expect(parsed.message).to.equal("Missing payload.expectedVersion.");
+            expect(parsed.reason).to.equal("state_required");
+            expect(parsed.message).to.equal(loc.dabToolStateRequired);
+            expect(parsed.recommendedNextCall).to.deep.equal({ operation: "get_state" });
             expect(mockDesigner.applyDabToolChanges.called).to.equal(false);
             expect(mockDesigner.revealToForeground.called).to.equal(false);
             expect(mockDesigner.showView.called).to.equal(false);
@@ -496,9 +633,7 @@ suite("DabTool Tests", () => {
             const options = {
                 input: {
                     operation: "apply_changes",
-                    payload: {
-                        expectedVersion: "dabcfg_abc",
-                    },
+                    payload: {},
                 },
             } as unknown as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
 
@@ -532,12 +667,12 @@ suite("DabTool Tests", () => {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
 
             const options = {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_before",
                         changes: [
                             { type: "set_api_types", apiTypes: [Dab.ApiType.Rest] },
                             { type: "add_entity", entity: { id: "t1" } },
@@ -577,7 +712,12 @@ suite("DabTool Tests", () => {
                 setApiTypesCount: 1,
                 setEntityEnabledCount: 1,
                 setEntityActionsCount: 1,
+                setEntitySurfaceCount: 0,
+                setEntityPermissionsCount: 0,
                 setColumnExposedCount: 1,
+                setFieldMetadataCount: 0,
+                setParameterMetadataCount: 0,
+                setEntityMcpCount: 0,
                 patchEntitySettingsCount: 1,
                 setOnlyEnabledEntitiesCount: 1,
                 setAllEntitiesEnabledCount: 1,
@@ -615,7 +755,8 @@ suite("DabTool Tests", () => {
             expect(parsed.success).to.equal(true);
             expect(parsed.server).to.equal("localhost");
             expect(parsed.database).to.equal("AdventureWorks");
-            expect(parsed.version).to.equal("dabcfg_state");
+            expect(parsed).to.not.have.property("version");
+            expect(parsed.editSession).to.equal("ready");
             expect(parsed.summary.entityCount).to.equal(2);
             expect(mockDesigner.getDabToolState.calledOnce).to.equal(true);
             expect(mockDesigner.revealToForeground.called).to.equal(false);
@@ -643,12 +784,12 @@ suite("DabTool Tests", () => {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
 
             const options = {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_before",
                         changes: [
                             {
                                 type: "set_api_types",
@@ -668,13 +809,20 @@ suite("DabTool Tests", () => {
             expect(parsed.appliedChanges).to.equal(2);
             expect(parsed.returnState).to.equal("summary");
             expect(parsed.stateOmittedReason).to.equal("caller_requested_summary");
+            expect(parsed).to.not.have.property("version");
+            expect(parsed.editSession).to.equal("ready");
             expect(parsed.receipt).to.deep.equal({
                 addEntityCount: 0,
                 removeEntityCount: 0,
                 setApiTypesCount: 1,
                 setEntityEnabledCount: 0,
                 setEntityActionsCount: 0,
+                setEntitySurfaceCount: 0,
+                setEntityPermissionsCount: 0,
                 setColumnExposedCount: 0,
+                setFieldMetadataCount: 0,
+                setParameterMetadataCount: 0,
+                setEntityMcpCount: 0,
                 patchEntitySettingsCount: 0,
                 setOnlyEnabledEntitiesCount: 0,
                 setAllEntitiesEnabledCount: 1,
@@ -708,12 +856,12 @@ suite("DabTool Tests", () => {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
 
             const options = {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_before",
                         changes: [
                             { type: "set_all_entities_enabled", isEnabled: true },
                             {
@@ -734,7 +882,7 @@ suite("DabTool Tests", () => {
             expect(parsed.reason).to.equal("validation_error");
             expect(parsed.failedChangeIndex).to.equal(1);
             expect(parsed.appliedChanges).to.equal(1);
-            expect(parsed.version).to.equal("dabcfg_failed");
+            expect(parsed).to.not.have.property("version");
             expect(parsed.summary.enabledEntityCount).to.equal(1);
             expect(parsed.returnState).to.equal("none");
             expect(parsed.stateOmittedReason).to.equal("caller_requested_none");
@@ -766,12 +914,12 @@ suite("DabTool Tests", () => {
                 getActiveDesigner: sandbox.stub().returns(mockDesigner),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            await establishEditSession(mockDesigner);
 
             const options = {
                 input: {
                     operation: "apply_changes",
                     payload: {
-                        expectedVersion: "dabcfg_before",
                         changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
                     },
                 },
@@ -780,8 +928,15 @@ suite("DabTool Tests", () => {
             const parsed = JSON.parse(await dabTool.call(options, mockToken));
             expect(parsed.success).to.equal(false);
             expect(parsed.reason).to.equal("stale_state");
+            expect(parsed.message).to.equal(loc.dabToolStateChanged);
+            expect(parsed).to.not.have.property("version");
+            expect(parsed.recommendedNextCall).to.deep.equal({ operation: "get_state" });
             expect(parsed.returnState).to.equal("full");
             expect(parsed.config?.entities).to.have.length(1);
+
+            const retry = JSON.parse(await dabTool.call(options, mockToken));
+            expect(retry.reason).to.equal("state_required");
+            expect(mockDesigner.applyDabToolChanges.calledOnce).to.equal(true);
         });
 
         test("returns internal_error when tool call throws", async () => {
@@ -933,21 +1088,23 @@ suite("DabTool Tests", () => {
             expect(harness.commitSpy.called).to.equal(false);
         });
 
-        test("get_state revalidates support status and disables entities that become unsupported", async () => {
+        test("get_state revalidates support status and keeps keyless entities enabled with a fixable warning", async () => {
             const supportedTable = createTable("t1", "dbo", "Users");
             const harness = createDabHandlerHarness({
                 tables: [supportedTable],
                 dabConfig: Dab.createDefaultConfig([supportedTable]),
             });
 
-            harness.setTables([createUnsupportedTable("t1", "dbo", "Users")]);
+            harness.setTables([createKeylessTable("t1", "dbo", "Users")]);
             const state = await harness.getState();
 
             expect(state.returnState).to.equal("full");
-            expect(state.config?.entities[0].isSupported).to.equal(false);
-            expect(state.config?.entities[0].isEnabled).to.equal(false);
+            expect(state.config?.entities[0].isSupported).to.equal(true);
+            expect(state.config?.entities[0].isEnabled).to.equal(true);
             expect(state.config?.entities[0].unsupportedReasons?.[0].type).to.equal("noPrimaryKey");
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.getConfig()?.entities[0].unsupportedReasons?.[0].type).to.equal(
+                "noPrimaryKey",
+            );
         });
 
         test("get_state version changes when schema support status changes", async () => {
@@ -958,7 +1115,7 @@ suite("DabTool Tests", () => {
             });
 
             const initialState = await harness.getState();
-            harness.setTables([createUnsupportedTable("t1", "dbo", "Users")]);
+            harness.setTables([createKeylessTable("t1", "dbo", "Users")]);
             const updatedState = await harness.getState();
 
             expect(updatedState.version).to.not.equal(initialState.version);
@@ -1287,6 +1444,148 @@ suite("DabTool Tests", () => {
             expect(validAction.success).to.equal(true);
         });
 
+        test("apply_changes keeps legacy actions synchronized with the selected permission role", async () => {
+            const table = createTable("t1", "dbo", "Users");
+            const dabConfig = Dab.createDefaultConfig([table]);
+            dabConfig.entities[0].advancedSettings.authorizationRole =
+                Dab.AuthorizationRole.Authenticated;
+            const harness = createDabHandlerHarness({
+                tables: [table],
+                dabConfig,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_entity_permissions",
+                        entity: { id: "t1" },
+                        permissions: [
+                            {
+                                role: Dab.AuthorizationRole.Anonymous,
+                                actions: [Dab.EntityAction.Read],
+                            },
+                            {
+                                role: Dab.AuthorizationRole.Authenticated,
+                                actions: [Dab.EntityAction.Create, Dab.EntityAction.Update],
+                            },
+                        ],
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            expect(result.config?.entities[0].enabledActions).to.deep.equal([
+                Dab.EntityAction.Create,
+                Dab.EntityAction.Update,
+            ]);
+        });
+
+        test("apply_changes preserves stored procedure custom-tool settings when enabling MCP", async () => {
+            const procedureSource: Dab.DabSourceObject = {
+                id: "stored-procedure:dbo.GetUsers",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "dbo",
+                sourceName: "GetUsers",
+                columns: [],
+                parameters: [],
+            };
+            const dabConfig = Dab.createDefaultConfigFromSources([procedureSource]);
+            dabConfig.entities[0].advancedSettings.mcpEnabled = false;
+            dabConfig.entities[0].advancedSettings.mcpDmlToolsEnabled = false;
+            dabConfig.entities[0].advancedSettings.mcpCustomToolEnabled = true;
+            dabConfig.entities[0].advancedSettings.exposeAsMcpCustomTool = true;
+            const harness = createDabHandlerHarness({
+                tables: [],
+                sourceObjects: [procedureSource],
+                dabConfig,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_entity_surface",
+                        entity: { id: procedureSource.id },
+                        apiType: Dab.ApiType.Mcp,
+                        isEnabled: true,
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            const settings = result.config?.entities[0].advancedSettings;
+            expect(settings?.mcpEnabled).to.equal(true);
+            expect(settings?.mcpDmlToolsEnabled).to.equal(true);
+            expect(settings?.mcpCustomToolEnabled).to.equal(true);
+            expect(settings?.exposeAsMcpCustomTool).to.equal(true);
+        });
+
+        test("apply_changes legacy entity toggles synchronize MCP DML tools", async () => {
+            const table = createTable("t1", "dbo", "Users");
+            const dabConfig = Dab.createDefaultConfig([table]);
+            dabConfig.entities[0] = {
+                ...dabConfig.entities[0],
+                isEnabled: false,
+                advancedSettings: {
+                    ...dabConfig.entities[0].advancedSettings,
+                    restEnabled: false,
+                    graphQLEnabled: false,
+                    mcpEnabled: false,
+                    mcpDmlToolsEnabled: false,
+                },
+            };
+            const harness = createDabHandlerHarness({ tables: [table], dabConfig });
+            let version = (await harness.getState()).version;
+
+            const applyChange = async (change: Dab.DabToolChange): Promise<Dab.DabEntityConfig> => {
+                const result = await harness.applyChanges({
+                    expectedVersion: version,
+                    changes: [change],
+                });
+                expect(result.success).to.equal(true);
+                if (!result.success || !result.config) {
+                    throw new Error("Expected full success response");
+                }
+                version = result.version;
+                return result.config.entities[0];
+            };
+
+            let entity = await applyChange({
+                type: "set_entity_enabled",
+                entity: { id: table.id },
+                isEnabled: true,
+            });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(true);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(true);
+
+            entity = await applyChange({ type: "remove_entity", entity: { id: table.id } });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(false);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(false);
+
+            entity = await applyChange({ type: "add_entity", entity: { id: table.id } });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(true);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(true);
+
+            entity = await applyChange({ type: "set_all_entities_enabled", isEnabled: false });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(false);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(false);
+
+            entity = await applyChange({
+                type: "set_only_enabled_entities",
+                entities: [{ id: table.id }],
+            });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(true);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(true);
+
+            await applyChange({ type: "set_all_entities_enabled", isEnabled: false });
+            entity = await applyChange({ type: "set_all_entities_enabled", isEnabled: true });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(true);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(true);
+        });
+
         test("apply_changes validates patch_entity_settings payload and duplicate entity names", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users"), createTable("t2", "dbo", "Orders")],
@@ -1517,7 +1816,7 @@ suite("DabTool Tests", () => {
             let currentState = await harness.getState();
             expect(
                 currentState.config?.entities[0].advancedSettings.exposeAsMcpCustomTool,
-            ).to.equal(true);
+            ).to.equal(false);
 
             const disableResult = await harness.applyChanges({
                 expectedVersion: currentState.version,
@@ -1592,33 +1891,6 @@ suite("DabTool Tests", () => {
             expect(result.config?.entities[0].advancedSettings.graphQLEnabled).to.equal(false);
         });
 
-        test("apply_changes lets Copilot patch table MCP DML tools exposure", async () => {
-            const harness = createDabHandlerHarness({
-                tables: [createTable("t1", "dbo", "Users")],
-                dabConfig: null,
-            });
-            const state = await harness.getState();
-
-            const result = await harness.applyChanges({
-                expectedVersion: state.version,
-                changes: [
-                    {
-                        type: "patch_entity_settings",
-                        entity: { id: "t1" },
-                        set: {
-                            mcpDmlToolsEnabled: false,
-                        },
-                    },
-                ],
-            });
-
-            expect(result.success).to.equal(true);
-            if (!result.success) {
-                throw new Error("Expected success response");
-            }
-            expect(result.config?.entities[0].advancedSettings.mcpDmlToolsEnabled).to.equal(false);
-        });
-
         test("apply_changes lets Copilot patch stored procedure REST methods and GraphQL operation", async () => {
             const procedureSource: Dab.DabSourceObject = {
                 id: "stored-procedure:dbo.GetUsers",
@@ -1683,42 +1955,6 @@ suite("DabTool Tests", () => {
             expect(result.reason).to.equal("invalid_request");
             expect(result.message).to.equal(
                 "exposeAsMcpCustomTool can only be set for stored procedure entities.",
-            );
-        });
-
-        test("apply_changes rejects table MCP DML tools setting for non-table entities", async () => {
-            const procedureSource: Dab.DabSourceObject = {
-                id: "stored-procedure:dbo.GetUsers",
-                sourceType: Dab.EntitySourceType.StoredProcedure,
-                schemaName: "dbo",
-                sourceName: "GetUsers",
-                columns: [],
-            };
-            const harness = createDabHandlerHarness({
-                tables: [],
-                sourceObjects: [procedureSource],
-                dabConfig: null,
-            });
-            const state = await harness.getState();
-
-            const result = await harness.applyChanges({
-                expectedVersion: state.version,
-                changes: [
-                    {
-                        type: "patch_entity_settings",
-                        entity: { id: "stored-procedure:dbo.GetUsers" },
-                        set: { mcpDmlToolsEnabled: false },
-                    },
-                ],
-            });
-
-            expect(result.success).to.equal(false);
-            if (result.success) {
-                throw new Error("Expected failure response");
-            }
-            expect(result.reason).to.equal("invalid_request");
-            expect(result.message).to.equal(
-                "mcpDmlToolsEnabled can only be set for table entities.",
             );
         });
 
@@ -1980,7 +2216,7 @@ suite("DabTool Tests", () => {
             expect(enableResult.reason).to.equal("entity_not_supported");
             expect(enableResult.message).to.include("dbo.Users");
             expect(enableResult.message).to.include(
-                locConstants.schemaDesigner.unsupportedNoPrimaryKey("Table"),
+                locConstants.schemaDesigner.unsupportedDataTypes("Geo (sys.geography)", "Table"),
             );
 
             const actionsResult = await harness.applyChanges({
@@ -2113,16 +2349,8 @@ suite("DabTool Tests", () => {
             expect(result.failedChangeIndex).to.equal(1);
             expect(result.appliedChanges).to.equal(0);
             expect(result.version).to.equal(originalVersion);
-            expect(result.summary?.apiTypes).to.deep.equal([
-                Dab.ApiType.Rest,
-                Dab.ApiType.GraphQL,
-                Dab.ApiType.Mcp,
-            ]);
-            expect(harness.getConfig()?.apiTypes).to.deep.equal([
-                Dab.ApiType.Rest,
-                Dab.ApiType.GraphQL,
-                Dab.ApiType.Mcp,
-            ]);
+            expect(result.summary?.apiTypes).to.deep.equal(Dab.defaultApiTypes);
+            expect(harness.getConfig()?.apiTypes).to.deep.equal(Dab.defaultApiTypes);
             expect(harness.commitSpy.called).to.equal(false);
         });
 
@@ -2145,6 +2373,11 @@ suite("DabTool Tests", () => {
             expect(
                 disableResult.config?.entities.find((entity) => entity.id === "t1")?.isEnabled,
             ).to.equal(false);
+            expect(
+                disableResult.config?.entities
+                    .find((entity) => entity.id === "t1")
+                    ?.columns.every((column) => column.isExposed),
+            ).to.equal(true);
 
             const secondResult = await harness.applyChanges({
                 expectedVersion: disableResult.version,

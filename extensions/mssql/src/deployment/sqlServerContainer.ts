@@ -22,6 +22,7 @@ import { diag, diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { ContainerHostAdapter } from "../docker/containerHostAdapter";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "../docker/dockerodeClient";
+import { getSqlPasswordValidationError, SqlPasswordValidationError } from "../utils/sqlStringUtils";
 import {
     DockerCommand,
     checkDockerInstallation,
@@ -152,25 +153,14 @@ function getContainerStartTimestampSeconds(
  * If the password is invalid, it returns an error message.
  */
 export function validateSqlServerPassword(password: string): string {
-    if (password.length < 8 || password.length > 128) {
-        return LocalContainers.passwordLengthError;
+    switch (getSqlPasswordValidationError(password)) {
+        case SqlPasswordValidationError.Length:
+            return LocalContainers.passwordLengthError;
+        case SqlPasswordValidationError.Complexity:
+            return LocalContainers.passwordComplexityError;
+        default:
+            return "";
     }
-
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasDigit = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*]/.test(password);
-
-    // Count the number of required character categories met
-    const categoryCount = [hasUpperCase, hasLowerCase, hasDigit, hasSpecialChar].filter(
-        Boolean,
-    ).length;
-
-    if (categoryCount < 3) {
-        return LocalContainers.passwordComplexityError;
-    }
-
-    return "";
 }
 
 /**

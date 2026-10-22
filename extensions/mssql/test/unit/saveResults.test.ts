@@ -12,7 +12,10 @@ import { expect } from "chai";
 
 import * as Interfaces from "../../src/models/interfaces";
 import ResultsSerializer, { SaveAsRequestParams } from "../../src/models/resultsSerializer";
-import { SaveResultsAsCsvRequestParams } from "../../src/models/contracts";
+import {
+    SaveResultsAsCsvRequestParams,
+    SaveResultsAsExcelRequestParams,
+} from "../../src/models/contracts";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as Contracts from "../../src/models/contracts";
 import { stubVscodeWindow, stubVscodeWorkspace } from "./utils";
@@ -300,6 +303,102 @@ suite("save results tests", () => {
 
         const saveResults = new ResultsSerializer(serverClient);
         void saveResults.onSaveResults(testFile, 0, 0, "csv", undefined);
+    });
+
+    test("Excel configuration options are properly applied", (done) => {
+        vscodeWindow.showSaveDialog.resolves(fileUri);
+        vscodeWorkspace.openTextDocument.resolves(undefined as unknown as vscode.TextDocument);
+        vscodeWindow.showTextDocument.resolves(undefined as unknown as vscode.TextEditor);
+        setWorkspaceConfiguration({
+            saveAsExcel: {
+                includeHeaders: true,
+                freezeHeaderRow: true,
+                boldHeaderRow: true,
+                autoFilterHeaderRow: true,
+                autoSizeColumns: true,
+            },
+        });
+
+        serverClient.sendRequest.callsFake((_type, params: SaveResultsAsExcelRequestParams) => {
+            try {
+                expect(params.includeHeaders).to.equal(true);
+                expect(params.freezeHeaderRow).to.equal(true);
+                expect(params.boldHeaderRow).to.equal(true);
+                expect(params.autoFilterHeaderRow).to.equal(true);
+                expect(params.autoSizeColumns).to.equal(true);
+                done();
+            } catch (error) {
+                done(error);
+            }
+            return Promise.resolve({ messages: undefined });
+        });
+
+        const saveResults = new ResultsSerializer(serverClient);
+        void saveResults.onSaveResults(testFile, 0, 0, "excel", undefined);
+    });
+
+    test("Excel configuration options fall back to saveAsCsv when saveAsExcel is undefined", (done) => {
+        vscodeWindow.showSaveDialog.resolves(fileUri);
+        vscodeWorkspace.openTextDocument.resolves(undefined as unknown as vscode.TextDocument);
+        vscodeWindow.showTextDocument.resolves(undefined as unknown as vscode.TextEditor);
+        setWorkspaceConfiguration({
+            saveAsCsv: {
+                includeHeaders: true,
+            },
+            saveAsExcel: undefined,
+        });
+
+        serverClient.sendRequest.callsFake((_type, params: SaveResultsAsExcelRequestParams) => {
+            try {
+                expect(params.includeHeaders).to.equal(true);
+                expect(params.freezeHeaderRow).to.equal(false);
+                expect(params.boldHeaderRow).to.equal(false);
+                expect(params.autoFilterHeaderRow).to.equal(false);
+                expect(params.autoSizeColumns).to.equal(false);
+                done();
+            } catch (error) {
+                done(error);
+            }
+            return Promise.resolve({ messages: undefined });
+        });
+
+        const saveResults = new ResultsSerializer(serverClient);
+        void saveResults.onSaveResults(testFile, 0, 0, "excel", undefined);
+    });
+
+    test("Excel configuration options fall back to saveAsCsv.includeHeaders when saveAsExcel.includeHeaders is undefined", (done) => {
+        vscodeWindow.showSaveDialog.resolves(fileUri);
+        vscodeWorkspace.openTextDocument.resolves(undefined as unknown as vscode.TextDocument);
+        vscodeWindow.showTextDocument.resolves(undefined as unknown as vscode.TextEditor);
+        setWorkspaceConfiguration({
+            saveAsCsv: {
+                includeHeaders: true,
+            },
+            saveAsExcel: {
+                includeHeaders: undefined,
+                freezeHeaderRow: true,
+                boldHeaderRow: true,
+                autoFilterHeaderRow: true,
+                autoSizeColumns: true,
+            },
+        });
+
+        serverClient.sendRequest.callsFake((_type, params: SaveResultsAsExcelRequestParams) => {
+            try {
+                expect(params.includeHeaders).to.equal(true);
+                expect(params.freezeHeaderRow).to.equal(true);
+                expect(params.boldHeaderRow).to.equal(true);
+                expect(params.autoFilterHeaderRow).to.equal(true);
+                expect(params.autoSizeColumns).to.equal(true);
+                done();
+            } catch (error) {
+                done(error);
+            }
+            return Promise.resolve({ messages: undefined });
+        });
+
+        const saveResults = new ResultsSerializer(serverClient);
+        void saveResults.onSaveResults(testFile, 0, 0, "excel", undefined);
     });
 
     test("Save as INSERT - test if information message is displayed on success", () => {

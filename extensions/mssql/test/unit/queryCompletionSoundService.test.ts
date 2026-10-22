@@ -22,9 +22,8 @@ import { stubTelemetry } from "./utils";
 const { expect } = chai;
 chai.use(sinonChai);
 
-const defaultCompletionSoundPath = path.join("/extension", "media", "query-complete.wav");
-
 suite("QueryCompletionSoundService", () => {
+    const defaultAudioPath = path.join("/extension", "media", "query-complete.wav");
     let sandbox: sinon.SinonSandbox;
     let getConfigurationStub: sinon.SinonStub;
     let spawnProcessStub: sinon.SinonStub;
@@ -147,9 +146,7 @@ suite("QueryCompletionSoundService", () => {
         expect(spawnProcessStub).not.to.have.been.calledWith("/usr/bin/afplay", [
             "/sounds/large.wav",
         ]);
-        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            defaultCompletionSoundPath,
-        ]);
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [defaultAudioPath]);
         expect(loggerErrorStub).to.have.been.calledWith(
             'The configured query completion sound "/sounds/large.wav" is larger than 400 KB and will not be played. Using default sound instead.',
         );
@@ -184,9 +181,7 @@ suite("QueryCompletionSoundService", () => {
         await createService().play();
 
         expect(statFileStub).not.to.have.been.called;
-        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            defaultCompletionSoundPath,
-        ]);
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [defaultAudioPath]);
         expect(loggerWarnStub).to.have.been.calledWith(
             'The configured query completion sound "/sounds/complete.mp3" is not a WAV file. Using default sound.',
         );
@@ -199,9 +194,7 @@ suite("QueryCompletionSoundService", () => {
 
         await createService().play();
 
-        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            defaultCompletionSoundPath,
-        ]);
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [defaultAudioPath]);
     });
 
     test("stops playback after five seconds", async () => {
@@ -236,7 +229,7 @@ suite("QueryCompletionSoundService", () => {
             ),
             sinon.match({
                 env: sinon.match({
-                    MSSQL_QUERY_COMPLETION_SOUND: defaultCompletionSoundPath,
+                    MSSQL_QUERY_COMPLETION_SOUND: defaultAudioPath,
                 }),
             }),
         );
@@ -282,9 +275,7 @@ suite("QueryCompletionSoundService", () => {
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
             "/sounds/complete.wav",
         ]);
-        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            defaultCompletionSoundPath,
-        ]);
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [defaultAudioPath]);
         expect(sendErrorEvent).not.to.have.been.called;
         expect(loggerWarnStub).to.have.been.calledWith(
             'Unable to play the custom query completion sound "/sounds/complete.wav". Using default sound instead.',

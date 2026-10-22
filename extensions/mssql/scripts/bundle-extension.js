@@ -5,6 +5,14 @@
 
 const { createNodeExtensionConfig, run } = require("../../../scripts/esbuild-utils");
 const { tediousStreamingPlpDecodePlugin } = require("./tedious-streaming-plp-decode-plugin");
+const logger = require("../../../scripts/terminal-logger");
+const { channelExclusionPlugin, resolveBuildChannel } = require("./build-channels");
+
+// Build channel: --channel=<name> or MSSQL_BUILD_CHANNEL; defaults to
+// "development" (everything included). Excluded non-production areas are
+// stubbed out of the bundle entirely — see src/nonproduction/README.md.
+const buildChannel = resolveBuildChannel();
+logger.info(`Build channel: ${buildChannel}`);
 
 void run(
     ({ isProd }) =>
@@ -26,11 +34,14 @@ void run(
                 ".json": "json",
                 ".node": "file",
             },
-            metafile: !isProd,
+            define: {
+                "process.env.MSSQL_BUILD_CHANNEL": JSON.stringify(buildChannel),
+            },
+            metafile: true,
             minify: isProd,
             nodePaths: ["./node_modules"],
             outdir: "dist",
-            plugins: [tediousStreamingPlpDecodePlugin()],
+            plugins: [channelExclusionPlugin(buildChannel), tediousStreamingPlpDecodePlugin()],
             sourcemap: !isProd,
             sourcesContent: false,
             tsconfig: "./tsconfig.extension.json",

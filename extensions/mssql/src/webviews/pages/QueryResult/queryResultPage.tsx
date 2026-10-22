@@ -8,6 +8,7 @@ import { type ComponentType, useEffect } from "react";
 import { QueryResultPane } from "./queryResultPane";
 import { KeyCode } from "../../common/keys";
 import { isMetaOrCtrlKeyPressed } from "../../common/utils";
+import { eventMatchesKey } from "../../common/keyboardUtils";
 
 const useStyles = makeStyles({
     root: {
@@ -100,7 +101,7 @@ export const QueryResult = ({ GridView, isBetaResultsGridEnabled }: QueryResultP
     // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent): void => {
-            if (isMetaOrCtrlKeyPressed(e) && e.code === KeyCode.KeyA) {
+            if (isMetaOrCtrlKeyPressed(e) && eventMatchesKey(e, { key: "a", code: KeyCode.KeyA })) {
                 e.preventDefault();
                 e.stopPropagation();
             }

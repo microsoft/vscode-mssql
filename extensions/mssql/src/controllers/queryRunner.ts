@@ -76,6 +76,7 @@ export interface QueryExecutionCompleteEvent {
     totalElapsedMilliseconds: number;
     hasError: boolean;
     isFullExecutionComplete: boolean;
+    isCanceled?: boolean;
     isRefresh?: boolean;
 }
 
@@ -117,13 +118,19 @@ export default class QueryRunner {
     private _batchSets: BatchSummary[] = [];
     private _batchSetMessages: { [batchId: number]: IResultMessage[] } = {};
     private _isExecuting: boolean;
+    private _isCanceled = false;
     private _totalElapsedMilliseconds: number;
     private _hasCompleted: boolean;
     private _isSqlCmd: boolean = false;
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
+    private _queryDocumentText: string | undefined;
+    private _currentBatchQuery: string | undefined;
     private _registeredNotificationUris = new Set<string>();
     private _executionSource: QueryExecutionSource = "document";
+    private _serverConnectionId: string | undefined;
+    private _executionPlanOptions: ExecutionPlanOptions | undefined;
+    private _orphanedQueryRecoveryTimer: ReturnType<typeof setTimeout> | undefined;
     private static _runningQueries = [];
 
     private _startFailedEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
@@ -235,6 +242,25 @@ export default class QueryRunner {
         return this._executionSource;
     }
 
+    /**
+     * Gets the server session id (SPID) running the current query, once its first batch starts.
+     */
+    get serverConnectionId(): string | undefined {
+        return this._serverConnectionId;
+    }
+
+    /** Executed batch text, captured before submission so editor changes cannot alter it. */
+    get currentBatchQuery(): string | undefined {
+        return this._currentBatchQuery;
+    }
+
+    /**
+     * Gets the execution plan options requested for the current query execution.
+     */
+    get executionPlanOptions(): ExecutionPlanOptions | undefined {
+        return this._executionPlanOptions;
+    }
+
     get isSqlCmd(): boolean {
         return this._isSqlCmd;
     }
@@ -253,12 +279,18 @@ export default class QueryRunner {
 
     // PUBLIC METHODS ======================================================
 
+    /** Whether cancellation was requested for this execution, including after completion. */
+    public get isCanceled(): boolean {
+        return this._isCanceled;
+    }
+
     /**
      * Cancels the currently running query.
      * @returns A promise that resolves to the result of the cancel operation.
      * @throws An error if the cancellation fails or times out.
      */
-    public async cancel(): Promise<QueryCancelResult> {
+    public async cancel(options?: { silent?: boolean }): Promise<QueryCancelResult> {
+        this._isCanceled ||= this._isExecuting;
         const cancelQueryActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.CancelQuery,
@@ -278,15 +310,25 @@ export default class QueryRunner {
                     );
                 }
             }, Constants.stsImmediateActivityTimeout);
-            const cancelationResult = await this._client.sendRequest(
-                QueryCancelRequest.type,
-                cancelParams,
+            // Never wait forever on the service: an unanswered cancel would otherwise leave the
+            // editor blocked with "a query is already running" and no way out.
+            const cancelationResult = await Utils.withTimeout(
+                this._client.sendRequest(QueryCancelRequest.type, cancelParams),
+                Constants.queryCancelRequestTimeoutMs,
+                LocalizedConstants.msgCancelQueryTimedOut,
             );
             cancelRequestCompleted = true;
-            Perf.marker("mssql.query.cancelled", "instant", {
-                messages: cancelationResult?.messages ?? null,
-            });
+            Perf.marker("mssql.query.cancelled", "instant");
             cancelQueryActivity?.end(ActivityStatus.Succeeded);
+            if (cancelationResult?.messages && this._isExecuting) {
+                // The service has no live query for this editor (it finished, was disposed, or
+                // the service was restarted). If its completion notification does not arrive
+                // shortly, reset the editor ourselves instead of staying "executing" forever.
+                this._logger.warn(
+                    `Cancel for ${this._ownerUri} found no running query on the service: ${cancelationResult.messages}`,
+                );
+                this.scheduleOrphanedQueryRecovery();
+            }
             return cancelationResult;
         } catch (error) {
             cancelRequestCompleted = true;
@@ -295,7 +337,9 @@ export default class QueryRunner {
                 reason: error instanceof Error ? error.message.slice(0, 200) : String(error),
             });
             this._handleQueryCleanup(
-                LocalizedConstants.QueryEditor.queryCancelFailed(error),
+                options?.silent
+                    ? undefined
+                    : LocalizedConstants.QueryEditor.queryCancelFailed(error),
                 error,
             );
             cancelQueryActivity?.endFailed(error, false);
@@ -308,7 +352,7 @@ export default class QueryRunner {
      */
     public async resetQueryRunner(): Promise<void> {
         try {
-            await this.cancel();
+            await this.cancel({ silent: true });
         } catch {
             // Suppress any errors
         }
@@ -323,6 +367,36 @@ export default class QueryRunner {
     }
 
     /**
+     * Called after the service reported that it has no running query for this editor while we
+     * still believe one is executing. Gives an in-flight completion a short grace period, then
+     * resets the editor so the user can run queries again.
+     */
+    private scheduleOrphanedQueryRecovery(): void {
+        this.clearOrphanedQueryRecovery();
+        this._orphanedQueryRecoveryTimer = setTimeout(() => {
+            this._orphanedQueryRecoveryTimer = undefined;
+            if (!this._isExecuting) {
+                return;
+            }
+            this._logger.warn(
+                `No completion arrived for ${this._ownerUri}; resetting its execution state`,
+            );
+            this._handleQueryCleanup(
+                undefined,
+                new Error(LocalizedConstants.msgQueryNoLongerRunning),
+            );
+            void vscode.window.showInformationMessage(LocalizedConstants.msgQueryNoLongerRunning);
+        }, Constants.queryCancelOrphanGraceMs);
+    }
+
+    private clearOrphanedQueryRecovery(): void {
+        if (this._orphanedQueryRecoveryTimer !== undefined) {
+            clearTimeout(this._orphanedQueryRecoveryTimer);
+            this._orphanedQueryRecoveryTimer = undefined;
+        }
+    }
+
+    /**
      * Runs a query against the database for the current statement based on the cursor position.
      */
     public async runStatement(
@@ -331,12 +405,7 @@ export default class QueryRunner {
         executionPlanOptions?: ExecutionPlanOptions,
     ): Promise<void> {
         this._executionSource = "document";
-        await this.setupQueryExecution({
-            startLine: line,
-            startColumn: column,
-            endLine: 0,
-            endColumn: 0,
-        });
+        this._executionPlanOptions = executionPlanOptions;
 
         let optionsParams: QueryExecuteStatementParams = {
             ownerUri: this._ownerUri,
@@ -366,6 +435,16 @@ export default class QueryRunner {
                     );
                 }
             }, Constants.stsImmediateActivityTimeout);
+            // Everything that marks the editor as executing happens inside this try block so
+            // that any failure before the request is sent is cleaned up below.
+            this.setupQueryExecution({
+                startLine: line,
+                startColumn: column,
+                endLine: 0,
+                endColumn: 0,
+            });
+            const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
+            this._queryDocumentText = doc.getText();
             this.markQuerySubmitted();
             await this._client.sendRequest(QueryExecuteStatementRequest.type, optionsParams);
             this._startEmitter.fire(this.uri);
@@ -388,33 +467,7 @@ export default class QueryRunner {
         promise?: Deferred<boolean>,
     ): Promise<void> {
         this._executionSource = "document";
-        await this.setupQueryExecution(selection);
-
-        // Setting up options
-        let executeOptions: QueryExecuteParams = {
-            ownerUri: this._ownerUri,
-            executionPlanOptions: executionPlanOptions,
-            querySelection: selection,
-        };
-
-        // Getting query text
-        const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
-        let queryString: string;
-        if (selection) {
-            let range = new vscode.Range(
-                new vscode.Position(selection.startLine, selection.startColumn),
-                new vscode.Position(selection.endLine, selection.endColumn),
-            );
-            queryString = doc.getText(range);
-        } else {
-            queryString = doc.getText();
-        }
-        this._uriToQueryStringMap.set(this._ownerUri, queryString);
-
-        // Setting up completion promise.
-        if (promise) {
-            this._uriToQueryPromiseMap.set(this._ownerUri, promise);
-        }
+        this._executionPlanOptions = executionPlanOptions;
 
         const queryType = selection ? "selection" : "document";
         const runQueryActivity = startActivity(
@@ -439,6 +492,38 @@ export default class QueryRunner {
                     );
                 }
             }, Constants.stsImmediateActivityTimeout);
+            // Everything that marks the editor as executing happens inside this try block so
+            // that any failure before the request is sent (for example reading the document)
+            // is cleaned up below instead of leaving the editor "executing" forever.
+            this.setupQueryExecution(selection);
+
+            // Setting up completion promise.
+            if (promise) {
+                this._uriToQueryPromiseMap.set(this._ownerUri, promise);
+            }
+
+            // Setting up options
+            let executeOptions: QueryExecuteParams = {
+                ownerUri: this._ownerUri,
+                executionPlanOptions: executionPlanOptions,
+                querySelection: selection,
+            };
+
+            // Getting query text
+            const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
+            this._queryDocumentText = doc.getText();
+            let queryString: string;
+            if (selection) {
+                let range = new vscode.Range(
+                    new vscode.Position(selection.startLine, selection.startColumn),
+                    new vscode.Position(selection.endLine, selection.endColumn),
+                );
+                queryString = doc.getText(range);
+            } else {
+                queryString = doc.getText();
+            }
+            this._uriToQueryStringMap.set(this._ownerUri, queryString);
+
             this.markQuerySubmitted();
             await this._client.sendRequest(QueryExecuteRequest.type, executeOptions);
             this._startEmitter.fire(this.uri);
@@ -463,12 +548,7 @@ export default class QueryRunner {
      */
     public async runQueryString(query: string, promise?: Deferred<boolean>): Promise<void> {
         this._executionSource = "quickQuery";
-        await this.setupQueryExecution(undefined);
-
-        this._uriToQueryStringMap.set(this._ownerUri, query);
-        if (promise) {
-            this._uriToQueryPromiseMap.set(this._ownerUri, promise);
-        }
+        this._executionPlanOptions = undefined;
 
         const executeParams: QueryExecuteStringParams = {
             ownerUri: this._ownerUri,
@@ -496,6 +576,14 @@ export default class QueryRunner {
                     );
                 }
             }, Constants.stsImmediateActivityTimeout);
+            // Everything that marks the editor as executing happens inside this try block so
+            // that any failure before the request is sent is cleaned up below.
+            this.setupQueryExecution(undefined);
+            this._queryDocumentText = query;
+            this._uriToQueryStringMap.set(this._ownerUri, query);
+            if (promise) {
+                this._uriToQueryPromiseMap.set(this._ownerUri, promise);
+            }
             this.markQuerySubmitted();
             await this._client.sendRequest(QueryExecuteStringRequest.type, executeParams);
             this._startEmitter.fire(this.uri);
@@ -518,7 +606,11 @@ export default class QueryRunner {
     public setupQueryExecution(_selection?: ISelectionData): void {
         this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
+        this._isCanceled = false;
         this._totalElapsedMilliseconds = 0;
+        this._serverConnectionId = undefined;
+        this._queryDocumentText = undefined;
+        this._currentBatchQuery = undefined;
         // Update the status view to show that we're executing
         this._statusView.executingQuery(this.uri);
 
@@ -541,11 +633,12 @@ export default class QueryRunner {
     // handle the result of the notification
     public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
         this._logger.info(LocalizedConstants.msgFinishedExecute(this._ownerUri));
+        this.clearOrphanedQueryRecovery();
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
         this._hasCompleted = true;
-        this._batchSets = result.batchSummaries;
+        this._batchSets = result.batchSummaries ?? [];
 
         // We're done with this query so shut down any waiting mechanisms
         const promise = this._uriToQueryPromiseMap.get(result.ownerUri);
@@ -553,36 +646,66 @@ export default class QueryRunner {
             promise.resolve();
             this._uriToQueryPromiseMap.delete(result.ownerUri);
         }
-        this._statusView.executedQuery(result.ownerUri);
-        this._statusView.setExecutionTime(
-            result.ownerUri,
-            Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
-        );
-        let hasError = this._batchSets.some((batch) => batch.hasError === true);
-        Perf.marker("mssql.query.complete", "end", {
-            rowCount: this._batchSets.reduce(
-                (total, batch) =>
-                    total +
-                    (batch.resultSetSummaries?.reduce((n, rs) => n + (rs.rowCount ?? 0), 0) ?? 0),
-                0,
-            ),
-            hasError,
-        });
-        this.removeRunningQuery();
-        this.unregisterAllNotificationUris();
-        this._completeEmitter.fire({
-            totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
-                format: "clock",
-            }),
-            totalElapsedMilliseconds: this._totalElapsedMilliseconds,
-            hasError,
-            isFullExecutionComplete: true,
-        });
+        const hasError = this._batchSets.some((batch) => batch.hasError === true);
+        try {
+            this._statusView.executedQuery(result.ownerUri);
+            this._statusView.setExecutionTime(
+                result.ownerUri,
+                Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
+            );
+            // The SPID can change when the connection reconnects, so refresh it after every run.
+            if (result.serverConnectionId) {
+                this._statusView.setServerProcessId(result.ownerUri, result.serverConnectionId);
+            }
+            Perf.marker("mssql.query.complete", "end", {
+                rowCount: this._batchSets.reduce(
+                    (total, batch) =>
+                        total +
+                        (batch.resultSetSummaries?.reduce((n, rs) => n + (rs.rowCount ?? 0), 0) ??
+                            0),
+                    0,
+                ),
+                hasError,
+            });
+        } catch (error) {
+            this._logger.error(
+                `Error while finalizing query completion for ${result.ownerUri}: ${getErrorMessage(error)}`,
+            );
+        } finally {
+            // Always release the editor, even if a status update above failed.
+            this.removeRunningQuery();
+            this.unregisterAllNotificationUris();
+            this._completeEmitter.fire({
+                totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
+                    format: "clock",
+                }),
+                totalElapsedMilliseconds: this._totalElapsedMilliseconds,
+                hasError,
+                isFullExecutionComplete: true,
+                isCanceled: this._isCanceled,
+            });
+        }
         sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.QueryExecutionCompleted);
     }
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
         let batch = result.batchSummary;
+        this._serverConnectionId = result.serverConnectionId ?? this._serverConnectionId;
+        const selection = batch.selection;
+        if (this._queryDocumentText !== undefined && selection) {
+            const lines = this._queryDocumentText.split("\n");
+            const batchLines = lines.slice(selection.startLine, selection.endLine + 1);
+            if (batchLines.length > 0) {
+                batchLines[batchLines.length - 1] = batchLines[batchLines.length - 1].slice(
+                    0,
+                    selection.endColumn,
+                );
+                batchLines[0] = batchLines[0].slice(selection.startColumn);
+                this._currentBatchQuery = batchLines.join("\n");
+            }
+        } else {
+            this._currentBatchQuery = this.getQueryString(this.uri);
+        }
 
         // Set the result sets as an empty array so that as result sets complete we can add to the list
         batch.resultSetSummaries = [];
@@ -597,6 +720,15 @@ export default class QueryRunner {
 
     public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
         let batch: BatchSummary = result.batchSummary;
+
+        // Keep the completion each result set already reported, which Save As checks while the
+        // query runs. A result set that failed partway never reported it, so it stays incomplete.
+        const previousResultSets = this._batchSets[batch.id]?.resultSetSummaries;
+        for (const resultSet of batch.resultSetSummaries ?? []) {
+            if (previousResultSets?.[resultSet.id]?.complete) {
+                resultSet.complete = true;
+            }
+        }
 
         // Store the batch again to get the rest of the data
         this._batchSets[batch.id] = batch;
@@ -641,6 +773,9 @@ export default class QueryRunner {
     ): Promise<void> {
         let resultSet = result.resultSetSummary;
         let batchSet = this._batchSets[resultSet.batchId];
+
+        // Every row has been read once this arrives, whether or not the service set the flag
+        resultSet.complete = true;
 
         // Store the result set in the batch and emit that a result set has completed
         batchSet.resultSetSummaries[resultSet.id] = resultSet;
@@ -702,6 +837,7 @@ export default class QueryRunner {
      * @param error Optional error message to send to pending promises of query run. If not provided, the promise will be resolved.
      */
     private _handleQueryCleanup(errorMsg?: String, error?: Error): void {
+        this.clearOrphanedQueryRecovery();
         this._isExecuting = false;
         this._hasCompleted = true;
         this.removeRunningQuery();
@@ -723,6 +859,7 @@ export default class QueryRunner {
             totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError: !!error,
             isFullExecutionComplete: false,
+            isCanceled: this._isCanceled,
         });
         this._statusView.executedQuery(this._ownerUri);
         this.unregisterAllNotificationUris();
@@ -1517,6 +1654,12 @@ export default class QueryRunner {
                 selection.endColumn,
             );
             editor.selection = querySelection;
+            // Scroll the target into view; without this the cursor moves but a long script stays
+            // where it was, which defeats jumping to an error far from the current position.
+            editor.revealRange(
+                querySelection,
+                vscode.TextEditorRevealType.InCenterIfOutsideViewport,
+            );
             return;
         }
     }

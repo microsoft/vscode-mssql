@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import { getLogger } from "../models/logger";
 
-import { AzureResource } from "@microsoft/vscode-azureresources-api";
+import { AzureResource, Wrapper } from "@microsoft/vscode-azureresources-api";
 import { cmdOpenInMssqlExtensionFromAzureResources } from "../constants/constants";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { CloudId, getCloudProviderSettings } from "../azure/providerSettings";
@@ -15,14 +15,41 @@ import { ILogger } from "../sharedInterfaces/logger";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 
 /**
- * Node from the Azure Resources tree
+ * The resource item returned by unwrapping an Azure Resources tree command argument.
+ * This mirrors AzureResourceItem from vscode-azureresourcegroups.
  */
-interface AzureResourceNode {
+export interface AzureResourceItem {
     readonly resource: AzureResource;
 }
 
-function isAzureResourceNode(node: unknown): node is AzureResourceNode {
-    return typeof node === "object" && !!node && "resource" in node;
+/**
+ * Grouping node in the Azure Resources tree, one per resource type within a subscription (the
+ * "SQL databases" folder, for example).  This mirrors ResourceTypeGroupingItem from
+ * vscode-azureresourcegroups.
+ *
+ * Declared locally because that class is internal to the Azure Resources extension.  Unlike a
+ * resource item it is not a {@link Wrapper}, so commands receive it unwrapped and must recognize it
+ * structurally.
+ */
+export interface AzureResourceTypeGroupNode {
+    readonly subscription?: { readonly subscriptionId?: string };
+}
+
+/** Unwraps the command argument using the API published by the Azure Resources extension. */
+export function getAzureResource(node: Wrapper): AzureResource {
+    return node.unwrap<AzureResourceItem>().resource;
+}
+
+/**
+ * Whether a command argument is an Azure Resources grouping node carrying a subscription.
+ *
+ * Grouping nodes have no `unwrap`, so `isWrapper` rejects them; without this check they fall
+ * through to whichever branch handles nodes from other trees.
+ */
+export function isAzureResourceTypeGroupNode(node: unknown): node is AzureResourceTypeGroupNode {
+    const subscriptionId = (node as AzureResourceTypeGroupNode | undefined)?.subscription
+        ?.subscriptionId;
+    return typeof subscriptionId === "string" && subscriptionId.length > 0;
 }
 
 export class AzureResourcesExtensionIntegration {
@@ -35,18 +62,17 @@ export class AzureResourcesExtensionIntegration {
     public registerOpenInMssqlCommand(): vscode.Disposable {
         const openInMssqlExtensionCommand = vscode.commands.registerCommand(
             cmdOpenInMssqlExtensionFromAzureResources,
-            (node: unknown) => this.invokeForAzureSqlResource(node),
+            (node: Wrapper | undefined) => this.invokeForAzureSqlResource(node),
         );
 
         return openInMssqlExtensionCommand;
     }
 
-    private async invokeForAzureSqlResource(node: unknown): Promise<void> {
-        if (!isAzureResourceNode(node)) {
+    private async invokeForAzureSqlResource(node: Wrapper | undefined): Promise<void> {
+        if (!node) {
             return;
         }
-
-        const { resource } = node;
+        const resource = getAzureResource(node);
         const { subscription } = resource;
 
         const dnsSuffix =

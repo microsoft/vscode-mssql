@@ -3,18 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/**
- * One-gesture enable/disable for MSSQL AI inline completions, used by the
- * Debug Console Completions page. The feature gate is two settings
- * (mssql.enableExperimentalFeatures + useSchemaContext); "enable" writes both
- * globally and applies the same github.copilot.enable merge the
- * CopilotEnableSettingsGuard offers interactively ({"*": true, "sql": false})
- * so GitHub Copilot's generic completions stand down for SQL files. The
- * provider checks the gate per request, so no reload is needed.
+/** Completion enablement controls for the Debug Console. Changes preserve the
+ * activation snapshot: enabling a previously inactive provider requires reload.
+ * Schema sharing remains an independent, explicit choice.
  */
 
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
+import { isCompletionsDebugHostConfigured } from "../diagnostics/completionsDebugConsoleHost";
 import { isInlineCompletionFeatureEnabled } from "./inlineCompletionFeatureGate";
 import { mergeCopilotEnableMap, resolveCopilotEnableTarget } from "./copilotEnableSettingsGuard";
 
@@ -43,7 +39,7 @@ export function getCompletionsEnablementStatus(): CompletionsEnablementStatus {
             Constants.configCopilotInlineCompletionsUseSchemaContext,
             false,
         ),
-        featureEnabled: isInlineCompletionFeatureEnabled(),
+        featureEnabled: isInlineCompletionFeatureEnabled() && isCompletionsDebugHostConfigured(),
         copilotSqlDisabled: copilotEnable?.["sql"] === false,
         schemaContextProfile: config.get<string>(
             "mssql.copilot.inlineCompletions.profile",
@@ -71,7 +67,7 @@ export async function enableAiCompletions(): Promise<CompletionsEnablementStatus
         vscode.ConfigurationTarget.Global,
     );
     await config.update(
-        Constants.configCopilotInlineCompletionsUseSchemaContext,
+        Constants.configCopilotInlineCompletionsEnabled,
         true,
         vscode.ConfigurationTarget.Global,
     );
@@ -94,7 +90,7 @@ export async function disableAiCompletions(): Promise<CompletionsEnablementStatu
     await vscode.workspace
         .getConfiguration()
         .update(
-            Constants.configCopilotInlineCompletionsUseSchemaContext,
+            Constants.configCopilotInlineCompletionsEnabled,
             false,
             vscode.ConfigurationTarget.Global,
         );

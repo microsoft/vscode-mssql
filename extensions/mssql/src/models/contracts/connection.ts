@@ -77,6 +77,11 @@ export class ConnectionCompleteParams {
      * information about the actual connection established
      */
     public connectionSummary: ConnectionSummary;
+
+    /**
+     * Server process ID (SPID) of the connection, if the connection was successful.
+     */
+    public serverConnectionId?: string;
 }
 
 // ------------------------------- </ Connection Complete Event > -----------------------------------

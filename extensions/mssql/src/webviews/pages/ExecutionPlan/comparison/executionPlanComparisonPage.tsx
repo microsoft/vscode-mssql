@@ -1,0 +1,174 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import "./comparison.css";
+
+import { Button, Spinner, tokens } from "@fluentui/react-components";
+import { AddSquareRegular } from "@fluentui/react-icons";
+import { useCallback, useEffect, useState } from "react";
+
+import { ShowComparisonQueryNotification } from "../../../../sharedInterfaces/executionPlanComparison";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { locConstants } from "../../../common/locConstants";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
+import { ComparisonOrientation, ComparisonSide } from "./comparisonModel";
+import { ComparisonPlanPane } from "./comparisonPlanPane";
+import { ComparisonPropertiesPanel } from "./comparisonPropertiesPanel";
+import { ComparisonSplit } from "./comparisonSplit";
+import { ComparisonToolbar } from "./comparisonToolbar";
+import { useComparisonSources } from "./useComparisonSources";
+import { useComparisonViewSettings } from "./useComparisonViewSettings";
+import { useGraphComparison } from "./useGraphComparison";
+import { useLinkedSelection } from "./useLinkedSelection";
+import { useViewportSync } from "./useViewportSync";
+
+const noGroupRoots: ReadonlyMap<string, number> = new Map();
+
+/** Compares two execution plans side by side, outlining the areas they have in common. */
+export function ExecutionPlanComparisonPage() {
+    const { extensionRpc } = useVscodeWebview();
+    const {
+        loaded,
+        panes,
+        errorMessage: sourceError,
+        pickSource,
+        selectGraph,
+        swap,
+    } = useComparisonSources();
+    const comparison = useGraphComparison(
+        panes.primary?.source.graphs[panes.primary.graphIndex],
+        panes.secondary?.source.graphs[panes.secondary.graphIndex],
+    );
+    const { settings: viewSettings, updateSettings } = useComparisonViewSettings();
+    const viewsSynced = viewSettings?.viewsSynced ?? false;
+    const { controllers, selectedNodes, linkedIds, onReady, onSelectionChange } =
+        useLinkedSelection(comparison.maps, viewSettings?.similarAreasVisible ?? true, viewsSynced);
+    const onViewportChange = useViewportSync(controllers, viewsSynced);
+    const [orientation, setOrientation] = useState<ComparisonOrientation>("stacked");
+    const [propertiesOpen, setPropertiesOpen] = useState(false);
+    const tooltipsEnabled = viewSettings?.tooltipsEnabled ?? true;
+
+    // Panes remount when they change statement or plan, so apply the setting to new graphs too.
+    useEffect(() => {
+        controllers.primary?.setTooltipsEnabled(tooltipsEnabled);
+        controllers.secondary?.setTooltipsEnabled(tooltipsEnabled);
+    }, [controllers, tooltipsEnabled]);
+
+    const showQuery = useCallback(
+        (query: string) =>
+            void extensionRpc.sendNotification(ShowComparisonQueryNotification.type, { query }),
+        [extensionRpc],
+    );
+
+    if (!loaded || !viewSettings) {
+        return (
+            <main className="execution-plan-comparison execution-plan-comparison-status">
+                <Spinner label={locConstants.executionPlan.loadingExecutionPlan} />
+            </main>
+        );
+    }
+
+    const errorMessage = sourceError ?? comparison.errorMessage;
+    const renderPane = (side: ComparisonSide) => {
+        const pane = panes[side];
+        if (!pane) {
+            return (
+                <div className="execution-plan-comparison-placeholder">
+                    <AddSquareRegular aria-hidden />
+                    <p>{locConstants.executionPlan.choosePlanToCompare}</p>
+                    <Button
+                        appearance="primary"
+                        icon={<AddSquareRegular />}
+                        onClick={() => void pickSource(side)}>
+                        {locConstants.executionPlan.addExecutionPlan}
+                    </Button>
+                </div>
+            );
+        }
+        return (
+            <ComparisonPlanPane
+                key={`${pane.key}-${pane.graphIndex}`}
+                side={side}
+                pane={pane}
+                groupRoots={
+                    !viewSettings.similarAreasVisible
+                        ? noGroupRoots
+                        : side === "primary"
+                          ? comparison.maps.primaryGroupRoots
+                          : comparison.maps.secondaryGroupRoots
+                }
+                onReady={onReady}
+                onSelectionChange={onSelectionChange}
+                linkedNodeId={linkedIds[side]}
+                onSelectGraph={selectGraph}
+                onShowQuery={showQuery}
+                onViewportChange={onViewportChange}
+                showMinimap={viewSettings.minimapsVisible}
+            />
+        );
+    };
+
+    return (
+        <main
+            className="execution-plan-comparison"
+            style={{ color: tokens.colorNeutralForeground1 }}>
+            <ComparisonToolbar
+                hasPlans={controllers.primary !== null || controllers.secondary !== null}
+                planNames={{
+                    primary: panes.primary?.source.name,
+                    secondary: panes.secondary?.source.name,
+                }}
+                onAddPlan={() => void pickSource(panes.primary ? "secondary" : "primary")}
+                onReplacePlan={(side) => void pickSource(side, panes[side]?.source.name)}
+                canSwap={panes.primary !== undefined || panes.secondary !== undefined}
+                onSwap={swap}
+                orientation={orientation}
+                onOrientationChange={setOrientation}
+                minimapsVisible={viewSettings.minimapsVisible}
+                onToggleMinimaps={() =>
+                    updateSettings({ minimapsVisible: !viewSettings.minimapsVisible })
+                }
+                similarAreasVisible={viewSettings.similarAreasVisible}
+                onToggleSimilarAreas={() =>
+                    updateSettings({ similarAreasVisible: !viewSettings.similarAreasVisible })
+                }
+                viewsSynced={viewsSynced}
+                onToggleViewsSynced={() => updateSettings({ viewsSynced: !viewsSynced })}
+                propertiesOpen={propertiesOpen}
+                onToggleProperties={() => setPropertiesOpen((open) => !open)}
+                tooltipsEnabled={tooltipsEnabled}
+                onToggleTooltips={() => updateSettings({ tooltipsEnabled: !tooltipsEnabled })}
+            />
+            {errorMessage && (
+                <div className="execution-plan-comparison-error" role="alert">
+                    {errorMessage}
+                </div>
+            )}
+            <div
+                className={`execution-plan-comparison-content execution-plan-comparison-content-${viewSettings.propertiesDock}`}>
+                <ComparisonSplit
+                    orientation={orientation}
+                    first={renderPane("primary")}
+                    second={renderPane("secondary")}
+                />
+                {propertiesOpen && (
+                    <ComparisonPropertiesPanel
+                        primary={selectedNodes.primary}
+                        secondary={selectedNodes.secondary}
+                        orientation={orientation}
+                        dock={viewSettings.propertiesDock}
+                        onDockChange={(propertiesDock) => updateSettings({ propertiesDock })}
+                        onClose={() => setPropertiesOpen(false)}
+                    />
+                )}
+            </div>
+            {comparison.status === ApiStatus.Loading && (
+                <div className="execution-plan-comparison-loading" aria-live="polite">
+                    <Spinner size="small" label={locConstants.executionPlan.comparisonLoading} />
+                </div>
+            )}
+        </main>
+    );
+}

@@ -158,6 +158,19 @@ suite("Object Explorer v2 hierarchy registry (B22)", () => {
         expect(isSystemDatabaseName(undefined)).to.equal(false);
     });
 
+    test("sortLast treats explicit false and omission equivalently", () => {
+        const registry: OeV2FolderDef[] = [
+            { id: "a", label: "A", scope: "database", order: 1, section: "s", sortLast: false },
+            { id: "b", label: "B", scope: "database", order: 0, section: "s" },
+            { id: "c", label: "C", scope: "database", order: 2, section: "s", sortLast: false },
+        ];
+        expect(resolveFolders("database", {}, {}, registry).map((def) => def.id)).to.deep.equal([
+            "b",
+            "a",
+            "c",
+        ]);
+    });
+
     test("path codec: nested folder ids with '/' round-trip", () => {
         const path = {
             kind: "serverFolder" as const,
@@ -215,6 +228,26 @@ suite("Object Explorer v2 connection labels (B22 / K6)", () => {
                 getConnectionDisplayName(testCase.profile as unknown as IConnectionInfo),
             );
         }
+    });
+
+    test("missing and blank auth labels use the same SQL Login default as preparation", () => {
+        for (const authenticationType of [undefined, "", "   "]) {
+            const facts = { server: "srv", user: "sa", authenticationType };
+            expect(connectionDisplayLabel(facts)).to.equal("srv, <default> (sa)");
+            expect(connectionTooltipLines(facts)).to.deep.equal(["Server: srv", "User: sa"]);
+        }
+    });
+
+    test("legacy interactive auth is normalized to Azure MFA like preparation", () => {
+        const legacy = {
+            server: "srv.database.windows.net",
+            authenticationType: "ActiveDirectoryInteractive",
+            email: "karl@contoso.com",
+            user: "ignored-for-aad",
+        };
+        const canonical = { ...legacy, authenticationType: "AzureMFA" };
+        expect(connectionDisplayLabel(legacy)).to.equal(connectionDisplayLabel(canonical));
+        expect(connectionTooltipLines(legacy)).to.deep.equal(connectionTooltipLines(canonical));
     });
 
     test("tooltip lists non-default properties in classic order and wording", () => {
@@ -387,7 +420,7 @@ suite("Object Explorer v2 server-level folders (B23)", () => {
             kind: "serverObjectItem" as const,
             connectionId: "c1",
             folder: "security/logins",
-            name: "CONTOSO\svc account",
+            name: "CONTOSO\\svc account",
         };
         expect(decodePath(encodePath(path))).to.deep.equal(path);
     });
@@ -531,6 +564,113 @@ suite("Object Explorer v2 database parity (B24)", () => {
             "dbo.Ledger",
             "dbo.DroppedThing",
         ]);
+    });
+
+    test("catalog sections render absent/loading as loading, never as no-items", () => {
+        for (const readiness of ["absent", "loading"] as const) {
+            const snapshot = fakeSnapshot([]);
+            (snapshot.readiness as unknown as Record<string, string>).objects = readiness;
+            const nodes = databaseFolderChildren(
+                "c1",
+                "AppDb",
+                "tables",
+                READY,
+                snapshot,
+                false,
+                undefined,
+                undefined,
+                {},
+                auxOf({}),
+            );
+            expect(
+                nodes.map((node) => node.kind),
+                readiness,
+            ).to.deep.equal(["loading"]);
+        }
+    });
+
+    test("group-by-schema uses case-folded ordering", () => {
+        const nodes = databaseFolderChildren(
+            "c1",
+            "AppDb",
+            "tables",
+            READY,
+            fakeSnapshot([
+                { objectId: 1, schema: "Sales", name: "A", kind: "table" },
+                { objectId: 2, schema: "dbo", name: "B", kind: "table" },
+            ]),
+            true,
+            undefined,
+            undefined,
+            {},
+            auxOf({}),
+        );
+        expect(nodes.map((node) => node.label)).to.deep.equal(["dbo", "Sales"]);
+    });
+
+    test("External Tables honors group-by-schema", () => {
+        const snapshot = fakeSnapshot([
+            { objectId: 10, schema: "sales", name: "ExternalOrders", kind: "table" },
+        ]);
+        const aux = auxOf({
+            tableFacets: {
+                items: [
+                    {
+                        name: "ExternalOrders",
+                        schema: "sales",
+                        kind: "table",
+                        isSystem: false,
+                        objectId: 10,
+                        facts: { isExternal: 1 },
+                    },
+                ],
+            },
+        });
+        const grouped = databaseFolderChildren(
+            "c1",
+            "AppDb",
+            "tables/externalTables",
+            READY,
+            snapshot,
+            true,
+            undefined,
+            undefined,
+            {},
+            aux,
+        );
+        expect(grouped.map((node) => `${node.kind}:${node.label}`)).to.deep.equal(["schema:sales"]);
+        const objects = databaseFolderChildren(
+            "c1",
+            "AppDb",
+            "tables/externalTables",
+            READY,
+            snapshot,
+            true,
+            "sales",
+            undefined,
+            {},
+            aux,
+        );
+        expect(objects.map((node) => node.label)).to.deep.equal([
+            "sales.ExternalOrders (External)",
+        ]);
+    });
+
+    test("stale notice precedes structural subfolders", () => {
+        const nodes = databaseFolderChildren(
+            "c1",
+            "master",
+            "tables",
+            READY,
+            fakeSnapshot([]),
+            false,
+            undefined,
+            { freshness: "stale" },
+            { isSystemDatabase: true },
+            auxOf({ systemObjects: { items: [] }, tableFacets: { items: [] } }),
+        );
+        expect(nodes[0].kind).to.equal("status");
+        expect(nodes[1].label).to.equal("System Tables");
     });
 
     test("K2: System Tables folder + system objects only in system-database context", () => {
@@ -682,8 +822,58 @@ suite("Object Explorer v2 database parity (B24)", () => {
             connectionId: "c1",
             database: "App/Db",
             folder: "security/users",
-            name: "dbo.some user",
+            schema: "dbo.with.dot",
+            name: "some.user",
         };
         expect(decodePath(encodePath(path))).to.deep.equal(path);
+
+        const other = {
+            ...path,
+            schema: "dbo",
+            name: "with.dot.some.user",
+        };
+        expect(encodePath(other)).to.not.equal(encodePath(path));
+    });
+
+    test("schema-qualified auxiliary objects keep distinct identities across dotted names", () => {
+        const nodes = databaseFolderChildren(
+            "c1",
+            "master",
+            "tables/systemTables",
+            READY,
+            fakeSnapshot([]),
+            false,
+            undefined,
+            undefined,
+            { isSystemDatabase: true },
+            auxOf({
+                systemObjects: {
+                    items: [
+                        { schema: "a.b", name: "c", kind: "table", isSystem: true },
+                        { schema: "a", name: "b.c", kind: "table", isSystem: true },
+                    ],
+                },
+            }),
+        );
+        expect(nodes.map((node) => node.label)).to.deep.equal(["a.b.c", "a.b.c"]);
+        expect(new Set(nodes.map((node) => node.id)).size).to.equal(2);
+        expect(nodes.map((node) => node.path)).to.deep.include.members([
+            {
+                kind: "databaseObjectItem",
+                connectionId: "c1",
+                database: "master",
+                folder: "tables/systemTables",
+                schema: "a.b",
+                name: "c",
+            },
+            {
+                kind: "databaseObjectItem",
+                connectionId: "c1",
+                database: "master",
+                folder: "tables/systemTables",
+                schema: "a",
+                name: "b.c",
+            },
+        ]);
     });
 });

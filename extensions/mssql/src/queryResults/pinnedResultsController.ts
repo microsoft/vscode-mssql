@@ -14,6 +14,7 @@
  */
 
 import * as vscode from "vscode";
+import { compareQueryStudioPlan } from "../queryStudio/compareExecutionPlan";
 import { WebviewBaseController } from "../controllers/webviewBaseController";
 import {
     QsCopyMessagesToClipboardRequest,
@@ -25,6 +26,7 @@ import {
     QsOpenPlanRequest,
     QsResultSetSummary,
     QsSaveExecutionPlanRequest,
+    QsCompareExecutionPlanRequest,
     QsSaveResultRequest,
     QsSetViewModeRequest,
     QsShowPlanQueryRequest,
@@ -577,6 +579,14 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
                 executionPlanState: { executionPlanGraphs: [], totalCost: 0 },
             };
             await saveExecutionPlan(state, { sqlPlanContent });
+        });
+        this.onRequest(QsCompareExecutionPlanRequest.type, async ({ sqlPlanContent }) => {
+            await compareQueryStudioPlan(
+                this._context,
+                await this.planSeam(),
+                sqlPlanContent,
+                this.document.uri.path,
+            );
         });
         this.onRequest(QsShowPlanXmlRequest.type, async ({ sqlPlanContent }) => {
             const state: ExecutionPlanWebviewState = {

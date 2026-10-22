@@ -29,6 +29,8 @@ import { OeV2ClassicHandoffService } from "../../src/objectExplorer/v2/legacy/oe
 import { connectionNode, nodeContextValue } from "../../src/objectExplorer/v2/tree/oeV2NodeFactory";
 import { NOT_APPLICABLE, OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { ObjectExplorerV2 } from "../../src/constants/locConstants";
+import { initializeIconUtils } from "./utils";
 
 function databaseNode(): OeV2Node {
     return {
@@ -119,32 +121,19 @@ suite("Object Explorer v2 command registry (B25)", () => {
         ]);
         expect(commandFlagsFor({ kind: "object", objectKind: "view" })).to.deep.equal([]);
         expect(commandFlagsFor({ kind: "databaseFolder", database: "AppDb" })).to.deep.equal([]);
-    });
-
-    test("container commands target by container fact + node state (DOCK-2)", () => {
-        // v1 gates: start on stopped, stop on connected, delete on both.
-        expect(
-            commandFlagsFor({ kind: "disconnectedConnection", isContainer: true }),
-        ).to.deep.equal([
+        expect(commandFlagsFor({ kind: "lostConnection" })).to.deep.equal([
+            "oe2:cmd=newQuery",
+            "oe2:cmd=profiler",
             "oe2:cmd=copyConnectionString",
-            "oe2:cmd=startContainer",
-            "oe2:cmd=deleteContainer",
+            "oe2:cmd=copilotChat",
+            "oe2:cmd=copilotAgent",
+            "oe2:cmd=schemaCompare",
+            "oe2:cmd=dacpac",
+            "oe2:cmd=newNotebook",
         ]);
-        expect(commandFlagsFor({ kind: "lostConnection", isContainer: true })).to.deep.equal([
-            "oe2:cmd=startContainer",
-            "oe2:cmd=deleteContainer",
-        ]);
-        const connectedContainer = commandFlagsFor({ kind: "connectedServer", isContainer: true });
-        expect(connectedContainer).to.contain("oe2:cmd=stopContainer");
-        expect(connectedContainer).to.contain("oe2:cmd=deleteContainer");
-        expect(connectedContainer).to.not.contain("oe2:cmd=startContainer");
-        // Non-container connections never see container commands.
-        for (const flag of commandFlagsFor({ kind: "disconnectedConnection" })) {
-            expect(flag).to.not.contain("Container");
-        }
     });
 
-    test("container connections carry docker identity end-to-end (DOCK-2)", () => {
+    test("container connections expose lifecycle commands for their current state", () => {
         const profile = {
             profileId: "c1",
             displayName: "box",
@@ -155,21 +144,15 @@ suite("Object Explorer v2 command registry (B25)", () => {
         const connected = connectionNode(profile as never, { state: "connected" });
         expect(connected.icon).to.equal("DockerContainer_green");
         expect(connected.containerName).to.equal("sqlbox");
-        expect(nodeContextValue(connected)).to.contain("oe2:cmd=stopContainer");
-        expect(nodeContextValue(connected)).to.contain("oe2:cmd=deleteContainer");
-        expect(nodeContextValue(connected)).to.not.contain("oe2:cmd=startContainer");
+        expect(nodeContextValue(connected)).to.include("oe2:cmd=stopContainer");
+        expect(nodeContextValue(connected)).to.include("oe2:cmd=deleteContainer");
+        expect(nodeContextValue(connected)).not.to.include("oe2:cmd=startContainer");
 
         const stopped = connectionNode(profile as never, { state: "disconnected" });
         expect(stopped.icon).to.equal("DockerContainer_red");
-        expect(nodeContextValue(stopped)).to.contain("oe2:cmd=startContainer");
-        expect(nodeContextValue(stopped)).to.not.contain("oe2:cmd=stopContainer");
-
-        // Docker activity text takes over the description while it runs.
-        const busy = connectionNode(profile as never, {
-            state: "disconnected",
-            activityText: "Starting container…",
-        });
-        expect(busy.description).to.equal("Starting container…");
+        expect(nodeContextValue(stopped)).to.include("oe2:cmd=startContainer");
+        expect(nodeContextValue(stopped)).to.include("oe2:cmd=deleteContainer");
+        expect(nodeContextValue(stopped)).not.to.include("oe2:cmd=stopContainer");
     });
 
     test("context values carry command flags from node facts", () => {
@@ -227,6 +210,10 @@ suite("Object Explorer v2 command registry (B25)", () => {
         const onDbScoped = policiesForNode("connectedServer", "AppDb").map((p) => p.feature);
         expect(onDbScoped).to.include("backupDatabase");
         expect(policiesForNode("database").map((p) => p.feature)).to.include("backupDatabase");
+        expect(policiesForNode("object", undefined, "table").map((p) => p.feature)).to.include(
+            "editTable",
+        );
+        expect(policiesForNode("object", undefined, "view")).to.deep.equal([]);
     });
 
     test("commandTargetFor extracts the full node identity", () => {
@@ -246,6 +233,7 @@ suite("Object Explorer v2 legacy redirect (B25)", () => {
     let execute: sinon.SinonStub;
 
     setup(() => {
+        initializeIconUtils(); // TreeNodeInfo resolves icons in its constructor.
         execute = sinon.stub(vscode.commands, "executeCommand").resolves(undefined);
     });
 
@@ -268,7 +256,10 @@ suite("Object Explorer v2 legacy redirect (B25)", () => {
     }
 
     test("backup on a database node invokes the classic command with a database-scoped legacy node", async () => {
-        const outcome = await redirectToClassic("backupDatabase", databaseNode(), fakeDeps());
+        const deps = fakeDeps();
+        const ensure = sinon.spy(deps.handoff, "ensureOwnerUri");
+        const outcome = await redirectToClassic("backupDatabase", databaseNode(), deps);
+        expect(ensure.firstCall.args[4]).to.equal("h2");
         expect(outcome.ok).to.equal(true);
         sinon.assert.calledOnce(execute);
         const [command, arg] = execute.firstCall.args as [string, TreeNodeInfo];
@@ -292,7 +283,7 @@ suite("Object Explorer v2 legacy redirect (B25)", () => {
         const ensureSpy = sinon.spy(deps.handoff, "ensureOwnerUri");
         const outcome = await redirectToClassic("backupDatabase", serverNode(), deps);
         expect(outcome.ok).to.equal(false);
-        expect(outcome.error).to.include("database");
+        expect(outcome.error).to.equal(ObjectExplorerV2.legacyActionNeedsDatabase);
         expect(ensureSpy.called).to.equal(false);
         sinon.assert.notCalled(execute);
     });
@@ -303,6 +294,81 @@ suite("Object Explorer v2 legacy redirect (B25)", () => {
         const [command, arg] = execute.firstCall.args as [string, TreeNodeInfo];
         expect(command).to.equal("mssql.restoreDatabase");
         expect(arg.nodeType).to.equal("Server");
+    });
+
+    test("profiler uses the database-filtered classic route only for database contexts", async () => {
+        for (const node of [
+            databaseNode(),
+            serverNode("AppDb"),
+            { ...serverNode("AppDb"), kind: "disconnectedConnection" as const },
+        ]) {
+            const outcome = await redirectToClassic("profiler", node, fakeDeps());
+            expect(outcome.ok).to.equal(true);
+            expect(execute.lastCall.args[0]).to.equal("mssql.profiler.launchFromDatabase");
+            const adapted = execute.lastCall.args[1] as TreeNodeInfo;
+            expect(adapted.nodeType).to.equal("Database");
+            expect(adapted.metadata.name).to.equal("AppDb");
+        }
+        await redirectToClassic("profiler", serverNode(), fakeDeps());
+        expect(execute.lastCall.args[0]).to.equal("mssql.profiler.launchFromObjectExplorer");
+    });
+
+    test("classic actions remain available on disconnected profiles without opening OE v2", async () => {
+        const node = { ...serverNode(), kind: "disconnectedConnection" as const };
+        for (const feature of [
+            "schemaCompare",
+            "dacpacDialog",
+            "createNotebook",
+            "chatWithDatabase",
+            "chatWithDatabaseAgent",
+        ]) {
+            const deps = fakeDeps();
+            const ensure = sinon.spy(deps.handoff, "ensureOwnerUri");
+            const result = await redirectToClassic(feature, node, deps);
+            expect(result.ok, feature).to.equal(true);
+            expect((execute.lastCall.args[1] as TreeNodeInfo).connectionProfile.server).to.equal(
+                "srv",
+            );
+            expect(ensure.called, feature).to.equal(
+                feature === "schemaCompare" || feature === "dacpacDialog",
+            );
+        }
+    });
+
+    test("schema compare receives the selected node plus an unset target", async () => {
+        const outcome = await redirectToClassic("schemaCompare", databaseNode(), fakeDeps());
+        expect(outcome.ok).to.equal(true);
+        expect(execute.firstCall.args).to.have.length(3);
+        expect(execute.firstCall.args[0]).to.equal("mssql.schemaCompare");
+        expect(execute.firstCall.args[1]).to.be.instanceOf(TreeNodeInfo);
+        expect(execute.firstCall.args[2]).to.equal(undefined);
+    });
+
+    test("copy connection string accepts a lost connection", async () => {
+        const lost = { ...serverNode(), kind: "lostConnection" as const };
+        const outcome = await redirectToClassic("copyConnectionString", lost, fakeDeps());
+        expect(outcome.ok).to.equal(true);
+        expect(execute.firstCall.args[0]).to.equal("mssql.copyConnectionString");
+        expect((execute.firstCall.args[1] as TreeNodeInfo).nodeType).to.equal("disconnectedServer");
+    });
+
+    test("redirect never passes the cached profile object to the handoff seam", async () => {
+        const stored = { server: "srv", authenticationType: "Integrated" };
+        let handedOff: unknown;
+        const outcome = await redirectToClassic("restoreDatabase", serverNode(), {
+            facts: {
+                handoffFacts: async () => ({ stored, fingerprint: "sfp_test" }),
+            },
+            handoff: {
+                ensureOwnerUri: async (_id, _fingerprint, profile) => {
+                    handedOff = profile;
+                    return "oe2://handoff/abc";
+                },
+            } as unknown as OeV2ClassicHandoffService,
+        });
+        expect(outcome.ok).to.equal(true);
+        expect(handedOff).to.not.equal(stored);
+        expect(handedOff).to.deep.equal(stored);
     });
 
     test("unavailable handoff is a quiet no-op; classic failure is a guarded error", async () => {

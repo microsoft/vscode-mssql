@@ -26,7 +26,7 @@
  */
 
 import { createHash, Hash } from "crypto";
-import { logger2 } from "../../../models/logger2";
+import { logger as logger2 } from "../../../models/logger";
 import {
     FEATURE_CAPTURE_MANIFEST_SCHEMA,
     FEATURE_CAPTURE_RECORD_SCHEMA,

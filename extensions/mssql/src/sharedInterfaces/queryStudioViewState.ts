@@ -224,6 +224,7 @@ export interface QsVectorPanelViewState {
 }
 
 export interface QsExecutionPlanGraphViewState {
+    viewport?: { x: number; y: number; zoom: number };
     zoomPercent: number;
     scrollTop: number;
     scrollLeft: number;
@@ -928,13 +929,28 @@ function isExecutionPlanGraphState(value: unknown): boolean {
             "selectedElementId",
             "propertiesPaneOpen",
             "propertiesPaneWidth",
+            "viewport",
         ]) &&
         isFiniteNumber(value.zoomPercent, 1, 200) &&
         isFiniteNumber(value.scrollTop) &&
         isFiniteNumber(value.scrollLeft) &&
         (value.selectedElementId === undefined || isBoundedString(value.selectedElementId)) &&
         typeof value.propertiesPaneOpen === "boolean" &&
-        isFiniteNumber(value.propertiesPaneWidth, 275, 100_000)
+        isFiniteNumber(value.propertiesPaneWidth, 275, 100_000) &&
+        (value.viewport === undefined ||
+            (isRecord(value.viewport) &&
+                hasOnlyKeys(value.viewport, ["x", "y", "zoom"]) &&
+                isFiniteNumber(
+                    value.viewport.x,
+                    -Number.MAX_SAFE_INTEGER,
+                    Number.MAX_SAFE_INTEGER,
+                ) &&
+                isFiniteNumber(
+                    value.viewport.y,
+                    -Number.MAX_SAFE_INTEGER,
+                    Number.MAX_SAFE_INTEGER,
+                ) &&
+                isFiniteNumber(value.viewport.zoom, 0.01, 20)))
     );
 }
 

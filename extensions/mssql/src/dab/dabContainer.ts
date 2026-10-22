@@ -15,6 +15,7 @@ import {
     dockerLogger,
     getContainerByName,
     findAvailablePort,
+    isHostPortAvailable,
     pullContainerImage,
     sanitizeContainerInput,
     startContainerLogMonitor,
@@ -328,9 +329,136 @@ export async function validateDabContainerName(containerName: string): Promise<s
 /**
  * Finds an available port for the DAB container
  * @param preferredPort The preferred port to use if available
+ * @param isPortFree Overridable so tests decide port availability instead of
+ * depending on what happens to be listening on the machine running them
  */
 export async function findAvailableDabPort(
     preferredPort: number = Dab.DAB_DEFAULT_PORT,
+    isPortFree: (port: number) => Promise<boolean> = isHostPortAvailable,
 ): Promise<number> {
-    return findAvailablePort(preferredPort);
+    return findAvailablePort(preferredPort, isPortFree);
+}
+
+/**
+ * Reports the live state of a previously deployed DAB container.
+ * A container that no longer exists is reported as missing rather than as an
+ * error, since that is the expected state after someone removes it by hand.
+ */
+export async function getDabContainerStatus(
+    containerName: string,
+): Promise<Dab.DabDeploymentContainerStatus> {
+    try {
+        const container = await getContainerByName(containerName);
+        if (!container) {
+            return Dab.DabDeploymentContainerStatus.Missing;
+        }
+
+        const inspectInfo = await container.inspect();
+        return inspectInfo.State?.Running
+            ? Dab.DabDeploymentContainerStatus.Running
+            : Dab.DabDeploymentContainerStatus.Stopped;
+    } catch (e) {
+        dockerLogger.warn(
+            `Failed to inspect DAB container ${containerName}: ${getErrorMessage(e)}`,
+        );
+        return Dab.DabDeploymentContainerStatus.Unknown;
+    }
+}
+
+/**
+ * Starts an existing DAB container without recreating it. The container keeps
+ * the config it was deployed with.
+ */
+export async function startDabContainer(containerName: string): Promise<DockerCommandParams> {
+    try {
+        const container = await getContainerByName(containerName);
+        if (!container) {
+            return {
+                success: false,
+                error: LocalContainers.dabContainerNotFound(containerName),
+            };
+        }
+
+        await container.start();
+        dockerLogger.info(`DAB container ${containerName} started.`);
+        return { success: true };
+    } catch (e) {
+        dockerLogger.error(`Failed to start DAB container: ${getErrorMessage(e)}`);
+        return {
+            success: false,
+            error: LocalContainers.dabStartExistingContainerError,
+            fullErrorText: getErrorMessage(e),
+        };
+    }
+}
+
+/**
+ * Stops a running DAB container, leaving it in place so it can be started again.
+ */
+export async function stopDabContainer(containerName: string): Promise<DockerCommandParams> {
+    try {
+        const container = await getContainerByName(containerName);
+        if (!container) {
+            return {
+                success: false,
+                error: LocalContainers.dabContainerNotFound(containerName),
+            };
+        }
+
+        await container.stop();
+        dockerLogger.info(`DAB container ${containerName} stopped.`);
+        return { success: true };
+    } catch (e) {
+        dockerLogger.error(`Failed to stop DAB container: ${getErrorMessage(e)}`);
+        return {
+            success: false,
+            error: LocalContainers.dabStopExistingContainerError,
+            fullErrorText: getErrorMessage(e),
+        };
+    }
+}
+
+/**
+ * Reports whether a host port is still free for a DAB container to publish.
+ */
+export async function isDabPortAvailable(port: number): Promise<boolean> {
+    return isHostPortAvailable(port);
+}
+
+/**
+ * Generates a deployment name of the form `DAB_<database>_<n>`.
+ *
+ * The discriminator is the lowest number not already taken by a Docker
+ * container or by a deployment this extension tracks, so a name is never
+ * reused by a deployment the user can still see.
+ *
+ * @param databaseName Database the deployment serves
+ * @param trackedNames Names of deployments already tracked for this database
+ */
+export async function generateDabDeploymentName(
+    databaseName: string,
+    trackedNames: string[] = [],
+): Promise<string> {
+    const taken = new Set(trackedNames);
+
+    try {
+        const dockerClient = getDockerodeClient();
+        const containerInfos = await dockerClient.listContainers({ all: true });
+        for (const containerInfo of containerInfos) {
+            for (const name of containerInfo.Names ?? []) {
+                taken.add(name.replace(/^\//, ""));
+            }
+        }
+    } catch (e) {
+        // Docker being unavailable only matters for the Docker target, and the
+        // prerequisite steps report that; a CLI deployment still needs a name.
+        dockerLogger.debug(`Could not list containers while naming: ${getErrorMessage(e)}`);
+    }
+
+    for (let index = 1; ; index++) {
+        const candidate = Dab.buildDabDeploymentName(databaseName, index);
+        if (!taken.has(candidate)) {
+            return candidate;
+        }
+    }
 }

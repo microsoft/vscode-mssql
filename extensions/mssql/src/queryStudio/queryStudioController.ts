@@ -15,6 +15,7 @@
 import * as vscode from "vscode";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
+import { compareQueryStudioPlan } from "./compareExecutionPlan";
 import { runScanRules } from "./scanDetect";
 import { QUERY_STUDIO_SCAN_RULES } from "./scanDetectRules";
 import { WebviewBaseController } from "../controllers/webviewBaseController";
@@ -49,6 +50,7 @@ import {
     QsRestoreEditorFocusNotification,
     QsRunStartedNotification,
     QsSaveExecutionPlanRequest,
+    QsCompareExecutionPlanRequest,
     QsSaveResultRequest,
     QsSetActualPlanRequest,
     QsSetSqlcmdModeRequest,
@@ -1374,6 +1376,14 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 executionPlanState: { executionPlanGraphs: [], totalCost: 0 },
             };
             await saveExecutionPlan(state, { sqlPlanContent });
+        });
+        this.onRequest(QsCompareExecutionPlanRequest.type, async ({ sqlPlanContent }) => {
+            await compareQueryStudioPlan(
+                this._context,
+                await this.executionPlanSeam(),
+                sqlPlanContent,
+                this.model.backingDocument.fileName,
+            );
         });
         this.onRequest(QsShowPlanXmlRequest.type, async ({ sqlPlanContent }) => {
             const state: ExecutionPlanWebviewState = {

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { locConstants } from "../../../common/locConstants";
 import { useEffect, useMemo, useState } from "react";
 import {
     Button,
@@ -103,7 +104,7 @@ export const CustomPromptDialog = () => {
 
     const lastSavedLabel = useMemo(() => {
         if (!customPrompt.lastSavedAt) {
-            return "not saved yet";
+            return locConstants.inlineCompletionDebug.detailText11;
         }
         return new Date(customPrompt.lastSavedAt).toLocaleTimeString([], {
             hour12: false,
@@ -129,24 +130,30 @@ export const CustomPromptDialog = () => {
                         <Button
                             appearance="subtle"
                             icon={<Dismiss24Regular />}
-                            aria-label="Close"
+                            aria-label={locConstants.inlineCompletionDebug.close}
                             onClick={closeCustomPromptDialog}
                         />
                     }>
-                    Custom system prompt
+                    {locConstants.inlineCompletionDebug.customSystemPrompt}
                 </DrawerHeaderTitle>
             </DrawerHeader>
 
             <DrawerBody className={classes.drawerBody}>
                 <div className={classes.drawerContent}>
                     <Text className={classes.subhead}>
-                        Stored in workspaceState memento | internal testing only | takes effect on
-                        next completion
+                        {
+                            locConstants.inlineCompletionDebug
+                                .storedInWorkspaceStateMementoInternalTestingOnly
+                        }
                     </Text>
 
                     <div className={classes.infoBox}>
-                        Placeholders: {`{{inferredSystemQuery}}`}, {`{{intentMode}}`},{" "}
-                        {`{{schemaContext}}`}, {`{{linePrefix}}`}, {`{{statementPrefix}}`}
+                        {locConstants.inlineCompletionDebug.placeholders}
+                        {locConstants.inlineCompletionDebug.inferredSystemQuery},{" "}
+                        {locConstants.inlineCompletionDebug.intentMode},{" "}
+                        {locConstants.inlineCompletionDebug.schemaContext},{" "}
+                        {locConstants.inlineCompletionDebug.linePrefix},{" "}
+                        {locConstants.inlineCompletionDebug.statementPrefix}
                     </div>
 
                     <div className={classes.editorContainer}>
@@ -165,17 +172,18 @@ export const CustomPromptDialog = () => {
 
                     <div className={classes.footer}>
                         <Text className={classes.footerMeta}>
-                            {draft.length} chars | last saved {lastSavedLabel}
+                            {draft.length} {locConstants.inlineCompletionDebug.charsLastSaved}
+                            {lastSavedLabel}
                         </Text>
                         <div className={classes.footerActions}>
                             <Button appearance="subtle" onClick={resetCustomPrompt}>
-                                Reset to default
+                                {locConstants.inlineCompletionDebug.resetToDefault}
                             </Button>
                             <Button appearance="secondary" onClick={closeCustomPromptDialog}>
-                                Cancel
+                                {locConstants.inlineCompletionDebug.cancel}
                             </Button>
                             <Button appearance="primary" onClick={() => saveCustomPrompt(draft)}>
-                                Save &amp; use custom
+                                {locConstants.inlineCompletionDebug.saveAmpUseCustom}
                             </Button>
                         </div>
                     </div>

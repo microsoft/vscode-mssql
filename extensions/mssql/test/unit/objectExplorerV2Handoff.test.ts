@@ -6,12 +6,14 @@
 /**
  * OE v2 explicit legacy handoff (B20): the policy table drives exposure,
  * the handoff service silently creates exactly one guarded classic
- * connection per v2 connection (secret-free owner URIs, idle TTL,
+ * connection per v2 connection (secret-free owner URIs,
  * close-on-disconnect, failure isolation), and the H2 adapter synthesizes
  * classic nodes only for adaptable kinds.
  */
 
 import { expect } from "chai";
+import * as sinon from "sinon";
+import { diag } from "../../src/diagnostics/diagnosticsCore";
 import {
     LEGACY_COMMAND_POLICIES,
     policiesForNode,
@@ -26,8 +28,6 @@ import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 import { encodePath } from "../../src/objectExplorer/v2/tree/oeV2Path";
 import { initializeIconUtils } from "./utils";
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 const PROFILE = {
     server: "secret-server.example.internal",
     database: "AppDb",
@@ -35,17 +35,21 @@ const PROFILE = {
 } as unknown as IConnectionProfile;
 
 function seam(overrides?: Partial<HandoffConnectionSeam>) {
-    const calls: { connect: string[]; disconnect: string[] } = { connect: [], disconnect: [] };
+    const calls: { connect: string[]; disconnect: string[]; profiles: IConnectionProfile[] } = {
+        connect: [],
+        disconnect: [],
+        profiles: [],
+    };
     const connections: HandoffConnectionSeam = {
-        connect: async (ownerUri) => {
+        connect: async (ownerUri, profile) => {
             calls.connect.push(ownerUri);
-            return true;
+            calls.profiles.push(profile);
+            return overrides?.connect ? overrides.connect(ownerUri, profile) : true;
         },
         disconnect: async (ownerUri) => {
             calls.disconnect.push(ownerUri);
-            return true;
+            return overrides?.disconnect ? overrides.disconnect(ownerUri) : true;
         },
-        ...overrides,
     };
     return { connections, calls };
 }
@@ -66,6 +70,8 @@ function databaseNode(): OeV2Node {
 }
 
 suite("Object Explorer v2 legacy handoff (B20)", () => {
+    const sandbox = sinon.createSandbox();
+    teardown(() => sandbox.restore());
     suiteSetup(() => {
         initializeIconUtils(); // TreeNodeInfo resolves icons in its ctor
     });
@@ -86,15 +92,31 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
             "chatWithDatabaseAgent",
             "createNotebook",
         ]);
-        expect(policiesForNode("object").map((p) => p.feature)).to.deep.equal([
+        expect(policiesForNode("object", undefined, "table").map((p) => p.feature)).to.deep.equal([
             "editTable",
             "tableExplorer",
             "chatWithDatabase",
             "chatWithDatabaseAgent",
         ]);
+        expect(policiesForNode("object", undefined, "view")).to.deep.equal([]);
         expect(policiesForNode("databaseFolder")).to.deep.equal([]);
         expect(policiesForNode("disconnectedConnection").map((p) => p.feature)).to.deep.equal([
+            "profiler",
+            "schemaCompare",
+            "dacpacDialog",
             "copyConnectionString",
+            "chatWithDatabase",
+            "chatWithDatabaseAgent",
+            "createNotebook",
+        ]);
+        expect(policiesForNode("lostConnection").map((p) => p.feature)).to.deep.equal([
+            "profiler",
+            "schemaCompare",
+            "dacpacDialog",
+            "copyConnectionString",
+            "chatWithDatabase",
+            "chatWithDatabaseAgent",
+            "createNotebook",
         ]);
         for (const policy of LEGACY_COMMAND_POLICIES) {
             expect(["h0", "h1", "h2"]).to.contain(policy.level);
@@ -118,6 +140,8 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         expect(ownerUri).to.not.contain("secret-server");
         expect(ownerUri).to.not.contain("user@example.com");
         expect(calls.connect).to.deep.equal([ownerUri]);
+        expect(calls.profiles[0]).to.not.equal(PROFILE);
+        expect(calls.profiles[0]).to.deep.equal(PROFILE);
 
         // second feature on the same connection REUSES (no second connect)
         const again = await service.ensureOwnerUri("p1", "sfp_abcdef123456", PROFILE, "backup");
@@ -131,7 +155,7 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         service.dispose();
     });
 
-    test("handoff: connect failure is isolated; idle TTL closes automatically", async () => {
+    test("handoff: connect failure is isolated", async () => {
         const failing = seam({
             connect: async () => {
                 throw new Error("classic connect exploded");
@@ -142,15 +166,145 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
             undefined,
         );
         expect(service.hasHandoff("p1")).to.equal(false);
+        service.dispose();
+    });
 
-        const { connections, calls } = seam();
-        const ttlService = new OeV2ClassicHandoffService(connections, { idleTtlMs: 5 });
-        const uri = await ttlService.ensureOwnerUri("p1", "sfp_x", PROFILE, "profiler");
-        expect(uri).to.not.equal(undefined);
-        await sleep(30);
-        expect(ttlService.hasHandoff("p1")).to.equal(false);
-        expect(calls.disconnect).to.have.length(1);
-        ttlService.dispose();
+    test("handoff: concurrent commands join one connect and close owns the result", async () => {
+        let releaseConnect!: (connected: boolean) => void;
+        const connected = new Promise<boolean>((resolve) => (releaseConnect = resolve));
+        let nonce = 0;
+        const pending = seam({ connect: async () => connected });
+        const service = new OeV2ClassicHandoffService(pending.connections, {
+            uriNonce: () => `nonce-${++nonce}`,
+        });
+
+        const first = service.ensureOwnerUri("p1", "sfp_same", PROFILE, "profiler");
+        const second = service.ensureOwnerUri("p1", "sfp_same", PROFILE, "backup");
+        expect(pending.calls.connect).to.have.length(1);
+
+        releaseConnect(true);
+        expect(await first).to.equal("objectexplorerv2://handoff/sfp_same/nonce-1");
+        expect(await second).to.equal("objectexplorerv2://handoff/sfp_same/nonce-1");
+        expect(pending.calls.connect).to.have.length(1);
+
+        await service.close("p1");
+        expect(pending.calls.disconnect).to.deep.equal([
+            "objectexplorerv2://handoff/sfp_same/nonce-1",
+        ]);
+        service.dispose();
+    });
+
+    test("handoff: close waits for an in-flight connect and profile changes replace the owner", async () => {
+        let releaseConnect!: (connected: boolean) => void;
+        const connected = new Promise<boolean>((resolve) => (releaseConnect = resolve));
+        let nonce = 0;
+        const pending = seam({ connect: async () => connected });
+        const service = new OeV2ClassicHandoffService(pending.connections, {
+            uriNonce: () => `nonce-${++nonce}`,
+        });
+
+        const opening = service.ensureOwnerUri("p1", "sfp_old", PROFILE, "restore");
+        const closing = service.close("p1");
+        releaseConnect(true);
+        const oldUri = await opening;
+        await closing;
+        expect(oldUri).to.equal(undefined);
+        expect(pending.calls.disconnect).to.deep.equal([pending.calls.connect[0]]);
+        expect(service.hasHandoff("p1")).to.equal(false);
+
+        const newUri = await service.ensureOwnerUri("p1", "sfp_new", PROFILE, "restore");
+        expect(newUri).to.not.equal(oldUri);
+        expect(pending.calls.connect).to.have.length(2);
+
+        const replacement = await service.ensureOwnerUri("p1", "sfp_newer", PROFILE, "restore");
+        expect(replacement).to.not.equal(newUri);
+        expect(pending.calls.connect).to.have.length(3);
+        expect(pending.calls.disconnect).to.deep.equal([pending.calls.connect[0], newUri]);
+        service.dispose();
+    });
+
+    test("handoff: a changed profile supersedes an in-flight open and its joiners", async () => {
+        const gate = Promise.withResolvers<boolean>();
+        const pending = seam({ connect: async () => gate.promise });
+        const service = new OeV2ClassicHandoffService(pending.connections);
+        const first = service.ensureOwnerUri("p1", "old", PROFILE, "profiler");
+        const joined = service.ensureOwnerUri("p1", "old", PROFILE, "profiler");
+        const replacementProfile = { ...PROFILE, database: "NewDb" };
+        const replacement = service.ensureOwnerUri("p1", "new", replacementProfile, "profiler");
+        gate.resolve(true);
+        expect(await first).to.equal(undefined);
+        expect(await joined).to.equal(undefined);
+        const owner = await replacement;
+        expect(owner).to.equal(pending.calls.connect[1]);
+        expect(pending.calls.profiles[1].database).to.equal("NewDb");
+        expect(pending.calls.disconnect).to.deep.equal([pending.calls.connect[0]]);
+        expect(await service.ensureOwnerUri("p1", "new", replacementProfile, "profiler")).to.equal(
+            owner,
+        );
+        service.dispose();
+    });
+
+    test("handoff: disposal cancels pending replacement and refuses new work", async () => {
+        const gate = Promise.withResolvers<boolean>();
+        const pending = seam({ connect: async () => gate.promise });
+        const service = new OeV2ClassicHandoffService(pending.connections);
+        const first = service.ensureOwnerUri("p1", "old", PROFILE, "profiler");
+        const replacement = service.ensureOwnerUri("p1", "new", PROFILE, "profiler");
+        service.dispose();
+        gate.resolve(true);
+        expect(await first).to.equal(undefined);
+        expect(await replacement).to.equal(undefined);
+        expect(await service.ensureOwnerUri("p1", "new", PROFILE, "profiler")).to.equal(undefined);
+        expect(pending.calls.disconnect).to.deep.equal(pending.calls.connect);
+        expect(service.hasHandoff("p1")).to.equal(false);
+    });
+
+    test("handoff: disconnect cancels a replacement waiting for the previous open", async () => {
+        const gate = Promise.withResolvers<boolean>();
+        const pending = seam({ connect: async () => gate.promise });
+        const service = new OeV2ClassicHandoffService(pending.connections);
+        const first = service.ensureOwnerUri("p1", "old", PROFILE, "profiler");
+        const replacement = service.ensureOwnerUri("p1", "new", PROFILE, "profiler");
+        await service.close("p1");
+        gate.resolve(true);
+        expect(await first).to.equal(undefined);
+        expect(await replacement).to.equal(undefined);
+        expect(pending.calls.disconnect).to.deep.equal(pending.calls.connect);
+        expect(service.hasHandoff("p1")).to.equal(false);
+        service.dispose();
+    });
+
+    test("handoff diagnostics preserve each command's policy level on create, join, reuse and failure", async () => {
+        const emit = sandbox.stub(diag, "emit");
+        const gate = Promise.withResolvers<boolean>();
+        const pending = seam({ connect: async () => gate.promise });
+        const service = new OeV2ClassicHandoffService(pending.connections);
+        const first = service.ensureOwnerUri("p1", "fp", PROFILE, "profiler", "h2");
+        const joined = service.ensureOwnerUri("p1", "fp", PROFILE, "uriAction", "h1");
+        gate.resolve(true);
+        await Promise.all([first, joined]);
+        await service.ensureOwnerUri("p1", "fp", PROFILE, "backup", "h2");
+        const failed = new OeV2ClassicHandoffService(
+            seam({ connect: async () => false }).connections,
+        );
+        await failed.ensureOwnerUri("p2", "fp", PROFILE, "restore", "h2");
+        const events = emit.args
+            .map(([event]) => event)
+            .filter((event) => event.type === "objectExplorerV2.command.handoff");
+        expect(
+            events.map((event) => [
+                event.fields.handoffFeature.raw,
+                event.fields.level.raw,
+                event.fields.outcome.raw,
+            ]),
+        ).to.have.deep.members([
+            ["profiler", "h2", "created"],
+            ["uriAction", "h1", "reused"],
+            ["backup", "h2", "reused"],
+            ["restore", "h2", "connectFailed"],
+        ]);
+        service.dispose();
+        failed.dispose();
     });
 
     test("H2 adapter: adaptable kinds get classic identity; others refuse", () => {
@@ -159,6 +313,7 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         expect(adapted.nodeType).to.equal("Database");
         expect(adapted.sessionId).to.equal("owner-uri");
         expect((adapted.connectionProfile as { database?: string }).database).to.equal("AppDb");
+        expect(adapted.connectionProfile).to.not.equal(PROFILE);
 
         const folder: OeV2Node = {
             ...databaseNode(),

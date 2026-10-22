@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "./executionPlan.css";
-
 import {
     makeStyles,
+    mergeClasses,
     Toolbar,
     ToolbarButton,
     ToolbarDivider,
@@ -34,6 +33,7 @@ import {
     TooltipOffIcon16Regular,
     ZoomControlIcon16Regular,
 } from "../../common/icons/executionPlanIcons";
+import { BranchCompareIcon16Regular } from "../../common/icons/fluentIcons";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -90,7 +90,6 @@ interface ReactFlowIconStackProps {
     executionPlanView: ExecutionPlanGraphController;
     setExecutionPlanView: Dispatch<SetStateAction<ExecutionPlanGraphController | null>>;
     setZoomNumber: Dispatch<SetStateAction<number>>;
-    onZoomChange?: (zoomPercent: number) => void;
     customZoomClicked: boolean;
     setCustomZoomClicked: Dispatch<SetStateAction<boolean>>;
     findNodeClicked: boolean;
@@ -101,6 +100,7 @@ interface ReactFlowIconStackProps {
     setPropertiesClicked: Dispatch<SetStateAction<boolean>>;
     query: string;
     xml: string;
+    graphIndex: number;
 }
 
 enum InputEnum {
@@ -114,7 +114,6 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
     executionPlanView,
     setExecutionPlanView,
     setZoomNumber,
-    onZoomChange,
     customZoomClicked,
     setCustomZoomClicked,
     findNodeClicked,
@@ -125,6 +124,7 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
     setPropertiesClicked,
     query,
     xml,
+    graphIndex,
 }) => {
     const classes = useStyles();
     const context = useContext(ExecutionPlanContext);
@@ -146,6 +146,7 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
     const PROPERTIES = locConstants.executionPlan.properties;
     const HIGHLIGHT_OPS = locConstants.executionPlan.highlightExpensiveOperation;
     const TOGGLE_TOOLTIPS = locConstants.executionPlan.toggleTooltips;
+    const COMPARE_PLAN = locConstants.executionPlan.comparePlan;
 
     const handleSavePlan = async () => {
         await context.saveExecutionPlan(xml);
@@ -163,9 +164,7 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
         if (executionPlanView) {
             executionPlanView.zoomIn();
             setExecutionPlanView(executionPlanView);
-            const zoomPercent = executionPlanView.getZoomLevel();
-            setZoomNumber(zoomPercent);
-            onZoomChange?.(zoomPercent);
+            setZoomNumber(executionPlanView.getZoomLevel());
         }
     };
 
@@ -173,9 +172,7 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
         if (executionPlanView) {
             executionPlanView.zoomOut();
             setExecutionPlanView(executionPlanView);
-            const zoomPercent = executionPlanView.getZoomLevel();
-            setZoomNumber(zoomPercent);
-            onZoomChange?.(zoomPercent);
+            setZoomNumber(executionPlanView.getZoomLevel());
         }
     };
 
@@ -183,9 +180,7 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
         if (executionPlanView) {
             executionPlanView.zoomToFit();
             setExecutionPlanView(executionPlanView);
-            const zoomPercent = executionPlanView.getZoomLevel();
-            setZoomNumber(zoomPercent);
-            onZoomChange?.(zoomPercent);
+            setZoomNumber(executionPlanView.getZoomLevel());
         }
     };
 
@@ -205,7 +200,7 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
     };
 
     const buttonClassName = (selected = false) =>
-        `${classes.button}${selected ? ` ${classes.selectedButton}` : ""}`;
+        mergeClasses(classes.button, selected && classes.selectedButton);
 
     return (
         <Toolbar
@@ -232,6 +227,13 @@ export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
                 onClick={handleShowQuery}
                 title={OPEN_QUERY}
                 aria-label={OPEN_QUERY}
+            />
+            <ToolbarButton
+                className={classes.button}
+                icon={<BranchCompareIcon16Regular className={classes.icon} />}
+                onClick={() => context.compareExecutionPlan(graphIndex)}
+                title={COMPARE_PLAN}
+                aria-label={COMPARE_PLAN}
             />
             <ToolbarDivider className={classes.divider} />
             <ToolbarButton

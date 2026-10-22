@@ -70,6 +70,7 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
             "fluent-result-grid",
             controller.isGridFocused ? "focused" : "",
             props.gridSettings?.alternatingRowColors ? "results-grid--alternating" : "",
+            props.gridSettings?.rightAlignNumbers ? "results-grid--right-align-numbers" : "",
             theme?.className,
             props.className,
         ]
@@ -98,6 +99,8 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
                 data-fluent-result-grid="true"
                 data-grid-id={props.gridId}
                 data-row-count={controller.displayedRowCount}
+                data-frozen-index={controller.frozenColumnIndex}
+                data-column-count={controller.columns.length}
                 onFocus={controller.handleGridContainerFocus}
                 onBlur={controller.handleGridContainerBlur}
                 onKeyDownCapture={controller.handleGridKeyDownCapture}>

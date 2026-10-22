@@ -5,21 +5,81 @@
 
 /**
  * OE v2 native command primitives (B19): identifier bracket-quoting with
- * adversarial names, SELECT TOP generation + clamping, and the shared
- * stable profile id recipe that keys OE nodes to the Query Studio
- * open-from-context path.
+ * adversarial names and the shared stable profile id recipe that keys OE
+ * nodes consistently with the metadata profile tree.
  */
 
 import { expect } from "chai";
 import {
     bracketQuote,
     qualifiedName,
-    selectTopSql,
 } from "../../src/objectExplorer/v2/commands/sqlIdentifierFormatter";
 import { stableProfileId } from "../../src/services/metadata/profileAuthAdapter";
-import { readProfileTree } from "../../src/objectExplorer/v2/sessions/oeV2ProfileAdapter";
+import {
+    diffProfileConnectionSnapshots,
+    OeV2StoredProfile,
+    profileConnectionSnapshot,
+    readProfileTree,
+} from "../../src/objectExplorer/v2/sessions/oeV2ProfileAdapter";
+import { copyNameForNode } from "../../src/objectExplorer/v2/commands/oeV2NativeCommands";
+import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 
 suite("Object Explorer v2 command primitives (B19)", () => {
+    test("saved ordering and group descriptions match classic, with groups before connections", async () => {
+        const { rootChildren } = await import("../../src/objectExplorer/v2/tree/oeV2NodeFactory");
+        const tree = await readProfileTree({
+            readAllConnectionGroups: async () => [
+                { id: "ROOT", name: "ROOT" },
+                { id: "g1", name: "Alpha", parentId: "ROOT" },
+                { id: "g2", name: "Zulu", parentId: "ROOT", order: 0, description: "Production" },
+            ],
+            readAllConnections: async () => [
+                { id: "a", server: "srv", profileName: "Alpha", order: -1 },
+                { id: "b", server: "srv", profileName: "beta", order: NaN },
+                { id: "c", server: "srv", profileName: "Charlie", order: Infinity },
+                { id: "z", server: "srv", profileName: "Zulu", order: 0 },
+                { id: "d", server: "srv", profileName: "delta", order: 1 },
+                { id: "e", server: "srv", profileName: "Echo", order: 1 },
+            ],
+        });
+        const nodes = rootChildren(tree);
+        expect(nodes.map((node) => node.label)).to.deep.equal([
+            "Zulu",
+            "Alpha",
+            "Zulu",
+            "delta",
+            "Echo",
+            "Alpha",
+            "beta",
+            "Charlie",
+        ]);
+        expect(nodes[0].tooltip).to.equal("Production");
+    });
+
+    test("database-scoped connections use database icons and containers retain their own icons", async () => {
+        const { connectionNode } = await import("../../src/objectExplorer/v2/tree/oeV2NodeFactory");
+        const tree = await readProfileTree({
+            readAllConnectionGroups: async () => [],
+            readAllConnections: async () => [
+                { id: "server", server: "srv" },
+                { id: "db", server: "srv", database: "AppDb" },
+                { id: "container", server: "srv", database: "AppDb", containerName: "sql" },
+            ],
+        });
+        for (const [state, suffix] of [
+            ["connected", "green"],
+            ["disconnected", "red"],
+        ] as const) {
+            expect(
+                tree.profiles.map((profile) => connectionNode(profile, { state }).icon),
+            ).to.deep.equal([
+                `Server_${suffix}`,
+                `Database_${suffix}`,
+                `DockerContainer_${suffix}`,
+            ]);
+        }
+    });
+
     test("bracketQuote: adversarial identifiers are contained", () => {
         expect(bracketQuote("Orders")).to.equal("[Orders]");
         expect(bracketQuote("evil]name")).to.equal("[evil]]name]");
@@ -28,18 +88,6 @@ suite("Object Explorer v2 command primitives (B19)", () => {
         expect(bracketQuote("select")).to.equal("[select]"); // keyword
         expect(bracketQuote("ünïcode")).to.equal("[ünïcode]");
         expect(qualifiedName("sales]x", "T")).to.equal("[sales]]x].[T]");
-    });
-
-    test("selectTopSql: clamped limits, escaped identifiers, no interpolation leaks", () => {
-        expect(selectTopSql("dbo", "Orders", 1000)).to.equal(
-            "SELECT TOP 1000 *\nFROM [dbo].[Orders];\n",
-        );
-        expect(selectTopSql("dbo", "T", 0)).to.contain("TOP 1000"); // invalid → default
-        expect(selectTopSql("dbo", "T", 3.5)).to.contain("TOP 1000");
-        expect(selectTopSql("dbo", "T", 999_999)).to.contain("TOP 100000"); // ceiling
-        const hostile = selectTopSql("dbo", "x]; SHUTDOWN; --", 10);
-        expect(hostile).to.contain("[x]]; SHUTDOWN; --]");
-        expect(hostile).to.not.match(/FROM \[dbo\]\.\[x\];/);
     });
 
     test("stableProfileId: saved id wins; derivation matches the OE profile tree", async () => {
@@ -61,6 +109,45 @@ suite("Object Explorer v2 command primitives (B19)", () => {
         expect(tree.profiles[0].profileId).to.equal(derived);
     });
 
+    test("profile reconciliation distinguishes connection edits from display-only edits", async () => {
+        const source = async (connections: OeV2StoredProfile[]) =>
+            readProfileTree({
+                readAllConnectionGroups: async () => [],
+                readAllConnections: async () => connections,
+            });
+        const before = profileConnectionSnapshot(
+            await source([
+                {
+                    id: "edited",
+                    server: "old.example",
+                    database: "OldDb",
+                    authenticationType: "SqlLogin",
+                    profileName: "Old label",
+                },
+                { id: "removed", server: "gone.example" },
+                { id: "unchanged", server: "same.example", groupId: "old-group" },
+            ]),
+        );
+        const after = profileConnectionSnapshot(
+            await source([
+                {
+                    id: "edited",
+                    server: "new.example",
+                    database: "NewDb",
+                    authenticationType: "Integrated",
+                    profileName: "New label",
+                },
+                { id: "unchanged", server: "same.example", groupId: "new-group" },
+                { id: "added", server: "new-profile.example" },
+            ]),
+        );
+
+        expect(diffProfileConnectionSnapshots(before, after)).to.deep.equal({
+            added: ["added"],
+            retired: ["edited", "removed"],
+        });
+    });
+
     test("group-less profiles surface at the root level (harness/settings-written)", async () => {
         const { rootChildren } = await import("../../src/objectExplorer/v2/tree/oeV2NodeFactory");
         const tree = await readProfileTree({
@@ -73,5 +160,20 @@ suite("Object Explorer v2 command primitives (B19)", () => {
         expect(roots.map((n) => `${n.kind}:${n.label}`)).to.deep.equal([
             "disconnectedConnection:NoGroup",
         ]);
+    });
+
+    test("copy name uses the selected leaf label, not inherited parent identity", () => {
+        const node = (kind: OeV2Node["kind"], label: string, objectName?: string) =>
+            ({ kind, label, objectName }) as OeV2Node;
+
+        expect(copyNameForNode(node("object", "dbo.Orders (External)", "Orders"))).to.equal(
+            "Orders",
+        );
+        expect(copyNameForNode(node("databaseObject", "dbo.Audit", "Audit"))).to.equal("Audit");
+        expect(copyNameForNode(node("column", "OrderId", "Orders"))).to.equal("OrderId");
+        expect(copyNameForNode(node("parameter", "@customerId", "GetOrders"))).to.equal(
+            "@customerId",
+        );
+        expect(copyNameForNode(node("key", "PK_Orders"))).to.equal("PK_Orders");
     });
 });

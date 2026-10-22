@@ -31,6 +31,40 @@ import {
 import type { FluentResultGridActiveDataColumn } from "./fluentResultGridControllerTypes";
 import type { FluentResultGridDataRow } from "./fluentResultGridDataView";
 
+export function updateFluentResultGridHeaderButtonState({
+    headerNode,
+    columnId,
+    filters,
+    sort,
+}: {
+    headerNode: HTMLElement | null | undefined;
+    columnId: string;
+    filters: ColumnFilterMap;
+    sort: { columnId: string; direction: SortProperties } | undefined;
+}): void {
+    const filterButton = headerNode?.querySelector<HTMLButtonElement>(".slick-header-filterbutton");
+    const sortButton = headerNode?.querySelector<HTMLButtonElement>(".slick-header-sortbutton");
+    const filterValues = filters[columnId]?.filterValues ?? [];
+    const isFiltered = filterValues.length > 0;
+    filterButton?.classList.toggle("filtered", isFiltered);
+
+    sortButton?.classList.remove("sorted-asc", "sorted-desc");
+    let sortDirection = "none";
+    if (sort?.columnId === columnId) {
+        if (sort.direction === "ASC") {
+            sortButton?.classList.add("sorted-asc");
+            sortDirection = "asc";
+        } else if (sort.direction === "DESC") {
+            sortButton?.classList.add("sorted-desc");
+            sortDirection = "desc";
+        }
+    }
+
+    // Sort and filter state readable without coupling to class names.
+    headerNode?.setAttribute("data-sort-direction", sortDirection);
+    headerNode?.setAttribute("data-filtered", String(isFiltered));
+}
+
 export function isFluentResultGridResizeHandleEvent(eventData: MouseEvent | undefined): boolean {
     const eventTarget = eventData?.target as Element | null;
     return !!eventTarget?.closest?.(".slick-resizable-handle");
@@ -60,23 +94,6 @@ export function updateFluentResultGridHeaderButtonStates({
             });
         }
     }
-}
-
-/** Update one rendered header without scanning every grid column. */
-export function updateFluentResultGridHeaderButtonState({
-    headerNode,
-    columnId,
-    filters,
-    sort,
-}: {
-    headerNode: HTMLElement;
-    columnId: string;
-    filters: ColumnFilterMap;
-    sort: { columnId: string; direction: SortProperties } | undefined;
-}): void {
-    const filterButton = headerNode.querySelector<HTMLButtonElement>(".slick-header-filterbutton");
-    const sortButton = headerNode.querySelector<HTMLButtonElement>(".slick-header-sortbutton");
-    applyFluentResultGridHeaderButtonState({ filterButton, sortButton, columnId, filters, sort });
 }
 
 function applyFluentResultGridHeaderButtonState({

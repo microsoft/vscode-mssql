@@ -187,42 +187,52 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             },
         });
 
-        // Webview mark bridge: forward webview marks (render timings, window
-        // fetches) to the diagnostics core. Active in PERF_MODE (harness) and
-        // whenever a diagnostics sink is live (Debug Console open or Session
-        // Diag capture on); otherwise fully inert. The enable notification is
-        // re-sent on a short schedule because "webview ready" can precede the
-        // app's handler registration; the webview queues marks (with original
-        // timestamps) until one of the sends lands.
+        // Forward webview marks whenever either the harness or an in-product
+        // diagnostics sink is active. Calls remain inert until the webview is
+        // explicitly enabled, and queued marks keep their original clocks.
         this.connection.onNotification(PerfWebviewMarkNotification.type, (mark) => {
             Perf.webviewMark(mark, this._sourceFile);
         });
-        // Unconditional schedule (not gated on whenWebviewReady, which can
-        // time out on cold first loads): sends to a not-yet-ready webview
-        // are dropped harmlessly, and the webview queues marks with their
-        // original timestamps until one enable lands. Late sends also cover
-        // "console opened after the webview loaded".
-        const sendEnableIfWanted = () => {
-            if (this._isDisposed) {
-                return;
-            }
-            if (!Perf.enabled && !diag.anySinkActive) {
-                return;
+        const sendEnableIfWanted = (): boolean => {
+            if (this._isDisposed || (!Perf.enabled && !diag.anySinkActive)) {
+                return false;
             }
             try {
                 void this.connection.sendNotification(PerfEnableNotification.type, undefined);
             } catch {
                 // disposed between check and send; ignore
             }
+            return true;
         };
-        for (const delayMs of [500, 2000, 5000, 15000, 30000]) {
-            const timer = setTimeout(sendEnableIfWanted, delayMs);
-            this._disposables.push({ dispose: () => clearTimeout(timer) });
-        }
-        // Keep late-opened consoles covered: re-check periodically (cheap).
-        const enablePoll = setInterval(sendEnableIfWanted, 20000);
-        enablePoll.unref?.();
-        this._disposables.push({ dispose: () => clearInterval(enablePoll) });
+        const enableTimers = new Set<NodeJS.Timeout>();
+        const clearEnableTimers = () => {
+            for (const timer of enableTimers) {
+                clearTimeout(timer);
+            }
+            enableTimers.clear();
+        };
+        const scheduleEnableNotifications = () => {
+            clearEnableTimers();
+            if (!sendEnableIfWanted()) {
+                return;
+            }
+            for (const delayMs of [500, 2000, 5000, 15000, 30000]) {
+                const timer = setTimeout(() => {
+                    enableTimers.delete(timer);
+                    sendEnableIfWanted();
+                }, delayMs);
+                timer.unref?.();
+                enableTimers.add(timer);
+            }
+        };
+        const removeSinkListener = diag.onSinkStateChanged(scheduleEnableNotifications);
+        this._disposables.push({
+            dispose: () => {
+                removeSinkListener();
+                clearEnableTimers();
+            },
+        });
+        scheduleEnableNotifications();
     }
 
     /**
@@ -492,7 +502,10 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             const reducer = this._reducerHandlers.get(action.type);
             if (reducer) {
                 try {
-                    this.state = await reducer(this.state, action.payload);
+                    const nextState = await reducer(this.state, action.payload);
+                    if (!this._isDisposed) {
+                        this.state = nextState;
+                    }
                     this.logger.debug(`Reducer action succeeded: ${action.type as string}`);
                     reducerActivity.end(ActivityStatus.Succeeded);
                 } catch (error) {
@@ -699,6 +712,11 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
      * @param value The new state object
      */
     public set state(value: State) {
+        if (this._isDisposed) {
+            this.logger.debug("Skipping state update because the webview controller is disposed");
+            return;
+        }
+
         this._state = value;
         void this.sendNotification(StateChangeNotification.type<State>(), value);
     }

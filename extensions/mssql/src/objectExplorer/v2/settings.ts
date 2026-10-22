@@ -7,15 +7,6 @@
 
 import * as vscode from "vscode";
 
-export type OeViewMode = "classic" | "v2Preview";
-
-export function oeViewMode(): OeViewMode {
-    const raw = vscode.workspace
-        .getConfiguration()
-        .get<string>("mssql.objectExplorer.viewMode", "classic");
-    return raw === "v2Preview" ? "v2Preview" : "classic";
-}
-
 export interface OeV2Settings {
     readonly groupBySchema: boolean;
     readonly showSystemDatabases: boolean;

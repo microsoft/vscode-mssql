@@ -20,7 +20,6 @@ import type {
 import type { FluentResultGridDataRow, FluentResultGridDataView } from "./fluentResultGridDataView";
 import { FLUENT_RESULT_GRID_SELECTION_SUMMARY_DEBOUNCE_MS } from "./fluentResultGridConstants";
 import { makeFluentResultGridMenuButtonsUntabbable } from "./fluentResultGridDomUtils";
-import { enableFluentResultGridModifierDrag } from "./fluentResultGridCellRangeSelector";
 import { getFluentResultGridSelectionSummaryPayload } from "./fluentResultGridSelection";
 import { FluentResultGridSelectionModel } from "./fluentResultGridSelectionModel";
 
@@ -186,7 +185,6 @@ export function useFluentResultGridSlickLifecycle({
             }
             reactGridRef.current = reactGrid;
             dataViewRef.current?.setGrid(grid);
-            enableFluentResultGridModifierDrag(grid.getOptions().preventDragFromKeys);
             attachFrozenPaneWheelHandler(grid);
             grid.setSelectionModel(
                 new FluentResultGridSelectionModel({

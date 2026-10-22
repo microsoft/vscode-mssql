@@ -17,8 +17,10 @@
  * singleton inlineCompletionDebugStore so every viewer sees them live.
  */
 
+import { InlineCompletionDebug } from "../../../constants/locConstants";
+import { isInlineCompletionFeatureEnabled } from "../../inlineCompletionFeatureGate";
 import * as vscode from "vscode";
-import { logger2 } from "../../../models/logger2";
+import { logger as logger2 } from "../../../models/logger";
 import { getErrorMessage } from "../../../utils/utils";
 import {
     FeatureReplayEngine,
@@ -108,6 +110,7 @@ import {
 import { isRecord } from "./inlineCompletionDebugConstants";
 
 export interface InlineCompletionReplayServiceDeps {
+    isFeatureEnabled?: () => boolean;
     extensionContext: vscode.ExtensionContext;
     schemaContextService: CompletionSchemaContextService | undefined;
     captureService: InlineCompletionCaptureService;
@@ -170,11 +173,26 @@ export class InlineCompletionReplayService {
      */
     private _queueModePolicy: ReplayQueueModePolicy | undefined;
     private _disposed = false;
+    private readonly _activeRequests = new Set<vscode.CancellationTokenSource>();
+    private readonly _gateWatcher: vscode.Disposable;
+
+    private isEnabled(): boolean {
+        return (
+            !this._disposed && (this._deps.isFeatureEnabled ?? isInlineCompletionFeatureEnabled)()
+        );
+    }
 
     /** Fires after every replay engine state change (cart/queue/run progress). */
     public readonly onDidChange = this._onDidChangeEmitter.event;
 
     constructor(private readonly _deps: InlineCompletionReplayServiceDeps) {
+        this._gateWatcher = vscode.workspace.onDidChangeConfiguration(() => {
+            if (!this.isEnabled()) {
+                for (const request of this._activeRequests) request.cancel();
+                for (const run of this._replayEngine.getState().runs)
+                    this._replayEngine.cancelRun(run.id);
+            }
+        });
         this._runRepository = createCompletionsReplayRunRepository();
         this._replayEngine = new FeatureReplayEngine(this.createReplayHost(), {
             observer: this.createRunObserver(),
@@ -186,6 +204,8 @@ export class InlineCompletionReplayService {
             return;
         }
         this._disposed = true;
+        this._gateWatcher.dispose();
+        for (const request of this._activeRequests) request.cancel();
         // Engine dispose marks interrupted runs `partial` (never silently
         // lose run evidence) and notifies the observer BEFORE the repository
         // flushes its final manifests.
@@ -307,7 +327,7 @@ export class InlineCompletionReplayService {
                       label: getSchemaBudgetProfileLabel(schemaBudgetProfileId),
                   }))
                   .filter((schema) => schema.id !== "custom")
-            : [{ id: CAPTURED_SCHEMA_CELL_SENTINEL, label: "Captured schema" }];
+            : [{ id: CAPTURED_SCHEMA_CELL_SENTINEL, label: InlineCompletionDebug.capturedSchema }];
         if (profiles.length === 0 || schemaProfiles.length === 0) {
             return;
         }
@@ -377,6 +397,7 @@ export class InlineCompletionReplayService {
             cancellation?: FeatureReplayCancellationToken;
         } = {},
     ): Promise<InlineCompletionDebugEvent | undefined> {
+        if (!this.isEnabled()) return undefined;
         // Compaction stamps the explicit mode policy, so the digest below is
         // identical to the queue-time row digest for engine-driven items.
         const overrides = compactReplayConfig(
@@ -642,8 +663,7 @@ export class InlineCompletionReplayService {
 
         const useSchemaContext =
             overrides.useSchemaContext ??
-            profile?.useSchemaContext ??
-            getConfiguredUseSchemaContext();
+            ((profile?.useSchemaContext ?? true) && getConfiguredUseSchemaContext());
         const includeSqlDiagnostics =
             overrides.includeSqlDiagnostics ?? getConfiguredIncludeSqlDiagnostics();
         const sqlDiagnosticsText = includeSqlDiagnostics
@@ -772,6 +792,8 @@ export class InlineCompletionReplayService {
             (intentMode ? intentModeMaxTokens : continuationModeMaxTokens);
         const startedAt = replayStartedAt;
         const cancellationTokenSource = new vscode.CancellationTokenSource();
+        this._activeRequests.add(cancellationTokenSource);
+        if (!this.isEnabled()) cancellationTokenSource.cancel();
         // Bridge the engine's webview-free token into the vscode token that
         // rides the LM request/response APIs (addendum §7.4).
         let cancellationBridge: { dispose(): void } | undefined;
@@ -844,6 +866,8 @@ export class InlineCompletionReplayService {
                 promptMessages,
                 cancellationTokenSource.token,
             );
+            if (!this.isEnabled() || cancellationTokenSource.token.isCancellationRequested)
+                throw new vscode.CancellationError();
             const response = await selectedModel.sendRequest(
                 promptMessages,
                 {
@@ -873,6 +897,7 @@ export class InlineCompletionReplayService {
                 linePrefix,
                 undefined,
                 intentMode,
+                statementPrefix,
             );
             finalCompletionText = suppressDocumentSuffixOverlap(finalCompletionText, suffix);
             const result = !sanitizedResponse
@@ -944,6 +969,7 @@ export class InlineCompletionReplayService {
             });
         } finally {
             cancellationBridge?.dispose();
+            this._activeRequests.delete(cancellationTokenSource);
             cancellationTokenSource.dispose();
         }
     }
@@ -1178,7 +1204,10 @@ export class InlineCompletionReplayService {
                         cells: (run.matrixCells ?? []).map((cell) => ({
                             matrixCellId: cell.cellId,
                             configGroupId: cellGroupIds.get(cell.cellId) ?? "",
-                            label: `${cell.profileLabel} x ${cell.schemaLabel}`,
+                            label: InlineCompletionDebug.value0X1(
+                                String(cell.profileLabel),
+                                String(cell.schemaLabel),
+                            ),
                             ordinal: cell.ordinal,
                         })),
                         repetitions: 1,

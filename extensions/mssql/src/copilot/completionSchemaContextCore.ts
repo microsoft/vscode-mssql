@@ -17,8 +17,6 @@
  * what the MD-4 golden parity test asserts against.
  */
 
-import * as vscode from "vscode";
-import * as Constants from "../constants/constants";
 import { InlineCompletionDebugSchemaContextOverrides } from "../sharedInterfaces/inlineCompletionDebug";
 import { inlineCompletionDebugStore } from "./inlineCompletionDebug/inlineCompletionDebugStore";
 
@@ -86,6 +84,7 @@ export interface RawMasterSymbol {
 }
 
 export interface RawSchemaContextPayload {
+    caseSensitive?: boolean;
     server?: string;
     database?: string;
     defaultSchema?: string;
@@ -148,6 +147,7 @@ export interface SqlInlineCompletionSchemaContextSelectionMetadata {
 }
 
 export interface SqlInlineCompletionSchemaContext {
+    caseSensitive?: boolean;
     server?: string;
     database?: string;
     defaultSchema?: string;
@@ -457,24 +457,18 @@ export function getSqlInlineCompletionSchemaContextRuntimeSettings(
     modelMaxInputTokens?: number,
     debugSchemaContextOverrides?: InlineCompletionDebugSchemaContextOverrides | null,
 ): SqlInlineCompletionSchemaContextRuntimeSettings {
-    const workspaceSettings = asRecord(
-        vscode.workspace
-            .getConfiguration()
-            .get<unknown>(Constants.configCopilotInlineCompletionsSchemaContext, {}),
-    );
     const debugSettings =
         debugSchemaContextOverrides === undefined
             ? getDebugSchemaContextSettings()
             : asRecord(debugSchemaContextOverrides ?? {});
-    const mergedSettings = mergeSettingsRecords(workspaceSettings, debugSettings);
-    const configuredProfile = normalizeBudgetProfileId(readString(mergedSettings, "budgetProfile"));
+    const configuredProfile = normalizeBudgetProfileId(readString(debugSettings, "budgetProfile"));
     const profileId = configuredProfile ?? "balanced";
     const baseProfile =
         profileId === "custom" ? schemaBudgetProfiles.balanced : schemaBudgetProfiles[profileId];
-    const budget = resolveBudget(baseProfile, mergedSettings, modelMaxInputTokens);
-    const messageOrder = normalizeMessageOrder(readString(mergedSettings, "messageOrder"));
+    const budget = resolveBudget(baseProfile, debugSettings, modelMaxInputTokens);
+    const messageOrder = normalizeMessageOrder(readString(debugSettings, "messageOrder"));
     const schemaContextChannel = normalizeSchemaContextChannel(
-        readString(mergedSettings, "schemaContextChannel"),
+        readString(debugSettings, "schemaContextChannel"),
     );
 
     return {
@@ -488,22 +482,6 @@ export function getSqlInlineCompletionSchemaContextRuntimeSettings(
 
 function getDebugSchemaContextSettings(): Record<string, unknown> {
     return asRecord(inlineCompletionDebugStore.getOverrides().schemaContext ?? {});
-}
-
-function mergeSettingsRecords(
-    workspaceSettings: Record<string, unknown>,
-    debugSettings: Record<string, unknown>,
-): Record<string, unknown> {
-    const workspaceBudgetOverrides = asRecord(workspaceSettings.budgetOverrides ?? {});
-    const debugBudgetOverrides = asRecord(debugSettings.budgetOverrides ?? {});
-    return {
-        ...workspaceSettings,
-        ...debugSettings,
-        budgetOverrides: {
-            ...workspaceBudgetOverrides,
-            ...debugBudgetOverrides,
-        },
-    };
 }
 
 function resolveBudget(
@@ -946,7 +924,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
 
-function normalizeSchemaNames(schemas: RawSchemaName[] | undefined, limit: number): string[] {
+function normalizeSchemaNames(
+    schemas: RawSchemaName[] | undefined,
+    limit: number,
+    caseSensitive: boolean,
+): string[] {
     const uniqueSchemas = new Map<string, string>();
     for (const schema of schemas ?? []) {
         const normalized = normalizeOptionalString(schema.name);
@@ -954,7 +936,7 @@ function normalizeSchemaNames(schemas: RawSchemaName[] | undefined, limit: numbe
             continue;
         }
 
-        uniqueSchemas.set(normalized.toLowerCase(), normalized);
+        uniqueSchemas.set(identityKey(normalized, caseSensitive), normalized);
         if (uniqueSchemas.size >= limit) {
             break;
         }
@@ -969,6 +951,7 @@ function normalizeSchemaObjects(
     maxColumnCount: number,
     includeColumnDefinitions: boolean,
     maxForeignKeyCount: number,
+    caseSensitive: boolean,
 ): SqlInlineCompletionSchemaObject[] {
     const normalizedObjects: SqlInlineCompletionSchemaObject[] = [];
     const seenObjectNames = new Set<string>();
@@ -983,7 +966,7 @@ function normalizeSchemaObjects(
             continue;
         }
 
-        const objectKey = qualifiedName.toLowerCase();
+        const objectKey = identityKey(qualifiedName, caseSensitive);
         if (seenObjectNames.has(objectKey)) {
             continue;
         }
@@ -994,6 +977,7 @@ function normalizeSchemaObjects(
             maxColumnCount,
             includeColumnDefinitions,
             maxForeignKeyCount,
+            caseSensitive,
         );
         const normalizedObject: SqlInlineCompletionSchemaObject = {
             name: qualifiedName,
@@ -1025,6 +1009,7 @@ function normalizeObjectColumns(
     maxColumnCount: number,
     includeColumnDefinitions: boolean,
     maxForeignKeyCount: number,
+    caseSensitive: boolean,
 ): {
     columns: string[];
     columnDefinitions: string[];
@@ -1048,7 +1033,7 @@ function normalizeObjectColumns(
             continue;
         }
 
-        const columnKey = normalizedColumn.toLowerCase();
+        const columnKey = identityKey(normalizedColumn, caseSensitive);
         if (seenColumns.has(columnKey)) {
             continue;
         }
@@ -1071,6 +1056,7 @@ function normalizeObjectColumns(
                 referencedTable,
                 referencedColumn,
                 maxForeignKeyCount,
+                caseSensitive,
             );
         }
 
@@ -1098,6 +1084,7 @@ function normalizeObjectColumns(
                 referencedTable,
                 referencedColumn,
                 maxForeignKeyCount,
+                caseSensitive,
             );
         }
     }
@@ -1117,12 +1104,13 @@ function addForeignKey(
     referencedTable: string,
     referencedColumn: string,
     maxForeignKeyCount: number,
+    caseSensitive: boolean,
 ): void {
     if (maxForeignKeyCount <= 0 || foreignKeys.length >= maxForeignKeyCount) {
         return;
     }
 
-    const key = `${column}|${referencedTable}|${referencedColumn}`.toLowerCase();
+    const key = identityKey(`${column}|${referencedTable}|${referencedColumn}`, caseSensitive);
     if (seenForeignKeys.has(key)) {
         return;
     }
@@ -1140,6 +1128,7 @@ function normalizeRoutines(
     maxRoutineCount: number,
     maxParameterCount: number,
     maxReturnColumnCount: number,
+    caseSensitive: boolean,
 ): SqlInlineCompletionRoutine[] {
     const normalizedRoutines: SqlInlineCompletionRoutine[] = [];
     const seenRoutineNames = new Set<string>();
@@ -1154,7 +1143,7 @@ function normalizeRoutines(
             continue;
         }
 
-        const routineKey = qualifiedName.toLowerCase();
+        const routineKey = identityKey(qualifiedName, caseSensitive);
         if (seenRoutineNames.has(routineKey)) {
             continue;
         }
@@ -1163,7 +1152,11 @@ function normalizeRoutines(
         const normalizedRoutine: SqlInlineCompletionRoutine = {
             name: qualifiedName,
             type: normalizeOptionalString(routine.type) ?? "ROUTINE",
-            parameters: normalizeRoutineParameters(routine.parameters, maxParameterCount),
+            parameters: normalizeRoutineParameters(
+                routine.parameters,
+                maxParameterCount,
+                caseSensitive,
+            ),
         };
 
         const typeDescription = normalizeOptionalString(routine.typeDescription);
@@ -1182,6 +1175,7 @@ function normalizeRoutines(
             maxReturnColumnCount,
             true,
             0,
+            caseSensitive,
         );
         if (returnColumnMetadata.columns.length > 0) {
             normalizedRoutine.returnColumns = returnColumnMetadata.columns;
@@ -1199,6 +1193,7 @@ function normalizeRoutines(
 function normalizeRoutineParameters(
     parameters: RawRoutineParameter[] | undefined,
     maxParameterCount: number,
+    caseSensitive: boolean,
 ): SqlInlineCompletionRoutineParameter[] {
     const normalizedParameters: SqlInlineCompletionRoutineParameter[] = [];
     const seenParameters = new Set<string>();
@@ -1213,7 +1208,7 @@ function normalizeRoutineParameters(
             continue;
         }
 
-        const key = name.toLowerCase();
+        const key = identityKey(name, caseSensitive);
         if (seenParameters.has(key)) {
             continue;
         }
@@ -1234,7 +1229,11 @@ function normalizeRoutineParameters(
     return normalizedParameters;
 }
 
-function normalizeMasterSymbols(symbols: RawMasterSymbol[] | undefined, limit: number): string[] {
+function normalizeMasterSymbols(
+    symbols: RawMasterSymbol[] | undefined,
+    limit: number,
+    caseSensitive: boolean,
+): string[] {
     const normalizedSymbols: string[] = [];
     const seenSymbols = new Set<string>();
 
@@ -1248,7 +1247,7 @@ function normalizeMasterSymbols(symbols: RawMasterSymbol[] | undefined, limit: n
             continue;
         }
 
-        const symbolKey = qualifiedName.toLowerCase();
+        const symbolKey = identityKey(qualifiedName, caseSensitive);
         if (seenSymbols.has(symbolKey)) {
             continue;
         }
@@ -1315,7 +1314,9 @@ export function buildSchemaContextFromRawPayload(
     rawContext: RawSchemaContextPayload,
     budget: SqlInlineCompletionResolvedSchemaBudget,
 ): SqlInlineCompletionSchemaContext | undefined {
+    const caseSensitive = rawContext.caseSensitive === true;
     const context: SqlInlineCompletionSchemaContext = {
+        caseSensitive,
         server: normalizeOptionalString(rawContext.server),
         database: normalizeOptionalString(rawContext.database),
         defaultSchema: normalizeOptionalString(rawContext.defaultSchema),
@@ -1324,13 +1325,14 @@ export function buildSchemaContextFromRawPayload(
         totalTableCount: normalizeOptionalNumber(rawContext.totalTableCount),
         totalViewCount: normalizeOptionalNumber(rawContext.totalViewCount),
         totalRoutineCount: normalizeOptionalNumber(rawContext.totalRoutineCount),
-        schemas: normalizeSchemaNames(rawContext.schemas, budget.maxFetchedSchemas),
+        schemas: normalizeSchemaNames(rawContext.schemas, budget.maxFetchedSchemas, caseSensitive),
         tables: normalizeSchemaObjects(
             rawContext.tables,
             budget.maxFetchedTables,
             budget.smallSchemaMaxColumnsPerObject,
             true,
             budget.maxForeignKeys,
+            caseSensitive,
         ),
         views: normalizeSchemaObjects(
             rawContext.views,
@@ -1338,6 +1340,7 @@ export function buildSchemaContextFromRawPayload(
             budget.smallSchemaMaxColumnsPerObject,
             true,
             0,
+            caseSensitive,
         ),
         routines: budget.includeRoutines
             ? normalizeRoutines(
@@ -1345,15 +1348,18 @@ export function buildSchemaContextFromRawPayload(
                   budget.maxFetchedRoutines,
                   budget.maxParametersPerRoutine,
                   budget.smallSchemaMaxColumnsPerObject,
+                  caseSensitive,
               )
             : [],
         tableNameOnlyInventory: normalizeMasterSymbols(
             rawContext.tableNameOnlyInventory,
             Math.max(budget.maxTableNameOnlyInventory, budget.largeTableNameOnlyInventory),
+            caseSensitive,
         ),
         viewNameOnlyInventory: normalizeMasterSymbols(
             rawContext.viewNameOnlyInventory,
             Math.max(budget.maxViewNameOnlyInventory, budget.largeViewNameOnlyInventory),
+            caseSensitive,
         ),
         routineNameOnlyInventory: budget.includeRoutines
             ? normalizeMasterSymbols(
@@ -1362,15 +1368,21 @@ export function buildSchemaContextFromRawPayload(
                       budget.maxRoutineNameOnlyInventory,
                       budget.largeRoutineNameOnlyInventory,
                   ),
+                  caseSensitive,
               )
             : [],
-        masterSymbols: normalizeMasterSymbols(rawContext.masterSymbols, budget.maxMasterSymbols),
+        masterSymbols: normalizeMasterSymbols(
+            rawContext.masterSymbols,
+            budget.maxMasterSymbols,
+            caseSensitive,
+        ),
         systemObjects: normalizeSchemaObjects(
             rawContext.systemObjects,
             budget.maxSystemObjects,
             budget.maxColumnsPerObject,
             false,
             0,
+            caseSensitive,
         ),
     };
 
@@ -1424,6 +1436,7 @@ export function selectSchemaContextForPrompt(
         relevanceTerms,
         context.defaultSchema,
         effectiveBudget,
+        context.caseSensitive === true,
     );
     const rankedViews = rankSchemaObjects(
         context.views,
@@ -1442,38 +1455,55 @@ export function selectSchemaContextForPrompt(
     const selectedRoutines = settings.budget.includeRoutines
         ? rankedRoutines.slice(0, effectiveBudget.maxRoutines)
         : [];
-    const selectedTableNames = new Set(selectedTables.map((table) => table.name.toLowerCase()));
-    const selectedViewNames = new Set(selectedViews.map((view) => view.name.toLowerCase()));
+    const caseSensitive = context.caseSensitive === true;
+    const selectedTableNames = new Set(
+        selectedTables.map((table) => identityKey(table.name, caseSensitive)),
+    );
+    const selectedViewNames = new Set(
+        selectedViews.map((view) => identityKey(view.name, caseSensitive)),
+    );
     const selectedRoutineNames = new Set(
-        selectedRoutines.map((routine) => routine.name.toLowerCase()),
+        selectedRoutines.map((routine) => identityKey(routine.name, caseSensitive)),
     );
 
     const tableNameOnlyInventory = rankQualifiedNames(
-        uniqueStringsByLowerCase([
-            ...rankedTables.slice(effectiveBudget.maxTables).map((table) => table.name),
-            ...(context.tableNameOnlyInventory ?? []),
-        ]).filter((tableName) => !selectedTableNames.has(tableName.toLowerCase())),
+        uniqueStringsByLowerCase(
+            [
+                ...rankedTables.slice(effectiveBudget.maxTables).map((table) => table.name),
+                ...(context.tableNameOnlyInventory ?? []),
+            ],
+            caseSensitive,
+        ).filter((tableName) => !selectedTableNames.has(identityKey(tableName, caseSensitive))),
         relevanceTerms,
         context.defaultSchema,
         effectiveBudget,
     ).slice(0, effectiveBudget.maxTableNameOnlyInventory);
     const viewNameOnlyInventory = rankQualifiedNames(
-        uniqueStringsByLowerCase([
-            ...rankedViews.slice(effectiveBudget.maxViews).map((view) => view.name),
-            ...(context.viewNameOnlyInventory ?? []),
-        ]).filter((viewName) => !selectedViewNames.has(viewName.toLowerCase())),
+        uniqueStringsByLowerCase(
+            [
+                ...rankedViews.slice(effectiveBudget.maxViews).map((view) => view.name),
+                ...(context.viewNameOnlyInventory ?? []),
+            ],
+            caseSensitive,
+        ).filter((viewName) => !selectedViewNames.has(identityKey(viewName, caseSensitive))),
         relevanceTerms,
         context.defaultSchema,
         effectiveBudget,
     ).slice(0, effectiveBudget.maxViewNameOnlyInventory);
     const routineNameOnlyInventory = settings.budget.includeRoutines
         ? rankQualifiedNames(
-              uniqueStringsByLowerCase([
-                  ...rankedRoutines
-                      .slice(effectiveBudget.maxRoutines)
-                      .map((routine) => routine.name),
-                  ...(context.routineNameOnlyInventory ?? []),
-              ]).filter((routineName) => !selectedRoutineNames.has(routineName.toLowerCase())),
+              uniqueStringsByLowerCase(
+                  [
+                      ...rankedRoutines
+                          .slice(effectiveBudget.maxRoutines)
+                          .map((routine) => routine.name),
+                      ...(context.routineNameOnlyInventory ?? []),
+                  ],
+                  caseSensitive,
+              ).filter(
+                  (routineName) =>
+                      !selectedRoutineNames.has(identityKey(routineName, caseSensitive)),
+              ),
               relevanceTerms,
               context.defaultSchema,
               effectiveBudget,
@@ -1503,6 +1533,7 @@ export function selectSchemaContextForPrompt(
                     table,
                     effectiveBudget,
                     effectiveBudget.maxColumnsPerObject,
+                    caseSensitive,
                 ),
             ),
             views: selectedViews.map((view) =>
@@ -1510,6 +1541,7 @@ export function selectSchemaContextForPrompt(
                     view,
                     effectiveBudget,
                     effectiveBudget.maxColumnsPerObject,
+                    caseSensitive,
                 ),
             ),
             routines: selectedRoutines.map((routine) =>
@@ -1525,6 +1557,7 @@ export function selectSchemaContextForPrompt(
                         object,
                         effectiveBudget,
                         effectiveBudget.maxColumnsPerObject,
+                        caseSensitive,
                     ),
                 ),
             masterSymbols: context.masterSymbols.slice(0, effectiveBudget.maxMasterSymbols),
@@ -1677,18 +1710,21 @@ function buildOutlierSchemaContext(
     budget: EffectiveSelectionBudget,
     metadata: SqlInlineCompletionSchemaContextSelectionMetadata,
 ): SqlInlineCompletionSchemaContext {
-    const allTableNames = uniqueStringsByLowerCase([
-        ...context.tables.map((table) => table.name),
-        ...(context.tableNameOnlyInventory ?? []),
-    ]);
-    const allViewNames = uniqueStringsByLowerCase([
-        ...context.views.map((view) => view.name),
-        ...(context.viewNameOnlyInventory ?? []),
-    ]);
-    const allRoutineNames = uniqueStringsByLowerCase([
-        ...(context.routines ?? []).map((routine) => routine.name),
-        ...(context.routineNameOnlyInventory ?? []),
-    ]);
+    const allTableNames = uniqueStringsByLowerCase(
+        [...context.tables.map((table) => table.name), ...(context.tableNameOnlyInventory ?? [])],
+        context.caseSensitive === true,
+    );
+    const allViewNames = uniqueStringsByLowerCase(
+        [...context.views.map((view) => view.name), ...(context.viewNameOnlyInventory ?? [])],
+        context.caseSensitive === true,
+    );
+    const allRoutineNames = uniqueStringsByLowerCase(
+        [
+            ...(context.routines ?? []).map((routine) => routine.name),
+            ...(context.routineNameOnlyInventory ?? []),
+        ],
+        context.caseSensitive === true,
+    );
 
     metadata.degradationSteps.push("outlierInventoryOnly");
     return {
@@ -1738,6 +1774,7 @@ function selectDetailedTablesWithForeignKeyExpansion(
     relevanceTerms: SchemaRelevanceTerm[],
     defaultSchema: string | undefined,
     budget: EffectiveSelectionBudget,
+    caseSensitive: boolean,
 ): SqlInlineCompletionSchemaObject[] {
     const selectedByName = new Map<string, SqlInlineCompletionSchemaObject>();
     const tableByName = new Map<string, SqlInlineCompletionSchemaObject>();
@@ -1746,15 +1783,15 @@ function selectDetailedTablesWithForeignKeyExpansion(
     const initialTableCount = Math.max(0, maxDetailedTables - expansionReserve);
 
     for (const table of allTables) {
-        tableByName.set(table.name.toLowerCase(), table);
+        tableByName.set(identityKey(table.name, caseSensitive), table);
     }
 
     for (const table of rankedTables.slice(0, initialTableCount)) {
-        selectedByName.set(table.name.toLowerCase(), table);
+        selectedByName.set(identityKey(table.name, caseSensitive), table);
     }
 
     if (expansionReserve > 0) {
-        const reverseReferenceMap = buildReverseForeignKeyReferenceMap(allTables);
+        const reverseReferenceMap = buildReverseForeignKeyReferenceMap(allTables, caseSensitive);
         let frontier = [...selectedByName.values()];
 
         for (let depth = 0; depth < budget.foreignKeyExpansionDepth; depth++) {
@@ -1763,17 +1800,23 @@ function selectDetailedTablesWithForeignKeyExpansion(
                 for (const relatedTableName of getRelatedForeignKeyTableNames(
                     table,
                     reverseReferenceMap,
+                    caseSensitive,
                 )) {
                     if (selectedByName.size >= maxDetailedTables) {
                         break;
                     }
 
-                    const relatedTable = tableByName.get(relatedTableName.toLowerCase());
-                    if (!relatedTable || selectedByName.has(relatedTable.name.toLowerCase())) {
+                    const relatedTable = tableByName.get(
+                        identityKey(relatedTableName, caseSensitive),
+                    );
+                    if (
+                        !relatedTable ||
+                        selectedByName.has(identityKey(relatedTable.name, caseSensitive))
+                    ) {
                         continue;
                     }
 
-                    selectedByName.set(relatedTable.name.toLowerCase(), relatedTable);
+                    selectedByName.set(identityKey(relatedTable.name, caseSensitive), relatedTable);
                     nextFrontier.push(relatedTable);
                 }
             }
@@ -1789,8 +1832,8 @@ function selectDetailedTablesWithForeignKeyExpansion(
             break;
         }
 
-        if (!selectedByName.has(table.name.toLowerCase())) {
-            selectedByName.set(table.name.toLowerCase(), table);
+        if (!selectedByName.has(identityKey(table.name, caseSensitive))) {
+            selectedByName.set(identityKey(table.name, caseSensitive), table);
         }
     }
 
@@ -1826,11 +1869,12 @@ function getForeignKeyExpansionReserve(
 
 function buildReverseForeignKeyReferenceMap(
     tables: SqlInlineCompletionSchemaObject[],
+    caseSensitive: boolean,
 ): Map<string, string[]> {
     const reverseReferenceMap = new Map<string, string[]>();
     for (const table of tables) {
         for (const foreignKey of table.foreignKeys ?? []) {
-            const referencedKey = foreignKey.referencedTable.toLowerCase();
+            const referencedKey = identityKey(foreignKey.referencedTable, caseSensitive);
             const existing = reverseReferenceMap.get(referencedKey) ?? [];
             existing.push(table.name);
             reverseReferenceMap.set(referencedKey, existing);
@@ -1842,17 +1886,22 @@ function buildReverseForeignKeyReferenceMap(
 function getRelatedForeignKeyTableNames(
     table: SqlInlineCompletionSchemaObject,
     reverseReferenceMap: Map<string, string[]>,
+    caseSensitive: boolean,
 ): string[] {
-    return uniqueStringsByLowerCase([
-        ...(table.foreignKeys ?? []).map((foreignKey) => foreignKey.referencedTable),
-        ...(reverseReferenceMap.get(table.name.toLowerCase()) ?? []),
-    ]);
+    return uniqueStringsByLowerCase(
+        [
+            ...(table.foreignKeys ?? []).map((foreignKey) => foreignKey.referencedTable),
+            ...(reverseReferenceMap.get(identityKey(table.name, caseSensitive)) ?? []),
+        ],
+        caseSensitive,
+    );
 }
 
 function trimSchemaObjectForPrompt(
     object: SqlInlineCompletionSchemaObject,
     budget: EffectiveSelectionBudget,
     maxColumns: number,
+    caseSensitive: boolean,
 ): SqlInlineCompletionSchemaObject {
     const trimmed: SqlInlineCompletionSchemaObject = {
         name: object.name,
@@ -1866,7 +1915,9 @@ function trimSchemaObjectForPrompt(
     if (object.primaryKeyColumns?.length) {
         trimmed.primaryKeyColumns = object.primaryKeyColumns.filter((column) =>
             trimmed.columns.some(
-                (selectedColumn) => selectedColumn.toLowerCase() === column.toLowerCase(),
+                (selectedColumn) =>
+                    identityKey(selectedColumn, caseSensitive) ===
+                    identityKey(column, caseSensitive),
             ),
         );
     }
@@ -1876,7 +1927,8 @@ function trimSchemaObjectForPrompt(
             .filter((foreignKey) =>
                 trimmed.columns.some(
                     (selectedColumn) =>
-                        selectedColumn.toLowerCase() === foreignKey.column.toLowerCase(),
+                        identityKey(selectedColumn, caseSensitive) ===
+                        identityKey(foreignKey.column, caseSensitive),
                 ),
             )
             .slice(0, budget.maxForeignKeys);
@@ -2481,11 +2533,11 @@ function compareCaseInsensitive(left: string, right: string): number {
     return 0;
 }
 
-function uniqueStringsByLowerCase(values: string[]): string[] {
+function uniqueStringsByLowerCase(values: string[], caseSensitive: boolean): string[] {
     const uniqueValues: string[] = [];
     const seenValues = new Set<string>();
     for (const value of values) {
-        const key = value.toLowerCase();
+        const key = identityKey(value, caseSensitive);
         if (seenValues.has(key)) {
             continue;
         }
@@ -2495,6 +2547,10 @@ function uniqueStringsByLowerCase(values: string[]): string[] {
     }
 
     return uniqueValues;
+}
+
+function identityKey(value: string, caseSensitive: boolean): string {
+    return caseSensitive ? value : value.toLowerCase();
 }
 
 export function extractSchemaContextRelevanceTerms(

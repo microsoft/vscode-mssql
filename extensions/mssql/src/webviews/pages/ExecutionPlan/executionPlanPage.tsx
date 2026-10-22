@@ -6,7 +6,7 @@
 import { useCallback, useContext, useEffect, useRef } from "react";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { ExecutionPlanGraphView, ExecutionPlanGraphViewState } from "./executionPlanGraph";
+import { ExecutionPlanGraph, ExecutionPlanGraphViewState } from "./executionPlanGraph";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
@@ -36,8 +36,12 @@ const useStyles = makeStyles({
     },
 });
 
-interface ExecutionPlanPageProps {
-    autoLoad?: boolean;
+/**
+ * Asks the page to scroll a plan into view. Each request is a new object, so the same plan can be
+ * revealed again after the user scrolls away.
+ */
+export interface ExecutionPlanRevealRequest {
+    graphIndex: number;
 }
 
 export interface ExecutionPlanPageViewState {
@@ -45,53 +49,81 @@ export interface ExecutionPlanPageViewState {
     graphs: Record<string, ExecutionPlanGraphViewState>;
 }
 
-interface ExecutionPlanPageContentProps {
-    executionPlanState?: ExecutionPlanState;
+interface ExecutionPlanPageProps {
+    autoLoad?: boolean;
     active?: boolean;
     initialViewState?: ExecutionPlanPageViewState;
-    onViewStateChange?: (viewState: ExecutionPlanPageViewState) => void;
+    onViewStateChange?: (state: ExecutionPlanPageViewState) => void;
+    /** Plan to scroll into view. Pass it only while the page is visible, so it can be measured. */
+    revealRequest?: ExecutionPlanRevealRequest;
 }
 
-export const ExecutionPlanPageContent = ({
-    executionPlanState,
+export const ExecutionPlanPage = ({
+    autoLoad = true,
+    revealRequest,
     active = true,
     initialViewState,
     onViewStateChange,
-}: ExecutionPlanPageContentProps) => {
+}: ExecutionPlanPageProps) => {
     const classes = useStyles();
-    const outerRef = useRef<HTMLDivElement>(null);
-    const currentViewState = useRef<ExecutionPlanPageViewState>({
+    const context = useContext(ExecutionPlanContext);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const revealedRequestRef = useRef<ExecutionPlanRevealRequest | undefined>(undefined);
+    const viewState = useRef<ExecutionPlanPageViewState>({
         pageScrollTop: initialViewState?.pageScrollTop ?? 0,
         graphs: { ...initialViewState?.graphs },
     });
-    const onViewStateChangeRef = useRef(onViewStateChange);
-    onViewStateChangeRef.current = onViewStateChange;
-    const handleGraphViewStateChange = useCallback(
-        (graphIndex: number, graphViewState: ExecutionPlanGraphViewState) => {
-            currentViewState.current = {
-                ...currentViewState.current,
-                graphs: {
-                    ...currentViewState.current.graphs,
-                    [graphIndex.toString()]: graphViewState,
-                },
-            };
-            onViewStateChangeRef.current?.(currentViewState.current);
-        },
-        [],
-    );
-    const handlePageScroll = useCallback(() => {
-        currentViewState.current = {
-            ...currentViewState.current,
-            pageScrollTop: outerRef.current?.scrollTop ?? 0,
+    const onChange = useRef(onViewStateChange);
+    onChange.current = onViewStateChange;
+    const updateGraph = useCallback((index: number, state: ExecutionPlanGraphViewState) => {
+        viewState.current = {
+            ...viewState.current,
+            graphs: { ...viewState.current.graphs, [index]: state },
         };
-        onViewStateChangeRef.current?.(currentViewState.current);
+        onChange.current?.(viewState.current);
     }, []);
+    const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
+        (s) => s.executionPlanState,
+    );
     const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
     useEffect(() => {
-        if (loadState === ApiStatus.Loaded && outerRef.current) {
-            outerRef.current.scrollTop = initialViewState?.pageScrollTop ?? 0;
+        if (active && loadState === ApiStatus.Loaded && containerRef.current) {
+            containerRef.current.scrollTop = viewState.current.pageScrollTop;
         }
-    }, [initialViewState?.pageScrollTop, loadState]);
+    }, [active, loadState]);
+    useEffect(() => {
+        if (
+            autoLoad &&
+            context &&
+            executionPlanState &&
+            // checks if execution plans have already been gotten
+            executionPlanState.executionPlanGraphs &&
+            !executionPlanState.executionPlanGraphs.length
+        ) {
+            context.getExecutionPlan();
+        }
+    }, [autoLoad, executionPlanState]);
+
+    useEffect(() => {
+        if (
+            !revealRequest ||
+            revealRequest === revealedRequestRef.current ||
+            loadState !== ApiStatus.Loaded
+        ) {
+            return;
+        }
+        // Wait a frame so a tab that was just shown has been laid out before measuring.
+        const frame = requestAnimationFrame(() => {
+            const container = containerRef.current;
+            const plan = container?.children[revealRequest.graphIndex];
+            if (container && plan instanceof HTMLElement) {
+                container.scrollTop = plan.offsetTop;
+                revealedRequestRef.current = revealRequest;
+            }
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [revealRequest, loadState]);
+
     const renderMainContent = () => {
         switch (loadState) {
             case ApiStatus.Loading:
@@ -105,15 +137,13 @@ export const ExecutionPlanPageContent = ({
                 );
             case ApiStatus.Loaded:
                 const executionPlanGraphs = executionPlanState?.executionPlanGraphs ?? [];
-                return executionPlanGraphs?.map((graph, index: number) => (
-                    <ExecutionPlanGraphView
-                        key={`${index}:${graph.root.id}:${graph.graphFile.graphFileContent.length}`}
+                return executionPlanGraphs.map((_, index) => (
+                    <ExecutionPlanGraph
+                        key={index}
                         graphIndex={index}
-                        active={active}
-                        executionPlanState={executionPlanState!}
-                        initialViewState={initialViewState?.graphs[index.toString()]}
-                        onViewStateChange={(graphViewState) =>
-                            handleGraphViewStateChange(index, graphViewState)
+                        initialViewState={initialViewState?.graphs[index]}
+                        onViewStateChange={
+                            onViewStateChange ? (state) => updateGraph(index, state) : undefined
                         }
                     />
                 ));
@@ -128,29 +158,19 @@ export const ExecutionPlanPageContent = ({
     };
 
     return (
-        <div className={classes.outerDiv} ref={outerRef} onScroll={handlePageScroll}>
+        <div
+            ref={containerRef}
+            className={classes.outerDiv}
+            onScroll={() => {
+                if (active) {
+                    viewState.current = {
+                        ...viewState.current,
+                        pageScrollTop: containerRef.current?.scrollTop ?? 0,
+                    };
+                    onChange.current?.(viewState.current);
+                }
+            }}>
             {renderMainContent()}
         </div>
     );
-};
-
-export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) => {
-    const context = useContext(ExecutionPlanContext);
-    const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
-        (s) => s.executionPlanState,
-    );
-    useEffect(() => {
-        if (
-            autoLoad &&
-            context &&
-            executionPlanState &&
-            // checks if execution plans have already been gotten
-            executionPlanState.executionPlanGraphs &&
-            !executionPlanState.executionPlanGraphs.length
-        ) {
-            context.getExecutionPlan();
-        }
-    }, [autoLoad, context, executionPlanState]);
-
-    return <ExecutionPlanPageContent executionPlanState={executionPlanState} />;
 };

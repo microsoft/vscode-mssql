@@ -5,7 +5,7 @@
 
 /**
  * Completions wiring for the feature-capture journal binding (WI-2.4/2.6).
- * DiagnosticsManager calls `initializeCompletionsCaptureJournal` once the
+ * MainController calls `initializeCompletionsCaptureJournal` once the
  * store root and bundle manager exist (mirroring the bundle-manager wiring);
  * everything here is optional and failure-isolated — if the journal cannot
  * start, completions and the ring are untouched (M2 dual-write: the legacy
@@ -25,7 +25,9 @@
  *   right after the legacy trace save.
  */
 
+import { InlineCompletionDebug } from "../../constants/locConstants";
 import * as vscode from "vscode";
+import { isInlineCompletionFeatureEnabled } from "../inlineCompletionFeatureGate";
 import { FeatureCaptureJournalBinding } from "../../diagnostics/featureCapture/captureJournalBinding";
 import {
     CaptureReconciliationReport,
@@ -41,7 +43,7 @@ import {
     joinPath,
 } from "../../diagnostics/featureCapture/journal/journalWriter";
 import { ObservabilityBundleManager } from "../../diagnostics/sessionBundle/bundleManager";
-import { logger2 } from "../../models/logger2";
+import { logger as logger2 } from "../../models/logger";
 import * as Constants from "../../constants/constants";
 import {
     InlineCompletionDebugEvent,
@@ -120,7 +122,8 @@ export function initializeCompletionsCaptureJournal(
             overridesSchema: COMPLETIONS_JOURNAL_OVERRIDES_SCHEMA,
             policyProvider: () =>
                 buildCompletionsCapturePolicy({
-                    traceCaptureEnabled: getTraceCaptureEnabledSetting(),
+                    traceCaptureEnabled:
+                        isInlineCompletionFeatureEnabled() && getTraceCaptureEnabledSetting(),
                     redactPrompts: getTraceRedactPromptsSetting(),
                     viewerArmed: inlineCompletionDebugStore.getActiveViewerCount() > 0,
                     activatedAt: Date.now(),
@@ -149,6 +152,8 @@ export function initializeCompletionsCaptureJournal(
         context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration((change) => {
                 if (
+                    change.affectsConfiguration(Constants.configEnableExperimentalFeatures) ||
+                    change.affectsConfiguration(Constants.configCopilotInlineCompletionsEnabled) ||
                     change.affectsConfiguration(
                         Constants.configCopilotInlineCompletionsTraceCaptureEnabled,
                     ) ||
@@ -211,11 +216,13 @@ export async function flushCompletionsCaptureJournalOnDeactivate(): Promise<void
 export async function runCompletionsJournalReconciliation(): Promise<
     CaptureReconciliationReport | undefined
 > {
+    if (!isInlineCompletionFeatureEnabled()) return undefined;
     const binding = activeBinding;
     if (!binding || !binding.isActive) {
         void vscode.window.showInformationMessage(
-            "Completions journal is not active — enable " +
-                `"${Constants.configCopilotInlineCompletionsTraceCaptureEnabled}" to dual-write the capture journal.`,
+            InlineCompletionDebug.journalInactive(
+                Constants.configCopilotInlineCompletionsTraceCaptureEnabled,
+            ),
         );
         return undefined;
     }
@@ -224,7 +231,7 @@ export async function runCompletionsJournalReconciliation(): Promise<
         const directories = binding.currentEpochStreamDirectories;
         if (directories.length === 0) {
             void vscode.window.showInformationMessage(
-                "Completions journal has no records for the current capture epoch yet.",
+                InlineCompletionDebug.completionsJournalHasNoRecordsForThe,
             );
             return undefined;
         }
@@ -267,14 +274,18 @@ export async function runCompletionsJournalReconciliation(): Promise<
               `${report.digest.compared} event digest(s) compared).`
             : `Completions journal reconciliation FAILED: ${report.mismatches.length} mismatch(es) — ` +
               `${report.mismatches.slice(0, 3).join("; ")}${report.mismatches.length > 3 ? "; …" : ""}`;
-        void vscode.window.showInformationMessage(`${summary} Full report: ${reportPath}`);
+        void vscode.window.showInformationMessage(
+            InlineCompletionDebug.value0FullReport1(String(summary), String(reportPath)),
+        );
         return report;
     } catch (error) {
         bindingLogger.warn(
             `Journal reconciliation failed (isolated): ${error instanceof Error ? error.message : String(error)}`,
         );
         void vscode.window.showInformationMessage(
-            `Completions journal reconciliation failed: ${error instanceof Error ? error.message : String(error)}`,
+            InlineCompletionDebug.completionsJournalReconciliationFailed0(
+                String(error instanceof Error ? error.message : String(error)),
+            ),
         );
         return undefined;
     }

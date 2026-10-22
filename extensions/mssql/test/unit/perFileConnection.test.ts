@@ -360,12 +360,16 @@ suite("Per File Connection Tests", () => {
         parameters.connection.databaseName = "myOtherDatabase";
         parameters.connection.userName = connectionCreds.user;
 
+        const databaseContextChanges: string[] = [];
+        connectionManager.onDidChangeDatabaseContext((uri) => databaseContextChanges.push(uri));
+
         const notificationObject = connectionManager.handleConnectionChangedNotification();
         notificationObject.call(connectionManager, parameters);
 
         expect(connectionManager.getConnectionInfo(testFile).credentials.database).to.equal(
             "myOtherDatabase",
         );
+        expect(databaseContextChanges).to.deep.equal([testFile]);
     });
 
     test("Should use actual database name instead of <default>", async () => {
@@ -404,6 +408,29 @@ suite("Per File Connection Tests", () => {
         expect(result).to.equal(true);
         expect(manager.getConnectionInfo(testFile).credentials.database).to.equal(expectedDbName);
         expect(actualDbName).to.equal(expectedDbName);
+    });
+
+    test("Should show the connection's SPID in the status bar", async () => {
+        const testFile = "file:///my/test/file.sql";
+        const connectionCreds = createTestCredentials();
+        const myResult = createConnectionResultForCreds(connectionCreds);
+        myResult.ownerUri = testFile;
+        myResult.serverConnectionId = "57";
+
+        const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
+        serviceClientStub.sendRequest.callsFake(() => {
+            manager.handleConnectionCompleteNotification().call(manager, myResult);
+            return Promise.resolve(true);
+        });
+        const statusViewStub = sandbox.createStubInstance(StatusView);
+
+        manager.client = serviceClientStub;
+        manager.statusView = statusViewStub;
+
+        const result = await manager.connect(testFile, connectionCreds);
+
+        expect(result).to.equal(true);
+        expect(statusViewStub.setServerProcessId).to.have.been.calledWith(testFile, "57");
     });
 
     function createConnectionResultForCreds(
@@ -625,7 +652,6 @@ function createTestCredentials(): IConnectionInfo {
         multipleActiveResultSets: false,
         packetSize: 8192,
         typeSystemVersion: "Latest",
-        connectionString: "",
         containerName: "",
     };
     return creds;

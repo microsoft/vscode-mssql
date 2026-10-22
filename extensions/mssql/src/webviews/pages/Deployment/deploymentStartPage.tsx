@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { DeploymentContext } from "./deploymentStateProvider";
 import { useDeploymentSelector } from "./deploymentSelector";
 import { Button, makeStyles, Text } from "@fluentui/react-components";
+import { ArrowLeft20Regular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { DialogPageShell } from "../../common/dialogPageShell";
@@ -19,6 +20,9 @@ import { ChooseDeploymentTypePage } from "./chooseDeploymentTypePage";
 import { LocalContainersDeploymentWizard } from "./LocalContainers/localContainersDeploymentWizard";
 import { FabricDeploymentWizard } from "./FabricProvisioning/fabricDeploymentWizard";
 import { AzureSqlDatabaseDeploymentWizard } from "./AzureSqlDatabase/azureSqlDatabaseDeploymentWizard";
+import { AzureSqlDatabaseDeploymentTypePage } from "./AzureSqlDatabase/azureSqlDatabaseDeploymentTypePage";
+import { AzureSqlDatabaseIcon } from "../../common/icons/azureSqlDatabase";
+import { AzureSqlDatabaseLocalContainerWizard } from "./AzureSqlDatabase/azureSqlDatabaseLocalContainerWizard";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -31,7 +35,14 @@ const useStyles = makeStyles({
     shell: {
         height: "100%",
     },
+    footerButtonContent: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+    },
 });
+
+type AzureSqlDatabasePage = "deploymentType" | "localContainer";
 
 export const DeploymentStartPage = () => {
     const classes = useStyles();
@@ -40,8 +51,11 @@ export const DeploymentStartPage = () => {
     const errorMessage = useDeploymentSelector((s) => s.errorMessage);
     const deploymentType = useDeploymentSelector((s) => s.deploymentType);
     const deploymentTypeState = useDeploymentSelector((s) => s.deploymentTypeState);
+    const initialDeploymentType = useDeploymentSelector((s) => s.initialDeploymentType);
+    const isAzureSqlContainerEnabled = useDeploymentSelector((s) => s.isAzureSqlContainerEnabled);
     const [activeDeploymentType, setActiveDeploymentType] = useState<DeploymentType>();
     const [pendingDeploymentType, setPendingDeploymentType] = useState<DeploymentType>();
+    const [azureSqlDatabasePage, setAzureSqlDatabasePage] = useState<AzureSqlDatabasePage>();
 
     const isLocalContainersStateReady = (state: unknown) =>
         Array.isArray((state as LocalContainersState | undefined)?.dockerSteps);
@@ -65,8 +79,40 @@ export const DeploymentStartPage = () => {
         );
     };
 
+    const hasAutoSelected = useRef(false);
+
+    // Guarded so a user going Back is not bounced forward again.
+    useEffect(() => {
+        if (
+            hasAutoSelected.current ||
+            initialDeploymentType === undefined ||
+            loadState !== ApiStatus.Loaded ||
+            !context
+        ) {
+            return;
+        }
+        hasAutoSelected.current = true;
+        if (
+            initialDeploymentType === DeploymentType.AzureSqlDatabase &&
+            isAzureSqlContainerEnabled
+        ) {
+            setAzureSqlDatabasePage("deploymentType");
+            return;
+        }
+        setPendingDeploymentType(initialDeploymentType);
+        context.initializeDeploymentSpecifics(initialDeploymentType);
+    }, [context, initialDeploymentType, isAzureSqlContainerEnabled, loadState]);
+
     useEffect(() => {
         if (pendingDeploymentType === undefined || deploymentType !== pendingDeploymentType) {
+            return;
+        }
+
+        // Initialization failed, which includes a type the extension has no wizard for. The
+        // selection has to be released or the chooser it falls back to is inert: every card
+        // goes through handleDeploymentTypeSelected, which ignores clicks while one is pending.
+        if (deploymentTypeState?.loadState === ApiStatus.Error) {
+            setPendingDeploymentType(undefined);
             return;
         }
 
@@ -123,6 +169,9 @@ export const DeploymentStartPage = () => {
                 onBackToStart={() => {
                     setActiveDeploymentType(undefined);
                     setPendingDeploymentType(undefined);
+                    setAzureSqlDatabasePage(
+                        isAzureSqlContainerEnabled ? "deploymentType" : undefined,
+                    );
                 }}
             />
         );
@@ -133,18 +182,87 @@ export const DeploymentStartPage = () => {
             return;
         }
 
+        if (deploymentType === DeploymentType.AzureSqlDatabase && isAzureSqlContainerEnabled) {
+            setAzureSqlDatabasePage("deploymentType");
+            return;
+        }
+
         setPendingDeploymentType(deploymentType);
         context.initializeDeploymentSpecifics(deploymentType);
     };
 
+    const handleFreeAzureSqlDatabaseSelected = () => {
+        if (pendingDeploymentType !== undefined) {
+            return;
+        }
+
+        setPendingDeploymentType(DeploymentType.AzureSqlDatabase);
+        context.initializeDeploymentSpecifics(DeploymentType.AzureSqlDatabase);
+    };
+
+    // Hide the chooser on the first render, before the auto-selection effect runs.
+    const loadingDeploymentType =
+        pendingDeploymentType ?? (!hasAutoSelected.current ? initialDeploymentType : undefined);
     const deploymentLoadingMessage =
-        pendingDeploymentType === DeploymentType.LocalContainers
+        loadingDeploymentType === DeploymentType.LocalContainers
             ? locConstants.localContainers.loadingLocalContainers
-            : pendingDeploymentType === DeploymentType.FabricProvisioning
+            : loadingDeploymentType === DeploymentType.FabricProvisioning
               ? locConstants.fabricProvisioning.loadingFabricProvisioning
-              : pendingDeploymentType === DeploymentType.AzureSqlDatabase
+              : loadingDeploymentType === DeploymentType.AzureSqlDatabase
                 ? locConstants.azureSqlDatabase.loadingAzureSqlDatabase
                 : undefined;
+
+    const previousButton = (onClick: () => void) => (
+        <Button
+            appearance="secondary"
+            disabled={pendingDeploymentType !== undefined}
+            onClick={onClick}>
+            <span className={classes.footerButtonContent}>
+                <ArrowLeft20Regular />
+                <span>{locConstants.common.previous}</span>
+            </span>
+        </Button>
+    );
+
+    if (azureSqlDatabasePage === "localContainer" && isAzureSqlContainerEnabled) {
+        return (
+            <AzureSqlDatabaseLocalContainerWizard
+                onBackToDeploymentType={() => setAzureSqlDatabasePage("deploymentType")}
+            />
+        );
+    }
+
+    if (azureSqlDatabasePage === "deploymentType") {
+        return (
+            <div className={classes.outerDiv}>
+                <DialogPageShell
+                    icon={<AzureSqlDatabaseIcon aria-hidden="true" />}
+                    title={locConstants.deployment.deploymentHeader}
+                    subtitle={locConstants.azureSqlDatabase.chooseDeploymentOption}
+                    maxContentWidth="wide"
+                    loadingMessage={
+                        pendingDeploymentType === DeploymentType.AzureSqlDatabase
+                            ? locConstants.azureSqlDatabase.loadingAzureSqlDatabase
+                            : undefined
+                    }
+                    footerStart={
+                        <Button appearance="secondary" onClick={() => context.dispose()}>
+                            {locConstants.common.cancel}
+                        </Button>
+                    }
+                    footerEnd={previousButton(() => setAzureSqlDatabasePage(undefined))}>
+                    <AzureSqlDatabaseDeploymentTypePage
+                        isLocalContainerEnabled={isAzureSqlContainerEnabled}
+                        isFreeDeploymentLoading={
+                            pendingDeploymentType === DeploymentType.AzureSqlDatabase
+                        }
+                        onLocalContainerSelected={() => setAzureSqlDatabasePage("localContainer")}
+                        onFreeDeploymentSelected={handleFreeAzureSqlDatabaseSelected}
+                    />
+                </DialogPageShell>
+            </div>
+        );
+    }
 
     return (
         <div className={classes.outerDiv}>
@@ -166,7 +284,7 @@ export const DeploymentStartPage = () => {
                         {locConstants.common.cancel}
                     </Button>
                 }>
-                {loadState === ApiStatus.Loaded ? (
+                {loadState === ApiStatus.Loaded && loadingDeploymentType === undefined ? (
                     <ChooseDeploymentTypePage
                         selectedDeploymentType={pendingDeploymentType}
                         onDeploymentTypeChange={handleDeploymentTypeSelected}

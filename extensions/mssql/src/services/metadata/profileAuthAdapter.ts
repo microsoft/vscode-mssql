@@ -83,7 +83,7 @@ export function stableProfileId(stored: StoredConnectionProfile): string {
 
 /** Credential-store seam (ConnectionStore.lookupPassword). */
 export interface ProfileSecretSource {
-    lookupPassword(credentials: unknown, isConnectionString?: boolean): Promise<string>;
+    lookupPassword(credentials: unknown): Promise<string>;
 }
 
 /** Extension-host seam for acquiring a SQL-resource token at physical-open time. */

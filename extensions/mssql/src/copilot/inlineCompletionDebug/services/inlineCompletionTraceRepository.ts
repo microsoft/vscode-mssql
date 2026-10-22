@@ -16,6 +16,7 @@
  * injected host services so the whole domain is testable with fakes.
  */
 
+import { InlineCompletionDebug } from "../../../constants/locConstants";
 import * as vscode from "vscode";
 import { TextDecoder, TextEncoder } from "util";
 import * as Constants from "../../../constants/constants";
@@ -32,7 +33,13 @@ import {
     normalizeTraceFile,
     scanTraceFolder,
 } from "../traceLoader";
-import { getConfiguredTraceFolder, getTraceCaptureEnabledSetting } from "../tracePersistence";
+import {
+    getTraceRedactPromptsSetting,
+    getTraceMaxFileSizeMBSetting,
+    getConfiguredTraceFolder,
+    getTraceCaptureEnabledSetting,
+} from "../tracePersistence";
+import { MAX_TRACE_FILE_BYTES } from "../traceSerializer";
 import {
     saveInlineCompletionTraceNowJournalAware,
     tryAssembleJournalPrimarySessionExport,
@@ -200,14 +207,16 @@ export class InlineCompletionTraceRepository {
 
         if (totalEventCount > 100_000) {
             const selection = await this._deps.hostServices.showWarningMessage(
-                `The selected trace dataset contains ${totalEventCount.toLocaleString()} events. Loading it may use significant memory.`,
+                InlineCompletionDebug.theSelectedTraceDatasetContains0Events(
+                    String(totalEventCount.toLocaleString()),
+                ),
                 { modal: false },
-                "Load traces",
+                InlineCompletionDebug.loadTraces,
             );
-            if (selection !== "Load traces") {
+            if (selection !== InlineCompletionDebug.loadTraces) {
                 this.setSessionsState({
                     ...this._sessionsState,
-                    warning: "Dataset load cancelled because it exceeds 100,000 events.",
+                    warning: InlineCompletionDebug.datasetLoadCancelled,
                 });
                 return;
             }
@@ -265,7 +274,7 @@ export class InlineCompletionTraceRepository {
 
     public async addSessionTraceFile(): Promise<void> {
         const fileUris = await this._deps.hostServices.showOpenDialog({
-            title: "Add Inline Completion Trace File",
+            title: InlineCompletionDebug.addInlineCompletionTraceFile,
             canSelectFiles: true,
             canSelectMany: true,
             filters: {
@@ -301,7 +310,7 @@ export class InlineCompletionTraceRepository {
 
     public async changeTraceFolder(): Promise<void> {
         const selectedFolders = await this._deps.hostServices.showOpenDialog({
-            title: "Choose Inline Completion Trace Folder",
+            title: InlineCompletionDebug.chooseInlineCompletionTraceFolder,
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
@@ -321,10 +330,12 @@ export class InlineCompletionTraceRepository {
 
     public async enableTraceCollection(): Promise<void> {
         const currentFolder = getConfiguredTraceFolder(this._deps.extensionContext);
-        const useFolder = "Use this folder";
-        const chooseOtherFolder = "Choose other folder";
+        const useFolder = InlineCompletionDebug.useThisFolder;
+        const chooseOtherFolder = InlineCompletionDebug.chooseOtherFolder;
         const selection = await this._deps.hostServices.showInformationMessage(
-            `Enable inline completion trace collection and save trace files to ${currentFolder}?`,
+            InlineCompletionDebug.enableInlineCompletionTraceCollectionAndSave(
+                String(currentFolder),
+            ),
             useFolder,
             chooseOtherFolder,
         );
@@ -336,7 +347,7 @@ export class InlineCompletionTraceRepository {
         let resetFolder = false;
         if (selection === chooseOtherFolder) {
             const selectedFolders = await this._deps.hostServices.showOpenDialog({
-                title: "Choose Inline Completion Trace Folder",
+                title: InlineCompletionDebug.chooseInlineCompletionTraceFolder,
                 canSelectFiles: false,
                 canSelectFolders: true,
                 canSelectMany: false,
@@ -363,9 +374,9 @@ export class InlineCompletionTraceRepository {
 
     public async showSyncToDatabaseNotImplemented(): Promise<void> {
         await this._deps.hostServices.showInformationMessage(
-            `Database sync is not yet implemented. Traces are currently saved to: ${getConfiguredTraceFolder(
-                this._deps.extensionContext,
-            )}`,
+            InlineCompletionDebug.databaseSyncIsNotYetImplementedTraces(
+                String(getConfiguredTraceFolder(this._deps.extensionContext)),
+            ),
         );
     }
 
@@ -383,7 +394,7 @@ export class InlineCompletionTraceRepository {
             vscode.workspace.workspaceFolders?.[0]?.uri ??
             this._deps.extensionContext.globalStorageUri;
         const fileUri = await this._deps.hostServices.showSaveDialog({
-            title: "Export Inline Completion Debug Session",
+            title: InlineCompletionDebug.exportInlineCompletionDebugSession,
             filters: {
                 JSON: ["json"],
             },
@@ -407,6 +418,10 @@ export class InlineCompletionTraceRepository {
                 getRecordWhenClosedSetting(),
                 getExtensionVersion(this._deps.extensionContext),
                 customPromptLastSavedAt,
+                {
+                    redactPrompts: getTraceRedactPromptsSetting(),
+                    maxFileSizeMB: getTraceMaxFileSizeMBSetting(),
+                },
             );
         await this._deps.hostServices.writeFile(
             fileUri,
@@ -421,7 +436,7 @@ export class InlineCompletionTraceRepository {
      */
     public async importSession(): Promise<InlineCompletionDebugExportData | undefined> {
         const fileUris = await this._deps.hostServices.showOpenDialog({
-            title: "Import Inline Completion Debug Session",
+            title: InlineCompletionDebug.importInlineCompletionDebugSession,
             canSelectFiles: true,
             canSelectMany: false,
             filters: {
@@ -434,7 +449,11 @@ export class InlineCompletionTraceRepository {
             return undefined;
         }
 
+        const size = (await vscode.workspace.fs.stat(fileUri)).size;
+        if (size > MAX_TRACE_FILE_BYTES) throw new Error(InlineCompletionDebug.traceTooLarge);
         const fileContents = await this._deps.hostServices.readFile(fileUri);
+        if (fileContents.byteLength > MAX_TRACE_FILE_BYTES)
+            throw new Error(InlineCompletionDebug.traceTooLarge);
         const parsed = normalizeTraceFile(
             JSON.parse(new TextDecoder().decode(fileContents)),
             fileUri.fsPath,

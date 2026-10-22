@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { locConstants } from "../../../common/locConstants";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Column, GridOption, SlickgridReactInstance } from "slickgrid-react";
 import { makeStyles } from "@fluentui/react-components";
@@ -166,7 +167,7 @@ export const InlineCompletionDebugEventGrid = ({
             },
             {
                 id: "time",
-                name: "Time",
+                name: locConstants.inlineCompletionDebug.time2,
                 field: "timestamp",
                 minWidth: 118,
                 formatter: (_row, _cell, value, _column, event) =>
@@ -174,14 +175,14 @@ export const InlineCompletionDebugEventGrid = ({
             },
             {
                 id: "document",
-                name: "Document",
+                name: locConstants.inlineCompletionDebug.document,
                 field: "documentFileName",
                 minWidth: 160,
                 formatter: (_row, _cell, value) => monoFormatter(String(value ?? "")),
             },
             {
                 id: "location",
-                name: "Ln:Col",
+                name: locConstants.inlineCompletionDebug.lnCol,
                 field: "id",
                 minWidth: 88,
                 formatter: (_row, _cell, _value, _column, event) =>
@@ -191,7 +192,7 @@ export const InlineCompletionDebugEventGrid = ({
             },
             {
                 id: "trigger",
-                name: "Trigger",
+                name: locConstants.inlineCompletionDebug.trigger,
                 field: "explicitFromUser",
                 minWidth: 104,
                 formatter: (_row, _cell, value, _column, event) =>
@@ -201,13 +202,18 @@ export const InlineCompletionDebugEventGrid = ({
             },
             {
                 id: "mode",
-                name: "Mode",
+                name: locConstants.inlineCompletionDebug.mode,
                 field: "completionCategory",
                 minWidth: 120,
                 formatter: (_row, _cell, value, _column, event) => {
                     if (event.result === "queued") {
                         const position = formatReplayQueuePosition(event);
-                        return badgeFormatter(position ? `queued ${position}` : "queued", "intent");
+                        return badgeFormatter(
+                            position
+                                ? locConstants.inlineCompletionDebug.queued0(String(position))
+                                : "queued",
+                            "intent",
+                        );
                     }
                     const category =
                         value === "intent" || value === "continuation"
@@ -220,7 +226,7 @@ export const InlineCompletionDebugEventGrid = ({
             },
             {
                 id: "model",
-                name: "Model",
+                name: locConstants.inlineCompletionDebug.model2,
                 field: "modelFamily",
                 minWidth: 148,
                 formatter: (_row, _cell, _value, _column, event) =>
@@ -228,7 +234,7 @@ export const InlineCompletionDebugEventGrid = ({
             },
             {
                 id: "latency",
-                name: "Latency",
+                name: locConstants.inlineCompletionDebug.latency2,
                 field: "latencyMs",
                 minWidth: 92,
                 formatter: (_row, _cell, value, _column, event) => {
@@ -239,13 +245,17 @@ export const InlineCompletionDebugEventGrid = ({
                               ? Math.max(0, Date.now() - event.timestamp)
                               : Number(value ?? 0);
                     return monoFormatter(
-                        latencyMs === undefined ? "--" : `${latencyMs.toLocaleString()} ms`,
+                        latencyMs === undefined
+                            ? "--"
+                            : locConstants.inlineCompletionDebug.value0Ms2(
+                                  String(latencyMs.toLocaleString()),
+                              ),
                     );
                 },
             },
             {
                 id: "tokens",
-                name: "In/Out",
+                name: locConstants.inlineCompletionDebug.inOut,
                 field: "id",
                 minWidth: 92,
                 formatter: (_row, _cell, _value, _column, event) =>
@@ -257,7 +267,7 @@ export const InlineCompletionDebugEventGrid = ({
             },
             {
                 id: "result",
-                name: "Result",
+                name: locConstants.inlineCompletionDebug.result2,
                 field: "result",
                 minWidth: 132,
                 formatter: (_row, _cell, value, _column, _) => {
@@ -265,14 +275,17 @@ export const InlineCompletionDebugEventGrid = ({
                         return badgeFormatter("queued", resultTone(String(value)));
                     }
                     if (value === "pending") {
-                        return badgeFormatter("in flight", "intent");
+                        return badgeFormatter(
+                            locConstants.inlineCompletionDebug.detailText35,
+                            "intent",
+                        );
                     }
                     return badgeFormatter(String(value), resultTone(String(value)));
                 },
             },
             {
                 id: "info",
-                name: "Info (sanitized completion)",
+                name: locConstants.inlineCompletionDebug.infoSanitizedCompletion,
                 field: "id",
                 minWidth: 280,
                 formatter: (_row, _cell, _value, _column, event) =>
@@ -307,18 +320,30 @@ export const InlineCompletionDebugEventGrid = ({
             },
             contextMenu: {
                 commandItems: [
-                    { command: "copy-id", title: "Copy ID", iconCssClass: "fi fi-copy" },
-                    { command: "copy-json", title: "Copy as JSON", iconCssClass: "fi fi-copy" },
+                    {
+                        command: "copy-id",
+                        title: locConstants.inlineCompletionDebug.copyID,
+                        iconCssClass: "fi fi-copy",
+                    },
+                    {
+                        command: "copy-json",
+                        title: locConstants.inlineCompletionDebug.copyAsJSON,
+                        iconCssClass: "fi fi-copy",
+                    },
                     { divider: true, command: "" },
-                    { command: "copy-prompt", title: "Copy prompt", iconCssClass: "fi fi-copy" },
+                    {
+                        command: "copy-prompt",
+                        title: locConstants.inlineCompletionDebug.copyPrompt,
+                        iconCssClass: "fi fi-copy",
+                    },
                     {
                         command: "copy-raw",
-                        title: "Copy raw response",
+                        title: locConstants.inlineCompletionDebug.copyRawResponse,
                         iconCssClass: "fi fi-copy",
                     },
                     {
                         command: "copy-sanitized",
-                        title: "Copy sanitized response",
+                        title: locConstants.inlineCompletionDebug.copySanitizedResponse,
                         iconCssClass: "fi fi-copy",
                     },
                     ...(showReplay
@@ -326,12 +351,12 @@ export const InlineCompletionDebugEventGrid = ({
                               { divider: true, command: "" },
                               {
                                   command: "replay",
-                                  title: "Replay this event",
+                                  title: locConstants.inlineCompletionDebug.replayThisEvent,
                                   iconCssClass: "fi fi-arrow-sync",
                               },
                               {
                                   command: "add-to-replay-cart",
-                                  title: "Add to Replay Trace",
+                                  title: locConstants.inlineCompletionDebug.addToReplayTrace,
                                   iconCssClass: "fi fi-add",
                               },
                           ]
@@ -616,10 +641,10 @@ function getGridInfoText(event: InlineCompletionDebugEvent): string {
     if (matrixLabel) {
         parts.push(matrixLabel);
     } else if (matrixCellId) {
-        parts.push(`cell ${matrixCellId}`);
+        parts.push(locConstants.inlineCompletionDebug.detailText36(String(matrixCellId)));
     }
     if (sourceEventId) {
-        parts.push(`src ${sourceEventId}`);
+        parts.push(locConstants.inlineCompletionDebug.detailText37(String(sourceEventId)));
     }
 
     const detail = event.result === "queued" ? getPromptPreview(event) : getInfoText(event);

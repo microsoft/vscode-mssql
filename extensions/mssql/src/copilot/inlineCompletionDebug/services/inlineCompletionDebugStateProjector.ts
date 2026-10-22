@@ -129,13 +129,16 @@ function createState(options: {
             effectiveModelLabel: effectiveOption?.label,
             effectiveContinuationModelSelector: effectiveContinuationOption?.selector,
             effectiveContinuationModelLabel: effectiveContinuationOption?.label,
-            useSchemaContext: profile?.useSchemaContext ?? getConfiguredUseSchemaContext(),
+            useSchemaContext:
+                (profile?.useSchemaContext ?? true) && getConfiguredUseSchemaContext(),
             includeSqlDiagnostics: getConfiguredIncludeSqlDiagnostics(),
             debounceMs: profile?.debounceMs ?? automaticTriggerDebounceMs,
             continuationMaxTokens: continuationModeMaxTokens,
             intentMaxTokens: intentModeMaxTokens,
             enabledCategories: profile
-                ? [...profile.enabledCategories]
+                ? profile.enabledCategories.filter((category) =>
+                      getConfiguredEnabledCategories().includes(category),
+                  )
                 : getConfiguredEnabledCategories(),
             allowAutomaticTriggers: true,
             schemaContext: mergeSchemaContextDefaults(

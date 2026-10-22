@@ -13,9 +13,6 @@
  */
 
 import { expect } from "chai";
-import * as nodeFs from "fs";
-import * as os from "os";
-import * as nodePath from "path";
 import {
     FeatureCaptureJournalBinding,
     defaultClassifyCapturePolicy,
@@ -25,7 +22,6 @@ import { readFeatureCaptureJournal } from "../../src/diagnostics/featureCapture/
 import { deepEqual } from "../../src/diagnostics/featureCapture/journal/journalReducer";
 import { FeatureCaptureManifestV1 } from "../../src/diagnostics/featureCapture/journal/journalSchemas";
 import { reconcileCaptureSession } from "../../src/diagnostics/featureCapture/journalReconciliation";
-import { loadDiagSessionSource, projectSource } from "../../src/diagnostics/centralUpload";
 import {
     COMPLETIONS_ACCEPTANCE_MUTATION_KIND,
     COMPLETIONS_JOURNAL_EVENT_SCHEMA,
@@ -547,80 +543,3 @@ suite("Feature capture journal binding (WI-2.4)", () => {
         });
     });
 });
-
-suite(
-    "Central upload privacy canary: rich journals never ride the session projection (WI-2.4)",
-    () => {
-        test("loadDiagSessionSource + projectDiagSession ignore rich/ and replay/ files", async () => {
-            const sessionDir = nodeFs.mkdtempSync(nodePath.join(os.tmpdir(), "mssql-rich-canary-"));
-            try {
-                const manifest = {
-                    schemaVersion: "mssql.diag.sessionManifest/1",
-                    sessionId: "hs-canary",
-                    createdUtc: "2026-07-01T00:00:00.000Z",
-                    updatedUtc: "2026-07-01T00:10:00.000Z",
-                    source: "live",
-                    captureMode: "redacted",
-                    policyId: "default/1",
-                    eventCount: 1,
-                    gapCount: 0,
-                    segments: [{ file: "seg-000001.jsonl", firstSeq: 1, lastSeq: 1, events: 1 }],
-                    provenance: {},
-                    status: "closed",
-                };
-                nodeFs.mkdirSync(nodePath.join(sessionDir, "events"), { recursive: true });
-                nodeFs.writeFileSync(
-                    nodePath.join(sessionDir, "manifest.json"),
-                    JSON.stringify(manifest),
-                );
-                nodeFs.writeFileSync(
-                    nodePath.join(sessionDir, "events", "seg-000001.jsonl"),
-                    JSON.stringify({
-                        schemaVersion: "mssql.diag.event/1",
-                        eventId: "evt-1",
-                        sessionId: "hs-canary",
-                        seq: 1,
-                        epochMs: 1_751_000_000_000,
-                        process: "extensionHost",
-                        feature: "completions",
-                        kind: "event",
-                        type: "completions.result",
-                        status: "ok",
-                        payload: {},
-                        cls: {
-                            max: "diagnostic.metadata",
-                            redactedFields: 0,
-                            policyId: "default/1",
-                        },
-                    }) + "\n",
-                );
-                // The rich journal lives INSIDE the session dir — with a sentinel.
-                const richDir = nodePath.join(sessionDir, "rich", "completions", "cs-canary");
-                nodeFs.mkdirSync(richDir, { recursive: true });
-                nodeFs.writeFileSync(
-                    nodePath.join(richDir, "segment-000001.jsonl"),
-                    JSON.stringify({ kind: "event.created", value: { rawResponse: SENTINEL } }) +
-                        "\n",
-                );
-                const replayDir = nodePath.join(sessionDir, "replay", "rr-canary");
-                nodeFs.mkdirSync(replayDir, { recursive: true });
-                nodeFs.writeFileSync(nodePath.join(replayDir, "items.jsonl"), SENTINEL);
-
-                const source = await loadDiagSessionSource(sessionDir);
-                expect(
-                    source.files.every(
-                        (file) =>
-                            !file.relativePath.startsWith("rich/") &&
-                            !file.relativePath.startsWith("replay/"),
-                    ),
-                    "source file list is manifest + events segments only",
-                ).to.equal(true);
-
-                const projection = projectSource("diagSession", source, "team-default.v1");
-                expect(JSON.stringify(projection)).to.not.include(SENTINEL);
-            } finally {
-                nodeFs.rmSync(sessionDir, { recursive: true, force: true });
-            }
-        });
-    },
-);

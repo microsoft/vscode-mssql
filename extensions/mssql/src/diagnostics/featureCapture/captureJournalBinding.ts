@@ -47,7 +47,7 @@
  */
 
 import { RichCapturePolicySnapshot } from "../../sharedInterfaces/featureTrace";
-import { logger2 } from "../../models/logger2";
+import { logger as logger2 } from "../../models/logger";
 import {
     FeatureCaptureEventBase,
     FeatureCaptureLifecycleHooks,

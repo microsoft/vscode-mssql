@@ -7,43 +7,22 @@
 
 import { useEffect, useState } from "react";
 import { DcExportRequest } from "../../../sharedInterfaces/debugConsole";
+import { describeError } from "./common";
 import { DcPage, useDc } from "./state";
-import { OverviewPage, TracePage, WaterfallPage } from "./pagesCore";
-import {
-    ConnectionsPage,
-    ExportsPage,
-    ObjectExplorerPage,
-    QueryResultsPage,
-    SettingsPage,
-    SqlActivityPage,
-} from "./pagesMore";
-import { CompletionsPage } from "./completionsPage";
-import { ReplayLabPage } from "./replayLabPage";
-import { SqlDataPlanePage } from "./pagesSqlDataPlane";
+import { TracePage, WaterfallPage } from "./pagesCore";
+import { ExportsPage, SettingsPage } from "./pagesMore";
 import { HistoryPage } from "./pagesPerf";
-import { PerfHistoryPage } from "./pagesPerfHistory";
+import { CompletionsPage } from "./completionsPage";
+import { locConstants } from "../../common/locConstants";
 
 const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon: string }> }> = [
     {
         group: "Common",
         items: [
-            { id: "overview", label: "Overview", icon: "◫" },
             { id: "trace", label: "Consolidated Trace", icon: "≣" },
             { id: "waterfall", label: "Waterfall", icon: "𝄜" },
-            { id: "perf", label: "Perf Test History", icon: "∿" },
             { id: "history", label: "Session History", icon: "◷" },
-            { id: "completions", label: "Completions", icon: "✦" },
-            { id: "replay", label: "Replay Lab", icon: "⟳" },
-        ],
-    },
-    {
-        group: "Feature pages",
-        items: [
-            { id: "sql", label: "SQL Activity", icon: "⛁" },
-            { id: "sqlDataPlane", label: "SQL Data Plane", icon: "⬡" },
-            { id: "connections", label: "Connections", icon: "⌁" },
-            { id: "query", label: "Query & Results", icon: "▶" },
-            { id: "oe", label: "Object Explorer", icon: "⌥" },
+            { id: "completions", label: locConstants.inlineCompletionDebug.completions, icon: "✦" },
         ],
     },
     {
@@ -142,6 +121,8 @@ function TopBar() {
         rpc,
         refreshSources,
         navigate,
+        notice,
+        setNotice,
     } = useDc();
     const [showCapture, setShowCapture] = useState(false);
     const [countdown, setCountdown] = useState("");
@@ -241,7 +222,8 @@ function TopBar() {
                         for (const gap of liveGaps) {
                             if (
                                 gap.backfillStatus === "notStarted" ||
-                                gap.backfillStatus === "failed"
+                                gap.backfillStatus === "failed" ||
+                                gap.backfillStatus === "partial"
                             ) {
                                 void backfillGap(gap);
                             }
@@ -254,10 +236,31 @@ function TopBar() {
             <button
                 className="dc-btn primary"
                 onClick={() => {
-                    void rpc.sendRequest(DcExportRequest.type, { sourceId: activeSourceId });
+                    rpc.sendRequest(DcExportRequest.type, { sourceId: activeSourceId }).then(
+                        (result) =>
+                            setNotice(
+                                result.error
+                                    ? result.error === "cancelled"
+                                        ? undefined
+                                        : `Export ${result.error}`
+                                    : `Exported ${result.events} events → ${result.path}`,
+                            ),
+                        (error: unknown) => setNotice(`Export failed: ${describeError(error)}`),
+                    );
                 }}>
                 ⇩ Export
             </button>
+            {notice ? (
+                <div className="dc-notice" role="status">
+                    <span>{notice}</span>
+                    <button
+                        className="dc-btn"
+                        aria-label="Dismiss"
+                        onClick={() => setNotice(undefined)}>
+                        ×
+                    </button>
+                </div>
+            ) : null}
             {showCapture ? <CapturePopover onClose={() => setShowCapture(false)} /> : null}
         </div>
     );
@@ -328,8 +331,8 @@ export function DebugConsoleApp() {
     const { route } = useDc();
     let page: React.ReactNode;
     switch (route.page) {
-        case "overview":
-            page = <OverviewPage />;
+        case "completions":
+            page = <CompletionsPage />;
             break;
         case "trace":
             page = <TracePage />;
@@ -337,26 +340,8 @@ export function DebugConsoleApp() {
         case "waterfall":
             page = <WaterfallPage />;
             break;
-        case "perf":
-            page = <PerfHistoryPage />;
-            break;
         case "history":
             page = <HistoryPage />;
-            break;
-        case "sql":
-            page = <SqlActivityPage />;
-            break;
-        case "sqlDataPlane":
-            page = <SqlDataPlanePage />;
-            break;
-        case "connections":
-            page = <ConnectionsPage />;
-            break;
-        case "query":
-            page = <QueryResultsPage />;
-            break;
-        case "oe":
-            page = <ObjectExplorerPage />;
             break;
         case "exports":
             page = <ExportsPage />;
@@ -364,14 +349,8 @@ export function DebugConsoleApp() {
         case "settings":
             page = <SettingsPage />;
             break;
-        case "completions":
-            page = <CompletionsPage />;
-            break;
-        case "replay":
-            page = <ReplayLabPage />;
-            break;
         default:
-            page = <OverviewPage />;
+            page = <TracePage />;
     }
     return (
         <div className="dc-shell">

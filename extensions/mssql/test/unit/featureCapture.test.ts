@@ -495,7 +495,7 @@ suite("Feature settings snapshot", () => {
                 {
                     feature: "testFeature",
                     keys: [
-                        "mssql.queryStudio.enabled",
+                        "mssql.copilot.inlineCompletions.enabled",
                         { key: "mssql.logDebugInfo", cls: "diagnostic.metadata" },
                     ],
                 },
@@ -506,7 +506,7 @@ suite("Feature settings snapshot", () => {
             const snapshot = events.find((event) => event.type === "settings.snapshot");
             expect(snapshot?.kind).to.equal("state");
             expect(snapshot?.payload?.settingsFeature?.v).to.equal("testFeature");
-            const enabledField = snapshot?.payload?.["mssql.queryStudio.enabled"];
+            const enabledField = snapshot?.payload?.["mssql.copilot.inlineCompletions.enabled"];
             expect(enabledField?.handling).to.equal("plain");
             expect(enabledField?.v).to.equal(false);
         } finally {

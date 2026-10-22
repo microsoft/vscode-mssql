@@ -6,7 +6,6 @@
 import {
     Button,
     Dropdown,
-    InfoLabel,
     Input,
     makeStyles,
     mergeClasses,
@@ -311,9 +310,7 @@ export const ObjectExplorerFilterContent = ({
                     {uiFilters.map((item) => (
                         <div className={classes.row} role="row" key={item.name}>
                             <div className={classes.cell} role="cell">
-                                <InfoLabel info={<>{item.description}</>}>
-                                    {item.displayName}
-                                </InfoLabel>
+                                <Text>{item.displayName}</Text>
                             </div>
                             <div className={classes.cell} role="cell">
                                 <Dropdown

@@ -16,11 +16,44 @@ import {
     DiagStatus,
     GapRecord,
     SourceKpis,
+    SqlActivityResult,
     SqlActivityRow,
     UserActionSummary,
     WaterfallActivity,
     WaterfallModel,
 } from "../sharedInterfaces/debugConsole";
+
+/**
+ * Rendering caps (the webview draws one node per activity/row; every other
+ * list in the console is capped, these two were not). Truncation is always
+ * reported on the result, never silent.
+ */
+export const MAX_WATERFALL_ACTIVITIES = 800;
+export const MAX_SQL_ACTIVITY_ROWS = 5000;
+
+const MONOTONIC_NS = /^\d+$/;
+
+/**
+ * Duration between two events: same-process monotonic when BOTH carry a
+ * well-formed monotonic clock, else the epoch delta. A malformed
+ * monotonicNs (imported journal, hand-edited file) must degrade to the epoch
+ * delta, not throw out of the whole waterfall.
+ */
+function pairDuration(
+    begin: DiagEvent,
+    end: DiagEvent,
+): { durationMs: number; sameProcess: boolean } {
+    const sameProcess =
+        begin.process === end.process &&
+        begin.monotonicNs !== undefined &&
+        end.monotonicNs !== undefined &&
+        MONOTONIC_NS.test(begin.monotonicNs) &&
+        MONOTONIC_NS.test(end.monotonicNs);
+    const durationMs = sameProcess
+        ? Number(BigInt(end.monotonicNs!) - BigInt(begin.monotonicNs!)) / 1e6
+        : end.epochMs - begin.epochMs;
+    return { durationMs: Math.max(0, durationMs), sameProcess };
+}
 
 /** Root-action event types → human labels (correlation roots for Overview). */
 const ROOT_LABELS: Array<{ match: RegExp; label: (e: DiagEvent) => string; feature: string }> = [
@@ -267,9 +300,12 @@ export function buildWaterfall(events: DiagEvent[], traceId: string): WaterfallM
     }
     const activities: WaterfallActivity[] = [];
     const beginStack = new Map<string, DiagEvent>();
+    /** Irregular begins already paired (so a second `ready` never re-pairs the first `begin`). */
+    const consumedIrregularBegins = new Set<string>();
     let activityCounter = 0;
 
-    for (const event of scope) {
+    for (let index = 0; index < scope.length; index++) {
+        const event = scope[index];
         if (event.type.endsWith(".begin")) {
             beginStack.set(event.type.slice(0, -".begin".length) + `@${event.process}`, event);
             continue;
@@ -279,13 +315,7 @@ export function buildWaterfall(events: DiagEvent[], traceId: string): WaterfallM
             const begin = beginStack.get(`${stem}@${event.process}`);
             if (begin) {
                 beginStack.delete(`${stem}@${event.process}`);
-                const sameProcess =
-                    begin.process === event.process &&
-                    begin.monotonicNs !== undefined &&
-                    event.monotonicNs !== undefined;
-                const durationMs = sameProcess
-                    ? Number(BigInt(event.monotonicNs!) - BigInt(begin.monotonicNs!)) / 1e6
-                    : event.epochMs - begin.epochMs;
+                const { durationMs, sameProcess } = pairDuration(begin, event);
                 // JSON-RPC round-trips are measured from the extension host but
                 // represent time spent in STS + wire — lane them under STS with
                 // an honest label.
@@ -306,11 +336,25 @@ export function buildWaterfall(events: DiagEvent[], traceId: string): WaterfallM
                 continue;
             }
         }
-        // Irregular pairs from the marker vocabulary.
+        // Irregular pairs from the marker vocabulary: the LAST unpaired begin
+        // before this end (the harness normalizer's rule), never the first in
+        // the trace.
         const pair = IRREGULAR_END[event.type];
         if (pair) {
-            const begin = scope.find((e) => e.type === pair && e.epochMs <= event.epochMs);
+            let begin: DiagEvent | undefined;
+            for (let i = index - 1; i >= 0; i--) {
+                const candidate = scope[i];
+                if (
+                    candidate.type === pair &&
+                    !consumedIrregularBegins.has(candidate.eventId) &&
+                    candidate.epochMs <= event.epochMs
+                ) {
+                    begin = candidate;
+                    break;
+                }
+            }
             if (begin) {
+                consumedIrregularBegins.add(begin.eventId);
                 activities.push({
                     id: `act_${++activityCounter}`,
                     lane: begin.process,
@@ -374,10 +418,21 @@ export function buildWaterfall(events: DiagEvent[], traceId: string): WaterfallM
             });
         }
     }
+    // Cap: the webview renders one DOM node per activity, so a fan-out trace
+    // (OE expansion, an imported soak rep) keeps its longest bars and says
+    // how many it dropped. Extent and critical path use the full set.
     const start = Math.min(...activities.map((a) => a.startEpochMs));
     const end = Math.max(...activities.map((a) => a.endEpochMs));
     const label =
         userActions(scope).find((a) => a.traceId === traceId)?.label ?? shortLabel(scope[0].type);
+    const total = activities.length;
+    const shown =
+        total > MAX_WATERFALL_ACTIVITIES
+            ? [...activities]
+                  .sort((a, b) => b.durationMs - a.durationMs)
+                  .slice(0, MAX_WATERFALL_ACTIVITIES)
+                  .sort((a, b) => a.startEpochMs - b.startEpochMs)
+            : activities;
 
     // Critical path: longest chain by end time within the trace (simple v1 —
     // honest about being a duration-ordered summary when cause links are thin).
@@ -398,8 +453,9 @@ export function buildWaterfall(events: DiagEvent[], traceId: string): WaterfallM
         label,
         startEpochMs: start,
         endEpochMs: end,
-        activities,
+        activities: shown,
         criticalPath,
+        ...(shown.length < total ? { activityCap: { shown: shown.length, total } } : {}),
         calibrationNote:
             "Solid bars: same-process monotonic. Hatched: epoch-aligned across processes (extension-host clock domain).",
     };
@@ -424,10 +480,14 @@ function shortLabel(type: string): string {
 // SQL activity extraction
 // ---------------------------------------------------------------------------
 
-export function sqlActivityRows(events: DiagEvent[]): SqlActivityRow[] {
-    return events
-        .filter((e) => e.kind === "sqlActivity")
-        .map((e) => {
+/** Newest `limit` SQL activity rows plus the honest total (the page shows both). */
+export function sqlActivityRows(
+    events: DiagEvent[],
+    limit = MAX_SQL_ACTIVITY_ROWS,
+): SqlActivityResult {
+    const all = events.filter((e) => e.kind === "sqlActivity");
+    const rows = (all.length > limit ? all.slice(all.length - limit) : all).map(
+        (e): SqlActivityRow => {
             const payload = e.payload ?? {};
             return {
                 epochMs: e.epochMs,
@@ -448,7 +508,9 @@ export function sqlActivityRows(events: DiagEvent[]): SqlActivityRow[] {
                 ...(e.traceId ? { correlation: e.traceId } : {}),
                 sourceEventId: e.eventId,
             } as SqlActivityRow;
-        });
+        },
+    );
+    return { rows, total: all.length };
 }
 
 function numberField(value: { v?: unknown } | undefined): number | undefined {

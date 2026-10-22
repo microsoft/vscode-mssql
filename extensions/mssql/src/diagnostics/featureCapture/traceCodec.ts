@@ -144,12 +144,12 @@ function truncateTraceToMaxSize<TEvent, TOverrides>(
     trace: FeatureTraceEnvelope<TEvent, TOverrides>,
     maxFileSizeMB: number | undefined,
 ): FeatureTraceEnvelope<TEvent, TOverrides> {
-    if (!maxFileSizeMB || maxFileSizeMB <= 0) {
-        return trace;
-    }
-
-    const maxBytes = Math.floor(maxFileSizeMB * 1024 * 1024);
-    if (Buffer.byteLength(JSON.stringify(trace), "utf8") <= maxBytes) {
+    const limitMB =
+        typeof maxFileSizeMB === "number" && Number.isFinite(maxFileSizeMB) && maxFileSizeMB > 0
+            ? Math.min(maxFileSizeMB, 64)
+            : 64;
+    const maxBytes = Math.floor(limitMB * 1024 * 1024);
+    if (Buffer.byteLength(JSON.stringify(trace, undefined, 2), "utf8") <= maxBytes) {
         return trace;
     }
 
@@ -161,11 +161,13 @@ function truncateTraceToMaxSize<TEvent, TOverrides>(
 
     while (
         truncatedTrace.events.length > 0 &&
-        Buffer.byteLength(JSON.stringify(truncatedTrace), "utf8") > maxBytes
+        Buffer.byteLength(JSON.stringify(truncatedTrace, undefined, 2), "utf8") > maxBytes
     ) {
         truncatedTrace.events.shift();
     }
 
+    if (Buffer.byteLength(JSON.stringify(truncatedTrace, undefined, 2), "utf8") > maxBytes)
+        throw new Error("Trace metadata exceeds the configured file size limit.");
     return truncatedTrace;
 }
 
@@ -353,12 +355,12 @@ function truncateTraceV2ToMaxSize<TEvent, TOverrides>(
     trace: FeatureTraceEnvelopeV2<TEvent, TOverrides>,
     maxFileSizeMB: number | undefined,
 ): FeatureTraceEnvelopeV2<TEvent, TOverrides> {
-    if (!maxFileSizeMB || maxFileSizeMB <= 0) {
-        return trace;
-    }
-
-    const maxBytes = Math.floor(maxFileSizeMB * 1024 * 1024);
-    if (Buffer.byteLength(JSON.stringify(trace), "utf8") <= maxBytes) {
+    const limitMB =
+        typeof maxFileSizeMB === "number" && Number.isFinite(maxFileSizeMB) && maxFileSizeMB > 0
+            ? Math.min(maxFileSizeMB, 64)
+            : 64;
+    const maxBytes = Math.floor(limitMB * 1024 * 1024);
+    if (Buffer.byteLength(JSON.stringify(trace, undefined, 2), "utf8") <= maxBytes) {
         return trace;
     }
 
@@ -369,7 +371,7 @@ function truncateTraceV2ToMaxSize<TEvent, TOverrides>(
     let omitted = 0;
     while (
         truncated.events.length > 0 &&
-        Buffer.byteLength(JSON.stringify(truncated), "utf8") > maxBytes
+        Buffer.byteLength(JSON.stringify(truncated, undefined, 2), "utf8") > maxBytes
     ) {
         truncated.events.shift();
         omitted++;
@@ -380,6 +382,8 @@ function truncateTraceV2ToMaxSize<TEvent, TOverrides>(
         };
     }
 
+    if (Buffer.byteLength(JSON.stringify(truncated, undefined, 2), "utf8") > maxBytes)
+        throw new Error("Trace metadata exceeds the configured file size limit.");
     return truncated;
 }
 

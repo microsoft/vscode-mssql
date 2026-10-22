@@ -24,10 +24,7 @@ import { FakeBackend, FakeScript } from "../../src/services/sqlDataPlane/fakeBac
 import { MetadataStore } from "../../src/services/metadata/metadataStore";
 import { OeV2MetadataCoordinator } from "../../src/objectExplorer/v2/metadata/oeV2MetadataCoordinator";
 import { OeV2SessionRegistry } from "../../src/objectExplorer/v2/sessions/oeV2SessionRegistry";
-import {
-    OeV2ContainerOps,
-    OeV2TreeController,
-} from "../../src/objectExplorer/v2/tree/oeV2TreeController";
+import { OeV2TreeController } from "../../src/objectExplorer/v2/tree/oeV2TreeController";
 import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 import type {
     ProfileSecretSource,
@@ -156,6 +153,7 @@ function dbScripts(tableName: string, opts: DbScriptOptions = {}): FakeScript[] 
                     rows: [
                         [105, 1, "@CustomerId", "int", 4, 10, 0, false],
                         [105, 2, "@Total", "decimal", 9, 18, 2, true],
+                        [106, 0, "", "decimal", 9, 18, 2, true],
                     ],
                 },
                 { type: "complete", status: "succeeded" },
@@ -308,14 +306,9 @@ function harness(overrides?: {
     secrets?: ProfileSecretSource;
     tokens?: ProfileTokenSource;
     beforeOpen?: (params: OpenSessionParams) => Promise<void>;
-    /** DOCK-3 docker seam + preflight bound. */
-    containers?: OeV2ContainerOps;
     waits?: {
         expandMs?: number;
         connectKickMs?: number;
-        containerPreflightMs?: number;
-        containerOpenRetryBackoffMs?: number;
-        containerOpenRetryBudgetMs?: number;
     };
 }): Harness {
     const fallback = new FakeBackend({
@@ -363,7 +356,6 @@ function harness(overrides?: {
         sessions: registry,
         coordinatorFactory: (prepared) =>
             new OeV2MetadataCoordinator(store, prepared, overrides?.freshness),
-        ...(overrides?.containers ? { containers: overrides.containers } : {}),
         ...(overrides?.waits ? { waits: overrides.waits } : {}),
         settings: () => settings,
     });
@@ -417,121 +409,20 @@ suite("Object Explorer v2 browse (B18)", () => {
         h.controller.dispose();
     });
 
-    test("container pre-flight: stopped containers start before the open; failures and hangs fail honestly (DOCK-3)", async () => {
-        const containerProfile = {
-            id: "p1",
-            server: "localhost,1450",
-            profileName: "box",
-            groupId: "ROOT",
-            containerName: "sqlbox",
-        };
+    test("shared-profile retirement closes stale state and permits a clean reopen", async () => {
+        const h = harness();
+        expect(await h.controller.connectProfile("p1")).to.equal(true);
+        expect(h.registry.stateOf("p1")).to.equal("connected");
 
-        // restart succeeds → the data-plane open proceeds normally.
-        const restarted: string[] = [];
-        const ok = harness({
-            profile: containerProfile,
-            containers: {
-                restart: async (name) => {
-                    restarted.push(name);
-                    return true;
-                },
-            },
-        });
-        expect(await ok.controller.connectProfile("p1")).to.equal(true);
-        expect(restarted).to.deep.equal(["sqlbox"]);
-        expect(ok.registry.stateOf("p1")).to.equal("connected");
-        ok.controller.dispose();
+        await h.controller.retireProfile("p1");
+        expect(h.registry.stateOf("p1")).to.equal("disconnected");
+        h.controller.refresh();
+        const profile = (await h.controller.children()).find((node) => node.connectionId === "p1")!;
+        expect(profile.kind).to.equal("disconnectedConnection");
 
-        // restart fails → NO data-plane open; honest failed state.
-        const failing = harness({
-            profile: containerProfile,
-            containers: { restart: async () => false },
-        });
-        expect(await failing.controller.connectProfile("p1")).to.equal(false);
-        expect(failing.registry.stateOf("p1")).to.equal("failed");
-        expect(failing.registry.get("p1")?.failureReason).to.contain("could not be started");
-        failing.controller.dispose();
-
-        // restart HANGS (wedged docker daemon) → the preflight bound fails
-        // the node with an honest reason — never an infinite spinner.
-        const hanging = harness({
-            profile: containerProfile,
-            containers: { restart: () => new Promise<boolean>(() => undefined) },
-            waits: { containerPreflightMs: 30 },
-        });
-        expect(await hanging.controller.connectProfile("p1")).to.equal(false);
-        expect(hanging.registry.stateOf("p1")).to.equal("failed");
-        expect(hanging.registry.get("p1")?.failureReason).to.contain("did not become ready");
-        hanging.controller.dispose();
-
-        // Non-container profiles never touch the docker seam.
-        const plain = harness({
-            containers: {
-                restart: async () => {
-                    throw new Error("must not be called");
-                },
-            },
-        });
-        expect(await plain.controller.connectProfile("p1")).to.equal(true);
-        plain.controller.dispose();
-    });
-
-    test("container open rides out a booting server's pre-login reset, but a bad password fails fast (DOCK-3)", async () => {
-        const containerProfile = {
-            id: "p1",
-            server: "localhost,1450",
-            profileName: "box",
-            groupId: "ROOT",
-            containerName: "sqlbox",
-        };
-
-        // The readiness log line beats the server's pre-login endpoint: the
-        // first two opens are reset ("forcibly closed"), the third succeeds —
-        // exactly the container boot bounce. The open retries and recovers.
-        let opens = 0;
-        const booting = harness({
-            profile: containerProfile,
-            containers: { restart: async () => true },
-            waits: { containerOpenRetryBackoffMs: 1 },
-            // Count only the OE v2 connection opens — the metadata coordinator
-            // opens its own dedicated sessions once connected, and those must
-            // not be mistaken for retries.
-            beforeOpen: async (params) => {
-                if (params.applicationName !== "vscode-mssql-oe-v2") {
-                    return;
-                }
-                opens++;
-                if (opens <= 2) {
-                    throw new Error(
-                        "Connection failed: A connection was successfully established with the server, but then an error occurred during the pre-login handshake. (provider: TCP Provider, error: 0 - An existing connection was forcibly closed by the remote host.)",
-                    );
-                }
-            },
-        });
-        expect(await booting.controller.connectProfile("p1")).to.equal(true);
-        expect(opens, "opened three times — two resets then success").to.equal(3);
-        expect(booting.registry.stateOf("p1")).to.equal("connected");
-        booting.controller.dispose();
-
-        // A wrong password is NOT a boot bounce: it must fail on the FIRST
-        // attempt, never burn the retry budget on a permanent error.
-        let authOpens = 0;
-        const badPassword = harness({
-            profile: containerProfile,
-            containers: { restart: async () => true },
-            waits: { containerOpenRetryBackoffMs: 1 },
-            beforeOpen: async (params) => {
-                if (params.applicationName !== "vscode-mssql-oe-v2") {
-                    return;
-                }
-                authOpens++;
-                throw new Error("Login failed for user 'sa'.");
-            },
-        });
-        expect(await badPassword.controller.connectProfile("p1")).to.equal(false);
-        expect(authOpens, "no retries on a permanent auth failure").to.equal(1);
-        expect(badPassword.registry.stateOf("p1")).to.equal("failed");
-        badPassword.controller.dispose();
+        await h.controller.children(profile);
+        expect(h.registry.stateOf("p1")).to.equal("connected");
+        h.controller.dispose();
     });
 
     test("a second connect during an in-flight open JOINS it (wizard vs auto-connect race)", async () => {
@@ -545,7 +436,7 @@ suite("Object Explorer v2 browse (B18)", () => {
             serverFingerprint: "fp_join_test",
         } as Parameters<OeV2SessionRegistry["connect"]>[1];
         const first = registry.connect("p1", prepared);
-        const second = registry.connect("p1", prepared); // joins, never re-opens
+        const second = registry.connect("p1", prepared);
         const session = {
             info: {},
             close: async () => undefined,
@@ -553,10 +444,39 @@ suite("Object Explorer v2 browse (B18)", () => {
         } as unknown as ISqlSession;
         resolveOpen({ session });
         expect((await first).state).to.equal("connected");
-        // Live-run finding: this used to resolve "connecting" — read as
-        // failure by the deployment wizard racing the auto-connect.
         expect((await second).state).to.equal("connected");
         expect(opens).to.equal(1);
+        registry.dispose();
+    });
+
+    test("a connected entry is replaced when the saved profile fingerprint changes", async () => {
+        let opens = 0;
+        let oldClosed = 0;
+        const registry = new OeV2SessionRegistry(async () => {
+            opens++;
+            return {
+                session: {
+                    info: {},
+                    close: async () => {
+                        if (opens === 1) {
+                            oldClosed++;
+                        }
+                    },
+                    onDidChangeState: () => ({ dispose: () => undefined }),
+                } as unknown as ISqlSession,
+            };
+        });
+        const prepared = (profileFingerprint: string) =>
+            ({
+                serverFingerprint: `server-${profileFingerprint}`,
+                profileRef: { profileFingerprint },
+            }) as Parameters<OeV2SessionRegistry["connect"]>[1];
+
+        expect((await registry.connect("p1", prepared("old"))).state).to.equal("connected");
+        expect((await registry.connect("p1", prepared("new"))).state).to.equal("connected");
+        expect(opens).to.equal(2);
+        expect(oldClosed).to.equal(1);
+        expect(registry.get("p1")?.prepared?.profileRef.profileFingerprint).to.equal("new");
         registry.dispose();
     });
 
@@ -574,11 +494,8 @@ suite("Object Explorer v2 browse (B18)", () => {
 
         expect(registry.cancelConnect("p1")).to.equal(true);
         expect(registry.stateOf("p1")).to.equal("disconnected");
-        // No-op on anything not connecting.
         expect(registry.cancelConnect("p1")).to.equal(false);
 
-        // The pending open settles late: the superseded branch must close
-        // the session, never resurrect the canceled connect.
         const session = {
             info: {},
             close: async () => {
@@ -589,60 +506,58 @@ suite("Object Explorer v2 browse (B18)", () => {
         resolveOpen({ session });
         const outcome = await pending;
         expect(outcome.state).to.equal("disconnected");
+        expect(outcome.failureReason).to.equal(undefined);
         expect(registry.stateOf("p1")).to.equal("disconnected");
         expect(closed).to.equal(1);
         registry.dispose();
     });
 
-    test("AzureMFA uses the injected token source for OE and metadata opens with no v1/password path", async () => {
-        let tokenLookups = 0;
-        let passwordLookups = 0;
-        let accessTokenOpens = 0;
-        const h = harness({
-            profile: {
-                id: "p1",
-                server: "ninja.database.windows.net",
-                database: "AppDb",
-                profileName: "Ninja",
-                groupId: "ROOT",
-                authenticationType: "AzureMFA",
-                email: "ninja@example.test",
-                accountId: "account-a",
-                tenantId: "tenant-a",
-            },
-            secrets: { lookupPassword: async () => (passwordLookups++, "wrong-secret") },
-            tokens: { acquireSqlAccessToken: async () => (tokenLookups++, "sql-token") },
-            beforeOpen: async (params) => {
-                expect(params.profile.authKind).to.equal("aad");
-                expect(params.auth?.passwordProvider).to.equal(undefined);
-                expect(await params.auth?.tokenProvider?.()).to.equal("sql-token");
-                accessTokenOpens++;
-            },
-        });
+    test("reconnecting a lost connection retires its previous session and listener", async () => {
+        let stateListener: ((change: { current: string; reason?: string }) => void) | undefined;
+        let firstClosed = 0;
+        let firstSubscriptionDisposed = 0;
+        const sessions: ISqlSession[] = [
+            {
+                info: {},
+                close: async () => {
+                    firstClosed++;
+                },
+                onDidChangeState: (listener) => {
+                    stateListener = listener as typeof stateListener;
+                    return { dispose: () => firstSubscriptionDisposed++ };
+                },
+            } as unknown as ISqlSession,
+            {
+                info: {},
+                close: async () => undefined,
+                onDidChangeState: () => ({ dispose: () => undefined }),
+            } as unknown as ISqlSession,
+        ];
+        const registry = new OeV2SessionRegistry(async () => ({ session: sessions.shift()! }));
+        const prepared = {
+            serverFingerprint: "fp_lost_test",
+        } as Parameters<OeV2SessionRegistry["connect"]>[1];
 
-        expect(await h.controller.connectProfile("p1")).to.equal(true);
-        const runtime = h.registry.get("p1");
-        expect(runtime?.state).to.equal("connected");
-        await runtime?.prepared?.auth.tokenProvider?.();
-        expect(accessTokenOpens).to.be.greaterThan(0);
-        expect(tokenLookups).to.be.greaterThan(1);
-        expect(passwordLookups).to.equal(0);
-        h.controller.dispose();
+        expect((await registry.connect("p1", prepared)).state).to.equal("connected");
+        stateListener?.({ current: "lost", reason: "network" });
+        expect(registry.stateOf("p1")).to.equal("lost");
+        expect((await registry.connect("p1", prepared)).state).to.equal("connected");
+        expect(firstClosed).to.equal(1);
+        expect(firstSubscriptionDisposed).to.equal(1);
+        registry.dispose();
     });
 
     test("connect → server node; Databases folder renders catalog states honestly", async () => {
         const h = harness();
         const { dbFolder } = await browseToDatabases(h);
         const databases = await h.controller.children(dbFolder);
-        // v1/SSMS parity: system databases nest under a leading folder.
         expect(databases.map((n) => n.label)).to.deep.equal([
             "System Databases",
             "AppDb",
             "Locked",
             "OtherDb",
         ]);
-        const systemFolder = databases[0];
-        const system = await h.controller.children(systemFolder);
+        const system = await h.controller.children(databases[0]);
         expect(system.map((n) => n.label)).to.deep.equal(["master"]);
         expect(system[0].kind).to.equal("database");
         const locked = databases.find((n) => n.label === "Locked")!;
@@ -650,7 +565,6 @@ suite("Object Explorer v2 browse (B18)", () => {
         expect(locked.readiness.kind).to.equal("permissionDenied");
         expect(locked.description).to.contain("no access");
 
-        // system-database filter hides the folder entirely
         h.settings.showSystemDatabases = false;
         const filtered = await h.controller.children(dbFolder);
         expect(filtered.map((n) => n.label)).to.deep.equal(["AppDb", "Locked", "OtherDb"]);
@@ -661,7 +575,7 @@ suite("Object Explorer v2 browse (B18)", () => {
         const failing = new FakeBackend({
             scripts: [
                 {
-                    match: (t) => t.includes("sys.databases"),
+                    match: (text) => text.includes("sys.databases"),
                     events: [
                         { type: "message", kind: "error", text: "permission denied" },
                         { type: "complete", status: "failed" },
@@ -670,7 +584,6 @@ suite("Object Explorer v2 browse (B18)", () => {
             ],
         });
         const h = harness();
-        // rebuild harness with a failing fallback
         const service = new RoutingService({}, failing);
         const store = new MetadataStore(async () => service, { pollSeconds: 0 });
         const registry = new OeV2SessionRegistry(async (params) => ({
@@ -707,7 +620,6 @@ suite("Object Explorer v2 browse (B18)", () => {
         const { dbFolder } = await browseToDatabases(h);
         const appDb = (await h.controller.children(dbFolder)).find((n) => n.label === "AppDb")!;
         const folders = await h.controller.children(appDb);
-        // B24: SSMS database layout.
         expect(folders.map((n) => n.label)).to.deep.equal([
             "Tables",
             "Views",
@@ -717,12 +629,11 @@ suite("Object Explorer v2 browse (B18)", () => {
             "Storage",
             "Security",
         ]);
-        await h.controller.refreshNode(appDb); // awaits catalog hydration
+        await h.controller.refreshNode(appDb);
 
         const tables = await h.controller.children(folders[0]);
         expect(tables.map((n) => n.label)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
         expect(tables[0].icon).to.equal("Table");
-        expect(tables[0].capabilities.canSelectTop).to.equal(true);
 
         const views = await h.controller.children(folders[1]);
         expect(views.map((n) => n.label)).to.deep.equal(["dbo.OrdersView"]);
@@ -739,13 +650,15 @@ suite("Object Explorer v2 browse (B18)", () => {
         const functions = await h.controller.children(programmability[1]);
         expect(functions.map((n) => n.label)).to.deep.equal(["sales.Totals"]);
         expect(functions[0].icon).to.equal("TableValuedFunction");
+        const functionFolders = await h.controller.children(functions[0]);
+        const returnValue = await h.controller.children(functionFolders[1]);
+        expect(returnValue.map((n) => n.label)).to.deep.equal(["(return value)"]);
 
         const security = await h.controller.children(folders[6]);
         const schemasFolder = security.find((n) => n.label === "Schemas")!;
         const schemas = await h.controller.children(schemasFolder);
         expect(schemas.map((n) => n.label)).to.deep.equal(["dbo", "sales"]);
 
-        // group-by-schema mode inserts schema level
         h.settings.groupBySchema = true;
         const grouped = await h.controller.children(folders[0]);
         expect(grouped.map((n) => `${n.kind}:${n.label}`)).to.deep.equal(["schema:dbo"]);
@@ -775,9 +688,11 @@ suite("Object Explorer v2 browse (B18)", () => {
 
         const keys = await h.controller.children(orderFolders[1]);
         expect(keys.map((n) => `${n.label}:${n.icon}`)).to.deep.equal(["PK_Orders:Key_PrimaryKey"]);
+        expect(keys[0].path.kind).to.equal("key");
 
         const fks = await h.controller.children(orderFolders[2]);
         expect(fks).to.have.length(1);
+        expect(fks[0].path.kind).to.equal("foreignKey");
         expect(fks[0].label).to.equal("FK_Orders_Customers");
         expect(fks[0].description).to.contain("dbo.Customers");
         expect(fks[0].description).to.contain("CustomerId→CustomerId");
@@ -927,12 +842,78 @@ suite("Object Explorer v2 browse (B18)", () => {
         const restored = await h.controller.children(tablesFolder);
         expect(restored.map((n) => n.label)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
 
+        h.settings.groupBySchema = true;
+        h.controller.setFolderFilter(tablesFolder, "Cust");
+        const grouped = await h.controller.children(tablesFolder);
+        expect(grouped.map((n) => `${n.kind}:${n.label}`)).to.deep.equal([
+            "schema:dbo",
+            "status:Filter: 'Cust' (1 of 2 shown)",
+        ]);
+        const groupedMatches = await h.controller.children(grouped[0]);
+        expect(groupedMatches.map((n) => n.label)).to.deep.equal(["dbo.Customers"]);
+
+        h.controller.setFolderFilter(tablesFolder, "zzz-nothing");
+        const noGroupedMatches = await h.controller.children(tablesFolder);
+        expect(noGroupedMatches).to.have.length(1);
+        expect(noGroupedMatches[0].label).to.contain("No matches");
+        h.controller.clearFolderFilter(tablesFolder);
+
         const matches = await h.controller.searchObjects("p1", "AppDb", "Ord");
-        expect(matches.map((m) => `${m.schema}.${m.name}`)).to.deep.equal([
+        expect(matches?.map((m) => `${m.schema}.${m.name}`)).to.deep.equal([
             "dbo.Orders",
             "dbo.OrdersView",
         ]);
         h.controller.dispose();
+    });
+});
+
+suite("Object Explorer v2 metadata coordinator retries", () => {
+    test("rejected server/database acquisitions are not cached", async () => {
+        let serverAttempts = 0;
+        let databaseAttempts = 0;
+        const serverLease = {
+            onDidChange: () => ({ dispose: () => undefined }),
+            dispose: () => undefined,
+        };
+        const databaseLease = { dispose: () => undefined };
+        const store = {
+            acquireServer: async () => {
+                serverAttempts++;
+                if (serverAttempts === 1) {
+                    throw new Error("first server acquisition failed");
+                }
+                return serverLease;
+            },
+            acquireDatabase: async () => {
+                databaseAttempts++;
+                if (databaseAttempts === 1) {
+                    throw new Error("first database acquisition failed");
+                }
+                return databaseLease;
+            },
+        } as unknown as MetadataStore;
+        const coordinator = new OeV2MetadataCoordinator(store, {} as never);
+
+        let serverRejected = false;
+        try {
+            await coordinator.ensureServer();
+        } catch {
+            serverRejected = true;
+        }
+        expect(serverRejected).to.equal(true);
+        expect(await coordinator.ensureServer()).to.equal(serverLease);
+        expect(serverAttempts).to.equal(2);
+
+        let databaseRejected = false;
+        try {
+            await coordinator.ensureDatabase("AppDb");
+        } catch {
+            databaseRejected = true;
+        }
+        expect(databaseRejected).to.equal(true);
+        expect(await coordinator.ensureDatabase("AppDb")).to.equal(databaseLease);
+        expect(databaseAttempts).to.equal(2);
+        coordinator.dispose();
     });
 });
 

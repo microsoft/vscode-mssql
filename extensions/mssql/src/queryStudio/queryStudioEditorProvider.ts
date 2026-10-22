@@ -12,6 +12,9 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
+import { QueryStudio as QueryStudioLoc } from "../constants/locConstants";
+import { PrivatePreviewContextKey } from "../previews/previewService";
+import { isQueryStudioEnabled, isQueryStudioResource } from "./queryStudioFeatureGate";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
 import { SqlBackendKind } from "../services/sqlDataPlane/backendFactory";
@@ -388,22 +391,47 @@ function registerQueryResultsLifecycle(context: vscode.ExtensionContext): void {
 }
 
 export function registerQueryStudio(context: vscode.ExtensionContext): void {
-    const enabled = () =>
-        vscode.workspace.getConfiguration().get<boolean>("mssql.queryStudio.enabled", false);
-    if (!enabled()) {
-        // Late enablement without a reload (also unblocks harness scenarios
-        // that flip the setting after activation): register once when the
-        // preview gate turns on.
-        const watcher = vscode.workspace.onDidChangeConfiguration((e) => {
-            if (e.affectsConfiguration("mssql.queryStudio.enabled") && enabled()) {
-                watcher.dispose();
-                registerQueryStudioFeatures(context);
-            }
-        });
-        context.subscriptions.push(watcher);
-        return;
+    const activeAtActivation = isQueryStudioEnabled();
+    void vscode.commands.executeCommand(
+        "setContext",
+        PrivatePreviewContextKey.QueryStudioActive,
+        activeAtActivation,
+    );
+    const provider = activeAtActivation ? new QueryStudioEditorProvider(context) : undefined;
+    // The static .mssql association also applies with preview flags off. In
+    // that case, use the ordinary SQL editor without creating QS services.
+    context.subscriptions.push(
+        vscode.window.registerCustomEditorProvider(
+            QUERY_STUDIO_VIEW_TYPE,
+            {
+                async resolveCustomTextEditor(document, panel, token) {
+                    if (
+                        !provider ||
+                        !isQueryStudioEnabled() ||
+                        !isQueryStudioResource(document.uri)
+                    ) {
+                        await vscode.commands.executeCommand(
+                            "vscode.openWith",
+                            document.uri,
+                            "default",
+                            { viewColumn: panel.viewColumn },
+                        );
+                        panel.dispose();
+                        return;
+                    }
+                    await provider.resolveCustomTextEditor(document, panel, token);
+                },
+            },
+            {
+                webviewOptions: { retainContextWhenHidden: true },
+                supportsMultipleEditorsPerDocument: true,
+            },
+        ),
+    );
+    if (provider) {
+        context.subscriptions.push({ dispose: () => void provider.disposeAll() });
+        registerQueryStudioFeatures(context);
     }
-    registerQueryStudioFeatures(context);
 }
 
 function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
@@ -411,17 +439,10 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
     registerQueryStudioActiveTextEditorRedirect(context);
     registerQueryStudioSaveAsContinuity(context);
     registerQueryResultsLifecycle(context);
-    void ensureMssqlFileAssociation();
     // mssql-def: virtual documents for scripted go-to-definition (LS-4);
     // registered once with the QS surface, shared by every controller.
     registerDefinitionContentProvider(context);
-    const provider = new QueryStudioEditorProvider(context);
     context.subscriptions.push(
-        vscode.window.registerCustomEditorProvider(QUERY_STUDIO_VIEW_TYPE, provider, {
-            webviewOptions: { retainContextWhenHidden: true },
-            supportsMultipleEditorsPerDocument: true,
-        }),
-        { dispose: () => void provider.disposeAll() },
         vscode.commands.registerCommand("mssql.queryStudio.new", async () => {
             const doc = await vscode.workspace.openTextDocument({
                 language: "sql",
@@ -465,10 +486,8 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
         ),
         vscode.commands.registerCommand("mssql.queryStudio.openActive", async () => {
             const uri = vscode.window.activeTextEditor?.document.uri;
-            if (!uri) {
-                void vscode.window.showInformationMessage(
-                    "Open a .sql document first, then reopen it in Query Studio.",
-                );
+            if (!uri || !isQueryStudioResource(uri)) {
+                void vscode.window.showInformationMessage(QueryStudioLoc.openMssqlDocument);
                 return;
             }
             await vscode.commands.executeCommand("vscode.openWith", uri, QUERY_STUDIO_VIEW_TYPE);
@@ -589,32 +608,6 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
     );
 }
 
-/**
- * `.mssql` is the Query-Studio-first extension (contributed to the sql
- * language + the QS custom-editor selector). The customEditors contribution
- * stays priority "option" so ordinary .sql files are not hijacked — this
- * makes QS the DEFAULT editor for `*.mssql` the same way VS Code's own
- * "Configure default editor" does: a workbench.editorAssociations entry.
- * Written once, globally, only when the user has no association yet.
- */
-async function ensureMssqlFileAssociation(): Promise<void> {
-    try {
-        const config = vscode.workspace.getConfiguration();
-        const associations =
-            config.get<Record<string, string>>("workbench.editorAssociations") ?? {};
-        if (associations["*.mssql"] !== undefined) {
-            return; // user already decided — never overwrite
-        }
-        await config.update(
-            "workbench.editorAssociations",
-            { ...associations, "*.mssql": QUERY_STUDIO_VIEW_TYPE },
-            vscode.ConfigurationTarget.Global,
-        );
-    } catch {
-        // Best-effort: without the association, "Reopen With" still works.
-    }
-}
-
 /** EOL/final-newline save transforms must not break Save As source matching. */
 function normalizeForSaveAsMatch(text: string): string {
     return text.replace(/\r\n/g, "\n").trimEnd();
@@ -627,7 +620,7 @@ function normalizeForSaveAsMatch(text: string): string {
  * content lands in the target file, and a titled Save As reopens the target
  * as a fresh document that would lose the session. Tab events never fire for
  * the orphan, so the watcher keys off the DOCUMENT save instead: a saved
- * .sql/.mssql file that is not an open Query Studio document but textually
+ * .mssql file that is not an open Query Studio document but textually
  * matches a live model is that model's Save As target. The model itself
  * (connection, results, spill) is transplanted to the new URI, the target is
  * ensured open in Query Studio, and the orphaned source tab is closed.
@@ -642,7 +635,7 @@ function registerQueryStudioSaveAsContinuity(context: vscode.ExtensionContext): 
     const ENSURE_DELAY_MS = 200;
     context.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument((saved) => {
-            if (saved.uri.scheme !== "file" || !/\.(sql|mssql)$/i.test(saved.uri.fsPath)) {
+            if (saved.uri.scheme !== "file" || !isQueryStudioResource(saved.uri)) {
                 return;
             }
             const savedKey = saved.uri.toString();
@@ -770,9 +763,9 @@ function registerQueryStudioActiveTextEditorRedirect(context: vscode.ExtensionCo
         redirectTimer = setTimeout(() => {
             redirectTimer = undefined;
             void redirectClassicSqlEditorToQueryStudio(editor, controller, uriKey).finally(() => {
-                setTimeout(() => {
+                queueMicrotask(() => {
                     redirecting = false;
-                }, 0);
+                });
             });
         }, PROBLEM_REDIRECT_SELECTION_SETTLE_MS);
     });

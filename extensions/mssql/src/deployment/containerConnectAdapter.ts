@@ -17,6 +17,7 @@ import { IConnectionProfile } from "../models/interfaces";
 import { stableProfileId } from "../services/metadata/profileAuthAdapter";
 
 export interface ContainerConnectAdapter {
+    readonly usesDataPlane?: boolean;
     /**
      * Persist the profile, open it in the owning Object Explorer, and return a display-safe
      * connection string without a password. Throws when any part of the operation fails.
@@ -60,6 +61,7 @@ export function oeV2ContainerConnectAdapter(
     mainController: MainController,
 ): ContainerConnectAdapter {
     return {
+        usesDataPlane: true,
         saveAndConnect: async (connection: IConnectionProfile) => {
             const profile =
                 await mainController.connectionManager.connectionUI.saveProfile(connection);

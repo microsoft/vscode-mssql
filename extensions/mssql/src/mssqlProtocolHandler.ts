@@ -45,7 +45,6 @@ export class MssqlProtocolHandler {
     /**
      * Handles the given URI and returns connection information if applicable. Examples of URIs handled:
      * - vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&user=sa&authenticationType=SqlLogin
-     * - vscode://ms-mssql.mssql/connect?connectionString=Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;
      *
      * @param uri - The URI to handle.
      * @returns The connection information or undefined if not applicable.
@@ -188,11 +187,6 @@ export class MssqlProtocolHandler {
         const args = new URLSearchParams(query);
 
         this.fillConnectionProperty(connectionInfo, args, "profileName");
-
-        const connString = this.fillConnectionProperty(connectionInfo, args, "connectionString");
-        if (connString) {
-            return connectionInfo as IConnectionProfile;
-        }
 
         this.fillConnectionProperty(connectionInfo, args, "tenantId");
         this.fillConnectionProperty(connectionInfo, args, "accountId");

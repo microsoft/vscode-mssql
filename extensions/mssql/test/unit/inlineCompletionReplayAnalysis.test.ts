@@ -20,18 +20,9 @@ import {
     computeReplayRunAnalysis,
 } from "../../src/sharedInterfaces/inlineCompletionReplayAnalysis";
 import {
-    buildLiveReplayAnalysisItemInput,
-    buildReplayAnalysisItemInput,
-} from "../../src/diagnostics/replayLabRpcHost";
-import { ReplayRunItemRecordV1 } from "../../src/diagnostics/featureCapture/replayRunRepository";
-import {
     ReplayLabRunRowV1,
     filterReplayLabRunRowsByHostSession,
 } from "../../src/sharedInterfaces/replayLabRpc";
-import {
-    InlineCompletionDebugEvent,
-    InlineCompletionDebugReplayQueueRow,
-} from "../../src/sharedInterfaces/inlineCompletionDebug";
 
 const CELLS = [
     { cellId: "cell-a", label: "balanced x tight", ordinal: 0 },
@@ -291,71 +282,6 @@ suite("Paired replay analysis (WI-4.2 / §8.3)", () => {
             ],
         });
         expect(analysis.unresolvedResultStats).to.equal(1);
-    });
-});
-
-suite("Replay analysis item inputs (host projections)", () => {
-    const record: ReplayRunItemRecordV1 = {
-        replayRunId: "rr-1",
-        replayItemId: "ri-1",
-        sourceCaptureEventId: "src-1",
-        matrixCellId: "cell-a",
-        repetition: 1,
-        queuedAt: 1_000,
-        startedAt: 1_100,
-        endedAt: 1_400,
-        resolvedConfigDigest: "digest",
-        status: "completed",
-        resultEventId: "E-9",
-        replayMode: "frozenPrompt",
-        schemaContextSource: "captured",
-        attempt: 1,
-    };
-
-    test("latency from the record; tokens/presence only from a resolved event", () => {
-        const withoutEvent = buildReplayAnalysisItemInput(record, undefined);
-        expect(withoutEvent.latencyMs).to.equal(300);
-        expect(withoutEvent.inputTokens).to.equal(undefined);
-        expect(withoutEvent.outputTokens).to.equal(undefined);
-        expect(withoutEvent.outputPresent).to.equal(undefined); // missing, not false
-        expect(withoutEvent.replayMode).to.equal("frozenPrompt");
-        expect(withoutEvent.schemaContextSource).to.equal("captured");
-
-        const resultEvent = {
-            result: "success",
-            inputTokens: 42,
-            outputTokens: 7,
-        } as InlineCompletionDebugEvent;
-        const withEvent = buildReplayAnalysisItemInput(record, resultEvent);
-        expect(withEvent.inputTokens).to.equal(42);
-        expect(withEvent.outputTokens).to.equal(7);
-        expect(withEvent.outputPresent).to.equal(true);
-
-        const emptyEvent = { result: "emptyFromSanitizer" } as InlineCompletionDebugEvent;
-        expect(buildReplayAnalysisItemInput(record, emptyEvent).outputPresent).to.equal(false);
-    });
-
-    test("live queue rows become pending inputs without event content", () => {
-        const row = {
-            id: "q-1",
-            runId: "rr-1",
-            sourceEventId: "SRC-2",
-            status: "queued",
-            queuedAt: 5,
-            matrixCellId: "cell-b",
-            repetition: 1,
-            config: { replayMode: "rebuildCurrentSchema" },
-            event: { link: { captureEventId: "ce-2" } },
-        } as unknown as InlineCompletionDebugReplayQueueRow;
-        const input = buildLiveReplayAnalysisItemInput(row);
-        expect(input).to.deep.equal({
-            replayItemId: "q-1",
-            sourceCaptureEventId: "ce-2",
-            matrixCellId: "cell-b",
-            repetition: 1,
-            status: "queued",
-            replayMode: "rebuildCurrentSchema",
-        });
     });
 });
 

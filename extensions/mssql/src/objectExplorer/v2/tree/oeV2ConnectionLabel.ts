@@ -7,20 +7,55 @@
  * v1 connection label + tooltip recipes (OE_V1_PARITY_PLAN K6), copied from
  * classic `models/connectionInfo.ts getConnectionDisplayName()` and
  * `objectExplorer/nodes/connectionNode.ts getConnectionTooltip()` so the v2
- * tree reads identically: `server, database (auth)` with `<default>` for an
- * unset database, and a tooltip listing every non-default property. Kept as
- * a PURE module (tree/ may not import vscode/l10n) — strings mirror the
- * classic English l10n sources; a parity test pins the label recipe against
- * the classic function. Karl's addition over v1: when two sibling nodes tie
- * on the full label, each tooltip gains the properties that differ.
+ * tree reads identically: `server, database (auth)` with the localized
+ * default-database marker for an unset database, and a tooltip listing every
+ * non-default property. A parity test pins the label recipe against the
+ * classic function. Karl's addition over v1: when two sibling nodes tie on
+ * the full label, each tooltip gains the properties that differ.
  */
+
+import {
+    ObjectExplorerV2,
+    defaultDatabaseLabel,
+    azureMFA,
+    windowsAuthentication,
+    enabled,
+    disabled,
+    server,
+    database,
+    authenticationType,
+    user,
+    port,
+    sqlContainerName,
+    sqlContainerVersion,
+    applicationIntent,
+    connectionTimeout,
+    commandTimeout,
+    alwaysEncrypted,
+    replication,
+} from "../../../constants/locConstants";
 
 /** Classic auth-type wire values (constants.ts). */
 const SQL_AUTH = "SqlLogin";
 const AZURE_MFA = "AzureMFA";
 const INTEGRATED = "Integrated";
 
-const DEFAULT_DATABASE_LABEL = "<default>";
+/** Normalize the classic wire values exactly as connection preparation does. */
+function normalizedAuthenticationType(value: string | undefined): string {
+    const trimmed = value?.trim() ?? "";
+    switch (trimmed.toLowerCase()) {
+        case "":
+        case "sqllogin":
+            return SQL_AUTH;
+        case "integrated":
+            return INTEGRATED;
+        case "azuremfa":
+        case "activedirectoryinteractive":
+            return AZURE_MFA;
+        default:
+            return trimmed;
+    }
+}
 
 /** Everything the label/tooltip recipes read off a stored profile. */
 export interface OeV2ConnectionLabelFacts {
@@ -49,7 +84,7 @@ export function connectionDisplayLabel(facts: OeV2ConnectionLabelFacts): string 
     if (facts.profileName) {
         return facts.profileName;
     }
-    const authType = facts.authenticationType ?? INTEGRATED;
+    const authType = normalizedAuthenticationType(facts.authenticationType);
     let userOrAuthType: string = authType;
     if (authType === SQL_AUTH && facts.user) {
         userOrAuthType = facts.user;
@@ -58,7 +93,7 @@ export function connectionDisplayLabel(facts: OeV2ConnectionLabelFacts): string 
         userOrAuthType = facts.email;
     }
     const database =
-        facts.database && facts.database !== "" ? facts.database : DEFAULT_DATABASE_LABEL;
+        facts.database && facts.database !== "" ? facts.database : defaultDatabaseLabel;
     return `${facts.server ?? ""}, ${database} (${userOrAuthType})`;
 }
 
@@ -84,21 +119,21 @@ type TooltipKey =
     | "alwaysEncrypted"
     | "replication";
 
-/** English mirrors of the classic l10n labels (locConstants.ts). */
+/** Localized labels shared with classic Object Explorer. */
 const TOOLTIP_LABELS: Record<TooltipKey, string | undefined> = {
     profileName: undefined, // rendered bare, no label (classic excludedLabelKeys)
-    server: "Server",
-    database: "Database",
-    authenticationType: "Authentication Type",
-    user: "User",
-    port: "Port",
-    containerName: "SQL Container Name",
-    version: "SQL Container Version",
-    applicationIntent: "Application Intent",
-    connectTimeout: "Connection Timeout",
-    commandTimeout: "Command Timeout",
-    alwaysEncrypted: "Always Encrypted",
-    replication: "Replication",
+    server,
+    database,
+    authenticationType,
+    user,
+    port,
+    containerName: sqlContainerName,
+    version: sqlContainerVersion,
+    applicationIntent,
+    connectTimeout: connectionTimeout,
+    commandTimeout,
+    alwaysEncrypted,
+    replication,
 };
 
 const TOOLTIP_ORDER: readonly TooltipKey[] = [
@@ -117,25 +152,28 @@ const TOOLTIP_ORDER: readonly TooltipKey[] = [
     "replication",
 ];
 
-function displayValue(key: TooltipKey, value: unknown, facts: OeV2ConnectionLabelFacts): string {
+function displayValue(value: unknown): string {
     if (value === AZURE_MFA || value === INTEGRATED) {
-        return facts.authenticationType === AZURE_MFA ? "Azure MFA" : "Windows Authentication";
+        return value === AZURE_MFA ? azureMFA : windowsAuthentication;
     }
     if (value === true) {
-        return "Enabled";
+        return enabled;
     }
     if (value === false) {
-        return "Disabled";
+        return disabled;
     }
     return String(value);
 }
 
 function tooltipLineFor(key: TooltipKey, facts: OeV2ConnectionLabelFacts): string | undefined {
-    const value = facts[key];
+    const value =
+        key === "authenticationType"
+            ? normalizedAuthenticationType(facts.authenticationType)
+            : facts[key];
     if (value === undefined || value === "" || value === TOOLTIP_DEFAULTS[key]) {
         return undefined;
     }
-    const rendered = displayValue(key, value, facts);
+    const rendered = displayValue(value);
     const label = TOOLTIP_LABELS[key];
     return label === undefined ? rendered : `${label}: ${rendered}`;
 }
@@ -149,8 +187,8 @@ function tooltipLineFor(key: TooltipKey, facts: OeV2ConnectionLabelFacts): strin
  * defaults key and always printed it.
  */
 export function connectionTooltipLines(facts: OeV2ConnectionLabelFacts): string[] {
-    const dropUser =
-        facts.authenticationType === AZURE_MFA || facts.authenticationType === INTEGRATED;
+    const authType = normalizedAuthenticationType(facts.authenticationType);
+    const dropUser = authType === AZURE_MFA || authType === INTEGRATED;
     const lines: string[] = [];
     for (const key of TOOLTIP_ORDER) {
         if (key === "user" && dropUser) {
@@ -182,14 +220,23 @@ export function disambiguationLines(
         if (key === "profileName") {
             continue;
         }
-        const mine = facts[key];
-        const differs = tiedWith.some((other) => other[key] !== mine);
+        const mine =
+            key === "authenticationType"
+                ? normalizedAuthenticationType(facts.authenticationType)
+                : facts[key];
+        const differs = tiedWith.some((other) => {
+            const theirs =
+                key === "authenticationType"
+                    ? normalizedAuthenticationType(other.authenticationType)
+                    : other[key];
+            return theirs !== mine;
+        });
         if (!differs) {
             continue;
         }
         const label = TOOLTIP_LABELS[key] ?? key;
         const rendered =
-            mine === undefined || mine === "" ? "(not set)" : displayValue(key, mine, facts);
+            mine === undefined || mine === "" ? ObjectExplorerV2.notSet : displayValue(mine);
         lines.push(`${label}: ${rendered}`);
     }
     return lines;

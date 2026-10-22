@@ -27,6 +27,9 @@ export interface OeV2GroupCommandDeps {
     readonly instantiationService: IInstantiationService;
     /** The shared classic config — undefined when not injected (tests). */
     readonly groupConfig: () => ConnectionConfig | undefined;
+    readonly isEnabled?: () => boolean;
+    /** Tear down v2/handoff state before a profile is deleted with its group. */
+    readonly beforeDeleteConnection?: (connectionId: string) => Promise<void>;
 }
 
 function emitGroupMutation(op: string, result: "ok" | "canceled" | "failed"): void {
@@ -73,31 +76,58 @@ export function wouldCreateCycle(
     return false;
 }
 
+/** Stable profile ids contained by a group and all of its descendants. */
+export function connectionIdsInGroupSubtree(
+    groups: readonly { id: string; parentId?: string }[],
+    connections: readonly { id?: string; groupId?: string }[],
+    groupId: string,
+): string[] {
+    const subtree = new Set([groupId]);
+    let changed = true;
+    while (changed) {
+        changed = false;
+        for (const group of groups) {
+            if (group.parentId && subtree.has(group.parentId) && !subtree.has(group.id)) {
+                subtree.add(group.id);
+                changed = true;
+            }
+        }
+    }
+    return connections
+        .filter((profile) => profile.groupId !== undefined && subtree.has(profile.groupId))
+        .map((profile) => stableProfileId(profile));
+}
+
 export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Disposable {
     const { instantiationService, groupConfig } = deps;
+    const isEnabled = deps.isEnabled ?? (() => true);
 
     const create = vscode.commands.registerCommand(
         "mssql.objectExplorerV2.connectionGroups.create",
-        (node?: OeV2Node) => {
+        () => {
+            if (!isEnabled()) {
+                return;
+            }
             const config = groupConfig();
             if (!config) {
                 return;
             }
-            // Creating from a group node's context menu nests under it.
-            const parentId = groupIdOf(node);
+            // The classic dialog creates at the root; nesting is available through move or DnD.
             const dialog = instantiationService.createInstance(
                 ConnectionGroupWebviewController,
                 undefined,
             );
             dialog.revealToForeground();
             emitGroupMutation("create", "ok");
-            void parentId; // dialog assigns root parent; nesting via move/DnD
         },
     );
 
     const edit = vscode.commands.registerCommand(
         "mssql.objectExplorerV2.connectionGroups.edit",
         async (node?: OeV2Node) => {
+            if (!isEnabled()) {
+                return;
+            }
             const config = groupConfig();
             const groupId = groupIdOf(node);
             if (!config || !groupId) {
@@ -106,7 +136,7 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
             const group = await findGroup(config, groupId);
             if (!group) {
                 void vscode.window.showWarningMessage(
-                    "That connection group no longer exists. Refresh the view.",
+                    LocalizedConstants.ObjectExplorerV2.groupNoLongerExists,
                 );
                 return;
             }
@@ -120,6 +150,9 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
     const remove = vscode.commands.registerCommand(
         "mssql.objectExplorerV2.connectionGroups.delete",
         async (node?: OeV2Node) => {
+            if (!isEnabled()) {
+                return;
+            }
             const config = groupConfig();
             const groupId = groupIdOf(node);
             if (!config || !groupId || !node) {
@@ -164,6 +197,12 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
                 emitGroupMutation("delete", "canceled");
                 return;
             }
+            if (mode === "delete" && deps.beforeDeleteConnection) {
+                const connectionIds = connectionIdsInGroupSubtree(groups, connections, groupId);
+                await Promise.all(
+                    connectionIds.map((connectionId) => deps.beforeDeleteConnection!(connectionId)),
+                );
+            }
             await config.removeGroup(groupId, mode);
             emitGroupMutation("delete", "ok");
         },
@@ -172,6 +211,9 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
     const moveToGroup = vscode.commands.registerCommand(
         "mssql.objectExplorerV2.moveToGroup",
         async (node?: OeV2Node) => {
+            if (!isEnabled()) {
+                return;
+            }
             const config = groupConfig();
             const connectionId =
                 node?.connectionId ??
@@ -188,7 +230,7 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
             );
             if (!profile) {
                 void vscode.window.showWarningMessage(
-                    "That connection could not be found in saved connections.",
+                    LocalizedConstants.ObjectExplorerV2.savedConnectionNotFound,
                 );
                 return;
             }
@@ -199,10 +241,13 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
                 groups
                     .filter((group) => group.id !== profile.groupId)
                     .map((group) => ({
-                        label: group.id === rootId ? "(Root)" : group.name,
+                        label:
+                            group.id === rootId
+                                ? LocalizedConstants.ObjectExplorerV2.rootGroup
+                                : group.name,
                         groupId: group.id,
                     })),
-                { title: "Move connection to group" },
+                { title: LocalizedConstants.ObjectExplorerV2.moveConnectionTitle },
             );
             if (!picked) {
                 emitGroupMutation("moveConnection", "canceled");
@@ -229,9 +274,15 @@ export class OeV2DragAndDropController implements vscode.TreeDragAndDropControll
     readonly dragMimeTypes = [OeV2DragAndDropController.MIME];
     readonly dropMimeTypes = [OeV2DragAndDropController.MIME];
 
-    constructor(private readonly groupConfig: () => ConnectionConfig | undefined) {}
+    constructor(
+        private readonly groupConfig: () => ConnectionConfig | undefined,
+        private readonly isEnabled: () => boolean = () => true,
+    ) {}
 
     handleDrag(source: readonly OeV2Node[], dataTransfer: vscode.DataTransfer): void {
+        if (!this.isEnabled()) {
+            return;
+        }
         const node = source.find(
             (candidate) =>
                 candidate.path.kind === "connectionGroup" || candidate.path.kind === "connection",
@@ -256,6 +307,9 @@ export class OeV2DragAndDropController implements vscode.TreeDragAndDropControll
         target: OeV2Node | undefined,
         dataTransfer: vscode.DataTransfer,
     ): Promise<void> {
+        if (!this.isEnabled()) {
+            return;
+        }
         const config = this.groupConfig();
         const raw = dataTransfer.get(OeV2DragAndDropController.MIME);
         if (!config || !raw) {
@@ -263,7 +317,15 @@ export class OeV2DragAndDropController implements vscode.TreeDragAndDropControll
         }
         let payload: { type: string; id: string };
         try {
-            payload = JSON.parse(await raw.asString()) as { type: string; id: string };
+            const parsed = JSON.parse(await raw.asString()) as unknown;
+            if (typeof parsed !== "object" || parsed === null) {
+                return;
+            }
+            const candidate = parsed as Record<string, unknown>;
+            if (typeof candidate.type !== "string" || typeof candidate.id !== "string") {
+                return;
+            }
+            payload = { type: candidate.type, id: candidate.id };
         } catch {
             return;
         }

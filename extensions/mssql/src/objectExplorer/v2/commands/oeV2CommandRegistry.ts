@@ -29,7 +29,6 @@ export interface OeV2CommandTargetFacts {
     readonly database?: string;
     /** Set for object nodes (table/view/procedure/…). */
     readonly objectKind?: string;
-    /** Docker container connection (profile carries containerName, DOCK-2). */
     readonly isContainer?: boolean;
 }
 
@@ -46,7 +45,6 @@ export interface OeV2CommandPlacement {
 export interface OeV2CommandDef {
     /** Command id registered with VS Code. */
     readonly id: string;
-    readonly title: string;
     /** Policy feature key (legacyRedirect routes) or native handler key. */
     readonly feature: string;
     readonly route: "legacyRedirect" | "native";
@@ -61,19 +59,18 @@ const dbScopedConnection = (facts: OeV2CommandTargetFacts) =>
 /** v1 `type=Database || subType=(Database|DockerContainerDatabase)`. */
 const databaseish = (facts: OeV2CommandTargetFacts) =>
     facts.kind === "database" || dbScopedConnection(facts);
-const anyConnectedServer = (facts: OeV2CommandTargetFacts) => facts.kind === "connectedServer";
+const anyConnection = (facts: OeV2CommandTargetFacts) =>
+    facts.kind === "connectedServer" ||
+    facts.kind === "disconnectedConnection" ||
+    facts.kind === "lostConnection";
 const tableObject = (facts: OeV2CommandTargetFacts) =>
     facts.kind === "object" && facts.objectKind === "table";
 
 const COPILOT_INSTALLED = "mssql.copilot.isGHCInstalled";
 
 export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
-    // ------------------------------------------------------------- 1_primary
     {
         id: "mssql.objectExplorerV2.newQuery",
-        // Sanctioned deviation from v1's "New Query": a different command
-        // (opens Query Studio) keeps its own name.
-        title: "New Query (Query Studio)",
         feature: "newQuery",
         route: "native",
         placements: [
@@ -81,14 +78,15 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
                 flag: "newQuery",
                 menuGroup: "1_MSSQL_primary@1",
                 appliesTo: (facts) =>
-                    anyConnectedServer(facts) || facts.kind === "database" || tableObject(facts),
+                    anyConnection(facts) || facts.kind === "database" || tableObject(facts),
+                extraWhen:
+                    "mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled",
             },
         ],
     },
     // -------------------------------------------------------- 2b_tableActions
     {
         id: "mssql.objectExplorerV2.editTableData",
-        title: "Edit Table Data...",
         feature: "tableExplorer",
         route: "legacyRedirect",
         placements: [
@@ -97,7 +95,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.editTable",
-        title: "Modify Table Structure...",
         feature: "editTable",
         route: "legacyRedirect",
         placements: [
@@ -107,7 +104,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     // ------------------------------------------------------ 2a_databaseDesign
     {
         id: "mssql.objectExplorerV2.schemaDesigner",
-        title: "Visualize and Design Schema...",
         feature: "schemaDesigner",
         route: "legacyRedirect",
         placements: [
@@ -120,7 +116,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.buildDataApi",
-        title: "Build Data API...",
         feature: "buildDataApi",
         route: "legacyRedirect",
         placements: [
@@ -136,7 +131,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
         id: "mssql.objectExplorerV2.search",
         // v1 wording: the native metadata-store search fully replaces the
         // classic Search Database Objects dialog on database contexts.
-        title: "Search Database Objects...",
         feature: "search",
         route: "native",
         placements: [
@@ -145,26 +139,26 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.launchProfiler",
-        title: "Launch Query Profiler...",
         feature: "profiler",
         route: "legacyRedirect",
         placements: [
             {
                 flag: "profiler",
                 menuGroup: "4_MSSQL_discoverAndProfile@2",
-                appliesTo: serverScoped,
+                appliesTo: (facts) => anyConnection(facts) && facts.database === undefined,
             },
             {
                 flag: "profilerDb",
                 menuGroup: "3_MSSQL_databaseDiscover@2",
-                appliesTo: databaseish,
+                appliesTo: (facts) =>
+                    facts.kind === "database" ||
+                    (anyConnection(facts) && facts.database !== undefined),
             },
         ],
     },
     // ------------------------------------- 3_instanceActions / 4_maintenance
     {
         id: "mssql.objectExplorerV2.renameDatabase",
-        title: "Rename Database...",
         feature: "renameDatabase",
         route: "legacyRedirect",
         placements: [
@@ -179,7 +173,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.backupDatabase",
-        title: "Backup Database...",
         feature: "backupDatabase",
         route: "legacyRedirect",
         placements: [
@@ -190,7 +183,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.restoreDatabase",
-        title: "Restore Database...",
         feature: "restoreDatabase",
         route: "legacyRedirect",
         placements: [
@@ -208,7 +200,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.importData",
-        title: "Import Data...",
         feature: "flatFileImport",
         route: "legacyRedirect",
         placements: [
@@ -226,7 +217,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.dropDatabase",
-        title: "Drop Database...",
         feature: "dropDatabase",
         route: "legacyRedirect",
         placements: [
@@ -240,7 +230,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     // -------------------------------------------------- 2_connection extras
     {
         id: "mssql.objectExplorerV2.copyConnectionString",
-        title: "Copy Connection String",
         feature: "copyConnectionString",
         route: "legacyRedirect",
         placements: [
@@ -248,14 +237,15 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
                 flag: "copyConnectionString",
                 menuGroup: "2_MSSQL_connection@4",
                 appliesTo: (facts) =>
-                    facts.kind === "connectedServer" || facts.kind === "disconnectedConnection",
+                    facts.kind === "connectedServer" ||
+                    facts.kind === "disconnectedConnection" ||
+                    facts.kind === "lostConnection",
             },
         ],
     },
     // ------------------------------------------------------------ 6_copilot
     {
         id: "mssql.objectExplorerV2.chatWithDatabase",
-        title: "Open in GitHub Copilot Chat",
         feature: "chatWithDatabase",
         route: "legacyRedirect",
         placements: [
@@ -263,14 +253,13 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
                 flag: "copilotChat",
                 menuGroup: "6_MSSQL_copilot@1",
                 appliesTo: (facts) =>
-                    anyConnectedServer(facts) || facts.kind === "database" || tableObject(facts),
+                    anyConnection(facts) || facts.kind === "database" || tableObject(facts),
                 extraWhen: COPILOT_INSTALLED,
             },
         ],
     },
     {
         id: "mssql.objectExplorerV2.chatWithDatabaseAgent",
-        title: "Open in GitHub Copilot Agent",
         feature: "chatWithDatabaseAgent",
         route: "legacyRedirect",
         placements: [
@@ -278,7 +267,7 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
                 flag: "copilotAgent",
                 menuGroup: "6_MSSQL_copilot@2",
                 appliesTo: (facts) =>
-                    anyConnectedServer(facts) || facts.kind === "database" || tableObject(facts),
+                    anyConnection(facts) || facts.kind === "database" || tableObject(facts),
                 extraWhen: COPILOT_INSTALLED,
             },
         ],
@@ -286,41 +275,38 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     // -------------------------------------------------- 7_compareAndDacpac
     {
         id: "mssql.objectExplorerV2.schemaCompare",
-        title: "Compare Schemas...",
         feature: "schemaCompare",
         route: "legacyRedirect",
         placements: [
             {
                 flag: "schemaCompare",
                 menuGroup: "7_MSSQL_compareAndDacpac@1",
-                appliesTo: (facts) => anyConnectedServer(facts) || facts.kind === "database",
+                appliesTo: (facts) => anyConnection(facts) || facts.kind === "database",
             },
         ],
     },
     {
         id: "mssql.objectExplorerV2.dacpacDialog",
-        title: "DACPAC/BACPAC Operations...",
         feature: "dacpacDialog",
         route: "legacyRedirect",
         placements: [
             {
                 flag: "dacpac",
                 menuGroup: "7_MSSQL_compareAndDacpac@2",
-                appliesTo: (facts) => anyConnectedServer(facts) || facts.kind === "database",
+                appliesTo: (facts) => anyConnection(facts) || facts.kind === "database",
             },
         ],
     },
     // ------------------------------------------- 8_sqlProjectsAndNotebooks
     {
         id: "mssql.objectExplorerV2.newNotebook",
-        title: "New SQL Notebook",
         feature: "createNotebook",
         route: "legacyRedirect",
         placements: [
             {
                 flag: "newNotebook",
                 menuGroup: "8_MSSQL_sqlProjectsAndNotebooks@2",
-                appliesTo: (facts) => anyConnectedServer(facts) || facts.kind === "database",
+                appliesTo: (facts) => anyConnection(facts) || facts.kind === "database",
             },
         ],
     },
@@ -329,7 +315,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     // over the shared docker core.
     {
         id: "mssql.objectExplorerV2.startContainer",
-        title: "Start SQL Container",
         feature: "startContainer",
         route: "native",
         placements: [
@@ -344,7 +329,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.stopContainer",
-        title: "Stop SQL Container",
         feature: "stopContainer",
         route: "native",
         placements: [
@@ -358,7 +342,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.deleteContainer",
-        title: "Delete SQL Container",
         feature: "deleteContainer",
         route: "native",
         placements: [
@@ -394,13 +377,17 @@ export interface GeneratedMenuContribution {
     readonly group: string;
 }
 
+/** Complete manifest gate for every Object Explorer v2 contribution. */
+export const OE_V2_PRIVATE_PREVIEW_GATE =
+    "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled";
+
 /** The authoritative view/item/context entries (conformance-tested). */
 export function generateMenuContributions(): GeneratedMenuContribution[] {
     return OE_V2_COMMANDS.flatMap((def) =>
         def.placements.map((placement) => ({
             command: def.id,
             when:
-                `view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=${placement.flag}\\b/` +
+                `${OE_V2_PRIVATE_PREVIEW_GATE} && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=${placement.flag}\\b/` +
                 (placement.extraWhen ? ` && ${placement.extraWhen}` : ""),
             group: placement.menuGroup,
         })),

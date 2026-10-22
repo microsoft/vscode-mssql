@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { locConstants } from "../../../common/locConstants";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
     Button,
@@ -555,7 +556,7 @@ export function ReplayTraceBuilder() {
                 ordinal: profileIndex + 1,
                 profileLabel:
                     presetProfiles.find((item) => item.id === profileId)?.label ?? profileId,
-                schemaLabel: "Captured schema",
+                schemaLabel: locConstants.inlineCompletionDebug.detailText38,
             }));
         }
         return selectedProfiles.flatMap((profileId, profileIndex) =>
@@ -747,23 +748,29 @@ export function ReplayTraceBuilder() {
                     <div className={classes.titleGroup}>
                         {view === "matrix" ? (
                             <Button appearance="subtle" onClick={() => setView("builder")}>
-                                Back
+                                {locConstants.inlineCompletionDebug.back}
                             </Button>
                         ) : null}
                         <Text className={classes.title}>
-                            {view === "matrix" ? "Run config matrix" : "Replay Trace Builder"}
+                            {view === "matrix"
+                                ? locConstants.inlineCompletionDebug.runConfigMatrix
+                                : locConstants.inlineCompletionDebug.replayTraceBuilder}
                         </Text>
                         <Text className={classes.subtitle}>
                             {view === "matrix"
-                                ? `${cart.length} events x selected configs`
-                                : `${cart.length} events · est. ${estimateLabel} sequential at avg ${formatDuration(
-                                      averageLatency,
-                                  )}/event`}
+                                ? locConstants.inlineCompletionDebug.value0EventsXSelectedConfigs(
+                                      String(cart.length),
+                                  )
+                                : locConstants.inlineCompletionDebug.value0EventsEst1SequentialAtAvg(
+                                      String(cart.length),
+                                      String(estimateLabel),
+                                      String(formatDuration(averageLatency)),
+                                  )}
                         </Text>
                     </div>
                     <Button
                         appearance="subtle"
-                        aria-label="Cancel"
+                        aria-label={locConstants.inlineCompletionDebug.cancel}
                         icon={<Dismiss24Regular />}
                         onClick={() => close(true)}
                     />
@@ -774,7 +781,9 @@ export function ReplayTraceBuilder() {
                         <div className={classes.matrixContent}>
                             <div className={classes.matrixGrid}>
                                 <MatrixOptionList
-                                    title={`Profiles · ${selectedProfiles.length} selected`}
+                                    title={locConstants.inlineCompletionDebug.profiles0Selected(
+                                        String(selectedProfiles.length),
+                                    )}
                                     options={presetProfiles.map((profile) => ({
                                         id: profile.id,
                                         label: profile.label,
@@ -786,8 +795,11 @@ export function ReplayTraceBuilder() {
                                 <MatrixOptionList
                                     title={
                                         schemaAxisEnabled
-                                            ? `Schemas · ${selectedSchemas.length} selected`
-                                            : "Schemas · captured (axis disabled)"
+                                            ? locConstants.inlineCompletionDebug.schemas0Selected(
+                                                  String(selectedSchemas.length),
+                                              )
+                                            : locConstants.inlineCompletionDebug
+                                                  .schemasCapturedAxisDisabled
                                     }
                                     disabled={!schemaAxisEnabled}
                                     disabledReason={axisDisabledReason}
@@ -810,63 +822,86 @@ export function ReplayTraceBuilder() {
                                 )}>
                                 <div>
                                     <span className={classes.metricValue}>{matrixTotal}</span>
-                                    <span className={classes.metricLabel}>Total completions</span>
+                                    <span className={classes.metricLabel}>
+                                        {locConstants.inlineCompletionDebug.totalCompletions}
+                                    </span>
                                 </div>
                                 <div>
                                     <span className={classes.metricValue}>
                                         {matrixEstimateLabel}
                                     </span>
-                                    <span className={classes.metricLabel}>Est. sequential</span>
+                                    <span className={classes.metricLabel}>
+                                        {locConstants.inlineCompletionDebug.estSequential}
+                                    </span>
                                 </div>
                                 <div>
                                     <span className={classes.metricValue}>
                                         {matrixCells.length}
                                     </span>
-                                    <span className={classes.metricLabel}>Matrix cells</span>
+                                    <span className={classes.metricLabel}>
+                                        {locConstants.inlineCompletionDebug.matrixCells}
+                                    </span>
                                 </div>
                                 <Text className={classes.mono}>
-                                    {selectedProfiles.length} profiles x{" "}
+                                    {selectedProfiles.length}{" "}
+                                    {locConstants.inlineCompletionDebug.profilesX}{" "}
                                     {schemaAxisEnabled
-                                        ? `${selectedSchemas.length} schemas`
-                                        : "captured schema"}{" "}
-                                    x {cart.length} events = {matrixTotal} · mode {modeOption.label}
+                                        ? locConstants.inlineCompletionDebug.value0Schemas(
+                                              String(selectedSchemas.length),
+                                          )
+                                        : locConstants.inlineCompletionDebug.capturedSchema}{" "}
+                                    {locConstants.inlineCompletionDebug.x}
+                                    {cart.length} {locConstants.inlineCompletionDebug.events}
+                                    {matrixTotal} {locConstants.inlineCompletionDebug.mode2}
+                                    {modeOption.label}
                                     {matrixOverBudget && matrixConfirmed
-                                        ? " · over 100 completions"
+                                        ? locConstants.inlineCompletionDebug.over100Completions
                                         : ""}
                                 </Text>
                             </div>
 
                             <div>
-                                <Text className={classes.label}>Execution order</Text>
+                                <Text className={classes.label}>
+                                    {locConstants.inlineCompletionDebug.executionOrder}
+                                </Text>
                                 <div className={classes.executionOrder}>
                                     {matrixCells.length > 0
                                         ? matrixCells.map((cell) => (
                                               <span key={cell.ordinal}>
-                                                  cell {cell.ordinal}/{matrixCells.length}{" "}
-                                                  {cell.profileLabel} x {cell.schemaLabel} {"->"}{" "}
-                                                  events 1..{cart.length}
+                                                  {locConstants.inlineCompletionDebug.cell}
+                                                  {cell.ordinal}/{matrixCells.length}{" "}
+                                                  {cell.profileLabel}{" "}
+                                                  {locConstants.inlineCompletionDebug.x}
+                                                  {cell.schemaLabel} {"->"}{" "}
+                                                  {locConstants.inlineCompletionDebug.events1}
+                                                  {cart.length}
                                                   <br />
                                               </span>
                                           ))
-                                        : "Select at least one profile and schema."}
+                                        : locConstants.inlineCompletionDebug
+                                              .selectAtLeastOneProfileAndSchema}
                                 </div>
                             </div>
 
                             <Text className={classes.subtitle}>
-                                Matrix runs ignore per-row cart overrides; the matrix cell profile
-                                and schema win. Resulting events are tagged with replayTraceId,
-                                replayRunId, replayMatrixCellId, and replaySourceEventId.
+                                {
+                                    locConstants.inlineCompletionDebug
+                                        .matrixRunsIgnorePerRowCartOverrides
+                                }
                             </Text>
                         </div>
                         <div className={classes.footer}>
                             <Text className={mergeClasses(classes.subtitle, classes.footerHint)}>
-                                Run queues immediately into Live and executes sequentially.
+                                {
+                                    locConstants.inlineCompletionDebug
+                                        .runQueuesImmediatelyIntoLiveAndExecutes
+                                }
                             </Text>
                             <div className={classes.footerGroup}>
                                 <Button
                                     className={classes.footerActionButton}
                                     onClick={() => setView("builder")}>
-                                    Cancel
+                                    {locConstants.inlineCompletionDebug.cancel}
                                 </Button>
                                 <Button
                                     className={classes.footerWideButton}
@@ -874,8 +909,12 @@ export function ReplayTraceBuilder() {
                                     disabled={matrixTotal === 0 || runIsActive}
                                     onClick={startMatrix}>
                                     {matrixOverBudget && matrixConfirmed
-                                        ? `Start anyway · ${matrixTotal}`
-                                        : `Start matrix run · ${matrixTotal}`}
+                                        ? locConstants.inlineCompletionDebug.startAnyway0(
+                                              String(matrixTotal),
+                                          )
+                                        : locConstants.inlineCompletionDebug.startMatrixRun0(
+                                              String(matrixTotal),
+                                          )}
                                 </Button>
                             </div>
                         </div>
@@ -884,7 +923,9 @@ export function ReplayTraceBuilder() {
                     <div className={classes.content}>
                         <div className={classes.toolbar}>
                             <div className={classes.toolbarGroup}>
-                                <Text className={classes.label}>Mode</Text>
+                                <Text className={classes.label}>
+                                    {locConstants.inlineCompletionDebug.mode}
+                                </Text>
                                 <Dropdown
                                     className={classes.modeDropdown}
                                     size="small"
@@ -911,10 +952,15 @@ export function ReplayTraceBuilder() {
                                 </Dropdown>
                                 {replayMode === "rebuildCurrentSchema" ? (
                                     <Tooltip
-                                        content="When required current schema is unavailable, fall back to the captured schema context (recorded as explicitFallback). Unchecked: those items are blocked."
+                                        content={
+                                            locConstants.inlineCompletionDebug
+                                                .whenRequiredCurrentSchemaIsUnavailableFall
+                                        }
                                         relationship="label">
                                         <Checkbox
-                                            label="Captured fallback"
+                                            label={
+                                                locConstants.inlineCompletionDebug.capturedFallback
+                                            }
                                             checked={fallbackToCaptured}
                                             onChange={(_, data) =>
                                                 setFallbackToCaptured(data.checked === true)
@@ -927,13 +973,19 @@ export function ReplayTraceBuilder() {
                                 </Text>
                                 {runIsActive ? (
                                     <Text className={classes.subtitle}>
-                                        Another run is active; queue controls are paused.
+                                        {
+                                            locConstants.inlineCompletionDebug
+                                                .anotherRunIsActiveQueueControlsAre
+                                        }
                                     </Text>
                                 ) : null}
                             </div>
                             <div className={classes.toolbarGroup}>
                                 <Tooltip
-                                    content="Queue every row with current toolbar settings. Row settings stay unchanged."
+                                    content={
+                                        locConstants.inlineCompletionDebug
+                                            .queueEveryRowWithCurrentToolbarSettings
+                                    }
                                     relationship="label">
                                     <ToggleButton
                                         className={classes.toolbarActionButton}
@@ -941,7 +993,7 @@ export function ReplayTraceBuilder() {
                                         checked={useLiveForRun}
                                         disabled={cart.length === 0}
                                         onClick={() => setUseLiveForRun((current) => !current)}>
-                                        Use live
+                                        {locConstants.inlineCompletionDebug.useLive}
                                     </ToggleButton>
                                 </Tooltip>
                                 <Button
@@ -949,7 +1001,7 @@ export function ReplayTraceBuilder() {
                                     size="small"
                                     disabled={cart.length < 2}
                                     onClick={reverseReplayCart}>
-                                    Reverse order
+                                    {locConstants.inlineCompletionDebug.reverseOrder}
                                 </Button>
                                 <Button
                                     className={classes.toolbarActionButton}
@@ -957,7 +1009,7 @@ export function ReplayTraceBuilder() {
                                     appearance="secondary"
                                     disabled={cart.length === 0}
                                     onClick={handleClearCart}>
-                                    Clear all
+                                    {locConstants.inlineCompletionDebug.clearAll}
                                 </Button>
                             </div>
                         </div>
@@ -978,16 +1030,30 @@ export function ReplayTraceBuilder() {
                                         <thead>
                                             <tr>
                                                 <th className={classes.headerCell}>#</th>
-                                                <th className={classes.headerCell}>Source</th>
-                                                <th className={classes.headerCell}>Document</th>
                                                 <th className={classes.headerCell}>
-                                                    Config (model · profile · schema)
+                                                    {locConstants.inlineCompletionDebug.source}
                                                 </th>
-                                                <th className={classes.headerCell}>State</th>
                                                 <th className={classes.headerCell}>
-                                                    Prompt preview
+                                                    {locConstants.inlineCompletionDebug.document}
                                                 </th>
-                                                <th className={classes.headerCell}>Actions</th>
+                                                <th className={classes.headerCell}>
+                                                    {
+                                                        locConstants.inlineCompletionDebug
+                                                            .configModelProfileSchema
+                                                    }
+                                                </th>
+                                                <th className={classes.headerCell}>
+                                                    {locConstants.inlineCompletionDebug.state}
+                                                </th>
+                                                <th className={classes.headerCell}>
+                                                    {
+                                                        locConstants.inlineCompletionDebug
+                                                            .promptPreview
+                                                    }
+                                                </th>
+                                                <th className={classes.headerCell}>
+                                                    {locConstants.inlineCompletionDebug.actions}
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1025,11 +1091,14 @@ export function ReplayTraceBuilder() {
                                     <div className={classes.detailPanel}>
                                         <div className={classes.editPanel}>
                                             <Text className={classes.label}>
-                                                Edit config · row {selectedIndex + 1}
+                                                {locConstants.inlineCompletionDebug.editConfigRow}
+                                                {selectedIndex + 1}
                                             </Text>
                                             <div className={classes.fieldGrid}>
                                                 <div className={classes.fieldRow}>
-                                                    <Text className={classes.label}>Mode</Text>
+                                                    <Text className={classes.label}>
+                                                        {locConstants.inlineCompletionDebug.mode}
+                                                    </Text>
                                                     <Dropdown
                                                         className={classes.configDropdown}
                                                         size="small"
@@ -1046,27 +1115,51 @@ export function ReplayTraceBuilder() {
                                                                     | "live",
                                                             )
                                                         }>
-                                                        <Option value="snapshot">snapshot</Option>
-                                                        <Option value="override">override</Option>
-                                                        <Option value="live">use live</Option>
+                                                        <Option value="snapshot">
+                                                            {
+                                                                locConstants.inlineCompletionDebug
+                                                                    .snapshot
+                                                            }
+                                                        </Option>
+                                                        <Option value="override">
+                                                            {
+                                                                locConstants.inlineCompletionDebug
+                                                                    .override
+                                                            }
+                                                        </Option>
+                                                        <Option value="live">
+                                                            {
+                                                                locConstants.inlineCompletionDebug
+                                                                    .useLive2
+                                                            }
+                                                        </Option>
                                                     </Dropdown>
                                                 </div>
                                                 <OverrideDropdown
-                                                    label="Model"
+                                                    label={
+                                                        locConstants.inlineCompletionDebug.model2
+                                                    }
                                                     value={draftModel}
                                                     onChange={setDraftModel}
                                                     options={[
                                                         {
                                                             value: CAPTURED_VALUE,
-                                                            label: `Captured (${formatModelLabel(
-                                                                selectedSnapshot.capturedConfig
-                                                                    .modelSelector,
-                                                                state,
-                                                            )})`,
+                                                            label: locConstants.inlineCompletionDebug.captured0(
+                                                                String(
+                                                                    formatModelLabel(
+                                                                        selectedSnapshot
+                                                                            .capturedConfig
+                                                                            .modelSelector,
+                                                                        state,
+                                                                    ),
+                                                                ),
+                                                            ),
                                                         },
                                                         {
                                                             value: DEFAULT_MODEL_VALUE,
-                                                            label: "Default live model",
+                                                            label: locConstants
+                                                                .inlineCompletionDebug
+                                                                .defaultLiveModel,
                                                         },
                                                         ...state.availableModels.map((model) => ({
                                                             value: model.selector,
@@ -1075,17 +1168,24 @@ export function ReplayTraceBuilder() {
                                                     ]}
                                                 />
                                                 <OverrideDropdown
-                                                    label="Profile"
+                                                    label={
+                                                        locConstants.inlineCompletionDebug.profile2
+                                                    }
                                                     value={draftProfile}
                                                     onChange={setDraftProfile}
                                                     options={[
                                                         {
                                                             value: CAPTURED_VALUE,
-                                                            label: `Captured (${formatProfileLabel(
-                                                                selectedSnapshot.capturedConfig
-                                                                    .profileId,
-                                                                state,
-                                                            )})`,
+                                                            label: locConstants.inlineCompletionDebug.captured0(
+                                                                String(
+                                                                    formatProfileLabel(
+                                                                        selectedSnapshot
+                                                                            .capturedConfig
+                                                                            .profileId,
+                                                                        state,
+                                                                    ),
+                                                                ),
+                                                            ),
                                                         },
                                                         ...presetProfiles.map((profile) => ({
                                                             value: profile.id,
@@ -1094,16 +1194,24 @@ export function ReplayTraceBuilder() {
                                                     ]}
                                                 />
                                                 <OverrideDropdown
-                                                    label="Schema"
+                                                    label={
+                                                        locConstants.inlineCompletionDebug.schema
+                                                    }
                                                     value={draftSchema}
                                                     onChange={setDraftSchema}
                                                     options={[
                                                         {
                                                             value: CAPTURED_VALUE,
-                                                            label: `Captured (${formatSchemaLabel(
-                                                                selectedSnapshot.capturedConfig
-                                                                    .schemaContext?.budgetProfile,
-                                                            )})`,
+                                                            label: locConstants.inlineCompletionDebug.captured0(
+                                                                String(
+                                                                    formatSchemaLabel(
+                                                                        selectedSnapshot
+                                                                            .capturedConfig
+                                                                            .schemaContext
+                                                                            ?.budgetProfile,
+                                                                    ),
+                                                                ),
+                                                            ),
                                                         },
                                                         ...presetSchemas.map((schema) => ({
                                                             value: schema.id,
@@ -1122,7 +1230,10 @@ export function ReplayTraceBuilder() {
                                                             null,
                                                         )
                                                     }>
-                                                    Clear override
+                                                    {
+                                                        locConstants.inlineCompletionDebug
+                                                            .clearOverride
+                                                    }
                                                 </Button>
                                                 <Button
                                                     className={classes.editActionButton}
@@ -1133,7 +1244,10 @@ export function ReplayTraceBuilder() {
                                                             "live",
                                                         )
                                                     }>
-                                                    Use live settings
+                                                    {
+                                                        locConstants.inlineCompletionDebug
+                                                            .useLiveSettings
+                                                    }
                                                 </Button>
                                                 <Button
                                                     className={classes.editActionButton}
@@ -1141,21 +1255,24 @@ export function ReplayTraceBuilder() {
                                                     onClick={() =>
                                                         removeFromReplayCart(selectedSnapshot.id)
                                                     }>
-                                                    Remove
+                                                    {locConstants.inlineCompletionDebug.remove}
                                                 </Button>
                                                 <Button
                                                     className={classes.editActionButton}
                                                     size="small"
                                                     appearance="primary"
                                                     onClick={applyOverride}>
-                                                    Apply
+                                                    {locConstants.inlineCompletionDebug.apply}
                                                 </Button>
                                             </div>
                                         </div>
 
                                         <div className={classes.snapshotPanel}>
                                             <Text className={classes.label}>
-                                                Captured snapshot (read-only)
+                                                {
+                                                    locConstants.inlineCompletionDebug
+                                                        .capturedSnapshotReadOnly
+                                                }
                                             </Text>
                                             <pre className={classes.snapshotJson}>
                                                 {JSON.stringify(
@@ -1179,21 +1296,26 @@ export function ReplayTraceBuilder() {
                             </>
                         ) : (
                             <div className={classes.empty}>
-                                Right-click completed events in Live or Sessions and add them to the
-                                replay trace.
+                                {
+                                    locConstants.inlineCompletionDebug
+                                        .rightClickCompletedEventsInLiveOr
+                                }
                             </div>
                         )}
 
                         <div className={classes.footer}>
                             <Text className={mergeClasses(classes.subtitle, classes.footerHint)}>
-                                Snapshot = add-time config · Override = row config · Live = current
-                                toolbar.
+                                {
+                                    locConstants.inlineCompletionDebug
+                                        .snapshotAddTimeConfigOverrideRowConfig
+                                }
                             </Text>
                             <div className={classes.footerGroup}>
                                 <Tooltip
                                     content={
                                         profileAxisEnabled
-                                            ? "Run the cart across a profile x schema config matrix."
+                                            ? locConstants.inlineCompletionDebug
+                                                  .runTheCartAcrossAProfileX
                                             : (axisDisabledReason ?? "")
                                     }
                                     relationship="description">
@@ -1203,7 +1325,7 @@ export function ReplayTraceBuilder() {
                                             cart.length === 0 || runIsActive || !profileAxisEnabled
                                         }
                                         onClick={openMatrix}>
-                                        Matrix...
+                                        {locConstants.inlineCompletionDebug.matrix}
                                     </Button>
                                 </Tooltip>
                                 <Button
@@ -1216,18 +1338,18 @@ export function ReplayTraceBuilder() {
                                             modeSelection,
                                         )
                                     }>
-                                    Queue
+                                    {locConstants.inlineCompletionDebug.queue}
                                 </Button>
                                 <Button
                                     className={classes.footerActionButton}
                                     onClick={() => close(true)}>
-                                    Cancel
+                                    {locConstants.inlineCompletionDebug.cancel}
                                 </Button>
                                 <Button
                                     className={classes.footerActionButton}
                                     appearance="primary"
                                     onClick={() => close(false)}>
-                                    OK
+                                    {locConstants.inlineCompletionDebug.oK}
                                 </Button>
                             </div>
                         </div>
@@ -1328,7 +1450,9 @@ function ReplayCartRow({
                         rowConfigMode === "override" && classes.overrideBadge,
                         rowConfigMode === "live" && classes.liveBadge,
                     )}>
-                    {rowConfigMode === "live" ? "use live" : rowConfigMode}
+                    {rowConfigMode === "live"
+                        ? locConstants.inlineCompletionDebug.useLive2
+                        : rowConfigMode}
                 </span>
             </td>
             <td className={mergeClasses(classes.cell, classes.mono, classes.truncate)}>
@@ -1336,22 +1460,26 @@ function ReplayCartRow({
             </td>
             <td className={classes.cell}>
                 <div className={classes.rowActionGroup}>
-                    <Tooltip content="Move up" relationship="label">
+                    <Tooltip
+                        content={locConstants.inlineCompletionDebug.moveUp}
+                        relationship="label">
                         <Button
                             className={classes.rowActionButton}
                             size="small"
                             disabled={!canMoveUp}
                             onClick={onMoveUp}>
-                            Up
+                            {locConstants.inlineCompletionDebug.up}
                         </Button>
                     </Tooltip>
-                    <Tooltip content="Move down" relationship="label">
+                    <Tooltip
+                        content={locConstants.inlineCompletionDebug.moveDown}
+                        relationship="label">
                         <Button
                             className={classes.rowActionButton}
                             size="small"
                             disabled={!canMoveDown}
                             onClick={onMoveDown}>
-                            Down
+                            {locConstants.inlineCompletionDebug.down}
                         </Button>
                     </Tooltip>
                 </div>
@@ -1461,24 +1589,24 @@ function getAverageLatency(events: InlineCompletionDebugWebviewState["events"]):
 
 function formatDuration(ms: number): string {
     if (ms < 1000) {
-        return `${Math.max(1, Math.round(ms))}ms`;
+        return locConstants.inlineCompletionDebug.detailText39(String(Math.max(1, Math.round(ms))));
     }
     const seconds = Math.round(ms / 1000);
     if (seconds < 60) {
-        return `${seconds}s`;
+        return locConstants.inlineCompletionDebug.detailText40(String(seconds));
     }
     const minutes = Math.floor(seconds / 60);
-    return `${minutes}m ${seconds % 60}s`;
+    return locConstants.inlineCompletionDebug.detailText41(String(minutes), String(seconds % 60));
 }
 
 function formatRelativeTime(timestamp: number): string {
     const deltaSeconds = Math.max(0, Math.round((Date.now() - timestamp) / 1000));
     if (deltaSeconds < 60) {
-        return `${deltaSeconds}s ago`;
+        return locConstants.inlineCompletionDebug.detailText42(String(deltaSeconds));
     }
     const deltaMinutes = Math.round(deltaSeconds / 60);
     if (deltaMinutes < 60) {
-        return `${deltaMinutes}m ago`;
+        return locConstants.inlineCompletionDebug.detailText43(String(deltaMinutes));
     }
     return new Date(timestamp).toLocaleString();
 }

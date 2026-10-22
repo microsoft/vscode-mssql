@@ -61,7 +61,7 @@ export function buildRawSchemaContextPayload(
         .listSchemas()
         .map((schema) => schema.name)
         .filter((name) => !excludedSchemaNames.has(name.toLowerCase()))
-        .sort(rankNameComparer(defaultSchema, (name) => name));
+        .sort(rankNameComparer(defaultSchema, (name) => name, snapshot.caseSensitive));
 
     const tables = rankObjects(snapshot, ["table"], defaultSchema);
     const views = rankObjects(snapshot, ["view"], defaultSchema);
@@ -85,6 +85,7 @@ export function buildRawSchemaContextPayload(
     );
 
     return {
+        caseSensitive: snapshot.caseSensitive,
         server: facts.server,
         database: facts.database,
         defaultSchema,
@@ -118,11 +119,12 @@ export function buildRawSchemaContextPayload(
 function rankNameComparer(
     defaultSchema: string,
     schemaOf: (value: string) => string,
+    caseSensitive: boolean,
 ): (a: string, b: string) => number {
-    const folded = defaultSchema.toLowerCase();
+    const folded = identityKey(defaultSchema, caseSensitive);
     return (a, b) => {
-        const aDefault = schemaOf(a).toLowerCase() === folded ? 0 : 1;
-        const bDefault = schemaOf(b).toLowerCase() === folded ? 0 : 1;
+        const aDefault = identityKey(schemaOf(a), caseSensitive) === folded ? 0 : 1;
+        const bDefault = identityKey(schemaOf(b), caseSensitive) === folded ? 0 : 1;
         if (aDefault !== bDefault) {
             return aDefault - bDefault;
         }
@@ -135,34 +137,40 @@ function rankObjects(
     kinds: ObjectKind[],
     defaultSchema: string,
 ): ObjectInfo[] {
-    const folded = defaultSchema.toLowerCase();
+    const folded = identityKey(defaultSchema, snapshot.caseSensitive);
     return snapshot
         .listObjects(undefined, kinds)
         .filter((object) => !excludedSchemaNames.has(object.schema.toLowerCase()))
         .sort(
             (a, b) =>
-                defaultSchemaRank(a, folded) - defaultSchemaRank(b, folded) ||
+                defaultSchemaRank(a, folded, snapshot.caseSensitive) -
+                    defaultSchemaRank(b, folded, snapshot.caseSensitive) ||
                 ordinalCompare(a.schema, b.schema) ||
                 ordinalCompare(a.name, b.name),
         );
 }
 
 function rankRoutineObjects(snapshot: CatalogSnapshot, defaultSchema: string): ObjectInfo[] {
-    const folded = defaultSchema.toLowerCase();
+    const folded = identityKey(defaultSchema, snapshot.caseSensitive);
     return snapshot
         .listObjects(undefined, ["procedure", "scalarFunction", "tableFunction"])
         .filter((object) => !excludedSchemaNames.has(object.schema.toLowerCase()))
         .sort(
             (a, b) =>
-                defaultSchemaRank(a, folded) - defaultSchemaRank(b, folded) ||
+                defaultSchemaRank(a, folded, snapshot.caseSensitive) -
+                    defaultSchemaRank(b, folded, snapshot.caseSensitive) ||
                 routineKindRank(a.kind) - routineKindRank(b.kind) ||
                 ordinalCompare(a.schema, b.schema) ||
                 ordinalCompare(a.name, b.name),
         );
 }
 
-function defaultSchemaRank(object: ObjectInfo, foldedDefaultSchema: string): number {
-    return object.schema.toLowerCase() === foldedDefaultSchema ? 0 : 1;
+function defaultSchemaRank(
+    object: ObjectInfo,
+    foldedDefaultSchema: string,
+    caseSensitive: boolean,
+): number {
+    return identityKey(object.schema, caseSensitive) === foldedDefaultSchema ? 0 : 1;
 }
 
 function routineKindRank(kind: ObjectKind): number {
@@ -177,14 +185,16 @@ function toRawSchemaObject(
 ): RawSchemaObject {
     const primaryKeyColumns = snapshot.getPrimaryKeyColumns(object.objectId);
     const primaryKeyRank = new Map<string, number>();
-    primaryKeyColumns.forEach((name, ordinal) => primaryKeyRank.set(name.toLowerCase(), ordinal));
+    primaryKeyColumns.forEach((name, ordinal) =>
+        primaryKeyRank.set(identityKey(name, snapshot.caseSensitive), ordinal),
+    );
 
     const foreignKeyPairs = includeForeignKeys
         ? collectForeignKeyPairs(snapshot, object.objectId)
         : [];
     const firstForeignKeyByColumn = new Map<string, { table: string; column: string }>();
     for (const pair of foreignKeyPairs) {
-        const key = pair.column.toLowerCase();
+        const key = identityKey(pair.column, snapshot.caseSensitive);
         if (!firstForeignKeyByColumn.has(key)) {
             firstForeignKeyByColumn.set(key, {
                 table: pair.referencedTable,
@@ -194,8 +204,8 @@ function toRawSchemaObject(
     }
 
     const columns = [...snapshot.getColumns(object.objectId)].sort((a, b) => {
-        const aPk = primaryKeyRank.get(a.name.toLowerCase());
-        const bPk = primaryKeyRank.get(b.name.toLowerCase());
+        const aPk = primaryKeyRank.get(identityKey(a.name, snapshot.caseSensitive));
+        const bPk = primaryKeyRank.get(identityKey(b.name, snapshot.caseSensitive));
         if (aPk !== undefined || bPk !== undefined) {
             if (aPk === undefined) {
                 return 1;
@@ -212,11 +222,13 @@ function toRawSchemaObject(
         schema: object.schema,
         name: object.name,
         columns: columns.map((column): RawObjectColumn => {
-            const foreignKey = firstForeignKeyByColumn.get(column.name.toLowerCase());
+            const foreignKey = firstForeignKeyByColumn.get(
+                identityKey(column.name, snapshot.caseSensitive),
+            );
             return {
                 name: column.name,
                 definition: columnDefinition(column.name, column.typeDisplay, column.nullable),
-                isPrimaryKey: primaryKeyRank.has(column.name.toLowerCase()),
+                isPrimaryKey: primaryKeyRank.has(identityKey(column.name, snapshot.caseSensitive)),
                 ...(foreignKey
                     ? {
                           referencedTable: foreignKey.table,
@@ -235,6 +247,10 @@ function toRawSchemaObject(
               }
             : {}),
     };
+}
+
+function identityKey(value: string, caseSensitive: boolean): string {
+    return caseSensitive ? value : value.toLowerCase();
 }
 
 interface ForeignKeyPair {

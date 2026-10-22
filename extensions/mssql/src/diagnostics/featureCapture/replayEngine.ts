@@ -228,7 +228,6 @@ export class ReplayCancellationSource {
     public readonly token: FeatureReplayCancellationToken;
 
     constructor() {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this;
         this.token = {
             get isCancellationRequested(): boolean {

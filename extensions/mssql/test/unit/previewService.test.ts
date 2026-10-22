@@ -8,7 +8,7 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 import {
     CONFIG_PREVIEW_PREFIX,
-    isBetaExecutionPlanEnabled,
+    getPreviewConfigKey,
     PrivatePreviewFeature,
     PreviewFeature,
     PreviewFeaturesService,
@@ -96,6 +96,29 @@ suite("PreviewFeaturesService", () => {
         });
     });
 
+    suite("live query statistics", () => {
+        for (const { globalEnabled, override, enabled } of [
+            { globalEnabled: false, override: undefined, enabled: false },
+            { globalEnabled: true, override: undefined, enabled: true },
+            { globalEnabled: true, override: null, enabled: true },
+            { globalEnabled: false, override: true, enabled: true },
+            { globalEnabled: true, override: false, enabled: false },
+        ]) {
+            test(`umbrella ${globalEnabled}, override ${override}: ${enabled}`, () => {
+                getConfigurationStub.returns(
+                    createWorkspaceConfiguration({
+                        enableExperimentalFeatures: globalEnabled,
+                        [getPreviewConfigKey(PreviewFeature.LiveQueryStatistics)]: override,
+                    }),
+                );
+
+                expect(service.isFeatureEnabled(PreviewFeature.LiveQueryStatistics)).to.equal(
+                    enabled,
+                );
+            });
+        }
+    });
+
     suite("isPrivatePreviewEnabled", () => {
         test("does not let a feature flag override the disabled umbrella", () => {
             stubMssqlConfig(false, {}, { [PrivatePreviewFeature.SqlDataPlane]: true });
@@ -140,21 +163,31 @@ suite("PreviewFeaturesService", () => {
                 ),
             ).to.be.true;
         });
-    });
 
-    suite("Beta execution plan", () => {
-        test("defaults to false independently of the global experimental flag", () => {
-            stubMssqlConfig(true);
+        test("requires the SQL Data Plane path before Object Explorer v2", () => {
+            stubMssqlConfig(true, {}, { [PrivatePreviewFeature.ObjectExplorerV2]: true });
+            expect(
+                service.isPrivatePreviewEnabled(
+                    PrivatePreviewFeature.SqlDataPlane,
+                    PrivatePreviewFeature.ObjectExplorerV2,
+                ),
+            ).to.be.false;
 
-            expect(isBetaExecutionPlanEnabled()).to.be.false;
-        });
-
-        test("reads only the dedicated preview setting", () => {
-            stubMssqlConfig(false, {
-                [PreviewFeature.BetaExecutionPlan]: true,
-            });
-
-            expect(isBetaExecutionPlanEnabled()).to.be.true;
+            getConfigurationStub.reset();
+            stubMssqlConfig(
+                true,
+                {},
+                {
+                    [PrivatePreviewFeature.SqlDataPlane]: true,
+                    [PrivatePreviewFeature.ObjectExplorerV2]: true,
+                },
+            );
+            expect(
+                service.isPrivatePreviewEnabled(
+                    PrivatePreviewFeature.SqlDataPlane,
+                    PrivatePreviewFeature.ObjectExplorerV2,
+                ),
+            ).to.be.true;
         });
     });
 

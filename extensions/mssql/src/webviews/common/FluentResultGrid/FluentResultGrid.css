@@ -381,7 +381,8 @@
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    /* `pre` keeps leading and repeated spaces visible; `nowrap` would collapse them. */
+    white-space: pre;
 }
 
 .fluent-result-grid .slick-cell a.grid-cell-value-container {
@@ -481,6 +482,12 @@
 .fluent-result-grid .slick-drag-replace-handle {
     display: none !important;
     pointer-events: none !important;
+}
+
+/* Cells are flex containers, so alignment is done with justify-content rather than text-align. */
+.results-grid--right-align-numbers .fluent-result-grid .slick-cell.numeric-cell,
+.fluent-result-grid.results-grid--right-align-numbers .slick-cell.numeric-cell {
+    justify-content: flex-end;
 }
 
 .results-grid--gridlines-horizontal .fluent-result-grid .slick-cell {

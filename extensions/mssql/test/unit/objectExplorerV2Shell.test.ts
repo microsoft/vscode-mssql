@@ -5,7 +5,7 @@
 
 /**
  * OE v2 shell (B17): structured path codec round-trips, pure node factory +
- * group hierarchy, readiness→child synthesis honesty, capability-driven
+ * group hierarchy, capability-driven
  * context values, controller root/unavailable behaviors — and the NO-V1
  * TRIPWIRE: browse operations never touch SqlToolsServiceClient requests or
  * ConnectionManager.connect (oe_view_design §7.5/§16.4).
@@ -20,9 +20,9 @@ import {
     capabilitiesFor,
     contextValueFor,
 } from "../../src/objectExplorer/v2/tree/oeV2Capabilities";
-import { synthesizeChildren } from "../../src/objectExplorer/v2/tree/oeV2Readiness";
-import { rootChildren } from "../../src/objectExplorer/v2/tree/oeV2NodeFactory";
+import { connectionNode, rootChildren } from "../../src/objectExplorer/v2/tree/oeV2NodeFactory";
 import { OeV2TreeController } from "../../src/objectExplorer/v2/tree/oeV2TreeController";
+import { OeV2SessionRegistry } from "../../src/objectExplorer/v2/sessions/oeV2SessionRegistry";
 import {
     ConnectionProfileSource,
     readProfileTree,
@@ -56,6 +56,7 @@ function fakeSource(overrides?: Partial<ConnectionProfileSource>): ConnectionPro
 suite("Object Explorer v2 shell (B17)", () => {
     test("path codec: round-trips every kind incl. hostile identifiers", () => {
         const paths: OeV2Path[] = [
+            { kind: "overview" },
             { kind: "root" },
             { kind: "connectionGroup", groupId: HOSTILE },
             { kind: "connection", connectionId: "p1" },
@@ -96,6 +97,22 @@ suite("Object Explorer v2 shell (B17)", () => {
                 column: HOSTILE,
             },
             {
+                kind: "key",
+                connectionId: "p1",
+                database: "Db",
+                schema: "dbo",
+                objectName: "T",
+                name: HOSTILE,
+            },
+            {
+                kind: "foreignKey",
+                connectionId: "p1",
+                database: "Db",
+                schema: "dbo",
+                objectName: "T",
+                name: HOSTILE,
+            },
+            {
                 kind: "parameter",
                 connectionId: "p1",
                 database: "Db",
@@ -118,6 +135,27 @@ suite("Object Explorer v2 shell (B17)", () => {
         expect(decodePath("metadata-v1:/server")).to.equal(undefined);
         expect(decodePath("oe2:nonsense")).to.equal(undefined);
         expect(decodePath("oe2:parameter/a/b/c/d/e/not-a-number")).to.equal(undefined);
+        expect(decodePath("oe2:connection")).to.equal(undefined);
+        expect(decodePath("oe2:object/c1/db/dbo/T/bogusKind")).to.equal(undefined);
+        expect(decodePath("oe2:objectFolder/c1/db/dbo/T/table/bogusFolder")).to.equal(undefined);
+
+        const column = encodePath({
+            kind: "column",
+            connectionId: "p1",
+            database: "Db",
+            schema: "dbo",
+            objectName: "T",
+            column: "key:PK_T",
+        });
+        const key = encodePath({
+            kind: "key",
+            connectionId: "p1",
+            database: "Db",
+            schema: "dbo",
+            objectName: "T",
+            name: "PK_T",
+        });
+        expect(column).to.not.equal(key);
     });
 
     test("profile tree + factory: groups-first alphabetical, ROOT hierarchy", async () => {
@@ -143,23 +181,7 @@ suite("Object Explorer v2 shell (B17)", () => {
         expect(broken.profiles).to.deep.equal([]);
     });
 
-    test("readiness synthesis: only readyEmpty/ready-zero yield no-items", () => {
-        expect(synthesizeChildren({ kind: "ready" }, 3).kind).to.equal("children");
-        expect(synthesizeChildren({ kind: "ready" }, 0).kind).to.equal("noItems");
-        expect(synthesizeChildren({ kind: "readyEmpty" }, 0).kind).to.equal("noItems");
-        expect(synthesizeChildren({ kind: "loading" }, 0).kind).to.equal("loading");
-        expect(synthesizeChildren({ kind: "failed", message: "boom" }, 0)).to.deep.include({
-            kind: "error",
-            message: "boom",
-        });
-        expect(synthesizeChildren({ kind: "permissionDenied" }, 0).kind).to.equal("status");
-        expect(synthesizeChildren({ kind: "unsupported" }, 0).kind).to.equal("status");
-        expect(synthesizeChildren({ kind: "dataPlaneUnavailable" }, 0).kind).to.equal("status");
-        // partial renders what exists (status child is the container's job)
-        expect(synthesizeChildren({ kind: "partial" }, 2).kind).to.equal("children");
-    });
-
-    test("capabilities: context values serialize flags, not classic type strings", () => {
+    test("capabilities: context values serialize flags, not classic type strings", async () => {
         const caps = capabilitiesFor("disconnectedConnection");
         expect(caps.canConnect).to.equal(true);
         const context = contextValueFor("disconnectedConnection", caps);
@@ -168,12 +190,22 @@ suite("Object Explorer v2 shell (B17)", () => {
         expect(context).to.not.match(/\btype=/); // no classic context grammar
         const server = contextValueFor("connectedServer", capabilitiesFor("connectedServer"));
         expect(server).to.contain("oe2:canRefresh");
-        expect(server).to.contain("oe2:canOpenQuery");
         const handoff = contextValueFor("connectedServer", {
             legacyHandoff: ["profiler", "backup"],
         });
         expect(handoff).to.contain("oe2:handoff=profiler");
         expect(handoff).to.contain("oe2:handoff=backup");
+
+        const tree = await readProfileTree(fakeSource());
+        const disconnecting = connectionNode(
+            tree.profiles.find((profile) => profile.profileId === "p1")!,
+            { state: "disconnecting" },
+        );
+        expect(disconnecting.kind).to.equal("connectingConnection");
+        expect(disconnecting.capabilities.canCancelConnect).to.equal(undefined);
+        expect(contextValueFor(disconnecting.kind, disconnecting.capabilities)).not.to.contain(
+            "oe2:canCancelConnect",
+        );
     });
 
     test("controller: unavailable data plane is explicit; roots come from the store; NO V1 calls", async () => {
@@ -190,6 +222,16 @@ suite("Object Explorer v2 shell (B17)", () => {
             expect(unavailable[0].kind).to.equal("status");
             expect(unavailable[0].label).to.contain("SQL Data Plane");
 
+            // enabled but unavailable → explicit backend status, no profiles
+            const backendUnavailable = new OeV2TreeController({
+                profiles: fakeSource(),
+                dataPlane: { enabled: () => true, availabilityState: () => "unavailable" },
+            });
+            const unavailableRoots = await backendUnavailable.children();
+            expect(unavailableRoots).to.have.length(1);
+            expect(unavailableRoots[0].kind).to.equal("status");
+            expect(unavailableRoots[0].label).to.contain("unavailable");
+
             // enabled → profile roots; group expansion; connect hint on expand
             const controller = new OeV2TreeController({
                 profiles: fakeSource(),
@@ -200,7 +242,7 @@ suite("Object Explorer v2 shell (B17)", () => {
             const team = roots[1];
             const teamChildren = await controller.children(team);
             // K6 (B22): v1 label recipe — `server, database (auth)`.
-            expect(teamChildren.map((n) => n.label)).to.deep.equal(["srv-c, AppDb (Integrated)"]);
+            expect(teamChildren.map((n) => n.label)).to.deep.equal(["srv-c, AppDb (SqlLogin)"]);
             const hint = await controller.children(roots[2]);
             expect(hint[0].kind).to.equal("status");
             expect(hint[0].label).to.contain("Connect");
@@ -230,5 +272,24 @@ suite("Object Explorer v2 shell (B17)", () => {
             sendRequest.restore();
             connect.restore();
         }
+    });
+
+    test("connecting ticker refreshes only the transient connection row", async () => {
+        const registry = new OeV2SessionRegistry(() => new Promise(() => undefined));
+        void registry.connect("p1", { serverFingerprint: "fp" } as never);
+        const controller = new OeV2TreeController({
+            profiles: fakeSource(),
+            dataPlane: { enabled: () => true, availabilityState: () => "available" },
+            sessions: registry,
+        });
+        await controller.children(); // prime the cached profile tree
+        const changed: (string | undefined)[] = [];
+        controller.onDidChange((node) => changed.push(node?.id));
+
+        await controller.refreshTransientConnections();
+
+        expect(changed).to.deep.equal(["oe2:connection/p1"]);
+        registry.cancelConnect("p1");
+        controller.dispose();
     });
 });

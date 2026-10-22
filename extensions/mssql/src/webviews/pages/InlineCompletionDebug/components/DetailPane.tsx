@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { locConstants } from "../../../common/locConstants";
 import React, { useEffect, useMemo, useState } from "react";
 import {
     Button,
@@ -212,14 +213,12 @@ export const InlineCompletionDebugDetailPane = ({
         void getEventDetail({ kind: "live" }, eventId, neededSections).then(
             (result) => {
                 if (!cancelled && !result.found) {
-                    setDetailError(
-                        "Event detail is no longer available (dropped from the live ring).",
-                    );
+                    setDetailError(locConstants.inlineCompletionDebug.detailText12);
                 }
             },
             () => {
                 if (!cancelled) {
-                    setDetailError("Couldn't load event detail — select the event again to retry.");
+                    setDetailError(locConstants.inlineCompletionDebug.detailText13);
                 }
             },
         );
@@ -232,7 +231,7 @@ export const InlineCompletionDebugDetailPane = ({
     if (!event) {
         return (
             <div className={classes.emptyState}>
-                Select an event to inspect its prompt and response.
+                {locConstants.inlineCompletionDebug.selectAnEventToInspectItsPrompt}
             </div>
         );
     }
@@ -241,7 +240,7 @@ export const InlineCompletionDebugDetailPane = ({
         !detailError && pendingDetail?.[flag] === true;
     const loadingBlock = (extraClass?: string) => (
         <pre className={mergeClasses(classes.monoBlock, extraClass ?? classes.loadingBlock)}>
-            Loading …
+            {locConstants.inlineCompletionDebug.loading2}
         </pre>
     );
 
@@ -257,14 +256,16 @@ export const InlineCompletionDebugDetailPane = ({
                         className={classes.tabList}
                         selectedValue={activeTab}
                         onTabSelect={(_, data) => setActiveTab(data.value as DetailTab)}>
-                        <Tab value="summary">Summary</Tab>
-                        <Tab value="system">System Prompt</Tab>
-                        <Tab value="user">User Prompt</Tab>
-                        <Tab value="raw">Raw Response</Tab>
-                        <Tab value="sanitized">Sanitized</Tab>
-                        <Tab value="schema">Schema Context</Tab>
-                        <Tab value="locals">Locals Dump</Tab>
-                        <Tab value="telemetry">Telemetry</Tab>
+                        <Tab value="summary">{locConstants.inlineCompletionDebug.summary}</Tab>
+                        <Tab value="system">{locConstants.inlineCompletionDebug.systemPrompt}</Tab>
+                        <Tab value="user">{locConstants.inlineCompletionDebug.userPrompt}</Tab>
+                        <Tab value="raw">{locConstants.inlineCompletionDebug.rawResponse}</Tab>
+                        <Tab value="sanitized">{locConstants.inlineCompletionDebug.sanitized}</Tab>
+                        <Tab value="schema">
+                            {locConstants.inlineCompletionDebug.schemaContext2}
+                        </Tab>
+                        <Tab value="locals">{locConstants.inlineCompletionDebug.localsDump}</Tab>
+                        <Tab value="telemetry">{locConstants.inlineCompletionDebug.telemetry}</Tab>
                     </TabList>
                 </div>
 
@@ -278,7 +279,7 @@ export const InlineCompletionDebugDetailPane = ({
                                 ? onCopyEventPayload(event, "systemPrompt")
                                 : copyEventPayload(event.id, "systemPrompt")
                         }>
-                        Copy
+                        {locConstants.inlineCompletionDebug.copy}
                     </Button>
                 ) : activeTab === "user" ? (
                     <Button
@@ -290,7 +291,7 @@ export const InlineCompletionDebugDetailPane = ({
                                 ? onCopyEventPayload(event, "userPrompt")
                                 : copyEventPayload(event.id, "userPrompt")
                         }>
-                        Copy
+                        {locConstants.inlineCompletionDebug.copy}
                     </Button>
                 ) : activeTab === "raw" ? (
                     <Button
@@ -302,7 +303,7 @@ export const InlineCompletionDebugDetailPane = ({
                                 ? onCopyEventPayload(event, "rawResponse")
                                 : copyEventPayload(event.id, "rawResponse")
                         }>
-                        Copy
+                        {locConstants.inlineCompletionDebug.copy}
                     </Button>
                 ) : activeTab === "sanitized" ? (
                     <Button
@@ -314,7 +315,7 @@ export const InlineCompletionDebugDetailPane = ({
                                 ? onCopyEventPayload(event, "sanitizedResponse")
                                 : copyEventPayload(event.id, "sanitizedResponse")
                         }>
-                        Copy
+                        {locConstants.inlineCompletionDebug.copy}
                     </Button>
                 ) : null}
             </div>
@@ -327,54 +328,84 @@ export const InlineCompletionDebugDetailPane = ({
                             loadingBlock(classes.loadingSummaryBlock)
                         ) : (
                             <div className={classes.summaryGrid}>
-                                {summaryRow("Event", event.id, classes)}
                                 {summaryRow(
-                                    "Time",
+                                    locConstants.inlineCompletionDebug.detailText14,
+                                    event.id,
+                                    classes,
+                                )}
+                                {summaryRow(
+                                    locConstants.inlineCompletionDebug.detailText15,
                                     new Date(event.timestamp).toLocaleString(),
                                     classes,
                                 )}
                                 {summaryRow(
-                                    "Document",
-                                    `${event.documentFileName} | Ln ${event.line}, Col ${event.column}`,
+                                    locConstants.inlineCompletionDebug.detailText16,
+                                    locConstants.inlineCompletionDebug.detailText17(
+                                        String(event.documentFileName),
+                                        String(event.line),
+                                        String(event.column),
+                                    ),
                                     classes,
                                 )}
                                 {summaryRow(
-                                    "Trigger",
+                                    locConstants.inlineCompletionDebug.detailText18,
                                     event.explicitFromUser ? "explicit" : "automatic",
                                     classes,
                                 )}
                                 {summaryRow(
-                                    "Mode",
-                                    `${
-                                        event.completionCategory ??
-                                        (event.intentMode ? "intent" : "continuation")
-                                    } | intentMode=${event.intentMode}`,
-                                    classes,
-                                )}
-                                {summaryRow("Model", formatEventModel(event), classes)}
-                                {summaryRow("Result", event.result, classes)}
-                                {summaryRow("Latency", formatLatency(event), classes)}
-                                {summaryRow(
-                                    "Tokens",
-                                    `in=${formatTokenCount(event.inputTokens)} | out=${formatTokenCount(
-                                        event.outputTokens,
-                                    )}`,
+                                    locConstants.inlineCompletionDebug.detailText19,
+                                    locConstants.inlineCompletionDebug.detailText20(
+                                        String(
+                                            event.completionCategory ??
+                                                (event.intentMode ? "intent" : "continuation"),
+                                        ),
+                                        String(event.intentMode),
+                                    ),
                                     classes,
                                 )}
                                 {summaryRow(
-                                    "LM Request",
+                                    locConstants.inlineCompletionDebug.detailText21,
+                                    formatEventModel(event),
+                                    classes,
+                                )}
+                                {summaryRow(
+                                    locConstants.inlineCompletionDebug.detailText22,
+                                    event.result,
+                                    classes,
+                                )}
+                                {summaryRow(
+                                    locConstants.inlineCompletionDebug.detailText23,
+                                    formatLatency(event),
+                                    classes,
+                                )}
+                                {summaryRow(
+                                    locConstants.inlineCompletionDebug.detailText24,
+                                    locConstants.inlineCompletionDebug.detailText25(
+                                        String(formatTokenCount(event.inputTokens)),
+                                        String(formatTokenCount(event.outputTokens)),
+                                    ),
+                                    classes,
+                                )}
+                                {summaryRow(
+                                    locConstants.inlineCompletionDebug.detailText26,
                                     formatLanguageModelRequest(event),
                                     classes,
                                 )}
                                 {summaryRow(
-                                    "Schema",
-                                    `${event.schemaObjectCount} objs | system=${event.schemaSystemObjectCount} | fks=${event.schemaForeignKeyCount}`,
+                                    locConstants.inlineCompletionDebug.detailText27,
+                                    locConstants.inlineCompletionDebug.detailText28(
+                                        String(event.schemaObjectCount),
+                                        String(event.schemaSystemObjectCount),
+                                        String(event.schemaForeignKeyCount),
+                                    ),
                                     classes,
                                 )}
                             </div>
                         )}
 
-                        <Text className={classes.blockLabel}>User text</Text>
+                        <Text className={classes.blockLabel}>
+                            {locConstants.inlineCompletionDebug.userText}
+                        </Text>
                         {sectionLoading("locals") ? (
                             loadingBlock()
                         ) : (
@@ -384,7 +415,7 @@ export const InlineCompletionDebugDetailPane = ({
                         )}
 
                         <Text className={classes.blockLabel} style={{ marginTop: "14px" }}>
-                            Sanitized response
+                            {locConstants.inlineCompletionDebug.sanitizedResponse}
                         </Text>
                         {sectionLoading("sanitizedResponse") ? (
                             loadingBlock()
@@ -484,30 +515,32 @@ function summaryRow(label: string, value: string, classes: ReturnType<typeof use
 function describeSanitization(event: InlineCompletionDebugEvent): string {
     const steps: string[] = [];
     if (event.rawResponse.includes("```")) {
-        steps.push("stripped fences");
+        steps.push(locConstants.inlineCompletionDebug.detailText29);
     }
     const linePrefix = String(event.locals.linePrefix ?? "");
     if (
         linePrefix.trim().length >= 6 &&
         event.rawResponse.trimStart().toLowerCase().startsWith(linePrefix.trim().toLowerCase())
     ) {
-        steps.push("removed echoed line prefix");
+        steps.push(locConstants.inlineCompletionDebug.detailText30);
     }
     if (
         event.rawResponse &&
         event.sanitizedResponse &&
         event.rawResponse.trim() !== event.sanitizedResponse.trim()
     ) {
-        steps.push("trimmed host-only text");
+        steps.push(locConstants.inlineCompletionDebug.detailText31);
     }
     if (
         event.sanitizedResponse &&
         event.rawResponse &&
         event.sanitizedResponse.length < event.rawResponse.length
     ) {
-        steps.push("truncated at completion limit");
+        steps.push(locConstants.inlineCompletionDebug.detailText32);
     }
-    return steps.length > 0 ? steps.join(" | ") : "No notable sanitization changes.";
+    return steps.length > 0
+        ? steps.join(" | ")
+        : locConstants.inlineCompletionDebug.noNotableSanitizationChanges;
 }
 
 function buildTelemetryRows(event: InlineCompletionDebugEvent): Array<[string, string]> {
@@ -536,10 +569,14 @@ function formatTokenCount(value: number | undefined): string {
 
 function formatLatency(event: InlineCompletionDebugEvent): string {
     if (event.result !== "pending") {
-        return `${event.latencyMs.toLocaleString()} ms`;
+        return locConstants.inlineCompletionDebug.detailText33(
+            String(event.latencyMs.toLocaleString()),
+        );
     }
 
-    return `${Math.max(0, Date.now() - event.timestamp).toLocaleString()} ms (pending)`;
+    return locConstants.inlineCompletionDebug.detailText34(
+        String(Math.max(0, Date.now() - event.timestamp).toLocaleString()),
+    );
 }
 
 function formatLanguageModelRequest(event: InlineCompletionDebugEvent): string {
@@ -554,8 +591,10 @@ function formatLanguageModelRequest(event: InlineCompletionDebugEvent): string {
 
     const unsentInputTokens = event.locals.unsentInputTokens;
     return typeof unsentInputTokens === "number"
-        ? `not sent | unsent input=${unsentInputTokens.toLocaleString()}`
-        : "not sent";
+        ? locConstants.inlineCompletionDebug.notSentUnsentInput0(
+              String(unsentInputTokens.toLocaleString()),
+          )
+        : locConstants.inlineCompletionDebug.notSent;
 }
 
 function bucketCount(count: number): string {
@@ -578,7 +617,7 @@ function formatEventModel(event: InlineCompletionDebugEvent): string {
     if (event.modelVendor && event.modelId) {
         const familySuffix =
             event.modelFamily && event.modelFamily !== event.modelId
-                ? `, family=${event.modelFamily}`
+                ? locConstants.inlineCompletionDebug.family0(String(event.modelFamily))
                 : "";
         return `${event.modelVendor}/${event.modelId}${familySuffix}`;
     }

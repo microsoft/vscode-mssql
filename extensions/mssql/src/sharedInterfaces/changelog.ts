@@ -93,11 +93,3 @@ export namespace ChangelogLinkRequest {
 export namespace RunChangelogActionRequest {
     export const type = new RequestType<ChangelogActionId, void, void>("runChangelogAction");
 }
-
-export namespace CloseChangelogRequest {
-    export const type = new RequestType<void, void, void>("closeChangelog");
-}
-
-export namespace ChangelogDontShowAgainRequest {
-    export const type = new RequestType<void, void, void>("dontShowChangelogAgain");
-}

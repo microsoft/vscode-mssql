@@ -3,18 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/**
- * Completions trace serialization over the generic trace codec (B7): the
- * envelope, redaction walker, and size cap are shared; this file owns the
- * completions redaction surface (prompt/response keys, promptMessages
- * content, formatted schema context).
- */
-
-import {
-    FEATURE_TRACE_REDACTED,
-    FeatureTraceRedaction,
-    serializeFeatureTrace,
-} from "../../diagnostics/featureCapture/traceCodec";
+import { FeatureTraceRedaction } from "../../diagnostics/featureCapture/traceCodec";
+import * as LocalizedConstants from "../../constants/locConstants";
 import {
     InlineCompletionDebugEvent,
     InlineCompletionDebugExportData,
@@ -35,51 +25,182 @@ export interface SerializeSessionTraceOptions {
     maxFileSizeMB?: number;
 }
 
-export const inlineCompletionTraceRedaction: FeatureTraceRedaction = {
-    redactedKeys: new Set([
-        "userPrompt",
-        "systemPrompt",
-        "customSystemPrompt",
-        "rawResponse",
-        "sanitizedResponse",
-        "finalCompletionText",
-    ]),
-    redactSpecial: (key, value) => {
-        if (key === "promptMessages" && Array.isArray(value)) {
-            return value.map((message) =>
-                typeof message === "object" && message !== null
-                    ? { ...message, content: FEATURE_TRACE_REDACTED }
-                    : message,
-            );
-        }
+/**
+ * Hard ceiling for a persisted trace file. Saving clamps the configured maximum to this value
+ * and loading refuses anything larger, so every trace the extension writes can be read back.
+ */
+export const MAX_TRACE_FILE_SIZE_MB = 64;
+export const MAX_TRACE_FILE_BYTES = MAX_TRACE_FILE_SIZE_MB * 1024 * 1024;
 
-        if (key === "schemaContextFormatted") {
-            return FEATURE_TRACE_REDACTED;
-        }
+/**
+ * Produces the exact text written to a trace file. Size limits are measured against this
+ * representation so a truncated trace cannot grow past the limit once it is pretty-printed.
+ */
+export function serializeTraceFile(trace: InlineCompletionDebugExportData): string {
+    return JSON.stringify(trace, undefined, 2);
+}
 
-        return undefined;
-    },
-};
+const REDACTED = "[REDACTED]";
+const REDACTED_KEYS = new Set([
+    "userPrompt",
+    "systemPrompt",
+    "customSystemPrompt",
+    "rawResponse",
+    "sanitizedResponse",
+    "finalCompletionText",
+    "documentUri",
+    "documentFileName",
+]);
 
 export function serializeSessionTrace(
     events: InlineCompletionDebugEvent[],
     metadata: InlineCompletionTraceMetadata,
     options: SerializeSessionTraceOptions = {},
 ): InlineCompletionDebugExportData {
-    return serializeFeatureTrace(
-        events,
-        {
-            exportedAt: metadata.exportedAt,
-            savedAt: metadata.savedAt,
-            extensionVersion: metadata.extensionVersion,
-            overrides: metadata.overrides,
-            recordWhenClosed: metadata.recordWhenClosed,
-            extra: { customPromptLastSavedAt: metadata.customPromptLastSavedAt },
-        },
-        {
-            redact: options.redactPrompts,
-            redaction: inlineCompletionTraceRedaction,
-            maxFileSizeMB: options.maxFileSizeMB,
-        },
-    ) as InlineCompletionDebugExportData;
+    const trace: InlineCompletionDebugExportData = {
+        version: 1,
+        exportedAt: metadata.exportedAt ?? Date.now(),
+        _savedAt: metadata.savedAt ?? new Date().toISOString(),
+        _extensionVersion: metadata.extensionVersion,
+        overrides: cloneJson(metadata.overrides),
+        recordWhenClosed: metadata.recordWhenClosed,
+        customPromptLastSavedAt: metadata.customPromptLastSavedAt,
+        events: cloneJson(events),
+    };
+
+    const redacted = options.redactPrompts ? redactTrace(trace) : trace;
+    return truncateTraceToMaxSize(redacted, options.maxFileSizeMB);
 }
+
+function redactTrace(trace: InlineCompletionDebugExportData): InlineCompletionDebugExportData {
+    return redactValue(trace) as InlineCompletionDebugExportData;
+}
+
+function redactValue(value: unknown, key?: string): unknown {
+    if (key && REDACTED_KEYS.has(key)) {
+        return REDACTED;
+    }
+    if (key === "locals") {
+        return redactLocalStrings(value);
+    }
+
+    if (Array.isArray(value)) {
+        return value.map((item) => redactValue(item, key));
+    }
+
+    if (!isRecord(value)) {
+        return value;
+    }
+
+    const output: Record<string, unknown> = {};
+    for (const [entryKey, entryValue] of Object.entries(value)) {
+        if (entryKey === "error" && isRecord(entryValue)) {
+            output[entryKey] = {
+                message: REDACTED,
+                ...(typeof entryValue.name === "string" ? { name: entryValue.name } : {}),
+            };
+            continue;
+        }
+
+        if (entryKey === "promptMessages" && Array.isArray(entryValue)) {
+            output[entryKey] = entryValue.map((message) =>
+                isRecord(message) ? { ...message, content: REDACTED } : message,
+            );
+            continue;
+        }
+
+        if (entryKey === "schemaContextFormatted") {
+            output[entryKey] = REDACTED;
+            continue;
+        }
+
+        output[entryKey] = redactValue(entryValue, entryKey);
+    }
+
+    return output;
+}
+
+function redactLocalStrings(value: unknown): unknown {
+    if (typeof value === "string") {
+        return REDACTED;
+    }
+    if (Array.isArray(value)) {
+        return value.map(redactLocalStrings);
+    }
+    if (!isRecord(value)) {
+        return value;
+    }
+
+    return Object.fromEntries(
+        Object.entries(value).map(([key, entry]) => [key, redactLocalStrings(entry)]),
+    );
+}
+
+function truncateTraceToMaxSize(
+    trace: InlineCompletionDebugExportData,
+    maxFileSizeMB: number | undefined,
+): InlineCompletionDebugExportData {
+    if (!maxFileSizeMB || maxFileSizeMB <= 0) {
+        return trace;
+    }
+
+    const maxBytes = Math.min(Math.floor(maxFileSizeMB * 1024 * 1024), MAX_TRACE_FILE_BYTES);
+    if (Buffer.byteLength(serializeTraceFile(trace), "utf8") <= maxBytes) {
+        return trace;
+    }
+
+    const truncatedTrace: InlineCompletionDebugExportData = {
+        ...trace,
+        _truncated: true,
+        events: [...trace.events],
+    };
+
+    while (
+        truncatedTrace.events.length > 0 &&
+        Buffer.byteLength(serializeTraceFile(truncatedTrace), "utf8") > maxBytes
+    ) {
+        truncatedTrace.events.shift();
+    }
+
+    if (Buffer.byteLength(serializeTraceFile(truncatedTrace), "utf8") > maxBytes) {
+        // Metadata can exceed the budget even after every event has been removed.
+        // Preserve the override shape but omit its values from this truncated trace.
+        truncatedTrace.overrides = Object.fromEntries(
+            Object.keys(truncatedTrace.overrides).map((key) => [key, null]),
+        ) as unknown as InlineCompletionDebugOverrides;
+        truncatedTrace._savedAt = truncatedTrace._savedAt.slice(0, 128);
+        truncatedTrace._extensionVersion = truncatedTrace._extensionVersion.slice(0, 128);
+    }
+    if (Buffer.byteLength(serializeTraceFile(truncatedTrace), "utf8") > maxBytes) {
+        throw new RangeError(LocalizedConstants.inlineCompletionTraceSizeTooSmall);
+    }
+
+    return truncatedTrace;
+}
+
+function cloneJson<T>(value: T): T {
+    return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+/** Share the reviewed redaction rules with durable journals and v2 trace exports. */
+export const inlineCompletionTraceRedaction: FeatureTraceRedaction = {
+    redactedKeys: REDACTED_KEYS,
+    redactSpecial: (key, value) => {
+        if (key === "locals") return redactLocalStrings(value);
+        if (key === "error" && isRecord(value))
+            return {
+                message: REDACTED,
+                ...(typeof value.name === "string" ? { name: value.name } : {}),
+            };
+        if (key === "promptMessages" && Array.isArray(value))
+            return value.map((message) =>
+                isRecord(message) ? { ...message, content: REDACTED } : message,
+            );
+        if (key === "schemaContextFormatted") return REDACTED;
+        return undefined;
+    },
+};

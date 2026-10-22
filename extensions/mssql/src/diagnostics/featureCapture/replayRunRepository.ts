@@ -27,7 +27,7 @@
  * in the rich journal), so descriptors claim `containsRichPayload: false`.
  */
 
-import { logger2 } from "../../models/logger2";
+import { logger as logger2 } from "../../models/logger";
 import { ConfigGroupV1 } from "../../sharedInterfaces/configGroup";
 import {
     ReplayActualCost,

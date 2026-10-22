@@ -7,7 +7,7 @@
  * Pure node builders (oe_view_design §9): profile-tree records → OeV2Node.
  * No network calls, no vscode — icon NAMES only, resolved at the edge.
  * Ordering mirrors classic getRootNodes: groups first, then connections,
- * both alphabetical.
+ * both ordered by saved order then case-insensitive label.
  */
 
 import {
@@ -24,6 +24,23 @@ import {
 } from "./oeV2ConnectionLabel";
 import { NOT_APPLICABLE, OeV2Node } from "./oeV2Node";
 import { encodePath } from "./oeV2Path";
+import { ObjectExplorerV2 } from "../../../constants/locConstants";
+
+/** Same ordering as classic ConnectionGroupNode, without importing its VS Code layer. */
+function compareOrder(
+    a: number | undefined,
+    b: number | undefined,
+    aLabel: string,
+    bLabel: string,
+): number {
+    const valid = (value: number | undefined) =>
+        typeof value === "number" && Number.isFinite(value) && value >= 0;
+    const aOrder = valid(a) ? a! : Infinity;
+    const bOrder = valid(b) ? b! : Infinity;
+    return aOrder === bOrder
+        ? aLabel.toLowerCase().localeCompare(bLabel.toLowerCase())
+        : aOrder - bOrder;
+}
 
 export function connectionGroupNode(group: OeV2GroupRecord): OeV2Node {
     const path = { kind: "connectionGroup" as const, groupId: group.groupId };
@@ -32,6 +49,7 @@ export function connectionGroupNode(group: OeV2GroupRecord): OeV2Node {
         path,
         kind: "connectionGroup",
         label: group.name,
+        ...(group.description ? { tooltip: group.description } : {}),
         collapsible: true,
         readiness: NOT_APPLICABLE,
         capabilities: capabilitiesFor("connectionGroup"),
@@ -73,33 +91,30 @@ export function connectionNode(
                 ? ("lostConnection" as const)
                 : ("disconnectedConnection" as const);
     // K6: database/auth already live in the v1-recipe label — description
-    // carries connection STATE only. Docker activity text (container
-    // start/stop/preflight) takes precedence while it runs (DOCK-2).
+    // carries connection STATE only.
     const description =
-        facts.activityText !== undefined
-            ? facts.activityText
-            : facts.state === "connecting"
-              ? facts.connectingForMs !== undefined && facts.connectingForMs >= 5000
-                  ? `connecting… (${Math.round(facts.connectingForMs / 1000)}s)`
-                  : "connecting…"
-              : facts.state === "disconnecting"
-                ? "disconnecting…"
-                : facts.state === "lost"
-                  ? "connection lost"
-                  : facts.state === "failed"
-                    ? `failed: ${facts.failureReason ?? "connect error"}`
-                    : undefined;
+        facts.state === "connecting"
+            ? facts.connectingForMs !== undefined && facts.connectingForMs >= 5000
+                ? ObjectExplorerV2.connectingFor(Math.round(facts.connectingForMs / 1000))
+                : ObjectExplorerV2.connecting
+            : facts.state === "disconnecting"
+              ? ObjectExplorerV2.disconnecting
+              : facts.state === "lost"
+                ? ObjectExplorerV2.connectionLostDescription
+                : facts.state === "failed"
+                  ? ObjectExplorerV2.failed(facts.failureReason ?? ObjectExplorerV2.connectError)
+                  : undefined;
     const lines = connectionTooltipLines(profile.stored);
     if (facts.serverVersion) {
         // Additive over v1 (journaled): live server version when connected.
-        lines.push(`Server Version: ${facts.serverVersion}`);
+        lines.push(`${ObjectExplorerV2.serverVersion}: ${facts.serverVersion}`);
     }
     const differs = disambiguationLines(profile.stored, tiedWith);
     if (differs.length > 0) {
-        lines.push("Differs from same-named connections:", ...differs);
+        lines.push(ObjectExplorerV2.sameNameDifferences, ...differs);
     }
-    // Container connections keep the v1 docker identity: docker icons and
-    // the container commands (targeted via oe2:cmd flags, DOCK-2).
+    // Saved container connections keep their existing display identity. The
+    // core preview intentionally does not provide container lifecycle controls.
     const containerName = profile.stored.containerName;
     return {
         id: encodePath(path),
@@ -114,15 +129,22 @@ export function connectionNode(
         ...(profile.database ? { database: profile.database } : {}),
         ...(containerName ? { containerName } : {}),
         readiness: NOT_APPLICABLE,
-        capabilities: capabilitiesFor(kind),
+        // A disconnect cannot be canceled through the session registry. It
+        // shares the transient node kind for rendering, but exposes no Cancel
+        // Connection capability while teardown is in flight.
+        capabilities: facts.state === "disconnecting" ? {} : capabilitiesFor(kind),
         icon:
             facts.state === "connected"
                 ? containerName
                     ? "DockerContainer_green"
-                    : "Server_green"
+                    : profile.database
+                      ? "Database_green"
+                      : "Server_green"
                 : containerName
                   ? "DockerContainer_red"
-                  : "Server_red",
+                  : profile.database
+                    ? "Database_red"
+                    : "Server_red",
     };
 }
 
@@ -149,7 +171,7 @@ export function childrenOfGroup(
 ): OeV2Node[] {
     const subgroups = tree.groups
         .filter((group) => group.parentId === groupId && group.groupId !== groupId)
-        .sort((a, z) => a.name.localeCompare(z.name))
+        .sort((a, z) => compareOrder(a.order, z.order, a.name, z.name))
         .map(connectionGroupNode);
     const isRootLevel = groupId === tree.rootGroupId;
     const members = tree.profiles
@@ -160,7 +182,7 @@ export function childrenOfGroup(
                 // harness/settings-written profiles often omit groupId).
                 (isRootLevel && profile.groupId === undefined),
         )
-        .sort((a, z) => a.displayName.localeCompare(z.displayName));
+        .sort((a, z) => compareOrder(a.stored.order, z.stored.order, a.displayName, z.displayName));
     // K6 disambiguation: siblings that tie on the full v1 label get the
     // differing properties appended to their tooltips.
     const byLabel = new Map<string, OeV2ProfileRecord[]>();

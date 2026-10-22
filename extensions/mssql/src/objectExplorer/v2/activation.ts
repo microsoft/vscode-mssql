@@ -4,12 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * OE v2 activation (V2-0/V2-2): registers the preview tree view when
- * mssql.objectExplorer.viewMode == "v2Preview", composes the session
+ * OE v2 activation (V2-0/V2-2): registers the preview tree view only when
+ * the host-provided private-preview gate is effective, composes the session
  * registry + shared-MetadataStore coordinators, and wires connect/disconnect
- * commands. Reacts to config flips WITHOUT a reload (the B3 lesson). All
- * connects go through the data plane — never ConnectionManager (lint + spy
- * enforced).
+ * commands. Once composed, disabling fails closed immediately and subsequent
+ * config changes can re-register the view; enabling it for the first time
+ * still requires a window reload because MainController does not compose this
+ * private-preview module while its activation snapshot is false. All connects
+ * go through the data plane — never ConnectionManager (lint + spy enforced).
  */
 
 import * as vscode from "vscode";
@@ -24,13 +26,20 @@ import {
 } from "../../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../../services/sqlDataPlane/sqlDataPlaneService";
 import { vscodeFallbackInteraction } from "../../services/sqlDataPlane/vscodeFallbackInteraction";
-import { ObjectExplorerV2Provider } from "./objectExplorerV2Provider";
+import type { IConnectionProfile } from "../../models/interfaces";
+import type { IConnectionStore } from "../../models/connectionStore";
+import { ObjectExplorerV2Provider, OverviewVisibility } from "./objectExplorerV2Provider";
 import { OeV2MetadataCoordinator } from "./metadata/oeV2MetadataCoordinator";
-import { oeV2Settings, oeViewMode } from "./settings";
-import { ConnectionProfileSource, readProfileTree } from "./sessions/oeV2ProfileAdapter";
+import { oeV2Settings } from "./settings";
+import {
+    ConnectionProfileSource,
+    diffProfileConnectionSnapshots,
+    OeV2ProfileConnectionSnapshot,
+    profileConnectionSnapshot,
+    readProfileTree,
+} from "./sessions/oeV2ProfileAdapter";
 import { OeV2SessionRegistry } from "./sessions/oeV2SessionRegistry";
 import { registerOeV2NativeCommands } from "./commands/oeV2NativeCommands";
-import { policiesForNode } from "./commands/oeV2LegacyCommandPolicy";
 import {
     HandoffConnectionSeam,
     OeV2ClassicHandoffService,
@@ -39,21 +48,32 @@ import { OE_V2_COMMANDS } from "./commands/oeV2CommandRegistry";
 import { OeV2DragAndDropController, registerOeV2GroupCommands } from "./commands/oeV2GroupCommands";
 import { redirectToClassic } from "./legacy/oeV2LegacyRedirect";
 import { ConnectionConfig } from "../../connectionconfig/connectionconfig";
-import { Common, LocalContainers, ObjectExplorer } from "../../constants/locConstants";
-import { ContainerHostAdapter } from "../../docker/containerHostAdapter";
-import { deleteContainer, stopContainer } from "../../docker/dockerUtils";
-import { restartSqlServerContainer } from "../../deployment/sqlServerContainer";
+import {
+    Common,
+    LocalContainers,
+    ObjectExplorer,
+    ObjectExplorerV2,
+} from "../../constants/locConstants";
 import { OeV2Node } from "./tree/oeV2Node";
 import { OeV2TreeController } from "./tree/oeV2TreeController";
 
+import { ContainerHostAdapter } from "../../docker/containerHostAdapter";
+import { deleteContainer, stopContainer } from "../../docker/dockerUtils";
+import { restartSqlServerContainer } from "../../deployment/sqlServerContainer";
+
 export interface OeV2ActivationDeps {
     readonly instantiationService: IInstantiationService;
-    readonly profiles: ConnectionProfileSource & ProfileSecretSource;
-    readonly tokens: ProfileTokenSource;
+    readonly profiles: ConnectionProfileSource &
+        ProfileSecretSource &
+        Pick<IConnectionStore, "removeProfile">;
+    readonly tokens?: ProfileTokenSource;
     /** Classic connection seam for the EXPLICIT legacy handoff door (B20). */
     readonly legacyConnections?: HandoffConnectionSeam;
     /** Shared group storage (B26): the classic ConnectionConfig instance. */
     readonly groupConfig?: () => ConnectionConfig | undefined;
+    /** Live private-preview gate: umbrella + SQL Data Plane + OE v2. */
+    readonly isEnabled: () => boolean;
+    readonly overviewVisibility?: OverviewVisibility;
 }
 
 export function activateObjectExplorerV2(
@@ -65,17 +85,16 @@ export function activateObjectExplorerV2(
     let registry: OeV2SessionRegistry | undefined;
     let handoff: OeV2ClassicHandoffService | undefined;
     let activeView: vscode.TreeView<OeV2Node> | undefined;
+    let statusChannel: vscode.OutputChannel | undefined;
 
     const removeSavedProfile = async (connectionId: string): Promise<void> => {
-        const config = (deps.groupConfig ?? (() => undefined))();
-        if (!config) {
-            return;
-        }
-        const profile = (await config.getConnections()).find(
+        const profile = (await deps.profiles.readAllConnections(false)).find(
             (candidate) => stableProfileId(candidate as never) === connectionId,
         );
         if (profile) {
-            await config.removeConnection(profile as never);
+            // ConnectionStore owns the complete removal contract: settings,
+            // MRU history, and any saved credential.
+            await deps.profiles.removeProfile(profile as IConnectionProfile, false);
         }
     };
     // DOCK-2/3: the docker host adapter for v2 nodes — activity text on
@@ -98,7 +117,7 @@ export function activateObjectExplorerV2(
     });
 
     const register = () => {
-        if (registration) {
+        if (registration || !deps.isEnabled()) {
             return;
         }
         registry = new OeV2SessionRegistry((params) =>
@@ -117,13 +136,11 @@ export function activateObjectExplorerV2(
                 availabilityState: () => SqlDataPlaneService.get().availability().state,
             },
             sessions: registry,
+            containers: {
+                restart: (name, id) => restartSqlServerContainer(name, containerHost(id)),
+            },
             coordinatorFactory: (prepared) =>
                 new OeV2MetadataCoordinator(MetadataStoreService.get().store(), prepared),
-            // Container pre-flight (DOCK-3) over the shared docker core.
-            containers: {
-                restart: (containerName, connectionId) =>
-                    restartSqlServerContainer(containerName, containerHost(connectionId)),
-            },
             settings: () => {
                 const settings = oeV2Settings();
                 return {
@@ -132,7 +149,7 @@ export function activateObjectExplorerV2(
                 };
             },
         });
-        const provider = new ObjectExplorerV2Provider(controller);
+        const provider = new ObjectExplorerV2Provider(controller, deps.overviewVisibility);
         const view = vscode.window.createTreeView("mssql.objectExplorerV2", {
             treeDataProvider: provider,
             showCollapseAll: true,
@@ -142,6 +159,7 @@ export function activateObjectExplorerV2(
                 ? {
                       dragAndDropController: new OeV2DragAndDropController(
                           deps.groupConfig ?? (() => undefined),
+                          deps.isEnabled,
                       ),
                   }
                 : {}),
@@ -166,7 +184,7 @@ export function activateObjectExplorerV2(
             feature: "objectExplorer",
             kind: "event",
             type: "objectExplorerV2.view.activate",
-            fields: { viewMode: { raw: "v2Preview", cls: "diagnostic.metadata" } },
+            fields: { enabled: { raw: true, cls: "diagnostic.metadata" } },
         });
     };
 
@@ -179,7 +197,7 @@ export function activateObjectExplorerV2(
         activeView = undefined;
     };
 
-    if (oeViewMode() === "v2Preview") {
+    if (deps.isEnabled()) {
         register();
     }
 
@@ -188,13 +206,14 @@ export function activateObjectExplorerV2(
         () => controller,
         // Ctrl+C keybinding parity: fall back to the focused tree selection.
         () => activeView?.selection[0],
+        deps.isEnabled,
     );
 
     // B27: while any connection is opening/closing, tick the tree so the
     // slow-connect elapsed description ("connecting… (12s)") stays live.
     const connectingTicker = setInterval(() => {
         if (registry?.anyConnecting()) {
-            controller?.refresh();
+            void controller?.refreshTransientConnections();
         }
     }, 2000);
     (connectingTicker as { unref?: () => void }).unref?.();
@@ -207,7 +226,7 @@ export function activateObjectExplorerV2(
         context.subscriptions.push(
             vscode.commands.registerCommand("mssql.perf.objectExplorerV2Browse", async () => {
                 if (!controller) {
-                    throw new Error("OE v2 is not registered (check viewMode setting)");
+                    throw new Error("OE v2 is not registered (check private-preview settings)");
                 }
                 const roots = await controller.children();
                 const connection = roots.find((node) => node.path.kind === "connection");
@@ -239,7 +258,7 @@ export function activateObjectExplorerV2(
                 "mssql.perf.objectExplorerV2SecurityExpand",
                 async () => {
                     if (!controller) {
-                        throw new Error("OE v2 is not registered (check viewMode setting)");
+                        throw new Error("OE v2 is not registered (check private-preview settings)");
                     }
                     const roots = await controller.children();
                     const connection = roots.find((node) => node.path.kind === "connection");
@@ -256,13 +275,16 @@ export function activateObjectExplorerV2(
                         throw new Error("no connected server node after connect");
                     }
                     const security = (await controller.children(server)).find(
-                        (node) => node.label === "Security",
+                        (node) =>
+                            node.path.kind === "serverFolder" && node.path.folder === "security",
                     );
                     if (!security) {
                         throw new Error("no Security folder on a server-scoped connection");
                     }
                     const logins = (await controller.children(security)).find(
-                        (node) => node.label === "Logins",
+                        (node) =>
+                            node.path.kind === "serverFolder" &&
+                            node.path.folder === "security/logins",
                     );
                     if (!logins) {
                         throw new Error("no Logins folder under Security");
@@ -299,67 +321,111 @@ export function activateObjectExplorerV2(
     // Connection dialog finished, whichever view's button launched it — v2
     // auto-connects it too ("connect them both"). Bulk settings edits (2+
     // new profiles at once) deliberately stay disconnected.
-    let knownProfileIds: Set<string> | undefined;
-    const snapshotProfiles = async (): Promise<Set<string>> => {
+    let knownProfiles: OeV2ProfileConnectionSnapshot | undefined;
+    const snapshotProfiles = async (): Promise<OeV2ProfileConnectionSnapshot> => {
         const tree = await readProfileTree(deps.profiles);
-        return new Set(tree.profiles.map((profile) => profile.profileId));
+        return profileConnectionSnapshot(tree);
     };
-    void snapshotProfiles().then((ids) => (knownProfileIds = ids));
-    const autoConnectNewProfile = async () => {
+    let profileReconciliation = snapshotProfiles().then((snapshot) => {
+        knownProfiles = snapshot;
+    });
+    const reconcileProfiles = async () => {
         const current = await snapshotProfiles();
-        const previous = knownProfileIds;
-        knownProfileIds = current;
-        if (!previous || !controller) {
+        const previous = knownProfiles;
+        knownProfiles = current;
+        const activeController = controller;
+        const activeHandoff = handoff;
+        const isCurrent = () => deps.isEnabled() && controller === activeController;
+        if (!previous || !activeController || !isCurrent()) {
             return;
         }
-        const added = [...current].filter((id) => !previous.has(id));
-        if (added.length === 1) {
-            void controller.connectProfile(added[0]).catch(() => undefined);
+        const { added, retired } = diffProfileConnectionSnapshots(previous, current);
+        for (const connectionId of retired) {
+            await activeHandoff?.close(connectionId);
+            if (!isCurrent()) {
+                return;
+            }
+            await activeController.retireProfile(connectionId);
+            if (!isCurrent()) {
+                return;
+            }
         }
+        // Invalidate the cached profile tree before connecting additions so
+        // findProfile observes the same snapshot that produced this diff.
+        activeController.refresh();
+        if (added.length === 1) {
+            await activeController.connectProfile(added[0]).catch(() => false);
+        }
+    };
+    const queueProfileReconciliation = () => {
+        profileReconciliation = profileReconciliation
+            .then(reconcileProfiles, reconcileProfiles)
+            .catch(() => controller?.refresh());
     };
 
     context.subscriptions.push(
         registerOeV2GroupCommands({
             instantiationService: deps.instantiationService,
             groupConfig: deps.groupConfig ?? (() => undefined),
+            isEnabled: deps.isEnabled,
+            beforeDeleteConnection: async (connectionId) => {
+                await handoff?.close(connectionId);
+                await controller?.disconnectProfile(connectionId);
+            },
         }),
         // B26: view-title New Connection — the SHARED classic dialog; the
         // config watcher's single-new-profile rule connects it in v2.
-        vscode.commands.registerCommand("mssql.objectExplorerV2.addConnection", () =>
-            vscode.commands.executeCommand("mssql.addObjectExplorer"),
-        ),
+        vscode.commands.registerCommand("mssql.objectExplorerV2.addConnection", () => {
+            if (!deps.isEnabled()) {
+                return;
+            }
+            return vscode.commands.executeCommand("mssql.addObjectExplorer");
+        }),
         // v1-parity toolbar toggle: flips the v2 setting; the config watcher
         // below refreshes the tree (mssql.objectExplorer.v2 scope).
-        vscode.commands.registerCommand("mssql.objectExplorerV2.enableGroupBySchema", () =>
-            vscode.workspace
+        vscode.commands.registerCommand("mssql.objectExplorerV2.enableGroupBySchema", () => {
+            if (!deps.isEnabled()) {
+                return;
+            }
+            return vscode.workspace
                 .getConfiguration()
-                .update("mssql.objectExplorer.v2.groupBySchema", true, true),
-        ),
-        vscode.commands.registerCommand("mssql.objectExplorerV2.disableGroupBySchema", () =>
-            vscode.workspace
+                .update("mssql.objectExplorer.v2.groupBySchema", true, true);
+        }),
+        vscode.commands.registerCommand("mssql.objectExplorerV2.disableGroupBySchema", () => {
+            if (!deps.isEnabled()) {
+                return;
+            }
+            return vscode.workspace
                 .getConfiguration()
-                .update("mssql.objectExplorer.v2.groupBySchema", false, true),
-        ),
+                .update("mssql.objectExplorer.v2.groupBySchema", false, true);
+        }),
         vscode.workspace.onDidChangeConfiguration((event) => {
-            if (event.affectsConfiguration("mssql.objectExplorer.viewMode")) {
-                if (oeViewMode() === "v2Preview") {
+            if (
+                event.affectsConfiguration("mssql.enableExperimentalFeatures") ||
+                event.affectsConfiguration("mssql.sqlDataPlane.enabled") ||
+                event.affectsConfiguration("mssql.objectExplorer.v2.enabled")
+            ) {
+                if (deps.isEnabled()) {
                     register();
                 } else {
                     unregister();
                 }
             } else if (
-                event.affectsConfiguration("mssql.sqlDataPlane.enabled") ||
                 event.affectsConfiguration("mssql.connections") ||
                 event.affectsConfiguration("mssql.connectionGroups") ||
                 event.affectsConfiguration("mssql.objectExplorer.v2")
             ) {
                 if (event.affectsConfiguration("mssql.connections")) {
-                    void autoConnectNewProfile();
+                    queueProfileReconciliation();
+                } else {
+                    controller?.refresh();
                 }
-                controller?.refresh();
             }
         }),
         vscode.commands.registerCommand("mssql.objectExplorerV2.refresh", (node?: OeV2Node) => {
+            if (!deps.isEnabled()) {
+                return;
+            }
             if (node && controller) {
                 void controller.refreshNode(node);
             } else {
@@ -369,17 +435,18 @@ export function activateObjectExplorerV2(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.connect",
             async (node?: OeV2Node) => {
+                if (!deps.isEnabled()) {
+                    return;
+                }
                 const connectionId = connectionIdOf(node);
                 if (!connectionId || !controller) {
                     return;
                 }
                 const connected = await controller.connectProfile(connectionId);
-                if (!connected) {
+                if (!connected && registry?.stateOf(connectionId) === "failed") {
                     const session = registry?.get(connectionId);
                     void vscode.window.showErrorMessage(
-                        `Object Explorer v2 could not connect${
-                            session?.failureReason ? `: ${session.failureReason}` : ""
-                        }`,
+                        ObjectExplorerV2.couldNotConnect(session?.failureReason),
                     );
                 }
             },
@@ -389,7 +456,7 @@ export function activateObjectExplorerV2(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.connectProfileById",
             async (connectionId?: string): Promise<boolean> => {
-                if (!connectionId || !controller) {
+                if (!deps.isEnabled() || !connectionId || !controller) {
                     return false;
                 }
                 // The caller typically JUST saved the profile: drop the
@@ -411,6 +478,9 @@ export function activateObjectExplorerV2(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.cancelConnect",
             (node?: OeV2Node) => {
+                if (!deps.isEnabled()) {
+                    return;
+                }
                 const connectionId = connectionIdOf(node);
                 if (connectionId) {
                     controller?.cancelConnect(connectionId);
@@ -424,7 +494,7 @@ export function activateObjectExplorerV2(
             async (node?: OeV2Node) => {
                 const connectionId = connectionIdOf(node);
                 const containerName = node?.containerName;
-                if (!connectionId || !containerName || !controller) {
+                if (!deps.isEnabled() || !connectionId || !containerName || !controller) {
                     return;
                 }
                 const connected = await controller.connectProfile(connectionId);
@@ -440,7 +510,7 @@ export function activateObjectExplorerV2(
             async (node?: OeV2Node) => {
                 const connectionId = connectionIdOf(node);
                 const containerName = node?.containerName;
-                if (!connectionId || !containerName || !controller) {
+                if (!deps.isEnabled() || !connectionId || !containerName || !controller) {
                     return;
                 }
                 controller.setContainerActivity(
@@ -466,7 +536,7 @@ export function activateObjectExplorerV2(
             async (node?: OeV2Node) => {
                 const connectionId = connectionIdOf(node);
                 const containerName = node?.containerName;
-                if (!connectionId || !containerName || !controller) {
+                if (!deps.isEnabled() || !connectionId || !containerName || !controller) {
                     return;
                 }
                 const confirmation = await vscode.window.showInformationMessage(
@@ -504,6 +574,9 @@ export function activateObjectExplorerV2(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.disconnect",
             async (node?: OeV2Node) => {
+                if (!deps.isEnabled()) {
+                    return;
+                }
                 const connectionId = connectionIdOf(node);
                 if (connectionId) {
                     // Handoff state never outlives the v2 connection (§12.5).
@@ -517,6 +590,9 @@ export function activateObjectExplorerV2(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.removeConnection",
             async (node?: OeV2Node) => {
+                if (!deps.isEnabled()) {
+                    return;
+                }
                 const connectionId = connectionIdOf(node);
                 if (!connectionId || !node) {
                     return;
@@ -542,6 +618,9 @@ export function activateObjectExplorerV2(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.editConnection",
             async (node?: OeV2Node) => {
+                if (!deps.isEnabled()) {
+                    return;
+                }
                 const connectionId = connectionIdOf(node);
                 const config = (deps.groupConfig ?? (() => undefined))();
                 if (!connectionId || !config) {
@@ -551,42 +630,10 @@ export function activateObjectExplorerV2(
                     (candidate) => stableProfileId(candidate as { id?: string }) === connectionId,
                 );
                 if (!profile) {
-                    void vscode.window.showWarningMessage(
-                        "That connection could not be found in saved connections.",
-                    );
+                    void vscode.window.showWarningMessage(ObjectExplorerV2.savedConnectionNotFound);
                     return;
                 }
                 await vscode.commands.executeCommand("mssql.editConnection", profile);
-            },
-        ),
-        vscode.commands.registerCommand(
-            "mssql.objectExplorerV2.legacyActions",
-            async (node?: OeV2Node) => {
-                if (!node?.connectionId || !controller) {
-                    return;
-                }
-                const policies = policiesForNode(node.kind, node.database);
-                if (policies.length === 0 || !handoff) {
-                    void vscode.window.showInformationMessage(
-                        "No legacy actions are available for this node in the OE v2 preview.",
-                    );
-                    return;
-                }
-                const picked = await vscode.window.showQuickPick(
-                    policies.map((policy) => ({ label: policy.label, policy })),
-                    { title: "Legacy actions (creates a classic connection)" },
-                );
-                if (!picked) {
-                    return;
-                }
-                // B25: same redirect library as the direct commands.
-                const outcome = await redirectToClassic(picked.policy.feature, node, {
-                    facts: controller,
-                    handoff,
-                });
-                if (!outcome.ok && outcome.error) {
-                    void vscode.window.showErrorMessage(outcome.error);
-                }
             },
         ),
         // B25 (K4): first-class admin commands through the redirect library —
@@ -594,6 +641,9 @@ export function activateObjectExplorerV2(
         // context flags from the command registry.
         ...OE_V2_COMMANDS.filter((def) => def.route === "legacyRedirect").map((def) =>
             vscode.commands.registerCommand(def.id, async (node?: OeV2Node) => {
+                if (!deps.isEnabled()) {
+                    return;
+                }
                 if (!node?.connectionId || !controller || !handoff) {
                     return;
                 }
@@ -607,37 +657,34 @@ export function activateObjectExplorerV2(
             }),
         ),
         vscode.commands.registerCommand("mssql.objectExplorerV2.showStatus", async () => {
-            const channel = vscode.window.createOutputChannel("MSSQL Object Explorer v2");
+            if (!deps.isEnabled()) {
+                return;
+            }
+            statusChannel ??= vscode.window.createOutputChannel(ObjectExplorerV2.outputChannelName);
+            const channel = statusChannel;
+            channel.clear();
             const dataPlane = SqlDataPlaneService.get();
-            channel.appendLine(`viewMode: ${oeViewMode()}`);
+            channel.appendLine(`privatePreview.enabled: ${deps.isEnabled()}`);
             channel.appendLine(`dataPlane.enabled: ${dataPlane.enabled}`);
             channel.appendLine(`dataPlane.availability: ${dataPlane.availability().state}`);
             channel.appendLine(`view registered: ${registration !== undefined}`);
             channel.appendLine(
                 `metadataStore: ${JSON.stringify(MetadataStoreService.get().store().status())}`,
             );
-            // DOCK-4: container profiles + connection state (names only).
-            try {
-                const tree = await readProfileTree(deps.profiles);
-                const containers = tree.profiles.filter(
-                    (profile) => profile.stored.containerName !== undefined,
-                );
-                channel.appendLine(`containerProfiles: ${containers.length}`);
-                for (const profile of containers) {
-                    channel.appendLine(
-                        `  ${profile.stored.containerName}: ${
-                            registry?.stateOf(profile.profileId) ?? "disconnected"
-                        }`,
-                    );
-                }
-            } catch {
-                channel.appendLine("containerProfiles: <unavailable>");
-            }
             channel.show(true);
         }),
-        vscode.commands.registerCommand("mssql.objectExplorerV2.openClassicObjectExplorer", () =>
-            vscode.commands.executeCommand("objectExplorer.focus"),
-        ),
+        {
+            dispose: () => {
+                statusChannel?.dispose();
+                statusChannel = undefined;
+            },
+        },
+        vscode.commands.registerCommand("mssql.objectExplorerV2.openClassicObjectExplorer", () => {
+            if (!deps.isEnabled()) {
+                return;
+            }
+            return vscode.commands.executeCommand("objectExplorer.focus");
+        }),
         { dispose: unregister },
     );
 }

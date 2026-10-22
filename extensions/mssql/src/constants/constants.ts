@@ -140,6 +140,9 @@ export const cmdShowEstimatedPlan = "mssql.showEstimatedPlan";
 export const cmdEnableActualPlan = "mssql.enableActualPlan";
 export const cmdDisableActualPlan = "mssql.disableActualPlan";
 export const cmdToggleActualPlan = "mssql.toggleActualPlan";
+export const cmdCompareExecutionPlans = "mssql.compareExecutionPlans";
+export const cmdEnableLiveQueryStatistics = "mssql.enableLiveQueryStatistics";
+export const cmdDisableLiveQueryStatistics = "mssql.disableLiveQueryStatistics";
 export const cmdNewTable = "mssql.newTable";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
@@ -155,9 +158,19 @@ export const cmdCancelContainerOperation = "mssql.cancelContainerOperation";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
+export const cmdOpenOverview = "mssql.openOverview";
+/**
+ * Menu items take their label from the command, so this exists only to read as "Open" next to the
+ * node rather than the full title.
+ */
+export const cmdOpenOverviewFromNode = "mssql.objectExplorer.openOverview";
+export const cmdHideOverviewInObjectExplorer = "mssql.hideOverviewInObjectExplorer";
+export const cmdShowOverviewInObjectExplorer = "mssql.showOverviewInObjectExplorer";
+export const overviewVisibleContextKey = "mssql.overviewVisible";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenInMssqlExtensionFromAzureResources =
     "mssql.openInMssqlExtensionFromAzureResources";
+export const cmdOpenInFabricDatabaseHub = "mssql.openInFabricDatabaseHub";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
 export const cmdRestoreDatabase = "mssql.restoreDatabase";
@@ -176,6 +189,11 @@ export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
 export const defaultCommandTimeout = 30;
 export const stsImmediateActivityTimeout = 5000; // 5 seconds
+// Upper bound for a query cancel round-trip to SQL Tools Service before the editor is reset.
+export const queryCancelRequestTimeoutMs = 15000; // 15 seconds
+// Grace period for a completion notification to arrive after the service reported that it has
+// no running query for an editor we still consider executing.
+export const queryCancelOrphanGraceMs = 2000; // 2 seconds
 export const azureDatabase = "Azure";
 export const azureMfa = "AzureMFA";
 export const azureServicePrincipal = "ActiveDirectoryServicePrincipal";
@@ -228,13 +246,20 @@ export const containerConnectionRetryDelayMs = 3000;
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
 export const timeToWaitForLanguageModeChange = 10000.0;
+
+export class Links {
+    public static readonly authKerberosHelp = "https://aka.ms/vscode-mssql-kerberos";
+    public static readonly authEntraDefault = "https://aka.ms/vscode-mssql-auth-entra-default";
+    public static readonly authEntraMfa = "https://aka.ms/vscode-mssql-auth-entra-mfa";
+    public static readonly authActiveDirectoryServicePrincipal =
+        "https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication?view=sql-server-ver17#using-service-principal-authentication";
+}
+
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const feedbackUrl = "https://aka.ms/vscode-mssql-bug";
-export const connectionSharingFeatureRequestUrl =
-    "https://github.com/microsoft/vscode-mssql/issues/new?template=2-mssql-feature-request.yml";
+export const connectionSharingMigrationGuideUrl = "https://aka.ms/mssql-connection-sharing";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
-export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-integratedauth";
 export const createDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
 export const dropDatabaseHelpLink =
@@ -322,6 +347,7 @@ export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
 export const configQueryCompletionSoundEnabled = "query.playCompletionSound";
 export const configQueryCompletionSoundFile = "query.completionSoundFile";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
+export const configUseMsalEntraMfaAuth = "mssql.useMsalEntraMfaAuth";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
@@ -332,6 +358,7 @@ export const configResultsGridAlternatingRowColors = "resultsGrid.alternatingRow
 export const configResultsGridFreezeFirstColumnByDefault = "resultsGrid.freezeFirstColumnByDefault";
 export const configResultsGridShowGridLines = "resultsGrid.showGridLines";
 export const configResultsGridRowPadding = "resultsGrid.rowPadding";
+export const configResultsGridRightAlignNumbers = "resultsGrid.rightAlignNumbers";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
@@ -341,8 +368,12 @@ export const configShowActiveConnectionAsCodeLensSuggestion =
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 export const configStatusBarShowQueryExecutionStatus = "statusBar.showQueryExecutionStatus";
+export const configStatusBarShowServerProcessId = "statusBar.showServerProcessId";
+export const configDabCliPackageFeedUrl = "mssql.dab.cliPackageFeedUrl";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
+export const configSchemaDesignerEnableDeploymentsView =
+    "mssql.schemaDesigner.enableDeploymentsView";
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
@@ -439,12 +470,8 @@ export const AzureSqlServerName = "Azure SQL server";
 export const DefaultSqlPortNumber = "1433";
 export const DefaultAdminUsername = "sa";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
-export const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
-export const internalConnectionSharingExtensionIds: ReadonlySet<string> = new Set([
-    extensionId,
-    "ms-mssql.sql-notebook-controller",
-    "microsoft.schema-compare",
-]);
+export const sharedConnectionsAuthenticationProviderId = "mssql-shared-connections";
+export const sharedConnectionsCommandPrefix = "mssql.sharedConnections.";
 export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";
@@ -474,9 +501,6 @@ export const codeAnalysisViewId = "codeAnalysis";
 // Inline SQL completions (ported from dev/karlb/completions)
 export const cmdCopilotInlineCompletionRefreshSchemaContext =
     "mssql.copilot.inlineCompletion.refreshSchemaContext";
-export const cmdOpenInlineCompletionDebug = "mssql.openInlineCompletionDebug";
-export const cmdCopilotCompletionsTraceSyncToDatabase =
-    "mssql.copilot.completions.trace.syncToDatabase";
 export const cmdSetAnthropicSdkLanguageModelApiKey =
     "mssql.copilot.sdkProviders.anthropic.setApiKey";
 export const cmdClearAnthropicSdkLanguageModelApiKey =
@@ -486,12 +510,11 @@ export const cmdClearOpenAiSdkLanguageModelApiKey = "mssql.copilot.sdkProviders.
 export const cmdSetXAiSdkLanguageModelApiKey = "mssql.copilot.sdkProviders.xai.setApiKey";
 export const cmdClearXAiSdkLanguageModelApiKey = "mssql.copilot.sdkProviders.xai.clearApiKey";
 export const documentationLink = "https://aka.ms/vscode-mssql-docs";
+export const configCopilotInlineCompletionsEnabled = "mssql.copilot.inlineCompletions.enabled";
 export const configCopilotInlineCompletionsUseSchemaContext =
     "mssql.copilot.inlineCompletions.useSchemaContext";
 export const configCopilotInlineCompletionsIncludeSqlDiagnostics =
     "mssql.copilot.inlineCompletions.includeSqlDiagnostics";
-export const configCopilotInlineCompletionsSchemaContext =
-    "mssql.copilot.inlineCompletions.schemaContext";
 export const configCopilotInlineCompletionsProfile = "mssql.copilot.inlineCompletions.profile";
 export const configCopilotInlineCompletionsModelFamily =
     "mssql.copilot.inlineCompletions.modelFamily";
@@ -511,8 +534,6 @@ export const configCopilotInlineCompletionsTraceRedactPrompts =
     "mssql.copilot.inlineCompletions.trace.redactPrompts";
 export const configCopilotInlineCompletionsTraceMaxFileSizeMB =
     "mssql.copilot.inlineCompletions.trace.maxFileSizeMB";
-export const configCopilotInlineCompletionsTraceJournalPrimary =
-    "mssql.copilot.inlineCompletions.trace.journalPrimary";
 export const configCopilotSdkProvidersAnthropicEnabled =
     "mssql.copilot.sdkProviders.anthropic.enabled";
 export const configCopilotSdkProvidersAnthropicAdditionalModels =
@@ -534,3 +555,8 @@ export const configCopilotSdkProvidersXAiAdditionalModels =
 export const configCopilotSdkProvidersXAiBaseUrl = "mssql.copilot.sdkProviders.xai.baseUrl";
 export const configCopilotSdkProvidersXAiTimeout = "mssql.copilot.sdkProviders.xai.timeout";
 export const configCopilotSdkProvidersXAiEnv = "mssql.copilot.sdkProviders.xai.env";
+
+export const configCopilotInlineCompletionsSchemaContext =
+    "mssql.copilot.inlineCompletions.schemaContext";
+export const configCopilotInlineCompletionsTraceJournalPrimary =
+    "mssql.copilot.inlineCompletions.trace.journalPrimary";

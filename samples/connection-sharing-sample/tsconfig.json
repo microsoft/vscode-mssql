@@ -10,7 +10,10 @@
         // "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
         // "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
         // "noUnusedParameters": true,  /* Report errors on unused parameters. */
-        "typeRoots": ["../../typings", "../../node_modules/@types"],
+        "typeRoots": [
+            "../../extensions/mssql/typings",
+            "../../extensions/mssql/node_modules/@types"
+        ],
         "skipLibCheck": true
     },
     "exclude": ["node_modules", "../node_modules"]

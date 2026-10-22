@@ -15,6 +15,7 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import {
+    connectionIdsInGroupSubtree,
     OeV2DragAndDropController,
     wouldCreateCycle,
 } from "../../src/objectExplorer/v2/commands/oeV2GroupCommands";
@@ -91,6 +92,21 @@ suite("Object Explorer v2 groups (B26)", () => {
         { id: "g3", name: "Other", parentId: "ROOT" },
     ];
 
+    test("delete teardown includes connections in every descendant group", () => {
+        expect(
+            connectionIdsInGroupSubtree(
+                GROUPS,
+                [
+                    { id: "root", groupId: "ROOT" },
+                    { id: "direct", groupId: "g1" },
+                    { id: "nested", groupId: "g2" },
+                    { id: "other", groupId: "g3" },
+                ],
+                "g1",
+            ),
+        ).to.deep.equal(["direct", "nested"]);
+    });
+
     test("cycle guard: self, descendant, and deep chains refuse; siblings allow", () => {
         expect(wouldCreateCycle(GROUPS, "g1", "g1")).to.equal(true); // self
         expect(wouldCreateCycle(GROUPS, "g1", "g2")).to.equal(true); // child
@@ -158,5 +174,20 @@ suite("Object Explorer v2 groups (B26)", () => {
         };
         const transfer = await drag(dnd, folder);
         expect(transfer.get(OeV2DragAndDropController.MIME)).to.equal(undefined);
+    });
+
+    test("drop ignores foreign MIME and malformed payloads", async () => {
+        const { config, updates } = fakeConfig(GROUPS, []);
+        const dnd = new OeV2DragAndDropController(() => config);
+        const foreign = new vscode.DataTransfer();
+        foreign.set("text/plain", new vscode.DataTransferItem("not ours"));
+        await dnd.handleDrop(groupNode("g1"), foreign);
+
+        for (const value of ["{", "null", '{"type":"connection"}']) {
+            const malformed = new vscode.DataTransfer();
+            malformed.set(OeV2DragAndDropController.MIME, new vscode.DataTransferItem(value));
+            await dnd.handleDrop(groupNode("g1"), malformed);
+        }
+        expect(updates).to.deep.equal([]);
     });
 });

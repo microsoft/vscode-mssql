@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { locConstants } from "../../../common/locConstants";
 import { type WheelEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
     Button,
@@ -67,22 +68,22 @@ import { InlineCompletionDebugDetailPane } from "../components/DetailPane";
 import { ReplayCartButton } from "../components/ReplayCartButton";
 
 const dimensions: Array<{ key: InlineCompletionAnalysisDimension; label: string }> = [
-    { key: "model", label: "Model" },
-    { key: "profile", label: "Profile" },
-    { key: "schemaMode", label: "Schema budget" },
-    { key: "schemaSizeKind", label: "Schema size" },
-    { key: "intentMode", label: "Intent" },
-    { key: "result", label: "Result" },
-    { key: "trigger", label: "Trigger" },
-    { key: "language", label: "Language" },
-    { key: "inferredSystemQuery", label: "System query" },
-    { key: "completionCategory", label: "Completion kind" },
-    { key: "replayRun", label: "Replay run" },
-    { key: "replayMatrixCell", label: "Matrix cell" },
-    { key: "replaySourceEvent", label: "Replay source" },
-    { key: "replayMode", label: "Replay mode" },
-    { key: "replayTrace", label: "Replay trace" },
-    { key: "provenanceCohort", label: "Cohort" },
+    { key: "model", label: locConstants.inlineCompletionDebug.model2 },
+    { key: "profile", label: locConstants.inlineCompletionDebug.profile2 },
+    { key: "schemaMode", label: locConstants.inlineCompletionDebug.schemaBudget },
+    { key: "schemaSizeKind", label: locConstants.inlineCompletionDebug.schemaSize },
+    { key: "intentMode", label: locConstants.inlineCompletionDebug.intent },
+    { key: "result", label: locConstants.inlineCompletionDebug.result2 },
+    { key: "trigger", label: locConstants.inlineCompletionDebug.trigger },
+    { key: "language", label: locConstants.inlineCompletionDebug.language },
+    { key: "inferredSystemQuery", label: locConstants.inlineCompletionDebug.systemQuery },
+    { key: "completionCategory", label: locConstants.inlineCompletionDebug.completionKind },
+    { key: "replayRun", label: locConstants.inlineCompletionDebug.replayRun },
+    { key: "replayMatrixCell", label: locConstants.inlineCompletionDebug.matrixCell },
+    { key: "replaySourceEvent", label: locConstants.inlineCompletionDebug.replaySource },
+    { key: "replayMode", label: locConstants.inlineCompletionDebug.replayMode },
+    { key: "replayTrace", label: locConstants.inlineCompletionDebug.replayTrace },
+    { key: "provenanceCohort", label: locConstants.inlineCompletionDebug.cohort },
 ];
 const visibleDimensions = dimensions.filter((dimension) => dimension.key !== "language");
 
@@ -154,6 +155,10 @@ const useStyles = makeStyles({
         whiteSpace: "nowrap",
         fontFamily: "var(--vscode-editor-font-family, Consolas, monospace)",
         color: "var(--vscode-descriptionForeground)",
+    },
+    folderLabel: {
+        flexShrink: 0,
+        textTransform: "uppercase",
     },
     folderPath: {
         minWidth: 0,
@@ -897,7 +902,7 @@ export function SessionsTab({
                     sourceLabel:
                         asString(event.locals.replaySessionSourceLabel) ??
                         sessionEventDataset.eventSources.get(event) ??
-                        "Sessions",
+                        locConstants.inlineCompletionDebug.detailText92,
                 })),
             );
         },
@@ -949,7 +954,9 @@ export function SessionsTab({
                             <div className={classes.workspace}>
                                 {filtersCollapsed ? (
                                     <div className={classes.collapsedFilters}>
-                                        <FluentTooltip content="Show filters" relationship="label">
+                                        <FluentTooltip
+                                            content={locConstants.inlineCompletionDebug.showFilters}
+                                            relationship="label">
                                             <Button
                                                 appearance="subtle"
                                                 size="small"
@@ -991,12 +998,16 @@ export function SessionsTab({
                                                 className={classes.controls}
                                                 onWheel={scrollHorizontallyOnWheel}>
                                                 <div className={classes.controlGroup}>
-                                                    <Text>Group by</Text>
+                                                    <Text>
+                                                        {locConstants.inlineCompletionDebug.groupBy}
+                                                    </Text>
                                                     <DimensionDropdown
                                                         value={primaryDimension}
                                                         onChange={setPrimaryDimension}
                                                     />
-                                                    <Text>then by</Text>
+                                                    <Text>
+                                                        {locConstants.inlineCompletionDebug.thenBy}
+                                                    </Text>
                                                     <SecondaryDimensionDropdown
                                                         value={secondaryDimension}
                                                         onChange={setSecondaryDimension}
@@ -1005,7 +1016,7 @@ export function SessionsTab({
                                                 <div className={classes.controlGroup}>
                                                     <Text className={classes.pivotMeta}>
                                                         {filteredEvents.length.toLocaleString()}{" "}
-                                                        events
+                                                        {locConstants.inlineCompletionDebug.events3}
                                                     </Text>
                                                     <Button
                                                         className={classes.compactButton}
@@ -1017,7 +1028,10 @@ export function SessionsTab({
                                                                 primaryDimension,
                                                             )
                                                         }>
-                                                        Export CSV
+                                                        {
+                                                            locConstants.inlineCompletionDebug
+                                                                .exportCSV
+                                                        }
                                                     </Button>
                                                 </div>
                                             </div>
@@ -1038,8 +1052,10 @@ export function SessionsTab({
                                                 />
                                             ) : (
                                                 <div className={classes.empty}>
-                                                    No loaded events match the current dataset and
-                                                    filters.
+                                                    {
+                                                        locConstants.inlineCompletionDebug
+                                                            .noLoadedEventsMatchTheCurrentDataset
+                                                    }
                                                 </div>
                                             )}
                                         </div>
@@ -1112,21 +1128,26 @@ function TraceCollectionEmptyState({
     return (
         <div className={classes.emptyState}>
             <div className={classes.emptyStateContent}>
-                <Text className={classes.emptyTitle}>Trace collection is off</Text>
+                <Text className={classes.emptyTitle}>
+                    {locConstants.inlineCompletionDebug.traceCollectionIsOff}
+                </Text>
                 <Text className={classes.emptyDescription}>
-                    Enable collection to save inline completion sessions to{" "}
-                    <span className={classes.emptyPath}>{traceFolder}</span>, or add existing trace
-                    JSON files.
+                    {
+                        locConstants.inlineCompletionDebug
+                            .enableCollectionToSaveInlineCompletionSessions
+                    }{" "}
+                    <span className={classes.emptyPath}>{traceFolder}</span>
+                    {locConstants.inlineCompletionDebug.orAddExistingTraceJSONFiles}
                 </Text>
                 <div className={classes.emptyActions}>
                     <Button
                         appearance="primary"
                         icon={<SaveRegular />}
                         onClick={onEnableTraceCollection}>
-                        Enable Trace Collection
+                        {locConstants.inlineCompletionDebug.enableTraceCollection}
                     </Button>
                     <Button icon={<AddRegular />} onClick={onAddFile}>
-                        Add Trace File
+                        {locConstants.inlineCompletionDebug.addTraceFile}
                     </Button>
                 </div>
             </div>
@@ -1170,7 +1191,11 @@ function DatasetSelector({
             <div className={classes.datasetHeader} onWheel={scrollHorizontallyOnWheel}>
                 <div className={classes.folderText}>
                     <FluentTooltip
-                        content={fileListOpen ? "Hide trace files" : "Show trace files"}
+                        content={
+                            fileListOpen
+                                ? locConstants.inlineCompletionDebug.hideTraceFiles
+                                : locConstants.inlineCompletionDebug.showTraceFiles
+                        }
                         relationship="label">
                         <Button
                             appearance="subtle"
@@ -1182,12 +1207,19 @@ function DatasetSelector({
                             onClick={() => setFileListOpen((value) => !value)}
                         />
                     </FluentTooltip>
-                    <span className={classes.folderPath}>FOLDER&nbsp;&nbsp;{traceFolder}</span>
+                    <span className={classes.folderLabel}>
+                        {locConstants.inlineCompletionDebug.folder}
+                    </span>
+                    <span className={classes.folderPath} title={traceFolder}>
+                        {traceFolder}
+                    </span>
                 </div>
                 <div className={classes.datasetActions}>
                     <Text className={classes.pivotMeta}>
-                        {included.length}/{entries.length} traces · {eventCount.toLocaleString()}{" "}
-                        events{range ? ` · ${range}` : ""}
+                        {included.length}/{entries.length}{" "}
+                        {locConstants.inlineCompletionDebug.traces}
+                        {eventCount.toLocaleString()} {locConstants.inlineCompletionDebug.events3}
+                        {range ? ` · ${range}` : ""}
                     </Text>
                     <ReplayCartButton />
                     {!traceCaptureEnabled ? (
@@ -1200,28 +1232,32 @@ function DatasetSelector({
                             icon={<SaveRegular />}
                             size="small"
                             onClick={onEnableTraceCollection}>
-                            Enable trace collection
+                            {locConstants.inlineCompletionDebug.enableTraceCollection2}
                         </Button>
                     ) : null}
                     <div className={classes.traceToggleActions}>
-                        <FluentTooltip content="Select all traces" relationship="label">
+                        <FluentTooltip
+                            content={locConstants.inlineCompletionDebug.selectAllTraces}
+                            relationship="label">
                             <Button
                                 className={classes.compactButton}
                                 appearance="subtle"
                                 size="small"
                                 disabled={allIncluded || entries.length === 0}
                                 onClick={() => onSetAllTraces(true)}>
-                                All
+                                {locConstants.inlineCompletionDebug.all}
                             </Button>
                         </FluentTooltip>
-                        <FluentTooltip content="Deselect all traces" relationship="label">
+                        <FluentTooltip
+                            content={locConstants.inlineCompletionDebug.deselectAllTraces}
+                            relationship="label">
                             <Button
                                 className={classes.compactButton}
                                 appearance="subtle"
                                 size="small"
                                 disabled={noneIncluded || entries.length === 0}
                                 onClick={() => onSetAllTraces(false)}>
-                                None
+                                {locConstants.inlineCompletionDebug.none}
                             </Button>
                         </FluentTooltip>
                     </div>
@@ -1231,21 +1267,21 @@ function DatasetSelector({
                         size="small"
                         onClick={onRefresh}
                         disabled={loading}>
-                        Refresh
+                        {locConstants.inlineCompletionDebug.refresh}
                     </Button>
                     <Button
                         className={classes.compactButton}
                         icon={<FolderOpenRegular />}
                         size="small"
                         onClick={onChangeFolder}>
-                        Change folder
+                        {locConstants.inlineCompletionDebug.changeFolder}
                     </Button>
                     <Button
                         className={classes.compactButton}
                         icon={<AddRegular />}
                         size="small"
                         onClick={onAddFile}>
-                        Add file
+                        {locConstants.inlineCompletionDebug.addFile}
                     </Button>
                 </div>
             </div>
@@ -1253,14 +1289,14 @@ function DatasetSelector({
                 <div className={classes.datasetTable}>
                     {[
                         "",
-                        "Filename",
-                        "Source",
-                        "Saved",
-                        "Events",
-                        "Size",
-                        "Profile",
-                        "Schema",
-                        "Replay",
+                        locConstants.inlineCompletionDebug.detailText93,
+                        locConstants.inlineCompletionDebug.detailText94,
+                        locConstants.inlineCompletionDebug.detailText95,
+                        locConstants.inlineCompletionDebug.detailText96,
+                        locConstants.inlineCompletionDebug.detailText97,
+                        locConstants.inlineCompletionDebug.detailText98,
+                        locConstants.inlineCompletionDebug.detailText99,
+                        locConstants.inlineCompletionDebug.detailText100,
                     ].map((label) => (
                         <div
                             key={label || "checkbox"}
@@ -1296,7 +1332,10 @@ function TraceRow({
             </div>
             <div
                 className={mergeClasses(classes.datasetCell, classes.mono, classes.truncate)}
-                title={entry.loadError ?? `${entry.path} (right-click to add to replay trace)`}
+                title={
+                    entry.loadError ??
+                    locConstants.inlineCompletionDebug.detailText101(String(entry.path))
+                }
                 onContextMenu={(event) => {
                     event.preventDefault();
                     addSessionToReplayCart(entry.fileKey);
@@ -1330,14 +1369,14 @@ function TraceRow({
                         size="small"
                         disabled={entry.eventCount === 0}
                         onClick={() => addSessionToReplayCart(entry.fileKey)}>
-                        Add
+                        {locConstants.inlineCompletionDebug.add}
                     </Button>
                     <Button
                         className={classes.compactButton}
                         size="small"
                         disabled={entry.eventCount === 0}
                         onClick={() => replaySessionNow(entry.fileKey)}>
-                        Run
+                        {locConstants.inlineCompletionDebug.run}
                     </Button>
                 </div>
             </div>
@@ -1363,41 +1402,56 @@ function SummaryTiles({
     return (
         <div className={classes.summary}>
             <StatTile
-                label="Events"
+                label={locConstants.inlineCompletionDebug.events4}
                 value={metrics.count.toLocaleString()}
-                hint={`${traceCount} traces`}
-                title={`Cohort: ${cohortLabel} · ${metrics.terminalCount.toLocaleString()} terminal · ${metrics.nonTerminalCount.toLocaleString()} pending/queued/blocked (excluded from every rate)`}
+                hint={locConstants.inlineCompletionDebug.value0Traces(String(traceCount))}
+                title={locConstants.inlineCompletionDebug.cohort01Terminal2PendingQueued(
+                    String(cohortLabel),
+                    String(metrics.terminalCount.toLocaleString()),
+                    String(metrics.nonTerminalCount.toLocaleString()),
+                )}
             />
             <StatTile
-                label="Latency mean"
+                label={locConstants.inlineCompletionDebug.latencyMean}
                 value={formatDuration(metrics.latencyMean)}
-                hint={`p95 ${formatDuration(metrics.latencyP95)}`}
+                hint={locConstants.inlineCompletionDebug.p950(
+                    String(formatDuration(metrics.latencyP95)),
+                )}
             />
             <StatTile
-                label="Latency p99"
+                label={locConstants.inlineCompletionDebug.latencyP99}
                 value={formatDuration(metrics.latencyP99)}
-                hint={`max ${formatDuration(metrics.latencyMax)}`}
+                hint={locConstants.inlineCompletionDebug.max0(
+                    String(formatDuration(metrics.latencyMax)),
+                )}
             />
             <StatTile
-                label="Accept rate"
+                label={locConstants.inlineCompletionDebug.acceptRate}
                 value={acceptance?.rate !== undefined ? formatPercent(acceptance.rate) : "—"}
-                hint={`${metrics.acceptedCount}/${metrics.shownCount} shown`}
+                hint={locConstants.inlineCompletionDebug.value01Shown(
+                    String(metrics.acceptedCount),
+                    String(metrics.shownCount),
+                )}
                 title={formatRateMetricTitle(acceptance, cohortLabel)}
             />
             <StatTile
-                label="Input tokens"
+                label={locConstants.inlineCompletionDebug.inputTokens}
                 value={formatCompact(metrics.inputTokensSum)}
-                hint={`avg ${formatCompact(metrics.inputTokensMean)}`}
+                hint={locConstants.inlineCompletionDebug.avg0(
+                    String(formatCompact(metrics.inputTokensMean)),
+                )}
             />
             <StatTile
-                label="Output tokens"
+                label={locConstants.inlineCompletionDebug.outputTokens}
                 value={formatCompact(metrics.outputTokensSum)}
-                hint={`avg ${formatCompact(metrics.outputTokensMean)}`}
+                hint={locConstants.inlineCompletionDebug.avg0(
+                    String(formatCompact(metrics.outputTokensMean)),
+                )}
             />
             <StatTile
-                label="Configs"
+                label={locConstants.inlineCompletionDebug.configs}
                 value={configCount.toLocaleString()}
-                hint="model x profile x schema"
+                hint={locConstants.inlineCompletionDebug.detailText102}
             />
         </div>
     );
@@ -1433,7 +1487,14 @@ function formatRateMetricTitle(
     if (!metric) {
         return undefined;
     }
-    return `${metric.label}: ${metric.numeratorLabel} / ${metric.denominatorLabel} = ${metric.numerator}/${metric.denominator} · cohort: ${cohortLabel}`;
+    return locConstants.inlineCompletionDebug.detailText103(
+        String(metric.label),
+        String(metric.numeratorLabel),
+        String(metric.denominatorLabel),
+        String(metric.numerator),
+        String(metric.denominator),
+        String(cohortLabel),
+    );
 }
 
 /**
@@ -1454,8 +1515,11 @@ function MetricsStrip({
             {/* The active cohort stays visible even when the rail collapses. */}
             <span
                 className={classes.metricChip}
-                title="§8.1 provenance cohort applied to every metric, facet, and pivot on this tab (selector in the filter rail)">
-                <span className={classes.metricChipLabel}>Cohort</span> {cohortLabel}
+                title={locConstants.inlineCompletionDebug.value81ProvenanceCohortAppliedToEvery}>
+                <span className={classes.metricChipLabel}>
+                    {locConstants.inlineCompletionDebug.cohort}
+                </span>{" "}
+                {cohortLabel}
             </span>
             {rateMetrics.map((metric) => (
                 <span
@@ -1503,12 +1567,16 @@ function FilterRail({
     return (
         <div className={classes.filters}>
             <div className={classes.filterHeader}>
-                <Text className={classes.statLabel}>Filters</Text>
+                <Text className={classes.statLabel}>
+                    {locConstants.inlineCompletionDebug.filters}
+                </Text>
                 <div className={classes.filterHeaderActions}>
                     <Button appearance="subtle" size="small" onClick={onClear}>
-                        Clear
+                        {locConstants.inlineCompletionDebug.clear}
                     </Button>
-                    <FluentTooltip content="Collapse filters" relationship="label">
+                    <FluentTooltip
+                        content={locConstants.inlineCompletionDebug.collapseFilters}
+                        relationship="label">
                         <Button
                             appearance="subtle"
                             size="small"
@@ -1534,9 +1602,11 @@ function FilterRail({
                 />
             ))}
             <div className={classes.facet}>
-                <div className={classes.facetTitle}>Latency</div>
+                <div className={classes.facetTitle}>
+                    {locConstants.inlineCompletionDebug.latency2}
+                </div>
                 <div className={classes.numericFilters}>
-                    <Field label="Min ms">
+                    <Field label={locConstants.inlineCompletionDebug.minMs}>
                         <Input
                             size="small"
                             type="number"
@@ -1544,7 +1614,7 @@ function FilterRail({
                             onChange={(_, data) => onLatencyBoundChange("min", data.value)}
                         />
                     </Field>
-                    <Field label="Max ms">
+                    <Field label={locConstants.inlineCompletionDebug.maxMs}>
                         <Input
                             size="small"
                             type="number"
@@ -1577,10 +1647,15 @@ function CohortSelector({
     return (
         <div className={classes.facet}>
             <div className={classes.facetTitle}>
-                <span>Cohort</span>
+                <span>{locConstants.inlineCompletionDebug.cohort}</span>
                 {excludedCount > 0 ? (
-                    <span title="Events hidden by the current cohort selection">
-                        {excludedCount.toLocaleString()} excluded
+                    <span
+                        title={
+                            locConstants.inlineCompletionDebug
+                                .eventsHiddenByTheCurrentCohortSelection
+                        }>
+                        {excludedCount.toLocaleString()}{" "}
+                        {locConstants.inlineCompletionDebug.excluded}
                     </span>
                 ) : null}
             </div>
@@ -1683,7 +1758,7 @@ function SecondaryDimensionDropdown({
     const classes = useStyles();
     const label =
         value === "none"
-            ? "(none)"
+            ? locConstants.inlineCompletionDebug.none2
             : (visibleDimensions.find((dimension) => dimension.key === value)?.label ?? value);
     return (
         <Dropdown
@@ -1694,7 +1769,7 @@ function SecondaryDimensionDropdown({
             onOptionSelect={(_, data) =>
                 onChange(data.optionValue as InlineCompletionAnalysisDimension | "none")
             }>
-            <Option value="none">(none)</Option>
+            <Option value="none">{locConstants.inlineCompletionDebug.none2}</Option>
             {visibleDimensions.map((dimension) => (
                 <Option key={dimension.key} value={dimension.key}>
                     {dimension.label}
@@ -1732,26 +1807,46 @@ function PivotTable({
             <thead>
                 <tr>
                     <th className={mergeClasses(classes.pivotHeaderCell, classes.pivotHeaderName)}>
-                        {primaryLabel ?? "Group"}
+                        {primaryLabel ?? locConstants.inlineCompletionDebug.detailText104}
                     </th>
-                    <th className={classes.pivotHeaderCell}>N</th>
-                    <th className={classes.pivotHeaderCell}>Sample</th>
-                    <th className={classes.pivotHeaderCell}>Lat mean</th>
-                    <th className={classes.pivotHeaderCell}>Lat p95</th>
-                    <th className={classes.pivotHeaderCell}>Lat p99</th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.n}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.sample}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.latMean}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.latP95}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.latP99}
+                    </th>
                     <th
                         className={classes.pivotHeaderCell}
-                        title="accepted / (accepted + shown-not-accepted) — §8.2 corrected denominator; pending/queued/blocked never counted">
-                        Accept
+                        title={
+                            locConstants.inlineCompletionDebug.acceptedAcceptedShownNotAccepted82
+                        }>
+                        {locConstants.inlineCompletionDebug.accept}
                     </th>
                     <th
                         className={classes.pivotHeaderCell}
-                        title="error terminals / all terminal requests">
-                        Errors
+                        title={
+                            locConstants.inlineCompletionDebug.errorTerminalsAllTerminalRequests
+                        }>
+                        {locConstants.inlineCompletionDebug.errors}
                     </th>
-                    <th className={classes.pivotHeaderCell}>In tok</th>
-                    <th className={classes.pivotHeaderCell}>Out tok</th>
-                    <th className={classes.pivotHeaderCell}>Schema chars</th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.inTok}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.outTok}
+                    </th>
+                    <th className={classes.pivotHeaderCell}>
+                        {locConstants.inlineCompletionDebug.schemaChars}
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -1845,7 +1940,9 @@ function ChartsPanel({
     return (
         <div className={classes.sideCharts}>
             <div className={classes.chartPanel}>
-                <div className={classes.chartTitle}>By group · latency p95</div>
+                <div className={classes.chartTitle}>
+                    {locConstants.inlineCompletionDebug.byGroupLatencyP95}
+                </div>
                 <div className={classes.chartBox} style={{ height: groupChartHeight }}>
                     {hasGroupData ? (
                         <ResponsiveContainer>
@@ -1864,18 +1961,26 @@ function ChartsPanel({
                                 />
                                 <RechartsTooltip
                                     contentStyle={tooltipStyle}
-                                    formatter={(value) => `${value} ms`}
+                                    formatter={(value) =>
+                                        locConstants.inlineCompletionDebug.detailText105(
+                                            String(value),
+                                        )
+                                    }
                                 />
                                 <Bar dataKey="latencyP95" fill="#5aa9e6" />
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className={classes.chartEmpty}>No data</div>
+                        <div className={classes.chartEmpty}>
+                            {locConstants.inlineCompletionDebug.noData}
+                        </div>
                     )}
                 </div>
             </div>
             <div className={classes.chartPanel}>
-                <div className={classes.chartTitle}>Acceptance funnel</div>
+                <div className={classes.chartTitle}>
+                    {locConstants.inlineCompletionDebug.acceptanceFunnel}
+                </div>
                 <div className={classes.chartBox} style={{ height: groupChartHeight }}>
                     {hasGroupData ? (
                         <ResponsiveContainer>
@@ -1901,12 +2006,16 @@ function ChartsPanel({
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className={classes.chartEmpty}>No data</div>
+                        <div className={classes.chartEmpty}>
+                            {locConstants.inlineCompletionDebug.noData}
+                        </div>
                     )}
                 </div>
             </div>
             <div className={classes.chartPanel}>
-                <div className={classes.chartTitle}>Token cost in / out</div>
+                <div className={classes.chartTitle}>
+                    {locConstants.inlineCompletionDebug.tokenCostInOut}
+                </div>
                 <div className={classes.chartBox} style={{ height: groupChartHeight }}>
                     {hasGroupData ? (
                         <ResponsiveContainer>
@@ -1929,12 +2038,16 @@ function ChartsPanel({
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className={classes.chartEmpty}>No data</div>
+                        <div className={classes.chartEmpty}>
+                            {locConstants.inlineCompletionDebug.noData}
+                        </div>
                     )}
                 </div>
             </div>
             <div className={classes.chartPanel}>
-                <div className={classes.chartTitle}>Time series · latency p95</div>
+                <div className={classes.chartTitle}>
+                    {locConstants.inlineCompletionDebug.timeSeriesLatencyP95}
+                </div>
                 <div className={classes.chartBox}>
                     {hasTimeSeriesData ? (
                         <ResponsiveContainer>
@@ -1948,9 +2061,14 @@ function ChartsPanel({
                                 <RechartsTooltip
                                     contentStyle={tooltipStyle}
                                     labelFormatter={(_, points) =>
-                                        points?.[0]?.payload?.range ?? "No events"
+                                        points?.[0]?.payload?.range ??
+                                        locConstants.inlineCompletionDebug.detailText106
                                     }
-                                    formatter={(value) => `${value} ms`}
+                                    formatter={(value) =>
+                                        locConstants.inlineCompletionDebug.detailText107(
+                                            String(value),
+                                        )
+                                    }
                                 />
                                 <Line
                                     type="monotone"
@@ -1962,7 +2080,9 @@ function ChartsPanel({
                             </LineChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className={classes.chartEmpty}>No data</div>
+                        <div className={classes.chartEmpty}>
+                            {locConstants.inlineCompletionDebug.noData}
+                        </div>
                     )}
                 </div>
             </div>
@@ -2284,12 +2404,12 @@ function traceSourceLabel(entry: InlineCompletionDebugTraceIndexEntry): string {
 
 function traceSourceTitle(entry: InlineCompletionDebugTraceIndexEntry): string {
     if (entry.sourceKind === "storedSession") {
-        return "Journal-backed capture session from the local observability store (read-only; retention owns deletion)";
+        return locConstants.inlineCompletionDebug.detailText108;
     }
     if (entry.sourceKind === "imported" || (entry.sourceKind === undefined && entry.imported)) {
-        return "Trace file added explicitly";
+        return locConstants.inlineCompletionDebug.detailText109;
     }
-    return "Trace file from the configured trace folder";
+    return locConstants.inlineCompletionDebug.detailText110;
 }
 
 function formatShortDate(value: string): string {
@@ -2309,16 +2429,20 @@ function formatDateOnly(value: number): string {
 
 function formatBytes(value: number): string {
     if (value >= 1024 * 1024) {
-        return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+        return locConstants.inlineCompletionDebug.detailText111(
+            String((value / (1024 * 1024)).toFixed(1)),
+        );
     }
-    return `${(value / 1024).toFixed(1)} KB`;
+    return locConstants.inlineCompletionDebug.detailText112(String((value / 1024).toFixed(1)));
 }
 
 function formatDuration(value: number): string {
     if (value >= 1000) {
-        return `${(value / 1000).toFixed(value >= 10_000 ? 1 : 2)}s`;
+        return locConstants.inlineCompletionDebug.detailText113(
+            String((value / 1000).toFixed(value >= 10_000 ? 1 : 2)),
+        );
     }
-    return `${Math.round(value)}ms`;
+    return locConstants.inlineCompletionDebug.detailText114(String(Math.round(value)));
 }
 
 function formatPercent(value: number): string {
@@ -2334,10 +2458,12 @@ function formatCompact(value: number): string {
         return "0";
     }
     if (Math.abs(value) >= 1_000_000) {
-        return `${(value / 1_000_000).toFixed(1)}M`;
+        return locConstants.inlineCompletionDebug.detailText115(
+            String((value / 1_000_000).toFixed(1)),
+        );
     }
     if (Math.abs(value) >= 1_000) {
-        return `${(value / 1_000).toFixed(1)}k`;
+        return locConstants.inlineCompletionDebug.detailText116(String((value / 1_000).toFixed(1)));
     }
     return `${Math.round(value)}`;
 }

@@ -284,13 +284,17 @@ export async function completeFormComponents(
 
     // add info tooltips to Entra auth type options
     if (components["authenticationType"]?.options) {
-        for (const option of components["authenticationType"].options) {
+        const requiresKerberos = process.platform === "darwin" || process.platform === "linux";
+
+        for (const option of components["authenticationType"]?.options) {
             if (option.value === AuthenticationType.ActiveDirectoryDefault) {
                 option.infoTooltip = Loc.entraDefaultAuthTooltip;
             } else if (option.value === AuthenticationType.AzureMFA) {
                 option.infoTooltip = Loc.entraMfaAuthTooltip;
             } else if (option.value === AuthenticationType.ActiveDirectoryServicePrincipal) {
                 option.infoTooltip = Loc.entraServicePrincipalAuthTooltip;
+            } else if (option.value === AuthenticationType.Integrated && requiresKerberos) {
+                option.infoTooltip = Loc.kerberosAuthTooltip;
             }
         }
     }

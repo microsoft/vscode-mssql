@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { locConstants } from "../../common/locConstants";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button, Text, makeStyles, shorthands } from "@fluentui/react-components";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
@@ -225,18 +226,20 @@ export const InlineCompletionDebugPage = () => {
                                 <div className={classes.runMeta}>
                                     <Text weight="semibold">
                                         {activeRun.kind === "matrix"
-                                            ? "Replay matrix run"
-                                            : "Replay run"}
+                                            ? locConstants.inlineCompletionDebug.replayMatrixRun
+                                            : locConstants.inlineCompletionDebug.replayRun}
                                     </Text>
                                     <Text>
                                         {activeMatrixCell
-                                            ? `cell ${activeMatrixCell.ordinal}/${
-                                                  activeRun.matrixCells?.length ?? 0
-                                              } · ${activeMatrixCell.profileLabel} x ${
-                                                  activeMatrixCell.schemaLabel
-                                              } · `
+                                            ? locConstants.inlineCompletionDebug.cell012X3(
+                                                  String(activeMatrixCell.ordinal),
+                                                  String(activeRun.matrixCells?.length ?? 0),
+                                                  String(activeMatrixCell.profileLabel),
+                                                  String(activeMatrixCell.schemaLabel),
+                                              )
                                             : ""}
-                                        event {activeRun.completedEvents}/{activeRun.totalEvents}
+                                        {locConstants.inlineCompletionDebug.event}
+                                        {activeRun.completedEvents}/{activeRun.totalEvents}
                                     </Text>
                                     <div className={classes.progressTrack}>
                                         <div
@@ -259,16 +262,21 @@ export const InlineCompletionDebugPage = () => {
                                     disabled={activeRunCancelling}
                                     onClick={() => cancelReplayRun(activeRun.id)}>
                                     {activeRunCancelling
-                                        ? "Cancelling — waiting for the active item…"
-                                        : "Cancel queue"}
+                                        ? locConstants.inlineCompletionDebug
+                                              .cancellingWaitingForTheActiveItem
+                                        : locConstants.inlineCompletionDebug.cancelQueue}
                                 </Button>
                             </div>
                         ) : null}
                         {liveEvictedCount > 0 ? (
                             <div className={classes.truncationStrip}>
-                                {liveEvictedCount.toLocaleString()} older event
-                                {liveEvictedCount === 1 ? "" : "s"} dropped from the live ring
-                                (bounded buffer) — save or export sooner to keep them.
+                                {liveEvictedCount.toLocaleString()}{" "}
+                                {locConstants.inlineCompletionDebug.olderEvent}
+                                {liveEvictedCount === 1 ? "" : "s"}{" "}
+                                {
+                                    locConstants.inlineCompletionDebug
+                                        .droppedFromTheLiveRingBoundedBuffer
+                                }
                             </div>
                         ) : null}
                         <InlineCompletionDebugEventGrid
@@ -321,13 +329,19 @@ function parseFilterQuery(query: string): FilterParseResult {
     for (let index = 0; index < parts.length; index++) {
         const part = parts[index]?.trim();
         if (!part) {
-            return { predicate: () => false, error: "Invalid filter expression." };
+            return {
+                predicate: () => false,
+                error: locConstants.inlineCompletionDebug.invalidFilterExpression,
+            };
         }
 
         if (index % 2 === 1) {
             const normalizedOperator = part.toLowerCase();
             if (normalizedOperator !== "and" && normalizedOperator !== "or") {
-                return { predicate: () => false, error: "Use `and` or `or` between clauses." };
+                return {
+                    predicate: () => false,
+                    error: locConstants.inlineCompletionDebug.useAndOrOrBetweenClauses,
+                };
             }
             operators.push(normalizedOperator);
             continue;
@@ -360,7 +374,9 @@ function parseClause(expression: string): {
     if (!match) {
         return {
             predicate: () => false,
-            error: `Couldn't parse \`${expression}\`. Try \`result = "success"\` or \`latency > 1000\`.`,
+            error: locConstants.inlineCompletionDebug.couldnTParse0TryResultSuccess(
+                String(expression),
+            ),
         };
     }
 
@@ -371,7 +387,7 @@ function parseClause(expression: string): {
     if (!getter) {
         return {
             predicate: () => false,
-            error: `Unknown filter field \`${rawField}\`.`,
+            error: locConstants.inlineCompletionDebug.unknownFilterField0(String(rawField)),
         };
     }
 
@@ -380,7 +396,9 @@ function parseClause(expression: string): {
         if (!Number.isFinite(numericValue)) {
             return {
                 predicate: () => false,
-                error: `\`${rawField}\` expects a numeric value.`,
+                error: locConstants.inlineCompletionDebug.value0ExpectsANumericValue(
+                    String(rawField),
+                ),
             };
         }
 
@@ -504,19 +522,21 @@ function stripQuotes(value: string): string {
 
 export function getInfoText(event: InlineCompletionDebugEvent): string {
     if (event.result === "queued") {
-        return "Queued for replay...";
+        return locConstants.inlineCompletionDebug.detailText1;
     }
 
     if (event.result === "pending") {
         const stage = event.locals.pendingStage;
         return typeof stage === "string"
-            ? `In flight: ${formatPendingStage(stage)}...`
-            : "In flight...";
+            ? locConstants.inlineCompletionDebug.inFlight0(String(formatPendingStage(stage)))
+            : locConstants.inlineCompletionDebug.inFlight;
     }
 
     if (event.result === "skipped") {
         const reason = event.locals.skipReason;
-        return `Skipped${typeof reason === "string" ? `: ${reason}` : ""}`;
+        return locConstants.inlineCompletionDebug.detailText2(
+            String(typeof reason === "string" ? `: ${reason}` : ""),
+        );
     }
 
     return (
@@ -531,21 +551,21 @@ export function getInfoText(event: InlineCompletionDebugEvent): string {
 function formatPendingStage(stage: string): string {
     switch (stage) {
         case "selectingModel":
-            return "selecting model";
+            return locConstants.inlineCompletionDebug.detailText3;
         case "checkingModelAccess":
-            return "checking model access";
+            return locConstants.inlineCompletionDebug.detailText4;
         case "buildingSchemaContext":
-            return "building schema context";
+            return locConstants.inlineCompletionDebug.detailText5;
         case "countingInputTokens":
-            return "counting input tokens";
+            return locConstants.inlineCompletionDebug.detailText6;
         case "countingTrimmedInputTokens":
-            return "counting trimmed input tokens";
+            return locConstants.inlineCompletionDebug.detailText7;
         case "waitingForModelResponse":
-            return "waiting for model response";
+            return locConstants.inlineCompletionDebug.detailText8;
         case "readingModelResponse":
-            return "reading model response";
+            return locConstants.inlineCompletionDebug.detailText9;
         case "countingOutputTokens":
-            return "counting output tokens";
+            return locConstants.inlineCompletionDebug.detailText10;
         default:
             return stage.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
     }

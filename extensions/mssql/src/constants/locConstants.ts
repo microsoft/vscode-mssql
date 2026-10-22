@@ -31,10 +31,26 @@ export class Common {
     public static privateString = l10n.t("Private");
     public static remove = l10n.t("Remove");
     public static invalidPort = l10n.t("Port must be a number between 1 and 65535");
+    public static provisioningTarget = (target: string) =>
+        l10n.t({
+            message: "Provisioning {0}",
+            args: [target],
+            comment: ["{0} is the server, container, or database target being provisioned"],
+        });
 }
 
 export class SqlToolsMcp {
     public static serverLabel = l10n.t("SQL Tools (MSSQL)");
+}
+
+export class LegacyProjectExtensionWarning {
+    public static message = l10n.t(
+        "Data Workspace and SQL Database Projects functionality is now included in the SQL Server (mssql) extension. Uninstall Data Workspace 0.7.0 or earlier and SQL Database Projects 1.8.0 or earlier to avoid duplicated user interface elements.",
+    );
+    public static showExtensions = l10n.t("Show Extensions");
+    public static showExtensionsFailed = l10n.t(
+        "The affected extensions could not be opened. Open the Extensions view and uninstall older Data Workspace and SQL Database Projects extensions.",
+    );
 }
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");
@@ -120,6 +136,13 @@ export function msgFinishedExecute(documentName: string) {
 }
 export let msgRunQueryInProgress = l10n.t(
     "A query is already running for this editor session. Please cancel this query or wait for its completion.",
+);
+export let msgRunQueryInProgressCancelAction = l10n.t("Cancel query");
+export let msgQueryNoLongerRunning = l10n.t(
+    "The service is no longer running a query for this editor. The editor's execution state has been reset.",
+);
+export let msgCancelQueryTimedOut = l10n.t(
+    "The cancel request did not complete in time. The editor's execution state has been reset.",
 );
 export let runQueryBatchStartMessage = l10n.t("Started executing query at ");
 export function runQueryBatchStartLine(lineNumber: number) {
@@ -297,6 +320,9 @@ export function msgSaveFailed(error: string) {
         comment: ["{0} is the error message"],
     });
 }
+export const msgSaveResultsWhileLoading = l10n.t(
+    "These results can't be saved until they finish loading.",
+);
 export function msgSaveSucceeded(filePath: string) {
     return l10n.t({
         message: "Successfully saved results to {0}",
@@ -305,6 +331,17 @@ export function msgSaveSucceeded(filePath: string) {
     });
 }
 export let msgExportingResults = l10n.t("Exporting results…");
+export let msgLiveQueryStatisticsUnavailable = l10n.t(
+    "Live query statistics aren't available for this query because its server session couldn't be identified.",
+);
+export function msgLiveQueryStatisticsStopped(error: string) {
+    return l10n.t({
+        message:
+            "Live query statistics stopped. They need SQL Server 2016 SP1 or later and permission to view server state. {0}",
+        args: [error],
+        comment: ["{0} is the error message"],
+    });
+}
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
 export let msgSelectProfileToEdit = l10n.t("Select profile to edit");
 export let confirmRemoveProfilePrompt = l10n.t("Confirm to remove this profile.");
@@ -819,6 +856,29 @@ export let parameters = l10n.t("Parameters");
 export let loading = l10n.t("Loading");
 export let executionPlan = l10n.t("Execution Plan");
 export let executionPlanFileFilter = l10n.t("SQL Plan Files");
+export let compareExecutionPlans = l10n.t("Compare Execution Plans");
+export let compareExecutionPlansEditor = (index: number) =>
+    l10n.t({
+        message: "Compare Execution Plans {0}",
+        args: [index],
+        comment: ["{0} is the unique comparison editor number"],
+    });
+export let browseForExecutionPlan = l10n.t("Browse for an execution plan...");
+export let selectExecutionPlanToCompare = l10n.t("Select an execution plan to compare");
+export let selectExecutionPlanToReplace = (planName: string) =>
+    l10n.t({
+        message: "Select an execution plan to replace {0}",
+        args: [planName],
+        comment: ["{0} is the name of the execution plan being replaced"],
+    });
+export let executionPlanComparisonFailed = l10n.t("Failed to compare execution plans.");
+export let executionPlanComparisonLoadFailed = l10n.t(
+    "Failed to load the selected execution plan.",
+);
+export let executionPlanComparisonFileContainsNoPlans = l10n.t(
+    "The selected file does not contain an execution plan.",
+);
+export let openExecutionPlan = l10n.t("Open execution plan");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
 export let failedToOpenTextInEditor = (errorMessage: string) =>
@@ -1069,6 +1129,255 @@ export class ObjectExplorer {
     public static ConnectionStringCopied = l10n.t("Connection string copied to clipboard");
 }
 
+/** User-visible strings for the Connections (Private Preview) surface. */
+export class ObjectExplorerV2 {
+    private static readonly folderLabels = new Map<string, string>([
+        ["Databases", l10n.t("Databases")],
+        ["Security", l10n.t("Security")],
+        ["Logins", l10n.t("Logins")],
+        ["Server Roles", l10n.t("Server Roles")],
+        ["Credentials", l10n.t("Credentials")],
+        ["Cryptographic Providers", l10n.t("Cryptographic Providers")],
+        ["Server Audits", l10n.t("Server Audits")],
+        ["Server Audit Specifications", l10n.t("Server Audit Specifications")],
+        ["Server Objects", l10n.t("Server Objects")],
+        ["Endpoints", l10n.t("Endpoints")],
+        ["Linked Servers", l10n.t("Linked Servers")],
+        ["Server Triggers", l10n.t("Server Triggers")],
+        ["Error Messages", l10n.t("Error Messages")],
+        ["Tables", l10n.t("Tables")],
+        ["System Tables", l10n.t("System Tables")],
+        ["Dropped Ledger Tables", l10n.t("Dropped Ledger Tables")],
+        ["External Tables", l10n.t("External Tables")],
+        ["Views", l10n.t("Views")],
+        ["System Views", l10n.t("System Views")],
+        ["Dropped Ledger Views", l10n.t("Dropped Ledger Views")],
+        ["Synonyms", l10n.t("Synonyms")],
+        ["Programmability", l10n.t("Programmability")],
+        ["Stored Procedures", l10n.t("Stored Procedures")],
+        ["System Stored Procedures", l10n.t("System Stored Procedures")],
+        ["Functions", l10n.t("Functions")],
+        ["Database Triggers", l10n.t("Database Triggers")],
+        ["Assemblies", l10n.t("Assemblies")],
+        ["Types", l10n.t("Types")],
+        ["User-Defined Data Types", l10n.t("User-Defined Data Types")],
+        ["User-Defined Table Types", l10n.t("User-Defined Table Types")],
+        ["XML Schema Collections", l10n.t("XML Schema Collections")],
+        ["Sequences", l10n.t("Sequences")],
+        ["Service Broker", l10n.t("Service Broker")],
+        ["Message Types", l10n.t("Message Types")],
+        ["Contracts", l10n.t("Contracts")],
+        ["Queues", l10n.t("Queues")],
+        ["Services", l10n.t("Services")],
+        ["Remote Service Bindings", l10n.t("Remote Service Bindings")],
+        ["Broker Priorities", l10n.t("Broker Priorities")],
+        ["Storage", l10n.t("Storage")],
+        ["Filegroups", l10n.t("Filegroups")],
+        ["Full Text Catalogs", l10n.t("Full Text Catalogs")],
+        ["Full Text Stop Lists", l10n.t("Full Text Stop Lists")],
+        ["Log Files", l10n.t("Log Files")],
+        ["Partition Functions", l10n.t("Partition Functions")],
+        ["Partition Schemes", l10n.t("Partition Schemes")],
+        ["Search Property Lists", l10n.t("Search Property Lists")],
+        ["Users", l10n.t("Users")],
+        ["Roles", l10n.t("Roles")],
+        ["Database Roles", l10n.t("Database Roles")],
+        ["Application Roles", l10n.t("Application Roles")],
+        ["Schemas", l10n.t("Schemas")],
+        ["Asymmetric Keys", l10n.t("Asymmetric Keys")],
+        ["Certificates", l10n.t("Certificates")],
+        ["Symmetric Keys", l10n.t("Symmetric Keys")],
+        ["Database Scoped Credentials", l10n.t("Database Scoped Credentials")],
+        ["Database Audit Specifications", l10n.t("Database Audit Specifications")],
+        ["Security Policies", l10n.t("Security Policies")],
+        ["Always Encrypted Keys", l10n.t("Always Encrypted Keys")],
+        ["Column Master Keys", l10n.t("Column Master Keys")],
+        ["Column Encryption Keys", l10n.t("Column Encryption Keys")],
+    ]);
+    private static readonly objectKindLabels = new Map<string, string>([
+        ["table", l10n.t("Table")],
+        ["view", l10n.t("View")],
+        ["procedure", l10n.t("Stored Procedure")],
+        ["scalarFunction", l10n.t("Scalar-valued Function")],
+        ["tableFunction", l10n.t("Table-valued Function")],
+        ["synonym", l10n.t("Synonym")],
+    ]);
+    private static readonly databaseStateLabels = new Map<string, string>([
+        ["RESTORING", l10n.t("restoring")],
+        ["RECOVERING", l10n.t("recovering")],
+        ["RECOVERY_PENDING", l10n.t("recovery pending")],
+        ["SUSPECT", l10n.t("suspect")],
+        ["EMERGENCY", l10n.t("emergency")],
+        ["OFFLINE", l10n.t("offline")],
+        ["COPYING", l10n.t("copying")],
+        ["OFFLINE_SECONDARY", l10n.t("offline secondary")],
+    ]);
+
+    public static folderLabel(label: string): string {
+        return this.folderLabels.get(label) ?? label;
+    }
+
+    public static objectKindLabel(kind: string): string {
+        return this.objectKindLabels.get(kind) ?? kind;
+    }
+
+    public static databaseStateLabel(state: string): string {
+        return this.databaseStateLabels.get(state) ?? state;
+    }
+
+    public static loading = l10n.t("Loading…");
+    public static noItems = l10n.t("No items");
+    public static disabled = l10n.t("disabled");
+    public static systemDatabases = l10n.t("System Databases");
+    public static columns = l10n.t("Columns");
+    public static keys = l10n.t("Keys");
+    public static foreignKeys = l10n.t("Foreign Keys");
+    public static parameters = l10n.t("Parameters");
+    public static returnValue = l10n.t("(return value)");
+    public static connecting = l10n.t("connecting…");
+    public static disconnecting = l10n.t("disconnecting…");
+    public static connectionLostDescription = l10n.t("connection lost");
+    public static connectError = l10n.t("connect error");
+    public static noAccess = l10n.t("no access");
+    public static readOnly = l10n.t("read-only");
+    public static databaseNoAccess = l10n.t("No access to this database.");
+    public static metadataFailed = l10n.t("Metadata failed to load. Refresh to retry.");
+    public static metadataLoadFailed = l10n.t("Metadata failed to load.");
+    public static permissionDenied = l10n.t("Permission denied.");
+    public static unsupportedConnection = l10n.t("Not supported for this connection.");
+    public static dataPlaneUnavailable = l10n.t("SQL Data Plane is disabled or unavailable.");
+    public static connectionLost = l10n.t("Connection lost. Reconnect from the context menu.");
+    public static dataPlaneRequired = l10n.t(
+        "Connections (Private Preview) requires the SQL Data Plane. Enable mssql.sqlDataPlane.enabled, then reload.",
+    );
+    public static noSavedProfiles = l10n.t(
+        "No saved connection profiles. Create one with 'MS SQL: Add Connection'.",
+    );
+    public static connectHint = l10n.t(
+        "Use 'Connect' on this profile to browse in Connections (Private Preview).",
+    );
+    public static savedConnectionNotFound = l10n.t(
+        "That connection could not be found in saved connections.",
+    );
+    public static outputChannelName = l10n.t("MSSQL Connections (Private Preview)");
+    public static filterTitle = l10n.t("Filter Connections (Private Preview) Folder");
+    public static filterPrompt = l10n.t("Enter text to match object names");
+    public static searchTitle = l10n.t("Search Connections (Private Preview)");
+    public static searchPrompt = l10n.t("Enter an object name or prefix");
+    public static moveConnectionTitle = l10n.t("Move connection to group");
+    public static rootGroup = l10n.t("(Root)");
+    public static groupNoLongerExists = l10n.t(
+        "That connection group no longer exists. Refresh the view.",
+    );
+    public static filterObjectsPrompt = l10n.t(
+        "Objects whose name contains this text remain visible.",
+    );
+    public static searchNamePrefixPrompt = l10n.t("Name prefix to search for.");
+    public static sectionFailed = l10n.t("section failed");
+    public static serverCatalogFailed = l10n.t("server catalog failed");
+    public static unknownError = l10n.t("unknown error");
+    public static profilePreparationFailed = l10n.t("Connection profile preparation failed.");
+    public static serverVersion = l10n.t("Server Version");
+    public static sameNameDifferences = l10n.t("Differs from same-named connections:");
+    public static updatableLedger = l10n.t("(Updatable Ledger)");
+    public static appendOnlyLedger = l10n.t("(Append-Only Ledger)");
+    public static systemVersioned = l10n.t("(System-Versioned)");
+    public static external = l10n.t("(External)");
+    public static fileTable = l10n.t("(FileTable)");
+    public static history = l10n.t("(History)");
+    public static primaryKey = l10n.t("PK");
+    public static uniqueKey = l10n.t("UQ");
+    public static identity = l10n.t("identity");
+    public static computed = l10n.t("computed");
+    public static nullValue = l10n.t("null");
+    public static notNull = l10n.t("not null");
+    public static output = l10n.t("OUTPUT");
+    public static outputLowercase = l10n.t("output");
+    public static unknown = l10n.t("(unknown)");
+    public static notSet = l10n.t("(not set)");
+    public static unnamedGroup = l10n.t("Group");
+    public static metadataStillLoading = l10n.t(
+        "Metadata is still loading. Wait a moment, then try the search again.",
+    );
+    public static legacyActionUnavailable = l10n.t("This action is not available here.");
+    public static legacyActionNotOnThisNode = l10n.t("This action is not available on this node.");
+    public static legacyActionNeedsDatabase = l10n.t(
+        "This action needs a database. Use a database node.",
+    );
+    public static legacyActionConnectFirst = l10n.t(
+        "Connect this profile in Connections (Private Preview) first.",
+    );
+    public static legacyNodeNotAdaptable = l10n.t(
+        "The selected node cannot be used with this legacy feature.",
+    );
+
+    public static couldNotConnect(reason?: string): string {
+        return reason
+            ? l10n.t("Connections (Private Preview) could not connect: {0}", reason)
+            : l10n.t("Connections (Private Preview) could not connect.");
+    }
+    public static connectingFor(seconds: number): string {
+        return l10n.t("connecting… ({0}s)", seconds);
+    }
+    public static failed(reason: string): string {
+        return l10n.t("failed: {0}", reason);
+    }
+    public static expansionFailed(reason: string): string {
+        return l10n.t("Expansion failed: {0}. Refresh to retry.", reason);
+    }
+    public static connectFailed(reason: string): string {
+        return l10n.t("Connect failed: {0}.", reason);
+    }
+    public static legacyFeatureFailed(reason: string): string {
+        return l10n.t(
+            "The legacy feature could not run with a Connections (Private Preview) node ({0}). Use Classic Object Explorer for this command.",
+            reason,
+        );
+    }
+    public static noFilterMatches(filter: string): string {
+        return l10n.t("No matches for filter '{0}'. Use Clear Filters to remove it.", filter);
+    }
+    public static filterSummary(filter: string, shown: number, total: number): string {
+        return l10n.t("Filter: '{0}' ({1} of {2} shown)", filter, shown, total);
+    }
+    public static noObjectsMatch(term: string): string {
+        return l10n.t("No objects match '{0}'.", term);
+    }
+    public static filterFolderTitle(folder: string): string {
+        return l10n.t("Filter {0} by name", folder);
+    }
+    public static searchDatabaseTitle(database: string): string {
+        return l10n.t("Search objects in {0}", database);
+    }
+    public static searchResultsTitle(term: string): string {
+        return l10n.t("Objects matching '{0}' — pick to copy qualified name", term);
+    }
+    public static folderNotCurrent(folder: string): string {
+        return l10n.t(
+            "Folder '{0}' is not part of the current layout. Refresh the parent node.",
+            folder,
+        );
+    }
+    public static folderUnavailable(folder: string, reason: string): string {
+        return l10n.t("{0} unavailable: {1}. Refresh to retry.", folder, reason);
+    }
+    public static databasesUnavailable(reason: string): string {
+        return l10n.t("Databases unavailable: {0}. Refresh to retry.", reason);
+    }
+    public static metadataSectionFailed(section: string): string {
+        return l10n.t("Metadata section '{0}' failed. Refresh to retry.", section);
+    }
+    public static objectNotFound = l10n.t(
+        "Object not found in the current catalog generation. Refresh the parent folder.",
+    );
+    public static metadataNotValidated(detail: string): string {
+        return l10n.t("Metadata not validated — {0} (refresh to retry).", detail);
+    }
+    public static databaseAccessMayHaveChanged = l10n.t("database access may have changed");
+    public static permissionsMayHaveChanged = l10n.t("permissions may have changed");
+    public static usingLastKnownCatalog = l10n.t("using last known catalog");
+}
+
 export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog");
     public static microsoftAccount = l10n.t("Microsoft Account");
@@ -1101,6 +1410,9 @@ export class ConnectionDialog {
     );
     public static entraServicePrincipalAuthTooltip = l10n.t(
         "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
+    );
+    public static kerberosAuthTooltip = l10n.t(
+        "Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.",
     );
     public static applicationClientId = l10n.t("Application (Client) ID");
     public static applicationClientIdTooltip = l10n.t(
@@ -1214,6 +1526,14 @@ export class FirewallRule {
 }
 
 export class Azure {
+    public static systemDatabaseNotInFabricDatabaseHub(databaseName: string): string {
+        return l10n.t({
+            message: "'{0}' is a system database, so it isn't tracked in the Fabric Database Hub.",
+            args: [databaseName],
+            comment: ["{0} is the name of the system database, such as 'master'"],
+        });
+    }
+
     public static unableToAcquireEntraTokenFromVsCode(accountDisplayName: string): string {
         return l10n.t({
             message:
@@ -1584,6 +1904,18 @@ export class AzureSqlDatabase {
     );
     public static maxVcores = l10n.t("Max vCores");
     public static selectMaxVcores = l10n.t("Select Max vCores");
+    public static provisioningTaskSucceeded = (databaseName: string) =>
+        l10n.t({
+            message: "Azure SQL database '{0}' was provisioned successfully.",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static provisioningTaskFailed = (databaseName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Azure SQL database '{0}': {1}",
+            args: [databaseName, error],
+            comment: ["{0} is the database name", "{1} is the error message"],
+        });
 }
 
 export class FabricProvisioning {
@@ -1598,6 +1930,18 @@ export class FabricProvisioning {
     public static databaseNameError = l10n.t(
         "This database name is already in use. Please choose a different name.",
     );
+    public static provisioningTaskSucceeded = (databaseName: string) =>
+        l10n.t({
+            message: "Fabric SQL database '{0}' was provisioned successfully.",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static provisioningTaskFailed = (databaseName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Fabric SQL database '{0}': {1}",
+            args: [databaseName, error],
+            comment: ["{0} is the database name", "{1} is the error message"],
+        });
 }
 
 export class QueryResult {
@@ -1728,6 +2072,55 @@ export class QueryResult {
     );
 }
 
+export class AzureSqlContainer {
+    public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
+    public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
+    public static portInUse = l10n.t("This port is already in use. Choose a different port.");
+    public static portDetectionFailed = l10n.t(
+        "Unable to find an available container port. Check that Docker is running and try again.",
+    );
+    public static invalidContainerName = l10n.t(
+        "Container names must start with a letter or number and contain only letters, numbers, underscores, periods, or hyphens.",
+    );
+    public static invalidHostname = l10n.t("Enter a valid hostname.");
+    public static acceptTerms = l10n.t("Accept the terms and conditions to continue.");
+    public static selectConnectionGroup = l10n.t("Select a connection group.");
+    public static pullImageFailed = l10n.t(
+        "Failed to pull the Azure SQL Database container image. Sign in to the private registry with your preview credentials, then retry.",
+    );
+    public static createContainerFailed = l10n.t(
+        "Failed to create and start the Azure SQL Database container.",
+    );
+    public static containerNotReady = l10n.t(
+        "The Azure SQL Database container did not become ready for connections within five minutes.",
+    );
+    public static connectContainerFailed = l10n.t(
+        "The container started, but the extension could not create its database connection.",
+    );
+    public static provisioningTaskSucceeded = (containerName: string) =>
+        l10n.t({
+            message: "Azure SQL Database container '{0}' was provisioned successfully.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static provisioningTaskFailed = (containerName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Azure SQL Database container '{0}': {1}",
+            args: [containerName, error],
+            comment: ["{0} is the container name", "{1} is the error message"],
+        });
+    public static provisioningTaskCanceled = (containerName: string) =>
+        l10n.t({
+            message: "Provisioning Azure SQL Database container '{0}' was canceled.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static pullingContainerImage = l10n.t("Pulling container image");
+    public static creatingContainer = l10n.t("Creating container");
+    public static settingUpContainer = l10n.t("Setting up container");
+    public static connectingToContainer = l10n.t("Connecting to container");
+}
+
 export class LocalContainers {
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({
@@ -1831,6 +2224,18 @@ export class LocalContainers {
     public static connectingToContainerBody = l10n.t(
         "Connecting to your SQL Server Docker container",
     );
+    public static provisioningTaskSucceeded = (containerName: string) =>
+        l10n.t({
+            message: "SQL Server container '{0}' was provisioned successfully.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static provisioningTaskFailed = (containerName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision SQL Server container '{0}': {1}",
+            args: [containerName, error],
+            comment: ["{0} is the container name", "{1} is the error message"],
+        });
     public static passwordLengthError = l10n.t("Please make your password 8-128 characters long.");
     public static passwordComplexityError = l10n.t(
         "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
@@ -1948,6 +2353,86 @@ export class LocalContainers {
         "DAB container failed to become ready within the timeout period.",
     );
     public static dabStopContainerError = l10n.t("Failed to stop and remove DAB container.");
+    public static dabContainerNotFound = (containerName: string) =>
+        l10n.t({
+            message: "Container {0} no longer exists.",
+            args: [containerName],
+            comment: ["{0} is the Docker container name"],
+        });
+    public static dabStartExistingContainerError = l10n.t("Failed to start the DAB container.");
+    public static dabStopExistingContainerError = l10n.t("Failed to stop the DAB container.");
+    public static dabDeploymentNotFound = l10n.t(
+        "This deployment is no longer tracked. Refresh the deployments list and try again.",
+    );
+    public static dabRedeployPortUnavailable = (port: number, containerName: string) =>
+        l10n.t({
+            message:
+                "Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.",
+            args: [port, containerName],
+            comment: ["{0} is the port number", "{1} is the Docker container name"],
+        });
+    public static dabDeploymentStoreUnavailable = l10n.t(
+        "Deployments cannot be tracked because the extension's storage location is unavailable.",
+    );
+    // DAB CLI deployment strings
+    public static dabCliDownloadFailed = l10n.t(
+        "Failed to download the Data API builder CLI. Please check your network connection.",
+    );
+    public static dabCliPrepareFailed = l10n.t("Failed to prepare the Data API builder CLI.");
+    public static dabCliArchitectureUnsupported = (runtimeIdentifier: string) =>
+        l10n.t({
+            message:
+                "Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.",
+            args: [runtimeIdentifier],
+            comment: ["{0} is a .NET runtime identifier, such as osx-arm64"],
+        });
+    public static dabCliNotAcquired = l10n.t(
+        "The Data API builder CLI is not available. Run the prerequisite checks again.",
+    );
+    public static dabCliDotnetNotFound = l10n.t(
+        "No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.",
+    );
+    public static dabCliInstallDotnet = l10n.t("Download .NET");
+    public static dabCliDotnetNotResolved = l10n.t(
+        "The .NET runtime has not been resolved yet. Run the prerequisite checks again.",
+    );
+    public static dabCliConfigWriteFailed = l10n.t(
+        "Failed to write the Data API builder configuration file.",
+    );
+    public static dabCliConfigInvalid = l10n.t("The Data API builder configuration is not valid.");
+    public static dabCliDatabaseConnectionFailed = l10n.t(
+        "Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.",
+    );
+    public static dabCliEntraConnectionFailed = l10n.t(
+        "Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run 'az login', then run this step again.",
+    );
+    public static dabCliInstallAzureCli = l10n.t("Install the Azure CLI");
+    public static dabCliStartFailed = l10n.t("Failed to start the Data API builder engine.");
+    public static dabCliEngineNotReady = l10n.t(
+        "The Data API builder engine did not become ready within the timeout period.",
+    );
+    public static dabCliStartMissingParams = l10n.t(
+        "Deployment name, port, and configuration are required to start the engine.",
+    );
+    public static dabCliEngineDidNotStart = l10n.t("The Data API builder engine did not start.");
+    public static dabCliEngineReadyTimeout = l10n.t(
+        "The Data API builder engine did not answer in time.",
+    );
+    public static dabCliExitedWithCode = (code: number | null) =>
+        l10n.t({
+            message: "The Data API builder CLI exited with code {0}.",
+            args: [code ?? -1],
+            comment: ["{0} is the process exit code"],
+        });
+    public static dabDockerWindowsAuthNotSupported = l10n.t(
+        "A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.",
+    );
+    public static dabTargetAuthNotSupported = l10n.t(
+        "This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.",
+    );
+    public static dabCliDeploymentNotStartable = l10n.t(
+        "This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.",
+    );
 }
 
 export class UserSurvey {
@@ -2169,26 +2654,26 @@ export class SchemaCompare {
         });
     public static cannotExcludeEntryWithBlockingDependency = (
         diffEntryName: string,
-        firstDependentName: string,
+        blockingObjectNames: string,
     ) =>
         l10n.t({
-            message: "Cannot exclude {0}. Included dependents exist, such as {1}",
-            args: [diffEntryName, firstDependentName],
+            message: "Cannot exclude {0}. Blocking included objects: {1}",
+            args: [diffEntryName, blockingObjectNames],
             comment: [
                 "{0} is the name of the entry",
-                "{1} is the name of the blocking dependency preventing exclusion.",
+                "{1} is a comma-separated list of objects preventing exclusion.",
             ],
         });
     public static cannotIncludeEntryWithBlockingDependency = (
         diffEntryName: string,
-        firstDependentName: string,
+        blockingObjectNames: string,
     ) =>
         l10n.t({
-            message: "Cannot include {0}. Excluded dependents exist, such as {1}",
-            args: [diffEntryName, firstDependentName],
+            message: "Cannot include {0}. Blocking excluded objects: {1}",
+            args: [diffEntryName, blockingObjectNames],
             comment: [
                 "{0} is the name of the entry",
-                "{1} is the name of the blocking dependency preventing inclusion.",
+                "{1} is a comma-separated list of objects preventing inclusion.",
             ],
         });
     public static cannotExcludeEntry = (diffEntryName: string) =>
@@ -2270,6 +2755,16 @@ export class StatusBar {
     public static notConnectedTooltip = l10n.t("Click to connect to a database");
     public static connectingLabel = l10n.t("Connecting");
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
+    public static serverProcessIdLabel = (serverProcessId: string) => {
+        return l10n.t({
+            message: "SPID: {0}",
+            args: [serverProcessId],
+            comment: ["{0} is the server process ID (SPID) of the connection"],
+        });
+    };
+    public static serverProcessIdTooltip = l10n.t(
+        "Server process ID (SPID) of this editor's connection",
+    );
 }
 
 export class Connection {
@@ -2298,6 +2793,36 @@ export class Connection {
                 "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
             args: [connectionId],
             comment: ["{0} is the connection ID for the connection that has been ignored"],
+        });
+    };
+
+    public static connectionStringPropertyRemoved = (
+        connectionDisplayName: string,
+        connectionString: string,
+    ) => {
+        return l10n.t({
+            message:
+                "The 'connectionString' property was removed from connection '{0}'. Removed connection string: '{1}'.",
+            args: [connectionDisplayName, connectionString],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection string that was removed",
+            ],
+        });
+    };
+
+    public static connectionDeletedAfterConnectionStringRemoval = (
+        connectionDisplayName: string,
+        connectionString: string,
+    ) => {
+        return l10n.t({
+            message:
+                "Connection '{0}' was deleted because its 'connectionString' property was removed and no 'server' property was defined. Removed connection string: '{1}'.",
+            args: [connectionDisplayName, connectionString],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection string that was removed",
+            ],
         });
     };
 
@@ -2406,6 +2931,9 @@ export class Connection {
             comment: ["{0} is the account ID", "{1} is the tenant ID"],
         });
     };
+    public static ConnectionStringContainsSecrets = l10n.t(
+        "Connection string redacted due to containing authentication secrets",
+    );
 }
 
 export class MssqlChatAgent {
@@ -2676,6 +3204,12 @@ export class MssqlChatAgent {
     };
     public static dabToolNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
+    );
+    public static dabToolStateRequired = l10n.t(
+        "Read the active Data API builder configuration with mssql_dab operation 'get_state' before applying changes.",
+    );
+    public static dabToolStateChanged = l10n.t(
+        "The active Data API builder configuration changed after it was read. Run mssql_dab operation 'get_state' again before retrying; do not open another designer.",
     );
     public static toolMissingConnectionReference = l10n.t(
         "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
@@ -3039,16 +3573,19 @@ export class QueryEditor {
 }
 
 export class ConnectionSharing {
-    public static retirementWarning(extensionName: string) {
+    public static deprecationWarning(extensionName: string) {
         return l10n.t({
             message:
-                "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
+                "The “{0}” extension uses an older connection-sharing API. Its author should move to the new API, which lets you manage which extensions can use your SQL Server connections from the Accounts menu.",
             args: [extensionName],
             comment: ["{0} is the extension name"],
         });
     }
-    public static FileFeatureRequest = l10n.t("File a feature request");
-    public static DoNotShowAgainForExtension = l10n.t("Don’t show again for this extension");
+    public static authenticationProviderLabel = l10n.t("SQL Server (mssql)");
+    public static authenticationAccountLabel = l10n.t("Shared connections");
+    public static invalidAccessToken = l10n.t(
+        "The access token is not valid. Request a new session from the SQL Server (mssql) authentication provider.",
+    );
     public static connectionSharingRequestNotification(extensionName: string) {
         return l10n.t({
             message:
@@ -3215,6 +3752,10 @@ export class SearchDatabase {
         });
 
     public static failedToEstablishConnection = l10n.t("Failed to establish connection");
+
+    public static noConnectionAvailable = l10n.t(
+        "Connect to a server in Object Explorer or open a connected query editor to search database objects.",
+    );
 
     public static typeTable = l10n.t("Table");
     public static typeView = l10n.t("View");
@@ -3450,6 +3991,43 @@ export class AzureDataStudioMigration {
     );
 }
 
+export class Overview {
+    public static OverviewDocumentTitle = l10n.t("SQL Server (mssql)");
+    public static OverviewTreeNodeLabel = l10n.t("Getting Started");
+    public static OverviewTreeNodeDescription = l10n.t("Connect, build, and learn");
+    public static DevContainerTemplateFileConflict = (relativePath: string) =>
+        l10n.t({
+            message: "The template file '{0}' already exists. What would you like to do?",
+            args: [relativePath],
+            comment: ["{0} is a file path relative to the workspace folder."],
+        });
+    public static DevContainerTemplateFileConflictDetail = (remaining: number) =>
+        l10n.t({
+            message: "Including this one, {0} of the template's files already exist here.",
+            args: [remaining],
+            comment: ["{0} is the number of conflicting files left to decide on."],
+        });
+    public static SkipTemplateFile = l10n.t("Skip");
+    public static OverwriteTemplateFile = l10n.t("Overwrite");
+    public static OverwriteAllTemplateFiles = l10n.t("Overwrite All");
+    public static InstallAgentSkillsFailed = l10n.t(
+        "Could not install the selected agent skills. Check your network connection and try again.",
+    );
+    public static InstallAgentSkillsRemoteUnsupported = l10n.t(
+        "Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.",
+    );
+    public static DevContainersExtensionRequired = l10n.t(
+        "The Dev Containers extension is required to reopen this folder in a container.",
+    );
+    public static InstallDevContainersExtension = l10n.t("Install");
+    public static SelectDevContainerFolder = l10n.t("Select Folder");
+    public static ShortcutExecuteQuery = l10n.t("Execute query");
+    public static ShortcutConnect = l10n.t("Connect");
+    public static ShortcutDisconnect = l10n.t("Disconnect");
+    public static ShortcutFocusObjectExplorer = l10n.t("Focus on Object Explorer");
+    public static ShortcutCopyObjectName = l10n.t("Copy object name");
+}
+
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");
@@ -3551,6 +4129,10 @@ export class Changelog {
         "Use discount code {0} to save €200 on registration.",
     );
     public static sqlconEuRegister = l10n.t("Register");
+    public static gettingStartedPageTitle = l10n.t("MSSQL Getting Started Page");
+    public static gettingStartedPageDescription = l10n.t(
+        "Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.",
+    );
 }
 
 export class Profiler {
@@ -4245,22 +4827,6 @@ export class SqlMoveToSchema {
     public static moveFileRejected = l10n.t("The move was rejected or could not be completed.");
     public static sqlprojUpdateFailed = (message: string): string =>
         l10n.t("Failed to update the .sqlproj after moving the file: {0}", message);
-}
-export let copilotEnableGuardMessage = l10n.t(
-    "MSSQL inline SQL completions are active. For best results, disable GitHub Copilot's default completions for SQL files.",
-);
-export let copilotEnableGuardDisableForSql = l10n.t("Disable for SQL");
-export let copilotEnableGuardKeepAsIs = l10n.t("Keep as-is");
-export let copilotEnableGuardLearnMore = l10n.t("Learn more");
-export let copilotEnableGuardApplied = l10n.t(
-    "GitHub Copilot's default completions are now disabled for SQL files.",
-);
-export function copilotEnableGuardApplyFailed(errorMessage: string) {
-    return l10n.t({
-        message: "Couldn't update the 'github.copilot.enable' setting. {0}",
-        args: [errorMessage],
-        comment: ["{0} is the error message"],
-    });
 }
 export class SpatialBasemap {
     public static addOpenStreetMap = l10n.t("Add OpenStreetMap");
@@ -5339,6 +5905,27 @@ export class SqlProjects {
 
     public static projectsOutputChannel = l10n.t("Database Projects");
 
+    public static findFileTitle = l10n.t("Find File in Database Projects");
+
+    public static findFilePlaceholder = l10n.t("Search by file name, path, or project");
+
+    public static findFileProjectLoadError(projectFileName: string, error: string): string {
+        return l10n.t({
+            message: "Find File skipped {0} because it could not be loaded: {1}",
+            args: [projectFileName, error],
+            comment: ["{0} is a project file name", "{1} is the error message"],
+        });
+    }
+
+    public static findFileProjectsSkipped(skippedCount: number): string {
+        return l10n.t({
+            message:
+                "Find File skipped {0} project(s) that could not be loaded. See the Database Projects output for details.",
+            args: [skippedCount],
+            comment: ["{0} is the number of projects that could not be loaded"],
+        });
+    }
+
     public static Install: string = l10n.t("Install");
 
     public static DoNotAskAgain: string = l10n.t("Don't Ask Again");
@@ -5473,3 +6060,233 @@ export class SqlProjects {
 
     public static stderr = l10n.t("    stderr: ");
 }
+
+export const copilotEnableGuardMessage = l10n.t(
+    "MSSQL inline SQL completions are active. For best results, disable GitHub Copilot's default completions for SQL files.",
+);
+export const copilotEnableGuardDisableForSql = l10n.t("Disable for SQL");
+export const copilotEnableGuardKeepAsIs = l10n.t("Keep as-is");
+export const copilotEnableGuardLearnMore = l10n.t("Learn more");
+export const copilotEnableGuardApplied = l10n.t(
+    "GitHub Copilot's default completions are now disabled for SQL files.",
+);
+export function copilotEnableGuardApplyFailed(errorMessage: string): string {
+    return l10n.t({
+        message: "Couldn't update the 'github.copilot.enable' setting. {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+}
+
+export const inlineCompletionAccepted = l10n.t("MSSQL inline SQL completion accepted");
+
+export function copilotSdkSetApiKeyTitle(providerLabel: string): string {
+    return l10n.t("Set {0} API Key", providerLabel);
+}
+
+export function copilotSdkApiKeyPrompt(providerLabel: string): string {
+    return l10n.t("Enter the {0} API key to store in VS Code SecretStorage.", providerLabel);
+}
+
+export function copilotSdkApiKeySaved(providerLabel: string): string {
+    return l10n.t("{0} API key saved.", providerLabel);
+}
+
+export function copilotSdkApiKeyCleared(providerLabel: string): string {
+    return l10n.t("{0} API key cleared.", providerLabel);
+}
+
+export function copilotSdkApiKeyRequired(providerLabel: string): string {
+    return l10n.t("{0} API key is required.", providerLabel);
+}
+
+export function copilotSdkApiKeyPrefix(providerLabel: string, prefixes: string): string {
+    return l10n.t("{0} API keys should start with {1}.", providerLabel, prefixes);
+}
+
+export const copilotSdkSetAnthropicApiKey = l10n.t("Set Anthropic API Key");
+export const copilotSdkSetOpenAiApiKey = l10n.t("Set OpenAI API Key");
+export const copilotSdkSetXAiApiKey = l10n.t("Set xAI API Key");
+export const copilotSdkSetApiKey = l10n.t("Set API Key");
+export const copilotSdkOpenSettings = l10n.t("Open Settings");
+export const copilotSdkDontShowAgain = l10n.t("Don't show again");
+export const copilotSdkNoProviderAvailable = l10n.t(
+    "MSSQL inline completion is configured but no language model providers are available.",
+);
+
+export function copilotSdkConfigureApiKey(providerLabel: string): string {
+    return l10n.t(
+        "Configure your {0} API key to enable {0} models in MSSQL inline completion.",
+        providerLabel,
+    );
+}
+
+export function inlineCompletionTraceSaveFailed(errorMessage: string): string {
+    return l10n.t("Failed to save inline completion trace: {0}", errorMessage);
+}
+
+export const inlineCompletionTraceOpenFolder = l10n.t("Open folder");
+export const inlineCompletionTraceOpenOutput = l10n.t("Open output");
+
+export const copilotSdkAuthenticationFailed = (provider: string) =>
+    l10n.t("{0} API authentication failed. Check your API key.", provider);
+export const copilotSdkRateLimitExceeded = (provider: string) =>
+    l10n.t("{0} API rate limit exceeded.", provider);
+export const copilotSdkRequestRejected = (provider: string, message: string) =>
+    l10n.t("{0} API rejected the request: {1}", provider, message);
+export const copilotSdkApiError = (provider: string, status: number | undefined, message: string) =>
+    l10n.t("{0} API error ({1}): {2}", provider, String(status), message);
+export const inlineCompletionTraceSizeTooSmall = l10n.t(
+    "The trace file size limit is too small to store trace metadata.",
+);
+export const copilotSdkKeyNotConfigured = (provider: string) =>
+    l10n.t("{0} API key is not configured.", provider);
+export const copilotSdkProviderDisabled = (provider: string) =>
+    l10n.t("{0} SDK language models are disabled.", provider);
+export const copilotSdkTextOnly = (provider: string) =>
+    l10n.t("{0} only handles text content.", provider);
+export const debugConsoleSessionTooLarge = l10n.t(
+    "This session exceeds the Debug Console history loading limit (8 MB or 20,000 events). Open a smaller session or inspect the session files directly.",
+);
+
+export class SessionDiag {
+    public static invalidCaptureMode = l10n.t("Unsupported diagnostics capture mode.");
+    public static privatePreviewRequired = l10n.t(
+        "Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.",
+    );
+    public static deleteAll = l10n.t("Delete all");
+    public static clearConfirm = (count: number): string =>
+        l10n.t({
+            message:
+                "Delete {0} locally stored diagnostic session(s)? The current session keeps recording if capture is on.",
+            args: [count],
+            comment: ["{0} is the number of locally stored diagnostic sessions"],
+        });
+    public static removedSessions = (count: number): string =>
+        l10n.t({
+            message: "Removed {0} diagnostic session(s).",
+            args: [count],
+            comment: ["{0} is the number of removed diagnostic sessions"],
+        });
+    public static elevateReasonPrompt = l10n.t(
+        "Reason for elevated (full) capture — recorded in the session log",
+    );
+    public static elevateReasonPlaceholder = l10n.t("e.g. reproducing bug #1234");
+    public static elevateDurationTitle = l10n.t("Elevated capture duration (auto-reverts)");
+    public static minutes = (count: number): string =>
+        l10n.t({
+            message: "{0} minutes",
+            args: [count],
+            comment: ["{0} is a number of minutes"],
+        });
+    public static statusName = l10n.t("MSSQL Session Diagnostics");
+    public static statusOff = l10n.t("$(circle-slash) MSSQL Diag");
+    public static statusOffTooltip = l10n.t(
+        "MSSQL session diagnostics: capture off. Click to open the Debug Console.",
+    );
+    public static statusOffTooltipNoConsole = l10n.t("MSSQL session diagnostics: capture off.");
+    public static statusFull = l10n.t("$(record) MSSQL Diag: FULL");
+    public static statusFullTooltip = l10n.t(
+        "Elevated (full) capture is active and time-bounded. Click to open the Debug Console.",
+    );
+    public static statusFullTooltipNoConsole = l10n.t(
+        "Elevated (full) capture is active and time-bounded.",
+    );
+    public static statusMode = (mode: string): string =>
+        l10n.t({
+            message: "$(shield) MSSQL Diag: {0}",
+            args: [mode],
+            comment: ["{0} is the capture mode (redacted or digest)"],
+        });
+    public static statusModeTooltip = (mode: string): string =>
+        l10n.t({
+            message:
+                "MSSQL session diagnostics capturing ({0}, local only). Click to open the Debug Console.",
+            args: [mode],
+            comment: ["{0} is the capture mode (redacted or digest)"],
+        });
+    public static statusModeTooltipNoConsole = (mode: string): string =>
+        l10n.t({
+            message: "MSSQL session diagnostics capturing ({0}, local only).",
+            args: [mode],
+            comment: ["{0} is the capture mode (redacted or digest)"],
+        });
+}
+
+export class DebugConsole {
+    public static resultDumpTooLarge = l10n.t(
+        "Result exceeds the preview size limit and cannot be safely redacted.",
+    );
+    public static resultDumpInvalid = l10n.t(
+        "Result contains invalid JSON and cannot be safely redacted.",
+    );
+    public static panelTitle = l10n.t("MSSQL Debug Console");
+    public static enableSettingFirst = l10n.t(
+        "Enable mssql.enableExperimentalFeatures and mssql.debugConsole.enabled, then reload the window to use the MSSQL Debug Console.",
+    );
+    public static restartForSts = l10n.t(
+        "Restart VS Code so SQL Tools Service diagnostics are included in the Debug Console.",
+    );
+    public static deleteRun = l10n.t("Delete run");
+    public static deleteRunConfirm = (runId: string): string =>
+        l10n.t({
+            message:
+                "Delete perf run '{0}'? This removes the run directory and its artifacts from disk.",
+            args: [runId],
+            comment: ["{0} is the perf run id"],
+        });
+    public static importRunTitle = l10n.t("Select a perftest run directory (perf-runs/<runId>)");
+    public static noMarkersFound = l10n.t("No harness markers found in the selected directory.");
+    public static exportTitle = l10n.t("Export diagnostic events (redacted JSONL)");
+    public static exportTitleFull = l10n.t(
+        "Export diagnostic events (JSONL — full capture, may contain SQL text)",
+    );
+    public static jsonLinesFilter = l10n.t("JSON Lines");
+    public static addSqliteTitle = l10n.t("Connect a perftest SQLite store (read-only preview)");
+    public static addBundleTitle = l10n.t("Import a perf-runs bundle directory (read-only)");
+    public static addDirectoryTitle = l10n.t("Open a perf-runs directory");
+}
+
+export const QueryStudio = {
+    openMssqlDocument: l10n.t(
+        "Open a .mssql document or create an untitled query to use Query Studio.",
+    ),
+    disabled: l10n.t(
+        "Enable the Query Studio private preview and SQL Data Plane, then reload VS Code to open queries from Connections.",
+    ),
+};
+
+export const InlineCompletionDebug = {
+    journalInactive: (setting: string) =>
+        l10n.t('Completions journal is not active — enable "{0}" to capture it.', setting),
+    datasetLoadCancelled: l10n.t("Dataset load cancelled because it exceeds 100,000 events."),
+    useThisFolder: l10n.t("Use this folder"),
+    chooseOtherFolder: l10n.t("Choose other folder"),
+    traceTooLarge: l10n.t("The trace exceeds the 64 MB import limit."),
+    completionsJournalHasNoRecordsForThe: l10n.t(
+        "Completions journal has no records for the current capture epoch yet.",
+    ),
+    value0FullReport1: (value0: string, value1: string) =>
+        l10n.t("{0} Full report: {1}", value0, value1),
+    completionsJournalReconciliationFailed0: (value0: string) =>
+        l10n.t("Completions journal reconciliation failed: {0}", value0),
+    someEventsWereNoLongerInThe: l10n.t(
+        "Some events were no longer in the live ring and were not added to the replay cart.",
+    ),
+    capturedSchema: l10n.t("Captured schema"),
+    value0X1: (value0: string, value1: string) => l10n.t("{0} x {1}", value0, value1),
+    theSelectedTraceDatasetContains0Events: (value0: string) =>
+        l10n.t(
+            "The selected trace dataset contains {0} events. Loading it may use significant memory.",
+            value0,
+        ),
+    loadTraces: l10n.t("Load traces"),
+    addInlineCompletionTraceFile: l10n.t("Add Inline Completion Trace File"),
+    chooseInlineCompletionTraceFolder: l10n.t("Choose Inline Completion Trace Folder"),
+    enableInlineCompletionTraceCollectionAndSave: (value0: string) =>
+        l10n.t("Enable inline completion trace collection and save trace files to {0}?", value0),
+    databaseSyncIsNotYetImplementedTraces: (value0: string) =>
+        l10n.t("Database sync is not yet implemented. Traces are currently saved to: {0}", value0),
+    exportInlineCompletionDebugSession: l10n.t("Export Inline Completion Debug Session"),
+    importInlineCompletionDebugSession: l10n.t("Import Inline Completion Debug Session"),
+};

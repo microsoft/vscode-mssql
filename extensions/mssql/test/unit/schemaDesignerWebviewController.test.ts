@@ -15,15 +15,22 @@ import * as path from "path";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { Dab } from "../../src/sharedInterfaces/dab";
+import type { IDabMetadataService } from "../../src/dab/dabMetadataService";
+import { DabConfigStore } from "../../src/dab/dabConfigStore";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
 import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
-import { DefaultSqlPortNumber } from "../../src/constants/constants";
+import {
+    configSchemaDesignerEnableDeploymentsView,
+    DefaultSqlPortNumber,
+} from "../../src/constants/constants";
 import {
     observeWebviewReady,
     stubExtensionContext,
+    stubTelemetry,
     stubUserSurvey,
     stubWebviewPanel,
     stubWebviewConnectionRpc,
@@ -41,6 +48,7 @@ suite("SchemaDesignerWebviewController tests", () => {
     let mockPanel: vscode.WebviewPanel;
     let requestHandlers: Map<string, (params: any) => Promise<any>>;
     let notificationHandlers: Map<string, (params: any) => void>;
+    let sendActionEventStub: sinon.SinonStub;
 
     const connectionString = "Server=localhost;Database=testdb;";
     const accessToken = "test-token";
@@ -86,6 +94,7 @@ suite("SchemaDesignerWebviewController tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        sendActionEventStub = stubTelemetry(sandbox).sendActionEvent;
         mockContext = stubExtensionContext(sandbox);
         stubUserSurvey(sandbox);
         mockMainController = sandbox.createStubInstance(MainController);
@@ -148,7 +157,9 @@ suite("SchemaDesignerWebviewController tests", () => {
         sandbox.restore();
     });
 
-    function createController(): SchemaDesignerWebviewController {
+    function createController(
+        dabMetadataService?: IDabMetadataService,
+    ): SchemaDesignerWebviewController {
         const ctrl = new SchemaDesignerWebviewController(
             mockContext,
             mockMainController,
@@ -159,9 +170,35 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache,
             treeNode,
             connectionUri,
+            false,
+            undefined,
+            dabMetadataService,
         );
         observeWebviewReady(ctrl);
         return ctrl;
+    }
+
+    function createDabMetadataServiceStub() {
+        return {
+            listDabViews: sandbox.stub().resolves([
+                {
+                    id: "view:dbo.ActiveUsers",
+                    schema: "dbo",
+                    name: "ActiveUsers",
+                },
+            ]),
+            listDabStoredProcedures: sandbox.stub().resolves([
+                {
+                    id: "stored-procedure:dbo.GetUsers",
+                    schema: "dbo",
+                    name: "GetUsers",
+                },
+            ]),
+            getDabViewColumnsByView: sandbox.stub().resolves(new Map()),
+            getDabViewColumns: sandbox.stub().resolves([]),
+            getDabStoredProcedureParametersByProcedure: sandbox.stub().resolves(new Map()),
+            getDabStoredProcedureParameters: sandbox.stub().resolves([]),
+        };
     }
 
     suite("Constructor and Initialization", () => {
@@ -1488,13 +1525,41 @@ suite("SchemaDesignerWebviewController tests", () => {
         });
     });
 
-    suite("isDabDeploymentSupported", () => {
-        test("should set isDabDeploymentSupported to true when authenticationType is SqlLogin via treeNode", () => {
-            const ctrl = createController();
-            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+    suite("enableDeploymentsView", () => {
+        /** Answers one setting deliberately and every other one as enabled. */
+        function stubSetting(key: string, value: boolean) {
+            (vscode.workspace.getConfiguration as sinon.SinonStub).returns({
+                get: (requested: string) => (requested === key ? value : true),
+            } as any);
+        }
+
+        test("should carry the setting into the initial state when enabled", () => {
+            stubSetting(configSchemaDesignerEnableDeploymentsView, true);
+
+            expect(createController().state.enableDeploymentsView).to.be.true;
         });
 
-        test("should set isDabDeploymentSupported to false when authenticationType is AzureMFA via treeNode", () => {
+        test("should carry the setting into the initial state when disabled", () => {
+            stubSetting(configSchemaDesignerEnableDeploymentsView, false);
+
+            expect(createController().state.enableDeploymentsView).to.be.false;
+        });
+    });
+
+    suite("isDabDeploymentSupported", () => {
+        test("should support every target when authenticationType is SqlLogin via treeNode", () => {
+            const ctrl = createController();
+
+            // A SQL login travels in the connection string, so it reaches the
+            // engine wherever the engine runs.
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.DabCli]?.isSupported).to.be
+                .true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.Docker]?.isSupported).to.be
+                .true;
+        });
+
+        test("should support only the CLI target when authenticationType is AzureMFA via treeNode", () => {
             sandbox.stub(treeNode, "connectionProfile").get(
                 () =>
                     ({
@@ -1505,10 +1570,17 @@ suite("SchemaDesignerWebviewController tests", () => {
             );
 
             const ctrl = createController();
-            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+
+            // The CLI runs as the signed-in user and can pick up an Entra
+            // sign-in already on the machine; a container sees none of it.
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.DabCli]?.isSupported).to.be
+                .true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.Docker]?.isSupported).to.be
+                .false;
         });
 
-        test("should set isDabDeploymentSupported to false when authenticationType is Integrated via treeNode", () => {
+        test("should support only the CLI target when authenticationType is Integrated via treeNode", () => {
             sandbox.stub(treeNode, "connectionProfile").get(
                 () =>
                     ({
@@ -1519,7 +1591,14 @@ suite("SchemaDesignerWebviewController tests", () => {
             );
 
             const ctrl = createController();
-            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+
+            // Windows Authentication reaches SQL Server as the signed-in user
+            // through the CLI; a container runs outside that session.
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.DabCli]?.isSupported).to.be
+                .true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.Docker]?.isSupported).to.be
+                .false;
         });
 
         test("should resolve isDabDeploymentSupported from connectionUri when no treeNode", () => {
@@ -1548,7 +1627,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(ctrl.state.isDabDeploymentSupported).to.be.true;
         });
 
-        test("should set isDabDeploymentSupported to false when connectionUri has non-SqlLogin auth", () => {
+        test("should support only the CLI target when connectionUri has non-SqlLogin auth", () => {
             (mockMainController.connectionManager as any).getConnectionInfo = sandbox
                 .stub()
                 .returns({
@@ -1571,7 +1650,11 @@ suite("SchemaDesignerWebviewController tests", () => {
                 connectionUri,
             );
 
-            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.DabCli]?.isSupported).to.be
+                .true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.Docker]?.isSupported).to.be
+                .false;
         });
 
         test("should set isDabDeploymentSupported to false when no treeNode and no connectionUri", () => {
@@ -1618,6 +1701,156 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(result.success).to.be.false;
             expect(result.error).to.be.a("string");
             expect(showErrorStub).to.have.been.calledOnce;
+        });
+    });
+
+    suite("DAB deployment telemetry", () => {
+        test("reports a successful tracked action using only bounded properties", async () => {
+            const ctrl = createController();
+            ctrl["_serverName"] = "private-server";
+            const store = sandbox.createStubInstance(DabConfigStore);
+            store.getDeployments.resolves([
+                {
+                    id: "private-deployment-id",
+                    target: Dab.DabDeploymentTarget.DabCli,
+                    name: "private-container-name",
+                    port: 5000,
+                    apiTypes: [],
+                    configHash: "private-config-hash",
+                    createdUtc: "2026-01-01T00:00:00Z",
+                    deployedUtc: "2026-01-01T00:00:00Z",
+                },
+            ]);
+            ctrl["_dabConfigStore"] = store as unknown as DabConfigStore;
+
+            const result = await ctrl["withTrackedDabDeployment"](
+                "private-deployment-id",
+                TelemetryActions.StartDabDeployment,
+                async () => ({ success: true }),
+            );
+
+            expect(result.success).to.be.true;
+            expect(sendActionEventStub).to.have.been.calledWithExactly(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.StartDabDeployment,
+                { additionalProps: { target: "dabCli", outcome: "success" } },
+            );
+            expect(JSON.stringify(sendActionEventStub.lastCall.args)).to.not.contain("private-");
+        });
+
+        test("reports action failure without its error text or deployment ID", async () => {
+            const ctrl = createController();
+            ctrl["_serverName"] = "private-server";
+            const store = sandbox.createStubInstance(DabConfigStore);
+            store.getDeployments.resolves([
+                {
+                    id: "private-deployment-id",
+                    target: Dab.DabDeploymentTarget.Docker,
+                    name: "private-container-name",
+                    port: 5000,
+                    apiTypes: [],
+                    configHash: "private-config-hash",
+                    createdUtc: "2026-01-01T00:00:00Z",
+                    deployedUtc: "2026-01-01T00:00:00Z",
+                },
+            ]);
+            ctrl["_dabConfigStore"] = store as unknown as DabConfigStore;
+
+            const result = await ctrl["withTrackedDabDeployment"](
+                "private-deployment-id",
+                TelemetryActions.StopDabDeployment,
+                async () => ({ success: false, error: "private-error-text" }),
+            );
+
+            expect(result.success).to.be.false;
+            expect(sendActionEventStub).to.have.been.calledWithExactly(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.StopDabDeployment,
+                {
+                    additionalProps: {
+                        target: "docker",
+                        outcome: "failure",
+                        reason: "operationFailed",
+                    },
+                },
+            );
+            expect(JSON.stringify(sendActionEventStub.lastCall.args)).to.not.contain("private-");
+        });
+    });
+
+    suite("DAB metadata query options", () => {
+        test("should request NOLOCK hints for regular SQL Server metadata discovery", async () => {
+            const metadataService = createDabMetadataServiceStub();
+            (mockMainController.connectionManager as any).getServerInfo = sandbox.stub().returns({
+                engineEditionId: 3,
+            });
+
+            createController(metadataService);
+
+            const handler = requestHandlers.get(Dab.GetDatabaseObjectsRequest.type.method);
+            expect(handler).to.be.a("function");
+
+            await handler(undefined);
+
+            expect(metadataService.listDabViews).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: true }),
+            );
+            expect(metadataService.getDabViewColumnsByView).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: true }),
+            );
+            expect(
+                metadataService.getDabStoredProcedureParametersByProcedure,
+            ).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: true }),
+            );
+        });
+
+        test("should skip NOLOCK hints for Synapse and Data Warehouse metadata discovery", async () => {
+            for (const engineEditionId of [6, 11]) {
+                const metadataService = createDabMetadataServiceStub();
+                (mockMainController.connectionManager as any).getServerInfo = sandbox
+                    .stub()
+                    .returns({ engineEditionId });
+
+                createController(metadataService);
+
+                const handler = requestHandlers.get(Dab.GetDatabaseObjectsRequest.type.method);
+                expect(handler).to.be.a("function");
+
+                await handler(undefined);
+
+                expect(metadataService.listDabViews).to.have.been.calledWith(
+                    connectionUri,
+                    databaseName,
+                    sinon.match({ useNoLock: false }),
+                );
+            }
+        });
+
+        test("should skip NOLOCK hints when server engine information is unavailable", async () => {
+            const metadataService = createDabMetadataServiceStub();
+            (mockMainController.connectionManager as any).getServerInfo = sandbox
+                .stub()
+                .returns(undefined);
+
+            createController(metadataService);
+
+            const handler = requestHandlers.get(Dab.GetDatabaseObjectsRequest.type.method);
+            expect(handler).to.be.a("function");
+
+            await handler(undefined);
+
+            expect(metadataService.listDabViews).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: false }),
+            );
         });
     });
 

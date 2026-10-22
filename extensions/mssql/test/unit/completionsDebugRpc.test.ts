@@ -21,7 +21,6 @@ import * as vscode from "vscode";
 import {
     ConsoleCompletionsDebugHost,
     projectIcDebugStateResult,
-    resolveCompletionsDebugLaunchTarget,
 } from "../../src/diagnostics/completionsDebugConsoleHost";
 import {
     buildCompletionLiveRowsResult,
@@ -539,38 +538,6 @@ suite("completions debug rpc: omitEvents state projection (WI-1.4)", () => {
         expect(projectIcDebugStateResult(state, undefined)).to.equal(state);
         expect(projectIcDebugStateResult(state, {})).to.equal(state);
         expect(projectIcDebugStateResult(state, { omitEvents: false })).to.equal(state);
-    });
-});
-
-suite("completions debug deep link routing (WI-1.6)", () => {
-    test("flag off routes to the Debug Console Completions page regardless of gate", () => {
-        expect(
-            resolveCompletionsDebugLaunchTarget({
-                standalonePanelFlag: false,
-                featureEnabled: true,
-            }),
-        ).to.deep.equal({ kind: "console", page: "completions" });
-        expect(
-            resolveCompletionsDebugLaunchTarget({
-                standalonePanelFlag: false,
-                featureEnabled: false,
-            }),
-        ).to.deep.equal({ kind: "console", page: "completions" });
-    });
-
-    test("flag on keeps the legacy standalone behavior (gated)", () => {
-        expect(
-            resolveCompletionsDebugLaunchTarget({
-                standalonePanelFlag: true,
-                featureEnabled: true,
-            }),
-        ).to.deep.equal({ kind: "standalonePanel" });
-        expect(
-            resolveCompletionsDebugLaunchTarget({
-                standalonePanelFlag: true,
-                featureEnabled: false,
-            }),
-        ).to.deep.equal({ kind: "none" });
     });
 });
 

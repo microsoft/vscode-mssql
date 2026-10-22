@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { locConstants } from "../../common/locConstants";
 import { Tab, TabList, makeStyles, shorthands, tokens } from "@fluentui/react-components";
 
 export type InlineCompletionDebugTab = "live" | "sessions";
@@ -59,27 +60,36 @@ export function InlineCompletionDebugTabBar({
     const sessionsBadge = sessionsLoading
         ? "..."
         : sessionsScanned
-          ? `${traceCount} traces · ${sessionEventCount} events`
+          ? locConstants.inlineCompletionDebug.value0Traces1Events(
+                String(traceCount),
+                String(sessionEventCount),
+            )
           : "--";
     const sessionsBadgeTitle = sessionsScanned
-        ? `${traceCount} included trace files, ${sessionEventCount} included events`
-        : "Trace folder is scanned when the Sessions tab is opened.";
+        ? locConstants.inlineCompletionDebug.value0IncludedTraceFiles1IncludedEvents(
+              String(traceCount),
+              String(sessionEventCount),
+          )
+        : locConstants.inlineCompletionDebug.traceFolderIsScannedWhenTheSessions;
     return (
         <div className={classes.root}>
             <TabList
                 selectedValue={activeTab}
                 onTabSelect={(_, data) => onTabChange(data.value as InlineCompletionDebugTab)}>
                 <Tab value="live">
-                    Live <span className={classes.badge}>{liveCount}</span>
+                    {locConstants.inlineCompletionDebug.live}
+                    <span className={classes.badge}>{liveCount}</span>
                 </Tab>
                 <Tab value="sessions">
-                    Sessions{" "}
+                    {locConstants.inlineCompletionDebug.sessions}{" "}
                     <span className={classes.badge} title={sessionsBadgeTitle}>
                         {sessionsBadge}
                     </span>
                 </Tab>
             </TabList>
-            <div className={classes.product}>vscode-mssql · copilot-completion-debug</div>
+            <div className={classes.product}>
+                {locConstants.inlineCompletionDebug.vscodeMssqlCopilotCompletionDebug}
+            </div>
         </div>
     );
 }

@@ -57,6 +57,10 @@ suite("Perf history aggregation (pure)", () => {
         expect(reg?.reason).to.include("gate is authoritative");
         // big % but tiny absolute → ok (absolute floor)
         expect(quickCompareVerdict([12, 12, 12], [10, 10, 10])?.verdict).to.equal("ok");
+        // the floor is per metric: a non-wallclock metric passes 0 and gets a verdict
+        expect(quickCompareVerdict([12, 12, 12], [10, 10, 10], 0)?.verdict).to.equal("regression");
+        // a zero baseline has no percent change — inconclusive, never "ok"
+        expect(quickCompareVerdict([5, 6, 7], [0, 0, 0])?.verdict).to.equal("inconclusive");
         // noisy current samples → inconclusive
         expect(quickCompareVerdict([100, 300, 900], [200, 200, 200])?.verdict).to.equal(
             "inconclusive",
@@ -65,11 +69,15 @@ suite("Perf history aggregation (pure)", () => {
         expect(quickCompareVerdict([400, 400, 410], [500, 505, 510])?.verdict).to.equal("improved");
     });
 
-    test("percentile handles empty, single, and even-sized samples", () => {
+    test("percentile matches the CLI's linear interpolation (even-sized samples included)", () => {
         expect(percentile([], 50)).to.equal(undefined);
         expect(percentile([7], 50)).to.equal(7);
-        expect(percentile([1, 2, 3, 4], 50)).to.equal(2);
-        expect(percentile([1, 2, 3, 4], 95)).to.equal(4);
+        // Same definition as perftest-cli regression/statistics.ts quantile().
+        expect(percentile([1, 2, 3, 4], 50)).to.equal(2.5);
+        expect(percentile([1, 2, 3, 4], 95)).to.be.closeTo(3.85, 1e-9);
+        expect(percentile([1, 2, 3, 4, 5], 50)).to.equal(3);
+        expect(percentile([1, 2, 3, 4], 100)).to.equal(4);
+        expect(percentile([1, 2, 3, 4], 0)).to.equal(1);
     });
 
     test("officialSamples excludes warmup and failed reps", () => {
@@ -98,9 +106,9 @@ suite("Perf history aggregation (pure)", () => {
             "scenario.wallclock",
             baseline,
         );
-        expect(row.p50Ms).to.equal(110);
+        expect(row.p50Ms).to.equal(115);
         expect(row.baselineP50Ms).to.equal(100);
-        expect(row.deltaPct).to.equal(10);
+        expect(row.deltaPct).to.equal(15);
         expect(row.verdict).to.equal("ok");
         expect(row.suite).to.equal("Query & Results");
         expect(row.lowConfidence).to.equal(undefined);
@@ -221,19 +229,34 @@ function writeRun(
         status?: string;
         scenarios: Record<string, number[]>;
         corruptRep?: boolean;
+        /** Harness-shaped: warmup is NOT flagged in result.json — the config snapshot says. */
+        warmupRepetitions?: number;
+        /** Harness-shaped: a failed rep records errors[], never failureReason. */
+        failRep?: number;
+        /** summary.json that is valid JSON but not an object. */
+        nullSummary?: boolean;
     },
 ): void {
     const runDir = path.join(root, runId);
     fs.mkdirSync(runDir, { recursive: true });
     fs.writeFileSync(
         path.join(runDir, "summary.json"),
-        JSON.stringify({
-            status: options.status ?? "passed",
-            passType: "selfTest",
-            environmentHash: "test-env",
-            runId,
-        }),
+        options.nullSummary
+            ? "null"
+            : JSON.stringify({
+                  status: options.status ?? "passed",
+                  passType: "selfTest",
+                  environmentHash: "test-env",
+                  runId,
+              }),
     );
+    if (options.warmupRepetitions !== undefined) {
+        fs.writeFileSync(
+            path.join(runDir, "run-config.snapshot.jsonc"),
+            `{\n  // harness config snapshot (JSONC)\n  "warmupRepetitions": ${options.warmupRepetitions},\n}\n`,
+            "utf8",
+        );
+    }
     for (const [scenarioId, values] of Object.entries(options.scenarios)) {
         values.forEach((value, repId) => {
             const repDir = path.join(
@@ -248,14 +271,19 @@ function writeRun(
                 fs.writeFileSync(path.join(repDir, "result.json"), "{not json!!");
                 return;
             }
+            const failed = options.failRep === repId;
             fs.writeFileSync(
                 path.join(repDir, "result.json"),
                 JSON.stringify({
                     runId,
                     scenarioId,
                     repId,
-                    status: "passed",
-                    warmup: false,
+                    status: failed ? "failed" : "passed",
+                    // Real harness output carries no `warmup` field.
+                    ...(options.warmupRepetitions === undefined ? { warmup: false } : {}),
+                    ...(failed
+                        ? { errors: [{ code: "validation", message: "marker sink not clean" }] }
+                        : {}),
                     metrics: [
                         {
                             name: "scenario.wallclock",
@@ -317,10 +345,11 @@ suite("Perf history directory provider (filesystem)", function () {
             runIds: [newest.runId],
         });
         expect(scenarios).to.have.length(1);
+        // Interpolated median of the three surviving reps [210, 220, 230] = 220.
         expect(scenarios[0].p50Ms).to.equal(220);
-        // Baseline = previous run (median 110 → delta +100%).
-        expect(scenarios[0].baselineP50Ms).to.equal(110);
-        expect(scenarios[0].deltaPct).to.equal(100);
+        // Baseline = previous run: median of [100, 110, 120, 130] = 115 → +91.3%.
+        expect(scenarios[0].baselineP50Ms).to.equal(115);
+        expect(scenarios[0].deltaPct).to.equal(91.3);
         const series = provider.metricSeries("query-10k-results", "scenario.wallclock");
         expect(series).to.have.length(2);
     });
@@ -393,6 +422,101 @@ suite("Perf history directory provider (filesystem)", function () {
         expect(provider.deleteRun("../outside").ok).to.equal(false);
         expect(provider.deleteRun("a/b").ok).to.equal(false);
         expect(provider.deleteRun(".dc-history-index.json").ok).to.equal(false);
+    });
+
+    test("harness-shaped runs: warmup comes from the config snapshot, failure reason from errors[]", async () => {
+        writeRun(root, "2026-07-01T00-00-00Z_aa", {
+            scenarios: { "query-10k-results": [500, 110, 120, 130] },
+            warmupRepetitions: 1,
+            failRep: 3,
+        });
+        const provider = new DirectoryHistoryProvider("test", root);
+        await provider.rescan();
+        const [run] = provider.queryRuns({ sourceId: "test" }).rows;
+        expect(run.failedReps).to.equal(1);
+        const [scenario] = provider.queryScenarios({ sourceId: "test", runIds: [run.runId] });
+        // rep-00 (500 ms) is the warmup rep although result.json never says so;
+        // rep-03 failed → samples are [110, 120] → median 115, validReps 2.
+        expect(scenario.validReps).to.equal(2);
+        expect(scenario.totalReps).to.equal(4);
+        expect(scenario.p50Ms).to.equal(115);
+        const details = provider.scenarioDetails({
+            sourceId: "test",
+            runId: run.runId,
+            scenarioId: "query-10k-results",
+        });
+        expect(details.reps[0].warmup).to.equal(true);
+        expect(details.reps[1].warmup).to.equal(false);
+        expect(details.reps[3].status).to.equal("failed");
+        expect(details.reps[3].failureReason).to.equal("marker sink not clean");
+    });
+
+    test("a summary.json that is valid JSON but not an object does not drop the run", async () => {
+        writeRun(root, "2026-07-01T00-00-00Z_aa", {
+            scenarios: { "selftest-noop": [1, 2, 3] },
+            nullSummary: true,
+        });
+        const provider = new DirectoryHistoryProvider("test", root);
+        await provider.rescan();
+        expect(provider.runCount()).to.equal(1);
+        expect(provider.queryRuns({ sourceId: "test" }).rows[0].status).to.equal("unknown");
+    });
+
+    test("deleteRun refuses non-indexed children and links, and never writes an index into read-only sources", async () => {
+        writeRun(root, "2026-07-01T00-00-00Z_aa", {
+            scenarios: { "selftest-noop": [1, 2, 3] },
+        });
+        fs.mkdirSync(path.join(root, "not-a-run"), { recursive: true });
+        const provider = new DirectoryHistoryProvider("test", root);
+        await provider.rescan();
+        const notIndexed = provider.deleteRun("not-a-run");
+        expect(notIndexed.ok).to.equal(false);
+        expect(notIndexed.error).to.include("not an indexed run");
+        expect(fs.existsSync(path.join(root, "not-a-run"))).to.equal(true);
+
+        // A link that shadows an indexed name is refused (links are never indexed either).
+        const linkRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ph-link-"));
+        try {
+            writeRun(linkRoot, "2026-07-02T00-00-00Z_bb", {
+                scenarios: { "selftest-noop": [1] },
+            });
+            const linked = new DirectoryHistoryProvider("linked", linkRoot);
+            await linked.rescan();
+            expect(linked.runCount()).to.equal(1);
+            const target = path.join(linkRoot, "2026-07-02T00-00-00Z_bb");
+            const link = path.join(linkRoot, "2026-07-03T00-00-00Z_cc");
+            let linkCreated = false;
+            try {
+                fs.symlinkSync(target, link, "junction");
+                linkCreated = true;
+            } catch {
+                // no link privileges on this host: the index/scan half is still asserted below
+            }
+            await linked.rescan();
+            expect(linked.runCount()).to.equal(1); // the link is not scanned as a run
+            if (linkCreated) {
+                expect(linked.deleteRun("2026-07-03T00-00-00Z_cc").ok).to.equal(false);
+                expect(fs.existsSync(target)).to.equal(true);
+            }
+        } finally {
+            fs.rmSync(linkRoot, { recursive: true, force: true });
+        }
+
+        // Read-only (bundle) sources never get an index file written into them.
+        const bundleRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ph-bundle-"));
+        try {
+            writeRun(bundleRoot, "2026-07-01T00-00-00Z_aa", {
+                scenarios: { "selftest-noop": [1] },
+            });
+            const bundle = new DirectoryHistoryProvider("bundle", bundleRoot, undefined, {
+                persistIndex: false,
+            });
+            await bundle.rescan();
+            expect(bundle.runCount()).to.equal(1);
+            expect(fs.existsSync(path.join(bundleRoot, ".dc-history-index.json"))).to.equal(false);
+        } finally {
+            fs.rmSync(bundleRoot, { recursive: true, force: true });
+        }
     });
 
     test("scenario details expose reps, submetrics, and failure reasons lazily", async () => {

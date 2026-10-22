@@ -12,6 +12,7 @@ import { getCloudProviderSettings } from "../azure/providerSettings";
 import { getErrorMessage } from "../utils/utils";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { getLogger } from "./logger";
+import { DatabaseEngineEdition } from "../databaseProjects/common/enums";
 
 const logger = getLogger("ConnectionInfo");
 
@@ -124,7 +125,7 @@ export function getSimpleConnectionDisplayName(connection: IConnectionInfo): str
     if (profile.profileName) {
         return profile.profileName;
     } else {
-        return connection.server ? connection.server : connection.connectionString;
+        return connection.server;
     }
 }
 
@@ -227,20 +228,19 @@ export function getUserNameOrDomainLogin(creds: IConnectionInfo, defaultValue?: 
  * @returns tooltip
  */
 export function getTooltip(connCreds: IConnectionInfo, serverInfo?: IServerInfo): string {
-    let tooltip: string = connCreds.connectionString
-        ? "Connection string: " + connCreds.connectionString + "\r\n"
-        : "Server: " +
-          connCreds.server +
-          "\r\n" +
-          "Database: " +
-          (connCreds.database ? connCreds.database : "<connection default>") +
-          "\r\n" +
-          (connCreds.authenticationType !== Constants.integratedauth
-              ? "User: " + connCreds.user + "\r\n"
-              : "") +
-          "Encryption Mode: " +
-          getEncryptionMode(connCreds.encrypt) +
-          "\r\n";
+    let tooltip: string =
+        "Server: " +
+        connCreds.server +
+        "\r\n" +
+        "Database: " +
+        (connCreds.database ? connCreds.database : "<connection default>") +
+        "\r\n" +
+        (connCreds.authenticationType !== Constants.integratedauth
+            ? "User: " + connCreds.user + "\r\n"
+            : "") +
+        "Encryption Mode: " +
+        getEncryptionMode(connCreds.encrypt) +
+        "\r\n";
 
     if (serverInfo && serverInfo.serverVersion) {
         tooltip += "Server version: " + serverInfo.serverVersion + "\r\n";
@@ -377,6 +377,24 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
  */
 export function isAzureSqlDbCompatible(serverTypes: ServerType[]): boolean {
     return serverTypes.includes(ServerType.Azure) || serverTypes.includes(ServerType.Fabric);
+}
+
+/**
+ * Identifies Azure SQL Database, including local SqlDbDev containers, for feature gates
+ * such as Restore. Centralizing detection keeps these gates easy to find and remove as
+ * support changes. Engine edition takes precedence because containers can use localhost;
+ * hostname detection is only a fallback when the edition is missing or unknown.
+ */
+export function isAzureSqlDatabaseConnection(
+    connection: IConnectionInfo,
+    engineEdition?: number,
+): boolean {
+    if (engineEdition !== undefined && engineEdition !== DatabaseEngineEdition.Unknown) {
+        return engineEdition === DatabaseEngineEdition.SqlDatabase;
+    }
+
+    const serverTypes = getServerTypes(connection);
+    return serverTypes.includes(ServerType.Azure) && serverTypes.includes(ServerType.Sql);
 }
 
 /**

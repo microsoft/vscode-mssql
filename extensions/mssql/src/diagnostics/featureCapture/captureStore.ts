@@ -16,7 +16,7 @@
  */
 
 import * as vscode from "vscode";
-import { logger2 } from "../../models/logger2";
+import { logger as logger2 } from "../../models/logger";
 import { diag } from "../diagnosticsCore";
 import {
     ObservabilityEditorSurface,

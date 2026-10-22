@@ -122,20 +122,43 @@ export default class ResultsSerializer {
 
     private getConfigForExcel(): Contracts.SaveResultsAsExcelRequestParams {
         // get save results config from vscode config
-        // Note: we are currently using the configSaveAsCsv setting since it has the option mssql.saveAsCsv.includeHeaders
-        // and we want to have just 1 setting that lists this.
         let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
             vscode.Uri.parse(this._uri),
         );
-        let saveConfig = config.get<{ includeHeaders?: boolean }>(Constants.configSaveAsCsv);
+
+        let saveConfigExcel = config.get<{
+            includeHeaders?: boolean;
+            freezeHeaderRow?: boolean;
+            boldHeaderRow?: boolean;
+            autoFilterHeaderRow?: boolean;
+            autoSizeColumns?: boolean;
+        }>(Constants.configSaveAsExcel);
+
         let saveResultsParams = new Contracts.SaveResultsAsExcelRequestParams();
 
         // if user entered config, set options
-        if (saveConfig) {
-            if (saveConfig.includeHeaders !== undefined) {
-                saveResultsParams.includeHeaders = saveConfig.includeHeaders;
+        if (typeof saveConfigExcel?.includeHeaders === "boolean") {
+            saveResultsParams.includeHeaders = saveConfigExcel.includeHeaders;
+        } else {
+            const saveConfigCsv = config.get<{ includeHeaders?: boolean }>(
+                Constants.configSaveAsCsv,
+            );
+            if (saveConfigCsv?.includeHeaders !== undefined) {
+                saveResultsParams.includeHeaders = saveConfigCsv.includeHeaders;
             }
+        }
+        if (saveConfigExcel?.freezeHeaderRow !== undefined) {
+            saveResultsParams.freezeHeaderRow = saveConfigExcel.freezeHeaderRow;
+        }
+        if (saveConfigExcel?.boldHeaderRow !== undefined) {
+            saveResultsParams.boldHeaderRow = saveConfigExcel.boldHeaderRow;
+        }
+        if (saveConfigExcel?.autoFilterHeaderRow !== undefined) {
+            saveResultsParams.autoFilterHeaderRow = saveConfigExcel.autoFilterHeaderRow;
+        }
+        if (saveConfigExcel?.autoSizeColumns !== undefined) {
+            saveResultsParams.autoSizeColumns = saveConfigExcel.autoSizeColumns;
         }
         return saveResultsParams;
     }

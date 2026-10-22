@@ -13,9 +13,11 @@
  */
 
 import { stableProfileId } from "../../../services/metadata/profileAuthAdapter";
+import { ObjectExplorerV2 } from "../../../constants/locConstants";
 import { connectionDisplayLabel } from "../tree/oeV2ConnectionLabel";
 
 export interface OeV2StoredProfile {
+    order?: number;
     id?: string;
     server?: string;
     database?: string;
@@ -39,6 +41,8 @@ export interface OeV2StoredProfile {
 }
 
 export interface OeV2StoredGroup {
+    order?: number;
+    description?: string;
     id?: string;
     name?: string;
     parentId?: string;
@@ -63,6 +67,8 @@ export interface OeV2ProfileRecord {
 }
 
 export interface OeV2GroupRecord {
+    readonly order?: number;
+    readonly description?: string;
     readonly groupId: string;
     readonly name: string;
     readonly parentId?: string;
@@ -76,6 +82,57 @@ export interface OeV2ProfileTree {
     readonly rootGroupId?: string;
 }
 
+/**
+ * Canonical connection-affecting identity for shared-store reconciliation.
+ * Deliberately excludes profile/group display fields: renaming or moving a
+ * profile must not tear down a healthy session, while target/auth/options
+ * changes must never leave OE v2 connected with stale prepared state.
+ */
+export function profileConnectionIdentity(profile: OeV2StoredProfile): string {
+    return JSON.stringify([
+        profile.server ?? "",
+        String(profile.port ?? "").trim(),
+        profile.database ?? "",
+        profile.user?.trim() ?? "",
+        profile.email?.trim() ?? "",
+        profile.accountId?.trim() ?? "",
+        profile.tenantId?.trim() ?? "",
+        profile.authenticationType?.trim().toLowerCase() ?? "",
+        String(profile.encrypt ?? ""),
+        String(profile.trustServerCertificate ?? ""),
+        profile.applicationIntent ?? "",
+        String(profile.connectTimeout ?? ""),
+        String(profile.commandTimeout ?? ""),
+        String(profile.alwaysEncrypted ?? ""),
+        String(profile.replication ?? ""),
+        profile.containerName ?? "",
+        profile.version ?? "",
+    ]);
+}
+
+export type OeV2ProfileConnectionSnapshot = ReadonlyMap<string, string>;
+
+export function profileConnectionSnapshot(tree: OeV2ProfileTree): OeV2ProfileConnectionSnapshot {
+    return new Map(
+        tree.profiles.map((profile) => [
+            profile.profileId,
+            profileConnectionIdentity(profile.stored),
+        ]),
+    );
+}
+
+export function diffProfileConnectionSnapshots(
+    previous: OeV2ProfileConnectionSnapshot,
+    current: OeV2ProfileConnectionSnapshot,
+): { added: string[]; retired: string[] } {
+    return {
+        added: [...current.keys()].filter((id) => !previous.has(id)),
+        retired: [...previous].flatMap(([id, identity]) =>
+            !current.has(id) || current.get(id) !== identity ? [id] : [],
+        ),
+    };
+}
+
 export async function readProfileTree(source: ConnectionProfileSource): Promise<OeV2ProfileTree> {
     const [groups, connections] = await Promise.all([
         source.readAllConnectionGroups().catch(() => [] as OeV2StoredGroup[]),
@@ -85,7 +142,9 @@ export async function readProfileTree(source: ConnectionProfileSource): Promise<
         .filter((group) => group.id)
         .map((group) => ({
             groupId: group.id!,
-            name: group.name ?? "Group",
+            name: group.name ?? ObjectExplorerV2.unnamedGroup,
+            order: group.order,
+            description: group.description,
             ...(group.parentId ? { parentId: group.parentId } : {}),
             ...(group.color ? { color: group.color } : {}),
         }));

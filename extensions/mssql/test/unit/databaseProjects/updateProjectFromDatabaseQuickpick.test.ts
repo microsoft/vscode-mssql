@@ -17,38 +17,51 @@ import { SqlProjects } from "../../../src/constants/locConstants";
 
 let sandbox: sinon.SinonSandbox;
 
+const mockProjectProperties = {
+    ...mockDacFxResult,
+    projectGuid: "BA5EBA11-C0DE-5EA7-ACED-BABB1E70A575",
+    configuration: "Debug",
+    platform: "AnyCPU",
+    outputPath: "bin/Debug",
+    defaultCollation: "",
+    databaseSource: "",
+    databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+    projectStyle: mssqlVscode.ProjectType.SdkStyle,
+    runSqlCodeAnalysis: false,
+};
+
+const mockDatabaseReferences = {
+    ...mockDacFxResult,
+    dacpacReferences: [],
+    sqlProjectReferences: [],
+    systemDatabaseReferences: [],
+    nugetPackageReferences: [],
+};
+
 const mockSqlProjectsService = {
     // Read operations
     openProject: async () => mockDacFxResult,
     closeProject: async () => mockDacFxResult,
     createProject: async () => mockDacFxResult,
-    getProjectProperties: async () => ({
+    getProjectProperties: async () => mockProjectProperties,
+    getProjectModel: async () => ({
         ...mockDacFxResult,
-        projectGuid: "BA5EBA11-C0DE-5EA7-ACED-BABB1E70A575",
-        configuration: "Debug",
-        outputPath: "bin/Debug",
-        defaultCollation: "",
-        databaseSource: "",
-        databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
-        projectStyle: mssqlVscode.ProjectType.SdkStyle,
+        properties: mockProjectProperties,
+        isCrossPlatformCompatible: true,
+        sqlCmdVariables: [],
+        databaseReferences: mockDatabaseReferences,
+        sqlObjectScripts: [],
+        preDeploymentScripts: [],
+        postDeploymentScripts: [],
+        noneItems: [],
+        folders: [],
     }),
     getCrossPlatformCompatibility: async () => ({
         ...mockDacFxResult,
         isCrossPlatformCompatible: true,
     }),
     getSqlCmdVariables: async () => ({ ...mockDacFxResult, sqlCmdVariables: [] }),
-    getDatabaseReferences: async () => ({
-        ...mockDacFxResult,
-        dacpacReferences: [],
-        sqlProjectReferences: [],
-        systemDatabaseReferences: [],
-        nugetPackageReferences: [],
-    }),
-    getPreDeploymentScripts: async () => ({ ...mockDacFxResult, scripts: [] }),
-    getPostDeploymentScripts: async () => ({ ...mockDacFxResult, scripts: [] }),
-    getNoneItems: async () => ({ ...mockDacFxResult, scripts: [] }),
-    getSqlObjectScripts: async () => ({ ...mockDacFxResult, scripts: [] }),
-    getFolders: async () => ({ ...mockDacFxResult, folders: [] }),
+    getDatabaseReferences: async () => mockDatabaseReferences,
     // Write operations
     addFolder: async () => mockDacFxResult,
     deleteFolder: async () => mockDacFxResult,

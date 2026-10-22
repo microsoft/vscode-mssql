@@ -167,7 +167,7 @@ export interface CapturePolicy {
 // Sources and sessions
 // ---------------------------------------------------------------------------
 
-export type DebugSourceKind = "liveSession" | "localSession" | "perfRun" | "bundle";
+export type DebugSourceKind = "liveSession" | "localSession" | "perfRun";
 
 export type DebugSourceCapability =
     | "liveTail"
@@ -206,7 +206,7 @@ export interface SessionManifest {
     sessionId: string;
     createdUtc: string;
     updatedUtc: string;
-    source: "live" | "perfRun" | "bundle";
+    source: "live" | "perfRun";
     captureMode: CaptureMode;
     policyId: string;
     eventCount: number;
@@ -232,7 +232,10 @@ export interface EventQuery {
     kinds?: DiagKind[];
     statuses?: DiagStatus[];
     traceId?: string;
+    /** A literal phrase from the global search field. */
     text?: string;
+    /** Independent substring conditions, ANDed with each other and with text. */
+    textTerms?: string[];
     fromSeq?: number;
     /** Page size; server clamps. */
     limit?: number;
@@ -246,7 +249,9 @@ export interface EventQuery {
     includeViewerInternal?: boolean;
     /** Duration filters (events without durationMs never match when set). */
     minDurationMs?: number;
+    minDurationExclusive?: boolean;
     maxDurationMs?: number;
+    maxDurationExclusive?: boolean;
 }
 
 export interface EventQueryResult {
@@ -283,6 +288,8 @@ export interface WaterfallModel {
     activities: WaterfallActivity[];
     /** Ordered critical-path step summaries; empty when not computable. */
     criticalPath: Array<{ label: string; durationMs: number; note?: string }>;
+    /** Present when the host kept only the longest `shown` of `total` activities. */
+    activityCap?: { shown: number; total: number };
     calibrationNote?: string;
 }
 
@@ -329,21 +336,7 @@ export interface AnomalySummary {
  * Console page ids — the shell's routing vocabulary. Kept here so the host
  * can deep-link a page (initialPage / dc/navigate) without stringly names.
  */
-export type DcPageId =
-    | "overview"
-    | "trace"
-    | "waterfall"
-    | "perf"
-    | "history"
-    | "completions"
-    | "replay"
-    | "sql"
-    | "sqlDataPlane"
-    | "connections"
-    | "query"
-    | "oe"
-    | "exports"
-    | "settings";
+export type DcPageId = "trace" | "waterfall" | "history" | "completions" | "exports" | "settings";
 
 export interface DebugConsoleState {
     /** Initial snapshot pushed to the webview. */
@@ -353,7 +346,7 @@ export interface DebugConsoleState {
     captureExpiresEpochMs?: number;
     provenance: ProvenanceSummary;
     fixtureMode: boolean;
-    /** Deep-link: page the shell shows on first load (default: overview). */
+    /** Deep-link: page the shell shows on first load (default: trace). */
     initialPage?: DcPageId;
 }
 
@@ -401,8 +394,300 @@ export interface PerfSummary {
 }
 
 // ---------------------------------------------------------------------------
-// Self-test: run perftest scenarios in-process against the LIVE extension host
+// SQL activity
 // ---------------------------------------------------------------------------
+
+export interface SqlActivityRow {
+    epochMs: number;
+    eventName: string;
+    durationMs?: number;
+    cpuMs?: number;
+    logicalReads?: number;
+    rowCount?: number;
+    text: ClassifiedValue;
+    correlation?: string;
+    sourceEventId?: string;
+}
+
+/** Newest rows up to the host cap, plus the honest total in the source. */
+export interface SqlActivityResult {
+    rows: SqlActivityRow[];
+    total: number;
+}
+
+// ---------------------------------------------------------------------------
+// RPC types (extension host <-> Debug Console webview)
+// ---------------------------------------------------------------------------
+
+import { InlineCompletionDebugWebviewState } from "./inlineCompletionDebug";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
+
+export interface SourceOverview {
+    kpis: SourceKpis;
+    actions: UserActionSummary[];
+    anomalies: AnomalySummary[];
+}
+
+/** Deep-link an already-open console to a page (host → webview). */
+export namespace DcNavigateNotification {
+    export const type = new NotificationType<{ page: DcPageId }>("dc/navigate");
+}
+
+export namespace DcListSourcesRequest {
+    export const type = new RequestType<void, DebugSource[], void>("dc/listSources");
+}
+export namespace DcQueryEventsRequest {
+    export const type = new RequestType<EventQuery, EventQueryResult, void>("dc/queryEvents");
+}
+export namespace DcGetOverviewRequest {
+    export const type = new RequestType<{ sourceId: string }, SourceOverview, void>(
+        "dc/getOverview",
+    );
+}
+export namespace DcGetCauseTreeRequest {
+    export const type = new RequestType<
+        { sourceId: string; eventId: string },
+        CauseTreeNode | undefined,
+        void
+    >("dc/getCauseTree");
+}
+export namespace DcGetWaterfallRequest {
+    export const type = new RequestType<
+        { sourceId: string; traceId: string },
+        WaterfallModel | undefined,
+        void
+    >("dc/getWaterfall");
+}
+export namespace DcListTracesRequest {
+    export const type = new RequestType<{ sourceId: string }, UserActionSummary[], void>(
+        "dc/listTraces",
+    );
+}
+export namespace DcGetSqlActivityRequest {
+    export const type = new RequestType<{ sourceId: string }, SqlActivityResult, void>(
+        "dc/getSqlActivity",
+    );
+}
+export namespace DcSubscribeLiveRequest {
+    export const type = new RequestType<
+        void,
+        { snapshot: EventQueryResult; lastSeq: number },
+        void
+    >("dc/subscribeLive");
+}
+export namespace DcUnsubscribeLiveRequest {
+    export const type = new RequestType<void, void, void>("dc/unsubscribeLive");
+}
+export namespace DcSetCaptureModeRequest {
+    export const type = new RequestType<
+        { mode: CaptureMode; reason?: string; durationMinutes?: number },
+        { mode: CaptureMode; expiresEpochMs?: number },
+        void
+    >("dc/setCaptureMode");
+}
+export namespace DcImportPerfRunRequest {
+    export const type = new RequestType<void, DebugSource[] | undefined, void>("dc/importPerfRun");
+}
+/** Reads the configured perf-runs root only — the webview never supplies filesystem paths. */
+export namespace DcGetPerfSummaryRequest {
+    export const type = new RequestType<void, PerfSummary, void>("dc/getPerfSummary");
+}
+// --- Evidence durability (Chunk 2) -----------------------------------------
+
+/** Backfill a live-tail gap from the session store journal. */
+export interface GapBackfillResult {
+    ok: boolean;
+    /** Recovered events (seq-ordered) when ok. */
+    events?: DiagEvent[];
+    /** Honest failure reason: store disabled, range evicted, read error. */
+    reason?: string;
+    status: GapRecord["backfillStatus"];
+}
+export namespace DcBackfillGapRequest {
+    export const type = new RequestType<
+        { gapId: string; fromSeq: number; throughSeq: number },
+        GapBackfillResult,
+        void
+    >("dc/backfillGap");
+}
+
+/** One sink health row: a sink may degrade but never silently. */
+export interface SinkHealth {
+    id: string;
+    healthy: boolean;
+    detail: string;
+    counters: Record<string, number>;
+}
+export interface StoreHealth {
+    enabled: boolean;
+    sessions: number;
+    totalBytes: number;
+    /** Integrity findings across persisted sessions (empty = clean). */
+    issues: string[];
+}
+export interface DiagHealthSnapshot {
+    sinks: SinkHealth[];
+    store: StoreHealth;
+}
+export namespace DcGetHealthRequest {
+    export const type = new RequestType<void, DiagHealthSnapshot, void>("dc/getHealth");
+}
+
+/** Trace quality (Trace Identity V1 lint) — fog made visible. */
+export interface TraceQualityReport {
+    totalEvents: number;
+    orphanCount: number;
+    orphanRatio: number;
+    unmatchedPairs: Array<{ name: string; begins: number; ends: number }>;
+    longLivedRoots: Array<{ traceId: string; durationMs: number; eventCount: number }>;
+    epochAlignedCount: number;
+    outsideScenarioWindow: number;
+    score: "good" | "fair" | "poor";
+    notes: string[];
+}
+export namespace DcGetTraceQualityRequest {
+    export const type = new RequestType<
+        { sourceId: string; traceId?: string },
+        TraceQualityReport,
+        void
+    >("dc/getTraceQuality");
+}
+
+export namespace DcExportRequest {
+    export const type = new RequestType<
+        { sourceId: string },
+        { path?: string; events: number; redactions: number; error?: string },
+        void
+    >("dc/export");
+}
+// History (cross-session) ---------------------------------------------------
+
+export interface HistorySessionRow {
+    sourceId: string;
+    /** The persisted session directory identity. */
+    hostSessionId: string;
+    label: string;
+    createdUtc: string;
+    live: boolean;
+    events: number;
+    errors: number;
+    gaps: number;
+    captureMode: CaptureMode;
+    actionCount: number;
+}
+
+export interface HistoryActionTrend {
+    label: string;
+    feature: string;
+    points: Array<{
+        sourceId: string;
+        sessionLabel: string;
+        createdUtc: string;
+        medianMs: number;
+        count: number;
+        errors: number;
+    }>;
+}
+
+export interface HistorySummary {
+    sessions: HistorySessionRow[];
+    trends: HistoryActionTrend[];
+    totalEvents: number;
+    totalActions: number;
+}
+
+export namespace DcGetHistoryRequest {
+    export const type = new RequestType<void, HistorySummary, void>("dc/getHistory");
+}
+
+export namespace DcLivePushNotification {
+    export const type = new NotificationType<LiveTailPush>("dc/livePush");
+}
+export namespace DcCaptureChangedNotification {
+    export const type = new NotificationType<{ mode: CaptureMode; expiresEpochMs?: number }>(
+        "dc/captureChanged",
+    );
+}
+
+// Completions enablement + viewer launch (Debug Console Completions page) --
+
+/** Serializable enablement snapshot for the Completions page. */
+export interface CompletionsStatusInfo {
+    experimentalEnabled: boolean;
+    useSchemaContext: boolean;
+    featureEnabled: boolean;
+    copilotSqlDisabled: boolean;
+    schemaContextProfile: string;
+    modelFamily: string;
+    modelVendors: string[];
+    includeSqlDiagnostics: boolean;
+    traceCaptureEnabled: boolean;
+}
+
+export namespace DcCompletionsStatusRequest {
+    export const type = new RequestType<void, CompletionsStatusInfo, void>("dc/completionsStatus");
+}
+
+export namespace DcCompletionsEnableRequest {
+    export const type = new RequestType<{ enable: boolean }, CompletionsStatusInfo, void>(
+        "dc/completionsEnable",
+    );
+}
+
+// Console-hosted Inline Completion Debug --------------------------------------
+// The Completions page hosts the full shared Inline Completion Debug app. The
+// config/sessions/replay slices ride this pull-based state request — with
+// `omitEvents: true` the live event bodies are stripped and the page reads
+// live rows over the thin dc/completionLiveRows transport instead (WI-1.4).
+// Legacy callers that pass no params keep getting the unmodified full state.
+// dc/icDebugAction (reducer-named actions, full state on the response) and
+// the dc/icDebugChanged poke remain for compatibility; the typed surface
+// lives in completionsDebugRpc.ts.
+
+export interface DcIcDebugStateParams {
+    /** Strip live event bodies; read live rows via dc/completionLiveRows. */
+    omitEvents?: boolean;
+}
+
+export namespace DcIcDebugStateRequest {
+    export const type = new RequestType<
+        DcIcDebugStateParams | undefined,
+        InlineCompletionDebugWebviewState,
+        void
+    >("dc/icDebugState");
+}
+
+export namespace DcIcDebugActionRequest {
+    export const type = new RequestType<
+        { name: string; payload?: unknown },
+        InlineCompletionDebugWebviewState,
+        void
+    >("dc/icDebugAction");
+}
+
+export namespace DcIcDebugChangedNotification {
+    export const type = new NotificationType<void>("dc/icDebugChanged");
+}
+
+export interface BundleHealthRow {
+    hostSessionId: string;
+    bundleId: string;
+    status: "active" | "closed" | "partial";
+    artifacts: number;
+    /** Catalog changes not yet written (debounce window or write failure). */
+    dirty: boolean;
+    queueDepth: number;
+    writesCompleted: number;
+    consecutiveWriteFailures: number;
+    lastWriteUtc?: string;
+    /**
+     * Latest ring↔journal reconciliation outcome for the session (WI-2.8;
+     * absent until the reconcile command has run). Health-only — never
+     * persisted into bundle.json.
+     */
+    lastReconciliation?: { atUtc: string; matches: boolean; mismatchCount: number };
+    issues: string[];
+}
 
 export interface SelfTestScenarioInfo {
     id: string;
@@ -418,7 +703,6 @@ export interface SelfTestScenarioInfo {
 
 export type SelfTestConnectionMode = "active" | "saved" | "env" | "none";
 
-/** One selectable way to provide SQL connectivity to a self-test run. */
 export interface SelfTestConnectionOption {
     id: string;
     mode: SelfTestConnectionMode;
@@ -464,7 +748,6 @@ export interface SelfTestRunStarted {
     reason?: string;
 }
 
-/** A flattened, serializable projection of the runner's event stream. */
 export interface SelfTestProgress {
     runId: string;
     phase:
@@ -500,22 +783,6 @@ export interface SelfTestProgress {
     attachedSourceId?: string;
 }
 
-export interface SqlActivityRow {
-    epochMs: number;
-    eventName: string;
-    durationMs?: number;
-    cpuMs?: number;
-    logicalReads?: number;
-    rowCount?: number;
-    text: ClassifiedValue;
-    correlation?: string;
-    sourceEventId?: string;
-}
-
-// ---------------------------------------------------------------------------
-// SQL Data Plane live status (TSQ2 §9 Debug Console page)
-// ---------------------------------------------------------------------------
-
 export interface DcSqlDataPlaneBackendEntry {
     kind: string;
     displayName: string;
@@ -531,7 +798,6 @@ export interface DcSqlDataPlaneBackendEntry {
     lastError?: { code: string; retryable: boolean; serverErrorNumber?: number };
 }
 
-/** One capability value as shown in the Debug Console matrix (safe metadata). */
 export interface DcSqlDataPlaneCapabilityValue {
     support: string;
     fidelity?: string;
@@ -541,7 +807,6 @@ export interface DcSqlDataPlaneCapabilityValue {
     source: string;
 }
 
-/** Host/runtime facts for a bug repro — the "what was interesting about the env". */
 export interface DcSqlDataPlaneEnvironment {
     node: string;
     platform: string;
@@ -555,12 +820,6 @@ export interface DcSqlDataPlaneEnvironment {
     settings: Record<string, unknown>;
 }
 
-/**
- * Passive, privacy-safe live snapshot of the SQL Data Plane registry and its
- * running backends — the "what is this component doing" surface. Carries only
- * protocol metadata (ids, states, counts, capability flags, non-reversible
- * profile fingerprints); never SQL text, rows, server names, or credentials.
- */
 export interface DcSqlDataPlaneStatus {
     capturedEpochMs: number;
     enabled: boolean;
@@ -596,186 +855,6 @@ export interface DcSqlDataPlaneStatus {
     details: Record<string, unknown>;
 }
 
-// ---------------------------------------------------------------------------
-// RPC types (extension host <-> Debug Console webview)
-// ---------------------------------------------------------------------------
-
-import { NotificationType, RequestType } from "vscode-jsonrpc";
-import type { InlineCompletionDebugWebviewState } from "./inlineCompletionDebug";
-
-export interface SourceOverview {
-    kpis: SourceKpis;
-    actions: UserActionSummary[];
-    anomalies: AnomalySummary[];
-}
-
-/** Deep-link an already-open console to a page (host → webview). */
-export namespace DcNavigateNotification {
-    export const type = new NotificationType<{ page: DcPageId }>("dc/navigate");
-}
-
-export namespace DcListSourcesRequest {
-    export const type = new RequestType<void, DebugSource[], void>("dc/listSources");
-}
-export namespace DcQueryEventsRequest {
-    export const type = new RequestType<EventQuery, EventQueryResult, void>("dc/queryEvents");
-}
-export namespace DcGetOverviewRequest {
-    export const type = new RequestType<{ sourceId: string }, SourceOverview, void>(
-        "dc/getOverview",
-    );
-}
-export namespace DcGetCauseTreeRequest {
-    export const type = new RequestType<
-        { sourceId: string; eventId: string },
-        CauseTreeNode | undefined,
-        void
-    >("dc/getCauseTree");
-}
-export namespace DcGetWaterfallRequest {
-    export const type = new RequestType<
-        { sourceId: string; traceId: string },
-        WaterfallModel | undefined,
-        void
-    >("dc/getWaterfall");
-}
-export namespace DcListTracesRequest {
-    export const type = new RequestType<{ sourceId: string }, UserActionSummary[], void>(
-        "dc/listTraces",
-    );
-}
-export namespace DcGetSqlActivityRequest {
-    export const type = new RequestType<{ sourceId: string }, SqlActivityRow[], void>(
-        "dc/getSqlActivity",
-    );
-}
-export namespace DcGetSqlDataPlaneStatusRequest {
-    export const type = new RequestType<void, DcSqlDataPlaneStatus, void>(
-        "dc/getSqlDataPlaneStatus",
-    );
-}
-export namespace DcSubscribeLiveRequest {
-    export const type = new RequestType<
-        void,
-        { snapshot: EventQueryResult; lastSeq: number },
-        void
-    >("dc/subscribeLive");
-}
-export namespace DcUnsubscribeLiveRequest {
-    export const type = new RequestType<void, void, void>("dc/unsubscribeLive");
-}
-export namespace DcSetCaptureModeRequest {
-    export const type = new RequestType<
-        { mode: CaptureMode; reason?: string; durationMinutes?: number },
-        { mode: CaptureMode; expiresEpochMs?: number },
-        void
-    >("dc/setCaptureMode");
-}
-export namespace DcImportPerfRunRequest {
-    export const type = new RequestType<void, DebugSource[] | undefined, void>("dc/importPerfRun");
-}
-export namespace DcGetPerfSummaryRequest {
-    export const type = new RequestType<{ perfRunsRoot?: string }, PerfSummary, void>(
-        "dc/getPerfSummary",
-    );
-}
-// --- Evidence durability (Chunk 2) -----------------------------------------
-
-/** Backfill a live-tail gap from the session store journal. */
-export interface GapBackfillResult {
-    ok: boolean;
-    /** Recovered events (seq-ordered) when ok. */
-    events?: DiagEvent[];
-    /** Honest failure reason: store disabled, range evicted, read error. */
-    reason?: string;
-    status: GapRecord["backfillStatus"];
-}
-export namespace DcBackfillGapRequest {
-    export const type = new RequestType<
-        { gapId: string; fromSeq: number; throughSeq: number },
-        GapBackfillResult,
-        void
-    >("dc/backfillGap");
-}
-
-/** One sink health row: a sink may degrade but never silently. */
-export interface SinkHealth {
-    id: string;
-    healthy: boolean;
-    detail: string;
-    counters: Record<string, number>;
-}
-export interface StoreHealth {
-    enabled: boolean;
-    sessions: number;
-    totalBytes: number;
-    /** Integrity findings across persisted sessions (empty = clean). */
-    issues: string[];
-}
-/**
- * One observability-bundle catalog row (WI-2.3): per-bundle status, write
- * queue depth, last write, and recorded issues. Catalog degradation is
- * visible here, never silent — and never fails capture.
- */
-export interface BundleHealthRow {
-    hostSessionId: string;
-    bundleId: string;
-    status: "active" | "closed" | "partial";
-    artifacts: number;
-    /** Catalog changes not yet written (debounce window or write failure). */
-    dirty: boolean;
-    queueDepth: number;
-    writesCompleted: number;
-    consecutiveWriteFailures: number;
-    lastWriteUtc?: string;
-    /**
-     * Latest ring↔journal reconciliation outcome for the session (WI-2.8;
-     * absent until the reconcile command has run). Health-only — never
-     * persisted into bundle.json.
-     */
-    lastReconciliation?: { atUtc: string; matches: boolean; mismatchCount: number };
-    issues: string[];
-}
-export interface DiagHealthSnapshot {
-    sinks: SinkHealth[];
-    store: StoreHealth;
-    /** Bundle catalog rows (absent when the bundle manager is not running). */
-    bundles?: BundleHealthRow[];
-}
-export namespace DcGetHealthRequest {
-    export const type = new RequestType<void, DiagHealthSnapshot, void>("dc/getHealth");
-}
-
-/** Trace quality (Trace Identity V1 lint) — fog made visible. */
-export interface TraceQualityReport {
-    totalEvents: number;
-    orphanCount: number;
-    orphanRatio: number;
-    unmatchedPairs: Array<{ name: string; begins: number; ends: number }>;
-    longLivedRoots: Array<{ traceId: string; durationMs: number; eventCount: number }>;
-    epochAlignedCount: number;
-    outsideScenarioWindow: number;
-    score: "good" | "fair" | "poor";
-    notes: string[];
-}
-export namespace DcGetTraceQualityRequest {
-    export const type = new RequestType<
-        { sourceId: string; traceId?: string },
-        TraceQualityReport,
-        void
-    >("dc/getTraceQuality");
-}
-
-export namespace DcExportRequest {
-    export const type = new RequestType<
-        { sourceId: string },
-        { path?: string; events: number; redactions: number; error?: string },
-        void
-    >("dc/export");
-}
-// Central observability upload (central design §8.3, addendum C-11) --------
-
-/** Serializable resolution of the central upload target (never a connstring). */
 export interface CentralTargetInfo {
     enabled: boolean;
     configured: boolean;
@@ -785,7 +864,6 @@ export interface CentralTargetInfo {
     error?: string;
 }
 
-/** Serializable receipt subset for the webview (digest prefixes only). */
 export interface CentralReceiptInfo {
     uploadBatchId: number;
     outcome: string;
@@ -815,107 +893,6 @@ export interface CentralPreviewInfo {
     projectionDigest: string;
 }
 
-export namespace DcCentralPreviewRequest {
-    export const type = new RequestType<
-        { sourceId: string; policyId?: string },
-        { target: CentralTargetInfo; preview?: CentralPreviewInfo; error?: string },
-        void
-    >("dc/centralPreview");
-}
-
-export namespace DcCentralUploadRequest {
-    export const type = new RequestType<
-        { sourceId: string; policyId?: string },
-        {
-            outcome: string;
-            receipt?: CentralReceiptInfo;
-            reasonCode?: string;
-            error?: string;
-        },
-        void
-    >("dc/centralUpload");
-}
-
-export namespace DcCentralUploadProgressNotification {
-    export const type = new NotificationType<{ sourceId: string; done: number; total: number }>(
-        "dc/centralUploadProgress",
-    );
-}
-
-// Completions enablement + viewer launch (Debug Console Completions page) --
-
-/** Serializable enablement snapshot for the Completions page. */
-export interface CompletionsStatusInfo {
-    experimentalEnabled: boolean;
-    useSchemaContext: boolean;
-    featureEnabled: boolean;
-    copilotSqlDisabled: boolean;
-    schemaContextProfile: string;
-    modelFamily: string;
-    modelVendors: string[];
-    includeSqlDiagnostics: boolean;
-    traceCaptureEnabled: boolean;
-}
-
-export namespace DcCompletionsStatusRequest {
-    export const type = new RequestType<void, CompletionsStatusInfo, void>("dc/completionsStatus");
-}
-
-export namespace DcCompletionsEnableRequest {
-    export const type = new RequestType<{ enable: boolean }, CompletionsStatusInfo, void>(
-        "dc/completionsEnable",
-    );
-}
-
-export namespace DcOpenCompletionsViewerRequest {
-    export const type = new RequestType<void, { ok: boolean; error?: string }, void>(
-        "dc/openCompletionsViewer",
-    );
-}
-
-// Console-hosted Inline Completion Debug --------------------------------------
-// The Completions page hosts the full shared Inline Completion Debug app. The
-// config/sessions/replay slices ride this pull-based state request — with
-// `omitEvents: true` the live event bodies are stripped and the page reads
-// live rows over the thin dc/completionLiveRows transport instead (WI-1.4).
-// Legacy callers that pass no params keep getting the unmodified full state.
-// dc/icDebugAction (reducer-named actions, full state on the response) and
-// the dc/icDebugChanged poke remain for compatibility; the typed surface
-// lives in completionsDebugRpc.ts.
-
-export interface DcIcDebugStateParams {
-    /** Strip live event bodies; read live rows via dc/completionLiveRows. */
-    omitEvents?: boolean;
-}
-
-export namespace DcIcDebugStateRequest {
-    export const type = new RequestType<
-        DcIcDebugStateParams | undefined,
-        InlineCompletionDebugWebviewState,
-        void
-    >("dc/icDebugState");
-}
-
-export namespace DcIcDebugActionRequest {
-    export const type = new RequestType<
-        { name: string; payload?: unknown },
-        InlineCompletionDebugWebviewState,
-        void
-    >("dc/icDebugAction");
-}
-
-export namespace DcIcDebugChangedNotification {
-    export const type = new NotificationType<void>("dc/icDebugChanged");
-}
-
-// History (cross-session) ---------------------------------------------------
-
-/**
- * Per-session artifact chips (WI-4.4, addendum §6.4) — counts derived from
- * the session's bundle catalog DESCRIPTORS only (no segment is ever parsed
- * for a chip). Zero counts are omitted (no "0" noise); a session without a
- * bundle carries NO chips object at all (legacy sessions — honest absence).
- */
 export interface HistoryArtifactChips {
     /** Plane-A diag events cataloged for the session (diagStream artifacts). */
     diagEvents?: number;
@@ -929,68 +906,4 @@ export interface HistoryArtifactChips {
     invalidArtifacts?: number;
     /** Labels for the invalid artifacts (tooltip detail, bounded). */
     invalidArtifactLabels?: string[];
-}
-
-export interface HistorySessionRow {
-    sourceId: string;
-    /** The session directory / bundle identity (deep-link key, WI-4.4). */
-    hostSessionId: string;
-    label: string;
-    createdUtc: string;
-    live: boolean;
-    events: number;
-    errors: number;
-    gaps: number;
-    captureMode: CaptureMode;
-    actionCount: number;
-    /** Absent = the session has no bundle catalog (legacy) — chips hidden. */
-    artifacts?: HistoryArtifactChips;
-}
-
-export interface HistoryActionTrend {
-    label: string;
-    feature: string;
-    points: Array<{
-        sourceId: string;
-        sessionLabel: string;
-        createdUtc: string;
-        medianMs: number;
-        count: number;
-        errors: number;
-    }>;
-}
-
-export interface HistorySummary {
-    sessions: HistorySessionRow[];
-    trends: HistoryActionTrend[];
-    totalEvents: number;
-    totalActions: number;
-}
-
-export namespace DcGetHistoryRequest {
-    export const type = new RequestType<void, HistorySummary, void>("dc/getHistory");
-}
-
-export namespace DcListSelfTestScenariosRequest {
-    export const type = new RequestType<void, SelfTestCatalog, void>("dc/listSelfTestScenarios");
-}
-export namespace DcRunSelfTestRequest {
-    export const type = new RequestType<SelfTestRunRequest, SelfTestRunStarted, void>(
-        "dc/runSelfTest",
-    );
-}
-export namespace DcCancelSelfTestRequest {
-    export const type = new RequestType<void, { cancelled: boolean }, void>("dc/cancelSelfTest");
-}
-export namespace DcSelfTestProgressNotification {
-    export const type = new NotificationType<SelfTestProgress>("dc/selfTestProgress");
-}
-
-export namespace DcLivePushNotification {
-    export const type = new NotificationType<LiveTailPush>("dc/livePush");
-}
-export namespace DcCaptureChangedNotification {
-    export const type = new NotificationType<{ mode: CaptureMode; expiresEpochMs?: number }>(
-        "dc/captureChanged",
-    );
 }

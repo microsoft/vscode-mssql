@@ -18,8 +18,8 @@ import {
     getCloudResourceEndpoint,
     VscodeEntraSqlTokenInfo,
 } from "../../azure/vscodeEntraMfaUtils";
+import { getUseMsalEntraMfaAuthConfig } from "../../azure/utils";
 import { diag } from "../../diagnostics/diagnosticsCore";
-import { PreviewFeature, previewService } from "../../previews/previewService";
 import {
     profilePrincipal,
     ProfileTokenSource,
@@ -36,7 +36,7 @@ export class UnsupportedEntraAccountStoreError extends Error {
     constructor() {
         super(
             "SQL Data Plane Microsoft Entra authentication requires VS Code account authentication. " +
-                "Enable mssql.preview.useVscodeAccountsForEntraMFA and re-select the account and tenant in the connection profile.",
+                "Disable mssql.useMsalEntraMfaAuth and re-select the account and tenant in the connection profile.",
         );
         this.name = "UnsupportedEntraAccountStoreError";
         Object.setPrototypeOf(this, UnsupportedEntraAccountStoreError.prototype);
@@ -65,7 +65,7 @@ export class EntraTokenExpiryError extends Error {
 }
 
 const defaultAcquire: AcquireVscodeSqlToken = (accountId, tenantId, accountLabel) => {
-    if (!previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+    if (getUseMsalEntraMfaAuthConfig()) {
         throw new UnsupportedEntraAccountStoreError();
     }
     return acquireTokenFromVscodeAccountForResource(

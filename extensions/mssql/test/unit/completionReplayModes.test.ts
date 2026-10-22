@@ -97,7 +97,7 @@ function createFakeSchemaService(behavior: "ok" | "empty" | "throws"): {
             return {
                 server: "fresh-server",
                 database: "fresh-db",
-                schemas: [],
+                schemas: ["fresh_schema"],
                 tables: [],
                 views: [],
                 masterSymbols: [],
@@ -121,6 +121,7 @@ function createHarness(options: {
             ? undefined
             : createFakeSchemaService(options.schemaService);
     const deps: InlineCompletionReplayServiceDeps = {
+        isFeatureEnabled: () => true,
         extensionContext: {
             languageModelAccessInformation: undefined,
             extension: { packageJSON: { version: "0.0.0-test" } },
@@ -282,6 +283,38 @@ suite("Completion replay modes (WI-3.4)", () => {
         expect(provenance?.model.resolvedId).to.equal("fake-model");
     });
 
+    test("replay applies the same identifier boundary fixes as live completion", async () => {
+        for (const [statementPrefix, modelText, expected] of [
+            ["select *\nfrom sys.a", "ll_objects", "ll_objects"],
+            ["/* comment\nfrom sys.a", "ll_objects", " ll_objects"],
+            ["select *\nfrom sys.", ".tables", "tables"],
+            ["/* comment\nfrom sys.", ".tables", ".tables"],
+            ["select *\nfrom master.", ".sysobjects", ".sysobjects"],
+        ]) {
+            const harness = createHarness({ modelText });
+            try {
+                const event = sourceEvent();
+                const recorded = await harness.service.replaySourceEvent(
+                    {
+                        ...event,
+                        usedSchemaContext: false,
+                        schemaContextFormatted: undefined,
+                        locals: {
+                            ...event.locals,
+                            statementPrefix,
+                            linePrefix: statementPrefix.split("\n").pop(),
+                        },
+                    },
+                    { overrides: replayConfig("frozenPrompt") },
+                );
+                expect(recorded?.result, statementPrefix).to.equal("success");
+                expect(recorded?.finalCompletionText, statementPrefix).to.equal(expected);
+            } finally {
+                harness.service.dispose();
+            }
+        }
+    });
+
     test("rebuildCapturedContext rebuilds the prompt over captured schema; no retrieval", async () => {
         const harness = createHarness({ schemaService: "ok" });
         const recorded = await harness.service.replaySourceEvent(sourceEvent(), {
@@ -319,7 +352,7 @@ suite("Completion replay modes (WI-3.4)", () => {
         expect(recorded?.result).to.equal("success");
         expect(harness.schemaCalls).to.deep.equal([{ ownerUri: "file:///captured.sql" }]);
         expect(recorded?.replayProvenance?.schemaContextSource).to.equal("current");
-        expect(recorded?.schemaContextFormatted).to.contain("fresh-server / fresh-db");
+        expect(recorded?.schemaContextFormatted).to.contain("fresh_schema");
     });
 
     test("rebuildCurrentSchema without current schema and WITHOUT fallback → blocked", async () => {

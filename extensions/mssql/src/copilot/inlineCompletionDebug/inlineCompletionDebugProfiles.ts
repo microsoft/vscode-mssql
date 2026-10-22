@@ -31,18 +31,6 @@ export const inlineCompletionDebugCustomProfileId = "custom";
 export const inlineCompletionConfiguredDefaultProfileId: InlineCompletionDebugProfileId =
     "balanced";
 
-/**
- * Version of the preset-profile DEFINITIONS below (WI-3.1 / addendum §7.6).
- * Config groups freeze `baseProfileId` + `baseProfileVersion` into durable
- * replay runs so a later profile edit cannot silently reinterpret old
- * evidence.
- *
- * BUMP THIS on ANY observable change to `inlineCompletionDebugPresetProfiles`
- * (ids, labels, model preferences, categories, schema-context defaults,
- * debounce, token budgets) — additive or not.
- */
-export const INLINE_COMPLETION_PROFILE_DEFINITIONS_VERSION = 1;
-
 export const defaultInlineCompletionModelVendors = [
     "copilot",
     "anthropic-api",
@@ -50,79 +38,38 @@ export const defaultInlineCompletionModelVendors = [
     "xai-api",
 ] as const;
 
+// Copilot preferences reviewed against GitHub's supported-model catalog on 2026-10-16.
+// https://docs.github.com/en/copilot/reference/ai-models/supported-models
+// These rank models returned by vscode.lm; they never manufacture availability.
+// Match both dotted IDs and normalized display names (for example GPT-6.1 Sol).
 export const defaultInlineCompletionModelPreference: InlineCompletionModelPreference = {
     providerVendors: defaultInlineCompletionModelVendors,
     familyPatterns: [
-        /^claude-sonnet-4-6/i,
-        /^claude-opus-4-8/i,
-        /^gpt-5\.5(?!.*(mini|nano|codex|pro))/i,
-        /^gpt-5\.[0-9]+(?!.*(mini|nano|codex|pro))/i,
-        /^gpt-5(?!.*(mini|nano|codex|pro))/i,
-        /^grok-4\.3/i,
-        /^grok-4\.20/i,
-        /^grok-4/i,
-        /^claude-sonnet/i,
-        /^claude-opus/i,
-        /^gpt-5.*codex/i,
-        /^gpt-5.*mini/i,
-        /^gpt-5.*nano/i,
-        /^grok.*mini/i,
-        /^gpt-4o(?!-mini)/i,
-        /^gpt-4o-mini/i,
-        /^claude.*haiku/i,
+        /^gpt-6[.-]1-sol(?:$|-)/i,
+        /^gpt-6-sol(?:$|-)/i,
+        /^claude-sonnet-5[.-]5(?:$|-)/i,
+        /^claude-sonnet-5(?:$|-)/i,
+        /^claude-opus-5[.-]5(?:$|-)/i,
+        /^claude-opus-5(?:$|-)/i,
+        /^gpt-6-astra(?:$|-)/i,
+        /^gemini-4-argon(?:$|-)/i,
+        /^grok-4[.-]7(?:$|-)/i,
+        /^kimi-k3(?:$|-)/i,
+        // Account-specific and newly released models remain usable through live discovery.
         /.*/i,
     ],
 };
 
-const intentModelPreference: InlineCompletionModelPreference = {
-    providerVendors: ["copilot", "anthropic-api", "openai-api", "xai-api"],
-    familyPatterns: [
-        /^claude-sonnet-4-6/i,
-        /^claude-opus-4-8/i,
-        /^gpt-5\.5(?!.*(mini|nano|codex|pro))/i,
-        /^gpt-5\.[0-9]+(?!.*(mini|nano|codex|pro))/i,
-        /^gpt-5(?!.*(mini|nano|codex|pro))/i,
-        /^grok-4\.3/i,
-        /^grok-4\.20/i,
-        /^grok-4/i,
-        /^claude-sonnet/i,
-        /^claude-opus/i,
-        /^gpt-4o(?!-mini)/i,
-        /.*/i,
-    ],
-};
+const intentModelPreference = defaultInlineCompletionModelPreference;
 
 const continuationModelPreference: InlineCompletionModelPreference = {
     providerVendors: defaultInlineCompletionModelVendors,
     familyPatterns: [
-        /^claude-haiku-4-5/i,
-        /^gpt-5\.4.*mini/i,
-        /^gpt-5.*mini/i,
-        /^gpt-5\.4.*nano/i,
-        /^gpt-5.*nano/i,
-        /^gpt-4o-mini/i,
-        /^grok-4\.20.*non-reasoning/i,
-        /^grok-4\.3/i,
-        /^grok.*mini/i,
-        /^claude.*haiku/i,
-        /.*/i,
-    ],
-};
-
-const middleModelPreference: InlineCompletionModelPreference = {
-    providerVendors: defaultInlineCompletionModelVendors,
-    familyPatterns: [
-        /^claude-sonnet/i,
-        /^gpt-5(?!.*(mini|nano|codex|pro))/i,
-        /^grok-4\.3/i,
-        /^grok-4\.20/i,
-        /^grok-4/i,
-        /^gpt-5.*mini/i,
-        /^gpt-5.*nano/i,
-        /^grok.*mini/i,
-        /^claude.*haiku/i,
-        /^gpt-4o(?!-mini)/i,
-        /^gpt-4o-mini/i,
+        /^gpt-6-luna(?:$|-)/i,
+        /^claude-haiku-5[.-]5(?:$|-)/i,
+        /^gemini-3[.-]8-flash(?:$|-)/i,
+        /^gemini-3[.-]7-flash(?:$|-)/i,
+        /^mai-code-1[.-]1-flash(?:$|-)/i,
         /.*/i,
     ],
 };
@@ -158,7 +105,8 @@ export const inlineCompletionDebugPresetProfiles: readonly InlineCompletionDebug
             id: "broad",
             label: "Broad",
             description: "Intent and continuation completions with the quickest debounce.",
-            modelPreference: middleModelPreference,
+            modelPreference: intentModelPreference,
+            continuationModelPreference,
             forceIntentMode: null,
             enabledCategories: ["continuation", "intent"],
             useSchemaContext: true,
@@ -268,3 +216,5 @@ export function createInlineCompletionDebugPresetOverrides(
         customSystemPrompt: null,
     };
 }
+
+export const INLINE_COMPLETION_PROFILE_DEFINITIONS_VERSION = 2;

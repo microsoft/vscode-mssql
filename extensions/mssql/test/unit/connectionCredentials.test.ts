@@ -22,23 +22,6 @@ suite("ConnectionCredentials Tests", () => {
     });
 
     suite("ConnectionDetails conversion tests", () => {
-        // A connection string can be set alongside other properties for createConnectionDetails
-        test("createConnectionDetails sets properties in addition to the connection string", () => {
-            const credentials = new ConnectionCredentials();
-            credentials.connectionString = "server=some-server";
-            credentials.database = "some-db";
-
-            const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
-            expect(
-                connectionDetails.options.connectionString,
-                "Connection string should match input credentials",
-            ).to.equal(credentials.connectionString);
-            expect(
-                connectionDetails.options.database,
-                "Database should match input credentials",
-            ).to.equal(credentials.database);
-        });
-
         test("createConnectionDetails sets properties from the connection string", () => {
             const connDetails: ConnectionDetails = {
                 options: {
@@ -96,7 +79,6 @@ suite("ConnectionCredentials Tests", () => {
                 multipleActiveResultSets: true,
                 packetSize: 37,
                 typeSystemVersion: "testTypeSystemVersion",
-                connectionString: "testConnectionString",
                 containerName: "",
             };
 

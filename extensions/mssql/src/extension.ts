@@ -33,7 +33,7 @@ import {
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
-import { ChangelogWebviewController } from "./controllers/changelogWebviewController";
+import { OverviewWebviewController } from "./controllers/overviewWebviewController";
 import { initializeWebviewLocalizationCache } from "./controllers/localizationCache";
 import { UriOwnershipCoordinator } from "./uriOwnership/uriOwnershipCore";
 import {
@@ -41,13 +41,14 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
-import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
-import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
 import { registerQueryStudio } from "./queryStudio/queryStudioEditorProvider";
 import { registerQueryParticipant } from "./queryResults/queryParticipant";
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
-import { registerSdkLanguageModelProviders } from "./copilot/sdkLanguageModels";
-import { startStsDiagListener } from "./diagnostics/stsDiagListener";
+import { isInlineCompletionFeatureEnabled } from "./copilot/inlineCompletionFeatureGate";
+import { registerSdkLanguageModelProviders } from "./nonproduction/sdkLanguageModels";
+import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
+import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
+import { startStsDiagListener, stopStsDiagListener } from "./diagnostics/stsDiagListener";
 import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
 import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
@@ -55,7 +56,23 @@ import { IAccountStore, AccountStore } from "./azure/accountStore";
 import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
 import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
-import { sqlDatabaseProjectsExtensionId } from "./constants/constants";
+import {
+    PrivatePreviewContextKey,
+    PrivatePreviewFeature,
+    previewService,
+} from "./previews/previewService";
+import { extensionId } from "./constants/constants";
+import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
+import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
+import { ExecutionPlanComparisonContribution } from "./controllers/executionPlanComparisonContribution";
+import { SharedConnectionsAuthenticationProvider } from "./connectionSharing/sharedConnectionsAuthenticationProvider";
+import {
+    getSharedConnectionsApi,
+    SharedConnectionsService,
+} from "./connectionSharing/sharedConnectionsService";
+import { showLegacyProjectExtensionWarning } from "./legacyProjectExtensionWarning";
+import { logger } from "./models/logger";
+import { getErrorMessage } from "./utils/utils";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -66,12 +83,34 @@ let activation: MssqlActivation | undefined;
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     initializeExtensionToolkit();
 
-    // Install diagnostics before the first activation marker so startup events
-    // are captured when session diagnostics or the Debug Console are enabled.
-    if (vscode.workspace.getConfiguration().get<boolean>("mssql.debugConsole.enabled", true)) {
-        const diagnosticsManager = new DiagnosticsManager(context);
+    const debugConsoleActiveAtActivation = previewService.isPrivatePreviewEnabled(
+        PrivatePreviewFeature.DebugConsole,
+    );
+    const sessionDiagnosticsActiveAtActivation = previewService.isPrivatePreviewEnabled(
+        PrivatePreviewFeature.SessionDiagnostics,
+    );
+    void vscode.commands.executeCommand(
+        "setContext",
+        PrivatePreviewContextKey.DebugConsoleActive,
+        debugConsoleActiveAtActivation,
+    );
+    void vscode.commands.executeCommand(
+        "setContext",
+        PrivatePreviewContextKey.SessionDiagnosticsActive,
+        sessionDiagnosticsActiveAtActivation,
+    );
+
+    if (debugConsoleActiveAtActivation || sessionDiagnosticsActiveAtActivation) {
+        // Install before the first activation marker so enabled session capture
+        // includes the complete activation lifecycle.
+        const diagnosticsManager = new DiagnosticsManager(context, {
+            debugConsoleActiveAtActivation,
+            sessionDiagnosticsActiveAtActivation,
+        });
         context.subscriptions.push(diagnosticsManager);
-        registerDebugConsole(context, diagnosticsManager);
+        if (debugConsoleActiveAtActivation) {
+            registerDebugConsole(context, diagnosticsManager);
+        }
     }
 
     Perf.setActivationState("activating");
@@ -85,6 +124,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
         builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
         builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
+        builder.define(ISqlProjectLookup, new ServiceDescriptor(SqlProjectLookup));
 
         const instantiationService = builder.seal();
         context.subscriptions.push(instantiationService);
@@ -131,12 +171,15 @@ class MssqlActivation {
         const context = this._contextService.context;
         initializeTelemetryReporter(context.extension.packageJSON.aiKey);
 
-        // Query Studio custom editor (preview; gated by mssql.queryStudio.enabled).
-        registerQueryStudio(context);
-        registerSqlDataPlane(context);
-
         // Create the coordinator early so uriOwnershipApi is available for export.
         uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
+
+        // Register before the slow startup work: VS Code waits for this provider when another
+        // extension requests a connection-sharing session.
+        const sharedConnectionsAuthenticationProvider = new SharedConnectionsAuthenticationProvider(
+            context.secrets,
+        );
+        context.subscriptions.push(sharedConnectionsAuthenticationProvider);
 
         controller = this._instantiationService.createInstance(MainController, context);
         context.subscriptions.push(controller);
@@ -146,7 +189,16 @@ class MssqlActivation {
         initializeWebviewLocalizationCache();
 
         IconUtils.initialize(context.extensionUri);
-        registerSdkLanguageModelProviders(context);
+
+        const inlineCompletionsActive = isInlineCompletionFeatureEnabled();
+        await vscode.commands.executeCommand(
+            "setContext",
+            PrivatePreviewContextKey.AiInlineCompletionsActive,
+            inlineCompletionsActive,
+        );
+        if (inlineCompletionsActive) {
+            registerSdkLanguageModelProviders(context);
+        }
 
         // Check if GitHub Copilot is installed
         const copilotExtension = vscode.extensions.getExtension("github.copilot-chat");
@@ -158,16 +210,37 @@ class MssqlActivation {
 
         // Exposed for testing purposes
         vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
+        registerSqlDataPlane(context);
 
-        // Start the STS diagnostics listener BEFORE the service spawns so the
-        // child inherits STS_DIAG_URL/STS_DIAG_TOKEN (Debug Console live spans
-        // for dispatcher/SqlCommand/SMO). Near-zero cost when the console is
-        // closed: the service batches cheaply and the listener discards.
-        if (vscode.workspace.getConfiguration().get<boolean>("mssql.debugConsole.enabled", true)) {
+        // Start before SQL Tools Service spawns so the child inherits the
+        // diagnostics endpoint and token. The listener only accepts bounded,
+        // authenticated local batches and emits classified metadata.
+        if (
+            Perf.enabled ||
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.DebugConsole) ||
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SessionDiagnostics)
+        ) {
             await startStsDiagListener();
         }
-
         await controller.activate();
+        registerQueryStudio(context);
+
+        const sharedConnectionsService = new SharedConnectionsService(
+            sharedConnectionsAuthenticationProvider,
+            controller.connectionManager.client,
+            controller.connectionManager,
+            controller.scriptingService,
+        );
+        context.subscriptions.push(sharedConnectionsService);
+
+        context.subscriptions.push(
+            this._instantiationService.createInstance(SqlProjectRefactoringContribution),
+            this._instantiationService.createInstance(
+                ExecutionPlanComparisonContribution,
+                controller.executionPlanService,
+                controller.sqlDocumentService,
+            ),
+        );
 
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
         registerSqlToolsMcpServer(
@@ -214,36 +287,35 @@ class MssqlActivation {
 
         context.subscriptions.push(controller, participant, receiveFeedbackDisposable);
 
-        await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
+        await OverviewWebviewController.showWelcomeOnExtensionUpdate(context);
 
         const dataWorkspaceApi = registerDataWorkspace(context);
-        const sqlProjectsShell = vscode.extensions.getExtension(sqlDatabaseProjectsExtensionId);
-        if (dataWorkspaceApi && sqlProjectsShell?.packageJSON.mssqlRuntime === true) {
-            initializeDatabaseProjectsServices(
-                createMssqlInternalApi(controller),
-                dataWorkspaceApi,
+        initializeDatabaseProjectsServices(createMssqlInternalApi(controller), dataWorkspaceApi);
+        const provider = await registerDatabaseProjects(context);
+        context.subscriptions.push(ProjectProviderRegistry.registerProvider(provider, extensionId));
+        dataWorkspaceApi.refreshProjectsTree();
+
+        void showLegacyProjectExtensionWarning().catch((error) => {
+            logger.error(
+                `Failed to show the legacy project extension warning: ${getErrorMessage(error)}`,
             );
-            const provider = await registerDatabaseProjects(context);
-            context.subscriptions.push(
-                ProjectProviderRegistry.registerProvider(provider, sqlDatabaseProjectsExtensionId),
-            );
-        }
+        });
 
         registerPerfApi(context, { getController: () => controller });
-
-        // Session diagnostics and the Debug Console are initialized at the very top of
-        // activation so startup/activation events are captured rather than dropped.
         Perf.setActivationState("activated");
         Perf.marker("mssql.activate.end", "end");
         Perf.flush();
 
         return {
             connectionSharing: controller.connectionSharingService,
+            getSharedConnectionsApi: (version: number) =>
+                getSharedConnectionsApi(sharedConnectionsService, version),
             uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         };
     }
 
     async deactivate(): Promise<void> {
+        stopStsDiagListener();
         if (controller) {
             await controller.deactivate();
             controller.dispose();

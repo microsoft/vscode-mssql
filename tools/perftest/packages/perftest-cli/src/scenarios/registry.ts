@@ -884,6 +884,10 @@ register({
         displayName: "MSSQL Debug Console opens without errors",
         tags: ["diagnostics", "webview"],
         profileMode: "warmed",
+        userSettings: {
+            "mssql.enableExperimentalFeatures": true,
+            "mssql.debugConsole.enabled": true,
+        },
         setup: ACTIVATE_STEPS,
         measure: {
             start: { type: "beforeFirstAction" },
@@ -2757,8 +2761,9 @@ register({
         tags: ["objectexplorer", "oev2", "metadata"],
         profileMode: "warmed",
         userSettings: {
+            "mssql.enableExperimentalFeatures": true,
             "mssql.sqlDataPlane.enabled": true,
-            "mssql.objectExplorer.viewMode": "v2Preview",
+            "mssql.objectExplorer.v2.enabled": true,
         },
         sql: {
             database: "PerfHarness",
@@ -2806,8 +2811,9 @@ register({
         tags: ["objectexplorer", "oev2", "metadata"],
         profileMode: "warmed",
         userSettings: {
+            "mssql.enableExperimentalFeatures": true,
             "mssql.sqlDataPlane.enabled": true,
-            "mssql.objectExplorer.viewMode": "v2Preview",
+            "mssql.objectExplorer.v2.enabled": true,
         },
         sql: {
             database: "PerfHarness",
@@ -2859,8 +2865,9 @@ register({
         tags: ["objectexplorer", "oev2", "docker", "deployment"],
         profileMode: "warmed",
         userSettings: {
+            "mssql.enableExperimentalFeatures": true,
             "mssql.sqlDataPlane.enabled": true,
-            "mssql.objectExplorer.viewMode": "v2Preview",
+            "mssql.objectExplorer.v2.enabled": true,
         },
         setup: [...ACTIVATE_STEPS],
         measure: {
@@ -2900,8 +2907,9 @@ register({
         tags: ["objectexplorer", "oev2", "docker", "deployment"],
         profileMode: "warmed",
         userSettings: {
+            "mssql.enableExperimentalFeatures": true,
             "mssql.sqlDataPlane.enabled": true,
-            "mssql.objectExplorer.viewMode": "v2Preview",
+            "mssql.objectExplorer.v2.enabled": true,
         },
         setup: [
             ...ACTIVATE_STEPS,

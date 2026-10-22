@@ -10,17 +10,14 @@ import { WebviewPanelController } from "./webviewPanelController";
 import SqlDocumentService from "./sqlDocumentService";
 import {
     createExecutionPlanGraphs,
+    openExecutionPlanComparisonWebview,
     saveExecutionPlan,
     showPlanXml,
     showQuery,
     updateTotalCost,
 } from "./sharedExecutionPlanUtils";
 import { ExecutionPlanService } from "../services/executionPlanService";
-import {
-    getPreviewConfigKey,
-    isBetaExecutionPlanEnabled,
-    PreviewFeature,
-} from "../previews/previewService";
+import { executionPlanSourceRegistry } from "./executionPlanSourceRegistry";
 
 export class ExecutionPlanWebviewController extends WebviewPanelController<
     ep.ExecutionPlanWebviewState,
@@ -44,7 +41,6 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                     loadState: ApiStatus.Loading,
                     executionPlanGraphs: [],
                     totalCost: 0,
-                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
             },
             {
@@ -64,6 +60,9 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                 },
             },
         );
+        this.registerDisposable(
+            executionPlanSourceRegistry.register(xmlPlanFileName, executionPlanContents),
+        );
         void this.initialize();
     }
 
@@ -71,41 +70,16 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
         this.state.executionPlanState.loadState = ApiStatus.Loading;
         this.updateState();
         this.registerRpcHandlers();
-        this.registerDisposable(
-            vscode.workspace.onDidChangeConfiguration((event) => {
-                if (
-                    event.affectsConfiguration(
-                        getPreviewConfigKey(PreviewFeature.BetaExecutionPlan),
-                    )
-                ) {
-                    this.updateState({
-                        ...this.state,
-                        executionPlanState: {
-                            ...this.state.executionPlanState,
-                            isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
-                        },
-                    });
-                }
-            }),
-        );
     }
 
     private registerRpcHandlers() {
         this.registerReducer("getExecutionPlan", async (state, _payload) => {
-            state = await createExecutionPlanGraphs(
+            return createExecutionPlanGraphs(
                 state,
                 this.executionPlanService,
                 [this.executionPlanContents],
                 "SqlplanFile",
             );
-            return {
-                ...state,
-                executionPlanState: {
-                    ...state.executionPlanState,
-                    isBetaExecutionPlanEnabled:
-                        this.state.executionPlanState.isBetaExecutionPlanEnabled,
-                },
-            };
         });
         this.registerReducer("saveExecutionPlan", async (state, payload) => {
             return saveExecutionPlan(state, payload);
@@ -118,6 +92,20 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
         });
         this.registerReducer("updateTotalCost", async (state, payload) => {
             return updateTotalCost(state, payload);
+        });
+        this.onNotification(ep.CompareExecutionPlanNotification.type, ({ graphIndex }) => {
+            openExecutionPlanComparisonWebview(
+                this._context,
+                this.executionPlanService,
+                this.sqlDocumentService,
+                {
+                    primary: {
+                        name: this.panel.title,
+                        graphs: this.state.executionPlanState.executionPlanGraphs ?? [],
+                        graphIndex,
+                    },
+                },
+            );
         });
     }
 }

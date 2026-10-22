@@ -4,10 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from "path";
-import * as vscode from "vscode";
 import { diag } from "../diagnostics/diagnosticsCore";
+import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
-import { logger2 } from "../models/logger2";
+import * as LocalizedConstants from "../constants/locConstants";
+import { logger } from "../models/logger";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../utils/utils";
@@ -35,6 +36,14 @@ import {
     SqlInlineCompletionSchemaObject,
 } from "./completionSchemaContextCore";
 import { CompletionSchemaContextService } from "./completionSchemaContextService";
+import { lex, nextSignificant, TokenKind } from "../sqlLanguage/core/lexer";
+import {
+    isNameKind,
+    namePartText,
+    prevSignificant,
+    readChainAround,
+} from "../sqlLanguage/core/nameChain";
+import { findSystemObject } from "../sqlLanguage/data/systemObjectCatalog";
 import {
     InlineCompletionCategory,
     InlineCompletionDebugEvent,
@@ -63,7 +72,8 @@ const maxNearbyDiagnostics = 8;
 const maxDiagnosticMessageChars = 220;
 const exactTokenCountEstimateLimit = 200_000;
 const exactTokenCountTimeoutMs = 5_000;
-const schemaContextBuildTimeoutMs = 6 * 60 * 1000;
+const schemaContextBuildTimeoutMs = 120_000;
+const automaticSchemaContextBuildTimeoutMs = 1_500;
 const languageModelRequestTimeoutMs = 120_000;
 export const continuationModeMaxTokens = 240;
 export const intentModeMaxChars = 2000;
@@ -117,8 +127,10 @@ interface RecentAcceptedIntentCompletion {
 export class SqlInlineCompletionProvider
     implements vscode.InlineCompletionItemProvider, vscode.Disposable
 {
-    private readonly _logger = logger2.withPrefix("SqlInlineCompletion");
+    private readonly _logger = logger.withPrefix("SqlInlineCompletion");
     private readonly _disposables: vscode.Disposable[] = [];
+    private readonly _activeRequests = new Set<vscode.CancellationTokenSource>();
+    private _disposed = false;
     private readonly _cachedModels = new Map<string, vscode.LanguageModelChat | undefined>();
     private _recentAcceptedIntentCompletion: RecentAcceptedIntentCompletion | undefined;
 
@@ -131,6 +143,9 @@ export class SqlInlineCompletionProvider
                 this.clearModelCache();
             }),
             vscode.workspace.onDidChangeConfiguration((e) => {
+                if (!isInlineCompletionFeatureEnabled()) {
+                    for (const request of this._activeRequests) request.cancel();
+                }
                 if (
                     e.affectsConfiguration(Constants.configCopilotInlineCompletionsProfile) ||
                     e.affectsConfiguration(Constants.configCopilotInlineCompletionsModelFamily) ||
@@ -156,6 +171,8 @@ export class SqlInlineCompletionProvider
     }
 
     public dispose(): void {
+        this._disposed = true;
+        for (const request of this._activeRequests) request.cancel();
         this._disposables.forEach((d) => d.dispose());
         this.clearModelCache();
     }
@@ -166,11 +183,12 @@ export class SqlInlineCompletionProvider
         context: vscode.InlineCompletionContext,
         token: vscode.CancellationToken,
     ): Promise<vscode.InlineCompletionItem[] | vscode.InlineCompletionList> {
-        // Substrate observability: one completions.request span per request,
-        // stage/result instants correlated via the span's traceId. This is
-        // protocol metadata only — prompt/document text stays in the gated
-        // feature capture store, never on DiagEvents.
-        const requestSpan = diag.startSpan({
+        if (this._disposed || !this.isEnabledForDocument(document) || token.isCancellationRequested)
+            return [];
+        const request = new vscode.CancellationTokenSource();
+        const cancellation = token.onCancellationRequested(() => request.cancel());
+        this._activeRequests.add(request);
+        const span = diag.startSpan({
             feature: "completions",
             kind: "span",
             type: "completions.request",
@@ -182,38 +200,31 @@ export class SqlInlineCompletionProvider
                             : "invoke",
                     cls: "diagnostic.metadata",
                 },
-                languageId: { raw: document.languageId, cls: "diagnostic.metadata" },
             },
         });
-        // Reverse-link out-slot: core sets it when a rich record exists so the
-        // span end can carry the capture-event id (final plan WI-0.3). The span
-        // cannot carry fields added after end — this is the documented seam.
-        const linkOut: { captureEventId?: string } = {};
         try {
+            if (token.isCancellationRequested) request.cancel();
             const result = await this.provideInlineCompletionItemsCore(
                 document,
                 position,
                 context,
-                token,
-                requestSpan.traceId,
-                linkOut,
+                request.token,
+                span.traceId,
             );
-            const itemCount = Array.isArray(result) ? result.length : result.items.length;
-            requestSpan.end("ok", {
-                itemCount: { raw: itemCount, cls: "diagnostic.metadata" },
-                ...(linkOut.captureEventId
-                    ? {
-                          captureEventId: {
-                              raw: linkOut.captureEventId,
-                              cls: "diagnostic.metadata",
-                          },
-                      }
-                    : {}),
+            span.end("ok", {
+                itemCount: {
+                    raw: Array.isArray(result) ? result.length : result.items.length,
+                    cls: "diagnostic.metadata",
+                },
             });
             return result;
         } catch (error) {
-            requestSpan.fail(error);
+            span.fail(error);
             throw error;
+        } finally {
+            this._activeRequests.delete(request);
+            cancellation.dispose();
+            request.dispose();
         }
     }
 
@@ -223,11 +234,12 @@ export class SqlInlineCompletionProvider
         context: vscode.InlineCompletionContext,
         token: vscode.CancellationToken,
         requestTraceId: string,
-        linkOut: { captureEventId?: string },
     ): Promise<vscode.InlineCompletionItem[] | vscode.InlineCompletionList> {
         if (!this.isEnabledForDocument(document) || context.selectedCompletionInfo) {
             return [];
         }
+        const requestDocumentVersion = document.version;
+        const requestOffset = document.offsetAt(position);
 
         const triggerKind = context.triggerKind;
         const overrides = inlineCompletionDebugStore.getOverrides();
@@ -277,9 +289,13 @@ export class SqlInlineCompletionProvider
             profile,
             completionCategory,
         );
-        const enabledCategories =
-            overrides.enabledCategories ??
-            (profile ? [...profile.enabledCategories] : this.getConfiguredEnabledCategories());
+        const configuredEnabledCategories = this.getConfiguredEnabledCategories();
+        const profileEnabledCategories = profile
+            ? profile.enabledCategories.filter((category) =>
+                  configuredEnabledCategories.includes(category),
+              )
+            : configuredEnabledCategories;
+        const enabledCategories = overrides.enabledCategories ?? profileEnabledCategories;
         const effectiveMaxTokens =
             overrides.maxTokens ??
             profile?.maxTokens ??
@@ -288,10 +304,10 @@ export class SqlInlineCompletionProvider
             intentMode ? intentModeMaxChars : maxCompletionChars,
             overrides.maxTokens ?? profile?.maxTokens,
         );
+        const configuredUseSchemaContext = this.getConfiguredUseSchemaContext();
         const useSchemaContext =
             overrides.useSchemaContext ??
-            profile?.useSchemaContext ??
-            this.getConfiguredUseSchemaContext();
+            ((profile?.useSchemaContext ?? true) && configuredUseSchemaContext);
         const includeSqlDiagnostics =
             overrides.includeSqlDiagnostics ?? this.getConfiguredIncludeSqlDiagnostics();
         const sqlDiagnosticsText = includeSqlDiagnostics
@@ -300,13 +316,6 @@ export class SqlInlineCompletionProvider
         const shouldCaptureDebug = inlineCompletionDebugStore.shouldCapture(
             this.getRecordWhenClosedSetting(),
         );
-        // Durable identity is reserved BEFORE the pending record or any Plane-A
-        // reverse link (emission-ordering rule, final plan WI-0.3). No rich
-        // record ⇒ no capture-event id is ever emitted.
-        const eventLink = shouldCaptureDebug
-            ? inlineCompletionDebugStore.createEventLink({ traceId: requestTraceId })
-            : undefined;
-        linkOut.captureEventId = eventLink?.captureEventId;
         const schemaContextOverrides = getInlineCompletionProfileSchemaContextOverrides(
             profile,
             overrides.schemaContext,
@@ -341,6 +350,9 @@ export class SqlInlineCompletionProvider
         let skipReason: string | undefined;
         let pendingStage = "starting";
 
+        const eventLink = shouldCaptureDebug
+            ? inlineCompletionDebugStore.createEventLink({ traceId: requestTraceId })
+            : undefined;
         const modelStartedAt = Date.now();
         let pendingDebugEventId: string | undefined;
         const createDebugEvent = (
@@ -348,8 +360,8 @@ export class SqlInlineCompletionProvider
             error?: unknown,
             timestamp: number = Date.now(),
         ): Omit<InlineCompletionDebugEvent, "id"> => ({
-            timestamp,
             ...(eventLink ? { link: eventLink } : {}),
+            timestamp,
             documentUri: document.uri.toString(),
             documentFileName: path.basename(document.fileName || document.uri.fsPath),
             line: position.line + 1,
@@ -468,38 +480,6 @@ export class SqlInlineCompletionProvider
             result: InlineCompletionDebugEventResult,
             error?: unknown,
         ): InlineCompletionDebugEvent | undefined => {
-            if (result !== "pending") {
-                // Substrate result event — fires regardless of debug capture.
-                // Reverse-link IDs (opaque, diagnostic.metadata) point at the
-                // rich record when one exists; never content (WI-0.2).
-                diag.emit({
-                    feature: "completions",
-                    kind: "event",
-                    type: "completions.result",
-                    status: result === "error" ? "error" : "ok",
-                    traceId: requestTraceId,
-                    fields: {
-                        result: { raw: result, cls: "diagnostic.metadata" },
-                        latencyMs: { raw: Date.now() - modelStartedAt, cls: "diagnostic.metadata" },
-                        ...(eventLink
-                            ? {
-                                  captureFeatureId: {
-                                      raw: eventLink.featureId,
-                                      cls: "diagnostic.metadata",
-                                  },
-                                  captureSessionId: {
-                                      raw: eventLink.captureSessionId,
-                                      cls: "diagnostic.metadata",
-                                  },
-                                  captureEventId: {
-                                      raw: eventLink.captureEventId,
-                                      cls: "diagnostic.metadata",
-                                  },
-                              }
-                            : {}),
-                    },
-                });
-            }
             if (!shouldCaptureDebug) {
                 return undefined;
             }
@@ -520,17 +500,6 @@ export class SqlInlineCompletionProvider
         };
         const recordPendingStage = (stage: string): void => {
             pendingStage = stage;
-            // Substrate stage instant — fires regardless of debug capture.
-            diag.emit({
-                feature: "completions",
-                kind: "event",
-                type: "completions.stage",
-                traceId: requestTraceId,
-                fields: {
-                    stage: { raw: stage, cls: "diagnostic.metadata" },
-                    msFromStart: { raw: Date.now() - modelStartedAt, cls: "diagnostic.metadata" },
-                },
-            });
             recordDebugEvent("pending");
         };
 
@@ -579,6 +548,7 @@ export class SqlInlineCompletionProvider
                     overrides,
                     completionCategory,
                     this.getConfiguredContinuationModelSelector(),
+                    this.getConfiguredModelSelector(),
                 ),
                 modelPreference,
             );
@@ -628,15 +598,22 @@ export class SqlInlineCompletionProvider
 
             if (useSchemaContext) {
                 recordPendingStage("buildingSchemaContext");
-                schemaContext = await withTimeout(
-                    this._schemaContextService.getSchemaContext(
-                        document,
-                        statementPrefix,
-                        selectedModel.maxInputTokens,
-                        schemaContextOverrides,
-                    ),
-                    schemaContextBuildTimeoutMs,
+                const schemaTimeoutMs =
+                    triggerKind === vscode.InlineCompletionTriggerKind.Automatic
+                        ? automaticSchemaContextBuildTimeoutMs
+                        : schemaContextBuildTimeoutMs;
+                schemaContext = await withAbortableTimeout(
+                    (signal) =>
+                        this._schemaContextService.getSchemaContext(
+                            document,
+                            statementPrefix,
+                            selectedModel.maxInputTokens,
+                            schemaContextOverrides,
+                            { signal, hydrationTimeoutMs: schemaTimeoutMs },
+                        ),
+                    schemaTimeoutMs,
                     "Timed out building SQL schema context.",
+                    token,
                 );
             }
 
@@ -745,6 +722,10 @@ export class SqlInlineCompletionProvider
                 }
             }
 
+            if (token.isCancellationRequested || !this.isEnabledForDocument(document)) {
+                recordDebugEvent("cancelled");
+                return [];
+            }
             recordPendingStage("waitingForModelResponse");
             modelCallStarted = true;
             const response = await withTimeout(
@@ -799,8 +780,20 @@ export class SqlInlineCompletionProvider
                 linePrefix,
                 schemaContextForPrompt,
                 intentMode,
+                statementPrefix,
             );
             finalCompletionText = suppressDocumentSuffixOverlap(finalCompletionText, suffix);
+            finalCompletionText = normalizeCompletionEndOfLine(finalCompletionText, document.eol);
+
+            if (
+                token.isCancellationRequested ||
+                !this.isEnabledForDocument(document) ||
+                document.version !== requestDocumentVersion ||
+                document.offsetAt(position) !== requestOffset
+            ) {
+                recordDebugEvent("cancelled");
+                return [];
+            }
 
             if (!finalCompletionText) {
                 sendResultTelemetry("emptyFromSanitizer");
@@ -819,7 +812,7 @@ export class SqlInlineCompletionProvider
                     finalCompletionText,
                     new vscode.Range(position, position),
                     {
-                        title: "MSSQL inline SQL completion accepted",
+                        title: LocalizedConstants.inlineCompletionAccepted,
                         command: inlineCompletionAcceptedCommand,
                         arguments: [telemetrySnapshot, storedEvent?.id],
                     },
@@ -868,8 +861,8 @@ export class SqlInlineCompletionProvider
                 .getConfiguration()
                 .get<boolean>(
                     Constants.configCopilotInlineCompletionsIncludeSqlDiagnostics,
-                    true,
-                ) ?? true
+                    false,
+                ) ?? false
         );
     }
 
@@ -1037,17 +1030,18 @@ function getModelSelectorForCompletionCategory(
     overrides: InlineCompletionDebugOverrides,
     completionCategory: InlineCompletionCategory,
     configuredContinuationModelSelector: string | undefined,
+    configuredModelSelector: string | undefined,
 ): string | undefined {
     if (completionCategory === "continuation") {
         return (
             overrides.continuationModelSelector ??
             configuredContinuationModelSelector ??
             overrides.modelSelector ??
-            undefined
+            configuredModelSelector
         );
     }
 
-    return overrides.modelSelector ?? undefined;
+    return overrides.modelSelector ?? configuredModelSelector;
 }
 
 function getConfiguredInlineCompletionProfileId() {
@@ -1115,15 +1109,16 @@ export function buildCompletionRules(inferredSystemQuery: boolean, intentMode: b
 
 function buildSharedPreamble(inferredSystemQuery: boolean): string {
     return `Shared rules:
-- Use only the tables, views, procedures, functions, columns, parameters, keys, and system objects listed in the schema context. Do not invent local database objects.
+- Use only user-defined tables, views, procedures, functions, columns, parameters, and keys supplied in the schema context. Do not invent local database objects.
+- For database discovery or administration requests, you may query documented built-in SQL Server catalogs, INFORMATION_SCHEMA views, and DMVs using their standard columns even when schema context is absent. For example, to discover tables in the current database, query sys.tables (name, schema_id) joined to sys.schemas (schema_id, name). Generate a query; never invent the actual table names or query results.
 - Return no markdown, fences, backticks, quotes, labels, or explanations — raw SQL only.
-- If the schema context does not contain enough information to satisfy the request, return exactly an empty string. Do not explain why, apologize, mention missing schema context, emit placeholder text such as SELECT, or say that you are returning an empty string.
+- If the request needs user-defined objects or columns that are not supplied in the schema context, return exactly an empty string. This restriction does not prevent queries using known built-in catalogs or SQL expressions that need no database metadata. Do not explain why, apologize, mention missing schema context, emit placeholder text such as SELECT, or say that you are returning an empty string.
 - Empty string means emit no characters at all; never write prose such as "the document is complete", "done", or "return empty string".
 - The document suffix and current line suffix are authoritative context. Generate text that composes naturally with both; if no natural completion fits before the suffix, return exactly an empty string.
 - Nearby SQL diagnostics are advisory context for avoiding syntax errors. Use them only to improve the inserted SQL, never to explain an error.
 - Use the recent document prefix to avoid repeating nearby declarations, CTE names, temp tables, aliases, or setup statements.
 - Prefer the simplest canonical query that satisfies the request. Do not add extra joins, columns, filters, aliases, or system objects unless the request or schema context requires them.
-- System affinity: inferredSystemQuery=${inferredSystemQuery ? "true" : "false"} — if true, prefer sys.* / INFORMATION_SCHEMA.* / DMV objects from the listed system objects; if false, prefer user tables, views, procedures, and functions.
+- System affinity hint: inferredSystemQuery=${inferredSystemQuery ? "true" : "false"}. Database discovery requests should use built-in catalogs even when this hint is false. Otherwise, prefer supplied system objects when true and supplied user objects when false.
 - Prefer schema-qualified names.`;
 }
 
@@ -1168,7 +1163,7 @@ Continuation-mode rules:
 - If you cannot generate SQL that should be inserted at the cursor, return exactly an empty string. Do not provide an explanation, diagnosis, apology, note, or reason.
 - Do not end with a semicolon. Do not emit multiple clauses chained together.
 - If the cursor is after a non-whitespace character, choose the right leading space or newline. New clauses such as WHERE, JOIN, APPLY, GROUP BY, ORDER BY, OPTION, FOR JSON, and FOR XML should start on a new line.
-- When completing a qualified name, preserve the dot. If the cursor is after sys and sys.databases is available, return .databases.
+- When completing a qualified name, return only the missing suffix. After sys return .databases; after sys. return databases; after sys.da return tabases. Never repeat a dot or identifier fragment already before the cursor. Keep intentional omitted-schema notation such as master..sysobjects intact.
 - JOIN context: infer join predicates from actual PK/FK metadata and compatible column names. Never write a same-side tautology such as T.Col = T.Col.`;
 }
 
@@ -1226,18 +1221,6 @@ export function applyCustomSystemPromptTemplate(
 
     return result;
 }
-
-/**
- * Version of the PROMPT BUILDER (WI-3.4 / addendum §7.7: replay provenance
- * captures the prompt-builder version so rebuilt-prompt replays are
- * comparable across builder generations).
- *
- * BUMP THIS on ANY observable change to the prompt construction pipeline —
- * `resolveInlineCompletionRules`, `applyCustomSystemPromptTemplate`,
- * `buildCompletionRules`, `buildInlineCompletionPromptMessages`,
- * `buildPromptDataMessage`, or the context-window extraction they consume.
- */
-export const INLINE_COMPLETION_PROMPT_BUILDER_VERSION = "1";
 
 export function buildInlineCompletionPromptMessages(
     options: InlineCompletionPromptBuildOptions,
@@ -1602,6 +1585,22 @@ function withTimeout<T>(thenable: PromiseLike<T>, timeoutMs: number, message: st
     });
 }
 
+async function withAbortableTimeout<T>(
+    factory: (signal: AbortSignal) => PromiseLike<T>,
+    timeoutMs: number,
+    message: string,
+    token: vscode.CancellationToken,
+): Promise<T> {
+    const controller = new AbortController();
+    const cancellation = token.onCancellationRequested?.(() => controller.abort());
+    try {
+        return await withTimeout(factory(controller.signal), timeoutMs, message);
+    } finally {
+        controller.abort();
+        cancellation?.dispose();
+    }
+}
+
 function isFinitePositiveNumber(value: unknown): value is number {
     return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
@@ -1742,6 +1741,7 @@ export function fixLeadingWhitespace(
     linePrefix: string,
     schemaContext: SqlInlineCompletionSchemaContext | undefined,
     intentMode: boolean = false,
+    statementPrefix: string = linePrefix,
 ): string | undefined {
     if (!completionText) {
         return undefined;
@@ -1764,11 +1764,19 @@ export function fixLeadingWhitespace(
         return `\n${completionText.replace(/^\s+/, "")}`;
     }
 
+    if (isRepeatedSchemaDot(completionText, statementPrefix, schemaContext)) {
+        return completionText.slice(1);
+    }
+
     if (/[\s.]$/.test(linePrefix) || /^[\s.]/.test(completionText)) {
         return completionText;
     }
 
     if (/[@#\[(]$/.test(linePrefix)) {
+        return completionText;
+    }
+
+    if (continuesKnownObjectName(completionText, statementPrefix, schemaContext)) {
         return completionText;
     }
 
@@ -1788,6 +1796,118 @@ export function fixLeadingWhitespace(
         return " " + completionText;
     }
     return completionText;
+}
+
+/** Repair an echoed schema separator, while preserving database..object notation. */
+function isRepeatedSchemaDot(
+    completionText: string,
+    statementPrefix: string,
+    context: SqlInlineCompletionSchemaContext | undefined,
+): boolean {
+    if (!statementPrefix.endsWith(".") || !completionText.startsWith(".")) {
+        return false;
+    }
+    const { tokens } = lex(statementPrefix);
+    const dotIndex = tokens.length - 2;
+    if (tokens[dotIndex]?.kind !== TokenKind.Punctuation) {
+        return false; // Dots inside strings, comments, and quoted identifiers are not separators.
+    }
+    const nameIndex = prevSignificant(tokens, dotIndex);
+    if (nameIndex < 0 || !isNameKind(tokens[nameIndex].kind)) {
+        return false;
+    }
+    const { parts } = readChainAround(statementPrefix, tokens, nameIndex);
+    const precedingKeyword = tokens[prevSignificant(tokens, nameIndex)]?.keyword?.id;
+    if (
+        parts.length !== 1 ||
+        !precedingKeyword ||
+        !/^(FROM|JOIN|UPDATE|INTO|MERGE|EXEC|EXECUTE)$/.test(precedingKeyword)
+    ) {
+        return false;
+    }
+    const suffix = completionText.slice(1);
+    const suffixTokens = lex(suffix).tokens;
+    const objectToken = suffixTokens[0];
+    const nextToken = suffixTokens[nextSignificant(suffixTokens, 1)];
+    if (nextToken && suffix.slice(nextToken.start, nextToken.end) === ".") {
+        return false; // A longer multipart name may intentionally omit its database or schema.
+    }
+    return (
+        isNameKind(objectToken.kind) &&
+        !objectToken.unterminated &&
+        isKnownQualifiedObject(parts[0], namePartText(suffix, objectToken), context)
+    );
+}
+
+/** Only join a partial qualified name when the completed name has positive catalog evidence. */
+function continuesKnownObjectName(
+    completionText: string,
+    statementPrefix: string,
+    context: SqlInlineCompletionSchemaContext | undefined,
+): boolean {
+    const suffix = /^[a-zA-Z0-9_$]+/.exec(completionText)?.[0];
+    if (!suffix) {
+        return false;
+    }
+
+    // Use the statement to keep strings and multiline comments out of this repair.
+    const { tokens } = lex(statementPrefix);
+    const index = tokens.length - 2; // The lexer ends with an EOF token.
+    if (tokens[index]?.kind !== TokenKind.Identifier) {
+        return false;
+    }
+    const { parts, spans } = readChainAround(statementPrefix, tokens, index);
+    if (parts.length !== 2) {
+        return false;
+    }
+    const nameIndex = tokens.findIndex((token) => token.start === spans[0].start);
+    const precedingKeyword = tokens[prevSignificant(tokens, nameIndex)]?.keyword?.id;
+    // A dotted expression can also be alias.column. Only use object metadata
+    // immediately after a keyword that introduces an object reference.
+    if (
+        !precedingKeyword ||
+        !/^(FROM|JOIN|UPDATE|INTO|MERGE|EXEC|EXECUTE)$/.test(precedingKeyword)
+    ) {
+        return false;
+    }
+    const [schema, partialName] = parts;
+    // A complete object followed by an alias is ambiguous, even if concatenation
+    // happens to name another object (dbo.User + s versus dbo.Users).
+    return (
+        !isKnownQualifiedObject(schema, partialName, context) &&
+        isKnownQualifiedObject(schema, partialName + suffix, context)
+    );
+}
+
+function isKnownQualifiedObject(
+    schema: string,
+    name: string,
+    context: SqlInlineCompletionSchemaContext | undefined,
+): boolean {
+    if (findSystemObject(schema, name, context?.engineEdition)) {
+        return true;
+    }
+    const qualifiedName = `${schema}.${name}`;
+    const knownNames = [
+        ...(context?.tables ?? []).map((table) => table.name),
+        ...(context?.views ?? []).map((view) => view.name),
+        ...(context?.routines ?? []).map((routine) => routine.name),
+        ...(context?.systemObjects ?? []).map((object) => object.name),
+        ...(context?.tableNameOnlyInventory ?? []),
+        ...(context?.viewNameOnlyInventory ?? []),
+        ...(context?.routineNameOnlyInventory ?? []),
+        ...(context?.masterSymbols ?? []),
+    ];
+    return knownNames.some((known) =>
+        context?.caseSensitive
+            ? known === qualifiedName
+            : known.toLowerCase() === qualifiedName.toLowerCase(),
+    );
+}
+
+function normalizeCompletionEndOfLine(completionText: string, endOfLine: vscode.EndOfLine): string {
+    const normalized = completionText.replace(/\r\n|\r|\n/g, "\n");
+    return endOfLine === vscode.EndOfLine.CRLF ? normalized.replace(/\n/g, "\r\n") : normalized;
 }
 
 function isAfterStatementTerminator(linePrefix: string): boolean {
@@ -2226,61 +2346,6 @@ function getSuffixWindow(
     return suffix.slice(0, maxChars);
 }
 
-/** The document/editor context slice one completion request is built from. */
-export interface InlineCompletionDocumentContext {
-    documentUri: string;
-    documentFileName: string;
-    languageId: string;
-    line: number;
-    column: number;
-    linePrefix: string;
-    lineSuffix: string;
-    statementPrefix: string;
-    recentPrefix: string;
-    suffix: string;
-    inferredSystemQuery: boolean;
-    detectedIntentMode: boolean;
-    sqlDiagnosticsText: string;
-}
-
-/**
- * Extract the SAME context windows the live completion provider builds, for
- * an arbitrary document + position (WI-3.4 `liveDocumentScenario`: replay
- * re-executes against the current active document state through exactly the
- * production extraction path — same window sizes, same statement-boundary
- * logic, same diagnostics formatting).
- */
-export function extractInlineCompletionDocumentContext(
-    document: vscode.TextDocument,
-    position: vscode.Position,
-): InlineCompletionDocumentContext {
-    const line = document.lineAt(position.line);
-    const linePrefix = line.text.slice(0, position.character);
-    const lineSuffix = line.text.slice(position.character);
-    const statementPrefix = getStatementAwarePrefixWindow(
-        document,
-        position,
-        statementPrefixWindowChars,
-    );
-    const recentPrefix = getRecentDocumentPrefixWindow(document, position, recentPrefixWindowChars);
-    const suffix = getSuffixWindow(document, position, suffixWindowChars);
-    return {
-        documentUri: document.uri.toString(),
-        documentFileName: document.fileName.split(/[\\/]/).pop() ?? document.fileName,
-        languageId: document.languageId,
-        line: position.line,
-        column: position.character,
-        linePrefix,
-        lineSuffix,
-        statementPrefix,
-        recentPrefix,
-        suffix,
-        inferredSystemQuery: inferSystemQuery(statementPrefix, linePrefix),
-        detectedIntentMode: detectIntentMode(statementPrefix, linePrefix),
-        sqlDiagnosticsText: formatNearbySqlDiagnosticsForPrompt(document, position),
-    };
-}
-
 function formatNearbySqlDiagnosticsForPrompt(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -2406,17 +2471,6 @@ function detectIntentMode(statementPrefix: string, linePrefix: string): boolean 
     return detectIntentComment(statementPrefix, linePrefix);
 }
 
-/**
- * Version of the response SANITIZER (WI-3.4 / addendum §7.7: replay
- * provenance captures the sanitizer version so response-handling comparisons
- * are honest across sanitizer generations).
- *
- * BUMP THIS on ANY observable change to `sanitizeInlineCompletionText` or any
- * helper it calls (fence/reasoning/preamble stripping, echo removal, meta
- * detection, truncation rules, sentinel handling).
- */
-export const INLINE_COMPLETION_SANITIZER_VERSION = "1";
-
 export function sanitizeInlineCompletionText(
     completionText: string,
     maxChars: number,
@@ -2530,7 +2584,15 @@ function unwrapQuotedResponse(text: string): string {
 
     for (const [openQuote, closeQuote] of quotePairs) {
         if (trimmed.startsWith(openQuote) && trimmed.endsWith(closeQuote)) {
-            return trimmed.slice(openQuote.length, trimmed.length - closeQuote.length);
+            const inner = trimmed.slice(openQuote.length, trimmed.length - closeQuote.length);
+            if (
+                /\r?\n/.test(inner) ||
+                /^(?:select|with|insert|update|delete|merge|create|alter|drop|exec(?:ute)?|declare|set|begin|if|while|use|grant|revoke|deny)\b/i.test(
+                    inner.trimStart(),
+                )
+            ) {
+                return inner;
+            }
         }
     }
 
@@ -2724,9 +2786,7 @@ export function formatSchemaContextForPrompt(
     const inventoryChunkSize = metadata?.inventoryChunkSize ?? 8;
     const lines: string[] = [];
     lines.push(
-        `-- connection: ${schemaContext.server ?? "unknown server"} / ${
-            schemaContext.database ?? "unknown database"
-        }, default schema ${schemaContext.defaultSchema ?? "dbo"}, engine: ${
+        `-- default schema: ${schemaContext.defaultSchema ?? "dbo"}, engine: ${
             schemaContext.engineEditionName ?? "unknown"
         }`,
     );
@@ -3423,4 +3483,63 @@ function findLastNonEmptyLineBefore(
     }
 
     return -1;
+}
+
+// Increment when prompt/sanitizer behavior changes so replay provenance remains explicit.
+export const INLINE_COMPLETION_PROMPT_BUILDER_VERSION = "2";
+export const INLINE_COMPLETION_SANITIZER_VERSION = "1";
+
+/** The document/editor context slice one completion request is built from. */
+export interface InlineCompletionDocumentContext {
+    documentUri: string;
+    documentFileName: string;
+    languageId: string;
+    line: number;
+    column: number;
+    linePrefix: string;
+    lineSuffix: string;
+    statementPrefix: string;
+    recentPrefix: string;
+    suffix: string;
+    inferredSystemQuery: boolean;
+    detectedIntentMode: boolean;
+    sqlDiagnosticsText: string;
+}
+
+/**
+ * Extract the SAME context windows the live completion provider builds, for
+ * an arbitrary document + position (WI-3.4 `liveDocumentScenario`: replay
+ * re-executes against the current active document state through exactly the
+ * production extraction path — same window sizes, same statement-boundary
+ * logic, same diagnostics formatting).
+ */
+export function extractInlineCompletionDocumentContext(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+): InlineCompletionDocumentContext {
+    const line = document.lineAt(position.line);
+    const linePrefix = line.text.slice(0, position.character);
+    const lineSuffix = line.text.slice(position.character);
+    const statementPrefix = getStatementAwarePrefixWindow(
+        document,
+        position,
+        statementPrefixWindowChars,
+    );
+    const recentPrefix = getRecentDocumentPrefixWindow(document, position, recentPrefixWindowChars);
+    const suffix = getSuffixWindow(document, position, suffixWindowChars);
+    return {
+        documentUri: document.uri.toString(),
+        documentFileName: document.fileName.split(/[\\/]/).pop() ?? document.fileName,
+        languageId: document.languageId,
+        line: position.line,
+        column: position.character,
+        linePrefix,
+        lineSuffix,
+        statementPrefix,
+        recentPrefix,
+        suffix,
+        inferredSystemQuery: inferSystemQuery(statementPrefix, linePrefix),
+        detectedIntentMode: detectIntentMode(statementPrefix, linePrefix),
+        sqlDiagnosticsText: formatNearbySqlDiagnosticsForPrompt(document, position),
+    };
 }

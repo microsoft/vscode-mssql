@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { locConstants } from "../../../common/locConstants";
 import { Button, Tooltip, makeStyles, shorthands } from "@fluentui/react-components";
 import { ArrowSyncRegular } from "@fluentui/react-icons";
 import { useInlineCompletionDebugSelector } from "../inlineCompletionDebugSelector";
@@ -57,14 +58,20 @@ export function ReplayCartButton() {
     const disabled = replay.cart.length === 0 && !runIsActive;
     const label = runIsActive
         ? activeRun.status === "cancelling"
-            ? `Replay cancelling ${activeRun.completedEvents}/${activeRun.totalEvents}`
-            : `Replay running ${activeRun.completedEvents}/${activeRun.totalEvents}`
-        : "Replay";
+            ? locConstants.inlineCompletionDebug.replayCancelling01(
+                  String(activeRun.completedEvents),
+                  String(activeRun.totalEvents),
+              )
+            : locConstants.inlineCompletionDebug.replayRunning01(
+                  String(activeRun.completedEvents),
+                  String(activeRun.totalEvents),
+              )
+        : locConstants.inlineCompletionDebug.replay;
     const tooltip = runIsActive
-        ? "Open the replay trace builder while the current run continues"
+        ? locConstants.inlineCompletionDebug.openTheReplayTraceBuilderWhileThe
         : replay.cart.length > 0
-          ? "Open the replay trace builder"
-          : "Add events to the replay trace first";
+          ? locConstants.inlineCompletionDebug.openTheReplayTraceBuilder
+          : locConstants.inlineCompletionDebug.addEventsToTheReplayTraceFirst;
 
     return (
         <Tooltip content={tooltip} relationship="label">

@@ -19,7 +19,7 @@ import {
     ReplayRunRepository,
 } from "../../diagnostics/featureCapture/replayRunRepository";
 import { JournalFsLike } from "../../diagnostics/featureCapture/journal/journalWriter";
-import { logger2 } from "../../models/logger2";
+import { logger as logger2 } from "../../models/logger";
 import { ReplayProvenance } from "../../sharedInterfaces/replaySafety";
 
 export interface CompletionsReplayRunPersistenceDeps {

@@ -19,6 +19,7 @@
  */
 
 import type { CatalogSnapshot, ObjectKind } from "../../../services/metadata/catalogModel";
+import { ObjectExplorerV2 } from "../../../constants/locConstants";
 import type { MetadataStatus } from "../../../services/metadata/metadataService";
 import type {
     IPinnedServerCatalogView,
@@ -63,14 +64,14 @@ function withStaleNotice(
     }
     const detail =
         facts.staleReason === "accessChanged"
-            ? "database access may have changed"
+            ? ObjectExplorerV2.databaseAccessMayHaveChanged
             : facts.staleReason === "permissionChanged"
-              ? "permissions may have changed"
-              : "using last known catalog";
+              ? ObjectExplorerV2.permissionsMayHaveChanged
+              : ObjectExplorerV2.usingLastKnownCatalog;
     return [
         statusNode(
             `${scope}#staleNotice`,
-            `Metadata not validated — ${detail} (refresh to retry).`,
+            ObjectExplorerV2.metadataNotValidated(detail),
             connectionId,
         ),
         ...children,
@@ -89,12 +90,7 @@ const OBJECT_ICONS: Record<OeV2ObjectKind, string> = {
 /** Stale-path honesty for folder ids the hierarchy registry doesn't know. */
 function unknownFolderError(scope: string, connectionId: string, folder: string): OeV2Node[] {
     return [
-        errorNode(
-            scope,
-            `Folder '${folder}' is not part of the current layout. Refresh the parent node.`,
-            connectionId,
-            "staleFolder",
-        ),
+        errorNode(scope, ObjectExplorerV2.folderNotCurrent(folder), connectionId, "staleFolder"),
     ];
 }
 
@@ -145,7 +141,7 @@ function serverFolderNode(connectionId: string, def: OeV2FolderDef): OeV2Node {
         id: encodePath(path),
         path,
         kind: "serverFolder",
-        label: def.label,
+        label: ObjectExplorerV2.folderLabel(def.label),
         collapsible: true,
         connectionId,
         readiness: NOT_APPLICABLE,
@@ -182,7 +178,10 @@ export function serverAuxFolderChildren(
         return [
             errorNode(
                 scope,
-                `${def.label} unavailable: ${section.errorMessage ?? "section failed"}. Refresh to retry.`,
+                ObjectExplorerV2.folderUnavailable(
+                    ObjectExplorerV2.folderLabel(def.label),
+                    section.errorMessage ?? ObjectExplorerV2.sectionFailed,
+                ),
                 connectionId,
             ),
         ];
@@ -204,7 +203,7 @@ export function serverAuxFolderChildren(
             path,
             kind: "serverObject",
             label: item.name,
-            ...(disabled ? { description: "disabled" } : {}),
+            ...(disabled ? { description: ObjectExplorerV2.disabled } : {}),
             collapsible: false,
             connectionId,
             readiness: NOT_APPLICABLE,
@@ -221,7 +220,7 @@ export function serverChildren(connectionId: string, facts: OeV2ScopeFacts = {})
             id: encodePath(path),
             path,
             kind: "serverFolder",
-            label: def.label,
+            label: ObjectExplorerV2.folderLabel(def.label),
             collapsible: true,
             connectionId,
             readiness: NOT_APPLICABLE,
@@ -246,7 +245,9 @@ export function databasesFolderChildren(
         return [
             errorNode(
                 scope,
-                `Databases unavailable: ${status.errorMessage ?? "server catalog failed"}. Refresh to retry.`,
+                ObjectExplorerV2.databasesUnavailable(
+                    status.errorMessage ?? ObjectExplorerV2.serverCatalogFailed,
+                ),
                 connectionId,
             ),
         ];
@@ -284,7 +285,7 @@ function systemDatabasesFolderNode(connectionId: string): OeV2Node {
         id: encodePath(path),
         path,
         kind: "serverFolder",
-        label: "System Databases",
+        label: ObjectExplorerV2.systemDatabases,
         collapsible: true,
         connectionId,
         readiness: NOT_APPLICABLE,
@@ -308,7 +309,9 @@ export function systemDatabasesFolderChildren(
         return [
             errorNode(
                 scope,
-                `Databases unavailable: ${status.errorMessage ?? "server catalog failed"}. Refresh to retry.`,
+                ObjectExplorerV2.databasesUnavailable(
+                    status.errorMessage ?? ObjectExplorerV2.serverCatalogFailed,
+                ),
                 connectionId,
             ),
         ];
@@ -332,11 +335,14 @@ export function systemDatabasesFolderChildren(
 export function databaseNode(connectionId: string, info: ServerDatabaseInfo): OeV2Node {
     const path: OeV2Path = { kind: "database", connectionId, database: info.name };
     const inaccessible = info.accessState === "inaccessible";
-    const stateNote = info.state && info.state !== "ONLINE" ? info.state.toLowerCase() : undefined;
+    const stateNote =
+        info.state && info.state !== "ONLINE"
+            ? ObjectExplorerV2.databaseStateLabel(info.state)
+            : undefined;
     const description = [
         stateNote,
-        inaccessible ? "no access" : undefined,
-        info.isReadOnly ? "read-only" : undefined,
+        inaccessible ? ObjectExplorerV2.noAccess : undefined,
+        info.isReadOnly ? ObjectExplorerV2.readOnly : undefined,
     ]
         .filter(Boolean)
         .join(" · ");
@@ -350,7 +356,7 @@ export function databaseNode(connectionId: string, info: ServerDatabaseInfo): Oe
         connectionId,
         database: info.name,
         readiness: inaccessible
-            ? { kind: "permissionDenied", message: "No access to this database." }
+            ? { kind: "permissionDenied", message: ObjectExplorerV2.databaseNoAccess }
             : NOT_APPLICABLE,
         capabilities: {
             canRefresh: true,
@@ -371,7 +377,7 @@ function databaseFolderNode(connectionId: string, database: string, def: OeV2Fol
         id: encodePath(path),
         path,
         kind: "databaseFolder",
-        label: def.label,
+        label: ObjectExplorerV2.folderLabel(def.label),
         collapsible: true,
         connectionId,
         database,
@@ -402,17 +408,14 @@ function catalogGate(
         return [loadingNode(scope, connectionId)];
     }
     if (status.readiness === "failed" || !snapshot) {
-        return [errorNode(scope, "Metadata failed to load. Refresh to retry.", connectionId)];
+        return [errorNode(scope, ObjectExplorerV2.metadataFailed, connectionId)];
     }
     const sectionState = (snapshot.readiness as Record<string, string>)[section];
+    if (sectionState === "absent" || sectionState === "loading") {
+        return [loadingNode(scope, connectionId)];
+    }
     if (sectionState === "failed") {
-        return [
-            errorNode(
-                scope,
-                `Metadata section '${section}' failed. Refresh to retry.`,
-                connectionId,
-            ),
-        ];
+        return [errorNode(scope, ObjectExplorerV2.metadataSectionFailed(section), connectionId)];
     }
     return undefined; // ready (possibly stale) — render real children
 }
@@ -469,20 +472,15 @@ export function databaseFolderChildren(
         if (gate) {
             return [...before, ...gate, ...after];
         }
-        content = withStaleNotice(
+        content = databaseFolderContent(
             scope,
             connectionId,
-            databaseFolderContent(
-                scope,
-                connectionId,
-                database,
-                def,
-                snapshot!,
-                groupBySchema,
-                schema,
-                aux,
-            ),
-            freshness,
+            database,
+            def,
+            snapshot!,
+            groupBySchema,
+            schema,
+            aux,
         );
     } else if (def.facetFlag === "isExternal" && def.objectKinds) {
         // External Tables (v1 parity): items are REAL catalog objects
@@ -496,30 +494,36 @@ export function databaseFolderChildren(
         const objects = snapshot!
             .listObjects(schema, [...def.objectKinds])
             .filter((info) => (facetsById.get(info.objectId)?.[def.facetFlag] ?? 0) === 1);
-        content = withStaleNotice(
-            scope,
-            connectionId,
-            objects.length === 0
-                ? [noItemsNode(scope, connectionId)]
-                : objects.map((info) =>
-                      objectNode(
-                          connectionId,
-                          database,
-                          info.schema,
-                          info.name,
-                          info.kind as OeV2ObjectKind,
-                          facetPresentation(facetsById.get(info.objectId)),
-                      ),
-                  ),
-            freshness,
-        );
+        if (groupBySchema && schema === undefined) {
+            const schemas = new Set(objects.map((info) => info.schema));
+            content =
+                schemas.size === 0
+                    ? [noItemsNode(scope, connectionId)]
+                    : [...schemas]
+                          .sort(oeV2OrdinalCompare)
+                          .map((name) => schemaFolderNode(connectionId, database, name, def.id));
+        } else {
+            content =
+                objects.length === 0
+                    ? [noItemsNode(scope, connectionId)]
+                    : objects.map((info) =>
+                          objectNode(
+                              connectionId,
+                              database,
+                              info.schema,
+                              info.name,
+                              info.kind as OeV2ObjectKind,
+                              facetPresentation(facetsById.get(info.objectId)),
+                          ),
+                      );
+        }
     } else if (def.section === "aux") {
         // Pure parent folder: registry children ARE the content.
         content = before.length + after.length === 0 ? [noItemsNode(scope, connectionId)] : [];
     } else {
         content = databaseAuxLeafContent(scope, connectionId, database, def, facts, aux);
     }
-    return [...before, ...content, ...after];
+    return withStaleNotice(scope, connectionId, [...before, ...content, ...after], freshness);
 }
 
 /** K3 exclusion: history/dropped/external rows never render in the main
@@ -554,19 +558,19 @@ function facetPresentation(
             ? { historyTableId: facetValues.historyTableId }
             : {};
     if (facetValues.ledgerType === 2) {
-        return { suffix: "(Updatable Ledger)", icon: "Table_Ledger", ...history };
+        return { suffix: ObjectExplorerV2.updatableLedger, icon: "Table_Ledger", ...history };
     }
     if (facetValues.ledgerType === 3) {
-        return { suffix: "(Append-Only Ledger)", icon: "Table_Ledger" };
+        return { suffix: ObjectExplorerV2.appendOnlyLedger, icon: "Table_Ledger" };
     }
     if (facetValues.temporalType === 2) {
-        return { suffix: "(System-Versioned)", icon: "Table_Temporal", ...history };
+        return { suffix: ObjectExplorerV2.systemVersioned, icon: "Table_Temporal", ...history };
     }
     if (facetValues.isExternal === 1) {
-        return { suffix: "(External)", icon: "ExternalTable" };
+        return { suffix: ObjectExplorerV2.external, icon: "ExternalTable" };
     }
     if (facetValues.isFileTable === 1) {
-        return { suffix: "(FileTable)" };
+        return { suffix: ObjectExplorerV2.fileTable };
     }
     if (facetValues.isNode === 1) {
         return { icon: "Table_GraphNode" };
@@ -627,28 +631,9 @@ function databaseFolderContent(
         if (withObjects.size === 0) {
             return [noItemsNode(scope, connectionId)];
         }
-        return [...withObjects].sort().map((name) => {
-            const path: OeV2Path = {
-                kind: "schemaFolder",
-                connectionId,
-                database,
-                schema: name,
-                folder: def.id,
-            };
-            return {
-                id: encodePath(path),
-                path,
-                kind: "schema",
-                label: name,
-                collapsible: true,
-                connectionId,
-                database,
-                schema: name,
-                readiness: NOT_APPLICABLE,
-                capabilities: {},
-                icon: "Schema",
-            } satisfies OeV2Node;
-        });
+        return [...withObjects]
+            .sort(oeV2OrdinalCompare)
+            .map((name) => schemaFolderNode(connectionId, database, name, def.id));
     }
     const objects = snapshot
         .listObjects(schema, objectKinds)
@@ -666,6 +651,47 @@ function databaseFolderContent(
             facetPresentation(facets.get(info.objectId)),
         ),
     );
+}
+
+/** Same deterministic, case-folded ordering used by CatalogSnapshot lists. */
+function oeV2OrdinalCompare(a: string, z: string): number {
+    const foldedA = a.toLowerCase();
+    const foldedZ = z.toLowerCase();
+    if (foldedA < foldedZ) {
+        return -1;
+    }
+    if (foldedA > foldedZ) {
+        return 1;
+    }
+    return a < z ? -1 : a > z ? 1 : 0;
+}
+
+function schemaFolderNode(
+    connectionId: string,
+    database: string,
+    schema: string,
+    folder: string,
+): OeV2Node {
+    const path: OeV2Path = {
+        kind: "schemaFolder",
+        connectionId,
+        database,
+        schema,
+        folder,
+    };
+    return {
+        id: encodePath(path),
+        path,
+        kind: "schema",
+        label: schema,
+        collapsible: true,
+        connectionId,
+        database,
+        schema,
+        readiness: NOT_APPLICABLE,
+        capabilities: {},
+        icon: "Schema",
+    };
 }
 
 /** Item icons per database aux folder (classic media/objectTypes assets). */
@@ -728,7 +754,10 @@ function databaseAuxLeafContent(
         return [
             errorNode(
                 scope,
-                `${def.label} unavailable: ${section.errorMessage ?? "section failed"}. Refresh to retry.`,
+                ObjectExplorerV2.folderUnavailable(
+                    ObjectExplorerV2.folderLabel(def.label),
+                    section.errorMessage ?? ObjectExplorerV2.sectionFailed,
+                ),
                 connectionId,
             ),
         ];
@@ -756,7 +785,8 @@ function databaseAuxLeafContent(
             connectionId,
             database,
             folder: def.id,
-            name: item.schema ? `${item.schema}.${item.name}` : item.name,
+            ...(item.schema ? { schema: item.schema } : {}),
+            name: item.name,
         };
         const disabled = item.subType === "disabled";
         const icon =
@@ -772,7 +802,7 @@ function databaseAuxLeafContent(
             path,
             kind: "databaseObject",
             label: item.schema ? `${item.schema}.${item.name}` : item.name,
-            ...(disabled ? { description: "disabled" } : {}),
+            ...(disabled ? { description: ObjectExplorerV2.disabled } : {}),
             collapsible: false,
             connectionId,
             database,
@@ -845,16 +875,16 @@ export function objectNode(
 const OBJECT_CHILD_FOLDERS: Record<OeV2ObjectKind, { folder: OeV2ObjectFolder; label: string }[]> =
     {
         table: [
-            { folder: "columns", label: "Columns" },
-            { folder: "keys", label: "Keys" },
-            { folder: "foreignKeys", label: "Foreign Keys" },
+            { folder: "columns", label: ObjectExplorerV2.columns },
+            { folder: "keys", label: ObjectExplorerV2.keys },
+            { folder: "foreignKeys", label: ObjectExplorerV2.foreignKeys },
         ],
-        view: [{ folder: "columns", label: "Columns" }],
-        procedure: [{ folder: "parameters", label: "Parameters" }],
-        scalarFunction: [{ folder: "parameters", label: "Parameters" }],
+        view: [{ folder: "columns", label: ObjectExplorerV2.columns }],
+        procedure: [{ folder: "parameters", label: ObjectExplorerV2.parameters }],
+        scalarFunction: [{ folder: "parameters", label: ObjectExplorerV2.parameters }],
         tableFunction: [
-            { folder: "columns", label: "Columns" },
-            { folder: "parameters", label: "Parameters" },
+            { folder: "columns", label: ObjectExplorerV2.columns },
+            { folder: "parameters", label: ObjectExplorerV2.parameters },
         ],
         synonym: [],
     };
@@ -873,7 +903,7 @@ export function objectChildren(
                   historyTable.schema,
                   historyTable.name,
                   "table",
-                  { suffix: "(History)", icon: "HistoryTable" },
+                  { suffix: ObjectExplorerV2.history, icon: "HistoryTable" },
               ),
           ]
         : [];
@@ -931,12 +961,7 @@ export function objectFolderChildren(
         .find((info) => info.name === path.name)?.objectId;
     if (objectId === undefined) {
         return [
-            errorNode(
-                scope,
-                "Object not found in the current catalog generation. Refresh the parent folder.",
-                path.connectionId,
-                "staleObject",
-            ),
+            errorNode(scope, ObjectExplorerV2.objectNotFound, path.connectionId, "staleObject"),
         ];
     }
     return withStaleNotice(
@@ -969,10 +994,10 @@ function objectFolderContent(
                           column: column.name,
                       };
                       const badges = [
-                          pkColumns.has(column.name) ? "PK" : undefined,
-                          column.isIdentity ? "identity" : undefined,
-                          column.isComputed ? "computed" : undefined,
-                          column.nullable ? "null" : "not null",
+                          pkColumns.has(column.name) ? ObjectExplorerV2.primaryKey : undefined,
+                          column.isIdentity ? ObjectExplorerV2.identity : undefined,
+                          column.isComputed ? ObjectExplorerV2.computed : undefined,
+                          column.nullable ? ObjectExplorerV2.nullValue : ObjectExplorerV2.notNull,
                       ].filter(Boolean);
                       return {
                           id: encodePath(columnPath),
@@ -996,11 +1021,11 @@ function objectFolderContent(
                 ? [noItemsNode(scope, path.connectionId)]
                 : constraints.map((constraint) => {
                       const keyPath: OeV2Path = {
-                          kind: "column",
+                          kind: "key",
                           ...base,
                           schema: path.schema,
                           objectName: path.name,
-                          column: `key:${constraint.name}`,
+                          name: constraint.name,
                       };
                       return {
                           id: encodePath(keyPath),
@@ -1008,7 +1033,9 @@ function objectFolderContent(
                           kind: "key",
                           label: constraint.name,
                           description: `${
-                              constraint.kind === "primaryKey" ? "PK" : "UQ"
+                              constraint.kind === "primaryKey"
+                                  ? ObjectExplorerV2.primaryKey
+                                  : ObjectExplorerV2.uniqueKey
                           } (${constraint.columns.join(", ")})`,
                           collapsible: false,
                           ...base,
@@ -1026,11 +1053,11 @@ function objectFolderContent(
                 : details.map((detail) => {
                       const target = snapshot.getObject(detail.toObjectId);
                       const fkPath: OeV2Path = {
-                          kind: "column",
+                          kind: "foreignKey",
                           ...base,
                           schema: path.schema,
                           objectName: path.name,
-                          column: `fk:${detail.name}`,
+                          name: detail.name,
                       };
                       const pairs = detail.columns
                           .map((pair) => `${pair.fromColumn}→${pair.toColumn}`)
@@ -1041,7 +1068,7 @@ function objectFolderContent(
                           kind: "foreignKey",
                           label: detail.name,
                           description: `→ ${
-                              target ? `${target.schema}.${target.name}` : "(unknown)"
+                              target ? `${target.schema}.${target.name}` : ObjectExplorerV2.unknown
                           } (${pairs})`,
                           collapsible: false,
                           ...base,
@@ -1052,9 +1079,7 @@ function objectFolderContent(
                   });
         }
         case "parameters": {
-            const parameters = snapshot!
-                .getParameters(objectId)
-                .filter((parameter) => parameter.ordinal > 0 || parameter.name !== "");
+            const parameters = snapshot!.getParameters(objectId);
             return parameters.length === 0
                 ? [noItemsNode(scope, path.connectionId)]
                 : parameters.map((parameter) => {
@@ -1070,8 +1095,10 @@ function objectFolderContent(
                           id: encodePath(parameterPath),
                           path: parameterPath,
                           kind: "parameter",
-                          label: parameter.name || "(return value)",
-                          description: `${parameter.typeDisplay}${parameter.isOutput ? ", output" : ""}`,
+                          label: parameter.name || ObjectExplorerV2.returnValue,
+                          description: `${parameter.typeDisplay}${
+                              parameter.isOutput ? `, ${ObjectExplorerV2.outputLowercase}` : ""
+                          }`,
                           collapsible: false,
                           ...base,
                           readiness: NOT_APPLICABLE,

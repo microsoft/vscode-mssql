@@ -15,7 +15,7 @@
  */
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
-import { SqlActivityRow, WaterfallModel } from "./debugConsole";
+import { SqlActivityResult, WaterfallModel } from "./debugConsole";
 
 // --- sources -----------------------------------------------------------------
 
@@ -380,7 +380,7 @@ export namespace PhGetWaterfallRequest {
     );
 }
 export namespace PhGetSqlActivityRequest {
-    export const type = new RequestType<PerfWaterfallQuery, SqlActivityRow[], void>(
+    export const type = new RequestType<PerfWaterfallQuery, SqlActivityResult, void>(
         "ph/getSqlActivity",
     );
 }

@@ -36,7 +36,7 @@ import {
     SecurityTokenRequest,
 } from "../models/contracts/azure";
 import * as ConnectionContracts from "../models/contracts/connection";
-import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
+import { ClearPooledConnectionsRequest } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
 import {
     AuthenticationTypes,
@@ -69,7 +69,7 @@ import { getServerTypes, canCheckDatabasePauseStatus } from "../models/connectio
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
 import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
-import { PreviewFeature, previewService } from "../previews/previewService";
+import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
 
 /**
  * Maximum number of connection retries when a target serverless Azure SQL database is
@@ -158,6 +158,15 @@ export default class ConnectionManager {
         new vscode.EventEmitter<ConnectionSuccessfulEvent>();
     public readonly onSuccessfulConnection: vscode.Event<ConnectionSuccessfulEvent> =
         this._onSuccessfulConnectionEmitter.event;
+
+    private _onDidChangeDatabaseContextEmitter: vscode.EventEmitter<string> =
+        new vscode.EventEmitter<string>();
+    /**
+     * Fires with the owner URI when a connection's database changes without reconnecting, such as
+     * through a `USE` statement.
+     */
+    public readonly onDidChangeDatabaseContext: vscode.Event<string> =
+        this._onDidChangeDatabaseContextEmitter.event;
 
     public initialized: Deferred<void> = new Deferred<void>();
 
@@ -620,6 +629,7 @@ export default class ConnectionManager {
                 );
 
                 self._logger.info(logMessage);
+                self._onDidChangeDatabaseContextEmitter.fire(event.ownerUri);
             }
         };
     }
@@ -633,9 +643,7 @@ export default class ConnectionManager {
         const self = this;
         return (params: ConnectionContracts.RefreshTokenParams): void => {
             void (async () => {
-                const useVscodeAccountsForEntraMFA = previewService.isFeatureEnabled(
-                    PreviewFeature.UseVscodeAccountsForEntraMFA,
-                );
+                const useVscodeAccountsForEntraMFA = !getUseMsalEntraMfaAuthConfig();
 
                 // Always send a tokenRefreshed notification back to STS so it can unblock
                 // IntelliSense (via TokenUpdateUris). On failure, send empty token/expiresOn=0;
@@ -869,12 +877,6 @@ export default class ConnectionManager {
             LocalizedConstants.Common.cancel,
         );
         if (selection === LocalizedConstants.enableTrustServerCertificate) {
-            if (profile.connectionString) {
-                // Append connection string with encryption options
-                profile.connectionString = profile.connectionString.concat(
-                    "; Encrypt=true; Trust Server Certificate=true;",
-                );
-            }
             profile.encrypt = EncryptOptions.Mandatory;
             profile.trustServerCertificate = true;
             await reconnectAction(profile);
@@ -939,49 +941,6 @@ export default class ConnectionManager {
             let connectionToSave: IConnectionInfo = Object.assign({}, connection.credentials);
             await this._connectionStore.addRecentlyUsed(connectionToSave);
         }
-    }
-
-    /**
-     * Populates a credential object based on the credential connection string
-     */
-    private async populateCredentialsFromConnectionString(
-        credentials: IConnectionInfo,
-        connectionSummary: ConnectionSummary,
-    ): Promise<IConnectionInfo> {
-        // populate credential details
-        credentials.database = connectionSummary.databaseName;
-        credentials.user = connectionSummary.userName;
-        credentials.server = connectionSummary.serverName;
-
-        // save credentials if needed
-        let isPasswordBased: boolean = ConnectionCredentials.isPasswordBasedConnectionString(
-            credentials.connectionString,
-        );
-        if (isPasswordBased) {
-            // save the connection string here
-            await this._connectionStore.saveProfileWithConnectionString(
-                credentials as IConnectionProfile,
-            );
-            // replace the conn string from the profile
-            credentials.connectionString = ConnectionStore.formatCredentialId(
-                credentials.server,
-                credentials.database,
-                credentials.user,
-                ConnectionStore.CRED_PROFILE_USER,
-                true,
-            );
-
-            // set auth type
-            credentials.authenticationType = Constants.sqlAuthentication;
-
-            // set savePassword to true so that credentials are automatically
-            // deleted if the settings file is manually changed
-            (credentials as IConnectionProfile).savePassword = true;
-        } else {
-            credentials.authenticationType = Constants.integratedauth;
-        }
-
-        return credentials;
     }
 
     /**
@@ -1272,7 +1231,7 @@ export default class ConnectionManager {
 
         // 2. If the user is using VS Code accounts for Entra MFA, use that flow to refresh the token.
         // STS cannot read VS Code auth sessions, so this path still needs to pass a token.
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+        if (!getUseMsalEntraMfaAuthConfig()) {
             const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
 
             if (
@@ -1784,8 +1743,7 @@ export default class ConnectionManager {
         telemetryActivity?: ActivityObject,
     ): Promise<IConnectionInfo> {
         const telemetryActivityErrorType = "ConnectionPreparationError";
-        // Verify that the connection info has server or connection string
-        if (!credentials.server && !credentials.connectionString) {
+        if (!credentials.server) {
             const error = new Error(LocalizedConstants.serverNameMissing);
             telemetryActivity?.endFailed(
                 error,
@@ -1826,15 +1784,6 @@ export default class ConnectionManager {
                 undefined,
             );
             throw passwordError;
-        }
-
-        // Handle connection string-based credentials
-        if (
-            credentials.connectionString?.includes(ConnectionStore.CRED_PREFIX) &&
-            credentials.connectionString?.includes("isConnectionString:true")
-        ) {
-            let connectionString = await this.connectionStore.lookupPassword(credentials, true);
-            credentials.connectionString = connectionString;
         }
 
         if (
@@ -1888,15 +1837,6 @@ export default class ConnectionManager {
          * Connection was successful
          */
 
-        // Legacy connection string code. TODO: MAYBE GET RID OF THIS.
-        if (connectionInfo.credentials.connectionString) {
-            connectionInfo.credentials = await this.populateCredentialsFromConnectionString(
-                connectionInfo.credentials,
-                result.connectionSummary,
-            );
-        }
-        // END legacy connection string code.
-
         // Saving server info to the map
         this._connectionCredentialsToServerInfoMap.set(
             connectionInfo.credentials,
@@ -1917,6 +1857,7 @@ export default class ConnectionManager {
         connectionInfo.errorMessage = undefined;
 
         void this.statusView.connectSuccess(fileUri, newCredentials, connectionInfo.serverInfo);
+        this.statusView.setServerProcessId(fileUri, result.serverConnectionId);
 
         this.statusView.languageServiceStatusChanged(
             fileUri,
@@ -1973,7 +1914,7 @@ export default class ConnectionManager {
         errorHandled?: SqlConnectionErrorType;
     }> {
         // Helper for "learn more" prompts
-        const showWithHelp = async (message: string, helpLabel: string, helpUrl: string) => {
+        const showWithLearnMore = async (message: string, helpLabel: string, helpUrl: string) => {
             const action = await vscode.window.showErrorMessage(message, helpLabel);
             if (action === helpLabel) {
                 await vscode.env.openExternal(vscode.Uri.parse(helpUrl));
@@ -2040,10 +1981,10 @@ export default class ConnectionManager {
                 };
             }
         } else if (errorType === SqlConnectionErrorType.KerberosNonWindows) {
-            await showWithHelp(
+            await showWithLearnMore(
                 LocalizedConstants.msgConnectionError2(errorMessage),
-                LocalizedConstants.help,
-                Constants.integratedAuthHelpLink,
+                LocalizedConstants.Common.learnMore,
+                Constants.Links.authKerberosHelp,
             );
             return {
                 isHandled: false,
@@ -2314,7 +2255,6 @@ export default class ConnectionManager {
 
     /**
      * Perform startup checks for connections:
-     * - migrates legacy connection strings
      * - emits basic connection stats
      */
     private async performConnectionStartupChecks(): Promise<void> {
@@ -2325,22 +2265,12 @@ export default class ConnectionManager {
         const connectionGroups: IConnectionGroup[] =
             await this.connectionStore.readAllConnectionGroups();
 
-        const migrationTally = {
-            migrated: 0,
-            notNeeded: 0,
-            error: 0,
-        };
-
         const orderingTally = {
             orderedConnections: 0,
             orderedGroups: 0,
         };
 
         for (const connection of connections) {
-            const result = await this.migrateLegacyConnection(connection);
-
-            migrationTally[result] = (migrationTally[result] || 0) + 1;
-
             if (connection.order !== undefined) {
                 orderingTally.orderedConnections++;
             }
@@ -2352,93 +2282,14 @@ export default class ConnectionManager {
             }
         }
 
-        if (migrationTally.migrated > 0) {
-            this._logger.info(
-                `Completed migration of legacy Connection String connections. (${migrationTally.migrated} migrated, ${migrationTally.notNeeded} not needed, ${migrationTally.error} errored)`,
-            );
-        } else {
-            this._logger.info(
-                `No legacy Connection String connections found to migrate. (${migrationTally.notNeeded} not needed, ${migrationTally.error} errored)`,
-            );
-        }
-
         sendActionEvent(TelemetryViews.Connection, TelemetryActions.Stats, {
             additionalProps: {},
             additionalMeasurements: {
                 connectionCount: connections.length,
                 connectionGroupCount: connectionGroups.length,
-                ...migrationTally,
                 ...orderingTally,
             },
         });
-    }
-
-    private async migrateLegacyConnection(
-        profile: IConnectionProfile,
-    ): Promise<"notNeeded" | "migrated" | "error"> {
-        try {
-            if (Utils.isEmpty(profile.connectionString)) {
-                return "notNeeded"; // Not a connection string profile; skip
-            }
-
-            let connectionString = profile.connectionString;
-
-            // Get the real connection string from credentials store if necessary
-            if (connectionString.includes(ConnectionStore.CRED_CONNECTION_STRING_PREFIX)) {
-                const retrievedString = await this.connectionStore.lookupPassword(profile, true);
-                connectionString = retrievedString ?? connectionString;
-            }
-
-            // merge profile from connection string with existing profile
-            const connDetails = await this.parseConnectionString(connectionString);
-            const profileFromString = ConnectionCredentials.removeUndefinedProperties(
-                ConnectionCredentials.createConnectionInfo(connDetails),
-            );
-
-            const newProfile: IConnectionProfile = {
-                ...profileFromString,
-                ...profile,
-            };
-
-            const passwordIndex = connectionString.toLowerCase().indexOf("password=");
-
-            if (passwordIndex !== -1) {
-                // extract password from connection string
-                const passwordStart = passwordIndex + "password=".length;
-                const passwordEnd = connectionString.indexOf(";", passwordStart);
-
-                newProfile.password = connectionString.substring(
-                    passwordStart,
-                    passwordEnd === -1 ? undefined : passwordEnd, // if no further semicolon found, password must be the last item in the connection string
-                );
-
-                newProfile.savePassword = true;
-            }
-
-            // clear the old connection string from the profile as it no longer has useful information
-            newProfile.connectionString = "";
-
-            await this.connectionStore.saveProfile(newProfile);
-            return "migrated";
-        } catch (err) {
-            this._logger.error(
-                `Error migrating legacy connection with ID ${profile.id}: ${getErrorMessage(err)}`,
-            );
-
-            vscode.window.showErrorMessage(
-                LocalizedConstants.Connection.errorMigratingLegacyConnection(
-                    profile.id,
-                    getErrorMessage(err),
-                ),
-            );
-
-            sendErrorEvent(TelemetryViews.General, TelemetryActions.MigrateLegacyConnections, {
-                error: err,
-                includeErrorMessage: false,
-            });
-
-            return "error";
-        }
     }
 
     /**
@@ -2543,7 +2394,7 @@ export default class ConnectionManager {
             let acquireToken: (accountId: string, tenantId: string) => Promise<IToken | undefined>;
             let onSignIn: () => Promise<string | undefined>;
 
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 this._logger.debug("AKV token request received (VS Code accounts path)");
                 getAccounts = async () => {
                     const accounts = await VsCodeAzureHelper.getAccounts();
@@ -2755,7 +2606,7 @@ export async function getSqlConnectionErrorType(
         return SqlConnectionErrorType.FirewallRuleError;
     } else if (
         !platformInfo.isWindows &&
-        errorMessage?.includes(Constants.errorKerberosSubString)
+        errorMessage?.toLowerCase().includes(Constants.errorKerberosSubString.toLowerCase())
     ) {
         return SqlConnectionErrorType.KerberosNonWindows;
     } else if (

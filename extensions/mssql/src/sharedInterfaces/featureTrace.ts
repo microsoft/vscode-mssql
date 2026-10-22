@@ -75,7 +75,7 @@ export interface FeatureTraceLimits {
 }
 
 export const DEFAULT_FEATURE_TRACE_LIMITS: FeatureTraceLimits = {
-    maxFileBytes: 256 * 1024 * 1024,
+    maxFileBytes: 64 * 1024 * 1024,
     maxEvents: 200_000,
     maxStringLength: 4_000_000,
     maxDepth: 64,

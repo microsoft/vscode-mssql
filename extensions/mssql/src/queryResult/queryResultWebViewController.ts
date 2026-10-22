@@ -25,12 +25,7 @@ import {
 } from "./utils";
 import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
-import {
-    getPreviewConfigKey,
-    isBetaExecutionPlanEnabled,
-    PreviewFeature,
-    previewService,
-} from "../previews/previewService";
+import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 import { getQueryResultWebviewSource } from "./queryResultWebviewSource";
 
 const QUERY_RESULT_VIEW_ID = "queryResult";
@@ -180,21 +175,12 @@ export class QueryResultWebviewController extends WebviewViewController<
                     this.updateSelectionSummary();
                     stateChanged = true;
                 }
-                if (e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaExecutionPlan))) {
-                    const newValue = isBetaExecutionPlanEnabled();
-                    for (const [uri, state] of this._queryResultStateMap) {
-                        if (state.executionPlanState) {
-                            state.executionPlanState.isBetaExecutionPlanEnabled = newValue;
-                        }
-                        this._queryResultStateMap.set(uri, state);
-                    }
-                    stateChanged = true;
-                }
                 if (
                     e.affectsConfiguration("mssql.resultsGrid.alternatingRowColors") ||
                     e.affectsConfiguration("mssql.resultsGrid.freezeFirstColumnByDefault") ||
                     e.affectsConfiguration("mssql.resultsGrid.showGridLines") ||
-                    e.affectsConfiguration("mssql.resultsGrid.rowPadding")
+                    e.affectsConfiguration("mssql.resultsGrid.rowPadding") ||
+                    e.affectsConfiguration("mssql.resultsGrid.rightAlignNumbers")
                 ) {
                     const newValue = this.getGridSettingsConfig();
                     for (const [uri, state] of this._queryResultStateMap) {
@@ -467,7 +453,6 @@ export class QueryResultWebviewController extends WebviewViewController<
                     executionPlanGraphs: [],
                     totalCost: 0,
                     xmlPlans: {},
-                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
             }),
             fontSettings: {
@@ -539,6 +524,8 @@ export class QueryResultWebviewController extends WebviewViewController<
                 false,
             showGridLines,
             rowPadding: config.get(Constants.configResultsGridRowPadding) as number | undefined,
+            rightAlignNumbers:
+                (config.get(Constants.configResultsGridRightAlignNumbers) as boolean) ?? false,
         };
     }
 

@@ -7,11 +7,18 @@
  * Perf-harness run import: maps a perftest run directory (markers.jsonl,
  * result.json, sql-activity.jsonl) into diagnostic events so the Debug
  * Console renders harness runs with the same pages as live sessions.
- * Harness data is synthetic by contract, so text fields import as plain.
+ *
+ * Imports are untrusted input. Marker attrs are contract-governed metadata
+ * and only registered metadata imports plain; SQL text from sql-activity.jsonl is REAL query text
+ * whenever the harness ran with captureSqlText against a real server, so it
+ * goes through the normal sql.text policy (digest — grouping survives,
+ * plaintext never enters diagnostics). Files are read under a size cap and
+ * every line under a UTF-8 byte cap before anything is parsed.
  */
 
 import * as fs from "fs";
 import * as path from "path";
+import { containedPath, isContainedPath } from "./containedPath";
 import {
     DIAG_SCHEMA_VERSION,
     DiagEvent,
@@ -19,6 +26,13 @@ import {
     PerfMetricSample,
     PerfRunInfo,
 } from "../sharedInterfaces/debugConsole";
+import {
+    importClassification,
+    importedEventType,
+    importedFieldKey,
+    validMarkerClock,
+} from "./importClassification";
+import { CAPTURE_POLICIES, classify } from "./redaction";
 
 interface HarnessMarker {
     runId: string;
@@ -59,8 +73,151 @@ function featureFor(name: string): string {
  * Import one rep directory. Returns unified events sorted by time; traceId is
  * the scenario correlation (all markers of one rep share the rep trace).
  */
-/** Imports are untrusted: refuse absurd single lines outright. */
-const MAX_MARKER_LINE_BYTES = 512 * 1024;
+/** Imports are untrusted: refuse absurd single lines outright (UTF-8 bytes). */
+export const MAX_MARKER_LINE_BYTES = 512 * 1024;
+/**
+ * Whole-file cap. A soak rep accumulates every iteration's markers in one
+ * file, and readFileSync above ~512 MB throws ERR_STRING_TOO_LONG on the
+ * extension host; refuse honestly instead.
+ */
+export const MAX_JSONL_FILE_BYTES = 64 * 1024 * 1024;
+
+export interface BoundedJsonl {
+    /** Non-empty, trimmed lines within the per-line byte cap. */
+    lines: string[];
+    /** Lines refused for exceeding MAX_MARKER_LINE_BYTES. */
+    refusedLines: number;
+    /** Set when the whole file was refused; `lines` is then empty. */
+    refusedReason?: string;
+}
+
+/**
+ * Read a JSONL artifact with both bounds enforced BEFORE parsing: the file
+ * size (never a soak-sized markers.jsonl into a string) and each line's
+ * UTF-8 byte length (not UTF-16 code units).
+ */
+export function readJsonlBounded(file: string, maxFileBytes = MAX_JSONL_FILE_BYTES): BoundedJsonl {
+    let size: number;
+    try {
+        file = containedPath(path.parse(path.resolve(file)).root, file);
+        size = fs.statSync(file).size;
+    } catch {
+        return { lines: [], refusedLines: 0, refusedReason: "unreadable" };
+    }
+    if (size > maxFileBytes) {
+        return {
+            lines: [],
+            refusedLines: 0,
+            refusedReason: `file is ${size} bytes, over the ${maxFileBytes}-byte import cap`,
+        };
+    }
+    const lines: string[] = [];
+    let refusedLines = 0;
+    for (const line of fs.readFileSync(file, "utf8").split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        if (Buffer.byteLength(trimmed, "utf8") > MAX_MARKER_LINE_BYTES) {
+            refusedLines++;
+            continue;
+        }
+        lines.push(trimmed);
+    }
+    return { lines, refusedLines };
+}
+
+/** Minimal JSONC reader for run-config.snapshot.jsonc (comments + trailing commas). */
+export function parseJsonc(text: string): unknown {
+    let out = "";
+    let inString = false;
+    let escaped = false;
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inString) {
+            out += ch;
+            if (escaped) {
+                escaped = false;
+            } else if (ch === "\\") {
+                escaped = true;
+            } else if (ch === '"') {
+                inString = false;
+            }
+            continue;
+        }
+        if (ch === '"') {
+            inString = true;
+            out += ch;
+        } else if (ch === "/" && text[i + 1] === "/") {
+            while (i < text.length && text[i] !== "\n") i++;
+        } else if (ch === "/" && text[i + 1] === "*") {
+            i += 2;
+            while (i < text.length && !(text[i] === "*" && text[i + 1] === "/")) i++;
+            i++;
+        } else {
+            out += ch;
+        }
+    }
+    return JSON.parse(out.replace(/,(\s*[}\]])/g, "$1"));
+}
+
+/**
+ * Warmup reps are NOT flagged in result.json: the harness's own loader
+ * derives them as `repId < config.warmupRepetitions` from the run's config
+ * snapshot (perftest-cli runLoader.ts). Mirror that here so in-product
+ * aggregates match `perftest history`.
+ */
+export function readWarmupRepetitions(runDir: string): number {
+    try {
+        const config = parseJsonc(
+            fs.readFileSync(
+                containedPath(runDir, path.join(runDir, "run-config.snapshot.jsonc")),
+                "utf8",
+            ),
+        ) as { warmupRepetitions?: unknown } | undefined;
+        const value = config?.warmupRepetitions;
+        return typeof value === "number" && value > 0 ? Math.floor(value) : 0;
+    } catch {
+        return 0;
+    }
+}
+
+export function isWarmupRep(
+    result: { warmup?: unknown },
+    repId: number,
+    warmupRepetitions: number,
+): boolean {
+    return result.warmup === true || repId < warmupRepetitions;
+}
+
+/** Rep id from result.json, else from the `rep-NN` directory name; undefined when neither parses. */
+export function repIdFrom(repName: string, result: { repId?: unknown }): number | undefined {
+    if (typeof result.repId === "number" && Number.isInteger(result.repId) && result.repId >= 0) {
+        return result.repId;
+    }
+    const match = /^rep-(\d+)$/.exec(repName);
+    return match ? Number(match[1]) : undefined;
+}
+
+/** The harness records failures in `errors[]`; `failureReason` is a courtesy alias. */
+export function failureReasonOf(result: {
+    failureReason?: unknown;
+    errors?: unknown;
+}): string | undefined {
+    if (typeof result.failureReason === "string" && result.failureReason.length > 0) {
+        return result.failureReason.slice(0, 200);
+    }
+    if (Array.isArray(result.errors)) {
+        const first = result.errors.find(
+            (e): e is { message: string } =>
+                typeof e === "object" &&
+                e !== null &&
+                typeof (e as { message?: unknown }).message === "string",
+        );
+        if (first) {
+            return first.message.slice(0, 200);
+        }
+    }
+    return undefined;
+}
 
 export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
     const events: DiagEvent[] = [];
@@ -69,20 +226,16 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
 
     const markersPath = path.join(repDir, "markers.jsonl");
     if (fs.existsSync(markersPath)) {
-        let skippedLines = 0;
-        for (const line of fs.readFileSync(markersPath, "utf8").split("\n")) {
-            const trimmed = line.trim();
-            if (!trimmed) continue;
-            // Imports are untrusted: an absurd line (multi-MB attr blob,
-            // binary garbage) is skipped with accounting, never parsed into
-            // memory pressure or a crash.
-            if (trimmed.length > MAX_MARKER_LINE_BYTES) {
-                skippedLines++;
-                continue;
-            }
+        const bounded = readJsonlBounded(markersPath);
+        let skippedLines = bounded.refusedLines;
+        for (const trimmed of bounded.lines) {
             try {
                 const marker = JSON.parse(trimmed) as HarnessMarker;
-                if (typeof marker.name !== "string" || typeof marker.timestampUnixNs !== "string") {
+                if (
+                    typeof marker.name !== "string" ||
+                    !validMarkerClock(marker.timestampUnixNs) ||
+                    (marker.monotonicNs !== undefined && !validMarkerClock(marker.monotonicNs))
+                ) {
                     skippedLines++;
                     continue;
                 }
@@ -99,7 +252,7 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                     pid: marker.process.pid,
                     feature: featureFor(marker.name),
                     kind: marker.phase === "counter" ? "metric" : "event",
-                    type: marker.name,
+                    type: importedEventType(marker.name),
                     status: marker.attrs?.["error"] === true ? "error" : "ok",
                     traceId,
                     cls: {
@@ -107,7 +260,10 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                         redactedFields: 0,
                         policyId: "policy_perf_import",
                     },
-                    tags: ["imported", `phase:${marker.phase}`],
+                    tags: [
+                        "imported",
+                        `phase:${["begin", "end", "instant", "counter"].includes(marker.phase) ? marker.phase : "unknown"}`,
+                    ],
                 };
                 // Forwarded diagnostic spans (STS dispatcher/SqlCommand/SMO/
                 // DacFx) travel as instant markers with a durationMs attr —
@@ -126,11 +282,16 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                 if (marker.attrs) {
                     event.payload = {};
                     for (const [key, value] of Object.entries(marker.attrs)) {
-                        event.payload[key] = {
-                            v: value,
-                            cls: "diagnostic.metadata",
-                            handling: "plain",
-                        };
+                        const cls = importClassification(key, value, marker.name);
+                        event.payload[importedFieldKey(key)] = classify(
+                            value,
+                            cls,
+                            CAPTURE_POLICIES.redacted,
+                        );
+                        if (cls !== "diagnostic.metadata") {
+                            event.cls.max = cls;
+                            event.cls.redactedFields++;
+                        }
                     }
                 }
                 events.push(event);
@@ -139,8 +300,9 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
             }
         }
         // Import loss is visible: a synthetic event records exactly how many
-        // lines were refused so the trace never silently under-reports.
-        if (skippedLines > 0) {
+        // lines (or the whole file) were refused so the trace never silently
+        // under-reports.
+        if (skippedLines > 0 || bounded.refusedReason) {
             seq++;
             events.push({
                 schemaVersion: DIAG_SCHEMA_VERSION,
@@ -163,7 +325,9 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                 payload: {
                     skipped: { v: skippedLines, cls: "diagnostic.metadata", handling: "plain" },
                     reason: {
-                        v: "malformed or oversized markers.jsonl lines refused during import",
+                        v: bounded.refusedReason
+                            ? `markers.jsonl refused: ${bounded.refusedReason}`
+                            : "malformed or oversized markers.jsonl lines refused during import",
                         cls: "diagnostic.metadata",
                         handling: "plain",
                     },
@@ -174,9 +338,7 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
 
     const sqlPath = path.join(repDir, "artifacts", "sql", "sql-activity.jsonl");
     if (fs.existsSync(sqlPath)) {
-        for (const line of fs.readFileSync(sqlPath, "utf8").split("\n")) {
-            const trimmed = line.trim();
-            if (!trimmed) continue;
+        for (const trimmed of readJsonlBounded(sqlPath).lines) {
             try {
                 const row = JSON.parse(trimmed) as {
                     event_name: string;
@@ -196,6 +358,12 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                         ? Number((row.duration_us / 1000).toFixed(2))
                         : undefined;
                 const text = row.batch_text ?? row.statement_text;
+                // Never plain: the harness persists real SQL text when it ran
+                // with captureSqlText, and a run can target any server. The
+                // digest policy keeps grouping without the text.
+                const textField = text
+                    ? classify(text, "sql.text", CAPTURE_POLICIES.digest)
+                    : { cls: "sql.text" as const, handling: "omitted" as const };
                 events.push({
                     schemaVersion: DIAG_SCHEMA_VERSION,
                     eventId: `imp_${seq.toString(36).padStart(6, "0")}`,
@@ -247,21 +415,14 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
                                   },
                               }
                             : {}),
-                        text: text
-                            ? // Synthetic harness DB: plain by contract, truncated for sanity.
-                              {
-                                  v: text.slice(0, 500),
-                                  cls: "sql.text" as const,
-                                  handling:
-                                      text.length > 500
-                                          ? ("truncated" as const)
-                                          : ("plain" as const),
-                                  len: text.length,
-                              }
-                            : { cls: "sql.text" as const, handling: "omitted" as const },
+                        text: textField,
                     },
-                    cls: { max: "sql.text", redactedFields: 0, policyId: "policy_perf_import" },
-                    tags: ["imported", "synthetic"],
+                    cls: {
+                        max: "sql.text",
+                        redactedFields: 1,
+                        policyId: CAPTURE_POLICIES.digest.policyId,
+                    },
+                    tags: ["imported"],
                 });
             } catch {
                 // skip malformed line
@@ -276,16 +437,16 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
 /** Find the most marker-rich rep of a run directory. */
 export function importPerfRun(runDir: string): { label: string; events: DiagEvent[] } | undefined {
     const scenariosDir = path.join(runDir, "scenarios");
-    if (!fs.existsSync(scenariosDir)) {
+    if (!isContainedPath(runDir, scenariosDir) || !fs.existsSync(scenariosDir)) {
         return undefined;
     }
     let best: { repDir: string; label: string; size: number } | undefined;
-    for (const scenario of fs.readdirSync(scenariosDir)) {
+    for (const scenario of safeEntries(runDir, scenariosDir)) {
         const repsDir = path.join(scenariosDir, scenario, "reps");
-        if (!fs.existsSync(repsDir)) continue;
-        for (const rep of fs.readdirSync(repsDir)) {
+        if (!isContainedPath(runDir, repsDir) || !fs.existsSync(repsDir)) continue;
+        for (const rep of safeEntries(runDir, repsDir)) {
             const markers = path.join(repsDir, rep, "markers.jsonl");
-            if (fs.existsSync(markers)) {
+            if (isContainedPath(runDir, markers) && fs.existsSync(markers)) {
                 const size = fs.statSync(markers).size;
                 if (!best || size > best.size) {
                     best = {
@@ -313,29 +474,68 @@ function parseRunTimestamp(runName: string): string {
     return match ? `${match[1]}T${match[2]}:${match[3]}:${match[4]}Z` : runName.slice(0, 20);
 }
 
-/** Read official metric samples from run summary/result JSON files (SQLite
- *  import needs a native dep — deferred). All runs are listed; only passed,
- *  non-warmup reps contribute metric samples. */
-export function importPerfMetrics(perfRunsRoot: string): {
+interface PerfMetricsImport {
     samples: PerfMetricSample[];
     runs: PerfRunInfo[];
-} {
+}
+
+/** Per-root memo keyed on a cheap fingerprint (run names + summary.json mtimes). */
+const metricsCache = new Map<string, { fingerprint: string; value: PerfMetricsImport }>();
+
+function safeEntries(root: string, dir: string): string[] {
+    try {
+        return fs
+            .readdirSync(containedPath(root, dir), { withFileTypes: true })
+            .filter((entry) => entry.isDirectory() && !entry.isSymbolicLink())
+            .map((entry) => entry.name);
+    } catch {
+        return [];
+    }
+}
+
+function metricsFingerprint(perfRunsRoot: string, runNames: string[]): string {
+    return runNames
+        .map((name) => {
+            try {
+                return `${name}:${fs.statSync(containedPath(perfRunsRoot, path.join(perfRunsRoot, name, "summary.json"))).mtimeMs}`;
+            } catch {
+                return `${name}:-`;
+            }
+        })
+        .join("|");
+}
+
+/** Read official metric samples from run summary/result JSON files (SQLite
+ *  import needs a native dep — deferred). All runs are listed; only passed,
+ *  non-warmup reps contribute metric samples. Memoized per root: a summary
+ *  refresh re-parses result.json files only when a run appears or changes. */
+export function importPerfMetrics(perfRunsRoot: string): PerfMetricsImport {
     const samples: PerfMetricSample[] = [];
     const runs: PerfRunInfo[] = [];
-    if (!fs.existsSync(perfRunsRoot)) {
+    if (!isContainedPath(perfRunsRoot, perfRunsRoot) || !fs.existsSync(perfRunsRoot)) {
         return { samples, runs };
     }
-    for (const runName of fs.readdirSync(perfRunsRoot).sort()) {
+    const runNames = safeEntries(perfRunsRoot, perfRunsRoot).sort();
+    const fingerprint = metricsFingerprint(perfRunsRoot, runNames);
+    const cached = metricsCache.get(perfRunsRoot);
+    if (cached && cached.fingerprint === fingerprint) {
+        return cached.value;
+    }
+    for (const runName of runNames) {
         const runDir = path.join(perfRunsRoot, runName);
         const scenariosDir = path.join(runDir, "scenarios");
-        if (!fs.existsSync(scenariosDir)) continue;
+        if (!isContainedPath(perfRunsRoot, scenariosDir) || !fs.existsSync(scenariosDir)) continue;
         const createdUtc = parseRunTimestamp(runName);
+        const warmupRepetitions = readWarmupRepetitions(runDir);
         let status = "unknown";
         let passType: string | undefined;
         let environmentHash: string | undefined;
         try {
             const summary = JSON.parse(
-                fs.readFileSync(path.join(runDir, "summary.json"), "utf8"),
+                fs.readFileSync(
+                    containedPath(perfRunsRoot, path.join(runDir, "summary.json")),
+                    "utf8",
+                ),
             ) as { status?: string; passType?: string; environmentHash?: string };
             status = summary.status ?? "unknown";
             passType = summary.passType;
@@ -344,26 +544,40 @@ export function importPerfMetrics(perfRunsRoot: string): {
             // no summary: keep unknown status, still list the run
         }
         let scenarioCount = 0;
-        for (const scenario of fs.readdirSync(scenariosDir)) {
+        for (const scenario of safeEntries(runDir, scenariosDir)) {
             const repsDir = path.join(scenariosDir, scenario, "reps");
-            if (!fs.existsSync(repsDir)) continue;
+            if (!isContainedPath(runDir, repsDir) || !fs.existsSync(repsDir)) continue;
             scenarioCount++;
-            for (const rep of fs.readdirSync(repsDir)) {
+            for (const rep of safeEntries(runDir, repsDir)) {
                 try {
-                    const result = JSON.parse(
-                        fs.readFileSync(path.join(repsDir, rep, "result.json"), "utf8"),
-                    ) as {
+                    const parsed: unknown = JSON.parse(
+                        fs.readFileSync(
+                            containedPath(perfRunsRoot, path.join(repsDir, rep, "result.json")),
+                            "utf8",
+                        ),
+                    );
+                    if (typeof parsed !== "object" || parsed === null) continue;
+                    const result = parsed as {
+                        repId?: number;
                         status: string;
                         warmup?: boolean;
-                        metrics: Array<{
+                        metrics?: Array<{
                             name: string;
                             value: number;
                             unit: string;
                             official: boolean;
                         }>;
                     };
-                    if (result.status !== "passed" || result.warmup) continue;
-                    for (const metric of result.metrics) {
+                    const repId = repIdFrom(rep, result);
+                    if (
+                        result.status !== "passed" ||
+                        repId === undefined ||
+                        isWarmupRep(result, repId, warmupRepetitions)
+                    ) {
+                        continue;
+                    }
+                    for (const metric of result.metrics ?? []) {
+                        if (typeof metric?.value !== "number") continue;
                         samples.push({
                             runId: runName,
                             createdUtc,
@@ -388,5 +602,7 @@ export function importPerfMetrics(perfRunsRoot: string): {
             scenarioCount,
         });
     }
-    return { samples, runs };
+    const value = { samples, runs };
+    metricsCache.set(perfRunsRoot, { fingerprint, value });
+    return value;
 }

@@ -19,7 +19,7 @@
 
 import * as vscode from "vscode";
 import * as Constants from "../../../constants/constants";
-import { logger2 } from "../../../models/logger2";
+import { logger as logger2 } from "../../../models/logger";
 import { getErrorMessage } from "../../../utils/utils";
 import {
     normalizeInlineCompletionCategories,
@@ -295,11 +295,14 @@ export class InlineCompletionCaptureService {
             forceIntentMode: current.forceIntentMode ?? profile.forceIntentMode,
             useSchemaContext:
                 current.useSchemaContext ??
-                profile.useSchemaContext ??
-                getConfiguredUseSchemaContext(),
+                ((profile.useSchemaContext ?? true) && getConfiguredUseSchemaContext()),
             includeSqlDiagnostics:
                 current.includeSqlDiagnostics ?? getConfiguredIncludeSqlDiagnostics(),
-            enabledCategories: current.enabledCategories ?? [...profile.enabledCategories],
+            enabledCategories:
+                current.enabledCategories ??
+                profile.enabledCategories.filter((category) =>
+                    getConfiguredEnabledCategories().includes(category),
+                ),
             debounceMs: current.debounceMs ?? profile.debounceMs,
             maxTokens: current.maxTokens ?? profile.maxTokens,
             schemaContext: current.schemaContext ?? profile.schemaContext,
@@ -362,7 +365,7 @@ export function pickDefaultModelOption(
     configuredSelector: string | undefined,
     modelPreference?: InlineCompletionModelPreference,
 ): InlineCompletionDebugModelOption | undefined {
-    if (!modelPreference && configuredSelector) {
+    if (configuredSelector) {
         const trimmed = configuredSelector.trim();
         const matched =
             availableModels.find((model) => model.selector === trimmed) ??

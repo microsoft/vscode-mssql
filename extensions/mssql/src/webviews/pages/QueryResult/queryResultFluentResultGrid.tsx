@@ -666,6 +666,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         gridId: props.gridId,
                         scrollLeft: state.scrollPosition.scrollLeft,
                         scrollTop: state.scrollPosition.scrollTop,
+                        scrollTopOffset: state.scrollPosition.scrollTopOffset,
                     },
                 );
             }
@@ -715,7 +716,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         batchId: event.batchId,
                         resultId: event.resultId,
                         selection,
-                        includeHeaders: false,
+                        includeHeaders: undefined,
                         preserveSelectionLayout: true,
                     });
                     context.showCopyIndicator();
@@ -911,6 +912,7 @@ export function QueryResultFluentResultGridView() {
             defaultCommands={defaultCommands}>
             <QueryResultsGridView
                 GridComponent={QueryResultFluentResultGrid}
+                deferOffscreenGridRendering
                 showExternalCommandBar={false}
             />
         </FluentResultGridProvider>

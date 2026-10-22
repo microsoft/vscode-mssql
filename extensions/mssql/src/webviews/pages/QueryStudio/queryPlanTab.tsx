@@ -3,18 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 import {
     QsSaveExecutionPlanRequest,
+    QsCompareExecutionPlanRequest,
     QsShowPlanQueryRequest,
     QsShowPlanXmlRequest,
 } from "../../../sharedInterfaces/queryStudio";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import {
-    ExecutionPlanPageContent,
-    ExecutionPlanPageViewState,
-} from "../ExecutionPlan/executionPlanPage";
+import { ExecutionPlanPage, ExecutionPlanPageViewState } from "../ExecutionPlan/executionPlanPage";
+import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
 import {
     ExecutionPlanContext,
     ExecutionPlanContextProps,
@@ -37,6 +36,15 @@ export function QueryStudioExecutionPlanView(props: {
     onViewStateChange?: (viewState: QueryStudioExecutionPlanViewState) => void;
 }) {
     const { rpc, executionPlanState, active, initialViewState, onViewStateChange } = props;
+    const parent = useContext(VscodeWebviewContext);
+    const planState = useMemo(
+        () => ({ executionPlanState: executionPlanState ?? LOADING_PLAN_STATE }),
+        [executionPlanState],
+    );
+    const planContext = useMemo(
+        () => parent && { ...parent, getSnapshot: () => planState },
+        [parent, planState],
+    );
     const context = useMemo<ExecutionPlanContextProps>(
         () => ({
             getExecutionPlan: () => undefined,
@@ -50,20 +58,30 @@ export function QueryStudioExecutionPlanView(props: {
                 void rpc.sendRequest(QsShowPlanQueryRequest.type, { query });
             },
             updateTotalCost: () => undefined,
+            compareExecutionPlan: (graphIndex: number) => {
+                const graph = executionPlanState?.executionPlanGraphs?.[graphIndex];
+                if (graph) {
+                    void rpc.sendRequest(QsCompareExecutionPlanRequest.type, {
+                        sqlPlanContent: graph.graphFile.graphFileContent,
+                    });
+                }
+            },
         }),
-        [rpc],
+        [rpc, executionPlanState],
     );
 
     return (
-        <ExecutionPlanContext.Provider value={context}>
-            <div className="qs-query-plan-view">
-                <ExecutionPlanPageContent
-                    executionPlanState={executionPlanState ?? LOADING_PLAN_STATE}
-                    active={active}
-                    initialViewState={initialViewState}
-                    onViewStateChange={onViewStateChange}
-                />
-            </div>
-        </ExecutionPlanContext.Provider>
+        <VscodeWebviewContext.Provider value={planContext}>
+            <ExecutionPlanContext.Provider value={context}>
+                <div className="qs-query-plan-view">
+                    <ExecutionPlanPage
+                        autoLoad={false}
+                        active={active}
+                        initialViewState={initialViewState}
+                        onViewStateChange={onViewStateChange}
+                    />
+                </div>
+            </ExecutionPlanContext.Provider>
+        </VscodeWebviewContext.Provider>
     );
 }

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { locConstants } from "../../../common/locConstants";
 import { type ReactNode, type Ref, type WheelEvent, useCallback, useMemo, useState } from "react";
 import {
     Button,
@@ -117,28 +118,30 @@ export const schemaProfileOptions: readonly {
 }[] = [
     {
         id: "tight",
-        label: "Tight",
-        description: "Smallest prompt footprint; favors the most relevant objects.",
+        label: locConstants.inlineCompletionDebug.tight,
+        description:
+            locConstants.inlineCompletionDebug.smallestPromptFootprintFavorsTheMostRelevant,
     },
     {
         id: "balanced",
-        label: "Balanced (default)",
-        description: "Default schema budget close to production behavior.",
+        label: locConstants.inlineCompletionDebug.balancedDefault,
+        description:
+            locConstants.inlineCompletionDebug.defaultSchemaBudgetCloseToProductionBehavior,
     },
     {
         id: "generous",
-        label: "Generous",
-        description: "More objects, columns, routines, and two-hop FK expansion.",
+        label: locConstants.inlineCompletionDebug.generous,
+        description: locConstants.inlineCompletionDebug.moreObjectsColumnsRoutinesAndTwoHop,
     },
     {
         id: "unlimited",
-        label: "Unlimited",
-        description: "Very broad context for stress testing large prompt windows.",
+        label: locConstants.inlineCompletionDebug.unlimited,
+        description: locConstants.inlineCompletionDebug.veryBroadContextForStressTestingLarge,
     },
     {
         id: "custom",
-        label: "Custom",
-        description: "Session-only schema context overrides from the controls below.",
+        label: locConstants.inlineCompletionDebug.custom,
+        description: locConstants.inlineCompletionDebug.sessionOnlySchemaContextOverridesFromThe,
     },
 ];
 
@@ -188,74 +191,74 @@ const schemaBaselines: Record<InlineCompletionSchemaBudgetProfileId, SchemaBudge
 const capControls: readonly SchemaNumberControl[] = [
     {
         key: "maxSchemas",
-        label: "Schemas",
-        tooltip: "Maximum schemas listed in the prompt-ready context.",
+        label: locConstants.inlineCompletionDebug.schemas,
+        tooltip: locConstants.inlineCompletionDebug.detailText44,
         min: 0,
     },
     {
         key: "maxTables",
-        label: "Tables",
-        tooltip: "Maximum detailed table entries after relevance ranking.",
+        label: locConstants.inlineCompletionDebug.tables,
+        tooltip: locConstants.inlineCompletionDebug.detailText45,
         min: 0,
     },
     {
         key: "maxViews",
-        label: "Views",
-        tooltip: "Maximum detailed view entries after relevance ranking.",
+        label: locConstants.inlineCompletionDebug.views,
+        tooltip: locConstants.inlineCompletionDebug.detailText46,
         min: 0,
     },
     {
         key: "maxRoutines",
-        label: "Routines",
-        tooltip: "Maximum detailed procedure and function entries.",
+        label: locConstants.inlineCompletionDebug.routines,
+        tooltip: locConstants.inlineCompletionDebug.detailText47,
         min: 0,
     },
     {
         key: "maxColumnsPerObject",
-        label: "Cols/object",
-        tooltip: "Maximum columns emitted for each detailed table or view.",
+        label: locConstants.inlineCompletionDebug.colsObject,
+        tooltip: locConstants.inlineCompletionDebug.detailText48,
         min: 0,
     },
     {
         key: "maxForeignKeys",
-        label: "FKs/object",
-        tooltip: "Maximum foreign keys kept for each detailed table.",
+        label: locConstants.inlineCompletionDebug.fKsObject,
+        tooltip: locConstants.inlineCompletionDebug.detailText49,
         min: 0,
     },
     {
         key: "maxTableNameOnlyInventory",
-        label: "Table inventory",
-        tooltip: "Additional table names shown without column details.",
+        label: locConstants.inlineCompletionDebug.tableInventory,
+        tooltip: locConstants.inlineCompletionDebug.detailText50,
         min: 0,
     },
     {
         key: "maxViewNameOnlyInventory",
-        label: "View inventory",
-        tooltip: "Additional view names shown without column details.",
+        label: locConstants.inlineCompletionDebug.viewInventory,
+        tooltip: locConstants.inlineCompletionDebug.detailText51,
         min: 0,
     },
     {
         key: "maxRoutineNameOnlyInventory",
-        label: "Routine inventory",
-        tooltip: "Additional routine names shown without parameter details.",
+        label: locConstants.inlineCompletionDebug.routineInventory,
+        tooltip: locConstants.inlineCompletionDebug.detailText52,
         min: 0,
     },
     {
         key: "maxSystemObjects",
-        label: "System objects",
-        tooltip: "Maximum system catalog and DMV objects shown.",
+        label: locConstants.inlineCompletionDebug.systemObjects,
+        tooltip: locConstants.inlineCompletionDebug.detailText53,
         min: 0,
     },
     {
         key: "maxSchemaContextRelevanceTerms",
-        label: "Relevance terms",
-        tooltip: "Maximum extracted SQL/name terms used for relevance scoring.",
+        label: locConstants.inlineCompletionDebug.relevanceTerms,
+        tooltip: locConstants.inlineCompletionDebug.detailText54,
         min: 0,
     },
     {
         key: "maxParametersPerRoutine",
-        label: "Params/routine",
-        tooltip: "Maximum parameters emitted for each detailed routine.",
+        label: locConstants.inlineCompletionDebug.paramsRoutine,
+        tooltip: locConstants.inlineCompletionDebug.detailText55,
         min: 0,
     },
 ];
@@ -263,20 +266,20 @@ const capControls: readonly SchemaNumberControl[] = [
 const sizeControls: readonly SchemaNumberControl[] = [
     {
         key: "smallSchemaThreshold",
-        label: "Small threshold",
-        tooltip: "Object count at or below which small-schema expansion can include more detail.",
+        label: locConstants.inlineCompletionDebug.smallThreshold,
+        tooltip: locConstants.inlineCompletionDebug.detailText56,
         min: 0,
     },
     {
         key: "largeSchemaThreshold",
-        label: "Large threshold",
-        tooltip: "Object count where large-schema compaction starts.",
+        label: locConstants.inlineCompletionDebug.largeThreshold,
+        tooltip: locConstants.inlineCompletionDebug.detailText57,
         min: 0,
     },
     {
         key: "outlierSchemaThreshold",
-        label: "Outlier threshold",
-        tooltip: "Object count where inventory-first outlier safeguards kick in.",
+        label: locConstants.inlineCompletionDebug.outlierThreshold,
+        tooltip: locConstants.inlineCompletionDebug.detailText58,
         min: 0,
     },
 ];
@@ -284,15 +287,15 @@ const sizeControls: readonly SchemaNumberControl[] = [
 const promptBudgetControls: readonly SchemaNumberControl[] = [
     {
         key: "maxPromptChars",
-        label: "Max prompt chars",
-        tooltip: "Hard character budget for formatted schema context before degradation.",
+        label: locConstants.inlineCompletionDebug.maxPromptChars,
+        tooltip: locConstants.inlineCompletionDebug.detailText59,
         min: 0,
         step: 500,
     },
     {
         key: "maxPromptTokens",
-        label: "Max prompt tokens",
-        tooltip: "Optional token budget for formatted schema context before degradation.",
+        label: locConstants.inlineCompletionDebug.maxPromptTokens,
+        tooltip: locConstants.inlineCompletionDebug.detailText60,
         min: 0,
         step: 100,
     },
@@ -301,8 +304,8 @@ const promptBudgetControls: readonly SchemaNumberControl[] = [
 const cacheControls: readonly SchemaNumberControl[] = [
     {
         key: "cacheTtlMs",
-        label: "TTL (ms)",
-        tooltip: "How long fetched schema metadata remains cached for this connection.",
+        label: locConstants.inlineCompletionDebug.tTLMs,
+        tooltip: locConstants.inlineCompletionDebug.detailText61,
         min: 0,
         step: 1000,
     },
@@ -731,7 +734,8 @@ export const InlineCompletionDebugToolbar = ({
     const selectedProfileOption =
         state.overrides.profileId ?? state.defaults.effectiveProfileId ?? "custom";
     const selectedProfile = state.profiles.find((profile) => profile.id === selectedProfileOption);
-    const selectedProfileDisplayValue = selectedProfile?.label ?? "Custom";
+    const selectedProfileDisplayValue =
+        selectedProfile?.label ?? locConstants.inlineCompletionDebug.detailText62;
     const selectedModelOption = state.overrides.modelSelector ?? "__default__";
     const defaultModelLabel = getDefaultModelLabel(state);
     const selectedModelDisplayValue =
@@ -953,7 +957,7 @@ export const InlineCompletionDebugToolbar = ({
                     min={control.min}
                     step={control.step}
                     value={value === undefined ? "" : value.toString()}
-                    placeholder="auto"
+                    placeholder={locConstants.inlineCompletionDebug.auto}
                     onChange={(_, data) => {
                         updateBudgetOverride(control.key, parseOptionalNumber(data.value));
                     }}
@@ -1010,19 +1014,20 @@ export const InlineCompletionDebugToolbar = ({
         "schemaContextChannel",
         "inline-with-data",
     ) as InlineCompletionSchemaContextChannel;
-    const schemaDisplayValue = selectedSchemaProfile?.label ?? "Balanced (default)";
+    const schemaDisplayValue =
+        selectedSchemaProfile?.label ?? locConstants.inlineCompletionDebug.detailText63;
     const textureDisplayValue =
         textureValue === "custom"
-            ? "Custom (active)"
+            ? locConstants.inlineCompletionDebug.customActive
             : textureValue === "continuation"
-              ? "Continuation"
+              ? locConstants.inlineCompletionDebug.continuation
               : textureValue === "intent"
-                ? "Intent"
-                : "Default (auto)";
+                ? locConstants.inlineCompletionDebug.intent
+                : locConstants.inlineCompletionDebug.defaultAuto;
     const categorySummary =
         enabledCategories.length > 0
             ? enabledCategories.map((category) => categoryLabel(category)).join(" + ")
-            : "No categories";
+            : locConstants.inlineCompletionDebug.noCategories;
     const continuationEnabled = enabledCategories.includes("continuation");
     const intentEnabled = enabledCategories.includes("intent");
 
@@ -1032,15 +1037,20 @@ export const InlineCompletionDebugToolbar = ({
                 <div className={classes.statusLeft}>
                     <span className={classes.statusAlert}>
                         <span className={`${classes.recordDot} ${classes.recordDotActive}`} />
-                        Recording
+                        {locConstants.inlineCompletionDebug.recording}
                     </span>
                     {state.sensitiveCaptureActive ? (
                         // §9.4: persistent marker while full-fidelity local
                         // capture (prompts + responses to the journal) is on.
                         <Tooltip
-                            content="Full capture: prompts and model responses are being persisted to the local capture journal."
+                            content={
+                                locConstants.inlineCompletionDebug
+                                    .fullCapturePromptsAndModelResponsesAre
+                            }
                             relationship="description">
-                            <span className={classes.fullCaptureBadge}>Full capture</span>
+                            <span className={classes.fullCaptureBadge}>
+                                {locConstants.inlineCompletionDebug.fullCapture}
+                            </span>
                         </Tooltip>
                     ) : null}
                     <span className={classes.statusDivider} />
@@ -1057,25 +1067,34 @@ export const InlineCompletionDebugToolbar = ({
                         <span
                             className={classes.statusToken}
                             title={selectedContinuationModelDisplayValue}>
-                            | continuation {selectedContinuationModelDisplayValue}
+                            {locConstants.inlineCompletionDebug.continuation2}
+                            {selectedContinuationModelDisplayValue}
                         </span>
                     ) : null}
                     <span className={classes.statusToken}>| {schemaDisplayValue}</span>
                     <span className={classes.statusToken}>
-                        | diagnostics {includeSqlDiagnostics ? "on" : "off"}
+                        {locConstants.inlineCompletionDebug.diagnostics2}
+                        {includeSqlDiagnostics ? "on" : "off"}
                     </span>
                     <span className={classes.statusToken}>| {categorySummary}</span>
-                    <span className={classes.statusToken}>| eagerness {debounceValue}ms</span>
+                    <span className={classes.statusToken}>
+                        {locConstants.inlineCompletionDebug.eagerness}
+                        {debounceValue}
+                        {locConstants.inlineCompletionDebug.ms}
+                    </span>
                 </div>
                 <div className={classes.statusRight}>
-                    {summary.eventCount} events | avg {summary.averageLatency} ms
+                    {summary.eventCount} {locConstants.inlineCompletionDebug.eventsAvg}
+                    {summary.averageLatency} {locConstants.inlineCompletionDebug.ms}
                 </div>
             </div>
 
             <div className={classes.controlRow} onWheel={scrollHorizontallyOnWheel}>
                 <div className={classes.controlGroup}>
                     <Tooltip
-                        content="Keep recording while the debug panel is closed"
+                        content={
+                            locConstants.inlineCompletionDebug.keepRecordingWhileTheDebugPanelIs
+                        }
                         relationship="label">
                         <ToggleButton
                             className={classes.recordButton}
@@ -1090,11 +1109,13 @@ export const InlineCompletionDebugToolbar = ({
                                     state.recordWhenClosed ? classes.recordDotActive : ""
                                 }`}
                             />
-                            Record closed
+                            {locConstants.inlineCompletionDebug.recordClosed}
                         </ToggleButton>
                     </Tooltip>
 
-                    <Tooltip content="Clear the in-memory ring buffer" relationship="label">
+                    <Tooltip
+                        content={locConstants.inlineCompletionDebug.clearTheInMemoryRingBuffer}
+                        relationship="label">
                         <Button
                             className={classes.compactButton}
                             size="small"
@@ -1103,12 +1124,12 @@ export const InlineCompletionDebugToolbar = ({
                                 clearEvents();
                                 blurActiveElementSoon();
                             }}>
-                            Clear
+                            {locConstants.inlineCompletionDebug.clear}
                         </Button>
                     </Tooltip>
 
                     <Tooltip
-                        content="Keep the newest event visible as rows arrive"
+                        content={locConstants.inlineCompletionDebug.keepTheNewestEventVisibleAsRows}
                         relationship="label">
                         <ToggleButton
                             className={classes.compactButton}
@@ -1119,7 +1140,7 @@ export const InlineCompletionDebugToolbar = ({
                                 onAutoScrollChange(!autoScroll);
                                 blurActiveElementSoon();
                             }}>
-                            Auto Scroll
+                            {locConstants.inlineCompletionDebug.autoScroll}
                         </ToggleButton>
                     </Tooltip>
                 </div>
@@ -1127,12 +1148,17 @@ export const InlineCompletionDebugToolbar = ({
                 <span className={classes.toolbarSeparator} />
 
                 <div className={classes.controlUnit}>
-                    <span className={classes.controlLabel}>Profile</span>
+                    <span className={classes.controlLabel}>
+                        {locConstants.inlineCompletionDebug.profile2}
+                    </span>
                     <Tooltip
-                        content={selectedProfile?.description ?? "Session-only debug settings"}
+                        content={
+                            selectedProfile?.description ??
+                            locConstants.inlineCompletionDebug.detailText64
+                        }
                         relationship="description">
                         <Dropdown
-                            aria-label="Profile"
+                            aria-label={locConstants.inlineCompletionDebug.profile2}
                             className={mergeClasses(classes.toolbarDropdown, classes.profileSelect)}
                             size="small"
                             selectedOptions={[selectedProfileOption]}
@@ -1154,9 +1180,11 @@ export const InlineCompletionDebugToolbar = ({
                 </div>
 
                 <div className={classes.controlUnit}>
-                    <span className={classes.controlLabel}>Model</span>
+                    <span className={classes.controlLabel}>
+                        {locConstants.inlineCompletionDebug.model2}
+                    </span>
                     <Dropdown
-                        aria-label="Model"
+                        aria-label={locConstants.inlineCompletionDebug.model2}
                         className={mergeClasses(classes.toolbarDropdown, classes.modelSelect)}
                         size="small"
                         selectedOptions={[selectedModelOption]}
@@ -1183,9 +1211,11 @@ export const InlineCompletionDebugToolbar = ({
 
                 {continuationEnabled ? (
                     <div className={classes.controlUnit}>
-                        <span className={classes.controlLabel}>Continuation Model</span>
+                        <span className={classes.controlLabel}>
+                            {locConstants.inlineCompletionDebug.continuationModel}
+                        </span>
                         <Dropdown
-                            aria-label="Continuation Model"
+                            aria-label={locConstants.inlineCompletionDebug.continuationModel}
                             className={mergeClasses(
                                 classes.toolbarDropdown,
                                 classes.continuationModelSelect,
@@ -1218,12 +1248,17 @@ export const InlineCompletionDebugToolbar = ({
                 ) : null}
 
                 <div className={classes.controlUnit}>
-                    <span className={classes.controlLabel}>Schema</span>
+                    <span className={classes.controlLabel}>
+                        {locConstants.inlineCompletionDebug.schema}
+                    </span>
                     <Tooltip
-                        content={selectedSchemaProfile?.description ?? "Schema context budget"}
+                        content={
+                            selectedSchemaProfile?.description ??
+                            locConstants.inlineCompletionDebug.detailText65
+                        }
                         relationship="description">
                         <Dropdown
-                            aria-label="Schema"
+                            aria-label={locConstants.inlineCompletionDebug.schema}
                             className={mergeClasses(classes.toolbarDropdown, classes.schemaSelect)}
                             size="small"
                             selectedOptions={[selectedSchemaProfileOption]}
@@ -1250,11 +1285,13 @@ export const InlineCompletionDebugToolbar = ({
                             setSchemaPanelOpen((value) => !value);
                             blurActiveElementSoon();
                         }}>
-                        Customize
+                        {locConstants.inlineCompletionDebug.customize}
                     </ToggleButton>
 
                     <Tooltip
-                        content="Include nearby SQL error diagnostics in the completion prompt"
+                        content={
+                            locConstants.inlineCompletionDebug.includeNearbySQLErrorDiagnosticsInThe
+                        }
                         relationship="label">
                         <ToggleButton
                             className={classes.compactButton}
@@ -1270,21 +1307,23 @@ export const InlineCompletionDebugToolbar = ({
                                 });
                                 blurActiveElementSoon();
                             }}>
-                            Diagnostics
+                            {locConstants.inlineCompletionDebug.diagnostics3}
                         </ToggleButton>
                     </Tooltip>
                 </div>
 
                 <span className={classes.toolbarSeparator} />
 
-                <div className={classes.pillGroup} aria-label="Enabled completion categories">
+                <div
+                    className={classes.pillGroup}
+                    aria-label={locConstants.inlineCompletionDebug.enabledCompletionCategories}>
                     <ToggleButton
                         className={classes.pillToggle}
                         size="small"
                         checked={continuationEnabled}
                         onClick={() => handleCategoryChange("continuation", !continuationEnabled)}>
                         <span className={classes.pillDot} />
-                        Continuation
+                        {locConstants.inlineCompletionDebug.continuation}
                     </ToggleButton>
 
                     <ToggleButton
@@ -1293,14 +1332,16 @@ export const InlineCompletionDebugToolbar = ({
                         checked={intentEnabled}
                         onClick={() => handleCategoryChange("intent", !intentEnabled)}>
                         <span className={classes.pillDot} />
-                        Intent
+                        {locConstants.inlineCompletionDebug.intent}
                     </ToggleButton>
                 </div>
 
                 <div className={classes.eagernessGroup}>
-                    <span className={classes.controlLabel}>Eagerness</span>
+                    <span className={classes.controlLabel}>
+                        {locConstants.inlineCompletionDebug.eagerness2}
+                    </span>
                     <Slider
-                        aria-label="Automatic trigger debounce"
+                        aria-label={locConstants.inlineCompletionDebug.automaticTriggerDebounce}
                         className={classes.eagernessSlider}
                         min={50}
                         max={1500}
@@ -1315,18 +1356,23 @@ export const InlineCompletionDebugToolbar = ({
                         onMouseUp={blurActiveElementSoon}
                         onKeyUp={blurActiveElementSoon}
                     />
-                    <span className={classes.eagernessValue}>{debounceValue}ms</span>
+                    <span className={classes.eagernessValue}>
+                        {debounceValue}
+                        {locConstants.inlineCompletionDebug.ms}
+                    </span>
                 </div>
 
                 <div className={classes.controlUnit}>
-                    <span className={classes.controlLabel}>Max tok</span>
+                    <span className={classes.controlLabel}>
+                        {locConstants.inlineCompletionDebug.maxTok}
+                    </span>
                     <Input
-                        aria-label="Maximum tokens"
+                        aria-label={locConstants.inlineCompletionDebug.maximumTokens}
                         className={classes.smallInput}
                         size="small"
                         type="number"
                         value={state.overrides.maxTokens?.toString() ?? ""}
-                        placeholder="auto"
+                        placeholder={locConstants.inlineCompletionDebug.auto}
                         onChange={(_, data) =>
                             updateOverrides({
                                 maxTokens: data.value ? Number(data.value) : null,
@@ -1336,34 +1382,52 @@ export const InlineCompletionDebugToolbar = ({
                 </div>
 
                 <div className={classes.controlUnit}>
-                    <span className={classes.controlLabel}>Texture</span>
+                    <span className={classes.controlLabel}>
+                        {locConstants.inlineCompletionDebug.texture}
+                    </span>
                     <Dropdown
-                        aria-label="Texture"
+                        aria-label={locConstants.inlineCompletionDebug.texture}
                         className={mergeClasses(classes.toolbarDropdown, classes.textureSelect)}
                         size="small"
                         selectedOptions={[textureValue]}
                         value={textureDisplayValue}
                         onOptionSelect={(_, data) => handleTextureChange(data.optionValue)}>
-                        <Option value="default">Default (auto)</Option>
-                        <Option value="continuation">Continuation</Option>
-                        <Option value="intent">Intent</Option>
-                        <Option value="custom">Custom</Option>
+                        <Option value="default">
+                            {locConstants.inlineCompletionDebug.defaultAuto}
+                        </Option>
+                        <Option value="continuation">
+                            {locConstants.inlineCompletionDebug.continuation}
+                        </Option>
+                        <Option value="intent">{locConstants.inlineCompletionDebug.intent}</Option>
+                        <Option value="custom">{locConstants.inlineCompletionDebug.custom}</Option>
                     </Dropdown>
 
                     {state.customPrompt.savedValue ? (
                         <>
-                            <Tooltip content="Edit the saved custom prompt" relationship="label">
+                            <Tooltip
+                                content={
+                                    locConstants.inlineCompletionDebug.editTheSavedCustomPrompt
+                                }
+                                relationship="label">
                                 <Button
-                                    aria-label="Edit saved custom prompt"
+                                    aria-label={
+                                        locConstants.inlineCompletionDebug.editSavedCustomPrompt
+                                    }
                                     className={classes.iconButton}
                                     size="small"
                                     icon={<EditRegular />}
                                     onClick={openCustomPromptDialog}
                                 />
                             </Tooltip>
-                            <Tooltip content="Clear the saved custom prompt" relationship="label">
+                            <Tooltip
+                                content={
+                                    locConstants.inlineCompletionDebug.clearTheSavedCustomPrompt
+                                }
+                                relationship="label">
                                 <Button
-                                    aria-label="Clear saved custom prompt"
+                                    aria-label={
+                                        locConstants.inlineCompletionDebug.clearSavedCustomPrompt
+                                    }
                                     appearance="subtle"
                                     className={classes.iconButton}
                                     size="small"
@@ -1380,11 +1444,15 @@ export const InlineCompletionDebugToolbar = ({
 
                 <span className={classes.toolbarSeparator} />
 
-                <div className={classes.actionCluster} aria-label="Inline completion debug imports">
+                <div
+                    className={classes.actionCluster}
+                    aria-label={locConstants.inlineCompletionDebug.inlineCompletionDebugImports}>
                     <ReplayCartButton />
-                    <Tooltip content="Import JSON session" relationship="label">
+                    <Tooltip
+                        content={locConstants.inlineCompletionDebug.importJSONSession}
+                        relationship="label">
                         <Button
-                            aria-label="Import JSON session"
+                            aria-label={locConstants.inlineCompletionDebug.importJSONSession}
                             className={classes.iconButton}
                             size="small"
                             icon={<ArrowUploadRegular />}
@@ -1394,9 +1462,11 @@ export const InlineCompletionDebugToolbar = ({
                             }}
                         />
                     </Tooltip>
-                    <Tooltip content="Export JSON session" relationship="label">
+                    <Tooltip
+                        content={locConstants.inlineCompletionDebug.exportJSONSession}
+                        relationship="label">
                         <Button
-                            aria-label="Export JSON session"
+                            aria-label={locConstants.inlineCompletionDebug.exportJSONSession}
                             className={classes.iconButton}
                             size="small"
                             icon={<ArrowDownloadRegular />}
@@ -1406,10 +1476,12 @@ export const InlineCompletionDebugToolbar = ({
                             }}
                         />
                     </Tooltip>
-                    <Tooltip content="Save trace now" relationship="label">
+                    <Tooltip
+                        content={locConstants.inlineCompletionDebug.saveTraceNow2}
+                        relationship="label">
                         <Button
                             appearance="primary"
-                            aria-label="Save trace now"
+                            aria-label={locConstants.inlineCompletionDebug.saveTraceNow2}
                             className={classes.iconButton}
                             size="small"
                             icon={<SaveRegular />}
@@ -1433,7 +1505,7 @@ export const InlineCompletionDebugToolbar = ({
                                 setSchemaPanelOpen(false);
                                 blurActiveElementSoon();
                             }}>
-                            Customize schema
+                            {locConstants.inlineCompletionDebug.customizeSchema}
                         </Button>
                         <div className={classes.schemaPanelActions}>
                             <Button
@@ -1445,7 +1517,7 @@ export const InlineCompletionDebugToolbar = ({
                                     refreshSchemaContext();
                                     blurActiveElementSoon();
                                 }}>
-                                Refresh now
+                                {locConstants.inlineCompletionDebug.refreshNow}
                             </Button>
                             <Button
                                 size="small"
@@ -1456,7 +1528,7 @@ export const InlineCompletionDebugToolbar = ({
                                     setSchemaContextOverride(null);
                                     blurActiveElementSoon();
                                 }}>
-                                Reset overrides
+                                {locConstants.inlineCompletionDebug.resetOverrides}
                             </Button>
                         </div>
                     </div>
@@ -1464,12 +1536,12 @@ export const InlineCompletionDebugToolbar = ({
                     <div className={classes.schemaPanelBody}>
                         {renderSection(
                             "shape",
-                            "Shape",
+                            locConstants.inlineCompletionDebug.detailText66,
                             <div className={classes.schemaSectionBody}>
                                 <Field
                                     label={renderControlLabel(
-                                        "Column representation",
-                                        "Controls whether columns are names only, types without nullability, or verbose definitions.",
+                                        locConstants.inlineCompletionDebug.detailText67,
+                                        locConstants.inlineCompletionDebug.detailText68,
                                         hasTopLevelOverride(
                                             schemaContextOverride,
                                             "columnRepresentation",
@@ -1478,9 +1550,18 @@ export const InlineCompletionDebugToolbar = ({
                                     {renderSegmented({
                                         value: columnRepresentation,
                                         options: [
-                                            { value: "compact", label: "Compact" },
-                                            { value: "types", label: "Types" },
-                                            { value: "verbose", label: "Verbose" },
+                                            {
+                                                value: "compact",
+                                                label: locConstants.inlineCompletionDebug.compact,
+                                            },
+                                            {
+                                                value: "types",
+                                                label: locConstants.inlineCompletionDebug.types,
+                                            },
+                                            {
+                                                value: "verbose",
+                                                label: locConstants.inlineCompletionDebug.verbose,
+                                            },
                                         ],
                                         onChange: (value) =>
                                             updateSchemaTopLevel("columnRepresentation", value),
@@ -1489,7 +1570,7 @@ export const InlineCompletionDebugToolbar = ({
                                 <Field
                                     label={renderControlLabel(
                                         "FK expansion depth",
-                                        "Promotes directly or indirectly related foreign-key tables into detailed context.",
+                                        locConstants.inlineCompletionDebug.detailText69,
                                         hasBudgetOverride(
                                             schemaContextOverride,
                                             "foreignKeyExpansionDepth",
@@ -1498,9 +1579,18 @@ export const InlineCompletionDebugToolbar = ({
                                     {renderSegmented({
                                         value: fkExpansionDepth,
                                         options: [
-                                            { value: 0, label: "Off (0)" },
-                                            { value: 1, label: "Direct (1)" },
-                                            { value: 2, label: "Two-hop (2)" },
+                                            {
+                                                value: 0,
+                                                label: locConstants.inlineCompletionDebug.off0,
+                                            },
+                                            {
+                                                value: 1,
+                                                label: locConstants.inlineCompletionDebug.direct1,
+                                            },
+                                            {
+                                                value: 2,
+                                                label: locConstants.inlineCompletionDebug.twoHop2,
+                                            },
                                         ],
                                         onChange: (value) =>
                                             updateBudgetOverride("foreignKeyExpansionDepth", value),
@@ -1510,8 +1600,8 @@ export const InlineCompletionDebugToolbar = ({
                                     <Switch
                                         checked={includeRoutines}
                                         label={renderControlLabel(
-                                            "Include routines",
-                                            "Includes procedures and scalar/table-valued functions in the schema context.",
+                                            locConstants.inlineCompletionDebug.detailText70,
+                                            locConstants.inlineCompletionDebug.detailText71,
                                             hasTopLevelOverride(
                                                 schemaContextOverride,
                                                 "includeRoutines",
@@ -1524,8 +1614,8 @@ export const InlineCompletionDebugToolbar = ({
                                     <Switch
                                         checked={relevanceTermRecencyBias}
                                         label={renderControlLabel(
-                                            "Recency bias",
-                                            "Weights terms near the cursor more strongly during schema ranking.",
+                                            locConstants.inlineCompletionDebug.detailText72,
+                                            locConstants.inlineCompletionDebug.detailText73,
                                             hasTopLevelOverride(
                                                 schemaContextOverride,
                                                 "relevanceTermRecencyBias",
@@ -1544,13 +1634,13 @@ export const InlineCompletionDebugToolbar = ({
 
                         {renderSection(
                             "size",
-                            "Size adaptivity",
+                            locConstants.inlineCompletionDebug.detailText74,
                             <div className={classes.schemaSectionBody}>
                                 <Switch
                                     checked={schemaSizeAdaptive}
                                     label={renderControlLabel(
-                                        "Adaptive",
-                                        "Changes strategy for small, medium, large, and outlier schemas.",
+                                        locConstants.inlineCompletionDebug.detailText75,
+                                        locConstants.inlineCompletionDebug.detailText76,
                                         hasTopLevelOverride(
                                             schemaContextOverride,
                                             "schemaSizeAdaptive",
@@ -1566,7 +1656,7 @@ export const InlineCompletionDebugToolbar = ({
 
                         {renderSection(
                             "caps",
-                            "Caps",
+                            locConstants.inlineCompletionDebug.detailText77,
                             <div
                                 className={`${classes.schemaSectionBody} ${classes.schemaSectionBodyWide}`}>
                                 {capControls.map(renderNumberInput)}
@@ -1576,7 +1666,7 @@ export const InlineCompletionDebugToolbar = ({
 
                         {renderSection(
                             "prompt",
-                            "Prompt budgets",
+                            locConstants.inlineCompletionDebug.detailText78,
                             <div className={classes.schemaSectionBody}>
                                 {promptBudgetControls.map(renderNumberInput)}
                             </div>,
@@ -1584,12 +1674,12 @@ export const InlineCompletionDebugToolbar = ({
 
                         {renderSection(
                             "weights",
-                            "Weights",
+                            locConstants.inlineCompletionDebug.detailText79,
                             <div className={classes.schemaSectionBody}>
                                 <Field
                                     label={renderControlLabel(
-                                        "Default schema weight",
-                                        "Adds relevance to objects in the connection default schema.",
+                                        locConstants.inlineCompletionDebug.detailText80,
+                                        locConstants.inlineCompletionDebug.detailText81,
                                         hasBudgetOverride(
                                             schemaContextOverride,
                                             "defaultSchemaWeight",
@@ -1607,7 +1697,7 @@ export const InlineCompletionDebugToolbar = ({
                                                 "defaultSchemaWeight",
                                             )?.toString() ?? ""
                                         }
-                                        placeholder="auto"
+                                        placeholder={locConstants.inlineCompletionDebug.auto}
                                         onChange={(_, data) =>
                                             updateBudgetOverride(
                                                 "defaultSchemaWeight",
@@ -1618,8 +1708,10 @@ export const InlineCompletionDebugToolbar = ({
                                 </Field>
                                 <Field
                                     label={renderControlLabel(
-                                        `Column-name relevance ${columnNameRelevanceWeight.toFixed(2)}`,
-                                        "Multiplier for matches between query terms and column names.",
+                                        locConstants.inlineCompletionDebug.detailText82(
+                                            String(columnNameRelevanceWeight.toFixed(2)),
+                                        ),
+                                        locConstants.inlineCompletionDebug.detailText83,
                                         hasBudgetOverride(
                                             schemaContextOverride,
                                             "columnNameRelevanceWeight",
@@ -1656,7 +1748,7 @@ export const InlineCompletionDebugToolbar = ({
 
                         {renderSection(
                             "cache",
-                            "Cache",
+                            locConstants.inlineCompletionDebug.detailText84,
                             <div className={classes.schemaSectionBody}>
                                 {cacheControls.map(renderNumberInput)}
                                 <Button
@@ -1667,26 +1759,34 @@ export const InlineCompletionDebugToolbar = ({
                                         refreshSchemaContext();
                                         blurActiveElementSoon();
                                     }}>
-                                    Refresh now
+                                    {locConstants.inlineCompletionDebug.refreshNow}
                                 </Button>
                             </div>,
                         )}
 
                         {renderSection(
                             "assembly",
-                            "Prompt assembly",
+                            locConstants.inlineCompletionDebug.detailText85,
                             <div className={classes.schemaSectionBody}>
                                 <Field
                                     label={renderControlLabel(
-                                        "Message order",
-                                        "Orders the rules and data messages sent to the language model.",
+                                        locConstants.inlineCompletionDebug.detailText86,
+                                        locConstants.inlineCompletionDebug.detailText87,
                                         hasTopLevelOverride(schemaContextOverride, "messageOrder"),
                                     )}>
                                     {renderSegmented({
                                         value: messageOrder,
                                         options: [
-                                            { value: "rules-then-data", label: "Rules then data" },
-                                            { value: "data-then-rules", label: "Data then rules" },
+                                            {
+                                                value: "rules-then-data",
+                                                label: locConstants.inlineCompletionDebug
+                                                    .rulesThenData,
+                                            },
+                                            {
+                                                value: "data-then-rules",
+                                                label: locConstants.inlineCompletionDebug
+                                                    .dataThenRules,
+                                            },
                                         ],
                                         onChange: (value) =>
                                             updateSchemaTopLevel("messageOrder", value),
@@ -1694,8 +1794,8 @@ export const InlineCompletionDebugToolbar = ({
                                 </Field>
                                 <Field
                                     label={renderControlLabel(
-                                        "Schema channel",
-                                        "Places schema context inside the data message or in its own message.",
+                                        locConstants.inlineCompletionDebug.detailText88,
+                                        locConstants.inlineCompletionDebug.detailText89,
                                         hasTopLevelOverride(
                                             schemaContextOverride,
                                             "schemaContextChannel",
@@ -1706,11 +1806,13 @@ export const InlineCompletionDebugToolbar = ({
                                         options: [
                                             {
                                                 value: "inline-with-data",
-                                                label: "Inline with data",
+                                                label: locConstants.inlineCompletionDebug
+                                                    .inlineWithData,
                                             },
                                             {
                                                 value: "separate-message",
-                                                label: "Separate message",
+                                                label: locConstants.inlineCompletionDebug
+                                                    .separateMessage,
                                             },
                                         ],
                                         onChange: (value) =>
@@ -1731,7 +1833,7 @@ export const InlineCompletionDebugToolbar = ({
                     value={filterQuery}
                     onChange={(_, data) => onFilterQueryChange(data.value)}
                     contentBefore={<FilterRegular />}
-                    placeholder='result != "error" and doc ~= "orders"'
+                    placeholder={locConstants.inlineCompletionDebug.resultErrorAndDocOrders}
                 />
 
                 <div className={classes.summary}>
@@ -1741,8 +1843,9 @@ export const InlineCompletionDebugToolbar = ({
                         </Text>
                     ) : null}
                     <span>
-                        {summary.eventCount} events | {summary.documentCount} docs | avg{" "}
-                        {summary.averageLatency} ms
+                        {summary.eventCount} {locConstants.inlineCompletionDebug.events2}
+                        {summary.documentCount} {locConstants.inlineCompletionDebug.docsAvg}{" "}
+                        {summary.averageLatency} {locConstants.inlineCompletionDebug.ms}
                     </span>
                 </div>
             </div>
@@ -1754,7 +1857,9 @@ function getDefaultModelLabel(state: InlineCompletionDebugWebviewState): string 
     const profile = state.profiles.find(
         (item) => item.id === state.defaults.effectiveProfileId && item.id !== "custom",
     );
-    const suffix = profile ? `${profile.label} default` : "default";
+    const suffix = profile
+        ? locConstants.inlineCompletionDebug.value0Default(String(profile.label))
+        : "default";
     const label = state.defaults.effectiveModelLabel;
     if (label) {
         return `${label} (${suffix})`;
@@ -1768,13 +1873,19 @@ function getDefaultModelLabel(state: InlineCompletionDebugWebviewState): string 
 function getDefaultContinuationModelLabel(state: InlineCompletionDebugWebviewState): string {
     if (!state.defaults.configuredContinuationModelSelector) {
         return state.defaults.effectiveContinuationModelLabel
-            ? `${state.defaults.effectiveContinuationModelLabel} (profile continuation)`
-            : "Use default model";
+            ? locConstants.inlineCompletionDebug.value0ProfileContinuation(
+                  String(state.defaults.effectiveContinuationModelLabel),
+              )
+            : locConstants.inlineCompletionDebug.useDefaultModel;
     }
 
     return state.defaults.effectiveContinuationModelLabel
-        ? `${state.defaults.effectiveContinuationModelLabel} (configured continuation)`
-        : `${state.defaults.configuredContinuationModelSelector} (configured continuation)`;
+        ? locConstants.inlineCompletionDebug.value0ConfiguredContinuation(
+              String(state.defaults.effectiveContinuationModelLabel),
+          )
+        : locConstants.inlineCompletionDebug.value0ConfiguredContinuation(
+              String(state.defaults.configuredContinuationModelSelector),
+          );
 }
 
 function completionCategoriesEqual(
@@ -1792,9 +1903,9 @@ function completionCategoriesEqual(
 function categoryLabel(category: InlineCompletionCategory): string {
     switch (category) {
         case "continuation":
-            return "Continuation";
+            return locConstants.inlineCompletionDebug.detailText90;
         case "intent":
-            return "Intent";
+            return locConstants.inlineCompletionDebug.detailText91;
         default:
             return category;
     }

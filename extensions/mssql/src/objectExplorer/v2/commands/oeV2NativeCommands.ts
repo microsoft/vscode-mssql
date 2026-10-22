@@ -13,12 +13,14 @@
  */
 
 import * as vscode from "vscode";
+import { isQueryStudioEnabled } from "../../../queryStudio/queryStudioFeatureGate";
 import { diag } from "../../../diagnostics/diagnosticsCore";
+import { ObjectExplorerV2, QueryStudio } from "../../../constants/locConstants";
 import { OeV2Node } from "../tree/oeV2Node";
 import { OeV2TreeController } from "../tree/oeV2TreeController";
 import { qualifiedName, selectTopSql } from "./sqlIdentifierFormatter";
 
-const SCRIPT_SELECT_TOP_ROW_LIMIT = 100;
+const SCRIPT_SELECT_TOP_ROW_LIMIT = 1000;
 
 function emitCommand(command: string, route: "native" | "unavailable", node?: OeV2Node): void {
     diag.emit({
@@ -39,13 +41,8 @@ async function openQueryStudioFromContext(args: {
     initialSql?: string;
     autoRun?: boolean;
 }): Promise<void> {
-    const queryStudioEnabled = vscode.workspace
-        .getConfiguration()
-        .get<boolean>("mssql.queryStudio.enabled", false);
-    if (!queryStudioEnabled) {
-        void vscode.window.showInformationMessage(
-            "Query Studio is disabled. Enable mssql.queryStudio.enabled to open queries from Object Explorer v2.",
-        );
+    if (!isQueryStudioEnabled()) {
+        void vscode.window.showInformationMessage(QueryStudio.disabled);
         return;
     }
     await vscode.commands.executeCommand("mssql.queryStudio.newQueryFromContext", {
@@ -60,7 +57,7 @@ async function scriptObjectFromContext(
     operation: "create" | "drop" | "execute",
 ): Promise<void> {
     const controller = getController();
-    if (!controller || !node?.connectionId || !node.database) {
+    if (!isQueryStudioEnabled() || !controller || !node?.connectionId || !node.database) {
         return;
     }
     emitCommand(`script.${operation}`, "native", node);
@@ -83,17 +80,28 @@ async function scriptObjectFromContext(
     });
 }
 
+/** Unqualified name of the selected node, never one inherited from its parent. */
+export function copyNameForNode(node?: OeV2Node): string | undefined {
+    return node?.kind === "object" || node?.kind === "databaseObject"
+        ? (node.objectName ?? node.label)
+        : node?.label;
+}
+
 export function registerOeV2NativeCommands(
     context: vscode.ExtensionContext,
     getController: () => OeV2TreeController | undefined,
     /** Tree-selection fallback for keybinding invocations (no node arg). */
     getSelectedNode?: () => OeV2Node | undefined,
+    isEnabled: () => boolean = () => true,
 ): void {
     context.subscriptions.push(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.copyName",
             async (node?: OeV2Node) => {
-                const name = node?.objectName ?? node?.schema ?? node?.database ?? node?.label;
+                if (!isEnabled()) {
+                    return;
+                }
+                const name = copyNameForNode(node);
                 if (name) {
                     await vscode.env.clipboard.writeText(name);
                     emitCommand("copyName", "native", node);
@@ -103,6 +111,9 @@ export function registerOeV2NativeCommands(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.copyQualifiedName",
             async (node?: OeV2Node) => {
+                if (!isEnabled()) {
+                    return;
+                }
                 // Keybinding invocations (Ctrl+C in the view) carry no node.
                 const target = node ?? getSelectedNode?.();
                 if (!target) {
@@ -119,7 +130,7 @@ export function registerOeV2NativeCommands(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.newQuery",
             async (node?: OeV2Node) => {
-                if (!node?.connectionId) {
+                if (!isEnabled() || !node?.connectionId) {
                     return;
                 }
                 emitCommand("newQuery", "native", node);
@@ -132,7 +143,7 @@ export function registerOeV2NativeCommands(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.selectTop",
             async (node?: OeV2Node) => {
-                if (!node?.connectionId || !node.schema || !node.objectName) {
+                if (!isEnabled() || !node?.connectionId || !node.schema || !node.objectName) {
                     return;
                 }
                 emitCommand("selectTop", "native", node);
@@ -149,25 +160,30 @@ export function registerOeV2NativeCommands(
             },
         ),
         vscode.commands.registerCommand("mssql.objectExplorerV2.scriptCreate", (node?: OeV2Node) =>
-            scriptObjectFromContext(getController, node, "create"),
+            isEnabled() ? scriptObjectFromContext(getController, node, "create") : undefined,
         ),
         vscode.commands.registerCommand("mssql.objectExplorerV2.scriptDrop", (node?: OeV2Node) =>
-            scriptObjectFromContext(getController, node, "drop"),
+            isEnabled() ? scriptObjectFromContext(getController, node, "drop") : undefined,
         ),
-        vscode.commands.registerCommand("mssql.objectExplorerV2.scriptExecute", (node?: OeV2Node) =>
-            scriptObjectFromContext(getController, node, "execute"),
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.scriptExecute",
+            (node?: OeV2Node) =>
+                isEnabled() ? scriptObjectFromContext(getController, node, "execute") : undefined,
         ),
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.filter",
             async (node?: OeV2Node) => {
+                if (!isEnabled()) {
+                    return;
+                }
                 const controller = getController();
                 if (!node || !controller || node.capabilities.canFilter !== true) {
                     return;
                 }
                 const current = controller.folderFilter(node);
                 const value = await vscode.window.showInputBox({
-                    title: `Filter ${node.label} by name`,
-                    prompt: "Objects whose name contains this text remain visible.",
+                    title: ObjectExplorerV2.filterFolderTitle(node.label),
+                    prompt: ObjectExplorerV2.filterObjectsPrompt,
                     value: current ?? "",
                 });
                 if (value === undefined) {
@@ -180,6 +196,9 @@ export function registerOeV2NativeCommands(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.clearFilters",
             (node?: OeV2Node) => {
+                if (!isEnabled()) {
+                    return;
+                }
                 getController()?.clearFolderFilter(node);
                 emitCommand("clearFilters", "native", node);
             },
@@ -187,14 +206,18 @@ export function registerOeV2NativeCommands(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.search",
             async (node?: OeV2Node) => {
+                if (!isEnabled()) {
+                    return;
+                }
                 const controller = getController();
                 if (!controller || !node?.connectionId || !node.database) {
                     return;
                 }
-                const term = await vscode.window.showInputBox({
-                    title: `Search objects in ${node.database}`,
-                    prompt: "Name prefix to search for.",
+                const input = await vscode.window.showInputBox({
+                    title: ObjectExplorerV2.searchDatabaseTitle(node.database),
+                    prompt: ObjectExplorerV2.searchNamePrefixPrompt,
                 });
+                const term = input?.trim();
                 if (!term) {
                     return;
                 }
@@ -204,17 +227,25 @@ export function registerOeV2NativeCommands(
                     term,
                 );
                 emitCommand("search", "native", node);
+                if (matches === undefined) {
+                    void vscode.window.showInformationMessage(
+                        ObjectExplorerV2.metadataStillLoading,
+                    );
+                    return;
+                }
                 if (matches.length === 0) {
-                    void vscode.window.showInformationMessage(`No objects match '${term}'.`);
+                    void vscode.window.showInformationMessage(
+                        ObjectExplorerV2.noObjectsMatch(term),
+                    );
                     return;
                 }
                 const picked = await vscode.window.showQuickPick(
                     matches.map((match) => ({
                         label: `${match.schema}.${match.name}`,
-                        description: match.kind,
+                        description: ObjectExplorerV2.objectKindLabel(match.kind),
                         match,
                     })),
-                    { title: `Objects matching '${term}' — pick to copy qualified name` },
+                    { title: ObjectExplorerV2.searchResultsTitle(term) },
                 );
                 if (picked) {
                     await vscode.env.clipboard.writeText(

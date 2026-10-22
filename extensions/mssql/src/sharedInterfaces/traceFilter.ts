@@ -7,7 +7,7 @@
  * Consolidated Trace filter expressions (completions-style live capture):
  *
  *   dur>1000      duration greater than 1000ms   (also dur>=, dur<, dur<=, 1.5s)
- *   proc:sts      process (sts|extension|webview|sql|driver|harness|system)
+ *   proc:sts      process (sts|extension|webview|sql|harness|system)
  *   feat:query    feature bucket
  *   status:error  status
  *   type:submit   free text (joins the text search)
@@ -20,12 +20,14 @@
 import { DiagProcess, DiagStatus, EventQuery } from "./debugConsole";
 
 export interface ParsedTraceFilter {
-    text?: string;
+    textTerms?: string[];
     processes?: DiagProcess[];
     features?: string[];
     statuses?: DiagStatus[];
     minDurationMs?: number;
+    minDurationExclusive?: boolean;
     maxDurationMs?: number;
+    maxDurationExclusive?: boolean;
     /** Tokens that could not be parsed (surfaced in the UI, never ignored silently). */
     invalid: string[];
 }
@@ -40,7 +42,6 @@ const PROCESS_ALIASES: Record<string, DiagProcess> = {
     renderer: "renderer",
     sql: "sqlServer",
     sqlserver: "sqlServer",
-    driver: "harness",
     harness: "harness",
     system: "system",
 };
@@ -69,9 +70,19 @@ export function parseTraceFilter(input: string): ParsedTraceFilter {
             }
             const op = durMatch[1];
             if (op === ">" || op === ">=") {
-                out.minDurationMs = ms;
+                if (out.minDurationMs === undefined || ms > out.minDurationMs) {
+                    out.minDurationMs = ms;
+                    out.minDurationExclusive = op === ">";
+                } else if (ms === out.minDurationMs && op === ">") {
+                    out.minDurationExclusive = true;
+                }
             } else {
-                out.maxDurationMs = ms;
+                if (out.maxDurationMs === undefined || ms < out.maxDurationMs) {
+                    out.maxDurationMs = ms;
+                    out.maxDurationExclusive = op === "<";
+                } else if (ms === out.maxDurationMs && op === "<") {
+                    out.maxDurationExclusive = true;
+                }
             }
             continue;
         }
@@ -107,7 +118,7 @@ export function parseTraceFilter(input: string): ParsedTraceFilter {
         words.push(token);
     }
     if (words.length > 0) {
-        out.text = words.join(" ");
+        out.textTerms = words;
     }
     return out;
 }
@@ -116,11 +127,23 @@ export function parseTraceFilter(input: string): ParsedTraceFilter {
 export function applyTraceFilter(base: EventQuery, parsed: ParsedTraceFilter): EventQuery {
     return {
         ...base,
-        ...(parsed.text ? { text: base.text ? `${base.text} ${parsed.text}` : parsed.text } : {}),
+        ...(parsed.textTerms
+            ? { textTerms: [...(base.textTerms ?? []), ...parsed.textTerms] }
+            : {}),
         ...(parsed.processes ? { processes: parsed.processes } : {}),
         ...(parsed.features ? { features: parsed.features } : {}),
         ...(parsed.statuses ? { statuses: parsed.statuses } : {}),
-        ...(parsed.minDurationMs !== undefined ? { minDurationMs: parsed.minDurationMs } : {}),
-        ...(parsed.maxDurationMs !== undefined ? { maxDurationMs: parsed.maxDurationMs } : {}),
+        ...(parsed.minDurationMs !== undefined
+            ? {
+                  minDurationMs: parsed.minDurationMs,
+                  minDurationExclusive: parsed.minDurationExclusive === true,
+              }
+            : {}),
+        ...(parsed.maxDurationMs !== undefined
+            ? {
+                  maxDurationMs: parsed.maxDurationMs,
+                  maxDurationExclusive: parsed.maxDurationExclusive === true,
+              }
+            : {}),
     };
 }

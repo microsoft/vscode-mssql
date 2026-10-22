@@ -28,7 +28,7 @@ import * as vscode from "vscode";
 import { writeFeatureTraceFile } from "../../diagnostics/featureCapture/traceFiles";
 import { NodeJournalFs } from "../../diagnostics/featureCapture/journal/journalWriter";
 import { FeatureTraceProvenance } from "../../sharedInterfaces/featureTrace";
-import { logger2 } from "../../models/logger2";
+import { logger as logger2 } from "../../models/logger";
 import { getErrorMessage } from "../../utils/utils";
 import { getCompletionsJournalBinding, getCompletionsJournalFs } from "./completionsJournalBinding";
 import { inlineCompletionDebugStore } from "./inlineCompletionDebugStore";

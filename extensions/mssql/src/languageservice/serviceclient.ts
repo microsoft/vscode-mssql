@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import { LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node";
+import { getStsDiagEnvironment } from "../diagnostics/stsDiagListener";
 import {
     type CloseHandlerResult,
     LanguageClientOptions,
@@ -35,11 +36,15 @@ import { ServerStatusView } from "./serverStatus";
 import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
 import { getErrorMessage } from "../utils/utils";
-import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils";
+import {
+    getAppDataPath,
+    getEnableConnectionPoolingConfig,
+    getUseMsalEntraMfaAuthConfig,
+} from "../azure/utils";
 import { serviceName } from "../azure/constants";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { PrivatePreviewFeature, PreviewFeature, previewService } from "../previews/previewService";
+import { PrivatePreviewFeature, previewService } from "../previews/previewService";
 import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
 import { config } from "../configurations/config";
 
@@ -715,12 +720,10 @@ export default class SqlToolsServiceClient {
             args.push("--vscode-debug-launch");
         }
 
-        // When the VS Code accounts preview is enabled, delegate MFA token acquisition to the
-        // client via AccessTokenCallback. Otherwise use MSAL via SqlAuthenticationProvider.
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
-            args.push("--request-mfa-token-from-client");
-        } else {
+        if (getUseMsalEntraMfaAuthConfig()) {
             args.push("--enable-sql-authentication-provider");
+        } else {
+            args.push("--request-mfa-token-from-client");
         }
 
         // Enable Connection pooling to improve connection performance
@@ -749,6 +752,7 @@ export default class SqlToolsServiceClient {
             command,
             args,
             transport: TransportKind.stdio,
+            options: { env: { ...process.env, ...getStsDiagEnvironment() } },
         };
     }
 

@@ -61,6 +61,7 @@ interface Entry {
 }
 
 export class OeV2SessionRegistry {
+    private disposed = false;
     private entries = new Map<string, Entry>();
     private listeners = new Set<(connectionId: string) => void>();
 
@@ -105,16 +106,34 @@ export class OeV2SessionRegistry {
         connectionId: string,
         prepared: PreparedConnection,
     ): Promise<OeV2ConnectionSession> {
+        if (this.disposed) {
+            return { connectionId, state: "disconnected" };
+        }
         const existing = this.entries.get(connectionId);
-        if (existing && existing.state === "connected") {
+        const preparedFingerprint =
+            prepared.profileRef?.profileFingerprint ?? prepared.serverFingerprint;
+        const existingFingerprint =
+            existing?.prepared?.profileRef?.profileFingerprint ??
+            existing?.prepared?.serverFingerprint;
+        const sameProfile = existing !== undefined && existingFingerprint === preparedFingerprint;
+        if (existing && existing.state === "connected" && sameProfile) {
             return snapshotOf(existing);
         }
-        if (existing && existing.state === "connecting") {
+        if (existing && existing.state === "connecting" && sameProfile) {
             // JOIN the in-flight attempt (live-run finding: the deployment
             // wizard's explicit connect races the single-new-profile
             // auto-connect). A "still connecting" snapshot here read as
             // failure to callers awaiting the outcome.
             return existing.pending ?? snapshotOf(existing);
+        }
+        if (existing) {
+            // A lost/failed/disconnected entry may still own a session or a
+            // state listener. Retire it before replacing the map slot so a
+            // reconnect cannot orphan data-plane state.
+            await this.retire(existing);
+            if (this.disposed) {
+                return { connectionId, state: "disconnected" };
+            }
         }
         const entry: Entry = {
             connectionId,
@@ -243,8 +262,9 @@ export class OeV2SessionRegistry {
     /** Records a profile/auth preparation failure so command UI can show its reason. */
     recordPreparationFailure(connectionId: string, failureReason: string, error: unknown): void {
         const previous = this.entries.get(connectionId);
-        previous?.stateSubscription?.dispose();
-        void previous?.session?.close().catch(() => undefined);
+        if (previous) {
+            void this.retire(previous);
+        }
         this.entries.set(connectionId, {
             connectionId,
             prepared: undefined,
@@ -277,10 +297,7 @@ export class OeV2SessionRegistry {
         }
         entry.state = "disconnecting";
         this.notify(connectionId);
-        entry.stateSubscription?.dispose();
-        entry.stateSubscription = undefined;
-        await entry.session?.close().catch(() => undefined);
-        entry.session = undefined;
+        await this.retire(entry);
         entry.state = "disconnected";
         diag.emit({
             feature: "objectExplorer",
@@ -292,12 +309,20 @@ export class OeV2SessionRegistry {
     }
 
     dispose(): void {
+        this.disposed = true;
         for (const entry of this.entries.values()) {
-            entry.stateSubscription?.dispose();
-            void entry.session?.close().catch(() => undefined);
+            void this.retire(entry);
         }
         this.entries.clear();
         this.listeners.clear();
+    }
+
+    private async retire(entry: Entry): Promise<void> {
+        entry.stateSubscription?.dispose();
+        entry.stateSubscription = undefined;
+        const session = entry.session;
+        entry.session = undefined;
+        await session?.close().catch(() => undefined);
     }
 }
 

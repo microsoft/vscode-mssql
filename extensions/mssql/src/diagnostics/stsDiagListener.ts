@@ -6,16 +6,17 @@
 /**
  * Loopback listener for SQL Tools Service diagnostics. The extension starts
  * this before STS spawns and passes STS_DIAG_URL/STS_DIAG_TOKEN via the
- * inherited environment; StsDiag on the service side batches NDJSON events
+ * STS-only launch environment; StsDiag on the service side batches NDJSON events
  * here. Events flow into the diagnostics core (which drops them when no sink
  * is active), giving the Debug Console live dispatcher/SqlCommand/SMO spans.
  *
  * The STS emitter never sends SQL text, object names, or row values — fields
- * arrive as protocol metadata and are classified as such.
+ * are checked against a narrow metadata allowlist; unknown fields are concealed.
  */
 
 import * as crypto from "crypto";
 import * as http from "http";
+import { importClassification, importedEventType, importedFieldKey } from "./importClassification";
 import { DataClassification } from "../sharedInterfaces/debugConsole";
 import { diag } from "./diagnosticsCore";
 
@@ -32,26 +33,66 @@ interface StsDiagWireEvent {
 }
 
 let server: http.Server | undefined;
+let launchEnvironment: NodeJS.ProcessEnv = {};
+export function getStsDiagEnvironment(): NodeJS.ProcessEnv {
+    return { ...launchEnvironment };
+}
+const MAX_BODY_BYTES = 4 * 1024 * 1024;
+/**
+ * Defense in depth on what the service is trusted to send: every scalar is
+ * classified diagnostic.metadata (plain in the journal, forwarded to the
+ * harness wire), so the bound on shape lives here, not only in the emitter.
+ */
+const MAX_FIELDS = 32;
+const MAX_FIELD_CHARS = 256;
+/** Feature buckets the STS emitter is contracted to use (StsDiag.cs callers). */
+const STS_FEATURES: ReadonlySet<string> = new Set([
+    "rpc",
+    "sqlDriver",
+    "objectExplorer",
+    "connection",
+    "query",
+    "system",
+]);
+
+/** True while the loopback listener is accepting STS batches. */
+export function isStsDiagListenerActive(): boolean {
+    return server !== undefined;
+}
 
 export async function startStsDiagListener(): Promise<void> {
     if (server) {
         return;
     }
     const token = crypto.randomBytes(16).toString("hex");
-    server = http.createServer((request, response) => {
+    const candidate = http.createServer((request, response) => {
         if (request.method !== "POST" || request.headers.authorization !== `Bearer ${token}`) {
             response.statusCode = 403;
             response.end();
             return;
         }
         let body = "";
+        let bodyBytes = 0;
+        let tooLarge = false;
         request.setEncoding("utf8");
         request.on("data", (chunk: string) => {
-            if (body.length < 4 * 1024 * 1024) {
-                body += chunk;
+            if (tooLarge) {
+                return;
             }
+            bodyBytes += Buffer.byteLength(chunk, "utf8");
+            if (bodyBytes > MAX_BODY_BYTES) {
+                tooLarge = true;
+                body = "";
+                return;
+            }
+            body += chunk;
         });
         request.on("end", () => {
+            if (tooLarge) {
+                response.statusCode = 413;
+                response.end();
+                return;
+            }
             response.statusCode = 200;
             response.end();
             if (!diag.anySinkActive) {
@@ -73,53 +114,105 @@ export async function startStsDiagListener(): Promise<void> {
             /* never propagate */
         });
     });
-    await new Promise<void>((resolve) => {
-        server!.on("error", () => resolve());
-        server!.listen(0, "127.0.0.1", () => resolve());
+    server = candidate;
+    const listening = await new Promise<boolean>((resolve) => {
+        candidate.once("error", () => resolve(false));
+        candidate.listen(0, "127.0.0.1", () => resolve(true));
     });
-    const address = server.address();
-    if (address && typeof address === "object") {
-        process.env["STS_DIAG_URL"] = `http://127.0.0.1:${address.port}/`;
-        process.env["STS_DIAG_TOKEN"] = token;
+    if (!listening) {
+        if (server === candidate) {
+            server = undefined;
+        }
+        return;
     }
-    server.unref();
+    const address = candidate.address();
+    if (address && typeof address === "object") {
+        launchEnvironment = {
+            STS_DIAG_URL: `http://127.0.0.1:${address.port}/`,
+            STS_DIAG_TOKEN: token,
+        };
+    }
+    candidate.unref();
 }
 
 export function stopStsDiagListener(): void {
     server?.close();
     server = undefined;
-    delete process.env["STS_DIAG_URL"];
-    delete process.env["STS_DIAG_TOKEN"];
+    launchEnvironment = {};
 }
 
 function ingest(event: StsDiagWireEvent): void {
-    if (typeof event.type !== "string" || typeof event.epochMs !== "number") {
+    if (
+        typeof event.type !== "string" ||
+        typeof event.epochMs !== "number" ||
+        !Number.isFinite(event.epochMs) ||
+        Math.abs(event.epochMs) > 8_640_000_000_000_000
+    ) {
         return;
     }
     const fields: Record<string, { raw: unknown; cls: DataClassification }> = {};
-    for (const [key, value] of Object.entries(event.fields ?? {})) {
-        if (
-            typeof value === "string" ||
-            typeof value === "number" ||
+    let truncated = 0;
+    let dropped = 0;
+    for (const [rawKey, value] of Object.entries(event.fields ?? {})) {
+        if (Object.keys(fields).length >= MAX_FIELDS) {
+            dropped++;
+            continue;
+        }
+        const key = importedFieldKey(rawKey);
+        if (typeof value === "string") {
+            // STS emitter contract: protocol metadata only (methods, counts,
+            // durations, type names) — bounded here regardless.
+            if (value.length > MAX_FIELD_CHARS) {
+                truncated++;
+                fields[key] = {
+                    raw: value.slice(0, MAX_FIELD_CHARS),
+                    cls: importClassification(key, value),
+                };
+            } else {
+                fields[key] = { raw: value, cls: importClassification(key, value) };
+            }
+        } else if (
+            (typeof value === "number" && Number.isFinite(value)) ||
             typeof value === "boolean" ||
             value === null
         ) {
-            // STS emitter contract: protocol metadata only (methods, counts,
-            // durations, type names) — classified accordingly.
-            fields[key] = { raw: value, cls: "diagnostic.metadata" };
+            fields[key] = { raw: value, cls: importClassification(key, value) };
         }
     }
+    if (truncated > 0) {
+        fields["stsDiag.truncatedFields"] = { raw: truncated, cls: "diagnostic.metadata" };
+    }
+    if (dropped > 0) {
+        fields["stsDiag.droppedFields"] = { raw: dropped, cls: "diagnostic.metadata" };
+    }
+    const startEpochMs =
+        typeof event.startEpochMs === "number" &&
+        Number.isFinite(event.startEpochMs) &&
+        Math.abs(event.startEpochMs) <= 8_640_000_000_000_000
+            ? event.startEpochMs
+            : event.epochMs;
+    const durationMs =
+        typeof event.durationMs === "number" && Number.isFinite(event.durationMs)
+            ? event.durationMs
+            : undefined;
     diag.emit({
-        feature: event.feature === "sqlDriver" ? "sqlDriver" : (event.feature ?? "rpc"),
+        // Unknown feature buckets collapse to "sts" instead of minting
+        // arbitrary feature names from the wire.
+        feature:
+            typeof event.feature === "string" && STS_FEATURES.has(event.feature)
+                ? event.feature
+                : "sts",
         kind: event.kind === "span" ? "span" : "event",
-        type: event.type,
+        type: event.type.startsWith("sts.")
+            ? importedEventType(event.type).replace(/^import\.unknown$/, "sts.unknown")
+            : "sts.unknown",
         status: event.status === "error" ? "error" : event.status === "warning" ? "warning" : "ok",
         process: "sqlToolsService",
-        ...(event.pid !== undefined ? { pid: event.pid } : {}),
+        ...(typeof event.pid === "number" && Number.isFinite(event.pid) ? { pid: event.pid } : {}),
         // Anchor at span START so waterfall placement is correct; duration
         // carries the extent. (Analysis treats own-duration events as bars.)
-        epochMs: event.startEpochMs ?? event.epochMs,
-        ...(event.durationMs !== undefined ? { durationMs: event.durationMs } : {}),
+        epochMs: startEpochMs,
+        ...(durationMs !== undefined ? { durationMs } : {}),
         timingClass: "epochAlignedDiagnostic",
         ...(Object.keys(fields).length > 0 ? { fields } : {}),
         tags: ["stsDiag"],

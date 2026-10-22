@@ -73,12 +73,7 @@ const CHANGE_THROTTLE_MS = 250;
 
 export interface CompletionsDebugConsoleHostDeps {
     extensionContext: vscode.ExtensionContext;
-    /**
-     * Mirrors what mainController hands the standalone controller. The Live
-     * subset never replays (refreshSchemaContext rides the shared command),
-     * but the replay service is wired with it so enabling replay here later
-     * is purely an allowlist change.
-     */
+    /** Shared schema context for refresh and replay commands. */
     schemaContextService?: CompletionSchemaContextService;
     /** Injectable for tests; defaults to the real vscode-backed host. */
     hostServices?: InlineCompletionDebugHostServices;
@@ -87,7 +82,9 @@ export interface CompletionsDebugConsoleHostDeps {
 let hostDeps: CompletionsDebugConsoleHostDeps | undefined;
 
 /** Called from mainController right after the schema context service exists. */
-export function configureCompletionsDebugHost(deps: CompletionsDebugConsoleHostDeps): void {
+export function configureCompletionsDebugHost(
+    deps: CompletionsDebugConsoleHostDeps | undefined,
+): void {
     hostDeps = deps;
 }
 
@@ -105,8 +102,7 @@ export const IC_DEBUG_GATE_OFF_MESSAGE =
  * strips the live event bodies — the console provider reads live rows over
  * the thin dc/completionLiveRows transport instead, so its initial payload
  * carries no prompt/response content (addendum §14 budget). Loaded session
- * traces still ride the sessions slice once the USER loads them — the
- * standalone panel's semantics, interim until Phase-2 host-side aggregation.
+ * traces still ride the sessions slice once the user loads them.
  * Legacy callers (no params) get the unmodified full state.
  */
 export function projectIcDebugStateResult(
@@ -117,28 +113,6 @@ export function projectIcDebugStateResult(
         return state;
     }
     return { ...state, events: [] };
-}
-
-/**
- * WI-1.6 deep-link routing: where `mssql.openInlineCompletionDebug` lands.
- * Flag OFF (default) → the Debug Console AT the Completions page — even while
- * the feature gate is off, because that page hosts the enablement flow.
- * Flag ON → the legacy standalone panel (the rollback path), which keeps its
- * existing behavior of doing nothing while the feature gate is off.
- */
-export type CompletionsDebugLaunchTarget =
-    | { kind: "console"; page: "completions" }
-    | { kind: "standalonePanel" }
-    | { kind: "none" };
-
-export function resolveCompletionsDebugLaunchTarget(options: {
-    standalonePanelFlag: boolean;
-    featureEnabled: boolean;
-}): CompletionsDebugLaunchTarget {
-    if (!options.standalonePanelFlag) {
-        return { kind: "console", page: "completions" };
-    }
-    return options.featureEnabled ? { kind: "standalonePanel" } : { kind: "none" };
 }
 
 /** Gate-off capabilities: honest empties, featureGateOn:false (WI-1.2). */
@@ -231,8 +205,7 @@ export class ConsoleCompletionsDebugHost {
             hostServices: this._hostServices,
         });
 
-        // Named viewer lease: disposing the console never affects a
-        // concurrently open standalone panel's lease (final plan WI-0.4).
+        // Disposing the console releases only its own capture lease.
         this._viewerLease = inlineCompletionDebugStore.acquireViewer("debugConsole.completions");
 
         this._disposables.push(
@@ -247,8 +220,7 @@ export class ConsoleCompletionsDebugHost {
                 onStateAffectingChange: () => this.fireChanged(["config"]),
                 onModelConfigurationChange: () =>
                     this._services.captureService.refreshEffectiveDefaultModel(),
-                // No sessions surface here: reset the read model to the new
-                // folder without scanning (the panel adapter rescans instead).
+                // Reset the read model; Sessions triggers the next folder scan.
                 onTraceFolderChange: () =>
                     this._services.traceRepository.handleTraceFolderConfigurationChange(),
             }),
@@ -401,4 +373,8 @@ export class ConsoleCompletionsDebugHost {
             this._onDidChange2Emitter.fire({ revision: this._revision, changed });
         }, delay);
     }
+}
+
+export function isCompletionsDebugHostConfigured(): boolean {
+    return hostDeps !== undefined;
 }

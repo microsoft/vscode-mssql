@@ -18,6 +18,7 @@
  * adapters only project state after a dispatch.
  */
 
+import { InlineCompletionDebug } from "../../../constants/locConstants";
 import * as vscode from "vscode";
 import * as Constants from "../../../constants/constants";
 import { CompletionSchemaContextService } from "../../completionSchemaContextService";
@@ -186,7 +187,7 @@ export class InlineCompletionDebugCommandHandler {
             }
             if (resolved.length < (payload.items?.length ?? 0)) {
                 void this._deps.hostServices.showInformationMessage(
-                    "Some events were no longer in the live ring and were not added to the replay cart.",
+                    InlineCompletionDebug.someEventsWereNoLongerInThe,
                 );
             }
             if (resolved.length > 0) {

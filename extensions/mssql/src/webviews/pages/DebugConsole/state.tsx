@@ -22,36 +22,16 @@ import {
     DebugSource,
     DcCaptureChangedNotification,
     DcBackfillGapRequest,
-    DcCancelSelfTestRequest,
-    DcImportPerfRunRequest,
     DcListSourcesRequest,
     DcLivePushNotification,
     DcNavigateNotification,
     DcPageId,
-    DcRunSelfTestRequest,
-    DcSelfTestProgressNotification,
     DcSetCaptureModeRequest,
     DcSubscribeLiveRequest,
     DcUnsubscribeLiveRequest,
-    DiagEvent,
     GapRecord,
-    SelfTestProgress,
-    SelfTestRunRequest,
-    SelfTestRunStarted,
 } from "../../../sharedInterfaces/debugConsole";
-
-export interface SelfTestState {
-    runId: string;
-    active: boolean;
-    events: SelfTestProgress[];
-    summary?: {
-        runStatus: string;
-        passed: number;
-        failed: number;
-        skipped: number;
-        perfRunsRoot: string;
-    };
-}
+import { describeError } from "./common";
 
 // Routing vocabulary is shared with the host so deep links stay typed.
 export type DcPage = DcPageId;
@@ -60,15 +40,7 @@ export interface DcRoute {
     page: DcPage;
     traceId?: string;
     eventId?: string;
-    /**
-     * WI-4.4 deep link (History "Completions n" chip): open the Completions
-     * page on the Sessions tab with this host session's stored capture
-     * sessions included in the dataset and loaded.
-     */
     completionsDatasetSession?: string;
-    /** WI-4.4 deep link (History "Replay runs n" chip): Replay Lab filtered
-     *  to this host session's runs. */
-    replayHostSession?: string;
 }
 
 interface DcContextValue {
@@ -81,20 +53,18 @@ interface DcContextValue {
     isLive: boolean;
     route: DcRoute;
     navigate: (route: DcRoute) => void;
-    liveEvents: DiagEvent[];
     liveGaps: GapRecord[];
     backfillGap: (gap: GapRecord) => Promise<void>;
+    /** Last failed host action (shown in the top bar; cleared on the next success). */
+    notice: string | undefined;
+    setNotice: (notice: string | undefined) => void;
     captureMode: CaptureMode;
     captureExpiresEpochMs: number | undefined;
     setCaptureMode: (mode: CaptureMode, reason?: string, durationMinutes?: number) => void;
     refreshSources: () => void;
-    importPerfRun: () => void;
     search: string;
     setSearch: (text: string) => void;
     dataVersion: number;
-    selfTest: SelfTestState | undefined;
-    runSelfTest: (request: SelfTestRunRequest) => Promise<SelfTestRunStarted>;
-    cancelSelfTest: () => void;
 }
 
 const DcContext = createContext<DcContextValue | undefined>(undefined);
@@ -106,8 +76,6 @@ export function useDc(): DcContextValue {
     }
     return value;
 }
-
-const LIVE_VIEW_CAP = 20_000;
 
 export function DcProvider({ children }: { children: React.ReactNode }) {
     const {
@@ -123,12 +91,15 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
     // Live is not a mode the user toggles — it IS the current-session source.
     // ("" = initial state before the host pushes the live source id.)
     const isLive = activeSourceId === "" || activeSourceId.startsWith("live:");
-    const [route, navigate] = useState<DcRoute>({ page: "overview" });
-    const [liveEvents, setLiveEvents] = useState<DiagEvent[]>([]);
+    const [route, navigate] = useState<DcRoute>({ page: "trace" });
+    // The webview keeps NO event buffer of its own: every page queries the
+    // host (which owns the archive) and re-queries on dataVersion, so live
+    // pushes only bump the version. Gaps are tracked for the backfill UX.
     const [liveGaps, setLiveGaps] = useState<GapRecord[]>([]);
+    const [notice, setNotice] = useState<string | undefined>(undefined);
 
-    // Recover a gap dropped range from the session store journal; merges the
-    // events back into the live buffer and records the honest outcome.
+    // Recover a gap's dropped range from the session store journal into the
+    // host archive and record the honest outcome (including the reason).
     const backfillGap = useCallback(
         async (gap: GapRecord): Promise<void> => {
             setLiveGaps((current) =>
@@ -136,28 +107,31 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
                     g.gapId === gap.gapId ? { ...g, backfillStatus: "running" } : g,
                 ),
             );
-            const outcome = await rpc.sendRequest(DcBackfillGapRequest.type, {
-                gapId: gap.gapId,
-                fromSeq: gap.fromSeq,
-                throughSeq: gap.throughSeq,
-            });
-            if (outcome.ok && outcome.events && outcome.events.length > 0) {
-                setLiveEvents((current) => {
-                    const known = new Set(current.map((e) => e.seq));
-                    const merged = [
-                        ...current,
-                        ...outcome.events!.filter((e) => !known.has(e.seq)),
-                    ].sort((a, b) => a.seq - b.seq);
-                    return merged.length > LIVE_VIEW_CAP
-                        ? merged.slice(merged.length - LIVE_VIEW_CAP)
-                        : merged;
+            try {
+                const outcome = await rpc.sendRequest(DcBackfillGapRequest.type, {
+                    gapId: gap.gapId,
+                    fromSeq: gap.fromSeq,
+                    throughSeq: gap.throughSeq,
                 });
+                setLiveGaps((current) =>
+                    current.map((g) =>
+                        g.gapId === gap.gapId ? { ...g, backfillStatus: outcome.status } : g,
+                    ),
+                );
+                if (outcome.ok) {
+                    setDataVersion((version) => version + 1);
+                }
+                if (outcome.reason) {
+                    setNotice(`Backfill ${outcome.status}: ${outcome.reason}`);
+                }
+            } catch (error) {
+                setLiveGaps((current) =>
+                    current.map((g) =>
+                        g.gapId === gap.gapId ? { ...g, backfillStatus: "failed" } : g,
+                    ),
+                );
+                setNotice(`Backfill failed: ${describeError(error)}`);
             }
-            setLiveGaps((current) =>
-                current.map((g) =>
-                    g.gapId === gap.gapId ? { ...g, backfillStatus: outcome.status } : g,
-                ),
-            );
         },
         [rpc],
     );
@@ -165,7 +139,6 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
     const [captureExpiresEpochMs, setCaptureExpires] = useState<number | undefined>(undefined);
     const [search, setSearch] = useState("");
     const [dataVersion, setDataVersion] = useState(0);
-    const [selfTest, setSelfTest] = useState<SelfTestState | undefined>(undefined);
     const subscribedRef = useRef(false);
     const initialPageConsumedRef = useRef(false);
 
@@ -203,8 +176,22 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
+    useEffect(
+        () => () => {
+            const timer = versionThrottle.current.timer;
+            if (timer) {
+                clearTimeout(timer);
+                versionThrottle.current.timer = undefined;
+            }
+        },
+        [],
+    );
+
     const refreshSources = useCallback(() => {
-        void rpc.sendRequest(DcListSourcesRequest.type).then((list) => setSources(list));
+        rpc.sendRequest(DcListSourcesRequest.type).then(
+            (list) => setSources(list),
+            (error: unknown) => setNotice(`Could not list sources: ${describeError(error)}`),
+        );
     }, [rpc]);
 
     useEffect(() => {
@@ -223,12 +210,6 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         rpc.onNotification(DcLivePushNotification.type, (push) => {
             if (push.kind === "events") {
-                setLiveEvents((current) => {
-                    const next = current.concat(push.events);
-                    return next.length > LIVE_VIEW_CAP
-                        ? next.slice(next.length - LIVE_VIEW_CAP)
-                        : next;
-                });
                 bumpDataVersion();
             } else {
                 setLiveGaps((current) => [...current, push.gap]);
@@ -241,100 +222,40 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
         rpc.onNotification(DcNavigateNotification.type, ({ page }) => {
             navigate({ page });
         });
-        rpc.onNotification(DcSelfTestProgressNotification.type, (progress) => {
-            setSelfTest((current) => {
-                const base =
-                    current && current.runId === progress.runId
-                        ? current
-                        : { runId: progress.runId, active: true, events: [] };
-                const events = base.events.concat(progress).slice(-500);
-                if (progress.phase === "runEnd") {
-                    return {
-                        runId: base.runId,
-                        active: false,
-                        events,
-                        summary: {
-                            runStatus: progress.runStatus ?? "unknown",
-                            passed: progress.passed ?? 0,
-                            failed: progress.failed ?? 0,
-                            skipped: progress.skipped ?? 0,
-                            perfRunsRoot: progress.perfRunsRoot ?? "",
-                        },
-                    };
-                }
-                if (progress.phase === "error") {
-                    return { ...base, events, active: false };
-                }
-                return { ...base, events, active: true };
-            });
-            if (progress.phase === "runEnd") {
-                // New run persisted → Perf & History pages refresh.
-                setDataVersion((v) => v + 1);
-            }
-        });
     }, []);
 
     useEffect(() => {
         if (isLive && !subscribedRef.current) {
             subscribedRef.current = true;
-            void rpc.sendRequest(DcSubscribeLiveRequest.type).then((initial) => {
-                const events = initial.snapshot.rows.filter(
-                    (row): row is DiagEvent => row.kind !== "gap",
-                );
-                setLiveEvents(events);
-                setDataVersion((v) => v + 1);
-            });
+            rpc.sendRequest(DcSubscribeLiveRequest.type).then(
+                () => setDataVersion((v) => v + 1),
+                (error: unknown) => setNotice(`Live subscription failed: ${describeError(error)}`),
+            );
         } else if (!isLive && subscribedRef.current) {
             subscribedRef.current = false;
-            void rpc.sendRequest(DcUnsubscribeLiveRequest.type);
+            rpc.sendRequest(DcUnsubscribeLiveRequest.type).then(
+                () => undefined,
+                () => undefined,
+            );
         }
     }, [isLive]);
 
     const setCaptureMode = useCallback(
         (mode: CaptureMode, reason?: string, durationMinutes?: number) => {
-            void rpc
-                .sendRequest(DcSetCaptureModeRequest.type, {
-                    mode,
-                    ...(reason !== undefined ? { reason } : {}),
-                    ...(durationMinutes !== undefined ? { durationMinutes } : {}),
-                })
-                .then((result) => {
+            rpc.sendRequest(DcSetCaptureModeRequest.type, {
+                mode,
+                ...(reason !== undefined ? { reason } : {}),
+                ...(durationMinutes !== undefined ? { durationMinutes } : {}),
+            }).then(
+                (result) => {
                     setCaptureModeState(result.mode);
                     setCaptureExpires(result.expiresEpochMs);
-                });
+                },
+                (error: unknown) => setNotice(`Capture change failed: ${describeError(error)}`),
+            );
         },
         [rpc],
     );
-
-    const importPerfRun = useCallback(() => {
-        void rpc.sendRequest(DcImportPerfRunRequest.type).then((list) => {
-            if (list) {
-                setSources(list);
-                const perfRun = list.filter((s) => s.kind === "perfRun").pop();
-                if (perfRun) {
-                    setActiveSourceId(perfRun.id);
-                }
-            }
-        });
-    }, [rpc]);
-
-    const runSelfTest = useCallback(
-        (request: SelfTestRunRequest) => {
-            // Reset the panel for the new run; progress arrives via notification.
-            setSelfTest({ runId: "", active: true, events: [] });
-            return rpc.sendRequest(DcRunSelfTestRequest.type, request).then((started) => {
-                if (!started.accepted) {
-                    setSelfTest(undefined);
-                }
-                return started;
-            });
-        },
-        [rpc],
-    );
-
-    const cancelSelfTest = useCallback(() => {
-        void rpc.sendRequest(DcCancelSelfTestRequest.type);
-    }, [rpc]);
 
     const value = useMemo<DcContextValue>(
         () => ({
@@ -347,20 +268,17 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
 
             route,
             navigate,
-            liveEvents,
             liveGaps,
             backfillGap,
+            notice,
+            setNotice,
             captureMode,
             captureExpiresEpochMs,
             setCaptureMode,
             refreshSources,
-            importPerfRun,
             search,
             setSearch,
             dataVersion,
-            selfTest,
-            runSelfTest,
-            cancelSelfTest,
         }),
         [
             state,
@@ -369,19 +287,15 @@ export function DcProvider({ children }: { children: React.ReactNode }) {
             activeSourceId,
             isLive,
             route,
-            liveEvents,
             liveGaps,
             backfillGap,
+            notice,
             captureMode,
             captureExpiresEpochMs,
             setCaptureMode,
             refreshSources,
-            importPerfRun,
             search,
             dataVersion,
-            selfTest,
-            runSelfTest,
-            cancelSelfTest,
         ],
     );
     return <DcContext.Provider value={value}>{children}</DcContext.Provider>;

@@ -6,7 +6,5 @@
 import type * as vscodeMssql from "vscode-mssql";
 
 export type ProjectType = vscodeMssql.ProjectType;
-export type GetScriptsResult = vscodeMssql.GetScriptsResult;
-export type GetFoldersResult = vscodeMssql.GetFoldersResult;
 export type SystemDatabase = vscodeMssql.SystemDatabase;
 export type SystemDbReferenceType = vscodeMssql.SystemDbReferenceType;

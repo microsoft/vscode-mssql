@@ -25,16 +25,10 @@ export interface InlineCompletionDebugHostServices {
         ...items: string[]
     ): Thenable<string | undefined>;
     writeClipboardText(text: string): Thenable<void>;
-    /** Scoped (workspace when folders exist, otherwise global) settings write. */
+    /** User settings write for machine-scoped capture and recording options. */
     updateConfiguration(section: string, value: unknown): Thenable<void>;
     readFile(uri: vscode.Uri): Thenable<Uint8Array>;
     writeFile(uri: vscode.Uri, content: Uint8Array): Thenable<void>;
-}
-
-export function getConfigurationTarget(): vscode.ConfigurationTarget {
-    return vscode.workspace.workspaceFolders?.length
-        ? vscode.ConfigurationTarget.Workspace
-        : vscode.ConfigurationTarget.Global;
 }
 
 export function createDefaultInlineCompletionDebugHostServices(): InlineCompletionDebugHostServices {
@@ -47,7 +41,9 @@ export function createDefaultInlineCompletionDebugHostServices(): InlineCompleti
             vscode.window.showWarningMessage(message, options, ...items),
         writeClipboardText: (text) => vscode.env.clipboard.writeText(text),
         updateConfiguration: (section, value) =>
-            vscode.workspace.getConfiguration().update(section, value, getConfigurationTarget()),
+            vscode.workspace
+                .getConfiguration()
+                .update(section, value, vscode.ConfigurationTarget.Global),
         readFile: (uri) => vscode.workspace.fs.readFile(uri),
         writeFile: (uri, content) => vscode.workspace.fs.writeFile(uri, content),
     };

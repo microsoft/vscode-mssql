@@ -48,6 +48,9 @@ function decodeFeature(feature: SpatialDecodeRequest["features"][number]): Spati
     }
     try {
         const geometry = wkb.readGeometry(decodeBase64(feature.spatial.wkb));
+        if (!geometry) {
+            throw new Error("WKB did not contain a geometry");
+        }
         const geometryObject = geoJson.writeGeometryObject(geometry) as unknown as Record<
             string,
             unknown

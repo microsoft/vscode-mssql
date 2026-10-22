@@ -60,7 +60,7 @@
     "dependencies": {
         "@vscode/extension-telemetry": "1.5.2",
         "@vscode/l10n": "^0.0.18",
-        "axios": "^1.18.0",
+        "axios": "^1.20.0",
         "tunnel": "0.0.6"
     },
     "devDependencies": {

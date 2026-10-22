@@ -550,6 +550,11 @@ export namespace QsSaveExecutionPlanRequest {
         "qs/saveExecutionPlan",
     );
 }
+export namespace QsCompareExecutionPlanRequest {
+    export const type = new RequestType<{ sqlPlanContent: string }, void, void>(
+        "qs/compareExecutionPlan",
+    );
+}
 export namespace QsShowPlanXmlRequest {
     export const type = new RequestType<{ sqlPlanContent: string }, void, void>("qs/showPlanXml");
 }

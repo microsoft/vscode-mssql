@@ -1,0 +1,89 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { Text, makeStyles, tokens } from "@fluentui/react-components";
+import { Clock20Regular, Document16Regular } from "@fluentui/react-icons";
+
+import { SidePanel } from "./sidePanel";
+import { locConstants } from "../../../common/locConstants";
+import { useOverviewActions } from "../useOverviewActions";
+import { useOverviewSelector } from "../overviewSelector";
+
+const useStyles = makeStyles({
+    list: {
+        display: "flex",
+        flexDirection: "column",
+    },
+    item: {
+        display: "flex",
+        alignItems: "baseline",
+        gap: tokens.spacingHorizontalS,
+        width: "100%",
+        textAlign: "left",
+        padding: `${tokens.spacingVerticalXS} ${tokens.spacingHorizontalXS}`,
+        border: "none",
+        borderRadius: tokens.borderRadiusSmall,
+        backgroundColor: "transparent",
+        fontFamily: "inherit",
+        fontSize: "inherit",
+        cursor: "pointer",
+        ":hover": {
+            backgroundColor: tokens.colorNeutralBackground1Hover,
+        },
+        ":focus-visible": {
+            outline: `2px solid ${tokens.colorStrokeFocus2}`,
+        },
+    },
+    itemIcon: {
+        display: "flex",
+        flexShrink: 0,
+        alignSelf: "center",
+        color: tokens.colorNeutralForeground3,
+    },
+    fileName: {
+        color: tokens.colorBrandForegroundLink,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        ":hover": {
+            textDecoration: "underline",
+        },
+    },
+    empty: {
+        color: tokens.colorNeutralForeground3,
+        fontSize: tokens.fontSizeBase200,
+    },
+});
+
+export const RecentFilesSection = () => {
+    const classes = useStyles();
+    const loc = locConstants.overview;
+    const { openRecentSqlFile } = useOverviewActions();
+    const recentFiles = useOverviewSelector((state) => state.recentFiles);
+
+    return (
+        <SidePanel title={loc.recentFiles} icon={<Clock20Regular />}>
+            {recentFiles.length === 0 ? (
+                <Text className={classes.empty}>{loc.noRecentFiles}</Text>
+            ) : (
+                <div className={classes.list}>
+                    {recentFiles.map((file) => (
+                        <button
+                            key={file.fsPath}
+                            type="button"
+                            title={file.fsPath}
+                            className={classes.item}
+                            onClick={() => openRecentSqlFile(file.fsPath)}>
+                            <span className={classes.itemIcon}>
+                                <Document16Regular />
+                            </span>
+                            <span className={classes.fileName}>{file.fileName}</span>
+                        </button>
+                    ))}
+                </div>
+            )}
+        </SidePanel>
+    );
+};

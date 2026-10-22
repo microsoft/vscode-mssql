@@ -155,20 +155,18 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.maxRecentConnections": 5,                         // Number of recent connections to display (0-50)
   "mssql.connectionManagement.rememberPasswordsUntilRestart": true,  // Keep passwords in memory until VS Code restarts
   "mssql.enableConnectionPooling": false,                  // Enable connection pooling for improved performance
-  "mssql.azureActiveDirectory": "AuthCodeGrant"            // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
-  "mssql.preview.useVscodeAccountsForEntraMFA": true,      // Whether to use accounts signed into VS Code for authenticating to databases with Microsoft Entra ID Universal with MFA
-  "mssql.newEditorConnectionBehavior": "transferACtive",   // How to connect a newly-opened .SQL file or query editor: "none" | "transferActive" | "defaultConnection"
+  "mssql.azureActiveDirectory": "AuthCodeGrant",           // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
+  "mssql.useMsalEntraMfaAuth": false,                      // Whether to use MSAL for Microsoft Entra MFA authentication instead of accounts signed into VS Code
+  "mssql.newEditorConnectionBehavior": "transferActive",   // How to connect a newly-opened .SQL file or query editor: "none" | "transferActive" | "defaultConnection"
   "mssql.defaultConnectionId": "",                         // Connection ID (GUID) of the connection to auto-connect new editors with. Only applicable when "mssql.newEditorConnectionBehavior" is set to "defaultConnection"
 }
 
-// Query Formatting
+// Query Formatting (search Settings for "@ext:ms-mssql.mssql format" to see all options)
 {
-  "mssql.format.enablePreviewFormatter": true,             // (Preview) Use the new SQL formatter with additional formatting options
-  "mssql.format.alignColumnDefinitionsInColumns": false,   // Align column definitions in CREATE TABLE statements
-  "mssql.format.datatypeCasing": "none",                   // Datatype casing: "none" | "uppercase" | "lowercase"
-  "mssql.format.keywordCasing": "none",                    // SQL keyword casing: "none" | "uppercase" | "lowercase"
-  "mssql.format.placeCommasBeforeNextStatement": false,    // Place commas before next item (procedural style)
-  "mssql.format.placeSelectStatementReferencesOnNewLine": false  // Put SELECT references on new lines
+  "mssql.format.options.keywordCasing": "uppercase",        // SQL keyword casing: "uppercase" | "lowercase" | "pascalCase"
+  "mssql.format.options.identifierCasing": "preserve",      // Identifier casing: "preserve" | "uppercase" | "lowercase" | "pascalCase"
+  "mssql.format.options.commaPlacement": "trailing",        // Comma placement: "trailing" | "leading"
+  "mssql.format.options.multilineSelectElementsList": true   // Put SELECT columns on separate lines
 }
 
 // IntelliSense
@@ -219,7 +217,6 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 {
   "mssql.openQueryResultsInTabByDefault": false,           // Open query results in a tab instead of side panel
   "mssql.preview.betaResultsGrid": false,                  // (Preview) Enable the new query results grid with improved state management and column show/hide/freeze options
-  "mssql.preview.betaExecutionPlan": false,                // (Preview) Enable the new execution plan viewer with improved performance
   "mssql.resultsFontFamily": null,                         // Font family for results grid (null = VS Code default)
   "mssql.resultsFontSize": null,                           // Font size for results grid in pixels (null = VS Code default)
   "mssql.defaultQueryResultsViewMode": "Grid",             // Default results view: "Grid" or "Text"

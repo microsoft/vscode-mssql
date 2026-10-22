@@ -84,11 +84,9 @@ export function getNonce(): string {
 
 export class CancelError extends Error {}
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isIConnectionInfo(connectionInfo: any): connectionInfo is IConnectionInfo {
-    return (
-        (connectionInfo && connectionInfo.server && connectionInfo.authenticationType) ||
-        connectionInfo.connectionString
-    );
+    return connectionInfo && connectionInfo.server && connectionInfo.authenticationType;
 }
 
 /**
@@ -122,6 +120,15 @@ export async function listAllIterator<T>(iterator: PagedAsyncIterableIterator<T>
  */
 export function getUriKey(uri: vscode.Uri): string {
     return uri?.toString();
+}
+
+/**
+ * Percent-encodes a value, such as a URL, for use as a telemetry property.
+ * @param value The value to encode.
+ * @returns The percent-encoded value.
+ */
+export function encodeForTelemetry(value: string): string {
+    return encodeURIComponent(value);
 }
 
 /**

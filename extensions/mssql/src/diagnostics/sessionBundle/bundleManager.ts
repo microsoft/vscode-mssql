@@ -26,8 +26,9 @@
  * - catalog failure never fails capture or the product (§2.3).
  */
 
-import { logger2 } from "../../models/logger2";
-import { BundleHealthRow, SessionManifest } from "../../sharedInterfaces/debugConsole";
+import { logger as logger2 } from "../../models/logger";
+import { SessionManifest } from "../../sharedInterfaces/diagnostics";
+import { BundleHealthRow } from "../../sharedInterfaces/debugConsole";
 import { newBundleId } from "../featureCapture/identity";
 import { FeatureCaptureManifestV1 } from "../featureCapture/journal/journalSchemas";
 import {

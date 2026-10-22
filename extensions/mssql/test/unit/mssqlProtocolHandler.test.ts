@@ -72,17 +72,13 @@ suite("MssqlProtocolHandler Tests", () => {
             expect(connectProfileStub).to.not.have.been.called;
         });
 
-        test("Should find matching profile when connection string is provided", async () => {
+        test("Should ignore unsupported connection string parameters", async () => {
             const connString = `Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=${uuid()};`;
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
-
-            sandbox.stub(mockMainController, "connectionManager").get(() => {
-                return mockConnectionManager;
-            });
-
+            sandbox.stub(mockMainController, "connectionManager").get(() => mockConnectionManager);
             mockConnectionManager.findMatchingProfile.resolves({
-                profile: { connectionString: connString } as IConnectionProfile,
-                score: MatchScore.AllAvailableProps,
+                profile: undefined,
+                score: MatchScore.NotMatch,
             });
 
             await mssqlProtocolHandler.handleUri(
@@ -91,11 +87,11 @@ suite("MssqlProtocolHandler Tests", () => {
                 ),
             );
 
-            expect(connectProfileStub).to.have.been.calledOnceWith({
-                connectionString: connString,
-            });
-
-            expect(openConnectionDialogStub).to.not.have.been.called;
+            expect(openConnectionDialogStub).to.have.been.calledOnce;
+            expect(openConnectionDialogStub.firstCall.args[0]).not.to.have.property(
+                "connectionString",
+            );
+            expect(connectProfileStub).to.not.have.been.called;
         });
 
         test("Should find matching profile when parameters are provided", async () => {

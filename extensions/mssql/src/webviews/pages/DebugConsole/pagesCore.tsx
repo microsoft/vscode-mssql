@@ -3,353 +3,63 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/** Core Debug Console pages: Overview, Consolidated Trace, Waterfall. */
+/** Core Debug Console pages: Consolidated Trace and Waterfall. */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
     CauseTreeNode,
     DcGetCauseTreeRequest,
-    DcGetOverviewRequest,
-    DcGetWaterfallRequest,
     DcGetTraceQualityRequest,
+    DcGetWaterfallRequest,
     DcListTracesRequest,
     DcQueryEventsRequest,
     DiagEvent,
     DiagProcess,
     EventQueryResult,
     GapRecord,
-    SourceOverview,
     TraceQualityReport,
     UserActionSummary,
     WaterfallModel,
 } from "../../../sharedInterfaces/debugConsole";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {
+    activatable,
     EmptyState,
     formatDuration,
     formatTime,
-    Kpi,
+    LinkButton,
     PageHeader,
     PROCESS_COLOR,
     ProcessPill,
     RedactedField,
+    RpcError,
     StatusPill,
+    useRpcQuery,
 } from "./common";
 import { applyTraceFilter, parseTraceFilter } from "../../../sharedInterfaces/traceFilter";
 import { useDc } from "./state";
 import { WaterfallView } from "./waterfallView";
-
-// ---------------------------------------------------------------------------
-// Overview
-// ---------------------------------------------------------------------------
-
-/** Correlation health: how well-stitched the current source is. */
-function TraceQualityCard({ sourceId, dataVersion }: { sourceId: string; dataVersion: number }) {
-    const { rpc } = useDc();
-    const [report, setReport] = useState<TraceQualityReport | undefined>(undefined);
-    useEffect(() => {
-        void rpc.sendRequest(DcGetTraceQualityRequest.type, { sourceId }).then(setReport);
-    }, [rpc, sourceId, dataVersion]);
-    if (!report || report.totalEvents === 0) {
-        return null;
-    }
-    const tone = report.score === "good" ? "ok" : report.score === "fair" ? "warn" : "error";
-    return (
-        <div className="dc-card">
-            <div className="dc-card-title">
-                Trace quality
-                <span className="right">
-                    <span className={`dc-pill ${tone}`}>{report.score}</span>
-                </span>
-            </div>
-            <div className="dc-kv">
-                <span className="k">Correlated</span>
-                <span className="v">
-                    {report.orphanCount === 0
-                        ? "all product markers joined to traces"
-                        : `${report.orphanCount} orphan(s) · ${(report.orphanRatio * 100).toFixed(0)}% of correlatable markers`}
-                </span>
-                <span className="k">Pairs</span>
-                <span className="v">
-                    {report.unmatchedPairs.length === 0
-                        ? "begin/end balanced"
-                        : `${report.unmatchedPairs.length} unbalanced: ${report.unmatchedPairs
-                              .slice(0, 3)
-                              .map((pair) => `${pair.name} (${pair.begins}/${pair.ends})`)
-                              .join(", ")}`}
-                </span>
-                {report.longLivedRoots.length > 0 ? (
-                    <>
-                        <span className="k">Leaked roots</span>
-                        <span className="v">
-                            {report.longLivedRoots.length} trace(s) past the TTL — widest{" "}
-                            {formatDuration(report.longLivedRoots[0].durationMs)}
-                        </span>
-                    </>
-                ) : null}
-                <span className="k">Diagnostic bars</span>
-                <span className="v">
-                    {report.epochAlignedCount} epoch-aligned (hatched, never official)
-                </span>
-            </div>
-            {report.notes.length > 0 ? (
-                <ul className="dc-muted" style={{ margin: "6px 0 0", paddingLeft: 18 }}>
-                    {report.notes.map((note, index) => (
-                        <li key={index} style={{ fontSize: 11.5 }}>
-                            {note}
-                        </li>
-                    ))}
-                </ul>
-            ) : null}
-        </div>
-    );
-}
-
-export function OverviewPage() {
-    const {
-        rpc,
-        activeSourceId,
-        navigate,
-        captureMode,
-        setCaptureMode,
-        dataVersion,
-        sources,
-        importPerfRun,
-    } = useDc();
-    const [overview, setOverview] = useState<SourceOverview | undefined>(undefined);
-
-    useEffect(() => {
-        void rpc
-            .sendRequest(DcGetOverviewRequest.type, { sourceId: activeSourceId })
-            .then(setOverview);
-    }, [rpc, activeSourceId, dataVersion]);
-
-    if (!overview) {
-        return <PageHeader title="Overview" sub="Loading…" />;
-    }
-    const { kpis, actions, anomalies } = overview;
-    if (kpis.events === 0 && captureMode === "off" && activeSourceId.startsWith("live:")) {
-        return (
-            <>
-                <PageHeader title="Overview" />
-                <EmptyState
-                    title="Session diagnostics are off"
-                    body="Turn on local Session Diag to capture classified, redacted traces for this VS Code session. Nothing is uploaded. The live view still shows events while the console is open.">
-                    <div style={{ display: "flex", gap: 8 }}>
-                        <button
-                            className="dc-btn primary"
-                            onClick={() => setCaptureMode("redacted")}>
-                            Enable redacted capture
-                        </button>
-                        <button className="dc-btn" onClick={importPerfRun}>
-                            Import perf run…
-                        </button>
-                    </div>
-                </EmptyState>
-            </>
-        );
-    }
-    return (
-        <>
-            <PageHeader
-                title="Overview"
-                sub="Session triage — what's captured, what's slow, what changed."
-            />
-            <div className="dc-kpis">
-                <Kpi label="Events" value={kpis.events.toLocaleString()} />
-                <Kpi
-                    label="Errors"
-                    value={kpis.errors}
-                    tone={kpis.errors > 0 ? "error" : undefined}
-                />
-                <Kpi
-                    label="Warnings"
-                    value={kpis.warnings}
-                    tone={kpis.warnings > 0 ? "warn" : undefined}
-                />
-                <Kpi
-                    label="Live-tail gaps"
-                    value={kpis.gaps}
-                    note={kpis.gaps > 0 ? "backfillable" : undefined}
-                    tone={kpis.gaps > 0 ? "warn" : undefined}
-                />
-                {kpis.slowestActionMs !== undefined ? (
-                    <Kpi
-                        label="Slowest action"
-                        value={formatDuration(kpis.slowestActionMs)}
-                        note={kpis.slowestActionLabel}
-                    />
-                ) : null}
-                <Kpi label="SQL commands" value={kpis.sqlCommands} />
-                <Kpi label="Capture mode" value={kpis.captureMode} note="local only" />
-                <Kpi label="Redacted fields" value={kpis.redactedFields.toLocaleString()} />
-            </div>
-            <div className="dc-two-col">
-                <div className="dc-card">
-                    <div className="dc-card-title">
-                        Recent user actions
-                        <span className="right">
-                            <a
-                                style={{ cursor: "pointer", color: "var(--dc-link)" }}
-                                onClick={() => navigate({ page: "trace" })}>
-                                open in Trace →
-                            </a>
-                        </span>
-                    </div>
-                    <div className="dc-table-wrap" style={{ border: "none" }}>
-                        <table className="dc-table">
-                            <thead>
-                                <tr>
-                                    <th>Start</th>
-                                    <th>Action</th>
-                                    <th>Feature</th>
-                                    <th className="num">Dur</th>
-                                    <th>Status</th>
-                                    <th className="num">SQL</th>
-                                    <th className="num">Render</th>
-                                    <th className="num">Events</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {actions.map((action) => (
-                                    <tr
-                                        key={action.traceId}
-                                        onClick={() =>
-                                            navigate({ page: "waterfall", traceId: action.traceId })
-                                        }>
-                                        <td className="dc-mono">
-                                            {formatTime(action.startEpochMs)}
-                                        </td>
-                                        <td>{action.label}</td>
-                                        <td className="dc-muted">{action.feature}</td>
-                                        <td className="num dc-mono">
-                                            {formatDuration(action.durationMs)}
-                                        </td>
-                                        <td>
-                                            <StatusPill status={action.status} />
-                                        </td>
-                                        <td className="num dc-mono">{action.sqlCommands}</td>
-                                        <td className="num dc-mono">
-                                            {action.renderMs !== undefined
-                                                ? formatDuration(action.renderMs)
-                                                : "—"}
-                                        </td>
-                                        <td className="num dc-mono">{action.eventCount}</td>
-                                    </tr>
-                                ))}
-                                {actions.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={8} className="dc-muted">
-                                            Use MSSQL features — connect, run a query, expand Object
-                                            Explorer — and actions appear here.
-                                        </td>
-                                    </tr>
-                                ) : null}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div>
-                    <TraceQualityCard sourceId={activeSourceId} dataVersion={dataVersion} />
-                    <div className="dc-card-title" style={{ marginBottom: 8 }}>
-                        Anomalies
-                    </div>
-                    {anomalies.length === 0 ? (
-                        <div className="dc-muted">Nothing anomalous detected in this source.</div>
-                    ) : (
-                        anomalies.map((anomaly) => (
-                            <div className={`dc-anomaly ${anomaly.severity}`} key={anomaly.id}>
-                                <div className="title">{anomaly.title}</div>
-                                <div className="detail">{anomaly.detail}</div>
-                                <a
-                                    onClick={() =>
-                                        navigate({
-                                            page:
-                                                anomaly.page === "waterfall"
-                                                    ? "waterfall"
-                                                    : "trace",
-                                            ...(anomaly.traceId
-                                                ? { traceId: anomaly.traceId }
-                                                : {}),
-                                        })
-                                    }>
-                                    Open in {anomaly.page === "waterfall" ? "Waterfall" : "Trace"} →
-                                </a>
-                            </div>
-                        ))
-                    )}
-                    <div className="dc-card" style={{ marginTop: 10 }}>
-                        <div className="dc-card-title">Sessions &amp; imported runs</div>
-                        {sources.map((source) => (
-                            <div
-                                key={source.id}
-                                style={{
-                                    display: "flex",
-                                    gap: 8,
-                                    alignItems: "center",
-                                    padding: "3px 0",
-                                }}>
-                                <span
-                                    className="dc-live-dot"
-                                    style={{
-                                        background:
-                                            source.kind === "liveSession"
-                                                ? "var(--dc-ok)"
-                                                : "var(--dc-proc-system)",
-                                    }}
-                                />
-                                <span
-                                    style={{
-                                        flex: 1,
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                    }}>
-                                    {source.label}
-                                </span>
-                                <span className="dc-pill diag">{source.kind}</span>
-                                <span className="dc-mono dc-muted">
-                                    {source.eventCount?.toLocaleString() ?? ""}
-                                </span>
-                            </div>
-                        ))}
-                        <a
-                            style={{ cursor: "pointer", color: "var(--dc-link)", fontSize: 11.5 }}
-                            onClick={importPerfRun}>
-                            Import perf run…
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
-}
-
-// ---------------------------------------------------------------------------
-// Consolidated Trace
-// ---------------------------------------------------------------------------
 
 const DETAIL_TABS = ["Summary", "Payload", "Cause", "Privacy", "Raw"] as const;
 
 function EventDetail({ event }: { event: DiagEvent }) {
     const { rpc, activeSourceId, navigate } = useDc();
     const [tab, setTab] = useState<(typeof DETAIL_TABS)[number]>("Summary");
-    const [cause, setCause] = useState<CauseTreeNode | undefined>(undefined);
 
     useEffect(() => {
         setTab("Summary");
-        setCause(undefined);
     }, [event.eventId]);
 
-    useEffect(() => {
-        if (tab === "Cause" && !cause) {
-            void rpc
-                .sendRequest(DcGetCauseTreeRequest.type, {
-                    sourceId: activeSourceId,
-                    eventId: event.eventId,
-                })
-                .then(setCause);
-        }
-    }, [tab, cause, rpc, activeSourceId, event.eventId]);
+    const { data: cause, error: causeError } = useRpcQuery<CauseTreeNode | undefined>(
+        () =>
+            tab === "Cause"
+                ? rpc.sendRequest(DcGetCauseTreeRequest.type, {
+                      sourceId: activeSourceId,
+                      eventId: event.eventId,
+                  })
+                : undefined,
+        [tab, rpc, activeSourceId, event.eventId],
+    );
 
     const renderCause = (node: CauseTreeNode, depth: number): React.ReactNode => (
         <div className={depth > 0 ? "dc-cause-node" : ""} key={node.event.eventId}>
@@ -410,13 +120,12 @@ function EventDetail({ event }: { event: DiagEvent }) {
                             <>
                                 <span className="k">Correlation</span>
                                 <span className="v">
-                                    <a
-                                        style={{ color: "var(--dc-link)", cursor: "pointer" }}
+                                    <LinkButton
                                         onClick={() =>
                                             navigate({ page: "waterfall", traceId: event.traceId })
                                         }>
                                         {event.traceId}
-                                    </a>
+                                    </LinkButton>
                                 </span>
                             </>
                         ) : null}
@@ -451,6 +160,8 @@ function EventDetail({ event }: { event: DiagEvent }) {
                 {tab === "Cause" ? (
                     cause ? (
                         renderCause(cause, 0)
+                    ) : causeError ? (
+                        <RpcError error={causeError} />
                     ) : (
                         <span className="dc-muted">Loading cause tree…</span>
                     )
@@ -483,7 +194,6 @@ function EventDetail({ event }: { event: DiagEvent }) {
 
 export function TracePage() {
     const { rpc, activeSourceId, search, dataVersion, isLive } = useDc();
-    const [result, setResult] = useState<EventQueryResult | undefined>(undefined);
     const [selected, setSelected] = useState<DiagEvent | undefined>(undefined);
     const [processFilter, setProcessFilter] = useState<string>("all");
     const [featureFilter, setFeatureFilter] = useState<string>("all");
@@ -505,7 +215,11 @@ export function TracePage() {
         setClearFromSeq(undefined);
     }, [activeSourceId]);
 
-    useEffect(() => {
+    const {
+        data: result,
+        error: queryError,
+        refresh: rerunQuery,
+    } = useRpcQuery<EventQueryResult>(() => {
         const base = {
             sourceId: activeSourceId,
             limit: 400,
@@ -516,9 +230,7 @@ export function TracePage() {
             ...(showViewerInternal ? { includeViewerInternal: true } : {}),
             ...(clearFromSeq !== undefined ? { fromSeq: clearFromSeq } : {}),
         };
-        void rpc
-            .sendRequest(DcQueryEventsRequest.type, applyTraceFilter(base, parsedFilter))
-            .then(setResult);
+        return rpc.sendRequest(DcQueryEventsRequest.type, applyTraceFilter(base, parsedFilter));
     }, [
         rpc,
         activeSourceId,
@@ -682,6 +394,7 @@ export function TracePage() {
             <PanelGroup direction="horizontal" className="dc-split-panels">
                 <Panel defaultSize={62} minSize={30} className="dc-panel-min0">
                     <div ref={tableWrapRef} className="dc-table-wrap" style={{ height: "100%" }}>
+                        {queryError ? <RpcError error={queryError} retry={rerunQuery} /> : null}
                         <table className="dc-table">
                             <thead>
                                 <tr>
@@ -720,6 +433,7 @@ export function TracePage() {
                                                     ? "selected"
                                                     : ""
                                             }
+                                            {...activatable(() => setSelected(row as DiagEvent))}
                                             onClick={() => setSelected(row as DiagEvent)}>
                                             <td
                                                 className="dc-proc-stripe"
@@ -810,44 +524,53 @@ export function TracePage() {
 
 export function WaterfallPage() {
     const { rpc, activeSourceId, route, navigate, dataVersion } = useDc();
-    const [traces, setTraces] = useState<UserActionSummary[]>([]);
-    const [model, setModel] = useState<WaterfallModel | undefined>(undefined);
-    const [quality, setQuality] = useState<TraceQualityReport | undefined>(undefined);
+
+    // Trace list + selected model in ONE guarded query: a response for an
+    // older source/trace can never land after a newer selection.
+    const {
+        data: loaded,
+        error: loadError,
+        refresh: reload,
+    } = useRpcQuery<{
+        traces: UserActionSummary[];
+        model: WaterfallModel | undefined;
+    }>(async () => {
+        const traces = await rpc.sendRequest(DcListTracesRequest.type, {
+            sourceId: activeSourceId,
+        });
+        const traceId = route.traceId ?? traces[0]?.traceId;
+        const model = traceId
+            ? await rpc.sendRequest(DcGetWaterfallRequest.type, {
+                  sourceId: activeSourceId,
+                  traceId,
+              })
+            : undefined;
+        return { traces, model };
+    }, [rpc, activeSourceId, route.traceId, dataVersion]);
+    const traces = loaded?.traces ?? [];
+    const model = loaded?.model;
 
     // Per-trace stitching quality: unpaired spans and orphans mean this
     // waterfall has fog — say so instead of drawing invented roads.
-    useEffect(() => {
-        if (!model?.traceId) {
-            setQuality(undefined);
-            return;
-        }
-        void rpc
-            .sendRequest(DcGetTraceQualityRequest.type, {
-                sourceId: activeSourceId,
-                traceId: model.traceId,
-            })
-            .then(setQuality);
-    }, [rpc, activeSourceId, model?.traceId]);
+    const { data: quality } = useRpcQuery<TraceQualityReport>(
+        () =>
+            model?.traceId
+                ? rpc.sendRequest(DcGetTraceQualityRequest.type, {
+                      sourceId: activeSourceId,
+                      traceId: model.traceId,
+                  })
+                : undefined,
+        [rpc, activeSourceId, model?.traceId],
+    );
 
-    useEffect(() => {
-        void rpc
-            .sendRequest(DcListTracesRequest.type, { sourceId: activeSourceId })
-            .then((list) => {
-                setTraces(list);
-                const traceId = route.traceId ?? list[0]?.traceId;
-                if (traceId) {
-                    void rpc
-                        .sendRequest(DcGetWaterfallRequest.type, {
-                            sourceId: activeSourceId,
-                            traceId,
-                        })
-                        .then(setModel);
-                } else {
-                    setModel(undefined);
-                }
-            });
-    }, [rpc, activeSourceId, route.traceId, dataVersion]);
-
+    if (loadError) {
+        return (
+            <>
+                <PageHeader title="Cross-Process Waterfall" />
+                <RpcError error={loadError} retry={reload} />
+            </>
+        );
+    }
     if (!model) {
         return (
             <>
@@ -883,6 +606,13 @@ export function WaterfallPage() {
                             ? ` · ${quality.unmatchedPairs.length} unpaired`
                             : ""}
                         {quality.orphanCount > 0 ? ` · ${quality.orphanCount} orphans` : ""}
+                    </span>
+                ) : null}
+                {model.activityCap ? (
+                    <span
+                        className="dc-pill warn"
+                        title="The host keeps the longest bars of a very large trace; the extent and critical path use every activity">
+                        showing longest {model.activityCap.shown} of {model.activityCap.total} bars
                     </span>
                 ) : null}
                 <span
