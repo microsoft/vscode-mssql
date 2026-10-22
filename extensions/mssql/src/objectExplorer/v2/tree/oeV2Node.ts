@@ -14,6 +14,7 @@ import { OeV2Path } from "./oeV2Path";
 
 export type OeV2NodeKind =
     | "root"
+    | "overview"
     | "connectionGroup"
     | "disconnectedConnection"
     | "connectingConnection"

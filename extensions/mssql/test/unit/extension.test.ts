@@ -186,10 +186,41 @@ suite("Extension API Tests", () => {
         expect(() => getApi(2)).to.throw(/Version 2 of the shared connections API/);
     });
 
-    test("publishes the activation snapshot used to gate SQL Data Plane UI", () => {
+    test("publishes activation snapshots used to gate private-preview UI", () => {
         expect(vscode.commands.executeCommand).to.have.been.calledWith(
             "setContext",
             PrivatePreviewContextKey.SqlDataPlaneActive,
+            false,
+        );
+        expect(vscode.commands.executeCommand).to.have.been.calledWith(
+            "setContext",
+            PrivatePreviewContextKey.DebugConsoleActive,
+            false,
+        );
+        expect(vscode.commands.executeCommand).to.have.been.calledWith(
+            "setContext",
+            PrivatePreviewContextKey.SessionDiagnosticsActive,
+            false,
+        );
+    });
+
+    test("does not register diagnostics commands when their activation gates are off", () => {
+        for (const commandId of [
+            "mssql.openDebugConsole",
+            "mssql.sessionDiag.enable",
+            "mssql.sessionDiag.disable",
+            "mssql.sessionDiag.elevateCapture",
+            "mssql.sessionDiag.clear",
+            "mssql.sessionDiag.openStorageFolder",
+        ]) {
+            expect(vscode.commands.registerCommand).to.not.have.been.calledWith(commandId);
+        }
+    });
+
+    test("publishes the default-off activation snapshot used to gate AI completion UI", () => {
+        expect(vscode.commands.executeCommand).to.have.been.calledWith(
+            "setContext",
+            PrivatePreviewContextKey.AiInlineCompletionsActive,
             false,
         );
     });

@@ -36,6 +36,7 @@ import { ConnectTreeNode, TreeNodeType } from "./nodes/connectTreeNode";
 import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
+import { Perf } from "../perf/perfTelemetry";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionInfo } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
@@ -230,6 +231,12 @@ export class ObjectExplorerService {
             },
         );
         this._logger.trace(`expandNode start: ${getNodeDescriptor(node)}`);
+        Perf.marker("mssql.oe.expand.begin", "begin", {
+            nodePath: node.nodePath ?? "",
+            nodeType: node.nodeType ?? "",
+        });
+        let childCount = 0;
+        let expandFailed = true;
         let expandCompleted = false; // guard against a late-resolving pause state check changing children
         try {
             const expandParams: ExpandParams = {
@@ -336,6 +343,8 @@ export class ObjectExplorerService {
                         ),
                     );
                     this._treeNodeToChildrenMap.set(node, children);
+                    childCount = children.length;
+                    expandFailed = false;
                     expandActivity.end(ActivityStatus.Succeeded, {
                         additionalMeasurements: {
                             childrenCount: children.length,
@@ -399,6 +408,12 @@ export class ObjectExplorerService {
 
             return undefined;
         } finally {
+            Perf.marker("mssql.oe.expand.end", "end", {
+                nodePath: node.nodePath ?? "",
+                nodeType: node.nodeType ?? "",
+                childCount,
+                error: expandFailed,
+            });
             expandCompleted = true;
             node.shouldRefresh = false;
             node.loadingLabel = undefined;

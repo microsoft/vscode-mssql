@@ -9,6 +9,8 @@ import { expect } from "chai";
 import * as chai from "chai";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { VsCodeAzureHelper } from "../../src/connectionconfig/azureHelpers";
 import {
     AddFirewallRuleDialogProps,
@@ -30,8 +32,53 @@ import {
     BackgroundTaskState,
     BackgroundTasksService,
 } from "../../src/backgroundTasks/backgroundTasksService";
+import { locConstants } from "../../src/webviews/common/locConstants";
+import { AzureSqlDatabaseInfoPage } from "../../src/webviews/pages/Deployment/AzureSqlDatabase/azureSqlDatabaseInfoPage";
 
 chai.use(sinonChai);
+
+suite("Azure SQL Database terminology", () => {
+    const messages = [
+        {
+            key: "azureSqlDatabaseDescription",
+            expected:
+                "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.",
+        },
+        {
+            key: "freeDescription",
+            expected:
+                "Try Azure SQL Database at no cost with the free tier \u2014 a fully managed cloud database, ready for your app, ORM, or migration tools.",
+        },
+        {
+            key: "freeLimitBehavior",
+            expected: "Behavior when free tier limit is reached",
+        },
+        {
+            key: "continueChargesWarning",
+            expected:
+                "Your database will continue running after the free tier limit and you will be charged for overages.",
+        },
+        {
+            key: "freeTierApplied",
+            expected: "Free tier applied",
+        },
+    ] as const;
+
+    for (const { key, expected } of messages) {
+        test(`uses free tier wording for ${key}`, () => {
+            expect(locConstants.azureSqlDatabase[key]).to.equal(expected);
+        });
+    }
+
+    test("renders the working free tier documentation link", () => {
+        const markup = renderToStaticMarkup(createElement(AzureSqlDatabaseInfoPage));
+
+        expect(markup).to.include(
+            'href="https://learn.microsoft.com/azure/azure-sql/database/free-offer"',
+        );
+        expect(markup).to.include(locConstants.azureSqlDatabase.learnMoreAboutFreeTier);
+    });
+});
 
 suite("Azure SQL Database reducers", () => {
     let sandbox: sinon.SinonSandbox;

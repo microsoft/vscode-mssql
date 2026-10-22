@@ -6033,3 +6033,224 @@ export class SqlProjects {
 
     public static stderr = l10n.t("    stderr: ");
 }
+
+export const copilotEnableGuardMessage = l10n.t(
+    "MSSQL inline SQL completions are active. For best results, disable GitHub Copilot's default completions for SQL files.",
+);
+export const copilotEnableGuardDisableForSql = l10n.t("Disable for SQL");
+export const copilotEnableGuardKeepAsIs = l10n.t("Keep as-is");
+export const copilotEnableGuardLearnMore = l10n.t("Learn more");
+export const copilotEnableGuardApplied = l10n.t(
+    "GitHub Copilot's default completions are now disabled for SQL files.",
+);
+export function copilotEnableGuardApplyFailed(errorMessage: string): string {
+    return l10n.t({
+        message: "Couldn't update the 'github.copilot.enable' setting. {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+}
+
+export const inlineCompletionAccepted = l10n.t("MSSQL inline SQL completion accepted");
+
+export function copilotSdkSetApiKeyTitle(providerLabel: string): string {
+    return l10n.t("Set {0} API Key", providerLabel);
+}
+
+export function copilotSdkApiKeyPrompt(providerLabel: string): string {
+    return l10n.t("Enter the {0} API key to store in VS Code SecretStorage.", providerLabel);
+}
+
+export function copilotSdkApiKeySaved(providerLabel: string): string {
+    return l10n.t("{0} API key saved.", providerLabel);
+}
+
+export function copilotSdkApiKeyCleared(providerLabel: string): string {
+    return l10n.t("{0} API key cleared.", providerLabel);
+}
+
+export function copilotSdkApiKeyRequired(providerLabel: string): string {
+    return l10n.t("{0} API key is required.", providerLabel);
+}
+
+export function copilotSdkApiKeyPrefix(providerLabel: string, prefixes: string): string {
+    return l10n.t("{0} API keys should start with {1}.", providerLabel, prefixes);
+}
+
+export const copilotSdkSetAnthropicApiKey = l10n.t("Set Anthropic API Key");
+export const copilotSdkSetOpenAiApiKey = l10n.t("Set OpenAI API Key");
+export const copilotSdkSetXAiApiKey = l10n.t("Set xAI API Key");
+export const copilotSdkSetApiKey = l10n.t("Set API Key");
+export const copilotSdkOpenSettings = l10n.t("Open Settings");
+export const copilotSdkDontShowAgain = l10n.t("Don't show again");
+export const copilotSdkNoProviderAvailable = l10n.t(
+    "MSSQL inline completion is configured but no language model providers are available.",
+);
+
+export function copilotSdkConfigureApiKey(providerLabel: string): string {
+    return l10n.t(
+        "Configure your {0} API key to enable {0} models in MSSQL inline completion.",
+        providerLabel,
+    );
+}
+
+export function inlineCompletionTraceSaveFailed(errorMessage: string): string {
+    return l10n.t("Failed to save inline completion trace: {0}", errorMessage);
+}
+
+export const inlineCompletionTraceOpenFolder = l10n.t("Open folder");
+export const inlineCompletionTraceOpenOutput = l10n.t("Open output");
+
+export const copilotSdkAuthenticationFailed = (provider: string) =>
+    l10n.t("{0} API authentication failed. Check your API key.", provider);
+export const copilotSdkRateLimitExceeded = (provider: string) =>
+    l10n.t("{0} API rate limit exceeded.", provider);
+export const copilotSdkRequestRejected = (provider: string, message: string) =>
+    l10n.t("{0} API rejected the request: {1}", provider, message);
+export const copilotSdkApiError = (provider: string, status: number | undefined, message: string) =>
+    l10n.t("{0} API error ({1}): {2}", provider, String(status), message);
+export const inlineCompletionTraceSizeTooSmall = l10n.t(
+    "The trace file size limit is too small to store trace metadata.",
+);
+export const copilotSdkKeyNotConfigured = (provider: string) =>
+    l10n.t("{0} API key is not configured.", provider);
+export const copilotSdkProviderDisabled = (provider: string) =>
+    l10n.t("{0} SDK language models are disabled.", provider);
+export const copilotSdkTextOnly = (provider: string) =>
+    l10n.t("{0} only handles text content.", provider);
+export const debugConsoleSessionTooLarge = l10n.t(
+    "This session exceeds the Debug Console history loading limit (8 MB or 20,000 events). Open a smaller session or inspect the session files directly.",
+);
+
+export class SessionDiag {
+    public static invalidCaptureMode = l10n.t("Unsupported diagnostics capture mode.");
+    public static privatePreviewRequired = l10n.t(
+        "Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.",
+    );
+    public static deleteAll = l10n.t("Delete all");
+    public static clearConfirm = (count: number): string =>
+        l10n.t({
+            message:
+                "Delete {0} locally stored diagnostic session(s)? The current session keeps recording if capture is on.",
+            args: [count],
+            comment: ["{0} is the number of locally stored diagnostic sessions"],
+        });
+    public static removedSessions = (count: number): string =>
+        l10n.t({
+            message: "Removed {0} diagnostic session(s).",
+            args: [count],
+            comment: ["{0} is the number of removed diagnostic sessions"],
+        });
+    public static elevateReasonPrompt = l10n.t(
+        "Reason for elevated (full) capture — recorded in the session log",
+    );
+    public static elevateReasonPlaceholder = l10n.t("e.g. reproducing bug #1234");
+    public static elevateDurationTitle = l10n.t("Elevated capture duration (auto-reverts)");
+    public static minutes = (count: number): string =>
+        l10n.t({
+            message: "{0} minutes",
+            args: [count],
+            comment: ["{0} is a number of minutes"],
+        });
+    public static statusName = l10n.t("MSSQL Session Diagnostics");
+    public static statusOff = l10n.t("$(circle-slash) MSSQL Diag");
+    public static statusOffTooltip = l10n.t(
+        "MSSQL session diagnostics: capture off. Click to open the Debug Console.",
+    );
+    public static statusOffTooltipNoConsole = l10n.t("MSSQL session diagnostics: capture off.");
+    public static statusFull = l10n.t("$(record) MSSQL Diag: FULL");
+    public static statusFullTooltip = l10n.t(
+        "Elevated (full) capture is active and time-bounded. Click to open the Debug Console.",
+    );
+    public static statusFullTooltipNoConsole = l10n.t(
+        "Elevated (full) capture is active and time-bounded.",
+    );
+    public static statusMode = (mode: string): string =>
+        l10n.t({
+            message: "$(shield) MSSQL Diag: {0}",
+            args: [mode],
+            comment: ["{0} is the capture mode (redacted or digest)"],
+        });
+    public static statusModeTooltip = (mode: string): string =>
+        l10n.t({
+            message:
+                "MSSQL session diagnostics capturing ({0}, local only). Click to open the Debug Console.",
+            args: [mode],
+            comment: ["{0} is the capture mode (redacted or digest)"],
+        });
+    public static statusModeTooltipNoConsole = (mode: string): string =>
+        l10n.t({
+            message: "MSSQL session diagnostics capturing ({0}, local only).",
+            args: [mode],
+            comment: ["{0} is the capture mode (redacted or digest)"],
+        });
+}
+
+export class DebugConsole {
+    public static resultDumpTooLarge = l10n.t(
+        "Result exceeds the preview size limit and cannot be safely redacted.",
+    );
+    public static resultDumpInvalid = l10n.t(
+        "Result contains invalid JSON and cannot be safely redacted.",
+    );
+    public static panelTitle = l10n.t("MSSQL Debug Console");
+    public static enableSettingFirst = l10n.t(
+        "Enable mssql.enableExperimentalFeatures and mssql.debugConsole.enabled, then reload the window to use the MSSQL Debug Console.",
+    );
+    public static restartForSts = l10n.t(
+        "Restart VS Code so SQL Tools Service diagnostics are included in the Debug Console.",
+    );
+    public static deleteRun = l10n.t("Delete run");
+    public static deleteRunConfirm = (runId: string): string =>
+        l10n.t({
+            message:
+                "Delete perf run '{0}'? This removes the run directory and its artifacts from disk.",
+            args: [runId],
+            comment: ["{0} is the perf run id"],
+        });
+    public static importRunTitle = l10n.t("Select a perftest run directory (perf-runs/<runId>)");
+    public static noMarkersFound = l10n.t("No harness markers found in the selected directory.");
+    public static exportTitle = l10n.t("Export diagnostic events (redacted JSONL)");
+    public static exportTitleFull = l10n.t(
+        "Export diagnostic events (JSONL — full capture, may contain SQL text)",
+    );
+    public static jsonLinesFilter = l10n.t("JSON Lines");
+    public static addSqliteTitle = l10n.t("Connect a perftest SQLite store (read-only preview)");
+    public static addBundleTitle = l10n.t("Import a perf-runs bundle directory (read-only)");
+    public static addDirectoryTitle = l10n.t("Open a perf-runs directory");
+}
+
+export const InlineCompletionDebug = {
+    journalInactive: (setting: string) =>
+        l10n.t('Completions journal is not active — enable "{0}" to capture it.', setting),
+    datasetLoadCancelled: l10n.t("Dataset load cancelled because it exceeds 100,000 events."),
+    useThisFolder: l10n.t("Use this folder"),
+    chooseOtherFolder: l10n.t("Choose other folder"),
+    traceTooLarge: l10n.t("The trace exceeds the 64 MB import limit."),
+    completionsJournalHasNoRecordsForThe: l10n.t(
+        "Completions journal has no records for the current capture epoch yet.",
+    ),
+    value0FullReport1: (value0: string, value1: string) =>
+        l10n.t("{0} Full report: {1}", value0, value1),
+    completionsJournalReconciliationFailed0: (value0: string) =>
+        l10n.t("Completions journal reconciliation failed: {0}", value0),
+    someEventsWereNoLongerInThe: l10n.t(
+        "Some events were no longer in the live ring and were not added to the replay cart.",
+    ),
+    capturedSchema: l10n.t("Captured schema"),
+    value0X1: (value0: string, value1: string) => l10n.t("{0} x {1}", value0, value1),
+    theSelectedTraceDatasetContains0Events: (value0: string) =>
+        l10n.t(
+            "The selected trace dataset contains {0} events. Loading it may use significant memory.",
+            value0,
+        ),
+    loadTraces: l10n.t("Load traces"),
+    addInlineCompletionTraceFile: l10n.t("Add Inline Completion Trace File"),
+    chooseInlineCompletionTraceFolder: l10n.t("Choose Inline Completion Trace Folder"),
+    enableInlineCompletionTraceCollectionAndSave: (value0: string) =>
+        l10n.t("Enable inline completion trace collection and save trace files to {0}?", value0),
+    databaseSyncIsNotYetImplementedTraces: (value0: string) =>
+        l10n.t("Database sync is not yet implemented. Traces are currently saved to: {0}", value0),
+    exportInlineCompletionDebugSession: l10n.t("Export Inline Completion Debug Session"),
+    importInlineCompletionDebugSession: l10n.t("Import Inline Completion Debug Session"),
+};

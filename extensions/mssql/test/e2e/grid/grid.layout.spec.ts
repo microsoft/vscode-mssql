@@ -258,7 +258,14 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
         // An offset inside a row catches restoration that saves only the top row index.
         const scrollTop = rowHeight * 10 + 7;
         await viewport.evaluate((element, top) => element.scrollTo({ top }), scrollTop);
-        await expect.poll(() => viewport.evaluate((element) => element.scrollTop)).toBe(scrollTop);
+        // Chromium rounds to device pixels on scaled displays. Preserve the actual
+        // offset for the exact restoration assertion below.
+        await expect
+            .poll(async () =>
+                Math.abs((await viewport.evaluate((element) => element.scrollTop)) - scrollTop),
+            )
+            .toBeLessThan(1);
+        const actualScrollTop = await viewport.evaluate((element) => element.scrollTop);
         await expect(largeGrid.locator('.fluent-result-grid-row-number[title="11"]')).toBeVisible();
 
         await openNewQueryEditor(page);
@@ -268,7 +275,9 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
             .first()
             .click();
         await expect(largeGrid).toBeVisible();
-        await expect.poll(() => viewport.evaluate((element) => element.scrollTop)).toBe(scrollTop);
+        await expect
+            .poll(() => viewport.evaluate((element) => element.scrollTop))
+            .toBe(actualScrollTop);
     });
 
     test("defers an offscreen result set and mounts it when scrolled into view", async () => {
