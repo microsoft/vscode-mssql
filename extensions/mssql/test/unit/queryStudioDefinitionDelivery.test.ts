@@ -15,21 +15,39 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import {
     DEFINITION_SCHEME,
+    ScriptedDefinitionContent,
     DefinitionContentProvider,
 } from "../../src/queryStudio/definitionContentProvider";
 import { QueryStudioLanguageService } from "../../src/queryStudio/queryStudioLanguageService";
 
 suite("queryStudio language definition delivery (B12)", () => {
+    test("identical object keys on separate connections never overwrite an open definition", () => {
+        const provider = new DefinitionContentProvider();
+        const content = { title: "dbo.Table", text: "dev", cacheKey: "same-db:123:create:1" };
+        const dev = provider.store(content, JSON.stringify(["dev-profile", "same-db"]));
+        const prod = provider.store(
+            { ...content, text: "prod" },
+            JSON.stringify(["prod-profile", "same-db"]),
+        );
+        expect(dev.toString()).not.to.equal(prod.toString());
+        expect(provider.provideTextDocumentContent(dev)).to.equal("dev");
+        expect(provider.provideTextDocumentContent(prod)).to.equal("prod");
+    });
     test("stored scripts are served by their cacheKey-addressed URI", () => {
         const provider = new DefinitionContentProvider();
-        const uri = provider.store({
+        const store = (content: ScriptedDefinitionContent) =>
+            provider.store(content, "test-profile");
+        const uri = store({
             title: "Sales.Orders",
             text: "CREATE TABLE Sales.Orders (OrderID int);",
             cacheKey: "FixtureDb:1:create:1",
         });
         expect(uri.scheme).to.equal(DEFINITION_SCHEME);
         expect(uri.path).to.equal("/Sales.Orders.sql");
-        expect(decodeURIComponent(uri.query)).to.equal("FixtureDb:1:create:1");
+        expect(JSON.parse(decodeURIComponent(uri.query))).to.deep.equal([
+            "test-profile",
+            "FixtureDb:1:create:1",
+        ]);
         expect(provider.provideTextDocumentContent(uri)).to.equal(
             "CREATE TABLE Sales.Orders (OrderID int);",
         );
@@ -37,10 +55,12 @@ suite("queryStudio language definition delivery (B12)", () => {
 
     test("same cacheKey → same URI; new generation → new URI", () => {
         const provider = new DefinitionContentProvider();
-        const first = provider.store({ title: "T", text: "A", cacheKey: "db:1:create:1" });
-        const again = provider.store({ title: "T", text: "A", cacheKey: "db:1:create:1" });
+        const store = (content: ScriptedDefinitionContent) =>
+            provider.store(content, "test-profile");
+        const first = store({ title: "T", text: "A", cacheKey: "db:1:create:1" });
+        const again = store({ title: "T", text: "A", cacheKey: "db:1:create:1" });
         expect(again.toString()).to.equal(first.toString());
-        const nextGeneration = provider.store({ title: "T", text: "B", cacheKey: "db:1:create:2" });
+        const nextGeneration = store({ title: "T", text: "B", cacheKey: "db:1:create:2" });
         expect(nextGeneration.toString()).to.not.equal(first.toString());
         expect(provider.provideTextDocumentContent(first)).to.equal("A");
         expect(provider.provideTextDocumentContent(nextGeneration)).to.equal("B");
@@ -48,12 +68,14 @@ suite("queryStudio language definition delivery (B12)", () => {
 
     test("changed content under the SAME key fires onDidChange", () => {
         const provider = new DefinitionContentProvider();
+        const store = (content: ScriptedDefinitionContent) =>
+            provider.store(content, "test-profile");
         const changed: string[] = [];
         provider.onDidChange((uri) => changed.push(uri.toString()));
-        const uri = provider.store({ title: "T", text: "A", cacheKey: "k" });
-        provider.store({ title: "T", text: "A", cacheKey: "k" }); // identical → silent
+        const uri = store({ title: "T", text: "A", cacheKey: "k" });
+        store({ title: "T", text: "A", cacheKey: "k" }); // identical → silent
         expect(changed.length).to.equal(0);
-        provider.store({ title: "T", text: "B", cacheKey: "k" });
+        store({ title: "T", text: "B", cacheKey: "k" });
         expect(changed).to.deep.equal([uri.toString()]);
     });
 
@@ -65,9 +87,11 @@ suite("queryStudio language definition delivery (B12)", () => {
 
     test("the cache is LRU-bounded", () => {
         const provider = new DefinitionContentProvider();
-        const first = provider.store({ title: "T0", text: "S0", cacheKey: "k0" });
+        const store = (content: ScriptedDefinitionContent) =>
+            provider.store(content, "test-profile");
+        const first = store({ title: "T0", text: "S0", cacheKey: "k0" });
         for (let i = 1; i <= 40; i++) {
-            provider.store({ title: `T${i}`, text: `S${i}`, cacheKey: `k${i}` });
+            store({ title: `T${i}`, text: `S${i}`, cacheKey: `k${i}` });
         }
         expect(provider.size).to.equal(32);
         expect(provider.provideTextDocumentContent(first)).to.contain("expired");

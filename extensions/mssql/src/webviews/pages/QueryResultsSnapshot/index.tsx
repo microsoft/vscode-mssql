@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as React from "react";
+import { locConstants } from "../../common/locConstants";
 import "../ExecutionPlan/executionPlanEagerStyles";
 import ReactDOM from "react-dom/client";
 import "../../index.css";
@@ -26,7 +27,10 @@ function PinnedResultsRoot(): React.JSX.Element {
         [rpc],
     );
     return (
-        <QueryStudioErrorBoundary label="Pinned Results" resetKey="root" onError={reportRootError}>
+        <QueryStudioErrorBoundary
+            label={locConstants.queryStudioCore.pinnedResults}
+            resetKey="root"
+            onError={reportRootError}>
             <PinnedResultsApp />
         </QueryStudioErrorBoundary>
     );

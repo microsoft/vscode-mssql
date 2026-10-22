@@ -50,7 +50,7 @@ suite("Query Studio cell document", () => {
     suite("prettyPrintCellText", () => {
         test("XML indentation golden (classic formatXml layout)", () => {
             expect(prettyPrintCellText("<a><b>1</b><c/></a>", "xml")).to.equal(
-                "<a>\r\n    <b>\r\n        1\r\n    </b>\r\n    <c/>\r\n</a>",
+                "<a>\r\n    <b>1</b>\r\n    <c/>\r\n</a>",
             );
         });
 
@@ -64,6 +64,31 @@ suite("Query Studio cell document", () => {
             expect(prettyPrintCellText("hello world", "xml")).to.equal("hello world");
             expect(prettyPrintCellText("<a><b>", "xml")).to.equal("<a><b>");
             expect(prettyPrintCellText("<a></b>", "xml")).to.equal("<a></b>");
+        });
+
+        test("XML preserves CDATA, quoted delimiters, comments and mixed text", () => {
+            for (const value of [
+                "<r><![CDATA[x>y <z>]]></r>",
+                '<r a="x>y"><v/></r>',
+                '<r a="x>y"><!-- x>y --><v/></r>',
+                "<r>hello <b>world</b> !</r>",
+                '<r xml:space="preserve">  x\n y  </r>',
+            ]) {
+                const formatted = indentXml(value);
+                // XML normalizes line endings; indentation must preserve the
+                // parsed payload, including whitespace marked for preservation.
+                expect(formatted.replace(/>\r\n\s*</g, "><").replace(/\r\n/g, "\n")).to.equal(
+                    value,
+                );
+            }
+        });
+
+        test("JSON formatting preserves numeric and string lexemes", () => {
+            const value =
+                '{"big":9223372036854775807,"decimal":1.230000000000000001,"exp":1e400,"negative":-0,"s":"a\\n\\\"b","empty":[]}';
+            expect(prettyPrintCellText(value, "json")).to.equal(
+                '{\n  "big": 9223372036854775807,\n  "decimal": 1.230000000000000001,\n  "exp": 1e400,\n  "negative": -0,\n  "s": "a\\n\\\"b",\n  "empty": []\n}',
+            );
         });
 
         test("JSON pretty-prints with 2-space indentation", () => {

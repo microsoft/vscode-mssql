@@ -17,6 +17,7 @@ import {
     SESSION_SPILL_NONCE,
     STALE_LOCK_MS,
     runSpillDirName,
+    documentSpillDirName,
     sweepOrphanSpillDirs,
 } from "../../src/queryResults/spillHygiene";
 import {
@@ -38,17 +39,42 @@ function mkRunDir(root: string, doc: string, run: string): string {
 
 suite("queryResults spill hygiene", () => {
     test("run dir names carry the session nonce", () => {
-        expect(runSpillDirName(3)).to.equal(`run3_${SESSION_SPILL_NONCE}`);
+        const first = runSpillDirName();
+        const second = runSpillDirName();
+        expect(first).to.match(new RegExp(`^run\\d+_${SESSION_SPILL_NONCE}$`));
+        expect(second).not.to.equal(first);
+    });
+
+    test("documents with a shared URI prefix have distinct stable spill directories", () => {
+        const prefix = "file:///c%3A/Users/example/project/";
+        expect(documentSpillDirName(prefix + "a.mssql")).not.to.equal(
+            documentSpillDirName(prefix + "b.mssql"),
+        );
+        expect(documentSpillDirName(prefix + "a.mssql")).to.equal(
+            documentSpillDirName(prefix + "a.mssql"),
+        );
+    });
+
+    test("an old heartbeat never removes a still-running session's spill", () => {
+        const root = tempRoot();
+        const run = mkRunDir(root, "doc", "run1_suspended");
+        const lock = path.join(root, "session-suspended.lock");
+        fs.writeFileSync(lock, String(process.pid));
+        const stale = new Date(Date.now() - STALE_LOCK_MS - 60_000);
+        fs.utimesSync(lock, stale, stale);
+        expect(sweepOrphanSpillDirs(root).dirsRemoved).to.equal(0);
+        expect(fs.existsSync(run)).to.equal(true);
+        expect(fs.existsSync(lock)).to.equal(true);
     });
 
     test("sweep removes dirs of dead sessions, keeps live and own dirs", () => {
         const root = tempRoot();
         const now = Date.now();
         // Own session dir: must survive (no lock file needed — own nonce is live).
-        const own = mkRunDir(root, "docA", runSpillDirName(1));
+        const own = mkRunDir(root, "docA", runSpillDirName());
         // Dead session: stale lock file.
         const dead = mkRunDir(root, "docA", "run2_deadnonce");
-        fs.writeFileSync(path.join(root, "session-deadnonce.lock"), "1", "utf8");
+        fs.writeFileSync(path.join(root, "session-deadnonce.lock"), "2147483647", "utf8");
         const stale = new Date(now - STALE_LOCK_MS - 60_000);
         fs.utimesSync(path.join(root, "session-deadnonce.lock"), stale, stale);
         // Dead session with NO lock at all.

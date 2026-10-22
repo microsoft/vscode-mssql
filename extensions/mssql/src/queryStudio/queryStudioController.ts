@@ -77,10 +77,7 @@ import {
 import { getQueryResultContextService } from "../queryResults/queryResultContextService";
 import { pinSourceResults } from "../queryResults/pinCommands";
 import { buildBoundedMessagesText } from "../sharedInterfaces/queryStudioMessages";
-import {
-    buildQueryStudioGridCopyText,
-    planQueryStudioGridCopy,
-} from "../sharedInterfaces/queryStudioGridCopy";
+import { copyQueryStudioSelection } from "./resultClipboard";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import { QUERY_TUNING_DEFAULTS } from "../sharedInterfaces/queryTuning";
 import {
@@ -416,11 +413,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         return value === undefined || value === null ? undefined : cellDocumentText(value);
     }
 
-    protected override _getHtmlTemplate(): string {
+    protected override bootstrapHtml(nonce: string): string {
         // Boot-failure visibility: webview console errors are invisible to
         // the host/harness — relay window errors before the bundle loads.
-        const relay =
-            "<script>" +
+        return (
+            `<script nonce="${nonce}">` +
             "window.__vscodeApiPreAcquired = acquireVsCodeApi();" +
             "const __qsr = (m, s) => window.__vscodeApiPreAcquired.postMessage(" +
             "{ type: 'qsBootError', message: String(m).slice(0, 500), source: String(s || '').slice(0, 200) });" +
@@ -428,8 +425,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             "window.addEventListener('unhandledrejection', (e) => " +
             "__qsr(e.reason && e.reason.stack ? e.reason.stack : e.reason, 'promise'));" +
             "</" +
-            "script>";
-        return super._getHtmlTemplate().replace("<body>", "<body>" + relay);
+            "script>"
+        );
     }
 
     protected _getWebview(): vscode.Webview {
@@ -923,46 +920,14 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         });
         this.onRequest(
             QsCopySelectionToClipboardRequest.type,
-            async ({ resultSetId, selection, includeHeaders }) => {
-                const summary = this.model.executionHost
-                    .resultsState()
-                    .resultSets.find((set) => set.resultSetId === resultSetId);
-                if (!summary) {
-                    return {
-                        outcome: "empty" as const,
-                        characters: 0,
-                        fetchCount: 0,
-                        fetchMs: 0,
-                        formatMs: 0,
-                        clipboardMs: 0,
-                        windowRows: 0,
-                    };
-                }
-                // Re-plan against host-authoritative cardinality. A stale
-                // webview command therefore cannot fetch outside the current
-                // run or bypass the grid copy bounds.
-                const planned = planQueryStudioGridCopy(
+            async ({ resultSetId, selection, includeHeaders }) =>
+                copyQueryStudioSelection(
+                    this.model.executionHost
+                        .resultsState()
+                        .resultSets.find((set) => set.resultSetId === resultSetId),
                     selection,
-                    summary.rowCount,
-                    summary.columnNames.length,
-                );
-                if (planned.kind !== "ok") {
-                    return {
-                        outcome: planned.kind,
-                        characters: 0,
-                        fetchCount: 0,
-                        fetchMs: 0,
-                        formatMs: 0,
-                        clipboardMs: 0,
-                        windowRows: 0,
-                        ...(planned.kind === "tooLarge" ? { reason: planned.reason } : {}),
-                    };
-                }
-                const built = await buildQueryStudioGridCopyText({
-                    plan: planned.plan,
-                    columnNames: summary.columnNames,
                     includeHeaders,
-                    getRows: (start, count, columns) =>
+                    (start, count, columns) =>
                         this.model.executionHost.getRows(
                             resultSetId,
                             start,
@@ -970,38 +935,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                             "copy",
                             columns,
                         ),
-                });
-                const details = {
-                    rows: planned.plan.rowCount,
-                    columns: planned.plan.columnCount,
-                    cells: planned.plan.outputCellCount,
-                };
-                if (built.kind !== "copied") {
-                    return {
-                        outcome: built.kind,
-                        characters: built.characters,
-                        fetchCount: built.fetchCount,
-                        fetchMs: built.fetchMs,
-                        formatMs: built.formatMs,
-                        clipboardMs: 0,
-                        windowRows: built.windowRows,
-                        ...details,
-                        ...(built.kind === "tooLarge" ? { reason: "characters" as const } : {}),
-                    };
-                }
-                const clipboardStarted = performance.now();
-                await vscode.env.clipboard.writeText(built.text);
-                return {
-                    outcome: "copied" as const,
-                    characters: built.characters,
-                    fetchCount: built.fetchCount,
-                    fetchMs: built.fetchMs,
-                    formatMs: built.formatMs,
-                    clipboardMs: Math.max(0, performance.now() - clipboardStarted),
-                    windowRows: built.windowRows,
-                    ...details,
-                };
-            },
+                ),
         );
         this.onRequest(QsWriteClipboardRequest.type, async ({ text }) => {
             await vscode.env.clipboard.writeText(text);
@@ -1392,7 +1326,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             }
             // The definition document joins THIS editor's connection context
             // (profile + current database) — never an ambient one.
-            const uri = await openScriptedDefinition(provider, content);
+            const uri = await openScriptedDefinition(
+                provider,
+                content,
+                JSON.stringify([this.model.uriKey, this.model.sessionBinding.connectionIdentity]),
+            );
             await this.languageService.adoptDefinitionDocumentConnection(uri);
             return { opened: true };
         });

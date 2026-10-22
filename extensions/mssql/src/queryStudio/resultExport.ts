@@ -6,6 +6,7 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import { finished } from "stream/promises";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -185,6 +186,9 @@ async function writeExport(
         },
         async (progress, token) => {
             const stream = fs.createWriteStream(target.fsPath, { encoding });
+            const closed = finished(stream);
+            // Observe early open/write failures, even while awaiting rows.
+            void closed.catch(() => undefined);
             let rows = 0;
             let bytes = 0;
             let buffer = "";
@@ -204,6 +208,7 @@ async function writeExport(
                 for await (const piece of pieces) {
                     if (token.isCancellationRequested) {
                         stream.destroy();
+                        await closed.catch(() => undefined);
                         await fs.promises.rm(target.fsPath, { force: true });
                         return { rows, bytes, canceled: true, streamed: true };
                     }
@@ -214,10 +219,14 @@ async function writeExport(
                     }
                 }
                 await flush();
-                await streamEnd(stream);
+                stream.end();
+                await closed;
                 return { rows, bytes, streamed: true };
             } catch (error) {
                 stream.destroy();
+                // createWriteStream opens asynchronously. Wait for close so
+                // it cannot recreate a partial file after cleanup returns.
+                await closed.catch(() => undefined);
                 await fs.promises.rm(target.fsPath, { force: true }).catch(() => undefined);
                 throw error;
             }
@@ -228,12 +237,6 @@ async function writeExport(
 function streamWrite(stream: fs.WriteStream, text: string): Promise<void> {
     return new Promise((resolve, reject) => {
         stream.write(text, (error) => (error ? reject(error) : resolve()));
-    });
-}
-
-function streamEnd(stream: fs.WriteStream): Promise<void> {
-    return new Promise((resolve, reject) => {
-        stream.end((error: Error | null | undefined) => (error ? reject(error) : resolve()));
     });
 }
 
@@ -381,6 +384,9 @@ async function* readExportRows(
     for (let start = range.rowStart; start <= range.rowEnd; start += chunkRows) {
         const count = Math.min(chunkRows, range.rowEnd - start + 1);
         const window = await options.getRows(options.summary.resultSetId, start, count);
+        if (window.values.length !== count) {
+            throw new Error(QueryStudioCoreLoc.incompleteExportResults);
+        }
         const isNull = windowNullFlags(window);
         for (let row = 0; row < window.values.length; row++) {
             const cells: ExportCell[] = [];
@@ -391,9 +397,6 @@ async function* readExportRows(
                 });
             }
             yield { cells };
-        }
-        if (window.values.length < count) {
-            return;
         }
     }
 }

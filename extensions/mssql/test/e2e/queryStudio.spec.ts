@@ -70,9 +70,11 @@ for (const enabled of [false, true]) {
                 return;
             }
             const studio = page.frameLocator(".webview:visible").frameLocator("#active-frame");
+            // A cold, coverage-instrumented webview can take longer than the
+            // default assertion timeout to load Monaco and mount its toolbar.
             await expect(
                 studio.getByRole("toolbar", { name: "Query Studio toolbar" }),
-            ).toBeInViewport();
+            ).toBeInViewport({ timeout: 30_000 });
             await expect(
                 studio.getByTitle("Connect to a SQL Server", { exact: true }),
             ).toBeInViewport();
@@ -109,9 +111,10 @@ for (const enabled of [false, true]) {
             await expect
                 .poll(() => fs.readFile(savedPath, "utf8").catch(() => ""))
                 .toContain("SELECT 33 AS saved;");
+            // Save As replaces the untitled webview with a fresh editor.
             await expect(
                 studio.getByRole("toolbar", { name: "Query Studio toolbar" }),
-            ).toBeInViewport();
+            ).toBeInViewport({ timeout: 30_000 });
             await expect(studio.locator(".monaco-editor .view-lines")).toContainText("SELECT 33");
         });
 

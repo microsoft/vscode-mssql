@@ -21,6 +21,36 @@ suite("Query Studio export safety", () => {
     const sandbox = sinon.createSandbox();
     teardown(() => sandbox.restore());
 
+    test("missing rows fail export instead of reporting a truncated file as successful", async () => {
+        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-export-missing-"));
+        sandbox
+            .stub(vscode.window, "showSaveDialog")
+            .resolves(vscode.Uri.file(path.join(tempDir, "missing.csv")));
+        const success = sandbox.stub(vscode.window, "showInformationMessage").resolves(undefined);
+        const failure = sandbox.stub(vscode.window, "showErrorMessage").resolves(undefined);
+        const createStream = sandbox.spy(fs, "createWriteStream");
+        try {
+            const outcome = await saveQueryStudioResult({
+                summary: summary(true),
+                format: "csv",
+                getRows: async () => ({
+                    resultSetId: "b0r0s0",
+                    start: 0,
+                    rowCount: 0,
+                    columns: [],
+                    values: [],
+                }),
+            });
+            expect(outcome.saved).to.equal(false);
+            sinon.assert.calledOnce(failure);
+            sinon.assert.notCalled(success);
+            expect(createStream.returnValues[0].closed).to.equal(true);
+            expect(fs.readdirSync(tempDir)).to.deep.equal([]);
+        } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+    });
+
     function summary(complete: boolean): QsResultSetSummary {
         return {
             resultSetId: "b0r0s0",

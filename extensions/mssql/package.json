@@ -80,7 +80,7 @@
         "test": "vscode-test --coverage",
         "package": "node scripts/package-extension.js",
         "install:sqltools-mcp": "node scripts/install-sqltools-mcp.js",
-        "instrument": "nyc instrument ./dist/views ./dist/views --in-place",
+        "instrument": "node ../../scripts/instrument-webviews.mjs",
         "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/webviews-coverage\" --include=\"src/webviews/pages/**/*.tsx\""
     },
     "devDependencies": {
@@ -126,6 +126,7 @@
         "esbuild": "^0.28.1",
         "html-to-image": "1.11.11",
         "istanbul-lib-coverage": "^3.2.2",
+        "istanbul-lib-instrument": "^6.0.3",
         "mocha-junit-reporter": "^2.2.1",
         "mocha-multi-reporters": "^1.5.1",
         "monaco-editor": "0.53.0",
@@ -458,7 +459,6 @@
             },
             {
                 "id": "mssql.objectExplorerV2.generateScriptSubmenu",
-                "title": "Generate Script",
                 "label": "%mssql.objectExplorerV2.generateScriptSubmenu%"
             }
         ],
@@ -3487,7 +3487,7 @@
             },
             {
                 "command": "mssql.sqlDataPlane.pickDocumentBackend",
-                "title": "Query Studio: Select SQL Provider for This Document",
+                "title": "%mssql.sqlDataPlane.pickDocumentBackend%",
                 "category": "MS SQL",
                 "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
             },

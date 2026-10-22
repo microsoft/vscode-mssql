@@ -986,8 +986,10 @@ export class RowStore {
         }
         try {
             fs.mkdirSync(this.spillDir, { recursive: true });
-            this.spillPath = path.join(this.spillDir, "resultsets.pages");
-            this.spillFd = fs.openSync(this.spillPath, "w+");
+            const spillPath = path.join(this.spillDir, "resultsets.pages");
+            this.spillFd = fs.openSync(spillPath, "wx+");
+            // Only own (and later remove) a file we successfully created.
+            this.spillPath = spillPath;
             return this.spillFd;
         } catch {
             return undefined;
@@ -1018,7 +1020,7 @@ export class RowStore {
             const deserializeStartedAt = performance.now();
             const compact = deserialize(frame) as CompactPage;
             const deserializeMs = performance.now() - deserializeStartedAt;
-            if (admit && !this.disposed) {
+            if (admit && !this.disposed && !page.compact) {
                 // Re-admit to memory (read pages are likely re-read).
                 page.compact = compact;
                 this.memoryBytes += page.approxBytes;

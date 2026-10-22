@@ -33,11 +33,16 @@ import {
 } from "../queryResults/queryResultContextService";
 import { buildQueryResultsStatusDocument } from "../queryResults/queryResultsStatus";
 import { registerPinnedResultsEditor } from "../queryResults/pinnedResultsDocumentProvider";
-import { stopSpillSessionLock, sweepOrphanSpillDirs } from "../queryResults/spillHygiene";
+import {
+    documentSpillDirName,
+    stopSpillSessionLock,
+    sweepOrphanSpillDirs,
+} from "../queryResults/spillHygiene";
 import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
 import {
     queryStudioHotExitBackupRoot,
     restoreQueryStudioHotExitBackup,
+    registerQueryStudioHotExitCleanup,
 } from "./queryStudioHotExitBackup";
 import { LanguageServiceStatus } from "./queryStudioLanguageService";
 import {
@@ -89,7 +94,11 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
     });
     private models = new Map<string, QueryStudioDocumentModel>();
 
-    constructor(private readonly context: vscode.ExtensionContext) {}
+    constructor(private readonly context: vscode.ExtensionContext) {
+        context.subscriptions.push(
+            registerQueryStudioHotExitCleanup(queryStudioHotExitBackupRoot(context.storageUri)),
+        );
+    }
 
     async resolveCustomTextEditor(
         document: vscode.TextDocument,
@@ -141,7 +150,7 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
             const spillRoot = path.join(
                 this.context.globalStorageUri.fsPath,
                 "querystudio-spill",
-                Buffer.from(uriKey).toString("base64url").slice(0, 32),
+                documentSpillDirName(uriKey),
             );
             model = new QueryStudioDocumentModel(backingDocument, spillRoot, backupRoot, (m) => {
                 this.models.delete(m.uriKey);
@@ -284,7 +293,7 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
                 const text = args?.text ?? model.backingDocument?.getText() ?? "";
                 await model.sessionBinding.waitForUserSessionReady();
                 return model.executionHost.execute(text, {
-                    selectionStartLine: 0,
+                    selectionStartLine: 1,
                     scope: "document",
                 });
             },

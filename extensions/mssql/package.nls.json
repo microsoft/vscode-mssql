@@ -1,4 +1,5 @@
 {
+    "mssql.sqlDataPlane.pickDocumentBackend": "Query Studio: Select SQL Provider for This Document",
     "mssql.runQuery": "Execute Query (MSSQL)",
     "mssql.runCurrentStatement": "Execute Selection or Current Statement (MSSQL)",
     "mssql.cancelQuery": "Cancel Query (MSSQL)",

@@ -70,7 +70,11 @@ export class LocConstants {
             ln: l10n.t("Ln"),
             col: l10n.t(", Col"),
             loadingResultsView: l10n.t("Loading results view…"),
-            couldNotBeRendered: l10n.t("could not be rendered."),
+            couldNotBeRendered: (label: string) => l10n.t("{0} could not be rendered.", label),
+            pinnedResults: l10n.t("Pinned Results"),
+            textViewWaitingForResults: l10n.t(
+                "Text output updates when each result set finishes loading.",
+            ),
             retryValue: (value0: string) => l10n.t("Retry {0}", value0),
             result: l10n.t("Result"),
             truncatedValue: (value0: string) => l10n.t(" · truncated ({0})", value0),

@@ -14,6 +14,7 @@
  */
 
 import { scanLine } from "../sql/batchSplitter";
+import { stripSqlNonCode } from "../sql/sqlSafetyClassifier";
 import { SQLCMD_DIRECTIVE_HEADS } from "../sql/sqlcmdPreprocessor";
 import { ScanRule } from "./scanDetect";
 
@@ -87,7 +88,9 @@ export const psqlDetectRule: ScanRule<PsqlDetection> = {
         let state = { region: "code", blockDepth: 0 } as ReturnType<typeof scanLine>;
         let metaCommands = 0;
         let syntaxSignals = 0;
-        for (const line of sample.lines) {
+        // Mask inline as well as multiline literals/comments before matching
+        // dialect signals. The masking preserves line boundaries.
+        for (const line of stripSqlNonCode(sample.lines.join("\n")).split("\n")) {
             if (state.region === "code") {
                 if (PSQL_META.test(line)) {
                     metaCommands++;

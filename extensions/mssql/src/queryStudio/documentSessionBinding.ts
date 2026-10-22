@@ -183,6 +183,14 @@ export class DocumentSessionBinding implements vscode.Disposable {
         };
     }
 
+    /** Opaque profile identity plus current database, never display labels. */
+    get connectionIdentity(): string {
+        return JSON.stringify([
+            this.lastProfileRef?.profileFingerprint,
+            this.connectionState.database,
+        ]);
+    }
+
     get connectionState(): QsConnectionState {
         const info = this.session?.info;
         // Prefer the numeric engineEditionId (D-0017); the legacy field only
@@ -559,10 +567,10 @@ export class DocumentSessionBinding implements vscode.Disposable {
                 QueryStudioCoreLoc.retry,
                 QueryStudioCoreLoc.openInClassicEditor,
             );
-            if (action === "Retry") {
+            if (action === QueryStudioCoreLoc.retry) {
                 return this.open(stored, store);
             }
-            if (action === "Open in classic editor") {
+            if (action === QueryStudioCoreLoc.openInClassicEditor) {
                 void vscode.commands.executeCommand("mssql.queryStudio.openInClassicEditor");
             }
             return false;

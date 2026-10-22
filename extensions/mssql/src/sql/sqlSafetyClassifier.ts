@@ -13,6 +13,8 @@
  * a procedure can do anything.
  */
 
+import { splitBatches } from "./batchSplitter";
+
 const MODIFYING_KEYWORDS = new RegExp(
     "\\b(" +
         [
@@ -57,6 +59,7 @@ export function stripSqlNonCode(text: string): string {
     let i = 0;
     const n = text.length;
     while (i < n) {
+        const start = i;
         const c = text[i];
         const next = i + 1 < n ? text[i + 1] : "";
         if (c === "-" && next === "-") {
@@ -78,7 +81,7 @@ export function stripSqlNonCode(text: string): string {
                     i++;
                 }
             }
-            out += " ";
+            out += text.slice(start, i).replace(/[^\r\n]/g, " ");
             continue;
         }
         if (c === "'") {
@@ -93,7 +96,7 @@ export function stripSqlNonCode(text: string): string {
                     i++;
                 }
             }
-            out += "''";
+            out += "''" + text.slice(start, i).replace(/[^\r\n]/g, " ");
             continue;
         }
         if (c === "[") {
@@ -108,16 +111,19 @@ export function stripSqlNonCode(text: string): string {
                     i++;
                 }
             }
-            out += " x ";
+            out += " x " + text.slice(start, i).replace(/[^\r\n]/g, " ");
             continue;
         }
         if (c === '"') {
             i++;
-            while (i < n && text[i] !== '"') {
-                i++;
+            while (i < n) {
+                if (text[i] === '"' && text[i + 1] === '"') {
+                    i += 2;
+                } else if (text[i++] === '"') {
+                    break;
+                }
             }
-            i++;
-            out += " x ";
+            out += " x " + text.slice(start, i).replace(/[^\r\n]/g, " ");
             continue;
         }
         out += c;
@@ -128,5 +134,39 @@ export function stripSqlNonCode(text: string): string {
 
 /** True when the text contains anything beyond reads (see module doc). */
 export function isModifyingSql(text: string): boolean {
-    return MODIFYING_KEYWORDS.test(stripSqlNonCode(text));
+    const code = stripSqlNonCode(text);
+    if (MODIFYING_KEYWORDS.test(code) || /^\s*:r\b/im.test(code)) {
+        // Includes execute SQL that is unavailable to this preflight check.
+        return true;
+    }
+    // SQL Server permits omitting EXEC for a procedure at the start of a
+    // batch. Unknown leading identifiers must therefore prompt too.
+    return splitBatches(code).some((batch) => {
+        const head = /^\s*;*\s*([\p{L}_#@][\p{L}\p{N}_#$@]*)/u.exec(batch.text)?.[1];
+        return head !== undefined && !NON_EXECUTING_BATCH_HEADS.has(head.toUpperCase());
+    });
 }
+
+const NON_EXECUTING_BATCH_HEADS = new Set([
+    "SELECT",
+    "WITH",
+    "SET",
+    "USE",
+    "DECLARE",
+    "PRINT",
+    "RAISERROR",
+    "THROW",
+    "BEGIN",
+    "END",
+    "IF",
+    "ELSE",
+    "WHILE",
+    "WAITFOR",
+    "RETURN",
+    "GOTO",
+    "BREAK",
+    "CONTINUE",
+    "COMMIT",
+    "ROLLBACK",
+    "SAVE",
+]);

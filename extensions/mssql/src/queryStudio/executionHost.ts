@@ -225,7 +225,7 @@ export class ExecutionHost {
         }
         this.runCounter++;
         this.rowStore = new RowStore(
-            path.join(this.spillRoot, runSpillDirName(this.runCounter)),
+            path.join(this.spillRoot, runSpillDirName()),
             rowStoreLimitsFrom(tuning),
             tuning.params.diagnosticsLevel,
             rowStoreTuningFrom(tuning),

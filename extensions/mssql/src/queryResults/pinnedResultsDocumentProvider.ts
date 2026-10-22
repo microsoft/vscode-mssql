@@ -33,6 +33,7 @@ import { PinnedResultsController } from "./pinnedResultsController";
 import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
 
 export class PinnedQueryResultsDocument {
+    private disposed = false;
     constructor(
         readonly uri: vscode.Uri,
         readonly snapshotId: string | undefined,
@@ -44,6 +45,10 @@ export class PinnedQueryResultsDocument {
     }
 
     dispose(): void {
+        if (this.disposed) {
+            return;
+        }
+        this.disposed = true;
         if (this.snapshotId) {
             getQueryResultContextService().clearForSnapshot(this.snapshotId);
         }
@@ -109,6 +114,9 @@ export async function openPinnedResultsDocument(snapshotId: string): Promise<boo
         path: `/${title}`,
         query: `sid=${snapshotId}`,
     });
+    let document: PinnedQueryResultsDocument | undefined;
+    let panel: vscode.WebviewPanel | undefined;
+    let controller: PinnedResultsController | undefined;
     try {
         Perf.marker("mssql.queryResults.pin.open.begin", "begin");
         warnOnPinnedTabPressure();
@@ -117,27 +125,29 @@ export async function openPinnedResultsDocument(snapshotId: string): Promise<boo
             documentUri: uri.toString(),
             label: QueryStudioCoreLoc.pinnedResultsDocument,
         });
-        const document = new PinnedQueryResultsDocument(uri, snapshotId, lease);
-        const panel = vscode.window.createWebviewPanel(
+        document = new PinnedQueryResultsDocument(uri, snapshotId, lease);
+        panel = vscode.window.createWebviewPanel(
             PINNED_RESULTS_VIEW_TYPE,
             title,
             { viewColumn: vscode.ViewColumn.Beside, preserveFocus: false },
             { enableScripts: true, retainContextWhenHidden: true },
         );
-        const controller = new PinnedResultsController(context, panel, document);
         panel.onDidDispose(() => {
-            controller.dispose();
-            document.dispose();
+            controller?.dispose();
+            document?.dispose();
             Perf.marker("mssql.queryResults.pin.close", "instant", {
-                expired: document.expired,
+                expired: document?.expired,
             });
         });
+        controller = new PinnedResultsController(context, panel, document);
         Perf.marker("mssql.queryResults.pin.open.end", "end", {
             expired: document.expired,
             resultSetCount: controller.resultSetCount,
         });
         return true;
     } catch {
+        panel?.dispose();
+        document?.dispose();
         return false;
     }
 }

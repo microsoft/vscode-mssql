@@ -44,9 +44,7 @@ export class QueryStudioErrorBoundary extends React.Component<
         }
         return (
             <div className="qs-pane-error" role="alert">
-                <span>
-                    {this.props.label} {locConstants.queryStudioCore.couldNotBeRendered}
-                </span>
+                <span>{locConstants.queryStudioCore.couldNotBeRendered(this.props.label)}</span>
                 <button
                     type="button"
                     className="qs-btn"

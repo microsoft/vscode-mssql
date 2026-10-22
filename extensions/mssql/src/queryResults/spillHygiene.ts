@@ -9,8 +9,8 @@
  * leak them. Run spill dirs are stamped with a per-activation session nonce
  * (`run<counter>_<nonce>`), each live session heartbeats a
  * `session-<nonce>.lock` file at the spill root, and a startup sweep removes
- * run dirs whose session lock is stale or absent — never a live sibling
- * window's, because its lock stays fresh.
+ * run dirs whose session lock is absent or belongs to a dead process. A
+ * stale heartbeat alone is not proof of death (the machine may suspend).
  *
  * Only nonce-suffixed dirs are swept: legacy `run<counter>` dirs may belong
  * to an older-code sibling window and are left to its own dispose paths.
@@ -27,13 +27,19 @@ export const SESSION_SPILL_NONCE = crypto.randomBytes(6).toString("base64url");
 const LOCK_PREFIX = "session-";
 const LOCK_SUFFIX = ".lock";
 const HEARTBEAT_INTERVAL_MS = 60_000;
-/** A lock untouched this long belongs to a dead session. */
+/** Check the owning process before removing a lock untouched this long. */
 export const STALE_LOCK_MS = 10 * 60_000;
 
 const RUN_DIR_PATTERN = /^run\d+_(?<nonce>[A-Za-z0-9_-]+)$/;
 
-export function runSpillDirName(runCounter: number): string {
-    return `run${runCounter}_${SESSION_SPILL_NONCE}`;
+let runSequence = 0;
+
+export function documentSpillDirName(uriKey: string): string {
+    return crypto.createHash("sha256").update(uriKey).digest("hex");
+}
+
+export function runSpillDirName(): string {
+    return `run${++runSequence}_${SESSION_SPILL_NONCE}`;
 }
 
 let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
@@ -115,18 +121,26 @@ export function sweepOrphanSpillDirs(
     }
     const liveNonces = new Set<string>([SESSION_SPILL_NONCE]);
     for (const entry of docDirs) {
-        if (!entry.isFile() || !entry.name.startsWith(LOCK_PREFIX)) {
+        if (
+            !entry.isFile() ||
+            !entry.name.startsWith(LOCK_PREFIX) ||
+            !entry.name.endsWith(LOCK_SUFFIX)
+        ) {
             continue;
         }
         const nonce = entry.name.slice(LOCK_PREFIX.length, -LOCK_SUFFIX.length);
         try {
             const mtime = fs.statSync(path.join(spillRoot, entry.name)).mtimeMs;
-            if (nowEpochMs - mtime <= STALE_LOCK_MS) {
+            if (
+                nowEpochMs - mtime <= STALE_LOCK_MS ||
+                lockOwnerMayBeAlive(path.join(spillRoot, entry.name))
+            ) {
                 liveNonces.add(nonce);
             } else {
                 fs.rmSync(path.join(spillRoot, entry.name), { force: true });
             }
         } catch {
+            liveNonces.add(nonce);
             result.failures++;
         }
     }
@@ -176,6 +190,20 @@ export function sweepOrphanSpillDirs(
         });
     }
     return result;
+}
+
+function lockOwnerMayBeAlive(file: string): boolean {
+    try {
+        const pid = Number(fs.readFileSync(file, "utf8").trim());
+        if (!Number.isSafeInteger(pid) || pid <= 0 || pid > 2147483647) {
+            return true;
+        }
+        // Signal zero probes process existence without sending a signal.
+        process.kill(pid, 0);
+        return true;
+    } catch (error) {
+        return (error as NodeJS.ErrnoException).code !== "ESRCH";
+    }
 }
 
 function directoryBytes(dir: string): number {

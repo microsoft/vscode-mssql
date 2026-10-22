@@ -448,7 +448,7 @@ export function PinnedResultsApp() {
                         ref={resultsPanelRef}
                         onScroll={persistResultsScroll}>
                         <QueryStudioErrorBoundary
-                            label="Results"
+                            label={locConstants.queryStudioCore.results}
                             resetKey={`results:${panelViewStateRef.current.generation}`}
                             onError={reportPaneError}>
                             <QsResultsGridProvider>
@@ -500,7 +500,7 @@ export function PinnedResultsApp() {
                         className="qs-tab-panel qs-tab-panel-fill"
                         hidden={visibleActiveTab !== "messages"}>
                         <QueryStudioErrorBoundary
-                            label="Messages"
+                            label={locConstants.queryStudioCore.messages}
                             resetKey={`messages:${panelViewStateRef.current.generation}`}
                             onError={reportPaneError}>
                             {state.hasLocalMessages && !messagesLoaded ? (
@@ -525,7 +525,7 @@ export function PinnedResultsApp() {
                         className="qs-tab-panel qs-tab-panel-fill"
                         hidden={visibleActiveTab !== "queryPlan"}>
                         <QueryStudioErrorBoundary
-                            label="Query Plan"
+                            label={locConstants.queryStudioCore.queryPlan}
                             resetKey={`plan:${panelViewStateRef.current.generation}`}
                             onError={reportPaneError}>
                             <React.Suspense

@@ -17,6 +17,7 @@
  */
 
 import * as vscode from "vscode";
+import { QueryStudioCore } from "../constants/locConstants";
 
 export const DEFINITION_SCHEME = "mssql-def";
 export const DEFINITION_MODE_SETTING = "mssql.sqlLanguage.definition.mode";
@@ -38,18 +39,15 @@ export class DefinitionContentProvider implements vscode.TextDocumentContentProv
     readonly onDidChange = this.changeEmitter.event;
 
     provideTextDocumentContent(uri: vscode.Uri): string {
-        return (
-            this.contentByUri.get(uri.toString()) ??
-            "-- This generated definition has expired. Run Go to Definition again."
-        );
+        return this.contentByUri.get(uri.toString()) ?? QueryStudioCore.generatedDefinitionExpired;
     }
 
     /** Store a script and return its stable URI (cacheKey-addressed). */
-    store(content: ScriptedDefinitionContent): vscode.Uri {
+    store(content: ScriptedDefinitionContent, sourceIdentity: string): vscode.Uri {
         const uri = vscode.Uri.from({
             scheme: DEFINITION_SCHEME,
             path: `/${content.title}.sql`,
-            query: encodeURIComponent(content.cacheKey),
+            query: encodeURIComponent(JSON.stringify([sourceIdentity, content.cacheKey])),
         });
         const key = uri.toString();
         const existing = this.contentByUri.get(key);
@@ -100,8 +98,9 @@ export function definitionContentProvider(): DefinitionContentProvider | undefin
 export async function openScriptedDefinition(
     provider: DefinitionContentProvider,
     content: ScriptedDefinitionContent,
+    sourceIdentity: string,
 ): Promise<vscode.Uri> {
-    const uri = provider.store(content);
+    const uri = provider.store(content, sourceIdentity);
     const document = await vscode.workspace.openTextDocument(uri);
     const anchor = content.anchor ?? { line: 0, character: 0 };
     const position = new vscode.Position(anchor.line, anchor.character);

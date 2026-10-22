@@ -17,6 +17,8 @@ import * as vscode from "vscode";
 import { compareQueryStudioPlan } from "../queryStudio/compareExecutionPlan";
 import { WebviewBaseController } from "../controllers/webviewBaseController";
 import {
+    QsCopySelectionToClipboardRequest,
+    QsWriteClipboardRequest,
     QsCopyMessagesToClipboardRequest,
     QsGetMessagesRequest,
     QsGetPlanStateRequest,
@@ -41,6 +43,7 @@ import { PinnedResultsState } from "../sharedInterfaces/queryResultsSnapshot";
 import { affectsQueryStudioGridStyle, readGridStyle } from "../queryStudio/gridStyle";
 import { cellDocumentText, prettyPrintCellText } from "../queryStudio/cellDocument";
 import { saveQueryStudioResult } from "../queryStudio/resultExport";
+import { copyQueryStudioSelection } from "../queryStudio/resultClipboard";
 import { resolveQueryTuning } from "../queryStudio/tuning/queryTuningResolver";
 import {
     createExecutionPlanGraphs,
@@ -238,25 +241,63 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
                 reason,
             });
         });
+        this.onRequest(
+            QsCopySelectionToClipboardRequest.type,
+            async ({ resultSetId, selection, includeHeaders }) => {
+                const lease = service.acquireSnapshot(this.snapshotId, { kind: "command" });
+                try {
+                    return await copyQueryStudioSelection(
+                        lease ? this.summaryFor(resultSetId) : undefined,
+                        selection,
+                        includeHeaders,
+                        (start, count, columns) =>
+                            service.getWindow({
+                                snapshotId: this.snapshotId,
+                                resultSetId,
+                                rowStart: start,
+                                rowCount: count,
+                                ...(columns
+                                    ? { columnStart: columns.start, columnCount: columns.count }
+                                    : {}),
+                                reason: "copy",
+                            }),
+                    );
+                } finally {
+                    lease?.dispose();
+                }
+            },
+        );
+        this.onRequest(QsWriteClipboardRequest.type, async ({ text }) => {
+            await vscode.env.clipboard.writeText(text);
+            return { written: true };
+        });
         this.onRequest(QsSaveResultRequest.type, async ({ resultSetId, format, selection }) => {
             const summary = this.summaryFor(resultSetId);
             if (!summary) {
                 return { saved: false, error: QueryStudioCoreLoc.resultSetNotFoundInThisSnapshot };
             }
-            return saveQueryStudioResult({
-                sourceUri: this.document.uri,
-                summary,
-                format,
-                selection,
-                getRows: (id, start, count) =>
-                    service.getWindow({
-                        snapshotId: this.snapshotId,
-                        resultSetId: id,
-                        rowStart: start,
-                        rowCount: count,
-                        reason: "export",
-                    }),
-            });
+            const lease = service.acquireSnapshot(this.snapshotId, { kind: "export" });
+            if (!lease) {
+                return { saved: false, error: QueryStudioCoreLoc.resultSetNotFoundInThisSnapshot };
+            }
+            try {
+                return await saveQueryStudioResult({
+                    sourceUri: this.document.uri,
+                    summary,
+                    format,
+                    selection,
+                    getRows: (id, start, count) =>
+                        service.getWindow({
+                            snapshotId: this.snapshotId,
+                            resultSetId: id,
+                            rowStart: start,
+                            rowCount: count,
+                            reason: "export",
+                        }),
+                });
+            } finally {
+                lease.dispose();
+            }
         });
         this.onRequest(
             QsOpenCellDocumentRequest.type,

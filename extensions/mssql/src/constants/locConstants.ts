@@ -1130,6 +1130,16 @@ export class ObjectExplorer {
 
 /** User-visible strings for the Connections (Private Preview) surface. */
 export class ObjectExplorerV2 {
+    static selectObjectToScript = l10n.t("Select a database object to script.");
+    static connectBeforeScripting = l10n.t(
+        "Connect this profile in Connections (Private Preview) first.",
+    );
+    static objectMissingForScript = (schema: string, name: string) =>
+        l10n.t(
+            "-- Cannot script {0}.{1}: object is not present in the current metadata snapshot.",
+            schema,
+            name,
+        );
     private static readonly folderLabels = new Map<string, string>([
         ["Databases", l10n.t("Databases")],
         ["Security", l10n.t("Security")],
@@ -6266,6 +6276,12 @@ export const QueryStudio = {
 };
 
 export const QueryStudioCore = {
+    generatedDefinitionExpired: l10n.t(
+        "-- This generated definition has expired. Run Go to Definition again.",
+    ),
+    incompleteExportResults: l10n.t(
+        "The result data is no longer available in full. The export could not be completed.",
+    ),
     productionWarningDetail: l10n.t(
         "This connection's server group is marked as production, and the query contains statements that can change or destroy data. This can result in data loss. Would you like to continue?",
     ),

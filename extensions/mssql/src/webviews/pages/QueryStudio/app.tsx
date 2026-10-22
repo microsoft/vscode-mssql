@@ -103,7 +103,12 @@ import {
 } from "../../../sharedInterfaces/queryStudioLanguage";
 import { computeResultsLayout } from "../../../sharedInterfaces/queryStudioResultsLayout";
 import { classifyQueryStudioResultTabs } from "../../../sharedInterfaces/queryStudioResultTabs";
-import { diffTextEdit, textHash, SYNC_COALESCE_MS } from "../../../queryStudio/textSync";
+import {
+    diffTextEdit,
+    rebaseRemoteEdits,
+    textHash,
+    SYNC_COALESCE_MS,
+} from "../../../queryStudio/textSync";
 // BOOT-2 staged loading: the grid stack (slickgrid) and the plan surface
 // (azdataGraph) are DYNAMIC chunks — the entry carries Monaco + shell only.
 // Their CSS is hoisted here statically so lazy chunks never strand styles.
@@ -637,8 +642,12 @@ export function QueryStudioApp() {
             .sendRequest(QsSyncEditsRequest.type, payload)
             .then((outcome) => {
                 if (outcome.applied) {
-                    hostVersionRef.current = outcome.hostVersion;
-                    syncedTextRef.current = currentText;
+                    // A host notification may have advanced the baseline
+                    // while this request was in flight.
+                    if (outcome.hostVersion >= hostVersionRef.current) {
+                        hostVersionRef.current = outcome.hostVersion;
+                        syncedTextRef.current = currentText;
+                    }
                     return;
                 }
                 // Divergence rejections reconcile via the resync notification;
@@ -649,11 +658,14 @@ export function QueryStudioApp() {
                 // the user-facing truth.
                 expectedEchoGroupsRef.current.delete(groupId);
                 expectedEchoTextsRef.current.delete(groupId);
-                hostVersionRef.current = outcome.hostVersion;
                 if (outcome.resyncPending) {
                     awaitingResyncRef.current = true;
                     return undefined;
                 }
+                if (outcome.hostVersion <= hostVersionRef.current) {
+                    return undefined; // already rebased; finally resends local edits
+                }
+                hostVersionRef.current = outcome.hostVersion;
                 const liveEditor = editorRef.current;
                 if (!liveEditor) {
                     return undefined;
@@ -812,7 +824,15 @@ export function QueryStudioApp() {
                 if (!editor) {
                     return;
                 }
-                if (remote.fromHostVersion !== hostVersionRef.current) {
+                const rebased =
+                    remote.fromHostVersion === hostVersionRef.current
+                        ? rebaseRemoteEdits(
+                              syncedTextRef.current,
+                              editorValue(editor, preferredEolRef.current),
+                              remote.edits,
+                          )
+                        : undefined;
+                if (!rebased || textHash(rebased.hostText) !== remote.textHash) {
                     awaitingResyncRef.current = true;
                     void rpc
                         .sendRequest(QsSyncResyncRequest.type, {
@@ -824,13 +844,14 @@ export function QueryStudioApp() {
                         );
                     return;
                 }
-                // Apply host-origin edits; verify hash, else request resync.
-                void flushEdits();
+                // Host offsets refer to the synced baseline, not the editor
+                // after unsent keystrokes. Apply the rebased edit first, then
+                // send remaining local changes against the new host version.
                 suppressLocalRef.current = true;
                 try {
                     const model = editor.getModel();
                     if (model) {
-                        const ops = remote.edits.map((edit) => ({
+                        const ops = rebased.edits.map((edit) => ({
                             range: monacoRange(model, edit),
                             text: edit.text,
                         }));
@@ -842,8 +863,9 @@ export function QueryStudioApp() {
                     suppressLocalRef.current = false;
                 }
                 hostVersionRef.current = remote.toHostVersion;
+                syncedTextRef.current = rebased.hostText;
                 const currentText = editorValue(editor, preferredEolRef.current);
-                if (currentText && textHash(currentText) !== remote.textHash) {
+                if (currentText !== rebased.mergedText) {
                     awaitingResyncRef.current = true;
                     void rpc
                         .sendRequest(QsSyncResyncRequest.type, {
@@ -853,6 +875,8 @@ export function QueryStudioApp() {
                         .then((resync) =>
                             applyRemoteText(resync.text, resync.hostVersion, resync.eol),
                         );
+                } else {
+                    void flushEdits();
                 }
             }),
             rpc.onNotification(QsSyncResyncNotification.type, (resync: QsSyncResync) => {
@@ -2426,7 +2450,7 @@ export function QueryStudioApp() {
                                             ref={resultsPanelRef}
                                             onScroll={() => persistResultsScroll(panelGeneration)}>
                                             <QueryStudioErrorBoundary
-                                                label="Results"
+                                                label={locConstants.queryStudioCore.results}
                                                 resetKey={`results:${panelGeneration}:${resultViewMode}`}
                                                 onError={reportPaneError}>
                                                 {resultViewMode === "text" ? (
@@ -2560,7 +2584,7 @@ export function QueryStudioApp() {
                                             hidden={visibleActiveTab !== "messages"}
                                             className="qs-tab-panel qs-tab-panel-fill">
                                             <QueryStudioErrorBoundary
-                                                label="Messages"
+                                                label={locConstants.queryStudioCore.messages}
                                                 resetKey={`messages:${panelGeneration}`}
                                                 onError={reportPaneError}>
                                                 <React.Suspense
@@ -2593,7 +2617,7 @@ export function QueryStudioApp() {
                                             hidden={visibleActiveTab !== "queryPlan"}
                                             className="qs-tab-panel qs-tab-panel-fill">
                                             <QueryStudioErrorBoundary
-                                                label="Query Plan"
+                                                label={locConstants.queryStudioCore.queryPlan}
                                                 resetKey={`plan:${panelGeneration}:${planResultSetKey}`}
                                                 onError={reportPaneError}>
                                                 <React.Suspense

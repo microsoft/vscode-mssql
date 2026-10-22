@@ -66,7 +66,6 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     private docSubscription: vscode.Disposable;
     private disposed = false;
     private liveResultSourceRegistration: { dispose(): void } | undefined;
-    private hotExitBackupWrite: Promise<void> = Promise.resolve();
     /** Guards re-entrant application of our own workspace edits. */
     private applyingWebviewEdit = false;
 
@@ -96,7 +95,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         if (connected && context.autoRun) {
             await this.sessionBinding.waitForUserSessionReady();
             this.executionHost.execute(this.document.getText(), {
-                selectionStartLine: 0,
+                selectionStartLine: 1,
                 scope: "document",
             });
         }
@@ -311,10 +310,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         const previousUri = this.document.uri;
         this._uriKey = document.uri.toString();
         this.rebind(document);
-        this.hotExitBackupWrite = this.hotExitBackupWrite.then(
-            () => deleteQueryStudioHotExitBackup(this.hotExitBackupRoot, previousUri),
-            () => deleteQueryStudioHotExitBackup(this.hotExitBackupRoot, previousUri),
-        );
+        void deleteQueryStudioHotExitBackup(this.hotExitBackupRoot, previousUri);
     }
 
     attachListener(listener: ModelTextEvents): vscode.Disposable {
@@ -523,9 +519,8 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     }
 
     private persistHotExitBackup(): void {
-        this.hotExitBackupWrite = this.hotExitBackupWrite.then(
-            () => persistQueryStudioHotExitBackup(this.hotExitBackupRoot, this.document),
-            () => persistQueryStudioHotExitBackup(this.hotExitBackupRoot, this.document),
+        void persistQueryStudioHotExitBackup(this.hotExitBackupRoot, this.document).catch(
+            () => undefined,
         );
     }
 

@@ -234,6 +234,15 @@ body {
     color: var(--vscode-descriptionForeground);
 }
 
+.qs-text-view {
+    display: flex;
+    flex-direction: column;
+}
+.qs-text-view-editor {
+    flex: 1;
+    min-height: 0;
+}
+
 .qs-results-body {
     flex: 1 1 auto;
     min-height: 0;

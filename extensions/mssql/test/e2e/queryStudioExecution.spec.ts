@@ -5,8 +5,15 @@
 
 import { test, expect } from "./baseFixtures";
 import { getGridLaunchConfig } from "./grid/gridLaunchConfig";
-import { runCommandFromPalette } from "./utils/testHelpers";
+import {
+    clearClipboard,
+    readClipboard,
+    runCommandFromPalette,
+    withClipboardLock,
+} from "./utils/testHelpers";
+import { getCell } from "./grid/gridActions";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { writeCoverage } from "./utils/coverageHelpers";
 
 test.describe("Query Studio execution and pinned results", () => {
     const getContext = useSharedVsCodeLifecycle({
@@ -20,7 +27,7 @@ test.describe("Query Studio execution and pinned results", () => {
     });
 
     test("shows embedded actual plans and retains pinned rows across a rerun", async () => {
-        const { page } = getContext();
+        const { page, electronApp } = getContext();
         await runCommandFromPalette(
             page,
             "MS SQL: Query Studio: New Query",
@@ -49,7 +56,8 @@ test.describe("Query Studio execution and pinned results", () => {
         // returns real plans without creating or modifying test data.
         await page.keyboard.insertText(
             "SELECT TOP (1) 42 AS answer FROM sys.all_objects;\n" +
-                "SELECT TOP (1) 84 AS other_answer FROM sys.all_objects;",
+                "SELECT TOP (1) 84 AS other_answer FROM sys.all_objects;\n" +
+                "SELECT REPLICATE(CONVERT(nvarchar(max), N'x'), 400000) AS large_value;",
         );
         await studio.getByTitle("Execute (F5 / Ctrl+E)", { exact: true }).click();
         await expect(studio.locator("#queryPlanParent1")).toBeVisible({ timeout: 60_000 });
@@ -65,9 +73,34 @@ test.describe("Query Studio execution and pinned results", () => {
             .frameLocator(`.webview:not([name="${studioName}"])`)
             .frameLocator("#active-frame");
         await expect(pinned.locator(".qs-pinned-root")).toBeVisible();
+        if (process.env.MSSQL_EXPECT_WEBVIEW_COVERAGE === "1") {
+            for (const frame of [studio, pinned]) {
+                expect(
+                    await frame
+                        .locator("body")
+                        .evaluate(
+                            () =>
+                                Object.keys(
+                                    (window as unknown as { __coverage__?: object }).__coverage__ ??
+                                        {},
+                                ).length,
+                        ),
+                ).toBeGreaterThan(0);
+            }
+        }
         await expect(
             pinned.locator(".slick-cell").filter({ hasText: /^42$/ }).first(),
         ).toBeVisible();
+        await withClipboardLock(async () => {
+            await clearClipboard(electronApp);
+            const largeGrid = pinned.locator(".fluent-result-grid").nth(2);
+            await expect(largeGrid).toHaveAttribute("data-row-count", "1");
+            await getCell(largeGrid, 0, 0).click();
+            await page.keyboard.press("ControlOrMeta+c");
+            await expect
+                .poll(async () => (await readClipboard(electronApp)).replace(/\r\n/g, "\n"))
+                .toBe("x".repeat(400_000));
+        });
         await page
             .getByRole("tab", { name: /Untitled/ })
             .first()
@@ -83,6 +116,10 @@ test.describe("Query Studio execution and pinned results", () => {
         await expect(
             studio.locator(".slick-cell").filter({ hasText: /^99$/ }).first(),
         ).toBeVisible();
+        await studio.getByTitle("Switch to Text View", { exact: true }).click();
+        await expect(studio.locator(".qs-text-view .monaco-editor")).toBeVisible();
+        await expect(studio.locator(".qs-text-view")).toContainText("99");
+        await studio.getByTitle("Switch to Grid View", { exact: true }).click();
         await page
             .getByRole("tab", { name: /Pinned Results/ })
             .first()
@@ -97,5 +134,7 @@ test.describe("Query Studio execution and pinned results", () => {
         await expect(
             pinned.getByRole("tree", { name: /Execution plan 1, use arrow keys/ }),
         ).toBeVisible();
+        await writeCoverage(studio, "queryStudioExecution");
+        await writeCoverage(pinned, "queryStudioPinnedResults");
     });
 });

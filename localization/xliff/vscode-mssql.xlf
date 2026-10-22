@@ -176,6 +176,12 @@
     <trans-unit id="++CODE++3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112">
       <source xml:lang="en">-</source>
     </trans-unit>
+    <trans-unit id="++CODE++9960f430fe69645e28585dded671d8cc883e0bf8571d6d9a66ac595942ea0faa">
+      <source xml:lang="en">-- Cannot script {0}.{1}: object is not present in the current metadata snapshot.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++85140be28dfd265c591c752703e536bbd54221e7875481c947a42fa39e4cd44e">
+      <source xml:lang="en">-- This generated definition has expired. Run Go to Definition again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++41966414bb7dcf966a79335f288d9615934480c6315e27c1f05204051a130187">
       <source xml:lang="en">.NET + Azure SQL</source>
     </trans-unit>
@@ -8363,6 +8369,9 @@
     <trans-unit id="++CODE++515adf10026f73e872a5481cc35c1baf4763cdcbf62da1606088224be5062d69">
       <source xml:lang="en">Pin this result set to a read-only tab</source>
     </trans-unit>
+    <trans-unit id="++CODE++46f2a8ae8ece19fbf5ceeecea6caa30c5cef138dcfbfd7f4ab072e86993899cd">
+      <source xml:lang="en">Pinned Results</source>
+    </trans-unit>
     <trans-unit id="++CODE++a25bb2b0f8904bda0a1b658119ea8bbb5f38d9aa2f48ef1e84dc09cd188350aa">
       <source xml:lang="en">Pinned Results {0}.{1}.{2} {3}</source>
     </trans-unit>
@@ -10241,6 +10250,9 @@
     <trans-unit id="++CODE++b7e789f7e9607ec14fce47c70aa688cd870e8a299d73eecf40e06d4d4af58162">
       <source xml:lang="en">Select a database for profiling (Azure SQL requires a specific database)</source>
     </trans-unit>
+    <trans-unit id="++CODE++9fd0578f2f2e283b812a5f52d6aa9defbe33c23753f0750dcbc319c77a32eafc">
+      <source xml:lang="en">Select a database object to script.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d9e5e69540871a387c5d20d2ae4ad26a58613e40b8f16e0712ec3c0dcc7ff96a">
       <source xml:lang="en">Select a deployment target</source>
     </trans-unit>
@@ -11415,6 +11427,9 @@
     <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
       <source xml:lang="en">Text View</source>
     </trans-unit>
+    <trans-unit id="++CODE++812d56e526fdd3368a6c020757448482a5dd431925aa080803a03c0347434409">
+      <source xml:lang="en">Text output updates when each result set finishes loading.</source>
+    </trans-unit>
     <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
       <source xml:lang="en">Text tab - displays SQL text data</source>
     </trans-unit>
@@ -11643,6 +11658,9 @@
     </trans-unit>
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++19edb2921020d6d5903fd3e186755e4237736ae2697694fc51568c369a4f7263">
+      <source xml:lang="en">The result data is no longer available in full. The export could not be completed.</source>
     </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
@@ -12893,9 +12911,6 @@
     <trans-unit id="++CODE++20a184a438e20d13accd7dcd04d971f32559ce1459b939e19144c731a9fc1669">
       <source xml:lang="en">copying</source>
     </trans-unit>
-    <trans-unit id="++CODE++286d7d8fcfa2492ac0d8c1c57a40ea6787af4c779d71b45260d3d23d7ac83028">
-      <source xml:lang="en">could not be rendered.</source>
-    </trans-unit>
     <trans-unit id="++CODE++75f3005c9aac6d86d47cfd28f3064335035ea72c060e53b35fe47bbd746d9e77">
       <source xml:lang="en">counting input tokens</source>
     </trans-unit>
@@ -13416,6 +13431,9 @@
       <source xml:lang="en">{0} contains column types not supported by Data API builder: {1}</source>
       <note>{0} is the DAB source type, e.g. Table or View
 {1} is a comma-separated list of column names and their data types</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b850bcc16df9842efb77a1c7ecc3bd8b4ecf299ee29505b01203484441e72679">
+      <source xml:lang="en">{0} could not be rendered.</source>
     </trans-unit>
     <trans-unit id="++CODE++dd55b947c629ac26f99513d6b841cd021d8036028c9f1494a2232a0e46130485">
       <source xml:lang="en">{0} default</source>
@@ -15035,6 +15053,9 @@
     </trans-unit>
     <trans-unit id="mssql.queryStudio.openActive">
       <source xml:lang="en">Query Studio: Reopen Active Document in Query Studio</source>
+    </trans-unit>
+    <trans-unit id="mssql.sqlDataPlane.pickDocumentBackend">
+      <source xml:lang="en">Query Studio: Select SQL Provider for This Document</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.runQueries.altText">
       <source xml:lang="en">Query editor and query results pane</source>

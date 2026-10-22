@@ -7,9 +7,85 @@ import { expect } from "chai";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { DEFAULT_LIMITS, RowStore } from "../../../src/queryStudio/rowStore";
+import {
+    DEFAULT_LIMITS,
+    DEFAULT_ROW_STORE_TUNING,
+    RowStore,
+} from "../../../src/queryStudio/rowStore";
 
 suite("Query Studio RowStore", () => {
+    test("concurrent reads admit a spilled page once without phantom memory or repeated eviction", async () => {
+        const store = new RowStore(
+            fs.mkdtempSync(path.join(os.tmpdir(), "qs-concurrent-spill-")),
+            { ...DEFAULT_LIMITS, maxMemoryBytes: 1500 },
+            "minimal",
+            { ...DEFAULT_ROW_STORE_TUNING, windowCacheEntries: 0, windowCacheMaxBytes: 0 },
+        );
+        try {
+            store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
+            for (let row = 0; row < 2; row++) {
+                await store.appendPage("r0", {
+                    rowOffset: row,
+                    rowCount: 1,
+                    approxBytes: 1000,
+                    compact: { values: [[row]] },
+                });
+            }
+            await store.flushSpill();
+            const windows = await Promise.all([
+                store.getRows("r0", 0, 1),
+                store.getRows("r0", 0, 1),
+            ]);
+            expect(windows.map((window) => window.values)).to.deep.equal([[[0]], [[0]]]);
+            await store.flushSpill();
+            expect(store.stats.memoryBytes).to.equal(1000);
+            const reads = store.stats.spillReads;
+            expect((await store.getRows("r0", 0, 1)).values).to.deep.equal([[0]]);
+            expect(store.stats.spillReads).to.equal(reads);
+        } finally {
+            store.dispose();
+            await store.flushSpill();
+        }
+    });
+
+    test("a spill path collision neither truncates nor deletes another store's data", async () => {
+        const directory = fs.mkdtempSync(path.join(os.tmpdir(), "qs-collision-spill-"));
+        const limits = { ...DEFAULT_LIMITS, maxMemoryBytes: 1 };
+        const first = new RowStore(directory, limits);
+        const second = new RowStore(directory, limits);
+        try {
+            for (const [store, value] of [
+                [first, "first"],
+                [second, "second"],
+            ] as const) {
+                store.beginResultSet("r0", [{ name: "v", displayName: "v" }]);
+                await store.appendPage("r0", {
+                    rowOffset: 0,
+                    rowCount: 1,
+                    approxBytes: 1000,
+                    compact: { values: [[value]] },
+                });
+                await store.flushSpill();
+            }
+            expect((await first.getRows("r0", 0, 1, "export")).values).to.deep.equal([["first"]]);
+            const rejected = await second.appendPage("r0", {
+                rowOffset: 1,
+                rowCount: 1,
+                approxBytes: 1000,
+                compact: { values: [["extra"]] },
+            });
+            expect(rejected.truncated).to.equal(true);
+            second.dispose();
+            await second.flushSpill();
+            expect(fs.existsSync(path.join(directory, "resultsets.pages"))).to.equal(true);
+            expect((await first.getRows("r0", 0, 1, "export")).values).to.deep.equal([["first"]]);
+        } finally {
+            first.dispose();
+            second.dispose();
+            await Promise.all([first.flushSpill(), second.flushSpill()]);
+        }
+    });
+
     test("serves high-offset windows from many small pages", async () => {
         const spillDir = fs.mkdtempSync(path.join(os.tmpdir(), "qs-row-store-"));
         const store = new RowStore(spillDir);
