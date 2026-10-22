@@ -1727,6 +1727,7 @@ export default class MainController implements vscode.Disposable {
             activateObjectExplorerV2(this._context, {
                 instantiationService: this._instantiationService,
                 profiles: this._connectionMgr.connectionStore,
+                tokens: vscodeSqlTokenSource,
                 legacyConnections: this._connectionMgr,
                 groupConfig: () => this._connectionMgr.connectionStore.connectionConfig,
                 isEnabled: objectExplorerV2Enabled,
