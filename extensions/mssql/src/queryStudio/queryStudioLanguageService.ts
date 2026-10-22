@@ -452,7 +452,6 @@ export class QueryStudioLanguageService implements vscode.Disposable {
             this.bridge = new Sts2BridgeEngine({
                 backingDocument: () => this.host.backingDocument(),
                 ensureShadowConnection: () => this.ensureShadowConnection(),
-                adoptDefinitionDocument: (uri) => this.adoptDefinitionDocumentConnection(uri),
             });
         }
         return this.bridge;

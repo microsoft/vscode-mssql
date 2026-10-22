@@ -19,6 +19,7 @@
  */
 
 import * as vscode from "vscode";
+import * as path from "path";
 import { diag } from "../../diagnostics/diagnosticsCore";
 import { completionLexicalSuppressionAt } from "../core/completionLexicalContext";
 import { LexResult, lex } from "../core/lexer";
@@ -52,12 +53,6 @@ export interface BridgeEngineHost {
      * (keyword completions still work through the STS v1 client).
      */
     ensureShadowConnection(): Promise<boolean>;
-    /**
-     * Connect a definition-target document this engine opened to the SOURCE
-     * editor's connection context (shadow profile + current database) — the
-     * new editor must never inherit an unrelated ambient profile.
-     */
-    adoptDefinitionDocument?(uri: vscode.Uri): Promise<boolean>;
 }
 
 export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
@@ -195,16 +190,22 @@ export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
             if (targetUri.toString() === uri.toString()) {
                 return { range: mapRange(targetRange) };
             }
-            // Cross-file target (old-engine temp/virtual docs): open beside,
-            // accepted as old behavior until LS-4 replaces definition.
+            // Resolution also runs for Peek and ctrl-hover. Return a preview
+            // model without opening a tab; the host keeps the original target
+            // for explicit navigation (including editable project files).
             const doc = await vscode.workspace.openTextDocument(targetUri);
-            await vscode.window.showTextDocument(doc, {
-                viewColumn: vscode.ViewColumn.Beside,
-                selection: targetRange,
-                preview: true,
-            });
-            await this.host.adoptDefinitionDocument?.(doc.uri);
-            return {};
+            return {
+                virtualContent: {
+                    title: path.posix.basename(targetUri.path, path.posix.extname(targetUri.path)),
+                    text: doc.getText(),
+                    anchor: {
+                        line: targetRange.start.line,
+                        character: targetRange.start.character,
+                    },
+                    cacheKey: JSON.stringify(["bridge", targetUri.toString(), doc.version]),
+                },
+                externalTarget: { uri: targetUri.toString(), range: mapRange(targetRange) },
+            };
         });
     }
 

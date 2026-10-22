@@ -11,14 +11,61 @@
  */
 
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import {
     DEFINITION_SCHEME,
     ScriptedDefinitionContent,
     DefinitionContentProvider,
+    openScriptedDefinition,
 } from "../../src/queryStudio/definitionContentProvider";
 import { QueryStudioLanguageService } from "../../src/queryStudio/queryStudioLanguageService";
+
+chai.use(sinonChai);
+
+suite("queryStudio explicit definition navigation", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+    teardown(() => sandbox.restore());
+
+    test("bridge navigation opens the original document and selection", async () => {
+        const uri = vscode.Uri.parse("file:///project/dbo.Table.sql");
+        const document = { uri } as vscode.TextDocument;
+        const openDocument = sandbox.stub(vscode.workspace, "openTextDocument").resolves(document);
+        const showDocument = sandbox.stub(vscode.window, "showTextDocument").resolves();
+        const content = {
+            title: "dbo.Table",
+            text: "CREATE TABLE dbo.Table (id int);",
+            cacheKey: "bridge-table",
+            externalTarget: {
+                uri: uri.toString(),
+                range: {
+                    start: { line: 2, character: 3 },
+                    end: { line: 2, character: 8 },
+                },
+            },
+        };
+        const provider = new DefinitionContentProvider();
+
+        expect(await openScriptedDefinition(provider, content, "source")).to.equal(uri);
+        expect(openDocument.firstCall.args[0].toString()).to.equal(uri.toString());
+        expect(showDocument.firstCall.args).to.deep.equal([
+            document,
+            {
+                viewColumn: vscode.ViewColumn.Beside,
+                preview: true,
+                preserveFocus: false,
+                selection: new vscode.Range(2, 3, 2, 8),
+            },
+        ]);
+        expect(provider.size).to.equal(0);
+    });
+});
 
 suite("queryStudio language definition delivery (B12)", () => {
     test("identical object keys on separate connections never overwrite an open definition", () => {

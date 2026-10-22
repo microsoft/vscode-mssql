@@ -1332,11 +1332,14 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             }
             // Scripted target (LS-4): the generated script rides to the
             // webview so Peek renders it INSIDE the editor. Opening the
-            // read-only mssql-def document beside (§13.5) happens only on
+            // original bridge target or read-only mssql-def document beside happens only on
             // EXPLICIT navigation below — provideDefinition also fires on
             // ctrl-hover, which must never pop a tab.
             if (result?.virtualContent !== undefined) {
-                this.rememberScriptedDefinition(result.virtualContent);
+                this.rememberScriptedDefinition({
+                    ...result.virtualContent,
+                    externalTarget: result.externalTarget,
+                });
                 return { virtualContent: result.virtualContent };
             }
             return null;
