@@ -18,6 +18,10 @@ import {
     IExtensionContextService,
     VscodeHttpClient,
 } from "extension-toolkit/vscode";
+import * as FlatFileImportController from "../../src/controllers/flatFileImportWebviewController";
+import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import { ConnectionUI } from "../../src/views/connectionUI";
+import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { AccountStore, IAccountStore } from "../../src/azure/accountStore";
@@ -116,6 +120,111 @@ suite("MainController Tests", function () {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    suite("Flat File Import command", () => {
+        let connectionUi: sinon.SinonStubbedInstance<ConnectionUI>;
+        let store: sinon.SinonStubbedInstance<ConnectionStore>;
+        let node: sinon.SinonStubbedInstance<TreeNodeInfo>;
+        let profile: ConnectionProfile;
+        let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+        let dialog: sinon.SinonStubbedInstance<FlatFileImportController.FlatFileImportWebviewController>;
+        let dialogConstructor: sinon.SinonStub;
+        let createSession: sinon.SinonStub;
+
+        setup(() => {
+            connectionUi = sandbox.createStubInstance(ConnectionUI);
+            store = sandbox.createStubInstance(ConnectionStore);
+            client = sandbox.createStubInstance(SqlToolsServiceClient);
+            dialog = sandbox.createStubInstance(
+                FlatFileImportController.FlatFileImportWebviewController,
+            );
+            dialogConstructor = sandbox
+                .stub(FlatFileImportController, "FlatFileImportWebviewController")
+                .returns(dialog);
+            sandbox.stub(SqlToolsServiceClient, "instance").get(() => client);
+            sandbox.stub(connectionManager, "connectionUI").get(() => connectionUi);
+            sandbox.stub(connectionManager, "connectionStore").get(() => store);
+            profile = new ConnectionProfile();
+            profile.id = "import-connection";
+            profile.server = "localhost";
+            profile.database = "master";
+            node = sandbox.createStubInstance(TreeNodeInfo);
+            sandbox.stub(node, "connectionProfile").get(() => profile);
+            node.sessionId = "object-explorer-session";
+            sandbox.stub(ObjectExplorerUtils, "getDatabaseName").withArgs(node).returns("sales");
+            store.getPickListItems.resolves([]);
+            connectionUi.promptForConnection.resolves(profile);
+            createSession = sandbox
+                .stub(mainController, "createObjectExplorerSession")
+                .resolves(node);
+            connectionManager.getUriForConnection.withArgs(profile).returns("connection-uri");
+            connectionManager.listDatabases.withArgs("connection-uri").resolves(["sales"]);
+        });
+
+        test("prompts for a connection when invoked from the command palette", async () => {
+            await mainController.onFlatFileImport();
+
+            expect(connectionUi.promptForConnection).to.have.been.calledWith([]);
+            expect(createSession).to.have.been.calledWith(profile);
+            expect(connectionManager.listDatabases).to.have.been.calledWith("connection-uri");
+            expect(dialogConstructor).to.have.been.calledWith(
+                context,
+                client,
+                connectionManager,
+                profile,
+                "object-explorer-session",
+                "sales",
+            );
+            expect(dialog.revealToForeground).to.have.been.called;
+        });
+
+        test("does nothing when connection selection is cancelled", async () => {
+            connectionUi.promptForConnection.resolves(undefined);
+
+            await mainController.onFlatFileImport();
+
+            expect(createSession).not.to.have.been.called;
+            expect(connectionManager.listDatabases).not.to.have.been.called;
+            expect(dialogConstructor).not.to.have.been.called;
+        });
+
+        test("does not launch the dialog when an explorer session cannot be created", async () => {
+            createSession.resolves(undefined);
+
+            await mainController.onFlatFileImport();
+
+            expect(createSession).to.have.been.calledWith(profile);
+            expect(connectionManager.listDatabases).not.to.have.been.called;
+            expect(dialogConstructor).not.to.have.been.called;
+        });
+
+        test("preserves the supplied explorer node and its database", async () => {
+            await mainController.onFlatFileImport(node);
+
+            expect(connectionUi.promptForConnection).not.to.have.been.called;
+            expect(createSession).not.to.have.been.called;
+            expect(dialogConstructor).to.have.been.calledWith(
+                context,
+                client,
+                connectionManager,
+                profile,
+                "object-explorer-session",
+                "sales",
+            );
+            expect(dialog.revealToForeground).to.have.been.called;
+        });
+
+        test("reports an empty database list without opening the dialog", async () => {
+            connectionManager.listDatabases.withArgs("connection-uri").resolves([]);
+
+            await mainController.onFlatFileImport(node);
+
+            expect(vscode.window.showErrorMessage).to.have.been.calledWith(
+                LocalizedConstants.FlatFileImport.noDatabasesFoundToImportInto,
+            );
+            expect(dialogConstructor).not.to.have.been.called;
+        });
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {
