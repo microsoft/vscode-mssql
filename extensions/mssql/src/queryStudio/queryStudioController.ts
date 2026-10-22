@@ -920,22 +920,45 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         });
         this.onRequest(
             QsCopySelectionToClipboardRequest.type,
-            async ({ resultSetId, selection, includeHeaders }) =>
-                copyQueryStudioSelection(
-                    this.model.executionHost
-                        .resultsState()
-                        .resultSets.find((set) => set.resultSetId === resultSetId),
-                    selection,
-                    includeHeaders,
-                    (start, count, columns) =>
-                        this.model.executionHost.getRows(
-                            resultSetId,
-                            start,
-                            count,
-                            "copy",
-                            columns,
-                        ),
-                ),
+            async ({ resultSetId, selection, includeHeaders }) => {
+                const summary = this.model.executionHost
+                    .resultsState()
+                    .resultSets.find((set) => set.resultSetId === resultSetId);
+                // A rerun replaces the live store and reuses result-set IDs.
+                // Keep this run alive through every window and the clipboard write.
+                const lease = summary
+                    ? this.model.executionHost.retainedStore?.retain({ kind: "command" })
+                    : undefined;
+                if (!lease) {
+                    return {
+                        outcome: "empty" as const,
+                        characters: 0,
+                        fetchCount: 0,
+                        fetchMs: 0,
+                        formatMs: 0,
+                        clipboardMs: 0,
+                        windowRows: 0,
+                    };
+                }
+                try {
+                    return await copyQueryStudioSelection(
+                        summary,
+                        selection,
+                        includeHeaders,
+                        (start, count, columns) =>
+                            lease.store.getWindow({
+                                resultSetId,
+                                rowStart: start,
+                                rowCount: count,
+                                reason: "copy",
+                                columnStart: columns.start,
+                                columnCount: columns.count,
+                            }),
+                    );
+                } finally {
+                    lease.dispose();
+                }
+            },
         );
         this.onRequest(QsWriteClipboardRequest.type, async ({ text }) => {
             await vscode.env.clipboard.writeText(text);

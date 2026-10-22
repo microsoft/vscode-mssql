@@ -16,6 +16,7 @@
 
 import * as crypto from "crypto";
 import * as path from "path";
+import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
 import {
     LiveQueryResultSource,
     LiveQueryResultState,
@@ -34,7 +35,7 @@ export class QueryStudioLiveResultSource implements LiveQueryResultSource {
     sourceTitle(): string {
         const uri = this.model.backingDocument.uri;
         if (this.model.backingDocument.isUntitled) {
-            return `Untitled query (${uri.path})`;
+            return QueryStudioCoreLoc.untitledQuery(uri.path);
         }
         return path.basename(uri.path);
     }

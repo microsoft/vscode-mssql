@@ -3105,6 +3105,7 @@
     "Pinned Results {0}.{1}.{2} {3}": "Pinned Results {0}.{1}.{2} {3}",
     "Pinned results document": "Pinned results document",
     "Query Studio live run": "Query Studio live run",
+    "Untitled query ({0})": "Untitled query ({0})",
     "Disconnect (roll back)": "Disconnect (roll back)",
     "Not connected — connect first.": "Not connected — connect first.",
     "Restarting — canceling the running query first.": "Restarting — canceling the running query first.",

@@ -6397,6 +6397,7 @@ export const QueryStudioCore = {
     ) => l10n.t("Pinned Results {0}.{1}.{2} {3}", value0, value1, value2, value3),
     pinnedResultsDocument: l10n.t("Pinned results document"),
     queryStudioLiveRun: l10n.t("Query Studio live run"),
+    untitledQuery: (name: string) => l10n.t("Untitled query ({0})", name),
     disconnectRollBack: l10n.t("Disconnect (roll back)"),
     notConnectedConnectFirst: l10n.t("Not connected — connect first."),
     restartingCancelingTheRunningQueryFirst: l10n.t(

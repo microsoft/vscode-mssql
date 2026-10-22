@@ -12260,6 +12260,9 @@
       <source xml:lang="en">Unsupported platform for Docker: {0}</source>
       <note>{0} is the platform name of the machine</note>
     </trans-unit>
+    <trans-unit id="++CODE++a333d75f08b64a2839fa428bad0b0d7fbfabc72dbef0da72557863249684c850">
+      <source xml:lang="en">Untitled query ({0})</source>
+    </trans-unit>
     <trans-unit id="++CODE++55490a4bf3a8e8cb5eed69720293a700ff01ef7da2bfc749f332f626cb584916">
       <source xml:lang="en">Up</source>
     </trans-unit>
