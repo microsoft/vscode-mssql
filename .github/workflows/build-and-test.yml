@@ -45,9 +45,6 @@ jobs:
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
 
-      - name: Test VSIX size comparison
-        run: npm run test:repo
-
       - name: Select baseline for PR base commit
         if: env.should_compare_baseline == 'true'
         id: baseline
@@ -76,6 +73,10 @@ jobs:
       - name: Install root dependencies
         run: |
           npm ci
+
+      # Root postinstall also installs extension dependencies used by these tests.
+      - name: Test repository automation
+        run: npm run test:repo
 
       - name: Stamp build as pull request version
         run: |
