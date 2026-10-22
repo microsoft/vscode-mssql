@@ -20,6 +20,9 @@
 
 import * as vscode from "vscode";
 import { diag } from "../../diagnostics/diagnosticsCore";
+import { completionLexicalSuppressionAt } from "../core/completionLexicalContext";
+import { LexResult, lex } from "../core/lexer";
+import { TextSnapshot } from "../core/text/textSnapshot";
 import {
     CompletionRequest,
     CompletionResult,
@@ -59,6 +62,7 @@ export interface BridgeEngineHost {
 
 export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
     readonly engineId = "sqlToolsServiceBridge" as const;
+    private completionContext?: { snapshot: TextSnapshot; lexed: LexResult };
 
     constructor(private readonly host: BridgeEngineHost) {}
 
@@ -91,6 +95,18 @@ export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
     }
 
     async completion(req: CompletionRequest): Promise<CompletionResult | undefined> {
+        if (this.completionContext?.snapshot.text !== req.text) {
+            this.completionContext = {
+                snapshot: new TextSnapshot(req.text),
+                lexed: lex(req.text),
+            };
+        }
+        const { snapshot, lexed } = this.completionContext;
+        // Provider aggregation can include word suggestions from other extensions.
+        // Classify the current request text before invoking any backing provider.
+        if (completionLexicalSuppressionAt(lexed, snapshot.offsetAt(req.position))) {
+            return { items: [], isIncomplete: false };
+        }
         return this.bridged("completion", async (uri) => {
             const list = await vscode.commands.executeCommand<vscode.CompletionList>(
                 "vscode.executeCompletionItemProvider",

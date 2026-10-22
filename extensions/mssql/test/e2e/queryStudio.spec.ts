@@ -114,5 +114,31 @@ for (const enabled of [false, true]) {
             ).toBeInViewport();
             await expect(studio.locator(".monaco-editor .view-lines")).toContainText("SELECT 33");
         });
+
+        if (enabled) {
+            test("SQL completion popups stay out of comments and strings", async () => {
+                const { page } = getContext();
+                await openFile(page, "studio.mssql");
+                const studio = page.frameLocator(".webview:visible").frameLocator("#active-frame");
+                const editor = studio.locator(".monaco-editor .view-lines");
+                const suggestions = studio.locator(".suggest-widget.visible");
+                for (const prefix of ["-- ", "/* ", "SELECT '"]) {
+                    await editor.click();
+                    await page.keyboard.press("ControlOrMeta+a");
+                    await page.keyboard.insertText(
+                        "SELECT 1 AS customers, 2 AS products;\n" + prefix,
+                    );
+                    // Spaces and dots exercise provider triggers as well as word suggestions.
+                    await page.keyboard.type("which customers bought which products. ", {
+                        delay: 25,
+                    });
+                    await expect(suggestions).toBeHidden();
+                    await page.keyboard.press("Control+Space");
+                    await expect(suggestions).toContainText("No suggestions.");
+                    await expect(suggestions.locator(".monaco-list-row")).toHaveCount(0);
+                    await page.keyboard.press("Escape");
+                }
+            });
+        }
     });
 }

@@ -2302,6 +2302,9 @@ export function QueryStudioApp() {
                         renderLineHighlight: "line",
                         scrollBeyondLastLine: false,
                         inlineSuggest: { enabled: true },
+                        // SQL providers own the popup; buffer words are not SQL completions.
+                        wordBasedSuggestions: "off",
+                        quickSuggestions: { other: true, comments: false, strings: false },
                         snippetSuggestions: "bottom",
                         tabFocusMode: false,
                     }}

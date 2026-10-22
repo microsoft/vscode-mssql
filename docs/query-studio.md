@@ -43,6 +43,13 @@ All three preview settings default to false. Reload after changing them.
 - Use the existing inline SQL completion provider when its separate preview is
   enabled. Its model and schema-sharing settings remain authoritative.
 
+SQL IntelliSense popups stay quiet inside comments and string literals with
+either language engine. AI inline suggestions can still answer comment prompts.
+The balanced schema context prioritizes complete foreign-key paths between
+mentioned tables, searching up to two hops from each endpoint within the existing
+table and prompt budgets. Missing metadata can still produce an empty AI answer
+instead of invented columns; the Completions debug view shows the supplied schema.
+
 Basic pins are enabled within Query Studio by default. They can be disabled with
 `mssql.queryResults.pinnedDocuments.enabled`. Retention and tuning settings are
 advanced controls; normal testing does not require changing them.
