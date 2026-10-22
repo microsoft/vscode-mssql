@@ -31,7 +31,7 @@ import {
 } from "../sharedInterfaces/queryStudioMessageWindows";
 import { QueryTuningOverrides, QueryTuningSnapshot } from "../sharedInterfaces/queryTuning";
 import { DocumentSessionBinding } from "./documentSessionBinding";
-import { ExecutionOrchestrator, RunResult } from "./executionOrchestrator";
+import { ExecutionOrchestrator, RunOptions, RunResult } from "./executionOrchestrator";
 import { beginRunRecord, completeRunRecord } from "./replay/qsRunCapture";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import { RowReadReason, RowStore, RowStoreLimits, RowStoreTuning } from "./rowStore";
@@ -79,6 +79,11 @@ export class ExecutionHost {
      * webview toolbar. OFF adds zero work to the execute path.
      */
     sqlcmdEnabled = false;
+    /** Read once per run; the document model supplies VS Code preferences. */
+    readResultPreferences?: () => Pick<
+        RunOptions,
+        "showBatchMessages" | "displayUniqueIdentifierInUppercase"
+    >;
     /**
      * Vector Workbench gate seam (D-0019; this module stays vscode-free):
      * evaluated per run so a config change applies to the NEXT run. When true,
@@ -207,6 +212,7 @@ export class ExecutionHost {
             options.tuningOverrides ? { runOverrides: options.tuningOverrides } : {},
         );
         this.lastTuning = tuning;
+        const resultPreferences = this.readResultPreferences?.();
 
         // Fresh run: the live owner releases its lease NOW. With no
         // snapshots holding leases that still disposes the previous store
@@ -339,6 +345,7 @@ export class ExecutionHost {
                 stopOnError: false,
                 scope: options.scope,
                 mode: options.mode ?? "normal",
+                ...resultPreferences,
                 startedEpochMs: this.startedEpochMs ?? Date.now(),
                 ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
                 wire: {

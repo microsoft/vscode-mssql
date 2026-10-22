@@ -38,7 +38,7 @@ import {
     QUERY_STUDIO_MESSAGES_COPY_MAX_ROWS,
 } from "../sharedInterfaces/queryStudioMessages";
 import { PinnedResultsState } from "../sharedInterfaces/queryResultsSnapshot";
-import { readGridStyle } from "../queryStudio/gridStyle";
+import { affectsQueryStudioGridStyle, readGridStyle } from "../queryStudio/gridStyle";
 import { cellDocumentText, prettyPrintCellText } from "../queryStudio/cellDocument";
 import { saveQueryStudioResult } from "../queryStudio/resultExport";
 import { resolveQueryTuning } from "../queryStudio/tuning/queryTuningResolver";
@@ -98,6 +98,13 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
         this.initializeBase();
         this.registerHandlers();
         this.state = this.currentState();
+        this.registerDisposable(
+            vscode.workspace.onDidChangeConfiguration((event) => {
+                if (affectsQueryStudioGridStyle(event)) {
+                    this.state = this.currentState();
+                }
+            }),
+        );
     }
 
     private currentState(): PinnedResultsState {

@@ -18,6 +18,7 @@
 import { Perf } from "../perf/perfTelemetry";
 import {
     ColumnMetadata,
+    CompactPage,
     IQueryEventSink,
     ISqlSession,
     QueryCompleteSummary,
@@ -25,6 +26,7 @@ import {
     ServerMessage,
 } from "../services/sqlDataPlane/api";
 import { QsMessageRow, QsResultColumn } from "../sharedInterfaces/queryStudio";
+import { isTruncatedCellMarker, isTypedCellWrapper } from "../sharedInterfaces/queryStudioGridOps";
 import { mapServerLineToDocument, splitBatches, SqlBatch } from "../sql/batchSplitter";
 import { parseSqlcmdScript, SqlcmdConnectStep, SqlcmdSeams } from "../sql/sqlcmdPreprocessor";
 import { RowStore } from "./rowStore";
@@ -68,6 +70,10 @@ export interface RunOptions {
      * estimatedPlan returns showplan XML result sets and runs nothing.
      */
     mode?: "normal" | "parseOnly" | "estimatedPlan" | "actualPlan";
+    /** Hide synthesized batch chatter while retaining server PRINT/error messages. */
+    showBatchMessages?: boolean;
+    /** Match the existing query result GUID display/copy/export preference. */
+    displayUniqueIdentifierInUppercase?: boolean;
     /** Per-query timeout (mssql.query.executionTimeout); undefined = none. */
     timeoutMs?: number;
     /**
@@ -149,6 +155,43 @@ function toQsResultColumn(column: ColumnMetadata): QsResultColumn {
     };
 }
 
+/** Normalize once at ingestion so grid, copy, export, and pins agree. */
+function formatUniqueIdentifierPage(
+    page: CompactPage,
+    columns: readonly number[],
+    uppercase: boolean,
+): CompactPage {
+    if (columns.length === 0) {
+        return page;
+    }
+    return {
+        ...page,
+        values: page.values.map((row) => {
+            let formatted = row;
+            for (const column of columns) {
+                const value = row[column];
+                const wrapped =
+                    (isTypedCellWrapper(value) && value.$t === "guid") ||
+                    isTruncatedCellMarker(value)
+                        ? value
+                        : undefined;
+                const sourceText = typeof value === "string" ? value : wrapped?.v;
+                if (sourceText === undefined) {
+                    continue;
+                }
+                const text = uppercase ? sourceText.toUpperCase() : sourceText.toLowerCase();
+                if (text !== sourceText) {
+                    if (formatted === row) {
+                        formatted = [...row];
+                    }
+                    formatted[column] = wrapped ? { ...wrapped, v: text } : text;
+                }
+            }
+            return formatted;
+        }),
+    };
+}
+
 const MODE_WRAPPERS: Record<string, { on: string; off: string } | undefined> = {
     normal: undefined,
     parseOnly: { on: "SET PARSEONLY ON;", off: "SET PARSEONLY OFF;" },
@@ -214,16 +257,18 @@ export class ExecutionOrchestrator {
                 }
             }
         } finally {
-            this.events.onMessages([
-                {
-                    batchIndex: -1,
-                    kind: "info",
-                    text: QueryStudioCoreLoc.totalExecutionTime0(
-                        String(formatTotalExecutionTime(Date.now() - startedEpochMs)),
-                    ),
-                    epochMs: Date.now(),
-                },
-            ]);
+            if (options.showBatchMessages !== false) {
+                this.events.onMessages([
+                    {
+                        batchIndex: -1,
+                        kind: "info",
+                        text: QueryStudioCoreLoc.totalExecutionTime0(
+                            String(formatTotalExecutionTime(Date.now() - startedEpochMs)),
+                        ),
+                        epochMs: Date.now(),
+                    },
+                ]);
+            }
         }
     }
 
@@ -319,7 +364,7 @@ export class ExecutionOrchestrator {
                 }
                 const batch = item.batch;
                 batchIndex++;
-                if (batch.repeatOrdinal === 0) {
+                if (batch.repeatOrdinal === 0 && options.showBatchMessages !== false) {
                     // SSMS parity: one "Started executing query at Line N" per GO
                     // batch, N in DOCUMENT coordinates — selection offset plus the
                     // batch TEXT's raw start (leading blank lines included, the
@@ -626,9 +671,13 @@ export class ExecutionOrchestrator {
         const endedSets = new Set<string>();
         const planSets = new Set<string>();
         const rowCounts = new Map<string, number>();
+        const uniqueIdentifierColumns = new Map<string, number[]>();
         let rowLimitCancelRequested = false;
         let errorMessagesSeen = 0;
         const synthesizeRowsAffected = (count: number) => {
+            if (options.showBatchMessages === false) {
+                return;
+            }
             events.onMessages([
                 {
                     batchIndex,
@@ -659,6 +708,12 @@ export class ExecutionOrchestrator {
         const sink: IQueryEventSink = {
             onResultSetStarted(meta) {
                 onResultSet();
+                uniqueIdentifierColumns.set(
+                    meta.resultSetId,
+                    meta.columns.flatMap((column, index) =>
+                        column.sqlType?.toLowerCase() === "uniqueidentifier" ? [index] : [],
+                    ),
+                );
                 const storeId = `b${batchIndex}r${batch.repeatOrdinal}s${meta.resultSetId}`;
                 seenSets.add(meta.resultSetId);
                 rowStore.beginResultSet(
@@ -701,7 +756,11 @@ export class ExecutionOrchestrator {
                     rowOffset: page.rowOffset,
                     rowCount: page.rowCount,
                     approxBytes: page.approxBytes,
-                    compact: page.compact,
+                    compact: formatUniqueIdentifierPage(
+                        page.compact,
+                        uniqueIdentifierColumns.get(page.resultSetId) ?? [],
+                        options.displayUniqueIdentifierInUppercase !== false,
+                    ),
                 });
                 if (append.acceptedRows > 0) {
                     // A cap-crossing page is trimmed, not dropped: the store

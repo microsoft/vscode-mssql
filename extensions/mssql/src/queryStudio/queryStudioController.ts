@@ -121,7 +121,7 @@ import {
 import { ExecutionPlanWebviewState } from "../sharedInterfaces/executionPlan";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { readGridStyle } from "./gridStyle";
+import { affectsQueryStudioGridStyle, readGridStyle } from "./gridStyle";
 import { executionTimeoutMs, readQuerySessionOptions } from "./sessionOptions";
 import { saveQueryStudioResult } from "./resultExport";
 import {
@@ -247,6 +247,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         );
         this.registerDisposable(
             vscode.workspace.onDidChangeConfiguration((e) => {
+                if (affectsQueryStudioGridStyle(e)) {
+                    this.queueStatePush();
+                }
                 if (e.affectsConfiguration(LANGUAGE_ENGINE_SETTING)) {
                     this.languageService.onPreferenceChanged();
                 }
@@ -1005,10 +1008,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             return { written: true };
         });
         this.onRequest(QsSaveResultRequest.type, async ({ resultSetId, format, selection }) => {
+            const store = this.model.executionHost.retainedStore;
             const summary = this.model.executionHost
                 .resultsState()
                 .resultSets.find((set) => set.resultSetId === resultSetId);
-            if (!summary) {
+            if (!summary || !store) {
                 return { saved: false, error: QueryStudioCoreLoc.resultSetNotFound };
             }
             return saveQueryStudioResult({
@@ -1016,8 +1020,17 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 summary,
                 format,
                 selection,
+                store,
+                isExecuting:
+                    this.model.executionHost.executionState.kind === "executing" ||
+                    this.model.executionHost.executionState.kind === "cancelRequested",
                 getRows: (id, start, count) =>
-                    this.model.executionHost.getRows(id, start, count, "export"),
+                    store.getWindow({
+                        resultSetId: id,
+                        rowStart: start,
+                        rowCount: count,
+                        reason: "export",
+                    }),
             });
         });
         this.onRequest(

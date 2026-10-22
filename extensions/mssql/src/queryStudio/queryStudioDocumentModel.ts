@@ -40,6 +40,7 @@ import { getQueryResultAccessService } from "../queryResults/queryResultAccessSe
 import { getQueryResultContextService } from "../queryResults/queryResultContextService";
 import { QueryStudioLiveResultSource } from "./queryStudioLiveResultSource";
 import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
+import { shouldShowBatchMessages } from "../models/utils";
 
 export interface ModelTextEvents {
     onRemote(remote: QsSyncRemote): void;
@@ -145,6 +146,12 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             this._uriKey,
             productionGuard,
         );
+        this.executionHost.readResultPreferences = () => ({
+            showBatchMessages: shouldShowBatchMessages(),
+            displayUniqueIdentifierInUppercase: vscode.workspace
+                .getConfiguration("mssql")
+                .get<boolean>("query.displayUniqueIdentifierInUppercase", true),
+        });
         // SQLCMD seams (SQLCMD_MODE_PLAN.md §3.3): :r resolves against the
         // backing file's directory (absolute paths always work; untitled
         // documents have no directory, so only absolute paths resolve), and

@@ -162,6 +162,9 @@ export interface QsGridStyle {
     fontFamily?: string;
     fontSize?: number;
     alternatingRowColors: boolean;
+    rightAlignNumbers?: boolean;
+    freezeFirstColumnByDefault?: boolean;
+    copyIncludeHeaders?: boolean;
     showGridLines: QsGridLinesMode;
     rowPadding?: number;
     /**

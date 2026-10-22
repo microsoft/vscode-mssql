@@ -21,6 +21,7 @@ import { cellTextForPurpose } from "../sharedInterfaces/queryStudioGridOps";
 import { cellDocumentText } from "./cellDocument";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
+import type { IQueryResultStore } from "../queryResults/queryResultTypes";
 
 const INSERT_BATCH_SIZE = 1000;
 /** Coalesce generator pieces into writes of roughly this many chars. */
@@ -31,6 +32,10 @@ interface ExportOptions {
     summary: QsResultSetSummary;
     format: QsSaveResultFormat;
     selection?: readonly QsResultSelectionRange[];
+    /** A completed set remains exportable while later batches are executing. */
+    isExecuting?: boolean;
+    /** Hold the selected run's data while the Save dialog or export is in progress. */
+    store?: IQueryResultStore;
     getRows: (resultSetId: string, start: number, count: number) => Promise<QsCellWindow>;
 }
 
@@ -69,6 +74,28 @@ export async function saveQueryStudioResult(options: ExportOptions): Promise<{
     canceled?: boolean;
     error?: string;
 }> {
+    // Check before opening Save As: its selection only includes rows available
+    // now, even if the query finishes while the user chooses the destination.
+    if (options.isExecuting && !options.summary.complete) {
+        const message = LocalizedConstants.msgSaveResultsWhileLoading;
+        void vscode.window.showWarningMessage(message);
+        return { saved: false, error: message };
+    }
+    const lease = options.store?.retain({
+        kind: "export",
+        label: LocalizedConstants.msgExportingResults,
+    });
+    if (options.store && !lease) {
+        return { saved: false, error: QueryStudioCoreLoc.resultSetNotFound };
+    }
+    try {
+        return await saveQueryStudioResultToFile(options);
+    } finally {
+        lease?.dispose();
+    }
+}
+
+async function saveQueryStudioResultToFile(options: ExportOptions) {
     const target = await promptForExportUri(options.sourceUri, options.format);
     if (!target) {
         return { saved: false, canceled: true };
