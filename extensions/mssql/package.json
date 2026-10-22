@@ -72,7 +72,7 @@
         "watch:webviews-bundle": "node scripts/bundle-webviews.js --watch",
         "watch:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js --watch",
         "watch": "npm run build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle watch:notebook-renderer-bundle",
-        "lint": "eslint --quiet --cache ./src ./test",
+        "lint": "node ../../scripts/lint-mssql.mjs",
         "localization": "node ../../scripts/localization-extract.js mssql",
         "smoketest": "npm run instrument && node scripts/prepare-e2e-env.js && npm run e2eTest",
         "clean:test-output": "node -e \"require('node:fs').rmSync('out/test/unit', { recursive: true, force: true })\"",
