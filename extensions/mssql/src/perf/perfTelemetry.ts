@@ -64,6 +64,8 @@ export function featureFor(name: string): string {
         return "activation";
     }
     if (name.startsWith("mssql.command")) return "shell";
+    if (name.startsWith("completions.")) return "completions";
+    if (name.startsWith("replay.")) return "replay";
     if (name.startsWith("mssql.connection")) return "connection";
     if (name.startsWith("mssql.sts")) return "stsLifecycle";
     if (name.startsWith("mssql.queryResults")) return "queryResults";
@@ -72,6 +74,7 @@ export function featureFor(name: string): string {
     if (name.startsWith("mssql.oe") || name.startsWith("objectExplorerV2.")) {
         return "objectExplorer";
     }
+    if (name.startsWith("sqlDataPlane.")) return "sqlDataPlane";
     if (name.startsWith("sqlLanguage.") || name.startsWith("sqlScripting.")) {
         return "sqlLanguage";
     }
@@ -82,6 +85,13 @@ export function featureFor(name: string): string {
         name.startsWith("mssql.metadata.")
     ) {
         return "metadata";
+    }
+    if (
+        name.startsWith("debugConsole.") ||
+        name.startsWith("sessionDiag.") ||
+        name.startsWith("system.rich.")
+    ) {
+        return "diagnostics";
     }
     if (name.startsWith("driver.")) return "harness";
     return "system";
@@ -96,6 +106,12 @@ export function featureFor(name: string): string {
 export const PERF_ATTR_CLASSIFICATION: Readonly<Record<string, DataClassification>> = {
     nodePath: "object.name",
     nodeType: "diagnostic.metadata",
+    childCount: "diagnostic.metadata",
+    batchId: "diagnostic.metadata",
+    resultId: "diagnostic.metadata",
+    rowStart: "diagnostic.metadata",
+    numberOfRows: "diagnostic.metadata",
+    rowsReturned: "diagnostic.metadata",
     objects: "diagnostic.metadata",
     objectName: "object.name",
     documentUri: "source.path",
@@ -104,14 +120,18 @@ export const PERF_ATTR_CLASSIFICATION: Readonly<Record<string, DataClassificatio
     error: "diagnostic.metadata",
     errorClass: "diagnostic.metadata",
     errorNumber: "diagnostic.metadata",
+    events: "diagnostic.metadata",
     failed: "diagnostic.metadata",
     commandId: "diagnostic.metadata",
     hasError: "diagnostic.metadata",
     pid: "diagnostic.metadata",
     rafThrottled: "diagnostic.metadata",
     reason: "diagnostic.metadata",
+    redactions: "diagnostic.metadata",
     resultSets: "diagnostic.metadata",
     rowCount: "diagnostic.metadata",
+    captureMode: "diagnostic.metadata",
+    durationMinutes: "diagnostic.metadata",
     waitedMs: "diagnostic.metadata",
 };
 

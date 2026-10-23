@@ -32,6 +32,7 @@ export type OeV2ObjectKind =
 
 export type OeV2Path =
     | { kind: "root" }
+    | { kind: "overview" }
     | { kind: "connectionGroup"; groupId: string }
     | { kind: "connection"; connectionId: string }
     | { kind: "serverFolder"; connectionId: string; folder: OeV2ServerFolder }
@@ -123,6 +124,7 @@ export function encodePath(path: OeV2Path): string {
     const parts: string[] = [path.kind];
     switch (path.kind) {
         case "root":
+        case "overview":
             break;
         case "connectionGroup":
             parts.push(enc(path.groupId));
@@ -235,8 +237,9 @@ export function decodePath(id: string): OeV2Path | undefined {
         };
         switch (kind) {
             case "root":
+            case "overview":
                 requireLength(1);
-                return { kind: "root" };
+                return { kind };
             case "connectionGroup":
                 requireLength(2);
                 return { kind, groupId: dec(parts[1]) };

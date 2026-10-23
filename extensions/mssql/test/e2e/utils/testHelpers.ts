@@ -45,7 +45,9 @@ export async function addDatabaseConnection(
     await iframe.getByRole("textbox", { name: "Server name" }).fill(serverName);
 
     if (databaseName) {
-        await iframe.getByRole("textbox", { name: "Database name" }).fill(databaseName);
+        await iframe
+            .getByRole("combobox", { name: "Database name", exact: true })
+            .fill(databaseName);
     }
     // The form can re-render just after the dropdown opens (for example once the server name is
     // processed), which closes the list again. Open it until the option shows, then select it.

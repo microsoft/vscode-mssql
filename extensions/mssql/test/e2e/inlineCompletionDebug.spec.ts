@@ -1,0 +1,140 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { test, expect } from "./baseFixtures";
+import { getWebviewByTitle, runCommandFromPalette } from "./utils/testHelpers";
+import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as os from "os";
+import { randomUUID } from "crypto";
+import { completionDebugTrace } from "./fixtures/completionDebugTrace";
+
+test.describe("AI completion debug in Debug Console", () => {
+    const traceFolder = path.join(os.tmpdir(), `mssql-completion-debug-${randomUUID()}`);
+    const workspaceFolder = path.join(os.tmpdir(), `mssql-completion-workspace-${randomUUID()}`);
+    test.beforeAll(async () => {
+        await fs.mkdir(workspaceFolder, { recursive: true });
+    });
+    const getContext = useSharedVsCodeLifecycle({
+        launchOptions: {
+            extraLaunchArgs: [workspaceFolder],
+            initialConfig: {
+                "mssql.showChangelogOnUpdate": false,
+                "mssql.enableExperimentalFeatures": true,
+                "mssql.copilot.inlineCompletions.enabled": true,
+                "mssql.debugConsole.enabled": true,
+                "mssql.copilot.inlineCompletions.trace.captureEnabled": false,
+                "mssql.copilot.inlineCompletions.trace.folder": traceFolder,
+                "github.copilot.enable": { sql: false },
+            },
+        },
+        afterLaunch: async () => {
+            await fs.mkdir(traceFolder, { recursive: true });
+        },
+        beforeClose: async () => {
+            await fs.rm(traceFolder, { recursive: true, force: true });
+        },
+    });
+    test.afterAll(async () => {
+        // VS Code keeps the open workspace locked on Windows until it exits.
+        await fs.rm(workspaceFolder, { recursive: true, force: true });
+    });
+
+    test("opens live experiments and saved sessions", async ({}, testInfo) => {
+        const { page } = getContext();
+        await runCommandFromPalette(
+            page,
+            "MS SQL: Open Debug Console",
+            "MS SQL: Open Debug Console",
+        );
+        const viewer = await getWebviewByTitle(page, "MSSQL Debug Console");
+        await expect(
+            viewer.getByRole("heading", { name: "Consolidated Trace", exact: true }),
+        ).toBeInViewport();
+        await viewer
+            .locator(".dc-leftnav")
+            .getByRole("button", { name: "Completions", exact: true })
+            .click();
+        const live = viewer.getByRole("tab", { name: /^Live/ });
+        await expect(live).toBeVisible();
+        const recordClosed = viewer.getByRole("button").filter({ hasText: "Record closed" });
+        await expect(recordClosed).toHaveAttribute("aria-pressed", "false");
+        await recordClosed.click();
+        await expect(recordClosed).toHaveAttribute("aria-pressed", "true");
+        await recordClosed.click();
+        await expect(recordClosed).toHaveAttribute("aria-pressed", "false");
+        await expect(viewer.getByRole("combobox", { name: "Profile", exact: true })).toBeVisible();
+        await expect(viewer.getByRole("combobox", { name: "Model", exact: true })).toBeVisible();
+        const profile = viewer.getByRole("combobox", { name: "Profile", exact: true });
+        // A clipped child can pass toBeVisible even when its parent is zero-height.
+        await expect(profile).toBeInViewport();
+        await profile.click();
+        await expect(
+            viewer.getByRole("option", { name: "Balanced", exact: true }),
+        ).toBeInViewport();
+        await viewer.getByRole("option", { name: "Balanced", exact: true }).click();
+        const grid = viewer.locator('[id^="inlineCompletionDebugGrid"][id$="Container"]').first();
+        await expect(grid).toBeInViewport();
+        await expect.poll(async () => (await grid.boundingBox())?.height ?? 0).toBeGreaterThan(100);
+        await expect(viewer.locator(".dc-topbar")).toBeInViewport();
+        await expect(viewer.locator(".dc-leftnav")).toBeInViewport();
+        await expect(viewer.getByText("Enablement", { exact: true })).toHaveCount(0);
+        await viewer
+            .locator(".dc-leftnav")
+            .getByRole("button", { name: "Consolidated Trace", exact: true })
+            .click();
+        await expect(
+            viewer.getByRole("heading", { name: "Consolidated Trace", exact: true }),
+        ).toBeVisible();
+        await viewer
+            .locator(".dc-leftnav")
+            .getByRole("button", { name: "Completions", exact: true })
+            .click();
+        await expect(profile).toBeInViewport();
+        await page.screenshot({ path: testInfo.outputPath("live.png") });
+        await viewer.getByRole("tab", { name: /^Sessions/ }).click();
+        await expect(viewer.getByText("Trace collection is off", { exact: true })).toBeVisible();
+        await expect(viewer.getByRole("button", { name: "Add file", exact: true })).toBeVisible();
+        const record = viewer.getByRole("button", {
+            name: "Enable Trace Collection",
+            exact: true,
+        });
+        await expect(record).toBeInViewport();
+        await record.click();
+        await page.getByRole("button", { name: "Use this folder", exact: true }).click();
+        await expect(viewer.getByText("Trace collection is off", { exact: true })).toBeHidden();
+
+        await fs.writeFile(
+            path.join(traceFolder, "mssql-copilot-trace-render-test.json"),
+            JSON.stringify(completionDebugTrace),
+        );
+        await viewer.getByRole("button", { name: "Refresh", exact: true }).click();
+        await expect(viewer.getByRole("tab", { name: /^Sessions/ })).toContainText("1 traces");
+        await viewer.getByRole("button", { name: "Show trace files", exact: true }).click();
+        await page.screenshot({ path: testInfo.outputPath("sessions.png") });
+        // Exercise keyboard activation for replay controls; mouse activation
+        // in this Electron smoke has been intermittent.
+        await viewer.getByRole("button", { name: "Add", exact: true }).press("Enter");
+        await viewer
+            .getByRole("button", { name: "Open the replay trace builder", exact: true })
+            .press("Enter");
+        await expect(viewer.getByText("Replay Trace Builder", { exact: true })).toBeInViewport();
+        await viewer.getByRole("button", { name: "Matrix...", exact: true }).press("Enter");
+        await expect(viewer.getByText("Run config matrix", { exact: true })).toBeInViewport();
+        await page.screenshot({ path: testInfo.outputPath("experiments.png") });
+        // Exercise keyboard dismissal and tab navigation after configuring replay.
+        await viewer.getByLabel("Cancel", { exact: true }).press("Enter");
+        await expect(viewer.getByText("Run config matrix", { exact: true })).toBeHidden();
+        await page.screenshot({ path: testInfo.outputPath("replay.png") });
+        await live.press("Enter");
+        await expect(viewer.getByRole("combobox", { name: "Profile", exact: true })).toBeVisible();
+        await page.setViewportSize({ width: 1100, height: 760 });
+        await profile.scrollIntoViewIfNeeded();
+        await expect(profile).toBeInViewport();
+        await expect.poll(async () => (await grid.boundingBox())?.height ?? 0).toBeGreaterThan(100);
+        await page.screenshot({ path: testInfo.outputPath("compact.png") });
+    });
+});
