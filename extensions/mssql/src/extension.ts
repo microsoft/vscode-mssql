@@ -71,6 +71,7 @@ import {
 import { showLegacyProjectExtensionWarning } from "./legacyProjectExtensionWarning";
 import { logger } from "./models/logger";
 import { getErrorMessage } from "./utils/utils";
+import { containerConnections } from "./docker/containerConnection";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -80,6 +81,7 @@ let activation: MssqlActivation | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     initializeExtensionToolkit();
+    context.subscriptions.push(containerConnections);
 
     const debugConsoleActiveAtActivation = previewService.isPrivatePreviewEnabled(
         PrivatePreviewFeature.DebugConsole,

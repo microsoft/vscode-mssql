@@ -318,6 +318,8 @@ suite("Completion schema context bridge (MD-4 golden parity)", () => {
                     database: "Db1",
                     user: "sa",
                     authenticationType: "SqlLogin",
+                    containerName: "azure-sql-test",
+                    containerEngine: "wslContainer",
                 }),
                 lookupPassword: async (facts) => {
                     credentialIds.push(facts.id);
@@ -328,6 +330,7 @@ suite("Completion schema context bridge (MD-4 golden parity)", () => {
             () => ({
                 acquireDatabase: async (prepared) => {
                     endpoints.push(prepared.profileRef.server);
+                    expect(prepared.auth.serverProvider).to.be.a("function");
                     expect(await prepared.auth.passwordProvider!()).to.equal("password");
                     return lease as unknown as DatabaseCatalogLease;
                 },

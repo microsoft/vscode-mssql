@@ -17,6 +17,9 @@
 
 import { AuthProviderBundle, SqlConnectionProfileRef } from "../sqlDataPlane/api";
 import { profileFingerprint, serverFingerprint } from "./profileFingerprint";
+import type { IConnectionInfo } from "vscode-mssql";
+import { containerConnections, needsContainerConnection } from "../../docker/containerConnection";
+import { AzureSqlContainer } from "../../constants/locConstants";
 
 /** Minimal stored-profile shape (subset of IConnectionProfile). */
 export interface StoredConnectionProfile {
@@ -36,6 +39,8 @@ export interface StoredConnectionProfile {
     trustServerCertificate?: boolean;
     profileName?: string;
     savePassword?: boolean;
+    containerName?: string;
+    containerEngine?: IConnectionInfo["containerEngine"];
 }
 
 function profileServerEndpoint(stored: StoredConnectionProfile): string {
@@ -78,6 +83,9 @@ export function stableProfileId(stored: StoredConnectionProfile): string {
         principal,
         stored.tenantId ?? "",
         stored.authenticationType ?? "",
+        ...(stored.containerEngine && stored.containerName
+            ? [stored.containerEngine, stored.containerName]
+            : []),
     ]);
 }
 
@@ -158,23 +166,32 @@ export function buildAuthBundle(
     tokens?: ProfileTokenSource,
 ): AuthProviderBundle {
     const authKind = resolveAuthKind(stored);
+    const auth: AuthProviderBundle = {};
+    if (needsContainerConnection(stored)) {
+        auth.serverProvider = async () => {
+            const server = await containerConnections.prepare(stored);
+            if (!server) {
+                throw new Error(AzureSqlContainer.connectContainerFailed);
+            }
+            return server;
+        };
+    }
     switch (authKind) {
         case "sql":
-            return { passwordProvider: async () => secrets.lookupPassword(stored) };
+            auth.passwordProvider = async () => secrets.lookupPassword(stored);
+            break;
         case "aad":
-            return {
-                tokenProvider: async () => {
-                    if (!tokens) {
-                        throw new Error(
-                            "Microsoft Entra authentication is unavailable in this host.",
-                        );
-                    }
-                    return tokens.acquireSqlAccessToken(stored);
-                },
+            auth.tokenProvider = async () => {
+                if (!tokens) {
+                    throw new Error("Microsoft Entra authentication is unavailable in this host.");
+                }
+                return tokens.acquireSqlAccessToken(stored);
             };
+            break;
         case "integrated":
-            return {};
+            break;
     }
+    return auth;
 }
 
 /** Everything a data-plane consumer needs to open sessions for a profile. */

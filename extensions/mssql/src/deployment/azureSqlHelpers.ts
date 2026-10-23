@@ -43,8 +43,8 @@ export { executeContainerEngineCommand } from "../docker/containerEngine";
 
 export const defaultAzureSqlContainerName = "azure_sql_db_container";
 export const azureSqlContainerImage =
-    // "sqldbpreview-dpgaeqhmgphzd4bk.azurecr.io/azure-sql/db-dev:latest";
-    "sqlbuilds.azurecr.io/mssql-p-sqldbdev-daily/azure-sql/db-dev:latest";
+    "sqldbpreview-dpgaeqhmgphzd4bk.azurecr.io/azure-sql/db-dev:latest";
+// "sqlbuilds.azurecr.io/mssql-p-sqldbdev-daily/azure-sql/db-dev:latest";
 const containerReadyTimeoutMs = 300_000;
 const containerReadyPollIntervalMs = 2_000;
 const containerProvisioningSteps = [
@@ -642,7 +642,7 @@ async function addAzureSqlContainerConnection(
             return { success: false };
         }
         const connectionString = await mainController.connectionManager.getConnectionString(
-            mainController.connectionManager.createConnectionDetails(profile),
+            mainController.connectionManager.createConnectionDetails(profile, true),
             false,
             false,
         );

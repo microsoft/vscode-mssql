@@ -93,6 +93,8 @@ export interface ClassicConnectionFacts {
     authenticationType?: string;
     encrypt?: string | boolean;
     trustServerCertificate?: boolean;
+    containerName?: string;
+    containerEngine?: StoredConnectionProfile["containerEngine"];
 }
 
 export interface ClassicConnectionSource {
@@ -189,6 +191,8 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
         try {
             const stored: StoredConnectionProfile = {
                 server: facts.server!,
+                ...(facts.containerName ? { containerName: facts.containerName } : {}),
+                ...(facts.containerEngine ? { containerEngine: facts.containerEngine } : {}),
                 ...(facts.id !== undefined ? { id: facts.id } : {}),
                 ...(facts.port !== undefined ? { port: facts.port } : {}),
                 ...(facts.savePassword !== undefined ? { savePassword: facts.savePassword } : {}),

@@ -1204,6 +1204,9 @@
     "Unknown container engine: {0}": "Unknown container engine: {0}",
     "Could not read the container state from {0}.": "Could not read the container state from {0}.",
     "The container started, but the extension could not create its database connection.": "The container started, but the extension could not create its database connection.",
+    "Could not forward a SQL connection through {0} to container '{1}': {2}": "Could not forward a SQL connection through {0} to container '{1}': {2}",
+    "Podman and WSL container connections require a local SQL Data Plane provider.": "Podman and WSL container connections require a local SQL Data Plane provider.",
+    "Connect to this container in Object Explorer before using its connection.": "Connect to this container in Object Explorer before using its connection.",
     "Azure SQL Database container '{0}' was provisioned successfully./{0} is the container name": {
         "message": "Azure SQL Database container '{0}' was provisioned successfully.",
         "comment": ["{0} is the container name"]

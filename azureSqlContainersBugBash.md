@@ -102,13 +102,7 @@ Use your own schema, data, and supported entry points.
 and connection. The container accepts queries and appears in Object Explorer.
 Failures/cancellation show accurate state without hanging or exposing passwords.
 
-`<ADD SCREENSHOT HERE>`
-
-_Screenshot: Azure SQL Database deployment options with the Local container card._
-
-`<ADD SCREENSHOT HERE>`
-
-_Screenshot: Provisioning stages using sample values; hide passwords._
+![Demo](https://github.com/user-attachments/assets/4addb31c-b80c-4218-be97-287d7f6f3ab0)
 
 ### Scenario 2: Query a Database (SQL-04)
 
@@ -203,7 +197,7 @@ formatting preserves meaning and switching leaves no stale context.
 
 - Query mixed types, NULLs, empty strings, literal `NULL`, Unicode/emoji, quotes,
   commas, tabs, and line breaks.
-- Include precise decimals, `9007199254740993`, and long text with a recognizable ending.
+- Include precise decimals and long text with a recognizable ending.
 - Scroll, sort, resize, and select cells/ranges/rows/all using mouse and keyboard.
 - Copy with/without headers and inspect CSV, JSON, or Excel exports where supported.
 - Repeat across supported grid modes; record modes, value-length limits, and formats.
@@ -211,10 +205,6 @@ formatting preserves meaning and switching leaves no stale context.
 **Expected:** Values retain precision; rows stay aligned without loss/duplication.
 Viewing, copying, and export honor configured limits without unexplained truncation.
 Check CSV in a text editor/parser and spreadsheet: no rounding or extra newline records.
-
-`<ADD SCREENSHOT HERE>`
-
-_Screenshot: Sample results with a selected range and copy/export controls visible._
 
 ### Scenario 9: View and Edit Table Data
 
@@ -229,8 +219,6 @@ _Screenshot: Sample results with a selected range and copy/export controls visib
 
 **Expected:** Saved edits persist; discarded edits do not. Validation/concurrency
 errors are actionable, with no false success.
-
-`<ADD SCREENSHOT HERE>`
 
 _Screenshot: Table context menu with View & Edit Data; optionally, an unsaved sample
 edit with save/discard controls._
@@ -260,10 +248,6 @@ Retest known failures and capture full messages for unsupported database/log-fil
 
 **Expected:** The diagram is accurate and changes persist after reload.
 Retest the historical validation failure; errors must be clear without endless loading.
-
-`<ADD SCREENSHOT HERE>`
-
-_Screenshot: Schema Designer with two related sample tables and review/publish controls._
 
 ### Scenario 12: Compare and Synchronize Schemas
 
@@ -303,23 +287,6 @@ and the deployed schema matches the project.
 
 **Expected:** Schema/data and progress are accurate; unsupported operations and
 file/path failures show explicit errors.
-
-### Scenario 15: Understand Query Execution Plans
-
-**Goal:** Verify estimated and actual execution plans.
-
-**Examples to try:**
-
-- Request estimated/actual plans for joins, filters, or aggregates.
-- Inspect operators, properties, warnings, and available XML.
-- Change a query/index and compare plans.
-
-**Expected:** Plans match the query/database and remain navigable. Estimated plans
-do not execute SQL; actual-plan execution returns correct results.
-
-`<ADD SCREENSHOT HERE>`
-
-_Screenshot: Execution plan with an operator selected and its properties visible._
 
 ### Scenario 16: Observe Activity with Query Profiler
 
@@ -442,21 +409,15 @@ Report incorrect assumptions without sensitive prompts, data, or credentials.
 - Check the container icon/name and saved engine. Use extension start/stop/delete
   controls for each engine; verify same-named containers in other engines are untouched.
 - Add a second container with a different port/profile; check query and Explorer targets.
+- For Podman and WSL Containers, reconnect without changing engine networking settings.
+  Reuse a Docker container's name/port and verify queries still reach the selected engine.
 - Connect while stopped, resolve, and retry. Test saved/prompted passwords where offered.
 
 **Expected:** Profiles remain correct and recover without recreation; failures are
 actionable. Stop/start preserves data according to storage configuration.
 Deleting/recreating a container does not guarantee persistence.
 
-## Wrap-Up
-
-- Attach results and issue links, including blocked scenarios and optional
-  prerequisites that were unavailable. Do not carry forward historical pass/fail
-  statuses as results for this build.
-- Prioritize retesting designer validation, misleading errors after database
-  operations, and Restore's loading state from the integration checklist.
-- Close profiling/API sessions, finish or roll back test transactions, restore
-  changed settings, and remove only the databases, files, and containers created
-  for your testing. Preserve evidence before cleanup.
-- Cloud provisioning and firewall management are outside this local-container
-  bug bash.
+Podman and WSL connections use an extension-managed loopback relay through the selected
+engine. Saved names/ports stay unchanged; a generated relay connection string works only
+while that VS Code extension host is running. Other clients can use the engine's published
+port when their host forwarding works.

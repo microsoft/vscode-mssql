@@ -47,6 +47,9 @@ import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { PlatformInformation } from "../../src/models/platform";
+import { containerConnections } from "../../src/docker/containerConnection";
+import { ConnectionProfile } from "../../src/models/connectionProfile";
+import { ContainerEngine } from "../../src/sharedInterfaces/azureSqlDatabase";
 
 chai.use(sinonChai);
 
@@ -799,6 +802,47 @@ suite("ConnectionManager Tests", () => {
 
         teardown(() => {
             sandbox.restore();
+        });
+
+        for (const engine of [ContainerEngine.Podman, ContainerEngine.WslContainer]) {
+            test(`prepares ${engine} transport on reconnect without changing saved identity or port`, async () => {
+                const profile: ConnectionProfile = Object.assign(new ConnectionProfile(), {
+                    id: "saved-container-id",
+                    server: "localhost,1442",
+                    containerName: "azure-sql-test",
+                    containerEngine: engine,
+                    authenticationType: "SqlLogin",
+                });
+                const prepare = sandbox
+                    .stub(containerConnections, "prepare")
+                    .resolves("127.0.0.1,54321");
+                sandbox.stub(containerConnections, "getServer").returns("127.0.0.1,54321");
+
+                const result = await testConnectionManager.prepareConnectionInfo(profile);
+
+                expect(prepare).to.have.been.calledWith(profile);
+                expect(result).to.equal(profile);
+                expect(profile.id).to.equal("saved-container-id");
+                expect(result.server).to.equal("localhost,1442");
+                expect(
+                    testConnectionManager.createConnectionDetails(result, true).options.server,
+                ).to.equal("127.0.0.1,54321");
+            });
+        }
+
+        test("surfaces container transport preparation failures rather than connecting to another server", async () => {
+            const failure = new Error("WSL container exec failed");
+            sandbox.stub(containerConnections, "prepare").rejects(failure);
+            const profile = Object.assign(new ConnectionProfile(), {
+                server: "localhost,1442",
+                containerName: "azure-sql-test",
+                containerEngine: ContainerEngine.WslContainer,
+            });
+            const error = await testConnectionManager.prepareConnectionInfo(profile).then(
+                () => undefined,
+                (caught: unknown) => caught,
+            );
+            expect(error).to.equal(failure);
         });
 
         test("should throw error when neither server nor connectionString is provided", async () => {

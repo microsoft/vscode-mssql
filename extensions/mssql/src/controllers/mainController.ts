@@ -1270,6 +1270,8 @@ export default class MainController implements vscode.Disposable {
                     authenticationType: credentials.authenticationType,
                     encrypt: credentials.encrypt,
                     trustServerCertificate: credentials.trustServerCertificate,
+                    containerName: credentials.containerName,
+                    containerEngine: credentials.containerEngine,
                 };
             },
             lookupPassword: async (facts) => {

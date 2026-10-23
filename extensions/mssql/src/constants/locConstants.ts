@@ -2100,6 +2100,23 @@ export class AzureSqlContainer {
     public static connectContainerFailed = l10n.t(
         "The container started, but the extension could not create its database connection.",
     );
+    public static containerTransportFailed = (
+        engine: string,
+        containerName: string,
+        error: string,
+    ) =>
+        l10n.t(
+            "Could not forward a SQL connection through {0} to container '{1}': {2}",
+            engine,
+            containerName,
+            error,
+        );
+    public static localTransportRequired = l10n.t(
+        "Podman and WSL container connections require a local SQL Data Plane provider.",
+    );
+    public static containerTransportNotPrepared = l10n.t(
+        "Connect to this container in Object Explorer before using its connection.",
+    );
     public static provisioningTaskSucceeded = (containerName: string) =>
         l10n.t({
             message: "Azure SQL Database container '{0}' was provisioned successfully.",

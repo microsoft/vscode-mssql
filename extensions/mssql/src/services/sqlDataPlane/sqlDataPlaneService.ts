@@ -73,6 +73,7 @@ import {
 import { FakeBackend, FAKE_CAPABILITIES } from "./fakeBackend";
 import { openWithServerlessWake } from "./serverlessWake";
 import { Sts2Backend, Sts2Rpc, DEFAULT_DEADLINES, Sts2Deadlines } from "../sts2/sts2Backend";
+import { AzureSqlContainer } from "../../constants/locConstants";
 
 // ---------------------------------------------------------------------------
 // Settings
@@ -860,6 +861,22 @@ export class SqlDataPlaneService {
                 const providerCheck = await service.canOpen(params);
                 if (!providerCheck.ok) {
                     throwUnavailable(providerCheck);
+                }
+                if (params.auth?.serverProvider) {
+                    if (entry.factory.realmClass === "remote") {
+                        throw new SqlDataPlaneError(
+                            DataPlaneErrorCodes.capabilityUnsupported,
+                            AzureSqlContainer.localTransportRequired,
+                            false,
+                        );
+                    }
+                    params = {
+                        ...params,
+                        profile: {
+                            ...params.profile,
+                            server: await params.auth.serverProvider(),
+                        },
+                    };
                 }
                 const session = await openWithServerlessWake(params.profile, () =>
                     service.openSession(params),

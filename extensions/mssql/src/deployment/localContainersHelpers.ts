@@ -20,6 +20,7 @@ import {
     LocalContainers,
     msgSavePassword,
     passwordPrompt,
+    AzureSqlContainer,
 } from "../constants/locConstants";
 import { DeploymentCommonReducers, DeploymentType } from "../sharedInterfaces/deployment";
 import * as lc from "../sharedInterfaces/localContainers";
@@ -449,6 +450,7 @@ export async function waitForContainerConnection(
 ): Promise<boolean> {
     const connectionManager = mainController.connectionManager;
     const probeUri = `${connection.server}/${containerName}/deployment`;
+    let lastError: unknown;
     for (let attempt = 0; attempt < containerConnectionMaxAttempts; attempt++) {
         if (signal?.aborted) {
             return false;
@@ -460,11 +462,26 @@ export async function waitForContainerConnection(
             if (connected) {
                 break;
             }
-        } catch {
-            // Retry while SQL Server finishes initializing authentication.
+            lastError = new Error(
+                connectionManager.getConnectionInfo(probeUri)?.errorMessage ||
+                    AzureSqlContainer.connectContainerFailed,
+            );
+        } catch (error) {
+            lastError = error;
         }
 
         if (attempt + 1 === containerConnectionMaxAttempts) {
+            if (connection.containerEngine && !signal?.aborted) {
+                throw lastError;
+            }
+            const message = getErrorMessage(lastError);
+            dockerUtils.dockerLogger.warn(
+                dockerUtils.sanitizeErrorText(
+                    connection.password
+                        ? message.replaceAll(connection.password, "******")
+                        : message,
+                ),
+            );
             return false;
         }
 

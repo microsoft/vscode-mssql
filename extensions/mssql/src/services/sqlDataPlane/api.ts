@@ -67,6 +67,8 @@ export interface SqlConnectionProfileRef {
 }
 
 export interface AuthProviderBundle {
+    /** Resolves a host-owned transport endpoint at physical-open time, without changing profile identity. */
+    serverProvider?: () => Promise<string>;
     /** Resolves the password at open time; result never stored. */
     passwordProvider?: () => Promise<string | undefined>;
     /** Resolves a bearer/AAD token at open time (and on refresh). */

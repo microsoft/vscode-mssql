@@ -406,6 +406,27 @@ suite("Azure SQL container configuration", () => {
             });
         }
 
+        test("preserves transport diagnostics after connection retries and redacts passwords", async () => {
+            const clock = sandbox.useFakeTimers();
+            const form = validForm();
+            connectionManager.connect.rejects(
+                new Error(`WSL container exec failed: ${form.password}`),
+            );
+            const pending = runAzureSqlContainerProvisioningStep(
+                ContainerEngine.WslContainer,
+                AzureSqlContainerProvisioningStep.Connect,
+                form,
+                mainController,
+            );
+
+            await clock.runAllAsync();
+            const result = await pending;
+            expect(result.success).to.be.false;
+            expect(result.fullErrorText).to.include("WSL container exec failed");
+            expect(result.fullErrorText).not.to.include(form.password);
+            expect(connectionUI.saveProfile).not.to.have.been.called;
+        });
+
         test("checks readiness with an in-container SELECT 1 without exposing the password in arguments", async () => {
             const form = {
                 ...validForm(),
@@ -609,6 +630,7 @@ suite("Azure SQL container configuration", () => {
             expect(await pending).to.deep.equal({
                 success: false,
                 error: AzureSqlContainer.connectContainerFailed,
+                fullErrorText: "Login failed",
             });
             expect(connectionManager.connect).to.have.callCount(containerConnectionMaxAttempts);
             expect(connectionUI.saveProfile).not.to.have.been.called;

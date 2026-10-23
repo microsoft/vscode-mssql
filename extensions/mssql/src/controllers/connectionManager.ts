@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { containerConnections } from "../docker/containerConnection";
 import { NotificationHandler, RequestType } from "vscode-languageclient";
 import { ConnectionDetails, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
 import { AccountService } from "../azure/accountService";
@@ -457,8 +458,11 @@ export default class ConnectionManager {
      * @param connectionInfo connection info of the connection
      * @returns connection details credentials for the connection
      */
-    public createConnectionDetails(connectionInfo: IConnectionInfo): ConnectionDetails {
-        return ConnectionCredentials.createConnectionDetails(connectionInfo);
+    public createConnectionDetails(
+        connectionInfo: IConnectionInfo,
+        useContainerEndpoint = false,
+    ): ConnectionDetails {
+        return ConnectionCredentials.createConnectionDetails(connectionInfo, useContainerEndpoint);
     }
 
     /**
@@ -1469,7 +1473,7 @@ export default class ConnectionManager {
         this._logger.info(LocalizedConstants.msgConnecting(credentials.server, fileUri));
 
         // Create connection request params
-        const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
+        const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials, true);
         let connectParams = new ConnectionContracts.ConnectParams();
         connectParams.ownerUri = fileUri;
         connectParams.connection = connectionDetails;
@@ -1790,6 +1794,19 @@ export default class ConnectionManager {
             Utils.authTypeToString(AuthenticationTypes.Integrated)
         ) {
             credentials.azureAccountToken = undefined;
+        }
+
+        try {
+            await containerConnections.prepare(credentials);
+        } catch (error) {
+            telemetryActivity?.endFailed(
+                error,
+                false,
+                "ContainerTransportPreparationFailed",
+                telemetryActivityErrorType,
+                undefined,
+            );
+            throw error;
         }
 
         telemetryActivity?.update({

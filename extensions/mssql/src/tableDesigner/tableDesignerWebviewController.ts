@@ -165,8 +165,10 @@ export class TableDesignerWebviewController extends WebviewPanelController<
 
         let connectionString: string | undefined;
         try {
-            const connectionDetails =
-                await this._connectionManager.createConnectionDetails(connectionInfo);
+            const connectionDetails = await this._connectionManager.createConnectionDetails(
+                connectionInfo,
+                true,
+            );
             connectionString = await this._connectionManager.getConnectionString(
                 connectionDetails,
                 true,

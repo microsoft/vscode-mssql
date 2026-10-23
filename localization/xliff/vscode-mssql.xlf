@@ -2200,6 +2200,9 @@
       <source xml:lang="en">Connect to server {0}?</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++c6dd423f1abc0c5f1c49207ff96d0ae8fec8215e5d0b626b97cc46a00b370ee8">
+      <source xml:lang="en">Connect to this container in Object Explorer before using its connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3bf44a3d550e2e150a6438ddabb5616351a52eaca337122166dd963db31a8dca">
       <source xml:lang="en">Connect to your database &amp; run your first query</source>
     </trans-unit>
@@ -2732,6 +2735,9 @@
       <source xml:lang="en">Could not find scripting metadata for {0} &apos;{1}&apos;.</source>
       <note>{0} is the node type
 {1} is the node label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8182c94e3599a72df2bdbfe542eb674bb2cb71b3fb7bdebb8d142fde8d05edb3">
+      <source xml:lang="en">Could not forward a SQL connection through {0} to container &apos;{1}&apos;: {2}</source>
     </trans-unit>
     <trans-unit id="++CODE++3ebc0b88016fae0c96c6de96cde1f1690b1faa6bbda833db1f85279f94021a24">
       <source xml:lang="en">Could not install the selected agent skills. Check your network connection and try again.</source>
@@ -8252,6 +8258,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dcf103b39c072dc6ba804fab5401897e47a5175fcd4736c8ede992d392d9fde1">
       <source xml:lang="en">Podman</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6664c6655f59a6a81cab19488b4678641220754e058c704382359a849293e8da">
+      <source xml:lang="en">Podman and WSL container connections require a local SQL Data Plane provider.</source>
     </trans-unit>
     <trans-unit id="++CODE++bc7051ce0441313dcb7c9b9d349caa1600527dbe0a54a25654881eeef7c4b0b4">
       <source xml:lang="en">Point Data API Builder at your tables to expose REST and GraphQL endpoints.</source>

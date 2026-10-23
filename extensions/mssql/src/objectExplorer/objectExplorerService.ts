@@ -891,7 +891,10 @@ export class ObjectExplorerService {
             return undefined;
         }
 
-        const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionProfile);
+        const connectionDetails = ConnectionCredentials.createConnectionDetails(
+            connectionProfile,
+            true,
+        );
 
         let sessionCompleted = false;
 

@@ -100,7 +100,10 @@ export class SchemaDesignerWebviewManager {
             connectionInfo.database = databaseName;
 
             const connectionDetails =
-                await mainController.connectionManager.createConnectionDetails(connectionInfo);
+                await mainController.connectionManager.createConnectionDetails(
+                    connectionInfo,
+                    true,
+                );
 
             treeNode.updateConnectionProfile(connectionInfo);
 
@@ -118,7 +121,10 @@ export class SchemaDesignerWebviewManager {
                     database: databaseName,
                 } as IConnectionProfile;
                 const connectionDetails =
-                    await mainController.connectionManager.createConnectionDetails(connectionInfo);
+                    await mainController.connectionManager.createConnectionDetails(
+                        connectionInfo,
+                        true,
+                    );
 
                 connectionString = await mainController.connectionManager.getConnectionString(
                     connectionDetails,

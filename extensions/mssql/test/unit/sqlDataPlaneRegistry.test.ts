@@ -43,6 +43,7 @@ import {
 } from "../../src/services/sqlDataPlane/backendFactory";
 import { SqlDataPlaneService } from "../../src/services/sqlDataPlane/sqlDataPlaneService";
 import { FakeBackend } from "../../src/services/sqlDataPlane/fakeBackend";
+import * as sinon from "sinon";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -72,6 +73,7 @@ interface TestFactoryHooks {
     providerCanOpen?: { ok: boolean; reason?: string };
     failNextCreate?: Error;
     deferCreate?: Promise<void>;
+    openedProfiles?: SqlConnectionProfileRef[];
 }
 
 function testFactory(
@@ -114,6 +116,7 @@ function testFactory(
             };
             const openSession = backend.openSession.bind(backend);
             backend.openSession = async (params) => {
+                hooks.openedProfiles?.push(params.profile);
                 hooks.openSessionCalls = (hooks.openSessionCalls ?? 0) + 1;
                 return openSession(params);
             };
@@ -253,6 +256,94 @@ suite("SQL Data Plane capability model (FOUND-2)", () => {
 // ---------------------------------------------------------------------------
 
 suite("SQL Data Plane backend registry (FOUND-1)", () => {
+    test("resolves host transport at each physical open without changing profile fingerprints", async () => {
+        const sandbox = sinon.createSandbox();
+        const hooks: TestFactoryHooks = { createCalls: 0, openedProfiles: [] };
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "fake");
+        const service = makeService(config, testFactory("fake", hooks));
+        const serverProvider = sandbox.stub();
+        serverProvider.onFirstCall().resolves("127.0.0.1,54321");
+        serverProvider.onSecondCall().resolves("127.0.0.1,54322");
+        const params = {
+            profile: { ...PROFILE },
+            applicationName: "container-transport-test",
+            auth: { serverProvider },
+        };
+        try {
+            const first = await service.openSession(params);
+            await first.dispose();
+            const view = await service.serviceForProfile(PROFILE.profileFingerprint);
+            const second = await view.openSession(params);
+            await second.dispose();
+
+            expect(hooks.openedProfiles).to.deep.equal([
+                { ...PROFILE, server: "127.0.0.1,54321" },
+                { ...PROFILE, server: "127.0.0.1,54322" },
+            ]);
+            expect(params.profile).to.deep.equal(PROFILE);
+        } finally {
+            await service.dispose();
+            sandbox.restore();
+        }
+    });
+
+    test("propagates transport errors without opening the published localhost endpoint", async () => {
+        const hooks: TestFactoryHooks = { createCalls: 0, openedProfiles: [] };
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "fake");
+        const service = makeService(config, testFactory("fake", hooks));
+        const failure = new Error("Container transport failed");
+        try {
+            const error = await service
+                .openSession({
+                    profile: PROFILE,
+                    applicationName: "container-transport-test",
+                    auth: {
+                        serverProvider: async () => {
+                            throw failure;
+                        },
+                    },
+                })
+                .then(
+                    () => undefined,
+                    (caught: unknown) => caught,
+                );
+            expect(error).to.equal(failure);
+            expect(hooks.openedProfiles).to.deep.equal([]);
+        } finally {
+            await service.dispose();
+        }
+    });
+
+    test("rejects a host loopback transport for a remote provider before opening it", async () => {
+        const hooks: TestFactoryHooks = { createCalls: 0, openedProfiles: [] };
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "fake");
+        const service = makeService(config, {
+            ...testFactory("fake", hooks),
+            realmClass: "remote",
+        });
+        const serverProvider = sinon.stub().resolves("127.0.0.1,54321");
+        try {
+            const error = await service
+                .openSession({
+                    profile: PROFILE,
+                    applicationName: "container-transport-test",
+                    auth: { serverProvider },
+                })
+                .then(
+                    () => undefined,
+                    (caught: SqlDataPlaneError) => caught,
+                );
+            expect(error?.code).to.equal(DataPlaneErrorCodes.capabilityUnsupported);
+            expect(serverProvider.called).to.be.false;
+            expect(hooks.openedProfiles).to.deep.equal([]);
+        } finally {
+            await service.dispose();
+        }
+    });
+
     test("kind normalization: alias accepted, unknown rejected typed", () => {
         expect(normalizeBackendKind("sts2-jsonrpc")).to.equal("sts2-local");
         expect(normalizeBackendKind("sts2-local")).to.equal("sts2-local");
