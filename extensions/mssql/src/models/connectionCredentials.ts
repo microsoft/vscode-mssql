@@ -8,6 +8,7 @@ import { IConnectionProfile, AuthenticationTypes } from "./interfaces";
 import * as utils from "./utils";
 import { INameValueChoice } from "../prompts/question";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
+import { containerConnections, needsContainerConnection } from "../docker/containerConnection";
 
 // Concrete implementation of the IConnectionInfo interface
 export class ConnectionCredentials implements IConnectionInfo {
@@ -55,7 +56,10 @@ export class ConnectionCredentials implements IConnectionInfo {
     /**
      * Create a connection details contract from connection credentials.
      */
-    public static createConnectionDetails(credentials: IConnectionInfo): ConnectionDetails {
+    public static createConnectionDetails(
+        credentials: IConnectionInfo,
+        useContainerEndpoint = false,
+    ): ConnectionDetails {
         let details: ConnectionDetails = {
             options: {},
         };
@@ -63,7 +67,13 @@ export class ConnectionCredentials implements IConnectionInfo {
         if ((credentials as IConnectionProfile).id) {
             details.options["id"] = (credentials as IConnectionProfile).id;
         }
-        details.options["server"] = credentials.server;
+        const containerServer = useContainerEndpoint
+            ? containerConnections.getServer(credentials)
+            : undefined;
+        if (useContainerEndpoint && needsContainerConnection(credentials) && !containerServer) {
+            throw new Error(LocalizedConstants.AzureSqlContainer.containerTransportNotPrepared);
+        }
+        details.options["server"] = containerServer ?? credentials.server;
         if (credentials.port && details.options["server"].indexOf(",") === -1) {
             // Port is appended to the server name in a connection string
             details.options["server"] += "," + credentials.port;

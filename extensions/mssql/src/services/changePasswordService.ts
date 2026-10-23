@@ -43,7 +43,7 @@ export class ChangePasswordService {
         credentials: IConnectionInfo,
         newPassword: string,
     ): Promise<ChangePasswordResult> {
-        const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
+        const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials, true);
         try {
             return await this._client.sendRequest(ChangePasswordRequest.type, {
                 ownerUri: `changePassword:${uuid()}`,

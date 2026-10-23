@@ -431,7 +431,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
         let connectionDetails: ConnectionDetails;
         try {
-            connectionDetails = this.connectionMgr.createConnectionDetails(sourceInfo);
+            connectionDetails = this.connectionMgr.createConnectionDetails(sourceInfo, true);
         } catch (err: any) {
             this.log.warn(
                 `[connectCellForIntellisense] createConnectionDetails failed: ${err.message} cell=${cellDocumentUri}`,

@@ -32,6 +32,14 @@ export interface ProfileIdentityInput {
     readonly authKind: string;
     readonly encrypt?: string | boolean;
     readonly trustServerCertificate?: boolean;
+    readonly containerEngine?: string;
+    readonly containerName?: string;
+}
+
+function containerIdentity(input: ProfileIdentityInput): string[] {
+    return input.containerEngine && input.containerName
+        ? [input.containerEngine, input.containerName]
+        : [];
 }
 
 function digestParts(prefix: string, parts: readonly (string | undefined)[]): string {
@@ -54,6 +62,7 @@ export function profileFingerprint(input: ProfileIdentityInput): string {
         input.authKind,
         String(input.encrypt ?? ""),
         String(input.trustServerCertificate ?? ""),
+        ...containerIdentity(input),
     ]);
 }
 
@@ -67,6 +76,7 @@ export function serverFingerprint(input: ProfileIdentityInput): string {
         input.authKind,
         String(input.encrypt ?? ""),
         String(input.trustServerCertificate ?? ""),
+        ...containerIdentity(input),
     ]);
 }
 

@@ -642,7 +642,7 @@ async function addAzureSqlContainerConnection(
             return { success: false };
         }
         const connectionString = await mainController.connectionManager.getConnectionString(
-            mainController.connectionManager.createConnectionDetails(profile),
+            mainController.connectionManager.createConnectionDetails(profile, true),
             false,
             false,
         );
