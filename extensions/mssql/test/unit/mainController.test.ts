@@ -270,6 +270,18 @@ suite("MainController Tests", function () {
             expect(messageBoxes.showWarningMessage).to.not.have.been.called;
             expect(isContainerReadyStub).to.have.been.calledOnce;
         });
+
+        test("does not treat same-named containers on different engines as shared", async () => {
+            const selectedProfile = createContainerConnection("selected", "Selected", "same-name");
+            selectedProfile.containerEngine = "podman";
+            const otherProfile = createContainerConnection("other", "Other", "same-name");
+            connectionConfig.getConnections.resolves([selectedProfile, otherProfile]);
+            sandbox.stub(controllerAccess, "isContainerReadyForCommands").resolves(false);
+
+            await controllerAccess.deleteContainerForNode(createContainerNode(selectedProfile));
+
+            expect(messageBoxes.showWarningMessage).not.to.have.been.called;
+        });
     });
 
     suite("onRunCurrentStatement Tests", () => {

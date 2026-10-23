@@ -2093,6 +2093,10 @@ export class AzureSqlContainer {
     public static containerNotReady = l10n.t(
         "The Azure SQL Database container did not become ready for connections within five minutes.",
     );
+    public static unknownContainerEngine = (engine: string) =>
+        l10n.t("Unknown container engine: {0}", engine);
+    public static invalidContainerState = (engine: string) =>
+        l10n.t("Could not read the container state from {0}.", engine);
     public static connectContainerFailed = l10n.t(
         "The container started, but the extension could not create its database connection.",
     );

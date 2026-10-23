@@ -21,7 +21,7 @@ void run(
                 extension: "src/extension.ts",
                 serviceInstallerUtil: "src/languageservice/serviceInstallerUtil.ts",
             },
-            external: ["vscode-mssql"],
+            external: ["vscode-mssql", "cpu-features"],
             loader: {
                 ".ts": "ts",
                 ".js": "js",

@@ -79,7 +79,8 @@ suite("ConnectionCredentials Tests", () => {
                 multipleActiveResultSets: true,
                 packetSize: 37,
                 typeSystemVersion: "testTypeSystemVersion",
-                containerName: "",
+                containerName: "azure-sql-test",
+                containerEngine: "podman",
             };
 
             const connDetails = ConnectionCredentials.createConnectionDetails(originalConnInfo);

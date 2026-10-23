@@ -11,7 +11,6 @@ import * as vscode from "vscode";
  * allowing per-feature overrides of the global `mssql.enableExperimentalFeatures` flag.
  */
 export enum PreviewFeature {
-    AzureSqlContainers = "azureSqlContainers",
     BetaResultsGrid = "betaResultsGrid",
     LiveQueryStatistics = "liveQueryStatistics",
 }
@@ -81,16 +80,6 @@ export class PreviewFeaturesService {
             return subFlag;
         }
         return this.experimentalFeaturesEnabled;
-    }
-
-    public get azureSqlContainersEnabled(): boolean {
-        return (
-            vscode.workspace
-                .getConfiguration()
-                .get<
-                    boolean | undefined
-                >(getPreviewConfigKey(PreviewFeature.AzureSqlContainers), false) ?? false
-        );
     }
 
     /**

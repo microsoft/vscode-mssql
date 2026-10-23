@@ -31,6 +31,8 @@ import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "./dockerodeClient";
+import * as containerEngine from "./containerEngine";
+import { IConnectionInfo } from "vscode-mssql";
 
 export const invalidContainerNameValidationResult: FormItemValidationState = {
     isValid: false,
@@ -762,8 +764,19 @@ export async function startDocker(
 /**
  * Deletes a Docker container with the specified name.
  */
-export async function deleteContainer(containerName: string): Promise<boolean> {
+export async function deleteContainer(
+    containerName: string,
+    engine?: IConnectionInfo["containerEngine"],
+): Promise<boolean> {
     try {
+        if (engine) {
+            await containerEngine.executeContainerEngineCommand(
+                containerEngine.getContainerLifecycleCommand(engine, "delete", containerName),
+                120_000,
+            );
+            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.DeleteContainer);
+            return true;
+        }
         const container = await getContainerByName(containerName);
         if (!container) {
             throw new Error(`Container ${containerName} does not exist.`);
@@ -789,8 +802,19 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
 /**
  * Stops a Docker container with the specified name.
  */
-export async function stopContainer(containerName: string): Promise<boolean> {
+export async function stopContainer(
+    containerName: string,
+    engine?: IConnectionInfo["containerEngine"],
+): Promise<boolean> {
     try {
+        if (engine) {
+            await containerEngine.executeContainerEngineCommand(
+                containerEngine.getContainerLifecycleCommand(engine, "stop", containerName),
+                120_000,
+            );
+            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StopContainer);
+            return true;
+        }
         const container = await getContainerByName(containerName);
         if (!container) {
             throw new Error(`Container ${containerName} does not exist.`);
@@ -935,8 +959,8 @@ export async function findAvailablePort(
 }
 
 /**
- * Prepares the given Docker container for command execution.
- * This function checks if Docker is running and if the specified container exists.
+ * Checks the saved engine and container before running lifecycle commands.
+ * Profiles without engine metadata retain the legacy Docker startup flow.
  */
 export async function prepareForDockerContainerCommand(
     containerName: string,
@@ -944,6 +968,18 @@ export async function prepareForDockerContainerCommand(
     objectExplorerService: ObjectExplorerService,
     cancellationTokenSource?: vscode.CancellationTokenSource,
 ): Promise<DockerCommandParams> {
+    const engine = containerNode.connectionProfile.containerEngine;
+    if (engine) {
+        try {
+            await containerEngine.inspectContainer(engine, containerName);
+            return { success: true };
+        } catch (error) {
+            const errorMessage = getErrorMessage(error);
+            dockerLogger.error(errorMessage);
+            void vscode.window.showErrorMessage(errorMessage);
+            return { success: false, error: errorMessage };
+        }
+    }
     const startDockerResult = await startDocker(
         containerNode,
         objectExplorerService,

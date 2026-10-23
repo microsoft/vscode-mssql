@@ -3663,7 +3663,7 @@ export class LocConstants {
             gettingContainerReady: l10n.t("Getting container ready for connections"),
             pullingContainerImage: l10n.t("Pulling container image"),
             pullingContainerImageDescription: l10n.t(
-                "Downloading the Azure SQL Database developer container image from the private registry.",
+                "Downloading the Azure SQL Database developer container image from the registry.",
             ),
             creatingContainer: l10n.t("Creating container"),
             creatingContainerDescription: l10n.t(

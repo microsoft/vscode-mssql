@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import {
     AzureSqlDatabaseRequests,
     ContainerEngine,
@@ -21,7 +19,7 @@ import { validateSqlServerPassword } from "./sqlServerContainer";
 import { AzureSqlContainer } from "../constants/locConstants";
 import * as dockerUtils from "../docker/dockerUtils";
 import { defaultPortNumber, localhost, sa, sqlAuthentication } from "../constants/constants";
-import { IConnectionProfile } from "../models/interfaces";
+import { ConnectionProfile } from "../models/connectionProfile";
 import MainController from "../controllers/mainController";
 import { Deferred } from "../protocol";
 import {
@@ -37,12 +35,16 @@ import {
     waitForContainerConnection,
     waitForContainerDelay,
 } from "./localContainersHelpers";
+import {
+    executeContainerEngineCommand,
+    getContainerEngineExecutable,
+} from "../docker/containerEngine";
+export { executeContainerEngineCommand } from "../docker/containerEngine";
 
-const execFileAsync = promisify(execFile);
 export const defaultAzureSqlContainerName = "azure_sql_db_container";
 export const azureSqlContainerImage =
     "sqldbpreview-dpgaeqhmgphzd4bk.azurecr.io/azure-sql/db-dev:latest";
-const containerReadyMessage = "ready for client connections";
+// "sqlbuilds.azurecr.io/mssql-p-sqldbdev-daily/azure-sql/db-dev:latest";
 const containerReadyTimeoutMs = 300_000;
 const containerReadyPollIntervalMs = 2_000;
 const containerProvisioningSteps = [
@@ -461,10 +463,7 @@ export async function checkContainerEnginePrerequisite(
     }
 
     try {
-        const result = await execFileAsync(command.executable, command.args, {
-            timeout: 15_000,
-            windowsHide: true,
-        });
+        const result = await executeContainerEngineCommand(command, 15_000);
 
         if (
             engine === ContainerEngine.Docker &&
@@ -483,21 +482,6 @@ export async function checkContainerEnginePrerequisite(
             success: false,
             error: getErrorMessage(error),
         };
-    }
-}
-
-function getContainerEngineExecutable(engine: ContainerEngine): string {
-    switch (engine) {
-        case ContainerEngine.Docker:
-            return "docker";
-        case ContainerEngine.Podman:
-            return "podman";
-        case ContainerEngine.Containerd:
-            return "nerdctl";
-        case ContainerEngine.AppleContainer:
-            return "container";
-        case ContainerEngine.WslContainer:
-            return "wslc";
     }
 }
 
@@ -530,9 +514,35 @@ export function getAzureSqlContainerProvisioningCommand(
     engine: ContainerEngine,
     step:
         | AzureSqlContainerProvisioningStep.PullImage
-        | AzureSqlContainerProvisioningStep.CreateContainer,
+        | AzureSqlContainerProvisioningStep.CreateContainer
+        | AzureSqlContainerProvisioningStep.WaitForReady,
     form: AzureSqlContainerForm,
 ): PrerequisiteCommand {
+    if (step === AzureSqlContainerProvisioningStep.WaitForReady) {
+        return {
+            executable: getContainerEngineExecutable(engine),
+            args: [
+                "exec",
+                "--env",
+                "SQLCMDPASSWORD",
+                form.containerName,
+                "/opt/mssql-tools18/bin/sqlcmd",
+                "-S",
+                localhost,
+                "-U",
+                sa,
+                "-C",
+                "-b",
+                "-l",
+                "5",
+                "-t",
+                "5",
+                "-Q",
+                "SELECT 1",
+            ],
+            env: { SQLCMDPASSWORD: form.password },
+        };
+    }
     return {
         executable: getContainerEngineExecutable(engine),
         args:
@@ -545,54 +555,45 @@ export function getAzureSqlContainerProvisioningCommand(
     };
 }
 
-export async function executeContainerEngineCommand(
-    command: PrerequisiteCommand,
-    timeout: number,
-    signal?: AbortSignal,
-): Promise<{ stdout: string; stderr: string }> {
-    return execFileAsync(command.executable, command.args, {
-        timeout,
-        windowsHide: true,
-        maxBuffer: 10 * 1024 * 1024,
-        signal,
-        // Inherit credentials by name without exposing their values in the command line.
-        env: command.env ? { ...process.env, ...command.env } : undefined,
-    });
-}
-
-async function waitForAzureSqlContainer(
+export async function waitForAzureSqlContainer(
     engine: ContainerEngine,
-    containerName: string,
-    password: string,
+    form: AzureSqlContainerForm,
     signal?: AbortSignal,
+    executeCommand = executeContainerEngineCommand,
 ): Promise<AzureSqlContainerProvisioningResult> {
+    const command = getAzureSqlContainerProvisioningCommand(
+        engine,
+        AzureSqlContainerProvisioningStep.WaitForReady,
+        form,
+    );
     const deadline = Date.now() + containerReadyTimeoutMs;
-    let lastLogs = "";
+    let lastError: unknown;
 
     while (Date.now() < deadline && !signal?.aborted) {
         try {
-            const result = await executeContainerEngineCommand(
-                {
-                    executable: getContainerEngineExecutable(engine),
-                    args: ["logs", containerName],
-                },
-                15_000,
+            await executeCommand(
+                command,
+                Math.max(1, Math.min(15_000, deadline - Date.now())),
                 signal,
             );
-            lastLogs = `${result.stdout}\n${result.stderr}`;
-            if (lastLogs.toLowerCase().includes(containerReadyMessage)) {
+            if (!signal?.aborted && Date.now() < deadline) {
                 return { success: true };
             }
         } catch (error) {
-            lastLogs = getErrorMessage(error);
+            lastError = error;
         }
-        await waitForContainerDelay(containerReadyPollIntervalMs, signal);
+        await waitForContainerDelay(
+            Math.min(containerReadyPollIntervalMs, Math.max(0, deadline - Date.now())),
+            signal,
+        );
     }
 
     return {
         success: false,
         error: AzureSqlContainer.containerNotReady,
-        fullErrorText: sanitizeProvisioningError(lastLogs, password),
+        ...(lastError === undefined
+            ? {}
+            : { fullErrorText: sanitizeProvisioningError(lastError, form.password) }),
     };
 }
 
@@ -603,13 +604,16 @@ function sanitizeProvisioningError(error: unknown, password: string): string {
 }
 
 async function addAzureSqlContainerConnection(
+    engine: ContainerEngine,
     form: AzureSqlContainerForm,
     mainController: MainController,
     signal?: AbortSignal,
 ): Promise<AzureSqlContainerProvisioningResult> {
-    const connection: unknown = {
+    const connection = Object.assign(new ConnectionProfile(), {
         server: `${localhost},${form.port}`,
         profileName: form.profileName || form.containerName,
+        containerName: form.containerName,
+        containerEngine: engine,
         groupId: form.groupId,
         password: form.password,
         savePassword: form.savePassword,
@@ -618,15 +622,14 @@ async function addAzureSqlContainerConnection(
         authenticationType: sqlAuthentication,
         user: sa,
         trustServerCertificate: true,
-    };
-
+    });
     try {
         if (signal?.aborted) {
             return { success: false };
         }
         if (
             !(await waitForContainerConnection(
-                connection as IConnectionProfile,
+                connection,
                 form.containerName,
                 mainController,
                 signal,
@@ -634,9 +637,7 @@ async function addAzureSqlContainerConnection(
         ) {
             return { success: false, error: AzureSqlContainer.connectContainerFailed };
         }
-        const profile = await mainController.connectionManager.connectionUI.saveProfile(
-            connection as IConnectionProfile,
-        );
+        const profile = await mainController.connectionManager.connectionUI.saveProfile(connection);
         if (signal?.aborted) {
             return { success: false };
         }
@@ -679,9 +680,9 @@ export async function runAzureSqlContainerProvisioningStep(
                 return { success: true };
             }
             case AzureSqlContainerProvisioningStep.WaitForReady:
-                return waitForAzureSqlContainer(engine, form.containerName, form.password, signal);
+                return waitForAzureSqlContainer(engine, form, signal);
             case AzureSqlContainerProvisioningStep.Connect:
-                return addAzureSqlContainerConnection(form, mainController, signal);
+                return addAzureSqlContainerConnection(engine, form, mainController, signal);
         }
     } catch (error) {
         const errorMessage =

@@ -18,6 +18,8 @@ import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerSe
 import * as dockerodeClient from "../../src/docker/dockerodeClient";
 import { PassThrough } from "stream";
 import * as vscode from "vscode";
+import * as containerEngine from "../../src/docker/containerEngine";
+import { ContainerEngine } from "../../src/sharedInterfaces/azureSqlDatabase";
 
 chai.use(sinonChai);
 
@@ -140,6 +142,26 @@ suite("SQL Server Container", () => {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    test("reconnect starts the saved engine rather than invoking Docker", async () => {
+        node.connectionProfile.containerEngine = ContainerEngine.WslContainer;
+        const start = sandbox.stub(containerEngine, "startContainer").resolves();
+        const docker = sandbox.stub(dockerodeClient, "getDockerodeClient");
+
+        expect(
+            await sqlServerContainer.restartSqlServerContainer(
+                "testContainer",
+                node,
+                mockObjectExplorerService,
+            ),
+        ).to.be.true;
+        expect(start).to.have.been.calledWith(
+            ContainerEngine.WslContainer,
+            "testContainer",
+            sinon.match.instanceOf(AbortSignal),
+        );
+        expect(docker).not.to.have.been.called;
     });
 
     test("initializeDockerSteps: should return correct Docker deployment steps", async () => {

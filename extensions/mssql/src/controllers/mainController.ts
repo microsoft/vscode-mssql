@@ -2667,26 +2667,28 @@ export default class MainController implements vscode.Disposable {
                     await this._objectExplorerProvider.setNodeLoading(node);
                     this._objectExplorerProvider.refresh(node);
 
-                    await stopContainer(containerName).then(async (stoppedSuccessfully) => {
-                        if (stoppedSuccessfully) {
-                            node.loadingLabel =
-                                LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
+                    await stopContainer(containerName, node.connectionProfile.containerEngine).then(
+                        async (stoppedSuccessfully) => {
+                            if (stoppedSuccessfully) {
+                                node.loadingLabel =
+                                    LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
 
-                            await this._objectExplorerProvider
-                                .disconnectNode(node as ConnectionNode)
-                                .then(() => this._objectExplorerProvider.refresh(undefined));
-                        }
+                                await this._objectExplorerProvider
+                                    .disconnectNode(node as ConnectionNode)
+                                    .then(() => this._objectExplorerProvider.refresh(undefined));
+                            }
 
-                        vscode.window.showInformationMessage(
-                            stoppedSuccessfully
-                                ? LocalizedConstants.LocalContainers.stoppedContainerSucessfully(
-                                      containerName,
-                                  )
-                                : LocalizedConstants.LocalContainers.failStopContainer(
-                                      containerName,
-                                  ),
-                        );
-                    });
+                            vscode.window.showInformationMessage(
+                                stoppedSuccessfully
+                                    ? LocalizedConstants.LocalContainers.stoppedContainerSucessfully(
+                                          containerName,
+                                      )
+                                    : LocalizedConstants.LocalContainers.failStopContainer(
+                                          containerName,
+                                      ),
+                            );
+                        },
+                    );
                 },
             ),
         );
@@ -4031,7 +4033,10 @@ export default class MainController implements vscode.Disposable {
             await this.connectionManager.connectionStore.connectionConfig.getConnections();
         const otherConnectionsUsingContainer = savedConnections.filter(
             (profile) =>
-                profile.id !== connectionProfile.id && profile.containerName === containerName,
+                profile.id !== connectionProfile.id &&
+                profile.containerName === containerName &&
+                (profile.containerEngine ?? "docker") ===
+                    (connectionProfile.containerEngine ?? "docker"),
         );
         if (otherConnectionsUsingContainer.length > 0) {
             const confirmation = await vscode.window.showWarningMessage(
@@ -4067,7 +4072,10 @@ export default class MainController implements vscode.Disposable {
         await this._objectExplorerProvider.setNodeLoading(node);
         this._objectExplorerProvider.refresh(node);
 
-        const deletedSuccessfully = await deleteContainer(containerName);
+        const deletedSuccessfully = await deleteContainer(
+            containerName,
+            connectionProfile.containerEngine,
+        );
         void vscode.window.showInformationMessage(
             deletedSuccessfully
                 ? LocalizedConstants.LocalContainers.deletedContainerSucessfully(containerName)

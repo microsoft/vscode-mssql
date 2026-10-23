@@ -1201,6 +1201,8 @@
     "Failed to pull the Azure SQL Database container image. Sign in to the private registry with your preview credentials, then retry.": "Failed to pull the Azure SQL Database container image. Sign in to the private registry with your preview credentials, then retry.",
     "Failed to create and start the Azure SQL Database container.": "Failed to create and start the Azure SQL Database container.",
     "The Azure SQL Database container did not become ready for connections within five minutes.": "The Azure SQL Database container did not become ready for connections within five minutes.",
+    "Unknown container engine: {0}": "Unknown container engine: {0}",
+    "Could not read the container state from {0}.": "Could not read the container state from {0}.",
     "The container started, but the extension could not create its database connection.": "The container started, but the extension could not create its database connection.",
     "Azure SQL Database container '{0}' was provisioned successfully./{0} is the container name": {
         "message": "Azure SQL Database container '{0}' was provisioned successfully.",
@@ -5254,7 +5256,7 @@
         "message": "Setting up {0}...",
         "comment": ["{0} is the container name"]
     },
-    "Downloading the Azure SQL Database developer container image from the private registry.": "Downloading the Azure SQL Database developer container image from the private registry.",
+    "Downloading the Azure SQL Database developer container image from the registry.": "Downloading the Azure SQL Database developer container image from the registry.",
     "Creating and starting your Azure SQL Database container.": "Creating and starting your Azure SQL Database container.",
     "Readying the container for connections.": "Readying the container for connections.",
     "Connecting to your Azure SQL Database developer container.": "Connecting to your Azure SQL Database developer container.",

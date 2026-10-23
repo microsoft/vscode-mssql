@@ -16,6 +16,7 @@ import {
     runAzureSqlContainerDeployment,
     runAzureSqlContainerProvisioningStep,
     validateAzureSqlContainerForm,
+    waitForAzureSqlContainer,
 } from "../../src/deployment/azureSqlHelpers";
 import {
     AzureSqlContainerForm,
@@ -280,6 +281,19 @@ suite("Azure SQL container configuration", () => {
             expect(command.args.join(" ")).not.to.include(form.password);
             expect(command.args.some((arg) => arg.startsWith("MSSQL_SA_PASSWORD="))).to.be.false;
             expect(command.env).to.deep.equal({ MSSQL_SA_PASSWORD: form.password });
+            const readinessCommand = getAzureSqlContainerProvisioningCommand(
+                engine,
+                AzureSqlContainerProvisioningStep.WaitForReady,
+                form,
+            );
+            expect(readinessCommand.executable).to.equal(command.executable);
+            expect(readinessCommand.args.slice(0, 3)).to.deep.equal([
+                "exec",
+                "--env",
+                "SQLCMDPASSWORD",
+            ]);
+            expect(readinessCommand.args.join(" ")).not.to.include(form.password);
+            expect(readinessCommand.env).to.deep.equal({ SQLCMDPASSWORD: form.password });
             expect(
                 getAzureSqlContainerProvisioningCommand(
                     engine,
@@ -360,6 +374,187 @@ suite("Azure SQL container configuration", () => {
             connectionManager.getConnectionString.resolves("Server=localhost,1433");
             connectionManager.disconnect.resolves(true);
             mainController.createObjectExplorerSession.resolves();
+        });
+
+        for (const engine of Object.values(ContainerEngine)) {
+            test(`saves container identity and ${engine} engine before opening Object Explorer`, async () => {
+                connectionManager.connect.resolves(true);
+                const form = {
+                    ...validForm(),
+                    containerName: "azure-sql-test",
+                    profileName: "Custom display name",
+                };
+
+                const result = await runAzureSqlContainerProvisioningStep(
+                    engine,
+                    AzureSqlContainerProvisioningStep.Connect,
+                    form,
+                    mainController,
+                );
+
+                expect(result.success).to.be.true;
+                const expectedProfile = sinon.match({
+                    containerName: form.containerName,
+                    containerEngine: engine,
+                    profileName: form.profileName,
+                    server: "localhost,1433",
+                });
+                expect(connectionUI.saveProfile).to.have.been.calledWith(expectedProfile);
+                expect(mainController.createObjectExplorerSession).to.have.been.calledWith(
+                    expectedProfile,
+                );
+            });
+        }
+
+        test("checks readiness with an in-container SELECT 1 without exposing the password in arguments", async () => {
+            const form = {
+                ...validForm(),
+                containerName: "azure_sql_db_container",
+                password: "Example '\"$&=123!",
+            };
+            const executeCommand = sandbox.stub().resolves({ stdout: "1", stderr: "" });
+            const signal = new AbortController().signal;
+
+            expect(
+                await waitForAzureSqlContainer(
+                    ContainerEngine.Docker,
+                    form,
+                    signal,
+                    executeCommand,
+                ),
+            ).to.deep.equal({ success: true });
+
+            const command = getAzureSqlContainerProvisioningCommand(
+                ContainerEngine.Docker,
+                AzureSqlContainerProvisioningStep.WaitForReady,
+                form,
+            );
+            expect(command).to.deep.equal({
+                executable: "docker",
+                args: [
+                    "exec",
+                    "--env",
+                    "SQLCMDPASSWORD",
+                    form.containerName,
+                    "/opt/mssql-tools18/bin/sqlcmd",
+                    "-S",
+                    "localhost",
+                    "-U",
+                    sa,
+                    "-C",
+                    "-b",
+                    "-l",
+                    "5",
+                    "-t",
+                    "5",
+                    "-Q",
+                    "SELECT 1",
+                ],
+                env: { SQLCMDPASSWORD: form.password },
+            });
+            expect(command.args.join(" ")).not.to.include(form.password);
+            expect(executeCommand).to.have.been.calledWith(command, 15_000, signal);
+            expect(connectionManager.connect).not.to.have.been.called;
+            expect(connectionUI.saveProfile).not.to.have.been.called;
+            expect(mainController.createObjectExplorerSession).not.to.have.been.called;
+        });
+
+        test("retries failed sqlcmd probes until SELECT 1 succeeds", async () => {
+            const clock = sandbox.useFakeTimers();
+            const readyAt = Date.now() + 10_000;
+            const executeCommand = sandbox.stub().callsFake(async () => {
+                if (Date.now() < readyAt) {
+                    throw new Error("SQL is still starting");
+                }
+                return { stdout: "1", stderr: "" };
+            });
+            let settled = false;
+            const pending = waitForAzureSqlContainer(
+                ContainerEngine.Docker,
+                validForm(),
+                undefined,
+                executeCommand,
+            ).then((result) => {
+                settled = true;
+                return result;
+            });
+
+            await clock.tickAsync(8000);
+            expect(settled).to.be.false;
+            await clock.tickAsync(2000);
+
+            expect(await pending).to.deep.equal({ success: true });
+            expect(clock.countTimers()).to.equal(0);
+        });
+
+        test("reports sanitized sqlcmd errors after five minutes of failed probes", async () => {
+            const clock = sandbox.useFakeTimers();
+            const form = validForm();
+            const executeCommand = sandbox
+                .stub()
+                .rejects(new Error(`Login failed: ${form.password}`));
+            let settled = false;
+            const pending = waitForAzureSqlContainer(
+                ContainerEngine.Docker,
+                form,
+                undefined,
+                executeCommand,
+            ).then((result) => {
+                settled = true;
+                return result;
+            });
+
+            await clock.tickAsync(299_999);
+            expect(settled).to.be.false;
+            await clock.tickAsync(1);
+
+            const result = await pending;
+            expect(result).to.include({
+                success: false,
+                error: AzureSqlContainer.containerNotReady,
+            });
+            expect(result.fullErrorText).to.include("Login failed:");
+            expect(result.fullErrorText).not.to.include(form.password);
+            expect(connectionUI.saveProfile).not.to.have.been.called;
+            expect(mainController.createObjectExplorerSession).not.to.have.been.called;
+            expect(clock.countTimers()).to.equal(0);
+        });
+
+        test("cancels readiness polling without leaving a retry timer", async () => {
+            const clock = sandbox.useFakeTimers();
+            const abortController = new AbortController();
+            const executeCommand = sandbox.stub().rejects(new Error("SQL is still starting"));
+            const pending = waitForAzureSqlContainer(
+                ContainerEngine.Docker,
+                validForm(),
+                abortController.signal,
+                executeCommand,
+            );
+
+            await clock.tickAsync(0);
+            abortController.abort();
+
+            expect((await pending).success).to.be.false;
+            expect(clock.countTimers()).to.equal(0);
+            expect(connectionUI.saveProfile).not.to.have.been.called;
+        });
+
+        test("does not execute sqlcmd if readiness checking is already canceled", async () => {
+            const abortController = new AbortController();
+            abortController.abort();
+            const executeCommand = sandbox.stub();
+
+            expect(
+                (
+                    await waitForAzureSqlContainer(
+                        ContainerEngine.Docker,
+                        validForm(),
+                        abortController.signal,
+                        executeCommand,
+                    )
+                ).success,
+            ).to.be.false;
+            expect(executeCommand).not.to.have.been.called;
         });
 
         test("retries login before saving the profile and opening Object Explorer", async () => {

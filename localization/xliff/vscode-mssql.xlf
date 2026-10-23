@@ -2739,6 +2739,9 @@
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++a2fc18e76485cae5d064306b947bdd300e403f39b6474cf046cdb77ab2f540cc">
+      <source xml:lang="en">Could not read the container state from {0}.</source>
+    </trans-unit>
     <trans-unit id="++CODE++71e0b348ec348e9236d9c0984d670475cb786378fa5e97176bc94bc4a42826d5">
       <source xml:lang="en">Could not write the configuration.</source>
     </trans-unit>
@@ -3706,8 +3709,8 @@
     <trans-unit id="++CODE++adbcc35e97d53bc1acdeb5a1bf4ea403d362f3fb6074a2edc4206716cafb4191">
       <source xml:lang="en">Downloading from {0} to {1}</source>
     </trans-unit>
-    <trans-unit id="++CODE++be6b5343c4e371f17d689b82b4de67da63fdc8e5d937a14fdbc0ec5f96d868d8">
-      <source xml:lang="en">Downloading the Azure SQL Database developer container image from the private registry.</source>
+    <trans-unit id="++CODE++35a7f79758a02a6a17a3c37bca5b2a2b052997c457829e62a7ec5f473f40d25b">
+      <source xml:lang="en">Downloading the Azure SQL Database developer container image from the registry.</source>
     </trans-unit>
     <trans-unit id="++CODE++44ef47797353661b06274b2fe94ca033f5bb11ec18c160acc819451520aa50eb">
       <source xml:lang="en">Downloading the Data API builder container image</source>
@@ -11819,6 +11822,9 @@
     <trans-unit id="++CODE++0ac22ebf2e4c548e6b1f01b79672929184e0626822b651ceba6766f880cc2d27">
       <source xml:lang="en">Unknown account</source>
     </trans-unit>
+    <trans-unit id="++CODE++119e9b317379d00bf118d35f6a4b4c96c1a9d656fad8c03eea6777b1fb0e20b7">
+      <source xml:lang="en">Unknown container engine: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++98a2edd8ece1e8c17c93a67d5556a7c86cadc90fa3f4549a4b824cf43919bd3e">
       <source xml:lang="en">Unknown data source type: </source>
     </trans-unit>
@@ -15105,9 +15111,6 @@
     <trans-unit id="mssql.connection.currentLanguage">
       <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>
     </trans-unit>
-    <trans-unit id="mssql.connection.containerName">
-      <source xml:lang="en">[Optional] Indicates the name of local docker container the connection is on</source>
-    </trans-unit>
     <trans-unit id="mssql.connection.emptyPasswordInput">
       <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
     </trans-unit>
@@ -15182,6 +15185,12 @@
     </trans-unit>
     <trans-unit id="mssql.connection.connectionString">
       <source xml:lang="en">[Optional] The ADO.NET connection string to use for the connection. Overrides any other options given in this connection.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.containerEngine">
+      <source xml:lang="en">[Optional] The engine managing the local container. Connections without this value use Docker.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.containerName">
+      <source xml:lang="en">[Optional] The name of the local container hosting the connection.</source>
     </trans-unit>
     <trans-unit id="mssql.connection.replication">
       <source xml:lang="en">[Optional] Used by SQL Server in replication.</source>

@@ -15,6 +15,7 @@
 import { stableProfileId } from "../../../services/metadata/profileAuthAdapter";
 import { ObjectExplorerV2 } from "../../../constants/locConstants";
 import { connectionDisplayLabel } from "../tree/oeV2ConnectionLabel";
+import type { IConnectionInfo } from "vscode-mssql";
 
 export interface OeV2StoredProfile {
     order?: number;
@@ -31,6 +32,7 @@ export interface OeV2StoredProfile {
     encrypt?: string | boolean;
     trustServerCertificate?: boolean;
     containerName?: string;
+    containerEngine?: IConnectionInfo["containerEngine"];
     port?: number | string;
     version?: string;
     applicationIntent?: string;
@@ -106,6 +108,7 @@ export function profileConnectionIdentity(profile: OeV2StoredProfile): string {
         String(profile.alwaysEncrypted ?? ""),
         String(profile.replication ?? ""),
         profile.containerName ?? "",
+        profile.containerEngine ?? "",
         profile.version ?? "",
     ]);
 }

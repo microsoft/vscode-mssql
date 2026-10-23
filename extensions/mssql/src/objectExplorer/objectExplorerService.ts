@@ -1041,13 +1041,15 @@ export class ObjectExplorerService {
             sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.ConnectToContainer);
             try {
                 const containerNode = this.getConnectionNodeFromProfile(connectionProfile);
-                // start docker and docker container
                 const successfullyRunning = await restartSqlServerContainer(
                     connectionProfile.containerName,
                     containerNode,
                     this,
                 );
-                if (successfullyRunning === undefined) {
+                if (
+                    successfullyRunning === undefined ||
+                    (!successfullyRunning && connectionProfile.containerEngine)
+                ) {
                     containerNode.loadingLabel = undefined;
                     this.cleanNodeChildren(containerNode);
                     this._refreshCallback(containerNode);
@@ -1055,12 +1057,12 @@ export class ObjectExplorerService {
                 }
                 this._logger.debug(
                     successfullyRunning
-                        ? `Failed to restart Docker container "${connectionProfile.containerName}".`
-                        : `Docker container "${connectionProfile.containerName}" has been restarted.`,
+                        ? `Container "${connectionProfile.containerName}" is running.`
+                        : `Failed to start container "${connectionProfile.containerName}".`,
                 );
             } catch (error) {
                 this._logger.error(
-                    `Error when attempting to ensure container "${connectionProfile.containerName}" is started.  Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
+                    `Error when attempting to ensure container "${connectionProfile.containerName}" is started. Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
                 );
             }
         }
