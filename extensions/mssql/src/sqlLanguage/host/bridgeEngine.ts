@@ -53,6 +53,8 @@ export interface BridgeEngineHost {
      * (keyword completions still work through the STS v1 client).
      */
     ensureShadowConnection(): Promise<boolean>;
+    /** Bounded wait for metadata after connecting, used only for definition lookups. */
+    waitForIntelliSenseReady?(): Promise<boolean>;
 }
 
 export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
@@ -174,6 +176,9 @@ export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
 
     async definition(req: SqlLanguageRequest): Promise<DefinitionLocationResult | undefined> {
         return this.bridged("definition", async (uri) => {
+            // A newly connected service can otherwise return an empty result
+            // before its metadata loads, making the first Peek falsely fail.
+            await this.host.waitForIntelliSenseReady?.();
             const locations = await vscode.commands.executeCommand<
                 (vscode.Location | vscode.LocationLink)[]
             >(

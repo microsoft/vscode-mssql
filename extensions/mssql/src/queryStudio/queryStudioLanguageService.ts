@@ -89,6 +89,7 @@ interface ConnectionManagerSeam {
     ): Promise<boolean>;
     disconnect(fileUri: string): Promise<boolean>;
     isConnected?(fileUri: string): boolean;
+    waitForIntelliSenseReady?(fileUri: string, timeoutMs: number): Promise<boolean>;
 }
 
 async function connectionManagerSeam(): Promise<ConnectionManagerSeam | undefined> {
@@ -452,6 +453,13 @@ export class QueryStudioLanguageService implements vscode.Disposable {
             this.bridge = new Sts2BridgeEngine({
                 backingDocument: () => this.host.backingDocument(),
                 ensureShadowConnection: () => this.ensureShadowConnection(),
+                waitForIntelliSenseReady: async () => {
+                    const uri = this.host.backingDocument()?.uri.toString();
+                    const manager = await connectionManagerSeam();
+                    return uri !== undefined
+                        ? ((await manager?.waitForIntelliSenseReady?.(uri, 10_000)) ?? false)
+                        : false;
+                },
             });
         }
         return this.bridge;

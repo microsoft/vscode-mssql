@@ -8,6 +8,7 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { SqlLanguageRequest } from "../../src/sqlLanguage/api";
 import { Sts2BridgeEngine } from "../../src/sqlLanguage/host/bridgeEngine";
+import { Deferred } from "../../src/protocol";
 
 suite("sqlLanguage bridge definition delivery", () => {
     let sandbox: sinon.SinonSandbox;
@@ -74,6 +75,42 @@ suite("sqlLanguage bridge definition delivery", () => {
         });
         expect(openDocument.called).to.equal(false);
         expect(showDocument.called).to.equal(false);
+    });
+
+    test("the first definition waits for IntelliSense after connecting", async () => {
+        const ready = new Deferred<boolean>();
+        const waiting = new Deferred<void>();
+        engine = new Sts2BridgeEngine({
+            backingDocument: () => ({ uri: sourceUri }) as vscode.TextDocument,
+            ensureShadowConnection: async () => true,
+            waitForIntelliSenseReady: () => {
+                waiting.resolve();
+                return ready.promise;
+            },
+        });
+        command.resolves([new vscode.Location(targetUri, targetRange)]);
+
+        const definition = engine.definition(request);
+        await waiting.promise;
+        expect(command.called).to.equal(false);
+        ready.resolve(true);
+
+        expect((await definition)?.virtualContent?.text).to.equal(script);
+        expect(showDocument.called).to.equal(false);
+    });
+
+    test("a readiness timeout still allows connection-free definitions", async () => {
+        engine = new Sts2BridgeEngine({
+            backingDocument: () => ({ uri: sourceUri }) as vscode.TextDocument,
+            ensureShadowConnection: async () => true,
+            waitForIntelliSenseReady: async () => false,
+        });
+        command.resolves([new vscode.Location(sourceUri, targetRange)]);
+
+        expect((await engine.definition(request))?.range?.start).to.deep.equal({
+            line: 2,
+            character: 3,
+        });
     });
 
     test("unreadable targets return no definition without opening an editor", async () => {
