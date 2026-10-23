@@ -214,7 +214,16 @@ suite("Private preview manifest", () => {
         );
         expect(oeCommands.length).to.be.greaterThan(0);
         for (const contribution of oeCommands) {
-            expect(contribution.enablement, contribution.command).to.equal(OBJECT_EXPLORER_V2_GATE);
+            const queryCommand =
+                /^mssql\.objectExplorerV2\.(newQuery|selectTop|scriptCreate|scriptAlter|scriptDrop|scriptExecute)$/.test(
+                    contribution.command,
+                );
+            expect(contribution.enablement, contribution.command).to.equal(
+                OBJECT_EXPLORER_V2_GATE +
+                    (queryCommand
+                        ? " && mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled"
+                        : ""),
+            );
         }
 
         const view = packageJson.contributes.views.objectExplorer.find(
@@ -238,12 +247,9 @@ suite("Private preview manifest", () => {
         }
     });
 
-    test("does not publish deferred Query Studio or Docker lifecycle commands", () => {
+    test("does not publish deferred Docker lifecycle commands", () => {
         const commandIds = packageJson.contributes.commands.map((item) => item.command);
         for (const deferred of [
-            "mssql.objectExplorerV2.newQuery",
-            "mssql.objectExplorerV2.selectTop",
-            "mssql.objectExplorerV2.scriptAsCreate",
             "mssql.objectExplorerV2.startContainer",
             "mssql.objectExplorerV2.stopContainer",
             "mssql.objectExplorerV2.deleteContainer",

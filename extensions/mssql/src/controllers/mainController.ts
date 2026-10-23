@@ -7,6 +7,8 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { QueryStudioCompletionMetadataResolver } from "../queryStudio/queryStudioCompletionMetadataResolver";
+import { setSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import type { IConnectionInfo, SchemaCompareEndpointInfo } from "vscode-mssql";
 import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
@@ -1282,9 +1284,11 @@ export default class MainController implements vscode.Disposable {
             },
         };
         const schemaContextService = new CompletionSchemaContextService([
+            new QueryStudioCompletionMetadataResolver(),
             new ClassicCompletionMetadataResolver(classicConnections, vscodeSqlTokenSource),
         ]);
         const provider = new SqlInlineCompletionProvider(this._context, schemaContextService);
+        setSharedInlineCompletionProvider(provider);
         const copilotEnableSettingsGuard = new CopilotEnableSettingsGuard(this._context);
         this.inlineCompletionSchemaContextService = schemaContextService;
         configureCompletionsDebugHost({ extensionContext: this._context, schemaContextService });
@@ -1311,6 +1315,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             schemaContextService,
             provider,
+            { dispose: () => setSharedInlineCompletionProvider(undefined) },
             copilotEnableSettingsGuard,
             vscode.languages.registerInlineCompletionItemProvider(
                 { language: Constants.languageId },
@@ -1722,6 +1727,7 @@ export default class MainController implements vscode.Disposable {
             activateObjectExplorerV2(this._context, {
                 instantiationService: this._instantiationService,
                 profiles: this._connectionMgr.connectionStore,
+                tokens: vscodeSqlTokenSource,
                 legacyConnections: this._connectionMgr,
                 groupConfig: () => this._connectionMgr.connectionStore.connectionConfig,
                 isEnabled: objectExplorerV2Enabled,

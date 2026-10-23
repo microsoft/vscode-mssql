@@ -97,6 +97,14 @@ export function perfMarkAfterNextPaint(
     name: string,
     attrs?: { [key: string]: string | number | boolean | null },
 ): void {
+    perfMarkAfterNextPaintComputed(name, () => attrs);
+}
+
+/** Compute diagnostic attributes at the actual post-paint/fallback boundary. */
+export function perfMarkAfterNextPaintComputed(
+    name: string,
+    attrs: () => { [key: string]: string | number | boolean | null } | undefined,
+): void {
     // Hidden/backgrounded VS Code webviews can suspend rAF indefinitely. The
     // intentional delay is a bounded fallback, not startup synchronisation:
     // it preserves a marked (and honestly labelled) endpoint instead of
@@ -108,7 +116,8 @@ export function perfMarkAfterNextPaint(
         }
         completed = true;
         clearTimeout(fallback);
-        perfMark(name, rafThrottled ? { ...(attrs ?? {}), rafThrottled: true } : attrs);
+        const computed = attrs();
+        perfMark(name, rafThrottled ? { ...(computed ?? {}), rafThrottled: true } : computed);
     };
     const fallback = setTimeout(() => emit(true), 500);
     requestAnimationFrame(() => {

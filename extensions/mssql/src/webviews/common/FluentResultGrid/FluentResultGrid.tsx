@@ -43,8 +43,17 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
             () => ({
                 focusGrid: controller.focusGrid,
                 clearSelection: controller.clearSelection,
+                selectAll: controller.selectAll,
+                scrollToRow: controller.scrollToRow,
+                scrollToColumn: controller.scrollToColumn,
             }),
-            [controller.clearSelection, controller.focusGrid],
+            [
+                controller.clearSelection,
+                controller.focusGrid,
+                controller.scrollToColumn,
+                controller.scrollToRow,
+                controller.selectAll,
+            ],
         );
 
         const containerStyle = useMemo(

@@ -916,6 +916,11 @@ register({
     maturity: "exploratory",
     spec: {
         scenarioId: "querystudio-open",
+        userSettings: {
+            "mssql.enableExperimentalFeatures": true,
+            "mssql.sqlDataPlane.enabled": true,
+            "mssql.queryStudio.enabled": true,
+        },
         displayName: "Query Studio: open new query editor",
         tags: ["querystudio", "webview"],
         profileMode: "warmed",
@@ -989,6 +994,7 @@ register({
         profileMode: "warmed",
         userSettings: {
             "mssql.sqlDataPlane.enabled": true,
+            "mssql.enableExperimentalFeatures": true,
             "mssql.queryStudio.enabled": true,
         },
         sql: {
@@ -999,7 +1005,7 @@ register({
         setup: [
             ...ACTIVATE_STEPS,
             { type: "openDocument", path: "queries/select-10000.sql" },
-            { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+            { type: "command", command: "mssql.queryStudio.duplicateAsNewQuery", timeoutMs: 60000 },
             { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
             { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
         ],
@@ -1031,7 +1037,7 @@ register({
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
         cleanup: [
-            { type: "command", command: "workbench.action.closeActiveEditor" },
+            { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
             ...CLEANUP_EXPLORER,
         ],
         metrics: [
@@ -1096,6 +1102,7 @@ function registerQueryStudio10kBackendVariant(
             profileMode: "warmed",
             userSettings: {
                 "mssql.sqlDataPlane.enabled": true,
+                "mssql.enableExperimentalFeatures": true,
                 "mssql.queryStudio.enabled": true,
                 "mssql.sqlDataPlane.backend": backendSetting,
             },
@@ -1107,7 +1114,11 @@ function registerQueryStudio10kBackendVariant(
             setup: [
                 ...ACTIVATE_STEPS,
                 { type: "openDocument", path: "queries/select-10000-backend-ab.sql" },
-                { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+                {
+                    type: "command",
+                    command: "mssql.queryStudio.duplicateAsNewQuery",
+                    timeoutMs: 60000,
+                },
                 { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
                 { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
             ],
@@ -1155,7 +1166,7 @@ function registerQueryStudio10kBackendVariant(
                 { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
             ],
             cleanup: [
-                { type: "command", command: "workbench.action.closeActiveEditor" },
+                { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
                 ...CLEANUP_EXPLORER,
             ],
             metrics: [
@@ -1229,6 +1240,7 @@ register({
         profileMode: "warmed",
         userSettings: {
             "mssql.sqlDataPlane.enabled": true,
+            "mssql.enableExperimentalFeatures": true,
             "mssql.queryStudio.enabled": true,
         },
         sql: {
@@ -1239,7 +1251,7 @@ register({
         setup: [
             ...ACTIVATE_STEPS,
             { type: "openDocument", path: "queries/wide-columns.sql" },
-            { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+            { type: "command", command: "mssql.queryStudio.duplicateAsNewQuery", timeoutMs: 60000 },
             { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
             { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
         ],
@@ -1260,7 +1272,7 @@ register({
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
         cleanup: [
-            { type: "command", command: "workbench.action.closeActiveEditor" },
+            { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
             ...CLEANUP_EXPLORER,
         ],
         metrics: [
@@ -1302,6 +1314,7 @@ register({
         profileMode: "warmed",
         userSettings: {
             "mssql.sqlDataPlane.enabled": true,
+            "mssql.enableExperimentalFeatures": true,
             "mssql.queryStudio.enabled": true,
         },
         sql: {
@@ -1312,7 +1325,7 @@ register({
         setup: [
             ...ACTIVATE_STEPS,
             { type: "openDocument", path: "queries/blob-xml.sql" },
-            { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+            { type: "command", command: "mssql.queryStudio.duplicateAsNewQuery", timeoutMs: 60000 },
             { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
             { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
         ],
@@ -1334,7 +1347,7 @@ register({
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
         cleanup: [
-            { type: "command", command: "workbench.action.closeActiveEditor" },
+            { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
             ...CLEANUP_EXPLORER,
         ],
         metrics: [
@@ -1443,6 +1456,7 @@ function registerQueryStudioShape(shape: QueryStudioShapeSpec): void {
             profileMode: "warmed",
             userSettings: {
                 "mssql.sqlDataPlane.enabled": true,
+                "mssql.enableExperimentalFeatures": true,
                 "mssql.queryStudio.enabled": true,
                 ...(shape.backend ? { "mssql.sqlDataPlane.backend": shape.backend.setting } : {}),
                 ...(shape.userSettings ?? {}),
@@ -1458,7 +1472,11 @@ function registerQueryStudioShape(shape: QueryStudioShapeSpec): void {
             setup: [
                 ...ACTIVATE_STEPS,
                 { type: "openDocument", path: shape.queryPath },
-                { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+                {
+                    type: "command",
+                    command: "mssql.queryStudio.duplicateAsNewQuery",
+                    timeoutMs: 60000,
+                },
                 { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
                 { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
                 ...(shape.assertPreflightResultsFocus
@@ -1488,7 +1506,7 @@ function registerQueryStudioShape(shape: QueryStudioShapeSpec): void {
                 { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
             ],
             cleanup: [
-                { type: "command", command: "workbench.action.closeActiveEditor" },
+                { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
                 ...CLEANUP_EXPLORER,
             ],
             metrics: [
@@ -1869,6 +1887,7 @@ for (const backend of QUERY_STUDIO_BACKEND_VARIANTS) {
             profileMode: "warmed",
             userSettings: {
                 "mssql.sqlDataPlane.enabled": true,
+                "mssql.enableExperimentalFeatures": true,
                 "mssql.queryStudio.enabled": true,
                 "mssql.sqlDataPlane.backend": backend.setting,
             },
@@ -1876,7 +1895,11 @@ for (const backend of QUERY_STUDIO_BACKEND_VARIANTS) {
             setup: [
                 ...ACTIVATE_STEPS,
                 { type: "openDocument", path: "queries/long-query.sql" },
-                { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+                {
+                    type: "command",
+                    command: "mssql.queryStudio.duplicateAsNewQuery",
+                    timeoutMs: 60000,
+                },
                 { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
                 { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
             ],
@@ -1913,7 +1936,7 @@ for (const backend of QUERY_STUDIO_BACKEND_VARIANTS) {
                 { type: "noErrors", sources: ["automation"] },
             ],
             cleanup: [
-                { type: "command", command: "workbench.action.closeActiveEditor" },
+                { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
                 ...CLEANUP_EXPLORER,
             ],
             metrics: [
@@ -1940,6 +1963,7 @@ for (const backend of QUERY_STUDIO_BACKEND_VARIANTS) {
             profileMode: "warmed",
             userSettings: {
                 "mssql.sqlDataPlane.enabled": true,
+                "mssql.enableExperimentalFeatures": true,
                 "mssql.queryStudio.enabled": true,
                 "mssql.sqlDataPlane.backend": backend.setting,
                 "mssql.queryStudio.tuning.overrides": {
@@ -1952,7 +1976,11 @@ for (const backend of QUERY_STUDIO_BACKEND_VARIANTS) {
             setup: [
                 ...ACTIVATE_STEPS,
                 { type: "openDocument", path: "queries/large-cells-1mb.sql" },
-                { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+                {
+                    type: "command",
+                    command: "mssql.queryStudio.duplicateAsNewQuery",
+                    timeoutMs: 60000,
+                },
                 { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
                 { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
                 { type: "queryStudioExecute", timeoutMs: 300000 },
@@ -1965,7 +1993,9 @@ for (const backend of QUERY_STUDIO_BACKEND_VARIANTS) {
             ],
             measure: {
                 start: { type: "beforeFirstAction" },
-                action: [{ type: "command", command: "workbench.action.closeActiveEditor" }],
+                action: [
+                    { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
+                ],
                 end: {
                     type: "waitForMarker",
                     name: "mssql.queryStudio.rows.dispose.end",
@@ -2043,6 +2073,7 @@ register({
         profileMode: "warmed",
         userSettings: {
             "mssql.sqlDataPlane.enabled": true,
+            "mssql.enableExperimentalFeatures": true,
             "mssql.queryStudio.enabled": true,
             "mssql.sqlDataPlane.backend": "sts2-local",
             "mssql.queryStudio.tuning.overrides": {
@@ -2062,7 +2093,11 @@ register({
                 // revealing a text editor underneath it. Reopen explicitly so every
                 // iteration starts from the same document/focus state.
                 { type: "openDocument", path: "queries/large-cells-1mb.sql" },
-                { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+                {
+                    type: "command",
+                    command: "mssql.queryStudio.duplicateAsNewQuery",
+                    timeoutMs: 60000,
+                },
                 { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
                 { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
                 { type: "queryStudioExecute", timeoutMs: 300000 },
@@ -2103,7 +2138,7 @@ register({
                 },
                 {
                     type: "command",
-                    command: "workbench.action.closeActiveEditor",
+                    command: "workbench.action.revertAndCloseActiveEditor",
                     timeoutMs: 60000,
                 },
                 {
@@ -2218,6 +2253,7 @@ function registerQueryStudioInteractionScenario(spec: QueryStudioInteractionSpec
             profileMode: "warmed",
             userSettings: {
                 "mssql.sqlDataPlane.enabled": true,
+                "mssql.enableExperimentalFeatures": true,
                 "mssql.queryStudio.enabled": true,
                 ...(spec.backend ? { "mssql.sqlDataPlane.backend": spec.backend.setting } : {}),
                 ...(spec.tuningOverrides
@@ -2232,7 +2268,11 @@ function registerQueryStudioInteractionScenario(spec: QueryStudioInteractionSpec
             setup: [
                 ...ACTIVATE_STEPS,
                 { type: "openDocument", path: spec.queryPath },
-                { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+                {
+                    type: "command",
+                    command: "mssql.queryStudio.duplicateAsNewQuery",
+                    timeoutMs: 60000,
+                },
                 { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
                 { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
                 ...(spec.assertPreflightResultsFocus
@@ -2266,7 +2306,7 @@ function registerQueryStudioInteractionScenario(spec: QueryStudioInteractionSpec
                 { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
             ],
             cleanup: [
-                { type: "command", command: "workbench.action.closeActiveEditor" },
+                { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
                 ...CLEANUP_EXPLORER,
             ],
             metrics: [
@@ -2958,6 +2998,7 @@ register({
         profileMode: "warmed",
         userSettings: {
             "mssql.sqlDataPlane.enabled": true,
+            "mssql.enableExperimentalFeatures": true,
             "mssql.queryStudio.enabled": true,
         },
         sql: {
@@ -3029,6 +3070,7 @@ register({
         profileMode: "warmed",
         userSettings: {
             "mssql.sqlDataPlane.enabled": true,
+            "mssql.enableExperimentalFeatures": true,
             "mssql.queryStudio.enabled": true,
         },
         sql: {
@@ -3103,6 +3145,7 @@ register({
 
 const VECTOR_USER_SETTINGS = {
     "mssql.sqlDataPlane.enabled": true,
+    "mssql.enableExperimentalFeatures": true,
     "mssql.queryStudio.enabled": true,
     "mssql.queryStudio.vectorWorkbench.enabled": true,
 };
@@ -3110,7 +3153,7 @@ const VECTOR_USER_SETTINGS = {
 const VECTOR_SETUP: ScenarioStep[] = [
     ...ACTIVATE_STEPS,
     { type: "openDocument", path: "queries/vectorlab-chunks.sql" },
-    { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+    { type: "command", command: "mssql.queryStudio.duplicateAsNewQuery", timeoutMs: 60000 },
     { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
     { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
 ];
@@ -3191,7 +3234,7 @@ register({
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
         cleanup: [
-            { type: "command", command: "workbench.action.closeActiveEditor" },
+            { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
             ...CLEANUP_EXPLORER,
         ],
         metrics: [
@@ -3280,7 +3323,7 @@ register({
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
         cleanup: [
-            { type: "command", command: "workbench.action.closeActiveEditor" },
+            { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
             ...CLEANUP_EXPLORER,
         ],
         metrics: [
@@ -3401,7 +3444,7 @@ register({
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
         cleanup: [
-            { type: "command", command: "workbench.action.closeActiveEditor" },
+            { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
             ...CLEANUP_EXPLORER,
         ],
         metrics: [
@@ -3463,7 +3506,7 @@ register({
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
         cleanup: [
-            { type: "command", command: "workbench.action.closeActiveEditor" },
+            { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
             ...CLEANUP_EXPLORER,
         ],
         metrics: [
@@ -3514,7 +3557,7 @@ register({
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
         cleanup: [
-            { type: "command", command: "workbench.action.closeActiveEditor" },
+            { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
             ...CLEANUP_EXPLORER,
         ],
         metrics: [
@@ -3623,7 +3666,7 @@ register({
             { type: "markerSeen", name: "mssql.tableDesigner.init.end" },
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
-        cleanup: [{ type: "command", command: "workbench.action.closeActiveEditor" }],
+        cleanup: [{ type: "command", command: "workbench.action.revertAndCloseActiveEditor" }],
         metrics: [
             { name: "scenario.wallclock", source: "marker", official: true, lowerIsBetter: true },
             {
@@ -3673,7 +3716,7 @@ register({
             { type: "markerSeen", name: "mssql.schemaDesigner.ready" },
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
-        cleanup: [{ type: "command", command: "workbench.action.closeActiveEditor" }],
+        cleanup: [{ type: "command", command: "workbench.action.revertAndCloseActiveEditor" }],
         metrics: [
             { name: "scenario.wallclock", source: "marker", official: true, lowerIsBetter: true },
             {
@@ -3750,7 +3793,7 @@ register({
             { type: "markerSeen", name: "mssql.schemaVisualizer.ready" },
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
-        cleanup: [{ type: "command", command: "workbench.action.closeActiveEditor" }],
+        cleanup: [{ type: "command", command: "workbench.action.revertAndCloseActiveEditor" }],
         metrics: [
             // wallclock official like the backend-A/B twins (run selection needs
             // it); the PHASE metrics below stay unofficial until baselines (§14.5).
@@ -3821,6 +3864,7 @@ function registerQueryResultsShape(shape: QueryResultsShapeSpec): void {
             profileMode: "warmed",
             userSettings: {
                 "mssql.sqlDataPlane.enabled": true,
+                "mssql.enableExperimentalFeatures": true,
                 "mssql.queryStudio.enabled": true,
             },
             sql: {
@@ -3831,7 +3875,11 @@ function registerQueryResultsShape(shape: QueryResultsShapeSpec): void {
             setup: [
                 ...ACTIVATE_STEPS,
                 { type: "openDocument", path: shape.queryPath },
-                { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+                {
+                    type: "command",
+                    command: "mssql.queryStudio.duplicateAsNewQuery",
+                    timeoutMs: 60000,
+                },
                 { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
                 { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
                 { type: "queryStudioExecute", timeoutMs },
@@ -3862,7 +3910,8 @@ function registerQueryResultsShape(shape: QueryResultsShapeSpec): void {
                 { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
             ],
             cleanup: [
-                { type: "command", command: "workbench.action.closeAllEditors" },
+                { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
+                { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
                 ...CLEANUP_EXPLORER,
             ],
             metrics: [
@@ -3927,6 +3976,7 @@ registerQueryResultsShape({
 
 const SPATIAL_USER_SETTINGS = {
     "mssql.sqlDataPlane.enabled": true,
+    "mssql.enableExperimentalFeatures": true,
     "mssql.queryStudio.enabled": true,
     "mssql.queryStudio.spatial.enabled": true,
 };
@@ -3935,7 +3985,7 @@ function spatialSetup(queryPath: string): ScenarioStep[] {
     return [
         ...ACTIVATE_STEPS,
         { type: "openDocument", path: queryPath },
-        { type: "command", command: "mssql.queryStudio.openActive", timeoutMs: 60000 },
+        { type: "command", command: "mssql.queryStudio.duplicateAsNewQuery", timeoutMs: 60000 },
         { type: "waitForMarker", name: "mssql.queryStudio.open.end", timeoutMs: 60000 },
         { type: "queryStudioConnect", profile: "default", timeoutMs: 90000 },
     ];
@@ -4008,7 +4058,7 @@ function registerSpatialActivation(args: {
                 { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
             ],
             cleanup: [
-                { type: "command", command: "workbench.action.closeActiveEditor" },
+                { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
                 ...CLEANUP_EXPLORER,
             ],
             metrics: [
@@ -4075,7 +4125,7 @@ register({
             { type: "noErrors", sources: ["automation", "vscode-mssql", "sts"] },
         ],
         cleanup: [
-            { type: "command", command: "workbench.action.closeActiveEditor" },
+            { type: "command", command: "workbench.action.revertAndCloseActiveEditor" },
             ...CLEANUP_EXPLORER,
         ],
         metrics: [

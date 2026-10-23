@@ -17,6 +17,7 @@ import {
 } from "react";
 
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
+import { ExecutionPlanViewport } from "./executionPlanViewport";
 import { normalizeExecutionPlanQuery } from "./executionPlanQuery";
 import { ExecutionPlanHeader } from "./executionPlanHeader";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
@@ -122,11 +123,27 @@ const useStyles = makeStyles({
     },
 });
 
-interface ExecutionPlanGraphProps {
-    graphIndex: number;
+export interface ExecutionPlanGraphViewState {
+    zoomPercent: number;
+    scrollTop: number;
+    scrollLeft: number;
+    selectedElementId?: string;
+    propertiesPaneOpen: boolean;
+    propertiesPaneWidth: number;
+    viewport?: ExecutionPlanViewport;
 }
 
-export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphIndex }) => {
+interface ExecutionPlanGraphProps {
+    graphIndex: number;
+    initialViewState?: ExecutionPlanGraphViewState;
+    onViewStateChange?: (state: ExecutionPlanGraphViewState) => void;
+}
+
+export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
+    graphIndex,
+    initialViewState,
+    onViewStateChange,
+}) => {
     const classes = useStyles();
     const { themeKind, extensionRpc } = useVscodeWebview();
     const context = useContext(ExecutionPlanContext);
@@ -139,14 +156,34 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const [executionPlanView, setExecutionPlanView] = useState<ExecutionPlanGraphController | null>(
         null,
     );
-    const [zoomNumber, setZoomNumber] = useState(100);
+    const [zoomNumber, setZoomNumber] = useState(initialViewState?.zoomPercent ?? 100);
     const [customZoomClicked, setCustomZoomClicked] = useState(false);
     const [findNodeClicked, setFindNodeClicked] = useState(false);
     const [findNodeOptions, setFindNodeOptions] = useState<string[]>([]);
     const [highlightOpsClicked, setHighlightOpsClicked] = useState(false);
-    const [propertiesClicked, setPropertiesClicked] = useState(false);
-    const [selectedElementId, setSelectedElementId] = useState<string>();
-    const [propertiesWidth, setPropertiesWidth] = useState(400);
+    const [propertiesClicked, setPropertiesClicked] = useState(
+        initialViewState?.propertiesPaneOpen ?? false,
+    );
+    const [selectedElementId, setSelectedElementId] = useState(initialViewState?.selectedElementId);
+    const [propertiesWidth, setPropertiesWidth] = useState(
+        initialViewState?.propertiesPaneWidth ?? 400,
+    );
+    const restoreState = useRef(initialViewState);
+    const firstPlan = useRef(true);
+    const [viewport, setViewport] = useState(initialViewState?.viewport);
+    const onChange = useRef(onViewStateChange);
+    onChange.current = onViewStateChange;
+    useEffect(() => {
+        onChange.current?.({
+            zoomPercent: zoomNumber,
+            scrollTop: 0,
+            scrollLeft: 0,
+            selectedElementId,
+            propertiesPaneOpen: propertiesClicked,
+            propertiesPaneWidth: propertiesWidth,
+            viewport,
+        });
+    }, [zoomNumber, selectedElementId, propertiesClicked, propertiesWidth, viewport]);
     const [containerHeight, setContainerHeight] = useState("100%");
     const resizableRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<any | null>(null);
@@ -178,12 +215,32 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     // different statement's plan replaces it.
     const planIdentity = graph?.isLive ? `live:${graph.query}` : graph;
     useEffect(() => {
+        if (firstPlan.current) {
+            firstPlan.current = false;
+            return;
+        }
         resetTransientUiState();
     }, [planIdentity, resetTransientUiState]);
 
     const handleRendererReady = useCallback((controller: ExecutionPlanGraphController | null) => {
         setExecutionPlanView(controller);
         if (controller) {
+            const saved = restoreState.current;
+            restoreState.current = undefined;
+            if (saved) {
+                if (saved.viewport) {
+                    controller.setViewport(saved.viewport);
+                } else {
+                    controller.setZoomLevel(saved.zoomPercent);
+                }
+                if (saved.selectedElementId) {
+                    controller.selectElement(
+                        controller.getElementById(saved.selectedElementId),
+                        false,
+                        false,
+                    );
+                }
+            }
             setFindNodeOptions(controller.getUniqueElementProperties());
             setCost(controller.getTotalRelativeCost());
             setZoomNumber(controller.getZoomLevel());
@@ -330,6 +387,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                     planNumber={graphIndex + 1}
                                     onReady={handleRendererReady}
                                     onSelectionChange={setSelectedElementId}
+                                    onViewportChange={onViewStateChange ? setViewport : undefined}
                                 />
                             </Suspense>
                         </WebviewErrorBoundary>
