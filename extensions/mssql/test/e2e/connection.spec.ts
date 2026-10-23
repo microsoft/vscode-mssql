@@ -18,12 +18,16 @@ import {
     disconnect,
     getStatusBar,
     openNewQueryEditor,
+    waitForConnected,
 } from "./utils/testHelpers";
 import { test, expect } from "./baseFixtures";
+import { BASIC_PASSWORD_STORE_ARGS } from "./utils/launchVscodeWithMsSqlExt";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
 
 test.describe("MSSQL Extension - Database Connection", async () => {
-    const getContext = useSharedVsCodeLifecycle();
+    const getContext = useSharedVsCodeLifecycle({
+        launchOptions: { extraLaunchArgs: BASIC_PASSWORD_STORE_ARGS },
+    });
 
     test("Connect to local SQL Database, and disconnect", async ({}, testInfo) => {
         const { page: vsCodePage } = getContext();
@@ -50,7 +54,9 @@ test.describe("MSSQL Extension - Database Connection", async () => {
         await openNewQueryEditor(vsCodePage);
         await screenshot(vsCodePage, testInfo, "new query editor opened");
 
-        // New editor should be connected to the last added connection
+        // New editor should be connected to the last added connection. Wait for it: while the
+        // editor is still connecting, Disconnect asks whether to cancel instead.
+        await waitForConnected(vsCodePage, serverName);
         await disconnect(vsCodePage);
         await screenshot(vsCodePage, testInfo, "disconnected");
 

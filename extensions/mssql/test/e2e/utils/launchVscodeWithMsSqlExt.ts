@@ -35,6 +35,16 @@ export const DEFAULT_USER_CONFIG = {
     "mssql.showChangelogOnUpdate": false,
 };
 
+/**
+ * Makes VS Code keep secrets itself instead of in the OS keyring.
+ *
+ * The Linux CI runner has no keyring, so saving a connection's password never finishes. The
+ * connection still works, but the steps after the save never run: the connection dialog stays
+ * open and the editor toolbar keeps showing Connect. Specs that connect through the dialog need
+ * this. It has no effect on Windows or macOS.
+ */
+export const BASIC_PASSWORD_STORE_ARGS = ["--password-store=basic"];
+
 const DOTNET_RUNTIME_EXTENSION_ID = "ms-dotnettools.vscode-dotnet-runtime";
 
 /**

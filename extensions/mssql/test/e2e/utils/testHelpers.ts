@@ -49,9 +49,18 @@ export async function addDatabaseConnection(
             .getByRole("combobox", { name: "Database name", exact: true })
             .fill(databaseName);
     }
-    await iframe.getByRole("combobox", { name: "Authentication type" }).click();
-    // Then select an option from the dropdown list that appears
-    await iframe.getByRole("option", { name: authType }).click();
+    // The form can re-render just after the dropdown opens (for example once the server name is
+    // processed), which closes the list again. Open it until the option shows, then select it.
+    const authTypeDropdown = iframe.getByRole("combobox", { name: "Authentication type" });
+    const authTypeOption = iframe.getByRole("option", { name: authType });
+    await expect(async () => {
+        if (!(await authTypeOption.isVisible())) {
+            await authTypeDropdown.click();
+        }
+        await expect(authTypeOption).toBeVisible({ timeout: 5 * 1000 });
+    }).toPass({ timeout: 30 * 1000 });
+    await authTypeOption.click();
+    await expect(authTypeDropdown).toContainText(authType);
 
     if (authType === "SQL Login") {
         await iframe.getByRole("textbox", { name: "User name" }).fill(userName);
@@ -68,6 +77,12 @@ export async function addDatabaseConnection(
 
     await iframe.getByRole("checkbox", { name: "Trust server certificate" }).click();
     await iframe.getByRole("button", { name: "Connect", exact: true }).click();
+
+    // The dialog closes once the connection succeeds. New editors copy this connection, so
+    // callers must not open one before it exists. On Linux this needs BASIC_PASSWORD_STORE_ARGS.
+    await expect(vsCodePage.locator('[role="tab"][aria-label^="Connection Dialog"]')).toBeHidden({
+        timeout: 60 * 1000,
+    });
 }
 
 export async function openNewQueryEditor(vsCodePage: Page): Promise<void> {
@@ -76,11 +91,34 @@ export async function openNewQueryEditor(vsCodePage: Page): Promise<void> {
     await new QuickInput(vsCodePage).run(VsCodeCommand.mssqlNewQuery);
 }
 
+/**
+ * Opens a file through Quick Open, which offers any absolute path, even outside the workspace,
+ * and waits for it to become the active editor.
+ */
+export async function openFileFromDisk(vsCodePage: Page, filePath: string): Promise<void> {
+    const fileName = path.basename(filePath);
+    const quickOpen = new QuickInput(vsCodePage);
+    await quickOpen.open();
+    await quickOpen.filter(filePath);
+    // Quick Open draws its file results outside the quick input widget, so QuickInput.pick
+    // cannot see them. Click the result row itself rather than pressing Enter, which accepts
+    // whichever row is active.
+    await vsCodePage
+        .getByRole("option", { name: fileName })
+        .first()
+        .click({ timeout: 15 * 1000 });
+    await expect(getActiveEditorTab(vsCodePage)).toContainText(fileName, { timeout: 15 * 1000 });
+}
+
+/** The active tab of the active editor group. */
+export function getActiveEditorTab(vsCodePage: Page): Locator {
+    return vsCodePage.locator(".editor-group-container.active .tab.active");
+}
+
 export async function disconnect(vsCodePage: Page): Promise<void> {
-    await vsCodePage.keyboard.press(`${getModifierKey()}+P`);
-    await vsCodePage.keyboard.type(">MS SQL: Disconnect");
-    // await new Promise(resolve => setTimeout(resolve, 1 * 1000));
-    await vsCodePage.keyboard.press("Enter");
+    // Typing into the palette and pressing Enter can lose the keystrokes or run a neighbouring
+    // command; see QuickInput.
+    await new QuickInput(vsCodePage).run(VsCodeCommand.mssqlDisconnect);
 }
 
 export async function executeQuery(vsCodePage: Page): Promise<void> {
