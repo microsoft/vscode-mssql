@@ -94,7 +94,10 @@ jobs:
         run: |
           npm run lint
 
+      # Forks/PRs without the repo variable skip injection;
+      # telemetry is then disabled at runtime
       - name: Inject extension telemetry key
+        if: vars.MSSQL_APP_INSIGHTS_KEY != ''
         env:
           MSSQL_APP_INSIGHTS_KEY: ${{ vars.MSSQL_APP_INSIGHTS_KEY }}
         run: |
