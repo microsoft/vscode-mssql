@@ -104,6 +104,25 @@ function packageOf(rawInput: string): string {
 }
 
 suite("Query Studio bundle budget (BOOT-3)", () => {
+    test("the webview bundles include only the SQL, XML, and JSON language support we use", () => {
+        const { outputs } = loadMetafile();
+        const languages = new Set<string>();
+        for (const output of Object.values(outputs)) {
+            for (const [input, contribution] of Object.entries(output.inputs)) {
+                const match = input
+                    .replace(/\\/g, "/")
+                    .match(/\/monaco-editor\/esm\/vs\/(?:basic-languages|language)\/([^/]+)\//);
+                if (match && contribution.bytesInOutput > 0) {
+                    languages.add(match[1]);
+                }
+            }
+        }
+        expect(
+            [...languages].sort(),
+            "unrelated Monaco languages add unused VSIX payload",
+        ).to.deep.equal(["json", "sql", "xml"]);
+    });
+
     test("the init-load closure contains NO denylisted heavy package", () => {
         const { outputs } = loadMetafile();
         expect(outputs[ENTRY], `${ENTRY} missing from metafile`).to.not.equal(undefined);
