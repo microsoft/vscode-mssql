@@ -972,7 +972,7 @@ suite("Fluent Result Grid", () => {
                 shouldApplyFluentResultGridFrozenOptions(
                     {
                         alwaysShowVerticalScroll: false,
-                        enableMouseWheelScrollHandler: true,
+                        enableMouseWheelScrollHandler: false,
                         frozenColumn: -1,
                         skipFreezeColumnValidation: true,
                     },
@@ -983,7 +983,7 @@ suite("Fluent Result Grid", () => {
                 shouldApplyFluentResultGridFrozenOptions(
                     {
                         alwaysShowVerticalScroll: false,
-                        enableMouseWheelScrollHandler: true,
+                        enableMouseWheelScrollHandler: false,
                         frozenColumn: -1,
                         skipFreezeColumnValidation: true,
                     },

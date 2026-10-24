@@ -23,6 +23,7 @@ import {
 import {
     ABOVE_THRESHOLD_QUERY,
     getManyResultsQuery,
+    getWideQuery,
     LARGE_QUERY,
     MULTI_RESULT_QUERY,
 } from "./gridFixtures";
@@ -319,5 +320,100 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
                 ),
             )
             .toBeLessThan(5);
+    });
+
+    test("trackpad scrolling keeps native pixel distances across both axes and frozen panes", async () => {
+        const { electronApp, page } = getContext();
+        await setQueryText(electronApp, page, getWideQuery());
+        await executeQueryAndWait(page);
+        const grid = await waitForResultGrid(resultsFrame, "0_0", 200);
+        const right = grid.locator(".slick-viewport-top.slick-viewport-right");
+        const left = grid.locator(".slick-viewport-top.slick-viewport-left");
+        await right.evaluate((element) => element.scrollTo({ left: 300, top: 300 }));
+        await expect.poll(() => right.evaluate((element) => element.scrollLeft)).toBe(300);
+
+        async function scroll(
+            target: Locator,
+            deltaX: number,
+            deltaY: number,
+            shift = false,
+        ): Promise<void> {
+            const before = await right.evaluate((element) => ({
+                x: element.scrollLeft,
+                y: element.scrollTop,
+            }));
+            // Capture Chromium's actual pixel deltas, including display scaling.
+            await grid.evaluate((element) => {
+                element.removeAttribute("data-test-wheel");
+                element.addEventListener(
+                    "wheel",
+                    (event) => {
+                        const wheel = event as WheelEvent;
+                        element.setAttribute(
+                            "data-test-wheel",
+                            JSON.stringify({
+                                x: wheel.deltaX,
+                                y: wheel.deltaY,
+                                mode: wheel.deltaMode,
+                            }),
+                        );
+                    },
+                    { capture: true, once: true },
+                );
+            });
+            await target.hover({ position: { x: 15, y: 40 } });
+            if (shift) {
+                await page.keyboard.down("Shift");
+            }
+            try {
+                await page.mouse.wheel(deltaX, deltaY);
+                await expect(grid).toHaveAttribute("data-test-wheel", /./);
+                const actual = JSON.parse((await grid.getAttribute("data-test-wheel"))!);
+                expect(actual.mode).toBe(0);
+                const expectedX = before.x + (shift && actual.x === 0 ? actual.y : actual.x);
+                const expectedY = before.y + (shift ? 0 : actual.y);
+                await expect
+                    .poll(async () =>
+                        Math.abs((await right.evaluate((el) => el.scrollLeft)) - expectedX),
+                    )
+                    .toBeLessThan(2);
+                await expect
+                    .poll(async () =>
+                        Math.abs((await right.evaluate((el) => el.scrollTop)) - expectedY),
+                    )
+                    .toBeLessThan(2);
+                await expect
+                    .poll(async () =>
+                        Math.abs((await left.evaluate((el) => el.scrollTop)) - expectedY),
+                    )
+                    .toBeLessThan(2);
+            } finally {
+                if (shift) {
+                    await page.keyboard.up("Shift");
+                }
+            }
+        }
+
+        await scroll(right, 120, 0);
+        await scroll(right, 0, 120);
+        await scroll(right, -80, -80);
+        await scroll(left, 120, 0);
+        await scroll(left, 80, 120);
+        await scroll(left, -80, -80);
+        await scroll(right, 0, 120, true);
+        await scroll(left, 0, 120, true);
+
+        // Freezing/restoring columns must not re-enable the old wheel handler.
+        await right.evaluate((element) => element.scrollTo({ left: 0 }));
+        await expect.poll(() => right.evaluate((element) => element.scrollLeft)).toBe(0);
+        await openHeaderContextMenu(grid, "c0");
+        await clickMenuItem(resultsFrame, "Freeze columns");
+        await expect(grid).toHaveAttribute("data-frozen-index", "1");
+        await scroll(right, 120, 120);
+        await scroll(left, 120, 120);
+        await openHeaderContextMenu(grid, "c0");
+        await clickMenuItem(resultsFrame, "Unfreeze columns");
+        await expect(grid).toHaveAttribute("data-frozen-index", "0");
+        await scroll(right, 80, 80);
     });
 });
