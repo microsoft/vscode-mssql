@@ -551,6 +551,78 @@ suite("Per File Connection Tests", () => {
         expect(updatedAfterNotification).to.have.lengthOf(1);
     });
 
+    suite("IntelliSense readiness", () => {
+        const fileUri = "file:///peek.sql";
+        let clock: sinon.SinonFakeTimers;
+
+        setup(async () => {
+            const serviceClient = sandbox.createStubInstance(SqlToolsServiceClient);
+            serviceClient.sendRequest.callsFake(
+                (_type: unknown, params: ConnectionContracts.ConnectParams) => {
+                    if (_type === ConnectionContracts.ConnectionRequest.type) {
+                        manager.handleConnectionCompleteNotification()(
+                            createTestConnectionResult(params.ownerUri),
+                        );
+                    }
+                    return Promise.resolve(true);
+                },
+            );
+            manager.client = serviceClient;
+            await manager.connect(fileUri, createTestCredentials());
+            clock = sandbox.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+        });
+
+        test("waits for this document's metadata, not another connection's notification", async () => {
+            let settled = false;
+            const ready = manager.waitForIntelliSenseReady(fileUri, 1_000).then((result) => {
+                settled = true;
+                return result;
+            });
+
+            manager.handleLanguageServiceUpdateNotification()({ ownerUri: "file:///other.sql" });
+            await clock.tickAsync(1);
+            expect(settled).to.equal(false);
+
+            manager.handleLanguageServiceUpdateNotification()({ ownerUri: fileUri });
+            expect(await ready).to.equal(true);
+        });
+
+        test("does not miss readiness delivered before the wait starts", async () => {
+            manager.handleLanguageServiceUpdateNotification()({ ownerUri: fileUri });
+            expect(await manager.waitForIntelliSenseReady(fileUri, 1_000)).to.equal(true);
+        });
+
+        test("times out when the service never becomes ready", async () => {
+            const ready = manager.waitForIntelliSenseReady(fileUri, 1_000);
+            await clock.tickAsync(1_000);
+            expect(await ready).to.equal(false);
+            manager.handleLanguageServiceUpdateNotification()({ ownerUri: fileUri });
+            expect(await manager.waitForIntelliSenseReady(fileUri, 1_000)).to.equal(true);
+        });
+
+        test("disconnect cancels a pending wait", async () => {
+            const ready = manager.waitForIntelliSenseReady(fileUri, 1_000);
+            await manager.disconnect(fileUri);
+            expect(await ready).to.equal(false);
+            expect(await manager.waitForIntelliSenseReady(fileUri, 1_000)).to.equal(false);
+        });
+
+        test("a reconnect must load its own metadata", async () => {
+            manager.handleLanguageServiceUpdateNotification()({ ownerUri: fileUri });
+            expect(await manager.waitForIntelliSenseReady(fileUri, 1_000)).to.equal(true);
+            await manager.connect(fileUri, createTestCredentials());
+            let settled = false;
+            const ready = manager.waitForIntelliSenseReady(fileUri, 1_000).then((result) => {
+                settled = true;
+                return result;
+            });
+            await clock.tickAsync(1);
+            expect(settled).to.equal(false);
+            manager.handleLanguageServiceUpdateNotification()({ ownerUri: fileUri });
+            expect(await ready).to.equal(true);
+        });
+    });
+
     function createTestConnectionManager(
         serviceClient?: SqlToolsServiceClient,
         statusView?: StatusView,

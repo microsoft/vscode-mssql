@@ -18,6 +18,10 @@ import {
 import type { ReactGridInstanceWithSharedService } from "./fluentResultGridControllerTypes";
 import type { FluentResultGridDataView, FluentResultGridDataRow } from "./fluentResultGridDataView";
 import { getFluentResultGridAutoSizeCellText } from "./fluentResultGridFormatters";
+import {
+    applyFluentResultGridColumnWidths,
+    shouldApplyFluentResultGridFrozenOptions,
+} from "./fluentResultGridState";
 import { autoSizeFluentResultGridColumnByContent } from "./fluentResultGridColumnAutosize";
 
 const initialAutoSizeRetryDelaysMs = [50, 100, 250, 500, 1000];
@@ -48,6 +52,8 @@ export function restoreFluentResultGridHorizontalScrollPosition(
 
 export function useFluentResultGridLayout({
     autoSizeColumnsMode,
+    autosizeSampleRows,
+    autosizeMaxColumnWidth,
     containerRef,
     dataView,
     dataViewRef,
@@ -55,6 +61,10 @@ export function useFluentResultGridLayout({
     reactGridRef,
 }: {
     autoSizeColumnsMode: ResultsGridAutoSizeStyle;
+    /** Autosize data sample bound (QO-7b); default FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS. */
+    autosizeSampleRows?: number;
+    /** Autosize width ceiling in px; default FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH. */
+    autosizeMaxColumnWidth?: number;
     containerRef: RefObject<HTMLDivElement | null>;
     dataView: FluentResultGridDataView<FluentResultGridDataRow>;
     dataViewRef: MutableRefObject<FluentResultGridDataView<FluentResultGridDataRow> | undefined>;
@@ -99,7 +109,7 @@ export function useFluentResultGridLayout({
             const reactGrid = reactGridRef.current;
             if (reactGrid?.sharedService?.gridOptions) {
                 reactGrid.sharedService.gridOptions.frozenColumn = columnIndex;
-                reactGrid.sharedService.gridOptions.enableMouseWheelScrollHandler = true;
+                reactGrid.sharedService.gridOptions.enableMouseWheelScrollHandler = false;
                 reactGrid.sharedService.gridOptions.alwaysShowVerticalScroll = false;
                 reactGrid.sharedService.gridOptions.skipFreezeColumnValidation = true;
             }
@@ -117,14 +127,18 @@ export function useFluentResultGridLayout({
 
     const applyFrozenColumnIndex = useCallback(
         (grid: SlickGrid, columnIndex: number) => {
-            grid.setOptions({
-                alwaysShowVerticalScroll: false,
-                enableMouseWheelScrollHandler: true,
-                frozenColumn: columnIndex,
-                skipFreezeColumnValidation: true,
-            });
+            if (shouldApplyFluentResultGridFrozenOptions(grid.getOptions(), columnIndex)) {
+                grid.setOptions({
+                    alwaysShowVerticalScroll: false,
+                    enableMouseWheelScrollHandler: false,
+                    frozenColumn: columnIndex,
+                    skipFreezeColumnValidation: true,
+                });
+                syncFrozenColumnState(grid, columnIndex);
+                refreshFrozenColumnLayout(grid);
+                return;
+            }
             syncFrozenColumnState(grid, columnIndex);
-            refreshFrozenColumnLayout(grid);
         },
         [refreshFrozenColumnLayout, syncFrozenColumnState],
     );
@@ -140,7 +154,11 @@ export function useFluentResultGridLayout({
 
             const containerNode = grid.getContainerNode();
             const handleFrozenPaneWheel = (event: WheelEvent) => {
-                if ((grid.getOptions().frozenColumn ?? -1) < 0 || event.deltaY === 0) {
+                if (
+                    (grid.getOptions().frozenColumn ?? -1) < 0 ||
+                    event.ctrlKey ||
+                    (event.deltaX === 0 && event.deltaY === 0)
+                ) {
                     return;
                 }
 
@@ -156,7 +174,12 @@ export function useFluentResultGridLayout({
                     return;
                 }
 
-                scrollViewport.scrollTop += event.deltaY;
+                // The frozen pane cannot scroll itself. Forward Chromium's
+                // pixel deltas without the legacy wheel handler's rescaling.
+                scrollViewport.scrollLeft += event.deltaX || (event.shiftKey ? event.deltaY : 0);
+                if (!event.shiftKey) {
+                    scrollViewport.scrollTop += event.deltaY;
+                }
                 dataViewRef.current?.ensureViewportLoaded();
                 requestAnimationFrame(() => {
                     dataViewRef.current?.ensureViewportLoaded();
@@ -207,7 +230,7 @@ export function useFluentResultGridLayout({
             let sampleRows: FluentResultGridDataRow[] = [];
             if (includeData && currentRowCount > 0) {
                 const sampleRowCount = Math.min(
-                    FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS,
+                    autosizeSampleRows ?? FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS,
                     currentRowCount,
                 );
                 sampleRows = options?.useLoadedRowsOnly
@@ -228,10 +251,18 @@ export function useFluentResultGridLayout({
                 return true;
             }
 
-            let columnsChanged = false;
-            const resizedColumns = grid.getColumns().map((column, columnIndex) => {
+            const computedStyle = containerRef.current
+                ? window.getComputedStyle(containerRef.current)
+                : undefined;
+            const fontSize =
+                parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
+            const fontFamily = computedStyle?.fontFamily ?? "monospace";
+            canvasContext.font = `${fontSize}px ${fontFamily}`;
+
+            const currentColumns = grid.getColumns();
+            const resizedWidths = currentColumns.map((column, columnIndex) => {
                 if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID || columnIndex === 0) {
-                    return column;
+                    return column.width ?? FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH;
                 }
 
                 const headerWidth = includeHeaders
@@ -253,32 +284,38 @@ export function useFluentResultGridLayout({
                       }, 0)
                     : 0;
 
-                const width = Math.max(
+                return Math.max(
                     FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
                     Math.min(
-                        FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
+                        autosizeMaxColumnWidth ?? FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
                         Math.ceil(Math.max(headerWidth, dataWidth)) + 1,
                     ),
                 );
-                if (column.width === width) {
-                    return column;
-                }
-
-                columnsChanged = true;
-                return { ...column, width };
             });
 
             if (requestId !== undefined && autoSizeRequestIdRef.current !== requestId) {
                 return true;
             }
 
-            if (columnsChanged) {
-                grid.setColumns(resizedColumns);
-                grid.invalidate();
+            const applied = applyFluentResultGridColumnWidths(currentColumns, resizedWidths);
+            if (applied.changed) {
+                // Width-only autosize must not destroy/recreate every header.
+                // SlickGrid's supported reRenderColumns path updates header
+                // widths, canvas CSS, and rerenders cells only when a column
+                // explicitly declares rerenderOnResize.
+                grid.reRenderColumns(applied.rerender);
             }
             return true;
         },
-        [autoSizeColumnsMode, dataView, getAutoSizeCanvasContext, latestRowCountRef, reactGridRef],
+        [
+            autoSizeColumnsMode,
+            autosizeSampleRows,
+            autosizeMaxColumnWidth,
+            containerRef,
+            dataView,
+            latestRowCountRef,
+            reactGridRef,
+        ],
     );
 
     const scheduleAutoSizeColumns = useCallback(
@@ -291,7 +328,13 @@ export function useFluentResultGridLayout({
                             return;
                         }
 
-                        const useLoadedRowsOnly = attempt < initialAutoSizeRetryDelaysMs.length;
+                        // Automatic autosize must never defeat a wide source's
+                        // viewport projection. Explicit user autosize still
+                        // calls applyAutoSizeColumns without this restriction
+                        // and therefore retains authoritative full-row reads.
+                        const useLoadedRowsOnly =
+                            dataView.hasColumnWindowing ||
+                            attempt < initialAutoSizeRetryDelaysMs.length;
                         void applyAutoSizeColumns(requestId, { useLoadedRowsOnly }).then(
                             (applied) => {
                                 if (

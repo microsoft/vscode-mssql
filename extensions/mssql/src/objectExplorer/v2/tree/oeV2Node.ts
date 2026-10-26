@@ -70,6 +70,13 @@ export interface OeV2NodeCapabilities {
     readonly canSearch?: boolean;
     readonly canCopyName?: boolean;
     readonly canCopyQualifiedName?: boolean;
+    readonly canOpenQuery?: boolean;
+    readonly canSelectTop?: boolean;
+    readonly canGenerateScript?: boolean;
+    readonly canScriptCreate?: boolean;
+    readonly canScriptAlter?: boolean;
+    /** Procedures: "Script as Execute" (DECLARE @RC + EXECUTE template). */
+    readonly canScriptExecute?: boolean;
     /** Legacy features reachable via explicit handoff (B20). */
     readonly legacyHandoff?: readonly string[];
 }

@@ -1130,6 +1130,16 @@ export class ObjectExplorer {
 
 /** User-visible strings for the Connections (Private Preview) surface. */
 export class ObjectExplorerV2 {
+    static selectObjectToScript = l10n.t("Select a database object to script.");
+    static connectBeforeScripting = l10n.t(
+        "Connect this profile in Connections (Private Preview) first.",
+    );
+    static objectMissingForScript = (schema: string, name: string) =>
+        l10n.t(
+            "-- Cannot script {0}.{1}: object is not present in the current metadata snapshot.",
+            schema,
+            name,
+        );
     private static readonly folderLabels = new Map<string, string>([
         ["Databases", l10n.t("Databases")],
         ["Security", l10n.t("Security")],
@@ -6253,4 +6263,174 @@ export const InlineCompletionDebug = {
         l10n.t("Database sync is not yet implemented. Traces are currently saved to: {0}", value0),
     exportInlineCompletionDebugSession: l10n.t("Export Inline Completion Debug Session"),
     importInlineCompletionDebugSession: l10n.t("Import Inline Completion Debug Session"),
+};
+
+export let msgExportingResults = l10n.t("Exporting results…");
+export const QueryStudio = {
+    openMssqlDocument: l10n.t(
+        "Open a .mssql document or create an untitled query to use Query Studio.",
+    ),
+    disabled: l10n.t(
+        "Enable the Query Studio private preview and SQL Data Plane, then reload VS Code to open queries from Connections.",
+    ),
+};
+
+export const QueryStudioCore = {
+    generatedDefinitionExpired: l10n.t(
+        "-- This generated definition has expired. Run Go to Definition again.",
+    ),
+    incompleteExportResults: l10n.t(
+        "The result data is no longer available in full. The export could not be completed.",
+    ),
+    productionWarningDetail: l10n.t(
+        "This connection's server group is marked as production, and the query contains statements that can change or destroy data. This can result in data loss. Would you like to continue?",
+    ),
+    resultRowLimitReached: (limit: string) =>
+        l10n.t(
+            "Query Studio reached the result row limit of {0} rows. The result set was truncated and the query was canceled. Increase mssql.queryStudio.maxRowsPerResultSet to allow more rows.",
+            limit,
+        ),
+    resultStorageLimitReached: l10n.t(
+        "Stopped because local result storage reached its configured limit. The result set was truncated and the query was canceled. Adjust the Query Studio tuning storage limits to allow more.",
+    ),
+    providerChangeAfterReconnect: (next: string, current: string) =>
+        l10n.t(
+            "This document will use {0} on its next connect. The current session stays on {1} until you reconnect.",
+            next,
+            current,
+        ),
+    theSQLDataPlaneIsDisabledEnableMssql: l10n.t(
+        "The SQL data plane is disabled. Enable mssql.sqlDataPlane.enabled (and reload) to use Query Studio connections.",
+    ),
+    connectionStoreUnavailable: l10n.t("Connection store unavailable."),
+    noSavedConnectionProfilesCreateOneWithMS: l10n.t(
+        "No saved connection profiles. Create one with 'MS SQL: Add Connection' first.",
+    ),
+    queryStudioConnectWithSavedProfile: l10n.t("Query Studio: connect with saved profile"),
+    theConnectionProfileForThisRequestNoLonger: l10n.t(
+        "The connection profile for this request no longer exists.",
+    ),
+    queryStudioCouldNotConnectValue: (value0: string) =>
+        l10n.t("Query Studio could not connect: {0}", value0),
+    retry: l10n.t("Retry"),
+    openInClassicEditor: l10n.t("Open in classic editor"),
+    thisSessionHasValueOpenTransactionSDisconnecting: (value0: string) =>
+        l10n.t(
+            "This session has {0} open transaction(s). Disconnecting will roll them back.",
+            value0,
+        ),
+    thisFileHasSQLCMDCommandsDoYouWant: l10n.t(
+        "This file has SQLCMD commands. Do you want to enable SQLCMD mode?",
+    ),
+    resultSetNotFound: l10n.t("Result set not found."),
+    noExecutionPlanResultsAreAvailableYet: l10n.t("No execution plan results are available yet."),
+    executionPlanServiceIsUnavailable: l10n.t("Execution plan service is unavailable."),
+    runQuery: l10n.t("Run Query"),
+    runAndDonTAskAgainThisSession: l10n.t("Run and Don't Ask Again This Session"),
+    youAreAboutToModifyAPRODUCTIONDatabase: l10n.t(
+        "You are about to modify a PRODUCTION database.",
+    ),
+    noLiveQueryStudioModelValue: (value0: string) =>
+        l10n.t("no live Query Studio model{0}", value0),
+    noQueryStudioDocumentIsOpen: l10n.t("No Query Studio document is open."),
+    noQueryStudioDocumentIsOpenOpenOne: l10n.t(
+        "No Query Studio document is open — open one to inspect its language service.",
+    ),
+    noQueryStudioDocumentIsOpenOpenOne2: l10n.t(
+        "No Query Studio document is open — open one to pick its SQL provider.",
+    ),
+    useWorkspaceDefault: l10n.t("Use workspace default"),
+    clearThePerDocumentOverrideValue: (value0: string) =>
+        l10n.t("clear the per-document override ({0})", value0),
+    queryStudioSQLProviderForThisDocumentNext: l10n.t(
+        "Query Studio: SQL provider for this document (next connect)",
+    ),
+    queryStudioTabActivationArgumentsMustBeAn: l10n.t(
+        "Query Studio tab activation arguments must be an object.",
+    ),
+    queryStudioTabActivationRequestedAnUnsupportedTab: l10n.t(
+        "Query Studio tab activation requested an unsupported tab.",
+    ),
+    queryStudioTabActivationURIMustBeA: l10n.t(
+        "Query Studio tab activation URI must be a non-empty string.",
+    ),
+    queryStudioInteractionArgumentsMustIncludeAnAction: l10n.t(
+        "Query Studio interaction arguments must include an action object.",
+    ),
+    queryStudioInteractionURIMustBeANon: l10n.t(
+        "Query Studio interaction URI must be a non-empty string.",
+    ),
+    queryStudioReceivedAnInvalidGridSelectionCopy: l10n.t(
+        "Query Studio received an invalid grid selection/copy action.",
+    ),
+    queryStudioInteractionRequestedAnUnsupportedScrollTarget: l10n.t(
+        "Query Studio interaction requested an unsupported scroll target.",
+    ),
+    queryStudioReceivedAnInvalidResultStackSweep: l10n.t(
+        "Query Studio received an invalid result-stack sweep action.",
+    ),
+    queryStudioReceivedAnInvalidGridScrollAction: l10n.t(
+        "Query Studio received an invalid grid scroll action.",
+    ),
+    queryStudioInteractionRequestedAnUnsupportedAction: l10n.t(
+        "Query Studio interaction requested an unsupported action.",
+    ),
+    valueRows: (value0: string) => l10n.t("{0} rows", value0),
+    pinnedResultDocumentsAreDisabledMssqlQueryResultsPinnedDocuments: l10n.t(
+        "Pinned result documents are disabled (mssql.queryResults.pinnedDocuments.enabled).",
+    ),
+    thePinnedResultsTabCouldNotBeOpened: l10n.t("The pinned results tab could not be opened."),
+    resultSetNotFoundInThisSnapshot: l10n.t("Result set not found in this snapshot."),
+    noExecutionPlanResultsAreAvailableInThis: l10n.t(
+        "No execution plan results are available in this snapshot.",
+    ),
+    valuePinnedResultTabsAreOpenEachKeeps: (value0: string) =>
+        l10n.t(
+            "{0} pinned result tabs are open. Each keeps its data and view in memory — close ones you no longer need.",
+            value0,
+        ),
+    pinnedResultsValueValueValueValue: (
+        value0: string,
+        value1: string,
+        value2: string,
+        value3: string,
+    ) => l10n.t("Pinned Results {0}.{1}.{2} {3}", value0, value1, value2, value3),
+    pinnedResultsDocument: l10n.t("Pinned results document"),
+    queryStudioLiveRun: l10n.t("Query Studio live run"),
+    untitledQuery: (name: string) => l10n.t("Untitled query ({0})", name),
+    disconnectRollBack: l10n.t("Disconnect (roll back)"),
+    notConnectedConnectFirst: l10n.t("Not connected — connect first."),
+    restartingCancelingTheRunningQueryFirst: l10n.t(
+        "Restarting — canceling the running query first.",
+    ),
+    nothingToExecute: l10n.t("Nothing to execute."),
+    confirmTheProductionWarningToRunThisQuery: l10n.t(
+        "Confirm the production warning to run this query.",
+    ),
+    totalExecutionTime0: (value0: string) => l10n.t("Total execution time: {0}", value0),
+    startedExecutingQueryAtLine0: (value0: string) =>
+        l10n.t("Started executing query at Line {0}", value0),
+    sQLCMDErrorLine01: (value0: string, value1: string) =>
+        l10n.t("SQLCMD error (Line {0}): {1}", value0, value1),
+    sQLCMDConnectTo0Failed1: (value0: string, value1: string) =>
+        l10n.t('SQLCMD :connect to "{0}" failed: {1}', value0, value1),
+    connectedTo0: (value0: string) => l10n.t("Connected to {0}.", value0),
+    readyNotConnected: l10n.t("Ready — not connected"),
+    enable: l10n.t("Enable"),
+    donTEnable: l10n.t("Don't Enable"),
+    donTShowAgainAutoEnable: l10n.t("Don't show again, auto-enable"),
+    executingQuery: l10n.t("Executing query…"),
+    cancelRequested: l10n.t("Cancel requested…"),
+    queryExecutedSuccessfully: l10n.t("Query executed successfully."),
+    completedWithErrors: l10n.t("Completed with errors."),
+    queryFailed: l10n.t("Query failed."),
+    queryWasCancelled: l10n.t("Query was cancelled."),
+    connectionLostDuringExecution: l10n.t("Connection lost during execution."),
+    connected: l10n.t("Connected."),
+    connecting: l10n.t("Connecting…"),
+    connectionLost: l10n.t("Connection lost."),
+    couldNotReconnectToDatabase0: (value0: string) =>
+        l10n.t('Could not reconnect to database "{0}".', value0),
+    couldNotSwitchToDatabase0USEFailed: (value0: string) =>
+        l10n.t('Could not switch to database "{0}" (USE failed).', value0),
 };

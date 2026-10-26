@@ -33,7 +33,8 @@ import {
     SqlLanguageFeatureEngine,
     SqlLanguageRequest,
 } from "../api";
-import { LexResult, TokenKind, lex, tokenIndexAt } from "../core/lexer";
+import { LexResult, lex } from "../core/lexer";
+import { completionLexicalSuppressionAt } from "../core/completionLexicalContext";
 import { SegmentResult, StatementSegment, segment } from "../core/segmenter";
 import { TextSnapshot } from "../core/text/textSnapshot";
 import { IPinnedMetadataView, ISqlLanguageMetadataProvider } from "../provider/types";
@@ -279,10 +280,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 });
                 return Promise.resolve(emptyCompletionResult());
             }
-            const lexicalSuppression = completionLexicalSuppressionAt(
-                analysis.lexed,
-                Math.max(0, offset - 1),
-            );
+            const lexicalSuppression = completionLexicalSuppressionAt(analysis.lexed, offset);
             if (lexicalSuppression !== undefined) {
                 span.end("ok", {
                     contextKind: { raw: "none", cls: "diagnostic.metadata" },
@@ -922,25 +920,6 @@ function formatCounts<T extends string>(counts: ReadonlyMap<T, number>): string 
 
 function emptyCompletionResult(): CompletionResult {
     return { items: [], isIncomplete: false };
-}
-
-/** Suppress completion inside lexical regions even when no statement owns the caret. */
-function completionLexicalSuppressionAt(
-    lexed: LexResult,
-    offset: number,
-): "comment" | "string" | "sqlcmd" | undefined {
-    const token = lexed.tokens[tokenIndexAt(lexed.tokens, offset)];
-    switch (token?.kind) {
-        case TokenKind.LineComment:
-        case TokenKind.BlockComment:
-            return "comment";
-        case TokenKind.StringLiteral:
-            return "string";
-        case TokenKind.SqlCmdDirective:
-            return "sqlcmd";
-        default:
-            return undefined;
-    }
 }
 
 function shouldSuppressAutomaticWhitespaceCompletion(req: CompletionRequest): boolean {

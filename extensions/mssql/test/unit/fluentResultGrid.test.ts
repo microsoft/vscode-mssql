@@ -20,12 +20,14 @@ import {
     normalizeFluentResultGridSelectedFilterValues,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridTransforms";
 import {
+    applyFluentResultGridColumnWidths,
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
     areFluentResultGridColumnLayoutsEqual,
     getFluentResultGridCurrentViewState,
     getFluentResultGridInitialFrozenColumnIndex,
     getFluentResultGridStateForEmit,
     normalizeFluentResultGridFrozenColumnIndex,
+    shouldApplyFluentResultGridFrozenOptions,
     restoreFluentResultGridColumnWidths,
     restoreFluentResultGridVerticalScrollPosition,
     stabilizeFluentResultGridColumnInfo,
@@ -40,9 +42,15 @@ import {
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridKeyboard";
 import type { SourceRow } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridControllerTypes";
 import {
+    isFluentResultGridResizeHandleEvent,
+    updateFluentResultGridHeaderButtonState,
+    updateFluentResultGridHeaderButtonStates,
+} from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridHeaderController";
+import {
     activateFluentResultGridCellWithoutChangingSelection,
     clearFluentResultGridSelection,
     convertDisplayedSelectionRowsToActual,
+    countFluentResultGridSelectedRows,
     getDisplayedFluentResultGridSelectionForCopy,
     getFirstVisibleCellInFluentResultGridRange,
     getFluentResultGridDataColumnIndex,
@@ -57,10 +65,16 @@ import {
     getFluentResultGridSlickRangesFromDataSelections,
     handleFluentResultGridRowDoubleClick,
     insertFluentResultGridSelectionRange,
+    isFluentResultGridAllCellsSelected,
     setFluentResultGridSelection,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSelection";
 import { SlickEvent, SlickEventData, SlickRange } from "@slickgrid-universal/common";
 import type { SlickGrid } from "slickgrid-react";
+import { resolveFluentResultGridColumnWindow } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridColumnWindow";
+import {
+    createFluentResultGridDataRow,
+    createFluentResultGridDataView,
+} from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridDataView";
 import {
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
@@ -73,13 +87,8 @@ import {
     autoSizeFluentResultGridColumnByContent,
     getFluentResultGridColumnResizeDoubleClickTarget,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridColumnAutosize";
-import {
-    isFluentResultGridResizeHandleEvent,
-    updateFluentResultGridHeaderButtonStates,
-} from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridHeaderController";
 import { FluentResultGridSelectionModel } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSelectionModel";
 import { dispatchFluentResultGridSelectionChange } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSlickLifecycle";
-import { createFluentResultGridDataView } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridDataView";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -161,6 +170,364 @@ suite("Fluent Result Grid", () => {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    test("preserves host document language metadata in materialized cells", () => {
+        const row = createFluentResultGridDataRow(
+            [{ displayValue: "{ preview…", isNull: false, languageId: "json" }],
+            7,
+            1,
+        );
+        expect(row["0"]).to.include({ rowId: 7, languageId: "json" });
+    });
+
+    suite("column windows", () => {
+        const wideColumns = [
+            { field: "_row", width: 48 },
+            ...Array.from({ length: 300 }, (_value, index) => ({
+                field: index.toString(),
+                width: 100,
+            })),
+        ];
+
+        test("projects the visible source columns with a reusable overscan band", () => {
+            const first = resolveFluentResultGridColumnWindow({
+                columns: wideColumns,
+                sourceColumnCount: 300,
+                viewport: { leftPx: 0, rightPx: 648 },
+                options: { minimumColumnCount: 64, overscanColumnCount: 8 },
+            });
+            expect(first).to.deep.equal({ start: 0, count: 14 });
+
+            const reused = resolveFluentResultGridColumnWindow({
+                columns: wideColumns,
+                sourceColumnCount: 300,
+                viewport: { leftPx: 400, rightPx: 700 },
+                options: { minimumColumnCount: 64, overscanColumnCount: 8 },
+                currentWindow: first,
+            });
+            expect(reused).to.equal(first);
+
+            const end = resolveFluentResultGridColumnWindow({
+                columns: wideColumns,
+                sourceColumnCount: 300,
+                viewport: { leftPx: 29_448, rightPx: 30_048 },
+                options: { minimumColumnCount: 64, overscanColumnCount: 8 },
+                currentWindow: first,
+            });
+            expect(end).to.deep.equal({ start: 286, count: 14 });
+        });
+
+        test("falls back to full rows when frozen or active dependencies span the schema", () => {
+            expect(
+                resolveFluentResultGridColumnWindow({
+                    columns: wideColumns,
+                    sourceColumnCount: 300,
+                    viewport: { leftPx: 29_448, rightPx: 30_048 },
+                    frozenColumnIndex: 1,
+                    options: { minimumColumnCount: 64, overscanColumnCount: 8 },
+                }),
+            ).to.equal(undefined);
+
+            expect(
+                resolveFluentResultGridColumnWindow({
+                    columns: wideColumns,
+                    sourceColumnCount: 300,
+                    viewport: { leftPx: 0, rightPx: 648 },
+                    activeCellIndex: 300,
+                    options: { minimumColumnCount: 64, overscanColumnCount: 8 },
+                }),
+            ).to.equal(undefined);
+        });
+
+        test("keeps narrow schemas on the full-row path", () => {
+            expect(
+                resolveFluentResultGridColumnWindow({
+                    columns: wideColumns.slice(0, 33),
+                    sourceColumnCount: 32,
+                    viewport: { leftPx: 0, rightPx: 648 },
+                    options: { minimumColumnCount: 64 },
+                }),
+            ).to.equal(undefined);
+        });
+
+        test("uses projection only for viewport reads and preserves full-row reads", async () => {
+            const testGlobal = globalThis as unknown as {
+                requestAnimationFrame?: (callback: FrameRequestCallback) => number;
+                cancelAnimationFrame?: (handle: number) => void;
+            };
+            const previousRequestAnimationFrame = testGlobal.requestAnimationFrame;
+            const previousCancelAnimationFrame = testGlobal.cancelAnimationFrame;
+            testGlobal.requestAnimationFrame = () => 1;
+            testGlobal.cancelAnimationFrame = () => undefined;
+            const requests: Array<{
+                offset: number;
+                count: number;
+                start?: number;
+                columns?: number;
+                purpose?: "viewport" | "authoritative";
+            }> = [];
+            const dataView = createFluentResultGridDataView({
+                columnCount: 300,
+                windowSize: 10,
+                dataSource: {
+                    kind: "windowed",
+                    rowCount: 100,
+                    columnWindowing: { minimumColumnCount: 64, overscanColumnCount: 8 },
+                    getRows: (offset, count, columnWindow, readPurpose) => {
+                        requests.push({
+                            offset,
+                            count,
+                            start: columnWindow?.start,
+                            columns: columnWindow?.count,
+                            purpose: readPurpose,
+                        });
+                        return Array.from({ length: count }, () => []);
+                    },
+                },
+            });
+            dataView.setLength(100, true);
+            dataView.refresh(0);
+            // SlickGrid probes rows synchronously in its constructor, before
+            // the data view receives the grid and can resolve column pixels.
+            expect(dataView.getItem(0)).to.not.equal(undefined);
+            expect(requests).to.deep.equal([]);
+            let viewport = { top: 0, bottom: 5, leftPx: 0, rightPx: 648 };
+            const grid = {
+                onViewportChanged: new SlickEvent(),
+                onScroll: new SlickEvent(),
+                onColumnsResized: new SlickEvent(),
+                onColumnsReordered: new SlickEvent(),
+                getViewport: () => viewport,
+                getColumns: () => wideColumns,
+                getOptions: () => ({ frozenColumn: -1 }),
+                getActiveCell: () => undefined,
+                invalidateAllRows: () => undefined,
+                invalidateRows: () => undefined,
+                updateRowCount: () => undefined,
+                render: () => undefined,
+            } as unknown as SlickGrid;
+
+            dataView.setGrid(grid);
+            await Promise.resolve();
+            expect(requests.length).to.be.greaterThan(0);
+            expect(
+                requests.every(
+                    (request) =>
+                        request.start === 0 &&
+                        request.columns === 14 &&
+                        request.purpose === "viewport",
+                ),
+            ).to.equal(true);
+
+            dataView.setLength(100, true);
+            dataView.refresh(0);
+            await Promise.resolve();
+            expect(
+                requests.every(
+                    (request) => request.start !== undefined && request.purpose === "viewport",
+                ),
+            ).to.equal(true);
+
+            viewport = { top: 0, bottom: 5, leftPx: 29_448, rightPx: 30_048 };
+            dataView.ensureViewportLoaded();
+            await Promise.resolve();
+            expect(
+                requests.some((request) => request.start === 286 && request.columns === 14),
+            ).to.equal(true);
+
+            await dataView.getRangeAsync(0, 1);
+            expect(requests.at(-1)).to.deep.equal({
+                offset: 0,
+                count: 1,
+                start: undefined,
+                columns: undefined,
+                purpose: "authoritative",
+            });
+            dataView.dispose();
+            if (previousRequestAnimationFrame) {
+                testGlobal.requestAnimationFrame = previousRequestAnimationFrame;
+            } else {
+                delete testGlobal.requestAnimationFrame;
+            }
+            if (previousCancelAnimationFrame) {
+                testGlobal.cancelAnimationFrame = previousCancelAnimationFrame;
+            } else {
+                delete testGlobal.cancelAnimationFrame;
+            }
+        });
+
+        test("fetches only the appended suffix when a streaming viewport grows", async () => {
+            const requests: Array<{ offset: number; count: number }> = [];
+            const dataView = createFluentResultGridDataView({
+                columnCount: 1,
+                windowSize: 50,
+                dataSource: {
+                    kind: "windowed",
+                    rowCount: 1,
+                    getRows: (offset, count) => {
+                        requests.push({ offset, count });
+                        return Array.from({ length: count }, (_value, index) => [
+                            cell(`row-${offset + index}`),
+                        ]);
+                    },
+                },
+            });
+
+            dataView.refresh(0);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(requests).to.deep.equal([{ offset: 0, count: 1 }]);
+
+            dataView.setLength(2);
+            dataView.getItem(1);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(requests).to.deep.equal([
+                { offset: 0, count: 1 },
+                { offset: 1, count: 1 },
+            ]);
+            expect(dataView.getLoadedRange(0, 2).map((row) => row.id)).to.deep.equal([0, 1]);
+
+            // A real identity reset still invalidates and reloads the full
+            // current window; suffix reuse is only for immutable growth.
+            dataView.setLength(2, true);
+            dataView.refresh(0);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(requests.at(-1)).to.deep.equal({ offset: 0, count: 2 });
+            dataView.dispose();
+        });
+
+        test("streaming row growth defers updateRowCount while the viewport scrolls", async () => {
+            // SlickGrid's updateRowCount() reaches scrollTo(), which writes
+            // the viewport scrollTop when the page/offset mapping shifts —
+            // mid-drag that teleports the scrollbar thumb (block jumps,
+            // sometimes against the drag direction). Streaming growth must
+            // wait for a scroll-quiet window.
+            const testGlobal = globalThis as unknown as Record<string, unknown>;
+            const previousRequestAnimationFrame = testGlobal.requestAnimationFrame;
+            const previousCancelAnimationFrame = testGlobal.cancelAnimationFrame;
+            testGlobal.requestAnimationFrame = () => 1;
+            testGlobal.cancelAnimationFrame = () => undefined;
+            let updateRowCountCalls = 0;
+            const dataView = createFluentResultGridDataView({
+                columnCount: 1,
+                dataSource: {
+                    kind: "windowed",
+                    rowCount: 1,
+                    getRows: (offset, count) =>
+                        Array.from({ length: count }, (_value, index) => [
+                            cell(`row-${offset + index}`),
+                        ]),
+                },
+            });
+            const onScroll = new SlickEvent();
+            const grid = {
+                onViewportChanged: new SlickEvent(),
+                onScroll,
+                onColumnsResized: new SlickEvent(),
+                onColumnsReordered: new SlickEvent(),
+                getViewport: () => ({ top: 0, bottom: 5, leftPx: 0, rightPx: 100 }),
+                getColumns: () => [],
+                getOptions: () => ({ frozenColumn: -1 }),
+                getActiveCell: () => undefined,
+                invalidateAllRows: () => undefined,
+                invalidateRows: () => undefined,
+                updateRowCount: () => {
+                    updateRowCountCalls++;
+                },
+                render: () => undefined,
+            } as unknown as SlickGrid;
+            dataView.setGrid(grid);
+
+            // Quiet viewport: row growth relayouts immediately.
+            dataView.setLength(5);
+            expect(updateRowCountCalls).to.equal(1);
+
+            // Scrolling viewport: growth arriving mid-scroll is deferred…
+            onScroll.notify({} as never);
+            dataView.setLength(10);
+            expect(updateRowCountCalls).to.equal(1);
+
+            // …and flushes once the viewport has been quiet long enough.
+            await new Promise<void>((resolve) => setTimeout(resolve, 450));
+            expect(updateRowCountCalls).to.equal(2);
+            dataView.dispose();
+            if (previousRequestAnimationFrame) {
+                testGlobal.requestAnimationFrame = previousRequestAnimationFrame;
+            } else {
+                delete testGlobal.requestAnimationFrame;
+            }
+            if (previousCancelAnimationFrame) {
+                testGlobal.cancelAnimationFrame = previousCancelAnimationFrame;
+            } else {
+                delete testGlobal.cancelAnimationFrame;
+            }
+        });
+
+        test("retries an incomplete window instead of treating placeholders as loaded", async () => {
+            let requests = 0;
+            const dataView = createFluentResultGridDataView({
+                columnCount: 1,
+                dataSource: {
+                    kind: "windowed",
+                    rowCount: 1,
+                    getRows: () => {
+                        requests++;
+                        return requests === 1 ? [] : [[cell("recovered")]];
+                    },
+                },
+            });
+
+            dataView.refresh(0);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(dataView.getLoadedRange(0, 1)).to.deep.equal([]);
+
+            dataView.getItem(0);
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(requests).to.equal(2);
+            expect(dataView.getLoadedRange(0, 1)).to.have.length(1);
+            dataView.dispose();
+        });
+    });
+
+    suite("header state", () => {
+        test("updates only the supplied header's filter and sort buttons", () => {
+            const filterClasses = new Set<string>();
+            const sortClasses = new Set<string>(["sorted-desc"]);
+            const classList = (classes: Set<string>) =>
+                ({
+                    add: (...tokens: string[]) => tokens.forEach((token) => classes.add(token)),
+                    remove: (...tokens: string[]) =>
+                        tokens.forEach((token) => classes.delete(token)),
+                    toggle: (token: string, force?: boolean) => {
+                        const enabled = force ?? !classes.has(token);
+                        if (enabled) {
+                            classes.add(token);
+                        } else {
+                            classes.delete(token);
+                        }
+                        return enabled;
+                    },
+                }) as DOMTokenList;
+            const filterButton = { classList: classList(filterClasses) } as HTMLButtonElement;
+            const sortButton = { classList: classList(sortClasses) } as HTMLButtonElement;
+            const headerNode = {
+                setAttribute: (_name: string, _value: string) => undefined,
+                querySelector: (selector: string) =>
+                    selector === ".slick-header-filterbutton" ? filterButton : sortButton,
+            } as unknown as HTMLElement;
+
+            updateFluentResultGridHeaderButtonState({
+                headerNode,
+                columnId: "299",
+                filters: {
+                    "299": { columnDef: "299", filterValues: ["active"] },
+                },
+                sort: { columnId: "299", direction: SortProperties.ASC },
+            });
+
+            expect([...filterClasses]).to.deep.equal(["filtered"]);
+            expect([...sortClasses]).to.deep.equal(["sorted-asc"]);
+        });
     });
 
     suite("columns", () => {
@@ -560,6 +927,70 @@ suite("Fluent Result Grid", () => {
     });
 
     suite("state helpers", () => {
+        test("counts large overlapping row selections without row expansion", () => {
+            expect(
+                countFluentResultGridSelectedRows([
+                    { fromRow: 0, toRow: 99_999_999, fromCell: 0, toCell: 0 },
+                    { fromRow: 25, toRow: 50, fromCell: 3, toCell: 5 },
+                    { fromRow: 100_000_001, toRow: 100_000_005, fromCell: 1, toCell: 1 },
+                    { fromRow: 100_000_000, toRow: 100_000_000, fromCell: 2, toCell: 2 },
+                    { fromRow: 9, toRow: 8, fromCell: 0, toCell: 0 },
+                ]),
+            ).to.equal(100_000_006);
+        });
+
+        test("recognizes an already-restored full-grid selection", () => {
+            expect(
+                isFluentResultGridAllCellsSelected([new SlickRange(0, 1, 99_999, 4)], 100_000, 5),
+            ).to.equal(true);
+            expect(
+                isFluentResultGridAllCellsSelected([new SlickRange(0, 1, 99_998, 4)], 100_000, 5),
+            ).to.equal(false);
+            expect(isFluentResultGridAllCellsSelected([], 100_000, 5)).to.equal(false);
+        });
+
+        test("applies autosize widths without replacing column identities", () => {
+            const columns = [
+                { id: "0", width: 100 },
+                { id: "1", width: 100, rerenderOnResize: true },
+                { id: "2", width: 80 },
+            ] as unknown as Parameters<typeof applyFluentResultGridColumnWidths>[0];
+
+            expect(applyFluentResultGridColumnWidths(columns, [100, 140, 90])).to.deep.equal({
+                changed: true,
+                rerender: true,
+            });
+            expect(columns.map((column) => column.width)).to.deep.equal([100, 140, 90]);
+            expect(applyFluentResultGridColumnWidths(columns, [100, 140, 90])).to.deep.equal({
+                changed: false,
+                rerender: false,
+            });
+        });
+
+        test("skips an already-applied initial frozen-column configuration", () => {
+            expect(
+                shouldApplyFluentResultGridFrozenOptions(
+                    {
+                        alwaysShowVerticalScroll: false,
+                        enableMouseWheelScrollHandler: false,
+                        frozenColumn: -1,
+                        skipFreezeColumnValidation: true,
+                    },
+                    -1,
+                ),
+            ).to.equal(false);
+            expect(
+                shouldApplyFluentResultGridFrozenOptions(
+                    {
+                        alwaysShowVerticalScroll: false,
+                        enableMouseWheelScrollHandler: false,
+                        frozenColumn: -1,
+                        skipFreezeColumnValidation: true,
+                    },
+                    4,
+                ),
+            ).to.equal(true);
+        });
         test("compares the column layout fields that require a SlickGrid reset", () => {
             const columns = [
                 { id: "rowNumbers", field: "rowNumbers", width: 36 },

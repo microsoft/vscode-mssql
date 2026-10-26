@@ -138,6 +138,50 @@ suite("Perf run import", () => {
         expect(bounded.refusedReason).to.equal(undefined);
     });
 
+    test("imports regular files beneath a linked ancestor of the source directory", () => {
+        // macOS temp paths can traverse /var -> /private/var before reaching
+        // the source directory. A junction reproduces that layout on Windows.
+        const source = path.join(root, "source");
+        const repDir = path.join(source, "rep-00");
+        fs.mkdirSync(repDir, { recursive: true });
+        const line = marker("mssql.query.submit", 1000000);
+        fs.writeFileSync(path.join(repDir, "markers.jsonl"), line);
+        const alias = path.join(root, "alias");
+        fs.symlinkSync(source, alias, "junction");
+        const aliasedRep = path.join(alias, "rep-00");
+
+        expect(readJsonlBounded(path.join(aliasedRep, "markers.jsonl")).lines).to.deep.equal([
+            line,
+        ]);
+        expect(importPerfRep(aliasedRep, "rep").map((event) => event.type)).to.deep.equal([
+            "mssql.query.submit",
+        ]);
+    });
+
+    test("importPerfRep refuses linked artifact directories inside the source", () => {
+        const repDir = path.join(root, "rep-00");
+        const external = path.join(root, "external");
+        fs.mkdirSync(repDir);
+        fs.mkdirSync(path.join(external, "sql"), { recursive: true });
+        fs.writeFileSync(path.join(repDir, "markers.jsonl"), marker("mssql.query.submit", 1000000));
+        fs.writeFileSync(
+            path.join(external, "sql", "sql-activity.jsonl"),
+            JSON.stringify({
+                event_name: "sql_batch_completed",
+                ts_utc: "2026-07-01T00:00:00.000Z",
+                duration_us: 1000,
+                cpu_time_us: 1000,
+                logical_reads: 1,
+                row_count: 1,
+            }),
+        );
+        fs.symlinkSync(external, path.join(repDir, "artifacts"), "junction");
+
+        expect(importPerfRep(repDir, "rep").map((event) => event.type)).to.deep.equal([
+            "mssql.query.submit",
+        ]);
+    });
+
     test("readJsonlBounded refuses a whole file over the size cap without reading it", () => {
         const file = path.join(root, "big.jsonl");
         fs.writeFileSync(file, "x".repeat(2048), "utf8");
