@@ -43,6 +43,84 @@ export class SqlToolsMcp {
     public static serverLabel = l10n.t("SQL Tools (MSSQL)");
 }
 
+export class LocalToCloud {
+    public static sourceUnavailable = l10n.t(
+        "The selected local database is no longer connected. Return to Source and reconnect.",
+    );
+    public static extractionFailed = l10n.t("The local database schema could not be extracted.");
+    public static buildFailed = l10n.t(
+        "The Azure SQL compatibility build failed. See the validation details for diagnostics.",
+    );
+    public static packageMissing = l10n.t(
+        "The compatibility build did not produce a valid schema package.",
+    );
+    public static validationTimedOut = l10n.t(
+        "Azure SQL compatibility validation timed out. Retry the check.",
+    );
+    public static invalidRequest = l10n.t(
+        "The compatibility request is invalid or the wizard has been closed.",
+    );
+    public static validationExpired = l10n.t(
+        "The validated schema package is no longer available. Run compatibility validation again.",
+    );
+    public static invalidDeployment = l10n.t(
+        "The deployment request is invalid, another deployment is running, or the wizard has been closed.",
+    );
+    public static invalidAzureSettings = l10n.t(
+        "Review the Azure settings, credentials, and tags before deploying. A sample database cannot be used as a migration target.",
+    );
+    public static deploymentAuthenticationFailed = l10n.t(
+        "Unable to authenticate to the selected Azure subscription.",
+    );
+    public static targetDatabaseExists = l10n.t(
+        "The target database already exists. Choose a new database name; existing databases will not be overwritten.",
+    );
+    public static sourceChanged = l10n.t(
+        "The source changed since validation or during export. Pause writes and schema changes, then run compatibility validation again.",
+    );
+    public static sourceTooLarge = l10n.t(
+        "The source uses more than the Azure SQL free offer's 32 GB data capacity.",
+    );
+    public static deploymentConnectionFailed = l10n.t(
+        "Unable to connect to the Azure SQL database. Review the credentials, server networking, and firewall settings.",
+    );
+    public static deploymentPortalFailed = l10n.t("Unable to open the Azure portal.");
+    public static deploymentOperationFailed = l10n.t(
+        "The SQL package operation failed. See the MSSQL output for details.",
+    );
+    public static deploymentVerificationFailed = l10n.t(
+        "Deployment verification failed: the expected schema objects or table row counts do not match.",
+    );
+    public static deploymentProfileFailed = l10n.t(
+        "The database was deployed, but its connection could not be saved and connected in Object Explorer.",
+    );
+    public static deploymentQueryFailed = l10n.t(
+        "Unable to read the database metadata required for deployment verification.",
+    );
+    public static deploymentCancelled = l10n.t("Deployment cancelled.");
+    public static deploymentSucceeded = l10n.t("Azure SQL database deployment completed.");
+    public static deploymentCleanupFailed = l10n.t(
+        "Unable to remove temporary deployment packages. They may contain source data. See the MSSQL output.",
+    );
+    public static deploymentStages = {
+        authenticating: l10n.t("Authenticating to Azure"),
+        validatingSettings: l10n.t("Validating Azure resources and the schema package"),
+        exportingData: l10n.t("Exporting source schema and data to a BACPAC"),
+        creatingDatabase: l10n.t("Creating the Azure SQL database"),
+        connecting: l10n.t("Connecting to Azure SQL"),
+        publishingSchema: l10n.t("Publishing the validated schema"),
+        importingData: l10n.t("Importing schema and data"),
+        verifying: l10n.t("Verifying the deployed database"),
+        savingConnection: l10n.t("Connecting to Azure SQL"),
+    };
+    public static modelMissing = l10n.t(
+        "The schema package does not contain a valid database model.",
+    );
+    public static buildOutputTooLarge = l10n.t(
+        "The compatibility build produced too much output. See the Azure SQL compatibility output channel.",
+    );
+}
+
 export class LegacyProjectExtensionWarning {
     public static message = l10n.t(
         "Data Workspace and SQL Database Projects functionality is now included in the SQL Server (mssql) extension. Uninstall Data Workspace 0.7.0 or earlier and SQL Database Projects 1.8.0 or earlier to avoid duplicated user interface elements.",

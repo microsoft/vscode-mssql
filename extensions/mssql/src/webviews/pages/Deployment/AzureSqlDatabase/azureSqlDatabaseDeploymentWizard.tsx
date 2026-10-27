@@ -31,7 +31,7 @@ export function hasDuplicateTagKeys(tags: TagEntry[]): boolean {
     return new Set(keys).size !== keys.length;
 }
 
-function isAzureSqlFormValid(
+export function isAzureSqlFormValid(
     loadState: ApiStatus,
     formState: AzureSqlDatabaseFormState | undefined,
     formComponents:

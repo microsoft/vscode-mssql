@@ -25,6 +25,116 @@ npm run package -- --target mssql --offline
 
 See the [root README](../../README.md) for shared monorepo commands and other workspace targets.
 
+## Local-to-Cloud Deployment Wizard
+
+Enable `mssql.preview.azureSqlContainers`, then open **MS SQL: New Deployment** >
+**Create an Azure SQL Database** > **Deploy a local database**.
+The Source page lists saved, recent, and active connections to localhost or loopback addresses
+that specify a database. Cards show the database name above the connection name and server address;
+server-level connections without a selected database are excluded.
+Search matches the database, connection profile name, or server; refresh reloads connections.
+The list is virtualized and supports Arrow Up/Down and Home/End navigation.
+Selecting a database opens its connection details and schema/data options; **Change** returns to
+the search results. Selecting a disconnected database connects using its saved profile and retrieves
+the SQL Server version; an existing active connection is reused. Failed attempts show an unavailable
+version and a red **Not connected** status. SQL Server versions display the release year extracted
+from `SELECT @@VERSION AS version;` (for example, 2025). Azure SQL Database containers (engine
+edition ID `-978196525`) display **SQL Azure** and retain their reported build version.
+The wizard header and step indicator remain visible while the content scrolls.
+Source, Compatibility, Azure, Review, and Deploy are implemented. Continue opens Compatibility after the selected source
+connects successfully. The check extracts schema scripts into an extension-owned temporary
+SDK-style SQL project, builds it against `SqlAzureV12`, and displays real errors, warnings, and
+model-object counts. It requires .NET SDK 8 or later and may restore Microsoft.Build.Sql from NuGet.
+The loading card follows backend progress through schema capture, Azure-targeted build/validation,
+and package verification; completed steps show checkmarks and pending steps remain dimmed.
+Passed and warning results offer a **Show/Hide validation details** link. The separate neutral
+details card shows the source, actual DACPAC filename, Azure SQL target, object count, reference
+status, and **Open output**. The final **SQL Code Analysis** row summarizes the compatibility result
+as **Compatible** or the actual warning count; it does not run a separate SQL code-analysis pass.
+The details card has a subtly contrasting neutral background.
+Passed, warning, and details cards use a compact 640px maximum width
+and 16px padding. The database name in result descriptions uses the SQL editor font.
+Warning cards show the actual warning count and diagnostics immediately in a yellow-tinted,
+virtualized table with warning code, warning text, issue, and source file/line columns.
+Like the error table, it supports column resizing/reordering and bounded internal scrolling.
+Both diagnostics tables offer right-click actions to copy a value or selection, copy headers
+or values with headers, select all, and export all rows to CSV or JSON through a save dialog.
+Copy and export follow the current column order. Ctrl/Cmd+C copies the selection, and Ctrl/Cmd+A
+selects the whole table. CSV preserves multiline diagnostics and escapes spreadsheet formulas.
+Expanding validation details shows metadata without duplicating the diagnostics.
+The retained package is named `<database>.dacpac`, escaping invalid filename characters with the
+existing platform filename helper. Filename validation or renaming failures are surfaced as errors.
+Blocking results show SQL diagnostics directly in a virtualized, scrollable table with error code,
+error text, issue type, and source file/line columns, with actions to open
+the shared MSSQL output channel or rerun the check. The compact FluentSlickGrid has an opaque
+red-tinted header and rows, resizable/reorderable columns, and internal scrolling without expanding
+the card. Error cards use a narrower, compact layout. Short results fit their rows, columns fill
+unused width, and the table stays beneath the sticky wizard header when the page scrolls.
+Column widths are managed without SlickGrid's automatic
+column fitting so scrollbar and height changes do not resize columns again.
+Compatibility does not create a separate
+output channel. Its extraction creates no Tasks-panel entry or completion toast.
+Back, retry, cancellation, and closing the wizard invalidate or clean up the appropriate artifacts.
+The successful schema package is retained only while its validation remains current.
+Passed and warning results enable **Continue to Azure**, which opens the same form as the free
+Azure SQL Database deployment flow, including advanced options and tags. Opening it initializes
+the Azure form and loads its selectors; it does not start deployment.
+Previous returns to Compatibility without rerunning validation or discarding its retained package.
+Reopening the Azure step preserves form values and tags.
+The Azure form's **Next** opens Review after the same required-field/authentication and duplicate-tag
+checks used by the free database wizard. Review shows the real source/target names, deployment
+content, validated object count, compatibility warnings, free-limit behavior, and Azure destination.
+**View object list** opens a searchable, virtualized list of names from the validated DACPAC model.
+No row-count or data-size estimates are currently collected or fabricated.
+Previous returns to the Azure form without losing its settings, tags, or validation.
+**Create and Deploy** provisions a new free-offer database on the selected existing logical server.
+Schema-only publishes a private copy of the exact validated DACPAC. Schema and data exports a
+BACPAC and imports it into the newly created, empty database, without publishing schema first.
+Review has no data-export notice, acknowledgment checkbox, or additional deployment gate.
+Export is not live replication; matching row counts do not prove transactional
+consistency if writes continue. Sources using more than 32 GB of data-file space are rejected.
+Deploy uses real operation stages, verifies named schema objects and (for data migration) exact
+table row counts, then saves and connects the target profile. Success appears only after these finish.
+Existing target databases and nonempty targets are rejected. No logical server is created in Deploy.
+After success, **Copy connection string** copies a password-free connection string and **Open in
+Azure portal** opens the deployed database in the configured Azure cloud. **Download deployment
+scripts** previews ARM, Bicep, or Terraform templates and offers download or save-to-workspace.
+Templates use the captured deployment settings and existing server, including region and tags;
+they recreate infrastructure only, not schema or data. Terraform uses the AzAPI provider to
+preserve the free-offer settings.
+Cancellation is cooperative; ARM operations may still complete remotely. Created Azure resources,
+including any narrow client-IP firewall rule, are never automatically deleted after cancellation or
+failure. Inspect the target and use a new database name before retrying.
+Temporary deployment packages are independent of Compatibility cleanup and removed after operations
+settle; the original validation package remains available for navigation/retry.
+See [AzureLocalToCloud.md](AzureLocalToCloud.md) for the endpoint inventory and limits.
+
+The focused compatibility tests include an opt-in real SQL project build. From this extension's
+directory, with the .NET SDK installed, run:
+
+```powershell
+npm run build:extension:emit
+$env:MSSQL_COMPATIBILITY_BUILD_INTEGRATION = "1"
+npx vscode-test --code-version stable --run out\test\unit\localDatabaseCompatibility.test.js --reporter spec
+Remove-Item Env:\MSSQL_COMPATIBILITY_BUILD_INTEGRATION
+```
+
+The integration case builds a supported table into an Azure-targeted DACPAC and verifies that
+FILESTREAM is rejected with an actual DacFx diagnostic. It does not require an Azure account or
+a running SQL Server; extraction/cancellation orchestration is covered by the focused unit cases.
+Deployment orchestration, both package modes, verification failures, and cancellation have focused
+tests in `test/unit/localDatabaseDeployment.test.ts`. These stub Azure/STS calls and do not constitute
+a live Azure deployment test.
+
+Local-to-cloud telemetry uses the `LocalToCloudDeployment` view. It records wizard open/close
+and visited steps; compatibility start, stages, outcome, duration, and diagnostic/object counts;
+deployment start, stage outcomes/durations, final outcome, and verified object count; and
+connection-string copy/portal action outcomes. Cancellation is an outcome, not an error.
+Final outcomes include cleanup failures and repeated deployment IDs do not emit duplicate attempts.
+Payloads contain only fixed categories, modes, booleans, counts, and timings: no connection,
+database, server, Azure resource or account identifiers, tags, paths, SQL, diagnostics, raw error
+messages, credentials, or connection strings. Existing telemetry opt-out behavior applies.
+
 ## SQL Tools Service (STS)
 
 ### Using locally built binaries (for debugging/testing)
