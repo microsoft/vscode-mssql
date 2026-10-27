@@ -3889,7 +3889,7 @@ export class LocConstants {
                     comment: ["{0} is the database being deployed"],
                 }),
             deploymentDescription: l10n.t(
-                "Your local database will not be modified. Keep this wizard open until deployment completes.",
+                "Your local database will not be modified. Deployment continues in Background Tasks if you close this wizard.",
             ),
             deploymentStageLabels: {
                 authenticating: l10n.t("Authenticate to Azure"),

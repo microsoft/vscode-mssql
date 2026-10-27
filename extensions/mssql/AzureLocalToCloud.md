@@ -271,8 +271,14 @@ include migrated schema or data. Terraform uses AzAPI to retain free-offer setti
 requiring an undeclared server resource.
 
 `deployment/localDatabaseDeploymentProgress` reports actual stages and completed stages;
-`deployment/cancelLocalDatabaseDeployment` cancels only the matching wizard operation.
-Wizard-owned DacFx tasks suppress duplicate task UI while preserving events and writing task
+`deployment/cancelLocalDatabaseDeployment` cancels only the matching deployment.
+Deploy registers **Deploying \<database\> to Azure** in Background Tasks. The task reports real
+stages and its final outcome, supports explicit cancellation, and opens the MSSQL output.
+Closing the wizard detaches its UI without cancelling the operation. Compatibility artifacts
+remain available until the deployment settles, including if the wizard closes before the private
+package copy is created; stale validation cleanup requests cannot invalidate a running deployment.
+The operation requires the extension host to remain running.
+Deployment-owned DacFx tasks suppress duplicate task UI while preserving events and writing task
 messages to the shared MSSQL output. Temporary package files are removed after in-flight operations
 settle, and private source/target probe connections are disconnected. The saved Object Explorer
 connection remains connected after success.

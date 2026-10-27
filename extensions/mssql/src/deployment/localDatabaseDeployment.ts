@@ -11,6 +11,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { env, Uri, type OutputChannel } from "vscode";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
 import type { DacFxResult, SimpleExecuteResult } from "vscode-mssql";
 import { RequestType } from "vscode-languageclient";
 import { KnownAlwaysEncryptedEnclaveType } from "@azure/arm-sql";
@@ -167,6 +168,9 @@ export class LocalDatabaseDeploymentService {
             if (operation.targetKey) {
                 LocalDatabaseDeploymentService.activeTargets.delete(operation.targetKey);
             }
+            if (this.disposed) {
+                this.disposeResources();
+            }
         });
         this.results.set(request.deploymentId, operation.promise);
         return operation.promise;
@@ -180,10 +184,25 @@ export class LocalDatabaseDeploymentService {
         }
     }
 
+    public get isRunning(): boolean {
+        return this.running !== undefined;
+    }
+
     public dispose(): void {
+        if (this.disposed) {
+            return;
+        }
         this.disposed = true;
-        this.running?.abort.abort();
+        // Closing the wizard detaches its deployment; only explicit cancellation stops it.
+        if (!this.running) {
+            this.disposeResources();
+        }
+    }
+
+    private disposeResources(): void {
+        this.compatibility.dispose();
         this.destinations.clear();
+        this.results.clear();
     }
 
     public async performAction(
@@ -258,6 +277,17 @@ export class LocalDatabaseDeploymentService {
         const main = this.controller.mainController;
         const manager = main.connectionManager;
         const form = state.formState;
+        const title = LocalToCloud.deployingDatabase(form.databaseName);
+        const backgroundTask = main.backgroundTasksService.registerTask({
+            displayText: title,
+            tooltip: title,
+            target: `${form.serverName}/${form.databaseName}`,
+            message: LocalToCloud.deploymentStages.authenticating,
+            state: BackgroundTaskState.InProgress,
+            canCancel: true,
+            cancel: () => this.cancel(request.deploymentId),
+            open: this.output.show.bind(this.output, true),
+        });
         const targetUri = `mssql-local-to-cloud-target:${randomUUID()}`;
         const sourceUri = `mssql-local-to-cloud-source:${randomUUID()}`;
         const completedStages: LocalDatabaseDeploymentStage[] = [];
@@ -285,11 +315,14 @@ export class LocalDatabaseDeploymentService {
             const stageStartedAt = performance.now();
             let status = "succeeded";
             try {
-                onProgress({
-                    deploymentId: request.deploymentId,
-                    stage,
-                    completedStages: [...completedStages],
-                });
+                if (!this.disposed) {
+                    onProgress({
+                        deploymentId: request.deploymentId,
+                        stage,
+                        completedStages: [...completedStages],
+                    });
+                }
+                backgroundTask.update({ message: LocalToCloud.deploymentStages[stage] });
                 this.output.appendLine(LocalToCloud.deploymentStages[stage]);
                 const value = await action();
                 signal.throwIfAborted();
@@ -746,6 +779,19 @@ export class LocalDatabaseDeploymentService {
                 }
             }
         }
+        backgroundTask.complete(
+            result.status === "succeeded"
+                ? BackgroundTaskState.Succeeded
+                : result.status === "cancelled"
+                  ? BackgroundTaskState.Canceled
+                  : BackgroundTaskState.Failed,
+            {
+                message:
+                    result.status === "succeeded"
+                        ? LocalToCloud.deploymentSucceeded
+                        : result.errorMessage,
+            },
+        );
         const telemetryOptions = {
             additionalProps: {
                 deploymentContent: request.deploymentContent,

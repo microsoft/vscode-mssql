@@ -148,13 +148,6 @@ export const AzureSqlDatabaseDeployPage = ({
             disposed = true;
             cancelAnimationFrame(frame);
             subscription.dispose();
-            void extensionRpc
-                .sendRequest(AzureSqlDatabaseRequests.CancelLocalDatabaseDeployment, {
-                    deploymentId: request.deploymentId,
-                })
-                .catch((error) =>
-                    extensionRpc.log.error("Failed to cancel database deployment", error),
-                );
         };
     }, [extensionRpc, request, databaseName, sourceDatabase, onResult]);
 

@@ -46,6 +46,10 @@
     "Unable to read the database metadata required for deployment verification.": "Unable to read the database metadata required for deployment verification.",
     "Deployment cancelled.": "Deployment cancelled.",
     "Azure SQL database deployment completed.": "Azure SQL database deployment completed.",
+    "Deploying {0} to Azure/{0} is the database being deployed": {
+        "message": "Deploying {0} to Azure",
+        "comment": ["{0} is the database being deployed"]
+    },
     "Unable to remove temporary deployment packages. They may contain source data. See the MSSQL output.": "Unable to remove temporary deployment packages. They may contain source data. See the MSSQL output.",
     "Authenticating to Azure": "Authenticating to Azure",
     "Validating Azure resources and the schema package": "Validating Azure resources and the schema package",
@@ -5428,7 +5432,7 @@
         "message": "Deploying {0} to Azure SQL",
         "comment": ["{0} is the database being deployed"]
     },
-    "Your local database will not be modified. Keep this wizard open until deployment completes.": "Your local database will not be modified. Keep this wizard open until deployment completes.",
+    "Your local database will not be modified. Deployment continues in Background Tasks if you close this wizard.": "Your local database will not be modified. Deployment continues in Background Tasks if you close this wizard.",
     "Authenticate to Azure": "Authenticate to Azure",
     "Validate Azure resources and schema package": "Validate Azure resources and schema package",
     "Export source schema and data": "Export source schema and data",

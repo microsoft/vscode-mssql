@@ -107,6 +107,11 @@ including any narrow client-IP firewall rule, are never automatically deleted af
 failure. Inspect the target and use a new database name before retrying.
 Temporary deployment packages are independent of Compatibility cleanup and removed after operations
 settle; the original validation package remains available for navigation/retry.
+Deploy registers **Deploying \<database\> to Azure** in Background Tasks with real stage updates,
+completion/failure status, cancellation, and a link to the MSSQL output. Closing the wizard does
+not cancel deployment or remove packages it still needs. Compatibility cleanup waits for the
+background deployment to finish. Use **Cancel** in the wizard or Background Tasks to stop it;
+the extension host must remain running.
 See [AzureLocalToCloud.md](AzureLocalToCloud.md) for the endpoint inventory and limits.
 
 The focused compatibility tests include an opt-in real SQL project build. From this extension's

@@ -3526,6 +3526,10 @@
     <trans-unit id="++CODE++77073cfc37f467e01ede7dd225bc91824e5fcb320f5723a633d43bd93b8a070b">
       <source xml:lang="en">Deploying DACPAC...</source>
     </trans-unit>
+    <trans-unit id="++CODE++7ab90b40f3a545cf4563d7482ee129208418d69ef4830fd3db6616f2ab32c662">
+      <source xml:lang="en">Deploying {0} to Azure</source>
+      <note>{0} is the database being deployed</note>
+    </trans-unit>
     <trans-unit id="++CODE++77a769482a602bbce92c6c2c5a8b379695023bf39724db58a1c28135c04ae14c">
       <source xml:lang="en">Deploying {0} to Azure SQL</source>
       <note>{0} is the database being deployed</note>
@@ -12855,8 +12859,8 @@
     <trans-unit id="++CODE++68f88eedfc37704e4626ec89c48f0901a60f476c4e2b33a178c87cb09771f40b">
       <source xml:lang="en">Your database will continue running after the free tier limit and you will be charged for overages.</source>
     </trans-unit>
-    <trans-unit id="++CODE++37bba930a87da50edfcdcbaee318918c252524d2e477c1655b11e67273effc33">
-      <source xml:lang="en">Your local database will not be modified. Keep this wizard open until deployment completes.</source>
+    <trans-unit id="++CODE++0e486a5da13bbfcbd4b9c052c90aa4686d2f644e913207bec81efb58898eee48">
+      <source xml:lang="en">Your local database will not be modified. Deployment continues in Background Tasks if you close this wizard.</source>
     </trans-unit>
     <trans-unit id="++CODE++20082bf42822ccf6b53770a9f51230df781d30b42a43691ef534a3ccef0cb044">
       <source xml:lang="en">Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.</source>

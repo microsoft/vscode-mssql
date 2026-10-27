@@ -29,6 +29,7 @@ import * as fabricProvisioning from "./fabricProvisioningHelpers";
 import * as azureSqlDatabase from "./azureSqlDatabaseHelpers";
 import {
     deploymentScriptAlreadyExists,
+    LocalToCloud,
     newDeployment,
     noWorkspaceOpenForDeploymentScript,
     overwriteDeploymentScript,
@@ -345,7 +346,6 @@ export class DeploymentWebviewController extends FormWebviewController<
                 new AzureSqlCompatibilityBuilder(compatibilityOutput),
                 this.logger,
             );
-            this.registerDisposable(compatibility);
             const deployment = new LocalDatabaseDeploymentService(
                 this,
                 compatibility,
@@ -375,22 +375,29 @@ export class DeploymentWebviewController extends FormWebviewController<
             this.onRequest(AzureSqlDatabaseRequests.ShowLocalDatabaseCompatibilityOutput, () =>
                 compatibilityOutput.show(true),
             );
-            this.onRequest(AzureSqlDatabaseRequests.ValidateLocalDatabaseCompatibility, (request) =>
-                compatibility.validate(request, (progress) => {
-                    void this.sendNotification(
-                        AzureSqlDatabaseRequests.LocalDatabaseCompatibilityProgress,
-                        progress,
-                    ).catch((error) =>
-                        this.logger.error("Failed to report compatibility progress.", error),
-                    );
-                }),
+            this.onRequest(
+                AzureSqlDatabaseRequests.ValidateLocalDatabaseCompatibility,
+                (request) => {
+                    if (deployment.isRunning) {
+                        throw new Error(LocalToCloud.invalidDeployment);
+                    }
+                    return compatibility.validate(request, (progress) => {
+                        void this.sendNotification(
+                            AzureSqlDatabaseRequests.LocalDatabaseCompatibilityProgress,
+                            progress,
+                        ).catch((error) =>
+                            this.logger.error("Failed to report compatibility progress.", error),
+                        );
+                    });
+                },
             );
             this.onRequest(
                 AzureSqlDatabaseRequests.CancelLocalDatabaseCompatibility,
-                ({ validationId }) => compatibility.cancel(validationId),
+                ({ validationId }) =>
+                    deployment.isRunning ? Promise.resolve() : compatibility.cancel(validationId),
             );
             this.onRequest(AzureSqlDatabaseRequests.ClearLocalDatabaseCompatibility, () =>
-                compatibility.clear(),
+                deployment.isRunning ? Promise.resolve() : compatibility.clear(),
             );
             this.onRequest(AzureSqlDatabaseRequests.GetLocalDatabaseSources, async () => {
                 if (localWizardOpenedAt === undefined) {

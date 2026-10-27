@@ -99,6 +99,12 @@ export class LocalToCloud {
     );
     public static deploymentCancelled = l10n.t("Deployment cancelled.");
     public static deploymentSucceeded = l10n.t("Azure SQL database deployment completed.");
+    public static deployingDatabase = (database: string) =>
+        l10n.t({
+            message: "Deploying {0} to Azure",
+            args: [database],
+            comment: ["{0} is the database being deployed"],
+        });
     public static deploymentCleanupFailed = l10n.t(
         "Unable to remove temporary deployment packages. They may contain source data. See the MSSQL output.",
     );

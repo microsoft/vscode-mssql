@@ -45,6 +45,10 @@ import { LocalToCloud } from "../../src/constants/locConstants";
 import { stubLogger, stubTelemetry } from "./utils";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { mockSubscriptions } from "./azureHelperStubs";
+import {
+    BackgroundTasksService,
+    BackgroundTaskState,
+} from "../../src/backgroundTasks/backgroundTasksService";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -82,6 +86,7 @@ suite("Local database Azure SQL deployment", () => {
     let objects: string[];
     let providerSettings: sinon.SinonStub;
     let telemetry: ReturnType<typeof stubTelemetry>;
+    let backgroundTasks: BackgroundTasksService;
     const success: DacFxResult = { success: true, errorMessage: "", operationId: "operation" };
 
     setup(() => {
@@ -144,6 +149,8 @@ suite("Local database Azure SQL deployment", () => {
         controller.validateDeploymentForm.resolves([]);
         main = sandbox.createStubInstance(MainController);
         controller.mainController = main;
+        backgroundTasks = new BackgroundTasksService(() => {});
+        main.backgroundTasksService = backgroundTasks;
         manager = sandbox.createStubInstance(ConnectionManager);
         sandbox.stub(main, "connectionManager").get(() => manager);
         dacFx = sandbox.createStubInstance(DacFxService);
@@ -246,6 +253,80 @@ suite("Local database Azure SQL deployment", () => {
     const withData = () => {
         request.deploymentContent = "schemaAndData";
     };
+
+    for (const deploymentContent of ["schemaOnly", "schemaAndData"] as const) {
+        test(`continues ${deploymentContent} in Background Tasks when the wizard closes before package capture`, async () => {
+            request.deploymentContent = deploymentContent;
+            let release: () => void;
+            let validating: () => void;
+            const gate = new Promise<void>((resolve) => {
+                release = resolve;
+            });
+            const started = new Promise<void>((resolve) => {
+                validating = resolve;
+            });
+            controller.validateDeploymentForm.callsFake(async () => {
+                validating();
+                await gate;
+                return [];
+            });
+            const showOutput = sandbox.spy(output, "show");
+            const deployment = deploy();
+            await started;
+            const task = backgroundTasks.tasks.find(
+                (task) => task.displayText === LocalToCloud.deployingDatabase("CloudInventory"),
+            )!;
+            try {
+                expect(task).to.include({
+                    state: BackgroundTaskState.InProgress,
+                    canCancel: true,
+                    message: LocalToCloud.deploymentStages.validatingSettings,
+                });
+                service.dispose();
+                expect(compatibility.dispose).not.to.have.been.called;
+                expect(compatibility.copyValidatedPackage).not.to.have.been.called;
+            } finally {
+                release();
+            }
+            const progressBeforeClose = [...progress];
+            expect(await deployment).to.include({
+                status: "succeeded",
+                database: "CloudInventory",
+            });
+            expect(progress).to.deep.equal(progressBeforeClose);
+            expect(compatibility.dispose).to.have.been.called;
+            expect(main.createObjectExplorerSession).to.have.been.called;
+            expect(backgroundTasks.tasks.find((entry) => entry.id === task.id)).to.include({
+                state: BackgroundTaskState.Succeeded,
+                canCancel: false,
+                message: LocalToCloud.deploymentSucceeded,
+            });
+            expect(
+                backgroundTasks.getTaskLog(task.id)?.entries.map((entry) => entry.message),
+            ).to.include.members([
+                LocalToCloud.deploymentStages[
+                    deploymentContent === "schemaOnly" ? "publishingSchema" : "importingData"
+                ],
+                LocalToCloud.deploymentStages.verifying,
+                LocalToCloud.deploymentStages.savingConnection,
+            ]);
+            await backgroundTasks.openTask(task.id);
+            expect(showOutput).to.have.been.calledWith(true);
+            for (const directory of directories) {
+                expect(
+                    await fs.stat(directory).then(
+                        () => true,
+                        () => false,
+                    ),
+                ).to.equal(false);
+            }
+        });
+    }
+
+    test("cleans up compatibility immediately when the wizard closes without a deployment", () => {
+        service.dispose();
+        expect(compatibility.dispose).to.have.been.called;
+    });
 
     test("copies the deployed connection without a password or application name", async () => {
         await deploy();
@@ -547,8 +628,10 @@ suite("Local database Azure SQL deployment", () => {
         expect(deploy()).to.equal(first);
         const result = await first;
         const events = telemetry.sendActionEvent.getCalls().map((call) => call.args);
+        const tasks = backgroundTasks.tasks;
         expect(await deploy()).to.equal(result);
         expect(telemetry.sendActionEvent.getCalls().map((call) => call.args)).to.deep.equal(events);
+        expect(backgroundTasks.tasks).to.deep.equal(tasks);
         expect(createDatabase.getCalls().map((call) => call.args[3])).to.deep.equal([
             "CloudInventory",
         ]);
@@ -603,7 +686,11 @@ suite("Local database Azure SQL deployment", () => {
         const privateMessage =
             "private-user-data CloudInventory server.database.windows.net subscription test-password";
         dacFx.deployDacpac.rejects(new Error(privateMessage));
-        expect((await deploy()).status).to.equal("error");
+        const result = await deploy();
+        expect(result.status).to.equal("error");
+        expect(
+            backgroundTasks.tasks.find((task) => task.state === BackgroundTaskState.Failed),
+        ).to.include({ message: result.errorMessage });
         expect(telemetry.sendErrorEvent).to.have.been.calledWith(
             TelemetryViews.LocalToCloudDeployment,
             TelemetryActions.FinishLocalToCloudDeployment,
@@ -662,6 +749,9 @@ suite("Local database Azure SQL deployment", () => {
             .onFirstCall()
             .rejects(new Error("private cleanup path"));
         expect((await deploy()).status).to.equal("error");
+        expect(
+            backgroundTasks.tasks.find((task) => task.state === BackgroundTaskState.Failed),
+        ).to.include({ message: LocalToCloud.deploymentCleanupFailed });
         expect(telemetry.sendErrorEvent).to.have.been.calledWith(
             TelemetryViews.LocalToCloudDeployment,
             TelemetryActions.FinishLocalToCloudDeployment,
@@ -804,7 +894,7 @@ suite("Local database Azure SQL deployment", () => {
         expect(connectionUI.saveProfile).not.to.have.been.called;
     });
 
-    test("cancels the in-flight import, waits for it, and leaves its Azure database intact", async () => {
+    test("cancels the in-flight import from Background Tasks after closing the wizard and leaves Azure intact", async () => {
         withData();
         let finishImport: (value: DacFxResult) => void;
         let started: () => void;
@@ -832,8 +922,17 @@ suite("Local database Azure SQL deployment", () => {
             });
         const deployment = deploy();
         await importing;
-        await service.cancel(request.deploymentId);
+        service.dispose();
+        const task = backgroundTasks.tasks.find(
+            (task) => task.state === BackgroundTaskState.InProgress,
+        )!;
+        await backgroundTasks.cancelTask(task.id);
         expect(await deployment).to.include({ status: "cancelled", resourcesMayRemain: true });
+        expect(backgroundTasks.tasks.find((entry) => entry.id === task.id)).to.include({
+            state: BackgroundTaskState.Canceled,
+            canCancel: false,
+            message: LocalToCloud.deploymentCancelled,
+        });
         expect(connectionUI.saveProfile).not.to.have.been.called;
         expect(connected).to.deep.equal(new Set(["selected-source"]));
         expect(telemetry.sendActionEvent).to.have.been.calledWith(

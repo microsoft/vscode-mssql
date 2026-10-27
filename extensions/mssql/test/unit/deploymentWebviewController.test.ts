@@ -21,6 +21,9 @@ import * as azureSql from "../../src/deployment/azureSqlHelpers";
 import * as logger from "../../src/models/logger";
 import { AzureSqlDatabaseRequests } from "../../src/sharedInterfaces/azureSqlDatabase";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { LocalDatabaseDeploymentService } from "../../src/deployment/localDatabaseDeployment";
+import { LocalDatabaseCompatibilityService } from "../../src/deployment/localDatabaseCompatibility";
+import { LocalToCloud } from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -43,7 +46,7 @@ suite("Deployment dialog closing", () => {
             .args[1] as typeof close;
     });
 
-    test("records opening once across source refreshes and closing when the panel is disposed", async () => {
+    function registerLocalWizardHandlers() {
         sandbox.stub(previewService, "azureSqlContainersEnabled").get(() => true);
         sandbox.stub(azureSql, "registerAzureSqlRpcHandlers");
         const client = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -80,6 +83,11 @@ suite("Deployment dialog closing", () => {
         sandbox.stub(main, "connectionManager").get(() => manager);
         controller.mainController = main;
         DeploymentWebviewController.prototype["registerRpcHandlers"].call(controller);
+        return { controller, disposables };
+    }
+
+    test("records opening once across source refreshes and closing when the panel is disposed", async () => {
+        const { controller, disposables } = registerLocalWizardHandlers();
         const handler = controller.onRequest
             .getCalls()
             .find(
@@ -106,6 +114,51 @@ suite("Deployment dialog closing", () => {
             TelemetryActions.Close,
             sinon.match({ additionalMeasurements: { durationInMs: sinon.match.number } }),
         );
+    });
+
+    test("stale compatibility cleanup cannot invalidate a running deployment", async () => {
+        const { controller } = registerLocalWizardHandlers();
+        let running = true;
+        sandbox.stub(LocalDatabaseDeploymentService.prototype, "isRunning").get(() => running);
+        const cancel = sandbox
+            .stub(LocalDatabaseCompatibilityService.prototype, "cancel")
+            .resolves();
+        const clear = sandbox.stub(LocalDatabaseCompatibilityService.prototype, "clear").resolves();
+        const validate = sandbox.stub(LocalDatabaseCompatibilityService.prototype, "validate");
+        const token: vscode.CancellationToken = {
+            isCancellationRequested: false,
+            onCancellationRequested: sandbox.stub(),
+        };
+        const handler = (method: string) =>
+            controller.onRequest.getCalls().find((call) => call.args[0].method === method)!.args[1];
+        await handler(AzureSqlDatabaseRequests.CancelLocalDatabaseCompatibility.method)(
+            { validationId: "validation" },
+            token,
+        );
+        await handler(AzureSqlDatabaseRequests.ClearLocalDatabaseCompatibility.method)(
+            undefined,
+            token,
+        );
+        expect(cancel).not.to.have.been.called;
+        expect(clear).not.to.have.been.called;
+        expect(() =>
+            handler(AzureSqlDatabaseRequests.ValidateLocalDatabaseCompatibility.method)(
+                { validationId: "validation" },
+                token,
+            ),
+        ).to.throw(LocalToCloud.invalidDeployment);
+        expect(validate).not.to.have.been.called;
+        running = false;
+        await handler(AzureSqlDatabaseRequests.CancelLocalDatabaseCompatibility.method)(
+            { validationId: "validation" },
+            token,
+        );
+        await handler(AzureSqlDatabaseRequests.ClearLocalDatabaseCompatibility.method)(
+            undefined,
+            token,
+        );
+        expect(cancel).to.have.been.calledWith("validation");
+        expect(clear).to.have.been.called;
     });
 
     teardown(() => sandbox.restore());
