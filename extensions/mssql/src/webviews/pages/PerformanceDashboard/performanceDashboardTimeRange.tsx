@@ -146,17 +146,17 @@ export function useViewTimeRange(): ViewTimeRange {
     // One "now" for the range and the database until a refresh, shared by the views, so that a
     // view that opens again reads the same window and gets its data from the cache.
     const now = nowFor(timeAnchorKey(databaseName, value));
-    return useMemo(() => {
-        const presets = timeRangePresets();
-        const range = resolveTimeRange(value, presets, now);
+    // The window depends on the durations only, so it stays the same object for the reads. The
+    // labels are read on each render, so they show the translations once those load.
+    const presets = timeRangePresets();
+    const { range, window } = useMemo(() => {
+        const resolved = resolveTimeRange(value, timeRangePresets(), now);
         return {
-            presets,
-            value,
-            range,
-            window: { startUtc: range.from.toISOString(), endUtc: range.to.toISOString() },
-            now,
+            range: resolved,
+            window: { startUtc: resolved.from.toISOString(), endUtc: resolved.to.toISOString() },
         };
     }, [value, now]);
+    return { presets, value, range, window, now };
 }
 
 /** The oldest Query Store data, for the time range picker and averages. */
