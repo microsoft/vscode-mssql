@@ -717,6 +717,11 @@
                     "group": "3_MSSQL_databaseDiscover@3"
                 },
                 {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "group": "3_MSSQL_databaseDiscover@4"
+                },
+                {
                     "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "7_MSSQL_compareAndDacpac@2"

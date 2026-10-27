@@ -49,6 +49,7 @@ import {
     ApplyPlanChangeRequest,
     ComparePlansRequest,
     CopyTextRequest,
+    OpenInFabricDatabaseHubRequest,
     GetActiveRequestsRequest,
     GetAutomaticTuningRequest,
     GetFavoriteQueriesRequest,
@@ -66,6 +67,11 @@ import {
     VerifyForcedPlanRequest,
 } from "../sharedInterfaces/performanceDashboard";
 import { PerformanceService, PerformanceTarget } from "./performanceService";
+import {
+    getFabricDatabaseHubLinkForConnection,
+    openFabricDatabaseHubForDashboard,
+} from "../integration/fabricDatabaseHubIntegration";
+import { isSystemDatabaseName } from "../fabric/fabricDatabaseHub";
 
 /** The database that a dashboard shows. */
 export interface PerformanceDashboardTarget {
@@ -320,6 +326,12 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
         this.onRequest(CopyTextRequest.type, async ({ text }) => {
             await vscode.env.clipboard.writeText(text);
         });
+        this.onRequest(OpenInFabricDatabaseHubRequest.type, async () => {
+            await openFabricDatabaseHubForDashboard(
+                this._target.serverName,
+                this._target.databaseName,
+            );
+        });
         this.onRequest(GetFavoriteQueriesRequest.type, () => ({
             queryIds: this.favoriteQueries(),
         }));
@@ -540,7 +552,15 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
 }
 
 function stateFor(target: PerformanceDashboardTarget): PerformanceDashboardState {
-    return { serverName: target.serverName, databaseName: target.databaseName };
+    return {
+        serverName: target.serverName,
+        databaseName: target.databaseName,
+        // The Hub's inventory leaves system databases out, so a link to one would show nothing.
+        fabricDatabaseHubAvailable:
+            !isSystemDatabaseName(target.databaseName) &&
+            getFabricDatabaseHubLinkForConnection(target.serverName, target.databaseName) !==
+                undefined,
+    };
 }
 
 function titleFor(target: PerformanceDashboardTarget): string {

@@ -1274,6 +1274,15 @@ export class Azure {
         });
     }
 
+    public static serverNotInFabricDatabaseHub(serverName: string): string {
+        return l10n.t({
+            message:
+                "'{0}' isn't an Azure SQL or Fabric SQL server, so it isn't tracked in the Fabric Database Hub.",
+            args: [serverName],
+            comment: ["{0} is the name of the server"],
+        });
+    }
+
     public static unableToAcquireEntraTokenFromVsCode(accountDisplayName: string): string {
         return l10n.t({
             message:

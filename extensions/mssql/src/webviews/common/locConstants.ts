@@ -4545,6 +4545,13 @@ export class LocConstants {
                     args: [count],
                     comment: ["{0} is the number of logical CPUs"],
                 }),
+            databaseHubEyebrow: l10n.t("Continue in Fabric Database Hub"),
+            databaseHubTitle: l10n.t("Continue investigating this database"),
+            databaseHubDescription: l10n.t(
+                "Review overall database health, related resources, and issue history in Fabric Database Hub. We'll open the Hub filtered to this database so you can pick up where you left off.",
+            ),
+            openInDatabaseHub: l10n.t("Open in Fabric Database Hub"),
+            dismissDatabaseHub: l10n.t("Dismiss"),
         };
     }
 

@@ -6,12 +6,14 @@
 import * as vscode from "vscode";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { isWrapper, Wrapper } from "@microsoft/vscode-azureresources-api";
+import { IConnectionInfo } from "vscode-mssql";
 
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import {
     FabricDatabaseHubDatabaseType,
     getFabricDatabaseHubLink,
+    getFabricEnvironment,
     getFabricSqlDatabaseDisplayName,
     isSystemDatabaseName,
 } from "../fabric/fabricDatabaseHub";
@@ -29,6 +31,9 @@ import {
     isAzureResourceTypeGroupNode,
 } from "./azureResourcesIntegration";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { getServerTypes, ServerType } from "../models/connectionInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
 /** ARM provider namespace for Azure SQL servers and databases. */
 const azureSqlProviderNamespace = "microsoft.sql";
@@ -36,6 +41,8 @@ const azureSqlProviderNamespace = "microsoft.sql";
 enum DatabaseHubTelemetrySource {
     AzureResources = "azureResources",
     FabricWorkspace = "fabricWorkspace",
+    ObjectExplorer = "objectExplorer",
+    PerformanceDashboard = "performanceDashboard",
     Unknown = "unknown",
 }
 
@@ -48,7 +55,11 @@ enum DatabaseHubTelemetryResult {
 
 const unknownDatabaseType = "unknown";
 
-type DatabaseHubTreeNode = Wrapper | AzureResourceTypeGroupNode | FabricWorkspaceItemNode;
+type DatabaseHubTreeNode =
+    | Wrapper
+    | AzureResourceTypeGroupNode
+    | FabricWorkspaceItemNode
+    | TreeNodeInfo;
 
 /** The parts of an Azure SQL resource ID the estate view can be filtered by. */
 interface AzureSqlResourceIdParts {
@@ -96,8 +107,107 @@ function parseAzureSqlResourceId(resourceId: string): AzureSqlResourceIdParts | 
 }
 
 /**
- * Contributes the Database Hub action to the Azure Resources tree and the Fabric extension's
- * workspace tree.
+ * Returns the kind of database the Database Hub tracks on a server, by its endpoint.
+ *
+ * @returns undefined for servers the Hub has no inventory for, such as on-premises SQL Server or
+ * a data warehouse.
+ */
+export function getFabricDatabaseHubDatabaseType(
+    server: string | undefined,
+): FabricDatabaseHubDatabaseType | undefined {
+    const serverTypes = getServerTypes({ server } as IConnectionInfo);
+    if (!serverTypes.includes(ServerType.Sql)) {
+        return undefined;
+    }
+    if (serverTypes.includes(ServerType.Azure)) {
+        return FabricDatabaseHubDatabaseType.AzureSql;
+    }
+    if (serverTypes.includes(ServerType.Fabric)) {
+        return FabricDatabaseHubDatabaseType.FabricSql;
+    }
+    return undefined;
+}
+
+/**
+ * Builds a link for a connection's database, or for its server's kind of database when the
+ * connection names no database.
+ *
+ * A connection carries no subscription or resource group, so an Azure SQL database is narrowed by
+ * name alone; same-named databases on other servers share the view.
+ *
+ * @returns undefined for servers the Hub has no inventory for, and for Fabric rings it can't link to.
+ */
+export function getFabricDatabaseHubLinkForConnection(
+    server: string | undefined,
+    database: string | undefined,
+): string | undefined {
+    const databaseType = getFabricDatabaseHubDatabaseType(server);
+    if (databaseType === FabricDatabaseHubDatabaseType.AzureSql) {
+        return getFabricDatabaseHubLink(databaseType, { databaseName: database });
+    }
+    if (databaseType === FabricDatabaseHubDatabaseType.FabricSql) {
+        // An unknown pre-production ring has no portal, and production would not list its database.
+        const environment = getFabricEnvironment(server);
+        if (!environment) {
+            return undefined;
+        }
+        return getFabricDatabaseHubLink(databaseType, {
+            environment,
+            databaseName: getFabricSqlDatabaseDisplayName(database),
+        });
+    }
+    return undefined;
+}
+
+/**
+ * Opens the Database Hub for the database a performance dashboard shows.
+ *
+ * @returns whether the link opened; false when the dashboard's server has no Hub link.
+ */
+export async function openFabricDatabaseHubForDashboard(
+    server: string,
+    database: string,
+): Promise<boolean> {
+    const additionalProps = {
+        source: DatabaseHubTelemetrySource.PerformanceDashboard,
+        databaseType: getFabricDatabaseHubDatabaseType(server) ?? unknownDatabaseType,
+    };
+    const link = getFabricDatabaseHubLinkForConnection(server, database);
+    if (!link) {
+        sendActionEvent(TelemetryViews.FabricDatabaseHub, TelemetryActions.Open, {
+            additionalProps: {
+                ...additionalProps,
+                result: DatabaseHubTelemetryResult.LinkUnavailable,
+            },
+        });
+        return false;
+    }
+    const opened = await vscode.env.openExternal(vscode.Uri.parse(link, true));
+    sendActionEvent(TelemetryViews.FabricDatabaseHub, TelemetryActions.Open, {
+        additionalProps: {
+            ...additionalProps,
+            result: opened
+                ? DatabaseHubTelemetryResult.Succeeded
+                : DatabaseHubTelemetryResult.Failed,
+        },
+    });
+    return opened;
+}
+
+/**
+ * Returns the database an Object Explorer node stands for, or undefined for a server node whose
+ * connection names no database.
+ */
+function getObjectExplorerDatabaseName(node: TreeNodeInfo): string | undefined {
+    const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+    return databaseName && databaseName !== LocalizedConstants.defaultDatabaseLabel
+        ? databaseName
+        : undefined;
+}
+
+/**
+ * Contributes the Database Hub action to the Azure Resources tree, the Fabric extension's
+ * workspace tree, and Object Explorer.
  */
 export class FabricDatabaseHubIntegration {
     private _logger: ILogger;
@@ -132,6 +242,14 @@ export class FabricDatabaseHubIntegration {
                 this._logger.debug(
                     "No Fabric Database Hub link could be built for the selected node.",
                 );
+                // Object Explorer offers the action on every server, so explain why nothing opens.
+                if (node instanceof TreeNodeInfo) {
+                    void vscode.window.showInformationMessage(
+                        LocalizedConstants.Azure.serverNotInFabricDatabaseHub(
+                            node.connectionProfile?.server ?? node.label?.toString() ?? "",
+                        ),
+                    );
+                }
                 sendActionEvent(TelemetryViews.FabricDatabaseHub, TelemetryActions.Open, {
                     additionalProps: {
                         ...telemetryProperties,
@@ -166,11 +284,12 @@ export class FabricDatabaseHubIntegration {
      * @returns whether the node named a system database, in which case no link is opened.
      */
     private warnIfSystemDatabase(node: DatabaseHubTreeNode | undefined): boolean {
-        if (!isWrapper(node)) {
-            return false;
+        let databaseName: string | undefined;
+        if (isWrapper(node)) {
+            databaseName = parseAzureSqlResourceId(getAzureResource(node).id)?.databaseName;
+        } else if (node instanceof TreeNodeInfo) {
+            databaseName = getObjectExplorerDatabaseName(node);
         }
-
-        const databaseName = parseAzureSqlResourceId(getAzureResource(node).id)?.databaseName;
         if (!databaseName || !isSystemDatabaseName(databaseName)) {
             return false;
         }
@@ -187,6 +306,14 @@ export class FabricDatabaseHubIntegration {
             return {
                 source: DatabaseHubTelemetrySource.AzureResources,
                 databaseType: FabricDatabaseHubDatabaseType.AzureSql,
+            };
+        }
+        if (node instanceof TreeNodeInfo) {
+            return {
+                source: DatabaseHubTelemetrySource.ObjectExplorer,
+                databaseType:
+                    getFabricDatabaseHubDatabaseType(node.connectionProfile?.server) ??
+                    unknownDatabaseType,
             };
         }
         if (isFabricWorkspaceItemNode(node)) {
@@ -214,6 +341,13 @@ export class FabricDatabaseHubIntegration {
 
         if (isFabricWorkspaceItemNode(node)) {
             return this.getFabricWorkspaceItemLink(node);
+        }
+
+        if (node instanceof TreeNodeInfo) {
+            return getFabricDatabaseHubLinkForConnection(
+                node.connectionProfile?.server,
+                getObjectExplorerDatabaseName(node),
+            );
         }
 
         return undefined;

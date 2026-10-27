@@ -37,6 +37,8 @@ export interface PerformanceDashboardState {
     serverName: string;
     /** Empty for the login's default database. */
     databaseName: string;
+    /** Whether the Fabric Database Hub tracks the database, so the dashboard can link to it. */
+    fabricDatabaseHubAvailable: boolean;
 }
 
 export type PerformanceDashboardReducers = Record<string, never>;
@@ -463,6 +465,13 @@ export interface CopyTextParams {
 }
 
 /** Copies text to the clipboard. */
+/** Opens the dashboard's database in the Fabric Database Hub. */
+export namespace OpenInFabricDatabaseHubRequest {
+    export const type = new RequestType<void, void, void>(
+        "performanceDashboard/openInFabricDatabaseHub",
+    );
+}
+
 export namespace CopyTextRequest {
     export const type = new RequestType<CopyTextParams, void, void>(
         "performanceDashboard/copyText",

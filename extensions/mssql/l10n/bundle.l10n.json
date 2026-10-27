@@ -751,6 +751,10 @@
         "message": "'{0}' is a system database, so it isn't tracked in the Fabric Database Hub.",
         "comment": ["{0} is the name of the system database, such as 'master'"]
     },
+    "'{0}' isn't an Azure SQL or Fabric SQL server, so it isn't tracked in the Fabric Database Hub./{0} is the name of the server": {
+        "message": "'{0}' isn't an Azure SQL or Fabric SQL server, so it isn't tracked in the Fabric Database Hub.",
+        "comment": ["{0} is the name of the server"]
+    },
     "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}/{0} is the account label or ID": {
         "message": "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}",
         "comment": ["{0} is the account label or ID"]
@@ -5574,6 +5578,10 @@
         "message": "{0} logical CPUs",
         "comment": ["{0} is the number of logical CPUs"]
     },
+    "Continue in Fabric Database Hub": "Continue in Fabric Database Hub",
+    "Continue investigating this database": "Continue investigating this database",
+    "Review overall database health, related resources, and issue history in Fabric Database Hub. We'll open the Hub filtered to this database so you can pick up where you left off.": "Review overall database health, related resources, and issue history in Fabric Database Hub. We'll open the Hub filtered to this database so you can pick up where you left off.",
+    "Open in Fabric Database Hub": "Open in Fabric Database Hub",
     "Time range: {0}/{0} is the selected time range, for example Past 24 hours": {
         "message": "Time range: {0}",
         "comment": ["{0} is the selected time range, for example Past 24 hours"]

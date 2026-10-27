@@ -32,6 +32,10 @@
       <source xml:lang="en">&apos;{0}&apos; is a system database, so it isn&apos;t tracked in the Fabric Database Hub.</source>
       <note>{0} is the name of the system database, such as &apos;master&apos;</note>
     </trans-unit>
+    <trans-unit id="++CODE++2042a11c47b63ec84dcbd0f0409996ab615834d4e4a60ecc406f9dd68cf37c05">
+      <source xml:lang="en">&apos;{0}&apos; isn&apos;t an Azure SQL or Fabric SQL server, so it isn&apos;t tracked in the Fabric Database Hub.</source>
+      <note>{0} is the name of the server</note>
+    </trans-unit>
     <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
       <source xml:lang="en">&apos;{0}&apos; started.</source>
       <note>{0} is the service name</note>
@@ -2513,6 +2517,12 @@
     </trans-unit>
     <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
       <source xml:lang="en">Continue Editing</source>
+    </trans-unit>
+    <trans-unit id="++CODE++11da87e499b62bf2701c5f572c29b0ae3f7e99ed8669328fba9387a90479c197">
+      <source xml:lang="en">Continue in Fabric Database Hub</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e755d33279174089803267f30ec4ea489a5c08afc0905e1cdadd7538b6b88830">
+      <source xml:lang="en">Continue investigating this database</source>
     </trans-unit>
     <trans-unit id="++CODE++f331832c8bdfb5c52a1430795650caa56eb169ffa1dfea7084b518fcf9511d48">
       <source xml:lang="en">Continue on error</source>
@@ -7620,6 +7630,9 @@
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++4a2a1e49b523264763b9897cf254579fa57c35ca0c61dfda1873bf492c6352ec">
+      <source xml:lang="en">Open in Fabric Database Hub</source>
+    </trans-unit>
     <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>
     </trans-unit>
@@ -8979,6 +8992,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d5e832b4db09e18ec03a7950f5715dfdc9cd633c72852e5ed12e67a6a71b6ee9">
       <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2c1c4cce640122977015fa67c108345cd04978e4d28c4b24447ae84ba88e14ab">
+      <source xml:lang="en">Review overall database health, related resources, and issue history in Fabric Database Hub. We&apos;ll open the Hub filtered to this database so you can pick up where you left off.</source>
     </trans-unit>
     <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
       <source xml:lang="en">Reviewing Copilot Change</source>

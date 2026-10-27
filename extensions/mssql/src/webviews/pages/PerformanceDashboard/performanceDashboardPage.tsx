@@ -21,6 +21,7 @@ import { NavigationBreadcrumb } from "../../common/navigation/navigationBreadcru
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { RouteParams } from "../../common/navigation/router";
 import { PerformanceDashboardConnectionSummary } from "./performanceDashboardConnectionSummary";
+import { PerformanceDashboardDatabaseHubBanner } from "./performanceDashboardDatabaseHubBanner";
 import { PerformanceDashboardDatabasePicker } from "./performanceDashboardDatabasePicker";
 import { timeFormat } from "./performanceDashboardFormat";
 import { PerformanceDashboardOverviewPage } from "./performanceDashboardOverviewPage";
@@ -150,6 +151,7 @@ export const PerformanceDashboardPage = () => {
                 </TabList>
             </header>
             <main className={classes.content}>
+                <PerformanceDashboardDatabaseHubBanner />
                 {/* Below a tab, the breadcrumb shows the way back up, for example from a deep link. */}
                 {!isTopRoute && <NavigationBreadcrumb />}
                 {match.route.id === "overview" ? (

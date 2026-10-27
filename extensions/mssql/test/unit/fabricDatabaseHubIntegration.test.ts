@@ -10,10 +10,16 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import { AzureResource, Wrapper } from "@microsoft/vscode-azureresources-api";
 
-import { FabricDatabaseHubIntegration } from "../../src/integration/fabricDatabaseHubIntegration";
+import {
+    FabricDatabaseHubIntegration,
+    getFabricDatabaseHubLinkForConnection,
+} from "../../src/integration/fabricDatabaseHubIntegration";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { IConnectionProfile } from "../../src/models/interfaces";
+import { ObjectMetadata } from "vscode-mssql";
 import { mockAzureResources, mockSubscriptions } from "./azureHelperStubs";
 import { SqlArtifactTypes } from "../../src/sharedInterfaces/fabric";
-import { createStubLogger, stubTelemetry } from "./utils";
+import { createStubLogger, initializeIconUtils, stubTelemetry } from "./utils";
 import {
     AzureResourceItem,
     AzureResourceTypeGroupNode,
@@ -69,8 +75,40 @@ suite("FabricDatabaseHubIntegration Tests", () => {
         },
     });
 
+    const buildServerNode = (server: string, database?: string): TreeNodeInfo =>
+        new TreeNodeInfo(
+            server,
+            { type: "Server", subType: "", filterable: false, hasFilters: false },
+            vscode.TreeItemCollapsibleState.Collapsed,
+            "server",
+            undefined,
+            "Server",
+            undefined,
+            { server, database } as IConnectionProfile,
+            undefined,
+            undefined,
+            undefined,
+        );
+
+    const buildDatabaseNode = (server: string, database: string): TreeNodeInfo =>
+        new TreeNodeInfo(
+            database,
+            { type: "Database", subType: "", filterable: false, hasFilters: false },
+            vscode.TreeItemCollapsibleState.Collapsed,
+            `server/Databases/${database}`,
+            undefined,
+            "Database",
+            undefined,
+            { server } as IConnectionProfile,
+            buildServerNode(server),
+            undefined,
+            undefined,
+            { metadataTypeName: "Database", name: database } as ObjectMetadata,
+        );
+
     setup(() => {
         sandbox = sinon.createSandbox();
+        initializeIconUtils();
         openExternal = sandbox.stub(vscode.env, "openExternal").resolves(true);
         showInformationMessage = sandbox.stub(vscode.window, "showInformationMessage").resolves();
         ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
@@ -282,6 +320,96 @@ suite("FabricDatabaseHubIntegration Tests", () => {
                 },
             );
         });
+    });
+
+    suite("Object Explorer", () => {
+        test("narrows the estate grid to an Azure SQL database node", async () => {
+            await integration["openInFabricDatabaseHub"](
+                buildDatabaseNode("contoso.database.windows.net", "OrdersDb"),
+            );
+
+            expect(openExternal).to.have.been.calledOnce;
+            const url = openedUrl();
+            expect(url.origin).to.equal("https://app.fabric.microsoft.com");
+            expect(url.searchParams.get("databaseType")).to.equal("azure-sql");
+            expect(estateFilters(url)).to.deep.equal([
+                { key: "resourceType", operator: "in", value: ["AzureSql"] },
+                { key: "search", operator: "contains", value: "OrdersDb" },
+            ]);
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.FabricDatabaseHub,
+                TelemetryActions.Open,
+                {
+                    additionalProps: {
+                        source: "objectExplorer",
+                        databaseType: "azure-sql",
+                        result: "succeeded",
+                    },
+                },
+            );
+        });
+
+        test("lists every Azure SQL database for a server node without a database", async () => {
+            await integration["openInFabricDatabaseHub"](
+                buildServerNode("tcp:contoso.database.windows.net,1433"),
+            );
+
+            expect(estateFilters(openedUrl())).to.deep.equal([
+                { key: "resourceType", operator: "in", value: ["AzureSql"] },
+            ]);
+        });
+
+        test("opens the Fabric ring of a Fabric SQL server node", async () => {
+            await integration["openInFabricDatabaseHub"](
+                buildServerNode(
+                    "abc.msit-database.fabric.microsoft.com,1433",
+                    "Orders-0f8fad5b-d9cb-469f-a165-70867728950e",
+                ),
+            );
+
+            const url = openedUrl();
+            expect(url.origin).to.equal("https://msit.fabric.microsoft.com");
+            expect(estateFilters(url)).to.deep.equal([
+                { key: "resourceType", operator: "in", value: ["FabricSql"] },
+                { key: "search", operator: "contains", value: "Orders" },
+            ]);
+        });
+
+        test("explains that a system database isn't tracked", async () => {
+            await integration["openInFabricDatabaseHub"](
+                buildDatabaseNode("contoso.database.windows.net", "master"),
+            );
+
+            expect(openExternal).to.not.have.been.called;
+            expect(showInformationMessage).to.have.been.calledOnce;
+        });
+
+        test("explains that an on-premises server isn't tracked", async () => {
+            await integration["openInFabricDatabaseHub"](buildServerNode("localhost", "Sales"));
+
+            expect(openExternal).to.not.have.been.called;
+            expect(showInformationMessage).to.have.been.calledOnce;
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.FabricDatabaseHub,
+                TelemetryActions.Open,
+                {
+                    additionalProps: {
+                        source: "objectExplorer",
+                        databaseType: "unknown",
+                        result: "linkUnavailable",
+                    },
+                },
+            );
+        });
+    });
+
+    test("has no connection link for an unknown Fabric ring", () => {
+        expect(
+            getFabricDatabaseHubLinkForConnection(
+                "abc.zzz-database.fabric.microsoft.com",
+                "Orders",
+            ),
+        ).to.be.undefined;
     });
 
     test("ignores nodes from unrelated trees", async () => {

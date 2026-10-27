@@ -238,8 +238,20 @@ suite("PerformanceDashboardWebviewController", () => {
             expect(dashboard.state).to.deep.equal({
                 serverName: "contoso.database.windows.net",
                 databaseName: "Sales",
+                fabricDatabaseHubAvailable: true,
             });
             expect(dashboard.target).to.equal(target);
+        });
+
+        test("offers the Database Hub only for databases it tracks", () => {
+            expect(
+                createController({ ...target, databaseName: "master" }).state
+                    .fabricDatabaseHubAvailable,
+            ).to.be.false;
+            expect(
+                createController({ ...target, serverName: "localhost" }).state
+                    .fabricDatabaseHubAvailable,
+            ).to.be.false;
         });
 
         test("uses the performance dashboard icon for light and dark themes", () => {
@@ -357,6 +369,7 @@ suite("PerformanceDashboardWebviewController", () => {
             expect(dashboard.state).to.deep.equal({
                 serverName: "contoso.database.windows.net",
                 databaseName: "Orders",
+                fabricDatabaseHubAvailable: true,
             });
         });
 
