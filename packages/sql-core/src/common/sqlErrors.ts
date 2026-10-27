@@ -16,7 +16,11 @@ export type SqlErrorCategory =
 
 const permissionErrors = new Set([229, 230, 262, 297, 300, 916, 15247]);
 const unsupportedErrors = new Set([207, 208, 2812, 40517]);
-const transientErrors = new Set([-2, 1222, 24801, 40197, 40501, 40613, 49918, 49919, 49920]);
+/**
+ * Timeouts (-2), deadlock victims (1205: the read preamble sets a low deadlock priority, so a read
+ * gives way to the workload), lock timeouts (1222), and Azure throttling and failovers.
+ */
+const transientErrors = new Set([-2, 1205, 1222, 24801, 40197, 40501, 40613, 49918, 49919, 49920]);
 
 /**
  * Puts a read failure in a category from its kind and SQL error number.

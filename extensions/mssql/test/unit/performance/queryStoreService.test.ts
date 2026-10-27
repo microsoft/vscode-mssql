@@ -47,13 +47,16 @@ suite("QueryStoreService", () => {
     const connection = { serverFingerprint: "server-1" } as PreparedConnection;
 
     function fakeSession(): PerformanceSession & { read: sinon.SinonStub } {
-        const batches = [...capabilityBatches];
+        // Each capabilities read gets the platform batch, then the column probe.
+        let batch = 0;
         return {
             database: "Sales",
             purpose: "read",
             generation: 1,
             ensureOpen: sandbox.stub().resolves(undefined),
-            read: sandbox.stub().callsFake(async () => batches.shift() ?? []),
+            read: sandbox
+                .stub()
+                .callsFake(async () => capabilityBatches[batch++ % capabilityBatches.length]),
         };
     }
 
@@ -100,6 +103,17 @@ suite("QueryStoreService", () => {
 
         expect(sessions.get("Sales:read")!.read).to.have.been.calledTwice;
         expect(operation).to.have.been.calledTwice;
+    });
+
+    test("reads the capabilities again on a new session, such as after a failover", async () => {
+        const operation = sandbox.stub().resolves({ status: "ready" });
+
+        await service.run("profile-1", undefined, operation);
+        const session = sessions.get("Sales:read")!;
+        (session as { generation: number }).generation = 2;
+        await service.run("profile-1", undefined, operation);
+
+        expect(session.read).to.have.callCount(4);
     });
 
     test("runs a change on a session for changes", async () => {

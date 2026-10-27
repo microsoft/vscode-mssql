@@ -35,8 +35,14 @@ export type QueryStoreOperation<T> = (
  * database once.
  */
 export class QueryStoreService implements vscode.Disposable {
-    /** Capabilities by connection identity and database. */
-    private readonly _capabilities = new Map<string, Promise<QueryStoreCapabilities>>();
+    /**
+     * Capabilities by connection identity and database, with the read session generation that
+     * they were read on: a new session, such as after a failover or an upgrade, reads them again.
+     */
+    private readonly _capabilities = new Map<
+        string,
+        { readonly generation: number; readonly capabilities: Promise<QueryStoreCapabilities> }
+    >();
     private _disposed = false;
 
     constructor(
@@ -71,14 +77,20 @@ export class QueryStoreService implements vscode.Disposable {
         if (failure) {
             return failure;
         }
+        // The capabilities are read on the read session, which a change also opens, so they are
+        // read again when that session is new.
+        const readSession =
+            purpose === "read" ? session : this._pool.session(resolved.connection, target, "read");
+        const readFailure = readSession === session ? undefined : await readSession.ensureOpen();
+        if (readFailure) {
+            return readFailure;
+        }
         let capabilities: QueryStoreCapabilities;
         try {
             capabilities = await this.capabilitiesFor(
                 JSON.stringify([resolved.connection.serverFingerprint, target]),
-                () =>
-                    readQueryStoreCapabilities(
-                        this._pool.session(resolved.connection, target, "read"),
-                    ),
+                readSession.generation,
+                () => readQueryStoreCapabilities(readSession),
             );
         } catch (error) {
             return errorResult(error);
@@ -99,20 +111,22 @@ export class QueryStoreService implements vscode.Disposable {
 
     private capabilitiesFor(
         key: string,
+        generation: number,
         read: () => Promise<QueryStoreCapabilities>,
     ): Promise<QueryStoreCapabilities> {
-        let capabilities = this._capabilities.get(key);
-        if (!capabilities) {
-            capabilities = read();
-            this._capabilities.set(key, capabilities);
-            // A failed read is not cached; the next call tries again.
-            capabilities.catch(() => {
-                if (this._capabilities.get(key) === capabilities) {
-                    this._capabilities.delete(key);
-                }
-            });
+        const cached = this._capabilities.get(key);
+        if (cached?.generation === generation) {
+            return cached.capabilities;
         }
-        return capabilities;
+        const entry = { generation, capabilities: read() };
+        this._capabilities.set(key, entry);
+        // A failed read is not cached; the next call tries again.
+        entry.capabilities.catch(() => {
+            if (this._capabilities.get(key) === entry) {
+                this._capabilities.delete(key);
+            }
+        });
+        return entry.capabilities;
     }
 }
 
