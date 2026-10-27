@@ -10,9 +10,9 @@
  * has — extracted so the MetadataStore and Object Explorer v2 use the SAME
  * seam instead of copying it.
  *
- * Secrets: passwords exist only inside the passwordProvider closure and are
- * resolved from the credential store at open time. Nothing here stores or
- * logs them.
+ * Secrets are resolved inside the passwordProvider closure at open time,
+ * using an explicitly supplied password or the credential store. Sanitized
+ * profile references never carry passwords. Nothing here stores or logs them.
  */
 
 import { AuthProviderBundle, SqlConnectionProfileRef } from "../sqlDataPlane/api";
@@ -36,6 +36,8 @@ export interface StoredConnectionProfile {
     trustServerCertificate?: boolean;
     profileName?: string;
     savePassword?: boolean;
+    /** Existing classic profile input; never copied into SqlConnectionProfileRef. */
+    password?: string;
 }
 
 function profileServerEndpoint(stored: StoredConnectionProfile): string {
@@ -160,7 +162,9 @@ export function buildAuthBundle(
     const authKind = resolveAuthKind(stored);
     switch (authKind) {
         case "sql":
-            return { passwordProvider: async () => secrets.lookupPassword(stored) };
+            return {
+                passwordProvider: async () => stored.password || secrets.lookupPassword(stored),
+            };
         case "aad":
             return {
                 tokenProvider: async () => {

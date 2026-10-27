@@ -25,6 +25,9 @@ tslint*.json
 webviews-metafile.json
 extension-metafile.json
 notebook-renderer-metafile.json
+# Page stylesheets include the styles of their lazy imports. Esbuild also emits
+# hashed CSS copies for those imports; webviews link only the unhashed page CSS.
+dist/views/*-????????.css
 images/ux
 # Overview walkthrough media is bundled into dist/views by esbuild's file loader;
 # excluding the sources keeps them from shipping twice.

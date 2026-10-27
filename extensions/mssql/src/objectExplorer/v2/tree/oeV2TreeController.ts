@@ -45,6 +45,9 @@ import {
     systemDatabasesFolderChildren,
 } from "./oeV2Browse";
 import { folderDef, isSystemDatabaseName, OeV2ScopeFacts, resolveFolders } from "./oeV2Hierarchy";
+import { CatalogLanguageMetadataProvider } from "../../../sqlLanguage/provider/catalogProvider";
+import { createStrictScriptingService } from "../../../sqlLanguage/host/scriptingHost";
+import type { ScriptOperation } from "../../../sqlScripting/api";
 import type { FreshCatalogResult } from "../../../services/metadata/cache/metadataFreshness";
 import { OeV2Node } from "./oeV2Node";
 import {
@@ -195,6 +198,46 @@ export class OeV2TreeController {
         return snapshot
             .search(term, limit)
             .map((info) => ({ schema: info.schema, name: info.name, kind: info.kind }));
+    }
+
+    async scriptObject(
+        node: OeV2Node,
+        operation: Extract<ScriptOperation, "create" | "alter" | "drop" | "execute">,
+        offlineMode: boolean,
+    ): Promise<{ script?: string; error?: string }> {
+        if (!node.connectionId || !node.database || !node.schema || !node.objectName) {
+            return { error: ObjectExplorerV2.selectObjectToScript };
+        }
+        const runtime = this.runtimes.get(node.connectionId);
+        if (!runtime) {
+            return { error: ObjectExplorerV2.connectBeforeScripting };
+        }
+        const lease = await runtime.coordinator.ensureDatabase(node.database);
+        const session = this.deps.sessions?.get(node.connectionId);
+        const provider = new CatalogLanguageMetadataProvider({
+            handle: () => lease,
+            serverVersion: () => session?.serverVersion,
+            currentDatabase: () => node.database,
+            databases: () => undefined,
+            subscribeStatus: () => () => undefined,
+        });
+        const resolution = provider.pin().resolveObject([node.schema, node.objectName]);
+        if (resolution.kind !== "resolved") {
+            return {
+                script:
+                    ObjectExplorerV2.objectMissingForScript(node.schema, node.objectName) + "\r\n",
+            };
+        }
+        const scripting = createStrictScriptingService({
+            lease: () => lease,
+            pin: () => provider.pin(),
+            offlineMode: () => offlineMode,
+        });
+        const result = await scripting.script({
+            target: { ref: resolution.ref },
+            operation,
+        });
+        return { script: result.text };
     }
 
     // -- commands (wired by activation) ---------------------------------------

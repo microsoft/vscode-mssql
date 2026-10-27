@@ -101,6 +101,9 @@ export class ConnectionInfo {
      */
     public connecting: boolean;
 
+    /** SQL Tools Service has finished loading this connection's IntelliSense metadata. */
+    public intelliSenseReady = false;
+
     /**
      * The MS SQL error number coming from the server
      */
@@ -153,6 +156,8 @@ export default class ConnectionManager {
         new vscode.EventEmitter<void>();
     public readonly onConnectionsChanged: vscode.Event<void> =
         this._onConnectionsChangedEmitter.event;
+
+    private readonly _onIntelliSenseReadyEmitter = new vscode.EventEmitter<string>();
 
     private _onSuccessfulConnectionEmitter: vscode.EventEmitter<ConnectionSuccessfulEvent> =
         new vscode.EventEmitter<ConnectionSuccessfulEvent>();
@@ -518,11 +523,50 @@ export default class ConnectionManager {
     }
 
     /**
+     * Connection completion precedes IntelliSense metadata readiness. Definition
+     * lookups can wait here without delaying typing or query execution.
+     * The wait is bounded and ends if this connection is removed or replaced.
+     */
+    public waitForIntelliSenseReady(fileUri: string, timeoutMs: number): Promise<boolean> {
+        const connection = this._connections[fileUri];
+        if (!connection || !this.isConnected(fileUri)) {
+            return Promise.resolve(false);
+        }
+        if (connection.intelliSenseReady) {
+            return Promise.resolve(true);
+        }
+        return new Promise<boolean>((resolve) => {
+            const finish = () => {
+                clearTimeout(timer);
+                readySubscription.dispose();
+                connectionSubscription.dispose();
+                resolve(this._connections[fileUri] === connection && connection.intelliSenseReady);
+            };
+            const readySubscription = this._onIntelliSenseReadyEmitter.event((ownerUri) => {
+                if (ownerUri === fileUri) {
+                    finish();
+                }
+            });
+            const connectionSubscription = this.onConnectionsChanged(() => {
+                if (this._connections[fileUri] !== connection) {
+                    finish();
+                }
+            });
+            const timer = setTimeout(finish, timeoutMs);
+        });
+    }
+
+    /**
      * Public for testing purposes only.
      */
     public handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.IntelliSenseReadyParams> {
         // Using a lambda here to perform variable capture on the 'this' reference
         return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
+            const connection = this._connections[event.ownerUri];
+            if (connection) {
+                connection.intelliSenseReady = true;
+                this._onIntelliSenseReadyEmitter.fire(event.ownerUri);
+            }
             this._statusView.languageServiceStatusChanged(
                 event.ownerUri,
                 LocalizedConstants.intelliSenseUpdatedStatus,
