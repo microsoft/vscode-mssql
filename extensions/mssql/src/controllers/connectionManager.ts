@@ -1151,46 +1151,21 @@ export default class ConnectionManager {
     }
 
     private updateConnectionsContext() {
-        /**
-         * Making sure we keep encodings in the context. We need to convert the keys
-         * to Uri and back to string because the keys in _connections might have skipped encoding.
-         * This is done to match the behavior of how vscode core handles resource URIs in
-         * contexts.
-         * https://github.com/microsoft/vscode/blob/bb5a3c607b14787009f8e9fadb720beee596133c/src/vs/workbench/common/contextkeys.ts#L261C1-L262C1
-         * TODO: aaskhan find the underlying issue that causes the mismatch in encoding and fix it.
-         */
+        // Pass Uri values so VS Code maps them to the window's resource URIs
         vscode.commands.executeCommand(
             "setContext",
             "mssql.connections",
-            Object.keys(this._connections)
-                .filter((key) => this.isConnected(key))
-                .map((key) => {
-                    try {
-                        key = vscode.Uri.parse(key).toString();
-                    } catch {
-                        // ignore invalid URIs (for example OE-only keys) in context resource list
-                        return undefined;
-                    }
-                    return key;
-                })
-                .filter((key): key is string => !!key),
+            Utils.toResourceContextValue(
+                Object.keys(this._connections).filter((key) => this.isConnected(key)),
+            ),
         );
 
         vscode.commands.executeCommand(
             "setContext",
             "mssql.connecting",
-            Object.keys(this._connections)
-                .filter((key) => this.isConnecting(key))
-                .map((key) => {
-                    try {
-                        key = vscode.Uri.parse(key).toString();
-                    } catch {
-                        // ignore invalid URIs (for example OE-only keys) in context resource list
-                        return undefined;
-                    }
-                    return key;
-                })
-                .filter((key): key is string => !!key),
+            Utils.toResourceContextValue(
+                Object.keys(this._connections).filter((key) => this.isConnecting(key)),
+            ),
         );
     }
 
