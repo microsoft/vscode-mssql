@@ -315,6 +315,7 @@ export default class QueryRunner {
                 LocalizedConstants.msgCancelQueryTimedOut,
             );
             cancelRequestCompleted = true;
+            Perf.marker("mssql.query.cancelled", "instant");
             cancelQueryActivity?.end(ActivityStatus.Succeeded);
             if (cancelationResult?.messages && this._isExecuting) {
                 // The service has no live query for this editor (it finished, was disposed, or

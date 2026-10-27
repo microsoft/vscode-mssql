@@ -140,6 +140,11 @@ export interface DiagnosticsResult {
 export interface DefinitionLocationResult {
     /** In-document target (aliases, variables, CTEs, temp tables). */
     readonly range?: SqlLanguageRange;
+    /** Original bridge target, retained by the host for explicit navigation after Peek. */
+    readonly externalTarget?: {
+        readonly uri: string;
+        readonly range: SqlLanguageRange;
+    };
     /** Virtual/scripted content target (catalog objects), LS-4. */
     readonly virtualContent?: {
         /** Display name for the virtual document (e.g. "Sales.Orders"). */

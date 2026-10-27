@@ -104,6 +104,9 @@ export class ConnectionInfo {
      */
     public connecting: boolean;
 
+    /** SQL Tools Service has finished loading this connection's IntelliSense metadata. */
+    public intelliSenseReady = false;
+
     /**
      * The MS SQL error number coming from the server
      */
@@ -156,6 +159,8 @@ export default class ConnectionManager {
         new vscode.EventEmitter<void>();
     public readonly onConnectionsChanged: vscode.Event<void> =
         this._onConnectionsChangedEmitter.event;
+
+    private readonly _onIntelliSenseReadyEmitter = new vscode.EventEmitter<string>();
 
     private _onSuccessfulConnectionEmitter: vscode.EventEmitter<ConnectionSuccessfulEvent> =
         new vscode.EventEmitter<ConnectionSuccessfulEvent>();
@@ -525,11 +530,50 @@ export default class ConnectionManager {
     }
 
     /**
+     * Connection completion precedes IntelliSense metadata readiness. Definition
+     * lookups can wait here without delaying typing or query execution.
+     * The wait is bounded and ends if this connection is removed or replaced.
+     */
+    public waitForIntelliSenseReady(fileUri: string, timeoutMs: number): Promise<boolean> {
+        const connection = this._connections[fileUri];
+        if (!connection || !this.isConnected(fileUri)) {
+            return Promise.resolve(false);
+        }
+        if (connection.intelliSenseReady) {
+            return Promise.resolve(true);
+        }
+        return new Promise<boolean>((resolve) => {
+            const finish = () => {
+                clearTimeout(timer);
+                readySubscription.dispose();
+                connectionSubscription.dispose();
+                resolve(this._connections[fileUri] === connection && connection.intelliSenseReady);
+            };
+            const readySubscription = this._onIntelliSenseReadyEmitter.event((ownerUri) => {
+                if (ownerUri === fileUri) {
+                    finish();
+                }
+            });
+            const connectionSubscription = this.onConnectionsChanged(() => {
+                if (this._connections[fileUri] !== connection) {
+                    finish();
+                }
+            });
+            const timer = setTimeout(finish, timeoutMs);
+        });
+    }
+
+    /**
      * Public for testing purposes only.
      */
     public handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.IntelliSenseReadyParams> {
         // Using a lambda here to perform variable capture on the 'this' reference
         return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
+            const connection = this._connections[event.ownerUri];
+            if (connection) {
+                connection.intelliSenseReady = true;
+                this._onIntelliSenseReadyEmitter.fire(event.ownerUri);
+            }
             this._statusView.languageServiceStatusChanged(
                 event.ownerUri,
                 LocalizedConstants.intelliSenseUpdatedStatus,
@@ -1114,46 +1158,21 @@ export default class ConnectionManager {
     }
 
     private updateConnectionsContext() {
-        /**
-         * Making sure we keep encodings in the context. We need to convert the keys
-         * to Uri and back to string because the keys in _connections might have skipped encoding.
-         * This is done to match the behavior of how vscode core handles resource URIs in
-         * contexts.
-         * https://github.com/microsoft/vscode/blob/bb5a3c607b14787009f8e9fadb720beee596133c/src/vs/workbench/common/contextkeys.ts#L261C1-L262C1
-         * TODO: aaskhan find the underlying issue that causes the mismatch in encoding and fix it.
-         */
+        // Pass Uri values so VS Code maps them to the window's resource URIs
         vscode.commands.executeCommand(
             "setContext",
             "mssql.connections",
-            Object.keys(this._connections)
-                .filter((key) => this.isConnected(key))
-                .map((key) => {
-                    try {
-                        key = vscode.Uri.parse(key).toString();
-                    } catch {
-                        // ignore invalid URIs (for example OE-only keys) in context resource list
-                        return undefined;
-                    }
-                    return key;
-                })
-                .filter((key): key is string => !!key),
+            Utils.toResourceContextValue(
+                Object.keys(this._connections).filter((key) => this.isConnected(key)),
+            ),
         );
 
         vscode.commands.executeCommand(
             "setContext",
             "mssql.connecting",
-            Object.keys(this._connections)
-                .filter((key) => this.isConnecting(key))
-                .map((key) => {
-                    try {
-                        key = vscode.Uri.parse(key).toString();
-                    } catch {
-                        // ignore invalid URIs (for example OE-only keys) in context resource list
-                        return undefined;
-                    }
-                    return key;
-                })
-                .filter((key): key is string => !!key),
+            Utils.toResourceContextValue(
+                Object.keys(this._connections).filter((key) => this.isConnecting(key)),
+            ),
         );
     }
 

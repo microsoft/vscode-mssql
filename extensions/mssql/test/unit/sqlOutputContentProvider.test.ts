@@ -39,6 +39,7 @@ import {
     previewService,
 } from "../../src/previews/previewService";
 import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
+import { Perf } from "../../src/perf/perfTelemetry";
 
 const { expect } = chai;
 
@@ -168,6 +169,35 @@ suite("SqlOutputProvider Tests using mocks", () => {
             const resultColumn = contentProvider.newResultPaneViewColumn("test_uri");
 
             expect(resultColumn).to.equal(testCase.expectedColumn);
+        });
+    });
+
+    test("row-window markers report actual rows and close failed requests", async () => {
+        const marker = sandbox.stub(Perf, "marker");
+        const runner = sandbox.createStubInstance(QueryRunner);
+        const subset = { rowCount: 2, rows: [[{ displayValue: "42" }], [{ displayValue: "43" }]] };
+        runner.getRows.resolves({ resultSubset: subset } as QueryExecuteSubsetResult);
+        contentProvider.setResultsMap = new Map([[testUri, new QueryRunnerState(runner)]]);
+        expect(await contentProvider.rowRequestHandler(testUri, 0, 1, 41, 2)).to.equal(subset);
+        expect(marker).to.have.been.calledWithMatch("mssql.resultsGrid.windowFetch.end", "end", {
+            batchId: 0,
+            resultId: 1,
+            rowStart: 41,
+            rowsReturned: 2,
+            failed: false,
+        });
+        const failure = new Error("fixture failure");
+        runner.getRows.rejects(failure);
+        let caught: unknown;
+        try {
+            await contentProvider.rowRequestHandler(testUri, 0, 1, 41, 2);
+        } catch (error) {
+            caught = error;
+        }
+        expect(caught).to.equal(failure);
+        expect(marker).to.have.been.calledWithMatch("mssql.resultsGrid.windowFetch.end", "end", {
+            rowsReturned: 0,
+            failed: true,
         });
     });
 
@@ -1109,7 +1139,14 @@ suite("SqlOutputProvider Tests using mocks", () => {
             expect(executeCommand).to.have.been.calledWith(
                 "setContext",
                 "mssql.executionPlan.urisWithLiveQueryStatisticsEnabled",
-                [renamed],
+                sinon.match(
+                    (value: unknown) =>
+                        Array.isArray(value) &&
+                        value.length === 1 &&
+                        value[0] instanceof vscode.Uri &&
+                        value[0].toString() === vscode.Uri.parse(renamed).toString(),
+                    `Uri value ${renamed}`,
+                ),
             );
             original._callbacks.onError("stale error");
             replacement._callbacks.onPlans([liveGraph]);

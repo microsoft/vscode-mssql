@@ -9,6 +9,8 @@ import sinonChai from "sinon-chai";
 import * as utils from "../../src/utils/utils";
 import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
+import * as vm from "vm";
+import { QueryStudioController } from "../../src/queryStudio/queryStudioController";
 
 import { WebviewBaseController } from "../../src/controllers/webviewBaseController";
 import { observeWebviewReady, stubTelemetry } from "./utils";
@@ -89,7 +91,47 @@ suite("WebviewController Tests", () => {
     });
 
     teardown(() => {
-        sandbox.restore();
+        try {
+            controller.dispose();
+        } finally {
+            sandbox.restore();
+        }
+    });
+
+    test("a slow webview has no default deadline and remains usable after another caller times out", async () => {
+        const clock = sandbox.useFakeTimers();
+        let ready = false;
+        const waiting = controller.whenWebviewReady().then(() => {
+            ready = true;
+        });
+        const shortWait = controller.whenWebviewReady(100).then(
+            () => "ready",
+            (error: Error) => error.message,
+        );
+        await clock.tickAsync(10_000);
+        expect(ready).to.equal(false);
+        expect(await shortWait).not.to.equal("ready");
+        const loaded = onNotificationStub
+            .getCalls()
+            .find((call) => call.args[0] === LoadStatsNotification.type)!.args[1];
+        loaded({ loadCompleteTimeStamp: Date.now() });
+        await waiting;
+        await controller.whenWebviewReady();
+        expect(ready).to.equal(true);
+    });
+
+    test("disposing a not-yet-ready webview rejects all outstanding waiters", async () => {
+        const waiting = controller.whenWebviewReady().then(
+            () => false,
+            () => true,
+        );
+        const timed = controller.whenWebviewReady(60_000).then(
+            () => false,
+            () => true,
+        );
+        controller.dispose();
+        expect(await waiting).to.equal(true);
+        expect(await timed).to.equal(true);
     });
 
     test("Should initialize with initial state", () => {
@@ -203,6 +245,47 @@ suite("WebviewController Tests", () => {
         );
     });
 
+    test("Should ignore state assignment after disposal", () => {
+        controller.dispose();
+        sendNotificationStub.resetHistory();
+
+        controller.state = { count: 6 };
+
+        expect(controller.state, "State is updated after disposal").to.deep.equal({ count: 0 });
+        expect(sendNotificationStub, "Notification is sent after disposal").to.not.have.been.called;
+    });
+
+    test("Should ignore updateState after disposal", () => {
+        controller.dispose();
+        sendNotificationStub.resetHistory();
+
+        controller.updateState({ count: 6 });
+
+        expect(controller.state, "State is updated after disposal").to.deep.equal({ count: 0 });
+        expect(sendNotificationStub, "Notification is sent after disposal").to.not.have.been.called;
+    });
+
+    test("Should not update state when a reducer disposes the controller", async () => {
+        controller.registerReducer("increment", (state, payload) => {
+            controller.dispose();
+            return { count: state.count + payload.amount };
+        });
+        const requestCall = onRequestStub
+            .getCalls()
+            .find((call) => call.args[0].method === ReducerRequest.type<TestReducers>().method);
+        expect(requestCall, "ReducerRequest handler is not registered").to.exist;
+        const handler = requestCall.args[1];
+        sendNotificationStub.resetHistory();
+
+        await handler({ type: "increment", payload: { amount: 6 } });
+
+        expect(controller.state, "State is updated after reducer disposal").to.deep.equal({
+            count: 0,
+        });
+        expect(sendNotificationStub, "Notification is sent after reducer disposal").to.not.have.been
+            .called;
+    });
+
     test("Should dispose properly", () => {
         const disposable = {
             dispose: sandbox.stub(),
@@ -228,12 +311,15 @@ suite("WebviewController Tests", () => {
         const originalOnChangeActiveColorTheme = vscode.window.onDidChangeActiveColorTheme;
 
         try {
-            (vscode.window.onDidChangeActiveColorTheme as any) = sandbox.stub();
+            (vscode.window.onDidChangeActiveColorTheme as any) = sandbox
+                .stub()
+                .returns({ dispose() {} });
 
             const onDidThemeChange = vscode.window.onDidChangeActiveColorTheme as Sinon.SinonStub;
             const themeChangedCallback = sandbox.stub();
             onDidThemeChange.callsFake((callback) => {
                 themeChangedCallback.callsFake(callback);
+                return { dispose() {} };
             });
             (controller as any).initializeBase();
 
@@ -263,6 +349,42 @@ suite("WebviewController Tests", () => {
         expect(html.includes('nonce="test-nonce"'), "Nonce is not included").to.be.true;
         expect(html.includes('<base href="https://example.com//">'), "Base href is not included").to
             .be.true;
+    });
+
+    test("Query Studio bootstrap uses the CSP nonce and relays errors before the module loads", () => {
+        sandbox.stub(utils, "getNonce").returns("review-nonce");
+        controller._webview.asWebviewUri = (uri) => uri;
+        sandbox.stub(controller, "cspOptions" as never).returns({ enabled: true } as never);
+        sandbox
+            .stub(controller, "bootstrapHtml" as never)
+            .callsFake(((nonce: string) =>
+                QueryStudioController.prototype["bootstrapHtml"].call(
+                    {} as QueryStudioController,
+                    nonce,
+                )) as never);
+        const html = controller["_getHtmlTemplate"]();
+        expect(html).to.contain("script-src 'nonce-review-nonce'");
+        const bootstrap = /<script nonce="review-nonce">([\s\S]*?)<\/script>/.exec(html)?.[1];
+        expect(bootstrap).to.be.a("string");
+        const listeners = new Map<string, (event: unknown) => void>();
+        const postMessage = sandbox.stub();
+        vm.runInNewContext(bootstrap!, {
+            window: {
+                addEventListener: (name: string, listener: (event: unknown) => void) =>
+                    listeners.set(name, listener),
+            },
+            acquireVsCodeApi: () => ({ postMessage }),
+        });
+        listeners.get("error")!({
+            message: "bundle failed",
+            filename: "queryStudio.js",
+            lineno: 10,
+        });
+        expect(postMessage.firstCall.args[0]).to.deep.equal({
+            type: "qsBootError",
+            message: "bundle failed",
+            source: "queryStudio.js:10",
+        });
     });
 });
 

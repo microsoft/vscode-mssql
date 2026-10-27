@@ -1,0 +1,167 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * readGridStyle validation (classic mssql.resultsGrid.* parity): defaults,
+ * the resultsFontSize override → compact 12px default, showGridLines
+ * whitelisting, and rejection of malformed values.
+ */
+
+import { expect } from "chai";
+import { affectsQueryStudioGridStyle, readGridStyle } from "../../src/queryStudio/gridStyle";
+
+function reader(values: Record<string, unknown>) {
+    return <T>(key: string): T | undefined => values[key] as T | undefined;
+}
+
+suite("Query Studio grid style", () => {
+    test("defaults when nothing is configured (package.json defaults are null)", () => {
+        const style = readGridStyle(
+            reader({
+                "mssql.resultsFontFamily": null,
+                "mssql.resultsFontSize": null,
+                "mssql.resultsGrid.rowPadding": null,
+            }),
+        );
+        expect(style).to.deep.equal({
+            fontSize: 12,
+            alternatingRowColors: false,
+            rightAlignNumbers: false,
+            freezeFirstColumnByDefault: false,
+            copyIncludeHeaders: false,
+            showGridLines: "both",
+            inMemoryDataProcessingThreshold: 5000,
+            resultsPaneHeightPct: 50,
+        });
+        expect(style).to.not.have.property("fontFamily");
+        expect(style).to.not.have.property("rowPadding");
+    });
+
+    test("resultsPaneHeightPercent reads and clamps to the splitter bounds", () => {
+        expect(
+            readGridStyle(reader({ "mssql.queryStudio.resultsPaneHeightPercent": 65 }))
+                .resultsPaneHeightPct,
+        ).to.equal(65);
+        expect(
+            readGridStyle(reader({ "mssql.queryStudio.resultsPaneHeightPercent": 5 }))
+                .resultsPaneHeightPct,
+        ).to.equal(15);
+        expect(
+            readGridStyle(reader({ "mssql.queryStudio.resultsPaneHeightPercent": 95 }))
+                .resultsPaneHeightPct,
+        ).to.equal(80);
+        expect(
+            readGridStyle(reader({ "mssql.queryStudio.resultsPaneHeightPercent": "half" }))
+                .resultsPaneHeightPct,
+        ).to.equal(50);
+    });
+
+    test("shared grid and clipboard preferences accept only boolean true", () => {
+        for (const [setting, field] of [
+            ["mssql.resultsGrid.rightAlignNumbers", "rightAlignNumbers"],
+            ["mssql.resultsGrid.freezeFirstColumnByDefault", "freezeFirstColumnByDefault"],
+            ["mssql.copyIncludeHeaders", "copyIncludeHeaders"],
+        ] as const) {
+            for (const value of [undefined, false, true, "true", 1, null]) {
+                expect(readGridStyle(reader({ [setting]: value }))[field]).to.equal(value === true);
+            }
+            expect(
+                affectsQueryStudioGridStyle({
+                    affectsConfiguration: (section) =>
+                        setting === section || setting.startsWith(`${section}.`),
+                }),
+            ).to.equal(true);
+        }
+        expect(
+            affectsQueryStudioGridStyle({
+                affectsConfiguration: (section) => section === "mssql.connections",
+            }),
+        ).to.equal(false);
+    });
+
+    test("unset resultsFontSize takes the compact 12px default, not editor.fontSize", () => {
+        expect(readGridStyle(reader({ "editor.fontSize": 14 })).fontSize).to.equal(12);
+        expect(
+            readGridStyle(reader({ "mssql.resultsFontSize": null, "editor.fontSize": 14 }))
+                .fontSize,
+        ).to.equal(12);
+    });
+
+    test("resultsFontSize wins over the default when set", () => {
+        const style = readGridStyle(reader({ "mssql.resultsFontSize": 18, "editor.fontSize": 14 }));
+        expect(style.fontSize).to.equal(18);
+    });
+
+    test("invalid font sizes fall back to the default", () => {
+        expect(
+            readGridStyle(reader({ "mssql.resultsFontSize": -3, "editor.fontSize": "big" }))
+                .fontSize,
+        ).to.equal(12);
+        expect(readGridStyle(reader({ "mssql.resultsFontSize": NaN })).fontSize).to.equal(12);
+    });
+
+    test("fontFamily kept when a non-empty string; blank/typed-wrong dropped", () => {
+        expect(
+            readGridStyle(reader({ "mssql.resultsFontFamily": "Consolas" })).fontFamily,
+        ).to.equal("Consolas");
+        expect(readGridStyle(reader({ "mssql.resultsFontFamily": "   " })).fontFamily).to.equal(
+            undefined,
+        );
+        expect(readGridStyle(reader({ "mssql.resultsFontFamily": 12 })).fontFamily).to.equal(
+            undefined,
+        );
+    });
+
+    test("showGridLines is whitelisted with fallback to both", () => {
+        for (const mode of ["both", "horizontal", "vertical", "none"] as const) {
+            expect(
+                readGridStyle(reader({ "mssql.resultsGrid.showGridLines": mode })).showGridLines,
+            ).to.equal(mode);
+        }
+        expect(
+            readGridStyle(reader({ "mssql.resultsGrid.showGridLines": "diagonal" })).showGridLines,
+        ).to.equal("both");
+        expect(readGridStyle(reader({})).showGridLines).to.equal("both");
+    });
+
+    test("alternatingRowColors only on boolean true", () => {
+        expect(
+            readGridStyle(reader({ "mssql.resultsGrid.alternatingRowColors": true }))
+                .alternatingRowColors,
+        ).to.equal(true);
+        expect(
+            readGridStyle(reader({ "mssql.resultsGrid.alternatingRowColors": "yes" }))
+                .alternatingRowColors,
+        ).to.equal(false);
+    });
+
+    test("inMemoryDataProcessingThreshold defaults to 5000 and accepts positive numbers", () => {
+        expect(readGridStyle(reader({})).inMemoryDataProcessingThreshold).to.equal(5000);
+        expect(
+            readGridStyle(reader({ "mssql.resultsGrid.inMemoryDataProcessingThreshold": 10000 }))
+                .inMemoryDataProcessingThreshold,
+        ).to.equal(10000);
+    });
+
+    test("invalid inMemoryDataProcessingThreshold falls back to 5000", () => {
+        for (const bad of [-1, 0, NaN, "many", null]) {
+            expect(
+                readGridStyle(reader({ "mssql.resultsGrid.inMemoryDataProcessingThreshold": bad }))
+                    .inMemoryDataProcessingThreshold,
+            ).to.equal(5000);
+        }
+    });
+
+    test("rowPadding accepts non-negative numbers only", () => {
+        expect(readGridStyle(reader({ "mssql.resultsGrid.rowPadding": 4 })).rowPadding).to.equal(4);
+        expect(readGridStyle(reader({ "mssql.resultsGrid.rowPadding": 0 })).rowPadding).to.equal(0);
+        expect(readGridStyle(reader({ "mssql.resultsGrid.rowPadding": -2 })).rowPadding).to.equal(
+            undefined,
+        );
+        expect(
+            readGridStyle(reader({ "mssql.resultsGrid.rowPadding": "thick" })).rowPadding,
+        ).to.equal(undefined);
+    });
+});
