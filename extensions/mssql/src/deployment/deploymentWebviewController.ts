@@ -45,15 +45,15 @@ import { findFirstFavoriteOption } from "../sharedInterfaces/form";
 import * as azureSql from "./azureSqlHelpers";
 import { previewService } from "../previews/previewService";
 import {
+    AzureSqlCompatibilityBuilder,
     connectLocalDatabaseSource,
     getLocalDatabaseConnectionId,
     isAzureSqlDatabaseSource,
     getLocalDatabaseSources,
-} from "./localDatabaseSources";
+    LocalDatabaseCompatibilityService,
+    LocalDatabaseDeploymentService,
+} from "./localToCloudHelpers";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
-import { LocalDatabaseCompatibilityService } from "./localDatabaseCompatibility";
-import { LocalDatabaseDeploymentService } from "./localDatabaseDeployment";
-import { AzureSqlCompatibilityBuilder } from "./azureSqlCompatibilityBuilder";
 import { getMssqlOutputChannel } from "../models/logger";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";

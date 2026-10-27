@@ -21,8 +21,10 @@ import * as azureSql from "../../src/deployment/azureSqlHelpers";
 import * as logger from "../../src/models/logger";
 import { AzureSqlDatabaseRequests } from "../../src/sharedInterfaces/azureSqlDatabase";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
-import { LocalDatabaseDeploymentService } from "../../src/deployment/localDatabaseDeployment";
-import { LocalDatabaseCompatibilityService } from "../../src/deployment/localDatabaseCompatibility";
+import {
+    LocalDatabaseDeploymentService,
+    LocalDatabaseCompatibilityService,
+} from "../../src/deployment/localToCloudHelpers";
 import { LocalToCloud } from "../../src/constants/locConstants";
 
 chai.use(sinonChai);

@@ -21,8 +21,7 @@ void run(
                 extension: "src/extension.ts",
                 serviceInstallerUtil: "src/languageservice/serviceInstallerUtil.ts",
             },
-            // ssh2 tolerates this optional native module being absent at runtime.
-            external: ["vscode-mssql", "cpu-features"],
+            external: ["vscode-mssql"],
             loader: {
                 ".ts": "ts",
                 ".js": "js",
