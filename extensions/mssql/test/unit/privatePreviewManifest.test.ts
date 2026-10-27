@@ -19,6 +19,8 @@ const DEBUG_CONSOLE_GATE =
     "mssql.privatePreview.debugConsoleActive && config.mssql.enableExperimentalFeatures && config.mssql.debugConsole.enabled";
 const SESSION_DIAGNOSTICS_GATE =
     "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled";
+const PERFORMANCE_MONITORING_GATE =
+    "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled";
 const OBJECT_EXPLORER_V2_GATE =
     "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled";
 
@@ -48,6 +50,7 @@ interface ExtensionPackageJson {
         views: { objectExplorer: { id: string; when?: string }[] };
         keybindings: { command: string; when?: string }[];
         languageModelChatProviders: LanguageModelChatProviderContribution[];
+        languageModelTools: { name: string; when?: string }[];
         configuration:
             | ConfigurationContribution<{
                   default?: unknown;
@@ -78,6 +81,7 @@ suite("Private preview manifest", () => {
         expect(settings["mssql.debugConsole.enabled"]?.default).to.equal(false);
         expect(settings["mssql.sessionDiag.enabled"]?.default).to.equal(false);
         expect(settings["mssql.objectExplorer.v2.enabled"]?.default).to.equal(false);
+        expect(settings["mssql.performanceMonitoring.enabled"]?.default).to.equal(false);
         expect(settings["mssql.copilot.inlineCompletions.enabled"]?.default).to.equal(false);
         expect(settings["mssql.copilot.inlineCompletions.useSchemaContext"]?.default).to.equal(
             false,
@@ -244,6 +248,31 @@ suite("Private preview manifest", () => {
         expect(keybindings.length).to.be.greaterThan(0);
         for (const keybinding of keybindings) {
             expect(keybinding.when, keybinding.command).to.contain(OBJECT_EXPLORER_V2_GATE);
+        }
+    });
+
+    test("requires the activation snapshot and complete path for performance monitoring", () => {
+        const commandId = "mssql.performance.openDashboard";
+        expect(command(commandId).enablement).to.equal(PERFORMANCE_MONITORING_GATE);
+        expect(commandPalette(commandId).when).to.equal("false");
+        const menus = packageJson.contributes.menus["view/item/context"].filter(
+            (item) => item.command === commandId,
+        );
+        expect(menus.length).to.be.greaterThan(0);
+        for (const menu of menus) {
+            expect(menu.when, menu.command).to.contain(PERFORMANCE_MONITORING_GATE);
+        }
+    });
+
+    test("shows the Query Store tools only while performance monitoring is active", () => {
+        const tools = packageJson.contributes.languageModelTools.filter(
+            (tool) =>
+                tool.name.startsWith("mssql_query_store_") ||
+                tool.name === "mssql_open_performance_dashboard",
+        );
+        expect(tools.length).to.equal(10);
+        for (const tool of tools) {
+            expect(tool.when, tool.name).to.equal(PERFORMANCE_MONITORING_GATE);
         }
     });
 

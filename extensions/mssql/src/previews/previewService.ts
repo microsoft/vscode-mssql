@@ -30,6 +30,7 @@ export enum PrivatePreviewFeature {
     SessionDiagnostics = "mssql.sessionDiag.enabled",
     ObjectExplorerV2 = "mssql.objectExplorer.v2.enabled",
     QueryStudio = "mssql.queryStudio.enabled",
+    PerformanceMonitoring = "mssql.performanceMonitoring.enabled",
 }
 
 /**
@@ -45,6 +46,7 @@ export enum PrivatePreviewContextKey {
     SessionDiagnosticsActive = "mssql.privatePreview.sessionDiagnosticsActive",
     ObjectExplorerV2Active = "mssql.privatePreview.objectExplorerV2Active",
     QueryStudioActive = "mssql.privatePreview.queryStudioActive",
+    PerformanceMonitoringActive = "mssql.privatePreview.performanceMonitoringActive",
 }
 
 export const CONFIG_PREVIEW_PREFIX = "mssql.preview.";

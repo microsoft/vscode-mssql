@@ -2048,6 +2048,69 @@
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
     },
+    "The server did not finish the login. A paused serverless database can take a minute to resume, so try again shortly. {0}/{0} is the error from the server": {
+        "message": "The server did not finish the login. A paused serverless database can take a minute to resume, so try again shortly. {0}",
+        "comment": ["{0} is the error from the server"]
+    },
+    "Performance - {0}/{0} is the database name": {
+        "message": "Performance - {0}",
+        "comment": ["{0} is the database name"]
+    },
+    "Open performance monitoring from a database of a saved connection in Object Explorer.": "Open performance monitoring from a database of a saved connection in Object Explorer.",
+    "Query {0} - Plan {1}/{0} is the Query Store query ID{1} is the Query Store plan ID": {
+        "message": "Query {0} - Plan {1}",
+        "comment": ["{0} is the Query Store query ID", "{1} is the Query Store plan ID"]
+    },
+    "Query Store tools need a connection that was opened from a saved connection profile.": "Query Store tools need a connection that was opened from a saved connection profile.",
+    "Give hours from 1 to 8760, or both startUtc and endUtc as ISO 8601 times, with startUtc before endUtc.": "Give hours from 1 to 8760, or both startUtc and endUtc as ISO 8601 times, with startUtc before endUtc.",
+    "Give the connectionId of an open connection or the profileId of a saved connection profile.": "Give the connectionId of an open connection or the profileId of a saved connection profile.",
+    "There is no saved connection profile with the ID '{0}'./{0} is the connection profile ID": {
+        "message": "There is no saved connection profile with the ID '{0}'.",
+        "comment": ["{0} is the connection profile ID"]
+    },
+    "Reading Query Store data of database '{0}' on '{1}'/{0} is the database name{1} is the connection display name": {
+        "message": "Reading Query Store data of database '{0}' on '{1}'",
+        "comment": ["{0} is the database name", "{1} is the connection display name"]
+    },
+    "Force Query Store Plan": "Force Query Store Plan",
+    "Unforce Query Store Plan": "Unforce Query Store Plan",
+    "Force plan {0} for query {1} in database '{2}' on '{3}'? This runs the following T-SQL:/{0} is the Query Store plan ID{1} is the Query Store query ID{2} is the database name{3} is the connection display name": {
+        "message": "Force plan {0} for query {1} in database '{2}' on '{3}'? This runs the following T-SQL:",
+        "comment": [
+            "{0} is the Query Store plan ID",
+            "{1} is the Query Store query ID",
+            "{2} is the database name",
+            "{3} is the connection display name"
+        ]
+    },
+    "Unforce plan {0} for query {1} in database '{2}' on '{3}'? This runs the following T-SQL:/{0} is the Query Store plan ID{1} is the Query Store query ID{2} is the database name{3} is the connection display name": {
+        "message": "Unforce plan {0} for query {1} in database '{2}' on '{3}'? This runs the following T-SQL:",
+        "comment": [
+            "{0} is the Query Store plan ID",
+            "{1} is the Query Store query ID",
+            "{2} is the database name",
+            "{3} is the connection display name"
+        ]
+    },
+    "Forcing plan {0} for query {1}/{0} is the Query Store plan ID{1} is the Query Store query ID": {
+        "message": "Forcing plan {0} for query {1}",
+        "comment": ["{0} is the Query Store plan ID", "{1} is the Query Store query ID"]
+    },
+    "Unforcing plan {0} for query {1}/{0} is the Query Store plan ID{1} is the Query Store query ID": {
+        "message": "Unforcing plan {0} for query {1}",
+        "comment": ["{0} is the Query Store plan ID", "{1} is the Query Store query ID"]
+    },
+    "Warnings:": "Warnings:",
+    "Forcing this plan replaces the plan that is forced now.": "Forcing this plan replaces the plan that is forced now.",
+    "The server does not show whether automatic tuning forced the current plan.": "The server does not show whether automatic tuning forced the current plan.",
+    "This is a variant plan of parameter sensitive plan optimization.": "This is a variant plan of parameter sensitive plan optimization.",
+    "This is a dispatcher plan.": "This is a dispatcher plan.",
+    "Forcing this plan failed before.": "Forcing this plan failed before.",
+    "The plan change was not reviewed, so it did not run. Call the tool again.": "The plan change was not reviewed, so it did not run. Call the tool again.",
+    "Opening the performance dashboard of database '{0}' on '{1}'/{0} is the database name{1} is the connection display name": {
+        "message": "Opening the performance dashboard of database '{0}' on '{1}'",
+        "comment": ["{0} is the database name", "{1} is the connection display name"]
+    },
     "Search Database Objects - {0}/{0} is the server name": {
         "message": "Search Database Objects - {0}",
         "comment": ["{0} is the server name"]
@@ -5704,6 +5767,468 @@
     "is null": "is null",
     "is not null": "is not null",
     "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.": "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.",
+    "Breadcrumb": "Breadcrumb",
+    "No data for this time range.": "No data for this time range.",
+    "Total": "Total",
+    "Average": "Average",
+    "Std dev": "Std dev",
+    "{0} {1}/{0} is a statistic, for example Total or Average{1} is a metric with its unit, for example CPU (ms)": {
+        "message": "{0} {1}",
+        "comment": [
+            "{0} is a statistic, for example Total or Average",
+            "{1} is a metric with its unit, for example CPU (ms)"
+        ]
+    },
+    "CPU (ms)": "CPU (ms)",
+    "duration/A metric after a statistic, for example Total duration": {
+        "message": "duration",
+        "comment": ["A metric after a statistic, for example Total duration"]
+    },
+    "logical reads/A metric after a statistic, for example Total logical reads": {
+        "message": "logical reads",
+        "comment": ["A metric after a statistic, for example Total logical reads"]
+    },
+    "High CPU": "High CPU",
+    "Longest running": "Longest running",
+    "Most frequent": "Most frequent",
+    "High reads": "High reads",
+    "High memory": "High memory",
+    "High memory queries": "High memory queries",
+    "duration (ms)": "duration (ms)",
+    "logical reads (KB)": "logical reads (KB)",
+    "Most frequent queries": "Most frequent queries",
+    "Longest running queries": "Longest running queries",
+    "High read queries": "High read queries",
+    "Query category": "Query category",
+    "Rank by": "Rank by",
+    "Search queries": "Search queries",
+    "Favorites only": "Favorites only",
+    "No queries match.": "No queries match.",
+    "Add query {0} to favorites/{0} is the Query Store query ID": {
+        "message": "Add query {0} to favorites",
+        "comment": ["{0} is the Query Store query ID"]
+    },
+    "Remove query {0} from favorites/{0} is the Query Store query ID": {
+        "message": "Remove query {0} from favorites",
+        "comment": ["{0} is the Query Store query ID"]
+    },
+    "Query {0}/{0} is the Query Store query ID": {
+        "message": "Query {0}",
+        "comment": ["{0} is the Query Store query ID"]
+    },
+    "Query Store has no data for this query in this time range.": "Query Store has no data for this query in this time range.",
+    "Object name": "Object name",
+    "Last executed": "Last executed",
+    "Plan {0} forced/{0} is the Query Store plan ID": {
+        "message": "Plan {0} forced",
+        "comment": ["{0} is the Query Store plan ID"]
+    },
+    "Not forced": "Not forced",
+    "Min/Short for minimum": {
+        "message": "Min",
+        "comment": ["Short for minimum"]
+    },
+    "Max/Short for maximum": {
+        "message": "Max",
+        "comment": ["Short for maximum"]
+    },
+    "Execution history": "Execution history",
+    "Plans": "Plans",
+    "Query text": "Query text",
+    "Query views": "Query views",
+    "Query text, read-only": "Query text, read-only",
+    "The query text is not available.": "The query text is not available.",
+    "Copy SQL": "Copy SQL",
+    "Duration (ms)": "Duration (ms)",
+    "Logical reads (KB)": "Logical reads (KB)",
+    "{0} ms/{0} is a number of milliseconds, for example 46.54": {
+        "message": "{0} ms",
+        "comment": ["{0} is a number of milliseconds, for example 46.54"]
+    },
+    "{0} KB/{0} is a number of kilobytes, for example 2,588": {
+        "message": "{0} KB",
+        "comment": ["{0} is a number of kilobytes, for example 2,588"]
+    },
+    "Total duration": "Total duration",
+    "Total CPU": "Total CPU",
+    "Logical reads": "Logical reads",
+    "View by": "View by",
+    "Time interval": "Time interval",
+    "{0} - {1}/{0} is the start date and time{1} is the end time": {
+        "message": "{0} - {1}",
+        "comment": ["{0} is the start date and time", "{1} is the end time"]
+    },
+    "Query Store has no plans for this query.": "Query Store has no plans for this query.",
+    "Select plan {0}/{0} is the Query Store plan ID": {
+        "message": "Select plan {0}",
+        "comment": ["{0} is the Query Store plan ID"]
+    },
+    "Plan": "Plan",
+    "Plan {0}/{0} is the Query Store plan ID": {
+        "message": "Plan {0}",
+        "comment": ["{0} is the Query Store plan ID"]
+    },
+    "Plan summary: {0}/{0} is the statistic and metric, for example Total Duration (ms)": {
+        "message": "Plan summary: {0}",
+        "comment": ["{0} is the statistic and metric, for example Total Duration (ms)"]
+    },
+    "Runs": "Runs",
+    "Mean duration": "Mean duration",
+    "Mean CPU": "Mean CPU",
+    "Force": "Force",
+    "Forced (Manual)": "Forced (Manual)",
+    "Forced (Automatic tuning)": "Forced (Automatic tuning)",
+    "Last force failed: {0}/{0} is the failure reason code, for example NO_INDEX": {
+        "message": "Last force failed: {0}",
+        "comment": ["{0} is the failure reason code, for example NO_INDEX"]
+    },
+    "Select one plan to open or force, or two plans to compare.": "Select one plan to open or force, or two plans to compare.",
+    "1 selected": "1 selected",
+    "select two plans to compare": "select two plans to compare",
+    "2 selected": "2 selected",
+    "Open plan XML": "Open plan XML",
+    "Actions for plan {0}/{0} is the Query Store plan ID": {
+        "message": "Actions for plan {0}",
+        "comment": ["{0} is the Query Store plan ID"]
+    },
+    "Open plan {0} in the execution plan viewer/{0} is the Query Store plan ID": {
+        "message": "Open plan {0} in the execution plan viewer",
+        "comment": ["{0} is the Query Store plan ID"]
+    },
+    "Compare plans": "Compare plans",
+    "Force plan": "Force plan",
+    "Unforce plan": "Unforce plan",
+    "Query Store has no plan XML for plan {0}./{0} is the Query Store plan ID": {
+        "message": "Query Store has no plan XML for plan {0}.",
+        "comment": ["{0} is the Query Store plan ID"]
+    },
+    "The plans could not be read for the comparison.": "The plans could not be read for the comparison.",
+    "Force plan {0}/{0} is the Query Store plan ID": {
+        "message": "Force plan {0}",
+        "comment": ["{0} is the Query Store plan ID"]
+    },
+    "Unforce plan {0}/{0} is the Query Store plan ID": {
+        "message": "Unforce plan {0}",
+        "comment": ["{0} is the Query Store plan ID"]
+    },
+    "Plan {0} is forced./{0} is the Query Store plan ID": {
+        "message": "Plan {0} is forced.",
+        "comment": ["{0} is the Query Store plan ID"]
+    },
+    "Plan {0} is no longer forced./{0} is the Query Store plan ID": {
+        "message": "Plan {0} is no longer forced.",
+        "comment": ["{0} is the Query Store plan ID"]
+    },
+    "Verify after the query runs again: Query Store counts the executions from the interval after the change.": "Verify after the query runs again: Query Store counts the executions from the interval after the change.",
+    "Verify": "Verify",
+    "New executions use the forced plan.": "New executions use the forced plan.",
+    "Some new executions use another plan. The last force failure can say why.": "Some new executions use another plan. The last force failure can say why.",
+    "The query has not run since the change.": "The query has not run since the change.",
+    "The first Query Store interval after the change has not started yet. Verify again later.": "The first Query Store interval after the change has not started yet. Verify again later.",
+    "The plan is not forced.": "The plan is not forced.",
+    "Query Store must be read-write to change plan forcing.": "Query Store must be read-write to change plan forcing.",
+    "Query Store does not have this plan.": "Query Store does not have this plan.",
+    "The plan belongs to another query.": "The plan belongs to another query.",
+    "The plan is already forced.": "The plan is already forced.",
+    "Automatic tuning forced a plan for this query, so the plan forcing cannot be changed here.": "Automatic tuning forced a plan for this query, so the plan forcing cannot be changed here.",
+    "A dispatcher plan cannot be forced. Force one of its variant plans.": "A dispatcher plan cannot be forced. Force one of its variant plans.",
+    "The plan forcing changed after you prepared the change. Prepare it again.": "The plan forcing changed after you prepared the change. Prepare it again.",
+    "Another plan of this query is forced. This change replaces it.": "Another plan of this query is forced. This change replaces it.",
+    "This version cannot tell manual from automatic forcing.": "This version cannot tell manual from automatic forcing.",
+    "This is a variant plan of a parameter-sensitive query.": "This is a variant plan of a parameter-sensitive query.",
+    "Forcing this plan failed before. Check the last failure reason.": "Forcing this plan failed before. Check the last failure reason.",
+    "{0} / {1}/{0} is the server name{1} is the database name": {
+        "message": "{0} / {1}",
+        "comment": ["{0} is the server name", "{1} is the database name"]
+    },
+    "Search databases": "Search databases",
+    "Could not read from the database: {0}/{0} is the error message": {
+        "message": "Could not read from the database: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Could not load the database list: {0}/{0} is the error message": {
+        "message": "Could not load the database list: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Queries": "Queries",
+    "Open Query Store settings": "Open Query Store settings",
+    "Updated {0}/{0} is a time, for example 3:02 AM": {
+        "message": "Updated {0}",
+        "comment": ["{0} is a time, for example 3:02 AM"]
+    },
+    "Query Store": "Query Store",
+    "Collecting": "Collecting",
+    "Read-only": "Read-only",
+    "Capturing secondary replicas": "Capturing secondary replicas",
+    "{0} MB of {1} MB/{0} is the used size in MB{1} is the maximum size in MB": {
+        "message": "{0} MB of {1} MB",
+        "comment": ["{0} is the used size in MB", "{1} is the maximum size in MB"]
+    },
+    "{0} MB/{0} is the used size in MB": {
+        "message": "{0} MB",
+        "comment": ["{0} is the used size in MB"]
+    },
+    "of {0} MB used/{0} is the maximum size in MB. It follows the used size, 1 MB": {
+        "message": "of {0} MB used",
+        "comment": ["{0} is the maximum size in MB. It follows the used size, 1 MB"]
+    },
+    "Query Store storage": "Query Store storage",
+    "Cleanup starts at {0}/{0} is a percentage of the maximum size, for example 90%": {
+        "message": "Cleanup starts at {0}",
+        "comment": ["{0} is a percentage of the maximum size, for example 90%"]
+    },
+    "Size-based cleanup off": "Size-based cleanup off",
+    "Read-write": "Read-write",
+    "Auto": "Auto",
+    "{0} min/{0} is a number of minutes": {
+        "message": "{0} min",
+        "comment": ["{0} is a number of minutes"]
+    },
+    "Operation mode": "Operation mode",
+    "Read-only stops collecting new data. Off also stops plan forcing.": "Read-only stops collecting new data. Off also stops plan forcing.",
+    "Capture mode": "Capture mode",
+    "Auto skips infrequent and insignificant queries": "Auto skips infrequent and insignificant queries",
+    "Evaluation period": "Evaluation period",
+    "Custom capture: the period in which a query must reach a threshold below": "Custom capture: the period in which a query must reach a threshold below",
+    "Execution count": "Execution count",
+    "Capture a query that runs at least this many times": "Capture a query that runs at least this many times",
+    "Compile CPU": "Compile CPU",
+    "Or that uses at least this much CPU to compile": "Or that uses at least this much CPU to compile",
+    "Execution CPU": "Execution CPU",
+    "Or that uses at least this much CPU to run": "Or that uses at least this much CPU to run",
+    "Max size": "Max size",
+    "Storage limit for collected data": "Storage limit for collected data",
+    "Size-based cleanup": "Size-based cleanup",
+    "At 90% of the max size, removes the oldest and least costly queries until about 80%. SQL Server sets these thresholds.": "At 90% of the max size, removes the oldest and least costly queries until about 80%. SQL Server sets these thresholds.",
+    "Data flush interval": "Data flush interval",
+    "How often collected data is written to disk": "How often collected data is written to disk",
+    "Keep queries for": "Keep queries for",
+    "Older query data is removed": "Older query data is removed",
+    "Statistics interval": "Statistics interval",
+    "Collection": "Collection",
+    "Timing": "Timing",
+    "MB/Megabytes, after a number": {
+        "message": "MB",
+        "comment": ["Megabytes, after a number"]
+    },
+    "days/After a number of days": {
+        "message": "days",
+        "comment": ["After a number of days"]
+    },
+    "hours/After a number of hours": {
+        "message": "hours",
+        "comment": ["After a number of hours"]
+    },
+    "min/Minutes, after a number": {
+        "message": "min",
+        "comment": ["Minutes, after a number"]
+    },
+    "ms/Milliseconds, after a number": {
+        "message": "ms",
+        "comment": ["Milliseconds, after a number"]
+    },
+    "1 hour": "1 hour",
+    "1 day": "1 day",
+    "No changes": "No changes",
+    "1 change": "1 change",
+    "{0} changes/{0} is the number of changed settings": {
+        "message": "{0} changes",
+        "comment": ["{0} is the number of changed settings"]
+    },
+    "How often runtime statistics are aggregated": "How often runtime statistics are aggregated",
+    "Wait statistics": "Wait statistics",
+    "Capture what queries spend time waiting on": "Capture what queries spend time waiting on",
+    "You need ALTER permission on the database to change the Query Store settings.": "You need ALTER permission on the database to change the Query Store settings.",
+    "Review change": "Review change",
+    "Change Query Store settings": "Change Query Store settings",
+    "The T-SQL of the change, read-only": "The T-SQL of the change, read-only",
+    "Apply runs this script on the database. You can also open it in a query editor and run it yourself.": "Apply runs this script on the database. You can also open it in a query editor and run it yourself.",
+    "Open in query editor": "Open in query editor",
+    "Query Store settings changed.": "Query Store settings changed.",
+    "Query Store settings can't be changed from here on this platform.": "Query Store settings can't be changed from here on this platform.",
+    "This platform has no Query Store settings.": "This platform has no Query Store settings.",
+    "Query Store is read-only. {0}/{0} is the reason, for example: Query Store reached its maximum size.": {
+        "message": "Query Store is read-only. {0}",
+        "comment": ["{0} is the reason, for example: Query Store reached its maximum size."]
+    },
+    "The database is read-only.": "The database is read-only.",
+    "The database is in single-user mode.": "The database is in single-user mode.",
+    "The database is in emergency mode.": "The database is in emergency mode.",
+    "The database is a secondary that applies the log.": "The database is a secondary that applies the log.",
+    "Query Store reached its maximum size.": "Query Store reached its maximum size.",
+    "Query Store reached its memory limit.": "Query Store reached its memory limit.",
+    "The new maximum size is less than the current size, so Query Store becomes read-only.": "The new maximum size is less than the current size, so Query Store becomes read-only.",
+    "Read-only stops the capture of new queries and statistics.": "Read-only stops the capture of new queries and statistics.",
+    "Capture mode None stops the capture of new queries.": "Capture mode None stops the capture of new queries.",
+    "This change turns Query Store on.": "This change turns Query Store on.",
+    "Query Store stops collecting data, and forced plans are no longer forced. The data that it has stays.": "Query Store stops collecting data, and forced plans are no longer forced. The data that it has stays.",
+    "Without size-based cleanup, Query Store becomes read-only when it reaches its max size.": "Without size-based cleanup, Query Store becomes read-only when it reaches its max size.",
+    "A longer flush interval loses more data if the server stops unexpectedly.": "A longer flush interval loses more data if the server stops unexpectedly.",
+    "A shorter interval gives more detail but uses more storage.": "A shorter interval gives more detail but uses more storage.",
+    "No value is different from the current settings.": "No value is different from the current settings.",
+    "You need the ALTER permission on the database.": "You need the ALTER permission on the database.",
+    "This version of SQL Server does not capture wait statistics in Query Store.": "This version of SQL Server does not capture wait statistics in Query Store.",
+    "This version of SQL Server does not have the custom capture policy.": "This version of SQL Server does not have the custom capture policy.",
+    "Query Store can't be turned off on Azure SQL Database.": "Query Store can't be turned off on Azure SQL Database.",
+    "Query Store is in the error state. Turn it off and on again to recover it.": "Query Store is in the error state. Turn it off and on again to recover it.",
+    "The settings changed after you prepared the change. Prepare it again.": "The settings changed after you prepared the change. Prepare it again.",
+    "The script is not the script for this change. Prepare it again.": "The script is not the script for this change. Prepare it again.",
+    "Past hour": "Past hour",
+    "Past 12 hours": "Past 12 hours",
+    "Past 24 hours": "Past 24 hours",
+    "Past 7 days": "Past 7 days",
+    "Past 30 days": "Past 30 days",
+    "N/A": "N/A",
+    "High CPU usage queries": "High CPU usage queries",
+    "Query ID": "Query ID",
+    "Avg/Short for average, before a metric": {
+        "message": "Avg",
+        "comment": ["Short for average, before a metric"]
+    },
+    "CPU/A metric after a statistic, for example Total CPU": {
+        "message": "CPU",
+        "comment": ["A metric after a statistic, for example Total CPU"]
+    },
+    "memory/A metric after a statistic, for example Total memory": {
+        "message": "memory",
+        "comment": ["A metric after a statistic, for example Total memory"]
+    },
+    "reads/Logical reads, after a statistic, for example Total reads": {
+        "message": "reads",
+        "comment": ["Logical reads, after a statistic, for example Total reads"]
+    },
+    "Critical (≥ {0})/{0} is the threshold, for example 80%": {
+        "message": "Critical (≥ {0})",
+        "comment": ["{0} is the threshold, for example 80%"]
+    },
+    "CPU/A choice of measure: CPU time": {
+        "message": "CPU",
+        "comment": ["A choice of measure: CPU time"]
+    },
+    "Memory/A choice of measure: memory": {
+        "message": "Memory",
+        "comment": ["A choice of measure: memory"]
+    },
+    "Resize the query text": "Resize the query text",
+    "Recent/The recent period of a comparison": {
+        "message": "Recent",
+        "comment": ["The recent period of a comparison"]
+    },
+    "Baseline/The earlier period that a comparison compares with": {
+        "message": "Baseline",
+        "comment": ["The earlier period that a comparison compares with"]
+    },
+    "vs/Short for versus, between two periods": {
+        "message": "vs",
+        "comment": ["Short for versus, between two periods"]
+    },
+    "The recent period is the time range at the top of the page.": "The recent period is the time range at the top of the page.",
+    "Same length before": "Same length before",
+    "7 days before": "7 days before",
+    "30 days before": "30 days before",
+    "Average per execution": "Average per execution",
+    "Total per day": "Total per day",
+    "Change/The change from one period to another": {
+        "message": "Change",
+        "comment": ["The change from one period to another"]
+    },
+    "Executions (recent / baseline)": "Executions (recent / baseline)",
+    "The query did not run in the recent or the baseline period.": "The query did not run in the recent or the baseline period.",
+    "Recent is the time range at the top. Baseline is the period before it, so the two never overlap. Per execution, periods of different length compare fairly.": "Recent is the time range at the top. Baseline is the period before it, so the two never overlap. Per execution, periods of different length compare fairly.",
+    "Recent · {0}/{0} is a period, for example past 24 hours": {
+        "message": "Recent · {0}",
+        "comment": ["{0} is a period, for example past 24 hours"]
+    },
+    "Baseline · {0} that/{0} is a period, for example 30 days before": {
+        "message": "Baseline · {0} that",
+        "comment": ["{0} is a period, for example 30 days before"]
+    },
+    "Recent {0}/{0} is a measure, for example Avg CPU": {
+        "message": "Recent {0}",
+        "comment": ["{0} is a measure, for example Avg CPU"]
+    },
+    "Baseline {0}/{0} is a measure, for example Avg CPU": {
+        "message": "Baseline {0}",
+        "comment": ["{0} is a measure, for example Avg CPU"]
+    },
+    "{0} per day/{0} is a measure, for example CPU": {
+        "message": "{0} per day",
+        "comment": ["{0} is a measure, for example CPU"]
+    },
+    "CPU time": "CPU time",
+    "{0} of the total of all queries, {1}/{0} is a percentage, for example 91.3%{1} is the exact value, for example 34,630 ms": {
+        "message": "{0} of the total of all queries, {1}",
+        "comment": [
+            "{0} is a percentage, for example 91.3%",
+            "{1} is the exact value, for example 34,630 ms"
+        ]
+    },
+    "Executions": "Executions",
+    "No queries ran in this time range.": "No queries ran in this time range.",
+    "Query Store is off for this database. Turn it on to see query performance.": "Query Store is off for this database. Turn it on to see query performance.",
+    "Query Store is read-only, so it does not capture new data. The data can be old.": "Query Store is read-only, so it does not capture new data. The data can be old.",
+    "This platform does not record this data in Query Store.": "This platform does not record this data in Query Store.",
+    "You need the VIEW DATABASE STATE permission to read Query Store data.": "You need the VIEW DATABASE STATE permission to read Query Store data.",
+    "The database did not answer in time. Try again. {0}/{0} is the error message": {
+        "message": "The database did not answer in time. Try again. {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Could not read the data: {0}/{0} is the error message": {
+        "message": "Could not read the data: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "The performance dashboard needs the SQL data plane preview. Turn on the mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled settings, then reload the window.": "The performance dashboard needs the SQL data plane preview. Turn on the mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled settings, then reload the window.",
+    "Reload the window to start the SQL data plane.": "Reload the window to start the SQL data plane.",
+    "The SQL data plane is not available.": "The SQL data plane is not available.",
+    "The connection was not found. Connect to the database again.": "The connection was not found. Connect to the database again.",
+    "The SQL data plane does not support the authentication type of this connection.": "The SQL data plane does not support the authentication type of this connection.",
+    "Waits/A tab: what the query waits on": {
+        "message": "Waits",
+        "comment": ["A tab: what the query waits on"]
+    },
+    "Total wait": "Total wait",
+    "Waiting/The part of the query's duration that it spent waiting": {
+        "message": "Waiting",
+        "comment": ["The part of the query's duration that it spent waiting"]
+    },
+    "Top wait": "Top wait",
+    "Wait category": "Wait category",
+    "Longest wait": "Longest wait",
+    "Share of waits": "Share of waits",
+    "Wait time (ms)": "Wait time (ms)",
+    "Other/The other wait categories": {
+        "message": "Other",
+        "comment": ["The other wait categories"]
+    },
+    "All plans": "All plans",
+    "No waits were recorded in this time range.": "No waits were recorded in this time range.",
+    "Query Store does not capture wait statistics, so new waits are not recorded.": "Query Store does not capture wait statistics, so new waits are not recorded.",
+    "Turn on wait statistics capture": "Turn on wait statistics capture",
+    "Open in Chat": "Open in Chat",
+    "Time range: {0}/{0} is the selected time range, for example Past 24 hours": {
+        "message": "Time range: {0}",
+        "comment": ["{0} is the selected time range, for example Past 24 hours"]
+    },
+    "{0} - {1}/{0} is the start date and time{1} is the end date and time": {
+        "message": "{0} - {1}",
+        "comment": ["{0} is the start date and time", "{1} is the end date and time"]
+    },
+    "Partial/A time range that starts before the oldest data": {
+        "message": "Partial",
+        "comment": ["A time range that starts before the oldest data"]
+    },
+    "Custom range": "Custom range",
+    "From": "From",
+    "To": "To",
+    "From date": "From date",
+    "From time": "From time",
+    "To date": "To date",
+    "To time": "To time",
+    "The start must be before the end, inside the available data.": "The start must be before the end, inside the available data.",
+    "Data starts {0}. Partial ranges show what's available./{0} is the date and time of the oldest data": {
+        "message": "Data starts {0}. Partial ranges show what's available.",
+        "comment": ["{0} is the date and time of the oldest data"]
+    },
     "Search Database Objects": "Search Database Objects",
     "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
@@ -6113,7 +6638,6 @@
     "Why did this endpoint get slow?": "Why did this endpoint get slow?",
     "Trace the queries behind a slow endpoint and find the cause, with evidence.": "Trace the queries behind a slow endpoint and find the cause, with evidence.",
     "Assess": "Assess",
-    "Plan": "Plan",
     "Migrate": "Migrate",
     "Validate": "Validate",
     "Assess my database for migration to Azure SQL": "Assess my database for migration to Azure SQL",
