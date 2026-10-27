@@ -3,7 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, createContext, useContext, useMemo, useState } from "react";
+import {
+    ReactNode,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import {
     GetQueryStoreOverviewRequest,
     TimeWindowParams,
@@ -16,6 +24,7 @@ import {
     TimeRangeValue,
     resolveTimeRange,
     timeRangeFromQuery,
+    timeRangeToQuery,
 } from "../../common/timeRange/timeRange";
 import { TimeRangePicker } from "../../common/timeRange/timeRangePicker";
 import { useExtensionRequest } from "../../common/useExtensionRequest";
@@ -57,16 +66,61 @@ const TimeRangeContext = createContext<TimeRangeContextValue>({
     setValue: () => undefined,
 });
 
+/** The query values of a location that hold a time range. */
+const timeRangeKeys: readonly string[] = ["range", "from", "to"];
+
+function withoutTimeRange(query: Readonly<Record<string, string>>): Record<string, string> {
+    return Object.fromEntries(
+        Object.entries(query).filter(([key]) => !timeRangeKeys.includes(key)),
+    );
+}
+
+function sameTimeRange(left: TimeRangeValue, right: TimeRangeValue): boolean {
+    return JSON.stringify(left) === JSON.stringify(right);
+}
+
 /**
  * Holds the time range of the dashboard, so that it stays the same as the user moves between the
- * queries and a query. A deep link can set the first range, for example `queries?range=7d`.
+ * queries and a query. The location holds the range too, for example `queries?range=7d`, so the
+ * dashboard opens again with it and a link can set it: a location with a range sets it, and a
+ * location without one, such as a breadcrumb's, gets the current range.
  */
 export const PerformanceDashboardTimeRangeProvider = ({ children }: { children: ReactNode }) => {
-    const { match } = useNavigation();
-    const [value, setValue] = useState<TimeRangeValue>(() =>
+    const { router, match, navigate } = useNavigation();
+    const [value, setRangeValue] = useState<TimeRangeValue>(() =>
         timeRangeFromQuery(match.query, timeRangePresets(), defaultTimeRangeId),
     );
-    const context = useMemo(() => ({ value, setValue }), [value]);
+
+    useEffect(() => {
+        if (timeRangeKeys.some((key) => match.query[key] !== undefined)) {
+            const incoming = timeRangeFromQuery(
+                match.query,
+                timeRangePresets(),
+                defaultTimeRangeId,
+            );
+            setRangeValue((current) => (sameTimeRange(current, incoming) ? current : incoming));
+            return;
+        }
+        const rangeQuery = timeRangeToQuery(value, defaultTimeRangeId);
+        if (Object.values(rangeQuery).some((part) => part !== undefined)) {
+            navigate(router.build(match.route.id, match.params, { ...match.query, ...rangeQuery }));
+        }
+    }, [match, value, navigate, router]);
+
+    // The range and the location change together, so the location never holds an older range.
+    const setValue = useCallback(
+        (next: TimeRangeValue) => {
+            setRangeValue(next);
+            navigate(
+                router.build(match.route.id, match.params, {
+                    ...withoutTimeRange(match.query),
+                    ...timeRangeToQuery(next, defaultTimeRangeId),
+                }),
+            );
+        },
+        [match, navigate, router],
+    );
+    const context = useMemo(() => ({ value, setValue }), [value, setValue]);
     return <TimeRangeContext.Provider value={context}>{children}</TimeRangeContext.Provider>;
 };
 

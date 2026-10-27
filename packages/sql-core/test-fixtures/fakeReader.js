@@ -12,14 +12,18 @@ const { queryStoreMetrics } = require("../dist/queryStore/index.js");
 
 /**
  * Returns a reader that answers each batch with the next response. A response that is an Error
- * is thrown. `calls` has the SQL of each batch.
+ * is thrown. `calls` has the SQL of each batch, and `options` its read options.
  */
 function scriptedReader(responses) {
     const calls = [];
+    // The read options of each batch, such as an abort signal and a timeout.
+    const options = [];
     return {
         calls,
-        read: async (sql) => {
+        options,
+        read: async (sql, readOptions) => {
             calls.push(sql);
+            options.push(readOptions);
             const response = responses.shift();
             if (response instanceof Error) {
                 throw response;

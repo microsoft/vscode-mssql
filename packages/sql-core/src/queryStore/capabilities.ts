@@ -50,7 +50,7 @@ export async function readQueryStoreCapabilities(
     reader: SqlReader,
     options?: SqlReadOptions,
 ): Promise<QueryStoreCapabilities> {
-    const platform = await detectPlatform(reader);
+    const platform = await detectPlatform(reader, options);
     if (!hasQueryStore(platform)) {
         return {
             platform,

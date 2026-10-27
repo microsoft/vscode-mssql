@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     GetFavoriteQueriesRequest,
     PerformanceDashboardReducers,
@@ -22,16 +22,20 @@ export function useFavoriteQueries(): QueryGridFavorites {
     >();
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const [queryIds, setQueryIds] = useState<ReadonlySet<string>>(new Set());
+    // Counts the favorites requests. Only the newest one's list is shown, so an older read or
+    // save, or one for the database before a switch, cannot replace a newer list.
+    const latestRequest = useRef(0);
 
     useEffect(() => {
-        let current = true;
+        const request = ++latestRequest.current;
         void extensionRpc.sendRequest(GetFavoriteQueriesRequest.type).then((result) => {
-            if (current) {
+            if (request === latestRequest.current) {
                 setQueryIds(new Set(result.queryIds));
             }
         });
         return () => {
-            current = false;
+            // A request after a database switch makes any request before it obsolete.
+            latestRequest.current++;
         };
     }, [extensionRpc, databaseName]);
 
@@ -47,9 +51,14 @@ export function useFavoriteQueries(): QueryGridFavorites {
                 }
                 return next;
             });
+            const request = ++latestRequest.current;
             void extensionRpc
                 .sendRequest(SetFavoriteQueryRequest.type, { queryId, favorite })
-                .then((result) => setQueryIds(new Set(result.queryIds)));
+                .then((result) => {
+                    if (request === latestRequest.current) {
+                        setQueryIds(new Set(result.queryIds));
+                    }
+                });
         },
         [extensionRpc],
     );

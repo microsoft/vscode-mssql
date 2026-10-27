@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SqlReader, readNumber, readString, toRecords } from "./sqlReader";
+import { SqlReadOptions, SqlReader, readNumber, readString, toRecords } from "./sqlReader";
 
 export type SqlPlatform =
     | "sqlServer"
@@ -60,8 +60,11 @@ SELECT
     @dataLakeLogPublishing AS data_lake_log_publishing;
 `;
 
-export async function detectPlatform(reader: SqlReader): Promise<PlatformInfo> {
-    const [resultSet] = await reader.read(platformDetectionQuery);
+export async function detectPlatform(
+    reader: SqlReader,
+    options?: SqlReadOptions,
+): Promise<PlatformInfo> {
+    const [resultSet] = await reader.read(platformDetectionQuery, options);
     const [record] = toRecords(resultSet);
     if (!record) {
         return { platform: "unknown", engineEdition: 0 };

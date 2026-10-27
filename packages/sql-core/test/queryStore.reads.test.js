@@ -38,6 +38,19 @@ function statsSet(leading, rows) {
 }
 
 suite("Query Store capabilities", () => {
+    test("passes the read options to both batches", async () => {
+        const reader = scriptedReader([
+            [resultSet(["engine_edition", "product_version"], [[3, "16.0.4135.4"]])],
+            [resultSet(["has_log_bytes"], [[1]])],
+        ]);
+        const readOptions = { signal: new AbortController().signal, timeoutMs: 1234 };
+
+        await qs.readQueryStoreCapabilities(reader, readOptions);
+
+        assert.equal(reader.options.length, 2);
+        assert.ok(reader.options.every((options) => options === readOptions));
+    });
+
     test("reads the columns once on platforms with Query Store", async () => {
         const reader = scriptedReader([
             [resultSet(["engine_edition", "product_version"], [[3, "13.0.6300.2"]])],
