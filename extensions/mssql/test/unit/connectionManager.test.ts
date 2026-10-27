@@ -12,6 +12,7 @@ import { IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import ConnectionManager, {
+    ConnectionInfo,
     getSqlConnectionErrorType,
     serverlessWakeMaxRetryAttempts,
     SqlConnectionErrorType,
@@ -204,6 +205,41 @@ suite("ConnectionManager Tests", () => {
 
             expect(await pending).to.equal(params);
             expect(perfMarkerStub).to.not.have.been.called;
+        });
+
+        test("publishes editor connection contexts as Uri values", () => {
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+            const connectedUri = vscode.Uri.file("/home/user/My Scripts/connected.sql").toString();
+            const connectingUri = "untitled:Untitled-1";
+            const connected = new ConnectionInfo();
+            connected.connectionId = "connection-id";
+            connected.connecting = false;
+            const connecting = new ConnectionInfo();
+            connecting.connecting = true;
+
+            connectionManager["addActiveConnection"](connectedUri, connected);
+            connectionManager["addActiveConnection"](connectingUri, connecting);
+
+            // VS Code maps Uri values, but not strings, to the window's URIs in remote windows.
+            const uriContextValue = (expected: string[]) =>
+                sinon.match(
+                    (value: unknown) =>
+                        Array.isArray(value) &&
+                        value.every((uri) => uri instanceof vscode.Uri) &&
+                        JSON.stringify(value.map((uri: vscode.Uri) => uri.toString())) ===
+                            JSON.stringify(expected),
+                    `Uri values ${expected.join(", ")}`,
+                );
+            expect(executeCommandStub).to.have.been.calledWith(
+                "setContext",
+                "mssql.connections",
+                uriContextValue([connectedUri]),
+            );
+            expect(executeCommandStub).to.have.been.calledWith(
+                "setContext",
+                "mssql.connecting",
+                uriContextValue([connectingUri]),
+            );
         });
     });
 

@@ -390,6 +390,34 @@ suite("Utility tests - getUriKey", () => {
     });
 });
 
+suite("Utility tests - toResourceContextValue", () => {
+    test("returns Uri values that stringify like the editor resource", () => {
+        const fileUri = vscode.Uri.file("/home/user/My Scripts/Sales & Ops (Q1).sql");
+        const untitledUri = vscode.Uri.parse("untitled:Untitled-1");
+
+        const result = Utils.toResourceContextValue([fileUri.toString(), untitledUri.toString()]);
+
+        expect(result).to.have.lengthOf(2);
+        expect(result[0]).to.be.instanceOf(vscode.Uri);
+        expect(result.map((uri) => uri.toString())).to.deep.equal([
+            fileUri.toString(),
+            untitledUri.toString(),
+        ]);
+    });
+
+    test("encodes URI strings that skipped encoding", () => {
+        const [uri] = Utils.toResourceContextValue(["file:///home/user/My Scripts/test.sql"]);
+
+        expect(uri.toString()).to.equal("file:///home/user/My%20Scripts/test.sql");
+    });
+
+    test("skips strings that are not valid URIs", () => {
+        const result = Utils.toResourceContextValue(["bad scheme:value", "untitled:Untitled-1"]);
+
+        expect(result.map((uri) => uri.toString())).to.deep.equal(["untitled:Untitled-1"]);
+    });
+});
+
 type Sample = {
     token?: string;
     expiresOn?: number;
