@@ -16,12 +16,17 @@ import {
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SegmentedControl } from "../../common/segmentedControl";
-import { useExtensionRequest } from "../../common/useExtensionRequest";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { formatNumber, formatShare } from "./performanceDashboardFormat";
 import { useFavoriteQueries } from "./performanceDashboardFavorites";
 import { metrics } from "./performanceDashboardMetrics";
-import { InlineSelect, ReadOnlyNotice, isReadOnly, readData } from "./performanceDashboardParts";
+import {
+    InlineSelect,
+    ReadOnlyNotice,
+    isReadOnly,
+    readData,
+    usePerformanceRead,
+} from "./performanceDashboardParts";
 import {
     PerformanceDashboardQueryList,
     QueryGridColumn,
@@ -96,7 +101,7 @@ export const PerformanceDashboardQueriesPage = () => {
 
     useEffect(() => setSearch(""), [databaseName]);
 
-    const topQueries = useExtensionRequest(
+    const topQueries = usePerformanceRead(
         GetTopQueriesRequest.type,
         { ...window, rankBy, statistic, top: queryCount },
         [databaseName, refreshKey],

@@ -27,8 +27,7 @@ import {
     timeRangeToQuery,
 } from "../../common/timeRange/timeRange";
 import { TimeRangePicker } from "../../common/timeRange/timeRangePicker";
-import { useExtensionRequest } from "../../common/useExtensionRequest";
-import { readData } from "./performanceDashboardParts";
+import { readData, usePerformanceRead } from "./performanceDashboardParts";
 import { timeAnchorKey, useRefresh } from "./performanceDashboardRefresh";
 import { PerformanceDashboardRouteId } from "./performanceDashboardRoutes";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
@@ -164,7 +163,7 @@ export function useViewTimeRange(): ViewTimeRange {
 export function useQueryStoreAvailableFrom(): Date | undefined {
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const { refreshKey } = useRefresh();
-    const overview = useExtensionRequest(GetQueryStoreOverviewRequest.type, undefined, [
+    const overview = usePerformanceRead(GetQueryStoreOverviewRequest.type, undefined, [
         databaseName,
         refreshKey,
     ]);

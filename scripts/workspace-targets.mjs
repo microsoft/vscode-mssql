@@ -27,6 +27,10 @@ export const workspaceTargets = [
             build: ["extension-toolkit", "sql-core"],
             watch: ["extension-toolkit", "sql-core"],
             lint: ["extension-toolkit", "sql-core"],
+            // The extension imports sql-core's built output, so these build sql-core first.
+            test: [{ target: "sql-core", action: "build" }],
+            smoketest: [{ target: "sql-core", action: "build" }],
+            package: [{ target: "sql-core", action: "build" }],
         },
     },
     {

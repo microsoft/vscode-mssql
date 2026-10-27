@@ -34,7 +34,7 @@ import {
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SegmentedControl } from "../../common/segmentedControl";
-import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
+import { isFirstLoad } from "../../common/useExtensionRequest";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useFavoriteQueries } from "./performanceDashboardFavorites";
@@ -45,6 +45,7 @@ import {
     StatusBar,
     isReadOnly,
     readData,
+    usePerformanceRead,
 } from "./performanceDashboardParts";
 import { HistoryControls } from "./performanceDashboardPlanHistory";
 import { PerformanceDashboardQueryCompare } from "./performanceDashboardQueryCompare";
@@ -210,7 +211,7 @@ export const PerformanceDashboardQueryPage = () => {
                 tab: value === "history" ? undefined : value,
             }),
         );
-    const details = useExtensionRequest(
+    const details = usePerformanceRead(
         GetQueryDetailsRequest.type,
         { queryId, metrics: detailMetrics, ...window },
         [databaseName, refreshKey],

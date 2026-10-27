@@ -15,7 +15,7 @@ import {
 } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
-import { ExtensionRequestState, useExtensionRequest } from "../../common/useExtensionRequest";
+import { ExtensionRequestState } from "../../common/useExtensionRequest";
 import { dateTimeFormat } from "./performanceDashboardFormat";
 import {
     ChartFrame,
@@ -25,6 +25,7 @@ import {
     xAxisProps,
     yAxisMargin,
     zeroBasedTicks,
+    usePerformanceRead,
 } from "./performanceDashboardParts";
 import { statisticLabel } from "./performanceDashboardQueriesPage";
 import { useRefresh } from "./performanceDashboardRefresh";
@@ -56,7 +57,7 @@ export function useQueryHistory(
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const { refreshKey } = useRefresh();
     const { range, window } = useViewTimeRange();
-    return useExtensionRequest(
+    return usePerformanceRead(
         GetQueryHistoryRequest.type,
         {
             queryId,

@@ -41,11 +41,11 @@ import {
     type QueryStorePlan,
 } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
-import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
+import { isFirstLoad } from "../../common/useExtensionRequest";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ChangeDialog } from "./performanceDashboardChangeDialog";
 import { dateTimeFormat, formatNumber } from "./performanceDashboardFormat";
-import { ChartPanel, StatusBar, readData } from "./performanceDashboardParts";
+import { ChartPanel, StatusBar, readData, usePerformanceRead } from "./performanceDashboardParts";
 import { usePlanColor } from "./performanceDashboardPlanColors";
 import {
     PlanSummaryChart,
@@ -175,7 +175,7 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
         | undefined
     >(undefined);
 
-    const plansRead = useExtensionRequest(
+    const plansRead = usePerformanceRead(
         GetQueryPlansRequest.type,
         { queryId, metrics: planMetrics, ...window },
         [databaseName, refreshKey],

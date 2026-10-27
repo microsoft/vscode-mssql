@@ -19,10 +19,16 @@ import {
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SegmentedControl } from "../../common/segmentedControl";
-import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
+import { isFirstLoad } from "../../common/useExtensionRequest";
 import { dateTimeFormat, formatNumber } from "./performanceDashboardFormat";
 import { metrics } from "./performanceDashboardMetrics";
-import { InlineSelect, StatStrip, StatusBar, readData } from "./performanceDashboardParts";
+import {
+    InlineSelect,
+    StatStrip,
+    StatusBar,
+    readData,
+    usePerformanceRead,
+} from "./performanceDashboardParts";
 import { usePlanColor } from "./performanceDashboardPlanColors";
 import { planMetrics } from "./performanceDashboardQueryPlans";
 import { useRefresh } from "./performanceDashboardRefresh";
@@ -202,7 +208,7 @@ export const PerformanceDashboardQueryCompare = ({ queryId }: { queryId: string 
     const baselineStart = new Date(baselineEnd.getTime() - baselineMs);
     const key = [databaseName, refreshKey];
     // The recent read is the Plans tab's read, so it comes from the cache after that tab.
-    const recentRead = useExtensionRequest(
+    const recentRead = usePerformanceRead(
         GetQueryPlansRequest.type,
         {
             queryId,
@@ -212,7 +218,7 @@ export const PerformanceDashboardQueryCompare = ({ queryId }: { queryId: string 
         },
         key,
     );
-    const baselineRead = useExtensionRequest(
+    const baselineRead = usePerformanceRead(
         GetQueryPlansRequest.type,
         {
             queryId,

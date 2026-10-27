@@ -69,7 +69,8 @@ export function clearExtensionRequestCache(): void {
  * only when the result is older than the maximum age. A newer request replaces the result of an
  * older one that finishes later. While `enabled` is false, nothing is sent and the state is not
  * loading. A change of `poll` sends the request again but keeps the result current, for a view
- * that reads the same data on a timer.
+ * that reads the same data on a timer. `shouldCache` decides which results the cache keeps, for
+ * example only successful reads, so that a failed read runs again when its view opens again.
  */
 export function useExtensionRequest<TParams, TResult>(
     type: RequestType<TParams, TResult, void>,
@@ -77,6 +78,7 @@ export function useExtensionRequest<TParams, TResult>(
     key?: unknown,
     enabled: boolean = true,
     poll?: unknown,
+    shouldCache: (result: TResult) => boolean = () => true,
 ): ExtensionRequestState<TResult> {
     const { extensionRpc } = useVscodeWebview<unknown, unknown>();
     const requestKey = JSON.stringify([params ?? null, key ?? null]);
@@ -90,6 +92,8 @@ export function useExtensionRequest<TParams, TResult>(
     const paramsRef = useRef(params);
     paramsRef.current = params;
     const lastPoll = useRef(poll);
+    const shouldCacheRef = useRef(shouldCache);
+    shouldCacheRef.current = shouldCache;
 
     useEffect(() => {
         if (!enabled) {
@@ -114,7 +118,9 @@ export function useExtensionRequest<TParams, TResult>(
         setState((previous) => ({ ...previous, loading: true }));
         extensionRpc.sendRequest(type, paramsRef.current).then(
             (result) => {
-                cacheResult(cacheKey, result);
+                if (shouldCacheRef.current(result)) {
+                    cacheResult(cacheKey, result);
+                }
                 if (current) {
                     setState({ loading: false, result, requestKey });
                 }

@@ -46,8 +46,8 @@ import {
     type QueryStoreState,
 } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
+import { usePerformanceRead } from "./performanceDashboardParts";
 import { SegmentedControl } from "../../common/segmentedControl";
-import { useExtensionRequest } from "../../common/useExtensionRequest";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ChangeDialog } from "./performanceDashboardChangeDialog";
 import { DelayedSkeleton } from "./performanceDashboardSkeletons";
@@ -215,7 +215,7 @@ export const PerformanceDashboardQueryStoreSettings = ({ onClose }: { onClose: (
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
     const { refresh } = useRefresh();
     const [version, setVersion] = useState(0);
-    const read = useExtensionRequest(GetQueryStoreSettingsRequest.type, undefined, [
+    const read = usePerformanceRead(GetQueryStoreSettingsRequest.type, undefined, [
         databaseName,
         version,
     ]);

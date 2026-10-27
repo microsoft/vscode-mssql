@@ -51,7 +51,15 @@ export const PerformanceDashboardDatabasePicker = () => {
     const { router, match, navigate } = useNavigation();
     const serverName = usePerformanceDashboardSelector((state) => state.serverName);
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
-    const list = useExtensionRequest(ListDatabasesRequest.type, undefined, databaseName);
+    // A list that failed is not cached, so the picker reads it again when it opens again.
+    const list = useExtensionRequest(
+        ListDatabasesRequest.type,
+        undefined,
+        databaseName,
+        true,
+        undefined,
+        (result) => !result.errorMessage,
+    );
     const databases = list.result?.databases ?? [];
     const errorMessage = list.result?.errorMessage ?? list.errorMessage;
 

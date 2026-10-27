@@ -28,7 +28,7 @@ import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import type { ResolvedTimeRange } from "../../common/timeRange/timeRange";
-import { isFirstLoad, useExtensionRequest } from "../../common/useExtensionRequest";
+import { isFirstLoad } from "../../common/useExtensionRequest";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { dateTimeFormat, formatNumber, formatShare } from "./performanceDashboardFormat";
 import {
@@ -43,6 +43,7 @@ import {
     xAxisProps,
     yAxisMargin,
     zeroBasedTicks,
+    usePerformanceRead,
 } from "./performanceDashboardParts";
 import { intervalMinutesOf } from "./performanceDashboardPlanHistory";
 import { planMetrics } from "./performanceDashboardQueryPlans";
@@ -94,12 +95,12 @@ export const PerformanceDashboardQueryWaits = ({ queryId }: { queryId: string })
     const key = [databaseName, refreshKey];
 
     // The Plans tab's read, so the plan list comes from the cache.
-    const plansRead = useExtensionRequest(
+    const plansRead = usePerformanceRead(
         GetQueryPlansRequest.type,
         { queryId, metrics: planMetrics, ...window },
         key,
     );
-    const waitsRead = useExtensionRequest(
+    const waitsRead = usePerformanceRead(
         GetQueryWaitStatsRequest.type,
         {
             queryId,

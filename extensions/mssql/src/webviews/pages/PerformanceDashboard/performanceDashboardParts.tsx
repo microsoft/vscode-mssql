@@ -20,10 +20,18 @@ import {
 } from "@fluentui/react-components";
 import { AreaChart, ChartProps } from "@fluentui/react-charts";
 import { ReactNode, memo, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { PerformanceRead } from "../../../sharedInterfaces/performanceDashboard";
+import { RequestType } from "vscode-jsonrpc/browser";
+import {
+    type PerformanceRead,
+    isPerformanceUnavailable,
+} from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
-import { ExtensionRequestState, isFirstLoad } from "../../common/useExtensionRequest";
+import {
+    ExtensionRequestState,
+    isFirstLoad,
+    useExtensionRequest,
+} from "../../common/useExtensionRequest";
 import { dateTimeFormat } from "./performanceDashboardFormat";
 import { PerformanceDashboardRoute, withSettings } from "./performanceDashboardRoutes";
 import { ChartSkeleton, ValueSkeleton, useFadeInClass } from "./performanceDashboardSkeletons";
@@ -109,6 +117,25 @@ const useStyles = makeStyles({
 export function readData<T>(state: ExtensionRequestState<PerformanceRead<T>>): T | undefined {
     // Data of other parameters, such as the previous category, is not shown while the new loads.
     return !state.stale && state.result && "data" in state.result ? state.result.data : undefined;
+}
+
+/**
+ * Sends a dashboard read, and caches its result only when the read succeeded, so a read that
+ * failed, such as one of a database that was paused, runs again when its view opens again.
+ */
+export function usePerformanceRead<TParams, T>(
+    type: RequestType<TParams, PerformanceRead<T>, void>,
+    params: TParams,
+    key?: unknown,
+): ExtensionRequestState<PerformanceRead<T>> {
+    return useExtensionRequest(type, params, key, true, undefined, isSuccessfulRead);
+}
+
+function isSuccessfulRead(result: PerformanceRead<unknown>): boolean {
+    return (
+        !isPerformanceUnavailable(result) &&
+        (result.status === "ready" || result.status === "noData")
+    );
 }
 
 /** True when the read reports that Query Store is read-only. */
