@@ -40,6 +40,13 @@ interface CacheEntry {
 
 const resultCache = new Map<string, CacheEntry>();
 
+/*
+ * The requests that are running, by cache key, so views that ask for the same data at once share
+ * one request. Only the newest request of a key writes the cache, so a request that a refresh or a
+ * newer request replaced cannot overwrite newer data.
+ */
+const pendingRequests = new Map<string, Promise<unknown>>();
+
 function cachedResult(cacheKey: string): CacheEntry | undefined {
     const entry = resultCache.get(cacheKey);
     if (entry) {
@@ -61,6 +68,7 @@ function cacheResult(cacheKey: string, result: unknown): void {
 /** Drops the cached results, for example when the user refreshes. */
 export function clearExtensionRequestCache(): void {
     resultCache.clear();
+    pendingRequests.clear();
 }
 
 /**
@@ -116,11 +124,31 @@ export function useExtensionRequest<TParams, TResult>(
         }
         let current = true;
         setState((previous) => ({ ...previous, loading: true }));
-        extensionRpc.sendRequest(type, paramsRef.current).then(
+        // A polled read starts its own request; others join a running request of the same key.
+        let request = polled ? undefined : (pendingRequests.get(cacheKey) as Promise<TResult>);
+        if (!request) {
+            const started = Promise.resolve(extensionRpc.sendRequest(type, paramsRef.current));
+            const shouldCacheResult = shouldCacheRef.current;
+            pendingRequests.set(cacheKey, started);
+            started.then(
+                (result) => {
+                    if (pendingRequests.get(cacheKey) === started) {
+                        pendingRequests.delete(cacheKey);
+                        if (shouldCacheResult(result)) {
+                            cacheResult(cacheKey, result);
+                        }
+                    }
+                },
+                () => {
+                    if (pendingRequests.get(cacheKey) === started) {
+                        pendingRequests.delete(cacheKey);
+                    }
+                },
+            );
+            request = started;
+        }
+        request.then(
             (result) => {
-                if (shouldCacheRef.current(result)) {
-                    cacheResult(cacheKey, result);
-                }
                 if (current) {
                     setState({ loading: false, result, requestKey });
                 }

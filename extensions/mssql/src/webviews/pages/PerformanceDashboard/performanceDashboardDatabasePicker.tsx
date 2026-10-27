@@ -20,6 +20,7 @@ import {
 } from "../../common/searchableDropdown.component";
 import { useExtensionRequest } from "../../common/useExtensionRequest";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { useRefresh } from "./performanceDashboardRefresh";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 
 const useStyles = makeStyles({
@@ -51,11 +52,12 @@ export const PerformanceDashboardDatabasePicker = () => {
     const { router, match, navigate } = useNavigation();
     const serverName = usePerformanceDashboardSelector((state) => state.serverName);
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
-    // A list that failed is not cached, so the picker reads it again when it opens again.
+    // A list that failed is not cached, so a refresh or the next dashboard reads it again.
+    const { refreshKey } = useRefresh();
     const list = useExtensionRequest(
         ListDatabasesRequest.type,
         undefined,
-        databaseName,
+        [databaseName, refreshKey],
         true,
         undefined,
         (result) => !result.errorMessage,
