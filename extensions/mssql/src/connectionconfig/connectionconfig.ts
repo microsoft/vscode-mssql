@@ -8,7 +8,7 @@ import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
-import { uuid } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { createServiceIdentifier } from "extension-toolkit/base";
 import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { ConnectionProfile } from "../models/connectionProfile";
@@ -89,12 +89,19 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     private async initialize(): Promise<void> {
-        await this.addOrUpdateRootGroup();
-        await this.assignConnectionGroupMissingIds();
-        await this.assignConnectionMissingIds();
-        await this.removeConnectionStringsFromProfiles();
-
-        this.initialized.resolve();
+        try {
+            await this.addOrUpdateRootGroup();
+            await this.assignConnectionGroupMissingIds();
+            await this.assignConnectionMissingIds();
+            await this.removeConnectionStringsFromProfiles();
+        } catch (err) {
+            // Resolve anyway so callers waiting on initialization don't hang when settings can't be written
+            this._logger.error(
+                `Failed to update connection settings during initialization: ${getErrorMessage(err)}`,
+            );
+        } finally {
+            this.initialized.resolve();
+        }
 
         // Must come after `initialized` is resolved because it calls methods that await `initialized`.
         // Since this is only meant to show a warning if the default connection ID is misconfigured, and not a data consistency check,

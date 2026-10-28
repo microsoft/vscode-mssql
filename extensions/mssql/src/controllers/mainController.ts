@@ -1569,6 +1569,10 @@ export default class MainController implements vscode.Disposable {
      * Sanitize the connection profiles in the settings.
      */
     public async sanitizeConnectionProfiles(): Promise<void> {
+        // Read settings only after startup fixups have saved missing IDs and groups. Otherwise this
+        // can write back an older copy of the connections without them, which hides those connections.
+        await this.connectionManager.connectionStore.connectionConfig.initialized;
+
         const sanitize = async (
             connectionProfiles: IConnectionProfile[],
             target: vscode.ConfigurationTarget,
