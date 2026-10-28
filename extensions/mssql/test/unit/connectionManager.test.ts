@@ -68,6 +68,16 @@ suite("ConnectionManager Tests", () => {
     setup(async () => {
         sandbox = sinon.createSandbox();
         mockContext = stubExtensionContext(sandbox);
+        // The Entra token cache clear is kept in global state, so it must keep values.
+        const globalState = new Map<string, unknown>();
+        (mockContext.globalState.get as sinon.SinonStub).callsFake((key: string) =>
+            globalState.get(key),
+        );
+        (mockContext.globalState.update as sinon.SinonStub).callsFake(
+            async (key: string, value: unknown) => {
+                globalState.set(key, value);
+            },
+        );
         stubMessageBoxes(sandbox);
         mockLogger = createStubLogger(sandbox);
         mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -443,6 +453,8 @@ suite("ConnectionManager Tests", () => {
 
         test("does not reuse a Key Vault token cached by a refresh in flight when the token cache was cleared", async () => {
             const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+            // Keeps the clear away from the real MSAL cache on disk.
+            connectionManager.azureController = mockAzureController;
             acquireTokenStub.onFirstCall().callsFake(async () => {
                 await connectionManager.onClearAzureTokenCache();
                 return { token: { key: "akv-key", token: "pre-clear-token", expiresOn } };

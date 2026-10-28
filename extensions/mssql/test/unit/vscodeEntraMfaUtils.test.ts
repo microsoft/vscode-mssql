@@ -150,6 +150,14 @@ suite("vscodeEntraMfaUtils", () => {
             initializeVscodeEntraTokenCacheState(globalState);
         }
 
+        /** Saves a clear the way another window would, in the global state every window shares. */
+        function clearInAnotherWindow(time: number): Thenable<void> {
+            return globalState.update(tokenCacheClearStateKey, {
+                clearedAt: time,
+                tokenHashes: {},
+            });
+        }
+
         function createSession(accessToken: string): vscode.AuthenticationSession {
             return {
                 id: "session-id",
@@ -278,6 +286,51 @@ suite("vscodeEntraMfaUtils", () => {
             await acquireToken();
 
             expect(isVscodeEntraTokenStale("refreshed-token")).to.be.true;
+        });
+
+        test("does not undo a clear made in another window during a refresh", async () => {
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().callsFake(async () => {
+                await clearInAnotherWindow(clearedAt + 60);
+                return createSession("refreshed-token");
+            });
+
+            await acquireToken();
+
+            expect(globalState.get(tokenCacheClearStateKey)).to.deep.equal({
+                clearedAt: clearedAt + 60,
+                tokenHashes: {},
+            });
+            expect(isVscodeEntraTokenStale("refreshed-token")).to.be.true;
+        });
+
+        test("uses the challenge of a clear made in another window", async () => {
+            await clearInAnotherWindow(clearedAt + 60);
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
+
+            await acquireToken();
+
+            expect(getSession.secondCall.args[1].wwwAuthenticate).to.equal(
+                expectedChallenge(clearedAt + 60),
+            );
+        });
+
+        test("keeps the tokens another window accepted since the same clear", async () => {
+            await globalState.update(tokenCacheClearStateKey, {
+                clearedAt,
+                tokenHashes: { "other-window-key": "other-window-hash" },
+            });
+            getSession.onFirstCall().resolves(createSession("cached-token"));
+            getSession.onSecondCall().resolves(createSession("refreshed-token"));
+
+            await acquireToken();
+
+            const saved = globalState.get<{ tokenHashes: Record<string, string> }>(
+                tokenCacheClearStateKey,
+            );
+            expect(saved?.tokenHashes).to.include({ "other-window-key": "other-window-hash" });
+            expect(isVscodeEntraTokenStale("refreshed-token")).to.be.false;
         });
 
         test("still forces a refresh after the window is reloaded", async () => {

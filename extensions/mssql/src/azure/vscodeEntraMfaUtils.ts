@@ -44,16 +44,17 @@ export const tokenCacheClearStateKey = "mssql.entraTokenCacheClear";
  */
 const maxAccessTokenLifetimeSeconds = 28 * 60 * 60;
 
-let clearStateStore: vscode.Memento | undefined;
-let clearState: TokenCacheClearState | undefined;
+/** Where the last clear is kept. In memory until the extension provides global state. */
+let clearStateStore: Pick<vscode.Memento, "get" | "update"> = createMemoryStore();
 
 /**
- * Restores the last token cache clear from global state. The broker keeps tokens across window
- * reloads, so without this a reload would let it return a token cached before the clear.
+ * Keeps the last token cache clear in global state. The broker keeps tokens across window reloads,
+ * so without this a reload would let it return a token cached before the clear. Every window shares
+ * global state, so the state is read on each use rather than copied here, and a window never acts
+ * on a clear older than one made in another window.
  */
 export function initializeVscodeEntraTokenCacheState(store: vscode.Memento): void {
     clearStateStore = store;
-    clearState = store.get<TokenCacheClearState>(tokenCacheClearStateKey);
 }
 
 /**
@@ -61,13 +62,13 @@ export function initializeVscodeEntraTokenCacheState(store: vscode.Memento): voi
  * cannot be cleared from here, so the next request for each token is made with a claims challenge.
  */
 export async function clearVscodeEntraTokenCache(): Promise<void> {
-    // Each clear needs its own challenge, so never reuse the previous clear's time.
+    // Each clear needs its own challenge, so never reuse the previous clear's time, including the
+    // time of a clear made in another window.
     const clearedAt = Math.max(nowInSeconds(), (getClearState()?.clearedAt ?? 0) + 1);
-    clearState = { clearedAt, tokenHashes: {} };
     logger.info(
         `VS Code accounts token cache cleared at ${clearedAt}; the next request for each token will force a refresh.`,
     );
-    await saveClearState();
+    await saveClearState({ clearedAt, tokenHashes: {} });
 }
 
 /**
@@ -85,23 +86,55 @@ export function isVscodeEntraTokenStale(accessToken: string | undefined): boolea
 
 /** Forgets any token cache clear. For tests only. */
 export function resetVscodeEntraTokenCacheForTest(): void {
-    clearStateStore = undefined;
-    clearState = undefined;
+    clearStateStore = createMemoryStore();
 }
 
+/** Reads the last clear, which may have been made in another window. */
 function getClearState(): TokenCacheClearState | undefined {
-    if (clearState && nowInSeconds() - clearState.clearedAt > maxAccessTokenLifetimeSeconds) {
+    const state = clearStateStore.get<TokenCacheClearState>(tokenCacheClearStateKey);
+    if (state && nowInSeconds() - state.clearedAt > maxAccessTokenLifetimeSeconds) {
         return undefined;
     }
-    return clearState;
+    return state;
 }
 
-async function saveClearState(): Promise<void> {
+/**
+ * Records the token accepted for a key since the clear made at `clearedAt`. The state is read again
+ * so that tokens other windows accepted are kept and a newer clear is never replaced.
+ */
+async function acceptToken(
+    clearedAt: number,
+    tokenKey: string,
+    accessToken: string,
+): Promise<void> {
+    const state = getClearState();
+    // If the cache was cleared again during the refresh, in any window, this token predates that clear.
+    if (state?.clearedAt !== clearedAt) {
+        return;
+    }
+    await saveClearState({
+        clearedAt,
+        tokenHashes: { ...state.tokenHashes, [tokenKey]: hashToken(accessToken) },
+    });
+}
+
+async function saveClearState(state: TokenCacheClearState): Promise<void> {
     try {
-        await clearStateStore?.update(tokenCacheClearStateKey, clearState);
+        await clearStateStore.update(tokenCacheClearStateKey, state);
     } catch (error) {
         logger.error(`Failed to save the Entra token cache clear: ${getErrorMessage(error)}`);
     }
+}
+
+function createMemoryStore(): Pick<vscode.Memento, "get" | "update"> {
+    const values = new Map<string, unknown>();
+    return {
+        get: <T>(key: string, defaultValue?: T) =>
+            values.has(key) ? (values.get(key) as T) : defaultValue,
+        update: async (key: string, value: unknown) => {
+            values.set(key, value);
+        },
+    } as Pick<vscode.Memento, "get" | "update">;
 }
 
 function hashToken(accessToken: string): string {
@@ -255,11 +288,7 @@ export async function acquireTokenFromVscodeAccountForResource(
                     `VS Code returned the cached token for ${resourceEndpoint} again after a forced refresh; it may not reflect recent group or role changes.`,
                 );
             } else {
-                // If the cache was cleared again during the refresh, this token predates that clear.
-                if (clearState?.clearedAt === clearedAt) {
-                    clearState.tokenHashes[tokenKey] = hashToken(session.accessToken);
-                    await saveClearState();
-                }
+                await acceptToken(clearedAt, tokenKey, session.accessToken);
                 logger.info(
                     `Got a new token for ${resourceEndpoint} after a forced refresh; expires on ${describeExpiry(session.accessToken)}`,
                 );
