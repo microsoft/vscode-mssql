@@ -36,20 +36,20 @@ suite("Deployment dialog closing", () => {
     let closePanel: sinon.SinonStub;
     let close: (state: DeploymentWebviewState, payload: {}) => Promise<DeploymentWebviewState>;
     let telemetry: ReturnType<typeof stubTelemetry>;
+    let disposables: vscode.Disposable[];
 
     setup(() => {
         sandbox = sinon.createSandbox();
         telemetry = stubTelemetry(sandbox);
-        controller = sandbox.createStubInstance(DeploymentWebviewController);
+        sandbox.stub(previewService, "azureSqlContainersEnabled").get(() => false);
+        ({ controller, disposables } = registerLocalWizardHandlers());
         closePanel = sandbox.stub();
         sandbox.stub(controller, "panel").get(() => ({ dispose: closePanel }));
-        DeploymentWebviewController.prototype["registerRpcHandlers"].call(controller);
         close = controller.registerReducer.getCalls().find((call) => call.args[0] === "dispose")!
             .args[1] as typeof close;
     });
 
     function registerLocalWizardHandlers() {
-        sandbox.stub(previewService, "azureSqlContainersEnabled").get(() => true);
         sandbox.stub(azureSql, "registerAzureSqlRpcHandlers");
         const client = sandbox.createStubInstance(SqlToolsServiceClient);
         sandbox.stub(SqlToolsServiceClient, "instance").get(() => client);
@@ -89,7 +89,6 @@ suite("Deployment dialog closing", () => {
     }
 
     test("records opening once across source refreshes and closing when the panel is disposed", async () => {
-        const { controller, disposables } = registerLocalWizardHandlers();
         const handler = controller.onRequest
             .getCalls()
             .find(
@@ -119,7 +118,6 @@ suite("Deployment dialog closing", () => {
     });
 
     test("stale compatibility cleanup cannot invalidate a running deployment", async () => {
-        const { controller } = registerLocalWizardHandlers();
         let running = true;
         sandbox.stub(LocalDatabaseDeploymentService.prototype, "isRunning").get(() => running);
         const cancel = sandbox
@@ -163,7 +161,29 @@ suite("Deployment dialog closing", () => {
         expect(clear).to.have.been.called;
     });
 
-    teardown(() => sandbox.restore());
+    test("registers local-to-cloud handlers with the container preview disabled", () => {
+        expect(
+            controller.onRequest.getCalls().map((call) => call.args[0].method),
+        ).to.include.members([
+            AzureSqlDatabaseRequests.GetLocalDatabaseSources.method,
+            AzureSqlDatabaseRequests.ConnectLocalDatabaseSource.method,
+            AzureSqlDatabaseRequests.ValidateLocalDatabaseCompatibility.method,
+            AzureSqlDatabaseRequests.CancelLocalDatabaseCompatibility.method,
+            AzureSqlDatabaseRequests.ClearLocalDatabaseCompatibility.method,
+            AzureSqlDatabaseRequests.ShowLocalDatabaseCompatibilityOutput.method,
+            AzureSqlDatabaseRequests.DeployLocalDatabase.method,
+            AzureSqlDatabaseRequests.CancelLocalDatabaseDeployment.method,
+            AzureSqlDatabaseRequests.LocalDatabaseDeploymentAction.method,
+        ]);
+        expect(azureSql.registerAzureSqlRpcHandlers).not.to.have.been.called;
+    });
+
+    teardown(() => {
+        for (const disposable of disposables ?? []) {
+            disposable.dispose();
+        }
+        sandbox.restore();
+    });
 
     test("Finish closes the Azure container dialog without legacy Docker state", async () => {
         const telemetry = sandbox.spy(localContainers, "sendLocalContainersCloseEventTelemetry");

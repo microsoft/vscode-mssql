@@ -158,26 +158,24 @@ export const AzureSqlDatabaseDeploymentTypePage: React.FC<
                     </Text>
                 </div>
             </Card>
-            {isLocalContainerEnabled && (
-                <Card
-                    className={classes.card}
-                    onClick={onDeployLocalDatabaseSelected}
-                    onKeyDown={(event) => handleKeyDown(event, onDeployLocalDatabaseSelected)}
-                    tabIndex={0}
-                    role="button">
-                    <div className={classes.iconBadge}>
-                        <SqlMigrationIcon className={classes.icon} aria-hidden="true" />
-                    </div>
-                    <div className={classes.content}>
-                        <Text className={classes.cardHeader}>
-                            {locConstants.azureSqlDatabase.deployLocalDatabase}
-                        </Text>
-                        <Text className={classes.cardDescription}>
-                            {locConstants.azureSqlDatabase.deployLocalDatabaseDescription}
-                        </Text>
-                    </div>
-                </Card>
-            )}
+            <Card
+                className={classes.card}
+                onClick={onDeployLocalDatabaseSelected}
+                onKeyDown={(event) => handleKeyDown(event, onDeployLocalDatabaseSelected)}
+                tabIndex={0}
+                role="button">
+                <div className={classes.iconBadge}>
+                    <SqlMigrationIcon className={classes.icon} aria-hidden="true" />
+                </div>
+                <div className={classes.content}>
+                    <Text className={classes.cardHeader}>
+                        {locConstants.azureSqlDatabase.deployLocalDatabase}
+                    </Text>
+                    <Text className={classes.cardDescription}>
+                        {locConstants.azureSqlDatabase.deployLocalDatabaseDescription}
+                    </Text>
+                </div>
+            </Card>
         </div>
     );
 };
