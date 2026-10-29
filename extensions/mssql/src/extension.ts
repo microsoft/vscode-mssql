@@ -64,6 +64,7 @@ import { extensionId } from "./constants/constants";
 import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
 import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
 import { ExecutionPlanComparisonContribution } from "./controllers/executionPlanComparisonContribution";
+import { FabricDatabaseHubIntegration } from "./integration/fabricDatabaseHubIntegration";
 import { SharedConnectionsAuthenticationProvider } from "./connectionSharing/sharedConnectionsAuthenticationProvider";
 import {
     getSharedConnectionsApi,
@@ -239,6 +240,10 @@ class MssqlActivation {
                 controller.executionPlanService,
                 controller.sqlDocumentService,
             ),
+            new FabricDatabaseHubIntegration(
+                controller.connectionManager,
+                context.globalState,
+            ).register(),
         );
 
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);

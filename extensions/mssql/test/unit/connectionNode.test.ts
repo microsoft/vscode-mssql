@@ -7,6 +7,8 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+import { ConnectionProfile } from "../../src/models/connectionProfile";
+import { NodeInfo } from "../../src/models/contracts/objectExplorer/nodeInfo";
 
 suite("ConnectionNode Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -116,5 +118,39 @@ suite("ConnectionNode Tests", () => {
         // Tooltip should include keys that differ from defaults and should not include 'excluded' keys
         expect(node.tooltip).to.be.a("string");
         expect(node.tooltip).to.contain("Windows Authentication");
+    });
+
+    test("context value records where the connection's server is hosted, connected or not", () => {
+        const profile = {
+            id: "1",
+            server: "contoso.database.windows.net",
+            database: "Orders",
+        } as ConnectionProfile;
+        const node = new ConnectionNode(profile);
+
+        expect(node.contextValue)
+            .to.match(/\btype=disconnectedServer\b/)
+            .and.match(/\bsubType=Database\b/)
+            .and.match(/\bserverPlatform=Azure\b/)
+            .and.match(/\bserverProduct=SQL\b/);
+
+        node.updateToConnectedState({
+            nodeInfo: { nodePath: "contoso", nodeStatus: "", filterableProperties: [] } as NodeInfo,
+            sessionId: "session",
+            parentNode: undefined,
+            connectionProfile: profile,
+        });
+
+        expect(node.contextValue)
+            .to.match(/\btype=Server\b/)
+            .and.match(/\bserverPlatform=Azure\b/)
+            .and.match(/\bserverProduct=SQL\b/);
+    });
+
+    test("context value leaves out server facts it can't determine", () => {
+        const node = new ConnectionNode({ id: "1", server: "myServer" } as ConnectionProfile);
+
+        expect(node.contextValue).to.match(/\bserverPlatform=Other\b/);
+        expect(node.contextValue).to.not.contain("serverProduct");
     });
 });

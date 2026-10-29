@@ -916,6 +916,29 @@
         "message": "'{0}' is a system database, so it isn't tracked in the Fabric Database Hub.",
         "comment": ["{0} is the name of the system database, such as 'master'"]
     },
+    "The Fabric Database Hub isn't available in {0}./{0} is the name of the Azure cloud, such as 'Azure (US Government)'": {
+        "message": "The Fabric Database Hub isn't available in {0}.",
+        "comment": ["{0} is the name of the Azure cloud, such as 'Azure (US Government)'"]
+    },
+    "'{0}' isn't connected to Azure Arc, so the Fabric Database Hub can't track it. Connect the server to Azure Arc to review its health in the Hub./{0} is the name of the SQL Server instance": {
+        "message": "'{0}' isn't connected to Azure Arc, so the Fabric Database Hub can't track it. Connect the server to Azure Arc to review its health in the Hub.",
+        "comment": ["{0} is the name of the SQL Server instance"]
+    },
+    "Couldn't confirm that '{0}' is connected to Azure Arc, because your login can't read its Azure Arc details in msdb. Search the Fabric Database Hub for it instead?/{0} is the name of the SQL Server instance": {
+        "message": "Couldn't confirm that '{0}' is connected to Azure Arc, because your login can't read its Azure Arc details in msdb. Search the Fabric Database Hub for it instead?",
+        "comment": ["{0} is the name of the SQL Server instance"]
+    },
+    "'{0}' is now connected to Azure Arc. Open it in the Fabric Database Hub to review its health./{0} is the name of the SQL Server instance": {
+        "message": "'{0}' is now connected to Azure Arc. Open it in the Fabric Database Hub to review its health.",
+        "comment": ["{0} is the name of the SQL Server instance"]
+    },
+    "Finding '{0}' in Azure.../{0} is the name of the Azure SQL database": {
+        "message": "Finding '{0}' in Azure...",
+        "comment": ["{0} is the name of the Azure SQL database"]
+    },
+    "Open in Fabric Database Hub": "Open in Fabric Database Hub",
+    "Learn How": "Learn How",
+    "Search the Hub": "Search the Hub",
     "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}/{0} is the account label or ID": {
         "message": "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}",
         "comment": ["{0} is the account label or ID"]

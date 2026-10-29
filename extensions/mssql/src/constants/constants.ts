@@ -260,6 +260,8 @@ export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const feedbackUrl = "https://aka.ms/vscode-mssql-bug";
 export const connectionSharingMigrationGuideUrl = "https://aka.ms/mssql-connection-sharing";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
+export const azureArcConnectSqlServerLink =
+    "https://learn.microsoft.com/sql/sql-server/azure-arc/connect";
 export const createDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
 export const dropDatabaseHelpLink =

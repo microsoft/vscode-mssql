@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeNodeInfo } from "./treeNodeInfo";
+import { getServerContextValue, TreeNodeInfo } from "./treeNodeInfo";
 import * as vscode from "vscode";
 import * as os from "os";
 import * as vscodeMssql from "vscode-mssql";
@@ -38,6 +38,7 @@ const createDisconnectedNodeContextValue = (
         filterable: false,
         hasFilters: false,
         subType: nodeSubType,
+        ...getServerContextValue(connectionProfile),
     };
 };
 
@@ -53,6 +54,7 @@ const createConnectedNodeContextValue = (
         filterable: false,
         hasFilters: false,
         subType: nodeSubType,
+        ...getServerContextValue(connectionProfile),
     };
 };
 

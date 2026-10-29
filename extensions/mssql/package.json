@@ -992,6 +992,16 @@
                     "group": "3_MSSQL_databaseDiscover@1"
                 },
                 {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database)\\b/) && (viewItem =~ /\\bserverPlatform=(Azure|Fabric)\\b/ && viewItem =~ /\\bserverProduct=SQL\\b/ || viewItem =~ /\\bserverPlatform=(Local|Other)\\b/)",
+                    "group": "3_MSSQL_databaseDiscover@4"
+                },
+                {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/ && !(viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/) && viewItem =~ /\\bserverPlatform=(Local|Other)\\b/",
+                    "group": "4_MSSQL_discoverAndProfile@3"
+                },
+                {
                     "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "7_MSSQL_compareAndDacpac@2"

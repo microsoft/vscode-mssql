@@ -1984,6 +1984,17 @@ declare module "vscode-mssql" {
         subType: string;
         filterable: boolean;
         hasFilters: boolean;
+        /**
+         * Platform hosting the node's connection, such as `Azure`, `Fabric`, `Local` or
+         * `DockerContainer`.
+         * Only set on nodes that represent a server or a database.
+         */
+        serverPlatform?: string;
+        /**
+         * Product the node's connection targets, such as `SQL` or `DataWarehouse`.
+         * Only set on nodes that represent a server or a database.
+         */
+        serverProduct?: string;
     }
 
     export interface NodeFilterProperty {

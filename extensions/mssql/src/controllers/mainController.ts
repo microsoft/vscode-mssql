@@ -183,7 +183,6 @@ import {
     quickQueryCount,
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { AzureResourcesExtensionIntegration } from "../integration/azureResourcesIntegration";
-import { FabricDatabaseHubIntegration } from "../integration/fabricDatabaseHubIntegration";
 
 const overviewVisibilityStorageKey = "overviewVisibility";
 
@@ -241,7 +240,6 @@ export default class MainController implements vscode.Disposable {
     public inlineCompletionSchemaContextService: CompletionSchemaContextService | undefined;
     public protocolHandler: MssqlProtocolHandler;
     public azureResourcesIntegration: AzureResourcesExtensionIntegration;
-    public fabricDatabaseHubIntegration: FabricDatabaseHubIntegration;
 
     /**
      * The main controller constructor
@@ -866,11 +864,9 @@ export default class MainController implements vscode.Disposable {
             this.azureResourcesIntegration = new AzureResourcesExtensionIntegration(
                 this.protocolHandler,
             );
-            this.fabricDatabaseHubIntegration = new FabricDatabaseHubIntegration();
 
             this._context.subscriptions.push(
                 this.azureResourcesIntegration.registerOpenInMssqlCommand(),
-                this.fabricDatabaseHubIntegration.registerOpenInFabricDatabaseHubCommand(),
             );
 
             // Register a virtual document provider once during extension activation

@@ -1543,6 +1543,53 @@ export class Azure {
         });
     }
 
+    public static fabricDatabaseHubUnavailableInCloud(cloudName: string): string {
+        return l10n.t({
+            message: "The Fabric Database Hub isn't available in {0}.",
+            args: [cloudName],
+            comment: ["{0} is the name of the Azure cloud, such as 'Azure (US Government)'"],
+        });
+    }
+
+    public static serverNotConnectedToAzureArc(serverName: string): string {
+        return l10n.t({
+            message:
+                "'{0}' isn't connected to Azure Arc, so the Fabric Database Hub can't track it. Connect the server to Azure Arc to review its health in the Hub.",
+            args: [serverName],
+            comment: ["{0} is the name of the SQL Server instance"],
+        });
+    }
+
+    public static azureArcRegistrationUnknown(serverName: string): string {
+        return l10n.t({
+            message:
+                "Couldn't confirm that '{0}' is connected to Azure Arc, because your login can't read its Azure Arc details in msdb. Search the Fabric Database Hub for it instead?",
+            args: [serverName],
+            comment: ["{0} is the name of the SQL Server instance"],
+        });
+    }
+
+    public static serverNowConnectedToAzureArc(serverName: string): string {
+        return l10n.t({
+            message:
+                "'{0}' is now connected to Azure Arc. Open it in the Fabric Database Hub to review its health.",
+            args: [serverName],
+            comment: ["{0} is the name of the SQL Server instance"],
+        });
+    }
+
+    public static findingDatabaseInAzure(databaseName: string): string {
+        return l10n.t({
+            message: "Finding '{0}' in Azure...",
+            args: [databaseName],
+            comment: ["{0} is the name of the Azure SQL database"],
+        });
+    }
+
+    public static openInFabricDatabaseHub = l10n.t("Open in Fabric Database Hub");
+    public static learnHowToConnectToAzureArc = l10n.t("Learn How");
+    public static searchFabricDatabaseHub = l10n.t("Search the Hub");
+
     public static unableToAcquireEntraTokenFromVsCode(accountDisplayName: string): string {
         return l10n.t({
             message:

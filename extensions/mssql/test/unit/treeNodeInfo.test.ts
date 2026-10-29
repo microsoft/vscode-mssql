@@ -10,7 +10,8 @@ import { expect } from "chai";
 import * as chai from "chai";
 
 import type { IConnectionInfo } from "vscode-mssql";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { getServerContextValue, TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { NodeInfo } from "../../src/models/contracts/objectExplorer/nodeInfo";
 import { initializeIconUtils } from "./utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { azureMfa } from "../../src/constants/constants";
@@ -131,6 +132,58 @@ suite("TreeNodeInfo", () => {
             node.updateEntraTokenInfo(undefined);
 
             expect(removedUndefinedSpy).to.not.have.been.called;
+        });
+    });
+
+    suite("server context", () => {
+        const serverContext = (server: string) =>
+            getServerContextValue({ server } as IConnectionInfo);
+
+        test("describes where a connection's server is hosted", () => {
+            expect(serverContext("contoso.database.windows.net")).to.deep.equal({
+                serverPlatform: "Azure",
+                serverProduct: "SQL",
+            });
+            expect(serverContext("abc.msit-database.fabric.microsoft.com,1433")).to.deep.equal({
+                serverPlatform: "Fabric",
+                serverProduct: "SQL",
+            });
+            expect(serverContext("contoso.sql.azuresynapse.net")).to.deep.equal({
+                serverPlatform: "Azure",
+                serverProduct: "DataWarehouse",
+            });
+            expect(serverContext("localhost")).to.deep.equal({
+                serverPlatform: "Local",
+                serverProduct: "SQL",
+            });
+            expect(
+                getServerContextValue({
+                    server: "localhost,1434",
+                    containerName: "sql2025",
+                } as IConnectionInfo),
+            ).to.deep.equal({ serverPlatform: "DockerContainer", serverProduct: "SQL" });
+        });
+
+        test("leaves out facts it can't determine", () => {
+            expect(serverContext("myServer")).to.deep.equal({ serverPlatform: "Other" });
+            expect(serverContext("")).to.deep.equal({});
+            expect(getServerContextValue(undefined)).to.deep.equal({});
+        });
+
+        test("tags database nodes, but not their children, with the server's facts", () => {
+            const profile = { server: "contoso.database.windows.net" } as IConnectionProfile;
+            const fromNodeInfo = (nodeType: string): TreeNodeInfo =>
+                TreeNodeInfo.fromNodeInfo(
+                    { nodePath: `server/${nodeType}`, nodeType, label: nodeType } as NodeInfo,
+                    "session",
+                    undefined,
+                    profile,
+                );
+
+            expect(fromNodeInfo("Database").contextValue)
+                .to.match(/\bserverPlatform=Azure\b/)
+                .and.match(/\bserverProduct=SQL\b/);
+            expect(fromNodeInfo("Table").contextValue).to.not.contain("serverPlatform");
         });
     });
 });

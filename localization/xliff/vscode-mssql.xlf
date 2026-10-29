@@ -54,6 +54,14 @@
       <source xml:lang="en">&apos;{0}&apos; is a system database, so it isn&apos;t tracked in the Fabric Database Hub.</source>
       <note>{0} is the name of the system database, such as &apos;master&apos;</note>
     </trans-unit>
+    <trans-unit id="++CODE++a773e1871534d46d8f7aeea386fcda31be54989cea11095da9f43644b29686fa">
+      <source xml:lang="en">&apos;{0}&apos; is now connected to Azure Arc. Open it in the Fabric Database Hub to review its health.</source>
+      <note>{0} is the name of the SQL Server instance</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f85e2817ff2c6a9112b3d2e8a132e016e3679f1fb67338df20712b21fb22d9d2">
+      <source xml:lang="en">&apos;{0}&apos; isn&apos;t connected to Azure Arc, so the Fabric Database Hub can&apos;t track it. Connect the server to Azure Arc to review its health in the Hub.</source>
+      <note>{0} is the name of the SQL Server instance</note>
+    </trans-unit>
     <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
       <source xml:lang="en">&apos;{0}&apos; started.</source>
       <note>{0} is the service name</note>
@@ -2820,6 +2828,10 @@
     <trans-unit id="++CODE++71e0b348ec348e9236d9c0984d670475cb786378fa5e97176bc94bc4a42826d5">
       <source xml:lang="en">Could not write the configuration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9b422ee0f14af141e9bcd304cff6a7ae96ef7eedf6b941f06c3d860345bcfb05">
+      <source xml:lang="en">Couldn&apos;t confirm that &apos;{0}&apos; is connected to Azure Arc, because your login can&apos;t read its Azure Arc details in msdb. Search the Fabric Database Hub for it instead?</source>
+      <note>{0} is the name of the SQL Server instance</note>
+    </trans-unit>
     <trans-unit id="++CODE++161c4ff101236d05f09023c17fc525c3a8a9d2dffead5c936a141e9dde98c53c">
       <source xml:lang="en">Couldn&apos;t load event detail — select the event again to retry.</source>
     </trans-unit>
@@ -5446,6 +5458,10 @@
     <trans-unit id="++CODE++848b9a6cfe9db6c8bbda02730a9818a8713a88c8259c94dfefce31815c0af978">
       <source xml:lang="en">Find in primary plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++47276b3221461162749eddf3d3afa2d8a113c9a4e3e3186842f901fb76856a31">
+      <source xml:lang="en">Finding &apos;{0}&apos; in Azure...</source>
+      <note>{0} is the name of the Azure SQL database</note>
+    </trans-unit>
     <trans-unit id="++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc">
       <source xml:lang="en">Finish</source>
     </trans-unit>
@@ -6319,6 +6335,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5">
       <source xml:lang="en">Layout</source>
+    </trans-unit>
+    <trans-unit id="++CODE++436fcc8c69d722667ec00360e2d7950015b4e2ca21650cb650e463f4cda5820e">
+      <source xml:lang="en">Learn How</source>
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
@@ -8103,6 +8122,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4a2a1e49b523264763b9897cf254579fa57c35ca0c61dfda1873bf492c6352ec">
+      <source xml:lang="en">Open in Fabric Database Hub</source>
     </trans-unit>
     <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>
@@ -10125,6 +10147,9 @@
     <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
       <source xml:lang="en">Search tables...</source>
     </trans-unit>
+    <trans-unit id="++CODE++6099244db1ae7177df0606302b3bae92ea84245a53e113d7961e453ed62df1d6">
+      <source xml:lang="en">Search the Hub</source>
+    </trans-unit>
     <trans-unit id="++CODE++404b4ef5cba30d5d524422e7639bb1502d686405be95ff2dec636eb5fedfe992">
       <source xml:lang="en">Search values...</source>
     </trans-unit>
@@ -11480,6 +11505,10 @@
     </trans-unit>
     <trans-unit id="++CODE++c06982c71f4f2dfffed0ad092518601746d30dc2386af195c3e836f87e5eb300">
       <source xml:lang="en">The Dev Containers extension is required to reopen this folder in a container.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3d7740e1517f156c56f0a2eb3fad0ff2f825a0274b41fe2cf449a30d2ff47b7c">
+      <source xml:lang="en">The Fabric Database Hub isn&apos;t available in {0}.</source>
+      <note>{0} is the name of the Azure cloud, such as &apos;Azure (US Government)&apos;</note>
     </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
@@ -14877,6 +14906,9 @@
     <trans-unit id="sqlDatabaseProjects.openInDesigner">
       <source xml:lang="en">Open in Designer</source>
     </trans-unit>
+    <trans-unit id="mssql.openInFabricDatabaseHub">
+      <source xml:lang="en">Open in Fabric Database Hub</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorerV2.chatWithDatabaseAgent">
       <source xml:lang="en">Open in GitHub Copilot Agent</source>
     </trans-unit>
@@ -15134,9 +15166,6 @@
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.findFileBehavior.revealAndOpen">
       <source xml:lang="en">Reveal the file in the Database Projects view and open it in the editor.</source>
-    </trans-unit>
-    <trans-unit id="mssql.openInFabricDatabaseHub">
-      <source xml:lang="en">Review health in Database Hub (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.rewriteQuery">
       <source xml:lang="en">Rewrite Query</source>

@@ -11,7 +11,38 @@ import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as Constants from "../../constants/constants";
 import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 import { IConnectionProfile } from "../../models/interfaces";
+import { getServerTypes, ServerType } from "../../models/connectionInfo";
 import { removeUndefinedProperties, uuid } from "../../utils/utils";
+
+const serverProducts: ReadonlySet<ServerType> = new Set([ServerType.Sql, ServerType.DataWarehouse]);
+
+/** Platform of a connection to a container, which is managed apart from the machine it runs on. */
+export const dockerContainerServerPlatform = "DockerContainer";
+
+/**
+ * Returns the context value facts describing where a server or database node's connection is
+ * hosted, so menu contributions can target, say, only Azure SQL databases.
+ *
+ * Facts that can't be determined are left out rather than set to `undefined`, which the context
+ * value would otherwise spell out literally.
+ */
+export function getServerContextValue(
+    connection: vscodeMssql.IConnectionInfo | undefined,
+): Pick<vscodeMssql.TreeNodeContextValue, "serverPlatform" | "serverProduct"> {
+    if (!connection?.server) {
+        return {};
+    }
+
+    const serverTypes = getServerTypes(connection);
+    const serverPlatform = connection.containerName
+        ? dockerContainerServerPlatform
+        : serverTypes.find((serverType) => !serverProducts.has(serverType));
+    const serverProduct = serverTypes.find((serverType) => serverProducts.has(serverType));
+    return {
+        ...(serverPlatform && { serverPlatform }),
+        ...(serverProduct && { serverProduct }),
+    };
+}
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -102,6 +133,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
                 filterable: nodeInfo.filterableProperties?.length > 0,
                 hasFilters: false,
                 subType: nodeInfo.objectType,
+                ...(type === Constants.databaseString && getServerContextValue(connectionProfile)),
             },
             nodeInfo.isLeaf
                 ? vscode.TreeItemCollapsibleState.None

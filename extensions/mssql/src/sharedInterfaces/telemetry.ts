@@ -102,6 +102,7 @@ export enum TelemetryActions {
     SentToWebview = "SentToWebview",
     Reducer = "Reducer",
     Open = "Open",
+    ArcEnabledAfterPrompt = "ArcEnabledAfterPrompt",
     Submit = "Submit",
     Cancel = "Cancel",
     Initialize = "Initialize",

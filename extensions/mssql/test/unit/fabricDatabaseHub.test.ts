@@ -8,9 +8,11 @@ import { expect } from "chai";
 import {
     FabricDatabaseHubDatabaseType,
     FabricEnvironment,
+    getAzureSqlManagedInstanceName,
     getFabricDatabaseHubLink,
     getFabricEnvironment,
     getFabricSqlDatabaseDisplayName,
+    getFabricSqlDatabaseItemId,
     isSystemDatabaseName,
     parseFabricEnvironment,
 } from "../../src/fabric/fabricDatabaseHub";
@@ -72,6 +74,19 @@ suite("Fabric Database Hub", () => {
         });
     });
 
+    suite("getFabricSqlDatabaseItemId", () => {
+        test("reads the item ID that Fabric SQL catalogs append", () => {
+            expect(
+                getFabricSqlDatabaseItemId("Test Database-0D373898-C2DA-4729-AC46-80C1EF8ED940"),
+            ).to.equal("0d373898-c2da-4729-ac46-80c1ef8ed940");
+        });
+
+        test("returns undefined for names without an item ID", () => {
+            expect(getFabricSqlDatabaseItemId("Sales")).to.be.undefined;
+            expect(getFabricSqlDatabaseItemId(undefined)).to.be.undefined;
+        });
+    });
+
     suite("isSystemDatabaseName", () => {
         test("recognizes the databases the Hub excludes from its inventory", () => {
             expect(isSystemDatabaseName("master")).to.be.true;
@@ -87,29 +102,66 @@ suite("Fabric Database Hub", () => {
         });
     });
 
+    suite("getAzureSqlManagedInstanceName", () => {
+        test("reads the instance name ahead of a managed instance's DNS zone", () => {
+            expect(
+                getAzureSqlManagedInstanceName("orders-mi.0a1b2c3d4e5f.database.windows.net"),
+            ).to.equal("orders-mi");
+            expect(
+                getAzureSqlManagedInstanceName(
+                    "tcp:Orders-MI.public.0a1b2c3d4e5f.database.windows.net,3342",
+                ),
+            ).to.equal("orders-mi");
+        });
+
+        test("returns undefined for logical servers and other hosts", () => {
+            expect(getAzureSqlManagedInstanceName("contoso.database.windows.net")).to.be.undefined;
+            expect(getAzureSqlManagedInstanceName("contoso.privatelink.database.windows.net")).to.be
+                .undefined;
+            expect(getAzureSqlManagedInstanceName("contoso.secondary.database.windows.net")).to.be
+                .undefined;
+            expect(getAzureSqlManagedInstanceName("sqlprod01.contoso.com")).to.be.undefined;
+            expect(getAzureSqlManagedInstanceName(undefined)).to.be.undefined;
+        });
+    });
+
     suite("getFabricDatabaseHubLink", () => {
         test("builds an Azure SQL estate link against the production portal", () => {
             const url = new URL(getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.AzureSql)!);
 
             expect(url.origin).to.equal("https://app.fabric.microsoft.com");
             expect(url.pathname).to.equal("/workloads/fdh/databaseHub/estate");
-            expect(url.searchParams.get("databaseType")).to.equal("azure-sql");
-            expect(url.searchParams.has("databaseResourceId")).to.be.false;
+            expect([...url.searchParams.keys()]).to.deep.equal(["estateView"]);
             expect(JSON.parse(url.searchParams.get("estateView")!)).to.deep.equal({
                 schemaVersion: 1,
                 state: {
                     filters: [{ key: "resourceType", operator: "in", value: ["AzureSql"] }],
                     category: ["all"],
                     relevance: ["all"],
-                    sort: null,
+                    sort: { column: "issues", direction: "descending" },
                 },
             });
+        });
+
+        test("opens a database's details dialog by its resource ID", () => {
+            const resourceId =
+                "/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Sql/servers/contoso/databases/Orders";
+            const url = new URL(
+                getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.AzureSql, {
+                    databaseResourceId: resourceId,
+                })!,
+            );
+
+            expect(url.searchParams.get("databaseResourceId")).to.equal(resourceId);
+            expect(JSON.parse(url.searchParams.get("estateView")!).state.filters).to.deep.equal([
+                { key: "resourceType", operator: "in", value: ["AzureSql"] },
+            ]);
         });
 
         test("narrows the grid to a single database without opening its details dialog", () => {
             const url = new URL(
                 getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.AzureSql, {
-                    databaseName: "testDatabase",
+                    resourceName: "testDatabase",
                     subscriptionId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
                     resourceGroupName: "DefaultResourceGroup",
                 })!,
@@ -166,7 +218,6 @@ suite("Fabric Database Hub", () => {
             );
 
             expect(url.origin).to.equal("https://msit.fabric.microsoft.com");
-            expect(url.searchParams.get("databaseType")).to.equal("fabric-sql");
             expect(JSON.parse(url.searchParams.get("estateView")!).state.filters).to.deep.equal([
                 { key: "resourceType", operator: "in", value: ["FabricSql"] },
             ]);
