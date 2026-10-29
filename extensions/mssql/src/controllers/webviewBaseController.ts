@@ -57,8 +57,6 @@ import { Perf } from "../perf/perfTelemetry";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { PerfEnableNotification, PerfWebviewMarkNotification } from "../sharedInterfaces/perf";
 
-export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
-
 /**
  * Cache-buster for UNHASHED webview entry assets (see _getHtmlTemplate).
  * One stamp per extension-host session: new host = fresh fetch, same host =
@@ -131,7 +129,6 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
      */
     private _webviewReady: Deferred<void> = new Deferred<void>();
     private _isWebviewReady: boolean = false;
-    private _webviewReadyTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
 
     private _state: State;
     private _isFirstLoad: boolean = true;
@@ -294,6 +291,11 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         return { enabled: false };
     }
 
+    /** Trusted bootstrap scripts must share the template's CSP nonce. */
+    protected bootstrapHtml(_nonce: string): string {
+        return "";
+    }
+
     protected _getHtmlTemplate() {
         const nonce = getNonce();
         // VS Code's webview service worker caches resources by URL, and the
@@ -345,7 +347,8 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
 				<body>
 					<link rel="stylesheet" href="${this._sourceFile}.css${assetStamp}">
 					<div id="root"></div>
-				  	<script type="module" nonce="${nonce}" src="${this._sourceFile}.js${assetStamp}"></script> <!-- since our bundles are in esm format we need to use type="module" -->
+					${this.bootstrapHtml(nonce)}
+					<script type="module" nonce="${nonce}" src="${this._sourceFile}.js${assetStamp}"></script> <!-- since our bundles are in esm format we need to use type="module" -->
 				</body>
 			</html>
 		`;
@@ -753,27 +756,27 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         this._onDisposed.fire();
         this._disposables.forEach((d) => d.dispose());
         this._isDisposed = true;
-        if (this._webviewReadyTimeoutHandle !== undefined) {
-            clearTimeout(this._webviewReadyTimeoutHandle);
-            this._webviewReadyTimeoutHandle = undefined;
-        }
         this._webviewReady.reject(new Error(LocalizedConstants.Webview.webviewDisposedBeforeReady));
     }
 
     /**
      * Waits for the webview to become ready. This is useful for ensuring that the webview is ready to receive messages before sending any.
-     * @param timeoutMs Optional timeout in milliseconds to wait for the webview to become ready. Defaults to 5 seconds.
+     * @param timeoutMs Optional timeout for this caller. By default, wait until ready or disposed.
      * @returns A promise that resolves when the webview is ready or rejects if there is an error or timeout.
      */
-    public whenWebviewReady(timeoutMs: number = WEBVIEW_INIT_TIMEOUT_MS): Promise<void> {
+    public whenWebviewReady(timeoutMs?: number): Promise<void> {
         if (this._isWebviewReady) {
             return Promise.resolve();
         }
 
-        if (this._webviewReadyTimeoutHandle === undefined) {
-            this._webviewReadyTimeoutHandle = setTimeout(() => {
-                this._webviewReadyTimeoutHandle = undefined;
-                this._webviewReady.reject(
+        if (timeoutMs === undefined) {
+            return this._webviewReady.promise;
+        }
+        // A caller timing out must not poison readiness for other callers or
+        // a webview that finishes loading later (e.g. a cold remote host).
+        return new Promise<void>((resolve, reject) => {
+            const timer = setTimeout(() => {
+                reject(
                     new Error(
                         LocalizedConstants.Webview.webviewNotReadyTimeout(
                             this._sourceFile,
@@ -782,9 +785,17 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                     ),
                 );
             }, timeoutMs);
-        }
-
-        return this._webviewReady.promise;
+            this._webviewReady.promise.then(
+                () => {
+                    clearTimeout(timer);
+                    resolve();
+                },
+                (error) => {
+                    clearTimeout(timer);
+                    reject(error);
+                },
+            );
+        });
     }
 
     private markWebviewReady(): void {
@@ -793,10 +804,6 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         }
 
         this._isWebviewReady = true;
-        if (this._webviewReadyTimeoutHandle !== undefined) {
-            clearTimeout(this._webviewReadyTimeoutHandle);
-            this._webviewReadyTimeoutHandle = undefined;
-        }
         this._webviewReady.resolve();
     }
 

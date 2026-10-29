@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as React from "react";
+import { locConstants } from "../../common/locConstants";
+import "../ExecutionPlan/executionPlanEagerStyles";
 import ReactDOM from "react-dom/client";
 import "../../index.css";
 // The pinned pane reuses the Query Studio result components and their styles.
@@ -28,7 +30,10 @@ function PinnedResultsRoot(): React.JSX.Element {
         [rpc],
     );
     return (
-        <QueryStudioErrorBoundary label="Pinned Results" resetKey="root" onError={reportRootError}>
+        <QueryStudioErrorBoundary
+            label={locConstants.queryStudioCore.pinnedResults}
+            resetKey="root"
+            onError={reportRootError}>
             <PinnedResultsApp />
         </QueryStudioErrorBoundary>
     );

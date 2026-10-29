@@ -59,6 +59,7 @@ import {
     registerQueryStudioPerfMessagesController,
     type QueryStudioPerfInteractionOutcome,
 } from "./queryStudioPerfInteraction";
+import { locConstants } from "../../common/locConstants";
 
 const NOTICE_DISMISS_MS = 6000;
 
@@ -88,11 +89,16 @@ function GridCaption(props: {
     const streaming = runActive && !summary.complete && !summary.truncatedReason;
     return (
         <div className="qs-grid-caption">
-            <span className="qs-grid-caption-title">Result {displayOrdinal}</span>
+            <span className="qs-grid-caption-title">
+                {locConstants.queryStudioCore.result} {displayOrdinal}
+            </span>
             <span className="qs-muted">
-                {rowCount.toLocaleString()} row{rowCount === 1 ? "" : "s"}
-                {summary.truncatedReason ? ` · truncated (${summary.truncatedReason})` : ""}
-                {streaming ? " · streaming…" : ""}
+                {rowCount.toLocaleString()} {"row"}
+                {rowCount === 1 ? "" : "s"}
+                {summary.truncatedReason
+                    ? locConstants.queryStudioCore.truncatedValue(String(summary.truncatedReason))
+                    : ""}
+                {streaming ? locConstants.queryStudioCore.streaming2 : ""}
             </span>
             {summary.isPlanResult ? (
                 // QS-1: plan-flagged sets link out to the execution plan
@@ -100,13 +106,14 @@ function GridCaption(props: {
                 <a
                     className="qs-cell-link qs-plan-link"
                     role="button"
-                    title="Open in the execution plan viewer"
+                    title={locConstants.queryStudioCore.openInTheExecutionPlanViewer}
                     onClick={() => {
                         void rpc.sendRequest(QsOpenPlanRequest.type, {
                             resultSetId: summary.resultSetId,
                         });
                     }}>
-                    Open execution plan
+                    {" "}
+                    {locConstants.queryStudioCore.openExecutionPlan}{" "}
                 </a>
             ) : null}
             {children}
@@ -115,10 +122,14 @@ function GridCaption(props: {
                     className="qs-btn qs-grid-max"
                     title={
                         maximized
-                            ? "Restore the stacked results view"
-                            : "Maximize this grid to fill the results pane"
+                            ? locConstants.queryStudioCore.restoreTheStackedResultsView
+                            : locConstants.queryStudioCore.maximizeThisGridToFillTheResultsPane
                     }
-                    aria-label={maximized ? "Restore stacked view" : "Maximize grid"}
+                    aria-label={
+                        maximized
+                            ? locConstants.queryStudioCore.restoreStackedView
+                            : locConstants.queryStudioCore.maximizeGrid
+                    }
                     onClick={onToggleMaximize}>
                     <span
                         className={`codicon codicon-chrome-${maximized ? "restore" : "maximize"}`}
@@ -300,7 +311,8 @@ export function ResultGridBlock(props: GridProps) {
                 {props.captionExtras}
             </GridCaption>
             <div className="qs-grid-placeholder" style={{ height }}>
-                {rowCount.toLocaleString()} row{rowCount === 1 ? "" : "s"} — scroll to load
+                {rowCount.toLocaleString()} {"row"}
+                {rowCount === 1 ? "" : "s"} {locConstants.queryStudioCore.scrollToLoad}{" "}
             </div>
         </div>
     );
@@ -342,8 +354,8 @@ function renderMessageForDisplay(
             <a
                 className="qs-message-line-link"
                 href={`#line-${row.lineNumber}`}
-                title={`Go to line ${row.lineNumber}`}
-                aria-label={`Go to line ${row.lineNumber}`}
+                title={locConstants.queryStudioCore.goToLineValue(String(row.lineNumber))}
+                aria-label={locConstants.queryStudioCore.goToLineValue(String(row.lineNumber))}
                 onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
@@ -648,12 +660,12 @@ function MessagesViewImpl(props: {
                 <button
                     type="button"
                     className="qs-btn qs-messages-copy"
-                    title="Copy all messages"
-                    aria-label="Copy all messages"
+                    title={locConstants.queryStudioCore.copyAllMessages}
+                    aria-label={locConstants.queryStudioCore.copyAllMessages}
                     disabled={messages.length === 0 || copyInProgress}
                     onClick={() => void copyAllMessages()}>
                     <span className="codicon codicon-copy" aria-hidden="true" />
-                    <span>Copy All</span>
+                    <span>{locConstants.queryStudioCore.copyAll}</span>
                 </button>
             </div>
             {copyNotice ? (
@@ -671,8 +683,8 @@ function MessagesViewImpl(props: {
                 </div>
                 {messages.length === 0 ? (
                     <div className="qs-muted qs-message-row">
-                        {" ".repeat(MESSAGE_TIME_COLUMN_WIDTH + MESSAGE_SEPARATOR.length)}
-                        No messages.
+                        {" ".repeat(MESSAGE_TIME_COLUMN_WIDTH + MESSAGE_SEPARATOR.length)}{" "}
+                        {locConstants.queryStudioCore.noMessages}{" "}
                     </div>
                 ) : null}
             </div>

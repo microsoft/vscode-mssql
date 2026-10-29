@@ -16,7 +16,13 @@
  * querystudio-open harness scenario caught).
  */
 
-import * as monaco from "monaco-editor";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+// Keep all editor features (Peek, suggestions, folding, etc.) without importing
+// Monaco's complete language catalog and its unrelated language services.
+import "monaco-editor/esm/vs/editor/edcore.main";
+import "monaco-editor/esm/vs/basic-languages/sql/sql.contribution";
+import "monaco-editor/esm/vs/basic-languages/xml/xml.contribution";
+import "monaco-editor/esm/vs/language/json/monaco.contribution";
 import { loader } from "@monaco-editor/react";
 import {
     conf as sqlLanguageConfiguration,

@@ -31,6 +31,7 @@ import {
     QueryResultStoreStats,
     RowStreamRequest,
 } from "./queryResultTypes";
+import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
 
 export type LiveOwnerReleaseReason =
     | "rerun"
@@ -71,7 +72,10 @@ export class RetainedRowStore implements IQueryResultStore {
         this.runId = metadata.runId;
         this.createdEpochMs = metadata.createdEpochMs;
         this.liveLeaseId = newLeaseId();
-        this.leases.set(this.liveLeaseId, { kind: "liveRun", label: "Query Studio live run" });
+        this.leases.set(this.liveLeaseId, {
+            kind: "liveRun",
+            label: QueryStudioCoreLoc.queryStudioLiveRun,
+        });
     }
 
     get state(): QueryResultStoreState {

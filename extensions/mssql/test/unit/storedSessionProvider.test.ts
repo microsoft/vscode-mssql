@@ -335,6 +335,57 @@ suite("Completions stored session provider (WI-2.5)", () => {
 });
 
 suite("Stored session store admission (WI-2.5 / WI-2.3 gap fix)", () => {
+    test("bundle-only admission rejects mismatched, malformed and linked catalogs", () => {
+        const root = nodeFs.mkdtempSync(nodePath.join(os.tmpdir(), "mssql-store-bundle-"));
+        try {
+            const bundle = {
+                schema: "mssql.observability.bundle/1",
+                bundleId: "ob-test",
+                hostSessionId: "hs-test",
+                createdUtc: "2026-07-13T00:00:00.000Z",
+                updatedUtc: "2026-07-13T00:02:00.000Z",
+                status: "closed",
+                provenance: {},
+                artifacts: [],
+                totals: { artifacts: 1, bytes: 4096, gaps: 0, truncations: 0 },
+            };
+            const invalid = [
+                { hostSessionId: "../outside" },
+                { createdUtc: null },
+                { updatedUtc: "not a date" },
+                { status: "unknown" },
+                { totals: { bytes: -1, gaps: 0 } },
+                { totals: { bytes: 4096, gaps: "0" } },
+                { provenance: [] },
+            ];
+            for (const [index, fields] of invalid.entries()) {
+                const sessionId = `hs-invalid-${index}`;
+                const dir = nodePath.join(root, "sessions", sessionId);
+                nodeFs.mkdirSync(dir, { recursive: true });
+                nodeFs.writeFileSync(
+                    nodePath.join(dir, "bundle.json"),
+                    JSON.stringify({ ...bundle, hostSessionId: sessionId, ...fields }),
+                );
+            }
+            // A valid bundle must not mask an invalid diagnostic manifest.
+            const badManifest = nodePath.join(root, "sessions", bundle.hostSessionId);
+            nodeFs.mkdirSync(badManifest);
+            nodeFs.writeFileSync(nodePath.join(badManifest, "manifest.json"), "{");
+            nodeFs.writeFileSync(nodePath.join(badManifest, "bundle.json"), JSON.stringify(bundle));
+
+            const outside = nodePath.join(root, "outside");
+            nodeFs.mkdirSync(outside);
+            nodeFs.writeFileSync(
+                nodePath.join(outside, "bundle.json"),
+                JSON.stringify({ ...bundle, hostSessionId: "hs-linked" }),
+            );
+            nodeFs.symlinkSync(outside, nodePath.join(root, "sessions", "hs-linked"), "junction");
+            expect(new SessionStore(root).listLocalSessions()).to.deep.equal([]);
+        } finally {
+            nodeFs.rmSync(root, { recursive: true, force: true });
+        }
+    });
+
     test("listLocalSessions admits bundle.json-only session directories", () => {
         const root = nodeFs.mkdtempSync(nodePath.join(os.tmpdir(), "mssql-store-gap-"));
         try {

@@ -20,11 +20,13 @@ import { Perf } from "../../src/perf/perfTelemetry";
 import { ExecutionOrchestrator, RunEvents } from "../../src/queryStudio/executionOrchestrator";
 import { DEFAULT_LIMITS, RowStore } from "../../src/queryStudio/rowStore";
 import { QsMessageRow, QsResultColumn } from "../../src/sharedInterfaces/queryStudio";
+import { cellDisplayText } from "../../src/sharedInterfaces/queryStudioGridOps";
 import {
     IQueryEventSink,
     ISqlSession,
     QueryCompleteSummary,
     QueryHandle,
+    packBitmap,
 } from "../../src/services/sqlDataPlane/api";
 
 class RecordingEvents implements RunEvents {
@@ -96,6 +98,138 @@ function scriptedSession(
 }
 
 suite("Query Studio execution orchestrator", () => {
+    for (const uppercase of [undefined, true, false]) {
+        test(`GUID formatting (${uppercase ?? "default"}) preserves text, NULLs, and the backend page`, async () => {
+            const rowStore = store();
+            const events = new RecordingEvents();
+            const guid = "aBcdef01-2345-6789-abcd-0123456789aB";
+            const expected = uppercase === false ? guid.toLowerCase() : guid.toUpperCase();
+            const values = [
+                [guid, guid, 42],
+                [undefined, guid, 0],
+                [{ $t: "guid", v: guid }, guid, 1],
+                [{ $t: "truncated", of: "string", v: guid.slice(0, 8), bytes: 36 }, guid, 2],
+            ];
+            const nullBitmap = packBitmap([
+                false,
+                false,
+                false,
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+            ]);
+            const session = scriptedSession(async (_text, sink) => {
+                await sink.onResultSetStarted({
+                    resultSetId: "0",
+                    batchOrdinal: 0,
+                    columns: [
+                        {
+                            ordinal: 0,
+                            name: "guid",
+                            displayName: "guid",
+                            sqlType: "uniqueidentifier",
+                        },
+                        { ordinal: 1, name: "text", displayName: "text", sqlType: "nvarchar" },
+                        { ordinal: 2, name: "number", displayName: "number", sqlType: "int" },
+                    ],
+                });
+                await sink.onRowsPage({
+                    resultSetId: "0",
+                    pageSeq: 0,
+                    rowOffset: 0,
+                    rowCount: 4,
+                    approxBytes: 200,
+                    compact: {
+                        values,
+                        nullBitmap,
+                    },
+                });
+                return {
+                    status: "succeeded",
+                    rowsAffected: 4,
+                    resultSetCount: 1,
+                    totalRows: 4,
+                    errorCount: 0,
+                };
+            });
+            try {
+                await new ExecutionOrchestrator(session, rowStore, events).run("SELECT ...", {
+                    selectionStartLine: 1,
+                    scope: "document",
+                    stopOnError: false,
+                    displayUniqueIdentifierInUppercase: uppercase,
+                });
+                for (const purpose of ["gridPreview", "copy", "export"] as const) {
+                    const window = await rowStore.getRows(events.resultSets[0], 0, 4, purpose);
+                    expect(window.values[0][0]).to.equal(expected);
+                    expect(window.values[0][1]).to.equal(guid);
+                    expect(window.values[1][0]).to.equal(undefined);
+                    expect(window.values[1][1]).to.equal(guid);
+                    expect(cellDisplayText(window.values[2][0])).to.equal(expected);
+                    expect(cellDisplayText(window.values[3][0])).to.equal(expected.slice(0, 8));
+                    expect(window.nullBitmap).to.equal(nullBitmap);
+                    if (purpose !== "gridPreview") {
+                        expect(window.values[2][0]).to.deep.equal({ $t: "guid", v: expected });
+                        expect(window.values[3][0]).to.deep.equal({
+                            $t: "truncated",
+                            of: "string",
+                            v: expected.slice(0, 8),
+                            bytes: 36,
+                        });
+                    }
+                }
+                expect(values).to.deep.equal([
+                    [guid, guid, 42],
+                    [undefined, guid, 0],
+                    [{ $t: "guid", v: guid }, guid, 1],
+                    [{ $t: "truncated", of: "string", v: guid.slice(0, 8), bytes: 36 }, guid, 2],
+                ]);
+            } finally {
+                rowStore.dispose();
+            }
+        });
+    }
+
+    test("hidden batch messages preserve server output, errors, and affected-row totals", async () => {
+        const rowStore = store();
+        const events = new RecordingEvents();
+        const session = scriptedSession(async (_text, sink) => {
+            await sink.onMessage({ kind: "info", text: "user PRINT message" });
+            await sink.onMessage({ kind: "error", text: "server failure", line: 1 });
+            return {
+                status: "completedWithErrors",
+                rowsAffected: 2,
+                resultSetCount: 0,
+                totalRows: 0,
+                errorCount: 1,
+            };
+        });
+        try {
+            const result = await new ExecutionOrchestrator(session, rowStore, events).run(
+                "PRINT 'user PRINT message';",
+                {
+                    selectionStartLine: 1,
+                    scope: "document",
+                    stopOnError: false,
+                    showBatchMessages: false,
+                },
+            );
+            expect(result.rowsAffected).to.equal(2);
+            expect(events.messages).to.have.length(2);
+            expect(events.messages[0].text).to.equal("user PRINT message");
+            expect(events.messages[1].text).to.contain("server failure");
+            expect(events.messages[1].kind).to.equal("error");
+        } finally {
+            rowStore.dispose();
+        }
+    });
+
     test("multi-batch GO script: both batches execute, rows land in the store, windows serve", async () => {
         const backend = new FakeBackend({
             scripts: [

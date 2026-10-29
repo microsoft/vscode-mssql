@@ -56,11 +56,28 @@ export function readGridStyle(get: ConfigReader): QsGridStyle {
         ...(fontFamily !== undefined ? { fontFamily } : {}),
         ...(fontSize !== undefined ? { fontSize } : {}),
         alternatingRowColors: get<unknown>("mssql.resultsGrid.alternatingRowColors") === true,
+        rightAlignNumbers: get<unknown>("mssql.resultsGrid.rightAlignNumbers") === true,
+        freezeFirstColumnByDefault:
+            get<unknown>("mssql.resultsGrid.freezeFirstColumnByDefault") === true,
+        copyIncludeHeaders: get<unknown>("mssql.copyIncludeHeaders") === true,
         showGridLines,
         ...(rowPadding !== undefined ? { rowPadding } : {}),
         inMemoryDataProcessingThreshold: inMemoryThreshold ?? DEFAULT_IN_MEMORY_THRESHOLD,
         resultsPaneHeightPct,
     };
+}
+
+/** Appearance and clipboard preferences shared by live and pinned result grids. */
+export function affectsQueryStudioGridStyle(event: {
+    affectsConfiguration(section: string): boolean;
+}): boolean {
+    return [
+        "mssql.resultsGrid",
+        "mssql.resultsFontFamily",
+        "mssql.resultsFontSize",
+        "mssql.copyIncludeHeaders",
+        "mssql.queryStudio.resultsPaneHeightPercent",
+    ].some((section) => event.affectsConfiguration(section));
 }
 
 function positiveNumber(value: unknown): number | undefined {

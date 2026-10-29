@@ -46,10 +46,10 @@ import {
     systemDatabasesFolderChildren,
 } from "./oeV2Browse";
 import { folderDef, isSystemDatabaseName, OeV2ScopeFacts, resolveFolders } from "./oeV2Hierarchy";
-import type { FreshCatalogResult } from "../../../services/metadata/cache/metadataFreshness";
 import { CatalogLanguageMetadataProvider } from "../../../sqlLanguage/provider/catalogProvider";
 import { createStrictScriptingService } from "../../../sqlLanguage/host/scriptingHost";
 import type { ScriptOperation } from "../../../sqlScripting/api";
+import type { FreshCatalogResult } from "../../../services/metadata/cache/metadataFreshness";
 import { OeV2Node } from "./oeV2Node";
 import {
     childrenOfGroup,
@@ -218,15 +218,15 @@ export class OeV2TreeController {
 
     async scriptObject(
         node: OeV2Node,
-        operation: Extract<ScriptOperation, "create" | "drop" | "execute">,
+        operation: Extract<ScriptOperation, "create" | "alter" | "drop" | "execute">,
         offlineMode: boolean,
     ): Promise<{ script?: string; error?: string }> {
         if (!node.connectionId || !node.database || !node.schema || !node.objectName) {
-            return { error: "Select a database object to script." };
+            return { error: ObjectExplorerV2.selectObjectToScript };
         }
         const runtime = this.runtimes.get(node.connectionId);
         if (!runtime) {
-            return { error: "Connect this profile in Object Explorer v2 first." };
+            return { error: ObjectExplorerV2.connectBeforeScripting };
         }
         const lease = await runtime.coordinator.ensureDatabase(node.database);
         const session = this.deps.sessions?.get(node.connectionId);
@@ -240,7 +240,8 @@ export class OeV2TreeController {
         const resolution = provider.pin().resolveObject([node.schema, node.objectName]);
         if (resolution.kind !== "resolved") {
             return {
-                script: `-- Cannot script ${node.schema}.${node.objectName}: object is not present in the current metadata snapshot.\r\n`,
+                script:
+                    ObjectExplorerV2.objectMissingForScript(node.schema, node.objectName) + "\r\n",
             };
         }
         const scripting = createStrictScriptingService({

@@ -63,6 +63,7 @@ export function QueryStudioExecutionPlanView(props: {
                 if (graph) {
                     void rpc.sendRequest(QsCompareExecutionPlanRequest.type, {
                         sqlPlanContent: graph.graphFile.graphFileContent,
+                        graphIndex: graph.graphFile.planIndexInFile ?? 0,
                     });
                 }
             },

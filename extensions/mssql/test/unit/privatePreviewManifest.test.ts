@@ -214,8 +214,15 @@ suite("Private preview manifest", () => {
         );
         expect(oeCommands.length).to.be.greaterThan(0);
         for (const contribution of oeCommands) {
-            expect(contribution.enablement, contribution.command).to.include(
-                OBJECT_EXPLORER_V2_GATE,
+            const queryCommand =
+                /^mssql\.objectExplorerV2\.(newQuery|selectTop|scriptCreate|scriptAlter|scriptDrop|scriptExecute)$/.test(
+                    contribution.command,
+                );
+            expect(contribution.enablement, contribution.command).to.equal(
+                OBJECT_EXPLORER_V2_GATE +
+                    (queryCommand
+                        ? " && mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled"
+                        : ""),
             );
         }
 

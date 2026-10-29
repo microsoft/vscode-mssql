@@ -206,7 +206,7 @@ export interface SessionManifest {
     sessionId: string;
     createdUtc: string;
     updatedUtc: string;
-    source: "live" | "perfRun";
+    source: "live" | "perfRun" | "bundle";
     captureMode: CaptureMode;
     policyId: string;
     eventCount: number;

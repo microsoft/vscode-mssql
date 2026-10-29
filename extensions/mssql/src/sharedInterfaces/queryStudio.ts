@@ -162,6 +162,9 @@ export interface QsGridStyle {
     fontFamily?: string;
     fontSize?: number;
     alternatingRowColors: boolean;
+    rightAlignNumbers?: boolean;
+    freezeFirstColumnByDefault?: boolean;
+    copyIncludeHeaders?: boolean;
     showGridLines: QsGridLinesMode;
     rowPadding?: number;
     /**
@@ -428,7 +431,9 @@ export namespace QsSyncUndoRequest {
     export const type = new RequestType<{ redo: boolean }, void, void>("qs/syncUndo");
 }
 export namespace QsSyncSaveRequest {
-    export const type = new RequestType<void, void, void>("qs/syncSave");
+    export const type = new RequestType<{ saveAs?: boolean } | undefined, void, void>(
+        "qs/syncSave",
+    );
 }
 export namespace QsExecuteRequest {
     export const type = new RequestType<
@@ -551,7 +556,7 @@ export namespace QsSaveExecutionPlanRequest {
     );
 }
 export namespace QsCompareExecutionPlanRequest {
-    export const type = new RequestType<{ sqlPlanContent: string }, void, void>(
+    export const type = new RequestType<{ sqlPlanContent: string; graphIndex: number }, void, void>(
         "qs/compareExecutionPlan",
     );
 }

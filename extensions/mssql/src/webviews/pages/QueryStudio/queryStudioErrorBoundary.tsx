@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as React from "react";
+import { locConstants } from "../../common/locConstants";
 
 interface QueryStudioErrorBoundaryProps {
     children: React.ReactNode;
@@ -43,12 +44,12 @@ export class QueryStudioErrorBoundary extends React.Component<
         }
         return (
             <div className="qs-pane-error" role="alert">
-                <span>{this.props.label} could not be rendered.</span>
+                <span>{locConstants.queryStudioCore.couldNotBeRendered(this.props.label)}</span>
                 <button
                     type="button"
                     className="qs-btn"
-                    title={`Retry ${this.props.label}`}
-                    aria-label={`Retry ${this.props.label}`}
+                    title={locConstants.queryStudioCore.retryValue(String(this.props.label))}
+                    aria-label={locConstants.queryStudioCore.retryValue(String(this.props.label))}
                     onClick={() => this.setState({ failed: false })}>
                     <span className="codicon codicon-refresh" aria-hidden="true" />
                 </button>

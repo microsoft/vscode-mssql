@@ -17,6 +17,8 @@ import * as vscode from "vscode";
 import { compareQueryStudioPlan } from "../queryStudio/compareExecutionPlan";
 import { WebviewBaseController } from "../controllers/webviewBaseController";
 import {
+    QsCopySelectionToClipboardRequest,
+    QsWriteClipboardRequest,
     QsCopyMessagesToClipboardRequest,
     QsGetMessagesRequest,
     QsGetPlanStateRequest,
@@ -38,9 +40,10 @@ import {
     QUERY_STUDIO_MESSAGES_COPY_MAX_ROWS,
 } from "../sharedInterfaces/queryStudioMessages";
 import { PinnedResultsState } from "../sharedInterfaces/queryResultsSnapshot";
-import { readGridStyle } from "../queryStudio/gridStyle";
+import { affectsQueryStudioGridStyle, readGridStyle } from "../queryStudio/gridStyle";
 import { cellDocumentText, prettyPrintCellText } from "../queryStudio/cellDocument";
 import { saveQueryStudioResult } from "../queryStudio/resultExport";
+import { copyQueryStudioSelection } from "../queryStudio/resultClipboard";
 import { resolveQueryTuning } from "../queryStudio/tuning/queryTuningResolver";
 import { VectorWorkbenchService } from "./vector/vectorWorkbenchService";
 import { SpatialSessionManager } from "./spatial/spatialSessionManager";
@@ -90,6 +93,7 @@ import {
     createQueryStudioPanelViewState,
     normalizeQueryStudioPanelViewState,
 } from "../sharedInterfaces/queryStudioViewState";
+import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
 
 export class PinnedResultsController extends WebviewBaseController<PinnedResultsState, void> {
     readonly resultSetCount: number;
@@ -138,6 +142,9 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
         );
         this.registerDisposable(
             vscode.workspace.onDidChangeConfiguration((e) => {
+                if (affectsQueryStudioGridStyle(e)) {
+                    this.state = this.currentState();
+                }
                 if (e.affectsConfiguration("mssql.queryStudio.spatial.basemap")) {
                     // Epoch bump makes a mounted spatial pane re-fetch the
                     // layer list (one-click OSM setup lands live), same as
@@ -463,25 +470,63 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
                 reason,
             });
         });
+        this.onRequest(
+            QsCopySelectionToClipboardRequest.type,
+            async ({ resultSetId, selection, includeHeaders }) => {
+                const lease = service.acquireSnapshot(this.snapshotId, { kind: "command" });
+                try {
+                    return await copyQueryStudioSelection(
+                        lease ? this.summaryFor(resultSetId) : undefined,
+                        selection,
+                        includeHeaders,
+                        (start, count, columns) =>
+                            service.getWindow({
+                                snapshotId: this.snapshotId,
+                                resultSetId,
+                                rowStart: start,
+                                rowCount: count,
+                                ...(columns
+                                    ? { columnStart: columns.start, columnCount: columns.count }
+                                    : {}),
+                                reason: "copy",
+                            }),
+                    );
+                } finally {
+                    lease?.dispose();
+                }
+            },
+        );
+        this.onRequest(QsWriteClipboardRequest.type, async ({ text }) => {
+            await vscode.env.clipboard.writeText(text);
+            return { written: true };
+        });
         this.onRequest(QsSaveResultRequest.type, async ({ resultSetId, format, selection }) => {
             const summary = this.summaryFor(resultSetId);
             if (!summary) {
-                return { saved: false, error: "Result set not found in this snapshot." };
+                return { saved: false, error: QueryStudioCoreLoc.resultSetNotFoundInThisSnapshot };
             }
-            return saveQueryStudioResult({
-                sourceUri: this.document.uri,
-                summary,
-                format,
-                selection,
-                getRows: (id, start, count) =>
-                    service.getWindow({
-                        snapshotId: this.snapshotId,
-                        resultSetId: id,
-                        rowStart: start,
-                        rowCount: count,
-                        reason: "export",
-                    }),
-            });
+            const lease = service.acquireSnapshot(this.snapshotId, { kind: "export" });
+            if (!lease) {
+                return { saved: false, error: QueryStudioCoreLoc.resultSetNotFoundInThisSnapshot };
+            }
+            try {
+                return await saveQueryStudioResult({
+                    sourceUri: this.document.uri,
+                    summary,
+                    format,
+                    selection,
+                    getRows: (id, start, count) =>
+                        service.getWindow({
+                            snapshotId: this.snapshotId,
+                            resultSetId: id,
+                            rowStart: start,
+                            rowCount: count,
+                            reason: "export",
+                        }),
+                });
+            } finally {
+                lease.dispose();
+            }
         });
         this.onRequest(
             QsOpenCellDocumentRequest.type,
@@ -550,11 +595,11 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
                     await Promise.all(resultSetIds.map((id) => this.planXmlForResultSet(id)))
                 ).filter((xml): xml is string => xml !== undefined);
                 if (xmlPlans.length === 0) {
-                    return { error: "No execution plan results are available in this snapshot." };
+                    return { error: QueryStudioCoreLoc.noExecutionPlanResultsAreAvailableInThis };
                 }
                 const seam = await this.planSeam();
                 if (!seam?.executionPlanService) {
-                    return { error: "Execution plan service is unavailable." };
+                    return { error: QueryStudioCoreLoc.executionPlanServiceIsUnavailable };
                 }
                 const state: ExecutionPlanWebviewState = {
                     executionPlanState: {
@@ -580,14 +625,18 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
             };
             await saveExecutionPlan(state, { sqlPlanContent });
         });
-        this.onRequest(QsCompareExecutionPlanRequest.type, async ({ sqlPlanContent }) => {
-            await compareQueryStudioPlan(
-                this._context,
-                await this.planSeam(),
-                sqlPlanContent,
-                this.document.uri.path,
-            );
-        });
+        this.onRequest(
+            QsCompareExecutionPlanRequest.type,
+            async ({ sqlPlanContent, graphIndex }) => {
+                await compareQueryStudioPlan(
+                    this._context,
+                    await this.planSeam(),
+                    sqlPlanContent,
+                    this.document.uri.path,
+                    graphIndex,
+                );
+            },
+        );
         this.onRequest(QsShowPlanXmlRequest.type, async ({ sqlPlanContent }) => {
             const state: ExecutionPlanWebviewState = {
                 executionPlanState: { executionPlanGraphs: [], totalCost: 0 },

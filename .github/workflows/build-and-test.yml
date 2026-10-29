@@ -45,9 +45,6 @@ jobs:
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
 
-      - name: Test VSIX size comparison
-        run: npm run test:repo
-
       - name: Select baseline for PR base commit
         if: env.should_compare_baseline == 'true'
         id: baseline
@@ -77,6 +74,10 @@ jobs:
         run: |
           npm ci
 
+      # Root postinstall also installs extension dependencies used by these tests.
+      - name: Test repository automation
+        run: npm run test:repo
+
       - name: Stamp build as pull request version
         run: |
           node scripts/stamp-prerelease-version.mjs "${{ github.run_id }}" --label pr
@@ -94,7 +95,10 @@ jobs:
         run: |
           npm run lint
 
+      # Forks/PRs without the repo variable skip injection;
+      # telemetry is then disabled at runtime
       - name: Inject extension telemetry key
+        if: vars.MSSQL_APP_INSIGHTS_KEY != ''
         env:
           MSSQL_APP_INSIGHTS_KEY: ${{ vars.MSSQL_APP_INSIGHTS_KEY }}
         run: |

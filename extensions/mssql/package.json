@@ -72,7 +72,7 @@
         "watch:webviews-bundle": "node scripts/bundle-webviews.js --watch",
         "watch:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js --watch",
         "watch": "npm run build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle watch:notebook-renderer-bundle",
-        "lint": "eslint --quiet --cache ./src ./test",
+        "lint": "node ../../scripts/lint-mssql.mjs",
         "localization": "node ../../scripts/localization-extract.js mssql",
         "smoketest": "npm run instrument && node scripts/prepare-e2e-env.js && npm run e2eTest",
         "clean:test-output": "node -e \"require('node:fs').rmSync('out/test/unit', { recursive: true, force: true })\"",
@@ -80,7 +80,7 @@
         "test": "vscode-test --coverage",
         "package": "node scripts/package-extension.js",
         "install:sqltools-mcp": "node scripts/install-sqltools-mcp.js",
-        "instrument": "nyc instrument ./dist/views ./dist/views --in-place",
+        "instrument": "node ../../scripts/instrument-webviews.mjs",
         "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/webviews-coverage\" --include=\"src/webviews/pages/**/*.tsx\""
     },
     "devDependencies": {
@@ -109,7 +109,7 @@
         "@types/sinon": "^10.0.12",
         "@types/sinon-chai": "^4.0.0",
         "@types/tmp": "0.0.28",
-        "@types/vscode": "1.101.0",
+        "@types/vscode": "1.105.0",
         "@types/vscode-webview": "^1.57.5",
         "@types/which": "^3.0.4",
         "@types/xmldom": "^0.1.34",
@@ -149,7 +149,8 @@
         "xliff": "^6.2.1",
         "yargs": "^17.7.2",
         "@types/topojson-client": "^3.1.5",
-        "world-atlas": "^2.0.2"
+        "world-atlas": "^2.0.2",
+        "istanbul-lib-instrument": "^6.0.3"
     },
     "dependencies": {
         "@azure/arm-maintenance": "^1.0.0-beta.2",
@@ -289,34 +290,6 @@
         },
         "chatParticipants": [
             {
-                "id": "mssql.query",
-                "name": "query",
-                "description": "Analyze Query Studio results and pinned snapshots (bounded, confirmed access)",
-                "isSticky": false,
-                "commands": [
-                    {
-                        "name": "list",
-                        "description": "List live Query Studio results and snapshots"
-                    },
-                    {
-                        "name": "summarize",
-                        "description": "Schema, row counts, and null ratios for the active results (no raw values)"
-                    },
-                    {
-                        "name": "profile",
-                        "description": "Column profile including min/max values (asks before sharing values)"
-                    },
-                    {
-                        "name": "report",
-                        "description": "Markdown report written from local statistics and an approved sample"
-                    },
-                    {
-                        "name": "pin",
-                        "description": "Pin the active results to a read-only tab that survives reruns"
-                    }
-                ]
-            },
-            {
                 "id": "mssql.agent",
                 "name": "mssql",
                 "description": "MSSQL extension GitHub Copilot agent",
@@ -393,6 +366,34 @@
                     {
                         "name": "listProcedures",
                         "description": "List all procedures in the current database."
+                    }
+                ]
+            },
+            {
+                "id": "mssql.query",
+                "name": "query",
+                "description": "Analyze Query Studio results and pinned snapshots (bounded, confirmed access)",
+                "isSticky": false,
+                "commands": [
+                    {
+                        "name": "list",
+                        "description": "List live Query Studio results and snapshots"
+                    },
+                    {
+                        "name": "summarize",
+                        "description": "Schema, row counts, and null ratios for the active results (no raw values)"
+                    },
+                    {
+                        "name": "profile",
+                        "description": "Column profile including min/max values (asks before sharing values)"
+                    },
+                    {
+                        "name": "report",
+                        "description": "Markdown report written from local statistics and an approved sample"
+                    },
+                    {
+                        "name": "pin",
+                        "description": "Pin the active results to a read-only tab that survives reruns"
                     }
                 ]
             }
@@ -491,8 +492,7 @@
             },
             {
                 "id": "mssql.objectExplorerV2.generateScriptSubmenu",
-                "title": "Generate Script",
-                "label": "Generate Script"
+                "label": "%mssql.objectExplorerV2.generateScriptSubmenu%"
             }
         ],
         "menus": {
@@ -822,6 +822,106 @@
                     "command": "mssql.objectExplorerV2.removeConnection",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(disconnectedConnection|connectedServer|lostConnection)\\b/",
                     "group": "2_MSSQL_connection@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editTableData",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=editTableData\\b/",
+                    "group": "2b_MSSQL_tableActions@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.editTable",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=editTable\\b/",
+                    "group": "2b_MSSQL_tableActions@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.schemaDesigner",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=schemaDesigner\\b/",
+                    "group": "2a_MSSQL_databaseDesign@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.buildDataApi",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=buildDataApi\\b/",
+                    "group": "2a_MSSQL_databaseDesign@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.search",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=search\\b/",
+                    "group": "3_MSSQL_databaseDiscover@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.launchProfiler",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=profiler\\b/",
+                    "group": "4_MSSQL_discoverAndProfile@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.launchProfiler",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=profilerDb\\b/",
+                    "group": "3_MSSQL_databaseDiscover@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.renameDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=renameDatabase\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.backupDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=backup\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.restoreDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=restore\\b/",
+                    "group": "3_MSSQL_instanceDatabaseActions@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.restoreDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=restoreDb\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.importData",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=importDataSrv\\b/",
+                    "group": "3_MSSQL_instanceDatabaseActions@4"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.importData",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=importData\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@4"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.dropDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=dropDatabase\\b/",
+                    "group": "4_MSSQL_databaseMaintenance@5"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.copyConnectionString",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copyConnectionString\\b/",
+                    "group": "2_MSSQL_connection@4"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.chatWithDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copilotChat\\b/ && mssql.copilot.isGHCInstalled",
+                    "group": "6_MSSQL_copilot@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.chatWithDatabaseAgent",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copilotAgent\\b/ && mssql.copilot.isGHCInstalled",
+                    "group": "6_MSSQL_copilot@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.schemaCompare",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=schemaCompare\\b/",
+                    "group": "7_MSSQL_compareAndDacpac@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.dacpacDialog",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=dacpac\\b/",
+                    "group": "7_MSSQL_compareAndDacpac@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.newNotebook",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=newNotebook\\b/",
+                    "group": "8_MSSQL_sqlProjectsAndNotebooks@2"
                 },
                 {
                     "command": "mssql.objectExplorer.openOverview",
@@ -1350,11 +1450,6 @@
                     "group": "z_dbProjectsDocs@1"
                 },
                 {
-                    "command": "mssql.schemaVisualizer.open",
-                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=database\\b/ && config.mssql.schemaVisualizer.enabled",
-                    "group": "2a_MSSQL_databaseDesign@3"
-                },
-                {
                     "command": "mssql.objectExplorerV2.selectTop",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canSelectTop\\b/))",
                     "group": "1_MSSQL_primary@2"
@@ -1370,104 +1465,9 @@
                     "group": "1_MSSQL_primary@1"
                 },
                 {
-                    "command": "mssql.objectExplorerV2.editTableData",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=editTableData\\b/",
-                    "group": "2b_MSSQL_tableActions@1"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.editTable",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=editTable\\b/",
-                    "group": "2b_MSSQL_tableActions@2"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.schemaDesigner",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=schemaDesigner\\b/",
-                    "group": "2a_MSSQL_databaseDesign@1"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.buildDataApi",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=buildDataApi\\b/",
-                    "group": "2a_MSSQL_databaseDesign@2"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.search",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=search\\b/",
-                    "group": "3_MSSQL_databaseDiscover@1"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.launchProfiler",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=profiler\\b/",
-                    "group": "4_MSSQL_discoverAndProfile@2"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.launchProfiler",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=profilerDb\\b/",
-                    "group": "3_MSSQL_databaseDiscover@2"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.renameDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=renameDatabase\\b/",
-                    "group": "4_MSSQL_databaseMaintenance@1"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.backupDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=backup\\b/",
-                    "group": "4_MSSQL_databaseMaintenance@2"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.restoreDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=restore\\b/",
-                    "group": "3_MSSQL_instanceDatabaseActions@3"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.restoreDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=restoreDb\\b/",
-                    "group": "4_MSSQL_databaseMaintenance@3"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.importData",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=importDataSrv\\b/",
-                    "group": "3_MSSQL_instanceDatabaseActions@4"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.importData",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=importData\\b/",
-                    "group": "4_MSSQL_databaseMaintenance@4"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.dropDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=dropDatabase\\b/",
-                    "group": "4_MSSQL_databaseMaintenance@5"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.copyConnectionString",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copyConnectionString\\b/",
-                    "group": "2_MSSQL_connection@4"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.chatWithDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copilotChat\\b/ && mssql.copilot.isGHCInstalled",
-                    "group": "6_MSSQL_copilot@1"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.chatWithDatabaseAgent",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=copilotAgent\\b/ && mssql.copilot.isGHCInstalled",
-                    "group": "6_MSSQL_copilot@2"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.schemaCompare",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=schemaCompare\\b/",
-                    "group": "7_MSSQL_compareAndDacpac@1"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.dacpacDialog",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=dacpac\\b/",
-                    "group": "7_MSSQL_compareAndDacpac@2"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.newNotebook",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=newNotebook\\b/",
-                    "group": "8_MSSQL_sqlProjectsAndNotebooks@2"
+                    "command": "mssql.schemaVisualizer.open",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=database\\b/ && config.mssql.schemaVisualizer.enabled",
+                    "group": "2a_MSSQL_databaseDesign@3"
                 },
                 {
                     "command": "mssql.objectExplorerV2.startContainer",
@@ -1524,115 +1524,115 @@
                 },
                 {
                     "command": "mssql.objectExplorerV2.connect",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.disconnect",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.cancelConnect",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.editConnection",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.copyName",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.copyQualifiedName",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.filter",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.clearFilters",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.search",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.backupDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.restoreDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.launchProfiler",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.schemaCompare",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.editTable",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.editTableData",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.schemaDesigner",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.buildDataApi",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.renameDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.dropDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.importData",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.copyConnectionString",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.chatWithDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.chatWithDatabaseAgent",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.dacpacDialog",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.newNotebook",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.removeConnection",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.addConnection",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.connectionGroups.create",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.enableGroupBySchema",
@@ -1644,15 +1644,15 @@
                 },
                 {
                     "command": "mssql.objectExplorerV2.connectionGroups.edit",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.connectionGroups.delete",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.objectExplorerV2.moveToGroup",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (false)"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.enableLiveQueryStatistics",
@@ -2121,10 +2121,6 @@
                     "when": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (config.mssql.queryStudio.enabled && mssql.queryResults.hasActiveSource)"
                 },
                 {
-                    "command": "mssql.queryResults.benchmarkTransform",
-                    "when": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (false)"
-                },
-                {
                     "command": "mssql.queryStudio.openActive",
                     "when": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (config.mssql.queryStudio.enabled)"
                 },
@@ -2137,28 +2133,12 @@
                     "when": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (config.mssql.queryStudio.enabled)"
                 },
                 {
-                    "command": "mssql.queryStudio.openReplayLab",
-                    "when": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (config.mssql.queryStudio.enabled)"
-                },
-                {
                     "command": "mssql.queryStudio.languageServiceStatus",
                     "when": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (config.mssql.queryStudio.enabled)"
                 },
                 {
-                    "command": "mssql.spatialBasemap.clearCache",
-                    "when": "config.mssql.queryStudio.spatial.basemap.enabled"
-                },
-                {
-                    "command": "mssql.spatialBasemap.clearConsent",
-                    "when": "config.mssql.queryStudio.spatial.basemap.enabled"
-                },
-                {
                     "command": "mssql.sqlDataPlane.pickDocumentBackend",
                     "when": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled)"
-                },
-                {
-                    "command": "mssql.objectExplorerV2.deployNewDatabase",
-                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (config.mssql.objectExplorer.viewMode == 'v2Preview')"
                 },
                 {
                     "command": "mssql.objectExplorerV2.newQuery",
@@ -2179,6 +2159,30 @@
                 {
                     "command": "mssql.objectExplorerV2.scriptExecute",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (false))"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.scriptAlter",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.queryResults.benchmarkTransform",
+                    "when": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (false)"
+                },
+                {
+                    "command": "mssql.queryStudio.openReplayLab",
+                    "when": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (config.mssql.queryStudio.enabled)"
+                },
+                {
+                    "command": "mssql.spatialBasemap.clearCache",
+                    "when": "config.mssql.queryStudio.spatial.basemap.enabled"
+                },
+                {
+                    "command": "mssql.spatialBasemap.clearConsent",
+                    "when": "config.mssql.queryStudio.spatial.basemap.enabled"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.deployNewDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (config.mssql.objectExplorer.viewMode == 'v2Preview')"
                 },
                 {
                     "command": "mssql.objectExplorerV2.legacyActions",
@@ -2232,6 +2236,11 @@
                     "command": "mssql.objectExplorerV2.scriptExecute",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && (mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && (viewItem =~ /\\boe2:canScriptExecute\\b/))",
                     "group": "1_scripts@3"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.scriptAlter",
+                    "group": "1_scripts@1.5",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled && viewItem =~ /\\boe2:canScriptAlter\\b/"
                 }
             ]
         },
@@ -3528,6 +3537,90 @@
                 "enablement": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
             },
             {
+                "command": "mssql.queryStudio.new",
+                "title": "%mssql.queryStudio.new%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.queryResults.showStatus",
+                "title": "%mssql.queryResults.showStatus%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.queryStudio.pinAllResults",
+                "title": "%mssql.queryStudio.pinAllResults%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.queryStudio.openActive",
+                "title": "%mssql.queryStudio.openActive%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.queryStudio.openInClassicEditor",
+                "title": "%mssql.queryStudio.openInClassicEditor%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.queryStudio.duplicateAsNewQuery",
+                "title": "%mssql.queryStudio.duplicateAsNewQuery%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.queryStudio.languageServiceStatus",
+                "title": "%mssql.queryStudio.languageServiceStatus%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.sqlDataPlane.pickDocumentBackend",
+                "title": "%mssql.sqlDataPlane.pickDocumentBackend%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.newQuery",
+                "title": "%mssql.objectExplorerV2.newQuery%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.selectTop",
+                "title": "%mssql.objectExplorerV2.selectTop%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.scriptCreate",
+                "title": "%mssql.objectExplorerV2.scriptCreate%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.scriptDrop",
+                "title": "%mssql.objectExplorerV2.scriptDrop%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.scriptExecute",
+                "title": "%mssql.objectExplorerV2.scriptExecute%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.scriptAlter",
+                "title": "%mssql.scriptAlter%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled"
+            },
+            {
                 "command": "mssql.sessionDiag.clearSensitiveCaptures",
                 "title": "Session Diagnostics: Clear Sensitive Captures",
                 "category": "MS SQL"
@@ -3548,62 +3641,14 @@
                 "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
             },
             {
-                "command": "mssql.queryStudio.new",
-                "title": "Query Studio: New Query",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
-                "command": "mssql.queryResults.showStatus",
-                "title": "Query Results: Show Snapshot Status",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
-                "command": "mssql.queryStudio.pinAllResults",
-                "title": "Query Studio: Pin Results to New Tab",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
                 "command": "mssql.queryResults.benchmarkTransform",
                 "title": "Query Results: Benchmark Transform (internal)",
                 "category": "MS SQL",
                 "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
             },
             {
-                "command": "mssql.queryStudio.openActive",
-                "title": "Query Studio: Reopen Active Document in Query Studio",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
-                "command": "mssql.queryStudio.openInClassicEditor",
-                "title": "Query Studio: Open in Classic Editor",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
-                "command": "mssql.queryStudio.duplicateAsNewQuery",
-                "title": "Query Studio: Duplicate as New Query",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
                 "command": "mssql.queryStudio.openReplayLab",
                 "title": "Query Studio: Open Replay Lab",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
-                "command": "mssql.queryStudio.languageServiceStatus",
-                "title": "Query Studio: Language Service Status",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
-                "command": "mssql.sqlDataPlane.pickDocumentBackend",
-                "title": "Query Studio: Select SQL Provider for This Document",
                 "category": "MS SQL",
                 "enablement": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
             },
@@ -3618,39 +3663,9 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.objectExplorerV2.newQuery",
-                "title": "New Query (Query Studio)",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
                 "command": "mssql.schemaVisualizer.open",
                 "title": "Visualize Schema (Preview)",
                 "category": "MS SQL"
-            },
-            {
-                "command": "mssql.objectExplorerV2.selectTop",
-                "title": "Select Top 100",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
-                "command": "mssql.objectExplorerV2.scriptCreate",
-                "title": "Script as Create",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
-                "command": "mssql.objectExplorerV2.scriptDrop",
-                "title": "Script as Drop",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
-            },
-            {
-                "command": "mssql.objectExplorerV2.scriptExecute",
-                "title": "Script as Execute",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
             },
             {
                 "command": "mssql.objectExplorerV2.legacyActions",
@@ -5726,12 +5741,6 @@
                         "description": "%mssql.copilot.inlineCompletions.trace.journalPrimary%",
                         "scope": "window"
                     },
-                    "mssql.queryStudio.enabled": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Enable Query Studio (Private Preview) for .mssql files and untitled query documents. Requires experimental features and SQL Data Plane. Reload VS Code after changing this setting.",
-                        "scope": "application"
-                    },
                     "mssql.queryStudio.vectorWorkbench.enabled": {
                         "type": "boolean",
                         "default": false,
@@ -5840,145 +5849,16 @@
                         "description": "%mssql.queryStudio.spatial.basemap.cache.maxAgeDays%",
                         "scope": "application"
                     },
-                    "mssql.queryStudio.statusBarGroupColor": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Color the Query Studio status bar with the connection's server-group color (text color is picked automatically for readability).",
-                        "scope": "application"
-                    },
-                    "mssql.queryStudio.warnWhenModifyingProduction": {
-                        "type": "boolean",
-                        "default": false,
-                        "markdownDescription": "Ask for confirmation before running statements that modify data (INSERT/UPDATE/DELETE/DDL/EXEC, …) on a connection whose server group is marked `\"production\": true` in `mssql.connectionGroups` (settings JSON only). Production connections also color the Query Studio status bar with the group color (red when the group has none).",
-                        "scope": "application"
-                    },
-                    "mssql.queryStudio.scan.enabled": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Scan newly opened Query Studio documents in idle background time (a bounded spot check of the first lines) to detect things like SQLCMD commands or non-T-SQL dialects and offer/adjust behavior.",
-                        "scope": "application"
-                    },
-                    "mssql.queryStudio.scan.autoEnableSqlcmd": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Automatically enable SQLCMD mode (without asking) when an opened file contains SQLCMD commands. Set by the \"Don't show again, auto-enable\" choice in the detection prompt.",
-                        "scope": "application"
-                    },
-                    "mssql.queryStudio.maxRowsPerResultSet": {
-                        "type": "number",
-                        "default": 5000000,
-                        "minimum": 1,
-                        "description": "Maximum rows Query Studio retains per result set before it marks the result set truncated and requests query cancellation.",
-                        "scope": "application"
-                    },
-                    "mssql.queryStudio.resultsPaneHeightPercent": {
-                        "type": "number",
-                        "default": 50,
-                        "minimum": 15,
-                        "maximum": 80,
-                        "description": "Default height of the Query Studio results pane as a percentage of the editor area (SSMS-like 50/50 split). Dragging the splitter overrides this for the session.",
-                        "scope": "application"
-                    },
                     "mssql.queryStudio.replay.enabled": {
                         "type": "boolean",
                         "default": false,
                         "description": "Capture Query Studio run records for the Replay Lab even when the Replay Lab panel is closed. Records store SQL text digests only; replayable SQL text additionally requires Debug Console elevated capture.",
                         "scope": "application"
                     },
-                    "mssql.queryStudio.tuning.profile": {
-                        "type": "string",
-                        "enum": [
-                            "interactive",
-                            "throughput",
-                            "lowMemory",
-                            "custom"
-                        ],
-                        "default": "interactive",
-                        "description": "Query Studio performance tuning profile. 'interactive' optimizes for fast first results, 'throughput' for large result streaming and export, 'lowMemory' for constrained hosts. 'custom' applies only explicit overrides.",
-                        "scope": "application"
-                    },
-                    "mssql.queryStudio.tuning.overrides": {
-                        "type": "object",
-                        "default": {},
-                        "markdownDescription": "Advanced (preview): per-knob Query Studio performance parameter overrides applied above the tuning profile — e.g. `{ \"pageRows\": 512, \"pageBytes\": 131072 }`. Keys follow the QueryTuning parameter registry; unknown keys and out-of-range values are ignored. Intended for diagnostics and performance testing.",
-                        "scope": "application"
-                    },
-                    "mssql.queryResults.pinnedDocuments.enabled": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Preview: allow pinning Query Studio results into read-only result documents that survive query reruns.",
-                        "scope": "application"
-                    },
                     "mssql.queryResults.ai.enabled": {
                         "type": "boolean",
                         "default": true,
                         "description": "Preview: allow bounded, confirmation-gated AI access to pinned/snapshot query results.",
-                        "scope": "application"
-                    },
-                    "mssql.queryResults.snapshot.ttlMinutes": {
-                        "type": "number",
-                        "default": 30,
-                        "description": "Minutes an unpinned result snapshot (for example one created for an AI chat) is retained before cleanup.",
-                        "scope": "application"
-                    },
-                    "mssql.queryResults.snapshot.maxUnpinnedStores": {
-                        "type": "number",
-                        "default": 10,
-                        "description": "Maximum retained result stores that no open pinned document references before least-recently-used cleanup.",
-                        "scope": "application"
-                    },
-                    "mssql.queryResults.snapshot.maxRetainedBytesMb": {
-                        "type": "number",
-                        "default": 2048,
-                        "description": "Total budget (MB, memory plus spill) for query result data retained by snapshots and pinned documents.",
-                        "scope": "application"
-                    },
-                    "mssql.queryResults.overrides": {
-                        "type": "object",
-                        "default": {},
-                        "markdownDescription": "Advanced (preview): per-knob overrides for the query results retention/AI parameter registry — e.g. `{ \"retainedStoreMemoryBytes\": 4194304 }`. Unknown keys and out-of-range values are ignored. Intended for diagnostics and performance testing.",
-                        "scope": "application"
-                    },
-                    "mssql.queryStudio.languageService.engine": {
-                        "type": "string",
-                        "enum": [
-                            "sqlToolsService",
-                            "nativeTypeScript"
-                        ],
-                        "default": "sqlToolsService",
-                        "description": "Query Studio language service engine. 'sqlToolsService' uses the existing SQL Tools Service language features through a bridge; 'nativeTypeScript' prefers the new native TypeScript T-SQL language service for features that have graduated.",
-                        "scope": "application"
-                    },
-                    "mssql.sqlLanguage.completions.snippets": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Include T-SQL statement snippets in native language service completions.",
-                        "scope": "application"
-                    },
-                    "mssql.sqlLanguage.diagnostics.enabled": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Publish native T-SQL language service diagnostics (syntax errors and schema warnings) in Query Studio when the native engine serves diagnostics. When false the native engine publishes nothing; SQL Tools Service diagnostics are unaffected.",
-                        "scope": "application"
-                    },
-                    "mssql.sqlLanguage.keywordCasing": {
-                        "type": "string",
-                        "enum": [
-                            "upper",
-                            "lower"
-                        ],
-                        "default": "upper",
-                        "description": "Keyword casing for native language service completions.",
-                        "scope": "application"
-                    },
-                    "mssql.sqlLanguage.definition.mode": {
-                        "type": "string",
-                        "enum": [
-                            "peek",
-                            "open"
-                        ],
-                        "default": "peek",
-                        "description": "How Query Studio shows scripted definitions from the native language service: 'peek' opens the generated script beside the editor as a transient read-only preview; 'open' pins it as a regular read-only tab.",
                         "scope": "application"
                     },
                     "mssql.sqlDataPlane.tsNative.overrides": {
@@ -6079,6 +5959,146 @@
                         ],
                         "default": "revealAndOpen",
                         "description": "%sqlDatabaseProjects.findFileBehavior%"
+                    }
+                }
+            },
+            {
+                "title": "Query Studio (Private Preview)",
+                "properties": {
+                    "mssql.queryStudio.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.queryStudio.enabled%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.statusBarGroupColor": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.queryStudio.statusBarGroupColor%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.warnWhenModifyingProduction": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "%mssql.queryStudio.warnWhenModifyingProduction%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.scan.enabled": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%mssql.queryStudio.scan.enabled%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.scan.autoEnableSqlcmd": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.queryStudio.scan.autoEnableSqlcmd%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.maxRowsPerResultSet": {
+                        "type": "number",
+                        "default": 5000000,
+                        "minimum": 1,
+                        "description": "%mssql.queryStudio.maxRowsPerResultSet%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.resultsPaneHeightPercent": {
+                        "type": "number",
+                        "default": 50,
+                        "minimum": 15,
+                        "maximum": 80,
+                        "description": "%mssql.queryStudio.resultsPaneHeightPercent%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.tuning.profile": {
+                        "type": "string",
+                        "enum": [
+                            "interactive",
+                            "throughput",
+                            "lowMemory",
+                            "custom"
+                        ],
+                        "default": "interactive",
+                        "description": "%mssql.queryStudio.tuning.profile%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.tuning.overrides": {
+                        "type": "object",
+                        "default": {},
+                        "markdownDescription": "%mssql.queryStudio.tuning.overrides%",
+                        "scope": "application"
+                    },
+                    "mssql.queryResults.pinnedDocuments.enabled": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%mssql.queryResults.pinnedDocuments.enabled%",
+                        "scope": "application"
+                    },
+                    "mssql.queryResults.snapshot.ttlMinutes": {
+                        "type": "number",
+                        "default": 30,
+                        "description": "%mssql.queryResults.snapshot.ttlMinutes%",
+                        "scope": "application"
+                    },
+                    "mssql.queryResults.snapshot.maxUnpinnedStores": {
+                        "type": "number",
+                        "default": 10,
+                        "description": "%mssql.queryResults.snapshot.maxUnpinnedStores%",
+                        "scope": "application"
+                    },
+                    "mssql.queryResults.snapshot.maxRetainedBytesMb": {
+                        "type": "number",
+                        "default": 2048,
+                        "description": "%mssql.queryResults.snapshot.maxRetainedBytesMb%",
+                        "scope": "application"
+                    },
+                    "mssql.queryResults.overrides": {
+                        "type": "object",
+                        "default": {},
+                        "markdownDescription": "%mssql.queryResults.overrides%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.languageService.engine": {
+                        "type": "string",
+                        "enum": [
+                            "sqlToolsService",
+                            "nativeTypeScript"
+                        ],
+                        "default": "sqlToolsService",
+                        "description": "%mssql.queryStudio.languageService.engine%",
+                        "scope": "application"
+                    },
+                    "mssql.sqlLanguage.completions.snippets": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%mssql.sqlLanguage.completions.snippets%",
+                        "scope": "application"
+                    },
+                    "mssql.sqlLanguage.diagnostics.enabled": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%mssql.sqlLanguage.diagnostics.enabled%",
+                        "scope": "application"
+                    },
+                    "mssql.sqlLanguage.keywordCasing": {
+                        "type": "string",
+                        "enum": [
+                            "upper",
+                            "lower"
+                        ],
+                        "default": "upper",
+                        "description": "%mssql.sqlLanguage.keywordCasing%",
+                        "scope": "application"
+                    },
+                    "mssql.sqlLanguage.definition.mode": {
+                        "type": "string",
+                        "enum": [
+                            "peek",
+                            "open"
+                        ],
+                        "default": "peek",
+                        "description": "%mssql.sqlLanguage.definition.mode%",
+                        "scope": "application"
                     }
                 }
             }
@@ -8413,7 +8433,7 @@
             },
             {
                 "name": "mssql_query_results",
-                "modelDescription": "Analyze Query Studio result snapshots WITHOUT streaming full data. Division of labor: mssql_run_query executes SQL and returns at most a head sample; this tool analyzes complete results the user has run in Query Studio. Operations: 'list_live' lists open Query Studio documents with results; 'create_snapshot' freezes a live source's complete result sets and returns a snapshotId; 'list_snapshots'/'describe_snapshot' return schema, row counts, provenance and lineage (no values, no confirmation); 'evaluate_transform' runs a bounded transform spec v1 ({ v:1, source:{snapshotId,resultSetId}, ops:[filter|project|slice], terminal: rows|aggregate|groupBy|topK|histogram|distinctCount|sample }) — numeric aggregates need no confirmation, any output containing cell values asks the user first; 'sample_rows'/'get_rows' return bounded row windows (user confirmation required); 'derive_snapshot' materializes a filtered view as a new snapshotId (no values returned); 'pin_snapshot' opens a snapshot (e.g. a derived filtered view) as a read-only tab for the user; 'release_snapshot' frees one. Every response is row/byte-capped and carries EvalStats with partial:true when a budget cut the scan — never assume full coverage when partial is set.",
+                "modelDescription": "When the user explicitly references #mssql_query_results, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Analyze Query Studio result snapshots WITHOUT streaming full data. Division of labor: mssql_run_query executes SQL and returns at most a head sample; this tool analyzes complete results the user has run in Query Studio. Operations: 'list_live' lists open Query Studio documents with results; 'create_snapshot' freezes a live source's complete result sets and returns a snapshotId; 'list_snapshots'/'describe_snapshot' return schema, row counts, provenance and lineage (no values, no confirmation); 'evaluate_transform' runs a bounded transform spec v1 ({ v:1, source:{snapshotId,resultSetId}, ops:[filter|project|slice], terminal: rows|aggregate|groupBy|topK|histogram|distinctCount|sample }) — numeric aggregates need no confirmation, any output containing cell values asks the user first; 'sample_rows'/'get_rows' return bounded row windows (user confirmation required); 'derive_snapshot' materializes a filtered view as a new snapshotId (no values returned); 'pin_snapshot' opens a snapshot (e.g. a derived filtered view) as a read-only tab for the user; 'release_snapshot' frees one. Every response is row/byte-capped and carries EvalStats with partial:true when a budget cut the scan — never assume full coverage when partial is set.",
                 "displayName": "MSSQL Query Result Snapshots",
                 "userDescription": "Analyze SQL query results from Query Studio with bounded, confirmed access.",
                 "canBeReferencedInPrompt": true,

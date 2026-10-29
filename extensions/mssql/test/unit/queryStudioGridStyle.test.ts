@@ -10,7 +10,7 @@
  */
 
 import { expect } from "chai";
-import { readGridStyle } from "../../src/queryStudio/gridStyle";
+import { affectsQueryStudioGridStyle, readGridStyle } from "../../src/queryStudio/gridStyle";
 
 function reader(values: Record<string, unknown>) {
     return <T>(key: string): T | undefined => values[key] as T | undefined;
@@ -28,6 +28,9 @@ suite("Query Studio grid style", () => {
         expect(style).to.deep.equal({
             fontSize: 12,
             alternatingRowColors: false,
+            rightAlignNumbers: false,
+            freezeFirstColumnByDefault: false,
+            copyIncludeHeaders: false,
             showGridLines: "both",
             inMemoryDataProcessingThreshold: 5000,
             resultsPaneHeightPct: 50,
@@ -53,6 +56,29 @@ suite("Query Studio grid style", () => {
             readGridStyle(reader({ "mssql.queryStudio.resultsPaneHeightPercent": "half" }))
                 .resultsPaneHeightPct,
         ).to.equal(50);
+    });
+
+    test("shared grid and clipboard preferences accept only boolean true", () => {
+        for (const [setting, field] of [
+            ["mssql.resultsGrid.rightAlignNumbers", "rightAlignNumbers"],
+            ["mssql.resultsGrid.freezeFirstColumnByDefault", "freezeFirstColumnByDefault"],
+            ["mssql.copyIncludeHeaders", "copyIncludeHeaders"],
+        ] as const) {
+            for (const value of [undefined, false, true, "true", 1, null]) {
+                expect(readGridStyle(reader({ [setting]: value }))[field]).to.equal(value === true);
+            }
+            expect(
+                affectsQueryStudioGridStyle({
+                    affectsConfiguration: (section) =>
+                        setting === section || setting.startsWith(`${section}.`),
+                }),
+            ).to.equal(true);
+        }
+        expect(
+            affectsQueryStudioGridStyle({
+                affectsConfiguration: (section) => section === "mssql.connections",
+            }),
+        ).to.equal(false);
     });
 
     test("unset resultsFontSize takes the compact 12px default, not editor.fontSize", () => {

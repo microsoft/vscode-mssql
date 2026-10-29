@@ -64,6 +64,25 @@ export function getActiveTextEditorUri(): string | undefined {
     return vscode?.window?.activeTextEditor?.document?.uri?.toString();
 }
 
+/**
+ * Converts URI strings into a context value that `when` clauses can compare with `resource`.
+ * VS Code maps `Uri` values between the extension host and the window, for example `file:` in a
+ * WSL extension host to `vscode-remote:` in the window, and then stringifies them the same way it
+ * stringifies `resource`. Plain strings are passed through unchanged and would not match in remote
+ * windows. Strings that are not valid URIs are skipped.
+ */
+export function toResourceContextValue(uris: readonly string[]): vscode.Uri[] {
+    const result: vscode.Uri[] = [];
+    for (const uri of uris) {
+        try {
+            result.push(vscode.Uri.parse(uri));
+        } catch {
+            // ignore invalid URIs (for example OE-only keys)
+        }
+    }
+    return result;
+}
+
 // Helper to show an info message
 export function showInfoMsg(msg: string): void {
     vscode.window.showInformationMessage(Constants.extensionName + ": " + msg);

@@ -11,6 +11,7 @@ import {
     QsPerfInteractionAction,
     QsVectorPerfAction,
 } from "../sharedInterfaces/queryStudio";
+import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
 import { VECTOR_SEARCH_MAX_K, VECTOR_SEARCH_MIN_K } from "../sharedInterfaces/vectorSearch";
 
 export interface NormalizedQueryStudioPerfActivateTabArgs {
@@ -109,15 +110,15 @@ export function normalizeQueryStudioPerfActivateTabArgs(
     input: unknown,
 ): QueryStudioPerfActivateTabNormalization {
     if (input === undefined) {
-        return { value: { activation: { tab: "vector" } } };
+        return { value: { activation: { tab: "results" } } };
     }
     const args = record(input);
     if (!args) {
-        return { error: "Query Studio tab activation arguments must be an object." };
+        return { error: QueryStudioCoreLoc.queryStudioTabActivationArgumentsMustBeAn };
     }
-    const rawTab = args["tab"] ?? "vector";
+    const rawTab = args["tab"] ?? "results";
     if (typeof rawTab !== "string" || !ACTIVATABLE_TABS.has(rawTab)) {
-        return { error: "Query Studio tab activation requested an unsupported tab." };
+        return { error: QueryStudioCoreLoc.queryStudioTabActivationRequestedAnUnsupportedTab };
     }
     const tab = rawTab as QsActivatableTab;
     const rawUri = args["uri"];
@@ -148,11 +149,11 @@ export function normalizeQueryStudioPerfInteractionArgs(
     const args = record(input);
     const action = record(args?.["action"]);
     if (!args || !action) {
-        return { error: "Query Studio interaction arguments must include an action object." };
+        return { error: QueryStudioCoreLoc.queryStudioInteractionArgumentsMustIncludeAnAction };
     }
     const rawUri = args["uri"];
     if (rawUri !== undefined && (typeof rawUri !== "string" || rawUri.length === 0)) {
-        return { error: "Query Studio interaction URI must be a non-empty string." };
+        return { error: QueryStudioCoreLoc.queryStudioInteractionURIMustBeANon };
     }
     let normalized: QsPerfInteractionAction;
     if (action["kind"] === "copyMessages") {
@@ -166,7 +167,7 @@ export function normalizeQueryStudioPerfInteractionArgs(
             action["selection"] !== "all" ||
             (action["kind"] === "copyGrid" && typeof action["includeHeaders"] !== "boolean")
         ) {
-            return { error: "Query Studio received an invalid grid selection/copy action." };
+            return { error: QueryStudioCoreLoc.queryStudioReceivedAnInvalidGridSelectionCopy };
         }
         normalized =
             action["kind"] === "copyGrid"
@@ -184,13 +185,15 @@ export function normalizeQueryStudioPerfInteractionArgs(
     } else if (action["kind"] === "scrollResultStack") {
         const target = action["target"];
         if (target !== "start" && target !== "middle" && target !== "end") {
-            return { error: "Query Studio interaction requested an unsupported scroll target." };
+            return {
+                error: QueryStudioCoreLoc.queryStudioInteractionRequestedAnUnsupportedScrollTarget,
+            };
         }
         normalized = { kind: "scrollResultStack", target };
     } else if (action["kind"] === "sweepResultStack") {
         const steps = action["steps"];
         if (!Number.isSafeInteger(steps) || (steps as number) < 2 || (steps as number) > 64) {
-            return { error: "Query Studio received an invalid result-stack sweep action." };
+            return { error: QueryStudioCoreLoc.queryStudioReceivedAnInvalidResultStackSweep };
         }
         normalized = { kind: "sweepResultStack", steps: steps as number };
     } else if (action["kind"] === "scrollGrid") {
@@ -204,7 +207,7 @@ export function normalizeQueryStudioPerfInteractionArgs(
             (axis !== "vertical" && axis !== "horizontal") ||
             (target !== "start" && target !== "middle" && target !== "end")
         ) {
-            return { error: "Query Studio received an invalid grid scroll action." };
+            return { error: QueryStudioCoreLoc.queryStudioReceivedAnInvalidGridScrollAction };
         }
         normalized = {
             kind: "scrollGrid",
@@ -213,7 +216,7 @@ export function normalizeQueryStudioPerfInteractionArgs(
             target,
         };
     } else {
-        return { error: "Query Studio interaction requested an unsupported action." };
+        return { error: QueryStudioCoreLoc.queryStudioInteractionRequestedAnUnsupportedAction };
     }
     return {
         value: {

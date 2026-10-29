@@ -19,7 +19,11 @@
  */
 
 import * as vscode from "vscode";
+import * as path from "path";
 import { diag } from "../../diagnostics/diagnosticsCore";
+import { completionLexicalSuppressionAt } from "../core/completionLexicalContext";
+import { LexResult, lex } from "../core/lexer";
+import { TextSnapshot } from "../core/text/textSnapshot";
 import {
     CompletionRequest,
     CompletionResult,
@@ -49,16 +53,13 @@ export interface BridgeEngineHost {
      * (keyword completions still work through the STS v1 client).
      */
     ensureShadowConnection(): Promise<boolean>;
-    /**
-     * Connect a definition-target document this engine opened to the SOURCE
-     * editor's connection context (shadow profile + current database) — the
-     * new editor must never inherit an unrelated ambient profile.
-     */
-    adoptDefinitionDocument?(uri: vscode.Uri): Promise<boolean>;
+    /** Bounded wait for metadata after connecting, used only for definition lookups. */
+    waitForIntelliSenseReady?(): Promise<boolean>;
 }
 
 export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
     readonly engineId = "sqlToolsServiceBridge" as const;
+    private completionContext?: { snapshot: TextSnapshot; lexed: LexResult };
 
     constructor(private readonly host: BridgeEngineHost) {}
 
@@ -91,6 +92,18 @@ export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
     }
 
     async completion(req: CompletionRequest): Promise<CompletionResult | undefined> {
+        if (this.completionContext?.snapshot.text !== req.text) {
+            this.completionContext = {
+                snapshot: new TextSnapshot(req.text),
+                lexed: lex(req.text),
+            };
+        }
+        const { snapshot, lexed } = this.completionContext;
+        // Provider aggregation can include word suggestions from other extensions.
+        // Classify the current request text before invoking any backing provider.
+        if (completionLexicalSuppressionAt(lexed, snapshot.offsetAt(req.position))) {
+            return { items: [], isIncomplete: false };
+        }
         return this.bridged("completion", async (uri) => {
             const list = await vscode.commands.executeCommand<vscode.CompletionList>(
                 "vscode.executeCompletionItemProvider",
@@ -163,6 +176,9 @@ export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
 
     async definition(req: SqlLanguageRequest): Promise<DefinitionLocationResult | undefined> {
         return this.bridged("definition", async (uri) => {
+            // A newly connected service can otherwise return an empty result
+            // before its metadata loads, making the first Peek falsely fail.
+            await this.host.waitForIntelliSenseReady?.();
             const locations = await vscode.commands.executeCommand<
                 (vscode.Location | vscode.LocationLink)[]
             >(
@@ -179,16 +195,22 @@ export class Sts2BridgeEngine implements SqlLanguageFeatureEngine {
             if (targetUri.toString() === uri.toString()) {
                 return { range: mapRange(targetRange) };
             }
-            // Cross-file target (old-engine temp/virtual docs): open beside,
-            // accepted as old behavior until LS-4 replaces definition.
+            // Resolution also runs for Peek and ctrl-hover. Return a preview
+            // model without opening a tab; the host keeps the original target
+            // for explicit navigation (including editable project files).
             const doc = await vscode.workspace.openTextDocument(targetUri);
-            await vscode.window.showTextDocument(doc, {
-                viewColumn: vscode.ViewColumn.Beside,
-                selection: targetRange,
-                preview: true,
-            });
-            await this.host.adoptDefinitionDocument?.(doc.uri);
-            return {};
+            return {
+                virtualContent: {
+                    title: path.posix.basename(targetUri.path, path.posix.extname(targetUri.path)),
+                    text: doc.getText(),
+                    anchor: {
+                        line: targetRange.start.line,
+                        character: targetRange.start.character,
+                    },
+                    cacheKey: JSON.stringify(["bridge", targetUri.toString(), doc.version]),
+                },
+                externalTarget: { uri: targetUri.toString(), range: mapRange(targetRange) },
+            };
         });
     }
 

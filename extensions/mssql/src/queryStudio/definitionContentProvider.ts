@@ -17,6 +17,8 @@
  */
 
 import * as vscode from "vscode";
+import { QueryStudioCore } from "../constants/locConstants";
+import type { DefinitionLocationResult } from "../sqlLanguage/api";
 
 export const DEFINITION_SCHEME = "mssql-def";
 export const DEFINITION_MODE_SETTING = "mssql.sqlLanguage.definition.mode";
@@ -27,6 +29,8 @@ export interface ScriptedDefinitionContent {
     readonly text: string;
     readonly anchor?: { readonly line: number; readonly character: number };
     readonly cacheKey: string;
+    /** Host-only original target for a bridged definition; never supplied by the webview. */
+    readonly externalTarget?: DefinitionLocationResult["externalTarget"];
 }
 
 const MAX_CACHED_SCRIPTS = 32;
@@ -38,18 +42,15 @@ export class DefinitionContentProvider implements vscode.TextDocumentContentProv
     readonly onDidChange = this.changeEmitter.event;
 
     provideTextDocumentContent(uri: vscode.Uri): string {
-        return (
-            this.contentByUri.get(uri.toString()) ??
-            "-- This generated definition has expired. Run Go to Definition again."
-        );
+        return this.contentByUri.get(uri.toString()) ?? QueryStudioCore.generatedDefinitionExpired;
     }
 
     /** Store a script and return its stable URI (cacheKey-addressed). */
-    store(content: ScriptedDefinitionContent): vscode.Uri {
+    store(content: ScriptedDefinitionContent, sourceIdentity: string): vscode.Uri {
         const uri = vscode.Uri.from({
             scheme: DEFINITION_SCHEME,
             path: `/${content.title}.sql`,
-            query: encodeURIComponent(content.cacheKey),
+            query: encodeURIComponent(JSON.stringify([sourceIdentity, content.cacheKey])),
         });
         const key = uri.toString();
         const existing = this.contentByUri.get(key);
@@ -92,25 +93,37 @@ export function definitionContentProvider(): DefinitionContentProvider | undefin
 }
 
 /**
- * Open a scripted definition BESIDE the Query Studio panel as a read-only
- * document, positioned at the anchor. Mode "peek" (default) opens a
+ * Open a definition BESIDE Query Studio, retaining a bridged target's original
+ * document or serving a generated script read-only. Mode "peek" (default) opens a
  * transient preview tab; "open" pins a real tab. Returns the document URI
  * so the caller can attach the SOURCE editor's connection context to it.
  */
 export async function openScriptedDefinition(
     provider: DefinitionContentProvider,
     content: ScriptedDefinitionContent,
+    sourceIdentity: string,
 ): Promise<vscode.Uri> {
-    const uri = provider.store(content);
+    const uri = content.externalTarget
+        ? vscode.Uri.parse(content.externalTarget.uri)
+        : provider.store(content, sourceIdentity);
     const document = await vscode.workspace.openTextDocument(uri);
     const anchor = content.anchor ?? { line: 0, character: 0 };
     const position = new vscode.Position(anchor.line, anchor.character);
+    const targetRange = content.externalTarget?.range;
+    const selection = targetRange
+        ? new vscode.Range(
+              targetRange.start.line,
+              targetRange.start.character,
+              targetRange.end.line,
+              targetRange.end.character,
+          )
+        : new vscode.Range(position, position);
     const mode = vscode.workspace.getConfiguration().get<string>(DEFINITION_MODE_SETTING, "peek");
     await vscode.window.showTextDocument(document, {
         viewColumn: vscode.ViewColumn.Beside,
         preview: mode !== "open",
         preserveFocus: false,
-        selection: new vscode.Range(position, position),
+        selection,
     });
     return document.uri;
 }

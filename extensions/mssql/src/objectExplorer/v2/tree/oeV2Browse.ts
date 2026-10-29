@@ -860,7 +860,24 @@ export function objectNode(
         capabilities: {
             canCopyName: true,
             canCopyQualifiedName: true,
-            canGenerateScript: true,
+            canGenerateScript: [
+                "table",
+                "view",
+                "procedure",
+                "scalarFunction",
+                "tableFunction",
+                "synonym",
+            ].includes(objectKind),
+            canScriptCreate: [
+                "table",
+                "view",
+                "procedure",
+                "scalarFunction",
+                "tableFunction",
+            ].includes(objectKind),
+            canScriptAlter: ["view", "procedure", "scalarFunction", "tableFunction"].includes(
+                objectKind,
+            ),
             // v1 parity: Refresh appears on object nodes too (Table menu).
             canRefresh: true,
             ...(isTable || objectKind === "view" ? { canSelectTop: true } : {}),

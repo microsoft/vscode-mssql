@@ -93,6 +93,43 @@ export interface SyncApplyOutcome {
     reason?: string;
 }
 
+/** Rebase host offsets over an unsent local edit without overwriting typing. */
+export function rebaseRemoteEdits(
+    baseline: string,
+    current: string,
+    remoteEdits: QsTextEdit[],
+): { hostText: string; mergedText: string; edits: QsTextEdit[] } | undefined {
+    const local = diffTextEdit(baseline, current)[0];
+    const edits: QsTextEdit[] = [];
+    for (const edit of remoteEdits) {
+        if (
+            local &&
+            edit.start === edit.end &&
+            edit.start === local.start &&
+            local.start === local.end
+        ) {
+            return undefined; // competing insertions at the same point
+        }
+        if (!local || edit.end <= local.start) {
+            edits.push(edit);
+        } else if (edit.start >= local.end) {
+            const shift = local.text.length - (local.end - local.start);
+            edits.push({ ...edit, start: edit.start + shift, end: edit.end + shift });
+        } else {
+            return undefined; // overlapping edits require authoritative resync
+        }
+    }
+    try {
+        return {
+            hostText: applyEdits(baseline, remoteEdits),
+            mergedText: applyEdits(current, edits),
+            edits,
+        };
+    } catch {
+        return undefined;
+    }
+}
+
 export interface HostChangeOutcome {
     /** Remote message to forward, or undefined when fully suppressed echo. */
     remote?: QsSyncRemote;
@@ -148,7 +185,7 @@ export class TextSyncEngine {
                 applied: false,
                 hostVersion: this.version,
                 resyncNeeded: false,
-                reason: `stale base ${edits.baseHostVersion} (host at ${this.version})`,
+                reason: `stale base ${edits.baseHostVersion}, host at ${this.version}`,
             };
         }
         let newText: string;

@@ -22,7 +22,7 @@ import {
 } from "../../diagnostics/featureCapture/traceFiles";
 import { diag } from "../../diagnostics/diagnosticsCore";
 import { digestValue } from "../../diagnostics/redaction";
-import { logger2 } from "../../models/logger2";
+import { Logger } from "../../models/logger";
 import {
     QS_RUN_RECORD_VERSION,
     QsReplayConfig,
@@ -60,7 +60,7 @@ export function computeQsProfileFingerprint(
     return digestValue("profile", `${server ?? ""}\\${database ?? ""}`);
 }
 
-const captureLogger = logger2.withPrefix("QueryStudioReplay");
+const captureLogger = Logger.global("QueryStudioReplay");
 
 const defaultReplayConfig: QsReplayConfig = {
     database: null,

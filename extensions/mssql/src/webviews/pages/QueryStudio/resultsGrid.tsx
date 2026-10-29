@@ -81,6 +81,7 @@ import {
 import { perfMark, perfMarkAfterNextPaint, perfMarksEnabled } from "../../common/perfMarks";
 import { writeQueryStudioClipboard } from "./queryStudioClipboard";
 import { countFluentResultGridSelectedRows } from "../../common/FluentResultGrid/internal/fluentResultGridSelection";
+import { getFluentResultGridInitialFrozenColumnIndex } from "../../common/FluentResultGrid/internal/fluentResultGridState";
 import {
     queryStudioPerfScrollOffset,
     registerQueryStudioPerfGridController,
@@ -107,9 +108,6 @@ export const PROCESSING_DISABLED_NOTICE =
     "threshold (mssql.resultsGrid.inMemoryDataProcessingThreshold).";
 export const PROCESSING_STREAMING_NOTICE =
     "Sorting and filtering become available when the result set finishes streaming.";
-const QUERY_STUDIO_GRID_INITIAL_STATE = {
-    frozenColumnIndex: -1,
-} satisfies FluentResultGridState;
 
 function fabricateColumnInfo(
     columnNames: readonly string[],
@@ -791,6 +789,7 @@ export function QsResultGridSurface(props: {
     const gridSettings = useMemo<GridSettings>(
         () => ({
             alternatingRowColors: gridStyle?.alternatingRowColors ?? false,
+            rightAlignNumbers: gridStyle?.rightAlignNumbers ?? false,
             showGridLines: gridStyle?.showGridLines ?? "both",
             rowPadding: gridStyle?.rowPadding ?? 0,
         }),
@@ -879,7 +878,8 @@ export function QsResultGridSurface(props: {
                         rpc,
                         summary,
                         selection,
-                        event.commandId === FluentResultGridCommand.CopyWithHeaders,
+                        event.commandId === FluentResultGridCommand.CopyWithHeaders ||
+                            gridStyle?.copyIncludeHeaders === true,
                     );
                     if (outcome === "tooLarge") {
                         notify(COPY_TOO_LARGE_NOTICE);
@@ -923,7 +923,7 @@ export function QsResultGridSurface(props: {
                     break;
             }
         },
-        [rpc, summary, notify],
+        [rpc, summary, notify, gridStyle?.copyIncludeHeaders],
     );
 
     const style = useMemo(
@@ -966,14 +966,13 @@ export function QsResultGridSurface(props: {
     // This is a mount-time restore snapshot. Feeding later persisted
     // callbacks back through `initialState` would make unrelated shell
     // renders reapply selection/scroll while the user is interacting.
-    const initialGridStateRef = useRef(props.initialState);
-    const restoredGridState = useMemo<FluentResultGridState>(
-        () => ({
-            ...QUERY_STUDIO_GRID_INITIAL_STATE,
-            ...(initialGridStateRef.current ?? {}),
-        }),
-        [],
-    );
+    const initialGridStateRef = useRef<FluentResultGridState>({
+        ...props.initialState,
+        frozenColumnIndex: getFluentResultGridInitialFrozenColumnIndex(
+            props.initialState?.frozenColumnIndex,
+            gridStyle?.freezeFirstColumnByDefault ?? false,
+        ),
+    });
     const handlePointerDownCapture = useCallback(
         (event: PointerEvent<HTMLDivElement>) => {
             if (!(event.target instanceof Element) || !event.target.closest(".slick-cell")) {
@@ -999,7 +998,7 @@ export function QsResultGridSurface(props: {
                 dataSource={dataSource}
                 heightMode={{ kind: "fill" }}
                 showRowNumberColumn
-                initialState={restoredGridState}
+                initialState={initialGridStateRef.current}
                 enableColumnReorder={false}
                 inMemoryDataProcessingThreshold={inMemoryThreshold}
                 gridSettings={gridSettings}

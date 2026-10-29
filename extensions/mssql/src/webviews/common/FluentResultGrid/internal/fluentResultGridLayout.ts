@@ -109,7 +109,7 @@ export function useFluentResultGridLayout({
             const reactGrid = reactGridRef.current;
             if (reactGrid?.sharedService?.gridOptions) {
                 reactGrid.sharedService.gridOptions.frozenColumn = columnIndex;
-                reactGrid.sharedService.gridOptions.enableMouseWheelScrollHandler = true;
+                reactGrid.sharedService.gridOptions.enableMouseWheelScrollHandler = false;
                 reactGrid.sharedService.gridOptions.alwaysShowVerticalScroll = false;
                 reactGrid.sharedService.gridOptions.skipFreezeColumnValidation = true;
             }
@@ -130,7 +130,7 @@ export function useFluentResultGridLayout({
             if (shouldApplyFluentResultGridFrozenOptions(grid.getOptions(), columnIndex)) {
                 grid.setOptions({
                     alwaysShowVerticalScroll: false,
-                    enableMouseWheelScrollHandler: true,
+                    enableMouseWheelScrollHandler: false,
                     frozenColumn: columnIndex,
                     skipFreezeColumnValidation: true,
                 });
@@ -154,7 +154,11 @@ export function useFluentResultGridLayout({
 
             const containerNode = grid.getContainerNode();
             const handleFrozenPaneWheel = (event: WheelEvent) => {
-                if ((grid.getOptions().frozenColumn ?? -1) < 0 || event.deltaY === 0) {
+                if (
+                    (grid.getOptions().frozenColumn ?? -1) < 0 ||
+                    event.ctrlKey ||
+                    (event.deltaX === 0 && event.deltaY === 0)
+                ) {
                     return;
                 }
 
@@ -170,7 +174,12 @@ export function useFluentResultGridLayout({
                     return;
                 }
 
-                scrollViewport.scrollTop += event.deltaY;
+                // The frozen pane cannot scroll itself. Forward Chromium's
+                // pixel deltas without the legacy wheel handler's rescaling.
+                scrollViewport.scrollLeft += event.deltaX || (event.shiftKey ? event.deltaY : 0);
+                if (!event.shiftKey) {
+                    scrollViewport.scrollTop += event.deltaY;
+                }
                 dataViewRef.current?.ensureViewportLoaded();
                 requestAnimationFrame(() => {
                     dataViewRef.current?.ensureViewportLoaded();

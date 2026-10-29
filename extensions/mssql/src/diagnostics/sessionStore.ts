@@ -14,6 +14,10 @@ import * as path from "path";
 import * as LocalizedConstants from "../constants/locConstants";
 import { containedPath, isContainedPath } from "./containedPath";
 import {
+    OBSERVABILITY_BUNDLE_FILE,
+    isObservabilityBundleShape,
+} from "./sessionBundle/bundleSchemas";
+import {
     DiagEvent,
     DebugSource,
     EventQuery,
@@ -189,11 +193,65 @@ export class SessionStore {
                 }
                 const manifest = parsed;
                 sessions.push({ manifest, dir });
-            } catch {
-                // Ignore directories without a readable diagnostic manifest.
+            } catch (error) {
+                // Rich-capture-only sessions have a bundle catalog but no diagnostic
+                // manifest. Keep them visible to retention without admitting a bad
+                // manifest or following links outside the store.
+                if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+                    const manifest = this.bundleSessionManifest(dir, entry.name);
+                    if (manifest) {
+                        sessions.push({ manifest, dir });
+                    }
+                }
             }
         }
         return sessions.sort((a, b) => b.manifest.createdUtc.localeCompare(a.manifest.createdUtc));
+    }
+
+    private bundleSessionManifest(dir: string, sessionId: string): SessionManifest | undefined {
+        try {
+            const bundle: unknown = JSON.parse(
+                fs.readFileSync(
+                    containedPath(this.storeRoot, path.join(dir, OBSERVABILITY_BUNDLE_FILE)),
+                    "utf8",
+                ),
+            );
+            if (
+                !isObservabilityBundleShape(bundle) ||
+                bundle.hostSessionId !== sessionId ||
+                typeof bundle.createdUtc !== "string" ||
+                !Number.isFinite(Date.parse(bundle.createdUtc)) ||
+                typeof bundle.updatedUtc !== "string" ||
+                !Number.isFinite(Date.parse(bundle.updatedUtc)) ||
+                !["active", "closed", "partial"].includes(bundle.status) ||
+                !Number.isSafeInteger(bundle.totals.bytes) ||
+                bundle.totals.bytes < 0 ||
+                !Number.isSafeInteger(bundle.totals.gaps) ||
+                bundle.totals.gaps < 0 ||
+                typeof bundle.provenance !== "object" ||
+                bundle.provenance === null ||
+                Array.isArray(bundle.provenance)
+            ) {
+                return undefined;
+            }
+            return {
+                schemaVersion: "mssql.diag.sessionManifest/1",
+                sessionId,
+                createdUtc: bundle.createdUtc,
+                updatedUtc: bundle.updatedUtc,
+                source: "bundle",
+                captureMode: "off",
+                policyId: "none",
+                eventCount: 0,
+                gapCount: bundle.totals.gaps,
+                segments: [],
+                sizeBytes: bundle.totals.bytes,
+                provenance: bundle.provenance,
+                status: bundle.status,
+            };
+        } catch {
+            return undefined;
+        }
     }
 
     public listSources(live: {

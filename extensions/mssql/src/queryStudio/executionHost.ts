@@ -31,10 +31,11 @@ import {
 } from "../sharedInterfaces/queryStudioMessageWindows";
 import { QueryTuningOverrides, QueryTuningSnapshot } from "../sharedInterfaces/queryTuning";
 import { DocumentSessionBinding } from "./documentSessionBinding";
-import { ExecutionOrchestrator, RunResult } from "./executionOrchestrator";
+import { ExecutionOrchestrator, RunOptions, RunResult } from "./executionOrchestrator";
 import { beginRunRecord, completeRunRecord } from "./replay/qsRunCapture";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import { RowReadReason, RowStore, RowStoreLimits, RowStoreTuning } from "./rowStore";
+import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
 
 export interface ExecutionHostEvents {
     onRunStarted?(startedEpochMs: number): void;
@@ -78,6 +79,11 @@ export class ExecutionHost {
      * webview toolbar. OFF adds zero work to the execute path.
      */
     sqlcmdEnabled = false;
+    /** Read once per run; the document model supplies VS Code preferences. */
+    readResultPreferences?: () => Pick<
+        RunOptions,
+        "showBatchMessages" | "displayUniqueIdentifierInUppercase"
+    >;
     /**
      * Vector Workbench gate seam (D-0019; this module stays vscode-free):
      * evaluated per run so a config change applies to the NEXT run. When true,
@@ -164,7 +170,7 @@ export class ExecutionHost {
     ): { started: boolean; reason?: string } {
         const session = this.binding.activeSession;
         if (!session) {
-            return { started: false, reason: "Not connected — connect first." };
+            return { started: false, reason: QueryStudioCoreLoc.notConnectedConnectFirst };
         }
         if (
             this.executionState.kind === "executing" ||
@@ -174,11 +180,11 @@ export class ExecutionHost {
             void this.cancel();
             return {
                 started: false,
-                reason: "Restarting — canceling the running query first.",
+                reason: QueryStudioCoreLoc.restartingCancelingTheRunningQueryFirst,
             };
         }
         if (text.trim().length === 0) {
-            return { started: false, reason: "Nothing to execute." };
+            return { started: false, reason: QueryStudioCoreLoc.nothingToExecute };
         }
         // Production-safety pause (Karl 2026-07-10): a modifying batch on a
         // production connection stops HERE until the user confirms; "don't
@@ -197,7 +203,7 @@ export class ExecutionHost {
             });
             return {
                 started: false,
-                reason: "Confirm the production warning to run this query.",
+                reason: QueryStudioCoreLoc.confirmTheProductionWarningToRunThisQuery,
             };
         }
 
@@ -208,6 +214,7 @@ export class ExecutionHost {
             options.tuningOverrides ? { runOverrides: options.tuningOverrides } : {},
         );
         this.lastTuning = tuning;
+        const resultPreferences = this.readResultPreferences?.();
 
         // Fresh run: the live owner releases its lease NOW. With no
         // snapshots holding leases that still disposes the previous store
@@ -220,7 +227,7 @@ export class ExecutionHost {
         }
         this.runCounter++;
         this.rowStore = new RowStore(
-            path.join(this.spillRoot, runSpillDirName(this.runCounter)),
+            path.join(this.spillRoot, runSpillDirName()),
             rowStoreLimitsFrom(tuning),
             tuning.params.diagnosticsLevel,
             rowStoreTuningFrom(tuning),
@@ -340,6 +347,7 @@ export class ExecutionHost {
                 stopOnError: false,
                 scope: options.scope,
                 mode: options.mode ?? "normal",
+                ...resultPreferences,
                 startedEpochMs: this.startedEpochMs ?? Date.now(),
                 ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
                 wire: {

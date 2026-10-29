@@ -9,6 +9,7 @@ import * as React from "react";
 import ReactDOM from "react-dom/client";
 import "../../index.css";
 import "./queryStudio.css";
+import "../ExecutionPlan/executionPlanEagerStyles";
 // Lazy-pane CSS rides the ENTRY stylesheet (lazy-chunk CSS is never linked).
 import "./vectorIndexView.css";
 import "./vectorPipelineView.css";

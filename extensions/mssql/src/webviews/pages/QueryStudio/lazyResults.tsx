@@ -24,6 +24,7 @@
 
 import * as React from "react";
 import { perfMark } from "../../common/perfMarks";
+import { locConstants } from "../../common/locConstants";
 import {
     queryPlanResultPaneContribution,
     spatialResultPaneContribution,
@@ -131,5 +132,9 @@ export function ResultsSurfaceLoading(): React.JSX.Element {
     if (!gridPrefetchStarted) {
         prefetchGridStack();
     }
-    return <div className="qs-muted qs-results-surface-loading">Loading results view…</div>;
+    return (
+        <div className="qs-muted qs-results-surface-loading">
+            {locConstants.queryStudioCore.loadingResultsView}
+        </div>
+    );
 }

@@ -556,6 +556,7 @@ suite("localContainers logic", () => {
 
         const resultPromise = localContainersHelpers.addContainerConnection(
             dockerProfile,
+            mainController,
             classicContainerConnectAdapter(mainController),
         );
         await clock.tickAsync(3000);

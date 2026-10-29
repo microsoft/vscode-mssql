@@ -15,6 +15,7 @@
  */
 
 import * as React from "react";
+import { flushBeforeQueryStudioAction } from "./flushBeforeAction";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type * as monacoNs from "monaco-editor";
 import { VscodeEditor } from "../../common/vscodeMonaco";
@@ -26,7 +27,6 @@ import {
     perfMarkAfterNextPaintComputed,
     perfMarksEnabled,
 } from "../../common/perfMarks";
-import { locConstants } from "../../common/locConstants";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import {
@@ -105,7 +105,12 @@ import {
 } from "../../../sharedInterfaces/queryStudioLanguage";
 import { computeResultsLayout } from "../../../sharedInterfaces/queryStudioResultsLayout";
 import { classifyQueryStudioResultTabs } from "../../../sharedInterfaces/queryStudioResultTabs";
-import { diffTextEdit, textHash, SYNC_COALESCE_MS } from "../../../queryStudio/textSync";
+import {
+    diffTextEdit,
+    rebaseRemoteEdits,
+    textHash,
+    SYNC_COALESCE_MS,
+} from "../../../queryStudio/textSync";
 // BOOT-2 staged loading: the grid stack (slickgrid) and the plan surface
 // (azdataGraph) are DYNAMIC chunks — the entry carries Monaco + shell only.
 // Their CSS is hoisted here statically so lazy chunks never strand styles.
@@ -151,6 +156,7 @@ import {
     queryStudioWebviewHealthAttrs,
     resetQueryStudioWebviewHealth,
 } from "./queryStudioWebviewHealth";
+import { locConstants } from "../../common/locConstants";
 
 type Editor = monacoNs.editor.IStandaloneCodeEditor;
 type QueryStudioEol = "\n" | "\r\n";
@@ -312,9 +318,10 @@ export function QueryStudioApp() {
     const syncedTextRef = useRef("");
     const preferredEolRef = useRef<QueryStudioEol>("\n");
     const syncInFlightRef = useRef(false);
+    const syncPromiseRef = useRef<Promise<boolean>>(Promise.resolve(true));
     const flushAgainRef = useRef(false);
     const awaitingResyncRef = useRef(false);
-    const flushEditsRef = useRef<() => void>(() => undefined);
+    const flushEditsRef = useRef<() => Promise<boolean>>(() => Promise.resolve(true));
     const applyRemoteTextRef = useRef<
         (text: string, hostVersion: number, eol?: QueryStudioEol) => void
     >(() => undefined);
@@ -616,30 +623,30 @@ export function QueryStudioApp() {
     );
 
     // --- sync: webview → host --------------------------------------------
-    const flushEdits = useCallback(() => {
+    const flushEdits = useCallback((): Promise<boolean> => {
         if (flushTimerRef.current) {
             clearTimeout(flushTimerRef.current);
             flushTimerRef.current = undefined;
         }
         const editor = editorRef.current;
         if (!editor) {
-            return;
+            return Promise.resolve(false);
         }
         if (awaitingResyncRef.current) {
             flushAgainRef.current = true;
-            return;
+            return Promise.resolve(false);
         }
         if (syncInFlightRef.current) {
             flushAgainRef.current = true;
-            return;
+            return syncPromiseRef.current;
         }
         const currentText = editorValue(editor, preferredEolRef.current);
         if (currentText === syncedTextRef.current) {
-            return;
+            return Promise.resolve(true);
         }
         const edits = diffTextEdit(syncedTextRef.current, currentText);
         if (edits.length === 0) {
-            return;
+            return Promise.resolve(true);
         }
         const groupId = `wg_${(++editGroupCounter).toString(36)}`;
         expectedEchoGroupsRef.current.add(groupId);
@@ -651,12 +658,17 @@ export function QueryStudioApp() {
             textHashAfter: textHash(currentText),
         };
         syncInFlightRef.current = true;
-        void rpc
+        let failed = false;
+        const pending = rpc
             .sendRequest(QsSyncEditsRequest.type, payload)
             .then((outcome) => {
                 if (outcome.applied) {
-                    hostVersionRef.current = outcome.hostVersion;
-                    syncedTextRef.current = currentText;
+                    // A host notification may have advanced the baseline
+                    // while this request was in flight.
+                    if (outcome.hostVersion >= hostVersionRef.current) {
+                        hostVersionRef.current = outcome.hostVersion;
+                        syncedTextRef.current = currentText;
+                    }
                     return;
                 }
                 // Divergence rejections reconcile via the resync notification;
@@ -667,11 +679,14 @@ export function QueryStudioApp() {
                 // the user-facing truth.
                 expectedEchoGroupsRef.current.delete(groupId);
                 expectedEchoTextsRef.current.delete(groupId);
-                hostVersionRef.current = outcome.hostVersion;
                 if (outcome.resyncPending) {
                     awaitingResyncRef.current = true;
                     return undefined;
                 }
+                if (outcome.hostVersion <= hostVersionRef.current) {
+                    return undefined; // already rebased; finally resends local edits
+                }
+                hostVersionRef.current = outcome.hostVersion;
                 const liveEditor = editorRef.current;
                 if (!liveEditor) {
                     return undefined;
@@ -714,9 +729,11 @@ export function QueryStudioApp() {
                     });
             })
             .catch(() => {
+                failed = true;
                 expectedEchoGroupsRef.current.delete(groupId);
                 expectedEchoTextsRef.current.delete(groupId);
             })
+            .then(() => !failed && !awaitingResyncRef.current)
             .finally(() => {
                 syncInFlightRef.current = false;
                 if (awaitingResyncRef.current) {
@@ -732,8 +749,22 @@ export function QueryStudioApp() {
                     flushTimerRef.current = setTimeout(() => flushEditsRef.current(), 0);
                 }
             });
+        syncPromiseRef.current = pending;
+        return pending;
     }, [rpc]);
     flushEditsRef.current = flushEdits;
+
+    const synchronizeBeforeAction = useCallback(async () => {
+        const ready = await flushBeforeQueryStudioAction(
+            flushEdits,
+            () =>
+                editorRef.current !== null &&
+                !awaitingResyncRef.current &&
+                editorValue(editorRef.current, preferredEolRef.current) === syncedTextRef.current,
+        );
+        if (!ready) setActionHint(locConstants.queryStudioCore.synchronizeBeforeActionFailed);
+        return ready;
+    }, [flushEdits]);
 
     const queueLocalEdits = useCallback(
         (edits: QsTextEdit[]) => {
@@ -814,7 +845,15 @@ export function QueryStudioApp() {
                 if (!editor) {
                     return;
                 }
-                if (remote.fromHostVersion !== hostVersionRef.current) {
+                const rebased =
+                    remote.fromHostVersion === hostVersionRef.current
+                        ? rebaseRemoteEdits(
+                              syncedTextRef.current,
+                              editorValue(editor, preferredEolRef.current),
+                              remote.edits,
+                          )
+                        : undefined;
+                if (!rebased || textHash(rebased.hostText) !== remote.textHash) {
                     awaitingResyncRef.current = true;
                     void rpc
                         .sendRequest(QsSyncResyncRequest.type, {
@@ -826,13 +865,14 @@ export function QueryStudioApp() {
                         );
                     return;
                 }
-                // Apply host-origin edits; verify hash, else request resync.
-                flushEdits();
+                // Host offsets refer to the synced baseline, not the editor
+                // after unsent keystrokes. Apply the rebased edit first, then
+                // send remaining local changes against the new host version.
                 suppressLocalRef.current = true;
                 try {
                     const model = editor.getModel();
                     if (model) {
-                        const ops = remote.edits.map((edit) => ({
+                        const ops = rebased.edits.map((edit) => ({
                             range: monacoRange(model, edit),
                             text: edit.text,
                         }));
@@ -844,8 +884,9 @@ export function QueryStudioApp() {
                     suppressLocalRef.current = false;
                 }
                 hostVersionRef.current = remote.toHostVersion;
+                syncedTextRef.current = rebased.hostText;
                 const currentText = editorValue(editor, preferredEolRef.current);
-                if (currentText && textHash(currentText) !== remote.textHash) {
+                if (currentText !== rebased.mergedText) {
                     awaitingResyncRef.current = true;
                     void rpc
                         .sendRequest(QsSyncResyncRequest.type, {
@@ -855,6 +896,8 @@ export function QueryStudioApp() {
                         .then((resync) =>
                             applyRemoteText(resync.text, resync.hostVersion, resync.eol),
                         );
+                } else {
+                    void flushEdits();
                 }
             }),
             rpc.onNotification(QsSyncResyncNotification.type, (resync: QsSyncResync) => {
@@ -1160,7 +1203,7 @@ export function QueryStudioApp() {
                     } else {
                         hostVersionRef.current = resync.hostVersion;
                         syncedTextRef.current = resync.text;
-                        flushEditsRef.current();
+                        void flushEditsRef.current();
                     }
                     restoreEditorFocusSoon();
                 });
@@ -1199,9 +1242,18 @@ export function QueryStudioApp() {
                 captureEditorFocusBookmark();
                 void rpc.sendRequest(QsShowCommandPaletteRequest.type, undefined);
             });
-            editor.addCommand(monacoKeyMod().CtrlCmd | monacoKeyCode().KeyS, () => {
-                flushEdits();
-                void rpc.sendRequest(QsSyncSaveRequest.type, undefined);
+            editor.addCommand(
+                monacoKeyMod().CtrlCmd | monacoKeyMod().Shift | monacoKeyCode().KeyS,
+                async () => {
+                    if (await synchronizeBeforeAction()) {
+                        await rpc.sendRequest(QsSyncSaveRequest.type, { saveAs: true });
+                    }
+                },
+            );
+            editor.addCommand(monacoKeyMod().CtrlCmd | monacoKeyCode().KeyS, async () => {
+                if (await synchronizeBeforeAction()) {
+                    await rpc.sendRequest(QsSyncSaveRequest.type, undefined);
+                }
             });
             editor.addCommand(
                 monacoKeyCode().Tab,
@@ -1228,6 +1280,7 @@ export function QueryStudioApp() {
         [
             queueLocalEdits,
             flushEdits,
+            synchronizeBeforeAction,
             rpc,
             applyRemoteText,
             captureEditorFocusBookmark,
@@ -1240,20 +1293,24 @@ export function QueryStudioApp() {
     // guard reason (not connected / already executing / nothing to execute)
     // must never look like a dead button.
     const runOutcome = useCallback((outcome: { started: boolean; reason?: string }) => {
-        setActionHint(outcome.started ? undefined : (outcome.reason ?? "Could not start the run."));
+        setActionHint(
+            outcome.started
+                ? undefined
+                : (outcome.reason ?? locConstants.queryStudioCore.couldNotStartTheRun),
+        );
     }, []);
     const selectedExecuteParams = useCallback(
         () => executeParamsForSelection(editorRef.current?.getSelection()),
         [],
     );
-    const execute = useCallback(() => {
-        flushEdits();
+    const execute = useCallback(async () => {
+        if (!(await synchronizeBeforeAction())) return;
         setActionHint(undefined);
         // QS-1: an execute while the Actual Plan toggle is on is a plan-mode
         // run — its plan result sets auto-open on completion.
         planRunArmedRef.current = actualPlanEnabledRef.current;
         void rpc.sendRequest(QsExecuteRequest.type, selectedExecuteParams()).then(runOutcome);
-    }, [rpc, flushEdits, runOutcome, selectedExecuteParams]);
+    }, [rpc, synchronizeBeforeAction, runOutcome, selectedExecuteParams]);
     const cancel = useCallback(() => {
         void rpc.sendRequest(QsCancelRequest.type, undefined);
     }, [rpc]);
@@ -1312,7 +1369,9 @@ export function QueryStudioApp() {
                 // A failed switch must never look like a no-op (the same
                 // rule as refused runs): surface the host's reason.
                 setActionHint(
-                    result.changed ? undefined : (result.reason ?? "Could not switch database."),
+                    result.changed
+                        ? undefined
+                        : (result.reason ?? locConstants.queryStudioCore.couldNotSwitchDatabase),
                 );
                 restoreEditorFocusSoon();
             }, restoreEditorFocusSoon);
@@ -1338,16 +1397,16 @@ export function QueryStudioApp() {
             window.removeEventListener("focusin", closeIfOutside, true);
         };
     }, [dbList]);
-    const parse = useCallback(() => {
-        flushEdits();
+    const parse = useCallback(async () => {
+        if (!(await synchronizeBeforeAction())) return;
         setActionHint(undefined);
         planRunArmedRef.current = false; // parse-only runs never open plans
         void rpc
             .sendRequest(QsExecuteRequest.type, { scope: "document", parseOnly: true })
             .then(runOutcome);
-    }, [rpc, flushEdits, runOutcome]);
-    const estimatedPlan = useCallback(() => {
-        flushEdits();
+    }, [rpc, synchronizeBeforeAction, runOutcome]);
+    const estimatedPlan = useCallback(async () => {
+        if (!(await synchronizeBeforeAction())) return;
         setActionHint(undefined);
         planRunArmedRef.current = true; // QS-1: auto-open the estimated plan
         void rpc
@@ -1356,7 +1415,7 @@ export function QueryStudioApp() {
                 estimatedPlanOnly: true,
             })
             .then(runOutcome);
-    }, [rpc, flushEdits, runOutcome, selectedExecuteParams]);
+    }, [rpc, synchronizeBeforeAction, runOutcome, selectedExecuteParams]);
     const toggleActualPlan = useCallback(() => {
         void rpc.sendRequest(QsSetActualPlanRequest.type, {
             enabled: !(state?.toggles.actualPlan ?? false),
@@ -1405,10 +1464,10 @@ export function QueryStudioApp() {
             const altOnly = e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey;
             let handled = false;
             if (e.key === "F5" && noMods) {
-                execute();
+                void execute();
                 handled = true;
             } else if (ctrlOnly && e.key.toLowerCase() === "e") {
-                execute();
+                void execute();
                 handled = true;
             } else if (ctrlOnly && e.key.toLowerCase() === "r") {
                 setResultsCollapsed((c) => !c);
@@ -1479,7 +1538,7 @@ export function QueryStudioApp() {
                 }
                 // Same staleness rule as lang completions: the host bridge
                 // resolves positions against its mirror — push edits first.
-                flushEdits();
+                void flushEdits();
                 if (trigger === "automatic" && syncInFlightRef.current) {
                     return { items: [] };
                 }
@@ -1507,7 +1566,8 @@ export function QueryStudioApp() {
                             ),
                             command: {
                                 id: acceptedCommandId,
-                                title: "MSSQL inline SQL completion accepted",
+                                title: locConstants.queryStudioCore
+                                    .mSSQLInlineSQLCompletionAccepted,
                                 arguments: [response.eventId],
                             },
                         },
@@ -1602,7 +1662,7 @@ export function QueryStudioApp() {
                         // Push pending keystrokes NOW and tell the host the
                         // exact text this request was computed against —
                         // otherwise completions bind one keystroke behind.
-                        flushEdits();
+                        void flushEdits();
                         const result = await rpc.sendRequest(QsLangCompletionRequest.type, {
                             line: position.lineNumber - 1,
                             character: position.column - 1,
@@ -1667,7 +1727,7 @@ export function QueryStudioApp() {
             monacoApi.languages.registerHoverProvider("sql", {
                 provideHover: async (model, position) => {
                     try {
-                        flushEdits();
+                        void flushEdits();
                         const result = await rpc.sendRequest(QsLangHoverRequest.type, {
                             line: position.lineNumber - 1,
                             character: position.column - 1,
@@ -1691,7 +1751,7 @@ export function QueryStudioApp() {
                     try {
                         // "(" fires this the instant it is typed — flush and
                         // converge or the host resolves one keystroke behind.
-                        flushEdits();
+                        void flushEdits();
                         const result = await rpc.sendRequest(QsLangSignatureHelpRequest.type, {
                             line: position.lineNumber - 1,
                             character: position.column - 1,
@@ -1727,7 +1787,7 @@ export function QueryStudioApp() {
             monacoApi.languages.registerDefinitionProvider("sql", {
                 provideDefinition: async (model, position) => {
                     try {
-                        flushEdits();
+                        void flushEdits();
                         const result = await rpc.sendRequest(QsLangDefinitionRequest.type, {
                             line: position.lineNumber - 1,
                             character: position.column - 1,
@@ -2080,7 +2140,9 @@ export function QueryStudioApp() {
                             loadState: ApiStatus.Error,
                             executionPlanGraphs: [],
                             totalCost: 0,
-                            errorMessage: result.error ?? "Execution plan could not be loaded.",
+                            errorMessage:
+                                result.error ??
+                                locConstants.queryStudioCore.executionPlanCouldNotBeLoaded,
                         } satisfies ExecutionPlanState),
                 });
             })
@@ -2142,10 +2204,18 @@ export function QueryStudioApp() {
         switch (tab) {
             case "results":
                 return (
-                    <>Results{dataTotalRows > 0 ? ` (${dataTotalRows.toLocaleString()})` : ""}</>
+                    <>
+                        {locConstants.queryStudioCore.results}
+                        {dataTotalRows > 0 ? ` (${dataTotalRows.toLocaleString()})` : ""}
+                    </>
                 );
             case "messages":
-                return <>Messages{errorCount > 0 ? ` (${errorCount} ⚠)` : ""}</>;
+                return (
+                    <>
+                        {locConstants.queryStudioCore.messages}
+                        {errorCount > 0 ? ` (${errorCount} ⚠)` : ""}
+                    </>
+                );
             case "vector":
                 return "Vector";
             case "spatial":
@@ -2153,7 +2223,8 @@ export function QueryStudioApp() {
             case "queryPlan":
                 return (
                     <>
-                        Query Plan
+                        {" "}
+                        {locConstants.queryStudioCore.queryPlan}{" "}
                         {planResultSetSummaries.length > 1
                             ? ` (${planResultSetSummaries.length})`
                             : ""}
@@ -2164,19 +2235,29 @@ export function QueryStudioApp() {
 
     return (
         <div className="qs-root" ref={rootRef}>
-            <div className="qs-toolbar" role="toolbar" aria-label="Query Studio toolbar">
+            <div
+                className="qs-toolbar"
+                role="toolbar"
+                aria-label={locConstants.queryStudioCore.queryStudioToolbar}>
                 <span className="qs-db-wrap" ref={connWrapRef}>
                     <button
                         className={`qs-btn ${connection.kind === "disconnected" ? "primary" : ""}`}
-                        title={connected ? "Change connection" : "Connect to a SQL Server"}
+                        title={
+                            connected
+                                ? locConstants.queryStudioCore.changeConnection
+                                : locConstants.queryStudioCore.connectToASQLServer
+                        }
                         onClick={connect}>
-                        <span className="codicon codicon-plug" /> {connected ? "Change" : "Connect"}
+                        <span className="codicon codicon-plug" />{" "}
+                        {connected
+                            ? locConstants.queryStudioCore.change
+                            : locConstants.queryStudioCore.connect}
                     </button>
                     {connected ? (
                         <>
                             <button
                                 className="qs-btn qs-btn-chevron"
-                                title="More connection commands"
+                                title={locConstants.queryStudioCore.moreConnectionCommands}
                                 aria-haspopup="menu"
                                 aria-expanded={connMenuOpen}
                                 onClick={() => setConnMenuOpen((open) => !open)}>
@@ -2189,7 +2270,7 @@ export function QueryStudioApp() {
                                         className="qs-db-item"
                                         onClick={disconnect}>
                                         <span className="codicon codicon-debug-disconnect" />{" "}
-                                        Disconnect
+                                        {locConstants.queryStudioCore.disconnect}{" "}
                                     </div>
                                 </div>
                             ) : null}
@@ -2202,15 +2283,21 @@ export function QueryStudioApp() {
                         className="qs-btn qs-database"
                         disabled={!connected || executing}
                         onClick={toggleDbList}
-                        title={connected ? "Change database" : "Connect first"}>
+                        title={
+                            connected
+                                ? locConstants.queryStudioCore.changeDatabase
+                                : locConstants.queryStudioCore.connectFirst
+                        }>
                         <span className="codicon codicon-database" />{" "}
-                        {connection.database ?? "Database"}
+                        {connection.database ?? locConstants.queryStudioCore.database}
                         <span className="codicon codicon-chevron-down" />
                     </button>
                     {dbList ? (
                         <div className="qs-db-menu" role="listbox">
                             {dbList.length === 0 ? (
-                                <div className="qs-db-item qs-muted">Loading…</div>
+                                <div className="qs-db-item qs-muted">
+                                    {locConstants.queryStudioCore.loading}
+                                </div>
                             ) : (
                                 dbList.map((db) => (
                                     <div
@@ -2230,21 +2317,22 @@ export function QueryStudioApp() {
                 <button
                     className="qs-btn"
                     disabled={!connected || executing}
-                    title="Execute (F5 / Ctrl+E)"
+                    title={locConstants.queryStudioCore.executeF5CtrlE}
                     onClick={execute}>
-                    <span className="codicon codicon-play" /> Execute
+                    <span className="codicon codicon-play" />{" "}
+                    {locConstants.queryStudioCore.execute}{" "}
                 </button>
                 <button
                     className="qs-btn"
                     disabled={!executing}
-                    title="Cancel executing query (Alt+B)"
+                    title={locConstants.queryStudioCore.cancelExecutingQueryAltB}
                     onClick={cancel}>
                     <span className="codicon codicon-debug-stop" />
                 </button>
                 <button
                     className="qs-btn"
                     disabled={!connected || executing}
-                    title="Parse (syntax check only)"
+                    title={locConstants.queryStudioCore.parseSyntaxCheckOnly}
                     onClick={parse}>
                     <span className="codicon codicon-check" />
                 </button>
@@ -2252,14 +2340,17 @@ export function QueryStudioApp() {
                 <button
                     className="qs-btn"
                     disabled={!connected || executing}
-                    title="Display estimated execution plan"
+                    title={locConstants.queryStudioCore.displayEstimatedExecutionPlan}
                     onClick={estimatedPlan}>
                     <span className="codicon codicon-type-hierarchy-sub" />
                 </button>
                 <button
                     className={`qs-btn ${state?.toggles.actualPlan ? "toggled" : ""}`}
                     disabled={!connected}
-                    title="Include actual execution plan (applies to next execute)"
+                    aria-pressed={state?.toggles.actualPlan ?? false}
+                    title={
+                        locConstants.queryStudioCore.includeActualExecutionPlanAppliesToNextExecute
+                    }
                     onClick={toggleActualPlan}>
                     <span className="codicon codicon-graph" />
                 </button>
@@ -2267,15 +2358,16 @@ export function QueryStudioApp() {
                 <button
                     className={`qs-btn qs-btn-label ${state?.toggles.sqlcmd ? "toggled" : ""}`}
                     aria-pressed={state?.toggles.sqlcmd ?? false}
-                    title="Toggle SQLCMD mode (:setvar, :connect, :r, :on error, $(variables))"
+                    title={locConstants.queryStudioCore.toggleSQLCMDModeSetvarConnectROnError}
                     onClick={toggleSqlcmd}>
-                    SQLCMD
+                    {" "}
+                    {locConstants.queryStudioCore.sQLCMD}{" "}
                 </button>
                 <span className="qs-spacer" />
                 {results?.present ? (
                     <button
                         className="qs-btn"
-                        title="Toggle results pane (Ctrl+R)"
+                        title={locConstants.queryStudioCore.toggleResultsPaneCtrlR}
                         onClick={() => setResultsCollapsed((c) => !c)}>
                         <span
                             className={`codicon codicon-layout-panel${resultsCollapsed ? "-off" : ""}`}
@@ -2309,6 +2401,9 @@ export function QueryStudioApp() {
                         renderLineHighlight: "line",
                         scrollBeyondLastLine: false,
                         inlineSuggest: { enabled: true },
+                        // SQL providers own the popup; buffer words are not SQL completions.
+                        wordBasedSuggestions: "off",
+                        quickSuggestions: { other: true, comments: false, strings: false },
                         snippetSuggestions: "bottom",
                         tabFocusMode: false,
                     }}
@@ -2349,8 +2444,8 @@ export function QueryStudioApp() {
                             !results.streaming ? (
                                 <button
                                     className="qs-tabbar-btn"
-                                    title="Pin all results to a read-only tab that survives reruns"
-                                    aria-label="Pin all results"
+                                    title={locConstants.queryStudioCore.pinAllResultsToAReadOnlyTab}
+                                    aria-label={locConstants.queryStudioCore.pinAllResults}
                                     onClick={() => pinResults(undefined)}>
                                     <span className="codicon codicon-pin" />
                                 </button>
@@ -2360,13 +2455,13 @@ export function QueryStudioApp() {
                                     className="qs-tabbar-btn"
                                     title={
                                         resultViewMode === "text"
-                                            ? "Switch to Grid View"
-                                            : "Switch to Text View"
+                                            ? locConstants.queryStudioCore.switchToGridView
+                                            : locConstants.queryStudioCore.switchToTextView
                                     }
                                     aria-label={
                                         resultViewMode === "text"
-                                            ? "Switch to Grid View"
-                                            : "Switch to Text View"
+                                            ? locConstants.queryStudioCore.switchToGridView
+                                            : locConstants.queryStudioCore.switchToTextView
                                     }
                                     onClick={toggleResultsViewMode}>
                                     <span
@@ -2377,8 +2472,8 @@ export function QueryStudioApp() {
                             {visibleActiveTab === "queryPlan" && hasPlanResults ? (
                                 <button
                                     className="qs-tabbar-btn"
-                                    title="Open in New Tab"
-                                    aria-label="Open query plan in new tab"
+                                    title={locConstants.queryStudioCore.openInNewTab}
+                                    aria-label={locConstants.queryStudioCore.openQueryPlanInNewTab}
                                     onClick={() => {
                                         const resultSetId = planResultSetIdsKey.split("|")[0];
                                         if (resultSetId) {
@@ -2394,13 +2489,13 @@ export function QueryStudioApp() {
                                 className="qs-tabbar-btn"
                                 title={
                                     resultsPaneMaximized
-                                        ? "Restore editor and results split"
-                                        : "Maximize results pane"
+                                        ? locConstants.queryStudioCore.restoreEditorAndResultsSplit
+                                        : locConstants.queryStudioCore.maximizeResultsPane
                                 }
                                 aria-label={
                                     resultsPaneMaximized
-                                        ? "Restore editor and results split"
-                                        : "Maximize results pane"
+                                        ? locConstants.queryStudioCore.restoreEditorAndResultsSplit
+                                        : locConstants.queryStudioCore.maximizeResultsPane
                                 }
                                 onClick={() => setResultsPaneMaximized((value) => !value)}>
                                 <span
@@ -2408,7 +2503,9 @@ export function QueryStudioApp() {
                                 />
                             </button>
                             {results.streaming ? (
-                                <span className="qs-muted qs-streaming">streaming…</span>
+                                <span className="qs-muted qs-streaming">
+                                    {locConstants.queryStudioCore.streaming}
+                                </span>
                             ) : null}
                         </div>
                         <div
@@ -2428,7 +2525,7 @@ export function QueryStudioApp() {
                                             ref={resultsPanelRef}
                                             onScroll={() => persistResultsScroll(panelGeneration)}>
                                             <QueryStudioErrorBoundary
-                                                label="Results"
+                                                label={locConstants.queryStudioCore.results}
                                                 resetKey={`results:${panelGeneration}:${resultViewMode}`}
                                                 onError={reportPaneError}>
                                                 {resultViewMode === "text" ? (
@@ -2525,8 +2622,16 @@ export function QueryStudioApp() {
                                                                                 summary.complete ? (
                                                                                     <button
                                                                                         className="qs-btn qs-grid-pin"
-                                                                                        title="Pin this result set to a read-only tab that survives reruns"
-                                                                                        aria-label="Pin result set"
+                                                                                        title={
+                                                                                            locConstants
+                                                                                                .queryStudioCore
+                                                                                                .pinThisResultSetToAReadOnly
+                                                                                        }
+                                                                                        aria-label={
+                                                                                            locConstants
+                                                                                                .queryStudioCore
+                                                                                                .pinResultSet
+                                                                                        }
                                                                                         onClick={() =>
                                                                                             pinResults(
                                                                                                 summary.resultSetId,
@@ -2554,7 +2659,7 @@ export function QueryStudioApp() {
                                             hidden={visibleActiveTab !== "messages"}
                                             className="qs-tab-panel qs-tab-panel-fill">
                                             <QueryStudioErrorBoundary
-                                                label="Messages"
+                                                label={locConstants.queryStudioCore.messages}
                                                 resetKey={`messages:${panelGeneration}`}
                                                 onError={reportPaneError}>
                                                 <React.Suspense
@@ -2671,7 +2776,7 @@ export function QueryStudioApp() {
                                             hidden={visibleActiveTab !== "queryPlan"}
                                             className="qs-tab-panel qs-tab-panel-fill">
                                             <QueryStudioErrorBoundary
-                                                label="Query Plan"
+                                                label={locConstants.queryStudioCore.queryPlan}
                                                 resetKey={`plan:${panelGeneration}:${planResultSetKey}`}
                                                 onError={reportPaneError}>
                                                 <React.Suspense
@@ -2722,25 +2827,35 @@ export function QueryStudioApp() {
                 }
                 title={
                     connection.production
-                        ? "PRODUCTION connection — modifications will ask for confirmation"
+                        ? locConstants.queryStudioCore
+                              .pRODUCTIONConnectionModificationsWillAskForConfirmation
                         : undefined
                 }>
                 {connection.production ? (
-                    <span className="qs-status-prod-warning">WARNING: PRODUCTION</span>
+                    <span className="qs-status-prod-warning">
+                        {locConstants.queryStudioCore.wARNINGPRODUCTION}
+                    </span>
                 ) : null}
                 <span
                     className="qs-status-message"
                     data-kind={actionHint ? "error" : (state?.statusMessage.kind ?? "ready")}>
-                    {actionHint ?? state?.statusMessage.text ?? "Ready — not connected"}
+                    {actionHint ??
+                        state?.statusMessage.text ??
+                        locConstants.queryStudioCore.readyNotConnected}
                 </span>
                 <span className="qs-spacer" />
                 {state?.toggles.sqlcmd ? (
-                    <span className="qs-status-seg qs-status-sqlcmd" title="SQLCMD mode is on">
-                        SQLCMD
+                    <span
+                        className="qs-status-seg qs-status-sqlcmd"
+                        title={locConstants.queryStudioCore.sQLCMDModeIsOn}>
+                        {" "}
+                        {locConstants.queryStudioCore.sQLCMD}{" "}
                     </span>
                 ) : null}
                 {results?.present ? (
-                    <span className="qs-status-seg">{dataTotalRows.toLocaleString()} rows</span>
+                    <span className="qs-status-seg">
+                        {dataTotalRows.toLocaleString()} {"rows"}
+                    </span>
                 ) : null}
                 {elapsed !== undefined ? (
                     <span className="qs-status-seg">{formatElapsed(elapsed)}</span>
@@ -2750,9 +2865,11 @@ export function QueryStudioApp() {
                         {(connection.openTransactions ?? 0) > 0 ? (
                             <span
                                 className="qs-status-seg qs-status-tran"
-                                title={`${connection.openTransactions} open transaction(s) on this session — COMMIT or ROLLBACK, or they roll back on disconnect`}>
-                                <span className="codicon codicon-git-commit" /> TRAN (
-                                {connection.openTransactions})
+                                title={locConstants.queryStudioCore.valueOpenTransactionSOnThisSessionCOMMIT(
+                                    String(connection.openTransactions),
+                                )}>
+                                <span className="codicon codicon-git-commit" />{" "}
+                                {locConstants.queryStudioCore.tRAN} {connection.openTransactions})
                             </span>
                         ) : null}
                         <span className="qs-status-seg">
@@ -2767,14 +2884,19 @@ export function QueryStudioApp() {
                         </span>
                         <span className="qs-status-seg">{connection.database}</span>
                         {connection.spid !== undefined ? (
-                            <span className="qs-status-seg" title="Server process id">
-                                SPID {connection.spid}
+                            <span
+                                className="qs-status-seg"
+                                title={locConstants.queryStudioCore.serverProcessId}>
+                                {" "}
+                                {locConstants.queryStudioCore.sPID} {connection.spid}
                             </span>
                         ) : null}
                     </>
                 ) : null}
                 <span className="qs-status-seg">
-                    Ln {cursor.line}, Col {cursor.column}
+                    {" "}
+                    {locConstants.queryStudioCore.ln} {cursor.line}
+                    {locConstants.queryStudioCore.col} {cursor.column}
                 </span>
             </div>
         </div>
@@ -2783,7 +2905,7 @@ export function QueryStudioApp() {
 
 function formatElapsed(ms: number): string {
     if (ms < 1000) {
-        return `${ms}ms`;
+        return locConstants.queryStudioCore.value0Ms(String(ms));
     }
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);

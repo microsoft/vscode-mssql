@@ -77,10 +77,7 @@ import {
 import { getQueryResultContextService } from "../queryResults/queryResultContextService";
 import { pinSourceResults } from "../queryResults/pinCommands";
 import { buildBoundedMessagesText } from "../sharedInterfaces/queryStudioMessages";
-import {
-    buildQueryStudioGridCopyText,
-    planQueryStudioGridCopy,
-} from "../sharedInterfaces/queryStudioGridCopy";
+import { copyQueryStudioSelection } from "./resultClipboard";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import { QUERY_TUNING_DEFAULTS } from "../sharedInterfaces/queryTuning";
 import { VectorWorkbenchService } from "../queryResults/vector/vectorWorkbenchService";
@@ -172,7 +169,7 @@ import {
 import { ExecutionPlanWebviewState } from "../sharedInterfaces/executionPlan";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { readGridStyle } from "./gridStyle";
+import { affectsQueryStudioGridStyle, readGridStyle } from "./gridStyle";
 import { executionTimeoutMs, readQuerySessionOptions } from "./sessionOptions";
 import { saveQueryStudioResult } from "./resultExport";
 import {
@@ -183,6 +180,7 @@ import {
     normalizeQueryStudioPanelViewState,
     resetQueryStudioPanelViewState,
 } from "../sharedInterfaces/queryStudioViewState";
+import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
 
 /** Scan-and-detect: idle beat after the webview is ready (plan §3.4). */
 const OPEN_SCAN_DELAY_MS = 1_500;
@@ -236,6 +234,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         context: vscode.ExtensionContext,
         private readonly panel: vscode.WebviewPanel,
         private readonly model: QueryStudioDocumentModel,
+        private readonly saveDocument: (saveAs: boolean) => Promise<void> = () => model.save(),
     ) {
         super(context, "queryStudio", QueryStudioController.initialState(model), "queryStudio");
         this.extensionContext = context;
@@ -319,6 +318,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         );
         this.registerDisposable(
             vscode.workspace.onDidChangeConfiguration((e) => {
+                if (affectsQueryStudioGridStyle(e)) {
+                    this.queueStatePush();
+                }
                 if (e.affectsConfiguration(LANGUAGE_ENGINE_SETTING)) {
                     this.languageService.onPreferenceChanged();
                 }
@@ -329,9 +331,6 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     this.languageService.onDiagnosticsSettingChanged();
                 }
                 if (
-                    e.affectsConfiguration("mssql.resultsFontFamily") ||
-                    e.affectsConfiguration("mssql.resultsFontSize") ||
-                    e.affectsConfiguration("mssql.resultsGrid") ||
                     e.affectsConfiguration("mssql.queryStudio.vectorWorkbench.enabled") ||
                     e.affectsConfiguration("mssql.queryStudio.spatial.enabled")
                 ) {
@@ -521,11 +520,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         return value === undefined || value === null ? undefined : cellDocumentText(value);
     }
 
-    protected override _getHtmlTemplate(): string {
+    protected override bootstrapHtml(nonce: string): string {
         // Boot-failure visibility: webview console errors are invisible to
         // the host/harness — relay window errors before the bundle loads.
-        const relay =
-            "<script>" +
+        return (
+            `<script nonce="${nonce}">` +
             "window.__vscodeApiPreAcquired = acquireVsCodeApi();" +
             "const __qsr = (m, s) => window.__vscodeApiPreAcquired.postMessage(" +
             "{ type: 'qsBootError', message: String(m).slice(0, 500), source: String(s || '').slice(0, 200) });" +
@@ -533,8 +532,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             "window.addEventListener('unhandledrejection', (e) => " +
             "__qsr(e.reason && e.reason.stack ? e.reason.stack : e.reason, 'promise'));" +
             "</" +
-            "script>";
-        return super._getHtmlTemplate().replace("<body>", "<body>" + relay);
+            "script>"
+        );
     }
 
     protected _getWebview(): vscode.Webview {
@@ -560,7 +559,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             completions: { enabled: false },
             toggles: { actualPlan: false, viewMode: "grid", sqlcmd: false },
             gridStyle: QueryStudioController.currentGridStyle(),
-            statusMessage: { kind: "ready", text: "Ready — not connected" },
+            statusMessage: { kind: "ready", text: QueryStudioCoreLoc.readyNotConnected },
             capabilities: {
                 vectorWorkbench: model.executionHost.vectorWorkbenchGate(),
                 spatialResults: model.executionHost.spatialResultsGate(),
@@ -638,11 +637,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
 
     /** The three-option prompt (the ask — exactly these choices). */
     private async promptSqlcmdEnable(): Promise<void> {
-        const enable = "Enable";
-        const dontEnable = "Don't Enable";
-        const autoEnable = "Don't show again, auto-enable";
+        const enable = QueryStudioCoreLoc.enable;
+        const dontEnable = QueryStudioCoreLoc.donTEnable;
+        const autoEnable = QueryStudioCoreLoc.donTShowAgainAutoEnable;
         const choice = await vscode.window.showInformationMessage(
-            "This file has SQLCMD commands. Do you want to enable SQLCMD mode?",
+            QueryStudioCoreLoc.thisFileHasSQLCMDCommandsDoYouWant,
             enable,
             dontEnable,
             autoEnable,
@@ -735,27 +734,27 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     private static statusFor(state: QsState): QsState["statusMessage"] {
         switch (state.execution.kind) {
             case "executing":
-                return { kind: "info", text: "Executing query…" };
+                return { kind: "info", text: QueryStudioCoreLoc.executingQuery };
             case "cancelRequested":
-                return { kind: "warning", text: "Cancel requested…" };
+                return { kind: "warning", text: QueryStudioCoreLoc.cancelRequested };
             case "succeeded":
-                return { kind: "success", text: "Query executed successfully." };
+                return { kind: "success", text: QueryStudioCoreLoc.queryExecutedSuccessfully };
             case "completedWithErrors":
-                return { kind: "error", text: "Completed with errors." };
+                return { kind: "error", text: QueryStudioCoreLoc.completedWithErrors };
             case "failed":
-                return { kind: "error", text: "Query failed." };
+                return { kind: "error", text: QueryStudioCoreLoc.queryFailed };
             case "canceled":
-                return { kind: "warning", text: "Query was cancelled." };
+                return { kind: "warning", text: QueryStudioCoreLoc.queryWasCancelled };
             case "connectionLost":
-                return { kind: "error", text: "Connection lost during execution." };
+                return { kind: "error", text: QueryStudioCoreLoc.connectionLostDuringExecution };
         }
         return state.connection.kind === "connected"
-            ? { kind: "info", text: "Connected." }
+            ? { kind: "info", text: QueryStudioCoreLoc.connected }
             : state.connection.kind === "connecting"
-              ? { kind: "info", text: "Connecting…" }
+              ? { kind: "info", text: QueryStudioCoreLoc.connecting }
               : state.connection.kind === "lost"
-                ? { kind: "warning", text: "Connection lost." }
-                : { kind: "ready", text: "Ready — not connected" };
+                ? { kind: "warning", text: QueryStudioCoreLoc.connectionLost }
+                : { kind: "ready", text: QueryStudioCoreLoc.readyNotConnected };
     }
 
     private flushPendingRows(): void {
@@ -1011,7 +1010,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             this.model.resyncFor(webviewVersion, textHash),
         );
         this.onRequest(QsSyncUndoRequest.type, async ({ redo }) => this.model.undo(redo));
-        this.onRequest(QsSyncSaveRequest.type, async () => this.model.save());
+        this.onRequest(QsSyncSaveRequest.type, async (args) =>
+            this.saveDocument(args?.saveAs === true),
+        );
 
         // --- webview ready signal: end the open marker once -----------------
         this.onRequest(QsGetDiagnosticsSummaryRequest.type, async () => {
@@ -1121,8 +1122,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     : {
                           reason:
                               method === "reconnect"
-                                  ? `Could not reconnect to database "${database}".`
-                                  : `Could not switch to database "${database}" (USE failed).`,
+                                  ? QueryStudioCoreLoc.couldNotReconnectToDatabase0(
+                                        String(database),
+                                    )
+                                  : QueryStudioCoreLoc.couldNotSwitchToDatabase0USEFailed(
+                                        String(database),
+                                    ),
                       }),
             };
         });
@@ -1154,7 +1159,12 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 const summary = this.model.executionHost
                     .resultsState()
                     .resultSets.find((set) => set.resultSetId === resultSetId);
-                if (!summary) {
+                // A rerun replaces the live store and reuses result-set IDs.
+                // Keep this run alive through every window and the clipboard write.
+                const lease = summary
+                    ? this.model.executionHost.retainedStore?.retain({ kind: "command" })
+                    : undefined;
+                if (!lease) {
                     return {
                         outcome: "empty" as const,
                         characters: 0,
@@ -1165,69 +1175,24 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                         windowRows: 0,
                     };
                 }
-                // Re-plan against host-authoritative cardinality. A stale
-                // webview command therefore cannot fetch outside the current
-                // run or bypass the grid copy bounds.
-                const planned = planQueryStudioGridCopy(
-                    selection,
-                    summary.rowCount,
-                    summary.columnNames.length,
-                );
-                if (planned.kind !== "ok") {
-                    return {
-                        outcome: planned.kind,
-                        characters: 0,
-                        fetchCount: 0,
-                        fetchMs: 0,
-                        formatMs: 0,
-                        clipboardMs: 0,
-                        windowRows: 0,
-                        ...(planned.kind === "tooLarge" ? { reason: planned.reason } : {}),
-                    };
+                try {
+                    return await copyQueryStudioSelection(
+                        summary,
+                        selection,
+                        includeHeaders,
+                        (start, count, columns) =>
+                            lease.store.getWindow({
+                                resultSetId,
+                                rowStart: start,
+                                rowCount: count,
+                                reason: "copy",
+                                columnStart: columns.start,
+                                columnCount: columns.count,
+                            }),
+                    );
+                } finally {
+                    lease.dispose();
                 }
-                const built = await buildQueryStudioGridCopyText({
-                    plan: planned.plan,
-                    columnNames: summary.columnNames,
-                    includeHeaders,
-                    getRows: (start, count, columns) =>
-                        this.model.executionHost.getRows(
-                            resultSetId,
-                            start,
-                            count,
-                            "copy",
-                            columns,
-                        ),
-                });
-                const details = {
-                    rows: planned.plan.rowCount,
-                    columns: planned.plan.columnCount,
-                    cells: planned.plan.outputCellCount,
-                };
-                if (built.kind !== "copied") {
-                    return {
-                        outcome: built.kind,
-                        characters: built.characters,
-                        fetchCount: built.fetchCount,
-                        fetchMs: built.fetchMs,
-                        formatMs: built.formatMs,
-                        clipboardMs: 0,
-                        windowRows: built.windowRows,
-                        ...details,
-                        ...(built.kind === "tooLarge" ? { reason: "characters" as const } : {}),
-                    };
-                }
-                const clipboardStarted = performance.now();
-                await vscode.env.clipboard.writeText(built.text);
-                return {
-                    outcome: "copied" as const,
-                    characters: built.characters,
-                    fetchCount: built.fetchCount,
-                    fetchMs: built.fetchMs,
-                    formatMs: built.formatMs,
-                    clipboardMs: Math.max(0, performance.now() - clipboardStarted),
-                    windowRows: built.windowRows,
-                    ...details,
-                };
             },
         );
         this.onRequest(QsWriteClipboardRequest.type, async ({ text }) => {
@@ -1235,19 +1200,29 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             return { written: true };
         });
         this.onRequest(QsSaveResultRequest.type, async ({ resultSetId, format, selection }) => {
+            const store = this.model.executionHost.retainedStore;
             const summary = this.model.executionHost
                 .resultsState()
                 .resultSets.find((set) => set.resultSetId === resultSetId);
-            if (!summary) {
-                return { saved: false, error: "Result set not found." };
+            if (!summary || !store) {
+                return { saved: false, error: QueryStudioCoreLoc.resultSetNotFound };
             }
             return saveQueryStudioResult({
                 sourceUri: this.model.backingDocument.uri,
                 summary,
                 format,
                 selection,
+                store,
+                isExecuting:
+                    this.model.executionHost.executionState.kind === "executing" ||
+                    this.model.executionHost.executionState.kind === "cancelRequested",
                 getRows: (id, start, count) =>
-                    this.model.executionHost.getRows(id, start, count, "export"),
+                    store.getWindow({
+                        resultSetId: id,
+                        rowStart: start,
+                        rowCount: count,
+                        reason: "export",
+                    }),
             });
         });
         this.onRequest(
@@ -1324,7 +1299,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     await Promise.all(resultSetIds.map((id) => this.planXmlForResultSet(id)))
                 ).filter((xml): xml is string => xml !== undefined);
                 if (xmlPlans.length === 0) {
-                    return { error: "No execution plan results are available yet." };
+                    return { error: QueryStudioCoreLoc.noExecutionPlanResultsAreAvailableYet };
                 }
                 // Plan-graph parse cache (QO-8): keyed by plan XML content —
                 // tab switches and state pushes must not reparse. One entry
@@ -1345,7 +1320,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 }
                 const seam = await this.executionPlanSeam();
                 if (!seam) {
-                    return { error: "Execution plan service is unavailable." };
+                    return { error: QueryStudioCoreLoc.executionPlanServiceIsUnavailable };
                 }
                 const state: ExecutionPlanWebviewState = {
                     executionPlanState: {
@@ -1377,14 +1352,18 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             };
             await saveExecutionPlan(state, { sqlPlanContent });
         });
-        this.onRequest(QsCompareExecutionPlanRequest.type, async ({ sqlPlanContent }) => {
-            await compareQueryStudioPlan(
-                this._context,
-                await this.executionPlanSeam(),
-                sqlPlanContent,
-                this.model.backingDocument.fileName,
-            );
-        });
+        this.onRequest(
+            QsCompareExecutionPlanRequest.type,
+            async ({ sqlPlanContent, graphIndex }) => {
+                await compareQueryStudioPlan(
+                    this._context,
+                    await this.executionPlanSeam(),
+                    sqlPlanContent,
+                    this.model.backingDocument.fileName,
+                    graphIndex,
+                );
+            },
+        );
         this.onRequest(QsShowPlanXmlRequest.type, async ({ sqlPlanContent }) => {
             const state: ExecutionPlanWebviewState = {
                 executionPlanState: { executionPlanGraphs: [], totalCost: 0 },
@@ -1756,11 +1735,14 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             }
             // Scripted target (LS-4): the generated script rides to the
             // webview so Peek renders it INSIDE the editor. Opening the
-            // read-only mssql-def document beside (§13.5) happens only on
+            // original bridge target or read-only mssql-def document beside happens only on
             // EXPLICIT navigation below — provideDefinition also fires on
             // ctrl-hover, which must never pop a tab.
             if (result?.virtualContent !== undefined) {
-                this.rememberScriptedDefinition(result.virtualContent);
+                this.rememberScriptedDefinition({
+                    ...result.virtualContent,
+                    externalTarget: result.externalTarget,
+                });
                 return { virtualContent: result.virtualContent };
             }
             return null;
@@ -1773,7 +1755,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             }
             // The definition document joins THIS editor's connection context
             // (profile + current database) — never an ambient one.
-            const uri = await openScriptedDefinition(provider, content);
+            const uri = await openScriptedDefinition(
+                provider,
+                content,
+                JSON.stringify([this.model.uriKey, this.model.sessionBinding.connectionIdentity]),
+            );
             await this.languageService.adoptDefinitionDocumentConnection(uri);
             return { opened: true };
         });

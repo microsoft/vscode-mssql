@@ -55,7 +55,7 @@ export function shouldApplyFluentResultGridFrozenOptions(
 ): boolean {
     return (
         options.alwaysShowVerticalScroll !== false ||
-        options.enableMouseWheelScrollHandler !== true ||
+        options.enableMouseWheelScrollHandler !== false ||
         (options.frozenColumn ?? -1) !== columnIndex ||
         options.skipFreezeColumnValidation !== true
     );

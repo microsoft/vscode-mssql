@@ -388,7 +388,9 @@ export function PinnedResultsApp() {
                             loadState: ApiStatus.Error,
                             executionPlanGraphs: [],
                             totalCost: 0,
-                            errorMessage: result.error ?? "Execution plan could not be loaded.",
+                            errorMessage:
+                                result.error ??
+                                locConstants.queryStudioCore.executionPlanCouldNotBeLoaded,
                         } satisfies ExecutionPlanState),
                 );
             })
@@ -451,17 +453,20 @@ export function PinnedResultsApp() {
     }, [panelViewStateReady, resultsMounted]);
 
     if (!state || !panelViewStateReady) {
-        return <div className="qs-muted qs-pinned-loading">Loading pinned results…</div>;
+        return (
+            <div className="qs-muted qs-pinned-loading">
+                {locConstants.queryStudioCore.loadingPinnedResults}
+            </div>
+        );
     }
     if (state.expired) {
         return (
             <div className="qs-pinned-expired" role="alert">
                 <span className="codicon codicon-pinned" aria-hidden="true" />
-                <h3>These pinned results are no longer available</h3>
+                <h3>{locConstants.queryStudioCore.thesePinnedResultsAreNoLongerAvailable}</h3>
                 <p className="qs-muted">
-                    Pinned results live in memory for this window session. They are released when
-                    the tab closes, when the window reloads, or when the retention limit or
-                    time-to-live is reached. Re-run the query and pin the results again.
+                    {" "}
+                    {locConstants.queryStudioCore.pinnedResultsLiveInMemoryForThisWindow}{" "}
                 </p>
             </div>
         );
@@ -472,11 +477,20 @@ export function PinnedResultsApp() {
         <div className="qs-root qs-pinned-root">
             <div className="qs-pinned-header">
                 <span className="codicon codicon-pinned" aria-hidden="true" />
-                <span className="qs-pinned-title">{state.sourceTitle ?? "Query results"}</span>
+                <span className="qs-pinned-title">
+                    {state.sourceTitle ?? locConstants.queryStudioCore.queryResults}
+                </span>
                 <span className="qs-muted">
-                    {state.totalRows.toLocaleString()} row{state.totalRows === 1 ? "" : "s"} ·{" "}
-                    {state.resultSets.length} result set{state.resultSets.length === 1 ? "" : "s"}
-                    {created ? ` · pinned ${created.toLocaleTimeString()}` : ""} · read-only
+                    {state.totalRows.toLocaleString()} {"row"}
+                    {state.totalRows === 1 ? "" : "s"} · {state.resultSets.length}{" "}
+                    {locConstants.queryStudioCore.resultSet}
+                    {state.resultSets.length === 1 ? "" : "s"}
+                    {created
+                        ? locConstants.queryStudioCore.pinnedValue(
+                              String(created.toLocaleTimeString()),
+                          )
+                        : ""}{" "}
+                    {locConstants.queryStudioCore.readOnly}{" "}
                 </span>
             </div>
             <div className="qs-tabbar" role="tablist">
@@ -488,13 +502,21 @@ export function PinnedResultsApp() {
                         className={`qs-tab ${visibleActiveTab === tab ? "active" : ""} ${tab === "messages" && state.errorCount > 0 ? "has-errors" : ""}`}
                         onClick={() => selectTab(tab)}>
                         {tab === "results"
-                            ? `Results${state.totalRows > 0 ? ` (${state.totalRows.toLocaleString()})` : ""}`
+                            ? locConstants.queryStudioCore.resultsValue(
+                                  String(
+                                      state.totalRows > 0
+                                          ? ` (${state.totalRows.toLocaleString()})`
+                                          : "",
+                                  ),
+                              )
                             : tab === "messages"
-                              ? `Messages${state.errorCount > 0 ? ` (${state.errorCount} ⚠)` : ""}`
+                              ? locConstants.queryStudioCore.messagesValue(
+                                    String(state.errorCount > 0 ? ` (${state.errorCount} ⚠)` : ""),
+                                )
                               : tab === "vector"
                                 ? "Vector"
                                 : tab === "queryPlan"
-                                  ? `Query Plan${planSummaries.length > 1 ? ` (${planSummaries.length})` : ""}`
+                                  ? locConstants.queryResult.queryPlan(planSummaries.length)
                                   : locConstants.spatialResults.spatial}
                     </button>
                 ))}
@@ -507,7 +529,7 @@ export function PinnedResultsApp() {
                         ref={resultsPanelRef}
                         onScroll={persistResultsScroll}>
                         <QueryStudioErrorBoundary
-                            label="Results"
+                            label={locConstants.queryStudioCore.results}
                             resetKey={`results:${panelViewStateRef.current.generation}`}
                             onError={reportPaneError}>
                             <QsResultsGridProvider>
@@ -559,11 +581,13 @@ export function PinnedResultsApp() {
                         className="qs-tab-panel qs-tab-panel-fill"
                         hidden={visibleActiveTab !== "messages"}>
                         <QueryStudioErrorBoundary
-                            label="Messages"
+                            label={locConstants.queryStudioCore.messages}
                             resetKey={`messages:${panelViewStateRef.current.generation}`}
                             onError={reportPaneError}>
                             {state.hasLocalMessages && !messagesLoaded ? (
-                                <div className="qs-muted qs-pinned-loading">Loading messages…</div>
+                                <div className="qs-muted qs-pinned-loading">
+                                    {locConstants.queryStudioCore.loadingMessages}
+                                </div>
                             ) : (
                                 <MessagesView
                                     rpc={rpc}
@@ -636,13 +660,14 @@ export function PinnedResultsApp() {
                         className="qs-tab-panel qs-tab-panel-fill"
                         hidden={visibleActiveTab !== "queryPlan"}>
                         <QueryStudioErrorBoundary
-                            label="Query Plan"
+                            label={locConstants.queryStudioCore.queryPlan}
                             resetKey={`plan:${panelViewStateRef.current.generation}`}
                             onError={reportPaneError}>
                             <React.Suspense
                                 fallback={
                                     <div className="qs-muted qs-pinned-loading">
-                                        Loading plan view…
+                                        {" "}
+                                        {locConstants.queryStudioCore.loadingPlanView}{" "}
                                     </div>
                                 }>
                                 <LazyPlanTab

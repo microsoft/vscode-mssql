@@ -6,6 +6,7 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import { finished } from "stream/promises";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -20,6 +21,8 @@ import { typedCellTextForPurpose } from "../sharedInterfaces/queryResultCellCode
 import { cellTextForPurpose } from "../sharedInterfaces/queryStudioGridOps";
 import { cellDocumentText } from "./cellDocument";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
+import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
+import type { IQueryResultStore } from "../queryResults/queryResultTypes";
 
 const INSERT_BATCH_SIZE = 1000;
 /** Coalesce generator pieces into writes of roughly this many chars. */
@@ -30,6 +33,10 @@ interface ExportOptions {
     summary: QsResultSetSummary;
     format: QsSaveResultFormat;
     selection?: readonly QsResultSelectionRange[];
+    /** A completed set remains exportable while later batches are executing. */
+    isExecuting?: boolean;
+    /** Hold the selected run's data while the Save dialog or export is in progress. */
+    store?: IQueryResultStore;
     getRows: (resultSetId: string, start: number, count: number) => Promise<QsCellWindow>;
 }
 
@@ -68,6 +75,28 @@ export async function saveQueryStudioResult(options: ExportOptions): Promise<{
     canceled?: boolean;
     error?: string;
 }> {
+    // Check before opening Save As: its selection only includes rows available
+    // now, even if the query finishes while the user chooses the destination.
+    if (options.isExecuting && !options.summary.complete) {
+        const message = LocalizedConstants.msgSaveResultsWhileLoading;
+        void vscode.window.showWarningMessage(message);
+        return { saved: false, error: message };
+    }
+    const lease = options.store?.retain({
+        kind: "export",
+        label: LocalizedConstants.msgExportingResults,
+    });
+    if (options.store && !lease) {
+        return { saved: false, error: QueryStudioCoreLoc.resultSetNotFound };
+    }
+    try {
+        return await saveQueryStudioResultToFile(options);
+    } finally {
+        lease?.dispose();
+    }
+}
+
+async function saveQueryStudioResultToFile(options: ExportOptions) {
     const target = await promptForExportUri(options.sourceUri, options.format);
     if (!target) {
         return { saved: false, canceled: true };
@@ -157,6 +186,9 @@ async function writeExport(
         },
         async (progress, token) => {
             const stream = fs.createWriteStream(target.fsPath, { encoding });
+            const closed = finished(stream);
+            // Observe early open/write failures, even while awaiting rows.
+            void closed.catch(() => undefined);
             let rows = 0;
             let bytes = 0;
             let buffer = "";
@@ -169,13 +201,14 @@ async function writeExport(
                 bytes += Buffer.byteLength(piece, encoding);
                 await streamWrite(stream, piece);
                 progress.report({
-                    message: `${rows.toLocaleString()} rows`,
+                    message: QueryStudioCoreLoc.valueRows(String(rows.toLocaleString())),
                 });
             };
             try {
                 for await (const piece of pieces) {
                     if (token.isCancellationRequested) {
                         stream.destroy();
+                        await closed.catch(() => undefined);
                         await fs.promises.rm(target.fsPath, { force: true });
                         return { rows, bytes, canceled: true, streamed: true };
                     }
@@ -186,10 +219,14 @@ async function writeExport(
                     }
                 }
                 await flush();
-                await streamEnd(stream);
+                stream.end();
+                await closed;
                 return { rows, bytes, streamed: true };
             } catch (error) {
                 stream.destroy();
+                // createWriteStream opens asynchronously. Wait for close so
+                // it cannot recreate a partial file after cleanup returns.
+                await closed.catch(() => undefined);
                 await fs.promises.rm(target.fsPath, { force: true }).catch(() => undefined);
                 throw error;
             }
@@ -200,12 +237,6 @@ async function writeExport(
 function streamWrite(stream: fs.WriteStream, text: string): Promise<void> {
     return new Promise((resolve, reject) => {
         stream.write(text, (error) => (error ? reject(error) : resolve()));
-    });
-}
-
-function streamEnd(stream: fs.WriteStream): Promise<void> {
-    return new Promise((resolve, reject) => {
-        stream.end((error: Error | null | undefined) => (error ? reject(error) : resolve()));
     });
 }
 
@@ -353,6 +384,9 @@ async function* readExportRows(
     for (let start = range.rowStart; start <= range.rowEnd; start += chunkRows) {
         const count = Math.min(chunkRows, range.rowEnd - start + 1);
         const window = await options.getRows(options.summary.resultSetId, start, count);
+        if (window.values.length !== count) {
+            throw new Error(QueryStudioCoreLoc.incompleteExportResults);
+        }
         const isNull = windowNullFlags(window);
         for (let row = 0; row < window.values.length; row++) {
             const cells: ExportCell[] = [];
@@ -363,9 +397,6 @@ async function* readExportRows(
                 });
             }
             yield { cells };
-        }
-        if (window.values.length < count) {
-            return;
         }
     }
 }

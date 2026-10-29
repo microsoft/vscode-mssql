@@ -16,6 +16,7 @@ import * as vscode from "vscode";
 import { isQueryStudioEnabled } from "../../../queryStudio/queryStudioFeatureGate";
 import { diag } from "../../../diagnostics/diagnosticsCore";
 import { ObjectExplorerV2, QueryStudio } from "../../../constants/locConstants";
+import { configPreventAutoExecuteScript } from "../../../constants/constants";
 import { OeV2Node } from "../tree/oeV2Node";
 import { OeV2TreeController } from "../tree/oeV2TreeController";
 import { qualifiedName, selectTopSql } from "./sqlIdentifierFormatter";
@@ -54,10 +55,19 @@ async function openQueryStudioFromContext(args: {
 async function scriptObjectFromContext(
     getController: () => OeV2TreeController | undefined,
     node: OeV2Node | undefined,
-    operation: "create" | "drop" | "execute",
+    operation: "create" | "alter" | "drop" | "execute",
 ): Promise<void> {
     const controller = getController();
     if (!isQueryStudioEnabled() || !controller || !node?.connectionId || !node.database) {
+        return;
+    }
+    const capability = {
+        create: "canScriptCreate",
+        alter: "canScriptAlter",
+        drop: "canGenerateScript",
+        execute: "canScriptExecute",
+    } as const;
+    if (!node.capabilities[capability[operation]]) {
         return;
     }
     emitCommand(`script.${operation}`, "native", node);
@@ -143,7 +153,13 @@ export function registerOeV2NativeCommands(
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.selectTop",
             async (node?: OeV2Node) => {
-                if (!isEnabled() || !node?.connectionId || !node.schema || !node.objectName) {
+                if (
+                    !isEnabled() ||
+                    !node?.connectionId ||
+                    !node.schema ||
+                    !node.objectName ||
+                    node.capabilities.canSelectTop !== true
+                ) {
                     return;
                 }
                 emitCommand("selectTop", "native", node);
@@ -155,12 +171,17 @@ export function registerOeV2NativeCommands(
                         node.objectName,
                         SCRIPT_SELECT_TOP_ROW_LIMIT,
                     ),
-                    autoRun: true,
+                    autoRun: !vscode.workspace
+                        .getConfiguration()
+                        .get<boolean>(configPreventAutoExecuteScript, false),
                 });
             },
         ),
         vscode.commands.registerCommand("mssql.objectExplorerV2.scriptCreate", (node?: OeV2Node) =>
             isEnabled() ? scriptObjectFromContext(getController, node, "create") : undefined,
+        ),
+        vscode.commands.registerCommand("mssql.objectExplorerV2.scriptAlter", (node?: OeV2Node) =>
+            isEnabled() ? scriptObjectFromContext(getController, node, "alter") : undefined,
         ),
         vscode.commands.registerCommand("mssql.objectExplorerV2.scriptDrop", (node?: OeV2Node) =>
             isEnabled() ? scriptObjectFromContext(getController, node, "drop") : undefined,

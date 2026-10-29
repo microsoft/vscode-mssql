@@ -610,7 +610,7 @@ suite("Legacy v1 trace byte parity (journalPrimary off)", () => {
         expect(JSON.stringify(trace, undefined, 2)).to.equal(JSON.stringify(golden, undefined, 2));
     });
 
-    test("redactPrompts golden parity: prompt/response/schema keys tokenized, rest untouched", () => {
+    test("redactPrompts redacts prompts, responses, schema and local SQL while retaining metrics", () => {
         const link: ObservabilityLinkV1 = {
             schema: "mssql.observabilityLink/1",
             featureId: "completions",
@@ -638,8 +638,7 @@ suite("Legacy v1 trace byte parity (journalPrimary off)", () => {
         expect(exported.rawResponse).to.equal("[REDACTED]");
         expect(exported.finalCompletionText).to.equal("[REDACTED]");
         expect(exported.schemaContextFormatted).to.equal("[REDACTED]");
-        // v1 redactPrompts never touched locals — parity preserved.
-        expect(exported.locals?.linePrefix).to.equal("SELECT * FR");
+        expect(exported.locals?.linePrefix).to.equal("[REDACTED]");
         expect(exported.latencyMs).to.equal(42);
     });
 });

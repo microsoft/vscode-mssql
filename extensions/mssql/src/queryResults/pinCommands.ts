@@ -14,6 +14,7 @@
 import { getQueryResultAccessService } from "./queryResultAccessService";
 import { resolveQueryResultsParams } from "./queryResultsParams";
 import { openPinnedResultsDocument } from "./pinnedResultsDocumentProvider";
+import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
 import { QueryResultAccessError } from "./queryResultTypes";
 
 export interface PinOutcome {
@@ -33,7 +34,7 @@ export async function pinSourceResults(
     if (!resolveQueryResultsParams().params.pinnedDocumentsEnabled) {
         return {
             opened: false,
-            error: "Pinned result documents are disabled (mssql.queryResults.pinnedDocuments.enabled).",
+            error: QueryStudioCoreLoc.pinnedResultDocumentsAreDisabledMssqlQueryResultsPinnedDocuments,
         };
     }
     try {
@@ -49,7 +50,7 @@ export async function pinSourceResults(
             const opened = await openPinnedResultsDocument(lease.snapshotId);
             return opened
                 ? { opened, snapshotId: lease.snapshotId }
-                : { opened, error: "The pinned results tab could not be opened." };
+                : { opened, error: QueryStudioCoreLoc.thePinnedResultsTabCouldNotBeOpened };
         } finally {
             lease.dispose();
         }

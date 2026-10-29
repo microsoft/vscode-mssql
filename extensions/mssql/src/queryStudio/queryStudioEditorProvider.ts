@@ -12,7 +12,10 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
-import { QueryStudio as QueryStudioLoc } from "../constants/locConstants";
+import {
+    QueryStudio as QueryStudioLoc,
+    QueryStudioCore as QueryStudioCoreLoc,
+} from "../constants/locConstants";
 import { PrivatePreviewContextKey } from "../previews/previewService";
 import { isQueryStudioEnabled, isQueryStudioResource } from "./queryStudioFeatureGate";
 import { diag } from "../diagnostics/diagnosticsCore";
@@ -33,11 +36,16 @@ import {
 } from "../queryResults/queryResultContextService";
 import { buildQueryResultsStatusDocument } from "../queryResults/queryResultsStatus";
 import { registerPinnedResultsEditor } from "../queryResults/pinnedResultsDocumentProvider";
-import { stopSpillSessionLock, sweepOrphanSpillDirs } from "../queryResults/spillHygiene";
+import {
+    documentSpillDirName,
+    stopSpillSessionLock,
+    sweepOrphanSpillDirs,
+} from "../queryResults/spillHygiene";
 import { QueryStudioDocumentRegistry } from "./queryStudioDocumentRegistry";
 import {
     queryStudioHotExitBackupRoot,
     restoreQueryStudioHotExitBackup,
+    registerQueryStudioHotExitCleanup,
 } from "./queryStudioHotExitBackup";
 import { LanguageServiceStatus } from "./queryStudioLanguageService";
 import { QueryStudioReplayController } from "./replay/queryStudioReplayController";
@@ -67,6 +75,7 @@ const PROBLEM_REDIRECT_SELECTION_SETTLE_MS = 25;
  * instead of creating a fresh one. Entries expire — see the continuity watcher.
  */
 const pendingModelTransplants = new Map<string, QueryStudioDocumentModel>();
+const freshDocumentUris = new Set<string>();
 
 export function findQueryStudioModel(uri: vscode.Uri): QueryStudioDocumentModel | undefined {
     return liveModels.get(uri.toString());
@@ -89,7 +98,11 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
     });
     private models = new Map<string, QueryStudioDocumentModel>();
 
-    constructor(private readonly context: vscode.ExtensionContext) {}
+    constructor(private readonly context: vscode.ExtensionContext) {
+        context.subscriptions.push(
+            registerQueryStudioHotExitCleanup(queryStudioHotExitBackupRoot(context.storageUri)),
+        );
+    }
 
     async resolveCustomTextEditor(
         document: vscode.TextDocument,
@@ -97,8 +110,12 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
         _token: vscode.CancellationToken,
     ): Promise<void> {
         Perf.marker("mssql.queryStudio.open.begin", "begin");
-        const backupRoot = queryStudioHotExitBackupRoot(this.context.globalStorageUri);
-        const restored = await restoreQueryStudioHotExitBackup(backupRoot, document);
+        const backupRoot = queryStudioHotExitBackupRoot(this.context.storageUri);
+        const restored = await restoreQueryStudioHotExitBackup(
+            backupRoot,
+            document,
+            freshDocumentUris.delete(document.uri.toString()),
+        );
         const backingDocument = restored.document;
         const uriKey = backingDocument.uri.toString();
         diag.emit({
@@ -137,7 +154,7 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
             const spillRoot = path.join(
                 this.context.globalStorageUri.fsPath,
                 "querystudio-spill",
-                Buffer.from(uriKey).toString("base64url").slice(0, 32),
+                documentSpillDirName(uriKey),
             );
             model = new QueryStudioDocumentModel(backingDocument, spillRoot, backupRoot, (m) => {
                 this.models.delete(m.uriKey);
@@ -151,7 +168,9 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
         }
         model.panelCount++;
 
-        const controller = new QueryStudioController(this.context, panel, model);
+        const controller = new QueryStudioController(this.context, panel, model, (saveAs) =>
+            this.saveDocument(model, saveAs),
+        );
         liveControllers.add(controller);
         // Open-from-context (OE v2): a queued context connects the fresh
         // model to its profile (and optionally runs) once the panel exists.
@@ -182,6 +201,53 @@ export class QueryStudioEditorProvider implements vscode.CustomTextEditorProvide
         });
     }
 
+    /** Save through VS Code and adopt only the exact URI returned by Save As. */
+    private async saveDocument(model: QueryStudioDocumentModel, saveAs: boolean): Promise<void> {
+        const source = model.backingDocument.uri;
+        // Save As can close the old custom-editor panel before returning its
+        // target. Keep the connection/results alive until the replacement opens.
+        model.panelCount++;
+        try {
+            const target = await (saveAs || model.backingDocument.isUntitled
+                ? vscode.workspace.saveAs(source)
+                : vscode.workspace.save(source));
+            if (
+                !target ||
+                target.toString() === source.toString() ||
+                !isQueryStudioResource(target)
+            ) {
+                return;
+            }
+            const targetKey = target.toString();
+            const replacementTabs = vscode.window.tabGroups.all
+                .flatMap((group) => group.tabs)
+                .filter(
+                    (tab) =>
+                        tab.input instanceof vscode.TabInputCustom &&
+                        tab.input.viewType === QUERY_STUDIO_VIEW_TYPE &&
+                        tab.input.uri.toString() === targetKey,
+                );
+            // VS Code may have resolved a fresh target editor during Save As.
+            // Reopen it with the existing model instead of silently losing results.
+            if (replacementTabs.length) {
+                if (!(await vscode.window.tabGroups.close(replacementTabs, true))) return;
+            }
+            pendingModelTransplants.set(targetKey, model);
+            try {
+                await adoptSaveAsTarget(target, targetKey, source.toString());
+            } finally {
+                pendingModelTransplants.delete(targetKey);
+            }
+        } finally {
+            model.panelCount = Math.max(0, model.panelCount - 1);
+            if (model.panelCount === 0) {
+                this.models.delete(model.uriKey);
+                liveModels.delete(model.uriKey);
+                model.dispose();
+            }
+        }
+    }
+
     /** Deactivate sweep (doc 04 §7.3). */
     async disposeAll(): Promise<void> {
         for (const model of [...this.models.values()]) {
@@ -206,7 +272,11 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand("mssql.perf.queryStudioConnect", async (uri?: string) => {
             const model = uri ? liveModels.get(uri) : liveModels.values().next().value;
             if (!model) {
-                return { error: `no live Query Studio model${uri ? ` for ${uri}` : ""}` };
+                return {
+                    error: QueryStudioCoreLoc.noLiveQueryStudioModelValue(
+                        String(uri ? ` for ${uri}` : ""),
+                    ),
+                };
             }
             const connected = await model.sessionBinding.connect();
             return { connected };
@@ -219,13 +289,15 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
                     : liveModels.values().next().value;
                 if (!model) {
                     return {
-                        error: `no live Query Studio model${args?.uri ? ` for ${args.uri}` : ""}`,
+                        error: QueryStudioCoreLoc.noLiveQueryStudioModelValue(
+                            String(args?.uri ? ` for ${args.uri}` : ""),
+                        ),
                     };
                 }
                 const text = args?.text ?? model.backingDocument?.getText() ?? "";
                 await model.sessionBinding.waitForUserSessionReady();
                 return model.executionHost.execute(text, {
-                    selectionStartLine: 0,
+                    selectionStartLine: 1,
                     scope: "document",
                 });
             },
@@ -233,7 +305,11 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand("mssql.perf.queryStudioCancel", async (uri?: string) => {
             const model = uri ? liveModels.get(uri) : liveModels.values().next().value;
             if (!model) {
-                return { error: `no live Query Studio model${uri ? ` for ${uri}` : ""}` };
+                return {
+                    error: QueryStudioCoreLoc.noLiveQueryStudioModelValue(
+                        String(uri ? ` for ${uri}` : ""),
+                    ),
+                };
             }
             return model.executionHost.cancel();
         }),
@@ -248,7 +324,9 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
             const model = uri ? liveModels.get(uri) : liveModels.values().next().value;
             if (!model) {
                 return {
-                    error: `no live Query Studio model${uri ? ` for ${uri}` : ""}`,
+                    error: QueryStudioCoreLoc.noLiveQueryStudioModelValue(
+                        String(uri ? ` for ${uri}` : ""),
+                    ),
                 };
             }
             const request = model.requestActivateTab(activation);
@@ -267,7 +345,9 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
             const model = uri ? liveModels.get(uri) : liveModels.values().next().value;
             if (!model) {
                 return {
-                    error: `no live Query Studio model${uri ? ` for ${uri}` : ""}`,
+                    error: QueryStudioCoreLoc.noLiveQueryStudioModelValue(
+                        String(uri ? ` for ${uri}` : ""),
+                    ),
                 };
             }
             const request = model.requestPerfInteraction(action);
@@ -276,7 +356,11 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand("mssql.perf.queryStudioState", (uri?: string) => {
             const model = uri ? liveModels.get(uri) : liveModels.values().next().value;
             if (!model) {
-                return { error: `no live Query Studio model${uri ? ` for ${uri}` : ""}` };
+                return {
+                    error: QueryStudioCoreLoc.noLiveQueryStudioModelValue(
+                        String(uri ? ` for ${uri}` : ""),
+                    ),
+                };
             }
             const results = model.executionHost.resultsState();
             const metadata = model.sessionBinding.metadataStatus;
@@ -337,8 +421,10 @@ function registerQueryResultsLifecycle(context: vscode.ExtensionContext): void {
                     ? liveModels.get(args.uri)
                     : liveModels.values().next().value;
                 if (!model) {
-                    void vscode.window.showInformationMessage("No Query Studio document is open.");
-                    return { opened: false, error: "No Query Studio document is open." };
+                    void vscode.window.showInformationMessage(
+                        QueryStudioCoreLoc.noQueryStudioDocumentIsOpen,
+                    );
+                    return { opened: false, error: QueryStudioCoreLoc.noQueryStudioDocumentIsOpen };
                 }
                 const outcome = await pinSourceResults(model.liveResultSource.sourceId);
                 if (!outcome.opened && outcome.error) {
@@ -437,7 +523,7 @@ export function registerQueryStudio(context: vscode.ExtensionContext): void {
 function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
     registerQueryStudioPerfProbe(context);
     registerQueryStudioActiveTextEditorRedirect(context);
-    registerQueryStudioSaveAsContinuity(context);
+
     registerQueryResultsLifecycle(context);
     // mssql-def: virtual documents for scripted go-to-definition (LS-4);
     // registered once with the QS surface, shared by every controller.
@@ -448,6 +534,7 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                 language: "sql",
                 content: "",
             });
+            freshDocumentUris.add(doc.uri.toString());
             await vscode.commands.executeCommand(
                 "vscode.openWith",
                 doc.uri,
@@ -469,6 +556,7 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                     language: "sql",
                     content: args?.initialSql ?? "",
                 });
+                freshDocumentUris.add(doc.uri.toString());
                 if (args?.profileId) {
                     pendingOpenContexts.set(doc.uri.toString(), {
                         profileId: args.profileId,
@@ -514,6 +602,7 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                     language: "sql",
                     content: source?.getText() ?? "",
                 });
+                freshDocumentUris.add(doc.uri.toString());
                 await vscode.commands.executeCommand(
                     "vscode.openWith",
                     doc.uri,
@@ -527,7 +616,7 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                 .next().value;
             if (!controller) {
                 void vscode.window.showInformationMessage(
-                    "No Query Studio document is open — open one to inspect its language service.",
+                    QueryStudioCoreLoc.noQueryStudioDocumentIsOpenOpenOne,
                 );
                 return;
             }
@@ -563,7 +652,7 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                     : liveModels.values().next().value;
                 if (!model) {
                     void vscode.window.showInformationMessage(
-                        "No Query Studio document is open — open one to pick its SQL provider.",
+                        QueryStudioCoreLoc.noQueryStudioDocumentIsOpenOpenOne2,
                     );
                     return;
                 }
@@ -584,12 +673,14 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                         backendKind: entry.kind,
                     }));
                 picks.push({
-                    label: "Use workspace default",
-                    description: `clear the per-document override (${registry.defaultBackendKind()})`,
+                    label: QueryStudioCoreLoc.useWorkspaceDefault,
+                    description: QueryStudioCoreLoc.clearThePerDocumentOverrideValue(
+                        String(registry.defaultBackendKind()),
+                    ),
                     backendKind: undefined,
                 });
                 const picked = await vscode.window.showQuickPick(picks, {
-                    title: "Query Studio: SQL provider for this document (next connect)",
+                    title: QueryStudioCoreLoc.queryStudioSQLProviderForThisDocumentNext,
                 });
                 if (!picked) {
                     return;
@@ -598,91 +689,15 @@ function registerQueryStudioFeatures(context: vscode.ExtensionContext): void {
                 const effective = picked.backendKind ?? registry.defaultBackendKind();
                 if (binding.activeBackendKind && binding.activeBackendKind !== effective) {
                     void vscode.window.showInformationMessage(
-                        `This document will use ${registry.displayNameFor(effective)} on its next connect. ` +
-                            `The current session stays on ${binding.activeBackendKind} until you reconnect.`,
+                        QueryStudioCoreLoc.providerChangeAfterReconnect(
+                            String(registry.displayNameFor(effective)),
+                            String(binding.activeBackendKind),
+                        ),
                     );
                 }
             },
         ),
         { dispose: () => replayController?.dispose() },
-    );
-}
-
-/** EOL/final-newline save transforms must not break Save As source matching. */
-function normalizeForSaveAsMatch(text: string): string {
-    return text.replace(/\r\n/g, "\n").trimEnd();
-}
-
-/**
- * Save As continuity (doc 04 §7.2 gap): VS Code does not reliably replace a
- * custom-editor tab on Save As — an untitled Query Studio tab is left
- * ORPHANED (backing document gone, results webview still showing) while the
- * content lands in the target file, and a titled Save As reopens the target
- * as a fresh document that would lose the session. Tab events never fire for
- * the orphan, so the watcher keys off the DOCUMENT save instead: a saved
- * .mssql file that is not an open Query Studio document but textually
- * matches a live model is that model's Save As target. The model itself
- * (connection, results, spill) is transplanted to the new URI, the target is
- * ensured open in Query Studio, and the orphaned source tab is closed.
- */
-function registerQueryStudioSaveAsContinuity(context: vscode.ExtensionContext): void {
-    // A resolve normally lands well under a second after the save; expired
-    // entries mean the user saved a copy without reopening it — never adopt
-    // an unrelated later open.
-    const TRANSPLANT_WINDOW_MS = 5000;
-    // Small grace so VS Code's own editor replacement (when it works) runs
-    // first and the ensure step only fills the gaps.
-    const ENSURE_DELAY_MS = 200;
-    context.subscriptions.push(
-        vscode.workspace.onDidSaveTextDocument((saved) => {
-            if (saved.uri.scheme !== "file" || !isQueryStudioResource(saved.uri)) {
-                return;
-            }
-            const savedKey = saved.uri.toString();
-            if (liveModels.has(savedKey)) {
-                return; // ordinary Save of an already-open Query Studio doc
-            }
-            const savedText = normalizeForSaveAsMatch(saved.getText());
-            let source: QueryStudioDocumentModel | undefined;
-            for (const model of liveModels.values()) {
-                try {
-                    if (
-                        model.panelCount > 0 &&
-                        model.backingDocument.uri.toString() !== savedKey &&
-                        normalizeForSaveAsMatch(model.backingDocument.getText()) === savedText
-                    ) {
-                        source = model;
-                        break;
-                    }
-                } catch {
-                    // A closed backing document that cannot be read cannot match.
-                }
-            }
-            if (!source) {
-                return;
-            }
-            const sourceModel = source;
-            const sourceUriKey = sourceModel.uriKey;
-            pendingModelTransplants.set(savedKey, sourceModel);
-            setTimeout(() => {
-                if (pendingModelTransplants.get(savedKey) === sourceModel) {
-                    pendingModelTransplants.delete(savedKey);
-                }
-            }, TRANSPLANT_WINDOW_MS);
-            // Fallback if the transplant window is missed: at least the
-            // connection context survives into the fresh model.
-            const profileId = sourceModel.sessionBinding.currentProfileId;
-            const database = sourceModel.sessionBinding.connectionState.database;
-            if (profileId) {
-                pendingOpenContexts.set(savedKey, {
-                    profileId,
-                    ...(database ? { database } : {}),
-                });
-            }
-            setTimeout(() => {
-                void adoptSaveAsTarget(saved.uri, savedKey, sourceUriKey);
-            }, ENSURE_DELAY_MS);
-        }),
     );
 }
 

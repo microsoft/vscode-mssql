@@ -84,6 +84,7 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
             },
         ],
     },
+
     // -------------------------------------------------------- 2b_tableActions
     {
         id: "mssql.objectExplorerV2.editTableData",

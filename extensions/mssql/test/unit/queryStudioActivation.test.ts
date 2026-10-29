@@ -32,6 +32,17 @@ suite("Query Studio activation contribution", () => {
             (item: { id: string }) => item.id === "sql",
         );
         expect(language.extensions).to.include.members([".sql", ".mssql"]);
+        for (const group of manifest.contributes.configuration) {
+            for (const [key, setting] of Object.entries(group.properties ?? {})) {
+                if (
+                    /^mssql\.queryStudio\.(spatial|vectorWorkbench|replay)(\.|$).*enabled$/.test(
+                        key,
+                    )
+                ) {
+                    expect((setting as { default: unknown }).default, key).to.equal(false);
+                }
+            }
+        }
     });
 
     test("accepts untitled and remote .mssql documents but excludes ordinary SQL files", () => {

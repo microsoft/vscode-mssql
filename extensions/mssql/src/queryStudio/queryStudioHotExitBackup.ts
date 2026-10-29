@@ -17,6 +17,45 @@ import { textHash } from "./textSync";
 
 export const QUERY_STUDIO_HOT_EXIT_BACKUP_FOLDER = "query-studio-hot-exit";
 
+// Serialize writes and removal per backup URI, including writes queued before
+// a discard. Capture text at enqueue time, before a TextDocument can close.
+const pendingBackups = new Map<string, Promise<void>>();
+
+function queueBackup(uri: vscode.Uri, operation: () => Promise<void>): Promise<void> {
+    const key = uri.toString();
+    const pending = (pendingBackups.get(key) ?? Promise.resolve())
+        .catch(() => undefined)
+        .then(operation);
+    pendingBackups.set(key, pending);
+    const settled = () => {
+        if (pendingBackups.get(key) === pending) {
+            pendingBackups.delete(key);
+        }
+    };
+    void pending.then(settled, settled);
+    return pending;
+}
+
+/** A real document close discards its backup; panel disposal/reload does not. */
+export function registerQueryStudioHotExitCleanup(root: vscode.Uri | undefined): vscode.Disposable {
+    return vscode.workspace.onDidCloseTextDocument(async (document) => {
+        if (!root || document.uri.scheme !== "untitled") {
+            return;
+        }
+        // A language change closes and reopens the same URI. Let the paired
+        // open event arrive before deciding whether the resource was closed.
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        if (
+            vscode.workspace.textDocuments.some(
+                (open) => open.uri.toString() === document.uri.toString(),
+            )
+        ) {
+            return;
+        }
+        await deleteQueryStudioHotExitBackup(root, document.uri);
+    });
+}
+
 interface QueryStudioHotExitBackupPayload {
     version: 1;
     uri: string;
@@ -32,8 +71,14 @@ export interface QueryStudioHotExitRestoreResult {
     chars?: number;
 }
 
-export function queryStudioHotExitBackupRoot(globalStorageUri: vscode.Uri): vscode.Uri {
-    return vscode.Uri.joinPath(globalStorageUri, QUERY_STUDIO_HOT_EXIT_BACKUP_FOLDER);
+export function queryStudioHotExitBackupRoot(
+    storageUri: vscode.Uri | undefined,
+): vscode.Uri | undefined {
+    // Untitled URI counters are reused across windows. A global backup root
+    // could restore another workspace's query into an unrelated empty editor.
+    return storageUri
+        ? vscode.Uri.joinPath(storageUri, QUERY_STUDIO_HOT_EXIT_BACKUP_FOLDER)
+        : undefined;
 }
 
 export function queryStudioHotExitBackupUri(root: vscode.Uri, documentUri: vscode.Uri): vscode.Uri {
@@ -53,7 +98,6 @@ export async function persistQueryStudioHotExitBackup(
         await deleteQueryStudioHotExitBackup(root, document.uri);
         return;
     }
-    await vscode.workspace.fs.createDirectory(root);
     const payload: QueryStudioHotExitBackupPayload = {
         version: 1,
         uri: document.uri.toString(),
@@ -62,18 +106,24 @@ export async function persistQueryStudioHotExitBackup(
         textHash: textHash(text),
         updatedUtc: new Date().toISOString(),
     };
-    await vscode.workspace.fs.writeFile(
-        queryStudioHotExitBackupUri(root, document.uri),
-        Buffer.from(JSON.stringify(payload), "utf8"),
-    );
+    const uri = queryStudioHotExitBackupUri(root, document.uri);
+    await queueBackup(uri, async () => {
+        await vscode.workspace.fs.createDirectory(root);
+        await vscode.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(payload), "utf8"));
+    });
 }
 
 export async function restoreQueryStudioHotExitBackup(
-    root: vscode.Uri,
+    root: vscode.Uri | undefined,
     document: vscode.TextDocument,
+    freshDocument = false,
 ): Promise<QueryStudioHotExitRestoreResult> {
     if (document.uri.scheme !== "untitled") {
         return { outcome: "notUntitled", document };
+    }
+    if (!root || freshDocument) {
+        await deleteQueryStudioHotExitBackup(root, document.uri);
+        return { outcome: "notFound", document };
     }
     if (document.getText().length > 0) {
         return { outcome: "alreadyHasText", document, chars: document.getText().length };
@@ -113,13 +163,16 @@ export async function deleteQueryStudioHotExitBackup(
     if (!root || documentUri.scheme !== "untitled") {
         return;
     }
-    try {
-        await vscode.workspace.fs.delete(queryStudioHotExitBackupUri(root, documentUri), {
-            useTrash: false,
-        });
-    } catch {
-        // Best-effort cleanup only.
-    }
+    const uri = queryStudioHotExitBackupUri(root, documentUri);
+    await queueBackup(uri, async () => {
+        try {
+            await vscode.workspace.fs.delete(uri, {
+                useTrash: false,
+            });
+        } catch {
+            // Best-effort cleanup only.
+        }
+    });
 }
 
 async function readBackupPayload(

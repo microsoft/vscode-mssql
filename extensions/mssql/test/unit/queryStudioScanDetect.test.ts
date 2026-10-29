@@ -134,6 +134,12 @@ suite("scan rule: psql", () => {
         for (const text of [
             "SELECT 'C:\\temp\\file.txt' AS p",
             "SELECT '$$' AS marker", // one signal only — not enough
+            "SELECT '$$';\nSELECT '$$';",
+            "SELECT 1 -- plpgsql\nSELECT 2 -- plpgsql",
+            "SELECT [plpgsql];\nSELECT [plpgsql];",
+            'SELECT "plpgsql";\nSELECT "plpgsql";',
+            "SELECT 'one\n$$\nplpgsql';\nSELECT 1;",
+            "SELECT 1 /* $$ */;\nSELECT 2 /* plpgsql */;",
             "-- \\dt is a psql thing\nSELECT 1",
             "SELECT 1\nGO\nSELECT 2",
             "/*\n\\c mydb\n*/\nSELECT 1",

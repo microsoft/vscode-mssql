@@ -63,7 +63,7 @@ suite("Query Studio PERF_MODE Vector actions", () => {
 
     test("normalizes the supported Projection and Search command shapes", () => {
         expect(normalizeQueryStudioPerfActivateTabArgs(undefined)).to.deep.equal({
-            value: { activation: { tab: "vector" } },
+            value: { activation: { tab: "results" } },
         });
         expect(
             normalizeQueryStudioPerfActivateTabArgs({

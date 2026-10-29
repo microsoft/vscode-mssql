@@ -110,6 +110,13 @@ export function normalizeTraceFile(
         const normalized = normalizeFeatureTraceFile(value, source, {
             featureLabel: "an inline completion",
             expectedFeatureId: "completions",
+            normalizeExtra: (raw) => ({
+                customPromptLastSavedAt:
+                    typeof raw.customPromptLastSavedAt === "number" &&
+                    Number.isFinite(raw.customPromptLastSavedAt)
+                        ? raw.customPromptLastSavedAt
+                        : undefined,
+            }),
         });
         const validated = normalizeTraceFile({ ...normalized, schema: undefined }, source);
         return { ...normalized, ...validated } as InlineCompletionDebugExportData;

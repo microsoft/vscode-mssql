@@ -9,13 +9,12 @@
  * pretty-print it as XML or JSON before the host opens it in a side-by-side
  * text document. Malformed input falls back to the raw text — never throws.
  *
- * XML uses a minimal local indenter instead of the shared formatXml: that
- * helper's `import xmlFormatter from "xml-formatter"` default-import only
- * survives the esbuild bundle — under the tsc CommonJS build (vscode-test)
- * it resolves to undefined and formatXml silently returns raw text.
+ * Format the original values without converting JSON numbers to JavaScript
+ * numbers, and use an XML parser that understands attributes and CDATA.
  */
 
 import { cellTextForPurpose } from "../sharedInterfaces/queryStudioGridOps";
+import xmlFormatter = require("xml-formatter");
 
 const XML_INDENT = "    ";
 const XML_EOL = "\r\n";
@@ -37,7 +36,34 @@ export function cellDocumentText(value: unknown): string {
 export function prettyPrintCellText(text: string, format: "xml" | "json"): string {
     if (format === "json") {
         try {
-            return JSON.stringify(JSON.parse(text), undefined, 2);
+            // Validate grammar, but never serialize the parsed value: SQL
+            // bigint/decimal values may exceed JavaScript number precision.
+            JSON.parse(text);
+            const tokens = text.match(/"(?:[^"\\]|\\.)*"|[{}\[\],:]|[^\s{}\[\],:]+/g) ?? [];
+            let depth = 0;
+            let output = "";
+            const newline = () => "\n" + "  ".repeat(depth);
+            for (let i = 0; i < tokens.length; i++) {
+                const token = tokens[i];
+                if (token === "{" || token === "[") {
+                    output += token;
+                    depth++;
+                    if (tokens[i + 1] !== "}" && tokens[i + 1] !== "]") {
+                        output += newline();
+                    }
+                } else if (token === "}" || token === "]") {
+                    depth--;
+                    if (tokens[i - 1] !== "{" && tokens[i - 1] !== "[") {
+                        output += newline();
+                    }
+                    output += token;
+                } else if (token === ",") {
+                    output += token + newline();
+                } else {
+                    output += token === ":" ? ": " : token;
+                }
+            }
+            return output;
         } catch {
             return text;
         }
@@ -46,50 +72,17 @@ export function prettyPrintCellText(text: string, format: "xml" | "json"): strin
 }
 
 /**
- * Minimal XML indenter (4-space indent, CRLF — classic formatXml's defaults).
- * One tag or text run per line; mismatched/unclosed tags return the input
- * unchanged so malformed cells open as-is.
+ * Keep text/CDATA inline so formatting does not insert whitespace into values.
+ * The package exposes a callable CommonJS export and an ES-module default;
+ * handle both the test build and the bundled extension.
  */
 export function indentXml(xml: string): string {
-    const trimmed = xml.trim();
-    if (!(trimmed.startsWith("<") && trimmed.endsWith(">"))) {
-        return xml;
-    }
-    const tokens = trimmed.match(/<[^>]*>|[^<]+/g);
-    if (!tokens) {
-        return xml;
-    }
-    const lines: string[] = [];
-    const stack: string[] = [];
-    for (const token of tokens) {
-        if (token.startsWith("</")) {
-            if (stack.length === 0 || stack[stack.length - 1] !== tagName(token)) {
-                return xml; // mismatched close — leave malformed input raw
-            }
-            stack.pop();
-            lines.push(XML_INDENT.repeat(stack.length) + token);
-        } else if (token.startsWith("<")) {
-            lines.push(XML_INDENT.repeat(stack.length) + token);
-            const selfContained =
-                token.endsWith("/>") || // self-closing element
-                token.startsWith("<?") || // processing instruction / declaration
-                token.startsWith("<!"); // comment / doctype / CDATA
-            if (!selfContained) {
-                stack.push(tagName(token));
-            }
-        } else {
-            const text = token.trim();
-            if (text.length > 0) {
-                lines.push(XML_INDENT.repeat(stack.length) + text);
-            }
-        }
-    }
-    if (stack.length > 0) {
-        return xml; // unclosed tags — leave malformed input raw
-    }
-    return lines.join(XML_EOL);
-}
-
-function tagName(tag: string): string {
-    return /^<\/?\s*([^\s/>]+)/.exec(tag)?.[1] ?? "";
+    const format = (xmlFormatter.default ?? xmlFormatter) as typeof xmlFormatter.default;
+    return format(xml, {
+        indentation: XML_INDENT,
+        lineSeparator: XML_EOL,
+        collapseContent: true,
+        strictMode: true,
+        throwOnFailure: false,
+    });
 }

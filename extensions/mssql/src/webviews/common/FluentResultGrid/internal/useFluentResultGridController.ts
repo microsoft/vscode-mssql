@@ -487,7 +487,9 @@ export function useFluentResultGridController({
             enableExcelCopyBuffer: false,
             enableGridMenu: true,
             enableSorting: false,
-            enableMouseWheelScrollHandler: true,
+            // Let Chromium preserve trackpad pixel deltas and momentum. The
+            // legacy wheel handler reduces horizontal gestures to small steps.
+            enableMouseWheelScrollHandler: false,
             enableSelection: true,
             forceFitColumns: false,
             frozenColumn: frozenColumnIndex,

@@ -10,7 +10,13 @@
  */
 
 import { expect } from "chai";
-import { applyEdits, diffTextEdit, TextSyncEngine, textHash } from "../../src/queryStudio/textSync";
+import {
+    applyEdits,
+    diffTextEdit,
+    rebaseRemoteEdits,
+    TextSyncEngine,
+    textHash,
+} from "../../src/queryStudio/textSync";
 import { QueryStudioDocumentRegistry } from "../../src/queryStudio/queryStudioDocumentRegistry";
 import { QsTextEdit } from "../../src/sharedInterfaces/queryStudio";
 
@@ -32,6 +38,37 @@ function webviewGroup(
 }
 
 suite("Query Studio text sync", () => {
+    test("host edits after unsent typing rebase offsets and retain both changes", () => {
+        const baseline = "SELECT a FROM t;";
+        const current = "SELECT abc FROM t;";
+        const remote = [{ start: 14, end: 15, text: "other" }];
+        const rebased = rebaseRemoteEdits(baseline, current, remote)!;
+        expect(rebased.hostText).to.equal("SELECT a FROM other;");
+        expect(rebased.mergedText).to.equal("SELECT abc FROM other;");
+        const engine = new TextSyncEngine(rebased.hostText);
+        const result = engine.applyWebviewEdits({
+            baseHostVersion: engine.hostVersion,
+            editGroupId: "rebased",
+            edits: diffTextEdit(rebased.hostText, rebased.mergedText),
+            textHashAfter: textHash(rebased.mergedText),
+        });
+        expect(result.applied).to.equal(true);
+        expect(engine.currentText).to.equal(rebased.mergedText);
+    });
+
+    test("host edits before unsent typing preserve local offsets and overlapping edits request resync", () => {
+        expect(
+            rebaseRemoteEdits("SELECT a FROM t;", "SELECT a FROM tx;", [
+                { start: 7, end: 8, text: "b" },
+            ])?.mergedText,
+        ).to.equal("SELECT b FROM tx;");
+        expect(rebaseRemoteEdits("abc", "ac", [{ start: 1, end: 2, text: "B" }])).to.equal(
+            undefined,
+        );
+        expect(rebaseRemoteEdits("ab", "axb", [{ start: 1, end: 1, text: "y" }])).to.equal(
+            undefined,
+        );
+    });
     test("single-cursor typing round trip with echo suppression", () => {
         const engine = new TextSyncEngine("select 1");
         const group = webviewGroup(engine, [{ start: 8, end: 8, text: "0" }]);

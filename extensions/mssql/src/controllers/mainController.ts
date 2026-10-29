@@ -7,6 +7,8 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { QueryStudioCompletionMetadataResolver } from "../queryStudio/queryStudioCompletionMetadataResolver";
+import { setSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import type { IConnectionInfo, SchemaCompareEndpointInfo } from "vscode-mssql";
 import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
@@ -28,8 +30,6 @@ import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
 import { activateSchemaVisualizer } from "../schemaVisualizer/schemaVisualizerActivation";
-import { QueryStudioCompletionMetadataResolver } from "../queryStudio/queryStudioCompletionMetadataResolver";
-import { setSharedInlineCompletionProvider } from "../copilot/inlineCompletionShared";
 import { initializeSpatialBasemapHost } from "../queryResults/spatialBasemap/spatialBasemapHost";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { MetadataStore } from "../services/metadata/metadataStore";
@@ -1618,6 +1618,10 @@ export default class MainController implements vscode.Disposable {
      * Sanitize the connection profiles in the settings.
      */
     public async sanitizeConnectionProfiles(): Promise<void> {
+        // Read settings only after startup fixups have saved missing IDs and groups. Otherwise this
+        // can write back an older copy of the connections without them, which hides those connections.
+        await this.connectionManager.connectionStore.connectionConfig.initialized;
+
         const sanitize = async (
             connectionProfiles: IConnectionProfile[],
             target: vscode.ConfigurationTarget,
@@ -1776,6 +1780,7 @@ export default class MainController implements vscode.Disposable {
             activateObjectExplorerV2(this._context, {
                 instantiationService: this._instantiationService,
                 profiles: this._connectionMgr.connectionStore,
+                tokens: vscodeSqlTokenSource,
                 legacyConnections: this._connectionMgr,
                 groupConfig: () => this._connectionMgr.connectionStore.connectionConfig,
                 isEnabled: objectExplorerV2Enabled,

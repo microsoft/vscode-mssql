@@ -34,10 +34,15 @@ import { isModifyingSql } from "../sql/sqlSafetyClassifier";
 import { ExecutionHost } from "./executionHost";
 import { VectorCapabilityService } from "../queryResults/vector/vectorCapabilityService";
 import { VectorIndexService } from "../queryResults/vector/vectorIndexService";
-import { persistQueryStudioHotExitBackup } from "./queryStudioHotExitBackup";
+import {
+    deleteQueryStudioHotExitBackup,
+    persistQueryStudioHotExitBackup,
+} from "./queryStudioHotExitBackup";
 import { getQueryResultAccessService } from "../queryResults/queryResultAccessService";
 import { getQueryResultContextService } from "../queryResults/queryResultContextService";
 import { QueryStudioLiveResultSource } from "./queryStudioLiveResultSource";
+import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
+import { shouldShowBatchMessages } from "../models/utils";
 
 export interface ModelTextEvents {
     onRemote(remote: QsSyncRemote): void;
@@ -63,7 +68,6 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     private docSubscription: vscode.Disposable;
     private disposed = false;
     private liveResultSourceRegistration: { dispose(): void } | undefined;
-    private hotExitBackupWrite: Promise<void> = Promise.resolve();
     /** Guards re-entrant application of our own workspace edits. */
     private applyingWebviewEdit = false;
 
@@ -93,7 +97,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
         if (connected && context.autoRun) {
             await this.sessionBinding.waitForUserSessionReady();
             this.executionHost.execute(this.document.getText(), {
-                selectionStartLine: 0,
+                selectionStartLine: 1,
                 scope: "document",
             });
         }
@@ -119,16 +123,13 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
                 productionSuppressedFor !== binding.activeSession &&
                 isModifyingSql(text),
             confirm: async (): Promise<"yes" | "yesSession" | "no"> => {
-                const run = "Run Query";
-                const runNoAsk = "Run and Don't Ask Again This Session";
+                const run = QueryStudioCoreLoc.runQuery;
+                const runNoAsk = QueryStudioCoreLoc.runAndDonTAskAgainThisSession;
                 const choice = await vscode.window.showWarningMessage(
-                    "You are about to modify a PRODUCTION database.",
+                    QueryStudioCoreLoc.youAreAboutToModifyAPRODUCTIONDatabase,
                     {
                         modal: true,
-                        detail:
-                            "This connection's server group is marked as production, and the " +
-                            "query contains statements that can change or destroy data. " +
-                            "This can result in data loss. Would you like to continue?",
+                        detail: QueryStudioCoreLoc.productionWarningDetail,
                     },
                     run,
                     runNoAsk,
@@ -146,6 +147,12 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             this._uriKey,
             productionGuard,
         );
+        this.executionHost.readResultPreferences = () => ({
+            showBatchMessages: shouldShowBatchMessages(),
+            displayUniqueIdentifierInUppercase: vscode.workspace
+                .getConfiguration("mssql")
+                .get<boolean>("query.displayUniqueIdentifierInUppercase", true),
+        });
         // SQLCMD seams (SQLCMD_MODE_PLAN.md §3.3): :r resolves against the
         // backing file's directory (absolute paths always work; untitled
         // documents have no directory, so only absolute paths resolve), and
@@ -335,8 +342,10 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
      * under the saved document's URI. The caller re-keys the registries.
      */
     adoptSavedDocument(document: vscode.TextDocument): void {
+        const previousUri = this.document.uri;
         this._uriKey = document.uri.toString();
         this.rebind(document);
+        void deleteQueryStudioHotExitBackup(this.hotExitBackupRoot, previousUri);
     }
 
     attachListener(listener: ModelTextEvents): vscode.Disposable {
@@ -545,9 +554,8 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
     }
 
     private persistHotExitBackup(): void {
-        this.hotExitBackupWrite = this.hotExitBackupWrite.then(
-            () => persistQueryStudioHotExitBackup(this.hotExitBackupRoot, this.document),
-            () => persistQueryStudioHotExitBackup(this.hotExitBackupRoot, this.document),
+        void persistQueryStudioHotExitBackup(this.hotExitBackupRoot, this.document).catch(
+            () => undefined,
         );
     }
 
