@@ -23,6 +23,7 @@ import {
 import { TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as localContainers from "./localContainersHelpers";
+import { classicContainerConnectAdapter, ContainerConnectAdapter } from "./containerConnectAdapter";
 import { LocalContainersState } from "../sharedInterfaces/localContainers";
 import * as fabricProvisioning from "./fabricProvisioningHelpers";
 import * as azureSqlDatabase from "./azureSqlDatabaseHelpers";
@@ -58,12 +59,15 @@ export class DeploymentWebviewController extends FormWebviewController<
     DeploymentReducers
 > {
     requiredInputs: DeploymentFormItemSpec[];
+    /** The wizard's terminal connect seam (DOCK-0): which OE opens the profile. */
+    public readonly containerConnect: ContainerConnectAdapter;
     constructor(
         context: vscode.ExtensionContext,
         // Main controller is used to connect to the container after creation
         public mainController: MainController,
         initialConnectionGroup?: string,
         initialDeploymentType?: DeploymentType,
+        containerConnect?: ContainerConnectAdapter,
     ) {
         super(context, DEPLOYMENT_VIEW_ID, DEPLOYMENT_VIEW_ID, new DeploymentWebviewState(), {
             title: newDeployment,
@@ -73,6 +77,7 @@ export class DeploymentWebviewController extends FormWebviewController<
                 light: vscode.Uri.joinPath(context.extensionUri, "media", "deployment.svg"),
             },
         });
+        this.containerConnect = containerConnect ?? classicContainerConnectAdapter(mainController);
         void this.initialize(initialConnectionGroup, initialDeploymentType);
     }
 

@@ -36,6 +36,7 @@ import {
     diffProfileConnectionSnapshots,
     OeV2ProfileConnectionSnapshot,
     profileConnectionSnapshot,
+    profileConnectionIdentity,
     readProfileTree,
 } from "./sessions/oeV2ProfileAdapter";
 import { OeV2SessionRegistry } from "./sessions/oeV2SessionRegistry";
@@ -48,11 +49,25 @@ import { OE_V2_COMMANDS } from "./commands/oeV2CommandRegistry";
 import { OeV2DragAndDropController, registerOeV2GroupCommands } from "./commands/oeV2GroupCommands";
 import { redirectToClassic } from "./legacy/oeV2LegacyRedirect";
 import { ConnectionConfig } from "../../connectionconfig/connectionconfig";
-import { ObjectExplorer, ObjectExplorerV2 } from "../../constants/locConstants";
+import {
+    Common,
+    LocalContainers,
+    ObjectExplorer,
+    ObjectExplorerV2,
+} from "../../constants/locConstants";
 import { OeV2Node } from "./tree/oeV2Node";
-import { OeV2TreeController } from "./tree/oeV2TreeController";
+import { OeV2ConnectOptions, OeV2TreeController } from "./tree/oeV2TreeController";
+
+import { ContainerHostAdapter } from "../../docker/containerHostAdapter";
+import {
+    deleteContainer,
+    prepareForDockerContainerCommand,
+    stopContainer,
+} from "../../docker/dockerUtils";
+import { restartSqlServerContainer } from "../../deployment/sqlServerContainer";
 
 export interface OeV2ActivationDeps {
+    readonly deployNewDatabase?: () => void;
     readonly instantiationService: IInstantiationService;
     readonly profiles: ConnectionProfileSource &
         ProfileSecretSource &
@@ -79,16 +94,82 @@ export function activateObjectExplorerV2(
     let activeView: vscode.TreeView<OeV2Node> | undefined;
     let statusChannel: vscode.OutputChannel | undefined;
 
-    const removeSavedProfile = async (connectionId: string): Promise<void> => {
+    const removeSavedProfile = async (
+        connectionId: string,
+        isActive: () => boolean = deps.isEnabled,
+        expectedIdentity?: string,
+    ): Promise<void> => {
         const profile = (await deps.profiles.readAllConnections(false)).find(
             (candidate) => stableProfileId(candidate as never) === connectionId,
         );
-        if (profile) {
+        if (
+            profile &&
+            isActive() &&
+            (expectedIdentity === undefined ||
+                profileConnectionIdentity(profile) === expectedIdentity)
+        ) {
             // ConnectionStore owns the complete removal contract: settings,
             // MRU history, and any saved credential.
             await deps.profiles.removeProfile(profile as IConnectionProfile, false);
         }
     };
+    // DOCK-2/3: the docker host adapter for v2 nodes — activity text on
+    // the tree node, toasts, and the container-vanished modal offering
+    // saved-profile removal (v1 removeNode parity).
+    const containerHost = (
+        connectionId: string,
+        signal: AbortSignal,
+        expectedIdentity?: string,
+    ): ContainerHostAdapter => {
+        const owner = controller;
+        const isActive = () =>
+            Boolean(owner) && controller === owner && deps.isEnabled() && !signal.aborted;
+        return {
+            setStatus: (text: string) => {
+                if (isActive()) owner?.setContainerActivity(connectionId, text);
+            },
+            showError: (message: string) => {
+                if (isActive()) void vscode.window.showErrorMessage(message);
+            },
+            onContainerMissing: async () => {
+                if (!isActive()) return;
+                const selected = (await readProfileTree(deps.profiles)).profiles.find(
+                    (p) => p.profileId === connectionId,
+                );
+                if (!selected || !isActive()) return;
+                const identity = expectedIdentity ?? profileConnectionIdentity(selected.stored);
+                if (profileConnectionIdentity(selected.stored) !== identity) return;
+                const choice = await vscode.window.showInformationMessage(
+                    LocalContainers.containerDoesNotExistError,
+                    { modal: true },
+                    Common.remove,
+                );
+                if (choice === Common.remove && isActive()) {
+                    await removeSavedProfile(connectionId, isActive, identity);
+                    if (isActive()) owner?.refresh();
+                }
+            },
+        };
+    };
+
+    // Re-read after each asynchronous boundary: the same profile ID may now
+    // identify a different server/container. Display-only edits remain safe.
+    const matchesContainerProfile = async (
+        connectionId: string,
+        identity: string,
+        owner: OeV2TreeController,
+    ): Promise<boolean> => {
+        const selected = (await readProfileTree(deps.profiles)).profiles.find(
+            (p) => p.profileId === connectionId,
+        );
+        return (
+            deps.isEnabled() &&
+            controller === owner &&
+            !!selected &&
+            profileConnectionIdentity(selected.stored) === identity
+        );
+    };
+
     const register = () => {
         if (registration || !deps.isEnabled()) {
             return;
@@ -109,6 +190,30 @@ export function activateObjectExplorerV2(
                 availabilityState: () => SqlDataPlaneService.get().availability().state,
             },
             sessions: registry,
+            containers: {
+                restart: async (name, id, signal) => {
+                    const selected = (await readProfileTree(deps.profiles)).profiles.find(
+                        (p) => p.profileId === id,
+                    );
+                    if (signal.aborted || selected?.stored.containerName !== name) return undefined;
+                    const identity = profileConnectionIdentity(selected.stored);
+                    const cancellation = new vscode.CancellationTokenSource();
+                    const cancel = () => cancellation.cancel();
+                    signal.addEventListener("abort", cancel, { once: true });
+                    if (signal.aborted) cancel();
+                    try {
+                        return await restartSqlServerContainer(
+                            name,
+                            containerHost(id, signal, identity),
+                            undefined,
+                            cancellation.token,
+                        );
+                    } finally {
+                        signal.removeEventListener("abort", cancel);
+                        cancellation.dispose();
+                    }
+                },
+            },
             coordinatorFactory: (prepared) =>
                 new OeV2MetadataCoordinator(MetadataStoreService.get().store(), prepared),
             settings: () => {
@@ -290,7 +395,8 @@ export function activateObjectExplorerV2(
     // B26 (K-cross UX): when exactly ONE new saved profile appears — the New
     // Connection dialog finished, whichever view's button launched it — v2
     // auto-connects it too ("connect them both"). Bulk settings edits (2+
-    // new profiles at once) deliberately stay disconnected.
+    // new profiles at once) deliberately stay disconnected. Container profiles
+    // connect explicitly after the deployment wizard has saved their secret.
     let knownProfiles: OeV2ProfileConnectionSnapshot | undefined;
     const snapshotProfiles = async (): Promise<OeV2ProfileConnectionSnapshot> => {
         const tree = await readProfileTree(deps.profiles);
@@ -300,7 +406,8 @@ export function activateObjectExplorerV2(
         knownProfiles = snapshot;
     });
     const reconcileProfiles = async () => {
-        const current = await snapshotProfiles();
+        const tree = await readProfileTree(deps.profiles);
+        const current = profileConnectionSnapshot(tree);
         const previous = knownProfiles;
         knownProfiles = current;
         const activeController = controller;
@@ -323,7 +430,13 @@ export function activateObjectExplorerV2(
         // Invalidate the cached profile tree before connecting additions so
         // findProfile observes the same snapshot that produced this diff.
         activeController.refresh();
-        if (added.length === 1) {
+        // ConnectionStore publishes settings before persisting the password.
+        // Auto-opening a new container here races that write and can poison
+        // the wizard's shared connection attempt with an empty password.
+        if (
+            added.length === 1 &&
+            !tree.profiles.find((profile) => profile.profileId === added[0])?.stored.containerName
+        ) {
             await activeController.connectProfile(added[0]).catch(() => false);
         }
     };
@@ -334,6 +447,9 @@ export function activateObjectExplorerV2(
     };
 
     context.subscriptions.push(
+        vscode.commands.registerCommand("mssql.objectExplorerV2.deployNewDatabase", () => {
+            if (deps.isEnabled()) deps.deployNewDatabase?.();
+        }),
         registerOeV2GroupCommands({
             instantiationService: deps.instantiationService,
             groupConfig: deps.groupConfig ?? (() => undefined),
@@ -421,6 +537,28 @@ export function activateObjectExplorerV2(
                 }
             },
         ),
+        // DOCK-1 internal seam: the deployment wizard's v2 connect adapter
+        // opens the just-saved container profile through the data plane.
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.connectProfileById",
+            async (connectionId?: string, options?: OeV2ConnectOptions): Promise<boolean> => {
+                if (!deps.isEnabled() || !connectionId || !controller) {
+                    return false;
+                }
+                // The caller typically JUST saved the profile: drop the
+                // cached tree so findProfile sees it (live perf run caught
+                // this race — settings-change events settle asynchronously).
+                controller.refresh();
+                const connected = await controller.connectProfile(connectionId, options);
+                if (!connected) {
+                    // Callers (wizard adapter, perf seams) surface THIS text —
+                    // a bare false hid the real reason from every consumer.
+                    const reason = registry?.get(connectionId)?.failureReason;
+                    throw new Error(reason ?? ObjectExplorerV2.containerConnectionFailed);
+                }
+                return true;
+            },
+        ),
         vscode.commands.registerCommand(
             "mssql.objectExplorerV2.cancelConnect",
             (node?: OeV2Node) => {
@@ -430,6 +568,146 @@ export function activateObjectExplorerV2(
                 const connectionId = connectionIdOf(node);
                 if (connectionId) {
                     controller?.cancelConnect(connectionId);
+                }
+            },
+        ),
+        // DOCK-2: container lifecycle with v1 wording and v1 outcomes. Start
+        // rides connectProfile — the DOCK-3 pre-flight owns the docker work.
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.startContainer",
+            async (node?: OeV2Node) => {
+                const connectionId = connectionIdOf(node);
+                const containerName = node?.containerName;
+                if (!deps.isEnabled() || !connectionId || !containerName || !controller) {
+                    return;
+                }
+                const connected = await controller.connectProfile(connectionId);
+                if (!connected && registry?.stateOf(connectionId) === "failed") {
+                    void vscode.window.showErrorMessage(
+                        ObjectExplorerV2.couldNotConnect(
+                            registry?.get(connectionId)?.failureReason,
+                        ),
+                    );
+                }
+            },
+        ),
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.stopContainer",
+            async (node?: OeV2Node) => {
+                const connectionId = connectionIdOf(node);
+                const containerName = node?.containerName;
+                if (!deps.isEnabled() || !connectionId || !containerName || !controller) {
+                    return;
+                }
+                const activeController = controller;
+                const selected = (await readProfileTree(deps.profiles)).profiles.find(
+                    (p) => p.profileId === connectionId,
+                );
+                if (selected?.stored.containerName !== containerName) return;
+                const identity = profileConnectionIdentity(selected.stored);
+                const isCurrent = () =>
+                    matchesContainerProfile(connectionId, identity, activeController);
+                try {
+                    if (!(await isCurrent())) return;
+                    const prepared = await prepareForDockerContainerCommand(
+                        containerName,
+                        containerHost(connectionId, new AbortController().signal, identity),
+                    );
+                    if (!prepared.success || !(await isCurrent())) return;
+                    activeController.setContainerActivity(
+                        connectionId,
+                        LocalContainers.stoppingContainerLoadingLabel,
+                    );
+                    await handoff?.close(connectionId);
+                    if (!(await isCurrent())) return;
+                    await activeController.disconnectProfile(connectionId);
+                    if (!(await isCurrent())) return;
+                    const stopped = await stopContainer(containerName);
+                    void vscode.window.showInformationMessage(
+                        stopped
+                            ? LocalContainers.stoppedContainerSucessfully(containerName)
+                            : LocalContainers.failStopContainer(containerName),
+                    );
+                } finally {
+                    activeController.setContainerActivity(connectionId, undefined);
+                }
+            },
+        ),
+        vscode.commands.registerCommand(
+            "mssql.objectExplorerV2.deleteContainer",
+            async (node?: OeV2Node) => {
+                const connectionId = connectionIdOf(node);
+                const containerName = node?.containerName;
+                if (!deps.isEnabled() || !connectionId || !containerName || !controller) {
+                    return;
+                }
+                const activeController = controller;
+                const profiles = (await readProfileTree(deps.profiles)).profiles;
+                const selected = profiles.find((profile) => profile.profileId === connectionId);
+                if (selected?.stored.containerName !== containerName) return;
+                const identity = profileConnectionIdentity(selected.stored);
+                const isCurrent = () =>
+                    matchesContainerProfile(connectionId, identity, activeController);
+                const others = profiles.filter(
+                    (profile) =>
+                        profile.profileId !== connectionId &&
+                        profile.stored.containerName === containerName,
+                );
+                const confirmation =
+                    others.length > 0
+                        ? await vscode.window.showWarningMessage(
+                              LocalContainers.deleteSharedContainerConfirmation(
+                                  containerName,
+                                  others.map((profile) => profile.displayName),
+                              ),
+                              { modal: true },
+                              Common.delete,
+                          )
+                        : await vscode.window.showInformationMessage(
+                              LocalContainers.deleteContainerConfirmation(containerName),
+                              { modal: true },
+                              Common.delete,
+                          );
+                if (
+                    confirmation !== Common.delete ||
+                    !deps.isEnabled() ||
+                    controller !== activeController
+                ) {
+                    return;
+                }
+                try {
+                    if (!(await isCurrent())) return;
+                    const prepared = await prepareForDockerContainerCommand(
+                        containerName,
+                        containerHost(connectionId, new AbortController().signal, identity),
+                    );
+                    if (!prepared.success || !(await isCurrent())) return;
+                    activeController.setContainerActivity(
+                        connectionId,
+                        LocalContainers.deletingContainerLoadingLabel,
+                    );
+                    await handoff?.close(connectionId);
+                    if (!(await isCurrent())) return;
+                    await activeController.disconnectProfile(connectionId);
+                    if (!(await isCurrent())) return;
+                    const deleted = await deleteContainer(containerName);
+                    void vscode.window.showInformationMessage(
+                        deleted
+                            ? LocalContainers.deletedContainerSucessfully(containerName)
+                            : LocalContainers.failDeleteContainer(containerName),
+                    );
+                    if (deleted) {
+                        // v1 parity: deleting the container removes the node,
+                        // which in v2 means removing the saved profile.
+                        await removeSavedProfile(
+                            connectionId,
+                            () => deps.isEnabled() && controller === activeController,
+                            identity,
+                        );
+                        activeController.refresh();
+                    }
+                } finally {
+                    activeController.setContainerActivity(connectionId, undefined);
                 }
             },
         ),

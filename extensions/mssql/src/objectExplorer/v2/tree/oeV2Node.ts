@@ -96,8 +96,10 @@ export interface OeV2Node {
     readonly database?: string;
     readonly schema?: string;
     readonly objectName?: string;
-    /** Docker container identity, displayed without lifecycle controls in the core preview. */
+    /** Docker container behind this connection profile (DOCK-2). */
     readonly containerName?: string;
+    /** Explicit recovery action for a deliberately stopped container. */
+    readonly action?: "startContainer";
     readonly readiness: OeV2Readiness;
     readonly capabilities: OeV2NodeCapabilities;
     /** Icon name resolved against media/objectTypes at the vscode edge. */

@@ -247,15 +247,28 @@ suite("Private preview manifest", () => {
         }
     });
 
-    test("does not publish deferred Docker lifecycle commands", () => {
+    test("container lifecycle commands are gated and require a tree target", () => {
         const commandIds = packageJson.contributes.commands.map((item) => item.command);
-        for (const deferred of [
+        for (const commandId of [
             "mssql.objectExplorerV2.startContainer",
             "mssql.objectExplorerV2.stopContainer",
             "mssql.objectExplorerV2.deleteContainer",
         ]) {
-            expect(commandIds, deferred).to.not.include(deferred);
+            expect(commandIds).to.include(commandId);
+            expect(command(commandId).enablement).to.contain(OBJECT_EXPLORER_V2_GATE);
+            expect(commandPalette(commandId).when).to.equal("false");
         }
+        expect(command("mssql.objectExplorerV2.deployNewDatabase").enablement).to.contain(
+            OBJECT_EXPLORER_V2_GATE,
+        );
+        const toolbar = packageJson.contributes.menus["view/title"];
+        expect(toolbar.find((item) => item.command === "mssql.deployNewDatabase")?.when).to.equal(
+            "view == objectExplorer",
+        );
+        expect(
+            toolbar.find((item) => item.command === "mssql.objectExplorerV2.deployNewDatabase")
+                ?.when,
+        ).to.contain(OBJECT_EXPLORER_V2_GATE);
     });
 
     function command(commandId: string): CommandContribution {

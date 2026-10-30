@@ -18,6 +18,8 @@ import { FormItemOptions } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
+import { diag, diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
+import { ContainerHostAdapter } from "../docker/containerHostAdapter";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "../docker/dockerodeClient";
 import { getSqlPasswordValidationError, SqlPasswordValidationError } from "../utils/sqlStringUtils";
@@ -31,6 +33,7 @@ import {
     getContainerByName,
     getEngineErrorLink,
     getEngineErrorLinkText,
+    isContainerHostAdapter,
     isDockerContainerRunning,
     prepareForDockerContainerCommand,
     pullContainerImage,
@@ -228,36 +231,87 @@ export async function startSqlServerDockerContainer(
  */
 export async function restartSqlServerContainer(
     containerName: string,
-    containerNode: ConnectionNode,
-    objectExplorerService: ObjectExplorerService,
+    hostOrNode: ContainerHostAdapter | ConnectionNode,
+    objectExplorerService?: ObjectExplorerService,
+    cancellationToken?: vscode.CancellationToken,
 ): Promise<boolean | undefined> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationSubscription = cancellationToken?.onCancellationRequested(() =>
+        cancellationTokenSource.cancel(),
+    );
+    if (cancellationToken?.isCancellationRequested) cancellationTokenSource.cancel();
+    let host: ContainerHostAdapter | undefined;
+    let containerNode: ConnectionNode | undefined;
+    if (isContainerHostAdapter(hostOrNode)) {
+        host = hostOrNode;
+    } else {
+        containerNode = hostOrNode;
+    }
+    const span = diag.startSpan({
+        feature: "deployment",
+        kind: "span",
+        type: "docker.container.start",
+        fields: {},
+    });
+    const setStatus = async (label: string, cancelable: boolean = true): Promise<void> => {
+        if (host !== undefined) {
+            await host.setStatus(label);
+        } else if (containerNode !== undefined && objectExplorerService !== undefined) {
+            containerNode.loadingLabel = label;
+            await objectExplorerService.setLoadingUiForNode(
+                containerNode,
+                cancelable ? cancellationTokenSource : undefined,
+            );
+        }
+    };
     try {
+        if (cancellationTokenSource.token.isCancellationRequested) {
+            span.end("info", { result: { raw: "canceled", cls: "diagnostic.metadata" } });
+            return undefined;
+        }
         const dockerPreparedResult = await prepareForDockerContainerCommand(
             containerName,
-            containerNode,
+            hostOrNode,
             objectExplorerService,
             cancellationTokenSource,
         );
         if (!dockerPreparedResult.success) {
             if (dockerPreparedResult.canceled) {
+                span.end("info", {
+                    result: { raw: "canceled", cls: "diagnostic.metadata" },
+                });
                 return undefined;
             }
             sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
                 error: new Error(dockerPreparedResult.error),
                 includeErrorMessage: false,
             });
+            span.end("error", {
+                errorClass: { raw: "preflightFailed", cls: "diagnostic.metadata" },
+            });
             return false;
         }
         const isContainerRunning = await isDockerContainerRunning(containerName);
 
-        if (isContainerRunning) return true; // Container is already running
-        containerNode.loadingLabel = LocalContainers.startingContainerLoadingLabel;
-        await objectExplorerService.setLoadingUiForNode(containerNode, cancellationTokenSource);
+        if (cancellationTokenSource.token.isCancellationRequested) {
+            span.end("info", { result: { raw: "canceled", cls: "diagnostic.metadata" } });
+            return undefined;
+        }
+        if (isContainerRunning) {
+            span.end("info", {
+                result: { raw: "alreadyRunning", cls: "diagnostic.metadata" },
+            });
+            return true; // Container is already running
+        }
+        await setStatus(LocalContainers.startingContainerLoadingLabel);
         dockerLogger.info(`Restarting container: ${containerName}`);
         const container = await getContainerByName(containerName);
         if (!container) {
             throw new Error(`Container ${containerName} does not exist.`);
+        }
+        if (cancellationTokenSource.token.isCancellationRequested) {
+            span.end("info", { result: { raw: "canceled", cls: "diagnostic.metadata" } });
+            return undefined;
         }
         const containerStarted = await Promise.race([
             container.start().then(() => true),
@@ -267,12 +321,14 @@ export async function restartSqlServerContainer(
         ]);
         if (!containerStarted) {
             dockerLogger.info(`Container start canceled for ${containerName}.`);
+            span.end("info", {
+                result: { raw: "canceled", cls: "diagnostic.metadata" },
+            });
             return undefined;
         }
 
         dockerLogger.info(`Container ${containerName} restarted successfully.`);
-        containerNode.loadingLabel = LocalContainers.readyingContainerLoadingLabel;
-        await objectExplorerService.setLoadingUiForNode(containerNode, cancellationTokenSource);
+        await setStatus(LocalContainers.readyingContainerLoadingLabel);
 
         const containerReadyResult: DockerCommandParams =
             await checkIfSqlServerContainerIsReadyForConnections(
@@ -281,22 +337,37 @@ export async function restartSqlServerContainer(
             );
 
         if (containerReadyResult.canceled) {
+            span.end("info", {
+                result: { raw: "canceled", cls: "diagnostic.metadata" },
+            });
             return undefined;
         }
 
-        containerNode.loadingLabel = ObjectExplorer.LoadingNodeLabel;
-        await objectExplorerService.setLoadingUiForNode(containerNode);
+        await setStatus(ObjectExplorer.LoadingNodeLabel, false);
 
         if (!containerReadyResult.success) {
             sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
                 error: new Error(containerReadyResult.error),
                 includeErrorMessage: false,
             });
+            span.end("error", {
+                errorClass: { raw: "readinessTimeout", cls: "diagnostic.metadata" },
+            });
             return false;
         }
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer);
+        span.end("ok");
         return true;
+    } catch (error) {
+        span.end("error", {
+            errorClass: {
+                raw: diagnosticErrorClass(error),
+                cls: "diagnostic.metadata",
+            },
+        });
+        throw error;
     } finally {
+        cancellationSubscription?.dispose();
         cancellationTokenSource.dispose();
     }
 }

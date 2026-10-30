@@ -29,6 +29,7 @@ export interface OeV2CommandTargetFacts {
     readonly database?: string;
     /** Set for object nodes (table/view/procedure/…). */
     readonly objectKind?: string;
+    readonly isContainer?: boolean;
 }
 
 export interface OeV2CommandPlacement {
@@ -307,6 +308,52 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
                 flag: "newNotebook",
                 menuGroup: "8_MSSQL_sqlProjectsAndNotebooks@2",
                 appliesTo: (facts) => anyConnection(facts) || facts.kind === "database",
+            },
+        ],
+    },
+    // Docker container lifecycle (DOCK-2): v1 wording, v1 node-state gates
+    // (start on stopped, stop on connected, delete on both), native route
+    // over the shared docker core.
+    {
+        id: "mssql.objectExplorerV2.startContainer",
+        feature: "startContainer",
+        route: "native",
+        placements: [
+            {
+                flag: "startContainer",
+                menuGroup: "9_MSSQL_container@1",
+                appliesTo: (facts) =>
+                    facts.isContainer === true &&
+                    (facts.kind === "disconnectedConnection" || facts.kind === "lostConnection"),
+            },
+        ],
+    },
+    {
+        id: "mssql.objectExplorerV2.stopContainer",
+        feature: "stopContainer",
+        route: "native",
+        placements: [
+            {
+                flag: "stopContainer",
+                menuGroup: "9_MSSQL_container@2",
+                appliesTo: (facts) =>
+                    facts.isContainer === true && facts.kind === "connectedServer",
+            },
+        ],
+    },
+    {
+        id: "mssql.objectExplorerV2.deleteContainer",
+        feature: "deleteContainer",
+        route: "native",
+        placements: [
+            {
+                flag: "deleteContainer",
+                menuGroup: "9_MSSQL_container@3",
+                appliesTo: (facts) =>
+                    facts.isContainer === true &&
+                    (facts.kind === "disconnectedConnection" ||
+                        facts.kind === "connectedServer" ||
+                        facts.kind === "lostConnection"),
             },
         ],
     },

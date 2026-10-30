@@ -105,8 +105,9 @@ export class OeV2SessionRegistry {
     async connect(
         connectionId: string,
         prepared: PreparedConnection,
+        signal?: AbortSignal,
     ): Promise<OeV2ConnectionSession> {
-        if (this.disposed) {
+        if (this.disposed || signal?.aborted) {
             return { connectionId, state: "disconnected" };
         }
         const existing = this.entries.get(connectionId);
@@ -131,7 +132,12 @@ export class OeV2SessionRegistry {
             // state listener. Retire it before replacing the map slot so a
             // reconnect cannot orphan data-plane state.
             await this.retire(existing);
-            if (this.disposed) {
+            if (this.disposed || signal?.aborted) {
+                if (signal?.aborted && this.entries.get(connectionId) === existing) {
+                    existing.state = "disconnected";
+                    existing.failureReason = undefined;
+                    this.notify(connectionId);
+                }
                 return { connectionId, state: "disconnected" };
             }
         }
@@ -146,8 +152,14 @@ export class OeV2SessionRegistry {
             pending: undefined,
         };
         this.entries.set(connectionId, entry);
+        const cancel = () => {
+            if (this.entries.get(connectionId) === entry) this.cancelConnect(connectionId);
+        };
+        signal?.addEventListener("abort", cancel, { once: true });
+        if (signal?.aborted) cancel();
         this.notify(connectionId);
         const pending = this.runConnect(connectionId, entry, prepared).finally(() => {
+            signal?.removeEventListener("abort", cancel);
             if (entry.pending === pending) {
                 entry.pending = undefined;
             }
@@ -299,6 +311,7 @@ export class OeV2SessionRegistry {
         this.notify(connectionId);
         await this.retire(entry);
         entry.state = "disconnected";
+        entry.failureReason = undefined;
         diag.emit({
             feature: "objectExplorer",
             kind: "event",
