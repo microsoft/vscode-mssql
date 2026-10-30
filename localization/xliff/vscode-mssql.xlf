@@ -16,6 +16,12 @@
     <trans-unit id="++CODE++29aed6b71c67904f0cba9f811e0b1fac36b9bab9dd2cef5e4474f939ae307f7a">
       <source xml:lang="en">    stdout: </source>
     </trans-unit>
+    <trans-unit id="++CODE++28735fc0193de5b990c9a5dfbaa479770ca903efdffb359359a9cef540766e42">
+      <source xml:lang="en"> (derived view)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c25c323ea63c765ff333f7366e402d01e12c61069cde231b30ee736c15e16fc9">
+      <source xml:lang="en"> NOTE: statistics cover only the first {0} rows ({1}).</source>
+    </trans-unit>
     <trans-unit id="++CODE++fd10453f63e5c663d4e640ea9cbe1adcc832b6fed0454e62686773ac486ce64d">
       <source xml:lang="en"> is required.</source>
     </trans-unit>
@@ -46,6 +52,9 @@
     <trans-unit id="++CODE++99bd15f804b37de76ce3bef95d2c846b7887fa416ebb56d4505b10aa909595c1">
       <source xml:lang="en">$(shield) MSSQL Diag: {0}</source>
       <note>{0} is the capture mode (redacted or digest)</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1ca8c044fc7737889f61fb0f26d8663b12a5f398fe0d13ad28b627a61656a685">
+      <source xml:lang="en">&#10;_Commands: `/list`, `/summarize`, `/profile` (adds min/max, asks first), `/report`, `/pin`. </source>
     </trans-unit>
     <trans-unit id="++CODE++7ab8e89a60b445298b22409ca4e3a36b6032cd1f4b770cd638e11e0ebf23fabd">
       <source xml:lang="en">&apos;mssql.newEditorConnectionBehavior&apos; is set to &apos;defaultConnection&apos;, but &apos;mssql.defaultConnectionId&apos; is not configured. New editors will fall back to transferring the active connection.</source>
@@ -155,6 +164,18 @@
     <trans-unit id="++CODE++c5689b80fd004e96e65d3141386bebfbe524f243cfe02c634e4c68edb6544f6f">
       <source xml:lang="en">). Reload is required after first enablement. Completions also need a language model (GitHub Copilot Chat, or an SDK provider + API key via the &quot;Set … API Key&quot; commands) and a connected .sql editor for schema context.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ae1682af8cd865eaeb8eba21667eb70b446a759702848394b2ae421c3e82ad9f">
+      <source xml:lang="en">**Live results** ({0})&#10;&#10;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++93cc4b6387e9ba0535922e1cb3899da0ce17df4e8649c048884007ecee3c5945">
+      <source xml:lang="en">**Result set {0}** — {1} rows</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d55702e079c73bdbe1d05118ec281d35d06aa58f1f0463b0f55e005326184602">
+      <source xml:lang="en">**{0}** — {1} result set(s), </source>
+    </trans-unit>
+    <trans-unit id="++CODE++8027c74098360cd6acf9ae68128b390224e29eaae0fca8e63fe4c9f988310109">
+      <source xml:lang="en">**{0}** — {1} result set(s), {2} rows, pinned {3}s ago</source>
+    </trans-unit>
     <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
       <source xml:lang="en">+ Add Azure Account</source>
     </trans-unit>
@@ -175,6 +196,24 @@
     </trans-unit>
     <trans-unit id="++CODE++3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112">
       <source xml:lang="en">-</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6d1c28774fdf707c135e2816565d43a00b0e3d1e16c81ac7accbfd802a6c9f4e">
+      <source xml:lang="en">- **{0}** — {1} result set(s), {2} rows{3}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ec7b517c36d9ac623e85095b94b69edda1cee75e96e461a9fefde37412704884">
+      <source xml:lang="en">- Bounds: at most {0} rows / {1} KB per response, {2} KB per cell&#10;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++397dfc405862c4016233ac5817553bfac030252e54286b1d583095137477aea3">
+      <source xml:lang="en">- Scope: this single request only (grants are single-use)&#10;&#10;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ad757ecb0a59b0256273617f9acd38f13561b4ca43f8d37944a046485e5f6bec">
+      <source xml:lang="en">- none — run a query in Query Studio</source>
+    </trans-unit>
+    <trans-unit id="++CODE++65eb9400000b15588437b2231c3791daa7321a10f67938688e8f153768b13228">
+      <source xml:lang="en">- {0} — {1} rows, {2}, {3}m old</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1010187a3e7b8c7fd8fbac318c05dcb6e1f2fa627f2bde639c01405e9456e553">
+      <source xml:lang="en">- {0} — {1} set(s), {2} rows{3}</source>
     </trans-unit>
     <trans-unit id="++CODE++9960f430fe69645e28585dded671d8cc883e0bf8571d6d9a66ac595942ea0faa">
       <source xml:lang="en">-- Cannot script {0}.{1}: object is not present in the current metadata snapshot.</source>
@@ -220,6 +259,18 @@
     </trans-unit>
     <trans-unit id="++CODE++380918b946a526640a40df5dced6516794f3d97bbd9e6bb553d037c4439f31c3">
       <source xml:lang="en">=</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8e88e1a49927466472f30032837980fef1b9e3adb10cd4e193f72f27370f6516">
+      <source xml:lang="en">@query /pin</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3870198424c6d647901e403c096a170b735d043725236e5008785402a6c79425">
+      <source xml:lang="en">@query /report will include up to {0} sample rows (first and last) in the prompt sent to the language model.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++596ce57504dd2597f6adde760489e3b541fa04e7fac73a8a980f3170ea320283">
+      <source xml:lang="en">@query analysis</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c1afb3448caef01633ab5e3980dd4993d4477feb7dfe55a4e38e6f126dc0a63a">
+      <source xml:lang="en">@query will read per-column minimum/maximum values from {0} and show them in this chat. </source>
     </trans-unit>
     <trans-unit id="++CODE++c61a041f6ca5abff2c94cefc531083c11d3f3b2af7131fb9640dda59a551e289">
       <source xml:lang="en">A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.</source>
@@ -302,6 +353,15 @@
     </trans-unit>
     <trans-unit id="++CODE++11fb682be0a0233d5fb899721ecfc1827d20f0d2ff2e093310efa61efca8af1c">
       <source xml:lang="en">AI</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c18edf2654e4b07dead2b4362b99cb3ec9fede6d52886510c7b1ff780b911ee3">
+      <source xml:lang="en">AI access to query results is disabled (`mssql.queryResults.ai.enabled`).</source>
+    </trans-unit>
+    <trans-unit id="++CODE++87c4b8fdfd5ccd86cd22e634d1f6fe18941cfe471c6909f37ddea5ea1b0420e8">
+      <source xml:lang="en">AI access to query results is disabled (mssql.queryResults.ai.enabled).</source>
+    </trans-unit>
+    <trans-unit id="++CODE++04a6676c6e613eb058adfa658fa34071fc9166db48083c2c3dc6de933bbc26da">
+      <source xml:lang="en">AI analysis snapshot</source>
     </trans-unit>
     <trans-unit id="++CODE++7bc79e4ca3b7700ae3427d2deff51db9e32fd076a4f54aa76926974ddfc3f0bf">
       <source xml:lang="en">AI completions disabled.</source>
@@ -582,6 +642,9 @@
     <trans-unit id="++CODE++7cb0154423f4e208531c0ab32537384bffd7b92ace440743085f715a3a9042b7">
       <source xml:lang="en">Agent mode</source>
     </trans-unit>
+    <trans-unit id="++CODE++d022d612458471cecf1d581291bc978c7a6d6333dcfb9196f89c26001332777b">
+      <source xml:lang="en">Agent mode can analyze further with the `mssql_query_results` tool._</source>
+    </trans-unit>
     <trans-unit id="++CODE++d3bea48abd243765e73062febb24ad5221ba090ac07af99f914fdd554b03fa95">
       <source xml:lang="en">Agent skills</source>
     </trans-unit>
@@ -635,6 +698,9 @@
     </trans-unit>
     <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
       <source xml:lang="en">Allow null</source>
+    </trans-unit>
+    <trans-unit id="++CODE++168511d24d9ee03122b3200f929be11eaaedad45cb0ecb20a95f549b3e3f4d0f">
+      <source xml:lang="en">Allow once</source>
     </trans-unit>
     <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
       <source xml:lang="en">Allow this extension to access your connections</source>
@@ -2107,6 +2173,9 @@
     <trans-unit id="++CODE++cbd2167917b36ef54fa6044f33009b01e0793c6fda74f2488762f9cdb26793fc">
       <source xml:lang="en">Compute + Storage</source>
     </trans-unit>
+    <trans-unit id="++CODE++b41b1d7fc2a9775c2b768483d386fec985756b69973f9de6a390986918f4d116">
+      <source xml:lang="en">Computing local statistics (no data leaves the host)…</source>
+    </trans-unit>
     <trans-unit id="++CODE++1c9f0c1016c9f0fc14bad1a7598000d0375cce99251f46cbca2c9cb3cc0e0e76">
       <source xml:lang="en">Config (model · profile · schema)</source>
     </trans-unit>
@@ -3496,6 +3565,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e2d63f5e06d035a1e421efa44a7f1f92ec06b908d7ef82cb6ca89c2b8ee192ec">
       <source xml:lang="en">Deployments cannot be tracked because the extension&apos;s storage location is unavailable.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++07d0b1aa047871dbc906692043e798ba2a1b3deb14b420008ead13226daf678f">
+      <source xml:lang="en">Derived snapshots support row filters and slices. Use evaluate_transform for projections and aggregates.</source>
     </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
@@ -5486,6 +5558,9 @@
     <trans-unit id="++CODE++8f6024d9c9e1ced78c0be59ae6cf30a96420a90976cf31394bcd75abe7c19adb">
       <source xml:lang="en">Focus the Results tab in the query results panel</source>
     </trans-unit>
+    <trans-unit id="++CODE++cfe6176b2c551fcc78ef6afe51abc88baf2f02460f0972d8dafbfafbaf8d34a8">
+      <source xml:lang="en">Focus the completed Query Studio results you want to pin, then try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++74ccd43303847f2655300641a934959cdb11689ce171aa0f00faa92917fbd340">
       <source xml:lang="en">Folder</source>
     </trans-unit>
@@ -6190,6 +6265,9 @@
     <trans-unit id="++CODE++b9ada562d7895a60b03063ef6bbd6310bf69a0a4131e5371a88f6ef1acf19d18">
       <source xml:lang="en">Invalid target platform: {0}. Supported target platforms: {1}</source>
     </trans-unit>
+    <trans-unit id="++CODE++f2c76326f3bc52b69e5e1bbc5f4bc6081adceeeb268dcc536f82edf336b2a65d">
+      <source xml:lang="en">Invalid transform spec: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++f399d833937791f72fd7e0e073ecaf2850a4f91d4a1a73c535f27ca1b142c997">
       <source xml:lang="en">Invalid value specified for the property &apos;{0}&apos; in .sqlproj file</source>
     </trans-unit>
@@ -6852,6 +6930,9 @@
     <trans-unit id="++CODE++bc9503a89518d47aeceed119c50d8826d8ca48592bd977647da2b8e49a240ed3">
       <source xml:lang="en">MSSQL: What&apos;s new</source>
     </trans-unit>
+    <trans-unit id="++CODE++2464928de222ba742a64fe572b2a657064e994d6b26e0806a38f4d4dde78c549">
+      <source xml:lang="en">MSSQL: share query result values with the model?</source>
+    </trans-unit>
     <trans-unit id="++CODE++4812f4553152a2d4f7e8c4ddbd2740db0fd157638b9723fc369790631aa21061">
       <source xml:lang="en">Maintenance Window</source>
     </trans-unit>
@@ -7202,6 +7283,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9acd598e4a9cf44ed31faf5037f1a93640240d34d2d71281d143ab7b352d7ca4">
       <source xml:lang="en">More objects, columns, routines, and two-hop FK expansion.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++53b7b685b34aa00e07f6604bae32e8cfdd062710b9a6b8d630cf1c3b619c6b58">
+      <source xml:lang="en">More than one result source is open and none is focused — click into the grid you mean (or pin it), then ask again.&#10;&#10;</source>
     </trans-unit>
     <trans-unit id="++CODE++6ecc3df6bffdd06c58cd4f6e276929e119c8f653c53f5a6a5a5e66dfa1c3fc93">
       <source xml:lang="en">Move</source>
@@ -7701,6 +7785,9 @@
     <trans-unit id="++CODE++cf34d3ee7de6fe08d706a22899bdb22aacfb37a03185c2938b399c04d77ecd3a">
       <source xml:lang="en">No provider was found for the following projects: {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++699c61b9e9fd7a781e58409dc9f891acbea89d53e524b73ac4e471be789de2b7">
+      <source xml:lang="en">No query results are available. Run a query in Query Studio first, then ask again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++07fa58bdd9de910a1e070b49104fd2eb37a4665f9cae70f35a28130d6fb1cf10">
       <source xml:lang="en">No query set</source>
     </trans-unit>
@@ -7732,6 +7819,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ab427ee55d6f25a2cb551176082f90bee142723295f3e1d591bdc28ab636547f">
       <source xml:lang="en">No rules match the current filter.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++90461bebedcb90399229272ccf3f907752e855517fc245d9186edca4b3b1e2ce">
+      <source xml:lang="en">No sample rows were shared (the user declined or was not asked).</source>
     </trans-unit>
     <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
       <source xml:lang="en">No saved connection profiles found.</source>
@@ -8375,6 +8465,9 @@
     <trans-unit id="++CODE++a25bb2b0f8904bda0a1b658119ea8bbb5f38d9aa2f48ef1e84dc09cd188350aa">
       <source xml:lang="en">Pinned Results {0}.{1}.{2} {3}</source>
     </trans-unit>
+    <trans-unit id="++CODE++e4fc5b082533be510a8cc47ccae5b476ce5e8a0c290e4e5f5a9a97c1eda772a5">
+      <source xml:lang="en">Pinned from @query</source>
+    </trans-unit>
     <trans-unit id="++CODE++76c684906363457a97ab7a0780752363509dc5d83f4604aeba34187b565e2998">
       <source xml:lang="en">Pinned result documents are disabled (mssql.queryResults.pinnedDocuments.enabled).</source>
     </trans-unit>
@@ -8383,6 +8476,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d06ac1bbb67c80a44b59b463fd055614844f914e40a0fd26f12cddf651c7c587">
       <source xml:lang="en">Pinned results live in memory for this window session. They are released when the tab closes, when the window reloads, or when the retention limit or time-to-live is reached. Re-run the query and pin the results again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f1f92e185d0156a068f4ecd0076679003be69d10771d687c555a77aaa2fb021c">
+      <source xml:lang="en">Pinned — the results now live in a read-only tab that survives reruns.</source>
     </trans-unit>
     <trans-unit id="++CODE++f28f35e8ea6ebcf2d198b25614a7e1a0463d83d9e5f3d1b1e33ba90a3025b70e">
       <source xml:lang="en">Placeholders:</source>
@@ -8610,6 +8706,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a423b47777783386516c79baa19b0dfcd12cb40e4fba79348ad14ab0169402cd">
       <source xml:lang="en">Profile Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6378b5e48020ab6936f62e80b664609f1f9be6a121536ef9a2172f585ee6e184">
+      <source xml:lang="en">Profile cancelled — here is the value-free summary instead.&#10;&#10;</source>
     </trans-unit>
     <trans-unit id="++CODE++f7821e5b83af275fa9638d6840dc6edd1e7c8179f566d99cb2fd713ca13e9e3c">
       <source xml:lang="en">Profile created and connected</source>
@@ -8904,8 +9003,17 @@
     <trans-unit id="++CODE++14ad88fc2a2fb0b956145de48523cd88f888a882a24322919567d744b8e74e70">
       <source xml:lang="en">Query quick actions</source>
     </trans-unit>
+    <trans-unit id="++CODE++fcb20b86f2f14fc2bcd5cffa7757d5e1550b1a82db1d695aaf9806379feee64e">
+      <source xml:lang="en">Query result analysis needs Query Studio — enable `mssql.queryStudio.enabled`, run a query, then ask again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++47acb318ed8f97f41d902ff7d08c858d3bd4cc33e7743518108707a55a28e949">
+      <source xml:lang="en">Query result snapshots require Query Studio (mssql.queryStudio.enabled).</source>
+    </trans-unit>
     <trans-unit id="++CODE++b55ac51f0872253bf11aebfd286d8ab4a7336ef413bc96093f0a08020e3c664f">
       <source xml:lang="en">Query results</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b6a4e2fbc3788935146c6d00c0bd54b7ac346fb4b7a1e21c7e153b294cf67432">
+      <source xml:lang="en">Query results: {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++9bb19ac86101a6dfe00ba121dc8fab54c216992ef8d061c9cf27bd93a4424a91">
       <source xml:lang="en">Query succeeded</source>
@@ -8989,6 +9097,9 @@
     <trans-unit id="++CODE++60c9871ec9518d202a3029e9d9bd63e0fb135ddcc133140686873c2f44b28c61">
       <source xml:lang="en">Read-only disconnected mode for &apos;{0}&apos;. Cannot create or start live sessions without a database connection.</source>
       <note>{0} is the XEL file name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c1e52102db94c396f4eba79eb8f99a3f62adbe967ea1083246f3717802520fed">
+      <source xml:lang="en">Reading raw result values requires user confirmation. Re-invoke this exact operation; the user will be asked to allow it.</source>
     </trans-unit>
     <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
       <source xml:lang="en">Ready</source>
@@ -9417,6 +9528,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a5ec26b19a366ed7e7eb9b3478620802f23ace14c3e3b59763ac682b5cb94587">
       <source xml:lang="en">Result set not found.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6cb89c6534099834ef31dcc998da62b8e4b875a4b320cbb828724c4600417af">
+      <source xml:lang="en">Result set {0}: {1} rows</source>
     </trans-unit>
     <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
       <source xml:lang="en">Results</source>
@@ -9945,6 +10059,9 @@
       <note>{0} is source column
 {1} is target column</note>
     </trans-unit>
+    <trans-unit id="++CODE++e1079c86367ea79d8c86b210d30adb2816a3f108decae565e83d580070f55ee1">
+      <source xml:lang="en">Scanning {0} rows locally (bounded, cancelable)…</source>
+    </trans-unit>
     <trans-unit id="++CODE++07b091a3fdc4e4c03cd047b5264e61241f20fe8dbc36a4c796d46cd8dc3e7d03">
       <source xml:lang="en">Schema</source>
     </trans-unit>
@@ -10033,6 +10150,12 @@
     </trans-unit>
     <trans-unit id="++CODE++2f10ef9d7df0c8082df68a51f77bb7c58300b6bea7c019678d287eae4ead3366">
       <source xml:lang="en">Schema size</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7dd53c41c28fdf6722498cadb82bcb67edb82dd96edfce6a87e5fc9da7aee0fc">
+      <source xml:lang="en">Schema, row counts, and null ratios never need this confirmation. This allows one profile request covering up to five result sets.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++022ee9890c9cabcfe10d430b95cc148bfecf2ca9f7d87f51612726378cd11e3f">
+      <source xml:lang="en">Schema, row counts, and numeric aggregates never require this confirmation.</source>
     </trans-unit>
     <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
       <source xml:lang="en">Schema/Object Type</source>
@@ -10681,6 +10804,12 @@
     <trans-unit id="++CODE++e0e492707f85ff1f9c23155494a54382b52bf34888091adc7a6bb338ef78f88d">
       <source xml:lang="en">Shape</source>
     </trans-unit>
+    <trans-unit id="++CODE++cf19f1b56c47f1992fce9695edb57229a4a8dd729fb21255bda542302da79a5f">
+      <source xml:lang="en">Share query result values from {0} with the language model?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++42f8958b6c4938e7848ef74445764b84ccb4fc9cf3b440304fddcfa71597a274">
+      <source xml:lang="en">Share query result values with chat?</source>
+    </trans-unit>
     <trans-unit id="++CODE++7539cb114300e5f93b3de7f659e4e114973b4b06b1ca980094071b06a32ea24b">
       <source xml:lang="en">Shared connections</source>
     </trans-unit>
@@ -10886,6 +11015,12 @@
     </trans-unit>
     <trans-unit id="++CODE++da5ab9fa50498c186a9bc08224047d84760dca9beec869fc63ee5c28572fd4c6">
       <source xml:lang="en">Snapshot = add-time config · Override = row config · Live = current toolbar.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1ca34bbcb6213fd0ebb10ef641b8a65a9b7312af35505b5347887817c9b7cb3e">
+      <source xml:lang="en">Snapshot not found or expired.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++26c81ef88c2b843862853111652f700d5864603d28695154d5cccd7868a9a4fc">
+      <source xml:lang="en">Snapshot retained ~{0} minutes; use describe_snapshot for schema and counts.</source>
     </trans-unit>
     <trans-unit id="++CODE++21844306ac40ad949795b32880ff37ee26e56b0acf405e7c4028b10c5168d0d2">
       <source xml:lang="en">Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.</source>
@@ -11442,6 +11577,9 @@
     <trans-unit id="++CODE++f522d631993a3ff32b8e0aff417f52361af3197c6c442c34f476ae4d503703d8">
       <source xml:lang="en">That connection group no longer exists. Refresh the view.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3597647ec2a232e47d9178b498fcfb7053e5232ca3c7cf02deea65066af87726">
+      <source xml:lang="en">That snapshot has expired — run the query and pin it again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fd4cd1ebcce84a342f8bfad9435dafc4703f350e443812adf3724485e42d6894">
       <source xml:lang="en">The &apos;connectionString&apos; property was removed from connection &apos;{0}&apos;. Removed connection string: &apos;{1}&apos;.</source>
       <note>{0} is the connection display name
@@ -11656,8 +11794,14 @@
     <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
       <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2d194bb8fb1b376880e502561d59ac45deed67aeace52f5c314e309ff326cb08">
+      <source xml:lang="en">The report exceeds the configured response size limit. Select a smaller result set or use /summarize.</source>
+    </trans-unit>
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10b5bf5ac02a9e1c3ce120d3ec79f3bc81a7ec28d7f21627df37da9cad338368">
+      <source xml:lang="en">The response exceeded {0} bytes — narrow the request (fewer rows/columns, tighter transform).</source>
     </trans-unit>
     <trans-unit id="++CODE++19edb2921020d6d5903fd3e186755e4237736ae2697694fc51568c369a4f7263">
       <source xml:lang="en">The result data is no longer available in full. The export could not be completed.</source>
@@ -11714,6 +11858,12 @@
     </trans-unit>
     <trans-unit id="++CODE++ccf13c4e33fc0204cb223ea33f27de0018976f1459b4835ba0b8f74a13ce8f71">
       <source xml:lang="en">The skills list couldn&apos;t be loaded from GitHub. Check your connection and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3af4e9ddf562c8150a3e02ee67e3b964b4a28631da2db1931b330439abef9ac8">
+      <source xml:lang="en">The snapshot is now open as a pinned tab and stays alive until the user closes it.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d7c00712f8802fa3d6b4771cab1f4dffa3529cfc2f941da40b571901a66a5f56">
+      <source xml:lang="en">The snapshot was created but the pinned tab could not be opened.</source>
     </trans-unit>
     <trans-unit id="++CODE++13c88dccbc0c16d34702d4b664c78552a13156f154731119eaaa1dfc41be428d">
       <source xml:lang="en">The system database references need to be updated to build the project &apos;{0}&apos;. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
@@ -11846,6 +11996,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d2cd4222b87fe208131546fa04e7a1627d7270f2581fc96c91e88a4e870c9fc0">
       <source xml:lang="en">This project type does not support drag and drop.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1eddaed8e69b7271e483d999cadec1777ad6aafee459dac5002a92bbed7581bf">
+      <source xml:lang="en">This sends **raw result values** from {0} to the language model.&#10;&#10;</source>
     </trans-unit>
     <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
       <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
@@ -12724,6 +12877,9 @@
     <trans-unit id="++CODE++78136f9b54ff8a9aa678d2792ad7ea0768dc943956feb18f4e94056036731b56">
       <source xml:lang="en">Writes this template&apos;s .devcontainer files into the current workspace.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a681c47ff6f74d90106a672c5c1c4b2434e188dc4f108c79b5997eb566560f53">
+      <source xml:lang="en">Writing the report…</source>
+    </trans-unit>
     <trans-unit id="++CODE++05028899e7a8d10fa3f3006a1573a289ad95e841ee2633eea71d9da29abdc18d">
       <source xml:lang="en">XML Schema Collections</source>
     </trans-unit>
@@ -12838,6 +12994,12 @@
       <note>{0} is the timestamp
 {1} is the log entry text</note>
     </trans-unit>
+    <trans-unit id="++CODE++b92957ee88cdee07434c39e1594121f866d702c74c14fd734669463108a4d2d0">
+      <source xml:lang="en">_…and {0} more columns (profiled columns are capped)._&#10;&#10;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++59573f2629c6c49560c60019231668d57868dda5fb1cc65e74f503ed18fa9e35">
+      <source xml:lang="en">_…and {0} more result sets._&#10;</source>
+    </trans-unit>
     <trans-unit id="++CODE++f7887dd07f0eae5e98ff012d7029500cc522182a474748a5ac8c7dc4cea26699">
       <source xml:lang="en">`{0}` expects a numeric value.</source>
     </trans-unit>
@@ -12922,6 +13084,9 @@
     </trans-unit>
     <trans-unit id="++CODE++214b36cd09c2821975fc7bf53f4ea7a24b67cb8e73a7cff89dd2d193657dbc0c">
       <source xml:lang="en">counting trimmed input tokens</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ca4159344d3bc24e4abdd748df276c460e7dd7d72bc6d73eec36783b4290e991">
+      <source xml:lang="en">create_snapshot requires sourceId (see list_live).</source>
     </trans-unit>
     <trans-unit id="++CODE++d47e636a4b383a2f7c545dc630a55ae2ba8ff9a849d71b09aae2ec437e5550e5">
       <source xml:lang="en">dacpac Files</source>
@@ -13188,6 +13353,9 @@
     <trans-unit id="++CODE++176ebc886413918b1d20afcb6b3e15c7463da0d5f697dc03279381fafd484ef7">
       <source xml:lang="en">result set</source>
     </trans-unit>
+    <trans-unit id="++CODE++29e0c359c2f79da4852e72dda6aa23ecef449e8809901eecfc19dd46ef8085c5">
+      <source xml:lang="en">resultSetId is required (see describe_snapshot).</source>
+    </trans-unit>
     <trans-unit id="++CODE++add93534eeb463800fe0ed0946048d33636dd2a014fab92e8a37f77ce98c740b">
       <source xml:lang="en">sec</source>
     </trans-unit>
@@ -13205,6 +13373,9 @@
     </trans-unit>
     <trans-unit id="++CODE++16a0eeb0791b6c92451fd284dd9f599e0a7dbe7f6ebea6e2d2d06c7f74aec112">
       <source xml:lang="en">snapshot</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9685c8d0327ebbfa0304cdd8d0aa1b956f195ee450f95b3d88f4cd19088f2063">
+      <source xml:lang="en">snapshotId is required.</source>
     </trans-unit>
     <trans-unit id="++CODE++6c92352ba402f7d151172ccf8602586e104c52a60206c1d405f6c40b49f17d23">
       <source xml:lang="en">src {0}</source>
@@ -13229,6 +13400,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
       <source xml:lang="en">test</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6af4c88da97f80dab85c1fa82ff65c41d04ba38bd9e94e50a7680936bb18cd5b">
+      <source xml:lang="en">the selected snapshot</source>
     </trans-unit>
     <trans-unit id="++CODE++0fddcf95258d1010fdd79196d5f122a88db9c9bac820e740640fccc0d8ab1678">
       <source xml:lang="en">then by</source>
@@ -13373,6 +13547,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2e4a8d54824349107a9f32cd027c66548aab1cb7024d6bcc83a7aecb2792160a">
       <source xml:lang="en">{0} SDK language models are disabled.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5ae93eaf9e19724888146ea5acd7b01c0557ee4fcc00d4078a28266c2c0ce0de">
+      <source xml:lang="en">{0} This allows one read.</source>
     </trans-unit>
     <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
       <source xml:lang="en">{0} accounts</source>
@@ -13849,6 +14026,12 @@
     <trans-unit id="++CODE++104bb2e07f887a89504ccb45bc8ef73dde56c843a317ad70d4cc419e8941438d">
       <source xml:lang="en">{{statementPrefix}}</source>
     </trans-unit>
+    <trans-unit id="++CODE++5106f9d5e4d9abd5ee66288c5396e6ffe03224aea9b441b1bb150fcb1a94f0e6">
+      <source xml:lang="en">| column | type | nulls | min | max |&#10;|---|---|---|---|---|</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f52dba8236d8ed21e5ac55da64c43ddd4e33549d2a41d544f19493834e28ae41">
+      <source xml:lang="en">| column | type | nulls |&#10;|---|---|---|</source>
+    </trans-unit>
     <trans-unit id="++CODE++8109a51c69ea2c3bd02673674e95263c02e6893ba09c5cb4438b4babf75b8b8d">
       <source xml:lang="en">| continuation</source>
     </trans-unit>
@@ -13881,6 +14064,9 @@
     </trans-unit>
     <trans-unit id="++CODE++17bb2fbe6aa65c524427bc49b46b7212354c72847e2d2ef01d8ef3387713a12b">
       <source xml:lang="en">— scroll to load</source>
+    </trans-unit>
+    <trans-unit id="++CODE++46a7c365979277d530eb7e1d55772853b25571c645ea44cf033efef38760bc0d">
+      <source xml:lang="en">⚠ Partial scan ({0}): numbers cover the first {1} rows.&#10;&#10;</source>
     </trans-unit>
     <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">
       <source xml:lang="en">✅ Grant Access</source>
@@ -14015,6 +14201,12 @@
     </trans-unit>
     <trans-unit id="mssql.copilot.analyzeQueryPerformance">
       <source xml:lang="en">Analyze Query Performance</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.description">
+      <source xml:lang="en">Analyze Query Studio results and pinned snapshots (bounded, confirmed access)</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryResults.tool.userDescription">
+      <source xml:lang="en">Analyze SQL query results from Query Studio with bounded, confirmed access.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.sdkProviders.anthropic.timeout.description">
       <source xml:lang="en">Anthropic API request timeout in milliseconds.</source>
@@ -14156,6 +14348,9 @@
     </trans-unit>
     <trans-unit id="mssql.queryStudio.statusBarGroupColor">
       <source xml:lang="en">Color the Query Studio status bar with the connection&apos;s server-group color (text color is picked automatically for readability).</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.profile.description">
+      <source xml:lang="en">Column profile including min/max values (asks before sharing values)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
       <source xml:lang="en">Command Timeout</source>
@@ -14372,6 +14567,9 @@
     </trans-unit>
     <trans-unit id="mssql.enableActualPlan">
       <source xml:lang="en">Enable Actual Plan (MSSQL)</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryResults.ai.enabled">
+      <source xml:lang="en">Enable Chat to Data (Private Preview) for Query Studio result snapshots. Requires Query Studio. Schema and numeric aggregates can be shared without confirmation; sharing cell values requires confirmation.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.v2.enabled.description">
       <source xml:lang="en">Enable Connections (Private Preview). Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Reload the window after changing any required setting. Classic Object Explorer remains available.</source>
@@ -14661,6 +14859,9 @@
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler...</source>
     </trans-unit>
+    <trans-unit id="mssql.query.list.description">
+      <source xml:lang="en">List live Query Studio results and snapshots</source>
+    </trans-unit>
     <trans-unit id="projects.excludedProjectsDescription">
       <source xml:lang="en">List of projects in the workspace to exclude from the projects viewlet</source>
     </trans-unit>
@@ -14673,11 +14874,17 @@
     <trans-unit id="sqlDatabaseProjects.Settings">
       <source xml:lang="en">MSSQL Database Projects</source>
     </trans-unit>
+    <trans-unit id="mssql.queryResults.tool.displayName">
+      <source xml:lang="en">MSSQL Query Result Snapshots</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.description">
       <source xml:lang="en">Make a new connection to a SQL database, or edit existing connections with the connection dialog.&#10;You can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.&#10;[Open Connection Dialog](command:mssql.addObjectExplorer)</source>
     </trans-unit>
     <trans-unit id="mssql.manageProfiles">
       <source xml:lang="en">Manage Connection Profiles</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.report.description">
+      <source xml:lang="en">Markdown report written from local statistics and an approved sample</source>
     </trans-unit>
     <trans-unit id="mssql.sessionDiag.maxAgeDays.description">
       <source xml:lang="en">Maximum age in days for locally retained diagnostic sessions.</source>
@@ -14921,6 +15128,9 @@
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.pin.description">
+      <source xml:lang="en">Pin the active results to a read-only tab that survives reruns</source>
     </trans-unit>
     <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
       <source xml:lang="en">Place AS on its own line.</source>
@@ -15215,6 +15425,9 @@
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.schemaCompare">
       <source xml:lang="en">Schema Compare</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.summarize.description">
+      <source xml:lang="en">Schema, row counts, and null ratios for the active results (no raw values)</source>
     </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>

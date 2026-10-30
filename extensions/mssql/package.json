@@ -363,6 +363,34 @@
                         "description": "List all procedures in the current database."
                     }
                 ]
+            },
+            {
+                "id": "mssql.query",
+                "name": "query",
+                "description": "%mssql.query.description%",
+                "isSticky": false,
+                "commands": [
+                    {
+                        "name": "list",
+                        "description": "%mssql.query.list.description%"
+                    },
+                    {
+                        "name": "summarize",
+                        "description": "%mssql.query.summarize.description%"
+                    },
+                    {
+                        "name": "profile",
+                        "description": "%mssql.query.profile.description%"
+                    },
+                    {
+                        "name": "report",
+                        "description": "%mssql.query.report.description%"
+                    },
+                    {
+                        "name": "pin",
+                        "description": "%mssql.query.pin.description%"
+                    }
+                ]
             }
         ],
         "customEditors": [
@@ -5705,6 +5733,12 @@
                         "description": "%mssql.queryResults.pinnedDocuments.enabled%",
                         "scope": "application"
                     },
+                    "mssql.queryResults.ai.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.queryResults.ai.enabled%",
+                        "scope": "application"
+                    },
                     "mssql.queryResults.snapshot.ttlMinutes": {
                         "type": "number",
                         "default": 30,
@@ -8101,6 +8135,89 @@
                 "toolReferenceName": "mssql_run_query",
                 "userDescription": "Execute a SQL query against a connected MSSQL database.",
                 "icon": "$(play)"
+            },
+            {
+                "name": "mssql_query_results",
+                "modelDescription": "When the user explicitly references #mssql_query_results, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Analyze Query Studio result snapshots WITHOUT streaming full data. Division of labor: mssql_run_query executes SQL and returns at most a head sample; this tool analyzes complete results the user has run in Query Studio. Operations: 'list_live' lists open Query Studio documents with results; 'create_snapshot' freezes a live source's complete result sets and returns a snapshotId; 'list_snapshots'/'describe_snapshot' return schema, row counts, provenance and lineage (no values, no confirmation); 'evaluate_transform' runs a bounded transform spec v1 ({ v:1, source:{snapshotId,resultSetId}, ops:[filter|project|slice], terminal: rows|aggregate|groupBy|topK|histogram|distinctCount|sample }) — numeric aggregates need no confirmation, any output containing cell values asks the user first; 'sample_rows'/'get_rows' return bounded row windows (user confirmation required); 'derive_snapshot' accepts only a rows terminal with filters/slices (no projection or aggregates) and materializes a filtered view as a new snapshotId (no values returned); 'pin_snapshot' opens a snapshot (e.g. a derived filtered view) as a read-only tab for the user; 'release_snapshot' frees one. Every response is row/byte-capped and carries EvalStats with partial:true when a budget cut the scan — never assume full coverage when partial is set.",
+                "displayName": "%mssql.queryResults.tool.displayName%",
+                "userDescription": "%mssql.queryResults.tool.userDescription%",
+                "canBeReferencedInPrompt": true,
+                "toolReferenceName": "mssql_query_results",
+                "icon": "$(pinned)",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "query",
+                    "results",
+                    "analyze"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "operation": {
+                            "description": "Operation: list_live | list_snapshots | create_snapshot | describe_snapshot | get_rows | sample_rows | evaluate_transform | derive_snapshot | pin_snapshot | release_snapshot.",
+                            "title": "Operation",
+                            "type": "string",
+                            "enum": [
+                                "list_live",
+                                "list_snapshots",
+                                "create_snapshot",
+                                "describe_snapshot",
+                                "get_rows",
+                                "sample_rows",
+                                "evaluate_transform",
+                                "derive_snapshot",
+                                "pin_snapshot",
+                                "release_snapshot"
+                            ]
+                        },
+                        "sourceId": {
+                            "description": "Live source id from list_live (create_snapshot).",
+                            "type": "string"
+                        },
+                        "snapshotId": {
+                            "description": "Snapshot id from create_snapshot/list_snapshots.",
+                            "type": "string"
+                        },
+                        "resultSetId": {
+                            "description": "Result set id from describe_snapshot.",
+                            "type": "string"
+                        },
+                        "rowStart": {
+                            "description": "get_rows: first row (0-based).",
+                            "type": "number"
+                        },
+                        "rowCount": {
+                            "description": "get_rows: rows to fetch (capped by policy).",
+                            "type": "number"
+                        },
+                        "sampleStrategy": {
+                            "description": "sample_rows: head | head_tail | uniform_windows | reservoir.",
+                            "type": "string",
+                            "enum": [
+                                "head",
+                                "head_tail",
+                                "uniform_windows",
+                                "reservoir"
+                            ]
+                        },
+                        "sampleSize": {
+                            "description": "sample_rows: sample size (capped by policy).",
+                            "type": "number"
+                        },
+                        "spec": {
+                            "description": "Transform spec v1. Example: {\"v\":1,\"source\":{\"snapshotId\":\"...\",\"resultSetId\":\"...\"},\"ops\":[{\"op\":\"filter\",\"pred\":{\"col\":1,\"cmp\":\"ge\",\"value\":100}}],\"terminal\":{\"kind\":\"groupBy\",\"keys\":[0],\"aggs\":[{\"fn\":\"sum\",\"col\":1}]}}. Column references are zero-based ordinals. Filters: and/or arrays, not predicate, or {col,cmp,value}; comparisons eq/ne/lt/le/gt/ge/contains/startsWith/inSet/isNull/notNull (inSet uses a values array instead of value). Projection: {op:\"project\",columns:[0,1]}. Slice: {op:\"slice\",offset:0,limit:100}. Terminals: {kind:\"rows\",limit:100}; {kind:\"aggregate\",aggs:[{fn:\"count\"},{fn:\"sum\"|\"avg\"|\"min\"|\"max\"|\"nullCount\",col:1}]}; {kind:\"groupBy\",keys:[0],aggs:[...],maxGroups:1000,limitGroups:50,orderBy:{agg:0,dir:\"desc\"}}; {kind:\"topK\",col:0,k:10,by:\"value\"|\"frequency\"}; {kind:\"histogram\",col:1,boundaries:[0,100,200]} or bucketCount:10; {kind:\"distinctCount\",col:0}; {kind:\"sample\",strategy:\"head\"|\"head_tail\"|\"uniform_windows\"|\"reservoir\",n:10}. Use describe_snapshot first. Derived pins accept only rows with filters/slices.",
+                            "type": "object"
+                        },
+                        "reason": {
+                            "description": "Short purpose shown to the user in confirmations.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "operation"
+                    ]
+                }
             }
         ],
         "colors": [
