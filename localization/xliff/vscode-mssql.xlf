@@ -14023,7 +14023,7 @@
       <source xml:lang="en">Advanced (preview): per-knob Query Studio performance parameter overrides applied above the tuning profile — e.g. `{ &quot;pageRows&quot;: 512, &quot;pageBytes&quot;: 131072 }`. Keys follow the QueryTuning parameter registry; unknown keys and out-of-range values are ignored. Intended for diagnostics and performance testing.</source>
     </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.tsNative.overrides">
-      <source xml:lang="en">Advanced preview diagnostics for the Native TypeScript provider; apply to future sessions. Supports lower page/cell limits, a memory budget, explicit lossy previews, capability masks, and deterministic fault injection. Unknown settings are ignored. Leave empty for normal use and performance comparisons.</source>
+      <source xml:lang="en">Advanced preview diagnostics for the Native TypeScript provider. Disconnect all native sessions and reconnect, or reload the extension host, to apply changes. Supports lower page/cell limits, a memory budget, explicit lossy previews, capability masks, and deterministic fault injection. Unknown settings are ignored. Leave empty for normal use and performance comparisons.</source>
     </trans-unit>
     <trans-unit id="mssql.format.options.alignSetClauseItem">
       <source xml:lang="en">Align SET clause items in UPDATE statements.</source>

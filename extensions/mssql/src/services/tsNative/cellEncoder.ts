@@ -182,7 +182,7 @@ export function encodeCell(cell: TdsCell, column: TdsColumn, policy: EncodePolic
     }
     // Unmappable driver value: invariant-string fallback, never a throw.
     const fallback = String(raw);
-    return { value: fallback, isNull: false, approxBytes: fallback.length + 2 };
+    return { value: fallback, isNull: false, approxBytes: Buffer.byteLength(fallback, "utf8") + 2 };
 }
 
 /** D-0020 typed spatial cell — EXACT STS2 wire field names. */
@@ -264,7 +264,7 @@ function encodeStringCell(raw: string, type: string, policy: EncodePolicy): Enco
         digest: `sha256:${createHash("sha256").update(raw, "utf8").digest("hex")}`,
         v: prefix,
     };
-    return { value: marker, isNull: false, approxBytes: prefix.length + 96 };
+    return { value: marker, isNull: false, approxBytes: Buffer.byteLength(prefix, "utf8") + 96 };
 }
 
 function encodeBinaryCell(raw: Buffer, policy: EncodePolicy): EncodedCell {

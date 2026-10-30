@@ -139,7 +139,13 @@ suite("ts-native review regressions", () => {
             expect(h.driver.connections).to.be.empty;
         });
     }
-    for (const server of ["tcp:localhost,1433", "TCP:.,1433", "(local),1433"]) {
+    for (const server of [
+        "tcp:localhost,1433",
+        "TCP:.,1433",
+        "(local),1433",
+        "localhost\\SQLEXPRESS,1433",
+        "tcp:.\\SQLEXPRESS,1433",
+    ]) {
         test(`normalizes saved endpoint ${server}`, async () => {
             const h = harness();
             await h.backend.openSession({ ...h.params, profile: { ...PROFILE, server } });
@@ -147,6 +153,7 @@ suite("ts-native review regressions", () => {
                 server: "localhost",
                 port: 1433,
             });
+            expect(h.driver.connections[0].openRequest.instanceName).to.equal(undefined);
         });
     }
     test("open errors preserve useful details and redact the supplied secret", async () => {
@@ -155,6 +162,97 @@ suite("ts-native review regressions", () => {
         const failure = await h.backend.openSession(h.params).catch((error) => error);
         expect(failure.message).to.include("self-signed certificate");
         expect(failure.message).not.to.include("test-secret");
+    });
+
+    test("a throwing subscriber cannot interrupt connection-loss cleanup", async () => {
+        const h = harness({ queries: [{ match: "wait", steps: [{ step: "hangUntilCancel" }] }] });
+        const session = await h.open();
+        session.onDidChangeState(() => {
+            throw new Error("subscriber failure");
+        });
+        const remaining = sandbox.spy();
+        session.onDidChangeState(remaining);
+        const handle = session.execute("wait", {}, sink());
+        await h.clock.flush();
+        expect(() => h.driver.connections[0].destroy("test loss")).not.to.throw();
+        await h.clock.flush();
+        expect((await handle.completion).status).to.equal("connectionLost");
+        expect(remaining.calledOnce).to.equal(true);
+        expect(h.backend.snapshot().sessions).to.deep.equal([]);
+    });
+
+    test("close deadline includes an unresponsive query cancellation", async () => {
+        const h = harness({ queries: [{ match: "wait", steps: [{ step: "hangUntilCancel" }] }] });
+        const session = await h.open();
+        const execute = sandbox.spy(h.driver.connections[0], "execute");
+        const handle = session.execute("wait", {}, sink());
+        await h.clock.flush();
+        sandbox.stub(execute.firstCall.returnValue, "cancel").returns(new Promise(() => undefined));
+        let closed = false;
+        const closing = session.close({ timeoutMs: 100 }).then(() => {
+            closed = true;
+        });
+        await h.clock.advance(99);
+        expect(closed).to.equal(false);
+        await h.clock.advance(1);
+        await closing;
+        expect(session.state).to.equal("closed");
+        expect((await handle.completion).status).to.equal("connectionLost");
+        expect(h.backend.snapshot().sessions).to.deep.equal([]);
+    });
+
+    test("retained Unicode prefixes are charged in UTF-8 bytes", () => {
+        const encoded = encodeCell(
+            { value: "漢".repeat(3000) },
+            { name: "text", typeName: "nvarchar" },
+            { ...POLICY, maxCellBytes: 4096 },
+        );
+        const prefix = (encoded.value as { v: string }).v;
+        expect(Buffer.byteLength(prefix, "utf8")).to.equal(4095);
+        expect(encoded.approxBytes).to.equal(4095 + 96);
+    });
+
+    test("large nested spatial collections preserve serialized child order", () => {
+        const count = 2000;
+        const clr = Buffer.alloc(27 + count * 39);
+        clr[4] = 1;
+        clr[5] = 4;
+        clr.writeUInt32LE(count, 6);
+        let offset = 10;
+        for (let i = 0; i < count; i++) {
+            clr.writeDoubleLE(i, offset);
+            clr.writeDoubleLE(i + 0.5, offset + 8);
+            offset += 16;
+        }
+        clr.writeUInt32LE(count, offset);
+        offset += 4;
+        for (let i = 0; i < count; i++) {
+            clr[offset] = 1;
+            clr.writeInt32LE(i, offset + 1);
+            offset += 5;
+        }
+        clr.writeUInt32LE(1 + count * 2, offset);
+        offset += 4;
+        const shape = (parent: number, figure: number, type: number) => {
+            clr.writeInt32LE(parent, offset);
+            clr.writeInt32LE(figure, offset + 4);
+            clr[offset + 8] = type;
+            offset += 9;
+        };
+        shape(-1, 0, 7);
+        for (let i = 0; i < count; i++) {
+            shape(0, i, 4);
+            shape(1 + i * 2, i, 1);
+        }
+        const result = transcodeSpatial(clr, "geometry");
+        expect(result.status).to.equal("ok");
+        if (result.status !== "ok") return;
+        expect(result.wkb.length).to.equal(9 + count * 30);
+        expect(result.wkb.readUInt32LE(5)).to.equal(count);
+        for (let i = 0; i < count; i++) {
+            expect(result.wkb.readDoubleLE(9 + i * 30 + 14)).to.equal(i);
+            expect(result.wkb.readDoubleLE(9 + i * 30 + 22)).to.equal(i + 0.5);
+        }
     });
 
     test("open probes publish the initial database, edition, version, login and SPID", async () => {

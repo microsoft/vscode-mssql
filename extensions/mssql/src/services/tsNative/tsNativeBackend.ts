@@ -460,7 +460,8 @@ function parseServer(raw: string): { server: string; instanceName?: string; port
     if (commaIndex > 0) {
         const port = Number(raw.slice(commaIndex + 1).trim());
         if (Number.isInteger(port) && port > 0) {
-            return { server: normalizeHost(raw.slice(0, commaIndex)), port };
+            // An explicit port wins over instance discovery (host\\instance,port).
+            return { server: normalizeHost(raw.slice(0, commaIndex).split("\\")[0]), port };
         }
     }
     const slashIndex = raw.indexOf("\\");

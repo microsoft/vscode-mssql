@@ -618,5 +618,5 @@
     "mssql.objectExplorerV2.scriptDrop": "Script as Drop",
     "mssql.objectExplorerV2.scriptExecute": "Script as Execute",
     "mssql.objectExplorerV2.generateScriptSubmenu": "Generate Script",
-    "mssql.sqlDataPlane.tsNative.overrides": "Advanced preview diagnostics for the Native TypeScript provider; apply to future sessions. Supports lower page/cell limits, a memory budget, explicit lossy previews, capability masks, and deterministic fault injection. Unknown settings are ignored. Leave empty for normal use and performance comparisons."
+    "mssql.sqlDataPlane.tsNative.overrides": "Advanced preview diagnostics for the Native TypeScript provider. Disconnect all native sessions and reconnect, or reload the extension host, to apply changes. Supports lower page/cell limits, a memory budget, explicit lossy previews, capability masks, and deterministic fault injection. Unknown settings are ignored. Leave empty for normal use and performance comparisons."
 }

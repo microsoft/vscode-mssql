@@ -299,13 +299,20 @@ class WkbWriter {
 
 function writeWkb(parsed: ParsedPayload): Buffer {
     const writer = new WkbWriter();
+    const childrenByParent = new Map<number, number[]>();
+    for (let index = 0; index < parsed.shapes.length; index++) {
+        const parent = parsed.shapes[index].parentOffset;
+        const children = childrenByParent.get(parent);
+        if (children) children.push(index);
+        else childrenByParent.set(parent, [index]);
+    }
     const roots = parsed.shapes
         .map((shape, index) => ({ shape, index }))
         .filter(({ shape }) => shape.parentOffset === -1);
     if (roots.length !== 1) {
         throw new Error(`expected one root shape, found ${roots.length}`);
     }
-    writeShape(writer, parsed, roots[0].index);
+    writeShape(writer, parsed, roots[0].index, childrenByParent);
     return writer.finish();
 }
 
@@ -355,17 +362,12 @@ function shapeFigures(parsed: ParsedPayload, shapeIndex: number): { start: numbe
     return { start, end };
 }
 
-function childShapes(parsed: ParsedPayload, shapeIndex: number): number[] {
-    const children: number[] = [];
-    for (let i = 0; i < parsed.shapes.length; i++) {
-        if (parsed.shapes[i].parentOffset === shapeIndex) {
-            children.push(i);
-        }
-    }
-    return children;
-}
-
-function writeShape(writer: WkbWriter, parsed: ParsedPayload, shapeIndex: number): void {
+function writeShape(
+    writer: WkbWriter,
+    parsed: ParsedPayload,
+    shapeIndex: number,
+    childrenByParent: ReadonlyMap<number, readonly number[]>,
+): void {
     const shape = parsed.shapes[shapeIndex];
     writer.byte(1); // little-endian
     switch (shape.type) {
@@ -422,10 +424,10 @@ function writeShape(writer: WkbWriter, parsed: ParsedPayload, shapeIndex: number
                         ? WKB_MULTIPOLYGON
                         : WKB_COLLECTION;
             writer.uint32(typeCode(base, parsed));
-            const children = childShapes(parsed, shapeIndex);
+            const children = childrenByParent.get(shapeIndex) ?? [];
             writer.uint32(children.length);
             for (const child of children) {
-                writeShape(writer, parsed, child);
+                writeShape(writer, parsed, child, childrenByParent);
             }
             return;
         }

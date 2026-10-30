@@ -53,7 +53,11 @@ class Emitter<T> {
     };
     fire(e: T): void {
         for (const listener of [...this.listeners]) {
-            listener(e);
+            try {
+                listener(e);
+            } catch {
+                // Subscribers cannot interrupt state transitions or cleanup.
+            }
         }
     }
     clear(): void {
@@ -213,25 +217,32 @@ export class TsNativeSession implements ISqlSession {
         }
         this.transition("closing", opts?.reason ?? "close requested");
         const active = this.activeQuery;
-        if (active) {
-            // Shared conformance rule: an active query on session close
-            // settles as connectionLost (synthesized) unless already terminal.
-            await active.cancel("sessionClose").catch(() => undefined);
-            active.markLost("session closed");
-            this.activeQuery = undefined;
-        }
         const timeoutMs = opts?.timeoutMs ?? this.deps.deadlines.closeMs;
         let closeTimer: { dispose(): void } | undefined;
         await Promise.race([
-            this.connection.close({ operationId: this.deps.ids.next("op") }).catch(() => undefined),
             new Promise<void>((resolve) => {
                 closeTimer = this.deps.clock.setTimeout(() => {
                     this.connection.destroy("close deadline expired");
                     resolve();
                 }, timeoutMs);
             }),
+            (async () => {
+                if (active) {
+                    // Cancellation and physical close share one absolute budget.
+                    await active.cancel("sessionClose").catch(() => undefined);
+                    active.markLost("session closed");
+                }
+                // A deadline/loss may already have destroyed this connection.
+                if (this.state === "closing") {
+                    await this.connection
+                        .close({ operationId: this.deps.ids.next("op") })
+                        .catch(() => undefined);
+                }
+            })(),
         ]);
         closeTimer?.dispose(); // leak discipline (N-I10)
+        active?.markLost("session closed");
+        this.activeQuery = undefined;
         this.transition("closed", "closed");
         this.finalize();
     }
