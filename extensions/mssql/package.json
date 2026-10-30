@@ -192,7 +192,8 @@
         "which": "^6.0.1",
         "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
-        "yauzl": "^3.3.1"
+        "yauzl": "^3.3.1",
+        "tedious": "20.0.0"
     },
     "capabilities": {
         "untrustedWorkspaces": {
@@ -3914,7 +3915,8 @@
                     "mssql.sqlDataPlane.backend": {
                         "type": "string",
                         "enum": [
-                            "sts2-local"
+                            "sts2-local",
+                            "ts-native"
                         ],
                         "default": "sts2-local",
                         "markdownDescription": "%mssql.sqlDataPlane.backend.description%",
@@ -5572,6 +5574,15 @@
                         "default": false,
                         "description": "%mssql.copilot.inlineCompletions.trace.journalPrimary%",
                         "scope": "window"
+                    },
+                    "mssql.sqlDataPlane.tsNative.overrides": {
+                        "type": "object",
+                        "default": {},
+                        "markdownDescription": "%mssql.sqlDataPlane.tsNative.overrides%",
+                        "scope": "window",
+                        "tags": [
+                            "experimental"
+                        ]
                     }
                 }
             },

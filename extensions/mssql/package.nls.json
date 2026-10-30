@@ -419,7 +419,7 @@
     "mssql.metadataCache.enableOfflineMode": "Metadata Cache: Enable Offline Mode",
     "mssql.metadataCache.disableOfflineMode": "Metadata Cache: Disable Offline Mode",
     "mssql.sqlDataPlane.enabled.description": "Private preview. Enable the STS v2-backed SQL Data Plane for preview consumers. Requires mssql.enableExperimentalFeatures and SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing either setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.",
-    "mssql.sqlDataPlane.backend.description": "Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.",
+    "mssql.sqlDataPlane.backend.description": "Select the SQL Data Plane backend for new preview connections. SQL Tools Service remains the default. Native TypeScript (Tedious) is an optional preview with capability and data-type limitations.",
     "mssql.sqlDataPlane.capabilityFallback.description": "Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).",
     "mssql.sqlDataPlane.timeouts.openMs.description": "Maximum time in milliseconds to wait for an STS v2 connection to open.",
     "mssql.sqlDataPlane.timeouts.cancelAckMs.description": "Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.",
@@ -617,5 +617,6 @@
     "mssql.objectExplorerV2.scriptCreate": "Script as Create",
     "mssql.objectExplorerV2.scriptDrop": "Script as Drop",
     "mssql.objectExplorerV2.scriptExecute": "Script as Execute",
-    "mssql.objectExplorerV2.generateScriptSubmenu": "Generate Script"
+    "mssql.objectExplorerV2.generateScriptSubmenu": "Generate Script",
+    "mssql.sqlDataPlane.tsNative.overrides": "Advanced preview diagnostics for the Native TypeScript provider; apply to future sessions. Supports lower page/cell limits, a memory budget, explicit lossy previews, capability masks, and deterministic fault injection. Unknown settings are ignored. Leave empty for normal use and performance comparisons."
 }

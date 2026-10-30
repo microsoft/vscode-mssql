@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 const { createNodeExtensionConfig, run } = require("../../../scripts/esbuild-utils");
+const { tediousStreamingPlpDecodePlugin } = require("./tedious-streaming-plp-decode-plugin");
 const logger = require("../../../scripts/terminal-logger");
 const { channelExclusionPlugin, resolveBuildChannel } = require("./build-channels");
 
@@ -19,6 +20,8 @@ void run(
         createNodeExtensionConfig({
             entryPoints: {
                 extension: "src/extension.ts",
+                // Loaded only when the Native TypeScript provider is selected.
+                tsNativeProvider: "src/services/tsNative/providerEntry.ts",
                 serviceInstallerUtil: "src/languageservice/serviceInstallerUtil.ts",
             },
             external: ["vscode-mssql"],
@@ -35,7 +38,7 @@ void run(
             minify: isProd,
             nodePaths: ["./node_modules"],
             outdir: "dist",
-            plugins: [channelExclusionPlugin(buildChannel)],
+            plugins: [channelExclusionPlugin(buildChannel), tediousStreamingPlpDecodePlugin()],
             sourcemap: !isProd,
             sourcesContent: false,
             tsconfig: "./tsconfig.extension.json",

@@ -6434,3 +6434,16 @@ export const QueryStudioCore = {
     couldNotSwitchToDatabase0USEFailed: (value0: string) =>
         l10n.t('Could not switch to database "{0}" (USE failed).', value0),
 };
+
+export class NativeSqlProvider {
+    public static name = l10n.t("Native TypeScript (Tedious)");
+    public static unsupportedRuntime = (minimum: number, actual: string) =>
+        l10n.t(
+            "The Native TypeScript provider requires Node.js {0} or newer; this host uses {1}.",
+            minimum,
+            actual,
+        );
+    public static bundleUnavailable = l10n.t(
+        "The Native TypeScript provider could not be loaded. Reinstall the extension or select SQL Tools Service.",
+    );
+}

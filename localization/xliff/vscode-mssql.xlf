@@ -7312,6 +7312,9 @@
     <trans-unit id="++CODE++a5135f7bb6d09c754daab4f864f6bcbd5980df298e33b6dd4a979c1fb9484545">
       <source xml:lang="en">Native ARM and x64 images so you get great performance on Apple silicon, Surface, and Linux ARM devices, and on traditional Intel/AMD machines alike.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a5dfbb4ac77d38611c133341f52f46ff7ea477c495ab8892bab8d0dc2710fb00">
+      <source xml:lang="en">Native TypeScript (Tedious)</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa0b5c9f24a385fbfa5914f392a2476c831d7baa4365e59cfca338130cd71c98">
       <source xml:lang="en">Navigate result grids</source>
     </trans-unit>
@@ -11481,6 +11484,12 @@
     <trans-unit id="++CODE++c06982c71f4f2dfffed0ad092518601746d30dc2386af195c3e836f87e5eb300">
       <source xml:lang="en">The Dev Containers extension is required to reopen this folder in a container.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ecc48bf0a5cb6b4e2f115197e11af024d6affdaf6522e5c9aa977c7ed26ded61">
+      <source xml:lang="en">The Native TypeScript provider could not be loaded. Reinstall the extension or select SQL Tools Service.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7f2fa1b238626d051e4f0e7599fd537821d8fe5ab391754182e90a4dca09b16e">
+      <source xml:lang="en">The Native TypeScript provider requires Node.js {0} or newer; this host uses {1}.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
@@ -13980,6 +13989,9 @@
     <trans-unit id="mssql.queryStudio.tuning.overrides">
       <source xml:lang="en">Advanced (preview): per-knob Query Studio performance parameter overrides applied above the tuning profile — e.g. `{ &quot;pageRows&quot;: 512, &quot;pageBytes&quot;: 131072 }`. Keys follow the QueryTuning parameter registry; unknown keys and out-of-range values are ignored. Intended for diagnostics and performance testing.</source>
     </trans-unit>
+    <trans-unit id="mssql.sqlDataPlane.tsNative.overrides">
+      <source xml:lang="en">Advanced preview diagnostics for the Native TypeScript provider; apply to future sessions. Supports lower page/cell limits, a memory budget, explicit lossy previews, capability masks, and deterministic fault injection. Unknown settings are ignored. Leave empty for normal use and performance comparisons.</source>
+    </trans-unit>
     <trans-unit id="mssql.format.options.alignSetClauseItem">
       <source xml:lang="en">Align SET clause items in UPDATE statements.</source>
     </trans-unit>
@@ -15247,7 +15259,7 @@
       <source xml:lang="en">Select Top 1000</source>
     </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.backend.description">
-      <source xml:lang="en">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</source>
+      <source xml:lang="en">Select the SQL Data Plane backend for new preview connections. SQL Tools Service remains the default. Native TypeScript (Tedious) is an optional preview with capability and data-type limitations.</source>
     </trans-unit>
     <trans-unit id="mssql.selectedAzureSubscriptions">
       <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
