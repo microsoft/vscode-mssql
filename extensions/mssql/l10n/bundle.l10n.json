@@ -4502,6 +4502,29 @@
         "message": "Column width must be at least {0} pixels.",
         "comment": ["{0} is the minimum column width in pixels"]
     },
+    "Result sets: {0}/{0} is the number of result sets the query returned": {
+        "message": "Result sets: {0}",
+        "comment": ["{0} is the number of result sets the query returned"]
+    },
+    "Completed with errors": "Completed with errors",
+    "{0} (closed)/{0} is the name of a query file whose editor has been closed": {
+        "message": "{0} (closed)",
+        "comment": ["{0} is the name of a query file whose editor has been closed"]
+    },
+    "The editor for these results is closed. The results stay until you close them.": "The editor for these results is closed. The results stay until you close them.",
+    "Close Results": "Close Results",
+    "Move to New Group": "Move to New Group",
+    "Join Group": "Join Group",
+    "Actions for {0}/{0} is the name of a query file": {
+        "message": "Actions for {0}",
+        "comment": ["{0} is the name of a query file"]
+    },
+    "Results for {0}/{0} is the name of a query file": {
+        "message": "Results for {0}",
+        "comment": ["{0} is the name of a query file"]
+    },
+    "No query results": "No query results",
+    "Run a query to see its results here. Drag results onto each other to view them side by side.": "Run a query to see its results here. Drag results onto each other to view them side by side.",
     "Add new column": "Add new column",
     "Cannot delete column because it is used by a foreign key.": "Cannot delete column because it is used by a foreign key.",
     "Cannot delete column because it is referenced by a foreign key.": "Cannot delete column because it is referenced by a foreign key.",

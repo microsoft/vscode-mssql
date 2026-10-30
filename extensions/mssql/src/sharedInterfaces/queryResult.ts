@@ -9,6 +9,7 @@ import {
     ExecutionPlanState,
     ExecutionPlanWebviewState,
 } from "./executionPlan";
+import type { MultiResultsState } from "./multiResults";
 
 export interface ISlickRange {
     fromCell: number;
@@ -92,6 +93,11 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     executionStartTime?: number;
     executionElapsedMilliseconds?: number;
     rowsAffected?: number;
+    /**
+     * Set only on the results view's own state while the multi-results preview is enabled.
+     * Each result's state is then sent separately, see `MultiResultsFileStateNotification`.
+     */
+    multiResults?: MultiResultsState;
 }
 
 export interface SelectionSummaryMetrics {

@@ -12,6 +12,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
+import { useIsActiveResultPaneRef } from "./queryResultPaneScope";
 
 const useStyles = makeStyles({
     loadingContainer: {
@@ -61,8 +62,12 @@ export const QueryResultsTab = ({ GridView }: QueryResultsTabProps) => {
         qr.QueryResultViewMode.Grid;
 
     const tabStates = useQueryResultSelector((state) => state.tabStates);
+    const isActivePaneRef = useIsActiveResultPaneRef();
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
+            if (!isActivePaneRef.current) {
+                return;
+            }
             const isResultsTab = tabStates?.resultPaneTab === qr.QueryResultPaneTabs.Results;
             let handled = false;
             if (

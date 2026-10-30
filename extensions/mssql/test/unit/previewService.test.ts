@@ -119,6 +119,26 @@ suite("PreviewFeaturesService", () => {
         }
     });
 
+    suite("multi-results", () => {
+        for (const { globalEnabled, setting, enabled } of [
+            { globalEnabled: true, setting: undefined, enabled: false },
+            { globalEnabled: true, setting: null, enabled: false },
+            { globalEnabled: true, setting: false, enabled: false },
+            { globalEnabled: false, setting: true, enabled: true },
+        ]) {
+            test(`umbrella ${globalEnabled}, setting ${setting}: ${enabled}`, () => {
+                getConfigurationStub.returns(
+                    createWorkspaceConfiguration({
+                        enableExperimentalFeatures: globalEnabled,
+                        [getPreviewConfigKey(PreviewFeature.MultiResults)]: setting,
+                    }),
+                );
+
+                expect(service.multiResultsEnabled).to.equal(enabled);
+            });
+        }
+    });
+
     suite("isPrivatePreviewEnabled", () => {
         test("does not let a feature flag override the disabled umbrella", () => {
             stubMssqlConfig(false, {}, { [PrivatePreviewFeature.SqlDataPlane]: true });

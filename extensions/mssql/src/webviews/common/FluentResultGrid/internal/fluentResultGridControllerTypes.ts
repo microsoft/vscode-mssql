@@ -39,6 +39,8 @@ export type FluentResultGridActiveDataColumn = {
 
 export type FluentResultGridControllerOptions = FluentResultGridProps & {
     containerRef: RefObject<HTMLDivElement | null>;
+    /** Suffix for the grid's DOM ids, unique in the document. See FluentResultGrid. */
+    domId: string;
 };
 
 export interface FluentResultGridControllerResult {

@@ -4,11 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, shorthands } from "@fluentui/react-components";
-import { type ComponentType, useEffect } from "react";
+import { type ComponentType } from "react";
 import { QueryResultPane } from "./queryResultPane";
-import { KeyCode } from "../../common/keys";
-import { isMetaOrCtrlKeyPressed } from "../../common/utils";
-import { eventMatchesKey } from "../../common/keyboardUtils";
 
 const useStyles = makeStyles({
     root: {
@@ -97,20 +94,6 @@ interface QueryResultProps {
 
 export const QueryResult = ({ GridView, isBetaResultsGridEnabled }: QueryResultProps) => {
     const classes = useStyles();
-
-    // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent): void => {
-            if (isMetaOrCtrlKeyPressed(e) && eventMatchesKey(e, { key: "a", code: KeyCode.KeyA })) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        };
-        document.addEventListener("keydown", handleKeyDown);
-        return function cleanup() {
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, []);
 
     return (
         <div className={classes.root}>

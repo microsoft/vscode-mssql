@@ -27,6 +27,7 @@ import { WebviewAction } from "../../../sharedInterfaces/webview";
 import debounce from "lodash/debounce";
 import { LazyMount } from "../../common/lazyMount";
 import { locConstants } from "../../common/locConstants";
+import { useIsActiveResultPaneRef } from "./queryResultPaneScope";
 
 const useStyles = makeStyles({
     gridViewContainer: {
@@ -103,6 +104,19 @@ export const QueryResultsGridView = ({
     const gridIndexToFocusRef = useRef<number | undefined>(undefined);
     const activeSelectionGridKeyRef = useRef<string | undefined>(undefined);
     const { keyBindings } = useVscodeWebview();
+    const isActivePaneRef = useIsActiveResultPaneRef();
+
+    /**
+     * Finds a result set's container in this view. Other results panes in the same webview have
+     * result sets with the same keys, so the document is not searched.
+     */
+    const getResultSetContainer = useCallback(
+        (gridKey: string) =>
+            gridViewContainerRef.current?.querySelector<HTMLElement>(
+                `:scope > [id="${gridKey}"]`,
+            ) ?? null,
+        [],
+    );
 
     // Derive a stable flat list for rendering
     const gridList: GridItem[] = useMemo(() => {
@@ -306,6 +320,9 @@ export const QueryResultsGridView = ({
     // Keyboard shortcuts
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
+            if (!isActivePaneRef.current) {
+                return;
+            }
             let handled = false;
             if (
                 eventMatchesShortcut(
@@ -375,7 +392,7 @@ export const QueryResultsGridView = ({
 
         // Also scroll the grid into view when minimized
         if (isAlreadyMaximized) {
-            const gridContainer = document.getElementById(gridKey);
+            const gridContainer = getResultSetContainer(gridKey);
 
             requestAnimationFrame(() => {
                 gridContainer?.scrollIntoView({ behavior: "instant", block: "center" });
@@ -428,7 +445,7 @@ export const QueryResultsGridView = ({
 
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
-            if (!event.shiftKey || event.key !== "Tab") {
+            if (!isActivePaneRef.current || !event.shiftKey || event.key !== "Tab") {
                 return;
             }
 
@@ -443,7 +460,7 @@ export const QueryResultsGridView = ({
             for (let i = 0; i < gridList.length; i++) {
                 const item = gridList[i];
                 const gridKey = `${item.batchId}_${item.resultId}`;
-                const resultSetContainer = document.getElementById(gridKey);
+                const resultSetContainer = getResultSetContainer(gridKey);
                 if (!resultSetContainer?.contains(commandBar)) {
                     continue;
                 }
@@ -460,7 +477,7 @@ export const QueryResultsGridView = ({
         return () => {
             document.removeEventListener("keydown", handler, true);
         };
-    }, [gridList, gridRefs]);
+    }, [gridList, gridRefs, getResultSetContainer]);
 
     const persistGridPaneScrollPosition = useMemo(
         () =>
