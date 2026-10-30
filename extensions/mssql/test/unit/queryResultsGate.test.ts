@@ -184,12 +184,11 @@ suite("queryResults access gate", () => {
             {
                 v: 1,
                 source: { snapshotId, resultSetId: "rs1" },
-                ops: [{ op: "filter", pred: { col: 0, cmp: "eq", value: LITERAL_CANARY } }],
                 terminal: { kind: "aggregate", aggs: [{ fn: "count" }] },
             },
             { ownerKey: "ownerA" },
         );
-        expect(result.rows[0]![0]).to.equal(0);
+        expect(result.rows[0]![0]).to.equal(3);
         expect(result.outputClass).to.equal("aggregateNumeric");
         service.dispose();
     });
@@ -225,6 +224,130 @@ suite("queryResults access gate", () => {
             expect((error as ResultAccessDenied).denialReason).to.equal("scopeMismatch");
         }
         service.dispose();
+    });
+
+    test("filtered/sliced statistics and derived views require consent", async () => {
+        const { service, gated, gate } = harness();
+        const { snapshotId } = await seedSnapshot(service, gated);
+        try {
+            for (const restriction of [
+                {
+                    ops: [
+                        {
+                            op: "filter" as const,
+                            pred: { col: 0, cmp: "startsWith" as const, value: "a" },
+                        },
+                    ],
+                },
+                { ops: [{ op: "slice" as const, offset: 0, limit: 1 }] },
+                {
+                    source: {
+                        snapshotId,
+                        resultSetId: "rs1",
+                        rows: { kind: "span" as const, start: 1, count: 1 },
+                    },
+                },
+            ]) {
+                const spec = {
+                    v: 1 as const,
+                    source: { snapshotId, resultSetId: "rs1" },
+                    ...restriction,
+                    terminal: { kind: "aggregate" as const, aggs: [{ fn: "count" as const }] },
+                };
+                expect(
+                    operationNeedsConfirmation({ operation: "evaluate_transform", spec }),
+                ).to.equal(true);
+                try {
+                    await gated.evaluateTransform(spec, { ownerKey: "ownerA" });
+                    expect.fail("must require consent");
+                } catch (error) {
+                    expect(error).to.be.instanceOf(ResultAccessDenied);
+                }
+            }
+            const spec = {
+                v: 1 as const,
+                source: { snapshotId, resultSetId: "rs1" },
+                terminal: { kind: "rows" as const, limit: 1 },
+            };
+            expect(operationNeedsConfirmation({ operation: "derive_snapshot", spec })).to.equal(
+                true,
+            );
+            try {
+                await gated.deriveSnapshot(spec, "ownerA");
+                expect.fail("must require consent");
+            } catch (error) {
+                expect(error).to.be.instanceOf(ResultAccessDenied);
+            }
+            const grant = gate.mint({ snapshotId, ownerKey: "ownerA", operationClass: "values" });
+            const derived = await gated.deriveSnapshot(spec, "ownerA", undefined, grant.grantId);
+            expect(gated.describeSnapshot(derived)?.totalRows).to.equal(1);
+        } finally {
+            service.dispose();
+        }
+    });
+
+    test("pending creates reserve snapshot slots and failures release reservations", async () => {
+        const { service, gated } = harness({ aiMaxSnapshotsPerConversation: 1 });
+        const source = new GateFakeSource();
+        await source.seed([["a", 1]]);
+        service.registerLiveSource(source);
+        try {
+            try {
+                await gated.createSnapshot({
+                    ownerKey: "ownerA",
+                    sourceId: "missing",
+                    reason: "test",
+                });
+                expect.fail("missing source");
+            } catch (error) {
+                expect(error).to.be.instanceOf(QueryResultAccessError);
+            }
+            const results = await Promise.allSettled(
+                Array.from({ length: 3 }, () =>
+                    gated.createSnapshot({
+                        ownerKey: "ownerA",
+                        sourceId: source.sourceId,
+                        reason: "test",
+                    }),
+                ),
+            );
+            expect(results.filter((r) => r.status === "fulfilled")).to.have.length(1);
+            for (const result of results)
+                if (result.status === "rejected")
+                    expect(result.reason.code).to.equal("retentionBudgetExceeded");
+        } finally {
+            service.dispose();
+        }
+    });
+
+    test("a pending derive shares the snapshot cap with creates", async () => {
+        const { service, gated, gate } = harness({ aiMaxSnapshotsPerConversation: 2 });
+        const { snapshotId } = await seedSnapshot(service, gated);
+        try {
+            const grant = gate.mint({ snapshotId, ownerKey: "ownerA", operationClass: "values" });
+            const derive = gated.deriveSnapshot(
+                {
+                    v: 1,
+                    source: { snapshotId, resultSetId: "rs1" },
+                    terminal: { kind: "rows", limit: 10 },
+                },
+                "ownerA",
+                undefined,
+                grant.grantId,
+            );
+            const create = gated.createSnapshot({
+                ownerKey: "ownerA",
+                sourceId: "gate-src",
+                reason: "test",
+            });
+            const results = await Promise.allSettled([derive, create]);
+            expect(results[0].status).to.equal("fulfilled");
+            expect(results[1].status).to.equal("rejected");
+            if (results[1].status === "rejected")
+                expect(results[1].reason.code).to.equal("retentionBudgetExceeded");
+        } finally {
+            service.dispose();
+        }
     });
 
     test("grants expire", async () => {
@@ -305,7 +428,7 @@ suite("queryResults access gate", () => {
     });
 
     test("canaries: cell value and filter literal absent from safe surfaces", async () => {
-        const { service, gated } = harness();
+        const { service, gated, gate } = harness();
         const { snapshotId } = await seedSnapshot(service, gated);
         await gated.evaluateTransform(
             {
@@ -314,7 +437,11 @@ suite("queryResults access gate", () => {
                 ops: [{ op: "filter", pred: { col: 1, cmp: "eq", value: LITERAL_CANARY } }],
                 terminal: { kind: "aggregate", aggs: [{ fn: "count" }] },
             },
-            { ownerKey: "ownerA" },
+            {
+                ownerKey: "ownerA",
+                grantId: gate.mint({ snapshotId, ownerKey: "ownerA", operationClass: "values" })
+                    .grantId,
+            },
         );
         const surfaces = JSON.stringify({
             describe: service.describeSnapshot(snapshotId),

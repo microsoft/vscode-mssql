@@ -158,23 +158,28 @@ function validatePredicate(
         return;
     }
     const node = raw as Record<string, unknown>;
-    if (Array.isArray(node.and) || Array.isArray(node.or)) {
-        const list = (node.and ?? node.or) as unknown[];
-        if (list.length === 0) {
-            errors.push({ path, message: "and/or requires at least one child" });
+    const discriminators = ["and", "or", "not", "col"].filter((key) => key in node);
+    if (
+        discriminators.length !== 1 ||
+        (discriminators[0] !== "col" && ["cmp", "value", "values"].some((key) => key in node))
+    ) {
+        errors.push({ path, message: "predicate requires exactly one logical operator or leaf" });
+        return;
+    }
+    const kind = discriminators[0];
+    if (kind === "and" || kind === "or") {
+        const list = node[kind];
+        if (!Array.isArray(list) || list.length === 0 || list.length > MAX_PREDICATE_NODES) {
+            errors.push({ path, message: "and/or requires a bounded, nonempty array" });
+            return;
         }
         list.forEach((child, index) =>
-            validatePredicate(
-                child,
-                `${path}.${node.and ? "and" : "or"}[${index}]`,
-                errors,
-                budget,
-            ),
+            validatePredicate(child, path + "." + kind + "[" + index + "]", errors, budget),
         );
         return;
     }
-    if (node.not !== undefined) {
-        validatePredicate(node.not, `${path}.not`, errors, budget);
+    if (kind === "not") {
+        validatePredicate(node.not, path + ".not", errors, budget);
         return;
     }
     if (!isOrdinal(node.col)) {
@@ -399,6 +404,18 @@ export function validateTransformSpec(
                 errors.push({ path, message: `unknown terminal '${String(terminal?.kind)}'` });
         }
     }
+    if (
+        terminal?.kind === "sample" &&
+        terminal.strategy === "uniform_windows" &&
+        Array.isArray(ops) &&
+        ops.some((op) => (op as { op?: unknown } | null)?.op === "slice")
+    ) {
+        errors.push({
+            path: "$.ops",
+            message:
+                "uniform_windows does not support slice; use a source span or reservoir sampling",
+        });
+    }
     if (errors.length > 0) {
         return { errors };
     }
@@ -432,6 +449,13 @@ export function transformSpecDigest(spec: TransformSpec): string {
 
 /** True when the terminal's output contains cell-derived bytes (§1.4). */
 export function transformOutputClass(spec: TransformSpec): "values" | "aggregateNumeric" {
+    // Restricted counts can reveal individual cells through repeated predicates.
+    if (
+        spec.source.rows?.kind === "span" ||
+        spec.ops?.some((op) => op.op === "filter" || op.op === "slice")
+    ) {
+        return "values";
+    }
     const terminal = spec.terminal;
     switch (terminal.kind) {
         case "rows":

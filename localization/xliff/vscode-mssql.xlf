@@ -19,6 +19,12 @@
     <trans-unit id="++CODE++28735fc0193de5b990c9a5dfbaa479770ca903efdffb359359a9cef540766e42">
       <source xml:lang="en"> (derived view)</source>
     </trans-unit>
+    <trans-unit id="++CODE++e44d7fa8709f18125cc1238c83bdadabfc6ef248b748758c54996103e0bbe612">
+      <source xml:lang="en"> (running)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2899d68b269f7db7ad3437f08ac4efa4af640b6adb8006bb3d357cf7ed91f672">
+      <source xml:lang="en"> (truncated: {0})</source>
+    </trans-unit>
     <trans-unit id="++CODE++c25c323ea63c765ff333f7366e402d01e12c61069cde231b30ee736c15e16fc9">
       <source xml:lang="en"> NOTE: statistics cover only the first {0} rows ({1}).</source>
     </trans-unit>
@@ -52,6 +58,12 @@
     <trans-unit id="++CODE++99bd15f804b37de76ce3bef95d2c846b7887fa416ebb56d4505b10aa909595c1">
       <source xml:lang="en">$(shield) MSSQL Diag: {0}</source>
       <note>{0} is the capture mode (redacted or digest)</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c201b198d9196aa9aba1bc3055e77c191609d2533bff87ba16491165f6c583ff">
+      <source xml:lang="en">&#10;&#10;**Snapshots** ({0})&#10;&#10;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c46ae15937221366d3c1998eb2e35bc25470f7cff190400474875450d50758e">
+      <source xml:lang="en">&#10;&#10;_Profile output was truncated to the configured response limit._&#10;</source>
     </trans-unit>
     <trans-unit id="++CODE++1ca8c044fc7737889f61fb0f26d8663b12a5f398fe0d13ad28b627a61656a685">
       <source xml:lang="en">&#10;_Commands: `/list`, `/summarize`, `/profile` (adds min/max, asks first), `/report`, `/pin`. </source>
@@ -203,8 +215,14 @@
     <trans-unit id="++CODE++ec7b517c36d9ac623e85095b94b69edda1cee75e96e461a9fefde37412704884">
       <source xml:lang="en">- Bounds: at most {0} rows / {1} KB per response, {2} KB per cell&#10;</source>
     </trans-unit>
+    <trans-unit id="++CODE++5f676fc782900755c94ea021f1f6209719dfee2072e7f8e247eef2ac241bd5da">
+      <source xml:lang="en">- Operation: {0}&#10;</source>
+    </trans-unit>
     <trans-unit id="++CODE++397dfc405862c4016233ac5817553bfac030252e54286b1d583095137477aea3">
       <source xml:lang="en">- Scope: this single request only (grants are single-use)&#10;&#10;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d789759bdc2f63d4f01cb109732812a8f7416a797623b2a9b7b5dc677a889ff9">
+      <source xml:lang="en">- none</source>
     </trans-unit>
     <trans-unit id="++CODE++ad757ecb0a59b0256273617f9acd38f13561b4ca43f8d37944a046485e5f6bec">
       <source xml:lang="en">- none — run a query in Query Studio</source>
@@ -2067,6 +2085,9 @@
     <trans-unit id="++CODE++661f008b35e613449a51eb1c0fd892c56789ae6d2cabbd7405abe521416975f9">
       <source xml:lang="en">Column not found: {0}</source>
       <note>{0} is the column reference</note>
+    </trans-unit>
+    <trans-unit id="++CODE++eb4df5a05b739e4dc2f98eb2db8086522eecfda556ba303567d193996dc78388">
+      <source xml:lang="en">Column ordinal {0} is outside the transform schema ({1} columns).</source>
     </trans-unit>
     <trans-unit id="++CODE++191bfe9c43b5a6888281d9067ac0d3ea4b086f8a59703b22464d2c24e41a0b08">
       <source xml:lang="en">Column reference resolved to more than one column: {0}</source>
@@ -10100,6 +10121,9 @@
     <trans-unit id="++CODE++dba1b57d1ef7b24e6af478caa5f6a62ed50fd58c825abf1eb053ca847d56be65">
       <source xml:lang="en">Schema Diff</source>
     </trans-unit>
+    <trans-unit id="++CODE++e8d97ff6ba6baf67d3e4d8256abb3cf0898238e30fbe11d3899a6ef436543d65">
+      <source xml:lang="en">Schema and whole-result numeric statistics do not require this confirmation. Filtered or sliced analysis and derived views require confirmation.</source>
+    </trans-unit>
     <trans-unit id="++CODE++969f1d0d27840a4c016fb378b62df17b2c09c7c0bdd18837a18fdb1f7f025107">
       <source xml:lang="en">Schema budget</source>
     </trans-unit>
@@ -10153,9 +10177,6 @@
     </trans-unit>
     <trans-unit id="++CODE++7dd53c41c28fdf6722498cadb82bcb67edb82dd96edfce6a87e5fc9da7aee0fc">
       <source xml:lang="en">Schema, row counts, and null ratios never need this confirmation. This allows one profile request covering up to five result sets.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++022ee9890c9cabcfe10d430b95cc148bfecf2ca9f7d87f51612726378cd11e3f">
-      <source xml:lang="en">Schema, row counts, and numeric aggregates never require this confirmation.</source>
     </trans-unit>
     <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
       <source xml:lang="en">Schema/Object Type</source>
@@ -11948,6 +11969,9 @@
     </trans-unit>
     <trans-unit id="++CODE++10dbcc17721e3abad0e3b372a444fb35e5e22c354ccda55e36c477ffbf2b8db2">
       <source xml:lang="en">This connection&apos;s server group is marked as production, and the query contains statements that can change or destroy data. This can result in data loss. Would you like to continue?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++656ad4b1f3bb45ca5c8aecf184c7973cc9e9ace0c3098445c5d0c3d0e41b2f3a">
+      <source xml:lang="en">This conversation has reached its snapshot limit; release a snapshot first (release_snapshot).</source>
     </trans-unit>
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
@@ -14569,7 +14593,7 @@
       <source xml:lang="en">Enable Actual Plan (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.queryResults.ai.enabled">
-      <source xml:lang="en">Enable Chat to Data (Private Preview) for Query Studio result snapshots. Requires Query Studio. Schema and numeric aggregates can be shared without confirmation; sharing cell values requires confirmation.</source>
+      <source xml:lang="en">Enable Chat to Data (Private Preview) for Query Studio result snapshots. Requires Query Studio. Schema and whole-result numeric statistics can be shared without confirmation; cell values, filtered/sliced analysis, and derived views require confirmation.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.v2.enabled.description">
       <source xml:lang="en">Enable Connections (Private Preview). Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Reload the window after changing any required setting. Classic Object Explorer remains available.</source>

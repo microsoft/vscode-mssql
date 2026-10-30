@@ -17,6 +17,8 @@
  * cells incomparable (counted, never silently compared by prefix).
  */
 
+import { QueryResultAccessError } from "./queryResultTypes";
+import { QueryResultsAnalysis as AnalysisLoc } from "../constants/locConstants";
 import { QsCellWindow } from "../sharedInterfaces/queryStudio";
 import { CellRead, cellEqualityKey, cellNumeric, windowCellReader } from "./cellReader";
 import {
@@ -25,6 +27,7 @@ import {
     TransformSpec,
     transformOutputClass,
     transformSpecDigest,
+    validateTransformSpec,
 } from "./transformSpec";
 
 // --- budgets / stats -------------------------------------------------------------
@@ -140,17 +143,24 @@ function evaluatePredicate(
     pred: TransformPredicate,
     cellAt: CellAt,
     counters: { truncatedCellsSkipped: number },
-): boolean {
+): boolean | undefined {
     if ("and" in pred) {
-        return pred.and.every((child) => evaluatePredicate(child, cellAt, counters));
+        const results = pred.and.map((child) => evaluatePredicate(child, cellAt, counters));
+        return results.includes(false) ? false : results.includes(undefined) ? undefined : true;
     }
     if ("or" in pred) {
-        return pred.or.some((child) => evaluatePredicate(child, cellAt, counters));
+        const results = pred.or.map((child) => evaluatePredicate(child, cellAt, counters));
+        return results.includes(true) ? true : results.includes(undefined) ? undefined : false;
     }
     if ("not" in pred) {
-        return !evaluatePredicate(pred.not, cellAt, counters);
+        const result = evaluatePredicate(pred.not, cellAt, counters);
+        return result === undefined ? undefined : !result;
     }
     const cell = cellAt(pred.col);
+    if (pred.cmp !== "isNull" && pred.cmp !== "notNull" && (cell.isNull || cell.isTruncated)) {
+        if (cell.isTruncated) counters.truncatedCellsSkipped++;
+        return undefined;
+    }
     switch (pred.cmp) {
         case "isNull":
             return cell.isNull;
@@ -158,15 +168,6 @@ function evaluatePredicate(
             return !cell.isNull;
         case "contains":
         case "startsWith": {
-            if (cell.isNull) {
-                return false;
-            }
-            if (cell.isTruncated) {
-                // A prefix CAN answer startsWith when it is long enough; it
-                // cannot answer contains. Err honest: count and refuse both.
-                counters.truncatedCellsSkipped++;
-                return false;
-            }
             const text = String(cell.value);
             const needle = String(pred.value ?? "");
             return pred.cmp === "contains" ? text.includes(needle) : text.startsWith(needle);
@@ -185,7 +186,7 @@ function evaluatePredicate(
                 if (cell.isTruncated) {
                     counters.truncatedCellsSkipped++;
                 }
-                return false;
+                return undefined;
             }
             switch (pred.cmp) {
                 case "eq":
@@ -322,6 +323,15 @@ export async function evaluateTransform(
     reader: TransformSourceReader,
     options: EvaluateOptions,
 ): Promise<TransformResult> {
+    const validation = validateTransformSpec(spec);
+    if (!validation.spec) {
+        throw new QueryResultAccessError(
+            "invalidTransformSpec",
+            AnalysisLoc.invalidTransformSpec(
+                validation.errors!.map((e) => e.path + ": " + e.message).join("; "),
+            ),
+        );
+    }
     const now = options.now ?? (() => Date.now());
     const startedAt = now();
     const digest = transformSpecDigest(spec);
@@ -342,6 +352,21 @@ export async function evaluateTransform(
     // effect where they appear.
     const sourceNames = reader.columnNames();
     const opsList = spec.ops ?? [];
+    const checkOrdinal = (ordinal: number, width: number) => {
+        if (!Number.isSafeInteger(ordinal) || ordinal < 0 || ordinal >= width) {
+            throw new QueryResultAccessError(
+                "invalidTransformSpec",
+                AnalysisLoc.columnOutsideTransformSchema(String(ordinal), String(width)),
+            );
+        }
+    };
+    const checkPredicate = (pred: TransformPredicate, width: number): void => {
+        if ("and" in pred) pred.and.forEach((child) => checkPredicate(child, width));
+        else if ("or" in pred) pred.or.forEach((child) => checkPredicate(child, width));
+        else if ("not" in pred) checkPredicate(pred.not, width);
+        else checkOrdinal(pred.col, width);
+    };
+    spec.source.columns?.forEach((col) => checkOrdinal(col, sourceNames.length));
     let mapping = spec.source.columns ?? sourceNames.map((_, index) => index);
     const opPlan: Array<
         | { kind: "filter"; pred: TransformPredicate; mapping: number[] }
@@ -349,12 +374,24 @@ export async function evaluateTransform(
     > = [];
     for (const op of opsList) {
         if (op.op === "project") {
-            mapping = op.columns.map((ordinal) => mapping[ordinal] ?? 0);
+            op.columns.forEach((col) => checkOrdinal(col, mapping.length));
+            mapping = op.columns.map((ordinal) => mapping[ordinal]);
         } else if (op.op === "filter") {
+            checkPredicate(op.pred, mapping.length);
             opPlan.push({ kind: "filter", pred: op.pred, mapping: [...mapping] });
         } else {
             opPlan.push({ kind: "slice", offset: op.offset, limit: op.limit });
         }
+    }
+    const t = spec.terminal;
+    if ("col" in t) checkOrdinal(t.col, mapping.length);
+    if ("aggs" in t)
+        t.aggs.forEach((agg) => {
+            if (agg.col !== undefined) checkOrdinal(agg.col, mapping.length);
+        });
+    if (t.kind === "groupBy") {
+        t.keys.forEach((col) => checkOrdinal(col, mapping.length));
+        if (t.orderBy) checkOrdinal(t.orderBy.agg, t.aggs.length);
     }
     const finalMapping = mapping;
     const finalColumnLabel = (col: number) => sourceNames[finalMapping[col] ?? -1] ?? `col${col}`;
@@ -381,16 +418,15 @@ export async function evaluateTransform(
     const outRows: unknown[][] = [];
     let outColumns: string[] = [];
     let outputCells = 0;
-    let outputBytes = 0;
+    let outputBytes = 2; // JSON array brackets; rows include their delimiters and escaping.
     let overflowGroups: number | undefined;
     const matchedIds: number[] = [];
     let matchedOverflow = false;
 
     const chargeOutput = (row: unknown[]): boolean => {
         outputCells += row.length;
-        for (const value of row) {
-            outputBytes += typeof value === "string" ? value.length : 8;
-        }
+        outputBytes +=
+            Buffer.byteLength(JSON.stringify(row), "utf8") + (outputCells > row.length ? 1 : 0);
         if (outputCells > options.budget.maxOutputCells) {
             cut("outputCells");
             return false;
@@ -505,11 +541,11 @@ export async function evaluateTransform(
             );
         }
         histogramCounts = new Array(histogramBoundaries.length + 1).fill(0);
-        stopped = false; // pre-pass may have consumed rows; budget carries over
+        // The next scan shares budgets and refuses to continue after a cut.
     }
 
     // Main fused scan ----------------------------------------------------------------
-    await scan(async (cellAt, sourceRow) => {
+    const consumeRow = async (cellAt: CellAt, sourceRow: number): Promise<boolean> => {
         stats.rowsMatched++;
         if (options.collectMatchedRowIds) {
             if (matchedIds.length < options.collectMatchedRowIds.max) {
@@ -526,7 +562,7 @@ export async function evaluateTransform(
                 return true;
             case "groupBy": {
                 const keyCells = terminal.keys.map((key) => cellAt(key));
-                const compositeKey = keyCells.map(cellEqualityKey).join("\u0000");
+                const compositeKey = JSON.stringify(keyCells.map(cellEqualityKey));
                 let entry = groups!.get(compositeKey);
                 if (!entry) {
                     const cap = Math.min(
@@ -665,48 +701,44 @@ export async function evaluateTransform(
                         break;
                     }
                     case "uniform_windows":
-                        // Handled below via direct window fetches.
+                        sampleRows!.push(row);
                         break;
                 }
                 return true;
             }
         }
         return true;
-    });
+    };
 
-    // uniform_windows: evenly spaced bounded windows instead of a full scan.
     if (terminal.kind === "sample" && terminal.strategy === "uniform_windows") {
-        const n = terminal.n;
-        const windows = Math.min(Math.max(1, Math.min(32, n)), Math.max(1, span.count));
-        const perWindow = Math.ceil(n / windows);
-        for (let index = 0; index < windows && sampleRows!.length < n; index++) {
-            const start =
-                span.start +
-                Math.floor((span.count - perWindow) * (windows === 1 ? 0 : index / (windows - 1)));
-            const window = await reader.window(Math.max(span.start, start), perWindow);
-            const cells = windowCellReader(window);
-            for (let r = 0; r < window.rowCount && sampleRows!.length < n; r++) {
-                stats.rowsScanned++;
-                const raw: CellAt = (sourceCol) => cells.cellAt(r, sourceCol);
-                if (!passesOpsBound(raw)) {
-                    continue;
-                }
-                stats.rowsMatched++;
-                sampleRows!.push(
-                    finalMapping.map((_, colIndex) => {
-                        const cell = raw(finalMapping[colIndex] ?? colIndex);
-                        return cell.isNull ? null : cell.value;
-                    }),
-                );
+        // Allocate disjoint windows entirely inside the source span. Never scan
+        // the source first, and use the same cancellation/row/time/yield path.
+        const n = Math.min(terminal.n, span.count);
+        const windows = Math.min(32, n);
+        async function* sampledWindows(): AsyncIterable<QsCellWindow> {
+            let allocated = 0;
+            for (let i = 0; i < windows; i++) {
+                const count = Math.ceil((n - allocated) / (windows - i));
+                const start =
+                    span.start +
+                    allocated +
+                    Math.floor(((span.count - n) * i) / Math.max(1, windows - 1));
+                yield await reader.window(start, count);
+                allocated += count;
             }
         }
+        await scan(consumeRow, sampledWindows(), n);
+    } else {
+        await scan(consumeRow);
     }
 
     // Terminal finalization -------------------------------------------------------------
     switch (terminal.kind) {
-        case "aggregate":
-            outRows.push(aggregateAccs!.map((acc) => acc.value()));
+        case "aggregate": {
+            const row = aggregateAccs!.map((acc) => acc.value());
+            if (chargeOutput(row)) outRows.push(row);
             break;
+        }
         case "groupBy": {
             const entries = [...groups!.values()];
             if (overflowEntry) {
@@ -759,7 +791,7 @@ export async function evaluateTransform(
             }
             break;
         case "distinctCount":
-            outRows.push([distinct!.size]);
+            if (chargeOutput([distinct!.size])) outRows.push([distinct!.size]);
             if (distinctCapped) {
                 approximate = true;
             }
@@ -767,11 +799,13 @@ export async function evaluateTransform(
         case "histogram":
             if (histogramBoundaries && histogramCounts) {
                 for (let index = 0; index < histogramCounts.length; index++) {
-                    outRows.push([
+                    const row = [
                         index === 0 ? null : histogramBoundaries[index - 1],
                         index === histogramBoundaries.length ? null : histogramBoundaries[index],
                         histogramCounts[index],
-                    ]);
+                    ];
+                    if (!chargeOutput(row)) break;
+                    outRows.push(row);
                 }
             }
             break;
@@ -806,52 +840,61 @@ export async function evaluateTransform(
 
     // --- helpers over the shared scan state ------------------------------------------
 
+    function withinBudget(): boolean {
+        if (options.isCancelled?.()) cut("canceled");
+        else if (stats.rowsScanned >= options.budget.maxRowsScanned) cut("rows");
+        else if (now() - startedAt > options.budget.maxEvalMs) cut("time");
+        return !stopped;
+    }
+
     async function scan(
         onRow: (cellAt: CellAt, sourceRow: number) => Promise<boolean> | boolean,
+        windows: AsyncIterable<QsCellWindow> = reader.stream(
+            span.start,
+            span.count,
+            options.chunkRows,
+        ),
+        expectedRows = span.count,
     ): Promise<void> {
+        if (stats.partial) return;
         stopped = false;
         for (const state of sliceStates) {
             state.skipped = 0;
             state.taken = 0;
         }
         let sinceYield = 0;
-        for await (const window of reader.stream(span.start, span.count, options.chunkRows)) {
-            const cells = windowCellReader(window);
-            for (let r = 0; r < window.rowCount; r++) {
-                if (stopped) {
-                    return;
-                }
-                if (stats.rowsScanned >= options.budget.maxRowsScanned) {
-                    cut("rows");
-                    return;
-                }
-                if (now() - startedAt > options.budget.maxEvalMs) {
-                    cut("time");
-                    return;
-                }
-                if (options.isCancelled?.()) {
-                    cut("canceled");
-                    return;
-                }
-                stats.rowsScanned++;
-                const sourceRow = window.start + r;
-                const raw: CellAt = (sourceCol) => cells.cellAt(r, sourceCol);
-                const finalCellAt: CellAt = (col) => raw(finalMapping[col] ?? col);
-                if (!passesOpsBound(raw)) {
-                    continue;
-                }
-                const keep = await onRow(finalCellAt, sourceRow);
-                if (!keep || stopped) {
-                    return;
-                }
-                if (++sinceYield >= options.yieldEveryRows) {
-                    sinceYield = 0;
-                    await new Promise<void>((resolve) => setImmediate(resolve));
+        let scannedThisPass = 0;
+        const iterator = windows[Symbol.asyncIterator]();
+        try {
+            while (scannedThisPass < expectedRows && withinBudget()) {
+                const next = await iterator.next();
+                if (next.done) return;
+                const window = next.value;
+                const cells = windowCellReader(window);
+                for (let r = 0; r < window.rowCount; r++) {
+                    if (!withinBudget()) return;
+                    stats.rowsScanned++;
+                    scannedThisPass++;
+                    // Rejected rows also yield, allowing cancellation and UI events.
+                    if (++sinceYield >= options.yieldEveryRows) {
+                        sinceYield = 0;
+                        await new Promise<void>((resolve) => setImmediate(resolve));
+                        if (options.isCancelled?.()) {
+                            cut("canceled");
+                            return;
+                        }
+                    }
+                    const raw: CellAt = (sourceCol) => cells.cellAt(r, sourceCol);
+                    if (!passesOpsBound(raw)) continue;
+                    if (
+                        !(await onRow((col) => raw(finalMapping[col]), window.start + r)) ||
+                        stopped
+                    )
+                        return;
                 }
             }
-            if (stopped) {
-                return;
-            }
+        } finally {
+            await iterator.return?.();
         }
     }
 
@@ -859,7 +902,7 @@ export async function evaluateTransform(
         let sliceIndex = 0;
         for (const op of opPlan) {
             if (op.kind === "filter") {
-                if (!evaluatePredicate(op.pred, (col) => raw(op.mapping[col] ?? 0), stats)) {
+                if (evaluatePredicate(op.pred, (col) => raw(op.mapping[col]), stats) !== true) {
                     return false;
                 }
             } else {

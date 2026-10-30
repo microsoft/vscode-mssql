@@ -6,6 +6,8 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
+import * as fs from "fs";
+import * as path from "path";
 import { previewService } from "../../src/previews/previewService";
 import * as services from "../../src/queryResults/queryResultAccessService";
 import * as contexts from "../../src/queryResults/queryResultContextService";
@@ -161,6 +163,106 @@ suite("Query results chat boundaries", () => {
             aggs: [{ fn: "count" }, { fn: "nullCount", col: 0 }],
         });
         expect(sendRequest.called).to.equal(false);
+    });
+
+    test("preview participant and tool are hidden until all feature gates are enabled", () => {
+        const manifest = JSON.parse(
+            fs.readFileSync(path.resolve(__dirname, "../../../package.json"), "utf8"),
+        );
+        for (const contribution of [
+            manifest.contributes.chatParticipants.find(
+                (p: { id: string }) => p.id === "mssql.query",
+            ),
+            manifest.contributes.languageModelTools.find(
+                (p: { name: string }) => p.name === "mssql_query_results",
+            ),
+        ]) {
+            for (const gate of [
+                "mssql.privatePreview.queryStudioActive",
+                "config.mssql.enableExperimentalFeatures",
+                "config.mssql.sqlDataPlane.enabled",
+                "config.mssql.queryStudio.enabled",
+                "config.mssql.queryResults.ai.enabled",
+            ])
+                expect(contribution.when).to.include(gate);
+        }
+    });
+
+    test("transform and derive confirmations describe the authoritative snapshot", async () => {
+        service.describeSnapshot.callsFake((id) => ({
+            ...description,
+            snapshotId: id,
+            source: {
+                ...description.source,
+                sourceTitle: id === "payroll" ? "Payroll.mssql" : "Harmless.mssql",
+            },
+        }));
+        const tool = new QueryResultsTool();
+        for (const operation of ["evaluate_transform", "derive_snapshot"] as const) {
+            const prepared = await tool.prepareInvocation(
+                {
+                    input: {
+                        operation,
+                        snapshotId: "harmless",
+                        spec: {
+                            v: 1,
+                            source: { snapshotId: "payroll", resultSetId: "rs" },
+                            terminal: { kind: "rows", limit: 1 },
+                        },
+                    },
+                },
+                cancellation.token,
+            );
+            expect(prepared.confirmationMessages?.message.value).to.include("Payroll.mssql");
+            expect(prepared.confirmationMessages?.message.value).to.not.include("Harmless.mssql");
+        }
+    });
+
+    test("profile bounds UTF8 values, escapes tables and caps cumulative output", async () => {
+        params.aiMaxCellBytes = 256;
+        params.aiMaxBytesPerResponse = 4096;
+        sandbox.stub(vscode.window, "showWarningMessage").resolves("Allow once" as never);
+        service.describeSnapshot.returns({
+            ...description,
+            resultSets: Array.from({ length: 5 }, (_, i) => ({
+                ...description.resultSets[0],
+                resultSetId: "rs" + i,
+                columnNames: Array.from({ length: 8 }, (_, c) => "col" + c),
+            })),
+        });
+        service.evaluateSnapshotTransform.resolves(
+            result([
+                [
+                    20,
+                    ...Array.from({ length: 8 }, () => [
+                        0,
+                        "a|b\n`code`" + "界".repeat(1000),
+                        { $t: "decimal", v: "12.50" },
+                    ]).flat(),
+                ],
+            ]),
+        );
+        await chat("profile");
+        const text = messages.join("");
+        expect(Buffer.byteLength(text, "utf8")).to.be.at.most(4096);
+        expect(text).to.include("a\\|b \\`code\\`");
+        expect(text).to.include("12.50");
+        expect(text).to.not.include("[object Object]");
+        expect(text).to.not.include("界".repeat(100));
+        expect(text).to.include("Profile output was truncated");
+    });
+
+    test("structured scalar and unknown cell payloads obey the cell byte limit", () => {
+        for (const value of [
+            { $t: "binary", v: "x".repeat(20000) },
+            { $t: "provider", v: "界".repeat(20000) },
+            { payload: "🙂".repeat(1000) },
+        ]) {
+            const bounded = boundResultModelCell(value, 256);
+            expect(bounded).to.be.a("string");
+            expect(Buffer.byteLength(bounded as string, "utf8")).to.be.at.most(256);
+            expect(bounded).to.not.include("�");
+        }
     });
 
     test("report sample size honors configured rows and UTF8 cell bounds", async () => {

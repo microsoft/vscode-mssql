@@ -7,9 +7,9 @@
  * mssql_query_results language model tool (C2D-5, plan §13 + addendum §4):
  * bounded, audited AI access to Query Studio result snapshots.
  *
- * Metadata operations (list/describe/create/derive/release and
- * aggregate-numeric transforms) run without confirmation. Any operation
- * whose output carries cell values shows a VS Code Continue/Cancel
+ * Metadata operations (list/describe/create/release and whole-result numeric
+ * statistics) run without confirmation. Value-bearing operations, restricted
+ * statistics, and derived views show a VS Code Continue/Cancel
  * confirmation (prepareInvocation); the gate then mints a single-use grant
  * inside call() and the GatedQueryResultAccess facade enforces it — the
  * tool is UI, the gate is the boundary.
@@ -94,6 +94,7 @@ export function operationNeedsConfirmation(input: QueryResultsToolParams): boole
         case "get_rows":
         case "sample_rows":
             return true;
+        case "derive_snapshot":
         case "evaluate_transform": {
             const outcome = validateTransformSpec(input.spec);
             // Invalid specs fail validation in call() without touching data.
@@ -220,8 +221,17 @@ export class QueryResultsTool extends ToolBase<QueryResultsToolParams> {
                     spec,
                     WINDOW_OWNER_KEY,
                     () => token.isCancellationRequested,
+                    this.gate.mint({
+                        snapshotId: spec.source.snapshotId,
+                        ownerKey: WINDOW_OWNER_KEY,
+                        operationClass: "values",
+                    }).grantId,
                 );
-                return JSON.stringify({ success: true, snapshotId });
+                const truncated =
+                    access
+                        .describeSnapshot(snapshotId)
+                        ?.resultSets.some((set) => Boolean(set.truncatedReason)) ?? false;
+                return JSON.stringify({ success: true, snapshotId, truncated });
             }
             case "pin_snapshot": {
                 // "AI filters, the user pins the view": opens the snapshot
@@ -357,7 +367,7 @@ export class QueryResultsTool extends ToolBase<QueryResultsToolParams> {
         const outcome = validateTransformSpec(input.spec);
         if (!outcome.spec) {
             throw new QueryResultAccessError(
-                "snapshotNotFound",
+                "invalidTransformSpec",
                 AnalysisLoc.invalidTransformSpec(
                     String(
                         outcome
@@ -380,13 +390,14 @@ export class QueryResultsTool extends ToolBase<QueryResultsToolParams> {
         if (!operationNeedsConfirmation(input)) {
             return { invocationMessage };
         }
-        const description = input.snapshotId
-            ? getQueryResultAccessService().describeSnapshot(input.snapshotId)
-            : undefined;
         const specSource =
-            input.operation === "evaluate_transform"
+            input.operation === "evaluate_transform" || input.operation === "derive_snapshot"
                 ? validateTransformSpec(input.spec).spec?.source
                 : undefined;
+        const targetSnapshotId = specSource?.snapshotId ?? input.snapshotId;
+        const description = targetSnapshotId
+            ? getQueryResultAccessService().describeSnapshot(targetSnapshotId)
+            : undefined;
         const target = description
             ? AnalysisLoc.resultSetSRowsPinnedSAgo(
                   String(description.source.sourceTitle),
@@ -402,7 +413,7 @@ export class QueryResultsTool extends ToolBase<QueryResultsToolParams> {
             title: AnalysisLoc.mSSQLShareQueryResultValuesWithTheModel,
             message: new vscode.MarkdownString(
                 AnalysisLoc.thisSendsRawResultValuesFromToTheLanguageModel(String(target)) +
-                    `- Operation: \`${input.operation}\`\n` +
+                    AnalysisLoc.operation(input.operation) +
                     AnalysisLoc.boundsAtMostRowsKBPerResponseKBPerCell(
                         String(params.aiMaxRowsPerResponse),
                         String(Math.round(params.aiMaxBytesPerResponse / 1024)),

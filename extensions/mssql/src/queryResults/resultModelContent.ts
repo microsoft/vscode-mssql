@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as crypto from "crypto";
+import { isTypedScalarCellEncoding } from "../services/sqlDataPlane/api";
 import { typedCellTextForPurpose } from "../sharedInterfaces/queryResultCellCodec";
 
 const DATA_BLOCK_PREAMBLE =
@@ -27,9 +28,9 @@ export function boundResultModelCell(value: unknown, maxCellBytes: number): unkn
     if (typedText !== null) {
         value = typedText;
     }
-    if (typeof value !== "string") {
-        return value;
-    }
+    if (isTypedScalarCellEncoding(value)) value = value.v;
+    if (value !== null && typeof value === "object") value = JSON.stringify(value);
+    if (typeof value !== "string") return value;
     const clean = stripControl(value);
     const bytes = Buffer.from(clean, "utf8");
     if (bytes.length <= maxCellBytes) return clean;

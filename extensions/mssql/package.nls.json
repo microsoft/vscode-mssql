@@ -603,7 +603,7 @@
     "mssql.queryStudio.tuning.profile": "Query Studio performance tuning profile. 'interactive' optimizes for fast first results, 'throughput' for large result streaming and export, 'lowMemory' for constrained hosts. 'custom' applies only explicit overrides.",
     "mssql.queryStudio.tuning.overrides": "Advanced (preview): per-knob Query Studio performance parameter overrides applied above the tuning profile — e.g. `{ \"pageRows\": 512, \"pageBytes\": 131072 }`. Keys follow the QueryTuning parameter registry; unknown keys and out-of-range values are ignored. Intended for diagnostics and performance testing.",
     "mssql.queryResults.pinnedDocuments.enabled": "Preview: allow pinning Query Studio results into read-only result documents that survive query reruns.",
-    "mssql.queryResults.ai.enabled": "Enable Chat to Data (Private Preview) for Query Studio result snapshots. Requires Query Studio. Schema and numeric aggregates can be shared without confirmation; sharing cell values requires confirmation.",
+    "mssql.queryResults.ai.enabled": "Enable Chat to Data (Private Preview) for Query Studio result snapshots. Requires Query Studio. Schema and whole-result numeric statistics can be shared without confirmation; cell values, filtered/sliced analysis, and derived views require confirmation.",
     "mssql.query.description": "Analyze Query Studio results and pinned snapshots (bounded, confirmed access)",
     "mssql.query.list.description": "List live Query Studio results and snapshots",
     "mssql.query.summarize.description": "Schema, row counts, and null ratios for the active results (no raw values)",

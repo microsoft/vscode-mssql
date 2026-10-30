@@ -32,7 +32,6 @@ import { getQueryResultContextService } from "./queryResultContextService";
 import { resolveQueryResultsParams } from "./queryResultsParams";
 import { GatedQueryResultAccess, ResultAccessGate } from "./resultAccessGate";
 import { pinSourceResults } from "./pinCommands";
-import { typedCellTextForPurpose } from "../sharedInterfaces/queryResultCellCodec";
 import { QueryResultSnapshotDescription } from "./queryResultTypes";
 import { TransformAggregate, TransformSpec } from "./transformSpec";
 import { boundResultModelCell, wrapValuesPayload } from "./resultModelContent";
@@ -54,9 +53,11 @@ function access(): GatedQueryResultAccess {
     return gated;
 }
 
-/** Model/chat-bound text for one cell value (vectors summarize compactly). */
-function summaryCellText(value: unknown, fallback: string): string {
-    return typedCellTextForPurpose(value, "toolSummary") ?? String(value ?? fallback);
+/** Bound untrusted cells before escaping Markdown table syntax. */
+function summaryCellText(value: unknown, maxCellBytes: number): string {
+    return String(boundResultModelCell(value ?? "—", maxCellBytes))
+        .replace(/\r\n|\r|\n/g, " ")
+        .replace(/[\\\x60*_\[\]<>|]/g, (character) => "\\" + character);
 }
 
 function featureBlocked(stream: vscode.ChatResponseStream): boolean {
@@ -119,7 +120,7 @@ async function resolveTargetSnapshot(
                             String(source.sourceTitle),
                             String(source.resultSetCount),
                             String(source.totalRows.toLocaleString()),
-                            String(source.streaming ? " (still running)" : ""),
+                            String(source.streaming ? AnalysisLoc.running : ""),
                         ),
                     )
                     .join("\n"),
@@ -154,24 +155,39 @@ async function summarize(
             String(description.totalRows.toLocaleString()),
         ),
     );
-    stream.markdown(
-        AnalysisLoc.resultSetS(
-            String(description.source.sourceTitle),
-            String(description.resultSetCount),
-        ) +
-            `${description.totalRows.toLocaleString()} rows` +
-            `${description.derived ? AnalysisLoc.derivedView : ""}.\n\n`,
-    );
+    const params = resolveQueryResultsParams().params;
+    const notice = AnalysisLoc.profileOutputTruncated;
+    let bytes = 0;
+    const write = (text: string): boolean => {
+        const cost = Buffer.byteLength(text, "utf8");
+        if (bytes + cost + Buffer.byteLength(notice, "utf8") > params.aiMaxBytesPerResponse) {
+            stream.markdown(notice);
+            return false;
+        }
+        bytes += cost;
+        stream.markdown(text);
+        return true;
+    };
+    const cellText = (value: unknown) => summaryCellText(value, params.aiMaxCellBytes);
+    if (
+        !write(
+            AnalysisLoc.resultSetS(
+                cellText(description.source.sourceTitle),
+                String(description.resultSetCount),
+            ) +
+                AnalysisLoc.rowCount(description.totalRows.toLocaleString()) +
+                (description.derived ? AnalysisLoc.derivedView : "") +
+                ".\n\n",
+        )
+    )
+        return;
     for (const set of description.resultSets.slice(0, 5)) {
         if (token.isCancellationRequested) return;
         const columns = set.columnNames.slice(0, PROFILE_COLUMN_LIMIT);
         const aggs: TransformAggregate[] = [{ fn: "count" }];
         for (let index = 0; index < columns.length; index++) {
             aggs.push({ fn: "nullCount", col: index });
-            if (withValues) {
-                aggs.push({ fn: "min", col: index });
-                aggs.push({ fn: "max", col: index });
-            }
+            if (withValues) aggs.push({ fn: "min", col: index }, { fn: "max", col: index });
         }
         const spec: TransformSpec = {
             v: 1,
@@ -186,46 +202,65 @@ async function summarize(
             ...(grantId ? { grantId } : {}),
             isCancelled: () => token.isCancellationRequested,
         });
+        if (token.isCancellationRequested) return;
         const total = result.rows[0]?.[0] as number;
-        const lines = columns.map((name, index) => {
-            const base = 1 + index * (withValues ? 3 : 1);
-            const nulls = result.rows[0]?.[base] as number;
-            const nullPct = total > 0 ? Math.round((nulls / total) * 100) : 0;
-            const truncated = set.truncatedReason ? " · truncated" : "";
-            if (!withValues) {
-                return `| \`${name}\` | ${set.columns?.[index]?.sqlType ?? ""} | ${nullPct}% |`;
-            }
-            const min = result.rows[0]?.[base + 1];
-            const max = result.rows[0]?.[base + 2];
-            return `| \`${name}\` | ${set.columns?.[index]?.sqlType ?? ""} | ${nullPct}% | ${summaryCellText(min, "—")} | ${summaryCellText(max, "—")}${truncated} |`;
-        });
         const header = withValues ? AnalysisLoc.columnTypeNullsMinMax : AnalysisLoc.columnTypeNulls;
-        stream.markdown(
-            AnalysisLoc.resultSetRows(
-                String(set.resultSetId),
-                String(set.rowCount.toLocaleString()),
-            ) +
-                `${set.truncatedReason ? ` (truncated: ${set.truncatedReason})` : ""}\n\n${header}\n${lines.join("\n")}\n\n`,
-        );
-        if (set.columnNames.length > PROFILE_COLUMN_LIMIT) {
-            stream.markdown(
+        if (
+            !write(
+                AnalysisLoc.resultSetRows(
+                    cellText(set.resultSetId),
+                    set.rowCount.toLocaleString(),
+                ) +
+                    (set.truncatedReason
+                        ? AnalysisLoc.truncated(cellText(set.truncatedReason))
+                        : "") +
+                    "\n\n" +
+                    header +
+                    "\n",
+            )
+        )
+            return;
+        if (result.rows.length) {
+            for (let index = 0; index < columns.length; index++) {
+                const base = 1 + index * (withValues ? 3 : 1);
+                const nulls = result.rows[0][base] as number;
+                const nullPct = total > 0 ? Math.round((nulls / total) * 100) : 0;
+                const fields = [
+                    cellText(columns[index]),
+                    cellText(set.columns?.[index]?.sqlType ?? ""),
+                    nullPct + "%",
+                ];
+                if (withValues)
+                    fields.push(
+                        cellText(result.rows[0][base + 1]),
+                        cellText(result.rows[0][base + 2]),
+                    );
+                if (!write("| " + fields.join(" | ") + " |\n")) return;
+            }
+        }
+        if (!write("\n")) return;
+        if (
+            set.columnNames.length > PROFILE_COLUMN_LIMIT &&
+            !write(
                 AnalysisLoc.andMoreColumnsProfiledColumnsAreCapped(
                     String(set.columnNames.length - PROFILE_COLUMN_LIMIT),
                 ),
-            );
-        }
-        if (result.stats.partial) {
-            stream.markdown(
+            )
+        )
+            return;
+        if (
+            result.stats.partial &&
+            !write(
                 AnalysisLoc.partialScanNumbersCoverTheFirstRows(
                     String(result.stats.partialReason),
-                    String(result.stats.rowsScanned.toLocaleString()),
+                    result.stats.rowsScanned.toLocaleString(),
                 ),
-            );
-        }
+            )
+        )
+            return;
     }
-    if (description.resultSets.length > 5) {
-        stream.markdown(AnalysisLoc.andMoreResultSets(String(description.resultSets.length - 5)));
-    }
+    if (description.resultSets.length > 5)
+        write(AnalysisLoc.andMoreResultSets(String(description.resultSets.length - 5)));
 }
 
 /**
@@ -398,12 +433,12 @@ async function handleRequest(
                                           String(source.sourceTitle),
                                           String(source.resultSetCount),
                                           String(source.totalRows.toLocaleString()),
-                                          String(source.streaming ? " (running)" : ""),
+                                          String(source.streaming ? AnalysisLoc.running : ""),
                                       ),
                                   )
                                   .join("\n")
                             : AnalysisLoc.noneRunAQueryInQueryStudio) +
-                        `\n\n**Snapshots** (${snapshots.length})\n\n` +
+                        AnalysisLoc.snapshots(String(snapshots.length)) +
                         (snapshots.length
                             ? snapshots
                                   .map((snapshot) =>
@@ -419,7 +454,7 @@ async function handleRequest(
                                       ),
                                   )
                                   .join("\n")
-                            : "- none"),
+                            : AnalysisLoc.noSnapshots),
                 );
                 return;
             }

@@ -22,6 +22,7 @@
  */
 
 import * as crypto from "crypto";
+import { QueryResultsAnalysis as AnalysisLoc } from "../constants/locConstants";
 import { Perf } from "../perf/perfTelemetry";
 import { QsCellWindow } from "../sharedInterfaces/queryStudio";
 import { QueryResultAccessService } from "./queryResultAccessService";
@@ -169,6 +170,7 @@ export class ResultAccessDenied extends Error {
 export class GatedQueryResultAccess {
     private readonly ownerSnapshots = new Map<string, Set<string>>();
     private evaluating = 0;
+    private readonly pendingSnapshots = new Map<string, number>();
 
     constructor(
         private readonly service: QueryResultAccessService,
@@ -193,34 +195,45 @@ export class GatedQueryResultAccess {
         sourceId: string;
         reason: string;
     }): Promise<QueryResultSnapshotLease> {
-        this.enforceSnapshotCap(request.ownerKey);
-        const lease = await this.service.createSnapshot({
-            owner: { kind: "aiTool", ownerKey: request.ownerKey, label: request.reason },
-            reason: request.reason,
-            sourceId: request.sourceId,
-            scope: { kind: "allCompleteResultSets" },
-            includeMessages: "summary",
-            includeQueryText: "digest",
-        });
-        this.trackOwnerSnapshot(request.ownerKey, lease.snapshotId);
-        // The tool holds handles, not leases: release immediately — the
-        // snapshot idles under the AI TTL and the sweep owns its end of life.
-        lease.dispose();
-        return lease;
+        const releaseSlot = this.reserveSnapshotSlot(request.ownerKey);
+        try {
+            const lease = await this.service.createSnapshot({
+                owner: { kind: "aiTool", ownerKey: request.ownerKey, label: request.reason },
+                reason: request.reason,
+                sourceId: request.sourceId,
+                scope: { kind: "allCompleteResultSets" },
+                includeMessages: "summary",
+                includeQueryText: "digest",
+            });
+            this.trackOwnerSnapshot(request.ownerKey, lease.snapshotId);
+            // The tool holds handles, not leases: release immediately — the
+            // snapshot idles under the AI TTL and the sweep owns its end of life.
+            lease.dispose();
+            return lease;
+        } finally {
+            releaseSlot();
+        }
     }
 
     async deriveSnapshot(
         spec: TransformSpec,
         ownerKey: string,
         isCancelled?: () => boolean,
+        grantId?: string,
     ): Promise<string> {
-        this.enforceSnapshotCap(ownerKey);
+        const verdict = this.gate.consume(grantId, {
+            snapshotId: spec.source.snapshotId,
+            ownerKey,
+            operationClass: "values",
+        });
+        if (!verdict.ok) throw new ResultAccessDenied("values", verdict.reason ?? "denied");
         if (this.evaluating >= 1) {
             throw new QueryResultAccessError(
                 "storeUnavailable",
                 "Another transform is already running — retry when it completes.",
             );
         }
+        const releaseSlot = this.reserveSnapshotSlot(ownerKey);
         this.evaluating++;
         try {
             const lease = await this.service.deriveSnapshot(
@@ -233,6 +246,7 @@ export class GatedQueryResultAccess {
             return lease.snapshotId;
         } finally {
             this.evaluating--;
+            releaseSlot();
         }
     }
 
@@ -309,23 +323,25 @@ export class GatedQueryResultAccess {
         });
     }
 
-    private enforceSnapshotCap(ownerKey: string): void {
+    private reserveSnapshotSlot(ownerKey: string): () => void {
         const owned = this.ownerSnapshots.get(ownerKey);
-        if (!owned) {
-            return;
+        for (const snapshotId of owned ?? []) {
+            if (!this.service.describeSnapshot(snapshotId)) owned!.delete(snapshotId);
         }
-        // Drop entries the sweep already disposed.
-        for (const snapshotId of [...owned]) {
-            if (!this.service.describeSnapshot(snapshotId)) {
-                owned.delete(snapshotId);
-            }
-        }
-        if (owned.size >= this.params().aiMaxSnapshotsPerConversation) {
+        const pending = this.pendingSnapshots.get(ownerKey) ?? 0;
+        const count = (owned?.size ?? 0) + pending;
+        if (count >= this.params().aiMaxSnapshotsPerConversation) {
             throw new QueryResultAccessError(
                 "retentionBudgetExceeded",
-                `This conversation already holds ${owned.size} snapshots — release one first (release_snapshot).`,
+                AnalysisLoc.snapshotLimitReached,
             );
         }
+        this.pendingSnapshots.set(ownerKey, pending + 1);
+        return () => {
+            const remaining = (this.pendingSnapshots.get(ownerKey) ?? 1) - 1;
+            if (remaining) this.pendingSnapshots.set(ownerKey, remaining);
+            else this.pendingSnapshots.delete(ownerKey);
+        };
     }
 
     private trackOwnerSnapshot(ownerKey: string, snapshotId: string): void {

@@ -11,6 +11,7 @@
  */
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -106,6 +107,383 @@ const SALES: unknown[][] = [
     ["east", 90, 4, "f"],
     ["west", 60, 1, "g"],
 ];
+
+suite("queryResults review regressions", () => {
+    const source = { snapshotId: "s", resultSetId: "rs1" };
+    const sandbox = sinon.createSandbox();
+    teardown(() => sandbox.restore());
+
+    test("exact row-budget completion is not reported as a partial scan", async () => {
+        const result = await evaluateTransform(
+            { v: 1, source, terminal: { kind: "aggregate", aggs: [{ fn: "count" }] } },
+            memoryReader(["a"], [[1], [2]]),
+            options({ budget: { ...options().budget, maxRowsScanned: 2 } }),
+        );
+        expect(result.rows).to.deep.equal([[2]]);
+        expect(result.stats.partial).to.equal(false);
+    });
+
+    test("typed decimals, dates, GUIDs and large integers retain their scalar semantics", async () => {
+        const data = [
+            [
+                { $t: "decimal", v: "12.50" },
+                { $t: "datetime2", v: "2024-01-01" },
+                { $t: "guid", v: "id-a" },
+                { $t: "int64", v: "9007199254740993" },
+            ],
+            [
+                { $t: "decimal", v: "2.50" },
+                { $t: "datetime2", v: "2025-01-01" },
+                { $t: "guid", v: "id-b" },
+                { $t: "int64", v: "9007199254740995" },
+            ],
+            [
+                { $t: "decimal", v: "250.00" },
+                { $t: "datetime2", v: "2024-02-01" },
+                { $t: "guid", v: "id-c" },
+                { $t: "int64", v: "9007199254740997" },
+            ],
+        ];
+        const reader = memoryReader(["amount", "date", "id", "big"], data);
+        const aggregate = await evaluateTransform(
+            {
+                v: 1,
+                source,
+                terminal: {
+                    kind: "aggregate",
+                    aggs: [
+                        { fn: "sum", col: 0 },
+                        { fn: "avg", col: 0 },
+                        { fn: "min", col: 0 },
+                        { fn: "max", col: 0 },
+                    ],
+                },
+            },
+            reader,
+            options(),
+        );
+        expect(aggregate.rows).to.deep.equal([[265, 265 / 3, "2.50", "250.00"]]);
+        for (const pred of [
+            { col: 0, cmp: "gt" as const, value: 100 },
+            { col: 1, cmp: "ge" as const, value: "2025-01-01" },
+            { col: 2, cmp: "eq" as const, value: "id-b" },
+        ]) {
+            const result = await evaluateTransform(
+                {
+                    v: 1,
+                    source,
+                    ops: [{ op: "filter", pred }],
+                    terminal: { kind: "aggregate", aggs: [{ fn: "count" }] },
+                },
+                reader,
+                options(),
+            );
+            expect(result.rows).to.deep.equal([[1]]);
+        }
+        const histogram = await evaluateTransform(
+            { v: 1, source, terminal: { kind: "histogram", col: 0, boundaries: [10, 100] } },
+            reader,
+            options(),
+        );
+        expect(histogram.rows.map((row) => row[2])).to.deep.equal([1, 1, 1]);
+        const top = await evaluateTransform(
+            { v: 1, source, terminal: { kind: "topK", col: 0, by: "value", k: 1 } },
+            reader,
+            options(),
+        );
+        expect(top.rows).to.deep.equal([["250.00"]]);
+        const rows = await evaluateTransform(
+            { v: 1, source, terminal: { kind: "rows", limit: 3 } },
+            reader,
+            options(),
+        );
+        expect(rows.rows[0][3]).to.equal("9007199254740993");
+    });
+
+    test("numeric-looking text is never coerced for filtering, sorting or aggregation", async () => {
+        const reader = memoryReader(["zip"], [["02134"], ["2134"], ["0x856"]]);
+        for (const cmp of ["eq", "inSet"] as const) {
+            const result = await evaluateTransform(
+                {
+                    v: 1,
+                    source,
+                    ops: [
+                        { op: "filter", pred: { col: 0, cmp, value: "02134", values: ["02134"] } },
+                    ],
+                    terminal: { kind: "rows", limit: 10 },
+                },
+                reader,
+                options(),
+            );
+            expect(result.rows).to.deep.equal([["02134"]]);
+        }
+        const aggregate = await evaluateTransform(
+            {
+                v: 1,
+                source,
+                terminal: {
+                    kind: "aggregate",
+                    aggs: [
+                        { fn: "min", col: 0 },
+                        { fn: "max", col: 0 },
+                        { fn: "avg", col: 0 },
+                    ],
+                },
+            },
+            reader,
+            options(),
+        );
+        expect(aggregate.rows).to.deep.equal([["02134", "2134", null]]);
+        const top = await evaluateTransform(
+            { v: 1, source, terminal: { kind: "topK", col: 0, by: "value", k: 3 } },
+            reader,
+            options(),
+        );
+        expect(top.rows).to.deep.equal([["2134"], ["0x856"], ["02134"]]);
+    });
+
+    test("unknown predicates stay unknown through not, and and or", async () => {
+        const reader = memoryReader(
+            ["value", "known"],
+            [
+                [{ $t: "truncated", of: "string", v: "sec" }, 1],
+                [null, 1],
+                ["public", 1],
+            ],
+        );
+        const unknown = { col: 0, cmp: "contains" as const, value: "secret" };
+        for (const pred of [
+            { not: unknown },
+            { and: [{ not: unknown }, { col: 1, cmp: "eq" as const, value: 1 }] },
+            { or: [{ not: unknown }, { col: 1, cmp: "eq" as const, value: 2 }] },
+        ]) {
+            const result = await evaluateTransform(
+                {
+                    v: 1,
+                    source,
+                    ops: [{ op: "filter", pred }],
+                    terminal: { kind: "rows", limit: 10 },
+                },
+                reader,
+                options(),
+            );
+            expect(result.rows).to.deep.equal([["public", 1]]);
+            expect(result.stats.truncatedCellsSkipped).to.equal(1);
+        }
+        const decisive = await evaluateTransform(
+            {
+                v: 1,
+                source,
+                ops: [{ op: "filter", pred: { or: [unknown, { col: 1, cmp: "eq", value: 1 }] } }],
+                terminal: { kind: "aggregate", aggs: [{ fn: "count" }] },
+            },
+            reader,
+            options(),
+        );
+        expect(decisive.rows).to.deep.equal([[3]]);
+    });
+
+    test("invalid schema ordinals fail before reading any rows", async () => {
+        const reader = memoryReader(["a", "b"], [[1, 2]]);
+        const read = sandbox.spy(reader, "stream");
+        const cases: TransformSpec[] = [
+            { v: 1, source: { ...source, columns: [2] }, terminal: { kind: "rows", limit: 1 } },
+            {
+                v: 1,
+                source,
+                ops: [{ op: "project", columns: [2] }],
+                terminal: { kind: "rows", limit: 1 },
+            },
+            {
+                v: 1,
+                source,
+                ops: [{ op: "filter", pred: { not: { col: 7, cmp: "isNull" } } }],
+                terminal: { kind: "rows", limit: 1 },
+            },
+            {
+                v: 1,
+                source,
+                ops: [{ op: "project", columns: [0] }],
+                terminal: { kind: "topK", col: 1, by: "value", k: 1 },
+            },
+            { v: 1, source, terminal: { kind: "aggregate", aggs: [{ fn: "sum", col: 3 }] } },
+            { v: 1, source, terminal: { kind: "groupBy", keys: [3], aggs: [{ fn: "count" }] } },
+        ];
+        for (const spec of cases) {
+            try {
+                await evaluateTransform(spec, reader, options());
+                expect.fail("expected invalid ordinal");
+            } catch (error) {
+                expect(error).to.be.instanceOf(QueryResultAccessError);
+                expect((error as QueryResultAccessError).code).to.equal("invalidTransformSpec");
+            }
+        }
+        expect(read.called).to.equal(false);
+    });
+
+    test("ambiguous logical predicates are rejected without throwing", () => {
+        for (const pred of [
+            { and: {}, or: [{ col: 0, cmp: "isNull" }] },
+            { and: null, or: [{ col: 0, cmp: "isNull" }] },
+            { not: { col: 0, cmp: "isNull" }, col: 0 },
+            { and: [] },
+        ]) {
+            const result = validateTransformSpec({
+                v: 1,
+                source,
+                ops: [{ op: "filter", pred }],
+                terminal: { kind: "rows", limit: 1 },
+            });
+            expect(result.spec).to.equal(undefined);
+            expect(result.errors).to.not.be.empty;
+        }
+    });
+
+    test("group tuples containing NUL delimiters remain distinct", async () => {
+        const result = await evaluateTransform(
+            { v: 1, source, terminal: { kind: "groupBy", keys: [0, 1], aggs: [{ fn: "count" }] } },
+            memoryReader(
+                ["a", "b"],
+                [
+                    ["a\u0000s:b", "c"],
+                    ["a", "b\u0000s:c"],
+                ],
+            ),
+            options(),
+        );
+        expect(result.rows.map((row) => row[2])).to.deep.equal([1, 1]);
+    });
+
+    test("every terminal charges serialized UTF8 bytes and output cells", async () => {
+        for (const value of ["界".repeat(2000), '"'.repeat(3000), { raw: "x".repeat(5000) }]) {
+            const result = await evaluateTransform(
+                { v: 1, source, terminal: { kind: "rows", limit: 1 } },
+                memoryReader(["a"], [[value]]),
+                options({ budget: { ...options().budget, maxOutputBytes: 4096 } }),
+            );
+            expect(result.rows).to.be.empty;
+            expect(result.stats.partialReason).to.equal("outputBytes");
+        }
+        const aggregate = await evaluateTransform(
+            { v: 1, source, terminal: { kind: "aggregate", aggs: [{ fn: "max", col: 0 }] } },
+            memoryReader(["a"], [["x".repeat(5000)]]),
+            options({ budget: { ...options().budget, maxOutputBytes: 4096 } }),
+        );
+        expect(aggregate.rows).to.be.empty;
+        expect(aggregate.stats.partialReason).to.equal("outputBytes");
+        const histogram = await evaluateTransform(
+            {
+                v: 1,
+                source,
+                terminal: {
+                    kind: "histogram",
+                    col: 0,
+                    boundaries: Array.from({ length: 256 }, (_, i) => i),
+                },
+            },
+            memoryReader(["a"], [[3]]),
+            options({ budget: { ...options().budget, maxOutputCells: 100 } }),
+        );
+        expect(histogram.rows).to.have.length(33);
+        expect(histogram.stats.partialReason).to.equal("outputCells");
+    });
+
+    test("uniform windows are disjoint, bounded to the span and do not scan first", async () => {
+        const reader = memoryReader(
+            ["id"],
+            Array.from({ length: 5000 }, (_, i) => [i]),
+        );
+        const read = sandbox.spy(reader, "stream");
+        for (const [start, count, n] of [
+            [10, 2, 10],
+            [0, 3, 10],
+            [15, 4000, 100],
+            [0, 33, 33],
+        ]) {
+            const result = await evaluateTransform(
+                {
+                    v: 1,
+                    source: { ...source, rows: { kind: "span", start, count } },
+                    terminal: { kind: "sample", strategy: "uniform_windows", n },
+                },
+                reader,
+                options(),
+            );
+            const ids = result.rows.map((row) => row[0] as number);
+            expect(ids).to.have.length(Math.min(n, count));
+            expect(new Set(ids).size).to.equal(ids.length);
+            expect(ids.every((id) => id >= start && id < start + count)).to.equal(true);
+            expect(result.stats.rowsScanned).to.equal(ids.length);
+        }
+        expect(read.called).to.equal(false);
+    });
+
+    test("uniform windows honor cancellation, row and time budgets", async () => {
+        const spec: TransformSpec = {
+            v: 1,
+            source,
+            terminal: { kind: "sample", strategy: "uniform_windows", n: 10 },
+        };
+        const reader = memoryReader(
+            ["id"],
+            Array.from({ length: 5000 }, (_, i) => [i]),
+        );
+        const read = sandbox.spy(reader, "window");
+        const canceled = await evaluateTransform(
+            spec,
+            reader,
+            options({ isCancelled: () => true }),
+        );
+        expect(canceled.rows).to.be.empty;
+        expect(canceled.stats.partialReason).to.equal("canceled");
+        expect(read.called).to.equal(false);
+        const limited = await evaluateTransform(
+            spec,
+            reader,
+            options({ budget: { ...options().budget, maxRowsScanned: 3 } }),
+        );
+        expect(limited.rows).to.have.length(3);
+        expect(limited.stats.partialReason).to.equal("rows");
+        let time = 0;
+        const timed = await evaluateTransform(
+            spec,
+            reader,
+            options({ now: () => time++, budget: { ...options().budget, maxEvalMs: 2 } }),
+        );
+        expect(timed.stats.partialReason).to.equal("time");
+        expect(timed.rows.length).to.be.lessThan(10);
+        expect(
+            validateTransformSpec({ ...spec, ops: [{ op: "slice", offset: 0, limit: 20 }] }).errors,
+        ).to.not.be.empty;
+    });
+
+    test("a scan rejecting every row yields to cancellation", async () => {
+        let canceled = false;
+        const turn = setImmediate(() => {
+            canceled = true;
+        });
+        try {
+            const result = await evaluateTransform(
+                {
+                    v: 1,
+                    source,
+                    ops: [{ op: "filter", pred: { col: 0, cmp: "lt", value: 0 } }],
+                    terminal: { kind: "aggregate", aggs: [{ fn: "count" }] },
+                },
+                memoryReader(
+                    ["id"],
+                    Array.from({ length: 10000 }, (_, i) => [i]),
+                ),
+                options({ isCancelled: () => canceled }),
+            );
+            expect(result.stats.partialReason).to.equal("canceled");
+            expect(result.stats.rowsScanned).to.be.lessThan(10000);
+            expect(result.rows).to.deep.equal([[0]]);
+        } finally {
+            clearImmediate(turn);
+        }
+    });
+});
 
 suite("queryResults transform spec", () => {
     test("validation rejects unknown shapes with paths", () => {
@@ -756,6 +1134,17 @@ suite("queryResults derived snapshots", () => {
         };
         const derived = await service.deriveSnapshot(spec, { kind: "pinnedDocument" });
         expect(service.describeSnapshot(derived.snapshotId)!.totalRows).to.equal(2);
+        expect(
+            service.describeSnapshot(derived.snapshotId)!.resultSets[0].truncatedReason,
+        ).to.equal("deriveLimit");
+        const exact = await service.deriveSnapshot(
+            { ...spec, source: { ...spec.source, rows: { kind: "span", start: 0, count: 2 } } },
+            { kind: "pinnedDocument" },
+        );
+        expect(service.describeSnapshot(exact.snapshotId)!.resultSets[0].truncatedReason).to.equal(
+            undefined,
+        );
+        exact.dispose();
         for (const invalid of [
             { ...spec, ops: [{ op: "project", columns: [0] }] },
             { ...spec, terminal: { kind: "aggregate", aggs: [{ fn: "count" }] } },

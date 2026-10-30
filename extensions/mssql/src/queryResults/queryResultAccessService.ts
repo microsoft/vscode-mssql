@@ -689,7 +689,14 @@ export class QueryResultAccessService {
         // the evaluation from materializing any output rows.
         const idSpec: TransformSpec = {
             ...spec,
-            ops: [...(spec.ops ?? []), { op: "slice", offset: 0, limit: spec.terminal.limit }],
+            ops: [
+                ...(spec.ops ?? []),
+                {
+                    op: "slice",
+                    offset: 0,
+                    limit: Math.min(spec.terminal.limit, params.derivedMaxRows) + 1,
+                },
+            ],
             terminal: { kind: "aggregate", aggs: [{ fn: "count" }] },
         };
         const parentLease = this.acquireSnapshot(spec.source.snapshotId, owner)!;
@@ -697,9 +704,13 @@ export class QueryResultAccessService {
             const result = await this.evaluateSnapshotTransform(idSpec, {
                 isCancelled,
                 reason: "transform",
-                overrides: { collectMatchedRowIds: { max: params.derivedMaxRows } },
+                overrides: { collectMatchedRowIds: { max: params.derivedMaxRows + 1 } },
             });
-            if (result.matchedRowIdsOverflow) {
+            if (
+                result.matchedRowIdsOverflow ||
+                ((result.matchedSourceRowIds?.length ?? 0) > params.derivedMaxRows &&
+                    spec.terminal.limit > params.derivedMaxRows)
+            ) {
                 throw new QueryResultAccessError(
                     "retentionBudgetExceeded",
                     `The filtered view exceeds ${params.derivedMaxRows.toLocaleString()} rows — export the data instead of deriving a snapshot.`,
@@ -712,7 +723,8 @@ export class QueryResultAccessService {
                 );
             }
             // Compose through a derived parent so ids always index the PHYSICAL set.
-            const matched = result.matchedSourceRowIds ?? [];
+            const limitExceeded = (result.matchedSourceRowIds?.length ?? 0) > spec.terminal.limit;
+            const matched = (result.matchedSourceRowIds ?? []).slice(0, spec.terminal.limit);
             const rowIds = parent.derived
                 ? matched.map((id) => parent.derived!.rowIds[id]).filter((id) => id !== undefined)
                 : matched;
@@ -739,6 +751,7 @@ export class QueryResultAccessService {
                         resultSetId: spec.source.resultSetId,
                         rowCount: rowIds.length,
                         complete: true,
+                        ...(limitExceeded ? { truncatedReason: "deriveLimit" } : {}),
                     },
                 ],
                 messages: { summary: { count: 0, errorCount: 0 } },

@@ -390,7 +390,8 @@
                         "name": "pin",
                         "description": "%mssql.query.pin.description%"
                     }
-                ]
+                ],
+                "when": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && config.mssql.queryResults.ai.enabled"
             }
         ],
         "customEditors": [
@@ -8138,7 +8139,7 @@
             },
             {
                 "name": "mssql_query_results",
-                "modelDescription": "When the user explicitly references #mssql_query_results, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Analyze Query Studio result snapshots WITHOUT streaming full data. Division of labor: mssql_run_query executes SQL and returns at most a head sample; this tool analyzes complete results the user has run in Query Studio. Operations: 'list_live' lists open Query Studio documents with results; 'create_snapshot' freezes a live source's complete result sets and returns a snapshotId; 'list_snapshots'/'describe_snapshot' return schema, row counts, provenance and lineage (no values, no confirmation); 'evaluate_transform' runs a bounded transform spec v1 ({ v:1, source:{snapshotId,resultSetId}, ops:[filter|project|slice], terminal: rows|aggregate|groupBy|topK|histogram|distinctCount|sample }) — numeric aggregates need no confirmation, any output containing cell values asks the user first; 'sample_rows'/'get_rows' return bounded row windows (user confirmation required); 'derive_snapshot' accepts only a rows terminal with filters/slices (no projection or aggregates) and materializes a filtered view as a new snapshotId (no values returned); 'pin_snapshot' opens a snapshot (e.g. a derived filtered view) as a read-only tab for the user; 'release_snapshot' frees one. Every response is row/byte-capped and carries EvalStats with partial:true when a budget cut the scan — never assume full coverage when partial is set.",
+                "modelDescription": "When the user explicitly references #mssql_query_results, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Analyze Query Studio result snapshots WITHOUT streaming full data. Division of labor: mssql_run_query executes SQL and returns at most a head sample; this tool analyzes complete results the user has run in Query Studio. Operations: 'list_live' lists open Query Studio documents with results; 'create_snapshot' freezes a live source's complete result sets and returns a snapshotId; 'list_snapshots'/'describe_snapshot' return schema, row counts, provenance and lineage (no values, no confirmation); 'evaluate_transform' runs a bounded transform spec v1 ({ v:1, source:{snapshotId,resultSetId}, ops:[filter|project|slice], terminal: rows|aggregate|groupBy|topK|histogram|distinctCount|sample }) — whole-result numeric statistics need no confirmation; filtered/sliced statistics and any output containing cell values ask the user first; 'sample_rows'/'get_rows' return bounded row windows (user confirmation required); 'derive_snapshot' accepts only a rows terminal with filters/slices (no projection or aggregates) and materializes a filtered view as a new snapshotId (user confirmation required; truncation is reported); 'pin_snapshot' opens a snapshot (e.g. a derived filtered view) as a read-only tab for the user; 'release_snapshot' frees one. Every response is row/byte-capped and carries EvalStats with partial:true when a budget cut the scan — never assume full coverage when partial is set.",
                 "displayName": "%mssql.queryResults.tool.displayName%",
                 "userDescription": "%mssql.queryResults.tool.userDescription%",
                 "canBeReferencedInPrompt": true,
@@ -8217,7 +8218,8 @@
                     "required": [
                         "operation"
                     ]
-                }
+                },
+                "when": "mssql.privatePreview.queryStudioActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled && config.mssql.queryResults.ai.enabled"
             }
         ],
         "colors": [

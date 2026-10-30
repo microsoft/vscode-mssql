@@ -6276,6 +6276,20 @@ export const QueryStudio = {
 };
 
 export class QueryResultsAnalysis {
+    public static snapshotLimitReached = l10n.t(
+        "This conversation has reached its snapshot limit; release a snapshot first (release_snapshot).",
+    );
+    public static columnOutsideTransformSchema = (ordinal: string, width: string) =>
+        l10n.t("Column ordinal {0} is outside the transform schema ({1} columns).", ordinal, width);
+    public static profileOutputTruncated = l10n.t(
+        "\n\n_Profile output was truncated to the configured response limit._\n",
+    );
+    public static operation = (operation: string) => l10n.t("- Operation: {0}\n", operation);
+    public static rowCount = (count: string) => l10n.t("{0} rows", count);
+    public static truncated = (reason: string) => l10n.t(" (truncated: {0})", reason);
+    public static running = l10n.t(" (running)");
+    public static snapshots = (count: string) => l10n.t("\n\n**Snapshots** ({0})\n\n", count);
+    public static noSnapshots = l10n.t("- none");
     public static derivedRowsOnly = l10n.t(
         "Derived snapshots support row filters and slices. Use evaluate_transform for projections and aggregates.",
     );
@@ -6433,7 +6447,7 @@ export class QueryResultsAnalysis {
         "- Scope: this single request only (grants are single-use)\n\n",
     );
     public static schemaRowCountsAndNumericAggregatesNeverRequireThisConfirmation = l10n.t(
-        "Schema, row counts, and numeric aggregates never require this confirmation.",
+        "Schema and whole-result numeric statistics do not require this confirmation. Filtered or sliced analysis and derived views require confirmation.",
     );
 }
 
