@@ -120,7 +120,7 @@ const FINDING_HINTS: Partial<Record<VectorFindingKind, string>> = {
     zeroVectors: locConstants.vectorWorkbench.allComponents0,
     nearZeroVectors: locConstants.vectorWorkbench.v1e6,
     duplicateVectors: locConstants.vectorWorkbench.sHA256OfFloat32Bytes,
-    centroidDistanceOutliers: locConstants.vectorWorkbench.cosineDistanceFromSampleCentroidP99,
+    centroidDistanceOutliers: locConstants.vectorWorkbench.cosineDistanceFromSampleCentroidFence,
     nearConstantDimensions: locConstants.vectorWorkbench.perDimensionVariance1e5,
 };
 
@@ -761,10 +761,13 @@ export function VectorWorkbenchTab(props: VectorWorkbenchTabProps): React.JSX.El
     const sample = profile?.sample;
     const scopeText = sample
         ? sample.method === "full"
-            ? `Full · ${formatCount(sample.sampleRows)} rows`
-            : `Sample ${formatCount(sample.sampleRows)} of ${formatCount(sample.totalRows)}`
+            ? locConstants.vectorWorkbench.fullScope(formatCount(sample.sampleRows))
+            : locConstants.vectorWorkbench.sampleScope(
+                  formatCount(sample.sampleRows),
+                  formatCount(sample.totalRows),
+              )
         : visibleOpened
-          ? `${formatCount(visibleOpened.totalRows)} rows`
+          ? locConstants.queryResult.rowsCount(visibleOpened.totalRows)
           : "";
 
     return (
@@ -1146,12 +1149,18 @@ function ProfileView(props: {
     const facts: Array<[string, string]> = [
         [
             locConstants.vectorWorkbench.rows2,
-            profile.sample.method === locConstants.vectorWorkbench.full
+            profile.sample.method === "full"
                 ? formatCount(profile.sample.sampleRows)
-                : `${formatCount(profile.sample.sampleRows)} sampled of ${formatCount(profile.sample.totalRows)}`,
+                : locConstants.vectorWorkbench.sampledRows(
+                      formatCount(profile.sample.sampleRows),
+                      formatCount(profile.sample.totalRows),
+                  ),
         ],
         [locConstants.vectorWorkbench.dimensions, formatCount(profile.dimensions)],
-        [locConstants.vectorWorkbench.baseType, `${profile.baseType} native`],
+        [
+            locConstants.vectorWorkbench.baseType,
+            locConstants.vectorWorkbench.nativeBaseType(profile.baseType),
+        ],
         [
             locConstants.vectorWorkbench.nullUnavailable,
             `${formatCount(profile.nullCount)} / ${formatCount(profile.unavailableCount)}`,
@@ -1159,7 +1168,10 @@ function ProfileView(props: {
         [locConstants.vectorWorkbench.nearZero, formatCount(profile.norms.nearZeroCount)],
     ];
     if (profile.sample.partialReason) {
-        facts.push(["Partial", profile.sample.partialReason]);
+        facts.push([
+            locConstants.vectorWorkbench.partial,
+            locConstants.vectorWorkbench.partialReasons[profile.sample.partialReason],
+        ]);
     }
     return (
         <div className="qs-vec-profile">
@@ -1173,7 +1185,10 @@ function ProfileView(props: {
             </div>
             <div className="qs-vec-columns">
                 <section>
-                    <SectionLabel right={`local · ${formatCount(profile.sample.sampleRows)} rows`}>
+                    <SectionLabel
+                        right={locConstants.vectorWorkbench.localRows(
+                            formatCount(profile.sample.sampleRows),
+                        )}>
                         {" "}
                         {locConstants.vectorWorkbench.norms}{" "}
                     </SectionLabel>
@@ -1232,7 +1247,10 @@ function ProfileView(props: {
                     </div>
                 </section>
                 <section>
-                    <SectionLabel right={`${profile.findings.length} · local`}>
+                    <SectionLabel
+                        right={locConstants.vectorWorkbench.localCount(
+                            formatCount(profile.findings.length),
+                        )}>
                         {" "}
                         {locConstants.vectorWorkbench.findings}{" "}
                     </SectionLabel>
@@ -1265,7 +1283,10 @@ function ProfileView(props: {
                     {profile.pairDistances ? (
                         <>
                             <SectionLabel
-                                right={`${profile.pairDistances.metric} · ${formatCount(profile.pairDistances.pairCount)} pairs · local`}>
+                                right={locConstants.vectorWorkbench.localPairs(
+                                    profile.pairDistances.metric,
+                                    formatCount(profile.pairDistances.pairCount),
+                                )}>
                                 {" "}
                                 {locConstants.vectorWorkbench.sampledPairDistances}{" "}
                             </SectionLabel>

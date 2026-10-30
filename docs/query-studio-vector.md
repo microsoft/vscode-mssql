@@ -44,12 +44,13 @@ The PR screenshots use this shape of data. Pipeline shows chunk preview with no 
 
 ## Validation
 
-Unit suites cover worker math, bounds, cancellation, vector SQL construction, target identity, catalog/probe behavior, search, index, and pipeline lifecycles. Live tests use the existing optional SQL test environment variables. The opt-in Playwright suite reads a prepared synthetic fixture:
+Unit suites cover worker math, bounds, cancellation, vector SQL construction, target identity, catalog/probe behavior, search, index, and pipeline lifecycles. Live tests use the existing optional SQL test environment variables. The Playwright suite runs the documented sample on the configured SQL Server 2025+ connection in a uniquely named global temporary table in `tempdb`. Closing the test session removes it; no permanent database, model, or index is created. It runs in CI without an additional feature-specific environment variable:
 
 ```powershell
-$env:VECTOR_WORKBENCH_TEST_DATABASE = "your_vector_test_database"
 # Set the usual e2e SQL connection variables without checking credentials in.
 npx playwright test test/e2e/queryStudioVector.spec.ts --workers=1 --retries=0
 ```
 
-Set `VECTOR_WORKBENCH_SCREENSHOTS` to an output directory to capture all six workspaces. SQL Server versions without native vectors cannot run this fixture. The test covers actual controls and results, local pinned analysis, and the boundary between local analysis and SQL/model work.
+Set `VECTOR_WORKBENCH_SCREENSHOTS` to an output directory to capture all six workspaces. To use an existing prepared `dbo.VectorSamples` table instead, set `VECTOR_WORKBENCH_TEST_DATABASE` to that database. SQL Server versions without native vectors cannot run this fixture. The test covers actual controls and results, local pinned analysis, and the boundary between local analysis and SQL/model work.
+
+Search currently supports `float32` vector targets. It excludes `float16` columns because the server rejects comparisons between different vector base types. Catalog statements have a 15-second timeout, exact/approximate search statements a 60-second timeout, and model calls a 120-second timeout.

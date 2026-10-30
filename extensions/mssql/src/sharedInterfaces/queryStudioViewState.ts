@@ -105,7 +105,8 @@ export interface QsGridPanelViewState extends GridViewState {
     columnWidths?: number[];
     filters?: ColumnFilterMap;
     sort?: { columnId: string; direction: SortProperties };
-    scrollPosition?: { scrollTop: number; scrollLeft: number };
+    scrollPosition?: { scrollTop: number; scrollLeft: number; scrollTopOffset?: number };
+    rowNumberColumnWidth?: number;
 }
 
 export interface QsResultsTextViewState {
@@ -473,6 +474,7 @@ function isGridState(value: unknown): boolean {
             "filters",
             "sort",
             "scrollPosition",
+            "rowNumberColumnWidth",
         ]) ||
         (value.hiddenColumnIds !== undefined &&
             (!Array.isArray(value.hiddenColumnIds) ||
@@ -481,6 +483,8 @@ function isGridState(value: unknown): boolean {
         (value.frozenColumnIndex !== undefined &&
             (!Number.isInteger(value.frozenColumnIndex) ||
                 !isFiniteNumber(value.frozenColumnIndex, -1, MAX_COLUMNS))) ||
+        (value.rowNumberColumnWidth !== undefined &&
+            !isFiniteNumber(value.rowNumberColumnWidth, 0, 100_000)) ||
         (value.columnWidths !== undefined &&
             (!Array.isArray(value.columnWidths) ||
                 value.columnWidths.length > MAX_COLUMNS ||
@@ -557,9 +561,10 @@ function isSortDirection(value: unknown): boolean {
 function isScrollPosition(value: unknown): boolean {
     return (
         isRecord(value) &&
-        hasOnlyKeys(value, ["scrollTop", "scrollLeft"]) &&
+        hasOnlyKeys(value, ["scrollTop", "scrollLeft", "scrollTopOffset"]) &&
         isFiniteNumber(value.scrollTop) &&
-        isFiniteNumber(value.scrollLeft)
+        isFiniteNumber(value.scrollLeft) &&
+        (value.scrollTopOffset === undefined || isFiniteNumber(value.scrollTopOffset))
     );
 }
 
@@ -722,12 +727,12 @@ function isVectorProjectionState(value: unknown): boolean {
             "listScrollTop",
         ]) &&
         typeof value.fitted === "boolean" &&
-        isFiniteNumber(value.centerX, -Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) &&
-        isFiniteNumber(value.centerY, -Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) &&
+        isFiniteNumber(value.centerX, -Number.MAX_VALUE, Number.MAX_VALUE) &&
+        isFiniteNumber(value.centerY, -Number.MAX_VALUE, Number.MAX_VALUE) &&
         // Fit scale is unclamped below (wide PCA spreads legitimately fit at
         // scales « 1) — rejecting a small scale here would silently drop the
         // ENTIRE panel snapshot on the next round trip.
-        isFiniteNumber(value.scale, 1e-9, 10_000) &&
+        isFiniteNumber(value.scale, Number.MIN_VALUE, 10_000) &&
         (value.selectedOrdinal === undefined ||
             (Number.isInteger(value.selectedOrdinal) && isFiniteNumber(value.selectedOrdinal))) &&
         isFiniteNumber(value.listScrollTop)

@@ -732,6 +732,58 @@ suite("vectorSearchService result shaping", () => {
 // ---------------------------------------------------------------------------
 
 suite("vectorSearchService search flow", () => {
+    test("decodes GUID and exact bigint keys before rank and recall comparisons", async () => {
+        const guid = (i: number) => ({
+            $t: "guid",
+            v: `00000000-0000-0000-0000-${String(i).padStart(12, "0")}`,
+        });
+        const harness = await makeHarness({
+            rules: [
+                { match: isExact, rows: [1, 2, 3].map((i) => [guid(i), `row-${i}`, i / 10]) },
+                { match: isApprox, rows: [3, 4, 5].map((i) => [guid(i), `row-${i}`, i / 10]) },
+                ...DEFAULT_RULES,
+            ],
+        });
+        try {
+            const result = await harness.service.search(searchParams(harness, { k: 3 }));
+            expect(result.error).to.equal(undefined);
+            expect(result.comparison?.rankRows).to.have.length(5);
+            expect(result.comparison?.recall?.recallAtK).to.equal(1 / 3);
+            expect(result.comparison?.rankRows.map((row) => row.key)).to.deep.equal(
+                [1, 2, 3, 4, 5].map((i) => guid(i).v),
+            );
+            expect(
+                harness.session.executed.find((statement) => isExact(statement.text))?.opts
+                    .timeoutMs,
+            ).to.equal(60_000);
+            expect(
+                harness.session.executed.find((statement) => isTargets(statement.text))?.opts
+                    .timeoutMs,
+            ).to.equal(15_000);
+        } finally {
+            teardown(harness);
+        }
+
+        const bigint = await makeHarness({
+            rules: [
+                {
+                    match: isExact,
+                    rows: [[{ $t: "int64", v: "9223372036854775807" }, "maximum", 0.1]],
+                },
+                ...DEFAULT_RULES,
+            ],
+        });
+        try {
+            const result = await bigint.service.search(
+                searchParams(bigint, { includeApprox: false }),
+            );
+            expect(result.error).to.equal(undefined);
+            expect(result.comparison?.rankRows[0].key).to.equal("9223372036854775807");
+        } finally {
+            teardown(bigint);
+        }
+    });
+
     test("frozen selected-row vector rides BOTH executed variants as ONE identical literal; displayed == executed", async () => {
         const harness = await makeHarness();
         try {

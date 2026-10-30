@@ -19,6 +19,7 @@ import { expect } from "chai";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import * as sinon from "sinon";
 import {
     analyzePackedVectors,
     computePca2d,
@@ -71,6 +72,36 @@ function workerInput(rows: number[][], overrides?: Partial<VectorWorkerInput>): 
 }
 
 suite("vector analysis worker (pure core)", () => {
+    test("centroid findings distinguish clean samples from planted distant rows", () => {
+        let seed = 12345;
+        const random = () => {
+            seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+            return (seed + 1) / 4294967297;
+        };
+        const normal = () => Math.sqrt(-2 * Math.log(random())) * Math.cos(2 * Math.PI * random());
+        const clean = Array.from({ length: 200 }, () => {
+            const row = Array.from({ length: DIMS }, normal);
+            const length = Math.hypot(...row);
+            return row.map((value) => value / length);
+        });
+        expect(
+            analyzePackedVectors(workerInput(clean)).findings.some(
+                (finding) => finding.kind === "centroidDistanceOutliers",
+            ),
+        ).to.equal(false);
+        // The reference cluster has bounded variation; its three opposite
+        // points are deliberate anomalies, rather than random tail samples.
+        const clustered = Array.from({ length: 200 }, (_, i) => {
+            const tail = Array.from({ length: DIMS - 1 }, (_, d) => Math.sin(i + d * 0.7));
+            const length = Math.hypot(...tail);
+            return [i < 3 ? -1 : 1, ...tail.map((value) => (value * 0.01) / length)];
+        });
+        const finding = analyzePackedVectors(workerInput(clustered)).findings.find(
+            (value) => value.kind === "centroidDistanceOutliers",
+        );
+        expect(finding?.rowIndices).to.deep.equal([0, 1, 2]);
+    });
+
     test("planted anomaly classes are found with the right subjects and ordinals", () => {
         const rows: number[][] = [];
         for (let i = 0; i < 40; i++) {
@@ -330,6 +361,8 @@ suite("compare math (VEC-6)", () => {
 });
 
 suite("vector ingest source", () => {
+    const sandbox = sinon.createSandbox();
+    teardown(() => sandbox.restore());
     const BUDGET: VectorIngestBudget = {
         maxRowsScanned: 25_000,
         maxSampleRows: 5_000,
@@ -391,7 +424,7 @@ suite("vector ingest source", () => {
                 name: "embedding",
                 displayName: "embedding",
                 sqlType: "vector",
-                vector: { transport: "binary-v1", dimensions: dims },
+                vector: { transport: "binary-v1", ...(dims ? { dimensions: dims } : {}) },
             },
         ]);
         for (let i = 0; i < rows.length; i++) {
@@ -467,6 +500,132 @@ suite("vector ingest source", () => {
         expect(result.descriptor.partialReason).to.equal(undefined);
         expect(result.descriptor.totalRows).to.equal(20);
         wrapper.releaseLiveOwner("documentClosed");
+    });
+
+    test("discovers dimensions before sampling across the result", async () => {
+        const cells = Array.from({ length: 400 }, (_, i) => vectorCell([i, 1, 2, 3, 4, 5, 6, 7]));
+        const known = await seededVectorStore(cells, 8);
+        const discovered = await seededVectorStore(cells, 0);
+        try {
+            const ingest = (store: RetainedRowStore) =>
+                ingestVectorColumn({
+                    store,
+                    resultSetId: "rs1",
+                    columnOrdinal: 1,
+                    budget: { ...BUDGET, maxComponents: 800 },
+                    seed: 42,
+                });
+            const expected = await ingest(known);
+            const actual = await ingest(discovered);
+            if ("error" in actual || "error" in expected) throw new Error("Expected vector data");
+            expect([...actual.sourceOrdinals]).to.deep.equal([...expected.sourceOrdinals]);
+            expect([...actual.sourceOrdinals].some((ordinal) => ordinal >= 200)).to.equal(true);
+            expect(actual.descriptor.partialReason).to.equal(undefined);
+            expect(actual.descriptor.rowsScanned).to.equal(expected.descriptor.rowsScanned + 1);
+        } finally {
+            known.releaseLiveOwner("documentClosed");
+            discovered.releaseLiveOwner("documentClosed");
+        }
+    });
+
+    test("dimension discovery stops at the row budget before a distant valid cell", async () => {
+        const store = await seededVectorStore([null, null, null, vectorCell([1, 2, 3])], 0);
+        try {
+            const result = await ingestVectorColumn({
+                store,
+                resultSetId: "rs1",
+                columnOrdinal: 1,
+                budget: { ...BUDGET, maxRowsScanned: 3 },
+                seed: 42,
+            });
+            expect(result).to.have.property("error").that.contains("scan budget");
+        } finally {
+            store.releaseLiveOwner("documentClosed");
+        }
+    });
+
+    test("discloses a short stream instead of claiming a complete scan", async () => {
+        const store = await seededVectorStore([0, 1, 2].map((i) => vectorCell([i, 1, 2])));
+        const original = store.streamRows.bind(store);
+        sandbox.stub(store, "streamRows").callsFake(async function* (request) {
+            for await (const chunk of original(request)) {
+                yield { ...chunk, rowCount: 2, values: chunk.values.slice(0, 2) };
+                return;
+            }
+        });
+        try {
+            const result = await ingestVectorColumn({
+                store,
+                resultSetId: "rs1",
+                columnOrdinal: 1,
+                budget: BUDGET,
+                seed: 42,
+            });
+            if ("error" in result) throw new Error(result.error);
+            expect([...result.sourceOrdinals]).to.deep.equal([0, 1]);
+            expect(result.descriptor.partialReason).to.equal("storeShortRead");
+        } finally {
+            store.releaseLiveOwner("documentClosed");
+        }
+    });
+
+    test("refuses a real corrupt spill before accepting compacted rows", async () => {
+        const directory = fs.mkdtempSync(path.join(os.tmpdir(), "vector-corrupt-spill-"));
+        const rowStore = new RowStore(directory, {
+            maxMemoryBytes: 1,
+            spillEnabled: true,
+            maxSpillBytes: 1024 * 1024,
+            maxRowsPerResultSet: 1000,
+        });
+        const store = new RetainedRowStore(rowStore, {
+            runId: "vector-corrupt",
+            createdEpochMs: Date.now(),
+            retainedMemoryBytes: 1,
+        });
+        try {
+            rowStore.beginResultSet("rs1", [
+                {
+                    name: "embedding",
+                    displayName: "embedding",
+                    sqlType: "vector",
+                    vector: { transport: "binary-v1", dimensions: 3 },
+                },
+            ]);
+            for (let start = 0; start < 192; start += 64) {
+                await rowStore.appendPage("rs1", {
+                    rowOffset: start,
+                    rowCount: 64,
+                    approxBytes: 8192,
+                    compact: {
+                        values: Array.from({ length: 64 }, (_, i) => [
+                            vectorCell([start + i, 1, 2]),
+                        ]),
+                    },
+                });
+            }
+            rowStore.endResultSet("rs1");
+            await rowStore.flushSpill();
+            const spill = path.join(directory, "resultsets.pages");
+            const bytes = fs.readFileSync(spill);
+            const middleFrame = 4 + bytes.readUInt32LE(0);
+            const fd = fs.openSync(spill, "r+");
+            try {
+                fs.writeSync(fd, Buffer.from([0]), 0, 1, middleFrame + 4);
+            } finally {
+                fs.closeSync(fd);
+            }
+            const result = await ingestVectorColumn({
+                store,
+                resultSetId: "rs1",
+                columnOrdinal: 0,
+                budget: BUDGET,
+                seed: 42,
+            });
+            expect(store.summary("rs1")?.corrupt).to.equal(true);
+            expect(result).to.have.property("error").that.contains("Rerun the query");
+        } finally {
+            store.releaseLiveOwner("documentClosed");
+        }
     });
 
     test("all-null column refuses honestly", async () => {

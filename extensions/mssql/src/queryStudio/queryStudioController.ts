@@ -338,12 +338,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             }),
         );
 
-        this.bindingListener = this.model.sessionBinding.onDidChange(() => {
-            // Database/principal/session changes invalidate catalog bindings
-            // and any source handles held by live-only Vector workspaces.
-            this.resetVectorServices();
-            this.queueStatePush();
-        });
+        this.bindingListener = this.listenToSessionBinding();
 
         this.executionListener = this.model.executionHost.attach({
             onRunStarted: (startedEpochMs) => {
@@ -825,6 +820,31 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             const oldest = this.scriptedDefinitions.keys().next().value as string;
             this.scriptedDefinitions.delete(oldest);
         }
+    }
+
+    private listenToSessionBinding(): vscode.Disposable {
+        let vectorContext = this.vectorContextKey();
+        return this.model.sessionBinding.onDidChange(() => {
+            // Metadata and execution-state updates keep the same connection.
+            // Only a new session/database/provider invalidates Vector resources.
+            const nextContext = this.vectorContextKey();
+            if (nextContext !== vectorContext) {
+                vectorContext = nextContext;
+                this.resetVectorServices();
+            }
+            this.queueStatePush();
+        });
+    }
+
+    private vectorContextKey(): string {
+        const session = this.model.sessionBinding.activeSession;
+        return session
+            ? JSON.stringify([
+                  session.connectionId,
+                  session.info.database,
+                  session.info.backendKind,
+              ])
+            : "none";
     }
 
     private resetVectorServices(): void {

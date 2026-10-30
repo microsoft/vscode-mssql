@@ -10,6 +10,58 @@ import { WebviewAction } from "../../sharedInterfaces/webview";
 export class LocConstants {
     public get vectorWorkbench() {
         return {
+            loadingVectorWorkbench: l10n.t("Loading Vector Workbench…"),
+            selectedRowSource: l10n.t("Selected row"),
+            textWithModelSource: l10n.t("Text with model"),
+            pasteVectorSource: l10n.t("Paste vector"),
+            expectedOutput: l10n.t("Expected output"),
+            outputDimensions: (count: string) => l10n.t("{0} dimensions", count),
+            approximatePayload: l10n.t("Approximate payload"),
+            parameters: l10n.t("Parameters"),
+            retryPolicy: l10n.t("Retry policy"),
+            modelStatementCounts: (
+                external: string,
+                host: string,
+                inProcess: string,
+                unknown: string,
+            ) =>
+                l10n.t(
+                    "external egress {0} · host-local {1} · in-process {2} · unclassified {3}",
+                    external,
+                    host,
+                    inProcess,
+                    unknown,
+                ),
+            searchModelStatements: (counts: string) =>
+                l10n.t(
+                    "Webview network: none · Server-side model statements from Search: {0}",
+                    counts,
+                ),
+            pipelineModelStatements: (counts: string) =>
+                l10n.t("Server-side model statements from this panel: {0}", counts),
+            fullScope: (count: string) => l10n.t("Full · {0} rows", count),
+            sampleScope: (count: string, total: string) =>
+                l10n.t("Sample {0} of {1}", count, total),
+            sampledRows: (count: string, total: string) =>
+                l10n.t("{0} sampled of {1}", count, total),
+            nativeBaseType: (baseType: string) => l10n.t("{0} native", baseType),
+            partial: l10n.t("Partial"),
+            partialReasons: {
+                rowBudget: l10n.t("Row scan limit reached"),
+                componentBudget: l10n.t("Vector component limit reached"),
+                byteBudget: l10n.t("Vector byte limit reached"),
+                timeBudget: l10n.t("Analysis time limit reached"),
+                cancelled: l10n.t("Analysis cancelled"),
+                storeShortRead: l10n.t("Retained results ended early; rerun the query"),
+                storeCorrupt: l10n.t("Retained results could not be read; rerun the query"),
+            },
+            localRows: (count: string) => l10n.t("local · {0} rows", count),
+            localCount: (count: string) => l10n.t("{0} · local", count),
+            localPairs: (metric: string, count: string) =>
+                l10n.t("{0} · {1} pairs · local", metric, count),
+            float32SearchTargets: l10n.t(
+                "Search currently supports float32 vector columns. Float16 targets are excluded because mixed vector base types cannot be searched.",
+            ),
             feedback1: (value0: string, value1: string) =>
                 l10n.t("Result-row ordinal {0} is out of range (0–{1}).", value0, value1),
             feedback2: (value0: string) => l10n.t("Point for result row {0} selected.", value0),
@@ -43,6 +95,7 @@ export class LocConstants {
             index: l10n.t("Index"),
             state: l10n.t("state"),
             currentFormatIndex: l10n.t("Current-format index"),
+            vectorIndexReadOnly: l10n.t("Index restricts table writes"),
             earlierFormatIndexMigrationAvailable: l10n.t(
                 "Earlier-format index — migration available",
             ),
@@ -109,7 +162,7 @@ export class LocConstants {
             capabilitiesCouldNotBeProbed: l10n.t("Capabilities could not be probed."),
             normalizeAB: l10n.t("normalize(A + B)"),
             noSearchTargetsTheConnectedDatabaseHasNo: l10n.t(
-                "No search targets — the connected database has no tables with vector columns.",
+                "No supported search targets — Search currently requires float32 vector columns in the connected database.",
             ),
             generateAndConfirmAnEmbeddingForTheCurrent: l10n.t(
                 "Generate and confirm an embedding for the current text first.",
@@ -147,8 +200,8 @@ export class LocConstants {
             allComponents0: l10n.t("all components = 0"),
             v1e6: l10n.t("‖v‖₂ ≤ 1e-6"),
             sHA256OfFloat32Bytes: l10n.t("SHA-256 of float32 bytes"),
-            cosineDistanceFromSampleCentroidP99: l10n.t(
-                "cosine distance from sample centroid · p99",
+            cosineDistanceFromSampleCentroidFence: l10n.t(
+                "cosine distance from sample centroid · median + 3 × IQR",
             ),
             perDimensionVariance1e5: l10n.t("per-dimension variance < 1e-5"),
             subject: l10n.t("subject"),
@@ -175,7 +228,6 @@ export class LocConstants {
                 "Local analysis only · no database SQL or external model calls",
             ),
             rows2: l10n.t("Rows"),
-            full: l10n.t("full"),
             baseType: l10n.t("Base type"),
             nullUnavailable: l10n.t("Null / unavailable"),
             nearZero: l10n.t("Near-zero"),

@@ -77,6 +77,7 @@ const SEVERITY_GLYPH: Record<VectorIndexFinding["severity"], string> = {
 
 const STATE_CAPTION: Record<VectorIndexWorkspaceView["state"], string> = {
     healthyCurrent: locConstants.vectorWorkbench.currentFormatIndex,
+    readOnly: locConstants.vectorWorkbench.vectorIndexReadOnly,
     legacyFormat: locConstants.vectorWorkbench.earlierFormatIndexMigrationAvailable,
     formatUnknown: locConstants.vectorWorkbench.indexFormatUnknown,
     noIndex: locConstants.vectorWorkbench.noVectorIndex,
@@ -163,8 +164,14 @@ export function VectorIndexView(props: VectorIndexViewProps): React.JSX.Element 
         }
     }, [handle, onTargetChange, rpc]);
 
+    const catalogContext = JSON.stringify([handle, generation]);
+    const [activatedCatalogContext, setActivatedCatalogContext] = React.useState<string>();
     React.useEffect(() => {
-        if (active) {
+        if (active) setActivatedCatalogContext(catalogContext);
+    }, [active, catalogContext]);
+
+    React.useEffect(() => {
+        if (activatedCatalogContext === catalogContext) {
             void loadTargets();
         } else {
             targetsRequestSerialRef.current++;
@@ -173,7 +180,7 @@ export function VectorIndexView(props: VectorIndexViewProps): React.JSX.Element 
         return () => {
             targetsRequestSerialRef.current++;
         };
-    }, [active, generation, loadTargets]);
+    }, [activatedCatalogContext, catalogContext, generation, loadTargets]);
 
     const fetchState = React.useCallback(
         async (refresh: boolean) => {
@@ -231,7 +238,7 @@ export function VectorIndexView(props: VectorIndexViewProps): React.JSX.Element 
     );
 
     React.useEffect(() => {
-        if (!active) {
+        if (activatedCatalogContext !== catalogContext) {
             requestSerialRef.current++;
             setLoading(false);
         } else if (targetsResult && selectedTargetId && !targetsResult.error) {
@@ -249,7 +256,14 @@ export function VectorIndexView(props: VectorIndexViewProps): React.JSX.Element 
         return () => {
             requestSerialRef.current++;
         };
-    }, [active, fetchState, generation, selectedTargetId, targetsResult]);
+    }, [
+        activatedCatalogContext,
+        catalogContext,
+        fetchState,
+        generation,
+        selectedTargetId,
+        targetsResult,
+    ]);
 
     React.useEffect(() => {
         onViewStateChange?.({

@@ -93,8 +93,7 @@ function GridCaption(props: {
                 {locConstants.queryStudioCore.result} {displayOrdinal}
             </span>
             <span className="qs-muted">
-                {rowCount.toLocaleString()} {locConstants.vectorWorkbench.row}
-                {rowCount === 1 ? "" : locConstants.vectorWorkbench.s}
+                {locConstants.queryResult.rowsCount(rowCount)}
                 {summary.truncatedReason
                     ? locConstants.queryStudioCore.truncatedValue(String(summary.truncatedReason))
                     : ""}
@@ -311,8 +310,7 @@ export function ResultGridBlock(props: GridProps) {
                 {props.captionExtras}
             </GridCaption>
             <div className="qs-grid-placeholder" style={{ height }}>
-                {rowCount.toLocaleString()} {locConstants.vectorWorkbench.row}
-                {rowCount === 1 ? "" : locConstants.vectorWorkbench.s}{" "}
+                {locConstants.queryResult.rowsCount(rowCount)}{" "}
                 {locConstants.queryStudioCore.scrollToLoad}{" "}
             </div>
         </div>

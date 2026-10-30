@@ -97,15 +97,14 @@ const EMPTY_MODEL_CALL_COUNTS: VectorModelStatementCounts = {
 };
 
 function modelCallClaim(counts: VectorModelStatementCounts): string {
-    const parts = [
-        counts.externalEgress > 0 ? `external egress ${formatCount(counts.externalEgress)}` : "",
-        counts.hostLocal > 0 ? `host-local ${formatCount(counts.hostLocal)}` : "",
-        counts.inProcess > 0 ? `in-process ${formatCount(counts.inProcess)}` : "",
-        counts.unknown > 0 ? `unclassified ${formatCount(counts.unknown)}` : "",
-    ].filter(Boolean);
-    return parts.length === 0
-        ? "Server-side model statements from this panel: none"
-        : `Server-side model statements from this panel: ${parts.join(" · ")}`;
+    return locConstants.vectorWorkbench.pipelineModelStatements(
+        locConstants.vectorWorkbench.modelStatementCounts(
+            formatCount(counts.externalEgress),
+            formatCount(counts.hostLocal),
+            formatCount(counts.inProcess),
+            formatCount(counts.unknown),
+        ),
+    );
 }
 
 function mergeModelStatementCounts(
@@ -201,7 +200,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
     const chunkComposerInitializedRef = React.useRef(false);
     const reembedButtonRef = React.useRef<HTMLButtonElement | null>(null);
     const dialogRef = React.useRef<HTMLDivElement | null>(null);
-    const confirmButtonRef = React.useRef<HTMLButtonElement | null>(null);
+    const cancelButtonRef = React.useRef<HTMLButtonElement | null>(null);
     const closeDialog = React.useCallback(() => {
         modelRequestSerialRef.current++;
         setPrepare(undefined);
@@ -215,7 +214,7 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
         if (!dialogOpen) {
             return;
         }
-        confirmButtonRef.current?.focus();
+        cancelButtonRef.current?.focus();
         const onKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 event.preventDefault();
@@ -1031,7 +1030,10 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                             ) : null}
                         </div>
                         <div className="qs-vecp-dialog-buttons">
-                            <button className="qs-vecp-button" onClick={closeDialog}>
+                            <button
+                                ref={cancelButtonRef}
+                                className="qs-vecp-button"
+                                onClick={closeDialog}>
                                 {" "}
                                 {locConstants.vectorWorkbench.cancel}{" "}
                             </button>
@@ -1042,7 +1044,6 @@ export function VectorPipelineView(props: VectorPipelineViewProps): React.JSX.El
                                 {locConstants.vectorWorkbench.viewGeneratedTSQL}{" "}
                             </button>
                             <button
-                                ref={confirmButtonRef}
                                 className="qs-vecp-button qs-vecp-button-primary"
                                 disabled={busy}
                                 onClick={() => void onExecute()}>

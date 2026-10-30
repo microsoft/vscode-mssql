@@ -212,6 +212,7 @@ export const VECTOR_PROBE_SQL = {
         "JOIN sys.objects o ON o.object_id = c.object_id",
         "JOIN sys.types t ON t.user_type_id = c.user_type_id",
         "WHERE t.name = N'vector' AND o.type = 'U'",
+        "  AND c.vector_base_type = 0", // TVF probe parameters use float32, matching Search.
         "ORDER BY o.name, c.column_id;",
     ].join("\n"),
 
@@ -668,7 +669,7 @@ export async function probeVectorCapabilities(
                         ? { endpointHost: endpointHost(cellText(row[5])) }
                         : {}),
                     ...(cellText(row[6]) ? { modifyTime: cellText(row[6]) } : {}),
-                    egress: classifyModelEgress(apiFormat),
+                    egress: classifyModelEgress(apiFormat, endpointHost(cellText(row[5]))),
                 } satisfies VectorExternalModelProbeRow;
             })
             .filter((model): model is VectorExternalModelProbeRow => model !== undefined);

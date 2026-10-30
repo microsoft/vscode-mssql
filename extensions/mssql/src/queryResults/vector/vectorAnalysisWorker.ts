@@ -606,7 +606,8 @@ export function analyzePackedVectors(input: VectorWorkerInput): VectorWorkerResu
             centroidDistances[r] = 1 - dot / (l2[r] * centroidNorm);
             centroidComparable++;
         }
-        // p99 threshold over comparable rows.
+        // A robust distance fence avoids labeling a fixed fraction of every
+        // healthy sample as outliers merely because it has a farthest row.
         const comparable = new Float64Array(centroidComparable);
         for (let r = 0, i = 0; r < rows; r++) {
             if (!Number.isNaN(centroidDistances[r])) {
@@ -614,14 +615,11 @@ export function analyzePackedVectors(input: VectorWorkerInput): VectorWorkerResu
             }
         }
         const sortedComparable = comparable.slice().sort();
-        const p99 =
-            centroidComparable > 0
-                ? sortedComparable[
-                      Math.min(centroidComparable - 1, Math.floor(0.99 * (centroidComparable - 1)))
-                  ]
-                : 0;
+        const percentile = (fraction: number) =>
+            sortedComparable[Math.floor(fraction * (centroidComparable - 1))] ?? 0;
+        const fence = percentile(0.5) + 3 * (percentile(0.75) - percentile(0.25));
         for (let r = 0; r < rows && centroidComparable > 0; r++) {
-            if (!Number.isNaN(centroidDistances[r]) && centroidDistances[r] > p99) {
+            if (!Number.isNaN(centroidDistances[r]) && centroidDistances[r] > fence) {
                 centroidOutliers.push(r);
             }
         }

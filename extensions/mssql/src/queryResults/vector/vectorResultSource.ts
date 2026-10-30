@@ -145,6 +145,9 @@ export async function ingestVectorColumn(args: {
     if (!summary) {
         return { error: VectorWorkbenchLoc.resultSetIsNoLongerAvailable };
     }
+    if (summary.corrupt) {
+        return { error: VectorWorkbenchLoc.retainedResultsCouldNotBeRead };
+    }
     const totalRows = summary.rowCount;
     if (totalRows === 0) {
         return { error: VectorWorkbenchLoc.theResultSetHasNoRowsToAnalyze };
@@ -156,10 +159,6 @@ export async function ingestVectorColumn(args: {
     const column = summary.columns?.[columnOrdinal];
     let dimensions = column?.vector?.dimensions ?? 0;
 
-    const plan0 = planWindows(totalRows, dimensions, budget);
-    let windows = plan0.windows;
-    let method = plan0.method;
-
     let packed: Float32Array | undefined;
     let sourceOrdinals: Int32Array | undefined;
     let capacity = 0;
@@ -170,7 +169,73 @@ export async function ingestVectorColumn(args: {
     let unavailableCount = 0;
     let partialReason: VectorPartialReason | undefined;
 
+    // Find dimensions before choosing sampling windows. Discovery consumes
+    // the same scan/time/byte budgets, but does not contribute sample counts.
+    if (dimensions === 0) {
+        discover: for await (const chunk of store.streamRows({
+            resultSetId,
+            rowStart: 0,
+            rowCount: Math.min(totalRows, budget.maxRowsScanned),
+            chunkRows: 512,
+            columnOrdinals: [columnOrdinal],
+            reason: "vectorAnalysis",
+        })) {
+            if (store.summary(resultSetId)?.corrupt) {
+                partialReason = "storeCorrupt";
+                break;
+            }
+            if (chunk.start !== rowsScanned || chunk.rowCount !== chunk.values.length) {
+                partialReason = "storeShortRead";
+                break;
+            }
+            for (const row of chunk.values) {
+                if (performance.now() - startedAt > budget.maxTimeMs) {
+                    partialReason = "timeBudget";
+                    break discover;
+                }
+                if (rowsScanned >= budget.maxRowsScanned) {
+                    partialReason = "rowBudget";
+                    break discover;
+                }
+                rowsScanned++;
+                const cell = row?.[0];
+                if (isVectorCellEncodingV1(cell) && cell.status === "ok") {
+                    scannedBytes += cell.byteLength;
+                    if (scannedBytes > budget.maxScanBytes) {
+                        partialReason = "byteBudget";
+                        break discover;
+                    }
+                    dimensions = cell.dimensions;
+                    break discover;
+                }
+            }
+        }
+        if (store.summary(resultSetId)?.corrupt) partialReason = "storeCorrupt";
+        if (partialReason === "storeCorrupt" || partialReason === "storeShortRead") {
+            return { error: VectorWorkbenchLoc.retainedResultsCouldNotBeRead };
+        }
+        if (dimensions === 0) {
+            if (rowsScanned < Math.min(totalRows, budget.maxRowsScanned) && !partialReason) {
+                return { error: VectorWorkbenchLoc.retainedResultsCouldNotBeRead };
+            }
+            return {
+                error:
+                    partialReason || rowsScanned < totalRows
+                        ? VectorWorkbenchLoc.noVectorWithinScanBudget
+                        : VectorWorkbenchLoc.noAnalyzableVectorValues,
+            };
+        }
+    }
+    if (rowsScanned >= budget.maxRowsScanned) {
+        return { error: VectorWorkbenchLoc.noVectorWithinScanBudget };
+    }
+    const { windows, method, targetRows } = planWindows(totalRows, dimensions, {
+        ...budget,
+        maxRowsScanned: budget.maxRowsScanned - rowsScanned,
+    });
+
     outer: for (const window of windows) {
+        let windowRows = 0;
         for await (const chunk of store.streamRows({
             resultSetId,
             rowStart: window.start,
@@ -179,6 +244,20 @@ export async function ingestVectorColumn(args: {
             columnOrdinals: [columnOrdinal],
             reason: "vectorAnalysis",
         })) {
+            // A failed spill read may compact later rows into this chunk.
+            // Refuse it before assigning any physical source ordinals.
+            if (store.summary(resultSetId)?.corrupt) {
+                partialReason = "storeCorrupt";
+                break outer;
+            }
+            if (
+                chunk.start !== window.start + windowRows ||
+                chunk.rowCount !== chunk.values.length
+            ) {
+                partialReason = "storeShortRead";
+                break outer;
+            }
+            windowRows += chunk.rowCount;
             if (performance.now() - startedAt > budget.maxTimeMs) {
                 partialReason = "timeBudget";
                 break outer;
@@ -208,23 +287,12 @@ export async function ingestVectorColumn(args: {
                     partialReason = "byteBudget";
                     break outer;
                 }
-                if (dimensions === 0) {
-                    // First typed cell fixes the dimensionality; re-plan the
-                    // windows now that the component budget is computable.
-                    dimensions = cell.dimensions;
-                    const replan = planWindows(totalRows, dimensions, budget);
-                    windows = replan.windows;
-                    method = replan.method;
-                    // The current (first) window is always replan window 0
-                    // with the same start; continue filling under new caps.
-                }
                 if (cell.dimensions !== dimensions) {
                     unavailableCount++;
                     continue;
                 }
                 if (packed === undefined) {
-                    const replan = planWindows(totalRows, dimensions, budget);
-                    capacity = replan.targetRows;
+                    capacity = targetRows;
                     packed = new Float32Array(capacity * dimensions);
                     sourceOrdinals = new Int32Array(capacity);
                 }
@@ -246,14 +314,21 @@ export async function ingestVectorColumn(args: {
                 rows++;
             }
         }
+        if (windowRows !== window.rows) {
+            partialReason = "storeShortRead";
+            break;
+        }
     }
+    if (store.summary(resultSetId)?.corrupt) partialReason = "storeCorrupt";
 
     if (packed === undefined || rows === 0) {
         return {
             error:
-                unavailableCount > 0
-                    ? "No analyzable typed vector cells (all values null or unavailable)."
-                    : "No analyzable vector values in the selected column.",
+                partialReason === "storeCorrupt" || partialReason === "storeShortRead"
+                    ? VectorWorkbenchLoc.retainedResultsCouldNotBeRead
+                    : partialReason
+                      ? VectorWorkbenchLoc.noVectorWithinScanBudget
+                      : VectorWorkbenchLoc.noAnalyzableVectorValues,
         };
     }
 

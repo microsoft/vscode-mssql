@@ -172,9 +172,9 @@ const allStrings = (view: VectorIndexWorkspaceView): string =>
 // ---------------------------------------------------------------------------
 
 suite("vectorIndexService state machine", () => {
-    test("RTM shape: version-absent index is healthyCurrent, never legacy, no migration", () => {
+    test("RTM shape: version-absent index warns about writes, never offers migration", () => {
         const view = deriveVectorIndexView(rtmProbe(), TARGET);
-        expect(view.state).to.equal("healthyCurrent");
+        expect(view.state).to.equal("readOnly");
 
         const version = view.properties.find((p) => p.label === "Version");
         expect(version, "Version property").to.not.equal(undefined);
@@ -188,11 +188,17 @@ suite("vectorIndexService state machine", () => {
         // The word "legacy" appears NOWHERE for an RTM current-format index.
         expect(allStrings(view)).to.not.match(/legacy/i);
 
-        // Success finding states the format honestly.
+        // Current format does not imply the table supports writes.
         expect(
             view.findings.some(
-                (f) => f.severity === "success" && /format is current/i.test(f.title),
+                (f) => f.severity === "warning" && /restricts table writes/i.test(f.title),
             ),
+        ).to.equal(true);
+        expect(view.scripts.find((script) => script.id === "createIndex")?.sql).to.contain(
+            "makes the table read-only",
+        );
+        expect(
+            view.findings.some((finding) => finding.detail.includes("ALLOW_STALE_VECTOR_INDEX")),
         ).to.equal(true);
     });
 
@@ -539,11 +545,11 @@ suite("vectorIndexService service surface", () => {
         );
 
         const first = await service.indexState();
-        expect(first.view!.state).to.equal("healthyCurrent");
+        expect(first.view!.state).to.equal("readOnly");
         expect(first.error).to.equal(undefined);
 
         const second = await service.indexState(true);
-        expect(second.view!.state).to.equal("healthyCurrent");
+        expect(second.view!.state).to.equal("readOnly");
         expect(refreshCalls).to.deep.equal([false, true]);
     });
 

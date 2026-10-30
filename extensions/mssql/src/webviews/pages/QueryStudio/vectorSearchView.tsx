@@ -110,16 +110,15 @@ const EMPTY_MODEL_CALL_COUNTS: VectorModelStatementCounts = {
     unknown: 0,
 };
 
-function modelCallClaim(counts: VectorModelStatementCounts, surface: string): string {
-    const parts = [
-        counts.externalEgress > 0 ? `external egress ${formatCount(counts.externalEgress)}` : "",
-        counts.hostLocal > 0 ? `host-local ${formatCount(counts.hostLocal)}` : "",
-        counts.inProcess > 0 ? `in-process ${formatCount(counts.inProcess)}` : "",
-        counts.unknown > 0 ? `unclassified ${formatCount(counts.unknown)}` : "",
-    ].filter(Boolean);
-    return parts.length === 0
-        ? `Webview network: none · Server-side model statements from ${surface}: none`
-        : `Webview network: none · Server-side model statements from ${surface}: ${parts.join(" · ")}`;
+function modelCallClaim(counts: VectorModelStatementCounts): string {
+    return locConstants.vectorWorkbench.searchModelStatements(
+        locConstants.vectorWorkbench.modelStatementCounts(
+            formatCount(counts.externalEgress),
+            formatCount(counts.hostLocal),
+            formatCount(counts.inProcess),
+            formatCount(counts.unknown),
+        ),
+    );
 }
 
 function mergeModelStatementCounts(
@@ -135,10 +134,10 @@ function mergeModelStatementCounts(
 }
 
 const SOURCE_TABS: Array<[SourceTab, string]> = [
-    ["row", "Selected row"],
-    ["text", "Text with model"],
-    ["paste", "Paste vector"],
-    ["expression", "Expression"],
+    ["row", locConstants.vectorWorkbench.selectedRowSource],
+    ["text", locConstants.vectorWorkbench.textWithModelSource],
+    ["paste", locConstants.vectorWorkbench.pasteVectorSource],
+    ["expression", locConstants.vectorWorkbench.expression],
 ];
 
 interface ExpressionComposerValidation {
@@ -546,9 +545,16 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
         return () => dialog.removeEventListener("keydown", onKeyDown);
     }, [handle, modelBusy, modelPrepare?.confirmationToken, rpc]);
 
-    // Targets + capabilities load once per handle/generation; a rerun resets.
+    const catalogContext = JSON.stringify([handle, generation]);
+    const [activatedCatalogContext, setActivatedCatalogContext] = React.useState<string>();
     React.useEffect(() => {
-        if (!active) {
+        if (active) setActivatedCatalogContext(catalogContext);
+    }, [active, catalogContext]);
+
+    // Keep completed catalog work across workspace switches. A new handle,
+    // generation, or explicit refresh still invalidates the load.
+    React.useEffect(() => {
+        if (activatedCatalogContext !== catalogContext) {
             return;
         }
         let cancelled = false;
@@ -607,7 +613,7 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
             cancelled = true;
             requestSerial.current++;
         };
-    }, [active, generation, handle, rpc, targetsRefreshSerial]);
+    }, [activatedCatalogContext, catalogContext, generation, handle, rpc, targetsRefreshSerial]);
 
     React.useEffect(() => {
         if (target?.id) {
@@ -1489,7 +1495,7 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
                             {modelExecutionPending
                                 ? locConstants.vectorWorkbench
                                       .webviewNetworkNoneServerSideModelRequestIn
-                                : modelCallClaim(modelCallCounts, "Search")}
+                                : modelCallClaim(modelCallCounts)}
                         </span>
                         {generatedVectorId ? (
                             <span className="qs-vec8-generated-chip" role="status">
@@ -1621,6 +1627,7 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
                         invalidateGeneratedVector();
                     }}
                     aria-label={locConstants.vectorWorkbench.searchTarget}
+                    title={locConstants.vectorWorkbench.float32SearchTargets}
                     disabled={busy || modelBusy || targets.length === 0}>
                     {targets.length === 0 ? (
                         <option value={0}>
@@ -2306,31 +2313,66 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
                         </h2>
                         <div className="qs-vec8-model-descriptor">
                             {[
-                                ["Model", modelPrepare.descriptor.model],
+                                [locConstants.vectorWorkbench.model, modelPrepare.descriptor.model],
                                 [
-                                    "Owner",
+                                    locConstants.vectorWorkbench.owner,
                                     modelPrepare.descriptor.owner ??
                                         locConstants.vectorWorkbench.notReported,
                                 ],
-                                ["Model type", modelPrepare.descriptor.modelType],
-                                ["API format", modelPrepare.descriptor.apiFormat],
-                                ["Endpoint host", modelPrepare.descriptor.endpointHost],
-                                ["Model modified", modelPrepare.descriptor.modelModifyTime],
-                                ["Source", modelPrepare.descriptor.source],
-                                ["Rows / calls", String(modelPrepare.descriptor.rowsCalls)],
-                                ["Text characters", formatCount(modelPrepare.descriptor.textChars)],
                                 [
-                                    "Approximate payload",
+                                    locConstants.vectorWorkbench.modelType,
+                                    modelPrepare.descriptor.modelType,
+                                ],
+                                [
+                                    locConstants.vectorWorkbench.aPIFormat,
+                                    modelPrepare.descriptor.apiFormat,
+                                ],
+                                [
+                                    locConstants.vectorWorkbench.endpointHost,
+                                    modelPrepare.descriptor.endpointHost,
+                                ],
+                                [
+                                    locConstants.vectorWorkbench.modelModified,
+                                    modelPrepare.descriptor.modelModifyTime,
+                                ],
+                                [
+                                    locConstants.vectorWorkbench.source,
+                                    modelPrepare.descriptor.source,
+                                ],
+                                [
+                                    locConstants.vectorWorkbench.rowsCalls,
+                                    String(modelPrepare.descriptor.rowsCalls),
+                                ],
+                                [
+                                    locConstants.vectorWorkbench.textCharacters,
+                                    formatCount(modelPrepare.descriptor.textChars),
+                                ],
+                                [
+                                    locConstants.vectorWorkbench.approximatePayload,
                                     `${modelPrepare.descriptor.approxPayloadKiB.toFixed(1)} KiB`,
                                 ],
                                 [
-                                    "Expected output",
-                                    `${formatCount(modelPrepare.descriptor.expectedDimensions)} dimensions`,
+                                    locConstants.vectorWorkbench.expectedOutput,
+                                    locConstants.vectorWorkbench.outputDimensions(
+                                        formatCount(modelPrepare.descriptor.expectedDimensions),
+                                    ),
                                 ],
-                                ["Parameters", modelPrepare.descriptor.parameters],
-                                ["Retry policy", modelPrepare.descriptor.retryPolicy],
-                                ["Execution", modelPrepare.descriptor.execution],
-                                ["Result handling", modelPrepare.descriptor.resultHandling],
+                                [
+                                    locConstants.vectorWorkbench.parameters,
+                                    modelPrepare.descriptor.parameters,
+                                ],
+                                [
+                                    locConstants.vectorWorkbench.retryPolicy,
+                                    modelPrepare.descriptor.retryPolicy,
+                                ],
+                                [
+                                    locConstants.vectorWorkbench.execution,
+                                    modelPrepare.descriptor.execution,
+                                ],
+                                [
+                                    locConstants.vectorWorkbench.resultHandling,
+                                    modelPrepare.descriptor.resultHandling,
+                                ],
                             ].map(([label, value]) => (
                                 <div key={label} className="qs-vec8-model-descriptor-row">
                                     <span>{label}</span>

@@ -813,6 +813,9 @@
     <trans-unit id="++CODE++82fcdad573baa3443513b5c61196ed142a07d6b967afc2778c8932549a5ad455">
       <source xml:lang="en">An unknown error occurred. Please try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d5fe0196e924b4196ae78200a6ab261813e250c9f89f6e8cdf5558a5a696a4d2">
+      <source xml:lang="en">Analysis cancelled</source>
+    </trans-unit>
     <trans-unit id="++CODE++218af741751700eb40d92e77465a3c1036dc961623022c79990e78bf095a1d73">
       <source xml:lang="en">Analysis returned no summary.</source>
     </trans-unit>
@@ -821,6 +824,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cc6640d0bc8e26d0ffc7bea9da2ead6b3f34f0f494a3790aacfc35660de400da">
       <source xml:lang="en">Analysis session reconnect failed; completed workspace state is retained.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++88cb8bc4695b6f4219237b4946a4e211eb3753f04f5b727c06e93750a81ecb22">
+      <source xml:lang="en">Analysis time limit reached</source>
     </trans-unit>
     <trans-unit id="++CODE++6ca0797fa56ecdc7f5f08c99504d70d93a42ccbe0e904e273144c6fd9efdc21c">
       <source xml:lang="en">Analytics-ready by default</source>
@@ -934,6 +940,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ca13a5b5ff7c6ee6178da94e868949b8310a05378747d9f7563888ef68818f27">
       <source xml:lang="en">Approximate execution</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dfa7481c68e6d93ccb19e95be5a0e235c6385d934bbe9c09e7b3b81dca7516ff">
+      <source xml:lang="en">Approximate payload</source>
     </trans-unit>
     <trans-unit id="++CODE++5a0515f60bd3693347830f37a0e69fa8477aa11b9fb3b0fef1a52e898ce46a76">
       <source xml:lang="en">Are you sure you want to cancel this background task?</source>
@@ -4940,6 +4949,9 @@
     <trans-unit id="++CODE++94e62d2591c04e2d1af2896b56b4e6935b18690d678bbcbecbee92f70039b7ce">
       <source xml:lang="en">Expansion failed: {0}. Refresh to retry.</source>
     </trans-unit>
+    <trans-unit id="++CODE++1a822fae620b0182dc99bd5cdb096e145f6fb75339f054e5637375e34f941738">
+      <source xml:lang="en">Expected output</source>
+    </trans-unit>
     <trans-unit id="++CODE++c0366f9c58cbb5a2722a1d3b9cb561d93d7596b841d9eb88eddd0a12e80931cb">
       <source xml:lang="en">Experiment inputs</source>
     </trans-unit>
@@ -5990,6 +6002,9 @@
     <trans-unit id="++CODE++d5daa29efd3c5cdb059f6b6699c878acd868d9f42c37bbe15411cdd8e384e748">
       <source xml:lang="en">Full source: </source>
     </trans-unit>
+    <trans-unit id="++CODE++1665dc1b26c730216bee9ef24eb33520e82b4e1688d7ff5a28d5388c491a5fb3">
+      <source xml:lang="en">Full · {0} rows</source>
+    </trans-unit>
     <trans-unit id="++CODE++c803710302d5769d8fcd51958c516ff27f2a3c5ad9373c348d1d180c04a74624">
       <source xml:lang="en">Function</source>
     </trans-unit>
@@ -6552,6 +6567,9 @@
     <trans-unit id="++CODE++19de436839da45cbbfd15e7769b05f10058b0b4ec26ef56feff6423638d340c4">
       <source xml:lang="en">Index format unknown</source>
     </trans-unit>
+    <trans-unit id="++CODE++eba54b5e5986d4feb3ab4490232f0547f934bb639f2fa521889c14fa2bd1b293">
+      <source xml:lang="en">Index restricts table writes</source>
+    </trans-unit>
     <trans-unit id="++CODE++92583351e03c6f4995d32381dbffecd594171e1d64e039cc84aec36c9130819f">
       <source xml:lang="en">Index staleness</source>
     </trans-unit>
@@ -7091,6 +7109,9 @@
     </trans-unit>
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d1ac60bef7c6677fdfef7c79fecb3a5f2cabb2dad38ac34afbf0903d4ae69245">
+      <source xml:lang="en">Loading Vector Workbench…</source>
     </trans-unit>
     <trans-unit id="++CODE++1e57b1efd93fb21b1f6b28af4b5a85b873f5145021fba55cec9dccd8298b6c74">
       <source xml:lang="en">Loading XEL file: {0}</source>
@@ -8117,6 +8138,9 @@
     <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
       <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
     </trans-unit>
+    <trans-unit id="++CODE++956da307125b022f046e02ac6bd62b8ffbb1ba1bbbc1d2e9ff87c51484e19030">
+      <source xml:lang="en">No analyzable typed vector values in the selected column; values may be null or unavailable.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0e5e6762f01f3c5690e6d1628a2105cca05b94b94ccfc5d51534f4231aa4a533">
       <source xml:lang="en">No authentication required</source>
     </trans-unit>
@@ -8417,9 +8441,6 @@
     <trans-unit id="++CODE++81678fb3a452633750f867d5e6d481627b27c32bdf6b5a0c1cf022e8935b024d">
       <source xml:lang="en">No scripts apply to this state.</source>
     </trans-unit>
-    <trans-unit id="++CODE++ac811b68ae0e7d65090a659a3d254bee345e3725ca1afbdb0e524f24245da59f">
-      <source xml:lang="en">No search targets — the connected database has no tables with vector columns.</source>
-    </trans-unit>
     <trans-unit id="++CODE++211f6bbe2c56c016d33be98e6d3d9d9c7552182cfd0652284a2eaa30f71981cf">
       <source xml:lang="en">No selection</source>
     </trans-unit>
@@ -8447,6 +8468,9 @@
     </trans-unit>
     <trans-unit id="++CODE++06ee056a2b74c9a72b5a3191ecc4eb8fef75ff62ddcb3b4076c33179ef7fb4ab">
       <source xml:lang="en">No subscriptions found. Please change Azure account or tenant to view available subscriptions.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3d93bc4e9038296f163e6435ab738836ce194a8a5ef63d32cccf2c444b4caeb2">
+      <source xml:lang="en">No supported search targets — Search currently requires float32 vector columns in the connected database.</source>
     </trans-unit>
     <trans-unit id="++CODE++6150f2aa36fc0da88b93d47481d99a988bcafd046bd60d962401893399cd0995">
       <source xml:lang="en">No templates available</source>
@@ -8483,6 +8507,9 @@
     </trans-unit>
     <trans-unit id="++CODE++242888637798f7d493b1b9a150f39b88b70f607e28c740b5c5984bdb01271cf9">
       <source xml:lang="en">No vector index on this target</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7ece787917909d3022bf6494f81f22871173bc6826ba79f603a7eb202a69249f">
+      <source xml:lang="en">No vector values could be analyzed within the scan budget.</source>
     </trans-unit>
     <trans-unit id="++CODE++dae81d89d86be98b62f0f0689d1569954c8bc4cf43269b57842bcb33328c11f4">
       <source xml:lang="en">No verified EMBEDDINGS models</source>
@@ -8686,6 +8713,9 @@
     </trans-unit>
     <trans-unit id="++CODE++53dbddd7bcdf5a51afae1447f034e76d78722d20c1d6d62002c00e19f68ea9b2">
       <source xml:lang="en">On Update Action</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d79a1a9de7597d4cd30c4e89b64f12192d142343092a618c7c968c9ab770e429">
+      <source xml:lang="en">On this SQL Server 2025 index format, INSERT, UPDATE, DELETE, and MERGE are blocked unless ALLOW_STALE_VECTOR_INDEX permits DML. Enabling stale writes does not keep the index synchronized; review the database configuration and write requirements.</source>
     </trans-unit>
     <trans-unit id="++CODE++77f4b6cbb91f6e89511bceef7c078a47075e4ad04a2a4c903cbf2b6f2a1c90c3">
       <source xml:lang="en">One of my app&apos;s endpoints got slow. Find the database queries behind it, work out why they&apos;re slow, and show the evidence. Tell me what the database didn&apos;t record that you&apos;d need. Don&apos;t change anything yet.</source>
@@ -9031,6 +9061,9 @@
     <trans-unit id="++CODE++5f9bc63bdfd0c971d0c8f9af20722aa912e97313e862b2123c52a1ab2a65125a">
       <source xml:lang="en">Parse (syntax check only)</source>
     </trans-unit>
+    <trans-unit id="++CODE++a4d50fb85403654840e078e3ffe72dffe37df3ae280c6d98f39a41d346c88a14">
+      <source xml:lang="en">Partial</source>
+    </trans-unit>
     <trans-unit id="++CODE++875d97950049c1ba7d3bb95d81167d4b9944cce2045fdbb132ceff5b417d0d33">
       <source xml:lang="en">Partition Functions</source>
     </trans-unit>
@@ -9066,6 +9099,9 @@
     </trans-unit>
     <trans-unit id="++CODE++aa7e02a360294359df9e77459e71e6f350056d94cf36d644cc2c910fff983359">
       <source xml:lang="en">Paste connection string from clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0235eb85fabef2e5f4091aadc662cbfc480ec931dde42ae065a7b712f4806da2">
+      <source xml:lang="en">Paste vector</source>
     </trans-unit>
     <trans-unit id="++CODE++79ead64f9d87c62a37ce7c10647e7a22326c3db8753c23498508a20228c07ae7">
       <source xml:lang="en">Pasted query vector JSON</source>
@@ -10338,8 +10374,17 @@
     <trans-unit id="++CODE++d647b9f6483baa818a4f660d92726b61fb1d08fe42e39ddf95c763fd2fb260c0">
       <source xml:lang="en">Resuming database</source>
     </trans-unit>
+    <trans-unit id="++CODE++e9ff90530a3a8ed372a98c0797ed243df9da62c52b8334c44ef4ec3e1ca4e1df">
+      <source xml:lang="en">Retained results could not be read; rerun the query</source>
+    </trans-unit>
+    <trans-unit id="++CODE++605b56d73401e1662dba232f5b398644444101b77f102d14a08d7541d175c7d3">
+      <source xml:lang="en">Retained results ended early; rerun the query</source>
+    </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2ee363ab50125e071e17e85a131ba4d534eab1a8085aaf81061a91f7f402164e">
+      <source xml:lang="en">Retry policy</source>
     </trans-unit>
     <trans-unit id="++CODE++d4e54f76384bf5459c770669fd4358aba52e3a1e58a1eecbd8eaf8d615681aed">
       <source xml:lang="en">Retry probe</source>
@@ -10416,6 +10461,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
       <source xml:lang="en">Row marked for removal.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d337ba46af45633b56de10596648c847077a36b31511d8645d3a53d0a622e4c8">
+      <source xml:lang="en">Row scan limit reached</source>
     </trans-unit>
     <trans-unit id="++CODE++d609dc5e1149bcab6d46d5639ebd50bdfe9717d9edea11702c8104fa1d9d21f4">
       <source xml:lang="en">Row {0} has no analyzable vector value in the selected column.</source>
@@ -10682,6 +10730,9 @@
     </trans-unit>
     <trans-unit id="++CODE++95a2f1edb08a76120b82cec7c93ca477618639f04beac7d2aeba2dc039d43715">
       <source xml:lang="en">Sample</source>
+    </trans-unit>
+    <trans-unit id="++CODE++835fbd75d5aee7be3e4b1fea089351b77419d2321cca8242fdf90b66c7450391">
+      <source xml:lang="en">Sample {0} of {1}</source>
     </trans-unit>
     <trans-unit id="++CODE++19eb701503604f70f6d2479cd7c849fd96b476bdac3933f12c755c52fdf95e56">
       <source xml:lang="en">Sampled pair distances</source>
@@ -11015,6 +11066,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
       <source xml:lang="en">Search connection groups</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7c81a421000b13a02b1d6ee46760e06098f4880ee3083600e8260a13943f350e">
+      <source xml:lang="en">Search currently supports float32 vector columns. Float16 targets are excluded because mixed vector base types cannot be searched.</source>
     </trans-unit>
     <trans-unit id="++CODE++bf02e2b6200125d467ce1c048b8124906131963d7af4568a0b538aecede4da47">
       <source xml:lang="en">Search extension shortcut</source>
@@ -11401,6 +11455,9 @@
     <trans-unit id="++CODE++2cafc5757485d935e51fd715bb3ad14ec8c53f8875ed9e218b427244de032f15">
       <source xml:lang="en">Selected query-editor text</source>
     </trans-unit>
+    <trans-unit id="++CODE++213500d3903ce4010a5405bfea77b4359f533add54542c1eb10215a58a00ec3b">
+      <source xml:lang="en">Selected row</source>
+    </trans-unit>
     <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
       <source xml:lang="en">Selection</source>
     </trans-unit>
@@ -11492,6 +11549,9 @@
     <trans-unit id="++CODE++40c6cdb719db3469fb83c776d850e85fc70bdfa14e6685d6ac62061ac85b8eed">
       <source xml:lang="en">Server {0} not found.</source>
       <note>{0} is the server name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++020ee09f3920af93cd015058b21e46dca58b24777e0552f137e1d7487a9b280b">
+      <source xml:lang="en">Server-side model statements from this panel: {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++a4469e8491766ec6b1f6d3c2f4e3861d58829898ba912fad682eb8133520cb6d">
       <source xml:lang="en">Serverless</source>
@@ -12420,6 +12480,9 @@
     <trans-unit id="++CODE++f9923d34be8f06c119caefc5061df4738ef1ff7567d979b6cf9c220bc40c428c">
       <source xml:lang="en">Text to embed</source>
     </trans-unit>
+    <trans-unit id="++CODE++46cb2c52d175408a3c2b403faba803c11e35ba36b12bc384addf5d2dd7a64900">
+      <source xml:lang="en">Text with model</source>
+    </trans-unit>
     <trans-unit id="++CODE++e28411a3404d21f9fc1679b4464b3dc497333f6140e580d745d52e2522d65c9f">
       <source xml:lang="en">Texture</source>
     </trans-unit>
@@ -12796,6 +12859,9 @@
     <trans-unit id="++CODE++9bbef2c803526d02c5b20d3918ed36c267613bbd2cba59e2fbb056165fd39e0d">
       <source xml:lang="en">The result store is closing; rerun the query to analyze.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e2a282842b41becb191aacd89b361b8c4b4305a3e710060c3d57f32bfdd681ca">
+      <source xml:lang="en">The retained results could not be read completely. Rerun the query before analyzing vectors.</source>
+    </trans-unit>
     <trans-unit id="++CODE++54993b4f6a010d1b57d14e74b66a04e8e2ca41f562dbb515daa10708b6b4b03a">
       <source xml:lang="en">The search binding has expired; refresh the verified target list.</source>
     </trans-unit>
@@ -13061,6 +13127,9 @@
     </trans-unit>
     <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
       <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c61d2f3a9ca83bae47d68f2510e49fdb2b493dc1e394321a770c0b875badb147">
+      <source xml:lang="en">This vector index restricts table writes</source>
     </trans-unit>
     <trans-unit id="++CODE++57fab0af2acb374655d853bc448fcbfec0a2c47c19d965017e05d2ae07974c99">
       <source xml:lang="en">This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.</source>
@@ -13711,11 +13780,17 @@
     <trans-unit id="++CODE++4f153c0f4fefefada3a3663be4554a37c296f92d19f90ba2903c1e3a94cf9556">
       <source xml:lang="en">Vector analysis workers are disabled by the current tuning profile.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0bc2b82133ac3059e3461abc9d58d5076f09c9735da9937897147eaeb117dabd">
+      <source xml:lang="en">Vector byte limit reached</source>
+    </trans-unit>
     <trans-unit id="++CODE++d2853535249433f524e6653a89481a932643a88935290029a1065bb96049906c">
       <source xml:lang="en">Vector column</source>
     </trans-unit>
     <trans-unit id="++CODE++6e3e89a924d1d12c8197f2b938a35201ebc5ec707dd9177aecabe552418e54d9">
       <source xml:lang="en">Vector comparison complete.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac16fcabb8507964fec06168760ca355edb4b5932a5ed750fc1c397cf366bc83">
+      <source xml:lang="en">Vector component limit reached</source>
     </trans-unit>
     <trans-unit id="++CODE++1fdd6acef18a05f8bf41e70762ef25caa45eec851ad2f7645e96555d2dbb2963">
       <source xml:lang="en">Vector index</source>
@@ -13914,6 +13989,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2caf022feb8f6ff3b2d5f42e702e26088b87a62ecfc8a4ce573b82eabf94994c">
       <source xml:lang="en">Webview network: none · Server-side model request in progress; statement count updates if SQL is issued</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f2fa86dc8284c44c3143e3dbbec5ac55b36738d1ae036459960f804332f0a678">
+      <source xml:lang="en">Webview network: none · Server-side model statements from Search: {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++e5b539ed5ef824d67064dc5fe75a709a3c17dbe48ed129dba68a1dc3a34fcce6">
       <source xml:lang="en">Webview was disposed before it became ready</source>
@@ -14219,8 +14297,8 @@
     <trans-unit id="++CODE++ad9897a115cfe7e49d73c282eb7282bf2bf5aa724ea7ea766dda157ebbe9ef0c">
       <source xml:lang="en">cosine</source>
     </trans-unit>
-    <trans-unit id="++CODE++41718e4e31717dbaef5033009587382be232e309399a254b8caef4cf1b68a4a6">
-      <source xml:lang="en">cosine distance from sample centroid · p99</source>
+    <trans-unit id="++CODE++4f4dbd35680913c96cc2c4a0ed1f7cfb32699eb421e85ea1993c042aaa400a3e">
+      <source xml:lang="en">cosine distance from sample centroid · median + 3 × IQR</source>
     </trans-unit>
     <trans-unit id="++CODE++943ae6bc25d193fe703484f14e1b9d1e210ec834821bf88be868d018497d602e">
       <source xml:lang="en">cosine distance · Euclidean · negative dot · norms</source>
@@ -14352,6 +14430,9 @@
     <trans-unit id="++CODE++5d96835982621a746afcf683eaadabe70f722f4d870741f170bb8999b91aab8a">
       <source xml:lang="en">external egress</source>
     </trans-unit>
+    <trans-unit id="++CODE++9559fa9bba83de1e06c660a4777c52dba810f8a5a1ce139267d8c2200e6f7e9a">
+      <source xml:lang="en">external egress {0} · host-local {1} · in-process {2} · unclassified {3}</source>
+    </trans-unit>
     <trans-unit id="++CODE++f6dd485bc8aca12e33885740348134c0acc23ee43e5140682868566e78d6f3d8">
       <source xml:lang="en">failed: {0}</source>
     </trans-unit>
@@ -14363,9 +14444,6 @@
     </trans-unit>
     <trans-unit id="++CODE++034a0062488256f14c8b14d025ec3988b148938f7f9db94ca0ac73f4b3614d8a">
       <source xml:lang="en">folder</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a18b869b2e81c0c529552a3c4fa5c92ed08b98a4e146aed778d71d27517f83ac">
-      <source xml:lang="en">full</source>
     </trans-unit>
     <trans-unit id="++CODE++8dec96df3926cdbb17b39f15c38e67f042aabd562bbe4602db1f68a313695967">
       <source xml:lang="en">generated — never executed by this pane</source>
@@ -14441,6 +14519,9 @@
     </trans-unit>
     <trans-unit id="++CODE++17d354f4e6c6305083dab566adec822f2674bdb83934ac4e0bc3525732e336e5">
       <source xml:lang="en">loading…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++745a7362e7e4f5bc089429fb5950a5a062c9d7e34717b3ebf6fc966627122c52">
+      <source xml:lang="en">local · {0} rows</source>
     </trans-unit>
     <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
       <source xml:lang="en">location</source>
@@ -14980,6 +15061,9 @@
       <source xml:lang="en">{0} differences</source>
       <note>{0} is the total number of schema differences</note>
     </trans-unit>
+    <trans-unit id="++CODE++f47483fc09adafc821ada63264f0428604400c69782cf3d92255eef5edeb8958">
+      <source xml:lang="en">{0} dimensions</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f79912e776b14c310615f10e26f6ea1eca71fcacafb73e275603e152cb9f04d">
       <source xml:lang="en">{0} docs</source>
       <note>{0} is the name of a database migration tool</note>
@@ -15054,6 +15138,9 @@
     <trans-unit id="++CODE++929b85deaa0b29d7b7adb8318824ecfabb9cf7c9d0a056b0d0fe0827cdd9f141">
       <source xml:lang="en">{0} must define one or more key fields to be used with Data API builder</source>
       <note>{0} is the DAB source type, e.g. Table or View</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f81f83fd99082f398f0a68d22c229cd3ca3aab2ec6c271a767ae988643c15dad">
+      <source xml:lang="en">{0} native</source>
     </trans-unit>
     <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
       <source xml:lang="en">{0} objects found</source>
@@ -15153,6 +15240,9 @@
       <source xml:lang="en">{0} s</source>
       <note>{0} is a localized elapsed duration in seconds; s is the abbreviation for seconds.</note>
     </trans-unit>
+    <trans-unit id="++CODE++c6cb40c43f23bc2e4d199860de5055795f58f26d20e6d8e5d44e2e783b2f467a">
+      <source xml:lang="en">{0} sampled of {1}</source>
+    </trans-unit>
     <trans-unit id="++CODE++10fabc9fea79e4845d645668c9f1c3904bcf62eec4c83be038ea290856a493fe">
       <source xml:lang="en">{0} schemas</source>
     </trans-unit>
@@ -15221,6 +15311,12 @@
     </trans-unit>
     <trans-unit id="++CODE++1fb3b6ab635c309decc33aa98f7b6b51d2f4303a3cb3845a54a8f09c3849bd8b">
       <source xml:lang="en">{0} | intentMode={1}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1c2494816071a17961884d5351c304c498e7e74a196296d1a70996e0e2b9f41d">
+      <source xml:lang="en">{0} · local</source>
+    </trans-unit>
+    <trans-unit id="++CODE++321c84e993c7583f1ff9185ac5bd4541cf36f53224b517dcb18b8047263f4d0f">
+      <source xml:lang="en">{0} · {1} pairs · local</source>
     </trans-unit>
     <trans-unit id="++CODE++67f56929ef9d0111b883c8135b42cdf6ed8148294ab755d703d4bcda6880c5e0">
       <source xml:lang="en">{0} — coming in a later build</source>

@@ -37,7 +37,13 @@
 
 import * as crypto from "crypto";
 import { Perf } from "../../perf/perfTelemetry";
-import { IQueryEventSink, ISqlSession, QueryHandle } from "../../services/sqlDataPlane/api";
+import {
+    CellValue,
+    decodeCell,
+    IQueryEventSink,
+    ISqlSession,
+    QueryHandle,
+} from "../../services/sqlDataPlane/api";
 import {
     decodeVectorFloat32,
     vectorJsonArrayText,
@@ -193,6 +199,7 @@ export const VECTOR_SEARCH_TARGETS_SQL = [
     "    WHERE p.object_id = o.object_id AND p.index_id IN (0, 1)",
     ") st",
     "WHERE t.name = N'vector' AND o.type = 'U'",
+    "  AND c.vector_base_type = 0", // Search parameters use float32; do not offer incompatible targets.
     "ORDER BY o.name, c.column_id;",
 ].join("\n");
 
@@ -591,7 +598,7 @@ function targetVerificationSql(
         `      AND ${exactCatalogName("o.name", target.table)}`,
         `      AND vc.column_id = ${binding.vectorColumnId}`,
         `      AND ${exactCatalogName("vc.name", target.vectorColumn)}`,
-        `      AND vt.name = N'vector'${dimensions}`,
+        `      AND vt.name = N'vector' AND vc.vector_base_type = 0${dimensions}`,
         "      AND EXISTS (",
         "          SELECT 1",
         "          FROM sys.indexes i",
@@ -997,12 +1004,13 @@ async function executeWhenFree(
                   priority: "background",
                   commandKind: "metadata",
                   tag: VECTOR_SEARCH_TAG,
+                  timeoutMs: 15_000,
               } as const)
             : ({
                   priority: "interactive",
                   commandKind: "user",
                   tag: kind === "model" ? VECTOR_MODEL_CALL_TAG : VECTOR_SEARCH_TAG,
-                  ...(kind === "model" ? { timeoutMs: 120_000 } : {}),
+                  timeoutMs: kind === "model" ? 120_000 : 60_000,
               } as const);
     for (;;) {
         if (signal?.aborted) {
@@ -1022,6 +1030,21 @@ async function executeWhenFree(
     }
 }
 
+function plainSearchCell(cell: CellValue): unknown {
+    switch (cell.kind) {
+        case "null":
+            return null;
+        case "datetime":
+            return cell.iso ?? cell.display;
+        case "binary":
+            return cell.base64 ?? cell.hexPrefix;
+        case "unsupported":
+            return cell.display;
+        default:
+            return cell.value;
+    }
+}
+
 async function runStatement(
     session: ISqlSession,
     sql: string,
@@ -1038,7 +1061,22 @@ async function runStatement(
         const sink: IQueryEventSink = {
             onResultSetStarted: () => undefined,
             onRowsPage: (page) => {
-                rows.push(...page.compact.values);
+                const compact = page.compact;
+                compact.values.forEach((row, rowIndex) => {
+                    rows.push(
+                        row.map((raw, columnIndex) => {
+                            const cell = decodeCell(compact, rowIndex, columnIndex, row.length);
+                            // Compact pages may omit hints for already-native scalars.
+                            if (
+                                cell.kind !== "null" &&
+                                !compact.typeHints?.[columnIndex] &&
+                                (typeof raw === "number" || typeof raw === "boolean")
+                            )
+                                return raw;
+                            return plainSearchCell(cell);
+                        }),
+                    );
+                });
             },
             onMessage: (message) => {
                 if (message.kind === "error") {

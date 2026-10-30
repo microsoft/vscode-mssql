@@ -6440,6 +6440,17 @@ export const QueryStudioCore = {
 };
 
 export const VectorWorkbenchMessages = {
+    vectorIndexRestrictsWrites: l10n.t("This vector index restricts table writes"),
+    vectorIndexWriteRestrictionDetail: l10n.t(
+        "On this SQL Server 2025 index format, INSERT, UPDATE, DELETE, and MERGE are blocked unless ALLOW_STALE_VECTOR_INDEX permits DML. Enabling stale writes does not keep the index synchronized; review the database configuration and write requirements.",
+    ),
+    retainedResultsCouldNotBeRead: l10n.t(
+        "The retained results could not be read completely. Rerun the query before analyzing vectors.",
+    ),
+    noVectorWithinScanBudget: l10n.t("No vector values could be analyzed within the scan budget."),
+    noAnalyzableVectorValues: l10n.t(
+        "No analyzable typed vector values in the selected column; values may be null or unavailable.",
+    ),
     feedback1: l10n.t("The Vector Workbench session has expired; reopen the Vector tab."),
     feedback2: l10n.t("The search binding has expired; refresh the verified target list."),
     feedback3: l10n.t(

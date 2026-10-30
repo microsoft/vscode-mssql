@@ -23,10 +23,13 @@ FROM numbers AS n
 JOIN (VALUES (0, N'Travel'), (1, N'Music'), (2, N'Cooking'), (3, N'Science')) AS t(groupId, topic)
     ON t.groupId = n.id % 4
 CROSS APPLY (
-    SELECT STRING_AGG(CONVERT(nvarchar(max), CONVERT(decimal(12,6),
-        SIN((t.groupId + 1) * dim * 0.15) + 0.12 * COS((n.id + 1) * dim * 0.04))), ',')
-        WITHIN GROUP (ORDER BY dim) AS components
-    FROM dimensions
+    SELECT STRING_AGG(CONVERT(nvarchar(max), c.component), ',')
+        WITHIN GROUP (ORDER BY c.dim) AS components
+    FROM (
+        SELECT d.dim, CONVERT(decimal(12,6),
+            SIN((t.groupId + 1) * d.dim * 0.15) + 0.12 * COS((n.id + 1) * d.dim * 0.04)) AS component
+        FROM dimensions AS d
+    ) AS c
 ) AS v;
 
 SELECT id, title, category, body, embedding FROM dbo.VectorSamples ORDER BY id;

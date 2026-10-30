@@ -6,16 +6,19 @@
 import { FrameLocator } from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
+import { randomUUID } from "crypto";
 import { test, expect } from "./baseFixtures";
 import { getGridLaunchConfig } from "./grid/gridLaunchConfig";
 import { runCommandFromPalette } from "./utils/testHelpers";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
 
 // SQL Server 2025+ fixture described in docs/query-studio-vector.md.
-// The test reads existing synthetic rows; it never creates models or indexes.
-const database = process.env.VECTOR_WORKBENCH_TEST_DATABASE;
+// By default, run the documented sample in a uniquely named global temporary
+// table. It remains visible to auxiliary sessions and SQL drops it when the
+// owning test session closes. No permanent database, model, or index is created.
+const database = process.env.VECTOR_WORKBENCH_TEST_DATABASE?.trim() || undefined;
+const fixtureTable = `dbo.[##MssqlVectorSamples_${randomUUID().replace(/-/g, "")}]`;
 test.describe("Query Studio vector workbench", () => {
-    test.skip(!database, "Requires the isolated vector demo fixture on SQL Server 2025+");
     test.setTimeout(90_000);
     let studio: FrameLocator;
     let pinned: FrameLocator;
@@ -27,7 +30,7 @@ test.describe("Query Studio vector workbench", () => {
         "mssql.queryStudio.vectorWorkbench.enabled": true,
         "workbench.colorTheme": "Default Dark Modern",
     });
-    config["mssql.connections"][0].database = database ?? "master";
+    config["mssql.connections"][0].database = database ?? "tempdb";
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: { initialConfig: config },
         afterLaunch: async ({ page, electronApp }) => {
@@ -51,8 +54,22 @@ test.describe("Query Studio vector workbench", () => {
                 timeout: 60_000,
             });
             await studio.locator(".monaco-editor .view-lines").click();
+            const query = database
+                ? "SELECT id, title, category, body, embedding FROM dbo.VectorSamples ORDER BY id;"
+                : fs
+                      .readFileSync(
+                          path.resolve(
+                              __dirname,
+                              "../../../../docs/samples/query-studio-vector-demo.sql",
+                          ),
+                          "utf8",
+                      )
+                      .replaceAll("dbo.VectorSamples", fixtureTable);
+            // The connection picker can initially open master even when the
+            // saved profile includes a database. USE also synchronizes the
+            // session context used by the auxiliary Search/Index connections.
             await page.keyboard.insertText(
-                "-- Synthetic vectors for exploring the workbench\nSELECT id, title, category, body, embedding\nFROM dbo.VectorSamples\nORDER BY id;",
+                `USE [${(database ?? "tempdb").replaceAll("]", "]]")}];\n${query}`,
             );
             await studio.getByTitle("Execute (F5 / Ctrl+E)", { exact: true }).click();
             await expect(
@@ -117,9 +134,50 @@ test.describe("Query Studio vector workbench", () => {
         await capture("compare");
     });
     test("Projection displays interactive PCA points", async () => {
+        // Delay one real RPC response so leaving the workspace deterministically
+        // cancels an unsettled projection, independent of worker timing.
+        await studio.locator("body").evaluate(() => {
+            const state = window as typeof window & {
+                heldVectorProjection?: MessageEvent;
+                holdVectorProjection?: (event: MessageEvent) => void;
+            };
+            state.holdVectorProjection = (event) => {
+                if (!state.heldVectorProjection && event.data?.result?.projection) {
+                    state.heldVectorProjection = event;
+                    event.stopImmediatePropagation();
+                }
+            };
+            window.addEventListener("message", state.holdVectorProjection, true);
+        });
+        await workspace("Projection");
+        await expect
+            .poll(() =>
+                studio
+                    .locator("body")
+                    .evaluate(() =>
+                        Boolean(
+                            (window as typeof window & { heldVectorProjection?: MessageEvent })
+                                .heldVectorProjection,
+                        ),
+                    ),
+            )
+            .toBe(true);
+        await workspace("Profile");
         await workspace("Projection");
         await expect(studio.locator(".qs-vec6-projection canvas")).toBeVisible({ timeout: 30_000 });
         await expect(studio.getByRole("listbox", { name: "Projected points" })).toBeVisible();
+        await studio.locator("body").evaluate(() => {
+            const state = window as typeof window & {
+                heldVectorProjection?: MessageEvent;
+                holdVectorProjection?: (event: MessageEvent) => void;
+            };
+            window.removeEventListener("message", state.holdVectorProjection!, true);
+            window.dispatchEvent(
+                new MessageEvent("message", { data: state.heldVectorProjection!.data }),
+            );
+            delete state.holdVectorProjection;
+            delete state.heldVectorProjection;
+        });
         const canvas = studio.locator(".qs-vec6-projection canvas");
         await expect
             .poll(async () =>
@@ -173,6 +231,51 @@ test.describe("Query Studio vector workbench", () => {
             timeout: 30_000,
         });
         await capture("pipeline");
+    });
+    test("completed Search and Index catalogs survive workspace switches", async () => {
+        await workspace("Search");
+        await expect(
+            studio.getByRole("combobox", { name: "Search target", exact: true }),
+        ).toContainText("VectorSamples");
+        await studio.getByRole("button", { name: "Run comparison", exact: true }).press("Enter");
+        await expect(
+            studio.getByRole("table", { name: "Rank comparison", exact: true }),
+        ).toBeVisible();
+        await workspace("Index");
+        await expect(studio.getByRole("list", { name: "Generated scripts" })).toBeVisible();
+        await workspace("Search");
+        await expect(
+            studio.getByRole("combobox", { name: "Search target", exact: true }),
+        ).toContainText("VectorSamples");
+        await expect(
+            studio.getByRole("table", { name: "Rank comparison", exact: true }),
+        ).toBeVisible();
+    });
+    test("Vector navigation restores alongside real grid state after reloading the webview", async () => {
+        await workspace("Compare");
+        const basket = studio.getByRole("textbox", { name: "Result-row ordinals to compare" });
+        await basket.fill("0, 1, 4");
+        await expect(basket).toHaveValue("0, 1, 4");
+        await studio
+            .locator("body")
+            .evaluate(
+                () =>
+                    new Promise<void>((resolve) =>
+                        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+                    ),
+            );
+        const { page } = getContext();
+        await runCommandFromPalette(
+            page,
+            "Developer: Reload Webviews",
+            "Developer: Reload Webviews",
+        );
+        await expect(basket).toBeVisible({ timeout: 30_000 });
+        await expect(basket).toHaveValue("0, 1, 4");
+        await expect(studio.getByRole("tab", { name: "Compare", exact: true })).toHaveAttribute(
+            "aria-selected",
+            "true",
+        );
     });
     test("Pinned results keep local analysis and disable connection workspaces", async () => {
         await studio.getByRole("tab", { name: /^Results/ }).click();

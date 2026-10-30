@@ -533,7 +533,26 @@ suite("Vector catalog probes (VEC-7)", () => {
     test("egress classification per API_FORMAT (A4/P0-5)", async () => {
         expect(classifyModelEgress("Azure OpenAI")).to.equal("externalEgress");
         expect(classifyModelEgress("OpenAI")).to.equal("externalEgress");
-        expect(classifyModelEgress("Ollama")).to.equal("hostLocal");
+        for (const host of [
+            undefined,
+            "ollama.contoso.example",
+            "10.0.0.7",
+            "localhost.example",
+            "127.999.0.1",
+        ]) {
+            expect(classifyModelEgress("Ollama", host)).to.equal("unknown");
+        }
+        for (const host of [
+            "localhost",
+            "model.localhost",
+            "LOCALHOST.",
+            "127.0.0.1",
+            "127.10.20.30",
+            "::1",
+            "[::1]",
+        ]) {
+            expect(classifyModelEgress("Ollama", host)).to.equal("hostLocal");
+        }
         expect(classifyModelEgress("ONNX")).to.equal("inProcess");
         expect(classifyModelEgress("ONNX Runtime")).to.equal("inProcess");
         expect(classifyModelEgress("SomethingNew")).to.equal("unknown");
@@ -555,6 +574,15 @@ suite("Vector catalog probes (VEC-7)", () => {
                     ],
                     ["C", "dbo", "ONNX Runtime", "EMBEDDINGS", "m3", null, null],
                     ["D", "dbo", "FutureFormat", "EMBEDDINGS", "m4", null, null],
+                    [
+                        "E",
+                        "dbo",
+                        "Ollama",
+                        "EMBEDDINGS",
+                        "m5",
+                        "https://remote.example/api/embed",
+                        null,
+                    ],
                 ],
             ),
         });
@@ -563,6 +591,7 @@ suite("Vector catalog probes (VEC-7)", () => {
             "externalEgress",
             "hostLocal",
             "inProcess",
+            "unknown",
             "unknown",
         ]);
         expect(probe.externalModels.models[1].owner).to.equal("appuser");

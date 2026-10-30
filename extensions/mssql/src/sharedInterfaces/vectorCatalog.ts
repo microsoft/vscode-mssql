@@ -177,7 +177,7 @@ export interface VectorHealthDmvProbe {
  * - `externalEgress`: SQL Server calls an external endpoint — text leaves
  *   your environment ('Azure OpenAI', 'OpenAI').
  * - `hostLocal`: host-local endpoint — text leaves the database engine but
- *   not the host ('Ollama').
+ *   not the host (a verified loopback Ollama endpoint).
  * - `inProcess`: local ONNX runtime on the SQL Server host — no network
  *   egress ('ONNX' / 'ONNX Runtime').
  * - `unknown`: unrecognized API_FORMAT — never guessed downward.
@@ -192,19 +192,36 @@ export interface VectorModelStatementCounts {
     readonly unknown: number;
 }
 
-export function classifyModelEgress(apiFormat: string | undefined): VectorModelEgressClass {
+export function classifyModelEgress(
+    apiFormat: string | undefined,
+    endpointHost?: string,
+): VectorModelEgressClass {
     switch ((apiFormat ?? "").trim().toLowerCase()) {
         case "azure openai":
         case "openai":
             return "externalEgress";
         case "ollama":
-            return "hostLocal";
+            return isLoopbackHost(endpointHost) ? "hostLocal" : "unknown";
         case "onnx":
         case "onnx runtime":
             return "inProcess";
         default:
             return "unknown";
     }
+}
+
+function isLoopbackHost(host: string | undefined): boolean {
+    const normalized = (host ?? "")
+        .toLowerCase()
+        .replace(/^\[|\]$/g, "")
+        .replace(/\.$/, "");
+    return (
+        normalized === "localhost" ||
+        normalized.endsWith(".localhost") ||
+        normalized === "::1" ||
+        (/^127(?:\.\d{1,3}){3}$/.test(normalized) &&
+            normalized.split(".").every((part) => Number(part) <= 255))
+    );
 }
 
 /**

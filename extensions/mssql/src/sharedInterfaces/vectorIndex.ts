@@ -32,9 +32,11 @@ import { RequestType } from "vscode-jsonrpc";
 // ---------------------------------------------------------------------------
 
 /**
- * - `healthyCurrent`: a confirmed vector index in the current format for THIS
- *   engine (Azure `$.Version >= 3`, or RTM with no Version key at all).
+ * - `healthyCurrent`: a confirmed vector index with full DML support
+ *   (Azure `$.Version >= 3`).
  *   Migration is HIDDEN — never offered for a current-format index.
+ * - `readOnly`: the SQL Server 2025 format without a Version key. It is current
+ *   for that engine, but restricts writes unless stale-index DML is enabled.
  * - `legacyFormat`: confirmed index with `$.Version < 3`. Migration script is
  *   offered with the service-impact warning ABOVE the script.
  * - `noIndex`: no confirmed vector index on the target (includes the
@@ -49,6 +51,7 @@ import { RequestType } from "vscode-jsonrpc";
  */
 export type VectorIndexWorkspaceState =
     | "healthyCurrent"
+    | "readOnly"
     | "legacyFormat"
     | "formatUnknown"
     | "noIndex"

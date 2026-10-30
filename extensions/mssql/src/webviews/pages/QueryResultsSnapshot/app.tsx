@@ -481,7 +481,7 @@ export function PinnedResultsApp() {
                                     String(state.errorCount > 0 ? ` (${state.errorCount} ⚠)` : ""),
                                 )
                               : tab === "vector"
-                                ? "Vector"
+                                ? locConstants.vectorWorkbench.vector
                                 : locConstants.queryResult.queryPlan(planSummaries.length)}
                     </button>
                 ))}
@@ -575,7 +575,9 @@ export function PinnedResultsApp() {
                             onError={reportPaneError}>
                             <React.Suspense
                                 fallback={
-                                    <div className="qs-muted">Loading Vector Workbench…</div>
+                                    <div className="qs-muted">
+                                        {locConstants.vectorWorkbench.loadingVectorWorkbench}
+                                    </div>
                                 }>
                                 <LazyVectorTab
                                     rpc={rpc}

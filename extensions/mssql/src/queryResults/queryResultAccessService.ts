@@ -410,6 +410,22 @@ export class QueryResultAccessService {
         this.notifyChanged();
     }
 
+    /**
+     * Store access for local result panes. Callers retain their own lease and
+     * refuse derived snapshots until they can map derived row ordinals.
+     */
+    storeForSnapshot(
+        snapshotId: string,
+    ): { store: IQueryResultStore; derived: boolean } | undefined {
+        const record = this.snapshots.get(snapshotId);
+        if (!record || record.disposed) return undefined;
+        record.lastAccessEpochMs = this.now();
+        return {
+            store: record.storeLease.store,
+            derived: this.describeSnapshot(snapshotId)?.derived !== undefined,
+        };
+    }
+
     /** Clamped to the frozen row counts; never throws through the UI path. */
     async getWindow(params: QueryResultGetWindowParams): Promise<QsCellWindow> {
         const record = this.snapshots.get(params.snapshotId);
@@ -438,18 +454,6 @@ export class QueryResultAccessService {
                 : {}),
             reason: params.reason,
         });
-    }
-
-    /** Analysis callers hold their own store lease and validate frozen result eligibility. */
-    storeForSnapshot(
-        snapshotId: string,
-    ): { store: IQueryResultStore; derived: boolean } | undefined {
-        const record = this.snapshots.get(snapshotId);
-        if (!record || record.disposed) {
-            return undefined;
-        }
-        record.lastAccessEpochMs = this.now();
-        return { store: record.storeLease.store, derived: false };
     }
 
     listSnapshots(): readonly QueryResultSnapshotSummary[] {

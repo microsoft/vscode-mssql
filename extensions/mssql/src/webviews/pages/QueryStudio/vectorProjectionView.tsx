@@ -110,7 +110,7 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
     const scrollRafRef = React.useRef(0);
     const persistTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const firstPaintGenerationRef = React.useRef<number | undefined>(undefined);
-    const projectionStartedRef = React.useRef(false);
+    const projectionStartedRef = React.useRef<string | undefined>(undefined);
 
     const emitViewStateNow = React.useCallback(() => {
         if (!onViewStateChange) {
@@ -307,10 +307,11 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
 
     // --- data fetch (per handle/generation) ---------------------------------
     React.useEffect(() => {
-        if (!active || projectionStartedRef.current) {
+        const context = JSON.stringify([handle, generation]);
+        if (!active || projectionStartedRef.current === context) {
             return;
         }
-        projectionStartedRef.current = true;
+        projectionStartedRef.current = context;
         let cancelled = false;
         let settled = false;
         setSummary(undefined);
@@ -377,6 +378,7 @@ export function VectorProjectionView(props: VectorProjectionViewProps): React.JS
         return () => {
             cancelled = true;
             if (!settled) {
+                projectionStartedRef.current = undefined;
                 void rpc.sendRequest(QsVectorCancelRequest.type, { handle }).catch(() => undefined);
             }
         };

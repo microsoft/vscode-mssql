@@ -16,10 +16,10 @@
  *   nothing here capable of executing them.
  *
  * State machine (readiness review P0-3 + the verified provider matrix):
- * - healthyCurrent: confirmed index, `$.Version >= 3` (Azure) OR Version key
- *   absent entirely (SQL 2025 RTM — absence IS the current format there;
- *   guide §8.3 corrected reality; probed, never assumed legacy). Migration
- *   is HIDDEN in this state.
+ * - healthyCurrent: confirmed index, `$.Version >= 3` (Azure, full DML).
+ * - readOnly: Version key absent entirely on SQL 2025 RTM. This is the current
+ *   format for that engine, but restricts writes without stale-index DML.
+ *   Migration is HIDDEN in both current-format states.
  * - legacyFormat: confirmed index with `$.Version < 3`. Migration script is
  *   generated WITH a mandatory service-impact comment block, and the finding
  *   list carries the same warning so the view can place it ABOVE the script.
@@ -155,6 +155,7 @@ function metricLiteral(metric: string | undefined): string {
 }
 
 export interface CreateIndexScriptFacts {
+    readonly readOnlyTable?: boolean;
     readonly schema: string;
     readonly table: string;
     /** Undefined → explicit placeholder + instruction comment (never guessed). */
@@ -172,10 +173,20 @@ export function buildCreateVectorIndexScript(facts: CreateIndexScriptFacts): str
         SCRIPT_REVIEW_HEADER,
         QUOTED_IDENTIFIER_NOTE,
         "-- Options: METRIC = 'cosine' | 'euclidean' | 'dot'; TYPE = 'diskann' (the",
-        "-- documented type). Prerequisites (documented): clustered primary key and",
-        "-- >= 100 non-null vector rows; availability varies by service tier — probed",
+        "-- documented type). A clustered primary key is required. Minimum row",
+        "-- counts and availability vary by engine and service tier — probed",
         "-- per connection, never assumed from the engine name.",
     ];
+    if (facts.readOnlyTable) {
+        lines.splice(
+            1,
+            0,
+            "-- WARNING: On this SQL Server 2025 index format, creating a vector index",
+            "-- makes the table read-only unless ALLOW_STALE_VECTOR_INDEX permits DML.",
+            "-- INSERT, UPDATE, DELETE, and MERGE can fail while the index exists.",
+            "-- Review write requirements and database configuration before running this script.",
+        );
+    }
     if (!column) {
         lines.push(
             `-- NOTE: the index catalog does not carry the vector column name; replace`,
@@ -673,11 +684,14 @@ function deriveIndexPresentView(
     shared: SharedFacts,
 ): VectorIndexWorkspaceView {
     const format = classifyVersion(probe, index);
-    const state: VectorIndexWorkspaceState = format.legacy
-        ? "legacyFormat"
-        : format.knownCurrent
-          ? "healthyCurrent"
-          : "formatUnknown";
+    const readOnlyTable = format.knownCurrent && index.version === undefined;
+    const state: VectorIndexWorkspaceState = readOnlyTable
+        ? "readOnly"
+        : format.legacy
+          ? "legacyFormat"
+          : format.knownCurrent
+            ? "healthyCurrent"
+            : "formatUnknown";
     const health = healthFacts(probe, index);
 
     const properties: VectorIndexProperty[] = [
@@ -737,11 +751,9 @@ function deriveIndexPresentView(
                           "iterative filtering, optimizer ANN/kNN choice.",
                   }
                 : {
-                      severity: "success",
-                      title: VectorWorkbenchLoc.indexFormatIsCurrentForThisEngine,
-                      detail:
-                          "build_parameters carries no $.Version key on SQL Server 2025 RTM " +
-                          "— absence IS the current format there (probed, never assumed).",
+                      severity: "warning",
+                      title: VectorWorkbenchLoc.vectorIndexRestrictsWrites,
+                      detail: VectorWorkbenchLoc.vectorIndexWriteRestrictionDetail,
                   },
         );
     } else {
@@ -810,6 +822,7 @@ function deriveIndexPresentView(
             id: "createIndex",
             title: VectorWorkbenchLoc.generateCompatibleValueIndexScript(String(target.metric)),
             sql: buildCreateVectorIndexScript({
+                readOnlyTable,
                 schema: target.schema,
                 table: target.table,
                 indexName: deriveUnusedIndexName(
@@ -827,6 +840,7 @@ function deriveIndexPresentView(
             id: "createIndex",
             title: VectorWorkbenchLoc.generateExistingIndexDefinitionReference,
             sql: buildCreateVectorIndexScript({
+                readOnlyTable,
                 schema: index.schemaName,
                 table: index.tableName,
                 indexName: index.indexName,
@@ -937,6 +951,11 @@ function deriveNoIndexView(
             id: "createIndex",
             title: VectorWorkbenchLoc.generateCreateVectorIndexScript,
             sql: buildCreateVectorIndexScript({
+                // No versioned index exists yet: disclose the restriction on
+                // the SQL Server 2025 engine before proposing its CREATE.
+                readOnlyTable:
+                    probe.engine.engineEditionId === 3 &&
+                    /^17\./.test(probe.engine.productVersion ?? ""),
                 schema: target.schema,
                 table: target.table,
                 ...(target.vectorColumn ? { vectorColumn: target.vectorColumn } : {}),
