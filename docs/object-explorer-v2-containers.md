@@ -25,14 +25,18 @@ use its classic connection path.
 
 - Use **New Deployment** on **Connections (Private Preview)** and select the local
   SQL Server container deployment. The wizard saves the normal connection profile
-  and password, then connects it in the preview tree.
+  according to the password retention settings, then connects it in the preview
+  tree. An unsaved password is available only for the active connection and its
+  metadata sessions; disconnecting clears it.
 - Expand a saved container connection, or choose **Start Container**. A stopped
   container starts before the SQL connection opens. Startup progress appears on
   the connection; **Cancel Connection** stops waiting and cancels pending startup
   work. A Docker operation already accepted by the engine may finish, but a
   canceled attempt cannot subsequently open a SQL connection.
 - Use **Stop Container** to stop its engine process and disconnect the preview
-  connection. Use **Delete Container** to confirm deletion and remove the selected
+  connection. Expanding that disconnected node offers **Start Container**; it
+  does not automatically undo the explicit stop. Use **Delete Container** to
+  confirm deletion and remove the selected
   saved profile. If other profiles reference that container, the confirmation
   names them; those other profiles are retained, matching classic OE.
 - If the container has already been deleted outside VS Code, the existing cleanup
@@ -46,8 +50,12 @@ It adds no background container polling or new enablement flag.
 ## Startup and validation
 
 The normal Docker startup/readiness checks run before connecting. Container-only
-connection retries handle transient transport failures during SQL Server startup;
-bad credentials and certificate failures are surfaced immediately. Concurrent
+connection retries handle transient transport failures during SQL Server startup.
+The wizard's first connection also allows five seconds for temporary login
+failures while a new SQL Server initializes. Ordinary saved profiles still fail
+immediately on bad credentials; certificate failures are never retried. A Docker
+preparation failure still allows connecting to an already reachable SQL endpoint,
+as in classic OE; cancellation and startup timeouts stop the attempt. Concurrent
 requests for the same connection share one startup. Cancel, disconnect, profile
 replacement, and disposal invalidate outstanding work.
 

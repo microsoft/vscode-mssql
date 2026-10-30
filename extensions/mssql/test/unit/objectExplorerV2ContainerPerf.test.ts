@@ -19,6 +19,8 @@ suite("Object Explorer v2 container performance fixtures", () => {
     let removeContainer: sinon.SinonStub;
     let removeProfile: sinon.SinonStub;
     let ready: sinon.SinonStub;
+    let lookup: sinon.SinonStub;
+    let create: sinon.SinonStub;
 
     const invoke = (name: string) => commands.get(`mssql.perf.oeV2Container${name}`)!();
     const expectFailure = async (operation: Promise<unknown>, message: string) => {
@@ -45,7 +47,10 @@ suite("Object Explorer v2 container performance fixtures", () => {
         sandbox.stub(docker, "execDockerCommand").resolves("cached-image");
         sandbox.stub(docker, "findAvailablePort").resolves(14330);
         removeContainer = sandbox.stub(docker, "deleteContainer").resolves(true);
-        sandbox.stub(sqlContainer, "startSqlServerDockerContainer").resolves({ success: true });
+        lookup = sandbox.stub(docker, "getContainerByName").resolves({} as never);
+        create = sandbox
+            .stub(sqlContainer, "startSqlServerDockerContainer")
+            .resolves({ success: true });
         ready = sandbox
             .stub(sqlContainer, "checkIfSqlServerContainerIsReadyForConnections")
             .resolves({ success: true });
@@ -120,6 +125,29 @@ suite("Object Explorer v2 container performance fixtures", () => {
         await invoke("Cleanup");
         expect(removeContainer).to.have.been.calledTwice;
         expect(removeContainer.secondCall.args).to.deep.equal(removeContainer.firstCall.args);
+        expect(removeProfile).to.have.been.calledOnce;
+    });
+
+    test("failed creation with no container releases ownership for the next run", async () => {
+        create.resolves({ success: false, error: "invalid image" });
+        removeContainer.resolves(false);
+        lookup.resolves(undefined);
+        await expectFailure(invoke("Deploy"), "container create failed");
+        expect(lookup).to.have.been.calledOnce;
+        expect(removeProfile).not.to.have.been.called;
+        create.resolves({ success: true });
+        await invoke("Deploy");
+        expect(create).to.have.been.calledTwice;
+    });
+
+    test("engine lookup failure does not treat the owned container as absent", async () => {
+        await invoke("Deploy");
+        removeContainer.resolves(false);
+        lookup.rejects(new Error("engine disconnected"));
+        await expectFailure(invoke("Cleanup"), "cleanup failed");
+        expect(removeProfile).not.to.have.been.called;
+        lookup.resolves(undefined);
+        await invoke("Cleanup");
         expect(removeProfile).to.have.been.calledOnce;
     });
 });

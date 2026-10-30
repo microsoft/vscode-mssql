@@ -576,7 +576,10 @@ suite("localContainers logic", () => {
     test("OE v2 container adapter returns the safe connection string and uses the v2 tree", async () => {
         const savedProfile = { id: "container-profile" };
         const connectionDetails = { options: {} };
-        const saveProfileStub = sandbox.stub().resolves(savedProfile);
+        const saveProfileStub = sandbox.stub().callsFake(async (profile) => {
+            profile.password = "";
+            return savedProfile;
+        });
         const createConnectionDetailsStub = sandbox.stub().returns(connectionDetails);
         const getConnectionStringStub = sandbox
             .stub()
@@ -600,6 +603,8 @@ suite("localContainers logic", () => {
             server: "localhost,1433",
             authenticationType: sqlAuthentication,
             user: sa,
+            password: "test-only-password",
+            savePassword: false,
         } as any);
 
         expect(connectionString).to.equal(
@@ -608,6 +613,7 @@ suite("localContainers logic", () => {
         expect(executeCommandStub).to.have.been.calledWith(
             "mssql.objectExplorerV2.connectProfileById",
             "container-profile",
+            { password: "test-only-password", freshContainer: true },
         );
         expect(executeCommandStub).to.have.been.calledWith("mssql.objectExplorerV2.focus");
         expect(mainController.createObjectExplorerSession).not.to.have.been.called;

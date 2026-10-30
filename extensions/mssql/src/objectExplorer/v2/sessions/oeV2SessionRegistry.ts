@@ -299,6 +299,7 @@ export class OeV2SessionRegistry {
         this.notify(connectionId);
         await this.retire(entry);
         entry.state = "disconnected";
+        entry.failureReason = undefined;
         diag.emit({
             feature: "objectExplorer",
             kind: "event",

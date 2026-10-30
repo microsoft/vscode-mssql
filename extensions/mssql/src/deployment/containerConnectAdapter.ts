@@ -64,12 +64,16 @@ export function oeV2ContainerConnectAdapter(
     return {
         usesDataPlane: true,
         saveAndConnect: async (connection: IConnectionProfile) => {
+            // Saving may clear the profile's password when retention is off.
+            // Carry it only into this connection, without changing that policy.
+            const password = connection.password;
             const profile =
                 await mainController.connectionManager.connectionUI.saveProfile(connection);
             const connectionString = await getDisplayConnectionString(mainController, profile);
             const connected = await vscode.commands.executeCommand<boolean>(
                 "mssql.objectExplorerV2.connectProfileById",
                 stableProfileId(profile as unknown as Parameters<typeof stableProfileId>[0]),
+                { password, freshContainer: true },
             );
             if (connected !== true) {
                 throw new Error(ObjectExplorerV2.containerConnectionFailed);

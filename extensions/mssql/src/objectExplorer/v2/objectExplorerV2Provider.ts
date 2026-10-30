@@ -87,6 +87,13 @@ export class ObjectExplorerV2Provider implements vscode.TreeDataProvider<OeV2Nod
                 command: cmdOpenOverview,
                 arguments: [{ source: OverviewOpenSource.TreeNode }],
             };
+        } else if (node.action === "startContainer") {
+            item.iconPath = new vscode.ThemeIcon("play");
+            item.command = {
+                title: node.label,
+                command: "mssql.objectExplorerV2.startContainer",
+                arguments: [node],
+            };
         } else if (node.kind === "loading") {
             item.iconPath = new vscode.ThemeIcon("loading~spin");
         } else if (node.kind === "connectingConnection") {

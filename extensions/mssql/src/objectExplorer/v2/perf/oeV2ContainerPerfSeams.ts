@@ -35,6 +35,7 @@ import {
     deleteContainer,
     execDockerCommand,
     findAvailablePort,
+    getContainerByName,
     startDocker,
     stopContainer,
 } from "../../../docker/dockerUtils";
@@ -136,10 +137,14 @@ function connectionIdOf(profile: IConnectionProfile): string {
     return stableProfileId(profile as unknown as Parameters<typeof stableProfileId>[0]);
 }
 
-async function connectThroughOeV2(profile: IConnectionProfile): Promise<void> {
+async function connectThroughOeV2(
+    profile: IConnectionProfile,
+    freshContainer = false,
+): Promise<void> {
     const connected = await vscode.commands.executeCommand<boolean>(
         "mssql.objectExplorerV2.connectProfileById",
         connectionIdOf(profile),
+        freshContainer ? { password: state?.password, freshContainer: true } : undefined,
     );
     if (connected !== true) {
         throw new Error("OE v2 could not connect to the container through the data plane");
@@ -180,7 +185,14 @@ export function registerOeV2ContainerPerfSeams(
         }
         // A failed disconnect must not strand the container. Retain ownership
         // until deletion succeeds so cleanup can be retried after a failure.
-        current.deleted ||= await deleteContainer(current.containerName);
+        try {
+            current.deleted ||= await deleteContainer(current.containerName);
+            // A failed create can leave no container to delete. Distinguish
+            // confirmed absence from an engine error, which must stay owned.
+            current.deleted ||= (await getContainerByName(current.containerName)) === undefined;
+        } catch (error) {
+            errors.push(error);
+        }
         if (!current.deleted) {
             errors.push(new Error("Could not delete the owned performance test container."));
         } else {
@@ -217,7 +229,7 @@ export function registerOeV2ContainerPerfSeams(
                 await ensureDockerReady();
                 state = await provisionContainer();
                 state.profile = await host.saveProfile(containerProfile(state));
-                await connectThroughOeV2(state.profile);
+                await connectThroughOeV2(state.profile, true);
                 return { port: state.port };
             }),
         ),
@@ -228,7 +240,7 @@ export function registerOeV2ContainerPerfSeams(
                 state.profile = await host.saveProfile(containerProfile(state));
                 // Connect and disconnect during setup so the measurement starts
                 // from a saved, verified profile and a truly stopped container.
-                await connectThroughOeV2(state.profile);
+                await connectThroughOeV2(state.profile, true);
                 await disconnectThroughOeV2(state.profile);
                 const stopped = await stopContainer(state.containerName);
                 if (!stopped) {

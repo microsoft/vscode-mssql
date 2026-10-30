@@ -1130,6 +1130,9 @@ export class ObjectExplorer {
 
 /** User-visible strings for the Connections (Private Preview) surface. */
 export class ObjectExplorerV2 {
+    public static startContainer = l10n.t("Start Container");
+    public static containerAndConnectionFailed = (dockerError: string, sqlError: string) =>
+        l10n.t("Docker preparation failed: {0}\nSQL connection failed: {1}", dockerError, sqlError);
     public static containerConnectionFailed = l10n.t(
         "Connections (Private Preview) could not connect to the new container.",
     );

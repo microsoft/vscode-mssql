@@ -8,6 +8,7 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { Common, LocalContainers, ObjectExplorerV2 } from "../../src/constants/locConstants";
 import * as docker from "../../src/docker/dockerUtils";
+import { ContainerHostAdapter } from "../../src/docker/containerHostAdapter";
 import {
     activateObjectExplorerV2,
     OeV2ActivationDeps,
@@ -17,6 +18,8 @@ import { OeV2MetadataCoordinator } from "../../src/objectExplorer/v2/metadata/oe
 import { OeV2SessionRegistry } from "../../src/objectExplorer/v2/sessions/oeV2SessionRegistry";
 import { OeV2TreeController } from "../../src/objectExplorer/v2/tree/oeV2TreeController";
 import { ISqlSession } from "../../src/services/sqlDataPlane/api";
+import { PreparedConnection } from "../../src/services/metadata/profileAuthAdapter";
+import { ObjectExplorerV2Provider } from "../../src/objectExplorer/v2/objectExplorerV2Provider";
 
 suite("Object Explorer v2 container startup", () => {
     let sandbox: sinon.SinonSandbox;
@@ -55,21 +58,23 @@ suite("Object Explorer v2 container startup", () => {
             ]),
             readAllConnectionGroups: async () => [],
         };
+        const coordinatorFactory = sandbox.stub().returns(coordinator);
         const controller = new OeV2TreeController({
             profiles,
             dataPlane: { enabled: () => true, availabilityState: () => "available" },
             secrets: { lookupPassword: async () => undefined },
             sessions: registry,
-            coordinatorFactory: () => coordinator,
+            coordinatorFactory,
             containers: { restart },
             waits: {
                 containerPreflightMs: 100,
                 containerOpenRetryBackoffMs: 10,
                 containerOpenRetryBudgetMs: 40,
+                containerLoginRetryGraceMs: 15,
             },
         });
         disposables.push(controller, registry);
-        return { controller, registry, restart, open, coordinator, profiles };
+        return { controller, registry, restart, open, coordinator, coordinatorFactory, profiles };
     }
 
     test("starts a stopped container before opening SQL and shares concurrent startup requests", async () => {
@@ -134,14 +139,84 @@ suite("Object Explorer v2 container startup", () => {
         expect(h.open).not.to.have.been.called;
     });
 
-    test("a failed preflight never opens SQL", async () => {
+    for (const preflight of ["false", "error"]) {
+        test(`SQL can still connect when Docker preparation returns ${preflight}`, async () => {
+            const h = harness();
+            if (preflight === "false") h.restart.resolves(false);
+            else h.restart.rejects(new Error("Docker CLI unavailable"));
+            expect(await h.controller.connectProfile("p1")).to.equal(true);
+            expect(h.open).to.have.been.calledOnce;
+            expect(h.registry.stateOf("p1")).to.equal("connected");
+        });
+    }
+
+    test("preserves both Docker and SQL errors when neither path succeeds", async () => {
         const h = harness();
         h.restart.resolves(false);
+        h.open.rejects(new Error("Login failed for user sa"));
+        expect(await h.controller.connectProfile("p1")).to.equal(false);
+        expect(h.open).to.have.been.calledOnce;
+        expect(h.registry.get("p1")?.failureReason).to.equal(
+            ObjectExplorerV2.containerAndConnectionFailed(
+                ObjectExplorerV2.containerStartupFailed,
+                "Login failed for user sa",
+            ),
+        );
+    });
+
+    test("canceled Docker preparation does not try SQL", async () => {
+        const h = harness();
+        h.restart.resolves(undefined);
         expect(await h.controller.connectProfile("p1")).to.equal(false);
         expect(h.open).not.to.have.been.called;
-        expect(h.registry.get("p1")?.failureReason).to.equal(
-            ObjectExplorerV2.containerStartupFailed,
+    });
+
+    test("transient wizard password serves the connection and metadata only until disconnect", async () => {
+        const h = harness();
+        const stored = {
+            id: "p1",
+            server: "localhost,14330",
+            authenticationType: "SqlLogin",
+            user: "sa",
+            containerName: "test-container",
+            password: "",
+        };
+        h.profiles.readAllConnections.resolves([stored]);
+        expect(
+            await h.controller.connectProfile("p1", {
+                password: "test-only-password",
+                freshContainer: true,
+            }),
+        ).to.equal(true);
+        const prepared = h.coordinatorFactory.firstCall.args[0] as PreparedConnection;
+        expect(await prepared.auth.passwordProvider?.()).to.equal("test-only-password");
+        expect(await h.open.firstCall.args[0].auth.passwordProvider()).to.equal(
+            "test-only-password",
         );
+        expect(stored.password).to.equal("");
+        await h.controller.disconnectProfile("p1");
+        expect(await prepared.auth.passwordProvider?.()).to.equal(undefined);
+        expect(await h.controller.connectProfile("p1")).to.equal(true);
+        expect(await h.open.secondCall.args[0].auth.passwordProvider()).to.equal(undefined);
+    });
+
+    test("disconnect keeps lifecycle progress and offers an explicit Start Container action", async () => {
+        const h = harness();
+        await h.controller.connectProfile("p1");
+        h.controller.setContainerActivity("p1", LocalContainers.stoppingContainerLoadingLabel);
+        await h.controller.disconnectProfile("p1");
+        const node = (await h.controller.children()).find((n) => n.connectionId === "p1")!;
+        expect(node.description).to.equal(LocalContainers.stoppingContainerLoadingLabel);
+        h.controller.setContainerActivity("p1", undefined);
+        const children = await h.controller.children(node);
+        expect(h.restart).to.have.been.calledOnce;
+        expect(children[0].action).to.equal("startContainer");
+        const provider = new ObjectExplorerV2Provider(h.controller);
+        disposables.push(provider);
+        const item = provider.getTreeItem(children[0]);
+        expect(item.command?.command).to.equal("mssql.objectExplorerV2.startContainer");
+        expect(item.command?.arguments).to.deep.equal([children[0]]);
+        expect(children[0].containerName).to.equal("test-container");
     });
 
     test("a hung preflight times out and cancels its Docker work", async () => {
@@ -202,6 +277,27 @@ suite("Object Explorer v2 container startup", () => {
         expect(h.open).to.have.been.calledTwice;
     });
 
+    test("new containers retry a transient login failure during initialization", async () => {
+        const clock = sandbox.useFakeTimers();
+        const h = harness();
+        h.open.onFirstCall().rejects(new Error("Login failed for user 'sa'."));
+        const connected = h.controller.connectProfile("p1", { freshContainer: true });
+        await clock.tickAsync(11);
+        expect(await connected).to.equal(true);
+        expect(h.open).to.have.been.calledTwice;
+    });
+
+    test("new container login failures stop after the short grace period", async () => {
+        const clock = sandbox.useFakeTimers();
+        const h = harness();
+        h.open.rejects(new Error("Login failed for user 'sa'."));
+        const connected = h.controller.connectProfile("p1", { freshContainer: true });
+        await clock.tickAsync(50);
+        expect(await connected).to.equal(false);
+        expect(h.open).to.have.been.calledTwice;
+        expect(h.registry.get("p1")?.failureReason).to.equal("Login failed for user 'sa'.");
+    });
+
     for (const reason of [
         "Login failed for user sa",
         "Pre-login handshake: certificate chain is not trusted",
@@ -224,6 +320,8 @@ suite("Object Explorer v2 container startup", () => {
         await clock.tickAsync(50);
         expect(await connected).to.equal(false);
         expect(h.open).to.have.been.calledOnce;
+        expect(h.registry.stateOf("p1")).to.equal("disconnected");
+        expect(h.registry.get("p1")?.failureReason).to.equal(undefined);
     });
 
     test("retries stop at the startup budget", async () => {
@@ -384,6 +482,42 @@ suite("Object Explorer v2 container commands", () => {
     });
 
     for (const command of ["stopContainer", "deleteContainer"]) {
+        for (const boundary of ["prepare", "disconnect"] as const) {
+            test(`editing a connection during ${boundary} prevents ${command}`, async () => {
+                const h = harness();
+                h.warn.resolves(Common.delete as never);
+                const replace = () => {
+                    // A different server with the same ID/container is also a replacement.
+                    h.profiles[0].server = "replacement-server";
+                };
+                if (boundary === "prepare")
+                    h.prepare.callsFake(async () => {
+                        replace();
+                        return { success: true };
+                    });
+                else h.disconnect.callsFake(async () => replace());
+                await h.invoke(command);
+                expect(h.stop).not.to.have.been.called;
+                expect(h.removeContainer).not.to.have.been.called;
+                expect(h.remove).not.to.have.been.called;
+            });
+        }
+        for (const outcome of ["false", "throw"]) {
+            test(`${command} clears preparation activity after ${outcome}`, async () => {
+                const h = harness();
+                const activity = sandbox.spy(OeV2TreeController.prototype, "setContainerActivity");
+                h.warn.resolves(Common.delete as never);
+                h.prepare.callsFake(async (_name, host) => {
+                    await (host as ContainerHostAdapter).setStatus("Starting Docker");
+                    if (outcome === "throw") throw new Error("engine unavailable");
+                    return { success: false };
+                });
+                await Promise.resolve(h.invoke(command)).catch(() => undefined);
+                expect(activity.lastCall.args).to.deep.equal(["p1", undefined]);
+                expect(h.stop).not.to.have.been.called;
+                expect(h.removeContainer).not.to.have.been.called;
+            });
+        }
         test(`disabling during disconnect prevents ${command}`, async () => {
             const h = harness();
             h.warn.resolves(Common.delete as never);
@@ -394,6 +528,18 @@ suite("Object Explorer v2 container commands", () => {
             expect(h.remove).not.to.have.been.called;
         });
     }
+
+    test("a replacement profile is retained if it changes during container deletion", async () => {
+        const h = harness();
+        h.warn.resolves(Common.delete as never);
+        h.removeContainer.callsFake(async () => {
+            h.profiles[0].containerName = "replacement";
+            return true;
+        });
+        await h.invoke("deleteContainer");
+        expect(h.removeContainer).to.have.been.calledOnce;
+        expect(h.remove).not.to.have.been.called;
+    });
 
     test("disabling during confirmation cancels deletion", async () => {
         const h = harness();

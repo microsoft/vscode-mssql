@@ -98,6 +98,8 @@ export interface OeV2Node {
     readonly objectName?: string;
     /** Docker container behind this connection profile (DOCK-2). */
     readonly containerName?: string;
+    /** Explicit recovery action for a deliberately stopped container. */
+    readonly action?: "startContainer";
     readonly readiness: OeV2Readiness;
     readonly capabilities: OeV2NodeCapabilities;
     /** Icon name resolved against media/objectTypes at the vscode edge. */
