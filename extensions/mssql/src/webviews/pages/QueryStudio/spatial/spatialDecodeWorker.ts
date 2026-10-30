@@ -11,7 +11,7 @@ import type {
     SpatialDecodedFeature,
 } from "./spatialWorkerProtocol";
 import {
-    analyzeSpatialCoordinates,
+    analyzeSpatialGeometry,
     estimateSpatialDerivedBytes,
     spatialBudgetReason,
 } from "./spatialGeometryAnalysis";
@@ -56,8 +56,7 @@ function decodeFeature(feature: SpatialDecodeRequest["features"][number]): Spati
             unknown
         >;
         const geometryType = geometry.getType();
-        const coordinates = geometryObject["coordinates"];
-        const analysis = analyzeSpatialCoordinates(geometryType, coordinates);
+        const analysis = analyzeSpatialGeometry(geometryObject);
         const projection =
             feature.spatial.kind === "geography" || feature.spatial.srid === 4326
                 ? ("EPSG:4326" as const)

@@ -15,7 +15,7 @@
  * VS Code seams stay injected so the decision logic is unit-testable.
  */
 
-import { validateSpatialBasemapSources } from "./spatialBasemapConfig";
+import { validateSpatialBasemapSources, spatialBasemapFingerprint } from "./spatialBasemapConfig";
 
 /** The stock entry the offer writes — must pass validateSpatialBasemapSources. */
 export const SPATIAL_BASEMAP_OSM_SOURCE = {
@@ -100,7 +100,7 @@ export function createSpatialBasemapSetupOffer(
             const added = validateSpatialBasemapSources(sources).sources.find(
                 (source) => source.config.id.toLowerCase() === SPATIAL_BASEMAP_OSM_SOURCE.id,
             );
-            if (added) {
+            if (added?.fingerprint === spatialBasemapFingerprint(SPATIAL_BASEMAP_OSM_SOURCE)) {
                 await deps.recordConsent(added.fingerprint);
             }
             deps.confirm();

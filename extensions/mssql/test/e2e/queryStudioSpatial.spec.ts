@@ -43,7 +43,7 @@ for (const enabled of [true, false]) {
                 });
                 await studio.locator(".monaco-editor .view-lines").click();
                 await page.keyboard.insertText(
-                    "SELECT id, label, CASE WHEN id < 3 THEN geography::Point(lat, lon, 4326) END AS location FROM (VALUES (1, N'Seattle', 47.6, -122.3), (2, N'London', 51.5, -0.1), (3, N'No location', 0.0, 0.0)) AS places(id, label, lat, lon);",
+                    "SELECT id, label, CASE WHEN id < 3 THEN geography::Point(lat, lon, 4326) END AS location, geography::Point(lon / 2, lat, 4326) AS alternate FROM (VALUES (1, N'Seattle', 47.6, -122.3), (2, N'London', 51.5, -0.1), (3, N'No location', 0.0, 0.0)) AS places(id, label, lat, lon); SELECT geography::Point(10, 20, 4326) AS only_location;",
                 );
                 await studio.getByTitle("Execute (F5 / Ctrl+E)", { exact: true }).click();
                 await expect(
@@ -104,5 +104,65 @@ for (const enabled of [true, false]) {
                 );
             }
         });
+
+        if (enabled)
+            test("column/color changes and quick tab switches load fresh map data", async () => {
+                const { page } = getContext();
+                await page
+                    .getByRole("tab", { name: /Untitled-1/ })
+                    .first()
+                    .click();
+                await studio.getByRole("tab", { name: "Spatial", exact: true }).click();
+                const list = studio.getByRole("listbox", { name: "Spatial features" });
+                await expect(list.getByRole("option", { name: /Point$/ })).toHaveCount(2, {
+                    timeout: 20000,
+                });
+                await studio
+                    .getByRole("combobox", { name: "Layers", exact: true })
+                    .selectOption("none");
+                const label = studio.getByRole("combobox", { name: "Label", exact: true });
+                const color = studio.getByRole("combobox", { name: "Color by", exact: true });
+                const column = studio.getByRole("combobox", {
+                    name: "Spatial column",
+                    exact: true,
+                });
+                const image = () =>
+                    studio
+                        .locator(".qs-spatial-map-region canvas")
+                        .evaluateAll((canvases) =>
+                            canvases
+                                .map((canvas) => (canvas as HTMLCanvasElement).toDataURL())
+                                .join("|"),
+                        );
+                const before = await image();
+                await color.selectOption("1");
+                await expect.poll(image, { timeout: 20000 }).not.toEqual(before);
+                await label.selectOption("1");
+                const alternate = await column
+                    .locator("option")
+                    .filter({ hasText: / · alternate$/ })
+                    .getAttribute("value");
+                await column.selectOption(alternate!);
+                await expect(list.getByRole("option")).toHaveCount(3, { timeout: 20000 });
+                await expect(studio.locator(".qs-spatial-details")).not.toContainText(
+                    "sessionOpenFailed",
+                );
+                const narrow = await column
+                    .locator("option")
+                    .filter({ hasText: / · only_location$/ })
+                    .getAttribute("value");
+                await column.selectOption(narrow!);
+                await expect(label).toHaveValue("");
+                await expect(color).toHaveValue("");
+                await expect(list.getByRole("option")).toHaveCount(1, { timeout: 20000 });
+                for (let i = 0; i < 3; i++) {
+                    await studio.getByRole("tab", { name: /^Results/ }).click();
+                    await studio.getByRole("tab", { name: "Spatial", exact: true }).click();
+                }
+                await expect(list.getByRole("option", { name: /Point$/ })).toHaveCount(1, {
+                    timeout: 20000,
+                });
+                await expect(studio.locator(".qs-spatial-map-region canvas").first()).toBeVisible();
+            });
     });
 }

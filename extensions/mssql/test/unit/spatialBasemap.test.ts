@@ -16,6 +16,15 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
+import * as sinon from "sinon";
+import * as https from "https";
+import { ClientRequest } from "http";
+import { EventEmitter } from "events";
+import { PassThrough } from "stream";
+import {
+    fetchBasemapResponse,
+    pinnedBasemapLookup,
+} from "../../src/queryResults/spatialBasemap/spatialBasemapNode";
 import { spatialBasemapCacheRoot } from "../../src/queryResults/spatialBasemap/spatialBasemapHost";
 import {
     isPrivateNetworkHost,
@@ -125,6 +134,283 @@ function manager(options: ManagerOptions = {}) {
     });
     return { sessions, source, consent, cache, confirmed };
 }
+
+suite("spatial basemap review regressions", () => {
+    const sandbox = sinon.createSandbox();
+    teardown(() => sandbox.restore());
+
+    test("private address detection covers mapped IPv6 without rejecting DNS names", () => {
+        for (const host of [
+            "::ffff:127.0.0.1",
+            "[::ffff:7f00:1]",
+            "::ffff:10.0.0.1",
+            "::",
+            "100.64.0.1",
+            "febf::1",
+        ])
+            expect(isPrivateNetworkHost(host), host).to.equal(true);
+        for (const host of [
+            "fdot-tiles.example.com",
+            "fc-maps.example.com",
+            "203.0.113.7",
+            "2001:db8::1",
+        ])
+            expect(isPrivateNetworkHost(host), host).to.equal(false);
+        expect(
+            validateSpatialBasemapSources([
+                { ...GOOD_SOURCE, urlTemplate: "https://[::ffff:127.0.0.1]/{z}/{x}/{y}.png" },
+            ]).issues.map((issue) => issue.code),
+        ).to.include("privateNetwork");
+    });
+
+    test("approved addresses are pinned to the socket lookup and the app identifies itself", async () => {
+        const lookup = sandbox.stub().resolves(["203.0.113.7"]);
+        const fetch = sandbox
+            .stub()
+            .callsFake(async (_url, init: RequestInit, addresses: readonly string[]) => {
+                expect(addresses).to.deep.equal(["203.0.113.7"]);
+                expect(new Headers(init.headers).get("user-agent")).to.include("vscode-mssql");
+                const connected = sandbox.spy();
+                pinnedBasemapLookup(addresses)("maps.contoso.example", { all: true }, connected);
+                expect(connected.firstCall.args).to.deep.equal([
+                    null,
+                    [{ address: "203.0.113.7", family: 4 }],
+                ]);
+                return pngResponse();
+            });
+        expect(
+            (
+                await fetchSpatialBasemapTile(
+                    { url: "https://maps.contoso.example/0/0/0.png", allowPrivateNetwork: false },
+                    { lookup, fetch },
+                )
+            ).status,
+        ).to.equal("ok");
+        expect(lookup.calledOnce).to.equal(true);
+        const error = sandbox.spy();
+        pinnedBasemapLookup(["203.0.113.7"])("maps.contoso.example", { family: 6 }, error);
+        expect(error.firstCall.args[0]).to.be.instanceOf(Error);
+    });
+
+    test("native transport preserves the TLS hostname and rejects malformed responses safely", async () => {
+        const incoming = Object.assign(new PassThrough(), { rawHeaders: [], statusCode: 700 });
+        sandbox.stub(https, "request").callsFake((...args: unknown[]) => {
+            expect(args[0]).to.equal("https://maps.contoso.example/0/0/0.png");
+            const options = args[1] as https.RequestOptions;
+            expect(options.agent).to.equal(false);
+            const connected = sandbox.spy();
+            options.lookup!("maps.contoso.example", { all: true }, connected);
+            expect(connected.firstCall.args[1]).to.deep.equal([
+                { address: "203.0.113.7", family: 4 },
+            ]);
+            const respond = args[2] as (response: typeof incoming) => void;
+            return Object.assign(new EventEmitter(), {
+                end: () => setImmediate(() => respond(incoming)),
+            }) as unknown as ClientRequest;
+        });
+        const rejected = await fetchBasemapResponse("https://maps.contoso.example/0/0/0.png", {}, [
+            "203.0.113.7",
+        ]).then(
+            () => false,
+            () => true,
+        );
+        expect(rejected).to.equal(true);
+        expect(incoming.destroyed).to.equal(true);
+    });
+
+    test("unused error/redirect bodies are aborted, including retries", async () => {
+        for (const status of [302, 404, 503]) {
+            const signals: AbortSignal[] = [];
+            await fetchSpatialBasemapTile(
+                { url: "https://maps.contoso.example/0/0/0.png", allowPrivateNetwork: false },
+                {
+                    lookup: async () => ["203.0.113.7"],
+                    fetch: async (_url, init) => {
+                        signals.push(init.signal!);
+                        return new Response(new ReadableStream(), { status });
+                    },
+                },
+            );
+            expect(signals).to.have.length(status === 503 ? 2 : 1);
+            expect(signals.every((signal) => signal.aborted)).to.equal(true);
+        }
+    });
+
+    test("DNS resolution is included in the request deadline", async () => {
+        const fetch = sandbox.stub();
+        const result = await fetchSpatialBasemapTile(
+            {
+                url: "https://maps.contoso.example/0/0/0.png",
+                allowPrivateNetwork: false,
+                timeoutMs: 10,
+            },
+            { lookup: () => new Promise(() => undefined), fetch },
+        );
+        expect(result.status).to.equal("timeout");
+        expect(fetch.called).to.equal(false);
+    });
+
+    test("revoked consent, changed sources and trust block cached and network tiles", async () => {
+        for (const change of ["consent", "source", "trust"] as const) {
+            let source = validated();
+            let trusted = true;
+            const consent = createSpatialBasemapConsentStore(memento());
+            await consent.record(source.fingerprint);
+            const cache = tempCache();
+            const fetcher = fakeFetcher(() => pngResponse());
+            const sessions = new SpatialBasemapSessionManager({
+                sources: () => [source],
+                consent,
+                cache,
+                fetcher,
+                isTrusted: () => trusted,
+                confirm: async () => true,
+                secretFor: async () => undefined,
+            });
+            const opened = await sessions.open({
+                layerId: source.config.id,
+                activeProjection: "EPSG:4326",
+                interactive: false,
+            });
+            const params = {
+                handle: opened.handle!,
+                generation: opened.generation!,
+                z: 1,
+                x: 0,
+                y: 0,
+            };
+            expect((await sessions.tile(params)).status).to.equal("ready");
+            if (change === "consent") await consent.clearAll();
+            else if (change === "source")
+                source = validated({
+                    urlTemplate: "https://changed.contoso.example/{z}/{x}/{y}.png",
+                });
+            else trusted = false;
+            expect((await sessions.tile(params)).status).to.equal("cancelled");
+            expect((await sessions.tile({ ...params, x: 1 })).status).to.equal("cancelled");
+            expect(fetcher.urls).to.have.length(1);
+            sessions.dispose("test");
+            await cache.clearAll();
+        }
+    });
+
+    test("all panel managers share the global fetch limit and release capacity", async () => {
+        const releases: Array<() => void> = [];
+        let current = 0,
+            peak = 0;
+        let finishing = false;
+        const fetcher = fakeFetcher(async () => {
+            current++;
+            peak = Math.max(peak, current);
+            if (!finishing) await new Promise<void>((resolve) => releases.push(resolve));
+            current--;
+            return pngResponse();
+        });
+        const contexts = Array.from({ length: 4 }, () => manager({ fetcher }));
+        const outcomes: Array<Promise<unknown>> = [];
+        try {
+            for (const ctx of contexts) {
+                const opened = await ctx.sessions.open({
+                    layerId: ctx.source.config.id,
+                    activeProjection: "EPSG:4326",
+                    interactive: false,
+                });
+                for (let x = 0; x < 4; x++)
+                    outcomes.push(
+                        ctx.sessions.tile({
+                            handle: opened.handle!,
+                            generation: opened.generation!,
+                            z: 2,
+                            x,
+                            y: 0,
+                        }),
+                    );
+            }
+            // Wait for the async disk cache misses, without holding pending fetches forever.
+            const deadline = Date.now() + 5000;
+            while (releases.length < 12 && Date.now() < deadline)
+                await new Promise<void>((resolve) => setTimeout(resolve, 5));
+            expect(peak).to.equal(12);
+        } finally {
+            finishing = true;
+            releases.forEach((release) => release());
+            await Promise.all(outcomes);
+            for (const ctx of contexts) {
+                ctx.sessions.dispose("test");
+                await ctx.cache.clearAll();
+            }
+        }
+        const ctx = manager();
+        const opened = await ctx.sessions.open({
+            layerId: ctx.source.config.id,
+            activeProjection: "EPSG:4326",
+            interactive: false,
+        });
+        expect(
+            (
+                await ctx.sessions.tile({
+                    handle: opened.handle!,
+                    generation: opened.generation!,
+                    z: 0,
+                    x: 0,
+                    y: 0,
+                })
+            ).status,
+        ).to.equal("ready");
+        ctx.sessions.dispose("test");
+        await ctx.cache.clearAll();
+    });
+
+    test("closing a panel aborts an in-flight request and invalidates its result", async () => {
+        let started!: () => void;
+        const ready = new Promise<void>((resolve) => (started = resolve));
+        const ctx = manager({
+            fetcher: {
+                lookup: async () => ["203.0.113.7"],
+                fetch: async (_url, init) => {
+                    started();
+                    await new Promise<void>((resolve) =>
+                        init.signal!.addEventListener("abort", () => resolve(), { once: true }),
+                    );
+                    throw Object.assign(new Error("aborted"), { name: "AbortError" });
+                },
+            },
+        });
+        const opened = await ctx.sessions.open({
+            layerId: ctx.source.config.id,
+            activeProjection: "EPSG:4326",
+            interactive: false,
+        });
+        const pending = ctx.sessions.tile({
+            handle: opened.handle!,
+            generation: opened.generation!,
+            z: 0,
+            x: 0,
+            y: 0,
+        });
+        await ready;
+        ctx.sessions.dispose("consentChanged");
+        expect((await pending).status).to.equal("cancelled");
+        await ctx.cache.clearAll();
+    });
+
+    test("concurrent cache writes enforce the disk budget and live budget changes", async () => {
+        const cache = tempCache(4096);
+        try {
+            const writes = await Promise.all(
+                Array.from({ length: 20 }, (_, x) =>
+                    cache.put("source", 5, x, 0, new Uint8Array(1024)),
+                ),
+            );
+            expect(await cache.diskBytes()).to.be.at.most(4096);
+            expect(fs.existsSync(writes[19].filePath)).to.equal(true);
+            await cache.updateBudgets(2048, 60_000);
+            expect(await cache.diskBytes()).to.be.at.most(2048);
+        } finally {
+            await cache.clearAll();
+        }
+    });
+});
 
 suite("spatial basemap source validation (SPA-10 §5.2)", () => {
     test("a well-formed source validates and sanitizes", () => {
@@ -570,6 +856,7 @@ suite("spatial basemap setup offer (first-view OpenStreetMap onboarding)", () =>
                 source.config.id.toLowerCase(),
             ),
         ).to.deep.equal(["osm-standard"]);
+        expect(withOsm.consents).to.deep.equal([]);
     });
 
     test("asks at most once per session and never after don't-ask-again", async () => {

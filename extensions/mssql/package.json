@@ -2122,6 +2122,10 @@
                 {
                     "command": "mssql.spatialBasemap.clearConsent",
                     "when": "config.mssql.queryStudio.spatial.basemap.enabled"
+                },
+                {
+                    "command": "mssql.spatialBasemap.setCredential",
+                    "when": "config.mssql.queryStudio.spatial.basemap.enabled"
                 }
             ],
             "webview/context": [
@@ -3547,6 +3551,11 @@
             {
                 "command": "mssql.spatialBasemap.clearConsent",
                 "title": "%mssql.spatialBasemap.clearConsent.title%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.spatialBasemap.setCredential",
+                "title": "%mssql.spatialBasemap.setCredential%",
                 "category": "MS SQL"
             }
         ],

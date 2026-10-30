@@ -60,7 +60,11 @@ import {
     QsSpatialBasemapTileRequest,
 } from "../sharedInterfaces/spatialBasemap";
 import { SpatialBasemapSessionManager } from "./spatialBasemap/spatialBasemapSessionManager";
-import { spatialBasemapCacheRoot, spatialBasemapHost } from "./spatialBasemap/spatialBasemapHost";
+import {
+    spatialBasemapCacheRoot,
+    spatialBasemapHost,
+    onDidChangeSpatialBasemap,
+} from "./spatialBasemap/spatialBasemapHost";
 import {
     createExecutionPlanGraphs,
     openExecutionPlanWebview,
@@ -133,6 +137,13 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
             }),
         );
         this.registerDisposable(
+            onDidChangeSpatialBasemap(() => {
+                this.spatialBasemapService?.dispose("consentChanged");
+                this.spatialBasemapEpoch++;
+                this.state = this.currentState();
+            }),
+        );
+        this.registerDisposable(
             vscode.workspace.onDidChangeConfiguration((e) => {
                 if (affectsQueryStudioGridStyle(e)) {
                     this.state = this.currentState();
@@ -148,6 +159,7 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
                         this.spatialBasemapService?.dispose("configChanged");
                         this.spatialBasemapService = undefined;
                     }
+                    this.spatialBasemapService?.dispose("configChanged");
                     // Epoch bump makes a mounted spatial pane re-fetch the
                     // layer list (one-click OSM setup lands live), same as
                     // live Query Studio.

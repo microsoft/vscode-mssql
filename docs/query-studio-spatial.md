@@ -29,7 +29,7 @@ The flag defaults **off**. Enabling it applies typed spatial transport to subseq
 
 The map and bundled world outline work offline. Online basemaps default off. Opening the map may offer to configure OpenStreetMap; accepting configures a layer and records the explicit network consent. Online requests are made by the extension host, restricted to trusted workspaces and approved HTTPS sources. Map tiles reveal the viewed area to that provider; query rows, SQL, and server credentials are not sent.
 
-Advanced settings under `mssql.queryStudio.spatial.basemap` configure sources and bounded disk caching. Credentials use secret-storage references, not webview URLs. **MS SQL: Spatial Map Layers: Clear Tile Cache** and **MS SQL: Spatial Map Layers: Clear Layer Consent** clear cached tiles or remembered permissions. Layer configuration changes invalidate active sessions.
+Advanced settings under `mssql.queryStudio.spatial.basemap` configure sources and bounded disk caching. For an authenticated provider, configure its `credentialRef`, then run **MS SQL: Spatial Map Layers: Set Layer Credential** to store its bearer token securely (an empty entry removes it). Credentials never enter webview URLs. Private-network sources require an additional warning and confirmation. **MS SQL: Spatial Map Layers: Clear Tile Cache** and **MS SQL: Spatial Map Layers: Clear Layer Consent** clear cached tiles or remembered permissions. Configuration or consent changes invalidate active sessions; cache budget changes apply without reloading.
 
 ## Scope and limits
 

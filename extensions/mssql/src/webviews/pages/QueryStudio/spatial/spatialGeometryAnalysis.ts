@@ -10,6 +10,31 @@ export interface SpatialGeometryAnalysis {
     rings: number;
 }
 
+/** GeoJSON collections have member geometries rather than a coordinates field. */
+export function analyzeSpatialGeometry(geometry: Record<string, unknown>): SpatialGeometryAnalysis {
+    if (geometry.type !== "GeometryCollection") {
+        return analyzeSpatialCoordinates(String(geometry.type), geometry.coordinates);
+    }
+    const result: SpatialGeometryAnalysis = { vertices: 0, parts: 0, rings: 0 };
+    for (const member of Array.isArray(geometry.geometries) ? geometry.geometries : []) {
+        if (!member || typeof member !== "object") continue;
+        const child = analyzeSpatialGeometry(member as Record<string, unknown>);
+        result.vertices += child.vertices;
+        result.parts += child.parts;
+        result.rings += child.rings;
+        if (child.envelope) {
+            const [minX, minY, maxX, maxY] = result.envelope ?? child.envelope;
+            result.envelope = [
+                Math.min(minX, child.envelope[0]),
+                Math.min(minY, child.envelope[1]),
+                Math.max(maxX, child.envelope[2]),
+                Math.max(maxY, child.envelope[3]),
+            ];
+        }
+    }
+    return result;
+}
+
 export function estimateSpatialDerivedBytes(
     vertices: number,
     labelLength = 0,

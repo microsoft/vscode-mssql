@@ -74,7 +74,8 @@ export type SpatialBasemapFetchResult =
 
 /** Injectable network seam: tests use deterministic fakes, never the internet. */
 export interface SpatialBasemapFetcherDeps {
-    fetch(url: string, init: RequestInit): Promise<Response>;
+    /** Connect ONLY to these vetted addresses; retain the URL hostname for TLS/SNI. */
+    fetch(url: string, init: RequestInit, addresses: readonly string[]): Promise<Response>;
     /** Resolve a hostname for the private-network gate (D-0029/addendum §5.2). */
     lookup(hostname: string): Promise<readonly string[]>;
 }

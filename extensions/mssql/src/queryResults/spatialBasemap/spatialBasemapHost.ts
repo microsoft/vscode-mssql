@@ -27,7 +27,7 @@ import {
 } from "./spatialBasemapConsent";
 import { SpatialBasemapTileCache } from "./spatialBasemapTileCache";
 import { createSpatialBasemapSetupOffer } from "./spatialBasemapOnboarding";
-import { dns } from "./spatialBasemapNode";
+import { dns, fetchBasemapResponse } from "./spatialBasemapNode";
 import { SpatialBasemap as Loc } from "../../constants/locConstants";
 
 export interface SpatialBasemapHost {
@@ -44,6 +44,8 @@ export interface SpatialBasemapHost {
 }
 
 let host: SpatialBasemapHost | undefined;
+const changed = new vscode.EventEmitter<void>();
+export const onDidChangeSpatialBasemap = changed.event;
 
 /**
  * Deterministic tile-cache root under global storage. Exposed apart from the
@@ -99,6 +101,7 @@ function initialize(context: vscode.ExtensionContext): void {
         maxDiskBytes: budgets.maxDiskBytes,
         maxAgeMs: budgets.maxAgeMs,
     });
+    context.subscriptions.push(cache);
     void vscode.workspace.fs.createDirectory(cacheRoot);
     const setupOffer = createSpatialBasemapSetupOffer({
         memento: context.globalState,
@@ -141,7 +144,7 @@ function initialize(context: vscode.ExtensionContext): void {
         consent,
         cache,
         fetcher: {
-            fetch: (url, init) => fetch(url, init),
+            fetch: fetchBasemapResponse,
             lookup: async (hostname) =>
                 (await dns.lookup(hostname, { all: true })).map((entry) => entry.address),
         },
@@ -170,7 +173,17 @@ function initialize(context: vscode.ExtensionContext): void {
                     );
                     continue;
                 }
-                return choice === enable;
+                if (choice !== enable) return false;
+                if (source.config.allowPrivateNetwork) {
+                    return (
+                        (await vscode.window.showWarningMessage(
+                            Loc.privateNetworkConsent(source.config.displayName),
+                            { modal: true },
+                            enable,
+                        )) === enable
+                    );
+                }
+                return true;
             }
         },
         secretFor: (credentialRef) =>
@@ -188,11 +201,46 @@ function initialize(context: vscode.ExtensionContext): void {
         }),
         vscode.commands.registerCommand("mssql.spatialBasemap.clearConsent", async () => {
             await consent.clearAll();
+            changed.fire();
             void vscode.window.showInformationMessage(Loc.consentCleared);
         }),
     );
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration((event) => {
+            if (event.affectsConfiguration("mssql.queryStudio.spatial.basemap.cache")) {
+                const next = cacheBudgets();
+                void cache.updateBudgets(next.maxDiskBytes, next.maxAgeMs).catch(() => undefined);
+            }
+        }),
+        vscode.commands.registerCommand("mssql.spatialBasemap.setCredential", async () => {
+            const sources = host?.sources().filter((source) => source.config.credentialRef) ?? [];
+            if (!sources.length) {
+                void vscode.window.showInformationMessage(Loc.noCredentialSources);
+                return;
+            }
+            const picked = await vscode.window.showQuickPick(
+                sources.map((source) => ({ label: source.config.displayName, source })),
+                { placeHolder: Loc.selectCredentialSource },
+            );
+            if (!picked) return;
+            const value = await vscode.window.showInputBox({
+                password: true,
+                ignoreFocusOut: true,
+                prompt: Loc.credentialPrompt,
+                validateInput: (text) => (/[\r\n]/.test(text) ? Loc.invalidCredential : undefined),
+            });
+            if (value === undefined) return;
+            const key = "mssql.spatialBasemap." + picked.source.config.credentialRef!;
+            if (value) await context.secrets.store(key, value);
+            else await context.secrets.delete(key);
+            changed.fire();
+            await cache.clearAll();
+            void vscode.window.showInformationMessage(Loc.credentialSaved);
+        }),
+    );
     // Startup hygiene: prune expired/oversized tiles without blocking activation.
-    setTimeout(() => void cache.evict(), 5_000);
+    const cleanup = setTimeout(() => void cache.evict().catch(() => undefined), 5_000);
+    context.subscriptions.push({ dispose: () => clearTimeout(cleanup) });
 }
 
 /** Undefined until activation wires it (tests build their own deps instead). */

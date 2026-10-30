@@ -630,5 +630,6 @@
     "mssql.queryStudio.spatial.basemap.sources.kind": "Source protocol. Only host-proxied XYZ raster tiles are supported.",
     "mssql.queryStudio.spatial.basemap.sources.urlTemplate": "HTTPS tile URL template containing exactly one {z}, {x}, and {y} placeholder and no other placeholders or credentials.",
     "mssql.queryStudio.spatial.basemap.sources.credentialRef": "Optional SecretStorage key name; the secret is sent host-side as an Authorization bearer token. Never place a secret in this setting.",
-    "mssql.queryStudio.spatial.basemap.sources.allowPrivateNetwork": "Allow a source that resolves to loopback/private addresses (additional confirmation required)."
+    "mssql.queryStudio.spatial.basemap.sources.allowPrivateNetwork": "Allow a source that resolves to loopback/private addresses (additional confirmation required).",
+    "mssql.spatialBasemap.setCredential": "Spatial Map Layers: Set Layer Credential"
 }

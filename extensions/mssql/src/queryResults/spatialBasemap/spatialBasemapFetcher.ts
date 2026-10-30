@@ -16,6 +16,7 @@ import {
     SpatialBasemapFetchResult,
     SpatialBasemapFetcherDeps,
 } from "./spatialBasemapTypes";
+import { isIP } from "net";
 import { isPrivateNetworkHost } from "./spatialBasemapConfig";
 
 const RASTER_SNIFFERS: readonly ((bytes: Uint8Array) => boolean)[] = [
@@ -39,6 +40,7 @@ export interface SpatialBasemapFetchOptions {
     readonly allowPrivateNetwork: boolean;
     readonly timeoutMs?: number;
     readonly maxBytes?: number;
+    readonly signal?: AbortSignal;
 }
 
 async function fetchOnce(
@@ -51,30 +53,54 @@ async function fetchOnce(
     if (parsed.protocol !== "https:") {
         return { status: "unavailable" };
     }
-    if (!options.allowPrivateNetwork) {
-        try {
-            const addresses = await deps.lookup(parsed.hostname);
-            if (addresses.some((address) => isPrivateNetworkHost(address))) {
-                return { status: "unavailable" };
-            }
-        } catch {
-            return "transient";
-        }
-    }
     const abort = new AbortController();
     const timer = setTimeout(() => abort.abort(), timeoutMs);
+    const cancel = () => abort.abort();
+    options.signal?.addEventListener("abort", cancel, { once: true });
+    if (options.signal?.aborted) abort.abort();
     try {
-        const response = await deps.fetch(options.url, {
-            method: "GET",
-            redirect: "manual",
-            signal: abort.signal,
-            headers: {
-                accept: "image/png,image/jpeg,image/webp",
-                ...(options.bearerSecret
-                    ? { authorization: `Bearer ${options.bearerSecret}` }
-                    : {}),
+        const hostname = parsed.hostname.replace(/^\[|\]$/g, "");
+        const addresses = isIP(hostname)
+            ? [hostname]
+            : await Promise.race([
+                  deps.lookup(hostname),
+                  new Promise<never>((_resolve, reject) => {
+                      const stop = () =>
+                          reject(
+                              Object.assign(new Error("Map request aborted"), {
+                                  name: "AbortError",
+                              }),
+                          );
+                      if (abort.signal.aborted) stop();
+                      else abort.signal.addEventListener("abort", stop, { once: true });
+                  }),
+              ]);
+        if (
+            !addresses.length ||
+            addresses.some(
+                (address) =>
+                    !isIP(address) ||
+                    (!options.allowPrivateNetwork && isPrivateNetworkHost(address)),
+            )
+        )
+            return { status: "unavailable" };
+        if (abort.signal.aborted) return { status: "timeout" };
+        const response = await deps.fetch(
+            options.url,
+            {
+                method: "GET",
+                redirect: "manual",
+                signal: abort.signal,
+                headers: {
+                    accept: "image/png,image/jpeg,image/webp",
+                    "user-agent": "vscode-mssql (+https://github.com/microsoft/vscode-mssql)",
+                    ...(options.bearerSecret
+                        ? { authorization: `Bearer ${options.bearerSecret}` }
+                        : {}),
+                },
             },
-        });
+            addresses,
+        );
         if (response.status >= 300 && response.status < 400) {
             // Redirects are refused by policy (addendum §5.2) — following one
             // would bypass the validated host.
@@ -130,6 +156,8 @@ async function fetchOnce(
         return "transient";
     } finally {
         clearTimeout(timer);
+        abort.abort(); // Also destroys every unused redirect/error response body.
+        options.signal?.removeEventListener("abort", cancel);
     }
 }
 
@@ -139,6 +167,7 @@ export async function fetchSpatialBasemapTile(
     deps: SpatialBasemapFetcherDeps,
 ): Promise<SpatialBasemapFetchResult> {
     for (let attempt = 0; attempt <= SPATIAL_BASEMAP_LIMITS.transientRetries; attempt++) {
+        if (options.signal?.aborted) return { status: "unavailable" };
         const result = await fetchOnce(options, deps);
         if (result !== "transient") {
             return result;

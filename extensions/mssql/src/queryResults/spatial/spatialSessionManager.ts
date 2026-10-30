@@ -196,6 +196,7 @@ export class SpatialSessionManager {
         const projectedIndex = new Map(ordinals.map((ordinal, index) => [ordinal, index]));
         const features: QsSpatialFeatureTransport[] = [];
         let scannedRows = 0;
+        let stoppedForBytes = false;
         let estimatedBytes = 256;
         const remainingResponseBytes = MAX_SESSION_RESPONSE_BYTES - session.responseBytes;
         const rowCount = Math.min(
@@ -203,7 +204,7 @@ export class SpatialSessionManager {
             session.totalRows - session.nextRow,
             MAX_SCAN_ROWS - session.nextRow,
         );
-        for await (const chunk of session.store.streamRows({
+        chunks: for await (const chunk of session.store.streamRows({
             resultSetId: session.resultSetId,
             rowStart: session.nextRow,
             rowCount,
@@ -247,28 +248,29 @@ export class SpatialSessionManager {
                     (features.length > 0 && nextEstimatedBytes > RESPONSE_SOFT_BYTES) ||
                     (features.length === 0 && nextEstimatedBytes > RESPONSE_HARD_BYTES)
                 ) {
-                    break;
+                    stoppedForBytes = true;
+                    break chunks;
                 }
                 features.push(feature);
                 estimatedBytes = nextEstimatedBytes;
                 scannedRows++;
             }
         }
-        // A hard-to-fit feature still advances; typed cell guards cap it at 1 MiB.
+        // Soft chunk cuts continue on the next request; hard/session cuts end honestly.
         session.nextRow += scannedRows;
         session.nextSequence++;
         const rowBudgetReached = session.nextRow >= Math.min(session.totalRows, MAX_SCAN_ROWS);
         const responseBudgetReached =
             remainingResponseBytes <= 0 ||
-            (scannedRows === 0 && session.nextRow < session.totalRows && !rowBudgetReached);
-        const storeShortRead = scannedRows === 0 && !rowBudgetReached && !responseBudgetReached;
+            (stoppedForBytes && (scannedRows === 0 || estimatedBytes >= remainingResponseBytes));
+        const storeShortRead = !stoppedForBytes && scannedRows < rowCount;
         const done =
             session.nextRow >= session.totalRows ||
             rowBudgetReached ||
             responseBudgetReached ||
             storeShortRead;
         const partialReason =
-            session.nextRow >= session.totalRows
+            !done || session.nextRow >= session.totalRows
                 ? undefined
                 : rowBudgetReached
                   ? ("rowBudget" as const)

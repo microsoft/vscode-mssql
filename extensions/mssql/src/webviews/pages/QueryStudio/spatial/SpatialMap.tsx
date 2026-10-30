@@ -94,7 +94,9 @@ export const SpatialMap = React.forwardRef<SpatialMapHandle, SpatialMapProps>(
         );
         const tierRef = React.useRef<SpatialRendererTier>("canvas");
         const loadedRef = React.useRef(new Set<number>());
-        const featureCacheRef = React.useRef(new globalThis.Map<number, Feature>());
+        const featureCacheRef = React.useRef(
+            new globalThis.Map<number, { decoded: SpatialDecodedFeature; feature: Feature }>(),
+        );
         const propsRef = React.useRef(props);
         propsRef.current = props;
         const firstPaintRef = React.useRef(false);
@@ -353,7 +355,13 @@ export const SpatialMap = React.forwardRef<SpatialMapHandle, SpatialMapProps>(
                     continue;
                 }
                 desired.add(decoded.ordinal);
-                if (featureCacheRef.current.has(decoded.ordinal)) continue;
+                const cached = featureCacheRef.current.get(decoded.ordinal);
+                if (cached?.decoded === decoded) continue;
+                if (cached) {
+                    source.removeFeature(cached.feature);
+                    loadedRef.current.delete(decoded.ordinal);
+                    featureCacheRef.current.delete(decoded.ordinal);
+                }
                 try {
                     const feature = reader.readFeature(
                         { type: "Feature", geometry: decoded.geometry, properties: {} },
@@ -366,7 +374,7 @@ export const SpatialMap = React.forwardRef<SpatialMapHandle, SpatialMapProps>(
                     feature.set("ordinal", decoded.ordinal, true);
                     const category = decoded.colorValue ?? decoded.geometryType ?? "Spatial";
                     feature.set("colorIndex", hashCategory(category) % 6, true);
-                    featureCacheRef.current.set(decoded.ordinal, feature);
+                    featureCacheRef.current.set(decoded.ordinal, { decoded, feature });
                 } catch {
                     // Worker status remains the source of truth; one malformed
                     // geometry cannot prevent later features rendering.
@@ -375,14 +383,15 @@ export const SpatialMap = React.forwardRef<SpatialMapHandle, SpatialMapProps>(
             const firstAcceptedBatch = loadedRef.current.size === 0 && desired.size > 0;
             for (const ordinal of loadedRef.current) {
                 if (!desired.has(ordinal)) {
-                    const feature = featureCacheRef.current.get(ordinal);
+                    const feature = featureCacheRef.current.get(ordinal)?.feature;
                     if (feature) source.removeFeature(feature);
+                    featureCacheRef.current.delete(ordinal);
                 }
             }
             const added: Feature[] = [];
             for (const ordinal of desired) {
                 if (!loadedRef.current.has(ordinal)) {
-                    const feature = featureCacheRef.current.get(ordinal);
+                    const feature = featureCacheRef.current.get(ordinal)?.feature;
                     if (feature) added.push(feature);
                 }
             }

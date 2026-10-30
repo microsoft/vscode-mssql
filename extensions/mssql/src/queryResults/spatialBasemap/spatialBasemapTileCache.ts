@@ -35,8 +35,30 @@ export interface SpatialBasemapCachedTile {
 export class SpatialBasemapTileCache {
     private readonly memory = new Map<string, Uint8Array>();
     private memoryBytes = 0;
+    private pendingDisk: Promise<unknown> = Promise.resolve();
+    private bytesSinceEviction = 0;
+    private maxDiskBytes: number;
+    private maxAgeMs: number;
+    private readonly memoryTime = new Map<string, number>();
+    private maintenanceTimer: ReturnType<typeof setTimeout> | undefined;
 
-    constructor(private readonly options: SpatialBasemapTileCacheOptions) {}
+    constructor(private readonly options: SpatialBasemapTileCacheOptions) {
+        this.maxDiskBytes = options.maxDiskBytes;
+        this.maxAgeMs = options.maxAgeMs;
+    }
+
+    /** Serialize disk maintenance and writes; a scan never sees a half-written tile. */
+    private onDisk<T>(work: () => Promise<T>): Promise<T> {
+        const next = this.pendingDisk.then(work);
+        this.pendingDisk = next.catch(() => undefined);
+        return next;
+    }
+
+    async updateBudgets(maxDiskBytes: number, maxAgeMs: number): Promise<void> {
+        this.maxDiskBytes = maxDiskBytes;
+        this.maxAgeMs = maxAgeMs;
+        await this.evict();
+    }
 
     private key(fingerprint: string, z: number, x: number, y: number): string {
         return crypto
@@ -59,6 +81,8 @@ export class SpatialBasemapTileCache {
     ): Promise<(SpatialBasemapCachedTile & { tier: "memory" | "disk" }) | undefined> {
         const key = this.key(fingerprint, z, x, y);
         const filePath = this.filePathFor(key);
+        const storedAt = this.memoryTime.get(key) ?? 0;
+        if (Date.now() - storedAt > this.maxAgeMs) this.removeMemory(key);
         const memory = this.memory.get(key);
         if (memory) {
             // Refresh LRU order.
@@ -74,12 +98,12 @@ export class SpatialBasemapTileCache {
         }
         try {
             const stat = await fs.promises.stat(filePath);
-            if (Date.now() - stat.mtimeMs > this.options.maxAgeMs) {
+            if (Date.now() - stat.mtimeMs > this.maxAgeMs) {
                 await fs.promises.rm(filePath, { force: true });
                 return undefined;
             }
             const bytes = new Uint8Array(await fs.promises.readFile(filePath));
-            this.putMemory(key, bytes);
+            this.putMemory(key, bytes, stat.mtimeMs);
             return { bytes, filePath, tier: "disk" };
         } catch {
             return undefined;
@@ -100,7 +124,8 @@ export class SpatialBasemapTileCache {
         return { bytes, filePath };
     }
 
-    private putMemory(key: string, bytes: Uint8Array): void {
+    private putMemory(key: string, bytes: Uint8Array, storedAt = Date.now()): void {
+        this.memoryTime.set(key, storedAt);
         const budget = this.options.maxMemoryBytes ?? SPATIAL_BASEMAP_LIMITS.memoryCacheBytes;
         if (bytes.byteLength > budget) {
             return;
@@ -117,17 +142,42 @@ export class SpatialBasemapTileCache {
             if (oldest === undefined) break;
             const evicted = this.memory.get(oldest);
             this.memory.delete(oldest);
+            this.memoryTime.delete(oldest);
             this.memoryBytes -= evicted?.byteLength ?? 0;
         }
     }
 
+    private removeMemory(key: string): void {
+        this.memoryBytes -= this.memory.get(key)?.byteLength ?? 0;
+        this.memory.delete(key);
+        this.memoryTime.delete(key);
+    }
+
     private async writeFile(filePath: string, bytes: Uint8Array): Promise<void> {
-        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-        await fs.promises.writeFile(filePath, bytes);
+        await this.onDisk(async () => {
+            await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+            await fs.promises.writeFile(filePath, bytes);
+            this.bytesSinceEviction += bytes.byteLength;
+            if (!this.maintenanceTimer) {
+                this.maintenanceTimer = setTimeout(() => {
+                    this.maintenanceTimer = undefined;
+                    void this.evict().catch(() => undefined);
+                }, 5000);
+                this.maintenanceTimer.unref();
+            }
+            // Amortized, single-flight maintenance bounds growth during browsing.
+            // The just-written URI is protected for this handoff.
+            if (this.bytesSinceEviction >= this.maxDiskBytes / 8) await this.evictFiles(filePath);
+        });
     }
 
     /** Byte-budget then age eviction; returns surviving byte count. */
     async evict(): Promise<number> {
+        return this.onDisk(() => this.evictFiles());
+    }
+
+    private async evictFiles(protectedPath?: string): Promise<number> {
+        this.bytesSinceEviction = 0;
         const files: { filePath: string; bytes: number; mtimeMs: number }[] = [];
         const now = Date.now();
         const walk = async (dir: string): Promise<void> => {
@@ -144,8 +194,9 @@ export class SpatialBasemapTileCache {
                 } else if (entry.name.endsWith(".tile")) {
                     try {
                         const stat = await fs.promises.stat(full);
-                        if (now - stat.mtimeMs > this.options.maxAgeMs) {
+                        if (now - stat.mtimeMs > this.maxAgeMs) {
                             await fs.promises.rm(full, { force: true });
+                            this.removeMemory(path.basename(full, ".tile"));
                         } else {
                             files.push({ filePath: full, bytes: stat.size, mtimeMs: stat.mtimeMs });
                         }
@@ -159,7 +210,8 @@ export class SpatialBasemapTileCache {
         files.sort((left, right) => left.mtimeMs - right.mtimeMs);
         let total = files.reduce((sum, file) => sum + file.bytes, 0);
         for (const file of files) {
-            if (total <= this.options.maxDiskBytes) break;
+            if (total <= this.maxDiskBytes) break;
+            if (file.filePath === protectedPath) continue;
             await fs.promises.rm(file.filePath, { force: true });
             total -= file.bytes;
         }
@@ -168,10 +220,20 @@ export class SpatialBasemapTileCache {
 
     /** `Clear Spatial Map Cache` command: removes every cached tile. */
     async clearAll(): Promise<void> {
-        this.memory.clear();
-        this.memoryBytes = 0;
-        await fs.promises.rm(this.options.root, { recursive: true, force: true });
-        await fs.promises.mkdir(this.options.root, { recursive: true });
+        this.dispose();
+        await this.onDisk(async () => {
+            this.memory.clear();
+            this.memoryTime.clear();
+            this.memoryBytes = 0;
+            this.bytesSinceEviction = 0;
+            await fs.promises.rm(this.options.root, { recursive: true, force: true });
+            await fs.promises.mkdir(this.options.root, { recursive: true });
+        });
+    }
+
+    dispose(): void {
+        if (this.maintenanceTimer) clearTimeout(this.maintenanceTimer);
+        this.maintenanceTimer = undefined;
     }
 
     async diskBytes(): Promise<number> {

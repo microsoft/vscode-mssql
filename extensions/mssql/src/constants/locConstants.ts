@@ -4838,6 +4838,22 @@ export class SqlMoveToSchema {
         l10n.t("Failed to update the .sqlproj after moving the file: {0}", message);
 }
 export class SpatialBasemap {
+    public static privateNetworkConsent = (name: string) =>
+        l10n.t(
+            "Allow map layer {0} to connect to private or local network addresses, including services on this machine? Only enable this for a provider you trust.",
+            name,
+        );
+    public static noCredentialSources = l10n.t(
+        "Configure a map layer with a credentialRef in mssql.queryStudio.spatial.basemap.sources first.",
+    );
+    public static selectCredentialSource = l10n.t(
+        "Select the map layer whose credential you want to set",
+    );
+    public static credentialPrompt = l10n.t(
+        "Enter the map provider bearer token. Leave empty to remove the stored credential.",
+    );
+    public static invalidCredential = l10n.t("The credential cannot contain line breaks.");
+    public static credentialSaved = l10n.t("Map layer credential updated.");
     public static addOpenStreetMap = l10n.t("Add OpenStreetMap");
     public static dontAskAgain = l10n.t("Don't Ask Again");
     public static setupOfferMessage = l10n.t(

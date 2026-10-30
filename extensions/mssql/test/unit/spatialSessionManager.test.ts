@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -38,6 +39,90 @@ function retained(store: RowStore): RetainedRowStore {
 }
 
 suite("SpatialSessionManager", () => {
+    test("normal multi-chunk results stay loading without a false partial warning", async () => {
+        const raw = new RowStore(fs.mkdtempSync(path.join(os.tmpdir(), "qs-spatial-")));
+        raw.beginResultSet("rs1", [
+            {
+                name: "shape",
+                displayName: "shape",
+                spatial: { kind: "geometry", encoding: "wkb-v1" },
+            },
+        ]);
+        await raw.appendPage("rs1", {
+            rowOffset: 0,
+            rowCount: 600,
+            approxBytes: 60000,
+            compact: {
+                values: Array.from({ length: 600 }, () => [point()]),
+                nullBitmap: packBitmap(Array(600).fill(false)),
+            },
+        });
+        raw.endResultSet("rs1");
+        const store = retained(raw);
+        const service = new SpatialSessionManager();
+        const opened = service.open(store, { resultSetId: "rs1", spatialColumn: 0 });
+        try {
+            const first = await service.next({
+                handle: opened.handle,
+                generation: opened.generation,
+                sequence: 0,
+            });
+            expect(first.done).to.equal(false);
+            expect(first.partial).to.not.equal(true);
+            expect(first.partialReason).to.equal(undefined);
+            expect(first.features).to.have.length(512);
+            const last = await service.next({
+                handle: opened.handle,
+                generation: opened.generation,
+                sequence: 1,
+            });
+            expect(last.done).to.equal(true);
+            expect(last.partial).to.not.equal(true);
+            expect(last.features).to.have.length(88);
+            expect(last.features[0].ordinal).to.equal(512);
+        } finally {
+            service.dispose();
+            store.releaseLiveOwner("documentClosed");
+        }
+    });
+
+    test("a short store read reports storeShortRead instead of payloadBudget", async () => {
+        const sandbox = sinon.createSandbox();
+        const raw = new RowStore(fs.mkdtempSync(path.join(os.tmpdir(), "qs-spatial-")));
+        raw.beginResultSet("rs1", [
+            {
+                name: "shape",
+                displayName: "shape",
+                spatial: { kind: "geometry", encoding: "wkb-v1" },
+            },
+        ]);
+        await raw.appendPage("rs1", {
+            rowOffset: 0,
+            rowCount: 1,
+            approxBytes: 100,
+            compact: { values: [[point()]], nullBitmap: packBitmap([false]) },
+        });
+        raw.endResultSet("rs1");
+        const store = retained(raw),
+            service = new SpatialSessionManager();
+        sandbox.stub(store, "streamRows").callsFake(async function* () {
+            /* Simulate a missing retained page. */
+        });
+        try {
+            const opened = service.open(store, { resultSetId: "rs1", spatialColumn: 0 });
+            const chunk = await service.next({
+                handle: opened.handle,
+                generation: opened.generation,
+                sequence: 0,
+            });
+            expect(chunk.done).to.equal(true);
+            expect(chunk.partialReason).to.equal("storeShortRead");
+        } finally {
+            sandbox.restore();
+            service.dispose();
+            store.releaseLiveOwner("documentClosed");
+        }
+    });
     test("opens terminal typed columns, pulls sparse rows, bounds labels, and releases", async () => {
         const raw = new RowStore(fs.mkdtempSync(path.join(os.tmpdir(), "qs-spatial-")));
         raw.beginResultSet("rs1", [

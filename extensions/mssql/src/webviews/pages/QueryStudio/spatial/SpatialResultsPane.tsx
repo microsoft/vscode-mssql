@@ -347,6 +347,10 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
             resourceWorker = await createResourceWorker(
                 new URL("spatialDecodeWorker.js", document.baseURI),
             );
+            if (canceled) {
+                resourceWorker.dispose();
+                return;
+            }
             const worker = resourceWorker.worker;
             const opened = await props.rpc.sendRequest<QsSpatialOpenParams, QsSpatialOpenResult>(
                 QsSpatialOpenRequest.type,
@@ -361,6 +365,14 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                         : {}),
                 },
             );
+            if (canceled) {
+                if (opened.handle)
+                    void props.rpc.sendRequest(QsSpatialCloseRequest.type, {
+                        handle: opened.handle,
+                    });
+                resourceWorker.dispose();
+                return;
+            }
             if (opened.error || !opened.handle) {
                 throw new Error(opened.error ?? locConstants.spatialResults.sessionOpenFailed);
             }
@@ -379,6 +391,7 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                     QsSpatialNextRequest.type,
                     { handle, generation, sequence },
                 );
+                if (canceled) return;
                 if (chunk.error) throw new Error(chunk.error);
                 perfMark("mssql.queryResults.spatial.decode.begin", {
                     mode: "worker",
@@ -450,6 +463,8 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
             }
         };
         void load().catch((error) => {
+            resourceWorker?.dispose();
+            if (handle) void props.rpc.sendRequest(QsSpatialCloseRequest.type, { handle });
             if (!canceled) {
                 setLoadState({
                     kind: "error",
@@ -581,7 +596,14 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                 { layerId: selectedOnline.id, activeProjection, interactive },
             )
             .then((result) => {
-                if (cancelled) return;
+                if (cancelled) {
+                    if (result.handle)
+                        void props.rpc.sendRequest(QsSpatialBasemapCloseRequest.type, {
+                            handle: result.handle,
+                            reason: "generationInvalidated",
+                        });
+                    return;
+                }
                 setOnlineStatus(result.status);
                 if (result.status === "ready" && result.handle) {
                     opened = result.handle;
@@ -608,7 +630,14 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                 });
             }
         };
-    }, [props.basemapEnabled, selectedOnline?.id, basemapEligible, activeProjection, props.runKey]);
+    }, [
+        props.basemapEnabled,
+        props.basemapEpoch,
+        selectedOnline?.id,
+        basemapEligible,
+        activeProjection,
+        props.runKey,
+    ]);
 
     const effectiveBasemapLayer: SpatialMapProps["basemapLayer"] = !basemapEligible
         ? "none"
@@ -705,7 +734,19 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
                     <span>{locConstants.spatialResults.column}</span>
                     <select
                         value={selectedKey}
-                        onChange={(event) => setSelectedKey(event.target.value)}>
+                        onChange={(event) => {
+                            const next = props.columns.find(
+                                (column) =>
+                                    column.resultSetId + ":" + column.columnOrdinal ===
+                                    event.target.value,
+                            );
+                            setSelectedKey(event.target.value);
+                            if (next?.resultSetId !== selectedColumn?.resultSetId)
+                                updateState({
+                                    labelColumnOrdinal: undefined,
+                                    colorColumnOrdinal: undefined,
+                                });
+                        }}>
                         {props.columns.map((column) => (
                             <option
                                 key={`${column.resultSetId}:${column.columnOrdinal}`}

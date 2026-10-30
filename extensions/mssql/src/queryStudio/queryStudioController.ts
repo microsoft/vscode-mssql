@@ -86,6 +86,7 @@ import { SpatialBasemapSessionManager } from "../queryResults/spatialBasemap/spa
 import {
     spatialBasemapCacheRoot,
     spatialBasemapHost,
+    onDidChangeSpatialBasemap,
 } from "../queryResults/spatialBasemap/spatialBasemapHost";
 import {
     QsSpatialBasemapCloseRequest,
@@ -277,6 +278,13 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             }),
         );
         this.registerDisposable(
+            onDidChangeSpatialBasemap(() => {
+                this.spatialBasemapService?.dispose("consentChanged");
+                this.spatialBasemapEpoch++;
+                this.queueStatePush();
+            }),
+        );
+        this.registerDisposable(
             vscode.workspace.onDidChangeConfiguration((e) => {
                 if (affectsQueryStudioGridStyle(e)) {
                     this.queueStatePush();
@@ -302,6 +310,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     this.queueStatePush();
                 }
                 if (e.affectsConfiguration("mssql.queryStudio.spatial.basemap")) {
+                    this.spatialBasemapService?.dispose("configChanged");
                     // Epoch bump makes mounted spatial panes re-fetch the
                     // layer list (one-click OSM setup lands live).
                     this.spatialBasemapEpoch++;

@@ -4,14 +4,69 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { strict as assert } from "assert";
+import { expect } from "chai";
 import {
     analyzeSpatialCoordinates,
+    analyzeSpatialGeometry,
     estimateSpatialDerivedBytes,
     spatialBudgetReason,
 } from "../../src/webviews/pages/QueryStudio/spatial/spatialGeometryAnalysis";
 import { resolveSpatialRendererTier } from "../../src/webviews/pages/QueryStudio/spatial/spatialWorkerProtocol";
 
 suite("Spatial geometry analysis", () => {
+    test("nested collections contribute vertices, bounds, parts and rings to budgets", () => {
+        const analysis = analyzeSpatialGeometry({
+            type: "GeometryCollection",
+            geometries: [
+                { type: "Point", coordinates: [-10, -20] },
+                {
+                    type: "GeometryCollection",
+                    geometries: [
+                        {
+                            type: "LineString",
+                            coordinates: Array.from({ length: 50000 }, (_, i) => [i, i]),
+                        },
+                        {
+                            type: "Polygon",
+                            coordinates: [
+                                [
+                                    [0, 0],
+                                    [1, 1],
+                                    [0, 0],
+                                ],
+                            ],
+                        },
+                    ],
+                },
+            ],
+        });
+        expect(analysis).to.deep.equal({
+            vertices: 50004,
+            envelope: [-10, -20, 49999, 49999],
+            parts: 3,
+            rings: 1,
+        });
+        expect(
+            spatialBudgetReason(
+                0,
+                0,
+                analysis.vertices,
+                estimateSpatialDerivedBytes(analysis.vertices),
+                10000,
+                100000000,
+            ),
+        ).to.equal("vertexBudget");
+        expect(
+            spatialBudgetReason(
+                0,
+                0,
+                analysis.vertices,
+                estimateSpatialDerivedBytes(analysis.vertices),
+                100000,
+                100000,
+            ),
+        ).to.equal("derivedMemoryBudget");
+    });
     test("computes polygon envelope, vertices, parts, and rings", () => {
         const result = analyzeSpatialCoordinates("Polygon", [
             [

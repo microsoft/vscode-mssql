@@ -223,7 +223,12 @@ export function PinnedResultsApp() {
                 }
                 panelViewStateRef.current = saved;
                 panelViewStateReadyRef.current = true;
-                const savedTab: PinnedTab = "results";
+                const savedTab: PinnedTab =
+                    saved.shell.activeTab === "messages" ||
+                    saved.shell.activeTab === "queryPlan" ||
+                    saved.shell.activeTab === "spatial"
+                        ? saved.shell.activeTab
+                        : "results";
                 setActiveTab(savedTab);
                 setMountedTabs(new Set([savedTab]));
                 setMaximizedGridId(saved.shell.maximizedGridId);

@@ -645,6 +645,9 @@
     <trans-unit id="++CODE++ef77fd7e7de3068a3369a87288164dfc52c45a4fe4f9dde764612fd73c757c5e">
       <source xml:lang="en">Allow incompatible platform during deployment</source>
     </trans-unit>
+    <trans-unit id="++CODE++a497cc2ded7ad27253d19dea87cbe309756754056ad836ec78c4e8412812c2e3">
+      <source xml:lang="en">Allow map layer {0} to connect to private or local network addresses, including services on this machine? Only enable this for a provider you trust.</source>
+    </trans-unit>
     <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
       <source xml:lang="en">Allow null</source>
     </trans-unit>
@@ -2172,6 +2175,9 @@
     </trans-unit>
     <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
       <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
+    </trans-unit>
+    <trans-unit id="++CODE++39256e4b8140c3c52037f9c9f6b82926e42c54b310cac28e338e0d9c54318e0a">
+      <source xml:lang="en">Configure a map layer with a credentialRef in mssql.queryStudio.spatial.basemap.sources first.</source>
     </trans-unit>
     <trans-unit id="++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71">
       <source xml:lang="en">Configure and customize Azure SQL Databases</source>
@@ -4218,6 +4224,9 @@
     <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
       <source xml:lang="en">Enter the SQL Login password for user &apos;{0}&apos;.</source>
       <note>{0} is the SQL Login username</note>
+    </trans-unit>
+    <trans-unit id="++CODE++04cae0bcbcd61bac09ab13ed66c0a740d2edfb7b6809ce01fe7770e7194d0fa5">
+      <source xml:lang="en">Enter the map provider bearer token. Leave empty to remove the stored credential.</source>
     </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
@@ -6986,6 +6995,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2507e7a80c8e69e9ee48a97512619a0594f95c6d67f37650c9749a9b870de3eb">
       <source xml:lang="en">Map layer could not be loaded</source>
+    </trans-unit>
+    <trans-unit id="++CODE++16c31483f24b0de6c539ff0553dadf3c758bf932b8916daeeb21ca99cdfb6f8a">
+      <source xml:lang="en">Map layer credential updated.</source>
     </trans-unit>
     <trans-unit id="++CODE++bddd21dda7f5e469bff450d2005296b2af7de2bf8d04215e2b22c8bc14c16853">
       <source xml:lang="en">Map layer unavailable for this coordinate system</source>
@@ -10625,6 +10637,9 @@
     <trans-unit id="++CODE++0b91e6a7cffe5e81876eb8ce2abfa1910afb48c04364b236b607549f64f9bc93">
       <source xml:lang="en">Select the layer again to confirm online map access</source>
     </trans-unit>
+    <trans-unit id="++CODE++1465e8567018acc525257d933b605183bace32ca695a8bd35b448cae29a519bf">
+      <source xml:lang="en">Select the map layer whose credential you want to set</source>
+    </trans-unit>
     <trans-unit id="++CODE++21f736a51b932eed3aed712f5cc2cd8ca7fd204ad2690df8c6d8d1f6cd926e1a">
       <source xml:lang="en">Select the target schema</source>
     </trans-unit>
@@ -11778,6 +11793,9 @@
     <trans-unit id="++CODE++1a187c0bb776eac7a356f6623badf4084f701ae47f405cfc74374c79fbf44ddb">
       <source xml:lang="en">The container {0} will be stopped and removed, and its endpoints will stop responding.</source>
       <note>{0} is the Docker container name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4e12d91819e8808c9158ac0c6d88ba59d9fc9b017f114e7603a45e948c13ab3f">
+      <source xml:lang="en">The credential cannot contain line breaks.</source>
     </trans-unit>
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
@@ -15751,6 +15769,9 @@
     </trans-unit>
     <trans-unit id="mssql.spatialBasemap.clearCache.title">
       <source xml:lang="en">Spatial Map Layers: Clear Tile Cache</source>
+    </trans-unit>
+    <trans-unit id="mssql.spatialBasemap.setCredential">
+      <source xml:lang="en">Spatial Map Layers: Set Layer Credential</source>
     </trans-unit>
     <trans-unit id="mssql.queryStudio.spatial.basemap.sources.id">
       <source xml:lang="en">Stable ASCII identifier for this source (letters, digits, hyphens).</source>
