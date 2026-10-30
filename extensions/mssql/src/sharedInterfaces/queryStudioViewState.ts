@@ -19,11 +19,11 @@ import { SortProperties, type ColumnFilterMap, type GridViewState } from "./quer
 
 export const QS_PANEL_VIEW_STATE_VERSION = 3;
 
-export type QueryStudioTabId = "results" | "messages" | "queryPlan";
+export type QueryStudioTabId = "results" | "messages" | "vector" | "queryPlan";
 
 export function resolveQueryStudioVisibleTab(
     requested: QueryStudioTabId,
-    available: Readonly<Record<Exclude<QueryStudioTabId, "messages">, boolean>>,
+    available: Readonly<Partial<Record<Exclude<QueryStudioTabId, "messages">, boolean>>>,
 ): QueryStudioTabId {
     if (requested === "messages") return requested;
     if (requested === "results") {
@@ -97,6 +97,7 @@ export function resolveQueryStudioTerminalAutoTab(
 export const QUERY_STUDIO_TAB_ORDER: readonly QueryStudioTabId[] = [
     "results",
     "messages",
+    "vector",
     "queryPlan",
 ];
 
@@ -135,6 +136,92 @@ export interface QsMessagesPanelViewState {
     selection?: QsMessageSelection;
 }
 
+export type QsVectorWorkspaceId =
+    | "profile"
+    | "search"
+    | "compare"
+    | "projection"
+    | "index"
+    | "pipeline";
+
+export interface QsVectorSearchViewState {
+    source: "selectedRow" | "generatedVector" | "pastedVector" | "expression";
+    selectedRowOrdinal: number;
+    /** Safe grammar text only; evaluated vector components never enter panel state. */
+    expression?: string;
+    targetId?: string;
+    /**
+     * UNSENT "Text with model" draft (+ model choice and parameter text).
+     * Kept so a recreated webview restores the user's typing (Karl
+     * 2026-07-14); the panel-state contract above (memory-only, never
+     * diagnostics/replay/telemetry) is what makes this admissible. Pasted
+     * vectors and generated query vectors stay excluded, and a new run
+     * clears these with the rest of the result-bound state.
+     */
+    modelText?: string;
+    modelId?: string;
+    modelParameters?: string;
+    lastRunId?: string;
+    metric: "cosine" | "euclidean" | "dot";
+    k: number;
+    includeApprox: boolean;
+    filters: Array<{
+        column: string;
+        op: "eq" | "ne" | "gt" | "lt" | "ge" | "le";
+        /** Always blank in retained state; live filter values stay renderer-local. */
+        value: string;
+    }>;
+    sqlOpen: boolean;
+    sqlTab: "exact" | "approx";
+    sqlScrollPositions: Record<"exact" | "approx", { scrollTop: number; scrollLeft: number }>;
+    selectedRankIndex?: number;
+    rankScrollTop: number;
+}
+
+export interface QsVectorCompareViewState {
+    ordinalInput: string;
+    lastSubmittedOrdinals?: number[];
+    metric: "cosine" | "euclidean" | "negativeDot";
+}
+
+export interface QsVectorProjectionViewState {
+    fitted: boolean;
+    centerX: number;
+    centerY: number;
+    scale: number;
+    selectedOrdinal?: number;
+    listScrollTop: number;
+}
+
+export interface QsVectorIndexViewState {
+    selectedScriptId?: string;
+    scriptScrollTop?: number;
+}
+
+export interface QsVectorPipelineViewState {
+    modelName?: string;
+    sourceColumnOrdinal?: number;
+    rowOrdinal: number;
+    showSql: boolean;
+    chunkSize: number;
+    overlapPct: number;
+    lastRunId?: string;
+}
+
+export interface QsVectorPanelViewState {
+    workspace: QsVectorWorkspaceId;
+    selectedColumn?: { resultSetId: string; columnOrdinal: number };
+    profileNorm: "l2" | "l1" | "linf";
+    workspaceScrollTop: Partial<Record<QsVectorWorkspaceId, number>>;
+    profileFinding?: string;
+    profileDrawerScrollTop?: number;
+    search: QsVectorSearchViewState;
+    compare: QsVectorCompareViewState;
+    projection: QsVectorProjectionViewState;
+    index: QsVectorIndexViewState;
+    pipeline: QsVectorPipelineViewState;
+}
+
 export interface QsExecutionPlanGraphViewState {
     viewport?: { x: number; y: number; zoom: number };
     zoomPercent: number;
@@ -167,6 +254,7 @@ export interface QueryStudioPanelViewState {
         textView?: QsResultsTextViewState;
     };
     messages: QsMessagesPanelViewState;
+    vector: QsVectorPanelViewState;
     queryPlan: QsExecutionPlanViewState;
 }
 
@@ -182,6 +270,43 @@ export function createQueryStudioPanelViewState(generation: string): QueryStudio
         },
         results: { stackScrollTop: 0, grids: {} },
         messages: { scrollTop: 0 },
+        vector: {
+            workspace: "profile",
+            profileNorm: "l2",
+            workspaceScrollTop: {},
+            search: {
+                source: "selectedRow",
+                selectedRowOrdinal: 0,
+                expression: "normalize(A + B)",
+                metric: "cosine",
+                k: 20,
+                includeApprox: true,
+                filters: [],
+                sqlOpen: false,
+                sqlTab: "exact",
+                sqlScrollPositions: {
+                    exact: { scrollTop: 0, scrollLeft: 0 },
+                    approx: { scrollTop: 0, scrollLeft: 0 },
+                },
+                rankScrollTop: 0,
+            },
+            compare: { ordinalInput: "", metric: "cosine" },
+            projection: {
+                fitted: false,
+                centerX: 0,
+                centerY: 0,
+                scale: 60,
+                listScrollTop: 0,
+            },
+            index: {},
+            pipeline: {
+                rowOrdinal: 0,
+                showSql: false,
+                chunkSize: 800,
+                overlapPct: 15,
+            },
+        },
+
         queryPlan: { pageScrollTop: 0, graphs: {} },
     };
 }
@@ -194,6 +319,14 @@ export function resetQueryStudioPanelViewState(
     const next = createQueryStudioPanelViewState(generation);
     next.shell.resultsHeightPct = previous.shell.resultsHeightPct;
     next.shell.resultsPaneMaximized = previous.shell.resultsPaneMaximized;
+    next.vector.workspace = previous.vector.workspace;
+    next.vector.profileNorm = previous.vector.profileNorm;
+    next.vector.search.metric = previous.vector.search.metric;
+    next.vector.search.k = previous.vector.search.k;
+    next.vector.search.includeApprox = previous.vector.search.includeApprox;
+    next.vector.pipeline.chunkSize = previous.vector.pipeline.chunkSize;
+    next.vector.pipeline.overlapPct = previous.vector.pipeline.overlapPct;
+
     return next;
 }
 
@@ -241,11 +374,16 @@ export function normalizeQueryStudioPanelViewState(
         !isShellState(candidate.shell) ||
         !isResultsState(candidate.results) ||
         !isMessagesState(candidate.messages) ||
+        !isVectorState(candidate.vector) ||
         !isExecutionPlanState(candidate.queryPlan)
     ) {
         return undefined;
     }
     const detached = JSON.parse(serialized) as QueryStudioPanelViewState;
+    detached.vector.search.filters = detached.vector.search.filters.map((filter) => ({
+        ...filter,
+        value: "",
+    }));
     return detached;
 }
 
@@ -449,6 +587,189 @@ function isMessagesState(value: unknown): boolean {
     );
 }
 
+function isVectorState(value: unknown): boolean {
+    if (!isRecord(value)) {
+        return false;
+    }
+    const workspace = value.workspace as QsVectorWorkspaceId;
+    const scroll = value.workspaceScrollTop;
+    return (
+        hasOnlyKeys(value, [
+            "workspace",
+            "selectedColumn",
+            "profileNorm",
+            "workspaceScrollTop",
+            "profileFinding",
+            "profileDrawerScrollTop",
+            "search",
+            "compare",
+            "projection",
+            "index",
+            "pipeline",
+        ]) &&
+        ["profile", "search", "compare", "projection", "index", "pipeline"].includes(workspace) &&
+        ["l2", "l1", "linf"].includes(value.profileNorm as string) &&
+        (value.selectedColumn === undefined ||
+            (isRecord(value.selectedColumn) &&
+                hasOnlyKeys(value.selectedColumn, ["resultSetId", "columnOrdinal"]) &&
+                isBoundedString(value.selectedColumn.resultSetId) &&
+                Number.isInteger(value.selectedColumn.columnOrdinal) &&
+                isFiniteNumber(value.selectedColumn.columnOrdinal, 0, MAX_COLUMNS))) &&
+        isRecord(scroll) &&
+        Object.entries(scroll).every(
+            ([key, offset]) =>
+                ["profile", "search", "compare", "projection", "index", "pipeline"].includes(key) &&
+                isFiniteNumber(offset),
+        ) &&
+        (value.profileFinding === undefined || isBoundedString(value.profileFinding)) &&
+        (value.profileDrawerScrollTop === undefined ||
+            isFiniteNumber(value.profileDrawerScrollTop, 0)) &&
+        isVectorSearchState(value.search) &&
+        isVectorCompareState(value.compare) &&
+        isVectorProjectionState(value.projection) &&
+        isVectorIndexState(value.index) &&
+        isVectorPipelineState(value.pipeline)
+    );
+}
+
+function isVectorSearchState(value: unknown): boolean {
+    if (!isRecord(value) || !Array.isArray(value.filters) || value.filters.length > 8) {
+        return false;
+    }
+    return (
+        hasOnlyKeys(value, [
+            "source",
+            "selectedRowOrdinal",
+            "expression",
+            "targetId",
+            "modelText",
+            "modelId",
+            "modelParameters",
+            "lastRunId",
+            "metric",
+            "k",
+            "includeApprox",
+            "filters",
+            "sqlOpen",
+            "sqlTab",
+            "sqlScrollPositions",
+            "selectedRankIndex",
+            "rankScrollTop",
+        ]) &&
+        ["selectedRow", "generatedVector", "pastedVector", "expression"].includes(
+            value.source as string,
+        ) &&
+        Number.isInteger(value.selectedRowOrdinal) &&
+        isFiniteNumber(value.selectedRowOrdinal) &&
+        (value.expression === undefined || isBoundedString(value.expression, 2_048)) &&
+        (value.targetId === undefined || isBoundedString(value.targetId, 256)) &&
+        (value.modelText === undefined || isBoundedString(value.modelText, 32_768)) &&
+        (value.modelId === undefined || isBoundedString(value.modelId, 256)) &&
+        (value.modelParameters === undefined || isBoundedString(value.modelParameters, 2_048)) &&
+        (value.lastRunId === undefined || isBoundedString(value.lastRunId, 256)) &&
+        ["cosine", "euclidean", "dot"].includes(value.metric as string) &&
+        Number.isInteger(value.k) &&
+        isFiniteNumber(value.k, 1, 1_000) &&
+        typeof value.includeApprox === "boolean" &&
+        value.filters.every(
+            (filter) =>
+                isRecord(filter) &&
+                hasOnlyKeys(filter, ["column", "op", "value"]) &&
+                isBoundedString(filter.column, 128) &&
+                ["eq", "ne", "gt", "lt", "ge", "le"].includes(filter.op as string) &&
+                isBoundedString(filter.value, MAX_SHORT_STRING_LENGTH),
+        ) &&
+        typeof value.sqlOpen === "boolean" &&
+        ["exact", "approx"].includes(value.sqlTab as string) &&
+        isRecord(value.sqlScrollPositions) &&
+        hasOnlyKeys(value.sqlScrollPositions, ["exact", "approx"]) &&
+        isScrollPosition(value.sqlScrollPositions.exact) &&
+        isScrollPosition(value.sqlScrollPositions.approx) &&
+        (value.selectedRankIndex === undefined ||
+            (Number.isInteger(value.selectedRankIndex) &&
+                isFiniteNumber(value.selectedRankIndex, 0, 1_999))) &&
+        isFiniteNumber(value.rankScrollTop)
+    );
+}
+
+function isVectorCompareState(value: unknown): boolean {
+    return (
+        isRecord(value) &&
+        hasOnlyKeys(value, ["ordinalInput", "lastSubmittedOrdinals", "metric"]) &&
+        isBoundedString(value.ordinalInput, MAX_SHORT_STRING_LENGTH) &&
+        (value.lastSubmittedOrdinals === undefined ||
+            (Array.isArray(value.lastSubmittedOrdinals) &&
+                value.lastSubmittedOrdinals.length >= 2 &&
+                value.lastSubmittedOrdinals.length <= 8 &&
+                value.lastSubmittedOrdinals.every(
+                    (ordinal) => Number.isInteger(ordinal) && isFiniteNumber(ordinal),
+                ) &&
+                new Set(value.lastSubmittedOrdinals).size ===
+                    value.lastSubmittedOrdinals.length)) &&
+        ["cosine", "euclidean", "negativeDot"].includes(value.metric as string)
+    );
+}
+
+function isVectorProjectionState(value: unknown): boolean {
+    return (
+        isRecord(value) &&
+        hasOnlyKeys(value, [
+            "centerX",
+            "centerY",
+            "scale",
+            "fitted",
+            "selectedOrdinal",
+            "listScrollTop",
+        ]) &&
+        typeof value.fitted === "boolean" &&
+        isFiniteNumber(value.centerX, -Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) &&
+        isFiniteNumber(value.centerY, -Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) &&
+        // Fit scale is unclamped below (wide PCA spreads legitimately fit at
+        // scales « 1) — rejecting a small scale here would silently drop the
+        // ENTIRE panel snapshot on the next round trip.
+        isFiniteNumber(value.scale, 1e-9, 10_000) &&
+        (value.selectedOrdinal === undefined ||
+            (Number.isInteger(value.selectedOrdinal) && isFiniteNumber(value.selectedOrdinal))) &&
+        isFiniteNumber(value.listScrollTop)
+    );
+}
+
+function isVectorIndexState(value: unknown): boolean {
+    return (
+        isRecord(value) &&
+        hasOnlyKeys(value, ["selectedScriptId", "scriptScrollTop"]) &&
+        (value.selectedScriptId === undefined || isBoundedString(value.selectedScriptId, 256)) &&
+        (value.scriptScrollTop === undefined || isFiniteNumber(value.scriptScrollTop, 0))
+    );
+}
+
+function isVectorPipelineState(value: unknown): boolean {
+    return (
+        isRecord(value) &&
+        hasOnlyKeys(value, [
+            "modelName",
+            "sourceColumnOrdinal",
+            "rowOrdinal",
+            "showSql",
+            "chunkSize",
+            "overlapPct",
+            "lastRunId",
+        ]) &&
+        (value.modelName === undefined || isBoundedString(value.modelName, 256)) &&
+        (value.sourceColumnOrdinal === undefined ||
+            (Number.isInteger(value.sourceColumnOrdinal) &&
+                isFiniteNumber(value.sourceColumnOrdinal, 0, MAX_COLUMNS))) &&
+        Number.isInteger(value.rowOrdinal) &&
+        isFiniteNumber(value.rowOrdinal) &&
+        typeof value.showSql === "boolean" &&
+        Number.isInteger(value.chunkSize) &&
+        isFiniteNumber(value.chunkSize, 1, 100_000) &&
+        Number.isInteger(value.overlapPct) &&
+        isFiniteNumber(value.overlapPct, 0, 99) &&
+        (value.lastRunId === undefined || isBoundedString(value.lastRunId, 256))
+    );
+}
+
 function isExecutionPlanState(value: unknown): boolean {
     if (!isRecord(value) || !isFiniteNumber(value.pageScrollTop) || !isRecord(value.graphs)) {
         return false;
@@ -499,14 +820,24 @@ function isExecutionPlanGraphState(value: unknown): boolean {
 export function orderedQueryStudioTabs(options: {
     results: boolean;
     messages?: boolean;
+    vector?: boolean;
     queryPlan: boolean;
 }): QueryStudioTabId[] {
     const applies: Record<QueryStudioTabId, boolean> = {
         results: options.results,
         messages: options.messages !== false,
+        vector: options.vector === true,
         queryPlan: options.queryPlan,
     };
     return QUERY_STUDIO_TAB_ORDER.filter((tab) => applies[tab]);
+}
+
+/** A fallback-text result must not expose a pane whose numeric tools cannot run. */
+export function isVectorTabEligible(
+    featureEnabled: boolean,
+    transports: readonly ("binary-v1" | "textFallback")[],
+): boolean {
+    return featureEnabled && transports.some((transport) => transport === "binary-v1");
 }
 
 export namespace QsGetPanelViewStateRequest {

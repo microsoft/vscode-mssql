@@ -19,6 +19,7 @@ void run(
         createNodeExtensionConfig({
             entryPoints: {
                 extension: "src/extension.ts",
+                vectorAnalysisWorker: "src/queryResults/vector/vectorAnalysisWorker.ts",
                 serviceInstallerUtil: "src/languageservice/serviceInstallerUtil.ts",
             },
             external: ["vscode-mssql"],

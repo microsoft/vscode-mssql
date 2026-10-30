@@ -16,11 +16,35 @@
     <trans-unit id="++CODE++29aed6b71c67904f0cba9f811e0b1fac36b9bab9dd2cef5e4474f939ae307f7a">
       <source xml:lang="en">    stdout: </source>
     </trans-unit>
+    <trans-unit id="++CODE++c92c4e9f74949fa7ff86924877a9bb5ec161979aafd84f10a1d7d90dedb0dcdd">
+      <source xml:lang="en"> ({0} ms)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++374cb064ee653081bd5ffafe2ca22276627d6591d73bb2faaf5c53bf9bead7ec">
+      <source xml:lang="en"> Exact-only result; recall is unavailable.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c8922c0af517dcf0d57adbe46d77027d77ea5039287727d934bb4a5f35440cc8">
+      <source xml:lang="en"> Recall at {0}: {1} percent.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fd10453f63e5c663d4e640ea9cbe1adcc832b6fed0454e62686773ac486ce64d">
       <source xml:lang="en"> is required.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b043e3ee5331ad8f93370505561b2073a3988bbe7bc444faa88d0457beb51a59">
+      <source xml:lang="en"> {0}·f32</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7746064e38ac95a898ba711b5cb937420308daa3602cbc083d53ad1ddcd13083">
+      <source xml:lang="en"> · Current selection: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4ba9095ebc9fba0fea5d0342ea4ac8c0ffb13a762473969bbf5cdabfe8849112">
+      <source xml:lang="en"> · chunk list capped — not exhaustive</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eeb40f1f33fde06b2367b22e6cbb1f07204bb0ba8d2e033761855f882dee8c95">
+      <source xml:lang="en"> · distance tie</source>
+    </trans-unit>
     <trans-unit id="++CODE++dc3c22086c360265abe9181a7a30c0fb47bce0993ed022b0b62491c24172070a">
       <source xml:lang="en"> · over 100 completions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fd65daefc0b2ed2f139b8882ede885f9fc86eb469b3c556b3702696cf2e1bc55">
+      <source xml:lang="en"> · owner {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++948d789ceb3513ea82f4d835e9e3c12cab50f0f6e16e3e22dce26bc03b748667">
       <source xml:lang="en"> · pinned {0}</source>
@@ -30,6 +54,15 @@
     </trans-unit>
     <trans-unit id="++CODE++fb94c6f5e87ee63253c07dca15242bd4ab4c81d692766383535090ddc12203b1">
       <source xml:lang="en"> · truncated ({0})</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6ca831f6dd74e125c7d4ebd30088e1016ed8bc963b0bd92e8697db68e1b4273c">
+      <source xml:lang="en"> · values shown in cells</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1152f84391f41daad0c5f692e9f9d79a1b6d55c2703c846789ede5745ce134af">
+      <source xml:lang="en"> · {0}-D</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d3f4744c72d3117556d881c86a678148146c9c71260fff9007894ed8ae88bd78">
+      <source xml:lang="en"> · {0}-D {1}</source>
     </trans-unit>
     <trans-unit id="++CODE++fd3bd9305a1a7d5dfd79fa21b626163609a8f298aab892396554e74842a84f9b">
       <source xml:lang="en">$(check) Copied messages</source>
@@ -79,6 +112,9 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
+    <trans-unit id="++CODE++86ba98dc27266a4fe755c61e97a52cecf7a28f2923406545699b11ec9d43b27e">
+      <source xml:lang="en">&quot;{0}&quot; is not a result-row ordinal.</source>
+    </trans-unit>
     <trans-unit id="++CODE++44db9a12f4699cefd03940639b9675924d76fc9dc7faed967e044f5fbaf7bfb6">
       <source xml:lang="en">(0 rows affected)</source>
     </trans-unit>
@@ -114,6 +150,9 @@
     </trans-unit>
     <trans-unit id="++CODE++01742e58bf0afa796ce13a94ce79eedc5402d1470cb5102a5d4cf79189a6cc63">
       <source xml:lang="en">(Updatable Ledger)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e72192b1d8dfd709315bdcdf963ba539ae42eb1782c7ec1a5f5bb7a006fb627e">
+      <source xml:lang="en">(always — the recall denominator)</source>
     </trans-unit>
     <trans-unit id="++CODE++10901a1c32c7ff27302839dda36a950d6b522c7ca85b8d9605112601a8a392f9">
       <source xml:lang="en">(current)</source>
@@ -170,6 +209,12 @@
     <trans-unit id="++CODE++2d37f3ee5445e293ff249f04dfd9751c0461d0033cea6ec28250387af448d051">
       <source xml:lang="en">, family={0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++3b3b77e7502461d17dd4a1e691539cc803d912c9d43e81044cd98cf33e1384f2">
+      <source xml:lang="en">, fifth percentile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b82ecf45f2fb2f888d74ea597b487f4d44690ad19505c92a86edeb02445bccca">
+      <source xml:lang="en">, ninety-fifth percentile</source>
+    </trans-unit>
     <trans-unit id="++CODE++4aba0e34efc349ca6913d5095cd908c5407f9c78efeed86a63b13cc04d9679b6">
       <source xml:lang="en">, or add existing trace JSON files.</source>
     </trans-unit>
@@ -181,6 +226,12 @@
     </trans-unit>
     <trans-unit id="++CODE++85140be28dfd265c591c752703e536bbd54221e7875481c947a42fa39e4cd44e">
       <source xml:lang="en">-- This generated definition has expired. Run Go to Definition again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++68ee170ac2f6ea3aeb9ee27e301236631aa926cf3b1a64d969620b9141dd055b">
+      <source xml:lang="en">-dimensional space, not from these coordinates</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9400c9b6af2a54b1615ec71e1760d8e5c13bf37cc4de50811a6088cc8bf8e452">
+      <source xml:lang="en">. Median</source>
     </trans-unit>
     <trans-unit id="++CODE++41966414bb7dcf966a79335f288d9615934480c6315e27c1f05204051a130187">
       <source xml:lang="en">.NET + Azure SQL</source>
@@ -233,6 +284,9 @@
     <trans-unit id="++CODE++4e2d59c066568f43ffe7a751eee191d989fc7704e637847e5e502382ade01dfb">
       <source xml:lang="en">A SQLCMD Variable with the same name already exists in this project</source>
     </trans-unit>
+    <trans-unit id="++CODE++fbe148788cec78c0571d1e94e8c43fce82b239fd421ee4a2ef2e6a5b5eb2c0b8">
+      <source xml:lang="en">A Vector action requires the Vector results tab.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ac9fb8995fba687acf368ee05b5a54245e4a642be4c7a794cce8a2873e8aa11f">
       <source xml:lang="en">A connection is already being established. Please wait for it to complete before running a query.</source>
     </trans-unit>
@@ -279,6 +333,9 @@
     <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
       <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
     </trans-unit>
+    <trans-unit id="++CODE++519fe4a7f1fd24b7a03f72a14cda52624a78b381fc57a2f918bae1d179a3a93a">
+      <source xml:lang="en">A recent index build failed on this service tier. Exact search still works; the create script is generated for review only.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4ba6d4c88eed6255ebb24c6eea8abfd48b7810d52674911c2ff27e1ef3fbbb3c">
       <source xml:lang="en">A reference to project &apos;{0}&apos; cannot be added. Adding this project as a reference would cause a circular dependency</source>
     </trans-unit>
@@ -297,6 +354,9 @@
     <trans-unit id="++CODE++7a5526ab0698b7dd7cbb752f99f460152882f16e31e1b0d1b22bcae1ca8737d6">
       <source xml:lang="en">A tour of what the extension can do, grouped by what you want to accomplish.</source>
     </trans-unit>
+    <trans-unit id="++CODE++db972ebab737ddf1d943fd746904ca1569a7ab8cc0a2483016310b8ead7aa6ad">
+      <source xml:lang="en">A vector search is already running on this document; wait for it to finish.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7078c833200717b99c1414ef7696aaf5d7af1c16d201435b2ce243dba8891e4b">
       <source xml:lang="en">A {0} script already exists. The new script will not be included in build.</source>
     </trans-unit>
@@ -309,8 +369,17 @@
     <trans-unit id="++CODE++302b25cc01fccb545aa2b21b609d46eb74d591f3220e9b8c60ea920133690605">
       <source xml:lang="en">AI completions enabled — open a connected .sql editor and start typing.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ca033f5300dab4ec44d37aad85652ff9ba546a1b19b7dc13ccb707928f2659fe">
+      <source xml:lang="en">AI_GENERATE_CHUNKS needs compatibility level 170 on this database — the preview below is local character math either way.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5812418a801462d93d3ffe34bcd03a0a4601ed2e7bc41d3407ed014ab433163f">
+      <source xml:lang="en">AND-combined · validated literals inlined host-side</source>
+    </trans-unit>
     <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
       <source xml:lang="en">API Type</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f8cf8ce3dbeee90cb56be70b59a4054953aefdfec27db3261abab2159fc5c985">
+      <source xml:lang="en">API format</source>
     </trans-unit>
     <trans-unit id="++CODE++810a308ea3cf5aa3f49ed6152899a6baa212e12f047653d5523bf0190a1ade5f">
       <source xml:lang="en">ARM template</source>
@@ -567,14 +636,44 @@
     <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
       <source xml:lang="en">Advanced Publish Options</source>
     </trans-unit>
+    <trans-unit id="++CODE++2abebeb162cc0822278d09ed235d31bf8b32bf6c958a11523aaa7a0e84455292">
+      <source xml:lang="en">Advanced model parameters</source>
+    </trans-unit>
     <trans-unit id="++CODE++cfbdd6edf1303a7731f7ba735eee41c3618043e3cb424fe470dced0126aa8c71">
       <source xml:lang="en">Advanced restore options</source>
     </trans-unit>
     <trans-unit id="++CODE++97c59aa9b524fc50bc1c1eb646c9a306160017cda473234d8d5f3f32bb2e93f1">
       <source xml:lang="en">Advanced...</source>
     </trans-unit>
+    <trans-unit id="++CODE++d4c18c516505cee94008d948e63b28470f582a3433048a7d0395421801af8b51">
+      <source xml:lang="en">Affected categories</source>
+    </trans-unit>
     <trans-unit id="++CODE++9273e47b2772e54616e881165737b64eca4d6db0c0eac30621a74e29696c1860">
       <source xml:lang="en">Affected child objects</source>
+    </trans-unit>
+    <trans-unit id="++CODE++98fae76168cb65bf79989e59372cf764d2c9d9451eeeb45f1677588c54112d89">
+      <source xml:lang="en">Affected chunks</source>
+    </trans-unit>
+    <trans-unit id="++CODE++96f641b92ae5f34a45a8b9701e9707f2b7add2eed527992255a30126311dd455">
+      <source xml:lang="en">Affected dimensions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3129db837a86e0a06df2824047d2872ec57ea34a84c6a0315f942fdb90968567">
+      <source xml:lang="en">Affected documents</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f521a09a21ac4de6fd6b83cdfe0db33e0b3b0f31fcd7352e9a1b9708d2305093">
+      <source xml:lang="en">Affected duplicate groups</source>
+    </trans-unit>
+    <trans-unit id="++CODE++19c47f8ef622525a078c16f23d5b67f483e609b17c15d8043154fd2dcb3c9cac">
+      <source xml:lang="en">Affected indexes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++500c5a33f8bfca2bff58c0039816d92dd5f8a4380a9f97bae99cf5da56b01c57">
+      <source xml:lang="en">Affected models</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b488c8ec5522147f53094564c4316e824d3118affd899842f6aadb7ac5e438d">
+      <source xml:lang="en">Affected pairs</source>
+    </trans-unit>
+    <trans-unit id="++CODE++341c63531dc42cfd9092ca5e9989ee5dc7fde1f29d81cf5dc08281e7c8570c74">
+      <source xml:lang="en">Affected rows</source>
     </trans-unit>
     <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
       <source xml:lang="en">After</source>
@@ -638,6 +737,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
       <source xml:lang="en">Allow this extension to access your connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++29ce79393599912cfed8e0d49a43adcb47df9b4d401241bc5d774395b0f94da0">
+      <source xml:lang="en">Allowlisted only: dimensions and sql_rest_options.retry_count (0–10)</source>
     </trans-unit>
     <trans-unit id="++CODE++6e71f5fc0d9c6c4b7b332b728876a1d39748494efe2355bdae2383b90c86f050">
       <source xml:lang="en">Allows MCP clients to use generic create, read, update, and delete tools for this table.</source>
@@ -711,6 +813,15 @@
     <trans-unit id="++CODE++82fcdad573baa3443513b5c61196ed142a07d6b967afc2778c8932549a5ad455">
       <source xml:lang="en">An unknown error occurred. Please try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++218af741751700eb40d92e77465a3c1036dc961623022c79990e78bf095a1d73">
+      <source xml:lang="en">Analysis returned no summary.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a656708195545109e6669d406cc87873bb7d9131811523580612230c0144681e">
+      <source xml:lang="en">Analysis scope</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cc6640d0bc8e26d0ffc7bea9da2ead6b3f34f0f494a3790aacfc35660de400da">
+      <source xml:lang="en">Analysis session reconnect failed; completed workspace state is retained.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6ca0797fa56ecdc7f5f08c99504d70d93a42ccbe0e904e273144c6fd9efdc21c">
       <source xml:lang="en">Analytics-ready by default</source>
     </trans-unit>
@@ -719,6 +830,9 @@
     </trans-unit>
     <trans-unit id="++CODE++44b00c0e282443ba0669be2f57be8a112820909a49b2e026121d446409e42d21">
       <source xml:lang="en">Analyze static code with customizable rulesets in SQL Database Projects.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++538d517a73d1c2f9e97da37d8bca3382824235d9b4bbc440aa8c1bc07bc2d93c">
+      <source xml:lang="en">Analyzing vector column…</source>
     </trans-unit>
     <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
       <source xml:lang="en">And</source>
@@ -731,6 +845,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e7a8aa2df7e5d0b233da615af4e7fef148bec39aef1709da0a80391ad0316563">
       <source xml:lang="en">Anonymous</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0b30c8001f6b1d9c7e6408eb511965e42378508d7401c87347b3321851791ec6">
+      <source xml:lang="en">Another Vector Search operation is still running.</source>
     </trans-unit>
     <trans-unit id="++CODE++c76fd92a59a84d588534d9cc45c793cf341192e0e9df83275f7efc90637c2daf">
       <source xml:lang="en">Another run is active; queue controls are paused.</source>
@@ -802,6 +919,21 @@
     </trans-unit>
     <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
       <source xml:lang="en">Approve</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d27d1d1a90f896f36aa3c11d61e3a44c80dd24d7a9db0794b699e997073ca7d9">
+      <source xml:lang="en">Approx</source>
+    </trans-unit>
+    <trans-unit id="++CODE++04bc92f7a1072772811dd1dd1a5953457991ed49386b3ac5d3505c675e860d5f">
+      <source xml:lang="en">Approx d</source>
+    </trans-unit>
+    <trans-unit id="++CODE++738d763e310cc532284da9307971237f46376fe740e402b24aac17d24993ff0e">
+      <source xml:lang="en">Approx payload</source>
+    </trans-unit>
+    <trans-unit id="++CODE++78b9b22ebb6f5156ede8bb477700378d8fbbb717e039a934f5857c1a7c141186">
+      <source xml:lang="en">Approximate</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ca13a5b5ff7c6ee6178da94e868949b8310a05378747d9f7563888ef68818f27">
+      <source xml:lang="en">Approximate execution</source>
     </trans-unit>
     <trans-unit id="++CODE++5a0515f60bd3693347830f37a0e69fa8477aa11b9fb3b0fef1a52e898ce46a76">
       <source xml:lang="en">Are you sure you want to cancel this background task?</source>
@@ -993,6 +1125,9 @@
     <trans-unit id="++CODE++41835ff14ac6b8c789e93c4f3af5fdda54d093c45144a3cce1bb907e9c222162">
       <source xml:lang="en">Avg</source>
     </trans-unit>
+    <trans-unit id="++CODE++bfe64d7f4356c61cb05a5aa3796ee2af94f54cf21780cb7983f789d30197212e">
+      <source xml:lang="en">Avg pair distance</source>
+    </trans-unit>
     <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
       <source xml:lang="en">Azure (China)</source>
     </trans-unit>
@@ -1161,6 +1296,15 @@
     <trans-unit id="++CODE++e3ea81f5c09231f1e54b897c6a7d4a742d37c4776769a19d4cc267a8b4632852">
       <source xml:lang="en">Balanced (default)</source>
     </trans-unit>
+    <trans-unit id="++CODE++a994fe102bd3559101f88e9c647d7019f23453e651102c7913fc03fa66fe907a">
+      <source xml:lang="en">Base type</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cd01d459b35f751b820bbe873b3221143e5d74b6da127408acd816bf8754ecf2">
+      <source xml:lang="en">Batch chunk embedding is unavailable in this build. Every future chunk call will require confirmation.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++387fa922f37a81f4309480c689d38a04bdfaa8da81b3d51deb0ca3fe0deea44f">
+      <source xml:lang="en">Batch chunk embedding ships in a later build — every chunk is one confirmed model call.</source>
+    </trans-unit>
     <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
       <source xml:lang="en">Batch execution time: {0}</source>
       <note>{0} is the batch time</note>
@@ -1249,6 +1393,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c58a6bd402efb06c3e7dfd6d68910412fee2dfc1788ae384dc123089ce912285">
       <source xml:lang="en">Browse...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c83b65791b5b42cefb0d5f5b7f4e9b1b6fe7efa29e0164118197aae15079b575">
+      <source xml:lang="en">Bucket</source>
     </trans-unit>
     <trans-unit id="++CODE++bdd254b65baac169f6ac50e8175ce6d930c1fcb086dec59808d3e0170ae2291d">
       <source xml:lang="en">Build</source>
@@ -1384,8 +1531,14 @@
       <source xml:lang="en">Canceling the query failed: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++d87e457c4f22fdb8f8a8d4f075239ad0fee4f2b72326a53ac278c6b14a7b0fe9">
+      <source xml:lang="en">Cancellation is requested through SQL Server; a remote request might already be in flight.</source>
+    </trans-unit>
     <trans-unit id="++CODE++709130ca594696bdcd0c8002ba22293edbcc1cf041b017c35050332076857594">
       <source xml:lang="en">Cancelling — waiting for the active item…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++43c00419a15acf55db5fd6ff7b794d54b6d4aef18c29838bee42aa023f472766">
+      <source xml:lang="en">Cancelling…</source>
     </trans-unit>
     <trans-unit id="++CODE++86e5686d8209e4271ae22b1c2545b88f4681d12cc9e6c6839c1f1a4344c10166">
       <source xml:lang="en">Cannot access parent of provided tree item</source>
@@ -1457,6 +1610,9 @@
     <trans-unit id="++CODE++cb0415b7eba8d09fece0299cef934d73da69c94720cfc5583914aca2a16fcac2">
       <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
     </trans-unit>
+    <trans-unit id="++CODE++14aeb4e900a1ef99deda36d5e828ba5cc5769cf42e36f6e192de0966116a09a3">
+      <source xml:lang="en">Capabilities could not be probed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++bd9b6abb39811686a3ce6937ab20e015e9670dd7284c04ffef25cc751b7317d6">
       <source xml:lang="en">Caps</source>
     </trans-unit>
@@ -1475,8 +1631,17 @@
     <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
       <source xml:lang="en">Cascade</source>
     </trans-unit>
+    <trans-unit id="++CODE++8243cf8431f4fe91512755945974f4dc99e65741425a2a2b48a6136ad21b70a0">
+      <source xml:lang="en">Catalog and non-scanning capability probes · generated scripts are never executed</source>
+    </trans-unit>
     <trans-unit id="++CODE++292c06f0045a45d044be282b132b7055ae224e18e02b523a451d8ea96fadfd24">
       <source xml:lang="en">Category</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ddfdaa723c03b4c83c45a15f360cb214ee1770f41f9822c913c21169b0a3c2fe">
+      <source xml:lang="en">Centroid</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e814f2697bfbd966693b44e31ec679466b5c797a4431375df03d042e80d92bd">
+      <source xml:lang="en">Centroid-distance outliers</source>
     </trans-unit>
     <trans-unit id="++CODE++16f637921eba69b04b80b33acfce138c0f48121ce6b33eda1a10aaf7c5216b23">
       <source xml:lang="en">Certificates</source>
@@ -1679,6 +1844,12 @@
     <trans-unit id="++CODE++a89bad7e873f85fc6867185da8c42b2743f3264bf2df68800c16c23a20e1a9cf">
       <source xml:lang="en">Choose a Microsoft Entra tenant</source>
     </trans-unit>
+    <trans-unit id="++CODE++bd1f2287b67483bdf5b89c758a65bc94a2559d84651d3e2cdfcf66da7b676088">
+      <source xml:lang="en">Choose a catalog-verified EMBEDDINGS model.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c9d1525e99874b56e178cf76a19b6ef96d47e878f49e61b2bb560018f8e72303">
+      <source xml:lang="en">Choose a catalog-verified base-table target before inspecting its vector index.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b05ab4483a5949bf2effb49592a7bb9dceafedb9a3c6aae12a32341025fc1511">
       <source xml:lang="en">Choose a connection profile from the list below</source>
     </trans-unit>
@@ -1687,6 +1858,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3b961516b68d49db85d3ded5bc5c1129e02be1a647845d77b1eb2ab5260284cb">
       <source xml:lang="en">Choose a database from the list below</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4bf30db3abf43149024034119cbc657dcf8f1fb39a1deba013e2de668700399d">
+      <source xml:lang="en">Choose a database vector target</source>
     </trans-unit>
     <trans-unit id="++CODE++f374a2978746011d60b5e1785696b4f2c1fe9165edc4f876767d2f1282240cb2">
       <source xml:lang="en">Choose a hostname for the container</source>
@@ -1697,6 +1871,15 @@
     <trans-unit id="++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319">
       <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
     </trans-unit>
+    <trans-unit id="++CODE++70a0342571aaba2dbdc991d8ec63d2fe644d19ddf9c618b788aa8ab2a6df1667">
+      <source xml:lang="en">Choose a text column as the source — not the vector column itself.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fc0e7d60ed08cb1051045eaf23d9b67e62fa356079c2f856afe9e746b134132a">
+      <source xml:lang="en">Choose a verified Search target before generating an embedding.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++07340573c6299e68422e3679b646671167432a8e144a815c3f17924d67e8d21e">
+      <source xml:lang="en">Choose a verified target to inspect its vector index.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0e5a270df8b544ad79ba4ec8c1900744376eccf4ac1a2d19a091dab2a4e09782">
       <source xml:lang="en">Choose an execution plan to compare.</source>
     </trans-unit>
@@ -1705,6 +1888,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
       <source xml:lang="en">Choose color</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5a21391bcc74e9be551181efa01468a47123f8bd2893dd1519672fc2c03b408b">
+      <source xml:lang="en">Choose column</source>
     </trans-unit>
     <trans-unit id="++CODE++d0a50b3c66ed08ff5e7bb4903c4593ac6050d5493dccbfbf9442a0466bf2c2cc">
       <source xml:lang="en">Choose how to run Azure SQL Database</source>
@@ -1723,6 +1909,15 @@
     </trans-unit>
     <trans-unit id="++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2">
       <source xml:lang="en">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++47bb1dc5ea681d2bbb3cac760437096e840b6b9da78159618bd5f958feb3b2c0">
+      <source xml:lang="en">Chunk debugger</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d80acd0fcdec1a3321243453422e660ffa1269fc8fb8eab758630d3dd711c827">
+      <source xml:lang="en">Chunk preview</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5ab096939f97134fbf3e594367290531887a7785f31d496d299dbbac883704d4">
+      <source xml:lang="en">Chunk size must be an integer between {0} and {1} characters.</source>
     </trans-unit>
     <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
       <source xml:lang="en">Circular reference detected: &apos;{0}&apos; → &apos;{1}&apos; creates a cycle</source>
@@ -1853,6 +2048,9 @@
     <trans-unit id="++CODE++b88d22f627afd019becae5972c1ad1c05cca30f1c24c21e6a1ebf5492207904b">
       <source xml:lang="en">Client secret is required.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6d281785e1c53a435df0fba63ff9c90e8cdc52782d8d003e74ee61f999c83e3b">
+      <source xml:lang="en">Clipboard access was denied; the generated SQL remains selectable below.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1b766c528b25b99b2639efd01ddb11d6571480dc7adc8411b49c45c9167da4a3">
       <source xml:lang="en">Cloning git repository &apos;{0}&apos;...</source>
     </trans-unit>
@@ -1886,6 +2084,9 @@
     </trans-unit>
     <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
       <source xml:lang="en">Close the current connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a4b74b39ff3678f23d42ffd009671e6d8c8739c70fb35f221f827a94495a16a1">
+      <source xml:lang="en">Closest pair</source>
     </trans-unit>
     <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
       <source xml:lang="en">Cloud</source>
@@ -2062,8 +2263,14 @@
     <trans-unit id="++CODE++bfb50f40d677806eb1c3fa2b02c9048eade68bcf1237e4c6268522333d903edc">
       <source xml:lang="en">Compare and synchronize schemas between databases or DACPACs</source>
     </trans-unit>
+    <trans-unit id="++CODE++20824fe03fec0dcbbd497acd356c952f05c5fab787dfa7b42a859b467761d431">
+      <source xml:lang="en">Compare basket</source>
+    </trans-unit>
     <trans-unit id="++CODE++9fb1b0a3d5937c4d492e2d8e65acae3e3d8eb9bab5422aa3b80eb895872ef088">
       <source xml:lang="en">Comparing...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8245f492b8ee3484a0359d5ccdb6b26c0dd311d2f6b386c7eb30eb9772a1baf8">
+      <source xml:lang="en">Comparing…</source>
     </trans-unit>
     <trans-unit id="++CODE++571527339d0e3e34a6fd5b9c1d776218573a85cc984efb94d0631d47b8aa1d76">
       <source xml:lang="en">Comparison</source>
@@ -2071,11 +2278,20 @@
     <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
       <source xml:lang="en">Comparison Details</source>
     </trans-unit>
+    <trans-unit id="++CODE++ca1a676eb66ec29e5f3fe9b70a2a9289ee3051d73c64fdf02f685885937cd254">
+      <source xml:lang="en">Comparison outputs</source>
+    </trans-unit>
     <trans-unit id="++CODE++96b3aa1b3fd46b65c75f611c6f1c3a2e4f1d6c1eb2f9359e7f6ed054623ae098">
       <source xml:lang="en">Comparison properties</source>
     </trans-unit>
+    <trans-unit id="++CODE++6902a01650a4fd694fab088c433f6a324c7015761a704dde5c31a523abe3371f">
+      <source xml:lang="en">Comparison snapshot</source>
+    </trans-unit>
     <trans-unit id="++CODE++0891b63d1c799ce3a1d712cee42286cac8db64e6a57701839b06d7937855b14e">
       <source xml:lang="en">Compatibility Level</source>
+    </trans-unit>
+    <trans-unit id="++CODE++04c72ef3388c185b5db24dca4823f75254826840b764bd41315226f9fb5b8280">
+      <source xml:lang="en">Compatible</source>
     </trans-unit>
     <trans-unit id="++CODE++421428d865d9212a46a8ab340467e462b3c6ae40050c2c1cb90551b3bf703ab9">
       <source xml:lang="en">Completed with errors.</source>
@@ -2095,6 +2311,9 @@
     <trans-unit id="++CODE++88c20ec338d061cf395e7af0a2137b28705e0d380640e1ce1eacd8fded04668d">
       <source xml:lang="en">Completions journal reconciliation failed: {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++f20acba7b0420e7d5d27dd0ce4e4c734c9f44c4593c218749185d02546bdada7">
+      <source xml:lang="en">Component variance</source>
+    </trans-unit>
     <trans-unit id="++CODE++9d9d46783dcefefd1551f73e73f02714e347e6e8e8f33052135e0d3fefd8e0d8">
       <source xml:lang="en">Compress backup</source>
     </trans-unit>
@@ -2106,6 +2325,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cbd2167917b36ef54fa6044f33009b01e0793c6fda74f2488762f9cdb26793fc">
       <source xml:lang="en">Compute + Storage</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0ae9f453a61faa8dcef5294fde8fc091cbe849714ce0678595c23be5a106e6b0">
+      <source xml:lang="en">Computing deterministic PCA 2D…</source>
     </trans-unit>
     <trans-unit id="++CODE++1c9f0c1016c9f0fc14bad1a7598000d0375cce99251f46cbca2c9cb3cc0e0e76">
       <source xml:lang="en">Config (model · profile · schema)</source>
@@ -2708,6 +2930,9 @@
     <trans-unit id="++CODE++3445c4802a96131120ac2a8e228d505e08afc53b917172374c3810badc0407c7">
       <source xml:lang="en">Copy error details</source>
     </trans-unit>
+    <trans-unit id="++CODE++fcad09e3fab1233c9d1693e04ddadfe6ed9d69fa9f4896cd065282b8385c753a">
+      <source xml:lang="en">Copy generated SQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
       <source xml:lang="en">Copy link</source>
     </trans-unit>
@@ -2777,6 +3002,15 @@
     </trans-unit>
     <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
       <source xml:lang="en">Copying results...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++452caef78df9d7b4ec51e2959b63280050afdfa12b533e1f7b79eba3f50e51c7">
+      <source xml:lang="en">Cosine</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4046d9dffd3bd3bce106c7f7207866d5fc6e9e3cee96ceea35b2c3e07d827d09">
+      <source xml:lang="en">Cosine distance</source>
+    </trans-unit>
+    <trans-unit id="++CODE++634dbca5bd67b8db287fde4087b77a74e49806743602c4c3c26bd9a7e019c469">
+      <source xml:lang="en">Cosine distance (stored ↔ fresh)</source>
     </trans-unit>
     <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
       <source xml:lang="en">Cost</source>
@@ -3029,8 +3263,14 @@
     <trans-unit id="++CODE++31471ef54c94fd1a0ed4fcd85c62277d98a6119305f1ea0862fab2f0aa4a1c3b">
       <source xml:lang="en">Current Schema: {0}, Select the new schema:</source>
     </trans-unit>
+    <trans-unit id="++CODE++77f342fce3055730927796c10f0eec7cc2c384ee2d1a6b70f71bec751da38f89">
+      <source xml:lang="en">Current index format (v{0})</source>
+    </trans-unit>
     <trans-unit id="++CODE++00d386663f5a96480863a4c5115be637b95fb86b62b4be715a17a2a6cad93f1e">
       <source xml:lang="en">Current target platform: {0}. Select new target platform</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f45a317a9cf94100e03d01d8d633bc2d5354d79cbef906ea45b07e4dce3cfb27">
+      <source xml:lang="en">Current-format index</source>
     </trans-unit>
     <trans-unit id="++CODE++eb96c8ccab66317b9e66e799cd49364663e4f0665e5112341e19a249f9c15e46">
       <source xml:lang="en">Currently installed .NET SDK version is {0}, which is not supported. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK supported version location in settings if already installed.</source>
@@ -3310,6 +3550,12 @@
     <trans-unit id="++CODE++45a5bf9ffbdf878b81a327b0686a367e4649276dc25f1028bb4522d04072642f">
       <source xml:lang="en">Database variable</source>
     </trans-unit>
+    <trans-unit id="++CODE++7057686f5ea2fd529f4292e970e0c6db4c9ffe73706ef4d946bfe2ffeb3a44b5">
+      <source xml:lang="en">Database-wide disabled or hypothetical vector index row{0} ({1})</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4408beae8717bd6e1a1d1b93ca63a3d120ebe4c980785a3e6bed89a32a7d3ec5">
+      <source xml:lang="en">Database-wide transient phantom row{0} in sys.vector_indexes ({1})</source>
+    </trans-unit>
     <trans-unit id="++CODE++b387433c2578a3f7370d165966a0e7f9c00b58cbdce9b504fd8e42626c934937">
       <source xml:lang="en">DatabaseProject</source>
     </trans-unit>
@@ -3324,6 +3570,15 @@
     </trans-unit>
     <trans-unit id="++CODE++99c40ab405926cb5ad1def9cff4d7ce624f8f8abfff4e85f655347fcb949d08e">
       <source xml:lang="en">Date</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a895485e5b2d4e82c5b5b3979347bd6e86939412868b05e5132147a36ed3fb80">
+      <source xml:lang="en">Decrease K</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5e20f91509ec5d4cbcd1fa432b3503b2b502ad1b6df2741d8a2d3f4685fb6913">
+      <source xml:lang="en">Decrease chunk size</source>
+    </trans-unit>
+    <trans-unit id="++CODE++940eec5c977e6c364fe64215ff6b3c8c8db42b2969ff0274b21c61ec0aa7fa01">
+      <source xml:lang="en">Decrease overlap</source>
     </trans-unit>
     <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
       <source xml:lang="en">Default</source>
@@ -3601,6 +3856,9 @@
     <trans-unit id="++CODE++4cb2de9c1fe726ca3a9110e922532a25003fb853c27eed49926608cb2fc8acd8">
       <source xml:lang="en">Differs from same-named connections:</source>
     </trans-unit>
+    <trans-unit id="++CODE++914182d5e25f69e140a41e919664e5d16d3a9f67414c8cb1494b8ead668cd906">
+      <source xml:lang="en">Dimensions</source>
+    </trans-unit>
     <trans-unit id="++CODE++262a22937a038cae1e946cb7df7c7ed1282d5045f8a8956ade197e917244021c">
       <source xml:lang="en">Direct (1)</source>
     </trans-unit>
@@ -3686,6 +3944,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7a417a747e385113d9c481ed4937ff3d5b31de744c4db4312464f6f50729b616">
       <source xml:lang="en">Dissatisfied</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2f6e3624d3608ada570064c68d504593fed4257e0aaee4aac5afae6c9381bf90">
+      <source xml:lang="en">Distance metric</source>
     </trans-unit>
     <trans-unit id="++CODE++b4bfe61839a600599613aa10df8a2444841a6b45fb221f51570a6a0c774bf64d">
       <source xml:lang="en">Distinct</source>
@@ -3841,8 +4102,20 @@
     <trans-unit id="++CODE++4a87bc4a6f84b6911fabebc702ad8d32dbb799d7bec2abf53a05c86d91b456bf">
       <source xml:lang="en">EF Core</source>
     </trans-unit>
+    <trans-unit id="++CODE++cee57347ff135ea5131b2bd983ca0164d98709c5ab2d976bcc153390ed0f59c4">
+      <source xml:lang="en">EMBEDDINGS (only supported type)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b9fef8eed5165973e62e1eb7ec8a71d00a7eef9eae37ac8831a9b352ae606587">
+      <source xml:lang="en">Each result-row ordinal may appear only once.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0306077f5b3fdefe209b7a12da63dafa6c59890fdb6c0ad2032b94706c0cda63">
       <source xml:lang="en">Eagerness</source>
+    </trans-unit>
+    <trans-unit id="++CODE++97c5e15566a3ada6c859e80adcde5ca3def1984221309ce22a4d84020c400de2">
+      <source xml:lang="en">Earlier index format ({0})</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ec042c24dd06eb1a5b1da94da18103e498e97c0d7ba2ea69ed80122818ceac77">
+      <source xml:lang="en">Earlier-format index — migration available</source>
     </trans-unit>
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -3911,6 +4184,12 @@
     </trans-unit>
     <trans-unit id="++CODE++31454898fb5d76942853db1f60ad91011d720eed17e47d241b55647d69ad8706">
       <source xml:lang="en">Elevated capture duration (auto-reverts)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bfeca35eeb407f5662cb72adb8d529c4445e7b6b0383ce8b9088642a36ddaf56">
+      <source xml:lang="en">Embedding models could not be listed: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8bf69957c88943fb989c27606b1dd74d6aa7abdba6674ed11c52b1e9e8f416d5">
+      <source xml:lang="en">Embeddings model</source>
     </trans-unit>
     <trans-unit id="++CODE++5342e09f2729fbc6514528e727aeb9857afb31719d43568e6b18661ace7d1014">
       <source xml:lang="en">Enable</source>
@@ -4028,6 +4307,9 @@
     <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
       <source xml:lang="en">End IP Address</source>
     </trans-unit>
+    <trans-unit id="++CODE++4f0d916bb9c8812665717f85b73c337592fc0f962ad089ad54ae11fb23912390">
+      <source xml:lang="en">Endpoint host</source>
+    </trans-unit>
     <trans-unit id="++CODE++fce7fec2a58c8b49e4deba672461d849ec0df43da356de68d0cd8d47ce3eefa3">
       <source xml:lang="en">Endpoints</source>
     </trans-unit>
@@ -4082,6 +4364,9 @@
     </trans-unit>
     <trans-unit id="++CODE++99423f847824fcaa5126b691889e26782436157dbcbb9ae40af381c1175e72eb">
       <source xml:lang="en">Enter a port number between 1 and 65535.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c6f26578480a8dbf1936018f7da44b5155d760a812768260737c913b9f12e9da">
+      <source xml:lang="en">Enter a result-row ordinal, e.g. 0.</source>
     </trans-unit>
     <trans-unit id="++CODE++885dd0087e9192594843144ef7d051d40c814ddf786b582e0e5a9c2f6ae7fcf1">
       <source xml:lang="en">Enter a valid hostname.</source>
@@ -4155,8 +4440,14 @@
     <trans-unit id="++CODE++aae46441eaafc59419fdc91d2a14f13e534b533fecd19a1b47833c18862731fe">
       <source xml:lang="en">Enter resource group name</source>
     </trans-unit>
+    <trans-unit id="++CODE++1652cfbc4ba0e966b1b0d2c7e20aaf20897e828da4b0a7663812cb8727351f75">
+      <source xml:lang="en">Enter result-row ordinals, e.g. 0, 4, 17.</source>
+    </trans-unit>
     <trans-unit id="++CODE++01361e7512312c886672147a57fe766787e82c148e04d8c5e26897ff5bba3bef">
       <source xml:lang="en">Enter server name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1f4f2b3367404e7c9e595122c2da27cb7c1e239d73a59aadc024a30856b375a4">
+      <source xml:lang="en">Enter text to generate an embedding.</source>
     </trans-unit>
     <trans-unit id="++CODE++187982c1e7a9693b24cf2c1c0289473464501ca4c0ac9f13fefe0f79fb30ce06">
       <source xml:lang="en">Enter text to match object names</source>
@@ -4418,6 +4709,12 @@
     <trans-unit id="++CODE++009889f8da222c45ffbfecd313bd7a242a48218c5e6f476811f811a2791d97ea">
       <source xml:lang="en">Estimated query progress: {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++0e53881e722c8631d723a211a5fb52d5b1a3fa6218921f8563b05ed76b3d6bed">
+      <source xml:lang="en">Euclidean</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c63d22cf284b428f6639ad71e15fcd372feffcdb22ff61231bfa72db3b3de7ef">
+      <source xml:lang="en">Euclidean distance</source>
+    </trans-unit>
     <trans-unit id="++CODE++4e1f49a9c8ae8a158434e647c0c410352d718984a4fcd144d26cca3c394caa02">
       <source xml:lang="en">Event</source>
     </trans-unit>
@@ -4436,6 +4733,33 @@
     </trans-unit>
     <trans-unit id="++CODE++aad82ec9aeee8788f3c99966d6740dd77f11cc21b4afad0744e359b7e3224de2">
       <source xml:lang="en">Events hidden by the current cohort selection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b65c75462f2d37a5becb1deee6014e3791b24b0b904336063294fd42660d87c7">
+      <source xml:lang="en">Every pasted-vector component must be representable as a finite float32 value.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++03867aea70acaf4c5dce37a76cf5a04dab1716d6ff70bf03761c439daa8be984">
+      <source xml:lang="en">Evidence</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b5aee780c3bf589dd8fc3159a5acae0393d07b8dcaa3b0bd0db2978131c258a6">
+      <source xml:lang="en">Exact</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a571e58023d7ba51cd7a1a95b4dfadce9df199ee23e854213f20ff2a74198418">
+      <source xml:lang="en">Exact d</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9d94507bd28788edf9c0b666e0d27b673690b6badcae0b8343d71c18a4dc3a48">
+      <source xml:lang="en">Exact duplicate groups</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6eab870790d63e864c1b9e7258be2407f10d225fb31a2ad118aba58b23b0015">
+      <source xml:lang="en">Exact execution</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e3bed393756bbe5d668de1c40ea900b48c8b467a09c05ad09bc68605ea18e440">
+      <source xml:lang="en">Exact runs a full VECTOR_DISTANCE scan (the recall denominator, always disclosed). Approximate uses the VECTOR_SEARCH TVF when the probes and a confirmed index allow it — and its strategy stays honestly “unverified”: no forced-ANN proof exists on this engine generation.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b9c2bbe93694ef99f6a286fe5e5e5416d9c74c1a6bdd226496daa2b10edba2b2">
+      <source xml:lang="en">Exact search failed: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1b32792d1e51956e23b8df114e1fbc54bdb32c2825af3dceab350e516ba9555c">
+      <source xml:lang="en">Exact zero vectors</source>
     </trans-unit>
     <trans-unit id="++CODE++c1790bf42184d8cda0a6ac3894681870256c1b29f23fbe95ff39b2d84de7490a">
       <source xml:lang="en">Example Usage</source>
@@ -4497,6 +4821,12 @@
     <trans-unit id="++CODE++40d9cbf18ef0f64392913d9d6e4d075ee8b46d9541fa3d4461e4229b8b234139">
       <source xml:lang="en">Execute with Run (or {0}) and sort, filter, and export the results grid.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3aa8b683ebf3703c6fc5beb6c8ec6093227799ab6fdabad18cd80aa626e46f39">
+      <source xml:lang="en">Executed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ea462a67243b4584f972778bc870aeee781f537432b43b0bb01698ce4e38080d">
+      <source xml:lang="en">Executed · one confirmed model call ·</source>
+    </trans-unit>
     <trans-unit id="++CODE++188537742dec0f62a434057d038035f4302e490f537982fd25528369fe5cc72b">
       <source xml:lang="en">Executing &apos;{0}&apos; operation on Data API builder</source>
       <note>{0} is the operation name</note>
@@ -4510,6 +4840,9 @@
     </trans-unit>
     <trans-unit id="++CODE++afcade8e64986320796c898ae55c028e1ed4a7d4300b9732faa73c944178ee20">
       <source xml:lang="en">Executing query…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a45cd4bd0998e5683cdf4839b883fc0c77599eecfa9c7b658b32dbbd499a8039">
+      <source xml:lang="en">Execution</source>
     </trans-unit>
     <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
       <source xml:lang="en">Execution Plan</source>
@@ -4606,6 +4939,12 @@
     </trans-unit>
     <trans-unit id="++CODE++94e62d2591c04e2d1af2896b56b4e6935b18690d678bbcbecbee92f70039b7ce">
       <source xml:lang="en">Expansion failed: {0}. Refresh to retry.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c0366f9c58cbb5a2722a1d3b9cb561d93d7596b841d9eb88eddd0a12e80931cb">
+      <source xml:lang="en">Experiment inputs</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7470af4290edd2ccef778d9e0ff2c20aeb003e2035f78c998e6560b5624fe68c">
+      <source xml:lang="en">Experimental vector arithmetic · Compare basket · parsed locally, never eval()</source>
     </trans-unit>
     <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
       <source xml:lang="en">Expiration</source>
@@ -4741,6 +5080,15 @@
     <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
       <source xml:lang="en">Expression</source>
     </trans-unit>
+    <trans-unit id="++CODE++e003cf841b3c80bde04d00ea1e664450acddc6440c331016a0eb6a899d19e3ad">
+      <source xml:lang="en">Expression basket entry {0} must map to one distinct result-row ordinal between 0 and {1}.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7e69bb2238c69e39dea44e5f2fa680e50d82bd7f766de328751fcf7299422971">
+      <source xml:lang="en">Expression basket {0} (row {1}) has no analyzable vector value in the selected column.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a9962374cd91cc96ea38c9b0e1f9b4efaf353f898b19eccaba1d650e7a27613b">
+      <source xml:lang="en">Expression search requires a Compare basket of 2 to 8 result rows.</source>
+    </trans-unit>
     <trans-unit id="++CODE++79b8def2ae4ac205694aa75706cca849c3ac0378dd34853ecd9d18937ab4e184">
       <source xml:lang="en">Extend the current selection one cell down</source>
     </trans-unit>
@@ -4770,6 +5118,12 @@
     </trans-unit>
     <trans-unit id="++CODE++41794940d7195669f8786c78b5bf433feb416d0d10071749c31e2051534c36d2">
       <source xml:lang="en">External Tables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5b68968c867d4caef3837380af26e114842d662f4a2f269a29e1aff6216188a8">
+      <source xml:lang="en">External egress: the entered text leaves your environment through SQL Server&apos;s configured endpoint.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++af54afd9abd33ec76a0579b1e9bc93156927bea2c3685de2fd428a88cd6457e3">
+      <source xml:lang="en">External model</source>
     </trans-unit>
     <trans-unit id="++CODE++09fb0b40c52653920efa7d90c989b0455616a837458b1690dd908a961ae768dc">
       <source xml:lang="en">Extract DACPAC</source>
@@ -5358,6 +5712,9 @@
     <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
       <source xml:lang="en">Filter changes</source>
     </trans-unit>
+    <trans-unit id="++CODE++1763209cb59ae8cefa08fae7666590d365951517b46af03df27559b17128c432">
+      <source xml:lang="en">Filter column &quot;{0}&quot; observed in search filters</source>
+    </trans-unit>
     <trans-unit id="++CODE++1a6f33ce99a271f6bf6f94ed11bc223cd8a7fc7e5594d15119cfe82f465cb514">
       <source xml:lang="en">Filter columns...</source>
     </trans-unit>
@@ -5385,6 +5742,9 @@
     <trans-unit id="++CODE++5e8d7eea75a574fd6922c307c83c7f88891a7cb299cc402fbdbe1acbf97c63ec">
       <source xml:lang="en">Filter operator</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b799e4ef0d7fd3317d64c977e0813fc6f67c628338ca0dcc5083e4361d074fc">
+      <source xml:lang="en">Filter semantics</source>
+    </trans-unit>
     <trans-unit id="++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b">
       <source xml:lang="en">Filter shortcuts</source>
     </trans-unit>
@@ -5400,6 +5760,15 @@
     <trans-unit id="++CODE++829c4c3d439c8656d2e1c585beea209eb3ec9570d2d46fbc2d96aeb4acaf5906">
       <source xml:lang="en">Filter {0} by name</source>
     </trans-unit>
+    <trans-unit id="++CODE++472cd0985829f94fa7218184c94164b7e811c01413cf9dac11f7862f6dfca2b8">
+      <source xml:lang="en">Filter {0} column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++799455148089f89e476934626d4e6690fcb5d80722928bab5d76d9b15f14cc5a">
+      <source xml:lang="en">Filter {0} operator</source>
+    </trans-unit>
+    <trans-unit id="++CODE++481b4df7feccb9c15d34e3d165debea108254d29ba1e494bf59ab38818f2e651">
+      <source xml:lang="en">Filter {0} value</source>
+    </trans-unit>
     <trans-unit id="++CODE++ec9c8be4d7dede5d0b4ded3caba65e4311e4d5cca428b1c65b2d4d08b07f5707">
       <source xml:lang="en">Filter...</source>
     </trans-unit>
@@ -5409,6 +5778,9 @@
     <trans-unit id="++CODE++c97e4310054d0eac7186d3f17446802485f036aec155d65ddd1c193cc6273bd4">
       <source xml:lang="en">Filter: {0}</source>
       <note>{0} is the column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a769384e8be1a9e6aa1378ce3015850ba0f99098845bbf3ad2c500641273dfa3">
+      <source xml:lang="en">Filtered approximate searches are post-filtered on this format</source>
     </trans-unit>
     <trans-unit id="++CODE++546ebb8eb993ea561029d9febd84c363bdb09010bb2cb915a8287762b76b9a64">
       <source xml:lang="en">Filters</source>
@@ -5446,6 +5818,9 @@
     <trans-unit id="++CODE++848b9a6cfe9db6c8bbda02730a9818a8713a88c8259c94dfefce31815c0af978">
       <source xml:lang="en">Find in primary plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++e171c2ff25b55e5a2d63d081ec3a65e272d11afec9169a03822c970aac37e79e">
+      <source xml:lang="en">Findings</source>
+    </trans-unit>
     <trans-unit id="++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc">
       <source xml:lang="en">Finish</source>
     </trans-unit>
@@ -5470,6 +5845,12 @@
     </trans-unit>
     <trans-unit id="++CODE++50f82f3bd4638f41e11892aa681c016d9f858ac119041d52c52d5fb661c5936f">
       <source xml:lang="en">First Page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9f872ed43d00d8bdb372b1c05bd345b22f2ad5f7f41e06656d05625602e065b1">
+      <source xml:lang="en">Fit</source>
+    </trans-unit>
+    <trans-unit id="++CODE++513c52dd27340f7c1a410306b487c69036f7b9bb3fe39df916f0d153841209d9">
+      <source xml:lang="en">Fit (0)</source>
     </trans-unit>
     <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
       <source xml:lang="en">Flat</source>
@@ -5606,11 +5987,17 @@
     <trans-unit id="++CODE++07352e1d76f1378919449695f499f339f74cb5616783696977ba2f986f468a51">
       <source xml:lang="en">Full fidelity: prompts, responses, schema context, replay</source>
     </trans-unit>
+    <trans-unit id="++CODE++d5daa29efd3c5cdb059f6b6699c878acd868d9f42c37bbe15411cdd8e384e748">
+      <source xml:lang="en">Full source: </source>
+    </trans-unit>
     <trans-unit id="++CODE++c803710302d5769d8fcd51958c516ff27f2a3c5ad9373c348d1d180c04a74624">
       <source xml:lang="en">Function</source>
     </trans-unit>
     <trans-unit id="++CODE++75e942e5b366227eccb9def7fcea18422c7c5e164812c112c921461b2c587727">
       <source xml:lang="en">Functions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++52737f7dd3a4ee00da0c5cb5b9f347fb4c113492ce1198894a07fa37743a15bb">
+      <source xml:lang="en">GENERATED T-SQL</source>
     </trans-unit>
     <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
       <source xml:lang="en">General</source>
@@ -5633,6 +6020,39 @@
     <trans-unit id="++CODE++7049b9d6662228d874aacf1b30325a8ed4e8607c0d8b5218e2cf01e4f63875a4">
       <source xml:lang="en">Generate a data API</source>
     </trans-unit>
+    <trans-unit id="++CODE++4ed3949908e517c6bfbdc7dd6377f13dd28530b1d7531d5a0581149672a54585">
+      <source xml:lang="en">Generate and confirm an embedding for the current text first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b8fc5dc9cfb777ca2a6464a90f5d72532aed124d6de8b7d7a34153966c92ef68">
+      <source xml:lang="en">Generate compatible {0} index script</source>
+    </trans-unit>
+    <trans-unit id="++CODE++70e82d958cd68bb96be40bcf47e2023d64c69be97318a55bfa4440b73aee3d4d">
+      <source xml:lang="en">Generate configuration-gate script (PREVIEW_FEATURES)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6ddf8c7aa3c67631b501549c682537c9352145ac86ad4c582a83d6c6f6720671">
+      <source xml:lang="en">Generate create vector index script</source>
+    </trans-unit>
+    <trans-unit id="++CODE++051d98f0d7e412290e2839118d2a9f559480c62421d7f7b9128ec7f6764bb6ab">
+      <source xml:lang="en">Generate embedding</source>
+    </trans-unit>
+    <trans-unit id="++CODE++35f1050fcd5bd4856803e84cd68d8669c8ad6a192adf68ccf5f60b9d1e949824">
+      <source xml:lang="en">Generate embedding with</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d50e9183dbccb3528ec351b4c572a665c2fbdb601c2f1222cc5280a6df9b33be">
+      <source xml:lang="en">Generate embeddings for chunks…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++349b47a34b777cd1f2d191c63f38d3b0384f1039fbd9951aad721f2c4296dc1d">
+      <source xml:lang="en">Generate embedding…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6bc34e40f50df0a3c0791d758275fe9405697f9b34e3fa1521ddcb32e8504ab6">
+      <source xml:lang="en">Generate existing index definition (reference)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b705cb6a82560e7c6532a8673b235092de081437b083288bd3c516b95a888456">
+      <source xml:lang="en">Generate health snapshot query</source>
+    </trans-unit>
+    <trans-unit id="++CODE++28fc77149004ecedbf179f3569f9ca61d2ba29b7c8fbad864cbba6949fec5d4d">
+      <source xml:lang="en">Generate migration script ({0} → current)</source>
+    </trans-unit>
     <trans-unit id="++CODE++733db825a41becaf624d0bcff31bacf744e7bcdb3412fffbb0fb12afdd89a1a8">
       <source xml:lang="en">Generate mock data and seed scripts to support testing and development environments</source>
     </trans-unit>
@@ -5642,9 +6062,15 @@
     <trans-unit id="++CODE++553f9778e20ce771fa5313659bcd804d36168900a284dde2d5f1cf7e1f43446b">
       <source xml:lang="en">Generate sqlpackage command</source>
     </trans-unit>
+    <trans-unit id="++CODE++a5319ac6c8671c29315e6f07cc794e7de1a99089d438154d51837495825d367e">
+      <source xml:lang="en">Generate supporting index (review)</source>
+    </trans-unit>
     <trans-unit id="++CODE++2617124e87bf1506e42eea651c54fa179c29090a0a58e9829860984f03eca2fa">
       <source xml:lang="en">Generated file added to {0}</source>
       <note>{0} is the generated file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a66e9e674185ae6b1395cda7e84cdf0857ec67d407bedc7c53833f3de2a063ef">
+      <source xml:lang="en">Generated scripts</source>
     </trans-unit>
     <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
       <source xml:lang="en">Generating Report. This may take a while...</source>
@@ -5661,6 +6087,9 @@
     </trans-unit>
     <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
       <source xml:lang="en">Generating script...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4693d769f53f0f911a0f8d1ed1c422e33536eaa14871d04865fc7355c96d63c5">
+      <source xml:lang="en">Generating…</source>
     </trans-unit>
     <trans-unit id="++CODE++63049af49fbe30636a780e04b69f9f4940ce0397d3c9ef13b8b2aaa23c64d073">
       <source xml:lang="en">Generous</source>
@@ -5802,8 +6231,29 @@
     <trans-unit id="++CODE++e7a0f5d984721771397ee01588da1bac07c6f45150113d1ba8c4c3de194cfdb0">
       <source xml:lang="en">Group differences by</source>
     </trans-unit>
+    <trans-unit id="++CODE++7cbd216893218e9c472930e4014a85fbee9315de41dea279c81297be3e59ec8c">
+      <source xml:lang="en">Group geometry differs</source>
+    </trans-unit>
     <trans-unit id="++CODE++1e91df29a258656892131271997fb30c0164413a6a5b91d922eb2bf3589ce964">
       <source xml:lang="en">Hard character budget for formatted schema context before degradation.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7a92aa2e9de52ad09670cdd99c7113925137d8939f2fab252e6cf1fb9ce73462">
+      <source xml:lang="en">Hatched spans are overlap regions shared between adjacent chunks ·</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e0f7896d79874615be5c1926f5f9508e06c87afa68338c0dd5e2d79ceb0a07f4">
+      <source xml:lang="en">Health DMV</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2314dc5f30070c1a0650b8666ef95333c614f42ed4d29975401d577a42485125">
+      <source xml:lang="en">Health history</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ea4edd2b452cbdb8ff8c2d7ec4c3467f30df7c5bd01ffc4484b122b609157268">
+      <source xml:lang="en">Health unavailable</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ed62e1f91d00a624a17d7a368c433194c6679fda6cb157a4955223b1fb7364da">
+      <source xml:lang="en">Health unavailable — catalog/DMV visibility is degraded on this connection. Facts below are partial; nothing here is a health claim.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++86185bbcaf4117282398444b1c93059ac5ef83eeab89fff1313f5c0c3940af22">
+      <source xml:lang="en">Health: current catalog snapshot only</source>
     </trans-unit>
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
@@ -5841,6 +6291,9 @@
     <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
       <source xml:lang="en">Hide full error message</source>
     </trans-unit>
+    <trans-unit id="++CODE++d8f0688af3061c3907d3c04fa3b7b2a8eb8bb94cde6801c317187c4db014bcc9">
+      <source xml:lang="en">Hide generated T-SQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++a60a56c584b3b05b1a95076a36edbab7131a447910cf21124efcb35f769502df">
       <source xml:lang="en">Hide password</source>
     </trans-unit>
@@ -5849,6 +6302,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f1ca12c9d1c87c360fb52aae045a6db596b77ac01622f227a9e1847aaa45f3a0">
       <source xml:lang="en">Hide trace files</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d402ef10d054eac21c4aa25165dd01d8cb9a0ab4f43f4841b9f41694cff0b5e3">
+      <source xml:lang="en">Highest</source>
     </trans-unit>
     <trans-unit id="++CODE++b2306b8a2c95daafdb1651bc3790ef251195b8eab916f792150b784f41aa81b9">
       <source xml:lang="en">Highlight Changes</source>
@@ -5862,6 +6318,12 @@
     <trans-unit id="++CODE++30a7ccad88a0884835615234b810d72ab470dfc6bd5e66730e0895fd1cd90f6d">
       <source xml:lang="en">Highlights from recent releases - v{0}.</source>
       <note>{0} is the extension version, e.g. 1.46.0</note>
+    </trans-unit>
+    <trans-unit id="++CODE++00d2371d391387363a9e5fe591e96053731acc721fb2da2af4b12a88861399ac">
+      <source xml:lang="en">Histogram bucket values</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e3dce26555134eaf679b909896e429d53746e413f63b424f1cff70d5d316650">
+      <source xml:lang="en">Histogram of</source>
     </trans-unit>
     <trans-unit id="++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e">
       <source xml:lang="en">Hostname</source>
@@ -6060,8 +6522,41 @@
     <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
       <source xml:lang="en">Incomplete or orphaned connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++fd24846a8399bbd3bfd78c5c3818c92cdca99ebe965d90aebd595177a9dece8d">
+      <source xml:lang="en">Increase K</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d3b9b317078700983edd07b979489a08cde3974d408b326f4950b16e8cf8c304">
+      <source xml:lang="en">Increase chunk size</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a54a03926a09540405d6d6fd7e1f3756f9fb12b7bf98165f76a07a8ddf42c7a9">
+      <source xml:lang="en">Increase overlap</source>
+    </trans-unit>
     <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
       <source xml:lang="en">Index</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e054653159e6390866c14910a0011d4f8007dd82480d59d14d8649ea49f5a94a">
+      <source xml:lang="en">Index build failed on this tier</source>
+    </trans-unit>
+    <trans-unit id="++CODE++31b2374eb21ae9462284dbd7096446c9abb54401cebe38223a6df0c4f358d931">
+      <source xml:lang="en">Index catalog</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fbfe731791996e792dc1b00dd4850966905404ee9084e8d102255715189e9ce3">
+      <source xml:lang="en">Index facts and scripts stay locked until a catalog-verified target is selected.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a416adc65f81c276f80810060feb2ffeb5015208d06e410c767ad39aeaa1049e">
+      <source xml:lang="en">Index format could not be verified</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c12fe3d1cfa069823ea1b7f511a84cab4ea4ebaf2a279464c39bea865e5ddd5">
+      <source xml:lang="en">Index format is current for this engine</source>
+    </trans-unit>
+    <trans-unit id="++CODE++19de436839da45cbbfd15e7769b05f10058b0b4ec26ef56feff6423638d340c4">
+      <source xml:lang="en">Index format unknown</source>
+    </trans-unit>
+    <trans-unit id="++CODE++92583351e03c6f4995d32381dbffecd594171e1d64e039cc84aec36c9130819f">
+      <source xml:lang="en">Index staleness</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d63e8eae7d4884ed3e944d397e716d9bcb00f522f140129868aa18c57b499c8e">
+      <source xml:lang="en">Index state returned no view.</source>
     </trans-unit>
     <trans-unit id="++CODE++90b901a30c3f089e10d82e1b842bbdc736a36b536a19d207b36a8e7be1904dcb">
       <source xml:lang="en">Indexes</source>
@@ -6077,6 +6572,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0a762b2a0560b46fea8c0044132530fb2fc0ab8f4ac517b9d017181bf779470a">
       <source xml:lang="en">Inline with data</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c2ced046bc9a97ef6b80d1b770f132250e13ca709c76e1a6c5b6a247824374b">
+      <source xml:lang="en">Input changed; the comparison below is the last submitted basket.</source>
     </trans-unit>
     <trans-unit id="++CODE++dd856eeb50463bae46757d871d833fcb63d29a39356e7db40fea337f6462c947">
       <source xml:lang="en">Input tokens</source>
@@ -6211,6 +6709,9 @@
     <trans-unit id="++CODE++5b3eef9bf6b0c6df6a0d614b57c2fcd589f9716a7e8b8040dde61be4d2f7e02e">
       <source xml:lang="en">Is Persisted</source>
     </trans-unit>
+    <trans-unit id="++CODE++16a7005fbaeaa429395d6d1df70b601833c79ba580494d5146e83a88bc51d520">
+      <source xml:lang="en">Isolated diagnostic session · target</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
       <source xml:lang="en">Issues ({0})</source>
       <note>{0} is the number of issues</note>
@@ -6241,6 +6742,12 @@
     </trans-unit>
     <trans-unit id="++CODE++221070e6e9e93137307b7b8550d0b10a2a33347b295213e8661211a19e455e3b">
       <source xml:lang="en">Jupyter-based SQL notebooks with rich results and IntelliSense.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++86be9a55762d316a3026c2836d044f5fc76e34da10e1b45feee5f18be7edb177">
+      <source xml:lang="en">K</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b411ba54ce992d0e241e32a6347777594734c2363aae90fab1135fef88def55">
+      <source xml:lang="en">K nearest neighbors</source>
     </trans-unit>
     <trans-unit id="++CODE++9fc40891e01f78aea537da3fed4bcf2af4d4cd21a6edbe8303b780a2e024a6aa">
       <source xml:lang="en">Keep as-is</source>
@@ -6275,6 +6782,15 @@
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
     </trans-unit>
+    <trans-unit id="++CODE++97ee1b8dd0d5456b4935442fbd054792cb45c2736b4c1b9b56848f0f9e01dd01">
+      <source xml:lang="en">KiB</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dffe8596427fc50e8f64654a609af134d45552f18bbecef90b31135a9e7acaa0">
+      <source xml:lang="en">L1</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d76354d8457898445bb69e0dc0dc95fb74cc3cf334f8c1859162a16ad0041f8d">
+      <source xml:lang="en">L2</source>
+    </trans-unit>
     <trans-unit id="++CODE++e71ea5244992eed4be41156fdad430db88cc0b4461ffc93668706c486a7ddeef">
       <source xml:lang="en">LM Request</source>
     </trans-unit>
@@ -6290,8 +6806,20 @@
     <trans-unit id="++CODE++f5d96697c34dccaaef1d8c32231c1b86183c9be5a87280223e3136d1f97051f6">
       <source xml:lang="en">Large threshold</source>
     </trans-unit>
+    <trans-unit id="++CODE++6e8c995679f5e027218bb8fb2329e61b3368bd82a9e5c942b272697d9003f66a">
+      <source xml:lang="en">Last CREATE attempt</source>
+    </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++85124b81d34d3992db643c352462537f49fdf6752db636fd1ae397cd77e55147">
+      <source xml:lang="en">Last completed output · composer has changed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++43f51eca4b5a1a274c2e8db4b886caefba29173ec44cef0d0db93f2a1cb25a25">
+      <source xml:lang="en">Last verified targets shown · index facts and scripts are locked until refresh succeeds</source>
+    </trans-unit>
+    <trans-unit id="++CODE++228f221672d1c9bb62abc73ccf0540e7c8b1f1ec8d942b2e59df9d6bfae90fe9">
+      <source xml:lang="en">Last verified targets shown · new searches stay locked until refresh succeeds</source>
     </trans-unit>
     <trans-unit id="++CODE++77f1336674762d8238a6694c12dd79f2837fba43d26a7cbb0ed945b76ccf8b99">
       <source xml:lang="en">Lat mean</source>
@@ -6406,6 +6934,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
       <source xml:lang="en">List all connections registered with the mssql extension?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++75475bf8bbf473f661aa42ea779b80592b011ef6690729f8077976617234573e">
+      <source xml:lang="en">List capped — not exhaustive.</source>
     </trans-unit>
     <trans-unit id="++CODE++0228867ee113d27a7377e81352a399252a73a53fcda8c7eeb55366e272692d90">
       <source xml:lang="en">List databases for connection &apos;{0}&apos; (ID: {1})?</source>
@@ -6555,6 +7086,9 @@
     <trans-unit id="++CODE++54de42320518e4ac2e773353f4d9f9a7be92f4afc008a3b33a3247b39a19aa68">
       <source xml:lang="en">Loading Schema Designer Model...</source>
     </trans-unit>
+    <trans-unit id="++CODE++ac4dfba88f5068917002eb42b089034c63c2ab365b651c0c02de09df2cff262b">
+      <source xml:lang="en">Loading Search…</source>
+    </trans-unit>
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
     </trans-unit>
@@ -6664,6 +7198,9 @@
     <trans-unit id="++CODE++e96fc8b40ca909f818f5677d99cd419b69170253e04fc2848ec08fe2b31c6b0f">
       <source xml:lang="en">Loading table preview...</source>
     </trans-unit>
+    <trans-unit id="++CODE++3ce5c872659517b68216bfa7b1ddf3920ae2a0aaab0efff3598bcb4bbaac0be5">
+      <source xml:lang="en">Loading targets…</source>
+    </trans-unit>
     <trans-unit id="++CODE++8827253bb1a2a0581d324b1945989a83d7056565bc43c20ce67eba8d60c1166e">
       <source xml:lang="en">Loading tenants</source>
     </trans-unit>
@@ -6672,6 +7209,12 @@
     </trans-unit>
     <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
       <source xml:lang="en">Loading text view...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++291028d23ac4359282654c4ab74a3b8a4b8afe1e11477708921f97db18ca74bd">
+      <source xml:lang="en">Loading verified models…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++27b001feed9729353368a7aa50c23bb2419a5a9e7d324b1187a69b58bfeab5bc">
+      <source xml:lang="en">Loading verified targets…</source>
     </trans-unit>
     <trans-unit id="++CODE++58878f300e53ea741b29ea101504537639f39f997791a5950d225f8353fad887">
       <source xml:lang="en">Loading workspaces</source>
@@ -6702,6 +7245,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
       <source xml:lang="en">Local SQL Server database container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++188e8c757c2a3600a03d021bb368b0a44dd1ac3c5b31f1bc07deaad9d1157bf9">
+      <source xml:lang="en">Local analysis only · no database SQL or external model calls</source>
     </trans-unit>
     <trans-unit id="++CODE++44fe2df974d8b80786309f264819c59c4f54ef54e4c1ae57b1dd7983d08b6ba5">
       <source xml:lang="en">Local clone path</source>
@@ -6756,6 +7302,12 @@
     </trans-unit>
     <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
       <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5c590931c7cc2ade8aa2012cba335dd5d533c6ccbc9fe08030e97ad6dc1dd578">
+      <source xml:lang="en">Lowest</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d8cc37d5f9c6ddbc3d90d647d11416879afdffe2d7c54933703f82099cbc8f72">
+      <source xml:lang="en">L∞</source>
     </trans-unit>
     <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
       <source xml:lang="en">MCP</source>
@@ -6879,6 +7431,9 @@
     <trans-unit id="++CODE++f9e90e8052c006b6c3083175ce90f38afc7bef14265eee2d6c5a09cff32c899c">
       <source xml:lang="en">Matrix cells</source>
     </trans-unit>
+    <trans-unit id="++CODE++daa9074c79cb3739ebdb4d5c56506033b0d2f74e78ba5b202a6c96877b55e6e8">
+      <source xml:lang="en">Matrix metric</source>
+    </trans-unit>
     <trans-unit id="++CODE++de26a8f34c88b506cda3c9fb635ba2f1098e08939c85a2e9d48803f6d487ed8f">
       <source xml:lang="en">Matrix runs ignore per-row cart overrides; the matrix cell profile and schema win. Resulting events are tagged with replayTraceId, replayRunId, replayMatrixCellId, and replaySourceEventId.</source>
     </trans-unit>
@@ -6983,6 +7538,9 @@
     <trans-unit id="++CODE++927853630df5ee306a9b44a868e0a34b91e055e070b630b5dc2451bd2163fab9">
       <source xml:lang="en">Media set name is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++fe170b33e672bb43496b828a16870771f566c4da22dd91387971a84e0b1f8f11">
+      <source xml:lang="en">Medoid</source>
+    </trans-unit>
     <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
       <source xml:lang="en">Message</source>
     </trans-unit>
@@ -7022,6 +7580,12 @@
     </trans-unit>
     <trans-unit id="++CODE++2d275a74912cca2e02e6d41f9cae3a75ceef3ed0ef734eff3710e10eb7112228">
       <source xml:lang="en">Metric</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2e37c4a6d9665ca433a39ef039766eae6ca474d37861abd1df65f044cbec1a98">
+      <source xml:lang="en">Metric matches search ({0})</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e35d976b0ddcf75191170811ff3ab56f7dd50654901816099b2ec48ee8fc3d41">
+      <source xml:lang="en">Metric mismatch: index {0}, search {1}</source>
     </trans-unit>
     <trans-unit id="++CODE++c7bac46904be785cd0c965bf5659610044f0cdb4cbb02d2ec398dc56648988fd">
       <source xml:lang="en">Microsoft</source>
@@ -7099,6 +7663,9 @@
     <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
       <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
     </trans-unit>
+    <trans-unit id="++CODE++046779ffb26372e01ffd05b8fc273346ff1a3a7305d3ccae75fcd3f15723ea9b">
+      <source xml:lang="en">Migration drops and recreates the index</source>
+    </trans-unit>
     <trans-unit id="++CODE++dea79332147ffe1fb2a81cf9a5bdf0066ddcc625699996ede0ce140e5cb004b1">
       <source xml:lang="en">Min</source>
     </trans-unit>
@@ -7133,11 +7700,44 @@
     <trans-unit id="++CODE++275defa851ac09403faf8a674e5bdba13cf70e44dcd812b90e2c515db391a7ed">
       <source xml:lang="en">Missing table target for delete_table operation. Provide tableId or tableName+schemaName.</source>
     </trans-unit>
+    <trans-unit id="++CODE++823cc5ba170867090dd544a1b305c5c414ff1f749bea52579476277ba7afb650">
+      <source xml:lang="en">Mixed embedding provenance</source>
+    </trans-unit>
     <trans-unit id="++CODE++5e23ec6a300dc60a79641769017e16e9bf042cbd8fd0a54586a048ab9da972ff">
       <source xml:lang="en">Mode</source>
     </trans-unit>
     <trans-unit id="++CODE++5e2c614c23f02239bc03c6c04fcb681950f9e72bf8fdff6be79c79841cbb10c0">
       <source xml:lang="en">Model</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1bc6fec30b4b8327e150c3a7de2974255a9cbca7b24c06af469609558b5c1186">
+      <source xml:lang="en">Model call · confirmation required · egress disclosed before execution</source>
+    </trans-unit>
+    <trans-unit id="++CODE++82a4f24c5acca27768a9d14f59315ac7f6e3a9433c224f5b7c394eb412f28bd2">
+      <source xml:lang="en">Model calls require confirmation · external egress is disclosed before execution</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d93264126561a0448b5bb4cf6c46aacc2ec2f943effd6241714436af23bcf84a">
+      <source xml:lang="en">Model inventory unavailable or stale:</source>
+    </trans-unit>
+    <trans-unit id="++CODE++37685a6525a91fae70dac49e1c23dbac61e8cca9e43b1f91907e5ea569e5b56d">
+      <source xml:lang="en">Model modified</source>
+    </trans-unit>
+    <trans-unit id="++CODE++08ba3415c5708dc232841834c54d03a98cb3d2ba9481d94ed797e5acbe88e2eb">
+      <source xml:lang="en">Model parameter &quot;{0}&quot; is not allowed. Search supports only dimensions and sql_rest_options.retry_count.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++31bc75670d81d71687c8a884e4f34a7787892fc0ad69ae87969e14668b1d7b79">
+      <source xml:lang="en">Model parameters are not valid JSON.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7150490e5dfc1759957d3919e89d9655c9ac11484cffeb83dccd7b1376e57dcc">
+      <source xml:lang="en">Model parameters exceed {0} UTF-8 bytes.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cec871a65a6fb0e8102183a077490a1dd10b698dfb11f3c930326fe94a59278d">
+      <source xml:lang="en">Model parameters must be a JSON object.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6493ff1145634c5f5082fb5d5e4fdcde80129106a06e6790ada65188e8d1a99">
+      <source xml:lang="en">Model parameters must include dimensions or sql_rest_options.retry_count.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d2c9a11a72846b34f1e7c48f4b0c2664d8e398d941b729a7bed039872966436e">
+      <source xml:lang="en">Model type</source>
     </trans-unit>
     <trans-unit id="++CODE++e8ce5dcaf408935ff76747226d2e8bee4319a2f593c1d7a838115e56183d1f37">
       <source xml:lang="en">Modified</source>
@@ -7202,6 +7802,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9acd598e4a9cf44ed31faf5037f1a93640240d34d2d71281d143ab7b352d7ca4">
       <source xml:lang="en">More objects, columns, routines, and two-hop FK expansion.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5fc6af46828c8a4b8eb622af1c0ce862e0680ff7b8aeb4d2dd23df81776fe8aa">
+      <source xml:lang="en">Most isolated</source>
     </trans-unit>
     <trans-unit id="++CODE++6ecc3df6bffdd06c58cd4f6e276929e119c8f653c53f5a6a5a5e66dfa1c3fc93">
       <source xml:lang="en">Move</source>
@@ -7291,6 +7894,9 @@
     <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
       <source xml:lang="en">NULL</source>
     </trans-unit>
+    <trans-unit id="++CODE++4b2f111b6ad2edb03660f877a98c8bfde58d5433d476e701fdd34df5589446f1">
+      <source xml:lang="en">NaN / ±Inf scan</source>
+    </trans-unit>
     <trans-unit id="++CODE++dcd1d5223f73b3a965c07e3ff5dbee3eedcfedb806686a05b9b3868a2c3d6d50">
       <source xml:lang="en">Name</source>
     </trans-unit>
@@ -7321,8 +7927,26 @@
     <trans-unit id="++CODE++3db65f8c2a7d1861b4bca37da3adec5aa7905931eb6faddbc595a35f75e6ca40">
       <source xml:lang="en">Navigation</source>
     </trans-unit>
+    <trans-unit id="++CODE++af0c34a1ed33d5b2e491d7390031913aa822b8b4fe2569aa6894752a490383e2">
+      <source xml:lang="en">Near-constant dimensions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d63c760580d94d6118de7faefe1a69f24cb85447d2a4355cbacc10b11af4bd1f">
+      <source xml:lang="en">Near-zero</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a4e67b45acc2f964a542ef0ea33708b5cc1862b89e5f754caa5d908d349caaf3">
+      <source xml:lang="en">Near-zero vectors</source>
+    </trans-unit>
     <trans-unit id="++CODE++c1ebc7817870e5be78fceae559ba5fcac2b68d5c5498d8080298004f3f79d62d">
       <source xml:lang="en">Needs attention</source>
+    </trans-unit>
+    <trans-unit id="++CODE++22161009cc0efb9566a8034b2f199bbea3f43f54026543c779adf6979f3e7e1a">
+      <source xml:lang="en">Negative dot</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fe25a4a8851c08af77fb07ac722afd7588bc51584d8ce62489b438286e955e9d">
+      <source xml:lang="en">Negative dot product</source>
+    </trans-unit>
+    <trans-unit id="++CODE++03385f7343ece6951b64bdb25559212052e97cc6e357e3ffd04be14f6b8bc19a">
+      <source xml:lang="en">Neighbor</source>
     </trans-unit>
     <trans-unit id="++CODE++18fdd549b2ed367ac0c74cbec1214644728515b30edbcb78e7d322757a7c8359">
       <source xml:lang="en">New</source>
@@ -7475,6 +8099,9 @@
     <trans-unit id="++CODE++2427093f6a4ccd3d9c91b3682f7bf06dcbb6b77b636d3edc311b9ca3f2a3721a">
       <source xml:lang="en">No active connection.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7ede09a85d9551e36bf57a28676d32157abb20166235689f5e4874f76e44038d">
+      <source xml:lang="en">No active connection. Connect this document before probing vector capabilities.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d932a05eba0200bedb4b5449ce9e6487525ba3ecfd164e137388fd0833b4121b">
       <source xml:lang="en">No active database connection in the current editor. Please establish a connection to continue.</source>
     </trans-unit>
@@ -7492,6 +8119,15 @@
     </trans-unit>
     <trans-unit id="++CODE++0e5e6762f01f3c5690e6d1628a2105cca05b94b94ccfc5d51534f4231aa4a533">
       <source xml:lang="en">No authentication required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6cd0774bfd2f55e7744db2837aab3217a8d84234621dbbfe54ddd96221930db0">
+      <source xml:lang="en">No auxiliary diagnostic session is available for this connection.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++717de3c044c4af19f33d14d8b1ba413a406d5312d8795f07d01b9ed7276186c0">
+      <source xml:lang="en">No auxiliary model-call session is available for this connection.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++18abdb8e2085244f3547284776ab2893fb2a04cc9c13c33f4f61e8939e07d405">
+      <source xml:lang="en">No auxiliary session is available for the model call on this connection.</source>
     </trans-unit>
     <trans-unit id="++CODE++ff68b3be0cbfce8037b00dfd3f0edcddfd195bd62aeced39845063dd40d8af10">
       <source xml:lang="en">No background tasks</source>
@@ -7528,6 +8164,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5d5b010f2586c8df38b2a31e976af0f62c04fc31ea075da4c7ac989ea8c1a156">
       <source xml:lang="en">No completion activity in this source</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0f86c7902f558b3a38e4bf793f05c93e6e001acc36fc87a20f344228a33a27f8">
+      <source xml:lang="en">No confirmed vector index on this target. Exact VECTOR_DISTANCE search still works; a create script is generated for review only.</source>
     </trans-unit>
     <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
       <source xml:lang="en">No connection credentials found</source>
@@ -7609,6 +8248,9 @@
     <trans-unit id="++CODE++e83dea6df0d276f8e91bea5268c2287724da6e27b8e9419218d698b8cc09a460">
       <source xml:lang="en">No deployments yet</source>
     </trans-unit>
+    <trans-unit id="++CODE++a2519ba6987d234affff7436d30a3ddf49d4385eefbaabc98f2f76fa4b2a832f">
+      <source xml:lang="en">No detail for this finding.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
       <source xml:lang="en">No elements found</source>
     </trans-unit>
@@ -7632,6 +8274,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
       <source xml:lang="en">No filter is currently active</source>
+    </trans-unit>
+    <trans-unit id="++CODE++471f9803078846142cd2a10ccf8c46488b3755b37135e0a09556a85907a3ba4b">
+      <source xml:lang="en">No findings in the analyzed sample.</source>
     </trans-unit>
     <trans-unit id="++CODE++039da3f8e6e2c085314868632cb24a762da3513ea620f51d5cd25dee2699dba9">
       <source xml:lang="en">No harness markers found in the selected directory.</source>
@@ -7659,6 +8304,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
       <source xml:lang="en">No model found.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++39288c79e0b9e10c216f1dd0db8952921e4b11f7e0b27fd9dcf25028cd4dc13a">
+      <source xml:lang="en">No native vector columns in this run&apos;s results.</source>
     </trans-unit>
     <trans-unit id="++CODE++c933cd0d45861a20699df513967542bc9b448f409d362d9bec4e7443dd96f403">
       <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
@@ -7692,6 +8340,9 @@
     <trans-unit id="++CODE++9d6298c8a19610c3253afad30305a202c182b8bffab325a89302b0d3420c7873">
       <source xml:lang="en">No profiler templates available</source>
     </trans-unit>
+    <trans-unit id="++CODE++8fd2612c3a9a516a7c57688308c595590f11bf8bc5014f23eaacb42cd2aeff38">
+      <source xml:lang="en">No projection available.</source>
+    </trans-unit>
     <trans-unit id="++CODE++75c1acf6c3d31028f8a7be377fdfe2ac75dee6d75450a900a103a3007a83b1ef">
       <source xml:lang="en">No property changes available.</source>
     </trans-unit>
@@ -7714,6 +8365,9 @@
       <source xml:lang="en">No resource of type &apos;{0}&apos; is configured for the current cloud &apos;{1}&apos;. Please update your Azure account settings.</source>
       <note>{0} is the resource type
 {1} is the display name of the current cloud</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ee87f865e1b1f051a435f9528210ccee6adc4ea0c7e53f89a68d7253a4896761">
+      <source xml:lang="en">No result store is available for this document.</source>
     </trans-unit>
     <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
       <source xml:lang="en">No results</source>
@@ -7759,6 +8413,12 @@
     </trans-unit>
     <trans-unit id="++CODE++4208eed39129c84332acd1dcb2c74e8e6073039e80862fc02cb09aa3fae5ed8e">
       <source xml:lang="en">No script generated.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++81678fb3a452633750f867d5e6d481627b27c32bdf6b5a0c1cf022e8935b024d">
+      <source xml:lang="en">No scripts apply to this state.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac811b68ae0e7d65090a659a3d254bee345e3725ca1afbdb0e524f24245da59f">
+      <source xml:lang="en">No search targets — the connected database has no tables with vector columns.</source>
     </trans-unit>
     <trans-unit id="++CODE++211f6bbe2c56c016d33be98e6d3d9d9c7552182cfd0652284a2eaa30f71981cf">
       <source xml:lang="en">No selection</source>
@@ -7806,6 +8466,27 @@
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
     </trans-unit>
+    <trans-unit id="++CODE++345f3b53353b3e4e0d592a5f826e10609585fb499748db2ae47039406ee7e2de">
+      <source xml:lang="en">No vector columns</source>
+    </trans-unit>
+    <trans-unit id="++CODE++65d483443dea129bff96e4958588391c11f44970c1f7a069a84ab15d1d851032">
+      <source xml:lang="en">No vector columns detected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7e1aa43863ab387e15ab0b6a3a0a063521546f312a8c5273e664748200e42172">
+      <source xml:lang="en">No vector columns in this database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fe0b05b84bb67d9b9d261f54b0e6ae140394428cf7df065af1efa4f67c6453ec">
+      <source xml:lang="en">No vector columns were discovered in this database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8684667b7081b6ad62ac3ad7ba8601be77a6c3c46542af1d5983b1e777062c42">
+      <source xml:lang="en">No vector index</source>
+    </trans-unit>
+    <trans-unit id="++CODE++242888637798f7d493b1b9a150f39b88b70f607e28c740b5c5984bdb01271cf9">
+      <source xml:lang="en">No vector index on this target</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dae81d89d86be98b62f0f0689d1569954c8bc4cf43269b57842bcb33328c11f4">
+      <source xml:lang="en">No verified EMBEDDINGS models</source>
+    </trans-unit>
     <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
       <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
     </trans-unit>
@@ -7838,6 +8519,21 @@
     </trans-unit>
     <trans-unit id="++CODE++b5c4a4e3057742899d6bfe3e991b97054fab12d7eccea9e8a8beb17ebc7e9fb4">
       <source xml:lang="en">None Elements</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f0d9431ee0de226a78ffb00ec05cbf655c3db9f84fcec8f2b6c3f95a6050f99">
+      <source xml:lang="en">Norm</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cc49acd95adc2ad76e8748aafb1197dcbffbf01ab28dbcb256c90282d733ea78">
+      <source xml:lang="en">Norm outliers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cd531ebafacc82497abadaf4707423055f735f626c009bfcd9b3b87ad09c736a">
+      <source xml:lang="en">Norm stored / fresh</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bb8c714748af8e44825a3f4b88b4d6ac168c966108dd836c3e8960ddaed09bc8">
+      <source xml:lang="en">Normalization</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6759a3a83a68ad80fe2b7e58330d9ef816f94b3d25661111e393a9ebf0da0948">
+      <source xml:lang="en">Norms</source>
     </trans-unit>
     <trans-unit id="++CODE++58601e3ffba5990d1be4db9f2bcc6107f9a72949aabd8f68f79bcb2c92195b5f">
       <source xml:lang="en">Not Between</source>
@@ -7917,6 +8613,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fa1d2db62d4d952e2031452e1bc1ddcad0b192c2e29a706f11ce426ae5acddea">
       <source xml:lang="en">Null</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fbb8023c70d1ef79cbd45e85a505aa5748b12757ebe4db5bc24572b678897570">
+      <source xml:lang="en">Null / unavailable</source>
     </trans-unit>
     <trans-unit id="++CODE++00faa1559589415a5c6ecf98b61606f4ab0b254a38471dd99f9182e638997a52">
       <source xml:lang="en">Null Count: {0}</source>
@@ -8098,6 +8797,9 @@
     <trans-unit id="++CODE++6a9084025c4bf3e1e99c40dd84245d6b8ccf4da301ffb703a6dc1a1ea7aa1b04">
       <source xml:lang="en">Open folder</source>
     </trans-unit>
+    <trans-unit id="++CODE++2aa059aac23f01497bdbe2413d5ddb505a992c849b484c6f8ca451477e4dcb2b">
+      <source xml:lang="en">Open generated SQL in editor</source>
+    </trans-unit>
     <trans-unit id="++CODE++7c2a6e6d128104ab72f768886cf074498197834446e974c04a7c589f5dc5813c">
       <source xml:lang="en">Open in Copilot</source>
     </trans-unit>
@@ -8208,6 +8910,9 @@
     <trans-unit id="++CODE++88f7acca017a3a274d4c9ee22712b49f567fcadb30287e007c1ac2ea00cb6927">
       <source xml:lang="en">Optional - Override default api/entityName path</source>
     </trans-unit>
+    <trans-unit id="++CODE++77108a232c693c04fbc7bc0a0f7bff6c4def0eba362e747da7b2e7a878d11c2e">
+      <source xml:lang="en">Optional JSON overrides</source>
+    </trans-unit>
     <trans-unit id="++CODE++3156977a98e93174592ff123a19db7c3aed0c2dec89ad974fa1ca47cb0e91d38">
       <source xml:lang="en">Optional token budget for formatted schema context before degradation.</source>
     </trans-unit>
@@ -8219,6 +8924,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fe67056347dc51e46560e6ebbb3515e734993bbd450e78a8f6cfec81e79b0c96">
       <source xml:lang="en">Orders the rules and data messages sent to the language model.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b0ab03744ad48665c60308879b2c7cfda1994dc62f4e4e85d3330adf36a07ed">
+      <source xml:lang="en">Ordinal {0} is out of range (0–{1}).</source>
     </trans-unit>
     <trans-unit id="++CODE++110b7288ee54432862487c6ca5ea2579493dc3b078d51218ff4e2bfdcac4986c">
       <source xml:lang="en">Original file name</source>
@@ -8248,6 +8956,15 @@
       <source xml:lang="en">Overall, how satisfied are you with {0}?</source>
       <note>{0} is the feature name</note>
     </trans-unit>
+    <trans-unit id="++CODE++38b163f9be7c4f3be3d8ef89a23beff832e8dd9ed0a28308a47cefabca0e1c00">
+      <source xml:lang="en">Overlap</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3b36ccd7d93675d7ab554ac0c0b9f857e275563530e393c719c2a6ab9a42e94d">
+      <source xml:lang="en">Overlap %</source>
+    </trans-unit>
+    <trans-unit id="++CODE++49dabfa378c24ac0e2e74d8359a78289801e6a6cf8ce9df218dc0e66f03d5003">
+      <source xml:lang="en">Overlap must be an integer between {0} and {1} percent.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b24963ea2cbc74b97321a347754137aa207b126695a95c860406098528966b55">
       <source xml:lang="en">Overwrite</source>
     </trans-unit>
@@ -8263,11 +8980,23 @@
     <trans-unit id="++CODE++4b1b8aa3608a26da451ae0630d75b60ab1bc2dd229c41a80838fc7993e835c46">
       <source xml:lang="en">Owner</source>
     </trans-unit>
+    <trans-unit id="++CODE++715589e6224f3d71cb62dc8a3119d8ce7c2ca6e16f6c9a21cf8e16fbeab7bf4f">
+      <source xml:lang="en">PCA 2D ·</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6ff4aa8385153c451dd0d77072de4ab311a18c204703d6cd412e814c08bcef3d">
+      <source xml:lang="en">PCA 2D · Center only</source>
+    </trans-unit>
+    <trans-unit id="++CODE++68daa8fa35376ecc4b62d96d3ee5ac7b05299b5372a53b2cae19f44053f410ed">
+      <source xml:lang="en">PCA scatter. Drag to pan, scroll to zoom, click to pick a point. Plus and minus keys zoom, 0 fits. Use the point list for keyboard navigation.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fcab7fcc2b4cffd9bb45003bfc2e468a04ef6f77ca8200a7341f027631584d25">
       <source xml:lang="en">PK</source>
     </trans-unit>
     <trans-unit id="++CODE++796120837694d3f3f29259cfeb25091698c2a0aa87873658d840b4993ee889b3">
       <source xml:lang="en">PNG</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56d991675c1f9efbf6b249033f735cb0be6d7553b1ab646d007e56c1f4c30dbb">
+      <source xml:lang="en">PREVIEW_FEATURES is OFF (database-scoped)</source>
     </trans-unit>
     <trans-unit id="++CODE++a975ead86d425f60988d9dd6901f1cfa4f726d4c3c59b1406b8c70f57972b57f">
       <source xml:lang="en">PRODUCTION connection — modifications will ask for confirmation</source>
@@ -8283,6 +9012,12 @@
     </trans-unit>
     <trans-unit id="++CODE++0a30a815d67d7dd2018fe18f4e995a26f3b753369cd4327e9b6034b50a2cd153">
       <source xml:lang="en">Page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f2b1aff067fd5585ca96cf8bf7654e88b0faf6301e774074335306eb50abeb55">
+      <source xml:lang="en">Pairwise distances</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0660d61f5cf340b64cf7cfff3b9ab082271a129b429a4fd44a748003ef4d942c">
+      <source xml:lang="en">Pairwise {0} matrix</source>
     </trans-unit>
     <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
       <source xml:lang="en">Parameters</source>
@@ -8326,8 +9061,14 @@
     <trans-unit id="++CODE++f3380f7b44bd70af2a369de6026bf2ca2a7b36fde9086935efcd62a0e379cc7a">
       <source xml:lang="en">Paste</source>
     </trans-unit>
+    <trans-unit id="++CODE++0c0c077f6daa84b97a9aa64be8eef4b5fa3a59544104918978404344522d9820">
+      <source xml:lang="en">Paste a flat JSON array of finite numbers.</source>
+    </trans-unit>
     <trans-unit id="++CODE++aa7e02a360294359df9e77459e71e6f350056d94cf36d644cc2c910fff983359">
       <source xml:lang="en">Paste connection string from clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++79ead64f9d87c62a37ce7c10647e7a22326c3db8753c23498508a20228c07ae7">
+      <source xml:lang="en">Pasted query vector JSON</source>
     </trans-unit>
     <trans-unit id="++CODE++71f0edbc866bcd836e06eefc36556b0e6a3552f2d422dc8bc12bddd51e3b5a8e">
       <source xml:lang="en">Path: {0}</source>
@@ -8353,6 +9094,15 @@
     </trans-unit>
     <trans-unit id="++CODE++abccc78cc93c07931feccfbd0665c003373b48334fd8d4cf5c6d0c714e68f26e">
       <source xml:lang="en">Permissions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bada8666f1f193a4732dde0c696300a2d547336ffdfbc2d5785e1e0133a2e73f">
+      <source xml:lang="en">Pick 2–8 result rows by ordinal to compare their vectors — every metric is named; there is no single “% similar”.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++12a30bec0a95c1fe64b3757501d4caf7231470a200d8ec2fc3cdd7e09cdb30e7">
+      <source xml:lang="en">Pick a model and a source text column first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d3e7fb10b92f5e8ed36acbe9270a00e4a04b37263fe0ddf86fd40ba97cbe97d8">
+      <source xml:lang="en">Pick a source text column and a row first.</source>
     </trans-unit>
     <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
@@ -8383,6 +9133,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d06ac1bbb67c80a44b59b463fd055614844f914e40a0fd26f12cddf651c7c587">
       <source xml:lang="en">Pinned results live in memory for this window session. They are released when the tab closes, when the window reloads, or when the retention limit or time-to-live is reached. Re-run the query and pin the results again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++37e1c775f452d695697b6e3389169e4109236f420f9ece420af0d5e7bb9b1533">
+      <source xml:lang="en">Pipeline</source>
     </trans-unit>
     <trans-unit id="++CODE++f28f35e8ea6ebcf2d198b25614a7e1a0463d83d9e5f3d1b1e33ba90a3025b70e">
       <source xml:lang="en">Placeholders:</source>
@@ -8472,6 +9225,12 @@
     <trans-unit id="++CODE++bc7051ce0441313dcb7c9b9d349caa1600527dbe0a54a25654881eeef7c4b0b4">
       <source xml:lang="en">Point Data API Builder at your tables to expose REST and GraphQL endpoints.</source>
     </trans-unit>
+    <trans-unit id="++CODE++989c6fc5468139de4b1367f6563cbeeb6ff3a048a500e11215ceada37424aa15">
+      <source xml:lang="en">Point for result row {0} selected.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++77deabe238de2f6dddc88c17dbe14221918571838d8fc1228843f9387b0b69f7">
+      <source xml:lang="en">Points</source>
+    </trans-unit>
     <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
       <source xml:lang="en">Port</source>
     </trans-unit>
@@ -8527,6 +9286,9 @@
     <trans-unit id="++CODE++5e03ca0d91206dd95d88a9ecb660ec409ec2794c296c6e68c1fa420c0d2dc41a">
       <source xml:lang="en">Preparing deployment settings</source>
     </trans-unit>
+    <trans-unit id="++CODE++83ece1c7a7c96e5cb3c71438ac907da9a214e05b00321f33fb536964669e840d">
+      <source xml:lang="en">Preparing…</source>
+    </trans-unit>
     <trans-unit id="++CODE++865514682d0132abd96594e2eff0ac8d379e16c60c7def0ee5c5f220ed3474ef">
       <source xml:lang="en">Prerequisites</source>
     </trans-unit>
@@ -8542,6 +9304,9 @@
     <trans-unit id="++CODE++324b134f57c70c729ae3dc4d298bb451656717d70523e942c1ce667b8024ea07">
       <source xml:lang="en">Preview</source>
     </trans-unit>
+    <trans-unit id="++CODE++f8841cf76834e788422f3393ac58cd41610a6b398af2e87f729469c5a083be43">
+      <source xml:lang="en">Preview (first {0} of {1} characters): </source>
+    </trans-unit>
     <trans-unit id="++CODE++6e71512df696382fac6921ba12839603a2a39a6da6d68a85140c4f937e5f1165">
       <source xml:lang="en">Preview Data</source>
     </trans-unit>
@@ -8550,6 +9315,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cd3c37c0fff7336e44e0cf23750941ac5a52b322309637bd4733036d1b863ce8">
       <source xml:lang="en">Preview Grid</source>
+    </trans-unit>
+    <trans-unit id="++CODE++69bd976ef3d282324a90ef7bd186ae542057ded57791a146024cf9a70322a3df">
+      <source xml:lang="en">Preview chunks</source>
     </trans-unit>
     <trans-unit id="++CODE++a57b08a480b822a0a572b993391c292ede593bf8000b406675b180bbb16260fa">
       <source xml:lang="en">Previous</source>
@@ -8601,6 +9369,12 @@
     </trans-unit>
     <trans-unit id="++CODE++c63eb6720c6e88493897548d3620d45e539d18574465f7b26fdddcbade044ee2">
       <source xml:lang="en">Private</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bd9de71c966e2d067e99ff62672a0712ba8b2a445c9142ebe058d3846dafa718">
+      <source xml:lang="en">Probing index state…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d98df99f8c84e1e9f07a1bd49b26186018959d01c997c170fc80ba62ebf1d999">
+      <source xml:lang="en">Probing…</source>
     </trans-unit>
     <trans-unit id="++CODE++5271d6ce4f647db55fc114096f1dbb3b2cc6287df8fd299c3635574761ea9fb7">
       <source xml:lang="en">Processing include or exclude all differences operation.</source>
@@ -8689,6 +9463,12 @@
     <trans-unit id="++CODE++49b20f5a4dbb9f8d013340404a75fde2c85b132dbff19ba95fc3b4857862bef0">
       <source xml:lang="en">Project was successfully updated.</source>
     </trans-unit>
+    <trans-unit id="++CODE++de27d1896150e0bcc88f09457c44818e0fb7fb929255d7bcc451ab24cd0e1106">
+      <source xml:lang="en">Projected points</source>
+    </trans-unit>
+    <trans-unit id="++CODE++54be5f95d16052f1446591cbd08c5598a2be27aa36faf18e955e8b2dfb1fec8a">
+      <source xml:lang="en">Projection</source>
+    </trans-unit>
     <trans-unit id="++CODE++b3312d12465238fa10bf2e39b15bd5506aab624634052a4bf170ad149a838a6e">
       <source xml:lang="en">Promotes directly or indirectly related foreign-key tables into detailed context.</source>
     </trans-unit>
@@ -8710,6 +9490,9 @@
     <trans-unit id="++CODE++7c68cc7494a11be986cf0d4ac8e2acb67d5aa67b35151c2435cb1c51ccd060d8">
       <source xml:lang="en">Provider &apos;{0}&apos; does not have a Microsoft resource endpoint defined.</source>
       <note>{0} is the provider</note>
+    </trans-unit>
+    <trans-unit id="++CODE++34455bf1d857c4c069f8784507918580004a4a5699a03125a9541164ac412df2">
+      <source xml:lang="en">Provider model</source>
     </trans-unit>
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
@@ -8852,6 +9635,9 @@
     <trans-unit id="++CODE++fddb300086dc33066505f9f71624f16a09b926c9002e1d87612184f6a7543733">
       <source xml:lang="en">Query Studio reached the result row limit of {0} rows. The result set was truncated and the query was canceled. Increase mssql.queryStudio.maxRowsPerResultSet to allow more rows.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2d24b853b1539e148e06ec32f629d3d001c306ec97e591794d403b30d3d2ea18">
+      <source xml:lang="en">Query Studio received an invalid Vector performance action.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ca154a042497377720aece66917f2ef8edfb5c1ab44bfd3abfe6b79deb50f1fb">
       <source xml:lang="en">Query Studio received an invalid grid scroll action.</source>
     </trans-unit>
@@ -8910,6 +9696,15 @@
     <trans-unit id="++CODE++9bb19ac86101a6dfe00ba121dc8fab54c216992ef8d061c9cf27bd93a4424a91">
       <source xml:lang="en">Query succeeded</source>
     </trans-unit>
+    <trans-unit id="++CODE++68a1bf664911339a81bd431d1729846bb499f79f79acca992c87552ff1e54305">
+      <source xml:lang="en">Query vector</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1dbf279a06ef721ca0c5eb785bddf6fffad50d2ea7f8f0e4246c7f6a7b952e85">
+      <source xml:lang="en">Query vector ready</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e8169dcbdd423e13c7353cf2953717ec004d63fcbb5c3e223e84591f27f26b0b">
+      <source xml:lang="en">Query vector source</source>
+    </trans-unit>
     <trans-unit id="++CODE++c955f29937648f74a17c2d92a4e10d7feb686d9a1109237ba52531d2adfd61b2">
       <source xml:lang="en">Query was cancelled.</source>
     </trans-unit>
@@ -8962,11 +9757,38 @@
     <trans-unit id="++CODE++581627cba40f213340516f0d39805addaf361c69917155ec912ee6ec7b272a18">
       <source xml:lang="en">RESTORE WITH STANDBY</source>
     </trans-unit>
+    <trans-unit id="++CODE++5de74a81b192304c10bf7b8cf50e863a19e8ae4c38a4d5c5116359db0deed29f">
+      <source xml:lang="en">Range</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d4848b50b7234a09c8c27fdb29c3c06d65300a051268be505c4e7544d3a94259">
+      <source xml:lang="en">Rank comparison</source>
+    </trans-unit>
+    <trans-unit id="++CODE++09fb4368be11e74b7648ea15680099510f9730f519a9eec5508ddb2ffd668929">
+      <source xml:lang="en">Ranks</source>
+    </trans-unit>
     <trans-unit id="++CODE++9a6d0aced8d18633810a99dd716adb681d2fc727b42b6a66ff9a39c674ad430d">
       <source xml:lang="en">Raw Response</source>
     </trans-unit>
+    <trans-unit id="++CODE++7bc911bca172f1c841dc54ddfe7b47970cdf02a1058b407bd359aff7c6b62016">
+      <source xml:lang="en">Re-embed &amp; compare…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7d7d9d652f19e1898dc198fdc1c74a81d1617a3006630622c75b3b4ff909735b">
+      <source xml:lang="en">Re-embed selected row</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5c66120a6391bce1194cf7b7c3e9a9b46e14d62fbd8c78e795958153615e0d9b">
+      <source xml:lang="en">Re-embed selected row confirmation</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9377079509424c118b5dfa46f43aa54957b705dd205adbc867b51f8fb5190328">
+      <source xml:lang="en">Re-embed selected row?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e91008f6a359265c8b4762907eddc97e65ac9d71d10b66ed35c6ad57c6d37660">
+      <source xml:lang="en">Re-run the capability probe (bypasses the cache)</source>
+    </trans-unit>
     <trans-unit id="++CODE++9b9a8d05a7ec353bda84f9c1bb3178c299de3001b5e970508ddc889c487f92ca">
       <source xml:lang="en">Read</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c026df26c6cbb5bb3046e03943635a364a06655990824a0ce439514a1594b49d">
+      <source xml:lang="en">Read consistency</source>
     </trans-unit>
     <trans-unit id="++CODE++c386185bf02fec23ab41b4dbcc29406839df6efd9fd1cb03660aa0c2e5640617">
       <source xml:lang="en">Read docs on Microsoft Learn</source>
@@ -9014,6 +9836,12 @@
     <trans-unit id="++CODE++8a80b1d53b5bbf9ca48c886b0c5defb1205801ca264c6b06de6cd5c6389a2086">
       <source xml:lang="en">Reason for elevated (full) capture — recorded in the session log</source>
     </trans-unit>
+    <trans-unit id="++CODE++10250f031f1de079f0338ec7a58bedd6778335220164838fb74bfd20d2e668e8">
+      <source xml:lang="en">Recall denominator</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d6d8b23d73114e2a02e854b951c1ab98046c6a3f537b812f588edae7d6c3444b">
+      <source xml:lang="en">Recall@</source>
+    </trans-unit>
     <trans-unit id="++CODE++6aafab6eae72092eb7c25ffb6f34dab1a3eb70f1ef79e6e159f0fe540ca6b675">
       <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</source>
     </trans-unit>
@@ -9037,6 +9865,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef">
       <source xml:lang="en">Recommended</source>
+    </trans-unit>
+    <trans-unit id="++CODE++deceaea7c08bcc5b6c00ed7e20b0894470bf24318b55387ca93a0d8909c77d61">
+      <source xml:lang="en">Reconnect the analysis session before loading finding details.</source>
     </trans-unit>
     <trans-unit id="++CODE++ab596c05382fa89fa36fa6f0ef1744964ad6619f2a1226d92074b6d867bfe1e1">
       <source xml:lang="en">Record closed</source>
@@ -9104,6 +9935,30 @@
     <trans-unit id="++CODE++1486770684670d9522448c4570f0cf4cd20503865e2f579d152f8e6b62c64c92">
       <source xml:lang="en">Refresh now</source>
     </trans-unit>
+    <trans-unit id="++CODE++938c1e9db0bac4e8797c3fe1c51418c5f97b3ebd5d2b5dcedce5f508c9dcaddb">
+      <source xml:lang="en">Refresh targets</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1a1c64058f15a17d78afa2085b9df6b7e8b8b56b357a5d38ab35a891a82b3ab8">
+      <source xml:lang="en">Refresh the catalog-verified EMBEDDINGS model list before generating.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a20f653a4a7a9dbc946750b1499c0b401b9abc704351285739c200fe583ebdc0">
+      <source xml:lang="en">Refresh the catalog-verified EMBEDDINGS model list before re-embedding.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++70bd32625a7bb0d7db3b1f0ffebba1d19b60ad76992d163377e40f6c835a95a3">
+      <source xml:lang="en">Refresh the catalog-verified Search target before generating an embedding.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d70164da2ab56312c6dc50a12d8bec10e1c9b7888002441650543f2d1bd063a2">
+      <source xml:lang="en">Refresh the verified model list: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7ff056f2e5bf9a267cb96bd5f0d704bc0e99070faa9d43fd2bd3bd5bb3257439">
+      <source xml:lang="en">Refresh verified embedding models</source>
+    </trans-unit>
+    <trans-unit id="++CODE++024c0aee66efc56f0edc29a4f2b94bc620c0ca67b0a639004e857807bb3ea17d">
+      <source xml:lang="en">Refresh verified search targets</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7b74575bc0fc661efc7c53d156215a894568e4b8dbbdf36a9b85582f1296c1d9">
+      <source xml:lang="en">Refreshing…</source>
+    </trans-unit>
     <trans-unit id="++CODE++d3a008ef1335692d9d045175ba9ea1dcd39ae48da9e2043a9baabad6c3818c28">
       <source xml:lang="en">Region</source>
     </trans-unit>
@@ -9152,6 +10007,9 @@
     <trans-unit id="++CODE++094e39c37800d5830e170aa0fbb976b10df2e3a9b847a6ec019c1e304bc509a6">
       <source xml:lang="en">Remove filter for {0}</source>
       <note>{0} is the column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++6c21dc08e3a4accb2ba9ebe4a0f944f5e2c067af0f1bd3a421912426d4f3b36d">
+      <source xml:lang="en">Remove filter {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++18720329ca307c792fee6c6c1f707145c981d07c2b5a1b7127732ccd6e7203eb">
       <source xml:lang="en">Remove from favorites</source>
@@ -9412,11 +10270,35 @@
     <trans-unit id="++CODE++a00895859cc07e04d4f412129ec61a76b8b3d1af0b496755bd81a309a3707415">
       <source xml:lang="en">Result exceeds the preview size limit and cannot be safely redacted.</source>
     </trans-unit>
+    <trans-unit id="++CODE++69c4f053e9c8ced746ec46873a865a428286be26bffb091602e24f8a28b58265">
+      <source xml:lang="en">Result handling</source>
+    </trans-unit>
+    <trans-unit id="++CODE++65aac76de89c068ef442ab549c2bd45f519452560174ca59cb62868d101afd04">
+      <source xml:lang="en">Result row</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4a951f94fb87dd92fd867153df2910e290ecac5e42f82ace6969239a908e4bb3">
+      <source xml:lang="en">Result set is no longer available.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3aeacfc357e69e8b75d8382f2970745618b52dce453b0e04ca0ac7e2cb0a5f68">
       <source xml:lang="en">Result set not found in this snapshot.</source>
     </trans-unit>
     <trans-unit id="++CODE++a5ec26b19a366ed7e7eb9b3478620802f23ace14c3e3b59763ac682b5cb94587">
       <source xml:lang="en">Result set not found.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dcc91d574563dcc63805ceec887da10732b5e13eafa41dc2851fe0939816cdb4">
+      <source xml:lang="en">Result-row ordinal</source>
+    </trans-unit>
+    <trans-unit id="++CODE++67df5d4b241ebb3873ef2efbb0c1ca516d808fb59089bd40d919e60df7b34d81">
+      <source xml:lang="en">Result-row ordinal {0} appears more than once.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5be5a203e63d747d473d8482b2265ac320addecba4b98ad0fc2b82998a1cfbed">
+      <source xml:lang="en">Result-row ordinal {0} is out of range (0–{1}).</source>
+    </trans-unit>
+    <trans-unit id="++CODE++febe90900bfef15c9bca3d9c1375e8ec2cb109e99c1045b4a4838262bdb1e927">
+      <source xml:lang="en">Result-row ordinals to compare</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c2ba856cc22c0bae6958852237104229beed035a4ce99f9343e791d6ba561e0e">
+      <source xml:lang="en">Result-row ordinals, e.g. 0, 4, 17 ({0}–{1} rows)</source>
     </trans-unit>
     <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
       <source xml:lang="en">Results</source>
@@ -9458,6 +10340,9 @@
     </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d4e54f76384bf5459c770669fd4358aba52e3a1e58a1eecbd8eaf8d615681aed">
+      <source xml:lang="en">Retry probe</source>
     </trans-unit>
     <trans-unit id="++CODE++08e102a5d5859754ee4e6fb854ec39fc2f81992f47228b0f2f229d33ce2862e5">
       <source xml:lang="en">Retry {0}</source>
@@ -9532,8 +10417,17 @@
     <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
       <source xml:lang="en">Row marked for removal.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d609dc5e1149bcab6d46d5639ebd50bdfe9717d9edea11702c8104fa1d9d21f4">
+      <source xml:lang="en">Row {0} has no analyzable vector value in the selected column.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++18c5542ee38d0596e75b7ce26e40fe714504b0b06a477da065a5ef08e6ff320a">
+      <source xml:lang="en">Row {0} has {1} dimensions; the selection expects {2}. Incompatible dimensions cannot be compared jointly.</source>
+    </trans-unit>
     <trans-unit id="++CODE++101f2ff3de22441fcab3e15ca0b09ac3428642cf628558f16fa404fc3137baea">
       <source xml:lang="en">Rows</source>
+    </trans-unit>
+    <trans-unit id="++CODE++27a2915376eeb0adfa8d2aeb8339ceef0ba0dc425afdaf45f604e35b11e4859e">
+      <source xml:lang="en">Rows / calls</source>
     </trans-unit>
     <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
       <source xml:lang="en">Rows per page</source>
@@ -9590,6 +10484,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2105043482ed04f1596a51a162ec6ed713674f6408e62a5f802c421ac7485b75">
       <source xml:lang="en">Run and read results</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f04e7b6bb668a98846ee8937309f07e4201f217a07d17d159d1a667284a5be7b">
+      <source xml:lang="en">Run comparison</source>
     </trans-unit>
     <trans-unit id="++CODE++e4a7eef54f61befcda35db794ab6b91a9c78f0dc71ed873af0e5ad085dbd90bc">
       <source xml:lang="en">Run config matrix</source>
@@ -9653,6 +10550,12 @@
     </trans-unit>
     <trans-unit id="++CODE++4870950395d377ccb78a99509d402224e9dde215522464fe53d7423a5e6ac8b2">
       <source xml:lang="en">SDK-style project</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e192c7b6a9dd9d633cf678b4a21f90b6d9d9470fcb9f971917f29c622bf07d72">
+      <source xml:lang="en">SERVERPROPERTY probe</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c91a5f7d1c1f66f68d6c87cae4f68b25b6ea633c7a986f676990639c19d9e55">
+      <source xml:lang="en">SHA-256 of float32 bytes</source>
     </trans-unit>
     <trans-unit id="++CODE++3043d2b670f4335dc8b135ca8aa5648da177e0bbf7762d3744bcb83ebe51dc5b">
       <source xml:lang="en">SPID</source>
@@ -9779,6 +10682,9 @@
     </trans-unit>
     <trans-unit id="++CODE++95a2f1edb08a76120b82cec7c93ca477618639f04beac7d2aeba2dc039d43715">
       <source xml:lang="en">Sample</source>
+    </trans-unit>
+    <trans-unit id="++CODE++19eb701503604f70f6d2479cd7c849fd96b476bdac3933f12c755c52fdf95e56">
+      <source xml:lang="en">Sampled pair distances</source>
     </trans-unit>
     <trans-unit id="++CODE++a9bbbc0f1260dd31681f18a69e6b2ecbae8c076353edd4563e55ef04d7224b19">
       <source xml:lang="en">Sanitized</source>
@@ -10073,6 +10979,15 @@
     <trans-unit id="++CODE++36dd2a82c1cf2db5f8b72cbfec8b79e93211e6700e6ce7311f083bd86a626137">
       <source xml:lang="en">Script.PreDeployment</source>
     </trans-unit>
+    <trans-unit id="++CODE++8d0e6b4ab60543cfb39c28fc2f8bc370ec1291fd6fc9ee2ab089c460b50710b5">
+      <source xml:lang="en">Scripts</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9750633866f25ec63f25ff4034407feb96c9e00b9d4acbd2d49558ce4e694cb3">
+      <source xml:lang="en">Scrollable rank comparison</source>
+    </trans-unit>
+    <trans-unit id="++CODE++49c266baaaa70981ea188fa714d5c40cf13830d786a861c9943ae0d26a7f3fe9">
+      <source xml:lang="en">Search</source>
+    </trans-unit>
     <trans-unit id="++CODE++3107490fec0b0f1473f9c015e3241f8227355d32611003204de614aed62c78c5">
       <source xml:lang="en">Search Connections (Private Preview)</source>
     </trans-unit>
@@ -10116,6 +11031,9 @@
     <trans-unit id="++CODE++9c9335630fa6b9edd2fa273ee1c7bbf05139a475c4491339a5a5b0579d5c4961">
       <source xml:lang="en">Search rules...</source>
     </trans-unit>
+    <trans-unit id="++CODE++5d3c49e98613836d0a965c9f4face68dbde63575c74ce9a03d98671f81560255">
+      <source xml:lang="en">Search runs SQL on a separate database session · the webview makes no network requests</source>
+    </trans-unit>
     <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
       <source xml:lang="en">Search settings...</source>
     </trans-unit>
@@ -10124,6 +11042,9 @@
     </trans-unit>
     <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
       <source xml:lang="en">Search tables...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f9c7b2ed12f7dfc3f982b5de106a3a3f0d5fc8c79d5fb1d094d026a1c2dbeac5">
+      <source xml:lang="en">Search target</source>
     </trans-unit>
     <trans-unit id="++CODE++404b4ef5cba30d5d524422e7639bb1502d686405be95ff2dec636eb5fedfe992">
       <source xml:lang="en">Search values...</source>
@@ -10365,6 +11286,12 @@
     <trans-unit id="++CODE++7949572bfffc1f7da718dd36f87551bea337e7e4ae96bdfa57562960ecf80afd">
       <source xml:lang="en">Select at least one profile and schema.</source>
     </trans-unit>
+    <trans-unit id="++CODE++85bbc055ddc00aa95e562f4f0590609bf0d918a648826d8b2fd3ca191d0fb331">
+      <source xml:lang="en">Select between {0} and {1} result rows to compare.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d91e839473915d721d625b9f7b8ff816f25b36e782e5bdc1e251e644a6fba424">
+      <source xml:lang="en">Select between {0} and {1} rows to compare.</source>
+    </trans-unit>
     <trans-unit id="++CODE++91db086469f6b5535752cd441009d061a5ade94b6684a1dbaff02da204515224">
       <source xml:lang="en">Select column</source>
     </trans-unit>
@@ -10465,11 +11392,20 @@
     <trans-unit id="++CODE++05b335b429fbb422b7e22e8f8b77acd140d21b43c04f04476206cfaf85978d13">
       <source xml:lang="en">Selected backup file does not contain a valid database backup</source>
     </trans-unit>
+    <trans-unit id="++CODE++38c265d27d1b31def8fa57c35dd98e1998e9cd2bfdabb71cf7877965320eb310">
+      <source xml:lang="en">Selected neighbor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8f7c170b12fc2df127faa9ffd0e2ccb25537f7450fda580ae95a193eb08330c1">
+      <source xml:lang="en">Selected neighbor details</source>
+    </trans-unit>
     <trans-unit id="++CODE++2cafc5757485d935e51fd715bb3ad14ec8c53f8875ed9e218b427244de032f15">
       <source xml:lang="en">Selected query-editor text</source>
     </trans-unit>
     <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
       <source xml:lang="en">Selection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e197d407f209a44f122967de4f71f933e884839d5b12c1bf425baf7b6417a698">
+      <source xml:lang="en">Selection summary</source>
     </trans-unit>
     <trans-unit id="++CODE++84195de9375af87cb637fbb3eb7587d1dcdce5d9ea648de8dfc28b7ea4134509">
       <source xml:lang="en">Send Feedback</source>
@@ -10563,6 +11499,9 @@
     <trans-unit id="++CODE++8b9c1358b46f657510f8b3c1bcaf9d6f0978a6c151c14298095422ad887de2c5">
       <source xml:lang="en">Service Broker</source>
     </trans-unit>
+    <trans-unit id="++CODE++3e90eda90cf765ceeb2513c5705d47917ff5628868afebb89a52ed05ae5d6b19">
+      <source xml:lang="en">Service impact: dropping this index immediately disables approximate search on this table until the replacement finishes building. Plan a maintenance window.</source>
+    </trans-unit>
     <trans-unit id="++CODE++dac743dff083eb4e7426ed1b0a586ff5ead5b87a35759f12eea61e57638fcbc3">
       <source xml:lang="en">Service installation failed.</source>
     </trans-unit>
@@ -10590,6 +11529,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4b80d5f9dd620b5ac11a742d3d138e56e05b6b4ce0cd9575b1ca820590a7fce0">
       <source xml:lang="en">Session not running</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4fd310691471eb6a0a4fea6d6095f45f394de7251d7f2c204470227b117371af">
+      <source xml:lang="en">Session scope</source>
     </trans-unit>
     <trans-unit id="++CODE++8a6510295cbc0f31f1c8338ba79cb474a872bfb327b4b029e730366d3d6c0d3b">
       <source xml:lang="en">Session-only debug settings</source>
@@ -10926,9 +11868,27 @@
     <trans-unit id="++CODE++f757ef1e62a52c257451f92fbdd24174fc804cebd5eeb040763d5875feae7864">
       <source xml:lang="en">Source database</source>
     </trans-unit>
+    <trans-unit id="++CODE++76fb85c373fb197367f089497b55ea5b4d9527e217062d9832b36754f206e3da">
+      <source xml:lang="en">Source text column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++709b019c69d01a6f661318cbe0fd98a35064b1ac244d69d6bc2b506d01cf8085">
+      <source xml:lang="en">Source text exceeds {0} UTF-8 bytes; Pipeline will not build or retain the model-call SQL.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3068599e39d0d12f8dfdb5f867105b1b28c6957c20890fa66433fbefdfd5d35e">
+      <source xml:lang="en">Source text exceeds {0} characters; Pipeline will not build or retain the model-call SQL.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4d983f07f6b72750f123888d8a0358aa52ec26142589d42573bccf5216529c39">
+      <source xml:lang="en">Source text modified after embedding</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a0a9eb08b897423d2914e9bdec3b966b7f75c3790f7de764544782336b3e5694">
+      <source xml:lang="en">Source-row exclusion requires a verified result-to-table lineage binding; this STS2 result does not carry one.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the fully qualified DAB source object name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++693ce1c206ceef29709882ad66c4b7c00adbebbb4df5555f77e4b97b930c2042">
+      <source xml:lang="en">Source: {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
       <source xml:lang="en">Source: {0}</source>
@@ -11101,6 +12061,9 @@
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
     </trans-unit>
+    <trans-unit id="++CODE++aa9cd703595167c00e38918791bd730c47d2c5e52417ea4d0fcbaddb69491964">
+      <source xml:lang="en">Submit a Compare basket of 2 to 8 result rows first.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c4ed896e6258b54727811f7a2d17bf4e0a998497b6946da3718a0f5ca0c78ebd">
       <source xml:lang="en">Submit an issue</source>
     </trans-unit>
@@ -11224,6 +12187,9 @@
     <trans-unit id="++CODE++181e7ec5a25b8b2b3a19b5ae1324f83e6b73357d6729eea93928a647c9ce374b">
       <source xml:lang="en">Synonyms</source>
     </trans-unit>
+    <trans-unit id="++CODE++88f6e6c2bc5d6764be270d3f791d91693d72157ad0365a1bb4795bc78df91ce5">
+      <source xml:lang="en">Syntax probes</source>
+    </trans-unit>
     <trans-unit id="++CODE++7851edba78e80968fcf971cfb2a0404035c92b19feca4c3699bcdbfce3831471">
       <source xml:lang="en">System Databases</source>
     </trans-unit>
@@ -11262,6 +12228,9 @@
     </trans-unit>
     <trans-unit id="++CODE++67077caf3f94d65d855d2d4e153d5480caa50d0cfbac5123184e3910f5e52bf2">
       <source xml:lang="en">TRAN (</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1a792985c2ec84b789be1b5b0584e2d48523a9741187479a928f987c81342a0d">
+      <source xml:lang="en">TRUNCATE TABLE blocked while index exists</source>
     </trans-unit>
     <trans-unit id="++CODE++90ce385fdb56f8f52e61ac9cd83f57b2931c97ed5ae60f9d9b63b4fd3b697e24">
       <source xml:lang="en">TTL (ms)</source>
@@ -11365,6 +12334,9 @@
     <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
       <source xml:lang="en">Target Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++9dd19c339f0fbcd058c9619c356f5a342964785b1f3fca3a5ebdc38bdde3e05e">
+      <source xml:lang="en">Target health</source>
+    </trans-unit>
     <trans-unit id="++CODE++6962f3daaf2cd4dfd928b74183cce462d18a2f986969cfcc28ef9ae51fafc449">
       <source xml:lang="en">Target information for extract is required to create database project.</source>
     </trans-unit>
@@ -11427,11 +12399,26 @@
     <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
       <source xml:lang="en">Text View</source>
     </trans-unit>
+    <trans-unit id="++CODE++d64610438552cffd255435e62237b8c00125ffe1393c0bb75b523b7a098e57c8">
+      <source xml:lang="en">Text cannot contain a NUL character.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b173ff24737fb497bfe5b0c18f2f5c5a2a22840949dccc512de24e6bcaf70e35">
+      <source xml:lang="en">Text characters</source>
+    </trans-unit>
+    <trans-unit id="++CODE++52576976f4e57ddc25fa9cda8edc74a2d4b5ec635b4789a2f129d9b3cf3592b0">
+      <source xml:lang="en">Text exceeds {0} UTF-8 bytes.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++81915eb43646be676228279fc651b0fb8c74a9f304112d0db6bd052132776a07">
+      <source xml:lang="en">Text exceeds {0} characters.</source>
+    </trans-unit>
     <trans-unit id="++CODE++812d56e526fdd3368a6c020757448482a5dd431925aa080803a03c0347434409">
       <source xml:lang="en">Text output updates when each result set finishes loading.</source>
     </trans-unit>
     <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
       <source xml:lang="en">Text tab - displays SQL text data</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f9923d34be8f06c119caefc5061df4738ef1ff7567d979b6cf9c220bc40c428c">
+      <source xml:lang="en">Text to embed</source>
     </trans-unit>
     <trans-unit id="++CODE++e28411a3404d21f9fc1679b4464b3dc497333f6140e580d745d52e2522d65c9f">
       <source xml:lang="en">Texture</source>
@@ -11459,6 +12446,9 @@
     <trans-unit id="++CODE++19f94053c824ea8918fb1bc75d32db61c103a9bda361494326fb6212602380fb">
       <source xml:lang="en">The Azure SQL Database container did not become ready for connections within five minutes.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9644967044aece7f2f22ce4a1831ecb22b302b6f50743cb2d56f3fa5ad9be6e0">
+      <source xml:lang="en">The Compare basket no longer maps to this result set.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4b322ab456c5f1d7a9a9be01df5778e65771785eab5f5f93637487f24f24793d">
       <source xml:lang="en">The Data API builder CLI exited with code {0}.</source>
       <note>{0} is the process exit code</note>
@@ -11481,6 +12471,12 @@
     <trans-unit id="++CODE++c06982c71f4f2dfffed0ad092518601746d30dc2386af195c3e836f87e5eb300">
       <source xml:lang="en">The Dev Containers extension is required to reopen this folder in a container.</source>
     </trans-unit>
+    <trans-unit id="++CODE++72ae1c7c0c97c5635f2d340850dc095c75b01b50baa4842c23665d1ee1ca33a4">
+      <source xml:lang="en">The EMBEDDINGS model identity or endpoint changed after confirmation; refresh and prepare again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8922e04444a312dee1de7d3f85608927094be14320e0ca386ffbb3641f648b2f">
+      <source xml:lang="en">The Pipeline result reference is invalid.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
@@ -11494,6 +12490,15 @@
     <trans-unit id="++CODE++72c65e70a4db945f4b9dccbbdda3aaeade2926ad368b312dd0d820995250e9f8">
       <source xml:lang="en">The Schema Compare extension must be installed to a update a project from a database.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b0792c0d0d84016c20ffdf9dced286a2b0c7423b931479e0eb5cfe4c2c275ba1">
+      <source xml:lang="en">The Vector Workbench session has expired.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++70c6cabe2ab21e8c1019818f7e7bf542f4844e7251cc4986d4097a9ad94c6364">
+      <source xml:lang="en">The Vector Workbench session has expired; reopen the Vector tab.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bd5184abb06a3991bafbb22834e52f5af52923c1057ed2d780a1557e6be0ea87">
+      <source xml:lang="en">The Vector workbench preview is disabled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
     </trans-unit>
@@ -11506,6 +12511,18 @@
     <trans-unit id="++CODE++937f464ef0aeec05ccd346845932275ed958c6a2703921f0ef89d5095e189f82">
       <source xml:lang="en">The affected extensions could not be opened. Open the Extensions view and uninstall older Data Workspace and SQL Database Projects extensions.</source>
     </trans-unit>
+    <trans-unit id="++CODE++22a22f603df5f81e4dfa5860f728a6343fb72840caf5cbf6f3df26f0ab232c31">
+      <source xml:lang="en">The analysis session has expired.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6318d9c93f096aee6ce82a57026740a5bcbae8986060c3441de55c6abf5da807">
+      <source xml:lang="en">The analysis session has expired; reopen the Vector tab.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fdaafac02ba31668a5f411417155bccf075ef0a557e55f4c74b8778c75170be0">
+      <source xml:lang="en">The analysis session has expired; reopen the tab.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++72ab169ee186297902137a63b8dc484df7fa2f7085723fbcfe4f0ecd21e885d3">
+      <source xml:lang="en">The analysis was cancelled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
       <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>
@@ -11515,6 +12532,12 @@
     <trans-unit id="++CODE++9cb184bfbce8489983076e7d2b758fba742453f68e82aa907ad3b48c7247c61f">
       <source xml:lang="en">The built-in administrator login for the developer container.</source>
     </trans-unit>
+    <trans-unit id="++CODE++614de5127fcb7f38e3528ea58d80a99393151a8494b9356bdc61ae6f331aaafd">
+      <source xml:lang="en">The cached search result is unavailable for this result set.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f1a0501d2ff3fbd43ab4658426a81441c6893827352fed5899bd254ed3718894">
+      <source xml:lang="en">The cached search result is unavailable.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d7c54293989298ee3944f49558ec6882f3cdee331b1959779bb00e2e6921be28">
       <source xml:lang="en">The cancel request did not complete in time. The editor&apos;s execution state has been reset.</source>
     </trans-unit>
@@ -11523,6 +12546,27 @@
     </trans-unit>
     <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
       <source xml:lang="en">The columns of the index.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8e48f6cd39884c92ff4e254eec05801a5ce5b0a0f90b1e4dff2ab314c3f97754">
+      <source xml:lang="en">The comparison returned no data.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cb088d4cd39710c72fef47e0f60229f85c124963807785f7abb21564dd84cdb1">
+      <source xml:lang="en">The comparison was cancelled.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6cc413e563439387ae880c19f0d1071cbb6f764c8cdd2ef0288e9e0546cd4c3e">
+      <source xml:lang="en">The completed Pipeline comparison belongs to another result.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0ae18152203b184d3d23616b3d5b766d2d98e766f33ca72133ac8fd0836165a3">
+      <source xml:lang="en">The completed Pipeline comparison is no longer available.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++23141a862ccbcd8035d39af78ce5adadd59c10239a05d773a1afd42118b724b1">
+      <source xml:lang="en">The completed Pipeline comparison is unavailable.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4eb01ee73f276b2c0d94fa02b2cfba76c3a37d5c48bf7c6ff504bfcbbafe78fc">
+      <source xml:lang="en">The configured ONNX runtime executes in process without network egress.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b80ed61bb0fb75ea6952634fe69a51952471acab0b21ad6339ec959b0fa4a4cd">
+      <source xml:lang="en">The confirmation token is invalid, expired, or already used.</source>
     </trans-unit>
     <trans-unit id="++CODE++a238f8494c24670d2a99bca7863c04c3b523e1ffd7502d240c9aadca7e53c9c1">
       <source xml:lang="en">The connection ID &apos;{0}&apos; set in &apos;mssql.defaultConnectionId&apos; does not match any known connection profile. New editors will fall back to transferring the active connection.</source>
@@ -11565,9 +12609,15 @@
     <trans-unit id="++CODE++44d1028a4f9813fa5404247a36ba5c244cf826267718ec8031f44ea1744cd9f5">
       <source xml:lang="en">The developer container uses SQL Login authentication.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3fbaabbabe5379e313ce6dd855f7c152410f2ed113cb894b9f08eb879b1ef0ac">
+      <source xml:lang="en">The dimensions override is {0}; the verified target declares {1}.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7d461990f839b0bf2ac4825e909940b31fbe37f7b1da2ee5a4091bfb27cf40cb">
       <source xml:lang="en">The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.</source>
       <note>{0} is the deployment name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++604aa11c3906fe5771d20c8993d7c963523d5688a02bc2382cb727441c42c35f">
+      <source xml:lang="en">The entered text leaves the database engine for a host-local endpoint.</source>
     </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
@@ -11590,8 +12640,20 @@
       <source xml:lang="en">The following workspace or workspace folder connections are missing the &apos;id&apos; property and are being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it. &#10;&#10; {0}</source>
       <note>{0} is the list of display names for the connections that have been ignored</note>
     </trans-unit>
+    <trans-unit id="++CODE++fe7326ac99e22e45946a0417fdaaaabb87f4b3f677769556223813747b60f9d3">
+      <source xml:lang="en">The generated query vector is no longer available; generate it again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2ddbcb886d2165aefb35f1a8801162eb1d9d97a55ca53c5f24cc284c718ad11c">
+      <source xml:lang="en">The generated query-vector reference is invalid.</source>
+    </trans-unit>
     <trans-unit id="++CODE++165859562845402828987200e5aa14c44dffb25584ee962b984d30418a65f9b5">
       <source xml:lang="en">The host port used to connect to the database. The default is 1433.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bd9c84b82fcf5c346842e652130f4fc2091bc233547532db3f26cee5ebb59e61">
+      <source xml:lang="en">The host refused the confirmation.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++92906e374de8fe35bacf1c2bc148afba4069c819e5fad645f5bb69a96cf57ad0">
+      <source xml:lang="en">The host refused the model-call confirmation.</source>
     </trans-unit>
     <trans-unit id="++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11">
       <source xml:lang="en">The language model did not return any output.</source>
@@ -11613,6 +12675,45 @@
     </trans-unit>
     <trans-unit id="++CODE++748f1779a56584b54a1ebea2ed54d4ed5a28d6480654284f36b3c9ccc02e1ddc">
       <source xml:lang="en">The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ae8afeb2c3d8e889e295d9c9c793c0a47af28bd1474c464bbe7891c19dc1750b">
+      <source xml:lang="en">The model API format is unclassified; treat this operation as possible external egress.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++780566586fc8ccd8d564e79336dab36342dc2853467c250c5937114255658d5a">
+      <source xml:lang="en">The model call returned no embedding JSON.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a75a05b5fa089f238284a0c6fa6e4b9c8a2046751fc07154500898be04138080">
+      <source xml:lang="en">The model call returned no embedding text to compare.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba047416e6f4a14c2ab984fa60ff6f1793d534a17a617957e6578ca6ed5d30ab">
+      <source xml:lang="en">The model call was cancelled.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++93a9172a2a7ff962d64973b3ac865353c0d824a4949b789869f13a52d19a9e4f">
+      <source xml:lang="en">The model output exceeded the bounded vector payload.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dec97aea7dbe4386aa1121475e7d2ed731a7b6c3ed8d26055a68f28f1d039632">
+      <source xml:lang="en">The model parameters exceed the bounded Search input size.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++548ccdc22c1f3eaaab614ed0697a2e73952bb843455ba016bbbf07372a038e57">
+      <source xml:lang="en">The model probe did not return a modification identity; Pipeline will not authorize an unverifiable model call.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b1efb9019049b60f02e704231b41a3f9238bb3291b9c5163937bd2855319f62a">
+      <source xml:lang="en">The model probe did not return a modification identity; Search will not authorize an unverifiable model call.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d17d8e23e2354891dfa4327c0518206427fb354995210c8cab272fecf423db57">
+      <source xml:lang="en">The model returned JSON that is not a non-empty array.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e1df51b7e78ae210cb894a2cfaf8720d4ae0a22af5771fda6d666bee250b62d7">
+      <source xml:lang="en">The model returned an array with non-finite or non-numeric components.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++432f0cc56b3209d60b65c975957fad1baf6c6ae6c27628ca3e30dfd24e667005">
+      <source xml:lang="en">The model returned no usable embedding.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ca8aadd2ea50557f850337e102841bfc30cbfa5bde4670f00f081f2995ee3ce2">
+      <source xml:lang="en">The model returned text that is not valid JSON.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++04436aa562ca981051d8cb1759394efe29624633409b22f6367ffdb8e92307b8">
+      <source xml:lang="en">The model text exceeds the bounded Search input size.</source>
     </trans-unit>
     <trans-unit id="++CODE++497f95858a915b211f7f758c96976c859fb0e3695e61ec32971051e8b431c186">
       <source xml:lang="en">The move was rejected or could not be completed.</source>
@@ -11638,6 +12739,15 @@
     <trans-unit id="++CODE++4f741739bf72ecedf22b1028fb8e35adfbf2ff99d28aa41ffa0531c6deaba4e5">
       <source xml:lang="en">The password must contain characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.</source>
     </trans-unit>
+    <trans-unit id="++CODE++982a88a2de4258fe5dbf7147ca918570544f623fa6e625faed36eb0d7c3790e4">
+      <source xml:lang="en">The pasted vector exceeds {0} UTF-8 bytes.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++71f8aa6ebd68ec2478bf95d2bf6ae458b7c3cbfab2500b905082c9e6b07c56df">
+      <source xml:lang="en">The pasted vector is not valid JSON.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++21f967230d4a26cc343cdc36d6e6ce1a8d2bdd32c7dc19abdcec588d79b27778">
+      <source xml:lang="en">The pasted vector must be a flat JSON array of 1 to {0} finite numbers (no objects or nested arrays).</source>
+    </trans-unit>
     <trans-unit id="++CODE++b3d79070d336f35efa23ad58896baa573b22f5a58e4bd7335ab84d79c25e8042">
       <source xml:lang="en">The pinned results tab could not be opened.</source>
     </trans-unit>
@@ -11650,17 +12760,47 @@
     <trans-unit id="++CODE++044da47086134e9a85176a52a9b6c7e8f89f587210c49b06b1232fda151e0932">
       <source xml:lang="en">The project {0} has been updated to be an SDK-style project. Click &apos;Learn More&apos; for details on the Microsoft.Build.Sql SDK and ways to simplify the project file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++dbe95a075f934c7c249c3e2e9088ab6896a17e7c9d3f5a73347caf9ace3bf3a2">
+      <source xml:lang="en">The projection returned no data.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++889ef571d3d4eef2a899470645a4f095114741c23ad2b7f3fa71f53869225424">
+      <source xml:lang="en">The projection was cancelled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1a8f5ee7653df34f60fb72efebdd9ef164005d91939502c2fefcf6982d6631a4">
       <source xml:lang="en">The query results panel failed to load. Please try running the query again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9aaec5b7eac8d7311a809e294fc7ec816f65981d1c8697957ef2ac6502fedafb">
+      <source xml:lang="en">The query vector has {0} dimensions; {1}.{2}.{3} declares {4}. Incompatible dimensions cannot be searched.</source>
+    </trans-unit>
     <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
       <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++69dac026795ed3050453da54a8e0d9243b4ec540a7dbb9bdf8402d91630fae64">
+      <source xml:lang="en">The requested Vector performance source row is outside the result set.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ca73df3eb13f5c7fd829f8b273213d9ecc3886b136a9a2c9d0d27e84a3823130">
+      <source xml:lang="en">The requested distance metric is not supported.</source>
     </trans-unit>
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
     </trans-unit>
     <trans-unit id="++CODE++19edb2921020d6d5903fd3e186755e4237736ae2697694fc51568c369a4f7263">
       <source xml:lang="en">The result data is no longer available in full. The export could not be completed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7b5da6fbf2e87f623dc7458c0196c06501b84a44341da3ea26a0dcc814a9e9df">
+      <source xml:lang="en">The result set has no rows to analyze.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a9ae9d609d6952eaf7400038ea6bb43a42414c12d602ff2dde95c0a15ac47183">
+      <source xml:lang="en">The result set is no longer available.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9bbef2c803526d02c5b20d3918ed36c267613bbd2cba59e2fbb056165fd39e0d">
+      <source xml:lang="en">The result store is closing; rerun the query to analyze.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++54993b4f6a010d1b57d14e74b66a04e8e2ca41f562dbb515daa10708b6b4b03a">
+      <source xml:lang="en">The search binding has expired; refresh the verified target list.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a67341870889e67740064311f43543504c1dd6ae656d8a14df770236b02da002">
+      <source xml:lang="en">The search returned no comparison.</source>
     </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
@@ -11669,6 +12809,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dcc368e5cecae7f8a0551b1a10f920940276c11de668e2c7e38cd72bfc755563">
       <source xml:lang="en">The selected clone path &apos;{0}&apos; does not exist or is not a directory.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dcf423d1b73fdb798878024914965abd0f5c108e5a9ded4d175983e8359e9679">
+      <source xml:lang="en">The selected column is not a native vector column.</source>
     </trans-unit>
     <trans-unit id="++CODE++20739c0f9c9b2162681835aa37d40b6d1723c5e9ae3f2d36c29326fcf87036c9">
       <source xml:lang="en">The selected file does not contain an execution plan.</source>
@@ -11703,6 +12846,18 @@
     <trans-unit id="++CODE++f5c77dbf7dd2b64ae0c90a6d971c1482713147f48a6e43c10f9f30fa63f51bdb">
       <source xml:lang="en">The selected project location &apos;{0}&apos; does not exist or is not a directory.</source>
     </trans-unit>
+    <trans-unit id="++CODE++4baf61bd5b382efe363557319e641a9eeff90395b172207c7a00aa3a2acf6fd7">
+      <source xml:lang="en">The selected row has no analyzable stored vector to compare against.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++20e9d5e8a7d9a38bd3596415def4ac6eb6335752671dd47c802c5263be93ff56">
+      <source xml:lang="en">The selected row has no source text in the chosen column.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++12c82e736d8b0f9c73b515ecda3ee3b29e082fda83a7539aca8de571c7e11d94">
+      <source xml:lang="en">The selected row&apos;s source text is empty.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0081edc11157f67950cbdc2e1eaf5db2157ae931a8334466806b81a207459d28">
+      <source xml:lang="en">The selected source text column does not exist in this result.</source>
+    </trans-unit>
     <trans-unit id="++CODE++52675559e65cc9be50068191307db1f9202e2583514b44120f18be6eb41e28e8">
       <source xml:lang="en">The selected trace dataset contains {0} events. Loading it may use significant memory.</source>
     </trans-unit>
@@ -11721,6 +12876,9 @@
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5105d692f7d2f5a9f12355102dea695a8c5d828e1467a40667068ba9ff42fdad">
+      <source xml:lang="en">The target binding changed or can no longer be verified; refresh Search targets.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e8ebb0393782bd6e0f47dec44e67c3d00c0302fef8ffa257b9fc1c81b165f1c3">
       <source xml:lang="en">The targets, references, and system database references need to be updated to build the project &apos;{0}&apos;.</source>
     </trans-unit>
@@ -11733,6 +12891,33 @@
     </trans-unit>
     <trans-unit id="++CODE++1792bff72798c3e74a516cb1dfb348359aac3f479d29bb080125f0ba1ff92312">
       <source xml:lang="en">The trace file size limit is too small to store trace metadata.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bc6de2e05b634ef37053e5d241318e14805d8b3346a37dbdb95f382fe7ce0b54">
+      <source xml:lang="en">The vector expression must be text in the constrained grammar.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++83c09c954603955d5383fdd0680c4c499c1615998d6882b3f5791c995473d61a">
+      <source xml:lang="en">The vector search service is closed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++12bd48b35e642ebac9dde3d66e1f9c66ac007d301621bad0b050338838b498b6">
+      <source xml:lang="en">The vector search was cancelled because its source run closed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7106f369d2e7ebb404f7dae94da7c3a88f3b3d3aa0c864fad2b8f580c7efeeda">
+      <source xml:lang="en">The vector search was cancelled.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8c9a411b82e4027d0c9ea6a3575c1bbd20e181fac32d2655a3c344da25ca8061">
+      <source xml:lang="en">The verified EMBEDDINGS model changed; refresh and prepare again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ed497d589b237649a58f550d353191d82b5a15efaaf24d7e3c66d698ccc22238">
+      <source xml:lang="en">The verified search target no longer has a usable unique key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8e2ee9931af714a96671565c46a45a77815f26ea5a36bd0df48b9321aba0009a">
+      <source xml:lang="en">The verified target has no supported declared dimensions; generated output cannot be validated safely.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++46ca0547b6648d5891b4acdda77f2e76afbdbe763e65ce213e9213460b740de5">
+      <source xml:lang="en">The verified target list is stale because its last catalog refresh failed; refresh Search targets before running SQL.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++52c277ece2b7eb9b8693d661832131394b400a6e1c6958b4059df68d621378ce">
+      <source xml:lang="en">The verified target or model binding changed; prepare again.</source>
     </trans-unit>
     <trans-unit id="++CODE++ffddd09d152fe9f3cba52295dbe9d9d805bebbd5f293342539031ed1be27b70e">
       <source xml:lang="en">The workspace already has a dev container configuration.</source>
@@ -11846,6 +13031,15 @@
     </trans-unit>
     <trans-unit id="++CODE++d2cd4222b87fe208131546fa04e7a1627d7270f2581fc96c91e88a4e870c9fc0">
       <source xml:lang="en">This project type does not support drag and drop.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2ecc588dbba85baee7ff5f852fad1964df9852e21c588dda143f79b0a480fb1d">
+      <source xml:lang="en">This query ran without the typed vector transport; rerun with the Vector Workbench enabled to analyze.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f61d17237af8bc7864e67d815f14882c81cb03576bdcd3eeb661e3a02ab7ff04">
+      <source xml:lang="en">This query ran without the typed vector transport; rerun with the Vector Workbench enabled to evaluate an expression.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++82a0aa9a59e5658da37f3713f3f7dda8413d15b295a30050794e3c8ff2f5b3e4">
+      <source xml:lang="en">This query ran without the typed vector transport; rerun with the Vector Workbench enabled to search from a selected row.</source>
     </trans-unit>
     <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
       <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
@@ -11990,9 +13184,15 @@
       <note>{0} is the part name
 {1} is the part input</note>
     </trans-unit>
+    <trans-unit id="++CODE++f6dc923de1a649cf20081c9f3fa228f67b51451efcbe6b4093fd79fcedbdca95">
+      <source xml:lang="en">Top contributions (</source>
+    </trans-unit>
     <trans-unit id="++CODE++f156671af4d9c073eaa66da7139da31bdfc389ee653841d5d83ab9a66715784e">
       <source xml:lang="en">Top operation: {0}</source>
       <note>{0} is an execution plan operation name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++391c0f183e6976625e1c4c8d7ff859c41758cb1db7f25c21b001d5f63bef3b96">
+      <source xml:lang="en">Top |Δ| dimensions</source>
     </trans-unit>
     <trans-unit id="++CODE++99fcc234d426c195f7a6aed926a0800f6f2f6384ced08d5bcfec3610471f465e">
       <source xml:lang="en">Total completions</source>
@@ -12067,6 +13267,9 @@
     <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
       <source xml:lang="en">Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++1e24a4bdc224b173a2e2e2fc6ba80a78fa0ba333a678e02b0d709bb2cf6a2bc5">
+      <source xml:lang="en">Type · metric</source>
+    </trans-unit>
     <trans-unit id="++CODE++eab9bd4ed6506f418e00977a0a7bcc445774cac844a2f6debffeff1efc0b75f2">
       <source xml:lang="en">TypeORM</source>
     </trans-unit>
@@ -12097,6 +13300,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0749eac937735a54efbd2572de25232bb773c43b1ed6b2407da37b6235f20410">
       <source xml:lang="en">Unable to construct connection: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++452ce092c6c32a7a5a0523106e688d109ba708b20410313da36387d1e6688a2b">
+      <source xml:lang="en">Unable to derive a distinct vector index name for the selected metric.</source>
     </trans-unit>
     <trans-unit id="++CODE++45f72ef532c602c155033a6d27f0b8842d5514272f174487daece16c8ae600a1">
       <source xml:lang="en">Unable to determine the server authentication type.</source>
@@ -12484,11 +13690,59 @@
     <trans-unit id="++CODE++1fbf278b53995ff39f69ce0e2aef7d56406fb890b82cd87febce6995e98776cd">
       <source xml:lang="en">Value is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++a56ad3f2440820608303a0d4a84b1f1858660ead830b8e7df8e8d0b5a7eed13a">
+      <source xml:lang="en">Vector</source>
+    </trans-unit>
+    <trans-unit id="++CODE++08eb1440bf31e07ed8de872da11df693de5a8080a8261b95d3b43564ffd21403">
+      <source xml:lang="en">Vector Search target discovery returned no result.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1ef26aea40fb1c8ceeccbfd0bfa23de3795fda0f273ebd65ed1c90bda72b82d2">
+      <source xml:lang="en">Vector Workbench</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b237639e880ed4a03ff1faf2e2cd5a489a5634ecd2ebd853009c30b88b8d3ecc">
+      <source xml:lang="en">Vector analysis needs a completed, original result set. Run the query to completion and pin its results.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b8073a6f4af14ef065caba69acb210d8cdd10925326707a26f0e1f69e2aca038">
+      <source xml:lang="en">Vector analysis waits for the result set to reach a terminal state; this result is still streaming.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6184908f669c14cc79d94656dffd94333b4ac04a7a726406872c76238d4f0a4">
+      <source xml:lang="en">Vector analysis worker exited early (code {0}).</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4f153c0f4fefefada3a3663be4554a37c296f92d19f90ba2903c1e3a94cf9556">
+      <source xml:lang="en">Vector analysis workers are disabled by the current tuning profile.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d2853535249433f524e6653a89481a932643a88935290029a1065bb96049906c">
+      <source xml:lang="en">Vector column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e3e89a924d1d12c8197f2b938a35201ebc5ec707dd9177aecabe552418e54d9">
+      <source xml:lang="en">Vector comparison complete.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1fdd6acef18a05f8bf41e70762ef25caa45eec851ad2f7645e96555d2dbb2963">
+      <source xml:lang="en">Vector index</source>
+    </trans-unit>
+    <trans-unit id="++CODE++25e1697912b6e7e7ba3e53c9e103ca4a32ad67b4980c7cea87e382b9d4a4d222">
+      <source xml:lang="en">Vector index build failed on this service tier (Msg 42234)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c2d55ab1a3275a50bcfdda7c0e755f3ee0613ae7c5994ab34eaf438b0944839f">
+      <source xml:lang="en">Vector indexes visible</source>
+    </trans-unit>
+    <trans-unit id="++CODE++357724ded6cb917257a696f49d76cc80a2bee26d0e0e4830b08a22fde8cb9603">
+      <source xml:lang="en">Vector search cancelled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++020047fc73e369f164014c46ff59e909f16aa48075f1646315b139843c2dcfbc">
       <source xml:lang="en">Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.</source>
     </trans-unit>
+    <trans-unit id="++CODE++400e91d3b31967191ee9adf769d401609fa5ab45e1c53a682b579ecb10d16a27">
+      <source xml:lang="en">Vector workspaces</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e7097d34264da6b95f4428bd48edabf48f048eebf31fcd317d2a85c97a419567">
+      <source xml:lang="en">Vectors contain non-finite components</source>
+    </trans-unit>
     <trans-unit id="++CODE++2cd57109145ab1cb603c7417e2c382756f332d0fc0f9a43b4d461f7d55f5a09f">
       <source xml:lang="en">Verbose</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6a0284d52e238dab63c7ac31cc75cf4ac184a2c00c9803562c188d63d3621dde">
+      <source xml:lang="en">Verified target</source>
     </trans-unit>
     <trans-unit id="++CODE++895538d92b916860948aefae4e0444d5fb238835e6cc5af248c89c0582e741dd">
       <source xml:lang="en">Verify a container image by using the Notation CLI</source>
@@ -12547,6 +13801,9 @@
     <trans-unit id="++CODE++7cf4febf4bd4fde0ce1d1c48faa577c4aa71b23b775ef63b0b238f022a92d9b3">
       <source xml:lang="en">View full value of {0}</source>
       <note>{0} is the name of an execution plan property</note>
+    </trans-unit>
+    <trans-unit id="++CODE++36619765c7f0fff4cacfd29b750e2c9bbcadb56c989cdfd29502d3fce22e8b4c">
+      <source xml:lang="en">View generated T-SQL</source>
     </trans-unit>
     <trans-unit id="++CODE++1f70331cfa968ffc814151a660754b41c5327f970f66204e5b704ed6645e141f">
       <source xml:lang="en">View inventory</source>
@@ -12652,6 +13909,12 @@
       <note>{0} is the webview name
 {1} is the timeout in milliseconds</note>
     </trans-unit>
+    <trans-unit id="++CODE++16b135660b2c1c525c4414745842a7349679a0914b6f6843d915610675e9b8de">
+      <source xml:lang="en">Webview network: none</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2caf022feb8f6ff3b2d5f42e702e26088b87a62ecfc8a4ce573b82eabf94994c">
+      <source xml:lang="en">Webview network: none · Server-side model request in progress; statement count updates if SQL is issued</source>
+    </trans-unit>
     <trans-unit id="++CODE++e5b539ed5ef824d67064dc5fe75a709a3c17dbe48ed129dba68a1dc3a34fcce6">
       <source xml:lang="en">Webview was disposed before it became ready</source>
     </trans-unit>
@@ -12666,6 +13929,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b7f7554b25cccbbf1a96fc2c784540494c5c0660e749775ecd7634b8163d0b21">
+      <source xml:lang="en">What changes between exact and approximate retrieval — and what proves it?</source>
     </trans-unit>
     <trans-unit id="++CODE++80951190f29dfee120dd907c3873d8a149d585a5f711c4f5bed59e14493cc4c6">
       <source xml:lang="en">What&apos;s new</source>
@@ -12821,8 +14087,20 @@
     <trans-unit id="++CODE++6af7d7b77b492a1ab706508c2bfd23391aa5f31d081efc876da60eee29bad51a">
       <source xml:lang="en">Zoom controls</source>
     </trans-unit>
+    <trans-unit id="++CODE++0e47f09a748fa1321dbaee5c8983f8e8f2880b1212956fb4f21ae9d60b88a8b2">
+      <source xml:lang="en">Zoom in</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bc7b631a689b45ca5c51923515d31eb3597b2d9b129d88d0dbee066ee5c35453">
+      <source xml:lang="en">Zoom out</source>
+    </trans-unit>
     <trans-unit id="++CODE++dc81206350e3da642fed43285f8b5a1dc00e0d91b4b81b6bffe3181d0e261d2e">
       <source xml:lang="en">Zoom to Fit</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b38b9c84e9fbd9d21cb2c0c31630858a298f06abe19a9c4013d3a609782f148b">
+      <source xml:lang="en">[0.0123, -0.044, …] — flat JSON array of finite numbers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d913b717a92e5a36379c9a8928ecb1104097dc19cae1cb993140e62fb22beb29">
+      <source xml:lang="en">[0.0123, -0.044, …] — flat JSON array of {0} finite numbers</source>
     </trans-unit>
     <trans-unit id="++CODE++aab103babf210fd60bfbe41ecd5ab24d36cb423ec956f0d0215c6161359e01ee">
       <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
@@ -12844,11 +14122,29 @@
     <trans-unit id="++CODE++4bec83e9283c94392b9f40f0ef35cd53dda01469402160ed7c0712c53fed7ca3">
       <source xml:lang="en">accepted / (accepted + shown-not-accepted) — §8.2 corrected denominator; pending/queued/blocked never counted</source>
     </trans-unit>
+    <trans-unit id="++CODE++d381bef31ff1ec185f65f4512d508ba91e374e1bdf0b4cca8d1fcae7508e9440">
+      <source xml:lang="en">all components = 0</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1e4a5dc504770b43c77ebae004aad3fcbc616f96f5eeb8ee70ff0889a888897f">
+      <source xml:lang="en">analyzed values in</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e42c29edda600eea4b9d82d3c4fb2fe4d220c95ba5b8f10d64fd5256a1404421">
+      <source xml:lang="en">analyzed ·</source>
+    </trans-unit>
+    <trans-unit id="++CODE++645390e1768f42db7a3db517be8cfa7a4e320158b8976346151ce1303f73db4a">
+      <source xml:lang="en">analyzed,</source>
+    </trans-unit>
     <trans-unit id="++CODE++6201111b83a0cb5b0922cb37cc442b9a40e24e3b1ce100a4bb204f4c63fd2ac0">
       <source xml:lang="en">and</source>
     </trans-unit>
     <trans-unit id="++CODE++a2ae54acf535115a75a33e6338cb624e71d89802213c8fa2e7ce8c4559f18761">
       <source xml:lang="en">and quiets GitHub Copilot for SQL (</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3fc7c96a56b6e20ca727899f85265715a65141b10a96f373217591b9c4ae1dfc">
+      <source xml:lang="en">approx</source>
+    </trans-unit>
+    <trans-unit id="++CODE++22ba545e2de3b34dd776bd0d76efa2886f4ec2c393e1d79ab1ff9308fd1a2890">
+      <source xml:lang="en">approx-only</source>
     </trans-unit>
     <trans-unit id="++CODE++b1d6b91b67c2afa5e322988d9462638d354ddf8a1ef79dba987f815c22b4baee">
       <source xml:lang="en">at</source>
@@ -12861,6 +14157,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3e8a78db31b9f2436c3129411db2a00be13995e0b695fb3001afea8184d0034a">
       <source xml:lang="en">avg {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0f843770ce3dd54c36dae197b50400578531aed1b4500130e18baf6f2fa638c8">
+      <source xml:lang="en">buckets from</source>
     </trans-unit>
     <trans-unit id="++CODE++976fb77bf2731efe94e2cdb0b34a90096547036e0f265f27e4286cfbd96044a9">
       <source xml:lang="en">building schema context</source>
@@ -12886,6 +14185,9 @@
     </trans-unit>
     <trans-unit id="++CODE++68c7ec32c8860f935c97bd4500b5cddf5a5705f62cbabff853c7ecf8d3095496">
       <source xml:lang="en">checking model access</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6c87f68371b28954707ebb92afee7ccffb74c6f71ec8fea8a98cf6104289585b">
+      <source xml:lang="en">chunk</source>
     </trans-unit>
     <trans-unit id="++CODE++10d3b9dbbd3c29505ad73339f371428f7218ed31055a6a178128f9477f513f8d">
       <source xml:lang="en">clear the per-document override ({0})</source>
@@ -12914,6 +14216,15 @@
     <trans-unit id="++CODE++20a184a438e20d13accd7dcd04d971f32559ce1459b939e19144c731a9fc1669">
       <source xml:lang="en">copying</source>
     </trans-unit>
+    <trans-unit id="++CODE++ad9897a115cfe7e49d73c282eb7282bf2bf5aa724ea7ea766dda157ebbe9ef0c">
+      <source xml:lang="en">cosine</source>
+    </trans-unit>
+    <trans-unit id="++CODE++41718e4e31717dbaef5033009587382be232e309399a254b8caef4cf1b68a4a6">
+      <source xml:lang="en">cosine distance from sample centroid · p99</source>
+    </trans-unit>
+    <trans-unit id="++CODE++943ae6bc25d193fe703484f14e1b9d1e210ec834821bf88be868d018497d602e">
+      <source xml:lang="en">cosine distance · Euclidean · negative dot · norms</source>
+    </trans-unit>
     <trans-unit id="++CODE++75f3005c9aac6d86d47cfd28f3064335035ea72c060e53b35fe47bbd746d9e77">
       <source xml:lang="en">counting input tokens</source>
     </trans-unit>
@@ -12922,6 +14233,9 @@
     </trans-unit>
     <trans-unit id="++CODE++214b36cd09c2821975fc7bf53f4ea7a24b67cb8e73a7cff89dd2d193657dbc0c">
       <source xml:lang="en">counting trimmed input tokens</source>
+    </trans-unit>
+    <trans-unit id="++CODE++060d13ceb1a1f581c6717ae1a2f6f1602563ccc28b84d9e52048b19c484554fd">
+      <source xml:lang="en">current panel selection</source>
     </trans-unit>
     <trans-unit id="++CODE++d47e636a4b383a2f7c545dc630a55ae2ba8ff9a849d71b09aae2ec437e5550e5">
       <source xml:lang="en">dacpac Files</source>
@@ -12932,12 +14246,27 @@
     <trans-unit id="++CODE++8d346a8cc8f064446a92da046fb4859794e202406e68cefb00b7105f455cb283">
       <source xml:lang="en">database access may have changed</source>
     </trans-unit>
+    <trans-unit id="++CODE++f5f90a2145ff02443ad7bc06da216133851c4c9e9b49356b5d18b46d8fb19ffd">
+      <source xml:lang="en">database-scoped configuration probe</source>
+    </trans-unit>
     <trans-unit id="++CODE++37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f">
       <source xml:lang="en">default</source>
     </trans-unit>
     <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
       <source xml:lang="en">delete the saved connection: {0}?</source>
       <note>{0} is the connection name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a67f710e5d5ed46c09fc1fb53453b0f914131026f9ca981b10a9981650c3f4ea">
+      <source xml:lang="en">derived from probe facts</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c5d4b45934fe1d9c636d8b0b8f49b5a26c5fc7064fb2bda916fe2743b77fcdc1">
+      <source xml:lang="en">dim</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9680590c0f814202199f16d832e462183ff687d95eb16e241bc1822a0784a486">
+      <source xml:lang="en">dim {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e33363ad7cfb3d64a0b0ed09441b1de743e159f069cbdb2615882367fce4753">
+      <source xml:lang="en">dimensions must be an integer from 1 to {0}.</source>
     </trans-unit>
     <trans-unit id="++CODE++17eb3c0168d0d7b21ede5481150f17233427d89833ec121b4dbc4fb96cfab71e">
       <source xml:lang="en">disabled</source>
@@ -12960,6 +14289,12 @@
     <trans-unit id="++CODE++e25ef28ae3e4801c970e449d6cdde9a7735883dad445f8f77538db3f24d612d5">
       <source xml:lang="en">e.g. reproducing bug #1234</source>
     </trans-unit>
+    <trans-unit id="++CODE++25d35602fd88b74bd3e60ee7664231f9ac171d8c52bf45c30a1654f1bb7fcff3">
+      <source xml:lang="en">each metric named — no single “% similar”</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a3083687ee111912f7daf2d0bfb3647c7a4ec90a05984cbdebac4203036a9735">
+      <source xml:lang="en">egress</source>
+    </trans-unit>
     <trans-unit id="++CODE++b955e6cd0808744cf5cba260906e156ab4c43076b4c933dea0a1df1baae2a4bb">
       <source xml:lang="en">emergency</source>
     </trans-unit>
@@ -12974,6 +14309,9 @@
     </trans-unit>
     <trans-unit id="++CODE++539bae0fd979947a84bacad6c7ccca490ff24609dec11bc8311d755422ed0fd7">
       <source xml:lang="en">error terminals / all terminal requests</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f0829fb344d4ac01917f06395b19d59d3081d6b62092087aae84141e7fee985a">
+      <source xml:lang="en">euclidean</source>
     </trans-unit>
     <trans-unit id="++CODE++b8e1f80bd70ae0784c7855a451731b745fddb67749d23f637be9082b75e9575b">
       <source xml:lang="en">event</source>
@@ -12993,11 +14331,26 @@
     <trans-unit id="++CODE++b2de1a0ce1452aa8a70bb78b83e339650ed941613497bfbff1d13dede685bd7f">
       <source xml:lang="en">events | avg</source>
     </trans-unit>
+    <trans-unit id="++CODE++e8dab6311e48d71fb1dc033e0d84cb5d96c84a710dbde1ff478078c63f69c2ae">
+      <source xml:lang="en">every row names its evidence source</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa79d4746c21cd960a17b92db8976ddef95a7e20b590721f8e0fa7847a05e486">
+      <source xml:lang="en">exact</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dba36423a40492c96f4de74fd9cefff71b5387fea219d375a125d8d39a220325">
+      <source xml:lang="en">exact-only</source>
+    </trans-unit>
+    <trans-unit id="++CODE++240d7e759a06bb93eabbbe845243e6df76ea2a07b844ffb201d9b6787fde1f62">
+      <source xml:lang="en">exactly what executed · literals inlined host-side</source>
+    </trans-unit>
     <trans-unit id="++CODE++cfa5ad96f5be4fc290f591b8afd957551315abbb0a68cdf7660849d8829d644f">
       <source xml:lang="en">excluded</source>
     </trans-unit>
     <trans-unit id="++CODE++2fbc383d3c49b83614aa419376b80ee04d986dfed814dfde2ce26e437635aa69">
       <source xml:lang="en">excluded from script</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5d96835982621a746afcf683eaadabe70f722f4d870741f170bb8999b91aab8a">
+      <source xml:lang="en">external egress</source>
     </trans-unit>
     <trans-unit id="++CODE++f6dd485bc8aca12e33885740348134c0acc23ee43e5140682868566e78d6f3d8">
       <source xml:lang="en">failed: {0}</source>
@@ -13005,14 +14358,26 @@
     <trans-unit id="++CODE++3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80">
       <source xml:lang="en">file</source>
     </trans-unit>
+    <trans-unit id="++CODE++a0cf545c4cab346e1f599c13ba1519ad68b2b17f8ed249bc09750b6d142d51a7">
+      <source xml:lang="en">fixed · characters, not tokens</source>
+    </trans-unit>
     <trans-unit id="++CODE++034a0062488256f14c8b14d025ec3988b148938f7f9db94ca0ac73f4b3614d8a">
       <source xml:lang="en">folder</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a18b869b2e81c0c529552a3c4fa5c92ed08b98a4e146aed778d71d27517f83ac">
+      <source xml:lang="en">full</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8dec96df3926cdbb17b39f15c38e67f042aabd562bbe4602db1f68a313695967">
+      <source xml:lang="en">generated — never executed by this pane</source>
     </trans-unit>
     <trans-unit id="++CODE++b050581bda74fae55ca1f0c45ffa7bcc939d75ef1650e090e36e0e13cdd18ac4">
       <source xml:lang="en">github.copilot.enable.sql = false</source>
     </trans-unit>
     <trans-unit id="++CODE++f792652c06ffa9d795e75118a7c8329290a516dfd060a9ee0163093db50664f1">
       <source xml:lang="en">greater than</source>
+    </trans-unit>
+    <trans-unit id="++CODE++21f6947133026463bf395129e218a84c0f1c1aa1d3f47a4d8637314f2c52ea46">
+      <source xml:lang="en">host-local</source>
     </trans-unit>
     <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
       <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
@@ -13026,11 +14391,17 @@
     <trans-unit id="++CODE++eaeb8b1be5ae0d597b3691a6b21ef8c73d5954fc01928502f7c9c077474afbaa">
       <source xml:lang="en">in flight</source>
     </trans-unit>
+    <trans-unit id="++CODE++c149c05fa5fcf6c97d4cbc13bac1b4d7da6f1e9b4a7e8090d6d5d44e30433117">
+      <source xml:lang="en">in-process</source>
+    </trans-unit>
     <trans-unit id="++CODE++69d4bbd42b99056c76085c8ebb9325da533b339955f1e1ac7038d29fa138e98e">
       <source xml:lang="en">in={0} | out={1}</source>
     </trans-unit>
     <trans-unit id="++CODE++12dddf96612d48df0ad871a9612802de0957a3781556820e44215c68f824363a">
       <source xml:lang="en">included in script</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1bbc734205120a5a6a1e44777413099ba4f44e1f07764bba0fe17f020c4805ca">
+      <source xml:lang="en">index catalog (sys.vector_indexes + sys.indexes join)</source>
     </trans-unit>
     <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
       <source xml:lang="en">intelliSenseUpdated</source>
@@ -13052,6 +14423,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7ddb44d8a533a7535d85cedddf35d7f3414632ad4e10a0d7ca697723e1d97993">
       <source xml:lang="en">just now</source>
+    </trans-unit>
+    <trans-unit id="++CODE++99af922a9d77af8f8ce1986c56338e210bd9393f158bc8928a55c737320cae50">
+      <source xml:lang="en">kept in this panel · not written to the table</source>
     </trans-unit>
     <trans-unit id="++CODE++44eaba29486899334009b57f2ba4ef6c871017792c74e6e829958164087f3ea0">
       <source xml:lang="en">label: {0} does not exist in the options value name lookup</source>
@@ -13077,8 +14451,20 @@
     <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
       <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
     </trans-unit>
+    <trans-unit id="++CODE++eadc688cd557ee351fa9b718e87a6e8dfb9c9fce69e9944c71c0f58f8b972632">
+      <source xml:lang="en">matched</source>
+    </trans-unit>
     <trans-unit id="++CODE++7114b2c6e8b632c0fdecdc346698eb406f06e072e56be6b95d3eb4f2e7d24e2d">
       <source xml:lang="en">max {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2c0ce43802ef383ae8a784324825e6ef369e7de6888b82deef59e9f3893dd2af">
+      <source xml:lang="en">mean of</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7896a617a785dd968b580c61a2b418ae7ea28ecb713a3650178971519c566c4e">
+      <source xml:lang="en">median</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2b1c8cc71a25b7e0bab439863dc9bb707de1779e80d121a36a1d0781b2361107">
+      <source xml:lang="en">member row {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++1f6fa6f69d185e6086d04e7330361bf9001a3b8d0ce511171055dc34eb90c1c5">
       <source xml:lang="en">min</source>
@@ -13092,20 +14478,41 @@
     <trans-unit id="++CODE++b2c1822878838eb52770e9845b4582d503d975b484897b83048ea841e0c5c6b6">
       <source xml:lang="en">msec</source>
     </trans-unit>
+    <trans-unit id="++CODE++9a4a071dea438123f041ace9bd1689eb532508f1ea40e85fc4b4e903e8160a1f">
+      <source xml:lang="en">near-0 ≤</source>
+    </trans-unit>
+    <trans-unit id="++CODE++626a0fd3c2c5f0c8076635c89d23dda4a59619724aebd2048fd572e77402bb37">
+      <source xml:lang="en">negative dot</source>
+    </trans-unit>
+    <trans-unit id="++CODE++52a5c2928a563de3728d396b8e33588bea462ff73a7c9d832bde7f45c9ac75a8">
+      <source xml:lang="en">no EMBEDDINGS external model on this connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7a76c84d135f4588986388b7db2e5d6382e0a92af6078bdf04483890e935a23">
       <source xml:lang="en">no access</source>
     </trans-unit>
     <trans-unit id="++CODE++4e476734588972bd884204acd340f2953fee6a5ae1f5a0ddc733ff92b6cd3c71">
       <source xml:lang="en">no live Query Studio model{0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++cbfc27b01004070d139bc3aeb32d1c347a59674b83707706248beb5eb31e1981">
+      <source xml:lang="en">no string columns in this result</source>
+    </trans-unit>
     <trans-unit id="++CODE++d2a589f7f49acd96e560ee2773d4c45f1ab7aa3328f0cb94939d6d1f9cf49ae5">
       <source xml:lang="en">none selected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f34797d53c639115b99ee45efea3e9de6b6d81dc816ed7fada00d056d7907f5a">
+      <source xml:lang="en">normalize(A + B)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++25acd39a991767b8224b0c47f01eb2a2d932aa451504c969d314a7765943ba39">
+      <source xml:lang="en">not assumed</source>
     </trans-unit>
     <trans-unit id="++CODE++c83cb9c83f01a1dd4f46165ee292e834d69397b661e8c6d72689019245f92d71">
       <source xml:lang="en">not equals</source>
     </trans-unit>
     <trans-unit id="++CODE++65a835d430735eaa3b89f9a9ce32d52205e9313d7178dfda061cdf54637bd73c">
       <source xml:lang="en">not null</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2087cb5f8b6365490a647d14a3494bf2b96683a2a8437eddae03c623b628665b">
+      <source xml:lang="en">not reported</source>
     </trans-unit>
     <trans-unit id="++CODE++8c1f90fdf61e7b0a176fa8081d67e5fe9ce133dafefd384fbd28ce5b2ea9b6e1">
       <source xml:lang="en">not saved yet</source>
@@ -13115,6 +14522,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dd7ea1374a0042ab9147be516a413d8c322304649b5535a09163fbb9d9e3680d">
       <source xml:lang="en">not sent | unsent input={0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++599903f4bd9abd66ebd49caad580d96e27f3b1727a30edb5b4b71b459fdc84d9">
+      <source xml:lang="en">not shown · distances are computed in the original</source>
     </trans-unit>
     <trans-unit id="++CODE++74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b">
       <source xml:lang="en">null</source>
@@ -13128,6 +14538,9 @@
     <trans-unit id="++CODE++3600751a6ee418c4d4580b750bcf11fc81829935c8044f2c3c50ed76cfa76451">
       <source xml:lang="en">offline secondary</source>
     </trans-unit>
+    <trans-unit id="++CODE++3a86ad8711936a9f749c42aca306d66ccd750798cf8a034d213d3a1109aac7f6">
+      <source xml:lang="en">offset {0} · {1} chars · preview: {2}</source>
+    </trans-unit>
     <trans-unit id="++CODE++6278f2938cf838a93e4b4f92d404921601e7444081ba6b1b5604dbbfa121a994">
       <source xml:lang="en">older event</source>
     </trans-unit>
@@ -13140,11 +14553,26 @@
     <trans-unit id="++CODE++ce603774135699e9abdfd65eb1f2733774da58af91782528e82ef5f9efdb8fba">
       <source xml:lang="en">override</source>
     </trans-unit>
+    <trans-unit id="++CODE++536c351ae15e5f5e3dc37bcc5dea8ab641e70fc0431a088a1d684aef2ebf3e5b">
+      <source xml:lang="en">p5</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f771f4d32eee4ed24b0532b790dc9869d4a828d070f3071cae26d3529cca23e7">
+      <source xml:lang="en">p95</source>
+    </trans-unit>
     <trans-unit id="++CODE++71c8f7f8aae5a88793b1c7270f2b7e6d978dc78360d9c0264e06127870a15b04">
       <source xml:lang="en">p95 {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++4ff453d5c86d2e4c9dc68e50f82ca4149c91e9b289bfb107609587ed0b9a85ea">
+      <source xml:lang="en">per-dimension variance &lt; 1e-5</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3b8b2acd9e3ff69ccb894940955b837d33378a00a0e25b70e908a417fdf8af1c">
+      <source xml:lang="en">per-dimension · sampled</source>
+    </trans-unit>
     <trans-unit id="++CODE++ec0d4a05a20f9af6988b7baca7e1ec77e200155d867a0ef7b8939ac110eec396">
       <source xml:lang="en">permissions may have changed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++824f2595f8ecb5935fd149ffa7b41b313f8a6e69f734d290355efac5af92b72f">
+      <source xml:lang="en">probing models…</source>
     </trans-unit>
     <trans-unit id="++CODE++1900eab6c028483d7126599ee6f50de0d27907b5c65fa90524580b4b0f9852b0">
       <source xml:lang="en">profile</source>
@@ -13157,6 +14585,9 @@
     </trans-unit>
     <trans-unit id="++CODE++21e6e95624858c374616b73091aba441bf99a8160d94aa5ad92c8f165d0201b1">
       <source xml:lang="en">queued {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e384f55a20e052060ff7d177df277c7bd23cb7d82b69771bba54bf3a0a16d54a">
+      <source xml:lang="en">rank rows.</source>
     </trans-unit>
     <trans-unit id="++CODE++4fed3970dcc0d31dccddbf69ef55b00f32d2ca787f1757894914bc0365ea7aa5">
       <source xml:lang="en">read-only</source>
@@ -13173,6 +14604,12 @@
     <trans-unit id="++CODE++361cd44dee0f72f69248ebc7c263e019cb55283270898bb6a6a78a1b613bf1f9">
       <source xml:lang="en">removed echoed line prefix</source>
     </trans-unit>
+    <trans-unit id="++CODE++69d0044d65bc72753132efe821effd54c8072b5f75703772caa15a13d400dc5a">
+      <source xml:lang="en">rendered</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bea98fecc5c64cdb371eee82dfae4f37b081c20aa331efa1a457265d576d7c3b">
+      <source xml:lang="en">rendered · PC1</source>
+    </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>
     </trans-unit>
@@ -13185,8 +14622,20 @@
     <trans-unit id="++CODE++b188cff357b287d10e6b7c0444a09adf659eee6959d53c0c3ce9b8edaa78bae1">
       <source xml:lang="en">result != &quot;error&quot; and doc ~= &quot;orders&quot;</source>
     </trans-unit>
+    <trans-unit id="++CODE++e19560f62e9238e51c361d761838a9e09876f0664d074e198ee923dc77801274">
+      <source xml:lang="en">result row {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++176ebc886413918b1d20afcb6b3e15c7463da0d5f697dc03279381fafd484ef7">
       <source xml:lang="en">result set</source>
+    </trans-unit>
+    <trans-unit id="++CODE++634768dae1474506e4bf7d341890542b09987d7e6aea5d446c02e37581a56954">
+      <source xml:lang="en">row</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bc51e9e65d79e1c90ba544ab2eae1044ccdf8c1af7a559ba375cba4276f7d99e">
+      <source xml:lang="en">rows</source>
+    </trans-unit>
+    <trans-unit id="++CODE++043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89">
+      <source xml:lang="en">s</source>
     </trans-unit>
     <trans-unit id="++CODE++add93534eeb463800fe0ed0946048d33636dd2a014fab92e8a37f77ce98c740b">
       <source xml:lang="en">sec</source>
@@ -13203,8 +14652,20 @@
     <trans-unit id="++CODE++d0c46d83c4faa7c9d79acbb206c0ba7dca527e9274428efd48046f626baf53f0">
       <source xml:lang="en">server catalog failed</source>
     </trans-unit>
+    <trans-unit id="++CODE++0eba9abed869085fd47daa266f9cffd2a667d66ec68a84b3ec07ee6e68e02edc">
+      <source xml:lang="en">single observation</source>
+    </trans-unit>
     <trans-unit id="++CODE++16a0eeb0791b6c92451fd284dd9f599e0a7dbe7f6ebea6e2d2d06c7f74aec112">
       <source xml:lang="en">snapshot</source>
+    </trans-unit>
+    <trans-unit id="++CODE++45b246b8cc549d42b69fce02ffd72c1ef92dc0919e2c87d2d1a7a8e1e310d24c">
+      <source xml:lang="en">source characters</source>
+    </trans-unit>
+    <trans-unit id="++CODE++be2f5d302b63a5f0333032c7542b9dfc896d11bece7a0efc4b6b67a8789f1ebf">
+      <source xml:lang="en">sql_rest_options must be a JSON object.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++60d6fe9599119c03512c69d9a6ff09439f6123ee5fb547efbc771eab8f8b98bd">
+      <source xml:lang="en">sql_rest_options supports only retry_count from 0 to 10.</source>
     </trans-unit>
     <trans-unit id="++CODE++6c92352ba402f7d151172ccf8602586e104c52a60206c1d405f6c40b49f17d23">
       <source xml:lang="en">src {0}</source>
@@ -13212,8 +14673,14 @@
     <trans-unit id="++CODE++97862730c3a13cd957b766b03489cdf46b415e9d465b67812974158d631d6107">
       <source xml:lang="en">starts with</source>
     </trans-unit>
+    <trans-unit id="++CODE++4ba69735ca53765ed6a709edb56c6ea236b7193a3b29a6b390c346f0f4340e4e">
+      <source xml:lang="en">state</source>
+    </trans-unit>
     <trans-unit id="++CODE++073c1634c496cdb649d1afe0a312bbb4b7e1741b271542e4a436c3b8824b1761">
       <source xml:lang="en">status</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ca538712081f5ef27586bc7209f0b1e69e9ed3a1c2e478b4f2e3d3f3ef75e7ec">
+      <source xml:lang="en">stored vs freshly generated</source>
     </trans-unit>
     <trans-unit id="++CODE++6567b390834a3994367075a138ccf458c324767b0e69de0d76cd1e750e251758">
       <source xml:lang="en">streaming…</source>
@@ -13221,11 +14688,17 @@
     <trans-unit id="++CODE++0393c88e2bfee2988e4e31163a246f5fb2da9fde6888d84fb3b13bafeaf94c5d">
       <source xml:lang="en">stripped fences</source>
     </trans-unit>
+    <trans-unit id="++CODE++a9491f4c1bf7b0cffbadcba2db8f028e4b3f2867cb59e1f3a0bc1968f3c51242">
+      <source xml:lang="en">subject</source>
+    </trans-unit>
     <trans-unit id="++CODE++a8fa7fd60893411a49907b5545ccf9c47ed8073cc38e2ac3b79c4f6156cd7755">
       <source xml:lang="en">subscription</source>
     </trans-unit>
     <trans-unit id="++CODE++982776aa0b872d5a1b4d12327c58492b1ac9fe4a811210efa911a0447e085b85">
       <source xml:lang="en">suspect</source>
+    </trans-unit>
+    <trans-unit id="++CODE++603ee34f9612b0c3c879c09ff87f952844c147f1d0a58950b28638da05ea6b41">
+      <source xml:lang="en">sys.dm_db_vector_indexes (column names resolved live)</source>
     </trans-unit>
     <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
       <source xml:lang="en">test</source>
@@ -13235,6 +14708,9 @@
     </trans-unit>
     <trans-unit id="++CODE++336074805fc853987abe6f7fe3ad97a6a6f3077a16391fec744f671a015fbd7e">
       <source xml:lang="en">time</source>
+    </trans-unit>
+    <trans-unit id="++CODE++663ea1bfffe5038f3f0cf667f14c4257eff52d77ce7f2a218f72e9286616ea39">
+      <source xml:lang="en">to</source>
     </trans-unit>
     <trans-unit id="++CODE++d3566def0c654567d50f9fb309dbb6bb73a581e642081bc6b68f5f64671ed54e">
       <source xml:lang="en">traces ·</source>
@@ -13251,8 +14727,17 @@
     <trans-unit id="++CODE++1303c06b0b014d0ce7b988ab173a13f31227d417058ff4bbe6f8c222b4ad913c">
       <source xml:lang="en">type</source>
     </trans-unit>
+    <trans-unit id="++CODE++6c5315914544064e38b005e72597979979917b921468742bf53828f6cd44724d">
+      <source xml:lang="en">unclassified</source>
+    </trans-unit>
     <trans-unit id="++CODE++eb045d78d273107348b0300c01d29b7552d622abbc6faf81b3ec55359aa9950c">
       <source xml:lang="en">undefined</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e0d298df7b0ab3d38705bccfc0bce7f379165d323cacfb71d4aa8b36ca154439">
+      <source xml:lang="en">undefined (zero-norm vector)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b23a6a8439c0dde5515893e7c90c1e3233b8616e634470f20dc4928bcf3609bc">
+      <source xml:lang="en">unknown</source>
     </trans-unit>
     <trans-unit id="++CODE++3e4443e52275a9a092994d93853ea05b985abc67238b4b482c7b90b3a76e6098">
       <source xml:lang="en">unknown error</source>
@@ -13275,6 +14760,42 @@
     <trans-unit id="++CODE++cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619">
       <source xml:lang="en">value</source>
     </trans-unit>
+    <trans-unit id="++CODE++e8fde08cacb79cfa44a19a70b14d8ce3062c5e0a83189ec445ff11cc01d49862">
+      <source xml:lang="en">value — &apos;text&apos;, 123, true, null</source>
+    </trans-unit>
+    <trans-unit id="++CODE++53bad5750d9fc52deb0d5b2a69ebe23c54ed1b60e8bafbb090bc0dcd0d9b408e">
+      <source xml:lang="en">vectorSearchService: duplicate parameter {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2a69da5b7011e4b19c5fb1197c2e05ec08f79a9655abb2a589056ed06f8731e5">
+      <source xml:lang="en">vectorSearchService: invalid parameter name {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cfcf4c4ba25d1412ebf5c4f07b2a3d1452b314b1b4d3160e06c31436ca0473ca">
+      <source xml:lang="en">vectorSearchService: parameter {0} does not appear in the statement</source>
+    </trans-unit>
+    <trans-unit id="++CODE++96a7ee95ed12282539300ce44534336ac7a3a654a18eeb46101dbabea180834e">
+      <source xml:lang="en">vectorSearchService: unsupported parameter type {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1cd5605c3c22b35ac43a05eed942ae863c5a2f9ecda91fcff36317636e7593c6">
+      <source xml:lang="en">vectorSearchService: {0} is not valid JSON</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a33e883a1528080f2797d19bda6b9ceb93e5f0a0ce4244df341f0b1889b969f8">
+      <source xml:lang="en">vectorSearchService: {0} must be a boolean</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c706287b0e317ec2cb62a7c0d6b62945cf74129b131b7e558abb608762cf4293">
+      <source xml:lang="en">vectorSearchService: {0} must be a finite number</source>
+    </trans-unit>
+    <trans-unit id="++CODE++05e17f694fc3c4e6bd3d85f9ad5dcb8ae035400043445caf28a8c8c21d010cce">
+      <source xml:lang="en">vectorSearchService: {0} must be a flat JSON array of finite numbers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9952714cb7696945a55f11074785b250e8c6367213e4df28c878ed88fa2fee37">
+      <source xml:lang="en">vectorSearchService: {0} must be a safe integer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d4cd4d052a722be1d14266145a2092752c17aa86f07c56681593347591e3941d">
+      <source xml:lang="en">vectorSearchService: {0} must be a string</source>
+    </trans-unit>
+    <trans-unit id="++CODE++349a5863561b86746ef77432e9566332c0333ade07d898e1f5f34d83f1a333e9">
+      <source xml:lang="en">vectorSearchService: {0} vector value must be a string</source>
+    </trans-unit>
     <trans-unit id="++CODE++e8323618dc0c780b04eaa2c128b393964435f01fc03aa97d1293342585124690">
       <source xml:lang="en">vscode-mssql · copilot-completion-debug</source>
     </trans-unit>
@@ -13285,11 +14806,17 @@
     <trans-unit id="++CODE++b6b1e036f2e55bf7904f0645a2b992b1c0266243d0227e815fa66b486af3e84e">
       <source xml:lang="en">waiting for model response</source>
     </trans-unit>
+    <trans-unit id="++CODE++bb9469d28bb539b89ef0764fecebad11194995fbd0fa7207b4f49eee4e8b469c">
+      <source xml:lang="en">why this pair ranks close · cosine/dot</source>
+    </trans-unit>
     <trans-unit id="++CODE++2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881">
       <source xml:lang="en">x</source>
     </trans-unit>
     <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
       <source xml:lang="en">x of y selected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2a3b2a057a1129fdd9712d9260225e2a89c62acc3a2c0c0b9e052c02da10861b">
+      <source xml:lang="en">{&quot;dimensions&quot;:1536,&quot;sql_rest_options&quot;:{&quot;retry_count&quot;:2}}</source>
     </trans-unit>
     <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
       <source xml:lang="en">{0} (Current Account)</source>
@@ -13574,11 +15101,17 @@
       <note>{0} is the number of tenants with active sessions
 {1} is the total number of tenants</note>
     </trans-unit>
+    <trans-unit id="++CODE++f8b8fc4fdcfc3c3bbc95ffb88e561d5a705c6094f4588c46af91e1c44d34906c">
+      <source xml:lang="en">{0} of {1} · {2}-D</source>
+    </trans-unit>
     <trans-unit id="++CODE++9ac25cdb59fa0a68ad388e03e48c5feaa9317b37ed9fdc7cb07c3d93fb8e7b8e">
       <source xml:lang="en">{0} only handles text content.</source>
     </trans-unit>
     <trans-unit id="++CODE++6e4a6b4e9edebb4648f393d99eaec6874cbc29ecedd622027349deda19621721">
       <source xml:lang="en">{0} open transaction(s) on this session — COMMIT or ROLLBACK, or they roll back on disconnect</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f4f10a5e6b51ca7a4a8da624fdd82f2eaac9ad52c675f211ac48e96d0950d42a">
+      <source xml:lang="en">{0} overlap characters</source>
     </trans-unit>
     <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
       <source xml:lang="en">{0} password doesn&apos;t match the confirmation password</source>
@@ -13689,6 +15222,12 @@
     <trans-unit id="++CODE++1fb3b6ab635c309decc33aa98f7b6b51d2f4303a3cb3845a54a8f09c3849bd8b">
       <source xml:lang="en">{0} | intentMode={1}</source>
     </trans-unit>
+    <trans-unit id="++CODE++67f56929ef9d0111b883c8135b42cdf6ed8148294ab755d703d4bcda6880c5e0">
+      <source xml:lang="en">{0} — coming in a later build</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1c53c903373636c8d19ded3c1193e9f504afaa5a3a114bf75eec33d3cf843cc4">
+      <source xml:lang="en">{0} — needs a live connection (pinned results are frozen)</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
       <source xml:lang="en">{0}, +{1} more</source>
       <note>{0} is the first changed property label
@@ -13706,10 +15245,19 @@
 {2} is the update action
 {3} indicates whether the difference is included in the generated script</note>
     </trans-unit>
+    <trans-unit id="++CODE++59fdcffb5094008a9e0da38f7df6dc1cdc28057188ce726ad0c482061c87b191">
+      <source xml:lang="en">{0}. Coming in a later build.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++172c3781652c4fd864b58a3d256cb5c5a247a2b719c53d0be3cb1f83d595ca63">
+      <source xml:lang="en">{0}. Needs a live connection; pinned results are frozen.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
       <source xml:lang="en">{0}. {1}</source>
       <note>{0} is the status
 {1} is the message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4dd97b36fed683258ae1b65fab4ffe75205a5457430f32c015be24de7eb532dd">
+      <source xml:lang="en">{0}.{1} has no single-column unique key — searches need a stable key for tie-breaks, exclusions, and recall identity.</source>
     </trans-unit>
     <trans-unit id="++CODE++98705269dd591aad37bacd7289a91ccb143232441bfe1143db9f2704c6f029e8">
       <source xml:lang="en">{0}/{1}</source>
@@ -13861,6 +15409,12 @@
     <trans-unit id="++CODE++6edaf4fa543d97f9dcc08d4d0633008bc2aced3f33df09c100b2da9a79a96634">
       <source xml:lang="en">§8.1 provenance cohort applied to every metric, facet, and pivot on this tab (selector in the filter rail)</source>
     </trans-unit>
+    <trans-unit id="++CODE++32119b0b7285f1535cb3d49318c6b855a9d307f76f55f70364c6db3893519bc4">
+      <source xml:lang="en">· PC2</source>
+    </trans-unit>
+    <trans-unit id="++CODE++da34f39883d7b970ede3b913674dbf30a75a40f80e71fee71e78a0108cfe3fad">
+      <source xml:lang="en">· approximate</source>
+    </trans-unit>
     <trans-unit id="++CODE++2be5a33a98719afd359a4d53c1abf5464466a0dcca488ea1a9ebd2bee0c958b9">
       <source xml:lang="en">· diagnostics</source>
     </trans-unit>
@@ -13870,17 +15424,38 @@
     <trans-unit id="++CODE++be9629842fd8b3ac97821c8cc2245b68354ed367031864aa4a317c9343304c6c">
       <source xml:lang="en">· model</source>
     </trans-unit>
+    <trans-unit id="++CODE++b27f147fc5bfcbb9751d7dfec9c1f843a8ed98d2cba0e1d0038eb30b20b9bb91">
+      <source xml:lang="en">· next</source>
+    </trans-unit>
+    <trans-unit id="++CODE++62520e125483968694dc5b89d3a660d82ac6064f4ac0328c8eae7d2b6f1bfe69">
+      <source xml:lang="en">· panel memory only</source>
+    </trans-unit>
     <trans-unit id="++CODE++0536e0944dd9271926518659f1849880768a6062c43cf7108e1240bc80240d05">
       <source xml:lang="en">· read-only</source>
     </trans-unit>
     <trans-unit id="++CODE++28fca8f83d377ad388264512077fd5a614ea0e0920abd760734ef576f77cad0c">
       <source xml:lang="en">· trace capture</source>
     </trans-unit>
+    <trans-unit id="++CODE++8939431c18ed3e3c8ea198f0a4562e4e76eef4f5d12488be83f858379baa46d8">
+      <source xml:lang="en">· up to 5 sequential statements on one auxiliary session; a stable snapshot is not guaranteed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e5cfddab039ef89de6dffac5fa2ec578aa50b9380f4821df615670286b012c24">
+      <source xml:lang="en">· uses this analysis session&apos;s vector column · vector frozen once at run</source>
+    </trans-unit>
     <trans-unit id="++CODE++c90b3c42dd5bdcaeec227ef5db15efc04b2c83912c24977ea3fe9e4d9a4e885d">
       <source xml:lang="en">· vendors</source>
     </trans-unit>
+    <trans-unit id="++CODE++d51181622d16287b5cfc1b2c1cd86b26887d5964d6385cd4b68b2266fa7280a0">
+      <source xml:lang="en">·f32</source>
+    </trans-unit>
     <trans-unit id="++CODE++17bb2fbe6aa65c524427bc49b46b7212354c72847e2d2ef01d8ef3387713a12b">
       <source xml:lang="en">— scroll to load</source>
+    </trans-unit>
+    <trans-unit id="++CODE++510a9084cbde0f36245b9679f6cc92c9d4a44f2f2ac029c0e30fb1947fbc6304">
+      <source xml:lang="en">‖v‖₂ ≤ 1e-6</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c03feb4cbfda1738a4b03ce64fb8d261c72bbc40ce96a0ce2be95d046b1b4a1">
+      <source xml:lang="en">⚠ Source text leaves your environment via the database engine.</source>
     </trans-unit>
     <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">
       <source xml:lang="en">✅ Grant Access</source>
@@ -14456,6 +16031,9 @@
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.enablePreviewFeatures">
       <source xml:lang="en">Enable preview SQL Database Projects features</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryStudio.vectorWorkbench.enabled">
+      <source xml:lang="en">Enable the private-preview Vector workbench in Query Studio: Profile, Compare, Projection, Search, Index, and Pipeline. Requires experimental features, SQL Data Plane, and Query Studio. Rerun queries after enabling to request typed vector results. Model calls require confirmation.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
       <source xml:lang="en">Enabled</source>

@@ -440,6 +440,18 @@ export class QueryResultAccessService {
         });
     }
 
+    /** Analysis callers hold their own store lease and validate frozen result eligibility. */
+    storeForSnapshot(
+        snapshotId: string,
+    ): { store: IQueryResultStore; derived: boolean } | undefined {
+        const record = this.snapshots.get(snapshotId);
+        if (!record || record.disposed) {
+            return undefined;
+        }
+        record.lastAccessEpochMs = this.now();
+        return { store: record.storeLease.store, derived: false };
+    }
+
     listSnapshots(): readonly QueryResultSnapshotSummary[] {
         return [...this.snapshots.values()].map((record) => this.summarize(record));
     }

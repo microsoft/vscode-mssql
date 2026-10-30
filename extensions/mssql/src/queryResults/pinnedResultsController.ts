@@ -45,6 +45,17 @@ import { cellDocumentText, prettyPrintCellText } from "../queryStudio/cellDocume
 import { saveQueryStudioResult } from "../queryStudio/resultExport";
 import { copyQueryStudioSelection } from "../queryStudio/resultClipboard";
 import { resolveQueryTuning } from "../queryStudio/tuning/queryTuningResolver";
+import { VectorWorkbenchService } from "./vector/vectorWorkbenchService";
+import { ingestBudgetFrom } from "./vector/vectorResultSource";
+import {
+    QsVectorCancelRequest,
+    QsVectorCloseRequest,
+    QsVectorCompareRequest,
+    QsVectorFindingDetailRequest,
+    QsVectorOpenRequest,
+    QsVectorProfileRequest,
+    QsVectorProjectionRequest,
+} from "../sharedInterfaces/vectorWorkbench";
 import {
     createExecutionPlanGraphs,
     openExecutionPlanWebview,
@@ -67,7 +78,11 @@ import {
     createQueryStudioPanelViewState,
     normalizeQueryStudioPanelViewState,
 } from "../sharedInterfaces/queryStudioViewState";
-import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
+import {
+    QueryStudioCore as QueryStudioCoreLoc,
+    VectorWorkbenchMessages as VectorWorkbenchLoc,
+} from "../constants/locConstants";
+import { vectorWorkbenchEnabled, requireVectorWorkbench } from "./vector/vectorFeatureGate";
 
 export class PinnedResultsController extends WebviewBaseController<PinnedResultsState, void> {
     readonly resultSetCount: number;
@@ -102,7 +117,21 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
         this.registerHandlers();
         this.state = this.currentState();
         this.registerDisposable(
+            this.panel.onDidChangeViewState((event) => {
+                if (!event.webviewPanel.visible) this.suspendVectorWorkbench();
+            }),
+        );
+        this.registerDisposable({ dispose: () => this.suspendVectorWorkbench() });
+        this.registerDisposable(
             vscode.workspace.onDidChangeConfiguration((event) => {
+                if (
+                    event.affectsConfiguration("mssql.queryStudio") ||
+                    event.affectsConfiguration("mssql.enableExperimentalFeatures") ||
+                    event.affectsConfiguration("mssql.sqlDataPlane.enabled")
+                ) {
+                    if (!vectorWorkbenchEnabled()) this.suspendVectorWorkbench();
+                    this.state = this.currentState();
+                }
                 if (affectsQueryStudioGridStyle(event)) {
                     this.state = this.currentState();
                 }
@@ -146,6 +175,7 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
         return {
             kind: "queryResultsSnapshot",
             expired: false,
+            vectorEnabled: vectorWorkbenchEnabled(),
             sourceTitle: description.source.sourceTitle,
             createdEpochMs: description.createdEpochMs,
             resultSets,
@@ -168,6 +198,22 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
      */
     protected override cspOptions(): { enabled: boolean; allowWorker?: boolean } {
         return { enabled: true, allowWorker: true };
+    }
+
+    /** Vector Workbench over the FROZEN snapshot (VEC-11) — lazy, like live QS. */
+    private vectorService: VectorWorkbenchService | undefined;
+
+    private vectorWorkbench(): VectorWorkbenchService {
+        requireVectorWorkbench();
+        if (!this.vectorService) {
+            this.vectorService = new VectorWorkbenchService(() => resolveQueryTuning().params);
+        }
+        return this.vectorService;
+    }
+
+    private suspendVectorWorkbench(): void {
+        this.vectorService?.dispose();
+        this.vectorService = undefined;
     }
 
     private summaryFor(resultSetId: string): QsResultSetSummary | undefined {
@@ -223,6 +269,46 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
                 this.panelViewState = normalized;
             }
         });
+
+        // Vector Workbench parity (VEC-11): Profile/Compare/Projection analyze
+        // the frozen snapshot exactly like the live pane (local computation
+        // only); derived/transformed snapshots refuse honestly — their rows
+        // would misattribute result ordinals. Live-session workspaces
+        // (Search/Index/Pipeline) stay locked in the pinned UI.
+        this.onRequest(QsVectorOpenRequest.type, async (params) => {
+            requireVectorWorkbench();
+            const snapshot = service.storeForSnapshot(this.snapshotId);
+            if (snapshot?.derived || !this.summaryFor(params.resultSetId)?.complete) {
+                return {
+                    handle: "",
+                    generation: 0,
+                    transport: "textFallback" as const,
+                    totalRows: 0,
+                    effectiveBudget: ingestBudgetFrom(resolveQueryTuning().params),
+                    error: VectorWorkbenchLoc.vectorAnalysisNeedsACompletedOriginalResultSet,
+                };
+            }
+            return this.vectorWorkbench().open(snapshot?.store, params);
+        });
+        this.onRequest(QsVectorProfileRequest.type, async ({ handle }) =>
+            this.vectorWorkbench().profile(handle),
+        );
+        this.onRequest(QsVectorFindingDetailRequest.type, async ({ handle, kind }) =>
+            this.vectorWorkbench().findingDetail(handle, kind),
+        );
+        this.onRequest(QsVectorCompareRequest.type, async ({ handle, ordinals }) =>
+            this.vectorWorkbench().compare(handle, ordinals),
+        );
+        this.onRequest(QsVectorProjectionRequest.type, async ({ handle }) =>
+            this.vectorWorkbench().projection(handle),
+        );
+        this.onRequest(QsVectorCancelRequest.type, async ({ handle }) => {
+            this.vectorService?.cancel(handle);
+        });
+        this.onRequest(QsVectorCloseRequest.type, async ({ handle }) => {
+            this.vectorService?.close(handle);
+        });
+
         this.onRequest(QsGetRowsRequest.type, async (params) => {
             const reason =
                 params.purpose === "copy"

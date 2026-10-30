@@ -294,6 +294,24 @@ export const PERF_ATTR_CLASSIFICATION: Readonly<Record<string, DataClassificatio
     captureMode: "diagnostic.metadata",
     durationMinutes: "diagnostic.metadata",
     waitedMs: "diagnostic.metadata",
+    // Vector measurements contain counts, timings, and closed vocabularies,
+    // never vectors, SQL, model text, or database object identifiers.
+    dims: "diagnostic.metadata",
+    k: "diagnostic.metadata",
+    exactMs: "diagnostic.metadata",
+    approxMs: "diagnostic.metadata",
+    approxIncluded: "diagnostic.metadata",
+    phase: "diagnostic.metadata",
+    transport: "diagnostic.metadata",
+    dimensions: "diagnostic.metadata",
+    packedBytes: "diagnostic.metadata",
+    scannedBytes: "diagnostic.metadata",
+    rowsScanned: "diagnostic.metadata",
+    nulls: "diagnostic.metadata",
+    unavailable: "diagnostic.metadata",
+    operation: "diagnostic.metadata",
+    vectorColumns: "diagnostic.metadata",
+    workspace: "diagnostic.metadata",
 };
 
 /** Parse the harness repetition id without ever emitting NaN/null on the wire. */

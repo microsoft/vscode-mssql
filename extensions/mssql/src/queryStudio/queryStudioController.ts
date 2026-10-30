@@ -80,6 +80,40 @@ import { buildBoundedMessagesText } from "../sharedInterfaces/queryStudioMessage
 import { copyQueryStudioSelection } from "./resultClipboard";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import { QUERY_TUNING_DEFAULTS } from "../sharedInterfaces/queryTuning";
+import { VectorWorkbenchService } from "../queryResults/vector/vectorWorkbenchService";
+import { requireVectorWorkbench } from "../queryResults/vector/vectorFeatureGate";
+import {
+    QsVectorCancelRequest,
+    QsVectorCloseRequest,
+    QsVectorCompareRequest,
+    QsVectorFindingDetailRequest,
+    QsVectorOpenRequest,
+    QsVectorProfileRequest,
+    QsVectorProjectionRequest,
+} from "../sharedInterfaces/vectorWorkbench";
+import { QsVectorCapabilitiesRequest } from "../sharedInterfaces/vectorCatalog";
+import { QsVectorIndexStateRequest } from "../sharedInterfaces/vectorIndex";
+import { VectorIndexService } from "../queryResults/vector/vectorIndexService";
+import { VectorModelStatementCounter } from "../queryResults/vector/vectorModelStatementCounter";
+import { VectorPipelineService } from "../queryResults/vector/vectorPipelineService";
+import { VectorSearchService } from "../queryResults/vector/vectorSearchService";
+import {
+    QsVectorChunkPreviewRequest,
+    QsVectorPipelineCancelRequest,
+    QsVectorPipelineStateRequest,
+    QsVectorReembedExecuteRequest,
+    QsVectorReembedPrepareRequest,
+    QsVectorReembedResultRequest,
+} from "../sharedInterfaces/vectorPipeline";
+import {
+    QsVectorSearchCancelRequest,
+    QsVectorSearchModelExecuteRequest,
+    QsVectorSearchModelPrepareRequest,
+    QsVectorSearchModelsRequest,
+    QsVectorSearchRequest,
+    QsVectorSearchResultRequest,
+    QsVectorSearchTargetsRequest,
+} from "../sharedInterfaces/vectorSearch";
 import {
     QsLangCompletionRequest,
     QsLangDefinitionRequest,
@@ -129,7 +163,10 @@ import {
     normalizeQueryStudioPanelViewState,
     resetQueryStudioPanelViewState,
 } from "../sharedInterfaces/queryStudioViewState";
-import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
+import {
+    QueryStudioCore as QueryStudioCoreLoc,
+    VectorWorkbenchMessages as VectorWorkbenchLoc,
+} from "../constants/locConstants";
 
 /** Scan-and-detect: idle beat after the webview is ready (plan §3.4). */
 const OPEN_SCAN_DELAY_MS = 1_500;
@@ -165,6 +202,13 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     /** Database names cached from QsListDatabases for USE completions. */
     private _languageDatabasesCache: string[] | undefined;
     private restoreEditorFocusWhenActive = false;
+    /** Vector Workbench sessions (VEC-4) — created on first vector RPC only. */
+    private vectorService: VectorWorkbenchService | undefined;
+    /** Monotonic invalidation token for renderer-held Vector handles. */
+    private vectorSessionEpoch = 0;
+    /** Authoritative per-run statement counts; retained across pane suspension. */
+    private vectorPipelineModelStatements = new VectorModelStatementCounter();
+    private vectorSearchModelStatements = new VectorModelStatementCounter();
     /** Per-panel, memory-only UI state; deliberately excluded from QsState. */
     private panelViewState: QueryStudioPanelViewState;
 
@@ -206,6 +250,11 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.registerDisposable(
             this.panel.onDidChangeViewState((event) => {
                 if (!event.webviewPanel.visible) {
+                    // Hidden retained webviews keep their React tree alive.
+                    // Revoke analysis sessions host-side and advertise the
+                    // visibility transition so the pane atomically drops its
+                    // stale handles before reopening when revealed.
+                    this.suspendVectorServices();
                     this.queueStatePush();
                     return;
                 }
@@ -256,6 +305,15 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                 ) {
                     this.languageService.onDiagnosticsSettingChanged();
                 }
+                if (
+                    e.affectsConfiguration("mssql.queryStudio.vectorWorkbench.enabled") ||
+                    e.affectsConfiguration("mssql.enableExperimentalFeatures") ||
+                    e.affectsConfiguration("mssql.queryStudio.enabled") ||
+                    e.affectsConfiguration("mssql.sqlDataPlane.enabled")
+                ) {
+                    if (!this.model.executionHost.vectorWorkbenchGate()) this.resetVectorServices();
+                    this.queueStatePush();
+                }
             }),
         );
 
@@ -281,6 +339,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         );
 
         this.bindingListener = this.model.sessionBinding.onDidChange(() => {
+            // Database/principal/session changes invalidate catalog bindings
+            // and any source handles held by live-only Vector workspaces.
+            this.resetVectorServices();
             this.queueStatePush();
         });
 
@@ -300,6 +361,10 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     this.panelViewState,
                     String(startedEpochMs),
                 );
+                // A run invalidates every analysis handle and its retained old
+                // result store. The pane can lazily create fresh services when
+                // it next becomes active.
+                this.resetVectorServices();
                 void this.sendNotification(QsRunStartedNotification.type, { startedEpochMs });
                 this.queueStatePush();
             },
@@ -454,8 +519,10 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             gridStyle: QueryStudioController.currentGridStyle(),
             statusMessage: { kind: "ready", text: QueryStudioCoreLoc.readyNotConnected },
             capabilities: {
+                vectorWorkbench: model.executionHost.vectorWorkbenchGate(),
                 panelVisible: true,
             },
+            vectorSessionEpoch: 0,
         };
     }
 
@@ -595,7 +662,9 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             };
         }
         state.completions = { enabled: isInlineCompletionFeatureEnabled() };
+        state.capabilities.vectorWorkbench = this.model.executionHost.vectorWorkbenchGate();
         state.capabilities.panelVisible = this.panel.visible;
+        state.vectorSessionEpoch = this.vectorSessionEpoch;
         // Grid windowing knobs ride the style snapshot (QO-7): the run's
         // tuning when one exists, else the current resolution.
         const tuning = (this.model.executionHost.currentTuning ?? resolveQueryTuning()).params;
@@ -733,6 +802,19 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     protected override cspOptions(): { enabled: boolean; allowWorker?: boolean } {
         return { enabled: true, allowWorker: true };
     }
+
+    private vectorWorkbench(): VectorWorkbenchService {
+        requireVectorWorkbench();
+        if (!this.vectorService) {
+            // The RUN's resolved tuning wins (budget attribution matches the
+            // data being analyzed); config-resolved is the pre-run fallback.
+            this.vectorService = new VectorWorkbenchService(
+                () => (this.model.executionHost.currentTuning ?? resolveQueryTuning()).params,
+            );
+        }
+        return this.vectorService;
+    }
+
     /** Recently served scripted definitions, addressed by cacheKey (LRU). */
     private readonly scriptedDefinitions = new Map<string, ScriptedDefinitionContent>();
 
@@ -743,6 +825,71 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             const oldest = this.scriptedDefinitions.keys().next().value as string;
             this.scriptedDefinitions.delete(oldest);
         }
+    }
+
+    private resetVectorServices(): void {
+        this.vectorSessionEpoch++;
+        this.vectorSearchService?.dispose();
+        this.vectorSearchService = undefined;
+        this.vectorPipelineService?.dispose();
+        this.vectorPipelineService = undefined;
+        this.vectorService?.dispose();
+        this.vectorService = undefined;
+        // Replace rather than reset: a disposed service can still settle an
+        // already-issued SQL statement. It must only update the unreachable
+        // counter from its old query generation.
+        this.vectorPipelineModelStatements = new VectorModelStatementCounter();
+        this.vectorSearchModelStatements = new VectorModelStatementCounter();
+    }
+
+    /** Revoke host resources while retaining bounded terminal Vector metadata. */
+    private suspendVectorServices(): void {
+        const hadHostResources = Boolean(this.vectorService || this.vectorPipelineService);
+        void this.vectorSearchService?.suspendSensitiveState().catch(() => undefined);
+        void this.vectorPipelineService?.suspendSensitiveState().catch(() => undefined);
+        this.vectorService?.dispose();
+        this.vectorService = undefined;
+        if (hadHostResources) {
+            this.vectorSessionEpoch++;
+        }
+    }
+
+    /** Pipeline workspace (VEC-10) — lazy; model calls need host-minted consent. */
+    private vectorPipelineService: VectorPipelineService | undefined;
+
+    private vectorPipeline(): VectorPipelineService {
+        requireVectorWorkbench();
+        if (!this.vectorPipelineService) {
+            this.vectorPipelineService = new VectorPipelineService({
+                auxModelSession: () =>
+                    this.model.sessionBinding.acquireAuxiliarySession("vectorModelCall"),
+                capabilities: (refresh) =>
+                    this.model.vectorCapabilities.capabilities(refresh === true),
+                workbench: (handle) => this.vectorWorkbench().sessionFacts(handle),
+                modelStatements: this.vectorPipelineModelStatements,
+            });
+        }
+        return this.vectorPipelineService;
+    }
+
+    /** Search workspace (VEC-8) — live-only and catalog-authoritative. */
+    private vectorSearchService: VectorSearchService | undefined;
+
+    private vectorSearch(): VectorSearchService {
+        requireVectorWorkbench();
+        if (!this.vectorSearchService) {
+            this.vectorSearchService = new VectorSearchService({
+                auxSession: () =>
+                    this.model.sessionBinding.acquireAuxiliarySession("vectorDiagnostics"),
+                auxModelSession: () =>
+                    this.model.sessionBinding.acquireAuxiliarySession("vectorModelCall"),
+                capabilities: (refresh, table) =>
+                    this.model.vectorCapabilities.capabilities(refresh === true, table),
+                workbench: (handle) => this.vectorWorkbench().sessionFacts(handle),
+                modelStatements: this.vectorSearchModelStatements,
+            });
+        }
+        return this.vectorSearchService;
     }
 
     private registerHandlers(): void {
@@ -1135,6 +1282,117 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             };
             await showPlanXml(state, { sqlPlanContent });
         });
+        // --- vector workbench (VEC-4): opaque pull sessions -----------------
+        // The service is created lazily on the first vector RPC — a document
+        // that never opens the Vector tab pays nothing here.
+        this.onRequest(QsVectorOpenRequest.type, async (params) =>
+            this.vectorWorkbench().open(this.model.executionHost.retainedStore, params),
+        );
+        this.onRequest(QsVectorProfileRequest.type, async ({ handle }) =>
+            this.vectorWorkbench().profile(handle),
+        );
+        this.onRequest(QsVectorFindingDetailRequest.type, async ({ handle, kind }) =>
+            this.vectorWorkbench().findingDetail(handle, kind),
+        );
+        this.onRequest(QsVectorCancelRequest.type, async ({ handle }) => {
+            this.vectorService?.cancel(handle);
+        });
+        this.onRequest(QsVectorCloseRequest.type, async ({ handle }) => {
+            // A late cleanup from a renderer invalidated by rerun/hide must
+            // not recreate an otherwise-empty analysis service.
+            this.vectorService?.close(handle);
+        });
+        this.onRequest(QsVectorCapabilitiesRequest.type, async (params) => {
+            requireVectorWorkbench();
+            return this.model.vectorCapabilities.capabilities(
+                (params as { refresh?: boolean } | undefined)?.refresh === true,
+            );
+        });
+        this.onRequest(QsVectorProjectionRequest.type, async ({ handle }) =>
+            this.vectorWorkbench().projection(handle),
+        );
+        this.onRequest(QsVectorCompareRequest.type, async ({ handle, ordinals }) =>
+            this.vectorWorkbench().compare(handle, ordinals),
+        );
+        this.onRequest(QsVectorSearchTargetsRequest.type, async ({ handle }) =>
+            this.vectorSearch().searchTargets(handle),
+        );
+        this.onRequest(QsVectorSearchModelsRequest.type, async ({ handle, refresh }) =>
+            this.vectorSearch().searchModels(handle, refresh === true),
+        );
+        this.onRequest(QsVectorSearchModelPrepareRequest.type, async (params) =>
+            this.vectorSearch().searchModelPrepare(params),
+        );
+        this.onRequest(QsVectorSearchModelExecuteRequest.type, async ({ handle, token }) =>
+            this.vectorSearch().searchModelExecute(handle, token),
+        );
+        this.onRequest(QsVectorSearchRequest.type, async (params) =>
+            this.vectorSearch().search(params),
+        );
+        this.onRequest(
+            QsVectorSearchResultRequest.type,
+            async ({ handle, runId, targetId }) =>
+                this.vectorSearchService?.restoreResult(handle, runId, targetId) ?? {
+                    generation: 0,
+                    error: VectorWorkbenchLoc.theCachedSearchResultIsUnavailable,
+                },
+        );
+        this.onRequest(QsVectorSearchCancelRequest.type, async ({ handle, sensitive }) => {
+            if (sensitive) {
+                await this.vectorSearchService?.suspendSensitiveState(handle);
+            } else {
+                await this.vectorSearchService?.cancel(handle);
+            }
+        });
+        this.onRequest(QsVectorIndexStateRequest.type, async (params) => {
+            const search = this.vectorSearch();
+            let target = search.indexTargetFacts(
+                params?.targetId,
+                params?.metric,
+                params?.filterColumns,
+            );
+            if (!target && params?.targetId && params.handle) {
+                const discovery = await search.searchTargets(params.handle);
+                if (discovery.error) {
+                    return { error: discovery.error };
+                }
+                target = search.indexTargetFacts(
+                    params.targetId,
+                    params.metric,
+                    params.filterColumns,
+                );
+            }
+            if (!target) {
+                return {
+                    error: VectorWorkbenchLoc.chooseACatalogVerifiedBaseTableTargetBefore,
+                };
+            }
+            return new VectorIndexService(
+                (refresh, table) =>
+                    this.model.vectorCapabilities.capabilities(refresh === true, table),
+                () => target,
+            ).indexState(params?.refresh === true);
+        });
+        this.onRequest(QsVectorPipelineStateRequest.type, async (params) =>
+            this.vectorPipeline().pipelineState(
+                (params as { refresh?: boolean } | undefined)?.refresh === true,
+            ),
+        );
+        this.onRequest(QsVectorReembedPrepareRequest.type, async (params) =>
+            this.vectorPipeline().reembedPrepare(params),
+        );
+        this.onRequest(QsVectorReembedExecuteRequest.type, async ({ handle, token }) =>
+            this.vectorPipeline().reembedExecute(handle, token),
+        );
+        this.onRequest(QsVectorReembedResultRequest.type, async ({ handle, runId }) =>
+            this.vectorPipeline().reembedResult(handle, runId),
+        );
+        this.onRequest(QsVectorPipelineCancelRequest.type, async ({ handle }) => {
+            await this.vectorPipelineService?.cancel(handle);
+        });
+        this.onRequest(QsVectorChunkPreviewRequest.type, async (params) =>
+            this.vectorPipeline().chunkPreview(params),
+        );
         this.onRequest(QsShowPlanQueryRequest.type, async ({ query }) => {
             const seam = await this.executionPlanSeam();
             if (!seam) {
@@ -1416,6 +1674,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         }
         this.inlineCompletionCts?.cancel();
         this.inlineCompletionCts = undefined;
+        this.resetVectorServices();
         this.languageService.dispose();
         this.modelListener.dispose();
         this.bindingListener?.dispose();

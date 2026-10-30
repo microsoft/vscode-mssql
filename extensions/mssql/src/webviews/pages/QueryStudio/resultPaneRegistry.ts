@@ -20,6 +20,15 @@ export interface QueryStudioResultPaneContribution {
     readonly load: () => Promise<unknown>;
 }
 
+export const vectorResultPaneContribution = {
+    id: "vector",
+    order: 200,
+    fillRegion: true,
+    keepMounted: true,
+    deactivate: "suspend",
+    load: () => import("./vectorTab"),
+} as const satisfies QueryStudioResultPaneContribution;
+
 export const queryPlanResultPaneContribution = {
     id: "queryPlan",
     order: 400,
@@ -29,4 +38,7 @@ export const queryPlanResultPaneContribution = {
     load: () => import("./queryPlanTab"),
 } as const satisfies QueryStudioResultPaneContribution;
 
-export const QUERY_STUDIO_RESULT_PANE_CONTRIBUTIONS = [queryPlanResultPaneContribution] as const;
+export const QUERY_STUDIO_RESULT_PANE_CONTRIBUTIONS = [
+    vectorResultPaneContribution,
+    queryPlanResultPaneContribution,
+] as const;

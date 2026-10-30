@@ -38,9 +38,16 @@ suite("Query Studio activation contribution", () => {
         );
         expect(
             settings.filter((key: string) =>
-                /^mssql\.queryStudio\.(spatial|vectorWorkbench|replay)(\.|$)/.test(key),
+                /^mssql\.queryStudio\.(spatial|replay)(\.|$)/.test(key),
             ),
         ).to.deep.equal([]);
+        const vectorSetting = manifest.contributes.configuration
+            .map(
+                (group: { properties?: Record<string, { default: unknown }> }) =>
+                    group.properties?.["mssql.queryStudio.vectorWorkbench.enabled"],
+            )
+            .find(Boolean);
+        expect(vectorSetting?.default).to.equal(false);
     });
 
     test("accepts untitled and remote .mssql documents but excludes ordinary SQL files", () => {

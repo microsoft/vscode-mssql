@@ -617,5 +617,6 @@
     "mssql.objectExplorerV2.scriptCreate": "Script as Create",
     "mssql.objectExplorerV2.scriptDrop": "Script as Drop",
     "mssql.objectExplorerV2.scriptExecute": "Script as Execute",
-    "mssql.objectExplorerV2.generateScriptSubmenu": "Generate Script"
+    "mssql.objectExplorerV2.generateScriptSubmenu": "Generate Script",
+    "mssql.queryStudio.vectorWorkbench.enabled": "Enable the private-preview Vector workbench in Query Studio: Profile, Compare, Projection, Search, Index, and Pipeline. Requires experimental features, SQL Data Plane, and Query Studio. Rerun queries after enabling to request typed vector results. Model calls require confirmation."
 }
