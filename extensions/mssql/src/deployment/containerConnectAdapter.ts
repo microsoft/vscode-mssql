@@ -22,6 +22,7 @@ export interface ContainerConnectAdapter {
     /**
      * Persist the profile, open it in the owning Object Explorer, and return a display-safe
      * connection string without a password. Throws when any part of the operation fails.
+     * Writes the saved ID back to the input before connecting so retries reuse it.
      */
     saveAndConnect(profile: IConnectionProfile): Promise<string>;
 }
@@ -37,7 +38,7 @@ async function getDisplayConnectionString(
     );
 }
 
-/** Classic OE adapter — byte-identical to the pre-seam behavior. */
+/** Classic OE adapter — uses the existing persistence and classic OE connection path. */
 export function classicContainerConnectAdapter(
     mainController: MainController,
 ): ContainerConnectAdapter {
@@ -45,6 +46,7 @@ export function classicContainerConnectAdapter(
         saveAndConnect: async (connection: IConnectionProfile) => {
             const profile =
                 await mainController.connectionManager.connectionUI.saveProfile(connection);
+            connection.id = profile.id;
             const connectionString = await getDisplayConnectionString(mainController, profile);
             await mainController.createObjectExplorerSession(profile);
             return connectionString;
@@ -69,6 +71,7 @@ export function oeV2ContainerConnectAdapter(
             const password = connection.password;
             const profile =
                 await mainController.connectionManager.connectionUI.saveProfile(connection);
+            connection.id = profile.id;
             const connectionString = await getDisplayConnectionString(mainController, profile);
             const connected = await vscode.commands.executeCommand<boolean>(
                 "mssql.objectExplorerV2.connectProfileById",

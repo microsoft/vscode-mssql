@@ -446,6 +446,10 @@ export async function addContainerConnection(
         return { success: true, connectionString };
     } catch (error) {
         return { success: false, fullErrorText: getErrorMessage(error) };
+    } finally {
+        // Saving succeeds before SQL can fail. Retain only its identity in
+        // the wizard form so a retry updates that profile instead of adding one.
+        if (connection.id) dockerProfile.id = connection.id;
     }
 }
 

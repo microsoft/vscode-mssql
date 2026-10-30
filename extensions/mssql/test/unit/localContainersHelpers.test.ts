@@ -662,6 +662,58 @@ suite("localContainers logic", () => {
         });
     });
 
+    for (const [name, factory] of [
+        ["classic", classicContainerConnectAdapter],
+        ["OE v2", oeV2ContainerConnectAdapter],
+    ] as const) {
+        test(`${name} wizard retries reuse the profile saved before a failed connect`, async () => {
+            const savedIds = new Set<string>();
+            const saveProfile = sandbox.stub().callsFake(async (profile) => {
+                const saved = { ...profile, id: profile.id ?? uuid() };
+                savedIds.add(saved.id);
+                return saved;
+            });
+            const classicConnect = sandbox.stub();
+            classicConnect.onFirstCall().rejects(new Error("connect failed"));
+            classicConnect.onSecondCall().resolves();
+            const commands = sandbox.stub(vscode.commands, "executeCommand");
+            commands
+                .withArgs("mssql.objectExplorerV2.connectProfileById")
+                .onFirstCall()
+                .resolves(false);
+            commands
+                .withArgs("mssql.objectExplorerV2.connectProfileById")
+                .onSecondCall()
+                .resolves(true);
+            const owner = {
+                connectionManager: {
+                    connectionUI: { saveProfile },
+                    createConnectionDetails: sandbox.stub().returns({ options: {} }),
+                    getConnectionString: sandbox.stub().resolves("Server=localhost,1450"),
+                },
+                createObjectExplorerSession: classicConnect,
+            } as unknown as MainController;
+            const profile = {
+                containerName: "retry-container",
+                port: 1450,
+                profileName: "retry",
+                savePassword: false,
+            } as lc.DockerConnectionProfile;
+            const adapter = factory(owner);
+            expect(
+                (await localContainersHelpers.addContainerConnection(profile, adapter)).success,
+            ).to.equal(false);
+            expect(profile.id).to.be.a("string");
+            const savedId = profile.id;
+            expect(
+                (await localContainersHelpers.addContainerConnection(profile, adapter)).success,
+            ).to.equal(true);
+            expect(saveProfile.secondCall.args[0].id).to.equal(savedId);
+            expect(savedIds.size).to.equal(1);
+            expect(profile.id).to.equal(savedId);
+        });
+    }
+
     test("sendLocalContainersCloseEventTelemetry sends telemetry event", async () => {
         const state = {
             currentDockerStep: 0,

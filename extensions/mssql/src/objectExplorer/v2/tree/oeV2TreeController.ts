@@ -956,7 +956,7 @@ export class OeV2TreeController {
             isRetryableContainerOpenError(reason) ||
             (Date.now() - startedAt < loginGraceMs &&
                 /^(?:Login failed for user\b|SQL authentication failed\.?$)/i.test(reason ?? ""));
-        let session = await sessions.connect(connectionId, prepared);
+        let session = await sessions.connect(connectionId, prepared, signal);
         let attempt = 0;
         while (
             !this.disposed &&
@@ -987,7 +987,7 @@ export class OeV2TreeController {
                 });
                 break;
             }
-            session = await sessions.connect(connectionId, prepared);
+            session = await sessions.connect(connectionId, prepared, signal);
             span.end(session.state === "connected" ? "ok" : "info", {
                 result: {
                     raw: session.state === "connected" ? "recovered" : "retrying",

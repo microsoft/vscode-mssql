@@ -17,7 +17,7 @@ import { OeV2ClassicHandoffService } from "../../src/objectExplorer/v2/legacy/oe
 import { OeV2MetadataCoordinator } from "../../src/objectExplorer/v2/metadata/oeV2MetadataCoordinator";
 import { OeV2SessionRegistry } from "../../src/objectExplorer/v2/sessions/oeV2SessionRegistry";
 import { OeV2TreeController } from "../../src/objectExplorer/v2/tree/oeV2TreeController";
-import { ISqlSession } from "../../src/services/sqlDataPlane/api";
+import { ISqlSession, SessionStateChange } from "../../src/services/sqlDataPlane/api";
 import { PreparedConnection } from "../../src/services/metadata/profileAuthAdapter";
 import { ObjectExplorerV2Provider } from "../../src/objectExplorer/v2/objectExplorerV2Provider";
 
@@ -34,10 +34,11 @@ suite("Object Explorer v2 container startup", () => {
     });
 
     function harness(containerName: string | undefined = "test-container") {
+        const stateChanges = new vscode.EventEmitter<SessionStateChange>();
         const session = {
             info: { sessionId: "container-session", serverVersion: "17.0" },
             close: sandbox.stub().resolves(),
-            onDidChangeState: () => ({ dispose: () => undefined }),
+            onDidChangeState: stateChanges.event,
         } as unknown as ISqlSession;
         const open = sandbox.stub().resolves({ session });
         const registry = new OeV2SessionRegistry(open);
@@ -73,8 +74,18 @@ suite("Object Explorer v2 container startup", () => {
                 containerLoginRetryGraceMs: 15,
             },
         });
-        disposables.push(controller, registry);
-        return { controller, registry, restart, open, coordinator, coordinatorFactory, profiles };
+        disposables.push(controller, registry, stateChanges);
+        return {
+            controller,
+            registry,
+            restart,
+            open,
+            coordinator,
+            coordinatorFactory,
+            profiles,
+            session,
+            stateChanges,
+        };
     }
 
     test("starts a stopped container before opening SQL and shares concurrent startup requests", async () => {
@@ -101,6 +112,26 @@ suite("Object Explorer v2 container startup", () => {
         const h = harness("");
         expect(await h.controller.connectProfile("p1")).to.equal(true);
         expect(h.restart).not.to.have.been.called;
+    });
+
+    test("canceling while a lost session retires prevents a replacement SQL open", async () => {
+        const h = harness();
+        expect(await h.controller.connectProfile("p1")).to.equal(true);
+        h.stateChanges.fire({ previous: "open", current: "lost", reason: "network" });
+        const entered = Promise.withResolvers<void>();
+        const retired = Promise.withResolvers<void>();
+        (h.session.close as sinon.SinonStub).callsFake(() => {
+            entered.resolve();
+            return retired.promise;
+        });
+        const reconnect = h.controller.connectProfile("p1");
+        await entered.promise;
+        expect(h.registry.stateOf("p1")).to.equal("lost");
+        h.controller.cancelConnect("p1");
+        retired.resolve();
+        expect(await reconnect).to.equal(false);
+        expect(h.open).to.have.been.calledOnce;
+        expect(h.registry.stateOf("p1")).to.equal("disconnected");
     });
 
     test("container activity appears on the connection and clears when finished", async () => {
