@@ -13,6 +13,8 @@ import { ILogger } from "../../src/sharedInterfaces/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
 import * as armStorage from "@azure/arm-storage";
+import { SqlManagementClient } from "@azure/arm-sql";
+import { LocalToCloud } from "../../src/constants/locConstants";
 import {
     mockAccounts,
     mockSqlDbList,
@@ -46,6 +48,63 @@ suite("Azure Helpers", () => {
     });
 
     suite("VsCodeAzureHelpers", () => {
+        for (const status of [200, 403, 404]) {
+            test(`migration target validation handles database lookup status ${status} without overwriting resources`, async () => {
+                const subscription = {
+                    ...mockSubscriptions[0],
+                    subscriptionId: "subscription",
+                    credential: { getToken: sandbox.stub() },
+                };
+                const server = {
+                    location: "westus",
+                    fullyQualifiedDomainName: "server.database.windows.net",
+                };
+                const send = sandbox.stub(SqlManagementClient.prototype, "sendOperationRequest");
+                send.callsFake(async (_arguments, specification) => {
+                    if (specification.path.includes("/databases/")) {
+                        if (status !== 200) {
+                            throw Object.assign(new Error(`HTTP ${status}`), {
+                                statusCode: status,
+                            });
+                        }
+                        return { name: "existing" };
+                    }
+                    return server;
+                });
+                const operation =
+                    status === 200
+                        ? azureHelpers.VsCodeAzureHelper.createAzureSqlDatabase(
+                              subscription,
+                              "group",
+                              "server",
+                              "database",
+                              { useFreeLimit: true },
+                              { requireNew: true },
+                          )
+                        : azureHelpers.VsCodeAzureHelper.validateNewAzureSqlDatabase(
+                              subscription,
+                              "group",
+                              "server",
+                              "database",
+                          );
+                const outcome = await operation.then(
+                    (value) => value,
+                    (error: unknown) => error,
+                );
+                if (status === 404) {
+                    expect(outcome).to.equal(server);
+                } else {
+                    expect(outcome).to.be.instanceOf(Error);
+                    expect((outcome as Error).message).to.equal(
+                        status === 200 ? LocalToCloud.targetDatabaseExists : "HTTP 403",
+                    );
+                }
+                expect(send.getCalls().map((call) => call.args[1].httpMethod)).not.to.include(
+                    "PUT",
+                );
+            });
+        }
+
         test("getAccounts", async () => {
             sandbox
                 .stub(vscode.authentication, "getAccounts")

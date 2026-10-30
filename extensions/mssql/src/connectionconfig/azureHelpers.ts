@@ -671,6 +671,36 @@ export class VsCodeAzureHelper {
     }
 
     /**
+     * Validates an existing server and rejects an already provisioned migration target.
+     */
+    public static async validateNewAzureSqlDatabase(
+        subscription: AzureSubscription,
+        resourceGroupName: string,
+        serverName: string,
+        databaseName: string,
+        abortSignal?: AbortSignal,
+    ): Promise<Server> {
+        const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+        const server = await sql.servers.get(resourceGroupName, serverName, { abortSignal });
+        try {
+            await sql.databases.get(resourceGroupName, serverName, databaseName, { abortSignal });
+        } catch (error) {
+            if (
+                typeof error === "object" &&
+                error !== null &&
+                "statusCode" in error &&
+                error.statusCode === 404
+            ) {
+                return server;
+            }
+            throw error;
+        }
+        throw new Error(LocalizedConstants.LocalToCloud.targetDatabaseExists);
+    }
+
+    /**
      * Creates or updates an Azure SQL Database using the ARM SDK.
      * @returns The created/updated database resource.
      */
@@ -691,12 +721,23 @@ export class VsCodeAzureHelper {
             useFreeLimit?: boolean;
             maxVcores?: string;
         },
+        operationOptions?: { requireNew?: boolean; abortSignal?: AbortSignal },
     ): Promise<Database> {
         const sql = new SqlManagementClient(subscription.credential, subscription.subscriptionId, {
             endpoint: getCloudProviderSettings().settings.armResource.endpoint,
         });
 
-        const server = await sql.servers.get(resourceGroupName, serverName);
+        const server = operationOptions?.requireNew
+            ? await VsCodeAzureHelper.validateNewAzureSqlDatabase(
+                  subscription,
+                  resourceGroupName,
+                  serverName,
+                  databaseName,
+                  operationOptions.abortSignal,
+              )
+            : await sql.servers.get(resourceGroupName, serverName, {
+                  abortSignal: operationOptions?.abortSignal,
+              });
 
         const skuName = options.maxVcores ? `GP_S_Gen5_${options.maxVcores}` : "GP_S_Gen5";
 
@@ -719,8 +760,9 @@ export class VsCodeAzureHelper {
             serverName,
             databaseName,
             { ...options, ...freeTierOptions, location: server.location },
+            { abortSignal: operationOptions?.abortSignal },
         );
-        return poller.pollUntilDone();
+        return poller.pollUntilDone({ abortSignal: operationOptions?.abortSignal });
     }
 
     /**

@@ -6,6 +6,7 @@
 import { Card, makeStyles, Text, tokens } from "@fluentui/react-components";
 import { AzureSqlDatabaseIcon } from "../../../common/icons/azureSqlDatabase";
 import { DockerIcon } from "../../../common/icons/docker";
+import { SqlMigrationIcon } from "../../../common/icons/sqlMigration";
 import { KeyCode } from "../../../common/keys";
 import { locConstants } from "../../../common/locConstants";
 
@@ -86,6 +87,7 @@ interface AzureSqlDatabaseDeploymentTypePageProps {
     isFreeDeploymentLoading: boolean;
     onLocalContainerSelected: () => void;
     onFreeDeploymentSelected: () => void;
+    onDeployLocalDatabaseSelected: () => void;
 }
 
 export const AzureSqlDatabaseDeploymentTypePage: React.FC<
@@ -95,6 +97,7 @@ export const AzureSqlDatabaseDeploymentTypePage: React.FC<
     isFreeDeploymentLoading,
     onLocalContainerSelected,
     onFreeDeploymentSelected,
+    onDeployLocalDatabaseSelected,
 }) => {
     const classes = useStyles();
 
@@ -152,6 +155,24 @@ export const AzureSqlDatabaseDeploymentTypePage: React.FC<
                     <Text className={classes.cardHeader}>{locConstants.azureSqlDatabase.free}</Text>
                     <Text className={classes.cardDescription}>
                         {locConstants.azureSqlDatabase.freeDescription}
+                    </Text>
+                </div>
+            </Card>
+            <Card
+                className={classes.card}
+                onClick={onDeployLocalDatabaseSelected}
+                onKeyDown={(event) => handleKeyDown(event, onDeployLocalDatabaseSelected)}
+                tabIndex={0}
+                role="button">
+                <div className={classes.iconBadge}>
+                    <SqlMigrationIcon className={classes.icon} aria-hidden="true" />
+                </div>
+                <div className={classes.content}>
+                    <Text className={classes.cardHeader}>
+                        {locConstants.azureSqlDatabase.deployLocalDatabase}
+                    </Text>
+                    <Text className={classes.cardDescription}>
+                        {locConstants.azureSqlDatabase.deployLocalDatabaseDescription}
                     </Text>
                 </div>
             </Card>
