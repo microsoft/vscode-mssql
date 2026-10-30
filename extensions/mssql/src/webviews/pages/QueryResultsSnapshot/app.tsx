@@ -45,7 +45,10 @@ const GRID_HEADER_PX = 34;
 const GRID_CHROME_PX = 20;
 const GRID_CAPTION_PX = 30;
 
-type PinnedTab = "results" | "messages" | "queryPlan";
+type PinnedTab = "results" | "messages" | "spatial" | "queryPlan";
+const LazySpatialTab = React.lazy(async () => ({
+    default: (await import("../QueryStudio/spatialTab")).SpatialResultsPane,
+}));
 // Live-QS parity: pinned plan result sets render as REAL plan graphs in a
 // Query Plan tab — never as raw-XML grids (those rendered erratically and
 // crawled on multi-MB plan cells). azdataGraph stays a lazy on-use chunk.
@@ -177,6 +180,12 @@ export function PinnedResultsApp() {
         },
         [updatePanelViewState],
     );
+    const persistSpatialViewState = useCallback(
+        (spatialState: QueryStudioPanelViewState["spatial"]) => {
+            updatePanelViewState((current) => ({ ...current, spatial: spatialState }));
+        },
+        [updatePanelViewState],
+    );
     const persistPlanViewState = useCallback(
         (queryPlan: QueryStudioPanelViewState["queryPlan"]) => {
             updatePanelViewState((current) => ({ ...current, queryPlan }));
@@ -215,7 +224,9 @@ export function PinnedResultsApp() {
                 panelViewStateRef.current = saved;
                 panelViewStateReadyRef.current = true;
                 const savedTab: PinnedTab =
-                    saved.shell.activeTab === "messages" || saved.shell.activeTab === "queryPlan"
+                    saved.shell.activeTab === "messages" ||
+                    saved.shell.activeTab === "queryPlan" ||
+                    saved.shell.activeTab === "spatial"
                         ? saved.shell.activeTab
                         : "results";
                 setActiveTab(savedTab);
@@ -291,6 +302,34 @@ export function PinnedResultsApp() {
         () => (state?.resultSets ?? []).filter((summary) => summary.isPlanResult === true),
         [state?.resultSets],
     );
+    const spatialColumns = useMemo(
+        () =>
+            gridSummaries.flatMap(
+                (summary, resultIndex) =>
+                    summary.columns?.flatMap((column, ordinal) =>
+                        column.spatial?.encoding === "wkb-v1"
+                            ? [
+                                  {
+                                      resultSetId: summary.resultSetId,
+                                      resultSetLabel: `Result ${resultIndex + 1}`,
+                                      columnOrdinal: ordinal,
+                                      columnName: column.displayName || column.name,
+                                      kind: column.spatial.kind,
+                                      totalRows: summary.rowCount,
+                                      columns: (summary.columns ?? []).map((candidate, index) => ({
+                                          ordinal: index,
+                                          name: candidate.displayName || candidate.name,
+                                          ...(candidate.sqlType
+                                              ? { sqlType: candidate.sqlType }
+                                              : {}),
+                                      })),
+                                  },
+                              ]
+                            : [],
+                    ) ?? [],
+            ),
+        [gridSummaries],
+    );
     // Plan graphs load once (the snapshot is frozen) when the tab first mounts.
     const [planTabState, setPlanTabState] = useState<ExecutionPlanState | undefined>(undefined);
     const planMounted = mountedTabs.has("queryPlan");
@@ -351,6 +390,7 @@ export function PinnedResultsApp() {
     const availableTabs = orderedQueryStudioTabs({
         results: gridSummaries.length > 0,
         messages: state?.hasLocalMessages === true || (state?.messageCount ?? 0) > 0,
+        spatial: state?.spatialEnabled === true && spatialColumns.length > 0,
         queryPlan: planSummaries.length > 0,
     }) as PinnedTab[];
     const visibleActiveTab = availableTabs.includes(activeTab)
@@ -436,7 +476,9 @@ export function PinnedResultsApp() {
                               ? locConstants.queryStudioCore.messagesValue(
                                     String(state.errorCount > 0 ? ` (${state.errorCount} ⚠)` : ""),
                                 )
-                              : locConstants.queryResult.queryPlan(planSummaries.length)}
+                              : tab === "queryPlan"
+                                ? locConstants.queryResult.queryPlan(planSummaries.length)
+                                : locConstants.spatialResults.spatial}
                     </button>
                 ))}
             </div>
@@ -519,7 +561,36 @@ export function PinnedResultsApp() {
                         </QueryStudioErrorBoundary>
                     </div>
                 ) : null}
-
+                {null}
+                {state.spatialEnabled && spatialColumns.length > 0 && mountedTabs.has("spatial") ? (
+                    <div
+                        className="qs-tab-panel qs-tab-panel-fill"
+                        hidden={visibleActiveTab !== "spatial"}>
+                        <QueryStudioErrorBoundary
+                            label={locConstants.spatialResults.spatial}
+                            resetKey={`spatial:${panelViewStateRef.current.generation}`}
+                            onError={reportPaneError}>
+                            <React.Suspense
+                                fallback={
+                                    <div className="qs-muted">
+                                        {locConstants.spatialResults.loadingView}
+                                    </div>
+                                }>
+                                <LazySpatialTab
+                                    rpc={rpc}
+                                    columns={spatialColumns}
+                                    runKey={`pinned:${state.createdEpochMs ?? 0}`}
+                                    active={panelVisible && visibleActiveTab === "spatial"}
+                                    panelVisible={panelVisible}
+                                    basemapEnabled={state.spatialBasemapEnabled === true}
+                                    basemapEpoch={state.spatialBasemapEpoch ?? 0}
+                                    initialViewState={panelViewStateRef.current.spatial}
+                                    onViewStateChange={persistSpatialViewState}
+                                />
+                            </React.Suspense>
+                        </QueryStudioErrorBoundary>
+                    </div>
+                ) : null}
                 {planSummaries.length > 0 && mountedTabs.has("queryPlan") ? (
                     <div
                         className="qs-tab-panel qs-tab-panel-fill"

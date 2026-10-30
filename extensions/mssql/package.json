@@ -148,7 +148,9 @@
         "vscode-oniguruma": "^2.0.1",
         "vscode-textmate": "^9.3.2",
         "xliff": "^6.2.1",
-        "yargs": "^17.7.2"
+        "yargs": "^17.7.2",
+        "@types/topojson-client": "3.1.5",
+        "world-atlas": "2.0.2"
     },
     "dependencies": {
         "@azure/arm-maintenance": "^1.0.0-beta.2",
@@ -192,7 +194,9 @@
         "which": "^6.0.1",
         "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
-        "yauzl": "^3.3.1"
+        "yauzl": "^3.3.1",
+        "ol": "10.9.0",
+        "topojson-client": "3.1.0"
     },
     "capabilities": {
         "untrustedWorkspaces": {
@@ -2110,6 +2114,18 @@
                 {
                     "command": "mssql.objectExplorerV2.scriptAlter",
                     "when": "false"
+                },
+                {
+                    "command": "mssql.spatialBasemap.clearCache",
+                    "when": "config.mssql.queryStudio.spatial.basemap.enabled"
+                },
+                {
+                    "command": "mssql.spatialBasemap.clearConsent",
+                    "when": "config.mssql.queryStudio.spatial.basemap.enabled"
+                },
+                {
+                    "command": "mssql.spatialBasemap.setCredential",
+                    "when": "config.mssql.queryStudio.spatial.basemap.enabled"
                 }
             ],
             "webview/context": [
@@ -3526,6 +3542,21 @@
                 "title": "%mssql.scriptAlter%",
                 "category": "MS SQL",
                 "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled"
+            },
+            {
+                "command": "mssql.spatialBasemap.clearCache",
+                "title": "%mssql.spatialBasemap.clearCache.title%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.spatialBasemap.clearConsent",
+                "title": "%mssql.spatialBasemap.clearConsent.title%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.spatialBasemap.setCredential",
+                "title": "%mssql.spatialBasemap.setCredential%",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -5572,6 +5603,108 @@
                         "default": false,
                         "description": "%mssql.copilot.inlineCompletions.trace.journalPrimary%",
                         "scope": "window"
+                    },
+                    "mssql.queryStudio.spatial.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.queryStudio.spatial.enabled%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.spatial.basemap.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%mssql.queryStudio.spatial.basemap.enabled%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.spatial.basemap.sources": {
+                        "type": "array",
+                        "default": [],
+                        "markdownDescription": "%mssql.queryStudio.spatial.basemap.sources%",
+                        "scope": "application",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "id",
+                                "displayName",
+                                "kind",
+                                "urlTemplate",
+                                "attribution"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "description": "%mssql.queryStudio.spatial.basemap.sources.id%"
+                                },
+                                "displayName": {
+                                    "type": "string",
+                                    "description": "%mssql.queryStudio.spatial.basemap.sources.displayName%"
+                                },
+                                "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                        "xyzRaster"
+                                    ],
+                                    "description": "%mssql.queryStudio.spatial.basemap.sources.kind%"
+                                },
+                                "urlTemplate": {
+                                    "type": "string",
+                                    "description": "%mssql.queryStudio.spatial.basemap.sources.urlTemplate%"
+                                },
+                                "minZoom": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 22
+                                },
+                                "maxZoom": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 22
+                                },
+                                "attribution": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "text"
+                                    ],
+                                    "properties": {
+                                        "text": {
+                                            "type": "string",
+                                            "description": "Attribution text shown over the map (plain text)."
+                                        },
+                                        "termsUrl": {
+                                            "type": "string",
+                                            "description": "Optional HTTPS link to the provider's terms."
+                                        }
+                                    }
+                                },
+                                "credentialRef": {
+                                    "type": "string",
+                                    "description": "%mssql.queryStudio.spatial.basemap.sources.credentialRef%"
+                                },
+                                "allowPrivateNetwork": {
+                                    "type": "boolean",
+                                    "default": false,
+                                    "description": "%mssql.queryStudio.spatial.basemap.sources.allowPrivateNetwork%"
+                                }
+                            }
+                        }
+                    },
+                    "mssql.queryStudio.spatial.basemap.cache.maxMb": {
+                        "type": "number",
+                        "default": 128,
+                        "minimum": 16,
+                        "maximum": 1024,
+                        "description": "%mssql.queryStudio.spatial.basemap.cache.maxMb%",
+                        "scope": "application"
+                    },
+                    "mssql.queryStudio.spatial.basemap.cache.maxAgeDays": {
+                        "type": "number",
+                        "default": 30,
+                        "minimum": 1,
+                        "maximum": 365,
+                        "description": "%mssql.queryStudio.spatial.basemap.cache.maxAgeDays%",
+                        "scope": "application"
                     }
                 }
             },

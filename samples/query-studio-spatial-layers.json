@@ -1,0 +1,45 @@
+{
+    "mssql.enableExperimentalFeatures": true,
+    "mssql.sqlDataPlane.enabled": true,
+    "mssql.queryStudio.enabled": true,
+    "mssql.queryStudio.spatial.enabled": true,
+    "mssql.queryStudio.spatial.basemap.enabled": true,
+    "mssql.queryStudio.spatial.basemap.sources": [
+        {
+            "id": "osm-standard",
+            "displayName": "OpenStreetMap streets",
+            "kind": "xyzRaster",
+            "urlTemplate": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "minZoom": 0,
+            "maxZoom": 19,
+            "attribution": {
+                "text": "© OpenStreetMap contributors",
+                "termsUrl": "https://www.openstreetmap.org/copyright"
+            }
+        },
+        {
+            "id": "esri-world-topographic",
+            "displayName": "Esri World Topographic",
+            "kind": "xyzRaster",
+            "urlTemplate": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+            "minZoom": 0,
+            "maxZoom": 19,
+            "attribution": {
+                "text": "Esri and contributors; © OpenStreetMap contributors (full source credits)",
+                "termsUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"
+            }
+        },
+        {
+            "id": "esri-world-imagery",
+            "displayName": "Esri World Imagery",
+            "kind": "xyzRaster",
+            "urlTemplate": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            "minZoom": 0,
+            "maxZoom": 19,
+            "attribution": {
+                "text": "Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community",
+                "termsUrl": "https://www.esri.com/en-us/legal/terms/data-attributions"
+            }
+        }
+    ]
+}

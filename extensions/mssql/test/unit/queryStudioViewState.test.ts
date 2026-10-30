@@ -17,7 +17,7 @@ import {
 
 suite("Query Studio panel view state", () => {
     test("Results is never stickily redirected to Messages when result metadata is empty", () => {
-        const empty = { results: false, queryPlan: false };
+        const empty = { results: false, queryPlan: false, spatial: false };
         // Results is a core, always-present tab and the user's home surface. It
         // stays selected through EVERY transient empty-metadata window — while
         // executing, between back-to-back runs, and when a fast query is first
@@ -34,7 +34,7 @@ suite("Query Studio panel view state", () => {
     });
 
     test("a contributed tab that lost eligibility falls back to Results, then Messages", () => {
-        const base = { results: true, queryPlan: false };
+        const base = { results: true, queryPlan: false, spatial: false };
         // Vector/Spatial/QueryPlan are conditional: when a rerun no longer
         // produces that shape, drop to Results (or Messages if even Results is
         // empty). Unlike Results, these are not the user's home surface.
@@ -172,5 +172,32 @@ suite("Query Studio panel view state", () => {
         expect(reset.results).to.deep.equal({ stackScrollTop: 0, grids: {} });
         expect(reset.messages).to.deep.equal({ scrollTop: 0 });
         expect(reset.queryPlan).to.deep.equal({ pageScrollTop: 0, graphs: {} });
+    });
+    test("spatial view state round-trips camera and source selection, then clears run data", () => {
+        const state = createQueryStudioPanelViewState("run-1");
+        state.shell.activeTab = "spatial";
+        state.spatial.selectedColumn = { resultSetId: "rs", columnOrdinal: 2 };
+        state.spatial.camera = { centerX: -122, centerY: 47, zoom: 5, rotation: 0 };
+        state.spatial.selectedRowOrdinal = 3;
+        state.spatial.layerId = "worldOutline";
+        expect(
+            normalizeQueryStudioPanelViewState(JSON.parse(JSON.stringify(state)), "run-1"),
+        ).to.deep.equal(state);
+        expect(
+            resolveQueryStudioVisibleTab("spatial", {
+                results: true,
+                spatial: false,
+                queryPlan: false,
+            }),
+        ).to.equal("results");
+        const reset = resetQueryStudioPanelViewState(state, "run-2");
+        expect(reset.spatial.selectedColumn).to.equal(undefined);
+        expect(reset.spatial.selectedRowOrdinal).to.equal(undefined);
+        expect(reset.spatial.camera).to.equal(undefined);
+        const malformed = {
+            ...state,
+            spatial: { ...state.spatial, camera: { ...state.spatial.camera, zoom: NaN } },
+        };
+        expect(isQueryStudioPanelViewState(malformed)).to.equal(false);
     });
 });

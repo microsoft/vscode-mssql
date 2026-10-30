@@ -1,0 +1,387 @@
+.qs-spatial-root {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    color: var(--vscode-editor-foreground);
+    background: var(--vscode-editor-background);
+}
+
+.qs-spatial-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 8px;
+    min-height: 44px;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    background: var(--vscode-editorGroupHeader-tabsBackground);
+}
+
+.qs-spatial-toolbar label {
+    display: grid;
+    gap: 2px;
+    min-width: 120px;
+    font-size: 11px;
+}
+
+.qs-spatial-toolbar label:first-child {
+    min-width: 220px;
+}
+
+.qs-spatial-toolbar select,
+.qs-spatial-filter-row select {
+    height: 24px;
+    padding: 1px 22px 1px 6px;
+    color: var(--vscode-dropdown-foreground);
+    background: var(--vscode-dropdown-background);
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 2px;
+}
+
+.qs-spatial-facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    min-height: 25px;
+    padding: 0 8px;
+    color: var(--vscode-descriptionForeground);
+    border-bottom: 1px solid var(--vscode-panel-border);
+    font-size: 11px;
+}
+
+.qs-spatial-body {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    min-height: 0;
+}
+
+.qs-spatial-sidebar,
+.qs-spatial-details {
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 auto;
+    min-width: 150px;
+    max-width: 60%;
+    min-height: 0;
+    background: var(--vscode-sideBar-background);
+}
+
+/* Vertical splitters between the side panels and the map (widths persist
+   in the panel view state; same look as the editor/results qs-splitter). */
+.qs-spatial-splitter {
+    flex: 0 0 4px;
+    cursor: ew-resize;
+    background: var(--vscode-editorWidget-border);
+    user-select: none;
+    touch-action: none;
+}
+
+.qs-spatial-splitter:hover,
+.qs-spatial-splitter:active {
+    background: var(--vscode-focusBorder);
+}
+
+/* Collapsed side panels become a slim expand rail (Perf History idiom). */
+.qs-spatial-rail {
+    display: flex;
+    flex: 0 0 24px;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 3px;
+    background: var(--vscode-sideBar-background);
+}
+
+.qs-spatial-rail.left {
+    border-right: 1px solid var(--vscode-panel-border);
+}
+
+.qs-spatial-rail.right {
+    border-left: 1px solid var(--vscode-panel-border);
+}
+
+.qs-spatial-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 0 auto;
+    padding: 3px 6px;
+    color: var(--vscode-sideBarSectionHeader-foreground, var(--vscode-editor-foreground));
+    background: var(--vscode-sideBarSectionHeader-background, transparent);
+    border-bottom: 1px solid var(--vscode-panel-border);
+    font-size: 11px;
+}
+
+.qs-spatial-panel-title {
+    overflow: hidden;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.qs-spatial-panel-count {
+    flex: 1;
+    color: var(--vscode-descriptionForeground);
+}
+
+.qs-spatial-panel-head .qs-spatial-panel-toggle {
+    margin-left: auto;
+}
+
+.qs-spatial-panel-toggle {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.qs-spatial-panel-toggle:hover {
+    background: var(--vscode-toolbar-hoverBackground);
+}
+
+.qs-spatial-details-body {
+    flex: 1;
+    min-height: 0;
+    padding: 8px;
+    overflow: auto;
+}
+
+.qs-spatial-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    font-size: 11px;
+}
+
+.qs-spatial-filter-row label {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.qs-spatial-list {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.qs-spatial-list-row {
+    position: absolute;
+    left: 0;
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    padding: 0 6px;
+    color: var(--vscode-list-foreground);
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--vscode-tree-tableOddRowsBackground);
+}
+
+.qs-spatial-list-row:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.qs-spatial-list-row.selected {
+    color: var(--vscode-list-activeSelectionForeground);
+    background: var(--vscode-list-activeSelectionBackground);
+}
+
+.qs-spatial-row-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.qs-spatial-row-kind {
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-editor-font-family);
+    font-size: 10px;
+}
+
+.qs-spatial-status-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--vscode-testing-iconUnset);
+    border-radius: 50%;
+}
+
+.qs-spatial-status-dot.ready {
+    background: var(--vscode-testing-iconPassed);
+}
+
+.qs-spatial-status-dot.unsupported,
+.qs-spatial-status-dot.unrenderable {
+    background: var(--vscode-testing-iconQueued);
+}
+
+.qs-spatial-status-dot.error {
+    background: var(--vscode-testing-iconFailed);
+}
+
+.qs-spatial-map-region,
+.qs-spatial-map-shell,
+.qs-spatial-map,
+.qs-spatial-map .ol-viewport {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    touch-action: none;
+}
+
+/* The map is the flex-filling middle column between the side panels. */
+.qs-spatial-map-region {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 200px;
+}
+
+.qs-spatial-map {
+    background: var(--vscode-editor-background);
+    background-image:
+        linear-gradient(var(--vscode-editorIndentGuide-background1) 1px, transparent 1px),
+        linear-gradient(90deg, var(--vscode-editorIndentGuide-background1) 1px, transparent 1px);
+    background-size: 32px 32px;
+}
+
+.qs-spatial-map canvas {
+    display: block;
+}
+
+.qs-spatial-map-controls {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: grid;
+    border: 1px solid var(--vscode-widget-border);
+    box-shadow: 0 1px 4px var(--vscode-widget-shadow);
+}
+
+.qs-spatial-map-controls button {
+    width: 28px;
+    height: 27px;
+    color: var(--vscode-button-secondaryForeground);
+    background: var(--vscode-button-secondaryBackground);
+    border: 0;
+    border-bottom: 1px solid var(--vscode-widget-border);
+}
+
+.qs-spatial-map-controls button:hover {
+    background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.qs-spatial-progress {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    padding: 4px 7px;
+    color: var(--vscode-notifications-foreground);
+    background: var(--vscode-notifications-background);
+    border: 1px solid var(--vscode-notifications-border);
+    box-shadow: 0 1px 4px var(--vscode-widget-shadow);
+    font-size: 11px;
+}
+
+.qs-spatial-details dl {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 5px 8px;
+    margin: 0;
+    font-size: 11px;
+}
+
+.qs-spatial-details dt {
+    color: var(--vscode-descriptionForeground);
+}
+
+.qs-spatial-details dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-family: var(--vscode-editor-font-family);
+}
+
+.qs-spatial-empty {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    color: var(--vscode-descriptionForeground);
+}
+
+/* Right-click menu over the map region (the default webview Cut/Copy/Paste
+   items are suppressed there — none of them can act on a canvas). */
+.qs-spatial-context-menu {
+    position: absolute;
+    z-index: 10;
+    display: grid;
+    min-width: 160px;
+    padding: 4px;
+    background: var(--vscode-menu-background, var(--vscode-editorWidget-background));
+    border: 1px solid var(--vscode-menu-border, var(--vscode-editorWidget-border));
+    border-radius: 5px;
+    box-shadow: 0 2px 8px var(--vscode-widget-shadow);
+}
+
+.qs-spatial-context-menu button {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 9px;
+    color: var(--vscode-menu-foreground, var(--vscode-editor-foreground));
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.qs-spatial-context-menu button:hover {
+    color: var(--vscode-menu-selectionForeground, inherit);
+    background: var(--vscode-menu-selectionBackground, var(--vscode-list-hoverBackground));
+}
+
+/* Copy-outcome toast (bottom-left; the loading toast owns bottom-right). */
+.qs-spatial-notice {
+    right: auto;
+    left: 8px;
+}
+
+/* SPA-10: attribution stays visible over the map while an online layer is
+   active — outside the feature canvas, above map controls. */
+.qs-spatial-attribution {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    background: var(--vscode-editorWidget-background);
+    color: var(--vscode-descriptionForeground);
+    border: 1px solid var(--vscode-editorWidget-border, transparent);
+    border-radius: 3px;
+    z-index: 5;
+    pointer-events: auto;
+}
+.qs-spatial-attribution a {
+    color: var(--vscode-textLink-foreground);
+    text-decoration: none;
+}
