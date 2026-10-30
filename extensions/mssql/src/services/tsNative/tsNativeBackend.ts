@@ -11,9 +11,9 @@
  *
  * Open sequence (§5.5): validate profile → resolve secrets inside ONE
  * absolute open deadline → driver.open → install session event router →
- * publish session with negotiated capabilities. Credential material lives
- * only in the open-request local and is never retained after connect
- * settles; a deadline-abandoned open destroys the late connection.
+ * publish session with negotiated capabilities. This layer keeps credentials
+ * only in the open request; the driver may retain its authentication config
+ * for connection routing. Abandoned opens destroy their late connections.
  */
 
 import {
@@ -37,6 +37,7 @@ import {
 } from "./driver/tdsDriver";
 import { DEFAULT_ENGINE_DEADLINES, EngineObserver, EngineSlicePolicy } from "./queryEngine";
 import { TsNativeSession } from "./tsNativeSession";
+import { NativeSqlProvider } from "../../constants/locConstants";
 
 // ---------------------------------------------------------------------------
 // Negotiated capability struct (honest v1: vector/spatial/capture land with
@@ -128,6 +129,8 @@ export class TsNativeBackend implements ISqlConnectionService {
 
     private readonly deadlines: TsNativeDeadlines;
     private readonly sessions = new Map<string, TsNativeSession>();
+    private readonly openingConnections = new Set<ITdsConnection>();
+    private disposed = false;
 
     private readonly effectiveCapabilities: SqlBackendCapabilities;
 
@@ -143,6 +146,17 @@ export class TsNativeBackend implements ISqlConnectionService {
     }
 
     async canOpen(params: OpenSessionParams): Promise<CapabilityCheck> {
+        if (mapEncrypt(params.profile.encrypt) === "strict") {
+            return {
+                ok: false,
+                missing: ["connect.tds8Strict"],
+                reason: NativeSqlProvider.strictUnsupported,
+            };
+        }
+        const server = params.profile.server.trim();
+        if (/^(?:np|lpc|admin):/i.test(server) || /^\(localdb\)\\/i.test(server)) {
+            return { ok: false, missing: ["connect.tcp"], reason: NativeSqlProvider.tcpOnly };
+        }
         // Registry-level requirement evaluation already ran; this is the
         // backend's own hard floor (never reinterpret auth — §7.3).
         if (params.profile.authKind === "integrated") {
@@ -156,7 +170,9 @@ export class TsNativeBackend implements ISqlConnectionService {
     }
 
     async openSession(params: OpenSessionParams): Promise<ISqlSession> {
+        this.assertOpenActive(() => false);
         const gate = await this.canOpen(params);
+        this.assertOpenActive(() => false);
         if (!gate.ok) {
             throw new SqlDataPlaneError(
                 DataPlaneErrorCodes.capabilityUnsupported,
@@ -167,10 +183,12 @@ export class TsNativeBackend implements ISqlConnectionService {
         }
         const openTimeoutMs = params.openTimeoutMs ?? this.deadlines.openMs;
         let abandoned = false;
+        let openingConnection: ITdsConnection | undefined;
         let openTimer: { dispose(): void } | undefined;
         const timer = new Promise<never>((_resolve, reject) => {
             openTimer = this.deps.clock.setTimeout(() => {
                 abandoned = true;
+                openingConnection?.destroy("open deadline expired");
                 reject(
                     new SqlDataPlaneError(
                         DataPlaneErrorCodes.clientTimeout,
@@ -182,18 +200,31 @@ export class TsNativeBackend implements ISqlConnectionService {
             }, openTimeoutMs);
         });
         try {
-            return await Promise.race([this.openInner(params, () => abandoned), timer]);
+            return await Promise.race([
+                this.openInner(
+                    params,
+                    () => abandoned,
+                    (connection) => {
+                        openingConnection = connection;
+                        this.openingConnections.add(connection);
+                    },
+                ),
+                timer,
+            ]);
         } finally {
             openTimer?.dispose(); // leak discipline (N-I10)
+            if (openingConnection) this.openingConnections.delete(openingConnection);
         }
     }
 
     private async openInner(
         params: OpenSessionParams,
         isAbandoned: () => boolean,
+        onConnection: (connection: ITdsConnection) => void,
     ): Promise<ISqlSession> {
         // 1) Resolve secrets (inside the shared deadline; never retained).
         const request = await this.buildOpenRequest(params);
+        this.assertOpenActive(isAbandoned);
         // 2) Physical open with a router that binds to the session later —
         //    events before the session exists are structurally impossible
         //    because the driver only emits through this observer after open.
@@ -210,19 +241,24 @@ export class TsNativeBackend implements ISqlConnectionService {
                 { operationId: this.deps.ids.next("op") },
             );
         } catch (error) {
-            throw this.mapOpenError(error);
+            throw this.mapOpenError(error, request);
         }
-        if (isAbandoned()) {
-            // The caller already saw the deadline rejection; never leak the
-            // late socket.
-            connection.destroy("open abandoned after deadline");
-            throw new SqlDataPlaneError(
-                DataPlaneErrorCodes.clientTimeout,
-                "open abandoned after deadline",
-                true,
-            );
+        // Check before registration so an already-rejected late open cannot
+        // leave an entry in the backend's pending-connection set.
+        this.assertOpenActive(isAbandoned, connection);
+        onConnection(connection);
+        let facts: Partial<SessionInfo> = {};
+        if (this.deps.probeOnOpen) {
+            try {
+                facts = await this.probeSessionFacts(connection);
+            } catch (error) {
+                connection.destroy("session facts probe failed");
+                this.assertOpenActive(isAbandoned);
+                throw this.mapOpenError(error, request);
+            }
         }
-        // 3) Session facts (probes are the tedious adapter's job — TSQ2-3).
+        this.assertOpenActive(isAbandoned, connection);
+        // The probe shares the absolute open deadline, including auth/open.
         const info: SessionInfo = {
             backendKind: "ts-native",
             ...(request.database !== undefined ? { database: request.database } : {}),
@@ -233,6 +269,7 @@ export class TsNativeBackend implements ISqlConnectionService {
                 ? { trustServerCertificate: params.profile.trustServerCertificate }
                 : {}),
             encrypted: request.encrypt !== false,
+            ...facts,
         };
         session = new TsNativeSession(connection, info, this.effectiveCapabilities, {
             clock: this.deps.clock,
@@ -259,6 +296,51 @@ export class TsNativeBackend implements ISqlConnectionService {
         });
         this.sessions.set(session.sessionId, session);
         return session;
+    }
+
+    private assertOpenActive(isAbandoned: () => boolean, connection?: ITdsConnection): void {
+        if (connection && connection.state !== "open" && !this.disposed && !isAbandoned()) {
+            throw new SqlDataPlaneError(
+                DataPlaneErrorCodes.unavailable,
+                NativeSqlProvider.connectionFailed,
+                true,
+            );
+        }
+        if (!this.disposed && !isAbandoned()) return;
+        connection?.destroy(this.disposed ? "backend disposed" : "open deadline expired");
+        throw new SqlDataPlaneError(
+            this.disposed ? DataPlaneErrorCodes.unavailable : DataPlaneErrorCodes.clientTimeout,
+            this.disposed ? NativeSqlProvider.backendDisposed : NativeSqlProvider.openAbandoned,
+            !this.disposed,
+        );
+    }
+
+    private async probeSessionFacts(connection: ITdsConnection): Promise<Partial<SessionInfo>> {
+        let values: readonly { value: unknown }[] | undefined;
+        const lease = connection.execute(
+            {
+                batchText:
+                    "SELECT CAST(SERVERPROPERTY('EngineEdition') AS int), CAST(SERVERPROPERTY('ProductVersion') AS nvarchar(128)), DB_NAME(), SUSER_SNAME(), @@SPID;",
+            },
+            {
+                onEvent: (event) => {
+                    if (event.kind === "row") values = event.cells;
+                },
+            },
+            { operationId: this.deps.ids.next("op") },
+        );
+        await lease.accepted;
+        const completion = await lease.completed;
+        if (!completion.ok || !values || values.length !== 5) {
+            throw new Error(NativeSqlProvider.sessionFactsFailed);
+        }
+        return {
+            engineEditionId: Number(values[0].value),
+            serverVersion: String(values[1].value),
+            database: String(values[2].value),
+            loginName: String(values[3].value),
+            spid: Number(values[4].value),
+        };
     }
 
     private async buildOpenRequest(params: OpenSessionParams): Promise<TdsOpenRequest> {
@@ -299,21 +381,33 @@ export class TsNativeBackend implements ISqlConnectionService {
         return { ...base, auth: { kind: "accessToken", token } };
     }
 
-    private mapOpenError(error: unknown): SqlDataPlaneError {
+    private mapOpenError(error: unknown, request?: TdsOpenRequest): SqlDataPlaneError {
         if (error instanceof SqlDataPlaneError) {
             return error;
         }
         const category = (error as { category?: string })?.category;
         const serverDetail = (error as { serverDetail?: { number?: number } })?.serverDetail;
+        let detail = error instanceof Error ? error.message : undefined;
+        const secret =
+            request?.auth.kind === "sqlLogin" ? request.auth.password : request?.auth.token;
+        if (detail && secret) detail = detail.split(secret).join("[redacted]");
         if (category === "auth") {
-            return new SqlDataPlaneError(DataPlaneErrorCodes.auth, "login failed", false, {
-                backend: { kind: "ts-native" },
-                ...(serverDetail ? { server: serverDetail } : {}),
-            });
+            return new SqlDataPlaneError(
+                DataPlaneErrorCodes.auth,
+                detail ?? NativeSqlProvider.loginFailed,
+                false,
+                {
+                    backend: { kind: "ts-native" },
+                    ...(serverDetail ? { server: serverDetail } : {}),
+                },
+            );
         }
         return new SqlDataPlaneError(
             DataPlaneErrorCodes.unavailable,
-            category === "timeout" ? "connection timed out" : "connection failed",
+            detail ??
+                (category === "timeout"
+                    ? NativeSqlProvider.connectionTimedOut
+                    : NativeSqlProvider.connectionFailed),
             true,
             { backend: { kind: "ts-native" } },
         );
@@ -330,6 +424,9 @@ export class TsNativeBackend implements ISqlConnectionService {
     }
 
     async dispose(): Promise<void> {
+        this.disposed = true;
+        for (const connection of this.openingConnections) connection.destroy("backend disposed");
+        this.openingConnections.clear();
         await Promise.all(
             [...this.sessions.values()].map((session) =>
                 session.close({ reason: "backend dispose" }).catch(() => undefined),
@@ -344,6 +441,7 @@ export class TsNativeBackend implements ISqlConnectionService {
 // ---------------------------------------------------------------------------
 
 function mapEncrypt(encrypt: string | boolean | undefined): boolean | "strict" {
+    if (typeof encrypt === "string") encrypt = encrypt.trim().toLowerCase();
     if (encrypt === "strict") {
         return "strict";
     }
@@ -355,19 +453,22 @@ function mapEncrypt(encrypt: string | boolean | undefined): boolean | "strict" {
 
 /** `host,port` and `host\instance` forms (TCP only — no pipes/LocalDB). */
 function parseServer(raw: string): { server: string; instanceName?: string; port?: number } {
+    raw = raw.trim().replace(/^tcp:/i, "");
+    const normalizeHost = (host: string) =>
+        /^(?:\.|\(local\))$/i.test(host.trim()) ? "localhost" : host.trim();
     const commaIndex = raw.lastIndexOf(",");
     if (commaIndex > 0) {
         const port = Number(raw.slice(commaIndex + 1).trim());
         if (Number.isInteger(port) && port > 0) {
-            return { server: raw.slice(0, commaIndex).trim(), port };
+            return { server: normalizeHost(raw.slice(0, commaIndex)), port };
         }
     }
     const slashIndex = raw.indexOf("\\");
     if (slashIndex > 0) {
         return {
-            server: raw.slice(0, slashIndex).trim(),
+            server: normalizeHost(raw.slice(0, slashIndex)),
             instanceName: raw.slice(slashIndex + 1).trim(),
         };
     }
-    return { server: raw.trim() };
+    return { server: normalizeHost(raw) };
 }

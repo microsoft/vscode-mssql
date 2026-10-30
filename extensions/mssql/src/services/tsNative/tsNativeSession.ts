@@ -156,16 +156,17 @@ export class TsNativeSession implements ISqlSession {
             );
         }
         const defaults = this.deps.defaultExecuteOptions;
-        const effectiveOpts: ExecuteOptions = defaults
-            ? {
-                  ...(defaults.pageRows !== undefined ? { pageRows: defaults.pageRows } : {}),
-                  ...(defaults.pageBytes !== undefined ? { pageBytes: defaults.pageBytes } : {}),
-                  ...(defaults.maxCellBytes !== undefined
-                      ? { maxCellBytes: defaults.maxCellBytes }
-                      : {}),
-                  ...opts, // caller-provided values win over debug defaults
-              }
-            : opts;
+        const effectiveOpts: ExecuteOptions = { ...opts };
+        for (const key of ["pageRows", "pageBytes", "maxCellBytes"] as const) {
+            const ceiling = defaults?.[key];
+            if (ceiling !== undefined) {
+                const requested = opts[key];
+                effectiveOpts[key] =
+                    typeof requested === "number" && Number.isFinite(requested) && requested > 0
+                        ? Math.min(ceiling, requested)
+                        : ceiling;
+            }
+        }
         const query = new TsNativeQuery(
             (observer) =>
                 this.connection.execute({ batchText: text }, observer, {

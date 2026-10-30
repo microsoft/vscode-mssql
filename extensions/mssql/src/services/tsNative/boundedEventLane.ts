@@ -10,9 +10,8 @@
  * — the lane stops, the failure is reported, and the query's completion
  * settles independently of a stuck sink promise.
  *
- * Budgets are count+bytes; the engine reserves before enqueue and pauses the
- * driver when reservation fails (the four-page window is a MAXIMUM, not a
- * license to buffer arbitrarily).
+ * Budgets include the active callback. The engine pauses before exhausting
+ * them; an unpausable source fails explicitly rather than growing the queue.
  */
 
 import { EngineClock } from "./driver/tdsDriver";
@@ -24,7 +23,7 @@ export interface LaneLimits {
 }
 
 export interface LaneFailure {
-    kind: "sinkError" | "sinkTimeout";
+    kind: "sinkError" | "sinkTimeout" | "resourceLimit";
     label: string;
     error?: unknown;
 }
@@ -45,11 +44,14 @@ interface LaneItem {
     run: () => void | Promise<void>;
     /** Called after the item settles/times out and its budget is released. */
     onSettled?: () => void;
+    /** One terminal callback may bypass ordinary event reservations. */
+    terminal?: boolean;
 }
 
 export class BoundedEventLane {
     private queue: LaneItem[] = [];
     private inFlight = false;
+    private inFlightBytes = 0;
     private stopped = false;
     private failed: LaneFailure | undefined;
     private queuedBytes = 0;
@@ -75,23 +77,25 @@ export class BoundedEventLane {
     }
 
     snapshot(): LaneStats {
-        return { ...this.stats, depth: this.queue.length, queuedBytes: this.queuedBytes };
+        return {
+            ...this.stats,
+            depth: this.queue.length + Number(this.inFlight),
+            queuedBytes: this.queuedBytes + this.inFlightBytes,
+        };
     }
 
     /** Budget check WITHOUT reservation side effects. */
     hasCapacity(bytes: number): boolean {
         return (
             !this.stopped &&
-            this.queue.length < this.limits.maxItems &&
-            this.queuedBytes + bytes <= this.limits.maxBytes
+            this.queue.length + Number(this.inFlight) < this.limits.maxItems &&
+            this.queuedBytes + this.inFlightBytes + bytes <= this.limits.maxBytes
         );
     }
 
     /**
-     * Enqueue one sink callback. Caller is responsible for pausing the driver
-     * when hasCapacity() said no — enqueue itself never drops silently and
-     * never throws; over-budget enqueues are allowed only for terminal/system
-     * items (bytes 0).
+     * Reserve and enqueue one callback. Exhausting the budget is an explicit
+     * resource failure; only terminal delivery may exceed the ordinary limit.
      */
     enqueue(item: LaneItem): void {
         if (this.stopped) {
@@ -99,10 +103,21 @@ export class BoundedEventLane {
             item.onSettled?.();
             return;
         }
+        if (!item.terminal && !this.hasCapacity(item.bytes)) {
+            this.failLane({ kind: "resourceLimit", label: item.label });
+            item.onSettled?.();
+            return;
+        }
         this.queue.push(item);
         this.queuedBytes += item.bytes;
-        this.stats.highWaterItems = Math.max(this.stats.highWaterItems, this.queue.length);
-        this.stats.highWaterBytes = Math.max(this.stats.highWaterBytes, this.queuedBytes);
+        this.stats.highWaterItems = Math.max(
+            this.stats.highWaterItems,
+            this.queue.length + Number(this.inFlight),
+        );
+        this.stats.highWaterBytes = Math.max(
+            this.stats.highWaterBytes,
+            this.queuedBytes + this.inFlightBytes,
+        );
         void this.pump();
     }
 
@@ -137,6 +152,7 @@ export class BoundedEventLane {
             return;
         }
         this.inFlight = true;
+        this.inFlightBytes = item.bytes;
         this.queuedBytes -= item.bytes;
         const started = this.clock.now();
         let settled = false;
@@ -147,16 +163,17 @@ export class BoundedEventLane {
             settled = true;
             this.stats.sinkWaitMsTotal += this.clock.now() - started;
             this.stats.delivered++;
-            item.onSettled?.();
             this.inFlight = false;
+            this.inFlightBytes = 0;
+            item.onSettled?.();
             void this.pump();
         };
         const deadline = this.clock.setTimeout(() => {
             if (!settled) {
                 settled = true;
                 this.stats.sinkWaitMsTotal += this.clock.now() - started;
-                item.onSettled?.();
                 this.failLane({ kind: "sinkTimeout", label: item.label });
+                item.onSettled?.();
             }
         }, this.limits.sinkCallbackDeadlineMs);
         try {
@@ -167,8 +184,8 @@ export class BoundedEventLane {
             deadline.dispose();
             if (!settled) {
                 settled = true;
-                item.onSettled?.();
                 this.failLane({ kind: "sinkError", label: item.label, error });
+                item.onSettled?.();
             }
         }
     }
@@ -179,6 +196,7 @@ export class BoundedEventLane {
         }
         this.failed = failure;
         this.inFlight = false;
+        this.inFlightBytes = 0;
         this.stop();
         this.onFailure(failure);
     }

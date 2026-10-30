@@ -9,18 +9,16 @@
  * The STS2 binding's SerializeTypeHints taxonomy is mirrored EXACTLY; golden
  * parity fixtures (TSQ2-6/N5) are the acceptance mechanism, not this prose.
  *
- * Fidelity policy (addendum §2.8/§6.3): exact mode is the default. Columns
- * whose values tedious cannot preserve exactly (decimal/numeric/money beyond
- * float precision, datetimeoffset original offset) are detected at METADATA
- * time by `fidelityViolation` and fail the query before any page is emitted —
- * never silently encoded. Lossy preview (TSQ2-9 debug override) relaxes this
- * explicitly and marks affected columns.
+ * Exact mode uses conservative per-value checks. Unsupported values become
+ * visible provider markers, never rounded numbers presented as exact, and
+ * never a query failure after the server may already have committed a batch.
  *
  * Pure module: no vscode, no diagnostics singletons; crypto for digests only.
  */
 
 import { createHash } from "crypto";
-import { TruncatedCellEncoding, SqlCapabilityId } from "../sqlDataPlane/api";
+import { TruncatedCellEncoding } from "../sqlDataPlane/api";
+import { NativeSqlProvider } from "../../constants/locConstants";
 import { SPATIAL_MAX_WKB_BYTES } from "../../sharedInterfaces/queryResultCellCodec";
 import { TdsCell, TdsColumn } from "./driver/tdsDriver";
 import { transcodeSpatial, SpatialKind } from "./spatialTranscoder";
@@ -66,51 +64,18 @@ export function typeHintForColumn(column: TdsColumn): string {
 }
 
 // ---------------------------------------------------------------------------
-// Exact-mode fidelity guard (evaluated per column at metadata time)
+// Per-value fidelity checks
 // ---------------------------------------------------------------------------
 
-export interface FidelityViolation {
-    columnName: string;
-    typeName: string;
-    capability: SqlCapabilityId;
-    reasonCode: string;
-}
-
-/**
- * Columns the pinned tedious build cannot deliver exactly (addendum §2.8):
- * decimal/numeric parse to JS doubles (silent loss past ~15 significant
- * digits — conservatively gated at precision > 15), money/smallmoney share
- * the double path, and datetimeoffset discards the original offset.
- * bigint is EXACT (string carrier) and not gated.
- */
-export function fidelityViolation(column: TdsColumn): FidelityViolation | undefined {
-    const type = column.typeName.toLowerCase();
-    if ((type === "decimal" || type === "numeric") && (column.precision ?? 38) > 15) {
-        return {
-            columnName: column.name,
-            typeName: type,
-            capability: "types.decimalExact",
-            reasonCode: "driver.decimalToDouble",
-        };
-    }
-    if (type === "money") {
-        // money spans 19 digits; smallmoney (10 digits) fits a double exactly.
-        return {
-            columnName: column.name,
-            typeName: type,
-            capability: "types.decimalExact",
-            reasonCode: "driver.moneyToDouble",
-        };
-    }
-    if (type === "datetimeoffset") {
-        return {
-            columnName: column.name,
-            typeName: type,
-            capability: "types.datetimeOffsetOriginal",
-            reasonCode: "driver.offsetDiscarded",
-        };
-    }
-    return undefined;
+function fidelityMarker(type: string, raw: number | Date, policy: EncodePolicy): EncodedCell {
+    const v = policy.lossyPreview
+        ? NativeSqlProvider.approximateValue(raw instanceof Date ? raw.toISOString() : String(raw))
+        : NativeSqlProvider.valueUnavailable(type);
+    return {
+        value: { $t: "provider", v },
+        isNull: false,
+        approxBytes: Buffer.byteLength(v, "utf8") + 32,
+    };
 }
 
 // ---------------------------------------------------------------------------
@@ -121,7 +86,7 @@ export interface EncodePolicy {
     maxCellBytes: number;
     /** Truncation prefix cap: min(maxCellBytes, 65536) — STS2 parity. */
     truncatedPrefixBytes: number;
-    /** TSQ2 §6.4: lossy preview marks instead of failing (debug-only). */
+    /** Explicit approximation instead of unavailable markers (debug-only). */
     lossyPreview: boolean;
     /** Per-query typed spatial WKB opt-in (negotiated AND requested). */
     spatialWkb: boolean;
@@ -157,7 +122,7 @@ export function encodeCell(cell: TdsCell, column: TdsColumn, policy: EncodePolic
 
     // Typed spatial WKB (D-0020): opt-in only; per-cell honesty on failure.
     if (policy.spatialWkb && isSpatialColumn(column) && Buffer.isBuffer(raw)) {
-        return encodeSpatialCell(raw, column.udtName);
+        return encodeSpatialCell(raw, column.udtName, policy.maxCellBytes);
     }
     // Typed vector (D-0019): identity-keyed only (§6.8 — never varchar
     // guessing); vectors are never truncated.
@@ -169,13 +134,27 @@ export function encodeCell(cell: TdsCell, column: TdsColumn, policy: EncodePolic
         return { value: raw, isNull: false, approxBytes: 5 };
     }
     if (typeof raw === "number") {
-        // Approx-carrier columns travel as invariant strings (decodeCell
-        // "number:approx" contract); exact-mode gating happened at metadata.
+        // sql_variant has lost its underlying type/scale in Tedious. Never
+        // infer exactness from the rounded JS carrier alone.
+        if (type === "sql_variant") return fidelityMarker(type, raw, policy);
         if (APPROX_TYPES.has(type)) {
-            const text = formatInvariantNumber(raw, column);
-            return { value: text, isNull: false, approxBytes: text.length + 2 };
+            const scale = column.scale ?? (type === "money" || type === "smallmoney" ? 4 : 0);
+            // Below 1e15 unscaled units, double rounding remains safely below
+            // half a decimal unit. Larger values may already have lost digits.
+            if (!Number.isFinite(raw) || Math.abs(raw) * 10 ** scale >= 1e15)
+                return fidelityMarker(type, raw, policy);
+            const text = raw.toFixed(scale);
+            return {
+                value: { $t: "decimal", v: text },
+                isNull: false,
+                approxBytes: text.length + 32,
+            };
         }
-        return { value: raw, isNull: false, approxBytes: 20 };
+        return {
+            value: type === "real" ? shortestFloat32(raw) : raw,
+            isNull: false,
+            approxBytes: 20,
+        };
     }
     if (typeof raw === "bigint") {
         const text = raw.toString();
@@ -186,8 +165,14 @@ export function encodeCell(cell: TdsCell, column: TdsColumn, policy: EncodePolic
         return encodeStringCell(raw, type, policy);
     }
     if (raw instanceof Date) {
+        if (type === "datetimeoffset" || type === "sql_variant")
+            return fidelityMarker(type, raw, policy);
         const text = formatDateTime(raw, type, column.scale, cell.nanosecondsDelta);
-        return { value: text, isNull: false, approxBytes: 36 };
+        return {
+            value: { $t: type === "time" ? "time" : "datetime2", v: text },
+            isNull: false,
+            approxBytes: 64,
+        };
     }
     if (Buffer.isBuffer(raw)) {
         return encodeBinaryCell(raw, policy);
@@ -201,9 +186,12 @@ export function encodeCell(cell: TdsCell, column: TdsColumn, policy: EncodePolic
 }
 
 /** D-0020 typed spatial cell — EXACT STS2 wire field names. */
-function encodeSpatialCell(raw: Buffer, kind: SpatialKind): EncodedCell {
+function encodeSpatialCell(raw: Buffer, kind: SpatialKind, maxCellBytes: number): EncodedCell {
     const result = transcodeSpatial(raw, kind);
-    if (result.status === "ok" && result.wkb.byteLength <= SPATIAL_MAX_WKB_BYTES) {
+    if (
+        result.status === "ok" &&
+        result.wkb.byteLength <= Math.min(SPATIAL_MAX_WKB_BYTES, maxCellBytes)
+    ) {
         const wkbBase64 = result.wkb.toString("base64");
         return {
             value: {
@@ -377,13 +365,13 @@ function detachUtf8Prefix(prefix: string): string {
     return Buffer.from(prefix, "utf8").toString("utf8");
 }
 
-function formatInvariantNumber(value: number, column: TdsColumn): string {
-    // Fixed-scale rendering for decimal-family columns keeps display parity
-    // with the invariant decimal string ("1.50" for decimal(9,2)).
-    if (column.scale !== undefined && Number.isFinite(value)) {
-        return value.toFixed(column.scale);
+function shortestFloat32(value: number): number {
+    if (!Number.isFinite(value)) return value;
+    for (let digits = 1; digits <= 9; digits++) {
+        const candidate = Number(value.toPrecision(digits));
+        if (Math.fround(candidate) === value) return candidate;
     }
-    return String(value);
+    return value;
 }
 
 function formatDateTime(
@@ -392,28 +380,15 @@ function formatDateTime(
     scale: number | undefined,
     nanosecondsDelta: number | undefined,
 ): string {
-    // First cut: ISO instants; TSQ2-6 pins exact per-type/per-scale rendering
-    // against golden live fixtures (sub-ms via nanosecondsDelta).
     if (type === "date") {
         return value.toISOString().slice(0, 10);
     }
     if (type === "time") {
         return formatTimePart(value, scale, nanosecondsDelta);
     }
-    const base = value.toISOString();
-    if (!nanosecondsDelta || !scale || scale <= 3) {
-        return base;
-    }
-    // Extend milliseconds with the sub-ms remainder to the column scale.
-    const subMs = Math.round(nanosecondsDelta / 100); // 100ns units
-    const extended = base.replace(
-        /\.(\d{3})Z$/,
-        (_m, ms: string) =>
-            `.${ms}${String(subMs)
-                .padStart(4, "0")
-                .slice(0, scale - 3)}Z`,
-    );
-    return extended;
+    // SQL date/time types have no zone. Match STS typed scalar wrappers and
+    // preserve declared precision instead of implying UTC with a trailing Z.
+    return `${value.toISOString().slice(0, 10)}T${formatTimePart(value, scale ?? (type === "datetime" ? 3 : type === "smalldatetime" ? 0 : 7), nanosecondsDelta)}`;
 }
 
 function formatTimePart(

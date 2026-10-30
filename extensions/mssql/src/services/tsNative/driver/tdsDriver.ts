@@ -58,8 +58,8 @@ export function productionClock(): EngineClock {
 
 /**
  * Sanitized open request. Secrets arrive as opaque strings resolved by the
- * caller immediately before open and are NEVER retained by the adapter after
- * the driver config is handed to the socket (TSQ2 §7.2).
+ * caller immediately before open. They must not enter diagnostics. The driver
+ * may retain its private authentication config for routing during its lifetime.
  */
 export interface TdsOpenRequest {
     server: string;

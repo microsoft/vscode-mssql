@@ -79,6 +79,9 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
+    <trans-unit id="++CODE++8767c790a9cd83a09c0b6d8ecea2a7e4baffc961e43a8109db56af2dceeb6dcc">
+      <source xml:lang="en">&lt;exact {0} value unavailable from this provider&gt;</source>
+    </trans-unit>
     <trans-unit id="++CODE++44db9a12f4699cefd03940639b9675924d76fc9dc7faed967e044f5fbaf7bfb6">
       <source xml:lang="en">(0 rows affected)</source>
     </trans-unit>
@@ -2397,6 +2400,9 @@
     <trans-unit id="++CODE++596c52f1eb65c1c3c65404e5f75974937fee4fc77d0970abeddf580e7123ce0c">
       <source xml:lang="en">Connection failed</source>
     </trans-unit>
+    <trans-unit id="++CODE++ab32978caeaaabae412a49320a759df59b47a505e3591f34b97aa98d166a3dd1">
+      <source xml:lang="en">Connection failed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
       <source xml:lang="en">Connection failed: {0}</source>
       <note>{0} is the error message from the connection attempt</note>
@@ -2460,6 +2466,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fb8d3f9bd43cabe4c37397705e459f16b67ee8c01ea4c4f23371fac86d720bf7">
       <source xml:lang="en">Connection test succeeded</source>
+    </trans-unit>
+    <trans-unit id="++CODE++87d75c777cece30cb89fad14e04daebba029110613e60ba55ffabb417702b26f">
+      <source xml:lang="en">Connection timed out.</source>
     </trans-unit>
     <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
       <source xml:lang="en">Connection with ID &quot;{0}&quot; not found. Please verify the connection ID exists.</source>
@@ -2801,6 +2810,9 @@
     </trans-unit>
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++075e35b93a826d81e3d565dae8d668dd2a64dedd0a4ed5ab17df44aab6066af2">
+      <source xml:lang="en">Could not read SQL Server session information.</source>
     </trans-unit>
     <trans-unit id="++CODE++4e92c9fee41350bf30db096559334cf711a7d3a2f0a378c3534597686c6c6981">
       <source xml:lang="en">Could not reconnect to database &quot;{0}&quot;.</source>
@@ -6745,6 +6757,9 @@
     <trans-unit id="++CODE++155952ddf38c19af2c08d64095b80c9fe510faade4f78b6f0c6113fda082eda0">
       <source xml:lang="en">Logical operator</source>
     </trans-unit>
+    <trans-unit id="++CODE++322ec274dd5769349d3fda98fbe28606e6127304287c3cfaf9c5da716ba5e1d2">
+      <source xml:lang="en">Login failed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++543eb6e59b2d9076bcd19e7217a2437aa8f9f26de4e313560f4ca0827225a787">
       <source xml:lang="en">Logins</source>
     </trans-unit>
@@ -8906,6 +8921,9 @@
     </trans-unit>
     <trans-unit id="++CODE++14ad88fc2a2fb0b956145de48523cd88f888a882a24322919567d744b8e74e70">
       <source xml:lang="en">Query quick actions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++62745e8bb9178b496d2d600dcdeeafcab45047520d527e199a23dd32b552c861">
+      <source xml:lang="en">Query result delivery failed ({0}) while processing {1}.</source>
     </trans-unit>
     <trans-unit id="++CODE++b55ac51f0872253bf11aebfd286d8ab4a7336ef413bc96093f0a08020e3c664f">
       <source xml:lang="en">Query results</source>
@@ -11101,6 +11119,9 @@
     <trans-unit id="++CODE++2c4fb82c11a12677559564607a6a178c2ff897e0c5769b72f29ec6f55931bea7">
       <source xml:lang="en">Stored procedure REST methods</source>
     </trans-unit>
+    <trans-unit id="++CODE++c8e04db8e8952736150e32a7d7744a43eba5879708f5330ddd40643c083b3e68">
+      <source xml:lang="en">Strict encryption is not supported by the Native TypeScript preview. Use SQL Tools Service for this connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
     </trans-unit>
@@ -11487,8 +11508,14 @@
     <trans-unit id="++CODE++ecc48bf0a5cb6b4e2f115197e11af024d6affdaf6522e5c9aa977c7ed26ded61">
       <source xml:lang="en">The Native TypeScript provider could not be loaded. Reinstall the extension or select SQL Tools Service.</source>
     </trans-unit>
+    <trans-unit id="++CODE++bdeb799e69db54ed46889773200d11a4b5b6e62e093e2c48b794bccd12c244ae">
+      <source xml:lang="en">The Native TypeScript provider has been disposed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f2fa1b238626d051e4f0e7599fd537821d8fe5ab391754182e90a4dca09b16e">
       <source xml:lang="en">The Native TypeScript provider requires Node.js {0} or newer; this host uses {1}.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6245239dee38d7c6e9874112f86763d29c563167af4a36ba5c7d39553b6d3f26">
+      <source xml:lang="en">The Native TypeScript provider supports TCP connections only. Use SQL Tools Service for other protocols or LocalDB.</source>
     </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
@@ -11536,6 +11563,9 @@
     <trans-unit id="++CODE++a238f8494c24670d2a99bca7863c04c3b523e1ffd7502d240c9aadca7e53c9c1">
       <source xml:lang="en">The connection ID &apos;{0}&apos; set in &apos;mssql.defaultConnectionId&apos; does not match any known connection profile. New editors will fall back to transferring the active connection.</source>
       <note>{0} is the connection ID that was not found</note>
+    </trans-unit>
+    <trans-unit id="++CODE++757667508525b0a17745f4935bc686a48d56aaf88ff234d58ddec5ab3d66e3d7">
+      <source xml:lang="en">The connection finished opening after its deadline.</source>
     </trans-unit>
     <trans-unit id="++CODE++70ece7402eaedb300906107bea039eae51bf2b850127528ddb1d48e174d64515">
       <source xml:lang="en">The connection profile for this request no longer exists.</source>
@@ -13303,6 +13333,9 @@
     <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
       <source xml:lang="en">{0} (Current Account)</source>
       <note>{0} is the account display name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8cc823eebd9780ac5bec6b74c1aaded82648958f05dfca19f4f94ab4aef88d05">
+      <source xml:lang="en">{0} (approximate)</source>
     </trans-unit>
     <trans-unit id="++CODE++0cb11cf85550f89783bd1a648a61b1a7d458088b88a50acb062d49974bfabab7">
       <source xml:lang="en">{0} (configured continuation)</source>

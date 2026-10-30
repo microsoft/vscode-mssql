@@ -12,7 +12,8 @@
  * domain absolute timer is authoritative), rowCollectionOnDone=false,
  * rowCollectionOnRequestCompletion=false, useColumnNames=false; batches ride
  * execSqlBatch so SET/SHOWPLAN/transaction semantics match SqlClient raw
- * batches. Credential-bearing config is cleared after connect settles.
+ * batches. The caller's config copy is cleared after construction; Tedious
+ * retains its private authentication config for routing/reconnect behavior.
  *
  * Event contract: one connection-level router installed at open; per-request
  * listeners attach on the Request object and die with it; `completed`
@@ -76,7 +77,9 @@ export class TediousDriver implements ITdsDriver {
     ): Promise<ITdsConnection> {
         const config = buildConfig(request);
         const connection = new Connection(config);
-        // Never retain the credential-bearing config beyond connect.
+        // Keep late socket errors handled even before/after the active router.
+        connection.on("error", () => undefined);
+        // Clear our redundant copy. Tedious owns a separate config copy.
         scrubAuth(config);
         await new Promise<void>((resolve, reject) => {
             connection.connect((error) => {
@@ -92,10 +95,7 @@ export class TediousDriver implements ITdsDriver {
                 }
             });
         });
-        return new TediousConnection(connection, observer, {
-            serverVersion:
-                (connection as unknown as { serverVersion?: string }).serverVersion ?? undefined,
-        });
+        return new TediousConnection(connection, observer, {});
     }
 }
 
@@ -232,7 +232,8 @@ class TediousConnection implements ITdsConnection {
     }
 
     async close(_context: DataPlaneOperationContext): Promise<void> {
-        if (this.state === "closed") {
+        if (this.state === "closed" || this.state === "lost") {
+            this.state = "closed";
             return;
         }
         this.state = "closing";
@@ -246,6 +247,7 @@ class TediousConnection implements ITdsConnection {
         });
         this.state = "closed";
         this.connection.removeAllListeners();
+        this.connection.on("error", () => undefined);
     }
 
     destroy(_reason: string): void {
@@ -278,6 +280,9 @@ class TediousConnection implements ITdsConnection {
         } else {
             this.observer.onOrphanMessage(normalized);
         }
+        if (isError && normalized.severity >= 20) {
+            this.handleLoss("network");
+        }
     }
 
     private handleLoss(category: TdsErrorCategory, detail?: Error): void {
@@ -288,6 +293,9 @@ class TediousConnection implements ITdsConnection {
         this.state = "lost";
         const lease = this.activeLease;
         this.activeLease = undefined;
+        // Notify the session before request completion can classify a fatal
+        // server message as an ordinary query failure.
+        this.observer.onLost(category, detail ? { category, message: detail.message } : undefined);
         if (lease && !lease.terminal) {
             lease.complete({
                 ok: false,
@@ -298,7 +306,7 @@ class TediousConnection implements ITdsConnection {
             });
         }
         this.connection.removeAllListeners();
-        this.observer.onLost(category, detail ? { category, message: detail.message } : undefined);
+        this.connection.on("error", () => undefined);
     }
 }
 
@@ -501,10 +509,10 @@ function canonicalTypeName(rawName: string, dataLength: number | undefined): str
             return dataLength === 4 ? "smallmoney" : "money";
         case "floatn":
             return dataLength === 4 ? "real" : "float";
-        case "datetimn":
+        case "datetimen":
             return dataLength === 4 ? "smalldatetime" : "datetime";
-        case "uniqueidentifiern":
-            return "uniqueidentifier";
+        case "variant":
+            return "sql_variant";
         default:
             return lower;
     }

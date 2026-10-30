@@ -341,6 +341,7 @@ function figurePoints(parsed: ParsedPayload, figureIndex: number): { start: numb
 /** Figure range [start, end) of shape `shapeIndex`. */
 function shapeFigures(parsed: ParsedPayload, shapeIndex: number): { start: number; end: number } {
     const start = parsed.shapes[shapeIndex].figureOffset;
+    if (start === -1) return { start: 0, end: 0 };
     let end = parsed.figures.length;
     for (let i = shapeIndex + 1; i < parsed.shapes.length; i++) {
         if (parsed.shapes[i].figureOffset >= start) {
@@ -369,20 +370,14 @@ function writeShape(writer: WkbWriter, parsed: ParsedPayload, shapeIndex: number
     writer.byte(1); // little-endian
     switch (shape.type) {
         case SHAPE_POINT: {
-            writer.uint32(typeCode(WKB_POINT, parsed));
             const figures = shapeFigures(parsed, shapeIndex);
             if (figures.end === figures.start) {
-                // POINT EMPTY: NaN coordinates (common WKB convention).
-                writer.double(NaN);
-                writer.double(NaN);
-                if (parsed.hasZ) {
-                    writer.double(NaN);
-                }
-                if (parsed.hasM) {
-                    writer.double(NaN);
-                }
+                // SQL Server AsBinaryZM normalizes POINT EMPTY to MULTIPOINT EMPTY.
+                writer.uint32(typeCode(WKB_MULTIPOINT, parsed));
+                writer.uint32(0);
                 return;
             }
+            writer.uint32(typeCode(WKB_POINT, parsed));
             const { start } = figurePoints(parsed, figures.start);
             writeCoords(writer, parsed, start);
             return;

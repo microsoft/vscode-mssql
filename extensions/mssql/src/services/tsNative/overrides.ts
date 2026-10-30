@@ -101,15 +101,7 @@ export function parseTsNativeOverrides(raw: unknown): TsNativeOverrides {
         const faults: TsNativeFaultProfile = {
             seed: typeof rawFaults.seed === "number" ? rawFaults.seed : 0,
         };
-        const numeric = [
-            "openDelayMs",
-            "delayEveryPageMs",
-            "dropAfterDriverEvents",
-            "dropAfterPages",
-            "malformedEventAt",
-            "memoryPressureAfterBytes",
-            "sinkDelayMs",
-        ] as const;
+        const numeric = ["openDelayMs", "dropAfterDriverEvents"] as const;
         for (const key of numeric) {
             const value = rawFaults[key];
             if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
@@ -129,15 +121,17 @@ export function parseTsNativeOverrides(raw: unknown): TsNativeOverrides {
         if (rawFaults.hangOnClose === true) {
             faults.hangOnClose = true;
         }
-        if (
-            rawFaults.delayEveryRows !== null &&
-            typeof rawFaults.delayEveryRows === "object" &&
-            typeof (rawFaults.delayEveryRows as { rows?: unknown }).rows === "number" &&
-            typeof (rawFaults.delayEveryRows as { ms?: unknown }).ms === "number"
-        ) {
-            faults.delayEveryRows = rawFaults.delayEveryRows as { rows: number; ms: number };
+        const supported = new Set([
+            "seed",
+            ...numeric,
+            "openFailure",
+            "hangOnCancel",
+            "hangOnClose",
+        ]);
+        for (const key of Object.keys(rawFaults)) {
+            if (!supported.has(key)) ignored.push(`faults.${key}`);
         }
-        out.faults = faults;
+        if (Object.keys(faults).some((key) => key !== "seed")) out.faults = faults;
     }
     if (ignored.length > 0) {
         out.ignoredKeys = ignored;

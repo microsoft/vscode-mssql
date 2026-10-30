@@ -55,7 +55,7 @@ function parseConnString(raw: string | undefined): LiveTarget | undefined {
         switch (key) {
             case "server":
             case "data source":
-                target.server = value.replace(/^tcp:/i, "");
+                target.server = value;
                 break;
             case "database":
             case "initial catalog":
@@ -71,7 +71,7 @@ function parseConnString(raw: string | undefined): LiveTarget | undefined {
                 target.password = value;
                 break;
             case "encrypt":
-                target.encrypt = value.toLowerCase();
+                target.encrypt = value;
                 break;
             case "trustservercertificate":
                 target.trustServerCertificate = value.toLowerCase() === "true";
@@ -140,6 +140,7 @@ async function openLive(): Promise<{ backend: TsNativeBackend; session: ISqlSess
         driver: new TediousDriver(),
         clock: productionClock(),
         ids: { next: (p) => `${p}-live-${++n}` },
+        probeOnOpen: true,
     });
     const session = await backend.openSession({
         profile: liveProfile(target),
@@ -175,6 +176,11 @@ suite("ts-native live engine (STS2_SQLSERVER_CONNSTRING lane)", function () {
         const { session } = await openLive();
         try {
             expect(session.info.backendKind).to.equal("ts-native");
+            expect(session.info.engineEditionId).to.be.a("number");
+            expect(session.info.serverVersion).to.match(/^\d+\./);
+            expect(session.info.database).to.be.a("string").and.not.to.equal("");
+            expect(session.info.loginName).to.be.a("string").and.not.to.equal("");
+            expect(session.info.spid).to.be.a("number");
             const { sink, summary } = await run(session, "SELECT 1 AS one");
             expect(summary.status).to.equal("succeeded");
             expect(summary.resultSetCount).to.equal(1);
@@ -273,18 +279,21 @@ suite("ts-native live engine (STS2_SQLSERVER_CONNSTRING lane)", function () {
         }
     });
 
-    test("exact-mode: decimal(38) fails closed pre-rows; decimal(9,2) renders fixed scale", async () => {
+    test("exact-mode preserves safe decimals regardless of declared precision", async () => {
         const { session } = await openLive();
         try {
             const big = await run(session, "SELECT CAST(1.5 AS decimal(38,10)) AS d");
-            expect(big.summary.status).to.equal("failed");
-            expect(big.summary.error?.code).to.equal(DataPlaneErrorCodes.capabilityUnsupported);
-            expect(big.sink.pages.length).to.equal(0);
+            expect(big.summary.status).to.equal("succeeded");
+            expect(big.sink.cell(0, 0, 0)).to.deep.include({
+                kind: "number",
+                value: "1.5000000000",
+                exact: true,
+            });
 
             const small = await run(session, "SELECT CAST(1.5 AS decimal(9,2)) AS d");
             expect(small.summary.status).to.equal("succeeded");
             const cell = small.sink.cell(0, 0, 0);
-            expect(cell).to.deep.include({ kind: "number", value: "1.50", exact: false });
+            expect(cell).to.deep.include({ kind: "number", value: "1.50", exact: true });
         } finally {
             await session.close();
         }
@@ -307,6 +316,165 @@ suite("ts-native live engine (STS2_SQLSERVER_CONNSTRING lane)", function () {
             }
         } finally {
             await session.close();
+        }
+    });
+
+    test("fidelity limits mark cells without failing a committed DML batch", async () => {
+        const { session } = await openLive();
+        try {
+            const { sink, summary } = await run(
+                session,
+                "CREATE TABLE #review_audit(n int); BEGIN TRAN; INSERT #review_audit VALUES(1); " +
+                    "SELECT CAST(12.34 AS money), CAST(12.34 AS decimal(18,2)), SYSDATETIMEOFFSET(), " +
+                    "CAST(CAST(12345678901234567.89 AS decimal(38,2)) AS sql_variant); " +
+                    "INSERT #review_audit VALUES(2); COMMIT; SELECT COUNT(*) FROM #review_audit;",
+            );
+            expect(summary.status).to.equal("succeeded");
+            expect(sink.cell(0, 0, 0)).to.deep.include({
+                kind: "number",
+                value: "12.3400",
+                exact: true,
+            });
+            expect(sink.cell(0, 0, 1)).to.deep.include({
+                kind: "number",
+                value: "12.34",
+                exact: true,
+            });
+            for (const col of [2, 3]) {
+                const cell = sink.cell(0, 0, col);
+                expect(cell.kind).to.equal("string");
+                if (cell.kind === "string") expect(cell.value).to.include("unavailable");
+            }
+            expect(sink.cell(1, 0, 0)).to.deep.include({ kind: "number", value: 2 });
+        } finally {
+            await session.close();
+        }
+    });
+
+    test("nullable datetime families and real use canonical types and display carriers", async () => {
+        const { session } = await openLive();
+        try {
+            const { sink, summary } = await run(
+                session,
+                "SELECT CAST('2025-01-02T03:04:05.123' AS datetime), CAST('2025-01-02T03:04:00' AS smalldatetime), CAST(0.1 AS real), CAST(3.3 AS real)",
+            );
+            expect(summary.status).to.equal("succeeded");
+            expect(sink.resultSets[0].columns.map((c) => c.sqlType)).to.deep.equal([
+                "datetime",
+                "smalldatetime",
+                "real",
+                "real",
+            ]);
+            expect(sink.pages[0].compact.values[0][0]).to.deep.equal({
+                $t: "datetime2",
+                v: "2025-01-02T03:04:05.123",
+            });
+            expect(sink.cell(0, 0, 2)).to.deep.include({ value: 0.1 });
+            expect(sink.cell(0, 0, 3)).to.deep.include({ value: 3.3 });
+        } finally {
+            await session.close();
+        }
+    });
+
+    test("slow sinks receive all empty sets and final rows before completion", async () => {
+        const { session } = await openLive();
+        try {
+            let starts = 0,
+                ends = 0,
+                rows = 0,
+                complete = false;
+            const handle = session.execute(
+                "DECLARE @i int=0; WHILE @i < 500 BEGIN SELECT TOP 0 1 AS x; SET @i+=1; END; SELECT TOP 60000 1 AS x FROM sys.all_objects a CROSS JOIN sys.all_objects b;",
+                { pageRows: 512 },
+                {
+                    onResultSetStarted: async () => {
+                        await new Promise((resolve) => setImmediate(resolve));
+                        starts++;
+                    },
+                    onResultSetEnded: () => {
+                        ends++;
+                    },
+                    onRowsPage: async (page) => {
+                        await new Promise((resolve) => setImmediate(resolve));
+                        rows += page.rowCount;
+                    },
+                    onMessage: () => undefined,
+                    onComplete: () => {
+                        complete = true;
+                    },
+                },
+            );
+            expect((await handle.completion).status).to.equal("succeeded");
+            expect(starts).to.equal(501);
+            expect(ends).to.equal(501);
+            expect(rows).to.equal(60000);
+            expect(complete).to.equal(true);
+        } finally {
+            await session.close();
+        }
+    });
+
+    test("empty spatial values match AsBinaryZM and spatial payloads honor the query cap", async () => {
+        const { session } = await openLive();
+        try {
+            for (const [kind, wkt] of [
+                ["geometry", "POINT EMPTY"],
+                ["geometry", "LINESTRING EMPTY"],
+                ["geometry", "POLYGON EMPTY"],
+                ["geography", "POINT EMPTY"],
+                ["geometry", "GEOMETRYCOLLECTION(POINT EMPTY, POINT(1 1))"],
+            ]) {
+                const { sink, summary } = await run(
+                    session,
+                    `DECLARE @g ${kind} = ${kind}::STGeomFromText('${wkt}', ${kind === "geography" ? 4326 : 0}); SELECT @g, @g.AsBinaryZM();`,
+                    { spatialEncoding: "wkb-v1" },
+                );
+                expect(summary.status).to.equal("succeeded");
+                const cell = sink.pages[0].compact.values[0][0] as { status: string; wkb: string };
+                expect(cell.status, wkt).to.equal("ok");
+                expect(
+                    `0x${Buffer.from(cell.wkb, "base64").toString("hex").toUpperCase()}`,
+                ).to.equal(sink.pages[0].compact.values[0][1]);
+            }
+            const points = Array.from({ length: 200 }, (_, i) => `${i} ${i}`).join(",");
+            const capped = await run(
+                session,
+                `SELECT geometry::STGeomFromText('LINESTRING(${points})', 0)`,
+                { spatialEncoding: "wkb-v1", maxCellBytes: 256 },
+            );
+            expect(capped.summary.status).to.equal("succeeded");
+            expect(capped.sink.pages[0].compact.values[0][0]).to.include({
+                status: "unrenderable",
+                reason: "maxCellBytes",
+            });
+        } finally {
+            await session.close();
+        }
+    });
+
+    test("killing this test's own session reports connectionLost without an uncaught socket error", async () => {
+        const victim = await openLive();
+        const control = await openLive();
+        try {
+            const spid = victim.session.info.spid!;
+            expect(
+                Number.isInteger(spid) && spid > 0 && spid !== control.session.info.spid,
+            ).to.equal(true);
+            const waiting = victim.session.execute(
+                "WAITFOR DELAY '00:00:25'",
+                {},
+                new CollectingSink(),
+            );
+            await waiting.accepted;
+            const killed = await run(control.session, `KILL ${spid}`);
+            expect(killed.summary.status).to.equal("succeeded");
+            expect((await waiting.completion).status).to.equal("connectionLost");
+            expect(victim.session.state).to.equal("lost");
+            // A subsequent connection remains usable after the late socket event.
+            expect((await run(control.session, "SELECT 1")).summary.status).to.equal("succeeded");
+        } finally {
+            await victim.backend.dispose();
+            await control.backend.dispose();
         }
     });
 

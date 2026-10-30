@@ -8,7 +8,7 @@
  * (the N3-equivalent transcript gate). Mirrors the FakeBackend conformance
  * assertions: ordering, exactly-one-terminal, backpressure serialization,
  * sink containment, busy, dispose, loss, plus the addendum-specific gates —
- * timeout-after-first-response (§2.4), fidelity fail-closed (§6.3), and
+ * timeout-after-first-response (§2.4), per-cell fidelity markers (§6.3), and
  * bounded message-flood behavior (§5.7).
  */
 
@@ -437,7 +437,7 @@ suite("ts-native engine conformance (TSQ2-4/5)", () => {
         expect(session.state).to.equal("closed");
     });
 
-    test("fidelity fail-closed: decimal(38) column fails before any row (§6.3)", async () => {
+    test("decimal(38) metadata does not fail an already executed batch", async () => {
         const { clock, session } = await openSession({
             queries: [
                 {
@@ -459,11 +459,13 @@ suite("ts-native engine conformance (TSQ2-4/5)", () => {
         const handle = session.execute("DEC", {}, sink);
         await clock.advance(1000);
         const summary = await handle.completion;
-        expect(summary.status).to.equal("failed");
-        expect(summary.error?.code).to.equal(DataPlaneErrorCodes.capabilityUnsupported);
-        expect(summary.error?.message).to.contain("types.decimalExact");
-        expect(sink.resultSets.length).to.equal(0, "no result-set start delivered");
-        expect(sink.pages.length).to.equal(0, "no rows delivered");
+        expect(summary.status).to.equal("succeeded");
+        expect(sink.resultSets.length).to.equal(1);
+        expect(sink.pages[0].rowCount).to.equal(5);
+        expect(sink.pages[0].compact.values[1][0]).to.deep.equal({
+            $t: "decimal",
+            v: "1.5000000000",
+        });
         await session.close();
     });
 
@@ -488,7 +490,7 @@ suite("ts-native engine conformance (TSQ2-4/5)", () => {
         await clock.advance(100);
         const summary = await handle.completion;
         expect(summary.status).to.equal("succeeded");
-        expect(sink.pages[0].compact.values).to.deep.equal([["1.50"]]);
+        expect(sink.pages[0].compact.values).to.deep.equal([[{ $t: "decimal", v: "1.50" }]]);
         expect(sink.pages[0].compact.typeHints).to.deep.equal(["number:approx"]);
         await session.close();
     });

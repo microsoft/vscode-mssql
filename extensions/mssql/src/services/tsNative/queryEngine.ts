@@ -7,7 +7,7 @@
  * TsNativeQuery (TSQ2 addendum §5.4-5.13, §6.3): one query lifecycle over an
  * ITdsQueryLease. Owns the result-set ledger, page pipeline, bounded sink
  * lane, absolute domain deadline, cancel/dispose/loss terminals, exact-mode
- * fidelity fail-closed, backpressure (window pause), and the CPU slice
+ * fidelity markers, backpressure (window pause), and the CPU slice
  * governor. Produces the domain QueryHandle whose `accepted` and `completion`
  * ALWAYS settle, independently of a stuck or throwing sink.
  *
@@ -44,15 +44,10 @@ import {
     VECTOR_TYPE_HINT_V1,
 } from "../../sharedInterfaces/queryResultCellCodec";
 import { BoundedEventLane } from "./boundedEventLane";
-import {
-    EncodePolicy,
-    encodeCell,
-    fidelityViolation,
-    isSpatialColumn,
-    typeHintForColumn,
-} from "./cellEncoder";
+import { EncodePolicy, encodeCell, isSpatialColumn, typeHintForColumn } from "./cellEncoder";
 import { PageBuilder, TS_NATIVE_PAGE_DEFAULTS, clampPageLimit } from "./pageBuilder";
 import { ResultSetLedger } from "./resultSetLedger";
+import { NativeSqlProvider } from "../../constants/locConstants";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -156,7 +151,6 @@ export class TsNativeQuery {
     private acceptedResolve!: (a: QueryAcceptance) => void;
     private acceptedSettled = false;
     private terminalSent = false;
-    private fidelityError: SqlDataPlaneErrorInfo | undefined;
     private cancelCause: CancelCause | undefined;
     private cancelRequested = false;
     private disposed = false;
@@ -285,7 +279,7 @@ export class TsNativeQuery {
     // -----------------------------------------------------------------------
 
     private onDriverEvent(event: TdsQueryEvent): void {
-        if (this.terminalSent || this.fidelityError) {
+        if (this.terminalSent) {
             this.deps.observer?.onDroppedAfterTerminal?.(event.kind);
             return;
         }
@@ -314,28 +308,6 @@ export class TsNativeQuery {
     }
 
     private onMetadata(columns: TdsColumn[]): void {
-        // Exact-mode fidelity guard (§6.3): fail BEFORE any page of this set.
-        if (!this.policy.lossyPreview) {
-            const violations = columns
-                .map((column) => fidelityViolation(column))
-                .filter((v): v is NonNullable<typeof v> => v !== undefined);
-            if (violations.length > 0) {
-                this.fidelityError = {
-                    code: DataPlaneErrorCodes.capabilityUnsupported,
-                    message:
-                        `exact-mode unsupported column type(s): ` +
-                        violations
-                            .map((v) => `${v.columnName} (${v.typeName} → ${v.capability})`)
-                            .join(", "),
-                    retryable: false,
-                    backend: { kind: "ts-native", code: violations[0].reasonCode },
-                };
-                this.cancelCause ??= "dispose";
-                void this.lease.cancel("dispose");
-                this.armCancelHardDeadline();
-                return;
-            }
-        }
         if (this.aggregates.firstMetadataMs === undefined) {
             this.aggregates.firstMetadataMs = this.deps.clock.now() - this.startedMs;
         }
@@ -357,7 +329,9 @@ export class TsNativeQuery {
             label: "resultSetStarted",
             bytes: 0,
             run: () => this.sink.onResultSetStarted(meta),
+            onSettled: () => this.maybeResume(),
         });
+        this.updateBackpressure();
     }
 
     private onRow(cells: readonly { value: unknown; nanosecondsDelta?: number }[]): void {
@@ -417,28 +391,22 @@ export class TsNativeQuery {
             run: () => this.sink.onMessage(serverMessage),
             onSettled: () => this.maybeResume(),
         });
-        // Message-flood containment (§5.7): pause at the lane budget; a hard
-        // budget breach (driver un-pausable) is a typed ResourceLimit, never
-        // an unbounded promise chain and never silent message drops.
-        const depth = this.lane.snapshot().depth;
-        if (depth >= this.laneMaxItems && !this.pausedForWindow) {
+        this.updateBackpressure();
+    }
+
+    private updateBackpressure(): void {
+        // Leave room for a page/end/start emitted by one driver event and
+        // the asynchronous accepted callback. Every ordinary event is bounded.
+        if (
+            (this.pagesInFlight >= this.windowPages ||
+                this.lane.snapshot().depth >= this.laneMaxItems - 4 ||
+                !this.lane.hasCapacity(this.pageLimits.pageBytes)) &&
+            !this.pausedForWindow &&
+            !this.terminalSent
+        ) {
             this.pausedForWindow = true;
             this.markPause("sinkBackpressure");
             this.lease.pause("sinkBackpressure");
-        }
-        if (depth >= this.laneMaxItems * 8) {
-            this.cancelCause ??= "dispose";
-            void this.lease.cancel("dispose");
-            this.emitTerminal(
-                "failed",
-                {
-                    code: DataPlaneErrorCodes.resourceLimit,
-                    message: "sink event budget exceeded (message flood)",
-                    retryable: false,
-                },
-                true,
-                "known",
-            );
         }
     }
 
@@ -453,7 +421,9 @@ export class TsNativeQuery {
                 label: "resultSetEnded",
                 bytes: 0,
                 run: () => this.sink.onResultSetEnded?.({ resultSetId, rowCount }),
+                onSettled: () => this.maybeResume(),
             });
+            this.updateBackpressure();
         }
     }
 
@@ -496,11 +466,7 @@ export class TsNativeQuery {
                 this.maybeResume();
             },
         });
-        if (this.pagesInFlight >= this.windowPages && !this.pausedForWindow) {
-            this.pausedForWindow = true;
-            this.markPause("sinkBackpressure");
-            this.lease.pause("sinkBackpressure");
-        }
+        this.updateBackpressure();
     }
 
     private maybeResume(): void {
@@ -548,7 +514,7 @@ export class TsNativeQuery {
         this.deadlineTimer?.dispose();
         this.cancelHardTimer?.dispose();
         const { closed } = this.ledger.onCompletion();
-        if (closed && !this.fidelityError) {
+        if (closed) {
             this.flushSetEnd(closed.id, closed.rowCount, false);
         }
         const { status, error, certainty, reason, synthesized } = this.classifyTerminal(completion);
@@ -562,9 +528,6 @@ export class TsNativeQuery {
         reason?: "transportLost" | "cancelUncertain" | "providerAborted";
         synthesized?: boolean;
     } {
-        if (this.fidelityError) {
-            return { status: "failed", error: this.fidelityError, certainty: "known" };
-        }
         if (completion.ok) {
             return {
                 status: this.errorCount > 0 ? "completedWithErrors" : "succeeded",
@@ -690,18 +653,28 @@ export class TsNativeQuery {
             ...(reason ? { outcomeReason: reason } : {}),
             ...(error ? { error } : {}),
         };
-        // completion settles NOW, independently of the sink lane (§5.9).
-        this.completionResolve(summary);
-        const laneStats = this.lane.snapshot();
-        this.aggregates.sinkWaitMsTotal = laneStats.sinkWaitMsTotal;
-        this.deps.observer?.onTerminal?.(summary, this.aggregates);
-        // onComplete is best-effort after settlement.
+        // Query Studio advances GO batches from completion. Deliver all rows,
+        // set endings, and onComplete first; lane timeout/stop still settles it.
         this.lane.enqueue({
             label: "complete",
             bytes: 0,
+            terminal: true,
             run: () => this.sink.onComplete(summary),
+            onSettled: () => {
+                const failure = this.lane.failure;
+                const deliveredSummary: QueryCompleteSummary = failure
+                    ? {
+                          ...summary,
+                          status: "failed",
+                          error: this.laneFailureError(failure),
+                      }
+                    : summary;
+                this.aggregates.sinkWaitMsTotal = this.lane.snapshot().sinkWaitMsTotal;
+                this.deps.observer?.onTerminal?.(deliveredSummary, this.aggregates);
+                this.deps.onTerminal();
+                this.completionResolve(deliveredSummary);
+            },
         });
-        this.deps.onTerminal();
     }
 
     private protocolViolation(observation: string): void {
@@ -720,22 +693,29 @@ export class TsNativeQuery {
         );
     }
 
-    private onLaneFailure(failure: { kind: "sinkError" | "sinkTimeout"; label: string }): void {
+    private laneFailureError(failure: {
+        kind: "sinkError" | "sinkTimeout" | "resourceLimit";
+        label: string;
+    }): SqlDataPlaneErrorInfo {
+        return {
+            code:
+                failure.kind === "resourceLimit"
+                    ? DataPlaneErrorCodes.resourceLimit
+                    : failure.kind === "sinkError"
+                      ? DataPlaneErrorCodes.sinkError
+                      : DataPlaneErrorCodes.clientTimeout,
+            message: NativeSqlProvider.resultDeliveryFailed(failure.kind, failure.label),
+            retryable: false,
+        };
+    }
+
+    private onLaneFailure(failure: {
+        kind: "sinkError" | "sinkTimeout" | "resourceLimit";
+        label: string;
+    }): void {
         this.cancelCause ??= "dispose";
         void this.lease.cancel("dispose");
-        this.emitTerminal(
-            "failed",
-            {
-                code:
-                    failure.kind === "sinkError"
-                        ? DataPlaneErrorCodes.sinkError
-                        : DataPlaneErrorCodes.clientTimeout,
-                message: `sink ${failure.kind === "sinkError" ? "threw" : "timed out"} at ${failure.label}`,
-                retryable: false,
-            },
-            true,
-            "known",
-        );
+        this.emitTerminal("failed", this.laneFailureError(failure), true, "known");
     }
 
     // -----------------------------------------------------------------------

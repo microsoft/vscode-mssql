@@ -5,7 +5,7 @@
 
 import { DataPlaneErrorCodes, ISqlConnectionService, SqlDataPlaneError } from "./api";
 import { SqlBackendFactory, SqlBackendFactoryContext } from "./backendFactory";
-import { capabilitySet, conditional, supported, unsupported } from "./capabilityRegistry";
+import { capabilitySet, supported, unsupported } from "./capabilityRegistry";
 import { createDiagEngineObserver } from "../tsNative/observability";
 import {
     parseTsNativeOverrides,
@@ -55,7 +55,7 @@ export function tsNativeFactory(providerVersion: string): SqlBackendFactory {
             "connect.tcp": supported("static"),
             "connect.routeAlias": unsupported("static", "localDeployment"),
             "connect.localdb": unsupported("static", "driver.tcpOnly"),
-            "connect.tds8Strict": conditional("static", "strictModeUnvalidated"),
+            "connect.tds8Strict": unsupported("static", "strictModeUnvalidated"),
             "exec.streamingRows": supported("static"),
             "exec.multipleResultSets": supported("static"),
             "exec.oneActiveQuery": supported("static"),

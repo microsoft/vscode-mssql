@@ -6436,6 +6436,23 @@ export const QueryStudioCore = {
 };
 
 export class NativeSqlProvider {
+    public static strictUnsupported = l10n.t(
+        "Strict encryption is not supported by the Native TypeScript preview. Use SQL Tools Service for this connection.",
+    );
+    public static tcpOnly = l10n.t(
+        "The Native TypeScript provider supports TCP connections only. Use SQL Tools Service for other protocols or LocalDB.",
+    );
+    public static backendDisposed = l10n.t("The Native TypeScript provider has been disposed.");
+    public static openAbandoned = l10n.t("The connection finished opening after its deadline.");
+    public static sessionFactsFailed = l10n.t("Could not read SQL Server session information.");
+    public static loginFailed = l10n.t("Login failed.");
+    public static connectionTimedOut = l10n.t("Connection timed out.");
+    public static connectionFailed = l10n.t("Connection failed.");
+    public static valueUnavailable = (type: string) =>
+        l10n.t("<exact {0} value unavailable from this provider>", type);
+    public static approximateValue = (value: string) => l10n.t("{0} (approximate)", value);
+    public static resultDeliveryFailed = (kind: string, callback: string) =>
+        l10n.t("Query result delivery failed ({0}) while processing {1}.", kind, callback);
     public static name = l10n.t("Native TypeScript (Tedious)");
     public static unsupportedRuntime = (minimum: number, actual: string) =>
         l10n.t(
