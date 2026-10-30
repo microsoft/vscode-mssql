@@ -268,6 +268,9 @@ suite("QueryResultWebviewController", () => {
                 [PreviewFeature.MultiResults]: true,
             };
             stubPreviewService(sandbox, previews);
+            configuration.get
+                .withArgs(getPreviewConfigKey(PreviewFeature.MultiResults))
+                .callsFake(() => previews[PreviewFeature.MultiResults]);
             executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
 
             requestHandlers = new Map();

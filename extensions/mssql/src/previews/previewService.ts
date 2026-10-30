@@ -97,6 +97,20 @@ export class PreviewFeaturesService {
     }
 
     /**
+     * Returns whether the multi-results layout preview is enabled. Unlike most preview features
+     * it does not follow `mssql.enableExperimentalFeatures`; it is on only when its own setting
+     * is.
+     */
+    public get multiResultsEnabled(): boolean {
+        return (
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean | null>(getPreviewConfigKey(PreviewFeature.MultiResults), false) ===
+            true
+        );
+    }
+
+    /**
      * Returns whether the global experimental features flag is enabled,
      * ignoring per-feature overrides.
      */

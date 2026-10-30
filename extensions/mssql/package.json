@@ -4045,11 +4045,8 @@
                         "scope": "application"
                     },
                     "mssql.preview.multiResults": {
-                        "type": [
-                            "boolean",
-                            "null"
-                        ],
-                        "default": null,
+                        "type": "boolean",
+                        "default": false,
                         "markdownDescription": "%mssql.preview.multiResults.description%",
                         "scope": "application"
                     },

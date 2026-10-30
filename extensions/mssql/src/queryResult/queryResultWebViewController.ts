@@ -520,10 +520,7 @@ export class QueryResultWebviewController extends WebviewViewController<
      * preview grid's results view.
      */
     private get shouldUseMultiResults(): boolean {
-        return (
-            previewService.isFeatureEnabled(PreviewFeature.MultiResults) &&
-            this.isBetaResultsGridEnabled
-        );
+        return previewService.multiResultsEnabled && this.isBetaResultsGridEnabled;
     }
 
     public get isMultiResultsActive(): boolean {
