@@ -138,11 +138,16 @@ export class MultiResultsLayout {
         }
     }
 
+    /**
+     * Renames a result in place. A result already listed under the new name, such as the kept
+     * result of a closed file that a query is saved over, is removed.
+     */
     public rename(oldUri: string, newUri: string): void {
         const group = this.getGroup(oldUri);
         if (!group || oldUri === newUri) {
             return;
         }
+        this.remove(newUri);
         group.uris = group.uris.map((uri) => (uri === oldUri ? newUri : uri));
         if (group.focusedUri === oldUri) {
             group.focusedUri = newUri;

@@ -1122,6 +1122,12 @@ export class SqlOutputContentProvider {
         if (oldUri === newUri) {
             return;
         }
+        // A query can be saved over a file whose results the multi-results list kept after the
+        // file closed. The saved query's results replace those, so release them first.
+        if (this.isInMultiResultsList(newUri) && this._queryResultsMap.has(newUri)) {
+            await this.cleanupRunner(newUri);
+            store.deleteUriState(newUri);
+        }
         this.migrateThrottledUpdateUri(oldUri, newUri);
 
         // Keep the execution slot with the editor: the runner releases it under its new URI.

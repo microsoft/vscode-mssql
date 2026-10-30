@@ -18,7 +18,15 @@ import {
     Text,
 } from "@fluentui/react-components";
 import { Dismiss16Regular, ErrorCircle16Regular, Table16Regular } from "@fluentui/react-icons";
-import { type DragEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
+import {
+    type DragEvent,
+    type KeyboardEvent,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react";
 import { MultiResultsGroup, MultiResultsState } from "../../../../sharedInterfaces/multiResults";
 import { locConstants } from "../../../common/locConstants";
 import {
@@ -31,6 +39,8 @@ import {
 
 /** Static class name so the item's hover and focus styles can reveal its close button. */
 const CLOSE_BUTTON_CLASS = "multi-results-list-close";
+const ROW_HEIGHT_PX = 22;
+const VIRTUAL_OVERSCAN = 8;
 
 const useStyles = makeStyles({
     root: {
@@ -43,12 +53,21 @@ const useStyles = makeStyles({
         paddingTop: "2px",
         outline: "none",
     },
+    rows: {
+        position: "relative",
+        flexShrink: 0,
+        width: "100%",
+    },
     item: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
         display: "flex",
         alignItems: "center",
         gap: "4px",
-        flexShrink: 0,
-        height: "22px",
+        boxSizing: "border-box",
+        height: `${ROW_HEIGHT_PX}px`,
         paddingLeft: "6px",
         paddingRight: "2px",
         cursor: "pointer",
@@ -168,6 +187,7 @@ export const MultiResultsList = ({ state }: MultiResultsListProps) => {
     const activeGroup = groups.find((group) => group.id === activeGroupId);
     const selectedUri = activeGroup?.focusedUri;
 
+    const rootRef = useRef<HTMLDivElement>(null);
     const itemRefs = useRef(new Map<string, HTMLDivElement>());
     // The item that is tabbable; arrow keys move it.
     const [tabStopUri, setTabStopUri] = useState<string | undefined>(selectedUri);
@@ -177,8 +197,11 @@ export const MultiResultsList = ({ state }: MultiResultsListProps) => {
         { uri: string; target: HTMLElement | PositioningVirtualElement } | undefined
     >(undefined);
 
+    // Follow the shown result, unless the user is moving through the list with the keyboard.
     useEffect(() => {
-        setTabStopUri(selectedUri);
+        if (!rootRef.current?.contains(document.activeElement)) {
+            setTabStopUri(selectedUri);
+        }
     }, [selectedUri]);
 
     useEffect(() => {
@@ -197,13 +220,69 @@ export const MultiResultsList = ({ state }: MultiResultsListProps) => {
     const effectiveTabStop = items.some((item) => item.uri === tabStopUri)
         ? tabStopUri
         : items[0]?.uri;
+    const tabStopIndex = items.findIndex((item) => item.uri === effectiveTabStop);
+
+    const virtualizer = useVirtualizer({
+        count: items.length,
+        getScrollElement: () => rootRef.current,
+        estimateSize: () => ROW_HEIGHT_PX,
+        overscan: VIRTUAL_OVERSCAN,
+        getItemKey: (index) => items[index].uri,
+        // Keep the tabbable row rendered while it is scrolled out of view, so that the list can
+        // still be reached with Tab and does not lose focus.
+        rangeExtractor: (range) => {
+            const indexes = defaultRangeExtractor(range);
+            if (tabStopIndex >= 0 && !indexes.includes(tabStopIndex)) {
+                indexes.push(tabStopIndex);
+                indexes.sort((a, b) => a - b);
+            }
+            return indexes;
+        },
+    });
+
+    // A row being focused may only be rendered after the tab stop moves to it.
+    const pendingFocusUriRef = useRef<string | undefined>(undefined);
+    useLayoutEffect(() => {
+        const uri = pendingFocusUriRef.current;
+        const element = uri ? itemRefs.current.get(uri) : undefined;
+        if (element) {
+            pendingFocusUriRef.current = undefined;
+            element.focus();
+        }
+    });
+
+    /** Focuses a row, or the list itself when there is no row to focus. */
+    const requestFocus = (uri: string | undefined) => {
+        if (!uri) {
+            rootRef.current?.focus();
+            return;
+        }
+        setTabStopUri(uri);
+        const element = itemRefs.current.get(uri);
+        if (element) {
+            element.focus();
+        } else {
+            pendingFocusUriRef.current = uri;
+        }
+    };
 
     const focusItem = (index: number) => {
-        const item = items[Math.max(0, Math.min(index, items.length - 1))];
+        const clampedIndex = Math.max(0, Math.min(index, items.length - 1));
+        const item = items[clampedIndex];
         if (item) {
-            setTabStopUri(item.uri);
-            itemRefs.current.get(item.uri)?.focus();
+            virtualizer.scrollToIndex(clampedIndex, { align: "auto" });
+            requestFocus(item.uri);
         }
+    };
+
+    /** The row that takes focus when a row is closed: the next one, or the previous when last. */
+    const getNeighborUri = (index: number) => (items[index + 1] ?? items[index - 1])?.uri;
+
+    /** Closes a result and keeps keyboard focus in the list. */
+    const closeItem = (index: number) => {
+        const neighborUri = getNeighborUri(index);
+        actions.close(items[index].uri);
+        requestFocus(neighborUri);
     };
 
     const onItemKeyDown = (event: KeyboardEvent<HTMLDivElement>, index: number) => {
@@ -227,7 +306,7 @@ export const MultiResultsList = ({ state }: MultiResultsListProps) => {
                 actions.focus(item.uri);
                 break;
             case "Delete":
-                actions.close(item.uri);
+                closeItem(index);
                 break;
             case "ContextMenu":
                 setContextMenu({ uri: item.uri, target: event.currentTarget });
@@ -308,108 +387,118 @@ export const MultiResultsList = ({ state }: MultiResultsListProps) => {
 
     return (
         <div
+            ref={rootRef}
             className={classes.root}
             role="listbox"
-            aria-label={locConstants.multiResults.resultsList}>
-            {items.map((item, index) => {
-                const entry = entries[item.uri];
-                const title = entry?.title ?? item.uri;
-                const displayTitle = entry?.isDocumentClosed
-                    ? locConstants.multiResults.closedEditorTitle(title)
-                    : title;
-                const isSelected = item.uri === selectedUri;
-                return (
-                    <div
-                        key={item.uri}
-                        ref={(element) => {
-                            if (element) {
-                                itemRefs.current.set(item.uri, element);
-                            } else {
-                                itemRefs.current.delete(item.uri);
-                            }
-                        }}
-                        role="option"
-                        aria-selected={isSelected}
-                        tabIndex={item.uri === effectiveTabStop ? 0 : -1}
-                        title={
-                            entry?.isDocumentClosed
-                                ? locConstants.multiResults.closedEditorTooltip
-                                : item.uri
-                        }
-                        className={mergeClasses(
-                            classes.item,
-                            isSelected && classes.itemSelected,
-                            dropTargetUri === item.uri && classes.itemDropTarget,
-                        )}
-                        draggable
-                        onDragStart={(event) => startMultiResultDrag(event, item.uri)}
-                        onDragOver={(event) => onItemDragOver(event, item.uri)}
-                        onDragLeave={(event) => onItemDragLeave(event, item.uri)}
-                        onDrop={(event) => onItemDrop(event, item)}
-                        onClick={() => {
-                            setTabStopUri(item.uri);
-                            actions.focus(item.uri);
-                        }}
-                        onContextMenu={(event) => {
-                            event.preventDefault();
-                            setContextMenu({
-                                uri: item.uri,
-                                target: getPointTarget(event.clientX, event.clientY),
-                            });
-                        }}
-                        onKeyDown={(event) => onItemKeyDown(event, index)}>
-                        <span className={classes.treeLine} aria-hidden>
-                            {getTreeLine(item)}
-                        </span>
-                        <span className={classes.icon}>
-                            {entry?.isExecuting ? (
-                                <Spinner
-                                    size="extra-tiny"
-                                    aria-label={locConstants.multiResults.running}
-                                />
-                            ) : entry?.hasError ? (
-                                <ErrorCircle16Regular
-                                    className={classes.errorIcon}
-                                    aria-label={locConstants.multiResults.hasErrors}
-                                />
-                            ) : (
-                                <Table16Regular aria-hidden />
-                            )}
-                        </span>
-                        <Text
-                            truncate
-                            wrap={false}
-                            className={mergeClasses(
-                                classes.title,
-                                entry?.isDocumentClosed && classes.closedTitle,
-                            )}>
-                            {displayTitle}
-                        </Text>
-                        {(entry?.resultSetCount ?? 0) > 0 && (
-                            <span
-                                className={classes.count}
-                                title={locConstants.multiResults.resultSetCount(
-                                    entry.resultSetCount,
-                                )}>
-                                {entry.resultSetCount}
-                            </span>
-                        )}
-                        <Button
-                            className={mergeClasses(classes.closeButton, CLOSE_BUTTON_CLASS)}
-                            appearance="subtle"
-                            size="small"
-                            tabIndex={-1}
-                            icon={<Dismiss16Regular />}
-                            title={locConstants.multiResults.closeResults}
-                            aria-label={locConstants.multiResults.closeResults}
-                            onClick={(event) => {
-                                event.stopPropagation();
-                                actions.close(item.uri);
+            aria-label={locConstants.multiResults.resultsList}
+            // Holds focus when the last result is closed.
+            tabIndex={-1}>
+            <div className={classes.rows} style={{ height: `${virtualizer.getTotalSize()}px` }}>
+                {virtualizer.getVirtualItems().map((virtualRow) => {
+                    const index = virtualRow.index;
+                    const item = items[index];
+                    const entry = entries[item.uri];
+                    const title = entry?.title ?? item.uri;
+                    const displayTitle = entry?.isDocumentClosed
+                        ? locConstants.multiResults.closedEditorTitle(title)
+                        : title;
+                    const isSelected = item.uri === selectedUri;
+                    return (
+                        <div
+                            key={item.uri}
+                            ref={(element) => {
+                                if (element) {
+                                    itemRefs.current.set(item.uri, element);
+                                } else {
+                                    itemRefs.current.delete(item.uri);
+                                }
                             }}
-                        />
-                    </div>
-                );
-            })}
+                            style={{ transform: `translateY(${virtualRow.start}px)` }}
+                            role="option"
+                            aria-selected={isSelected}
+                            aria-posinset={index + 1}
+                            aria-setsize={items.length}
+                            tabIndex={item.uri === effectiveTabStop ? 0 : -1}
+                            title={
+                                entry?.isDocumentClosed
+                                    ? locConstants.multiResults.closedEditorTooltip
+                                    : item.uri
+                            }
+                            className={mergeClasses(
+                                classes.item,
+                                isSelected && classes.itemSelected,
+                                dropTargetUri === item.uri && classes.itemDropTarget,
+                            )}
+                            draggable
+                            onDragStart={(event) => startMultiResultDrag(event, item.uri)}
+                            onDragOver={(event) => onItemDragOver(event, item.uri)}
+                            onDragLeave={(event) => onItemDragLeave(event, item.uri)}
+                            onDrop={(event) => onItemDrop(event, item)}
+                            onClick={() => {
+                                setTabStopUri(item.uri);
+                                actions.focus(item.uri);
+                            }}
+                            onContextMenu={(event) => {
+                                event.preventDefault();
+                                setContextMenu({
+                                    uri: item.uri,
+                                    target: getPointTarget(event.clientX, event.clientY),
+                                });
+                            }}
+                            onKeyDown={(event) => onItemKeyDown(event, index)}>
+                            <span className={classes.treeLine} aria-hidden>
+                                {getTreeLine(item)}
+                            </span>
+                            <span className={classes.icon}>
+                                {entry?.isExecuting ? (
+                                    <Spinner
+                                        size="extra-tiny"
+                                        aria-label={locConstants.multiResults.running}
+                                    />
+                                ) : entry?.hasError ? (
+                                    <ErrorCircle16Regular
+                                        className={classes.errorIcon}
+                                        aria-label={locConstants.multiResults.hasErrors}
+                                    />
+                                ) : (
+                                    <Table16Regular aria-hidden />
+                                )}
+                            </span>
+                            <Text
+                                truncate
+                                wrap={false}
+                                className={mergeClasses(
+                                    classes.title,
+                                    entry?.isDocumentClosed && classes.closedTitle,
+                                )}>
+                                {displayTitle}
+                            </Text>
+                            {(entry?.resultSetCount ?? 0) > 0 && (
+                                <span
+                                    className={classes.count}
+                                    title={locConstants.multiResults.resultSetCount(
+                                        entry.resultSetCount,
+                                    )}>
+                                    {entry.resultSetCount}
+                                </span>
+                            )}
+                            <Button
+                                className={mergeClasses(classes.closeButton, CLOSE_BUTTON_CLASS)}
+                                appearance="subtle"
+                                size="small"
+                                tabIndex={-1}
+                                icon={<Dismiss16Regular />}
+                                title={locConstants.multiResults.closeResults}
+                                aria-label={locConstants.multiResults.closeResults}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    closeItem(index);
+                                }}
+                            />
+                        </div>
+                    );
+                })}
+            </div>
             <div
                 className={mergeClasses(classes.dropTail, isDropOnTail && classes.dropTailActive)}
                 aria-hidden
@@ -473,7 +562,13 @@ export const MultiResultsList = ({ state }: MultiResultsListProps) => {
                             {(otherGroups.length > 0 || menuItem.group.uris.length > 1) && (
                                 <MenuDivider />
                             )}
-                            <MenuItem onClick={() => actions.close(menuItem.uri)}>
+                            <MenuItem
+                                onClick={() => {
+                                    const neighborUri = getNeighborUri(items.indexOf(menuItem));
+                                    actions.close(menuItem.uri);
+                                    // The menu returns focus when it closes, so move focus after.
+                                    requestAnimationFrame(() => requestFocus(neighborUri));
+                                }}>
                                 {locConstants.multiResults.closeResults}
                             </MenuItem>
                         </MenuList>

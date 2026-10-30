@@ -128,6 +128,15 @@ suite("MultiResultsLayout", () => {
         expect(groupA.sizes).to.deep.equal([30, 70]);
     });
 
+    test("renaming a result to the name of a listed result replaces that result", () => {
+        const layout = createLayout(a, b);
+
+        layout.rename(a, b);
+
+        expect(groupUris(layout)).to.deep.equal([[b]]);
+        expect(layout.activeGroup?.uris).to.deep.equal([b]);
+    });
+
     test("renames a result in place", () => {
         const layout = createLayout(a, b);
         const groupA = layout.getGroup(a)!;

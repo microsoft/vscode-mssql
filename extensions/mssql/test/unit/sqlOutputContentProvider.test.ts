@@ -264,6 +264,31 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(contentProvider.getResultsMap.get(newUri)).to.equal(queryRunnerState);
     });
 
+    test("updateQueryRunnerUri releases a listed result that a query is saved over", async () => {
+        const oldUri = "untitled:Untitled-98";
+        const newUri = "file:///saved-over.sql";
+        const queryRunner = {
+            updateQueryRunnerUri: sandbox.stub(),
+        } as unknown as QueryRunner;
+        const staleRunner = {
+            isExecutingQuery: false,
+            dispose: sandbox.stub().resolves(),
+        } as unknown as QueryRunner;
+        contentProvider.setResultsMap = new Map<string, QueryRunnerState>([
+            [oldUri, new QueryRunnerState(queryRunner)],
+            [newUri, new QueryRunnerState(staleRunner)],
+        ]);
+        sandbox
+            .stub(contentProvider.queryResultWebviewController, "isInMultiResultsList")
+            .withArgs(newUri)
+            .returns(true);
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        expect(staleRunner.dispose).to.have.been.calledOnce;
+        expect(contentProvider.getResultsMap.get(newUri)?.queryRunner).to.equal(queryRunner);
+    });
+
     test("updateQueryRunnerUri should not throw when query result state does not exist", async () => {
         const oldUri = "untitled:Untitled-1";
         const newUri = "file:///test.sql";

@@ -40,6 +40,7 @@ suite("QueryResultWebviewController", () => {
     let clipboardWriteTextStub: sinon.SinonStub;
     let configuration: {
         get: sinon.SinonStub;
+        inspect: sinon.SinonStub;
         update: sinon.SinonStub;
     };
     let onDidChangeConfigurationHandler: ((e: vscode.ConfigurationChangeEvent) => void) | undefined;
@@ -92,6 +93,7 @@ suite("QueryResultWebviewController", () => {
                 }
                 return defaultValue;
             }),
+            inspect: sandbox.stub().returns(undefined),
             update: sandbox.stub().resolves(),
         };
 
@@ -354,6 +356,48 @@ suite("QueryResultWebviewController", () => {
 
             expect(getActiveGroup()?.uris).to.deep.equal([testUri]);
             expect(getMultiResults().followActiveEditor).to.be.true;
+        });
+
+        test("changes following where the setting is set", async () => {
+            await multiController["setFollowActiveEditor"](false);
+            expect(configuration.update).to.have.been.calledWith(
+                Constants.configQueryResultsFollowActiveEditor,
+                false,
+                vscode.ConfigurationTarget.Global,
+            );
+
+            configuration.inspect.returns({
+                key: Constants.configQueryResultsFollowActiveEditor,
+                workspaceValue: true,
+            });
+            await multiController["setFollowActiveEditor"](false);
+            expect(configuration.update).to.have.been.calledWith(
+                Constants.configQueryResultsFollowActiveEditor,
+                false,
+                vscode.ConfigurationTarget.Workspace,
+            );
+        });
+
+        test("keeps results that are open in a tab out of the list when their query runs again", () => {
+            multiController["_queryResultWebviewPanelControllerMap"].set(otherUri, {} as never);
+            multiController["removeFromMultiResults"](otherUri);
+
+            multiController.addQueryResultState(otherUri, "other.sql");
+
+            expect(multiController.isInMultiResultsList(otherUri)).to.be.false;
+            expect(getMultiResults().groups.map((group) => group.uris)).to.deep.equal([[testUri]]);
+        });
+
+        test("a result saved over a closed file's listed result replaces it", () => {
+            onDidCloseTextDocumentHandler!({
+                uri: vscode.Uri.parse(otherUri),
+            } as vscode.TextDocument);
+
+            multiController.updateUri(testUri, otherUri);
+
+            expect(getMultiResults().groups.map((group) => group.uris)).to.deep.equal([[otherUri]]);
+            expect(getMultiResults().entries[otherUri].isDocumentClosed).to.be.false;
+            expect(multiController.getQueryResultState(otherUri).title).to.equal("test.sql");
         });
 
         test("keeps a result listed after its editor closes", () => {

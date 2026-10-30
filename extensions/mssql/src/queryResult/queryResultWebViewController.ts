@@ -506,13 +506,14 @@ export class QueryResultWebviewController extends WebviewViewController<
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.ToggleFollowActiveEditor, {
             additionalProps: { followActiveEditor: String(follow) },
         });
-        await vscode.workspace
-            .getConfiguration()
-            .update(
-                Constants.configQueryResultsFollowActiveEditor,
-                follow,
-                vscode.ConfigurationTarget.Global,
-            );
+        const config = vscode.workspace.getConfiguration();
+        // A workspace value overrides the user value, so change the setting where it is set.
+        const target =
+            config.inspect<boolean>(Constants.configQueryResultsFollowActiveEditor)
+                ?.workspaceValue !== undefined
+                ? vscode.ConfigurationTarget.Workspace
+                : vscode.ConfigurationTarget.Global;
+        await config.update(Constants.configQueryResultsFollowActiveEditor, follow, target);
     }
 
     /**
@@ -848,7 +849,8 @@ export class QueryResultWebviewController extends WebviewViewController<
         } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
 
-        if (this._multiResultsLayout) {
+        // Results open in a tab stay there when their query runs again.
+        if (this._multiResultsLayout && !this.hasPanel(uri)) {
             // Running a query shows its results even when not following the active editor.
             this._closedDocumentUris.delete(uri);
             this._multiResultsLayout.add(uri);
@@ -1010,8 +1012,11 @@ export class QueryResultWebviewController extends WebviewViewController<
         this._queryResultStateMap.delete(oldUri);
 
         if (this._multiResultsLayout?.has(oldUri)) {
+            // Replaces any result already listed under the new URI.
             this._multiResultsLayout.rename(oldUri, newUri);
-            if (this._closedDocumentUris.delete(oldUri)) {
+            const wasClosed = this._closedDocumentUris.delete(oldUri);
+            this._closedDocumentUris.delete(newUri);
+            if (wasClosed) {
                 this._closedDocumentUris.add(newUri);
             }
         }
