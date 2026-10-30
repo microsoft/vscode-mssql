@@ -1,0 +1,50 @@
+{
+    "name": "sql-core",
+    "version": "0.0.1",
+    "private": true,
+    "description": "VS Code-independent SQL building blocks and data providers",
+    "license": "SEE LICENSE IN ../../LICENSE.txt",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "common": [
+                "dist/common/index.d.ts"
+            ],
+            "queryStore": [
+                "dist/queryStore/index.d.ts"
+            ]
+        }
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./common": {
+            "types": "./dist/common/index.d.ts",
+            "require": "./dist/common/index.js",
+            "default": "./dist/common/index.js"
+        },
+        "./queryStore": {
+            "types": "./dist/queryStore/index.d.ts",
+            "require": "./dist/queryStore/index.js",
+            "default": "./dist/queryStore/index.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
+        "lint": "eslint --quiet --cache ./src ./test",
+        "pretest": "npm run build",
+        "test": "node --test"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.14",
+        "typescript": "^5.8.3"
+    }
+}

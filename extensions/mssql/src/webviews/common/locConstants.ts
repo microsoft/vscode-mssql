@@ -4333,6 +4333,654 @@ export class LocConstants {
         };
     }
 
+    public get navigation() {
+        return {
+            breadcrumb: l10n.t("Breadcrumb"),
+            back: l10n.t("Back"),
+        };
+    }
+
+    public get performanceDashboard() {
+        return {
+            noChartData: l10n.t("No data for this time range."),
+            total: l10n.t("Total"),
+            average: l10n.t("Average"),
+            maximum: l10n.t("Max"),
+            minimum: l10n.t("Min"),
+            standardDeviation: l10n.t("Std dev"),
+            rankedMetric: (statistic: string, metric: string) =>
+                l10n.t({
+                    message: "{0} {1}",
+                    args: [statistic, metric],
+                    comment: [
+                        "{0} is a statistic, for example Total or Average",
+                        "{1} is a metric with its unit, for example CPU (ms)",
+                    ],
+                }),
+            cpuMs: l10n.t("CPU (ms)"),
+            durationMetric: l10n.t({
+                message: "duration",
+                comment: ["A metric after a statistic, for example Total duration"],
+            }),
+            logicalReadsMetric: l10n.t({
+                message: "logical reads",
+                comment: ["A metric after a statistic, for example Total logical reads"],
+            }),
+            highCpu: l10n.t("High CPU"),
+            longestRunning: l10n.t("Longest running"),
+            mostFrequent: l10n.t("Most frequent"),
+            highReads: l10n.t("High reads"),
+            highMemory: l10n.t("High memory"),
+            highMemoryQueries: l10n.t("High memory queries"),
+            durationMs: l10n.t("duration (ms)"),
+            logicalReadsKb: l10n.t("logical reads (KB)"),
+            mostFrequentQueries: l10n.t("Most frequent queries"),
+            longestRunningQueries: l10n.t("Longest running queries"),
+            highReadQueries: l10n.t("High read queries"),
+            queryCategory: l10n.t("Query category"),
+            rankBy: l10n.t("Rank by"),
+            searchQueries: l10n.t("Search queries"),
+            favoritesOnly: l10n.t("Favorites only"),
+            noMatchingQueries: l10n.t("No queries match."),
+            addFavorite: (queryId: string) =>
+                l10n.t({
+                    message: "Add query {0} to favorites",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
+            removeFavorite: (queryId: string) =>
+                l10n.t({
+                    message: "Remove query {0} from favorites",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
+            queryNumber: (queryId: string) =>
+                l10n.t({
+                    message: "Query {0}",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
+            queryNotFound: l10n.t("Query Store has no data for this query in this time range."),
+            objectName: l10n.t("Object name"),
+            lastExecuted: l10n.t("Last executed"),
+            planForcedBadge: (planId: string) =>
+                l10n.t({
+                    message: "Plan {0} forced",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            notForced: l10n.t("Not forced"),
+            minShort: l10n.t({ message: "Min", comment: ["Short for minimum"] }),
+            maxShort: l10n.t({ message: "Max", comment: ["Short for maximum"] }),
+            executionHistory: l10n.t("Execution history"),
+            plans: l10n.t("Plans"),
+            queryTextTitle: l10n.t("Query text"),
+            queryViews: l10n.t("Query views"),
+            queryTextEditor: l10n.t("Query text, read-only"),
+            noQueryText: l10n.t("The query text is not available."),
+            copySql: l10n.t("Copy SQL"),
+            copied: l10n.t("Copied"),
+            durationMsOption: l10n.t("Duration (ms)"),
+            logicalReadsKbOption: l10n.t("Logical reads (KB)"),
+            milliseconds: (value: string) =>
+                l10n.t({
+                    message: "{0} ms",
+                    args: [value],
+                    comment: ["{0} is a number of milliseconds, for example 46.54"],
+                }),
+            kilobytes: (value: string) =>
+                l10n.t({
+                    message: "{0} KB",
+                    args: [value],
+                    comment: ["{0} is a number of kilobytes, for example 2,588"],
+                }),
+            totalDuration: l10n.t("Total duration"),
+            totalCpu: l10n.t("Total CPU"),
+            logicalReads: l10n.t("Logical reads"),
+            viewBy: l10n.t("View by"),
+            timeInterval: l10n.t("Time interval"),
+            timeIntervalRange: (start: string, end: string) =>
+                l10n.t({
+                    message: "{0} - {1}",
+                    args: [start, end],
+                    comment: ["{0} is the start date and time", "{1} is the end time"],
+                }),
+            noPlans: l10n.t("Query Store has no plans for this query."),
+            selectPlan: (planId: string) =>
+                l10n.t({
+                    message: "Select plan {0}",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            plan: l10n.t("Plan"),
+            planLegend: (planId: string) =>
+                l10n.t({
+                    message: "Plan {0}",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            planSummaryTitle: (metric: string) =>
+                l10n.t({
+                    message: "Plan summary: {0}",
+                    args: [metric],
+                    comment: ["{0} is the statistic and metric, for example Total Duration (ms)"],
+                }),
+            runs: l10n.t("Runs"),
+            mean: l10n.t("Mean duration"),
+            meanCpu: l10n.t("Mean CPU"),
+            force: l10n.t("Force"),
+            forcedManually: l10n.t("Forced (Manual)"),
+            forcedAutomatically: l10n.t("Forced (Automatic tuning)"),
+            forceFailed: (reason: string) =>
+                l10n.t({
+                    message: "Last force failed: {0}",
+                    args: [reason],
+                    comment: ["{0} is the failure reason code, for example NO_INDEX"],
+                }),
+            selectPlans: l10n.t("Select one plan to open or force, or two plans to compare."),
+            onePlanSelected: l10n.t("1 selected"),
+            selectTwoToCompare: l10n.t("select two plans to compare"),
+            twoPlansSelected: l10n.t("2 selected"),
+            openPlanXml: l10n.t("Open plan XML"),
+            planActions: (planId: string) =>
+                l10n.t({
+                    message: "Actions for plan {0}",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            openPlan: (planId: string) =>
+                l10n.t({
+                    message: "Open plan {0} in the execution plan viewer",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            comparePlansAction: l10n.t("Compare plans"),
+            forcePlan: l10n.t("Force plan"),
+            unforcePlan: l10n.t("Unforce plan"),
+            planXmlNotFound: (planId: string) =>
+                l10n.t({
+                    message: "Query Store has no plan XML for plan {0}.",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            planCompareFailed: l10n.t("The plans could not be read for the comparison."),
+            reviewForcePlan: (planId: string) =>
+                l10n.t({
+                    message: "Force plan {0}",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            reviewUnforcePlan: (planId: string) =>
+                l10n.t({
+                    message: "Unforce plan {0}",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            planForced: (planId: string) =>
+                l10n.t({
+                    message: "Plan {0} is forced.",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            planUnforced: (planId: string) =>
+                l10n.t({
+                    message: "Plan {0} is no longer forced.",
+                    args: [planId],
+                    comment: ["{0} is the Query Store plan ID"],
+                }),
+            verifyExplanation: l10n.t(
+                "Verify after the query runs again: Query Store counts the executions from the interval after the change.",
+            ),
+            verifyForcedPlan: l10n.t("Verify"),
+            verifyForcedPlanInUse: l10n.t("New executions use the forced plan."),
+            verifyOtherPlansInUse: l10n.t(
+                "Some new executions use another plan. The last force failure can say why.",
+            ),
+            verifyNoExecutions: l10n.t("The query has not run since the change."),
+            verifyWaiting: l10n.t(
+                "The first Query Store interval after the change has not started yet. Verify again later.",
+            ),
+            verifyNotForced: l10n.t("The plan is not forced."),
+            planBlockerQueryStoreNotReadWrite: l10n.t(
+                "Query Store must be read-write to change plan forcing.",
+            ),
+            planBlockerPlanNotFound: l10n.t("Query Store does not have this plan."),
+            planBlockerPlanNotForQuery: l10n.t("The plan belongs to another query."),
+            planBlockerAlreadyForced: l10n.t("The plan is already forced."),
+            planBlockerNotForced: l10n.t("The plan is not forced."),
+            planBlockerAutoForced: l10n.t(
+                "Automatic tuning forced a plan for this query, so the plan forcing cannot be changed here.",
+            ),
+            planBlockerDispatcher: l10n.t(
+                "A dispatcher plan cannot be forced. Force one of its variant plans.",
+            ),
+            planBlockerStateChanged: l10n.t(
+                "The plan forcing changed after you prepared the change. Prepare it again.",
+            ),
+            planWarningReplacesForced: l10n.t(
+                "Another plan of this query is forced. This change replaces it.",
+            ),
+            planWarningForcingTypeUnknown: l10n.t(
+                "This version cannot tell manual from automatic forcing.",
+            ),
+            planWarningVariant: l10n.t("This is a variant plan of a parameter-sensitive query."),
+            planWarningDispatcher: l10n.t("This is a dispatcher plan."),
+            planWarningPreviousFailures: l10n.t(
+                "Forcing this plan failed before. Check the last failure reason.",
+            ),
+            serverAndDatabase: (serverName: string, databaseName: string) =>
+                l10n.t({
+                    message: "{0} / {1}",
+                    args: [serverName, databaseName],
+                    comment: ["{0} is the server name", "{1} is the database name"],
+                }),
+            database: l10n.t("Database"),
+            searchDatabases: l10n.t("Search databases"),
+            connectionFailed: (errorMessage: string) =>
+                l10n.t({
+                    message: "Could not read from the database: {0}",
+                    args: [errorMessage],
+                    comment: ["{0} is the error message"],
+                }),
+            databaseListFailed: (errorMessage: string) =>
+                l10n.t({
+                    message: "Could not load the database list: {0}",
+                    args: [errorMessage],
+                    comment: ["{0} is the error message"],
+                }),
+            queries: l10n.t("Queries"),
+            query: (queryId: string) =>
+                l10n.t({
+                    message: "Query {0}",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
+            settings: l10n.t("Settings"),
+            openQueryStoreSettings: l10n.t("Open Query Store settings"),
+            updatedAt: (time: string) =>
+                l10n.t({
+                    message: "Updated {0}",
+                    args: [time],
+                    comment: ["{0} is a time, for example 3:02 AM"],
+                }),
+            queryStore: l10n.t("Query Store"),
+            stateCollecting: l10n.t("Collecting"),
+            stateReadOnly: l10n.t("Read-only"),
+            stateOff: l10n.t("Off"),
+            stateError: l10n.t("Error"),
+            stateReadCapture: l10n.t("Capturing secondary replicas"),
+            storageUsed: (usedMb: string, maxMb: string) =>
+                l10n.t({
+                    message: "{0} MB of {1} MB",
+                    args: [usedMb, maxMb],
+                    comment: ["{0} is the used size in MB", "{1} is the maximum size in MB"],
+                }),
+            storageUsedAmount: (usedMb: string) =>
+                l10n.t({
+                    message: "{0} MB",
+                    args: [usedMb],
+                    comment: ["{0} is the used size in MB"],
+                }),
+            storageOfMax: (maxMb: string) =>
+                l10n.t({
+                    message: "of {0} MB used",
+                    args: [maxMb],
+                    comment: ["{0} is the maximum size in MB. It follows the used size, 1 MB"],
+                }),
+            storageLabel: l10n.t("Query Store storage"),
+            cleanupAt: (percent: string) =>
+                l10n.t({
+                    message: "Cleanup starts at {0}",
+                    args: [percent],
+                    comment: ["{0} is a percentage of the maximum size, for example 90%"],
+                }),
+            cleanupOff: l10n.t("Size-based cleanup off"),
+            readWrite: l10n.t("Read-write"),
+            readOnly: l10n.t("Read-only"),
+            off: l10n.t("Off"),
+            captureAuto: l10n.t("Auto"),
+            captureAll: l10n.t("All"),
+            captureNone: l10n.t("None"),
+            captureCustom: l10n.t("Custom"),
+            minutes: (count: string) =>
+                l10n.t({
+                    message: "{0} min",
+                    args: [count],
+                    comment: ["{0} is a number of minutes"],
+                }),
+            operationMode: l10n.t("Operation mode"),
+            operationModeDescription: l10n.t(
+                "Read-only stops collecting new data. Off also stops plan forcing.",
+            ),
+            captureMode: l10n.t("Capture mode"),
+            captureModeDescription: l10n.t("Auto skips infrequent and insignificant queries"),
+            capturePolicyStale: l10n.t("Evaluation period"),
+            capturePolicyStaleDescription: l10n.t(
+                "Custom capture: the period in which a query must reach a threshold below",
+            ),
+            capturePolicyExecutionCount: l10n.t("Execution count"),
+            capturePolicyExecutionCountDescription: l10n.t(
+                "Capture a query that runs at least this many times",
+            ),
+            capturePolicyCompileCpu: l10n.t("Compile CPU"),
+            capturePolicyCompileCpuDescription: l10n.t(
+                "Or that uses at least this much CPU to compile",
+            ),
+            capturePolicyExecutionCpu: l10n.t("Execution CPU"),
+            capturePolicyExecutionCpuDescription: l10n.t(
+                "Or that uses at least this much CPU to run",
+            ),
+            maxSize: l10n.t("Max size"),
+            maxSizeDescription: l10n.t("Storage limit for collected data"),
+            sizeBasedCleanup: l10n.t("Size-based cleanup"),
+            sizeBasedCleanupDescription: l10n.t(
+                "At 90% of the max size, removes the oldest and least costly queries until about 80%. SQL Server sets these thresholds.",
+            ),
+            flushInterval: l10n.t("Data flush interval"),
+            flushIntervalDescription: l10n.t("How often collected data is written to disk"),
+            keepQueriesFor: l10n.t("Keep queries for"),
+            keepQueriesDescription: l10n.t("Older query data is removed"),
+            statisticsInterval: l10n.t("Statistics interval"),
+            groupCollection: l10n.t("Collection"),
+            groupStorage: l10n.t("Storage"),
+            groupTiming: l10n.t("Timing"),
+            unitMb: l10n.t({ message: "MB", comment: ["Megabytes, after a number"] }),
+            unitDays: l10n.t({ message: "days", comment: ["After a number of days"] }),
+            unitHours: l10n.t({ message: "hours", comment: ["After a number of hours"] }),
+            unitMinutes: l10n.t({ message: "min", comment: ["Minutes, after a number"] }),
+            unitMs: l10n.t({ message: "ms", comment: ["Milliseconds, after a number"] }),
+            oneHour: l10n.t("1 hour"),
+            oneDay: l10n.t("1 day"),
+            noChanges: l10n.t("No changes"),
+            changeCount: (count: number) =>
+                count === 1
+                    ? l10n.t("1 change")
+                    : l10n.t({
+                          message: "{0} changes",
+                          args: [count],
+                          comment: ["{0} is the number of changed settings"],
+                      }),
+            intervalDescription: l10n.t("How often runtime statistics are aggregated"),
+            waitStatistics: l10n.t("Wait statistics"),
+            waitStatisticsDescription: l10n.t("Capture what queries spend time waiting on"),
+            alterPermissionMissing: l10n.t(
+                "You need ALTER permission on the database to change the Query Store settings.",
+            ),
+            prepareForReview: l10n.t("Review change"),
+            changeQueryStoreSettings: l10n.t("Change Query Store settings"),
+            changeScript: l10n.t("The T-SQL of the change, read-only"),
+            reviewDescription: l10n.t(
+                "Apply runs this script on the database. You can also open it in a query editor and run it yourself.",
+            ),
+            openInQueryEditor: l10n.t("Open in query editor"),
+            settingsChanged: l10n.t("Query Store settings changed."),
+            settingsNotChangeable: l10n.t(
+                "Query Store settings can't be changed from here on this platform.",
+            ),
+            noQueryStoreSettings: l10n.t("This platform has no Query Store settings."),
+            queryStoreReadOnlyBecause: (reason: string) =>
+                l10n.t({
+                    message: "Query Store is read-only. {0}",
+                    args: [reason],
+                    comment: [
+                        "{0} is the reason, for example: Query Store reached its maximum size.",
+                    ],
+                }),
+            readOnlyDbReadOnly: l10n.t("The database is read-only."),
+            readOnlyDbInSingleUserMode: l10n.t("The database is in single-user mode."),
+            readOnlyDbInEmergencyMode: l10n.t("The database is in emergency mode."),
+            readOnlyDbInLogAcceptMode: l10n.t("The database is a secondary that applies the log."),
+            readOnlyDiskSizeLimit: l10n.t("Query Store reached its maximum size."),
+            readOnlyMemoryLimit: l10n.t("Query Store reached its memory limit."),
+            warningMaxSizeBelowCurrentSize: l10n.t(
+                "The new maximum size is less than the current size, so Query Store becomes read-only.",
+            ),
+            warningReadOnlyStopsCapture: l10n.t(
+                "Read-only stops the capture of new queries and statistics.",
+            ),
+            warningCaptureNoneStopsNewQueries: l10n.t(
+                "Capture mode None stops the capture of new queries.",
+            ),
+            warningTurnsQueryStoreOn: l10n.t("This change turns Query Store on."),
+            warningTurnsQueryStoreOff: l10n.t(
+                "Query Store stops collecting data, and forced plans are no longer forced. The data that it has stays.",
+            ),
+            warningSizeBasedCleanupOff: l10n.t(
+                "Without size-based cleanup, Query Store becomes read-only when it reaches its max size.",
+            ),
+            warningLongerFlushInterval: l10n.t(
+                "A longer flush interval loses more data if the server stops unexpectedly.",
+            ),
+            warningShorterIntervalUsesMoreStorage: l10n.t(
+                "A shorter interval gives more detail but uses more storage.",
+            ),
+            blockerNoChange: l10n.t("No value is different from the current settings."),
+            blockerPermissionMissing: l10n.t("You need the ALTER permission on the database."),
+            blockerPlatformUnsupported: l10n.t(
+                "Query Store settings can't be changed from here on this platform.",
+            ),
+            blockerWaitStatsUnsupported: l10n.t(
+                "This version of SQL Server does not capture wait statistics in Query Store.",
+            ),
+            blockerCapturePolicyUnsupported: l10n.t(
+                "This version of SQL Server does not have the custom capture policy.",
+            ),
+            blockerTurnOffUnsupported: l10n.t(
+                "Query Store can't be turned off on Azure SQL Database.",
+            ),
+            blockerQueryStoreError: l10n.t(
+                "Query Store is in the error state. Turn it off and on again to recover it.",
+            ),
+            blockerSettingsChanged: l10n.t(
+                "The settings changed after you prepared the change. Prepare it again.",
+            ),
+            blockerPreparedSqlMismatch: l10n.t(
+                "The script is not the script for this change. Prepare it again.",
+            ),
+            pastHour: l10n.t("Past hour"),
+            past12Hours: l10n.t("Past 12 hours"),
+            past24Hours: l10n.t("Past 24 hours"),
+            past7Days: l10n.t("Past 7 days"),
+            past30Days: l10n.t("Past 30 days"),
+            metric: l10n.t("Metric"),
+            notAvailable: l10n.t("N/A"),
+            highCpuQueries: l10n.t("High CPU usage queries"),
+            queryId: l10n.t("Query ID"),
+            averageShort: l10n.t({
+                message: "Avg",
+                comment: ["Short for average, before a metric"],
+            }),
+            metricCpu: l10n.t({
+                message: "CPU",
+                comment: ["A metric after a statistic, for example Total CPU"],
+            }),
+            metricDuration: l10n.t({
+                message: "duration",
+                comment: ["A metric after a statistic, for example Total duration"],
+            }),
+            metricMemory: l10n.t({
+                message: "memory",
+                comment: ["A metric after a statistic, for example Total memory"],
+            }),
+            metricReads: l10n.t({
+                message: "reads",
+                comment: ["Logical reads, after a statistic, for example Total reads"],
+            }),
+            criticalAtOrAbove: (threshold: string) =>
+                l10n.t({
+                    message: "Critical (≥ {0})",
+                    args: [threshold],
+                    comment: ["{0} is the threshold, for example 80%"],
+                }),
+            compareTab: l10n.t("Compare"),
+            compareCpu: l10n.t({ message: "CPU", comment: ["A choice of measure: CPU time"] }),
+            compareMemory: l10n.t({ message: "Memory", comment: ["A choice of measure: memory"] }),
+            resizeQueryText: l10n.t("Resize the query text"),
+            compareRecent: l10n.t({
+                message: "Recent",
+                comment: ["The recent period of a comparison"],
+            }),
+            compareBaseline: l10n.t({
+                message: "Baseline",
+                comment: ["The earlier period that a comparison compares with"],
+            }),
+            versus: l10n.t({ message: "vs", comment: ["Short for versus, between two periods"] }),
+            recentSetByRange: l10n.t("The recent period is the time range at the top of the page."),
+            baselineSameLength: l10n.t("Same length before"),
+            baseline7Days: l10n.t("7 days before"),
+            baseline30Days: l10n.t("30 days before"),
+            averagePerExecution: l10n.t("Average per execution"),
+            totalPerDay: l10n.t("Total per day"),
+            change: l10n.t({
+                message: "Change",
+                comment: ["The change from one period to another"],
+            }),
+            executionsRecentBaseline: l10n.t("Executions (recent / baseline)"),
+            noCompareData: l10n.t("The query did not run in the recent or the baseline period."),
+            compareNote: l10n.t(
+                "Recent is the time range at the top. Baseline is the period before it, so the two never overlap. Per execution, periods of different length compare fairly.",
+            ),
+            recentPeriod: (value: string) =>
+                l10n.t({
+                    message: "Recent · {0}",
+                    args: [value],
+                    comment: ["{0} is a period, for example past 24 hours"],
+                }),
+            baselinePeriod: (value: string) =>
+                l10n.t({
+                    message: "Baseline · {0} that",
+                    args: [value],
+                    comment: ["{0} is a period, for example 30 days before"],
+                }),
+            recentColumn: (value: string) =>
+                l10n.t({
+                    message: "Recent {0}",
+                    args: [value],
+                    comment: ["{0} is a measure, for example Avg CPU"],
+                }),
+            baselineColumn: (value: string) =>
+                l10n.t({
+                    message: "Baseline {0}",
+                    args: [value],
+                    comment: ["{0} is a measure, for example Avg CPU"],
+                }),
+            metricPerDay: (value: string) =>
+                l10n.t({
+                    message: "{0} per day",
+                    args: [value],
+                    comment: ["{0} is a measure, for example CPU"],
+                }),
+            queryText: l10n.t("Query"),
+            cpuTime: l10n.t("CPU time"),
+            shareOfAllQueries: (share: string, value: string) =>
+                l10n.t({
+                    message: "{0} of the total of all queries, {1}",
+                    args: [share, value],
+                    comment: [
+                        "{0} is a percentage, for example 91.3%",
+                        "{1} is the exact value, for example 34,630 ms",
+                    ],
+                }),
+            executionCount: l10n.t("Executions"),
+            noQueries: l10n.t("No queries ran in this time range."),
+            queryStoreOff: l10n.t(
+                "Query Store is off for this database. Turn it on to see query performance.",
+            ),
+            queryStoreReadOnly: l10n.t(
+                "Query Store is read-only, so it does not capture new data. The data can be old.",
+            ),
+            metricUnsupported: l10n.t("This platform does not record this data in Query Store."),
+            permissionMissing: l10n.t(
+                "You need the VIEW DATABASE STATE permission to read Query Store data.",
+            ),
+            temporarilyUnavailable: (errorMessage: string) =>
+                l10n.t({
+                    message: "The database did not answer in time. Try again. {0}",
+                    args: [errorMessage],
+                    comment: ["{0} is the error message"],
+                }),
+            readFailed: (errorMessage: string) =>
+                l10n.t({
+                    message: "Could not read the data: {0}",
+                    args: [errorMessage],
+                    comment: ["{0} is the error message"],
+                }),
+            dataPlaneDisabled: l10n.t(
+                "The performance dashboard needs the SQL data plane preview. Turn on the mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled settings, then reload the window.",
+            ),
+            reloadRequired: l10n.t("Reload the window to start the SQL data plane."),
+            dataPlaneUnavailable: l10n.t("The SQL data plane is not available."),
+            connectionNotFound: l10n.t(
+                "The connection was not found. Connect to the database again.",
+            ),
+            authenticationUnsupported: l10n.t(
+                "The SQL data plane does not support the authentication type of this connection.",
+            ),
+            waitsTab: l10n.t({ message: "Waits", comment: ["A tab: what the query waits on"] }),
+            totalWait: l10n.t("Total wait"),
+            waitingShare: l10n.t({
+                message: "Waiting",
+                comment: ["The part of the query's duration that it spent waiting"],
+            }),
+            topWait: l10n.t("Top wait"),
+            waitCategory: l10n.t("Wait category"),
+            avgWaitPerExecution: l10n.t("Average per execution"),
+            maxWait: l10n.t("Longest wait"),
+            shareOfWaits: l10n.t("Share of waits"),
+            waitTimeMs: l10n.t("Wait time (ms)"),
+            otherWaits: l10n.t({ message: "Other", comment: ["The other wait categories"] }),
+            allPlans: l10n.t("All plans"),
+            noWaits: l10n.t("No waits were recorded in this time range."),
+            waitCaptureOff: l10n.t(
+                "Query Store does not capture wait statistics, so new waits are not recorded.",
+            ),
+            turnOnWaitCapture: l10n.t("Turn on wait statistics capture"),
+            openInChat: l10n.t("Open in Chat"),
+            preview: l10n.t("Preview"),
+            queryActions: (queryId: string) =>
+                l10n.t({
+                    message: "Actions for query {0}",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
+        };
+    }
+
+    public get timeRange() {
+        return {
+            timeRangeLabel: (range: string) =>
+                l10n.t({
+                    message: "Time range: {0}",
+                    args: [range],
+                    comment: ["{0} is the selected time range, for example Past 24 hours"],
+                }),
+            range: (from: string, to: string) =>
+                l10n.t({
+                    message: "{0} - {1}",
+                    args: [from, to],
+                    comment: ["{0} is the start date and time", "{1} is the end date and time"],
+                }),
+            partial: l10n.t({
+                message: "Partial",
+                comment: ["A time range that starts before the oldest data"],
+            }),
+            customRange: l10n.t("Custom range"),
+            from: l10n.t("From"),
+            to: l10n.t("To"),
+            fromDate: l10n.t("From date"),
+            fromTime: l10n.t("From time"),
+            toDate: l10n.t("To date"),
+            toTime: l10n.t("To time"),
+            invalidRange: l10n.t("The start must be before the end, inside the available data."),
+            dataStarts: (from: string) =>
+                l10n.t({
+                    message: "Data starts {0}. Partial ranges show what's available.",
+                    args: [from],
+                    comment: ["{0} is the date and time of the oldest data"],
+                }),
+        };
+    }
+
     public get searchDatabase() {
         return {
             // Page titles and headers

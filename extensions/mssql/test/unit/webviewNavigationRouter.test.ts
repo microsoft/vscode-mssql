@@ -1,0 +1,184 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { expect } from "chai";
+import {
+    RouteDefinition,
+    createRouter,
+    previousPage,
+} from "../../src/webviews/common/navigation/router";
+import {
+    pageQuery,
+    performanceDashboardRouter,
+    performanceDashboardTabs,
+    settingsSectionOf,
+    withSettings,
+} from "../../src/webviews/pages/PerformanceDashboard/performanceDashboardRoutes";
+
+const title = () => "";
+
+const routes: RouteDefinition[] = [
+    { id: "home", path: "home", title },
+    { id: "items", path: "items", title },
+    { id: "item", path: "items/:itemId", parent: "items", title },
+    { id: "itemPart", path: "items/:itemId/parts/:partId", parent: "item", title },
+];
+
+suite("Webview navigation router", () => {
+    const router = createRouter(routes, "home");
+
+    test("matches a path with parameters and a query string", () => {
+        const match = router.match("items/42/parts/a%20b?view=grid&empty=");
+
+        expect(match?.route.id).to.equal("itemPart");
+        expect(match?.params).to.deep.equal({ itemId: "42", partId: "a b" });
+        expect(match?.query).to.deep.equal({ view: "grid" });
+        expect(match?.location).to.equal("items/42/parts/a%20b?view=grid");
+    });
+
+    test("ignores a leading slash or hash and extra slashes", () => {
+        expect(router.match("/items/42")?.location).to.equal("items/42");
+        expect(router.match("#items//42/")?.location).to.equal("items/42");
+    });
+
+    test("matches an empty location to the default route", () => {
+        expect(router.defaultLocation).to.equal("home");
+        expect(router.match("")?.route.id).to.equal("home");
+        expect(router.match("?x=1")?.location).to.equal("home?x=1");
+    });
+
+    test("does not match an unknown or malformed location", () => {
+        expect(router.match("missing")).to.be.undefined;
+        expect(router.match("items/42/extra")).to.be.undefined;
+        expect(router.match("items/%E0%A4%A")).to.be.undefined;
+    });
+
+    test("builds locations and encodes the values", () => {
+        expect(router.build("item", { itemId: "a/b" })).to.equal("items/a%2Fb");
+        expect(router.build("items", {}, { plans: "4,9", sort: undefined, q: "" })).to.equal(
+            "items?plans=4,9",
+        );
+        expect(router.build("itemPart", { itemId: 7, partId: 8 })).to.equal("items/7/parts/8");
+        expect(router.build("home", {}, { from: "2026-09-28T03:00:00Z" })).to.equal(
+            "home?from=2026-09-28T03:00:00Z",
+        );
+    });
+
+    test("does not build an unknown route or a route without its parameters", () => {
+        expect(() => router.build("missing")).to.throw(RangeError);
+        expect(() => router.build("item")).to.throw(RangeError, /itemId/);
+    });
+
+    test("returns the ancestry with the parameters of each parent", () => {
+        const match = router.match("items/42/parts/7?view=grid")!;
+
+        expect(router.ancestry(match).map((ancestor) => ancestor.location)).to.deep.equal([
+            "items",
+            "items/42",
+            "items/42/parts/7?view=grid",
+        ]);
+        expect(router.topRoute(match).id).to.equal("items");
+    });
+
+    test("rejects a route table that is not valid", () => {
+        expect(() =>
+            createRouter([...routes, { id: "home", path: "other", title }], "home"),
+        ).to.throw(/more than once/);
+        expect(() =>
+            createRouter([...routes, { id: "copy", path: "items/:x", title }], "home"),
+        ).to.throw(/used by another route/);
+        expect(() =>
+            createRouter([{ id: "a", path: "a", parent: "missing", title }], "a"),
+        ).to.throw(/unknown/);
+        expect(() =>
+            createRouter(
+                [
+                    { id: "a", path: "a", parent: "b", title },
+                    { id: "b", path: "b", parent: "a", title },
+                ],
+                "a",
+            ),
+        ).to.throw(/cycle/);
+        expect(() =>
+            createRouter(
+                [
+                    { id: "parent", path: "p/:id", title },
+                    { id: "child", path: "c", parent: "parent", title },
+                ],
+                "child",
+            ),
+        ).to.throw(/no parameter "id"/);
+        expect(() => createRouter(routes, "missing")).to.throw(/default route/);
+        expect(() => createRouter(routes, "item")).to.throw(/must not have parameters/);
+    });
+
+    test("goes back to the newest location on another page", () => {
+        const back = previousPage(
+            router,
+            ["home", "items?sort=name", "items/42"],
+            "items/42?tab=parts",
+        );
+
+        expect(back).to.deep.equal({ location: "items?sort=name", history: ["home"] });
+    });
+
+    test("does not go back to a change of the query string only", () => {
+        const back = previousPage(
+            router,
+            ["items", "items/42", "items/42?tab=parts"],
+            "items/42?tab=history",
+        );
+
+        expect(back).to.deep.equal({ location: "items", history: [] });
+    });
+
+    test("tells another item of the same route apart", () => {
+        expect(previousPage(router, ["items/7"], "items/42")?.location).to.equal("items/7");
+    });
+
+    test("has nowhere to go back without another page", () => {
+        expect(previousPage(router, [], "items/42")).to.be.undefined;
+        expect(previousPage(router, ["items/42?tab=parts"], "items/42")).to.be.undefined;
+    });
+});
+
+suite("Performance dashboard routes", () => {
+    const router = performanceDashboardRouter;
+    const crumbs = (location: string) =>
+        router.ancestry(router.match(location)!).map((match) => match.route.title(match));
+
+    test("has one tab for the queries, and opens at it", () => {
+        expect(performanceDashboardTabs.map((tab) => tab.id)).to.deep.equal(["queries"]);
+        expect(router.defaultLocation).to.equal("queries");
+    });
+
+    test("has no pages for removed tabs", () => {
+        for (const location of ["overview", "activity", "queries/913/compare"]) {
+            expect(router.match(location), location).to.be.undefined;
+        }
+    });
+
+    test("opens the settings dialog over a page with a query value", () => {
+        const queries = router.match("queries?range=7d")!;
+        const withDialog = withSettings(queries, "queryStore");
+
+        expect(withDialog).to.equal("queries?range=7d&settings=queryStore");
+        expect(settingsSectionOf(router.match(withDialog)!)).to.equal("queryStore");
+        expect(pageQuery(router.match(withDialog)!)).to.deep.equal({ range: "7d" });
+        expect(withSettings(router.match(withDialog)!, undefined)).to.equal("queries?range=7d");
+        expect(settingsSectionOf(router.match("queries?settings=unknown")!)).to.be.undefined;
+        expect(withSettings(router.match("queries/913")!, "queryStore")).to.equal(
+            "queries/913?settings=queryStore",
+        );
+    });
+
+    test("builds the breadcrumb of a query location", () => {
+        const location = router.build("query", { queryId: 913 }, { tab: "plans" });
+
+        expect(location).to.equal("queries/913?tab=plans");
+        expect(crumbs(location)).to.deep.equal(["Queries", "Query 913"]);
+        expect(router.topRoute(router.match(location)!).id).to.equal("queries");
+    });
+});

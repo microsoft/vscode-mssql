@@ -8,6 +8,14 @@ export const workspaceTargets = [
         scripts: ["build", "watch", "test", "lint"],
     },
     {
+        target: "sql-core",
+        kind: "package",
+        aliases: ["sql-core", "sqlcore"],
+        packageName: "sql-core",
+        directory: "packages/sql-core",
+        scripts: ["build", "watch", "test", "lint"],
+    },
+    {
         target: "mssql",
         kind: "extension",
         aliases: ["mssql"],
@@ -16,9 +24,13 @@ export const workspaceTargets = [
         scripts: ["build", "watch", "test", "smoketest", "lint", "package"],
         supportsProdBuild: true,
         dependencies: {
-            build: ["extension-toolkit"],
-            watch: ["extension-toolkit"],
-            lint: ["extension-toolkit"],
+            build: ["extension-toolkit", "sql-core"],
+            watch: ["extension-toolkit", "sql-core"],
+            lint: ["extension-toolkit", "sql-core"],
+            // The extension imports sql-core's built output, so these build sql-core first.
+            test: [{ target: "sql-core", action: "build" }],
+            smoketest: [{ target: "sql-core", action: "build" }],
+            package: [{ target: "sql-core", action: "build" }],
         },
     },
     {
