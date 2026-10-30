@@ -617,5 +617,18 @@
     "mssql.objectExplorerV2.scriptCreate": "Script as Create",
     "mssql.objectExplorerV2.scriptDrop": "Script as Drop",
     "mssql.objectExplorerV2.scriptExecute": "Script as Execute",
-    "mssql.objectExplorerV2.generateScriptSubmenu": "Generate Script"
+    "mssql.objectExplorerV2.generateScriptSubmenu": "Generate Script",
+    "mssql.queryStudio.spatial.enabled": "Enable the Spatial results tab (preview): queries with native geometry or geography columns transport complete typed WKB and gain the offline spatial analysis pane. Applies to the next query execution.",
+    "mssql.queryStudio.spatial.basemap.enabled": "Enable optional online map layers in the Query Studio spatial preview. Online layers require workspace trust and network consent. The bundled world outline is available offline without this setting.",
+    "mssql.queryStudio.spatial.basemap.sources": "Online map tile sources for the Spatial tab (user settings only — workspace values are ignored). Each source is a host-proxied HTTPS XYZ raster endpoint; the Query Studio webview never contacts the provider directly. Selecting a source requires a one-time confirmation because tile requests reveal the approximate viewed area to the provider.",
+    "mssql.queryStudio.spatial.basemap.cache.maxMb": "Disk budget for cached spatial map tiles (MB). Tiles are evicted by size and age; use \"MS SQL: Spatial Map Layers: Clear Tile Cache\" to remove them immediately.",
+    "mssql.queryStudio.spatial.basemap.cache.maxAgeDays": "Maximum age for cached spatial map tiles (days).",
+    "mssql.spatialBasemap.clearCache.title": "Spatial Map Layers: Clear Tile Cache",
+    "mssql.spatialBasemap.clearConsent.title": "Spatial Map Layers: Clear Layer Consent",
+    "mssql.queryStudio.spatial.basemap.sources.id": "Stable ASCII identifier for this source (letters, digits, hyphens).",
+    "mssql.queryStudio.spatial.basemap.sources.displayName": "Name shown in the Layers selector (plain text).",
+    "mssql.queryStudio.spatial.basemap.sources.kind": "Source protocol. Only host-proxied XYZ raster tiles are supported.",
+    "mssql.queryStudio.spatial.basemap.sources.urlTemplate": "HTTPS tile URL template containing exactly one {z}, {x}, and {y} placeholder and no other placeholders or credentials.",
+    "mssql.queryStudio.spatial.basemap.sources.credentialRef": "Optional SecretStorage key name; the secret is sent host-side as an Authorization bearer token. Never place a secret in this setting.",
+    "mssql.queryStudio.spatial.basemap.sources.allowPrivateNetwork": "Allow a source that resolves to loopback/private addresses (additional confirmation required)."
 }

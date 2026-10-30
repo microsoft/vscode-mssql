@@ -2214,6 +2214,130 @@ export class LocConstants {
         };
     }
 
+    public get spatialResults() {
+        return {
+            spatial: l10n.t("Spatial"),
+            analysisLabel: l10n.t("Spatial results analysis"),
+            controlsLabel: l10n.t("Spatial controls"),
+            featureMapLabel: l10n.t("Spatial feature map"),
+            mapZoomControlsLabel: l10n.t("Map zoom controls"),
+            zoomIn: l10n.t("Zoom in"),
+            zoomOut: l10n.t("Zoom out"),
+            featuresLabel: l10n.t("Spatial features"),
+            column: l10n.t("Spatial column"),
+            label: l10n.t("Label"),
+            colorBy: l10n.t("Color by"),
+            group: l10n.t("Group"),
+            rowNumber: l10n.t("Row number"),
+            geometryType: l10n.t("Geometry type"),
+            srid: l10n.t("SRID"),
+            allGeometryTypes: l10n.t("All geometry types"),
+            allSrids: l10n.t("All SRIDs"),
+            fit: l10n.t("Fit"),
+            renderer: l10n.t("Renderer"),
+            automatic: l10n.t("Automatic"),
+            canvas: l10n.t("Canvas"),
+            clusters: l10n.t("Clusters"),
+            gpuPoints: l10n.t("GPU points"),
+            renderable: (count: number) =>
+                l10n.t({
+                    message: "{0} renderable",
+                    args: [count.toLocaleString()],
+                    comment: ["{0} is the number of renderable spatial features"],
+                }),
+            unavailable: (count: number) =>
+                l10n.t({
+                    message: "{0} null / unsupported",
+                    args: [count.toLocaleString()],
+                    comment: ["{0} is the number of unavailable spatial features"],
+                }),
+            rowProgress: (scanned: number, total: number) =>
+                l10n.t({
+                    message: "{0} / {1} rows",
+                    args: [scanned.toLocaleString(), total.toLocaleString()],
+                    comment: ["{0} is the scanned row count", "{1} is the total row count"],
+                }),
+            loadingProgress: (scanned: number, total: number) =>
+                l10n.t({
+                    message: "Loading {0} of {1}…",
+                    args: [scanned.toLocaleString(), total.toLocaleString()],
+                    comment: ["{0} is the scanned row count", "{1} is the total row count"],
+                }),
+            limited: (reason: string) =>
+                l10n.t({
+                    message: "Partial view · safety limit: {0}",
+                    args: [reason],
+                    comment: ["{0} is a bounded internal safety-limit category"],
+                }),
+            waiting: l10n.t("Waiting"),
+            offline: l10n.t("Offline · no basemap requests"),
+            layers: l10n.t("Layers"),
+            worldOutline: l10n.t("World outline (offline)"),
+            worldOutlineActive: l10n.t("World outline"),
+            layerUnavailableForCrs: l10n.t("Map layer unavailable for this coordinate system"),
+            layerFailed: l10n.t("Map layer could not be loaded"),
+            layerUntrusted: l10n.t("Online layer disabled in an untrusted workspace"),
+            layerConsentRequired: l10n.t("Select the layer again to confirm online map access"),
+            onlineLayerOption: (name: string) => l10n.t("{0} · online", name),
+            onlineLayerActive: (name: string) => l10n.t("Layer: {0}", name),
+            groups: (summary: string) =>
+                l10n.t({
+                    message: "Groups: {0}",
+                    args: [summary],
+                    comment: ["{0} is a summary of safe spatial type or SRID group counts"],
+                }),
+            null: l10n.t("Null"),
+            empty: l10n.t("Empty"),
+            unsupported: l10n.t("Unsupported"),
+            detailsLabel: l10n.t("Selected spatial feature details"),
+            featureDetails: l10n.t("Feature details"),
+            features: l10n.t("Features"),
+            collapseFeatureList: l10n.t("Collapse the feature list"),
+            expandFeatureList: l10n.t("Expand the feature list"),
+            collapseDetails: l10n.t("Collapse feature details"),
+            expandDetails: l10n.t("Expand feature details"),
+            resizeFeatureList: l10n.t("Resize the feature list"),
+            resizeDetails: l10n.t("Resize feature details"),
+            mapContextMenuLabel: l10n.t("Map actions"),
+            copyImage: l10n.t("Copy image"),
+            imageCopied: l10n.t("Map image copied to the clipboard"),
+            copyImageFailed: (reason: string) =>
+                l10n.t({
+                    message: "Copy image failed: {0}",
+                    args: [reason],
+                    comment: ["{0} is a short error message"],
+                }),
+            sourceRow: l10n.t("Source row"),
+            status: l10n.t("Status"),
+            kind: l10n.t("Kind"),
+            geometry: l10n.t("Geometry"),
+            layout: l10n.t("Layout"),
+            vertices: l10n.t("Vertices"),
+            parts: l10n.t("Parts"),
+            rings: l10n.t("Rings"),
+            envelope: l10n.t("Envelope"),
+            wkbBytes: l10n.t("WKB bytes"),
+            reason: l10n.t("Reason"),
+            selectFeature: l10n.t("Select a feature on the map or in the list."),
+            noEligibleColumns: l10n.t("No eligible spatial columns."),
+            loadingView: l10n.t("Loading Spatial view…"),
+            decodeWorkerFailed: l10n.t("Spatial decode worker failed."),
+            sessionOpenFailed: l10n.t("Spatial session could not be opened."),
+            diagnosticSessions: l10n.t("Sessions"),
+            diagnosticDecodedFeatures: l10n.t("Decoded features"),
+            diagnosticFirstPaints: l10n.t("First paints"),
+            diagnosticPartialErrors: l10n.t("Partial / errors"),
+            diagnosticNoActivity: l10n.t("No Spatial activity"),
+            diagnosticNoActivityBody: l10n.t(
+                "Open an eligible Spatial result tab to see host preparation, worker decode, renderer, interaction, and cleanup evidence here.",
+            ),
+            diagnosticTime: l10n.t("Time"),
+            diagnosticStage: l10n.t("Stage"),
+            diagnosticCount: l10n.t("Count"),
+            diagnosticDuration: l10n.t("Duration"),
+        };
+    }
+
     public get schemaDesigner() {
         return {
             schema: l10n.t("Schema"),

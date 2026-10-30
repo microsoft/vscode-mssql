@@ -78,6 +78,7 @@ import {
     QsGetPanelViewStateRequest,
     QsUpdatePanelViewStateNotification,
     createQueryStudioPanelViewState,
+    isSpatialTabEligible,
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,
     resolveQueryStudioVisibleTab,
@@ -126,6 +127,7 @@ import {
     LazyMessagesView,
     LazyQsResultsGridProvider,
     LazyResultGridBlock,
+    LazySpatialTab,
     prefetchGridStack,
     ResultsSurfaceLoading,
     whenGridStackLoaded,
@@ -443,6 +445,14 @@ export function QueryStudioApp() {
                 current.generation === generation
                     ? { ...current, messages: messagesState }
                     : current,
+            );
+        },
+        [updatePanelViewState],
+    );
+    const persistSpatialViewState = useCallback(
+        (generation: string, spatialState: QueryStudioPanelViewState["spatial"]) => {
+            updatePanelViewState((current) =>
+                current.generation === generation ? { ...current, spatial: spatialState } : current,
             );
         },
         [updatePanelViewState],
@@ -895,7 +905,12 @@ export function QueryStudioApp() {
                 resetRunViewForStart(p.startedEpochMs, false);
             }),
             rpc.onNotification(QsActivateTabNotification.type, (p: QsActivateTabParams) => {
-                if (p.tab === "results" || p.tab === "messages" || p.tab === "queryPlan") {
+                if (
+                    p.tab === "results" ||
+                    p.tab === "messages" ||
+                    p.tab === "queryPlan" ||
+                    p.tab === "spatial"
+                ) {
                     activateTab(p.tab, "perf", p.requestId);
                 }
             }),
@@ -1895,6 +1910,7 @@ export function QueryStudioApp() {
                 columns: classified.totalColumns,
                 dataResultSets: classified.dataResultSets.length,
                 planResultSets: classified.planResultSets.length,
+                spatialColumns: classified.spatialColumns.length,
             });
         }
         return classified;
@@ -1942,7 +1958,22 @@ export function QueryStudioApp() {
         });
     }, [panelViewStateReady, results?.resultSets.length, results?.totalRows, runId, showResults]);
     const panelVisible = state?.capabilities.panelVisible !== false;
-    // String-typed columns per result set (Pipeline source-text picker).
+    const spatialResultsEnabled = state?.capabilities.spatialResults === true;
+    const spatialColumns = React.useMemo(
+        () =>
+            resultTabClassification.spatialColumns.map((column) => ({
+                ...column,
+                totalRows: Math.max(column.summaryRowCount, liveRowCounts[column.resultSetId] ?? 0),
+            })),
+        [liveRowCounts, resultTabClassification.spatialColumns],
+    );
+    const hasSpatialResults =
+        isSpatialTabEligible(
+            spatialResultsEnabled,
+            spatialColumns.map((column) => ({
+                spatial: { kind: column.kind, encoding: "wkb-v1" as const },
+            })),
+        ) && results?.streaming !== true;
     // Results is home and never auto-redirects to Messages: the terminal-state
     // handler above is the SINGLE authority that moves a completed no-data or
     // errored run to Messages (from one coherent snapshot, once per run). This
@@ -1952,6 +1983,7 @@ export function QueryStudioApp() {
     const visibleActiveTab = resolveQueryStudioVisibleTab(activeTab, {
         results: hasDataResults,
         queryPlan: hasPlanResults,
+        spatial: hasSpatialResults,
     });
     useEffect(() => {
         if (activeTab !== visibleActiveTab) {
@@ -1986,7 +2018,8 @@ export function QueryStudioApp() {
         (visibleActiveTab === "results" &&
             gridResultSetSummaries.length > 0 &&
             (singleGrid || maximizedGrid !== undefined)) ||
-        visibleActiveTab === "queryPlan";
+        visibleActiveTab === "queryPlan" ||
+        visibleActiveTab === "spatial";
     const gridRowHeight = qsGridRowHeight(state?.gridStyle);
     const resultsLayout = React.useMemo(
         () =>
@@ -2124,6 +2157,7 @@ export function QueryStudioApp() {
             : state?.execution.elapsedMs;
     const availableTabs = orderedQueryStudioTabs({
         results: hasDataResults,
+        spatial: hasSpatialResults,
         queryPlan: hasPlanResults,
     });
     const panelGeneration = panelViewStateRef.current.generation;
@@ -2143,6 +2177,8 @@ export function QueryStudioApp() {
                         {errorCount > 0 ? ` (${errorCount} ⚠)` : ""}
                     </>
                 );
+            case "spatial":
+                return locConstants.spatialResults.spatial;
             case "queryPlan":
                 return (
                     <>
@@ -2608,7 +2644,51 @@ export function QueryStudioApp() {
                                             </QueryStudioErrorBoundary>
                                         </div>
                                     ) : null}
-
+                                    {null}
+                                    {hasSpatialResults && mountedTabs.has("spatial") ? (
+                                        <div
+                                            id="qs-results-panel-spatial"
+                                            role="tabpanel"
+                                            aria-labelledby="qs-results-tab-spatial"
+                                            hidden={visibleActiveTab !== "spatial"}
+                                            className="qs-tab-panel qs-tab-panel-fill">
+                                            <QueryStudioErrorBoundary
+                                                label={locConstants.spatialResults.spatial}
+                                                resetKey={`spatial:${panelGeneration}`}
+                                                onError={reportPaneError}>
+                                                <React.Suspense
+                                                    fallback={<ResultsSurfaceLoading />}>
+                                                    <LazySpatialTab
+                                                        key={`spatial:${panelGeneration}`}
+                                                        rpc={rpc}
+                                                        columns={spatialColumns}
+                                                        runKey={String(runId ?? "idle")}
+                                                        active={
+                                                            panelVisible &&
+                                                            visibleActiveTab === "spatial"
+                                                        }
+                                                        panelVisible={panelVisible}
+                                                        basemapEnabled={
+                                                            state?.capabilities.spatialBasemap ===
+                                                            true
+                                                        }
+                                                        basemapEpoch={
+                                                            state?.spatialBasemapEpoch ?? 0
+                                                        }
+                                                        initialViewState={
+                                                            panelViewStateRef.current.spatial
+                                                        }
+                                                        onViewStateChange={(spatialState) =>
+                                                            persistSpatialViewState(
+                                                                panelGeneration,
+                                                                spatialState,
+                                                            )
+                                                        }
+                                                    />
+                                                </React.Suspense>
+                                            </QueryStudioErrorBoundary>
+                                        </div>
+                                    ) : null}
                                     {hasPlanResults && mountedTabs.has("queryPlan") ? (
                                         <div
                                             id="qs-results-panel-queryPlan"
