@@ -311,8 +311,11 @@ export default class SqlDocumentService implements vscode.Disposable {
             diagnostics.delete(doc.uri);
         }
 
-        // Delete filters and dimension states for the closed document
-        store.deleteUriState(closedDocumentUri);
+        // Delete filters and dimension states for the closed document, unless its results are
+        // still listed in the multi-results view
+        if (!this._outputContentProvider?.isInMultiResultsList(closedDocumentUri)) {
+            store.deleteUriState(closedDocumentUri);
+        }
     }
 
     /**

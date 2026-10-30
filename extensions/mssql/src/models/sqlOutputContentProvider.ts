@@ -1177,10 +1177,11 @@ export class SqlOutputContentProvider {
             if (closedDocumentUri === key) {
                 /**
                  * If the result is in a webview view, immediately dispose the runner
-                 * For panel based results, we just cancel the query but keep the results
-                 * available until the user closes the panel
+                 * For panel based results, and results listed in the multi-results view, we
+                 * just cancel the query but keep the results available until the user closes
+                 * them
                  */
-                if (this._queryResultWebviewController.hasPanel(key)) {
+                if (this.keepsResultsAfterDocumentClose(key)) {
                     await _value.queryRunner.cancel();
                     continue;
                 }
@@ -1216,6 +1217,17 @@ export class SqlOutputContentProvider {
             "mssql.executionPlan.urisWithActualPlanEnabled",
             Utils.toResourceContextValue(this._actualPlanStatuses),
         );
+    }
+
+    /**
+     * Whether a result stays available after its editor closes, until the user closes it.
+     */
+    public keepsResultsAfterDocumentClose(uri: string): boolean {
+        return this._queryResultWebviewController.hasPanel(uri) || this.isInMultiResultsList(uri);
+    }
+
+    public isInMultiResultsList(uri: string): boolean {
+        return this._queryResultWebviewController.isInMultiResultsList(uri);
     }
 
     public async cleanupRunner(uri: string): Promise<void> {
@@ -1537,6 +1549,9 @@ export class SqlOutputContentProvider {
             (hasState && !this._queryResultWebviewController.hasPanel(uri));
 
         if (shouldFocus) {
+            if (hasState) {
+                this._queryResultWebviewController.focusMultiResult(uri);
+            }
             vscode.commands.executeCommand("queryResult.focus", {
                 preserveFocus: true,
             });
@@ -1609,6 +1624,8 @@ export class SqlOutputContentProvider {
         // Set the state to the right webview.
         if (this._queryResultWebviewController.hasPanel(uri)) {
             this._queryResultWebviewController.updatePanelState(uri);
+        } else if (this._queryResultWebviewController.isMultiResultsActive) {
+            this._queryResultWebviewController.updateMultiResult(uri);
         } else {
             /**
              * If the user is working on some other editor, do not display the results

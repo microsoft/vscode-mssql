@@ -362,6 +362,10 @@
     <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
       <source xml:lang="en">Actions</source>
     </trans-unit>
+    <trans-unit id="++CODE++dc26d400a6689ce50ac096b9fd35dc1c1c502e9bfcf03a4c568cbbb049a48be9">
+      <source xml:lang="en">Actions for {0}</source>
+      <note>{0} is the name of a query file</note>
+    </trans-unit>
     <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
       <source xml:lang="en">Active filters:</source>
     </trans-unit>
@@ -1869,6 +1873,9 @@
     <trans-unit id="++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873">
       <source xml:lang="en">Close Find</source>
     </trans-unit>
+    <trans-unit id="++CODE++d68b78c76d7b9cc4227369a761426fe19e9196d17e76b43f2866a06c711c4347">
+      <source xml:lang="en">Close Results</source>
+    </trans-unit>
     <trans-unit id="++CODE++643a90a6bde33b562cd0de040386daa285bf033a5027344e98ad12c8d2cac56a">
       <source xml:lang="en">Close Script Pane</source>
     </trans-unit>
@@ -2076,6 +2083,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0891b63d1c799ce3a1d712cee42286cac8db64e6a57701839b06d7937855b14e">
       <source xml:lang="en">Compatibility Level</source>
+    </trans-unit>
+    <trans-unit id="++CODE++849df5c9c0457311e9e94386791938b8ba5a91a060867c6a32aaba5f32a4bd55">
+      <source xml:lang="en">Completed with errors</source>
     </trans-unit>
     <trans-unit id="++CODE++421428d865d9212a46a8ab340467e462b3c6ae40050c2c1cb90551b3bf703ab9">
       <source xml:lang="en">Completed with errors.</source>
@@ -6233,6 +6243,9 @@
     <trans-unit id="++CODE++74163645b1b5bc4c8eecb0fc8aab578ca3ecd3f9b1d92fb85206e045ffcc29a6">
       <source xml:lang="en">JSON Lines</source>
     </trans-unit>
+    <trans-unit id="++CODE++b245d5b75bbbbe3d511b0efabbf82603cdb5bd70a46a49709fa996c967d4ed28">
+      <source xml:lang="en">Join Group</source>
+    </trans-unit>
     <trans-unit id="++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673">
       <source xml:lang="en">Join the discussions</source>
     </trans-unit>
@@ -7236,6 +7249,9 @@
     <trans-unit id="++CODE++b76bc80b8a0e64a7d4bdcb44be4f61adea3c7657d8ab9c599ab349d1d772d7b1">
       <source xml:lang="en">Move selection to the last cell in the row</source>
     </trans-unit>
+    <trans-unit id="++CODE++960ef6bb14d79f9da3081501845f832d315f186a724083aa6b3b818a27e4a9a2">
+      <source xml:lang="en">Move to New Group</source>
+    </trans-unit>
     <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
       <source xml:lang="en">Move to Root</source>
     </trans-unit>
@@ -7700,6 +7716,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cf34d3ee7de6fe08d706a22899bdb22aacfb37a03185c2938b399c04d77ecd3a">
       <source xml:lang="en">No provider was found for the following projects: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5576412fee3b128cc18b6aa0d6dce99c9da0ae3e4a85180077e3e2cc38c2b89d">
+      <source xml:lang="en">No query results</source>
     </trans-unit>
     <trans-unit id="++CODE++07fa58bdd9de910a1e070b49104fd2eb37a4665f9cae70f35a28130d6fb1cf10">
       <source xml:lang="en">No query set</source>
@@ -9418,6 +9437,10 @@
     <trans-unit id="++CODE++a5ec26b19a366ed7e7eb9b3478620802f23ace14c3e3b59763ac682b5cb94587">
       <source xml:lang="en">Result set not found.</source>
     </trans-unit>
+    <trans-unit id="++CODE++51ba29787f1a60cfe7b2cd874264359715fe5ba1caf2fc9fe9b47bcde3ac7de2">
+      <source xml:lang="en">Result sets: {0}</source>
+      <note>{0} is the number of result sets the query returned</note>
+    </trans-unit>
     <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
       <source xml:lang="en">Results</source>
     </trans-unit>
@@ -9443,6 +9466,10 @@
     <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
       <source xml:lang="en">Results exported successfully to {0}</source>
       <note>{0} is the file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++108f526321dc72575a3742c8b54e99148d105c8341a1876d05aaf99ca1caa85c">
+      <source xml:lang="en">Results for {0}</source>
+      <note>{0} is the name of a query file</note>
     </trans-unit>
     <trans-unit id="++CODE++307ea97b854d629bc8febac31e69d61ee13fcdeca467abf549e7a3258bce347e">
       <source xml:lang="en">Results toolbar</source>
@@ -9578,6 +9605,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++19d6a3cab04f89b6d096a220971198afb0f221cf55f9459110c81065127ac861">
+      <source xml:lang="en">Run a query to see its results here. Drag results onto each other to view them side by side.</source>
     </trans-unit>
     <trans-unit id="++CODE++f1f7fb149510b3345e622785a8ef9a6d79fe17a9521268307fd6a9e32668494b">
       <source xml:lang="en">Run an Azure Function whenever a row in my table changes</source>
@@ -11565,6 +11595,9 @@
     <trans-unit id="++CODE++44d1028a4f9813fa5404247a36ba5c244cf826267718ec8031f44ea1744cd9f5">
       <source xml:lang="en">The developer container uses SQL Login authentication.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ee3b2c978f3d423b040d97d7b48e445431bf81ad403553962e605c08cbbee3f4">
+      <source xml:lang="en">The editor for these results is closed. The results stay until you close them.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7d461990f839b0bf2ac4825e909940b31fbe37f7b1da2ee5a4091bfb27cf40cb">
       <source xml:lang="en">The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.</source>
       <note>{0} is the deployment name</note>
@@ -13295,6 +13328,10 @@
       <source xml:lang="en">{0} (Current Account)</source>
       <note>{0} is the account display name</note>
     </trans-unit>
+    <trans-unit id="++CODE++4c479f29948d62f58798f64fedc628f3559317a496e9dd527f7cf6437092e423">
+      <source xml:lang="en">{0} (closed)</source>
+      <note>{0} is the name of a query file whose editor has been closed</note>
+    </trans-unit>
     <trans-unit id="++CODE++0cb11cf85550f89783bd1a648a61b1a7d458088b88a50acb062d49974bfabab7">
       <source xml:lang="en">{0} (configured continuation)</source>
     </trans-unit>
@@ -14526,6 +14563,9 @@
     <trans-unit id="sqlDatabaseProjects.findFile">
       <source xml:lang="en">Find File...</source>
     </trans-unit>
+    <trans-unit id="mssql.queryResults.enableFollowActiveEditor">
+      <source xml:lang="en">Follow Active Editor in Query Results</source>
+    </trans-unit>
     <trans-unit id="mssql.format.options.multilineGroupByElementsList">
       <source xml:lang="en">Format GROUP BY elements as a multiline list.</source>
     </trans-unit>
@@ -14663,6 +14703,9 @@
     </trans-unit>
     <trans-unit id="projects.excludedProjectsDescription">
       <source xml:lang="en">List of projects in the workspace to exclude from the projects viewlet</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.multiResults.description">
+      <source xml:lang="en">Lists the results of every query editor in the Query Results panel, and lets you drag results together to view them side by side. Requires `#mssql.preview.betaResultsGrid#`. When unset, follows `#mssql.enableExperimentalFeatures#`. Set to true or false to override that setting.</source>
     </trans-unit>
     <trans-unit id="mssql.Configuration">
       <source xml:lang="en">MSSQL</source>
@@ -15390,6 +15433,9 @@
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
     </trans-unit>
+    <trans-unit id="mssql.queryResults.followActiveEditor">
+      <source xml:lang="en">Show the active editor&apos;s results when switching editors. Applies when `#mssql.preview.multiResults#` is enabled.</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
       <source xml:lang="en">Sort and Filter Query Results</source>
     </trans-unit>
@@ -15434,6 +15480,9 @@
     </trans-unit>
     <trans-unit id="mssql.startContainer">
       <source xml:lang="en">Start SQL Container</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryResults.disableFollowActiveEditor">
+      <source xml:lang="en">Stop Following Active Editor in Query Results</source>
     </trans-unit>
     <trans-unit id="mssql.stopContainer">
       <source xml:lang="en">Stop SQL Container</source>

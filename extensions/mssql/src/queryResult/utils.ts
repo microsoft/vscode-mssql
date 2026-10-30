@@ -469,7 +469,12 @@ export function registerCommonRequestHandlers(
         return (await updateTotalCost(state, payload)) as qr.QueryResultWebviewState;
     });
     webviewController.onNotification(CompareExecutionPlanNotification.type, ({ graphIndex }) => {
-        const state = webviewController.state;
+        // The multi-results view shows several results; the plan is in the one the user is
+        // working in, which has focus.
+        const state =
+            (webviewController === webviewViewController &&
+                webviewViewController.getFocusedMultiResultState()) ||
+            webviewController.state;
         openExecutionPlanComparisonWebview(
             webviewViewController.getContext(),
             webviewViewController.executionPlanService,

@@ -43,6 +43,8 @@ export const cmdOpenShortcutsConfiguration = "mssql.shortcutsConfiguration.open"
 export const cmdCancelQuery = "mssql.cancelQuery";
 export const cmdRevealQueryResult = "mssql.revealQueryResult";
 export const cmdToggleQueryResultPanel = "mssql.toggleQueryResultPanel";
+export const cmdEnableFollowActiveEditor = "mssql.queryResults.enableFollowActiveEditor";
+export const cmdDisableFollowActiveEditor = "mssql.queryResults.disableFollowActiveEditor";
 export const cmdCopyAll = "mssql.copyAll";
 export const cmdConnect = "mssql.connect";
 export const cmdConnectWithUriOwnership = "mssql.connectWithUriOwnership";
@@ -377,6 +379,9 @@ export const configSchemaDesignerEnableDeploymentsView =
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
+export const configQueryResultsFollowActiveEditor = "mssql.queryResults.followActiveEditor";
+/** Context key that is true while the results view shows the multi-results layout. */
+export const multiResultsActiveContextKey = "mssql.multiResults.active";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configQuickQueries = "mssql.quickQueries";
