@@ -70,6 +70,7 @@ import {
     FallbackInteraction,
     resolveCapabilityFallback,
 } from "./providerSuggestions";
+import { tsNativeFactory } from "./tsNativeFactory";
 import { FakeBackend, FAKE_CAPABILITIES } from "./fakeBackend";
 import { openWithServerlessWake } from "./serverlessWake";
 import { Sts2Backend, Sts2Rpc, DEFAULT_DEADLINES, Sts2Deadlines } from "../sts2/sts2Backend";
@@ -300,6 +301,7 @@ export class SqlDataPlaneService {
         this.allowTestBackends = factories !== undefined;
         for (const factory of factories ?? [
             sts2LocalFactory(providerVersion),
+            tsNativeFactory(providerVersion),
             fakeFactory(providerVersion),
         ]) {
             this.registerFactory(factory);
