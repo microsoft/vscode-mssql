@@ -462,8 +462,8 @@ export class QueryResultAccessService {
 
     /**
      * Derived-snapshot window (§3.6): derived offsets → parent SOURCE row
-     * ids → batched contiguous fetches, stitched back into one window.
-     * Still bounded: at most `rowCount` rows cross this path.
+     * ids → bounded physical spans, selecting matching rows into one window.
+     * Nearby noncontiguous ids share reads rather than decoding pages per row.
      */
     private async derivedWindow(
         record: SnapshotRecord,
@@ -475,20 +475,21 @@ export class QueryResultAccessService {
         const values: unknown[][] = [];
         const nullBits: boolean[] = [];
         const truncatedBits: boolean[] = [];
+        const documentLanguages: NonNullable<QsCellWindow["documentLanguages"]> = [];
+        let valueMode: QsCellWindow["valueMode"];
         let columns = record.resultSets[0]?.columns ?? [];
         let typeHints: string[] | undefined;
         let index = 0;
         while (index < ids.length) {
-            // Contiguous run: one store window per run keeps fetches bounded
-            // and page-friendly.
+            // Keep each physical read bounded, including gaps between retained ids.
             let runEnd = index + 1;
-            while (runEnd < ids.length && ids[runEnd] === ids[runEnd - 1] + 1) {
+            while (runEnd < ids.length && ids[runEnd] - ids[index] < 2048) {
                 runEnd++;
             }
             const window = await record.storeLease.store.getWindow({
                 resultSetId: derived.sourceResultSetId,
                 rowStart: ids[index],
-                rowCount: runEnd - index,
+                rowCount: ids[runEnd - 1] - ids[index] + 1,
                 ...(params.columnStart !== undefined && params.columnCount !== undefined
                     ? { columnStart: params.columnStart, columnCount: params.columnCount }
                     : {}),
@@ -497,17 +498,29 @@ export class QueryResultAccessService {
             const cells = windowCellReader(window);
             columns = window.columns.length > 0 ? window.columns : columns;
             typeHints ??= window.typeHints;
-            for (let r = 0; r < window.rowCount; r++) {
+            valueMode ??= window.valueMode;
+            let shortRead = false;
+            for (let selected = index; selected < runEnd; selected++) {
+                const r = ids[selected] - window.start;
+                if (r < 0 || r >= window.rowCount) {
+                    shortRead = true;
+                    break;
+                }
                 const row: unknown[] = [];
                 for (let c = 0; c < window.columns.length; c++) {
                     const cell = cells.cellAt(r, c);
                     nullBits.push(cell.isNull);
                     truncatedBits.push(cell.isTruncated);
+                    documentLanguages.push(
+                        window.documentLanguages?.[r * window.columns.length + c] ?? null,
+                    );
                     row.push(cell.isNull ? undefined : window.values[r]?.[c]);
                 }
                 values.push(row);
             }
+            if (shortRead) break;
             index = runEnd;
+            if (index < ids.length) await new Promise<void>((resolve) => setImmediate(resolve));
         }
         return {
             resultSetId: params.resultSetId,
@@ -518,6 +531,8 @@ export class QueryResultAccessService {
             nullBitmap: packBitmap(nullBits),
             ...(truncatedBits.some(Boolean) ? { truncatedBitmap: packBitmap(truncatedBits) } : {}),
             ...(typeHints ? { typeHints } : {}),
+            ...(valueMode ? { valueMode } : {}),
+            ...(documentLanguages.some(Boolean) ? { documentLanguages } : {}),
         };
     }
 

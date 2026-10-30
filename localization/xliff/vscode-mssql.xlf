@@ -14092,6 +14092,9 @@
     <trans-unit id="++CODE++46a7c365979277d530eb7e1d55772853b25571c645ea44cf033efef38760bc0d">
       <source xml:lang="en">⚠ Partial scan ({0}): numbers cover the first {1} rows.&#10;&#10;</source>
     </trans-unit>
+    <trans-unit id="++CODE++beaaef3fd8899332b17fbfeb3a5d220846cef1ff1b67b4fa6a7e3fa4c6973e52">
+      <source xml:lang="en">⚠ Statistics are incomplete: {0} truncated cell inputs were skipped.&#10;&#10;</source>
+    </trans-unit>
     <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">
       <source xml:lang="en">✅ Grant Access</source>
     </trans-unit>

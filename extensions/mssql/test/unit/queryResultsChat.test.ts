@@ -252,6 +252,22 @@ suite("Query results chat boundaries", () => {
         expect(text).to.include("Profile output was truncated");
     });
 
+    test("profile warns when truncated inputs make statistics incomplete", async () => {
+        sandbox.stub(vscode.window, "showWarningMessage").resolves("Allow once" as never);
+        const incomplete = result([[20, 0, "z", "z"]]);
+        incomplete.stats = {
+            ...incomplete.stats,
+            partial: true,
+            partialReason: "truncatedCells",
+            truncatedCellsSkipped: 2,
+        };
+        service.evaluateSnapshotTransform.resolves(incomplete);
+        await chat("profile");
+        expect(messages.join("")).to.include("Statistics are incomplete");
+        expect(messages.join("")).to.include("2 truncated cell inputs");
+        expect(messages.join("")).not.to.include("numbers cover the first");
+    });
+
     test("structured scalar and unknown cell payloads obey the cell byte limit", () => {
         for (const value of [
             { $t: "binary", v: "x".repeat(20000) },

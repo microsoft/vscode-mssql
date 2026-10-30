@@ -249,7 +249,13 @@ async function summarize(
         )
             return;
         if (
+            result.stats.truncatedCellsSkipped > 0 &&
+            !write(AnalysisLoc.truncatedStatistics(String(result.stats.truncatedCellsSkipped)))
+        )
+            return;
+        if (
             result.stats.partial &&
+            result.stats.partialReason !== "truncatedCells" &&
             !write(
                 AnalysisLoc.partialScanNumbersCoverTheFirstRows(
                     String(result.stats.partialReason),

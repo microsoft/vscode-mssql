@@ -109,6 +109,52 @@ const SALES: unknown[][] = [
 ];
 
 suite("queryResults review regressions", () => {
+    test("grouped numeric extrema sort numerically while text extrema stay lexical", async () => {
+        for (const tag of ["decimal", "int64", undefined]) {
+            const values = tag === "decimal" ? ["2.50", "12.50"] : ["2", "12"];
+            const reader = memoryReader(
+                ["group", "value"],
+                values.map((value, index) => [index, tag ? { $t: tag, v: value } : value]),
+            );
+            for (const fn of ["min", "max"] as const) {
+                const result = await evaluateTransform(
+                    {
+                        v: 1,
+                        source: { snapshotId: "s", resultSetId: "rs1" },
+                        terminal: {
+                            kind: "groupBy",
+                            keys: [0],
+                            aggs: [{ fn, col: 1 }],
+                            orderBy: { agg: 0, dir: "asc" },
+                            limitGroups: 1,
+                        },
+                    },
+                    reader,
+                    options(),
+                );
+                expect(result.rows).to.deep.equal([[tag ? 0 : 1, values[tag ? 0 : 1]]]);
+            }
+        }
+    });
+
+    test("truncated extrema and numeric inputs report incomplete statistics", async () => {
+        for (const fn of ["min", "max", "sum", "avg", "stddev"] as const) {
+            const result = await evaluateTransform(
+                {
+                    v: 1,
+                    source: { snapshotId: "s", resultSetId: "rs1" },
+                    terminal: { kind: "aggregate", aggs: [{ fn, col: 0 }] },
+                },
+                memoryReader(["value"], [["z"], [{ $t: "truncated", of: "string", v: "a" }]]),
+                options(),
+            );
+            expect(result.stats.truncatedCellsSkipped).to.equal(1);
+            expect(result.stats.partial).to.equal(true);
+            expect(result.stats.partialReason).to.equal("truncatedCells");
+            if (fn === "min" || fn === "max") expect(result.rows).to.deep.equal([["z"]]);
+        }
+    });
+
     const source = { snapshotId: "s", resultSetId: "rs1" };
     const sandbox = sinon.createSandbox();
     teardown(() => sandbox.restore());
@@ -924,14 +970,14 @@ class DeriveFakeSource implements LiveQueryResultSource {
     store: RetainedRowStore | undefined;
     private summaries: QueryResultSetFrozenSummary[] = [];
 
-    async seed(rows: unknown[][]) {
+    async seed(rows: unknown[][], pageSize = 1) {
         const rowStore = new RowStore(tempDir());
         rowStore.beginResultSet("rs1", [
             { name: "region", displayName: "region" },
             { name: "amount", displayName: "amount" },
         ]);
-        for (let i = 0; i < rows.length; i++) {
-            await rowStore.appendPage("rs1", page(i, [rows[i]]));
+        for (let i = 0; i < rows.length; i += pageSize) {
+            await rowStore.appendPage("rs1", page(i, rows.slice(i, i + pageSize)));
         }
         rowStore.endResultSet("rs1");
         this.store = new RetainedRowStore(rowStore, {
@@ -977,6 +1023,80 @@ class DeriveFakeSource implements LiveQueryResultSource {
 }
 
 suite("queryResults derived snapshots", () => {
+    test("sparse derived windows batch nearby physical rows and preserve preview metadata", async () => {
+        const service = makeService();
+        const fixture = new DeriveFakeSource();
+        await fixture.seed(
+            Array.from({ length: 4096 }, (_, i) => [i % 2 ? "west" : "east", i]),
+            1024,
+        );
+        service.registerLiveSource(fixture);
+        const lease = await service.createSnapshot({
+            owner: { kind: "pinnedDocument" },
+            sourceId: fixture.sourceId,
+            reason: "derived window regression",
+            scope: { kind: "allCompleteResultSets" },
+        });
+        const derived = await service.deriveSnapshot(
+            {
+                v: 1,
+                source: { snapshotId: lease.snapshotId, resultSetId: "rs1" },
+                ops: [{ op: "filter", pred: { col: 0, cmp: "eq", value: "east" } }],
+                terminal: { kind: "rows", limit: 4096 },
+            },
+            { kind: "pinnedDocument" },
+        );
+        const original = fixture.store.getWindow.bind(fixture.store);
+        const read = sinon.stub(fixture.store, "getWindow").callsFake(async (params) => {
+            const window = await original(params);
+            return {
+                ...window,
+                valueMode: "gridPreview",
+                documentLanguages: window.values.flatMap((row) =>
+                    row.map((_value, column) =>
+                        (params.columnStart ?? 0) + column === 0 ? "json" : null,
+                    ),
+                ),
+            };
+        });
+        try {
+            const window = await service.getWindow({
+                snapshotId: derived.snapshotId,
+                resultSetId: "rs1",
+                rowStart: 0,
+                rowCount: 2048,
+                reason: "transform",
+            });
+            expect(window.rowCount).to.equal(2048);
+            expect(window.values.map((row) => row[1])).to.deep.equal(
+                Array.from({ length: 2048 }, (_, i) => i * 2),
+            );
+            expect(read.callCount).to.be.lessThan(10);
+            expect(window.valueMode).to.equal("gridPreview");
+            expect(window.documentLanguages).to.deep.equal(
+                Array.from({ length: 2048 }, () => ["json", null]).flat(),
+            );
+            const narrow = await service.getWindow({
+                snapshotId: derived.snapshotId,
+                resultSetId: "rs1",
+                rowStart: 1,
+                rowCount: 2,
+                columnStart: 0,
+                columnCount: 1,
+                reason: "grid",
+            });
+            expect(narrow.values).to.deep.equal([["east"], ["east"]]);
+            expect(narrow.valueMode).to.equal("gridPreview");
+            expect(narrow.documentLanguages).to.deep.equal(["json", "json"]);
+        } finally {
+            read.restore();
+            derived.dispose();
+            lease.dispose();
+            fixture.store.releaseLiveOwner("documentClosed");
+            service.dispose();
+        }
+    });
+
     function makeService() {
         const params = Object.freeze({ ...QUERY_RESULTS_DEFAULTS });
         return new QueryResultAccessService(() => ({

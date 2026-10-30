@@ -46,6 +46,7 @@ export type EvalPartialReason =
     | "groups"
     | "outputCells"
     | "outputBytes"
+    | "truncatedCells"
     | "canceled";
 
 export interface EvalStats {
@@ -212,6 +213,7 @@ function evaluatePredicate(
 interface AggAccumulator {
     add(cellAt: CellAt): void;
     value(): unknown;
+    sortValue?(): number | string | null;
     label: string;
 }
 
@@ -220,6 +222,7 @@ function makeAccumulator(
     columnLabel: (col: number) => string,
     maxDistinctExact: number,
     flagApproximate: () => void,
+    flagTruncated: () => void,
 ): AggAccumulator {
     const label = agg.fn === "count" ? "count" : `${agg.fn}(${columnLabel(agg.col ?? 0)})`;
     switch (agg.fn) {
@@ -250,7 +253,9 @@ function makeAccumulator(
             return {
                 label,
                 add: (cellAt) => {
-                    const numeric = cellNumeric(cellAt(agg.col!));
+                    const cell = cellAt(agg.col!);
+                    if (cell.isTruncated) flagTruncated();
+                    const numeric = cellNumeric(cell);
                     if (numeric === undefined) {
                         return;
                     }
@@ -280,6 +285,7 @@ function makeAccumulator(
                 label,
                 add: (cellAt) => {
                     const cell = cellAt(agg.col!);
+                    if (cell.isTruncated) flagTruncated();
                     if (cell.isNull || cell.isTruncated) {
                         return;
                     }
@@ -293,6 +299,8 @@ function makeAccumulator(
                     }
                 },
                 value: () => (best === undefined ? null : best.value),
+                sortValue: () =>
+                    best === undefined ? null : (cellNumeric(best) ?? String(best.value)),
             };
         }
         case "distinctCount": {
@@ -467,9 +475,20 @@ export async function evaluateTransform(
     let reservoirSeen = 0;
     const random = seededRandom(digest);
 
+    let incompleteStatistics = false;
+    const flagTruncated = () => {
+        stats.truncatedCellsSkipped++;
+        incompleteStatistics = true;
+    };
     const makeAggs = (labelFor: (col: number) => string, aggs: TransformAggregate[]) =>
         aggs.map((agg) =>
-            makeAccumulator(agg, labelFor, options.maxDistinctExact, flagApproximate),
+            makeAccumulator(
+                agg,
+                labelFor,
+                options.maxDistinctExact,
+                flagApproximate,
+                flagTruncated,
+            ),
         );
 
     switch (terminal.kind) {
@@ -524,7 +543,9 @@ export async function evaluateTransform(
         let min: number | undefined;
         let max: number | undefined;
         await scan(async (cellAt) => {
-            const numeric = cellNumeric(cellAt(terminal.col));
+            const cell = cellAt(terminal.col);
+            if (cell.isTruncated) flagTruncated();
+            const numeric = cellNumeric(cell);
             if (numeric !== undefined) {
                 min = min === undefined ? numeric : Math.min(min, numeric);
                 max = max === undefined ? numeric : Math.max(max, numeric);
@@ -633,7 +654,9 @@ export async function evaluateTransform(
                 }
                 return true;
             case "histogram": {
-                const numeric = cellNumeric(cellAt(terminal.col));
+                const cell = cellAt(terminal.col);
+                if (cell.isTruncated) flagTruncated();
+                const numeric = cellNumeric(cell);
                 if (numeric !== undefined && histogramBoundaries && histogramCounts) {
                     let bucket = histogramBoundaries.findIndex((b) => numeric < b);
                     if (bucket < 0) {
@@ -745,19 +768,23 @@ export async function evaluateTransform(
                 entries.push(overflowEntry);
                 overflowGroups = overflowKeys!.size;
             }
+            if (terminal.orderBy) {
+                const column = terminal.orderBy.agg;
+                const direction = terminal.orderBy.dir === "asc" ? 1 : -1;
+                entries.sort((a, b) => {
+                    const left = (a.accs[column].sortValue?.() ?? a.accs[column].value()) as
+                        | number
+                        | string;
+                    const right = (b.accs[column].sortValue?.() ?? b.accs[column].value()) as
+                        | number
+                        | string;
+                    return left < right ? -direction : left > right ? direction : 0;
+                });
+            }
             let tabulated = entries.map((entry) => [
                 ...entry.keyValues,
                 ...entry.accs.map((acc) => acc.value()),
             ]);
-            if (terminal.orderBy) {
-                const column = terminal.keys.length + terminal.orderBy.agg;
-                const direction = terminal.orderBy.dir === "asc" ? 1 : -1;
-                tabulated = tabulated.sort((a, b) => {
-                    const left = a[column] as number;
-                    const right = b[column] as number;
-                    return left < right ? -direction : left > right ? direction : 0;
-                });
-            }
             if (terminal.limitGroups !== undefined) {
                 tabulated = tabulated.slice(0, terminal.limitGroups);
             }
@@ -824,6 +851,10 @@ export async function evaluateTransform(
             break;
     }
 
+    if (incompleteStatistics) {
+        stats.partial = true;
+        stats.partialReason ??= "truncatedCells";
+    }
     stats.elapsedMs = now() - startedAt;
     return {
         specDigest: digest,

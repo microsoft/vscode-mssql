@@ -6276,6 +6276,8 @@ export const QueryStudio = {
 };
 
 export class QueryResultsAnalysis {
+    public static truncatedStatistics = (count: string) =>
+        l10n.t("⚠ Statistics are incomplete: {0} truncated cell inputs were skipped.\n\n", count);
     public static snapshotLimitReached = l10n.t(
         "This conversation has reached its snapshot limit; release a snapshot first (release_snapshot).",
     );
