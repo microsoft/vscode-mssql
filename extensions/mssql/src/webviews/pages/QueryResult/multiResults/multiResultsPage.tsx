@@ -137,16 +137,18 @@ export const MultiResultsPage = ({ GridView, isBetaResultsGridEnabled }: MultiRe
     const rootRef = useRef<HTMLDivElement>(null);
     const [orientation, setOrientation] = useState<MultiResultsOrientation>("horizontal");
 
-    // Panel sizes are percentages, so size the list from the view's width before the first
-    // paint. A view that is hidden when it opens has no width yet.
-    const [listSizes, setListSizes] = useState<{ defaultSize: number; minSize: number }>();
+    // Panel sizes are percentages, so the list's sizes come from the view's width. Its default
+    // size is set from the width when the view opens, before the first paint. Its minimum follows
+    // the width, so the list keeps room for its controls when the view narrows; a larger size the
+    // user chose is kept. A view that is hidden when it opens has no width yet.
+    const [viewWidth, setViewWidth] = useState(0);
+    const [listDefaultSize, setListDefaultSize] = useState<number>();
     useLayoutEffect(() => {
         const width = rootRef.current?.clientWidth ?? 0;
-        setListSizes({
-            defaultSize: getListPercent(LIST_DEFAULT_WIDTH_PX, width, 12),
-            minSize: getListPercent(LIST_MIN_WIDTH_PX, width, 6),
-        });
+        setViewWidth(width);
+        setListDefaultSize(getListPercent(LIST_DEFAULT_WIDTH_PX, width, 12));
     }, []);
+    const listMinSize = getListPercent(LIST_MIN_WIDTH_PX, viewWidth, 6);
     useEffect(() => {
         const element = rootRef.current;
         if (!element) {
@@ -155,6 +157,7 @@ export const MultiResultsPage = ({ GridView, isBetaResultsGridEnabled }: MultiRe
         const observer = new ResizeObserver(([entry]) => {
             const { width, height } = entry.contentRect;
             setOrientation(width >= height ? "horizontal" : "vertical");
+            setViewWidth(width);
         });
         observer.observe(element);
         return () => observer.disconnect();
@@ -171,7 +174,7 @@ export const MultiResultsPage = ({ GridView, isBetaResultsGridEnabled }: MultiRe
 
     return (
         <div ref={rootRef} className={classes.root}>
-            {multiResults && listSizes && (
+            {multiResults && listDefaultSize !== undefined && (
                 <MultiResultsActionsContext.Provider value={actions}>
                     <PanelGroup direction="horizontal">
                         <Panel id="multi-results-group" order={0} minSize={30}>
@@ -200,8 +203,8 @@ export const MultiResultsPage = ({ GridView, isBetaResultsGridEnabled }: MultiRe
                         <Panel
                             id="multi-results-list"
                             order={1}
-                            defaultSize={listSizes.defaultSize}
-                            minSize={listSizes.minSize}
+                            defaultSize={listDefaultSize}
+                            minSize={listMinSize}
                             maxSize={50}>
                             <MultiResultsList state={multiResults} />
                         </Panel>

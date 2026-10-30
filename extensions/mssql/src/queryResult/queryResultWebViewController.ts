@@ -445,6 +445,10 @@ export class QueryResultWebviewController extends WebviewViewController<
                 state,
                 payload as qr.QueryResultReducers[typeof type],
             );
+            // The result may have been run again or closed while the reducer ran.
+            if (this._queryResultStateMap.get(uri) !== state) {
+                return;
+            }
             this._queryResultStateMap.set(uri, nextState);
             this.sendMultiResultsFileState(uri);
         });

@@ -458,6 +458,28 @@ suite("QueryResultWebviewController", () => {
             expect(multiController.state.multiResults).to.exist;
         });
 
+        test("drops a pane action's state when the result is run again before it finishes", async () => {
+            let finishReducer: () => void = () => undefined;
+            multiController.registerReducer(
+                "openFileThroughLink",
+                (state) =>
+                    new Promise((resolve) => {
+                        finishReducer = () => resolve({ ...state, title: "stale" });
+                    }),
+            );
+
+            const action = requestHandlers.get(MultiResultsPaneActionRequest.type.method)!({
+                uri: testUri,
+                type: "openFileThroughLink",
+                payload: { content: "", type: "" },
+            });
+            multiController.addQueryResultState(testUri, "test.sql");
+            finishReducer();
+            await action;
+
+            expect(multiController.getQueryResultState(testUri).title).to.equal("test.sql");
+        });
+
         test("sends a result's state to the view only while its group is shown", () => {
             const sendNotification = sandbox.spy(multiController, "sendNotification");
 
