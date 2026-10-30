@@ -581,7 +581,13 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
             : ("EPSG:3857" as const);
     }, [basemapEligible, filteredFeatures]);
     React.useEffect(() => {
-        if (!props.basemapEnabled || !selectedOnline || !basemapEligible) {
+        if (
+            !props.active ||
+            !props.panelVisible ||
+            !props.basemapEnabled ||
+            !selectedOnline ||
+            !basemapEligible
+        ) {
             setOnlineSession(undefined);
             if (!selectedOnline) setOnlineStatus("idle");
             return;
@@ -631,6 +637,8 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
             }
         };
     }, [
+        props.active,
+        props.panelVisible,
         props.basemapEnabled,
         props.basemapEpoch,
         selectedOnline?.id,
@@ -643,7 +651,11 @@ export function SpatialResultsPane(props: SpatialResultsPaneProps): React.JSX.El
         ? "none"
         : selectedLayerId === "worldOutline"
           ? "worldOutline"
-          : props.basemapEnabled && selectedOnline && onlineSession
+          : props.active &&
+              props.panelVisible &&
+              props.basemapEnabled &&
+              selectedOnline &&
+              onlineSession
             ? {
                   kind: "xyzRaster" as const,
                   requestTile: (coords: { z: number; x: number; y: number }) =>

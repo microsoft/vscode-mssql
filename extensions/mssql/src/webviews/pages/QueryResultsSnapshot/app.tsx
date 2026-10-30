@@ -562,7 +562,7 @@ export function PinnedResultsApp() {
                     </div>
                 ) : null}
                 {null}
-                {spatialColumns.length > 0 && mountedTabs.has("spatial") ? (
+                {state.spatialEnabled && spatialColumns.length > 0 && mountedTabs.has("spatial") ? (
                     <div
                         className="qs-tab-panel qs-tab-panel-fill"
                         hidden={visibleActiveTab !== "spatial"}>

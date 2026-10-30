@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FrameLocator } from "@playwright/test";
+import * as fs from "fs";
+import * as path from "path";
 import { test, expect } from "./baseFixtures";
 import { getGridLaunchConfig } from "./grid/gridLaunchConfig";
 import { runCommandFromPalette } from "./utils/testHelpers";
@@ -163,6 +165,29 @@ for (const enabled of [true, false]) {
                     timeout: 20000,
                 });
                 await expect(studio.locator(".qs-spatial-map-region canvas").first()).toBeVisible();
+            });
+        if (enabled)
+            test("disabling spatial releases live and pinned map resources", async () => {
+                const { userDataDir } = getContext();
+                for (const frame of [studio, pinned])
+                    await expect(frame.locator(".qs-spatial-map-region")).toHaveCount(1);
+                const userDir = path.join(userDataDir, "User");
+                const profiles = path.join(userDir, "profiles");
+                const settingsPaths = [path.join(userDir, "settings.json")];
+                if (fs.existsSync(profiles))
+                    for (const profile of fs.readdirSync(profiles)) {
+                        const file = path.join(profiles, profile, "settings.json");
+                        if (fs.existsSync(file)) settingsPaths.push(file);
+                    }
+                for (const file of settingsPaths) {
+                    const settings = JSON.parse(fs.readFileSync(file, "utf8"));
+                    settings["mssql.queryStudio.spatial.enabled"] = false;
+                    fs.writeFileSync(file, JSON.stringify(settings, undefined, 4));
+                }
+                for (const frame of [studio, pinned])
+                    await expect(frame.locator(".qs-spatial-map-region")).toHaveCount(0, {
+                        timeout: 30000,
+                    });
             });
     });
 }

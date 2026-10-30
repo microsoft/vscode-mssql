@@ -40,11 +40,12 @@ import { SpatialBasemapTileCache } from "../../src/queryResults/spatialBasemap/s
 import { fetchSpatialBasemapTile } from "../../src/queryResults/spatialBasemap/spatialBasemapFetcher";
 import { SpatialBasemapSessionManager } from "../../src/queryResults/spatialBasemap/spatialBasemapSessionManager";
 import type {
+    SpatialBasemapSourceConfig,
     SpatialBasemapFetcherDeps,
     SpatialBasemapValidatedSource,
 } from "../../src/queryResults/spatialBasemap/spatialBasemapTypes";
 
-const GOOD_SOURCE = {
+const GOOD_SOURCE: SpatialBasemapSourceConfig = {
     id: "contoso-road",
     displayName: "Contoso Road Map",
     kind: "xyzRaster",
@@ -251,7 +252,13 @@ suite("spatial basemap review regressions", () => {
     });
 
     test("revoked consent, changed sources and trust block cached and network tiles", async () => {
-        for (const change of ["consent", "source", "trust"] as const) {
+        for (const change of [
+            "consent",
+            "source",
+            "trust",
+            "privatePolicy",
+            "credential",
+        ] as const) {
             let source = validated();
             let trusted = true;
             const consent = createSpatialBasemapConsentStore(memento());
@@ -285,10 +292,23 @@ suite("spatial basemap review regressions", () => {
                 source = validated({
                     urlTemplate: "https://changed.contoso.example/{z}/{x}/{y}.png",
                 });
+            else if (change === "privatePolicy") source = validated({ allowPrivateNetwork: true });
+            else if (change === "credential") source = validated({ credentialRef: "new-account" });
             else trusted = false;
             expect((await sessions.tile(params)).status).to.equal("cancelled");
             expect((await sessions.tile({ ...params, x: 1 })).status).to.equal("cancelled");
             expect(fetcher.urls).to.have.length(1);
+            if (change === "privatePolicy" || change === "credential") {
+                expect(
+                    (
+                        await sessions.open({
+                            layerId: source.config.id,
+                            activeProjection: "EPSG:4326",
+                            interactive: false,
+                        })
+                    ).status,
+                ).to.equal("consentRequired");
+            }
             sessions.dispose("test");
             await cache.clearAll();
         }
@@ -502,6 +522,15 @@ suite("spatial basemap source validation (SPA-10 §5.2)", () => {
     test("fingerprint tracks identity, not zoom bounds", () => {
         const base = spatialBasemapFingerprint(validated().config);
         expect(spatialBasemapFingerprint(validated({ maxZoom: 12 }).config)).to.equal(base);
+        expect(
+            spatialBasemapFingerprint(validated({ allowPrivateNetwork: true }).config),
+        ).to.not.equal(base);
+        expect(
+            spatialBasemapFingerprint(validated({ credentialRef: "account-a" }).config),
+        ).to.not.equal(base);
+        expect(
+            spatialBasemapFingerprint(validated({ credentialRef: "account-a" }).config),
+        ).to.not.equal(spatialBasemapFingerprint(validated({ credentialRef: "account-b" }).config));
         expect(
             spatialBasemapFingerprint(
                 validated({ urlTemplate: "https://other.example/{z}/{x}/{y}.png" }).config,

@@ -133,6 +133,7 @@ export class PinnedResultsController extends WebviewBaseController<PinnedResults
             this.panel.onDidChangeViewState((event) => {
                 if (!event.webviewPanel.visible) {
                     this.suspendSpatialResults();
+                    this.spatialBasemapService?.dispose("hidden");
                 }
             }),
         );

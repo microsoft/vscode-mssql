@@ -135,6 +135,8 @@ export function spatialBasemapFingerprint(config: SpatialBasemapSourceConfig): s
                 config.urlTemplate,
                 config.attribution.text,
                 config.attribution.termsUrl ?? "",
+                config.allowPrivateNetwork === true,
+                config.credentialRef ?? "",
             ].join("\n"),
         )
         .digest("hex");

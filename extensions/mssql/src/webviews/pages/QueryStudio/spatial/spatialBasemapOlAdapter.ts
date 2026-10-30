@@ -63,13 +63,16 @@ export function createSpatialBasemapTileLayer(
         // grid arithmetic only; tileLoadFunction below is the sole loader and
         // never dereferences it.
         url: "local://{z}/{x}/{y}",
+        crossOrigin: "anonymous",
         projection: "EPSG:3857",
         minZoom: session.minZoom,
         maxZoom: session.maxZoom,
         tileLoadFunction: (tile: Tile, src: string) => {
             const run = () => {
                 inFlight++;
-                const [z, x, y] = tile.getTileCoord();
+                const [z, rawX, y] = tile.getTileCoord();
+                const width = 2 ** z;
+                const x = ((rawX % width) + width) % width;
                 void requestTile({ z, x, y })
                     .then((result) => {
                         if (disposed) {
