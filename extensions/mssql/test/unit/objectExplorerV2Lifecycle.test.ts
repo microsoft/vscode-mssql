@@ -35,6 +35,61 @@ suite("Object Explorer v2 lifecycle", () => {
         sandbox.restore();
     });
 
+    for (const containerName of [undefined, "new-container"]) {
+        test(`new ${containerName ? "container" : "ordinary"} profile connects at the correct credential boundary`, async () => {
+            let profiles: Array<{
+                id: string;
+                server: string;
+                authenticationType: string;
+                containerName?: string;
+            }> = [];
+            const changes = new vscode.EventEmitter<vscode.ConfigurationChangeEvent>();
+            subscriptions.push(changes);
+            sandbox.stub(vscode.workspace, "onDidChangeConfiguration").callsFake(changes.event);
+            const commands = new Map<string, (...args: unknown[]) => unknown>();
+            sandbox.stub(vscode.commands, "registerCommand").callsFake((name, callback) => {
+                commands.set(name, callback);
+                return new vscode.Disposable(() => undefined);
+            });
+            sandbox
+                .stub(vscode.window, "createTreeView")
+                .returns({ dispose: () => undefined } as vscode.TreeView<never>);
+            const connect = sandbox
+                .stub(OeV2TreeController.prototype, "connectProfile")
+                .resolves(true);
+            activateObjectExplorerV2({ subscriptions } as vscode.ExtensionContext, {
+                instantiationService: {} as OeV2ActivationDeps["instantiationService"],
+                profiles: {
+                    readAllConnections: async () => profiles,
+                    readAllConnectionGroups: async () => [],
+                    lookupPassword: async () => undefined,
+                    removeProfile: async () => undefined,
+                } as OeV2ActivationDeps["profiles"],
+                tokens: { acquireSqlAccessToken: async () => undefined },
+                isEnabled: () => true,
+            });
+            await flush();
+            profiles = [
+                {
+                    id: "new-profile",
+                    server: "localhost",
+                    authenticationType: "SqlLogin",
+                    containerName,
+                },
+            ];
+            changes.fire({
+                affectsConfiguration: (section) => section === "mssql.connections",
+            } as vscode.ConfigurationChangeEvent);
+            await flush();
+            if (containerName) {
+                expect(connect).not.to.have.been.called;
+                // The wizard explicitly connects once profile and secret are saved.
+                await commands.get("mssql.objectExplorerV2.connectProfileById")!("new-profile");
+            }
+            expect(connect).to.have.been.calledWith("new-profile");
+        });
+    }
+
     test("expanding an Entra connection forwards token acquisition through activation", async () => {
         const profile = {
             id: "entra",

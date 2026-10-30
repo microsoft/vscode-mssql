@@ -1130,6 +1130,15 @@ export class ObjectExplorer {
 
 /** User-visible strings for the Connections (Private Preview) surface. */
 export class ObjectExplorerV2 {
+    public static containerConnectionFailed = l10n.t(
+        "Connections (Private Preview) could not connect to the new container.",
+    );
+    public static containerStartupTimedOut = l10n.t(
+        "The SQL container did not become ready in time. Docker may be unresponsive.",
+    );
+    public static containerStartupFailed = l10n.t(
+        "The SQL container could not be started. Check the Docker logs and try again.",
+    );
     static selectObjectToScript = l10n.t("Select a database object to script.");
     static connectBeforeScripting = l10n.t(
         "Connect this profile in Connections (Private Preview) first.",
