@@ -109,6 +109,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
     private userSessionReady: Promise<void> = Promise.resolve();
     /** Open auxiliary sessions (VEC-7) — capped, closed with the binding. */
     private auxSessions = new Set<ISqlSession>();
+    private closingAuxSessions = new Set<ISqlSession>();
     private pendingAuxSessions = new Set<symbol>();
     private auxiliaryGeneration = 0;
     metadataStatus: MetadataStatus | undefined;
@@ -469,7 +470,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
             this.auxSessions.add(session);
             const subscription = session.onDidChangeState((change) => {
                 if (change.current === "closed" || change.current === "lost") {
-                    this.auxSessions.delete(session);
+                    if (!this.closingAuxSessions.has(session)) this.auxSessions.delete(session);
                     subscription.dispose();
                 }
             });
@@ -482,8 +483,7 @@ export class DocumentSessionBinding implements vscode.Disposable {
                     }
                     disposed = true;
                     subscription.dispose();
-                    this.auxSessions.delete(session);
-                    void session.close().catch(() => undefined);
+                    this.closeAuxSession(session);
                 },
             };
         } catch {
@@ -500,11 +500,21 @@ export class DocumentSessionBinding implements vscode.Disposable {
 
     private closeAuxSessions(): void {
         this.auxiliaryGeneration++;
-        this.pendingAuxSessions.clear();
         for (const session of [...this.auxSessions]) {
-            void session.close().catch(() => undefined);
+            this.closeAuxSession(session);
         }
-        this.auxSessions.clear();
+    }
+
+    private closeAuxSession(session: ISqlSession): void {
+        if (this.closingAuxSessions.has(session)) return;
+        this.closingAuxSessions.add(session);
+        void session
+            .close()
+            .catch(() => undefined)
+            .finally(() => {
+                this.auxSessions.delete(session);
+                this.closingAuxSessions.delete(session);
+            });
     }
 
     private masterDbListCache: { at: number; names: string[] } | undefined;

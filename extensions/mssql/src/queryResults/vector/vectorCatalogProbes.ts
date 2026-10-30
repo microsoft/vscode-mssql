@@ -306,10 +306,12 @@ async function executeWhenFree(
     session: ISqlSession,
     text: string,
     sink: IQueryEventSink,
+    signal?: AbortSignal,
     deadlineMs = 5_000,
 ): Promise<QueryHandle> {
     const startedAt = Date.now();
     for (;;) {
+        signal?.throwIfAborted();
         try {
             return session.execute(
                 text,
@@ -328,10 +330,16 @@ async function executeWhenFree(
     }
 }
 
-async function runProbe(session: ISqlSession, sql: string): Promise<ProbeQueryOutcome> {
+async function runProbe(
+    session: ISqlSession,
+    sql: string,
+    signal?: AbortSignal,
+): Promise<ProbeQueryOutcome> {
+    signal?.throwIfAborted();
     const rows: unknown[][] = [];
     const columns: string[] = [];
     const errors: { number?: number; text: string }[] = [];
+    let cancel: (() => void) | undefined;
     try {
         const sink: IQueryEventSink = {
             onResultSetStarted: (meta) => {
@@ -354,11 +362,15 @@ async function runProbe(session: ISqlSession, sql: string): Promise<ProbeQueryOu
             },
             onComplete: () => undefined,
         };
-        const handle = await executeWhenFree(session, sql, sink);
+        const handle = await executeWhenFree(session, sql, sink, signal);
+        cancel = () => void handle.cancel().catch(() => undefined);
+        signal?.addEventListener("abort", cancel, { once: true });
+        if (signal?.aborted) cancel();
         // Await the HANDLE completion (session frees its active slot in
         // completion reaction order — resolving on a sink callback races
         // the next probe into Busy).
         const summary = await handle.completion;
+        signal?.throwIfAborted();
         if (summary.status !== "succeeded") {
             return {
                 rows,
@@ -371,6 +383,8 @@ async function runProbe(session: ISqlSession, sql: string): Promise<ProbeQueryOu
     } catch (error) {
         const text = error instanceof Error ? error.message : String(error);
         return { rows, columns, errors, failed: text };
+    } finally {
+        if (cancel) signal?.removeEventListener("abort", cancel);
     }
 }
 
@@ -453,6 +467,7 @@ function classifySyntaxProbe(
 export interface ProbeVectorCapabilitiesOptions {
     /** Scope the index probe to one table (host-resolved binding target). */
     readonly table?: VectorProbeTableFilter;
+    readonly signal?: AbortSignal;
 }
 
 /**
@@ -461,7 +476,8 @@ export interface ProbeVectorCapabilitiesOptions {
  * probes always run in the session's CURRENT database (aux sessions are
  * opened on the user session's database by the binding).
  *
- * NEVER throws for a missing surface: each section carries value-or-absence.
+ * Never throws for a missing surface: each section carries value-or-absence.
+ * Explicit cancellation aborts the pass instead of publishing partial facts.
  */
 export async function probeVectorCapabilities(
     session: ISqlSession,
@@ -469,9 +485,10 @@ export async function probeVectorCapabilities(
     options?: ProbeVectorCapabilitiesOptions,
 ): Promise<VectorCapabilityProbe> {
     void database; // context is keyed by the caller; probes use the session's db
+    const probe = (sql: string) => runProbe(session, sql, options?.signal);
 
     // 1. Engine identity + compat level.
-    const identityOutcome = await runProbe(session, VECTOR_PROBE_SQL.engineIdentity);
+    const identityOutcome = await probe(VECTOR_PROBE_SQL.engineIdentity);
     const identityRow = identityOutcome.rows[0];
     const engine: VectorEngineIdentityProbe = identityOutcome.failed
         ? { evidence: stamp("catalog"), error: bounded(identityOutcome.failed) }
@@ -489,7 +506,7 @@ export async function probeVectorCapabilities(
           };
 
     // 2. Database-scoped configurations (tolerant; ALLOW_STALE is Azure-only).
-    const configsOutcome = await runProbe(session, VECTOR_PROBE_SQL.scopedConfigs);
+    const configsOutcome = await probe(VECTOR_PROBE_SQL.scopedConfigs);
     const scopedConfig = (name: string): VectorScopedConfigProbe => {
         if (configsOutcome.failed) {
             return {
@@ -515,13 +532,13 @@ export async function probeVectorCapabilities(
     const allowStaleVectorIndex = scopedConfig("ALLOW_STALE_VECTOR_INDEX");
 
     // 3. Vector type usable (CAST + VECTORPROPERTY round-trip).
-    const typeOutcome = await runProbe(session, VECTOR_PROBE_SQL.vectorType);
+    const typeOutcome = await probe(VECTOR_PROBE_SQL.vectorType);
     const vectorType: VectorTypeProbe = typeOutcome.failed
         ? { evidence: stamp("diagnosticQuery"), usable: false, error: bounded(typeOutcome.failed) }
         : { evidence: stamp("diagnosticQuery"), usable: cellInt(typeOutcome.rows[0]?.[0]) === 3 };
 
     // 4. sys.columns vector metadata columns.
-    const columnsOutcome = await runProbe(session, VECTOR_PROBE_SQL.columnMetadata);
+    const columnsOutcome = await probe(VECTOR_PROBE_SQL.columnMetadata);
     const metadataColumns = columnsOutcome.rows
         .map((row) => cellText(row[0]))
         .filter((name): name is string => name !== undefined);
@@ -541,7 +558,7 @@ export async function probeVectorCapabilities(
           };
 
     // 5. Vector indexes with the phantom gate.
-    const indexesOutcome = await runProbe(session, VECTOR_PROBE_SQL.vectorIndexes(options?.table));
+    const indexesOutcome = await probe(VECTOR_PROBE_SQL.vectorIndexes(options?.table));
     let indexes: VectorIndexCatalogProbe;
     if (indexesOutcome.failed) {
         indexes = {
@@ -593,7 +610,7 @@ export async function probeVectorCapabilities(
 
     // 6. Health DMV: presence, then RESOLVED column names, then rows.
     let healthDmv: VectorHealthDmvProbe;
-    const presenceOutcome = await runProbe(session, VECTOR_PROBE_SQL.healthDmvPresence);
+    const presenceOutcome = await probe(VECTOR_PROBE_SQL.healthDmvPresence);
     if (presenceOutcome.failed) {
         healthDmv = {
             evidence: stamp("catalog"),
@@ -604,7 +621,7 @@ export async function probeVectorCapabilities(
     } else if (cellInt(presenceOutcome.rows[0]?.[0]) !== 1) {
         healthDmv = { evidence: stamp("catalog"), present: false, columns: [] };
     } else {
-        const dmvColumnsOutcome = await runProbe(session, VECTOR_PROBE_SQL.healthDmvColumns);
+        const dmvColumnsOutcome = await probe(VECTOR_PROBE_SQL.healthDmvColumns);
         const dmvColumns = dmvColumnsOutcome.rows
             .map((row) => cellText(row[0]))
             .filter((name): name is string => name !== undefined);
@@ -617,8 +634,7 @@ export async function probeVectorCapabilities(
             };
         } else {
             const resolved = resolveHealthColumns(dmvColumns);
-            const rowsOutcome = await runProbe(
-                session,
+            const rowsOutcome = await probe(
                 VECTOR_PROBE_SQL.healthDmvRows(dmvColumns, options?.table),
             );
             const rows = rowsOutcome.failed
@@ -642,7 +658,7 @@ export async function probeVectorCapabilities(
     }
 
     // 7. External models (EMBEDDINGS only; DB-scoped name + owner; egress A4).
-    const modelsOutcome = await runProbe(session, VECTOR_PROBE_SQL.externalModels);
+    const modelsOutcome = await probe(VECTOR_PROBE_SQL.externalModels);
     let externalModels: VectorExternalModelsProbe;
     if (modelsOutcome.failed) {
         externalModels = {
@@ -677,7 +693,7 @@ export async function probeVectorCapabilities(
     }
 
     // 8. Server configuration gates (box/MI; values recorded, absence honest).
-    const serverConfigOutcome = await runProbe(session, VECTOR_PROBE_SQL.serverConfig);
+    const serverConfigOutcome = await probe(VECTOR_PROBE_SQL.serverConfig);
     let serverConfig: VectorServerConfigProbe;
     if (serverConfigOutcome.failed) {
         serverConfig = {
@@ -704,7 +720,7 @@ export async function probeVectorCapabilities(
     // 9. Syntax-probe target: prefer a REAL vector column on a table that has
     //    a confirmed vector index (clean acceptance), else any vector column,
     //    else the nonexistent-table placeholder (parse-acceptance only).
-    const discoveryOutcome = await runProbe(session, VECTOR_PROBE_SQL.discoverVectorColumns);
+    const discoveryOutcome = await probe(VECTOR_PROBE_SQL.discoverVectorColumns);
     const discovered = discoveryOutcome.failed
         ? []
         : discoveryOutcome.rows
@@ -731,14 +747,11 @@ export async function probeVectorCapabilities(
     const effectiveTarget = target ?? NO_TABLE_PROBE_TARGET;
 
     // 10. VECTOR_SEARCH TVF parse acceptance (never scans: WHERE 1 = 0).
-    const tvfOutcome = await runProbe(session, VECTOR_PROBE_SQL.vectorSearchTvf(effectiveTarget));
+    const tvfOutcome = await probe(VECTOR_PROBE_SQL.vectorSearchTvf(effectiveTarget));
     const vectorSearchTvf = classifySyntaxProbe(tvfOutcome, previewFeatures.enabled, target);
 
     // 11. TOP (n) WITH APPROXIMATE acceptance (expected rejected today).
-    const approxOutcome = await runProbe(
-        session,
-        VECTOR_PROBE_SQL.topNWithApproximate(effectiveTarget),
-    );
+    const approxOutcome = await probe(VECTOR_PROBE_SQL.topNWithApproximate(effectiveTarget));
     const topNWithApproximate = classifySyntaxProbe(approxOutcome, previewFeatures.enabled, target);
 
     return {

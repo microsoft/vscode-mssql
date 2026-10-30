@@ -48,9 +48,16 @@ export interface VectorCapabilitySessionSource {
 
 const DEFAULT_TTL_MS = 60_000;
 
+interface ProbePass {
+    controller: AbortController;
+    lease?: AuxiliarySessionLease;
+}
+
 export class VectorCapabilityService {
     private readonly cache = new Map<string, { at: number; probe: VectorCapabilityProbe }>();
     private readonly inFlight = new Map<string, Promise<QsVectorCapabilitiesResult>>();
+    private readonly activePasses = new Set<ProbePass>();
+    private disposed = false;
 
     constructor(
         private readonly source: VectorCapabilitySessionSource,
@@ -64,6 +71,9 @@ export class VectorCapabilityService {
         refresh = false,
         table?: VectorProbeTableFilter,
     ): Promise<QsVectorCapabilitiesResult> {
+        if (this.disposed) {
+            return { error: VectorWorkbenchLoc.noAuxiliaryDiagnosticSessionIsAvailableForThis };
+        }
         const identity = this.source.identity();
         if (!identity) {
             return {
@@ -98,9 +108,25 @@ export class VectorCapabilityService {
         this.cache.clear();
     }
 
-    dispose(): void {
-        this.cache.clear();
+    /** Stop unfinished probes while preserving completed capability facts. */
+    cancelInFlight(): void {
+        for (const pass of this.activePasses) {
+            pass.controller.abort();
+            this.releaseLease(pass);
+        }
         this.inFlight.clear();
+    }
+
+    dispose(): void {
+        this.disposed = true;
+        this.cancelInFlight();
+        this.cache.clear();
+    }
+
+    private releaseLease(pass: ProbePass): void {
+        const lease = pass.lease;
+        pass.lease = undefined;
+        lease?.dispose();
     }
 
     private async probeOnce(
@@ -108,26 +134,30 @@ export class VectorCapabilityService {
         database?: string,
         table?: VectorProbeTableFilter,
     ): Promise<QsVectorCapabilitiesResult> {
-        const lease = await this.source.acquire();
-        if (!lease) {
-            return {
-                error: VectorWorkbenchLoc.noAuxiliaryDiagnosticSessionIsAvailableForThis,
-            };
-        }
+        const pass: ProbePass = { controller: new AbortController() };
+        this.activePasses.add(pass);
         try {
-            const probe = await probeVectorCapabilities(
-                lease.session,
-                database,
-                table ? { table } : undefined,
-            );
+            pass.lease = await this.source.acquire();
+            pass.controller.signal.throwIfAborted();
+            if (!pass.lease) {
+                return {
+                    error: VectorWorkbenchLoc.noAuxiliaryDiagnosticSessionIsAvailableForThis,
+                };
+            }
+            const probe = await probeVectorCapabilities(pass.lease.session, database, {
+                table,
+                signal: pass.controller.signal,
+            });
+            pass.controller.signal.throwIfAborted();
             this.cache.set(key, { at: this.now(), probe });
             return { probe };
         } catch (error) {
-            // probeVectorCapabilities never throws by contract — this guards
-            // session-open races so the RPC still answers honestly.
+            // Missing surfaces are represented in the probe. Cancellation
+            // and session-open races still need an honest RPC error.
             return { error: error instanceof Error ? error.message : String(error) };
         } finally {
-            lease.dispose();
+            this.releaseLease(pass);
+            this.activePasses.delete(pass);
         }
     }
 }

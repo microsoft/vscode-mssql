@@ -735,6 +735,72 @@ suite("VectorCapabilityService (VEC-7)", () => {
         expect(a.probe).to.equal(b.probe);
     });
 
+    test("canceling a refresh stops SQL, closes its lease, and retains completed cached facts", async () => {
+        const stalled = await sessionFor([
+            { match: () => true, events: [{ type: "chaos:noTerminal" }] },
+        ]);
+        let started!: () => void;
+        const entered = new Promise<void>((resolve) => (started = resolve));
+        const execute = stalled.execute.bind(stalled);
+        const spy = sinon.stub(stalled, "execute").callsFake((...args) => {
+            const handle = execute(...args);
+            started();
+            return handle;
+        });
+        let acquires = 0;
+        let disposals = 0;
+        const service = new VectorCapabilityService({
+            identity: () => ({ connectionId: "c" }),
+            acquire: async () => {
+                const session = ++acquires === 1 ? await sessionFor(rtmScripts()) : stalled;
+                return {
+                    session,
+                    dispose: () => {
+                        disposals++;
+                        void session.close();
+                    },
+                };
+            },
+        });
+        try {
+            const cached = await service.capabilities();
+            const refresh = service.capabilities(true);
+            await entered;
+            service.cancelInFlight();
+            expect((await refresh).error).to.be.a("string");
+            expect(spy.callCount).to.equal(1);
+            expect(stalled.state).to.equal("closed");
+            expect(disposals).to.equal(2);
+            expect((await service.capabilities()).probe).to.equal(cached.probe);
+            expect(acquires).to.equal(2);
+        } finally {
+            service.dispose();
+            spy.restore();
+        }
+    });
+
+    test("canceling during acquisition disposes the late lease without submitting probes", async () => {
+        const session = await sessionFor(rtmScripts());
+        const execute = sinon.spy(session, "execute");
+        let finish!: (lease: AuxiliarySessionLease) => void;
+        const acquire = new Promise<AuxiliarySessionLease>((resolve) => (finish = resolve));
+        const dispose = sinon.spy(() => {
+            void session.close();
+        });
+        const service = new VectorCapabilityService({
+            identity: () => ({ connectionId: "c" }),
+            acquire: () => acquire,
+        });
+        const result = service.capabilities();
+        service.cancelInFlight();
+        finish({ session, dispose });
+        expect((await result).error).to.be.a("string");
+        expect(execute.called).to.equal(false);
+        expect(dispose.calledOnce).to.equal(true);
+        service.dispose();
+        execute.restore();
+    });
+
     test("refuses honestly: no identity / no aux session", async () => {
         const h = harness();
         h.setIdentity(undefined);
@@ -861,6 +927,7 @@ suite("DocumentSessionBinding auxiliary sessions (VEC-7)", () => {
 
         first!.dispose();
         first!.dispose(); // idempotent
+        await new Promise<void>((resolve) => setImmediate(resolve));
         expect(binding.auxiliarySessionCount).to.equal(1);
         expect(first!.session.state).to.equal("closed");
 
@@ -876,8 +943,35 @@ suite("DocumentSessionBinding auxiliary sessions (VEC-7)", () => {
         const lease = await binding.acquireAuxiliarySession("vectorDiagnostics");
         expect(lease).to.not.equal(undefined);
         binding.dispose();
+        await new Promise<void>((resolve) => setImmediate(resolve));
         expect(binding.auxiliarySessionCount).to.equal(0);
         expect(lease!.session.state).to.equal("closed");
+    });
+
+    test("a closing auxiliary session keeps its cap slot until close settles", async () => {
+        const { binding } = await connectedBinding();
+        const first = (await binding.acquireAuxiliarySession("vectorDiagnostics"))!;
+        const second = (await binding.acquireAuxiliarySession("vectorModelCall"))!;
+        let release!: () => void;
+        const pendingClose = new Promise<void>((resolve) => (release = resolve));
+        const close = first.session.close.bind(first.session);
+        const stub = sandbox.stub(first.session, "close").callsFake(async () => {
+            await pendingClose;
+            await close();
+        });
+        first.dispose();
+        first.dispose();
+        expect(stub.calledOnce).to.equal(true);
+        expect(binding.auxiliarySessionCount).to.equal(2);
+        expect(await binding.acquireAuxiliarySession("vectorDiagnostics")).to.equal(undefined);
+        release();
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        expect(binding.auxiliarySessionCount).to.equal(1);
+        const replacement = await binding.acquireAuxiliarySession("vectorDiagnostics");
+        expect(replacement).to.not.equal(undefined);
+        replacement!.dispose();
+        second.dispose();
+        binding.dispose();
     });
 
     test("pending opens count against the cap and late sessions close after owner disposal", async () => {

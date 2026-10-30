@@ -848,6 +848,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     }
 
     private resetVectorServices(): void {
+        this.model.vectorCapabilities.cancelInFlight();
         this.vectorSessionEpoch++;
         this.vectorSearchService?.dispose();
         this.vectorSearchService = undefined;
@@ -864,6 +865,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
 
     /** Revoke host resources while retaining bounded terminal Vector metadata. */
     private suspendVectorServices(): void {
+        this.model.vectorCapabilities.cancelInFlight();
         const hadHostResources = Boolean(this.vectorService || this.vectorPipelineService);
         void this.vectorSearchService?.suspendSensitiveState().catch(() => undefined);
         void this.vectorPipelineService?.suspendSensitiveState().catch(() => undefined);
