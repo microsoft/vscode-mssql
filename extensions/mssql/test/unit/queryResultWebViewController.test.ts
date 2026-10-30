@@ -392,12 +392,42 @@ suite("QueryResultWebviewController", () => {
             onDidCloseTextDocumentHandler!({
                 uri: vscode.Uri.parse(otherUri),
             } as vscode.TextDocument);
+            const sendNotification = sandbox.spy(multiController, "sendNotification");
 
             multiController.updateUri(testUri, otherUri);
 
             expect(getMultiResults().groups.map((group) => group.uris)).to.deep.equal([[otherUri]]);
             expect(getMultiResults().entries[otherUri].isDocumentClosed).to.be.false;
             expect(multiController.getQueryResultState(otherUri).title).to.equal("test.sql");
+            // The view showed the replaced result under this URI, so it needs the new state.
+            expect(sendNotification).to.have.been.calledWith(
+                MultiResultsFileStateNotification.type,
+                sinon.match({ uri: otherUri, state: sinon.match({ title: "test.sql" }) }),
+            );
+        });
+
+        test("keeps a closed file's cancelling query state until it completes when the preview is turned off", () => {
+            const completeEmitter = new vscode.EventEmitter<QueryExecutionCompleteEvent>();
+            sqlOutputContentProvider.getQueryRunner.withArgs(otherUri).returns({
+                isExecutingQuery: true,
+                onComplete: completeEmitter.event,
+            } as unknown as QueryRunner);
+            onDidCloseTextDocumentHandler!({
+                uri: vscode.Uri.parse(otherUri),
+            } as vscode.TextDocument);
+            previews[PreviewFeature.MultiResults] = false;
+
+            onDidChangeConfigurationHandler?.({
+                affectsConfiguration: (section: string) =>
+                    section === getPreviewConfigKey(PreviewFeature.MultiResults),
+            } as vscode.ConfigurationChangeEvent);
+
+            expect(multiController.hasQueryResultState(otherUri)).to.be.true;
+            expect(sqlOutputContentProvider.cleanupRunner).to.have.been.calledWith(otherUri);
+
+            completeEmitter.fire({} as QueryExecutionCompleteEvent);
+
+            expect(multiController.hasQueryResultState(otherUri)).to.be.false;
         });
 
         test("keeps a result listed after its editor closes", () => {

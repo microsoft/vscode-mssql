@@ -25,7 +25,7 @@ import { QueryResultPaneTabs } from "../../src/sharedInterfaces/queryResult";
 import { Deferred } from "../../src/protocol";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import QueryRunner from "../../src/controllers/queryRunner";
+import QueryRunner, { QueryExecutionCompleteEvent } from "../../src/controllers/queryRunner";
 import ResultsSerializer from "../../src/models/resultsSerializer";
 import * as Utils from "../../src/models/utils";
 import {
@@ -287,6 +287,73 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         expect(staleRunner.dispose).to.have.been.calledOnce;
         expect(contentProvider.getResultsMap.get(newUri)?.queryRunner).to.equal(queryRunner);
+    });
+
+    test("updateQueryRunnerUri keeps a listed result when an editor without results is saved over it", async () => {
+        const oldUri = "untitled:Untitled-97";
+        const newUri = "file:///kept.sql";
+        const listedRunner = {
+            isExecutingQuery: false,
+            dispose: sandbox.stub().resolves(),
+        } as unknown as QueryRunner;
+        contentProvider.setResultsMap = new Map<string, QueryRunnerState>([
+            [newUri, new QueryRunnerState(listedRunner)],
+        ]);
+        sandbox
+            .stub(contentProvider.queryResultWebviewController, "isInMultiResultsList")
+            .withArgs(newUri)
+            .returns(true);
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        expect(listedRunner.dispose).to.not.have.been.called;
+        expect(contentProvider.getResultsMap.get(newUri)?.queryRunner).to.equal(listedRunner);
+    });
+
+    suite("cleanupRunner for a running query", () => {
+        const uri = "file:///cancelled.sql";
+        let completeEmitter: vscode.EventEmitter<QueryExecutionCompleteEvent>;
+        let runner: QueryRunner;
+        let listener: { dispose: sinon.SinonStub };
+
+        setup(() => {
+            completeEmitter = new vscode.EventEmitter<QueryExecutionCompleteEvent>();
+            runner = {
+                isExecutingQuery: true,
+                onComplete: completeEmitter.event,
+                dispose: sandbox.stub().resolves(),
+            } as unknown as QueryRunner;
+            listener = { dispose: sandbox.stub() };
+            const runnerState = new QueryRunnerState(runner);
+            runnerState.listeners = [listener];
+            contentProvider.setResultsMap = new Map<string, QueryRunnerState>([[uri, runnerState]]);
+            sandbox.stub(contentProvider, "cancelQuery").resolves();
+        });
+
+        test("releases the query on the service once it completes", async () => {
+            await contentProvider.cleanupRunner(uri);
+
+            expect(contentProvider.cancelQuery).to.have.been.calledWith(runner);
+            expect(runner.dispose).to.not.have.been.called;
+
+            completeEmitter.fire({} as QueryExecutionCompleteEvent);
+
+            expect(runner.dispose).to.have.been.calledOnce;
+            expect(listener.dispose).to.have.been.calledOnce;
+        });
+
+        test("leaves the service query to a new run of the same editor", async () => {
+            await contentProvider.cleanupRunner(uri);
+            contentProvider.getResultsMap.set(
+                uri,
+                new QueryRunnerState({} as unknown as QueryRunner),
+            );
+
+            completeEmitter.fire({} as QueryExecutionCompleteEvent);
+
+            expect(runner.dispose).to.not.have.been.called;
+            expect(listener.dispose).to.have.been.calledOnce;
+        });
     });
 
     test("updateQueryRunnerUri should not throw when query result state does not exist", async () => {

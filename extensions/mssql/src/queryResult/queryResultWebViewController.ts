@@ -578,9 +578,7 @@ export class QueryResultWebviewController extends WebviewViewController<
         // results the list was keeping.
         for (const uri of this._closedDocumentUris) {
             if (!this.hasPanel(uri)) {
-                this.deleteQueryResultState(uri);
-                store.deleteUriState(uri);
-                void this._sqlOutputContentProvider.cleanupRunner(uri);
+                void this.discardQueryResult(uri);
             }
         }
         this._closedDocumentUris.clear();
@@ -734,6 +732,13 @@ export class QueryResultWebviewController extends WebviewViewController<
             },
         });
         this.removeFromMultiResults(uri);
+        await this.discardQueryResult(uri);
+    }
+
+    /**
+     * Deletes a result's state and releases its query, cancelling the query if it is running.
+     */
+    private async discardQueryResult(uri: string): Promise<void> {
         store.deleteUriState(uri);
 
         const runner = this._sqlOutputContentProvider.getQueryRunner(uri);
@@ -1030,6 +1035,9 @@ export class QueryResultWebviewController extends WebviewViewController<
             this._queryResultWebviewPanelControllerMap.get(newUri).updateState(state);
         } else if (this._multiResultsLayout) {
             this.updateMultiResultsView();
+            // The view may already show a result under the new URI, which it keeps until sent
+            // the state that replaces it.
+            this.sendMultiResultsFileState(newUri);
         } else if (this.isVisible()) {
             this.state = state;
         }

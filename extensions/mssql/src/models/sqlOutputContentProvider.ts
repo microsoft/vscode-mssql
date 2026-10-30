@@ -1123,8 +1123,13 @@ export class SqlOutputContentProvider {
             return;
         }
         // A query can be saved over a file whose results the multi-results list kept after the
-        // file closed. The saved query's results replace those, so release them first.
-        if (this.isInMultiResultsList(newUri) && this._queryResultsMap.has(newUri)) {
+        // file closed. When the saved query has results, they replace those, so release them
+        // first.
+        if (
+            this._queryResultsMap.has(oldUri) &&
+            this.isInMultiResultsList(newUri) &&
+            this._queryResultsMap.has(newUri)
+        ) {
             await this.cleanupRunner(newUri);
             store.deleteUriState(newUri);
         }
@@ -1248,8 +1253,19 @@ export class SqlOutputContentProvider {
                 this._stateUpdateThrottles.delete(uri);
             }
             if (queryRunnerState.queryRunner.isExecutingQuery) {
-                // We need to cancel it, which will dispose it
-                await this.cancelQuery(queryRunnerState.queryRunner);
+                // Cancelling does not release the query on the service, so release it once the
+                // query reports completion. The service identifies queries by editor, so leave it
+                // to a new run of the editor that started by then.
+                const runner = queryRunnerState.queryRunner;
+                const completionListener = runner.onComplete(() => {
+                    completionListener.dispose();
+                    queryRunnerState.listeners?.forEach((listener) => listener.dispose());
+                    const currentRunner = this._queryResultsMap.get(uri)?.queryRunner;
+                    if (!currentRunner || currentRunner === runner) {
+                        void runner.dispose();
+                    }
+                });
+                await this.cancelQuery(runner);
             } else {
                 // We need to explicitly dispose the query
                 void queryRunnerState.queryRunner.dispose();
