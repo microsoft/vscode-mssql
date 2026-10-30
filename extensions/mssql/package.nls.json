@@ -67,7 +67,7 @@
     "mssql.schemaCompare": "Compare Schemas...",
     "mssql.tableExplorer": "Edit Table Data...",
     "mssql.searchDatabase": "Search Database Objects...",
-    "mssql.performance.openDashboard": "Monitor Performance",
+    "mssql.performance.openDashboard": "Monitor Performance (Preview)",
     "mssql.toggleSqlCmd": "Toggle SQLCMD Mode",
     "mssql.copyObjectName": "Copy Object Name",
     "mssql.copyConnectionString": "Copy Connection String",

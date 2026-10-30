@@ -2052,8 +2052,8 @@
         "message": "The server did not finish the login. A paused serverless database can take a minute to resume, so try again shortly. {0}",
         "comment": ["{0} is the error from the server"]
     },
-    "Performance - {0}/{0} is the database name": {
-        "message": "Performance - {0}",
+    "Performance (Preview) - {0}/{0} is the database name": {
+        "message": "Performance (Preview) - {0}",
         "comment": ["{0} is the database name"]
     },
     "Open performance monitoring from a database of a saved connection in Object Explorer.": "Open performance monitoring from a database of a saved connection in Object Explorer.",
@@ -6205,6 +6205,11 @@
     "Query Store does not capture wait statistics, so new waits are not recorded.": "Query Store does not capture wait statistics, so new waits are not recorded.",
     "Turn on wait statistics capture": "Turn on wait statistics capture",
     "Open in Chat": "Open in Chat",
+    "Preview": "Preview",
+    "Actions for query {0}/{0} is the Query Store query ID": {
+        "message": "Actions for query {0}",
+        "comment": ["{0} is the Query Store query ID"]
+    },
     "Time range: {0}/{0} is the selected time range, for example Past 24 hours": {
         "message": "Time range: {0}",
         "comment": ["{0} is the selected time range, for example Past 24 hours"]
@@ -6394,7 +6399,6 @@
     "MSSQL: What's new": "MSSQL: What's new",
     "MSSQL extension icon": "MSSQL extension icon",
     "New to MSSQL extension? Check out our quick-start guide.": "New to MSSQL extension? Check out our quick-start guide.",
-    "Preview": "Preview",
     "Select a file": "Select a file",
     "Select a folder": "Select a folder",
     "Folder is required": "Folder is required",

@@ -16,6 +16,7 @@ import {
 import { ArrowClockwise20Regular, Settings20Regular } from "@fluentui/react-icons";
 import { useRef } from "react";
 import { locConstants as loc } from "../../common/locConstants";
+import { NavigationBackButton } from "../../common/navigation/navigationBackButton";
 import { NavigationBreadcrumb } from "../../common/navigation/navigationBreadcrumb";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { RouteParams } from "../../common/navigation/router";
@@ -56,6 +57,24 @@ const useStyles = makeStyles({
     },
     spacer: {
         flexGrow: 1,
+    },
+    // The dashboard is a preview, like the command that opens it and its tab title.
+    preview: {
+        flexShrink: 0,
+        fontSize: "10px",
+        fontWeight: tokens.fontWeightBold,
+        letterSpacing: "0.2px",
+        ...shorthands.padding("1px", "7px"),
+        ...shorthands.borderRadius("9px"),
+        color: tokens.colorBrandForeground2,
+        backgroundColor: tokens.colorBrandBackground2,
+        ...shorthands.border("1px", "solid", tokens.colorBrandStroke2),
+    },
+    // Back and the breadcrumb, on the pages below a tab.
+    location: {
+        display: "flex",
+        alignItems: "center",
+        ...shorthands.gap("4px"),
     },
     actions: {
         display: "flex",
@@ -102,6 +121,7 @@ export const PerformanceDashboardPage = () => {
             <header className={classes.header}>
                 <div className={classes.toolbar}>
                     <PerformanceDashboardDatabasePicker />
+                    <span className={classes.preview}>{loc.performanceDashboard.preview}</span>
                     <span className={classes.spacer} />
                     <div className={classes.actions}>
                         {timeRangeRoutes.has(match.route.id) && <PerformanceDashboardTimeRange />}
@@ -143,8 +163,13 @@ export const PerformanceDashboardPage = () => {
                 )}
             </header>
             <main className={classes.content}>
-                {/* Below a tab, the breadcrumb shows the way back up, for example from a deep link. */}
-                {!isTopRoute && <NavigationBreadcrumb />}
+                {/* Below a tab, Back and the breadcrumb show the way back up, also from a deep link. */}
+                {!isTopRoute && (
+                    <div className={classes.location}>
+                        <NavigationBackButton />
+                        <NavigationBreadcrumb />
+                    </div>
+                )}
                 {match.route.id === "query" ? (
                     <PerformanceDashboardQueryPage />
                 ) : (

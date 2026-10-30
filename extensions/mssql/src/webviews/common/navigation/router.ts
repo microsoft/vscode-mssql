@@ -268,3 +268,28 @@ function safeDecode(value: string): string | undefined {
         return undefined;
     }
 }
+
+/**
+ * Where Back goes from a location: the newest location in the history that is on another page,
+ * with the history before it. A page is a route and its parameters, so a change of the query
+ * string only, such as a tab or a time range, is not a page to go back to. Undefined when the
+ * history has no other page.
+ */
+export function previousPage<TRoute extends RouteDefinition>(
+    router: Router<TRoute>,
+    history: readonly string[],
+    location: string,
+): { readonly location: string; readonly history: readonly string[] } | undefined {
+    const pageOf = (target: string) => {
+        const match = router.match(target);
+        return match ? router.build(match.route.id, match.params) : undefined;
+    };
+    const page = pageOf(location);
+    for (let index = history.length - 1; index >= 0; index--) {
+        const candidate = pageOf(history[index]);
+        if (candidate !== undefined && candidate !== page) {
+            return { location: history[index], history: history.slice(0, index) };
+        }
+    }
+    return undefined;
+}

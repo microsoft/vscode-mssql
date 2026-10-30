@@ -396,6 +396,10 @@
       <source xml:lang="en">Actions for plan {0}</source>
       <note>{0} is the Query Store plan ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++5d4ec9a53f2cbe502e36ff86aaeba73faea341a9f13f9510375da085f8d6099b">
+      <source xml:lang="en">Actions for query {0}</source>
+      <note>{0} is the Query Store query ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
       <source xml:lang="en">Active filters:</source>
     </trans-unit>
@@ -8764,8 +8768,8 @@
     <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
       <source xml:lang="en">Perform checksum before writing to media</source>
     </trans-unit>
-    <trans-unit id="++CODE++b1ed540154e0fe519ba327adad1179b14dfb53452939103c74f1f9f3444b15fd">
-      <source xml:lang="en">Performance - {0}</source>
+    <trans-unit id="++CODE++8a02cafd2d8e48b35f0ecfe68240cac0da1e2044b3cb4bd06562a665e722e4ed">
+      <source xml:lang="en">Performance (Preview) - {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
     <trans-unit id="++CODE++8fbfbbfd0d6df40fb3ac544463426d3da1683e2c78c771df98e05d638d2e1101">
@@ -15708,7 +15712,7 @@
       <source xml:lang="en">Modify Table Structure...</source>
     </trans-unit>
     <trans-unit id="mssql.performance.openDashboard">
-      <source xml:lang="en">Monitor Performance</source>
+      <source xml:lang="en">Monitor Performance (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerV2.moveToGroup">
       <source xml:lang="en">Move to Group...</source>

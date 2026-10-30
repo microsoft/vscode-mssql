@@ -6,21 +6,14 @@
 import {
     Button,
     Caption1,
-    Checkbox,
-    Link,
     makeStyles,
-    Menu,
     MenuItem,
-    MenuList,
-    MenuPopover,
     MessageBar,
     MessageBarBody,
     MessageBarIntent,
-    PositioningVirtualElement,
     shorthands,
     tokens,
 } from "@fluentui/react-components";
-import { MoreHorizontal16Regular, Open12Regular, Warning16Regular } from "@fluentui/react-icons";
 import { useMemo, useState } from "react";
 import {
     ApplyPlanChangeRequest,
@@ -45,6 +38,15 @@ import { isFirstLoad } from "../../common/useExtensionRequest";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ChangeDialog } from "./performanceDashboardChangeDialog";
 import { dateTimeFormat, formatNumber } from "./performanceDashboardFormat";
+import {
+    checkboxCell,
+    DashboardGridColumn,
+    DashboardGrid,
+    gridIcon,
+    linkCell,
+    textSpan,
+    withSwatch,
+} from "./performanceDashboardGrid";
 import { ChartPanel, StatusBar, readData, usePerformanceRead } from "./performanceDashboardParts";
 import { usePlanColor } from "./performanceDashboardPlanColors";
 import {
@@ -55,7 +57,6 @@ import {
 } from "./performanceDashboardPlanHistory";
 import { useRefresh } from "./performanceDashboardRefresh";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
-import { SimpleGrid } from "./performanceDashboardSimpleGrid";
 import { ChartSkeleton, TableSkeleton } from "./performanceDashboardSkeletons";
 import { metrics } from "./performanceDashboardMetrics";
 import { readStatusMessage } from "./performanceDashboardStatus";
@@ -67,33 +68,6 @@ const useStyles = makeStyles({
         flexDirection: "column",
         ...shorthands.gap("12px"),
         flex: "1 0 auto",
-    },
-    plan: {
-        display: "flex",
-        alignItems: "center",
-        ...shorthands.gap("8px"),
-    },
-    swatch: {
-        width: "10px",
-        height: "10px",
-        flexShrink: 0,
-        ...shorthands.borderRadius("2px"),
-    },
-    planLink: {
-        display: "inline-flex",
-        alignItems: "center",
-        ...shorthands.gap("4px"),
-    },
-    force: {
-        display: "inline-flex",
-        alignItems: "center",
-        ...shorthands.gap("6px"),
-        whiteSpace: "nowrap",
-    },
-    forceWarning: {
-        display: "inline-flex",
-        flexShrink: 0,
-        color: tokens.colorPaletteYellowForeground1,
     },
     // The actions for the selected plans, above the grid.
     bar: {
@@ -142,6 +116,12 @@ interface Notice {
     readonly text: string;
 }
 
+// The Fluent icons of the plan link and of a failed force.
+const openIconPath =
+    "M4 3a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V7a.5.5 0 0 1 1 0v1a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2h1a.5.5 0 0 1 0 1H4Zm3 0a.5.5 0 0 1 0-1h2.5c.28 0 .5.22.5.5V5a.5.5 0 0 1-1 0V3.7L7.35 5.36a.5.5 0 1 1-.7-.7L8.29 3H7Z";
+const warningIconPath =
+    "M8.75 10.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.5 8a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-1 0V8Zm-.6-5.36c.49-.86 1.71-.86 2.2 0l4.74 8.5c.47.83-.14 1.86-1.09 1.86h-9.5a1.25 1.25 0 0 1-1.1-1.86l4.76-8.5Zm1.32.49a.25.25 0 0 0-.44 0l-4.75 8.5c-.1.16.03.37.22.37h9.5c.2 0 .31-.2.22-.37l-4.75-8.5Z";
+
 /** The metrics of the plans grid and the compare tab, which share the read of the plans. */
 export const planMetrics: readonly QueryStoreMetric[] = ["duration", "cpuTime", "memoryGrant"];
 
@@ -169,11 +149,6 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
     const [applyError, setApplyError] = useState<string | undefined>(undefined);
     const [notice, setNotice] = useState<Notice | undefined>(undefined);
     const [verification, setVerification] = useState<ForcedPlanVerification | undefined>(undefined);
-    // The menu of a row: at the pointer for a right-click, or under the row's actions button.
-    const [contextMenu, setContextMenu] = useState<
-        | { readonly planId: string; readonly target: PositioningVirtualElement | HTMLElement }
-        | undefined
-    >(undefined);
 
     const plansRead = usePerformanceRead(
         GetQueryPlansRequest.type,
@@ -320,10 +295,6 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
     const prepareForce = (plan: QueryStorePlan) =>
         prepare(plan.isForced ? "unforcePlan" : "forcePlan", plan.planId);
 
-    const contextMenuPlan = contextMenu
-        ? plans.find((plan) => plan.planId === contextMenu.planId)
-        : undefined;
-
     return (
         <div className={classes.plans}>
             {notice && (
@@ -375,160 +346,83 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
                     </Button>
                 </div>
             </div>
-            <SimpleGrid<QueryStorePlan>
-                fill
+            <DashboardGrid<QueryStorePlan>
                 items={plans}
                 getRowId={(plan) => plan.planId}
                 ariaLabel={text.plans}
                 defaultSort={{ column: "lastExecuted", direction: "descending" }}
                 isSelected={(plan) => selected.includes(plan.planId)}
-                onRowContextMenu={(plan, event) => {
-                    event.preventDefault();
-                    const { clientX: x, clientY: y } = event;
-                    setContextMenu({
-                        planId: plan.planId,
-                        target: {
-                            getBoundingClientRect: () =>
-                                ({
-                                    x,
-                                    y,
-                                    top: y,
-                                    left: x,
-                                    bottom: y,
-                                    right: x,
-                                    width: 0,
-                                    height: 0,
-                                }) as DOMRect,
-                        },
-                    });
-                }}
+                menuButtonLabel={(plan) => text.planActions(plan.planId)}
+                menuItems={(plan) => (
+                    <>
+                        <MenuItem onClick={() => void openPlans([plan.planId])}>
+                            {text.openPlanXml}
+                        </MenuItem>
+                        <MenuItem
+                            disabled={busy || change.stage === "review"}
+                            onClick={() => void prepareForce(plan)}>
+                            {plan.isForced ? text.unforcePlan : text.forcePlan}
+                        </MenuItem>
+                    </>
+                )}
                 columns={[
                     {
                         id: "select",
                         header: "",
                         control: true,
-                        idealWidth: 40,
-                        render: (plan) => (
-                            <Checkbox
-                                aria-label={text.selectPlan(plan.planId)}
-                                checked={selected.includes(plan.planId)}
-                                onChange={(_event, data) => toggle(plan.planId, !!data.checked)}
-                            />
-                        ),
+                        text: () => "",
+                        render: (plan) =>
+                            checkboxCell(
+                                selected.includes(plan.planId),
+                                text.selectPlan(plan.planId),
+                            ),
+                        activate: (plan) => toggle(plan.planId, !selected.includes(plan.planId)),
                     },
                     {
                         id: "plan",
                         header: text.plan,
-                        idealWidth: 96,
-                        compare: (left, right) => Number(left.planId) - Number(right.planId),
-                        render: (plan) => (
-                            <span className={classes.plan}>
-                                <span
-                                    className={classes.swatch}
-                                    style={{ backgroundColor: colorOf(plan.planId) }}
-                                    aria-hidden
-                                />
-                                <Link
-                                    className={classes.planLink}
-                                    title={text.openPlan(plan.planId)}
-                                    onClick={() => void openPlans([plan.planId])}>
-                                    {plan.planId}
-                                    <Open12Regular aria-hidden />
-                                </Link>
-                            </span>
-                        ),
+                        width: 96,
+                        text: (plan) => plan.planId,
+                        title: (plan) => text.openPlan(plan.planId),
+                        sortValue: (plan) => Number(plan.planId),
+                        render: (plan) =>
+                            withSwatch(
+                                colorOf(plan.planId),
+                                linkCell(plan.planId, "#", openIconPath),
+                            ),
+                        activate: (plan) => void openPlans([plan.planId]),
                     },
                     {
                         id: "runs",
                         header: text.runs,
                         numeric: true,
-                        idealWidth: 96,
-                        compare: (left, right) => left.executionCount - right.executionCount,
-                        render: (plan) => formatNumber(plan.executionCount),
+                        width: 96,
+                        text: (plan) => formatNumber(plan.executionCount),
+                        sortValue: (plan) => plan.executionCount,
                     },
-                    {
-                        id: "mean",
-                        header: text.mean,
-                        numeric: true,
-                        idealWidth: 120,
-                        compare: (left, right) =>
-                            (left.metrics.duration?.avg ?? -1) -
-                            (right.metrics.duration?.avg ?? -1),
-                        render: (plan) => <AverageCell plan={plan} metric="duration" />,
-                    },
-                    {
-                        id: "cpu",
-                        header: text.meanCpu,
-                        numeric: true,
-                        idealWidth: 120,
-                        compare: (left, right) =>
-                            (left.metrics.cpuTime?.avg ?? -1) - (right.metrics.cpuTime?.avg ?? -1),
-                        render: (plan) => <AverageCell plan={plan} metric="cpuTime" />,
-                    },
+                    averageColumn("mean", text.mean, "duration"),
+                    averageColumn("cpu", text.meanCpu, "cpuTime"),
                     {
                         id: "lastExecuted",
                         header: text.lastExecuted,
                         grow: true,
-                        idealWidth: 180,
-                        compare: (left, right) => lastExecuted(left) - lastExecuted(right),
-                        render: (plan) =>
+                        width: 180,
+                        text: (plan) =>
                             plan.lastExecutionTimeUtc
                                 ? dateTimeFormat.format(new Date(plan.lastExecutionTimeUtc))
                                 : "—",
+                        sortValue: lastExecuted,
                     },
                     {
                         id: "force",
                         header: text.force,
-                        idealWidth: 180,
-                        render: (plan) => <ForceCell plan={plan} />,
-                    },
-                    {
-                        id: "actions",
-                        header: "",
-                        control: true,
-                        idealWidth: 40,
-                        render: (plan) => (
-                            <Button
-                                appearance="subtle"
-                                size="small"
-                                icon={<MoreHorizontal16Regular />}
-                                aria-label={text.planActions(plan.planId)}
-                                title={text.planActions(plan.planId)}
-                                aria-haspopup="menu"
-                                onClick={(event) =>
-                                    setContextMenu({
-                                        planId: plan.planId,
-                                        target: event.currentTarget,
-                                    })
-                                }
-                            />
-                        ),
+                        width: 180,
+                        text: forceText,
+                        title: forceFailure,
+                        render: forceCell,
                     },
                 ]}
             />
-            {contextMenuPlan && (
-                <Menu
-                    open
-                    positioning={{
-                        target: contextMenu?.target,
-                        position: "below",
-                        align: contextMenu?.target instanceof HTMLElement ? "end" : "start",
-                    }}
-                    onOpenChange={(_event, data) => !data.open && setContextMenu(undefined)}>
-                    <MenuPopover>
-                        <MenuList>
-                            <MenuItem onClick={() => void openPlans([contextMenuPlan.planId])}>
-                                {text.openPlanXml}
-                            </MenuItem>
-                            <MenuItem
-                                disabled={busy || change.stage === "review"}
-                                onClick={() => void prepareForce(contextMenuPlan)}>
-                                {contextMenuPlan.isForced ? text.unforcePlan : text.forcePlan}
-                            </MenuItem>
-                        </MenuList>
-                    </MenuPopover>
-                </Menu>
-            )}
             {change.stage === "review" && (
                 <ChangeDialog
                     title={
@@ -574,47 +468,63 @@ function lastExecuted(plan: QueryStorePlan): number {
 }
 
 /** The average of a metric for each execution of the plan, with the exact value as its title. */
-const AverageCell = ({
-    plan,
-    metric,
-}: {
-    plan: QueryStorePlan;
-    metric: "duration" | "cpuTime";
-}) => {
-    const average = plan.metrics[metric]?.avg;
-    return average !== undefined ? (
-        <span title={metrics[metric].exact(average)}>{metrics[metric].display(average)}</span>
-    ) : (
-        <>—</>
-    );
-};
+function averageColumn(
+    id: string,
+    header: string,
+    metric: "duration" | "cpuTime",
+): DashboardGridColumn<QueryStorePlan> {
+    const average = (plan: QueryStorePlan) => plan.metrics[metric]?.avg;
+    return {
+        id,
+        header,
+        numeric: true,
+        width: 120,
+        text: (plan) => {
+            const value = average(plan);
+            return value === undefined ? "—" : metrics[metric].display(value);
+        },
+        title: (plan) => {
+            const value = average(plan);
+            return value === undefined ? undefined : metrics[metric].exact(value);
+        },
+        sortValue: average,
+    };
+}
+
+/** The force status of a plan. */
+function forceText(plan: QueryStorePlan): string {
+    const text = loc.performanceDashboard;
+    return !plan.isForced
+        ? text.notForced
+        : plan.forcingType === "auto"
+          ? text.forcedAutomatically
+          : text.forcedManually;
+}
+
+/** Why forcing the plan last failed, if it did. */
+function forceFailure(plan: QueryStorePlan): string | undefined {
+    return plan.lastForceFailureReason
+        ? loc.performanceDashboard.forceFailed(plan.lastForceFailureReason)
+        : undefined;
+}
 
 /** The force status on one line, with a warning icon when forcing last failed. */
-const ForceCell = ({ plan }: { plan: QueryStorePlan }) => {
-    const classes = useStyles();
-    const text = loc.performanceDashboard;
-    const failure = plan.lastForceFailureReason
-        ? text.forceFailed(plan.lastForceFailureReason)
-        : undefined;
-    return (
-        <span className={classes.force}>
-            {!plan.isForced
-                ? text.notForced
-                : plan.forcingType === "auto"
-                  ? text.forcedAutomatically
-                  : text.forcedManually}
-            {failure && (
-                <span
-                    className={classes.forceWarning}
-                    role="img"
-                    aria-label={failure}
-                    title={failure}>
-                    <Warning16Regular />
-                </span>
-            )}
-        </span>
-    );
-};
+function forceCell(plan: QueryStorePlan): HTMLElement {
+    const failure = forceFailure(plan);
+    const status = textSpan(forceText(plan));
+    if (!failure) {
+        return status;
+    }
+    const cell = document.createElement("span");
+    cell.className = "performance-grid-with-icon";
+    const warning = document.createElement("span");
+    warning.className = "performance-grid-warning";
+    warning.setAttribute("role", "img");
+    warning.setAttribute("aria-label", failure);
+    warning.append(gridIcon(warningIconPath));
+    cell.append(status, warning);
+    return cell;
+}
 
 function planBlockerText(blocker: PlanChangeBlocker): string {
     const text = loc.performanceDashboard;

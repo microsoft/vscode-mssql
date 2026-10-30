@@ -34,7 +34,7 @@ import { planMetrics } from "./performanceDashboardQueryPlans";
 import { useRefresh } from "./performanceDashboardRefresh";
 import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
-import { SimpleGrid } from "./performanceDashboardSimpleGrid";
+import { DashboardGrid, textSpan, withSwatch } from "./performanceDashboardGrid";
 import { TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 import { useViewTimeRange } from "./performanceDashboardTimeRange";
@@ -49,9 +49,11 @@ type CompareBaseline = "same" | "7d" | "30d";
 const dayMs = 24 * 60 * 60 * 1000;
 
 const useStyles = makeStyles({
+    // Grows to the bottom of the page, so the plans grid can fill the space left.
     compare: {
         display: "flex",
         flexDirection: "column",
+        flex: "1 0 auto",
         gap: "12px",
     },
     controls: {
@@ -109,23 +111,6 @@ const useStyles = makeStyles({
     barValue: {
         whiteSpace: "nowrap",
         fontVariantNumeric: "tabular-nums",
-    },
-    plan: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-    },
-    swatch: {
-        width: "10px",
-        height: "10px",
-        flexShrink: 0,
-        borderRadius: "2px",
-    },
-    worse: {
-        color: tokens.colorPaletteDarkOrangeForeground1,
-    },
-    better: {
-        color: tokens.colorPaletteGreenForeground1,
     },
 });
 
@@ -238,12 +223,13 @@ export const PerformanceDashboardQueryCompare = ({ queryId }: { queryId: string 
     const recentValue = periodValue(periodTotals(recentPlans, metric), view, recentMs);
     const baselineValue = periodValue(periodTotals(baselinePlans, metric), view, baselineMs);
     const change = changePercent(recentValue, baselineValue);
+    // The cells are drawn outside React, so the change colors are classes of the grid.
     const changeClass = (percent: number | undefined) =>
         percent === undefined || Math.round(percent) === 0
             ? undefined
             : percent > 0
-              ? classes.worse
-              : classes.better;
+              ? "performance-grid-worse"
+              : "performance-grid-better";
 
     const recentLabel =
         value.kind === "preset"
@@ -391,7 +377,7 @@ export const PerformanceDashboardQueryCompare = ({ queryId }: { queryId: string 
                                     </Caption1>
                                 </span>
                             </div>
-                            <SimpleGrid<PlanRow>
+                            <DashboardGrid<PlanRow>
                                 items={planRows}
                                 getRowId={(row) => row.planId}
                                 ariaLabel={text.plans}
@@ -399,61 +385,49 @@ export const PerformanceDashboardQueryCompare = ({ queryId }: { queryId: string 
                                     {
                                         id: "plan",
                                         header: text.plan,
-                                        idealWidth: 90,
-                                        minWidth: 70,
-                                        compare: (left, right) =>
-                                            Number(left.planId) - Number(right.planId),
-                                        render: (row) => (
-                                            <span className={classes.plan}>
-                                                <span
-                                                    className={classes.swatch}
-                                                    style={{ backgroundColor: colorOf(row.planId) }}
-                                                    aria-hidden
-                                                />
-                                                {row.planId}
-                                            </span>
-                                        ),
+                                        width: 90,
+                                        text: (row) => row.planId,
+                                        sortValue: (row) => Number(row.planId),
+                                        render: (row) =>
+                                            withSwatch(colorOf(row.planId), textSpan(row.planId)),
                                     },
                                     {
                                         id: "executions",
                                         header: text.executionsRecentBaseline,
                                         numeric: true,
-                                        idealWidth: 200,
-                                        compare: (left, right) =>
-                                            left.recentExecutions - right.recentExecutions,
-                                        render: (row) =>
+                                        width: 200,
+                                        sortValue: (row) => row.recentExecutions,
+                                        text: (row) =>
                                             `${formatNumber(row.recentExecutions)} / ${formatNumber(row.baselineExecutions)}`,
                                     },
                                     {
                                         id: "recent",
                                         header: text.recentColumn(valueName),
                                         numeric: true,
-                                        idealWidth: 160,
-                                        compare: (left, right) =>
-                                            (left.recent ?? -1) - (right.recent ?? -1),
-                                        render: (row) => format(row.recent),
+                                        width: 160,
+                                        sortValue: (row) => row.recent,
+                                        text: (row) => format(row.recent),
                                     },
                                     {
                                         id: "baseline",
                                         header: text.baselineColumn(valueName),
                                         numeric: true,
-                                        idealWidth: 160,
-                                        compare: (left, right) =>
-                                            (left.baseline ?? -1) - (right.baseline ?? -1),
-                                        render: (row) => format(row.baseline),
+                                        width: 160,
+                                        sortValue: (row) => row.baseline,
+                                        text: (row) => format(row.baseline),
                                     },
                                     {
                                         id: "change",
                                         header: text.change,
                                         numeric: true,
-                                        idealWidth: 100,
-                                        compare: (left, right) =>
-                                            (left.change ?? 0) - (right.change ?? 0),
-                                        render: (row) => (
-                                            <span className={changeClass(row.change)}>
-                                                {formatChange(row.change)}
-                                            </span>
-                                        ),
+                                        width: 100,
+                                        sortValue: (row) => row.change,
+                                        text: (row) => formatChange(row.change),
+                                        render: (row) =>
+                                            textSpan(
+                                                formatChange(row.change),
+                                                changeClass(row.change),
+                                            ),
                                     },
                                 ]}
                             />

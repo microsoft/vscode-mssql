@@ -24,7 +24,7 @@ import {
     useQueryHistory,
 } from "./performanceDashboardPlanHistory";
 import { filledSeriesPoints } from "./performanceDashboardSeries";
-import { SimpleGrid } from "./performanceDashboardSimpleGrid";
+import { DashboardGrid } from "./performanceDashboardGrid";
 import { ChartSkeleton, TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 import { useQueryStoreAvailableFrom, useViewTimeRange } from "./performanceDashboardTimeRange";
@@ -82,9 +82,7 @@ export const PerformanceDashboardQueryHistory = ({ queryId }: { queryId: string 
                 />
             }>
             {rows.length > 0 && (
-                <SimpleGrid<QueryStoreInterval>
-                    fill
-                    virtualized
+                <DashboardGrid<QueryStoreInterval>
                     framed={false}
                     items={rows}
                     getRowId={(interval) => interval.startUtc}
@@ -93,46 +91,43 @@ export const PerformanceDashboardQueryHistory = ({ queryId }: { queryId: string 
                         {
                             id: "interval",
                             header: text.timeInterval,
-                            idealWidth: 260,
-                            render: (interval) =>
+                            grow: true,
+                            width: 260,
+                            text: (interval) =>
                                 text.timeIntervalRange(
                                     dateTimeFormat.format(new Date(interval.startUtc)),
                                     timeFormat.format(new Date(interval.endUtc)),
                                 ),
-                            compare: (left, right) =>
-                                Date.parse(left.startUtc) - Date.parse(right.startUtc),
+                            sortValue: (interval) => Date.parse(interval.startUtc),
                         },
                         {
                             id: "executions",
                             header: text.executionCount,
                             numeric: true,
-                            render: (interval) => formatNumber(interval.executionCount),
-                            compare: (left, right) => left.executionCount - right.executionCount,
+                            text: (interval) => formatNumber(interval.executionCount),
+                            sortValue: (interval) => interval.executionCount,
                         },
                         {
                             id: "duration",
                             header: text.totalDuration,
                             numeric: true,
-                            render: (interval) => milliseconds(total(interval, "duration")),
-                            compare: (left, right) =>
-                                total(left, "duration") - total(right, "duration"),
+                            text: (interval) => milliseconds(total(interval, "duration")),
+                            sortValue: (interval) => total(interval, "duration"),
                         },
                         {
                             id: "cpu",
                             header: text.totalCpu,
                             numeric: true,
-                            render: (interval) => milliseconds(total(interval, "cpuTime")),
-                            compare: (left, right) =>
-                                total(left, "cpuTime") - total(right, "cpuTime"),
+                            text: (interval) => milliseconds(total(interval, "cpuTime")),
+                            sortValue: (interval) => total(interval, "cpuTime"),
                         },
                         {
                             id: "reads",
                             header: text.logicalReads,
                             numeric: true,
-                            render: (interval) =>
+                            text: (interval) =>
                                 text.kilobytes(formatNumber(total(interval, "logicalReads"))),
-                            compare: (left, right) =>
-                                total(left, "logicalReads") - total(right, "logicalReads"),
+                            sortValue: (interval) => total(interval, "logicalReads"),
                         },
                     ]}
                 />

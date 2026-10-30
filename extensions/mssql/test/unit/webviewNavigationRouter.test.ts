@@ -4,7 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { RouteDefinition, createRouter } from "../../src/webviews/common/navigation/router";
+import {
+    RouteDefinition,
+    createRouter,
+    previousPage,
+} from "../../src/webviews/common/navigation/router";
 import {
     pageQuery,
     performanceDashboardRouter,
@@ -108,6 +112,35 @@ suite("Webview navigation router", () => {
         ).to.throw(/no parameter "id"/);
         expect(() => createRouter(routes, "missing")).to.throw(/default route/);
         expect(() => createRouter(routes, "item")).to.throw(/must not have parameters/);
+    });
+
+    test("goes back to the newest location on another page", () => {
+        const back = previousPage(
+            router,
+            ["home", "items?sort=name", "items/42"],
+            "items/42?tab=parts",
+        );
+
+        expect(back).to.deep.equal({ location: "items?sort=name", history: ["home"] });
+    });
+
+    test("does not go back to a change of the query string only", () => {
+        const back = previousPage(
+            router,
+            ["items", "items/42", "items/42?tab=parts"],
+            "items/42?tab=history",
+        );
+
+        expect(back).to.deep.equal({ location: "items", history: [] });
+    });
+
+    test("tells another item of the same route apart", () => {
+        expect(previousPage(router, ["items/7"], "items/42")?.location).to.equal("items/7");
+    });
+
+    test("has nowhere to go back without another page", () => {
+        expect(previousPage(router, [], "items/42")).to.be.undefined;
+        expect(previousPage(router, ["items/42?tab=parts"], "items/42")).to.be.undefined;
     });
 });
 

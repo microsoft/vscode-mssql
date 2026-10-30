@@ -18,7 +18,7 @@ import {
     NavigateNotification,
 } from "../../../sharedInterfaces/webviewNavigation";
 import { useVscodeWebview } from "../vscodeWebviewProvider";
-import { RouteDefinition, RouteMatch, Router } from "./router";
+import { previousPage, RouteDefinition, RouteMatch, Router } from "./router";
 
 export interface NavigationContextValue<TRoute extends RouteDefinition = RouteDefinition> {
     readonly router: Router<TRoute>;
@@ -26,6 +26,19 @@ export interface NavigationContextValue<TRoute extends RouteDefinition = RouteDe
     readonly match: RouteMatch<TRoute>;
     /** Goes to a location. A location that no route matches goes to the default location. */
     navigate(location: string): void;
+    /** True when the history has an earlier page to go back to. */
+    readonly canGoBack: boolean;
+    /** Goes back to the earlier page, skipping changes of the query string only. */
+    back(): void;
+}
+
+/** The locations that Back can return to, at most. */
+const maxHistory = 50;
+
+interface NavigationState {
+    readonly location: string;
+    /** The earlier locations, oldest first. */
+    readonly history: readonly string[];
 }
 
 const NavigationContext = createContext<NavigationContextValue | undefined>(undefined);
@@ -43,10 +56,31 @@ export function NavigationProvider<TRoute extends RouteDefinition>({
     children: ReactNode;
 }) {
     const { extensionRpc } = useVscodeWebview<unknown, unknown>();
-    const [location, setLocation] = useState<string | undefined>(undefined);
+    const [state, setState] = useState<NavigationState | undefined>(undefined);
+    const location = state?.location;
 
     const navigate = useCallback(
-        (target: string) => setLocation(router.match(target)?.location ?? router.defaultLocation),
+        (target: string) => {
+            const next = router.match(target)?.location ?? router.defaultLocation;
+            setState((current) =>
+                !current
+                    ? { location: next, history: [] }
+                    : current.location === next
+                      ? current
+                      : {
+                            location: next,
+                            history: [...current.history, current.location].slice(-maxHistory),
+                        },
+            );
+        },
+        [router],
+    );
+    const back = useCallback(
+        () =>
+            setState(
+                (current) =>
+                    (current && previousPage(router, current.history, current.location)) ?? current,
+            ),
         [router],
     );
 
@@ -59,9 +93,12 @@ export function NavigationProvider<TRoute extends RouteDefinition>({
         );
         const start = (target: string) => {
             if (!disposed) {
-                setLocation(
+                setState(
                     (current) =>
-                        current ?? router.match(target)?.location ?? router.defaultLocation,
+                        current ?? {
+                            location: router.match(target)?.location ?? router.defaultLocation,
+                            history: [],
+                        },
                 );
             }
         };
@@ -82,15 +119,17 @@ export function NavigationProvider<TRoute extends RouteDefinition>({
     }, [extensionRpc, location]);
 
     const value = useMemo<NavigationContextValue<TRoute> | undefined>(() => {
-        if (location === undefined) {
+        if (!state) {
             return undefined;
         }
         return {
             router,
-            match: router.match(location) ?? router.match(router.defaultLocation)!,
+            match: router.match(state.location) ?? router.match(router.defaultLocation)!,
             navigate,
+            canGoBack: previousPage(router, state.history, state.location) !== undefined,
+            back,
         };
-    }, [location, router, navigate]);
+    }, [state, router, navigate, back]);
 
     if (!value) {
         return null;

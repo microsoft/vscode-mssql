@@ -51,7 +51,7 @@ import { useRefresh } from "./performanceDashboardRefresh";
 import { PerformanceDashboardRoute, withSettings } from "./performanceDashboardRoutes";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 import { filledSeriesPoints } from "./performanceDashboardSeries";
-import { SimpleGrid } from "./performanceDashboardSimpleGrid";
+import { DashboardGrid } from "./performanceDashboardGrid";
 import { ChartSkeleton, TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 import { useQueryStoreAvailableFrom, useViewTimeRange } from "./performanceDashboardTimeRange";
@@ -196,8 +196,7 @@ export const PerformanceDashboardQueryWaits = ({ queryId }: { queryId: string })
                                     availableFrom={availableFrom}
                                 />
                             }>
-                            <SimpleGrid<WaitCategoryStats>
-                                fill
+                            <DashboardGrid<WaitCategoryStats>
                                 framed={false}
                                 items={waits.categories}
                                 getRowId={(category) => category.category}
@@ -208,44 +207,41 @@ export const PerformanceDashboardQueryWaits = ({ queryId }: { queryId: string })
                                         id: "category",
                                         header: text.waitCategory,
                                         grow: true,
-                                        idealWidth: 200,
-                                        render: (category) => category.category,
-                                        compare: (left, right) =>
-                                            left.category.localeCompare(right.category),
+                                        width: 200,
+                                        text: (category) => category.category,
+                                        sortValue: (category) => category.category,
                                     },
                                     {
                                         id: "total",
                                         header: text.totalWait,
                                         numeric: true,
-                                        render: (category) => milliseconds(category.totalMs),
-                                        compare: (left, right) => left.totalMs - right.totalMs,
+                                        text: (category) => milliseconds(category.totalMs),
+                                        sortValue: (category) => category.totalMs,
                                     },
                                     {
                                         id: "average",
                                         header: text.avgWaitPerExecution,
                                         numeric: true,
-                                        idealWidth: 180,
-                                        render: (category) =>
+                                        width: 180,
+                                        text: (category) =>
                                             category.avgMsPerExecution === undefined
                                                 ? text.notAvailable
                                                 : milliseconds(category.avgMsPerExecution),
-                                        compare: (left, right) =>
-                                            (left.avgMsPerExecution ?? -1) -
-                                            (right.avgMsPerExecution ?? -1),
+                                        sortValue: (category) => category.avgMsPerExecution,
                                     },
                                     {
                                         id: "max",
                                         header: text.maxWait,
                                         numeric: true,
-                                        render: (category) => milliseconds(category.maxMs),
-                                        compare: (left, right) => left.maxMs - right.maxMs,
+                                        text: (category) => milliseconds(category.maxMs),
+                                        sortValue: (category) => category.maxMs,
                                     },
                                     {
                                         id: "share",
                                         header: text.shareOfWaits,
                                         numeric: true,
-                                        render: (category) => formatShare(category.share * 100),
-                                        compare: (left, right) => left.share - right.share,
+                                        text: (category) => formatShare(category.share * 100),
+                                        sortValue: (category) => category.share,
                                     },
                                 ]}
                             />

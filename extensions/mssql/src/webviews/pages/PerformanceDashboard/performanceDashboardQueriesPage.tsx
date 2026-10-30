@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, SearchBox, shorthands, Switch } from "@fluentui/react-components";
-import { Chat16Regular } from "@fluentui/react-icons";
 import { useEffect, useMemo, useState } from "react";
 import {
     ContinueInChatRequest,
@@ -13,6 +12,7 @@ import {
     PerformanceDashboardState,
     type QueryStoreStatistic,
 } from "../../../sharedInterfaces/performanceDashboard";
+import { GithubCopilot16Regular } from "../../common/icons/fluentIcons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SegmentedControl } from "../../common/segmentedControl";
@@ -119,11 +119,11 @@ export const PerformanceDashboardQueriesPage = () => {
         );
     }, [topQueries, rankBy, statistic, search, favoritesOnly, favorites.queryIds]);
 
-    // Each row opens Copilot Chat about its query.
+    // The menu of each row opens Copilot Chat about its query.
     const rowAction = useMemo<QueryRowAction>(
         () => ({
             label: loc.performanceDashboard.openInChat,
-            icon: <Chat16Regular />,
+            icon: <GithubCopilot16Regular />,
             run: (queryId) =>
                 void extensionRpc.sendRequest(ContinueInChatRequest.type, {
                     queryId,
@@ -136,34 +136,41 @@ export const PerformanceDashboardQueriesPage = () => {
     const setQuery = (values: Record<string, string | undefined>) =>
         navigate(router.build("queries", {}, { ...match.query, ...values }));
 
-    const format = categoryFormat(category);
-    const ranked: QueryGridColumn = {
-        id: "value",
-        header:
-            category === "executions"
-                ? text.executionCount
-                : text.rankedMetric(statisticLabel(statistic), categoryMetricName(category)),
-        value: (row) => (category === "executions" ? row.executions : row.value),
-        format: format.format,
-        exact: format.exact,
-        share: (row) => row.share,
-        showShare: isTotal,
-        shareTitle: isTotal
-            ? (share, value) => text.shareOfAllQueries(formatShare(share), format.exact(value))
-            : undefined,
-    };
-    const columns: QueryGridColumn[] =
-        category === "executions"
+    // The grid builds its columns again when these change, so they change only with the view.
+    const columns = useMemo<QueryGridColumn[]>(() => {
+        const columnText = loc.performanceDashboard;
+        const format = categoryFormat(category);
+        const ranked: QueryGridColumn = {
+            id: "value",
+            header:
+                category === "executions"
+                    ? columnText.executionCount
+                    : columnText.rankedMetric(
+                          statisticLabel(statistic),
+                          categoryMetricName(category),
+                      ),
+            value: (row) => (category === "executions" ? row.executions : row.value),
+            format: format.format,
+            exact: format.exact,
+            share: (row) => row.share,
+            showShare: isTotal,
+            shareTitle: isTotal
+                ? (share, value) =>
+                      columnText.shareOfAllQueries(formatShare(share), format.exact(value))
+                : undefined,
+        };
+        return category === "executions"
             ? [ranked]
             : [
                   ranked,
                   {
                       id: "executions",
-                      header: text.executionCount,
+                      header: columnText.executionCount,
                       value: (row) => row.executions,
                       format: formatNumber,
                   },
               ];
+    }, [category, statistic, isTotal]);
 
     return (
         <div className={classes.page}>

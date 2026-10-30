@@ -73,10 +73,16 @@ import { readStatusMessage } from "./performanceDashboardStatus";
 const rowBorder = "1px solid var(--vscode-panel-border)";
 
 const useStyles = makeStyles({
+    // A line under the title, as over the footer.
+    header: {
+        borderBottom: rowBorder,
+    },
+    // Space between the header's line and the first section.
     body: {
         display: "flex",
         flexDirection: "column",
         gap: "12px",
+        paddingTop: "16px",
     },
     secondary: {
         color: tokens.colorNeutralForeground3,
@@ -153,6 +159,16 @@ const useStyles = makeStyles({
     control: {
         width: "160px",
         minWidth: "160px",
+    },
+    // The webview styles give every dropdown a taller line height, with !important, and a border
+    // on its button too. That makes a small dropdown taller than a small input; this keeps the
+    // two the same height.
+    dropdownButton: {
+        "&[role='combobox']": {
+            lineHeight: `${tokens.lineHeightBase200} !important`,
+            paddingTop: "2px",
+            paddingBottom: "2px",
+        },
     },
     rowText: {
         minWidth: "180px",
@@ -231,7 +247,7 @@ export const PerformanceDashboardQueryStoreSettings = ({ onClose }: { onClose: (
     const settings = info?.settings;
 
     const header = (
-        <DrawerHeader>
+        <DrawerHeader className={classes.header}>
             <DrawerHeaderTitle
                 action={
                     <Button
@@ -607,6 +623,8 @@ const SettingsRows = ({
                         text.captureMode,
                         text.captureModeDescription,
                         <Dropdown
+                            size="small"
+                            button={{ className: classes.dropdownButton }}
                             id="qs-capture-mode"
                             className={classes.control}
                             disabled={othersDisabled}
@@ -772,6 +790,8 @@ const SettingsRows = ({
                         text.statisticsInterval,
                         text.intervalDescription,
                         <Dropdown
+                            size="small"
+                            button={{ className: classes.dropdownButton }}
                             id="qs-interval"
                             className={classes.control}
                             disabled={othersDisabled}
@@ -853,6 +873,7 @@ const NumberField = ({
     return (
         <Input
             id={id}
+            size="small"
             className={className}
             inputMode="numeric"
             disabled={disabled}

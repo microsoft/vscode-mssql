@@ -3762,7 +3762,7 @@ export class PerformanceDashboard {
         });
     public static title = (databaseName: string) =>
         l10n.t({
-            message: "Performance - {0}",
+            message: "Performance (Preview) - {0}",
             args: [databaseName],
             comment: ["{0} is the database name"],
         });

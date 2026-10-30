@@ -14,7 +14,6 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import {
-    Chat16Regular,
     Copy16Regular,
     DocumentText16Regular,
     Star20Filled,
@@ -31,6 +30,7 @@ import {
     type QueryPageTab,
     type QueryStoreQueryDetails,
 } from "../../../sharedInterfaces/performanceDashboard";
+import { CopilotChatButton } from "../../common/copilot/copilotChatButton";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SegmentedControl } from "../../common/segmentedControl";
@@ -253,18 +253,18 @@ export const PerformanceDashboardQueryPage = () => {
                         {text.planForcedBadge(data.forcedPlanId)}
                     </Badge>
                 )}
-                <Button
-                    className={classes.headerEnd}
-                    size="small"
-                    icon={<Chat16Regular />}
-                    onClick={() =>
-                        void extensionRpc.sendRequest(ContinueInChatRequest.type, {
-                            queryId,
-                            ...window,
-                        })
-                    }>
-                    {text.openInChat}
-                </Button>
+                <span className={classes.headerEnd}>
+                    <CopilotChatButton
+                        label={text.openInChat}
+                        tooltip={text.openInChat}
+                        onClick={() =>
+                            void extensionRpc.sendRequest(ContinueInChatRequest.type, {
+                                queryId,
+                                ...window,
+                            })
+                        }
+                    />
+                </span>
             </div>
             <div className={classes.main}>
                 {isReadOnly(details) && <ReadOnlyNotice />}

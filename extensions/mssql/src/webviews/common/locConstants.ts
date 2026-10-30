@@ -4336,6 +4336,7 @@ export class LocConstants {
     public get navigation() {
         return {
             breadcrumb: l10n.t("Breadcrumb"),
+            back: l10n.t("Back"),
         };
     }
 
@@ -4935,6 +4936,13 @@ export class LocConstants {
             ),
             turnOnWaitCapture: l10n.t("Turn on wait statistics capture"),
             openInChat: l10n.t("Open in Chat"),
+            preview: l10n.t("Preview"),
+            queryActions: (queryId: string) =>
+                l10n.t({
+                    message: "Actions for query {0}",
+                    args: [queryId],
+                    comment: ["{0} is the Query Store query ID"],
+                }),
         };
     }
 

@@ -3,160 +3,37 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    Caption1,
-    createTableColumn,
-    Link,
-    makeStyles,
-    mergeClasses,
-    TableColumnDefinition,
-    tokens,
-    Tooltip,
-} from "@fluentui/react-components";
-import {
-    DataGrid,
-    DataGridBody,
-    DataGridCell,
-    DataGridHeader,
-    DataGridHeaderCell,
-    DataGridRow,
-} from "@fluentui-contrib/react-data-grid-react-window";
-import { Star16Filled, Star16Regular } from "@fluentui/react-icons";
-import { CSSProperties, ReactElement, useMemo, useRef } from "react";
+import { Caption1, makeStyles, MenuItem, tokens } from "@fluentui/react-components";
+import { ReactElement, useMemo } from "react";
 import type { PerformanceRead } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
-import { SqlText } from "../../common/sqlText";
+import { appendSqlText } from "../../common/sqlText";
 import { ExtensionRequestState, isFirstLoad } from "../../common/useExtensionRequest";
 import { formatShare } from "./performanceDashboardFormat";
-import { useElementHeight } from "./performanceDashboardElementHeight";
+import {
+    DashboardGrid,
+    DashboardGridColumn,
+    iconButton,
+    linkCell,
+} from "./performanceDashboardGrid";
 import { StatusBar } from "./performanceDashboardParts";
 import { QueryListRow } from "./performanceDashboardQueryList";
 import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
-import { TableSkeleton, useFadeInClass } from "./performanceDashboardSkeletons";
+import { TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 
-const rowHeight = 36;
 /** The query text shown in a row. The full text is in the tooltip and on the query page. */
 const maxQueryTextLength = 160;
-const cellBorder = "1px solid var(--vscode-panel-border)";
-const favoriteWidth = 36;
-const idWidth = 88;
+const idWidth = 100;
 const textMinWidth = 200;
 const numberWidth = 150;
 const shareWidth = 180;
-
-const useStyles = makeStyles({
-    // The slot takes the space left below the grid's siblings; the frame fits the rows in it.
-    slot: {
-        flex: "1 1 0px",
-        minWidth: 0,
-    },
-    // A narrow grid scrolls sideways in the frame, so the header and the rows move together.
-    frame: {
-        width: "100%",
-        minWidth: 0,
-        border: cellBorder,
-        borderRadius: tokens.borderRadiusMedium,
-        overflowX: "auto",
-        overflowY: "hidden",
-    },
-    grid: {
-        width: "100%",
-    },
-    // The virtualized header scrolls sideways on its own; here the frame scrolls instead.
-    header: {
-        backgroundColor: tokens.colorNeutralBackground2,
-        overflowX: "visible",
-    },
-    headerRow: {
-        height: `${rowHeight}px`,
-    },
-    // When the body scrolls, the header keeps the space of its scroll bar, so that the columns
-    // line up with the cells.
-    headerRowGutter: {
-        overflow: "hidden",
-        scrollbarGutter: "stable",
-    },
-    listGutter: {
-        scrollbarGutter: "stable",
-    },
-    // A line between the columns. Headers are on the left; numbers are on the right.
-    cell: {
-        minWidth: 0,
-        borderRight: cellBorder,
-        "&:last-child": {
-            borderRight: "none",
-        },
-    },
-    headerCell: {
-        whiteSpace: "nowrap",
-        color: tokens.colorNeutralForeground2,
-        "&[aria-sort='ascending'], &[aria-sort='descending']": {
-            backgroundColor: tokens.colorNeutralBackground3,
-            color: tokens.colorNeutralForeground1,
-            fontWeight: tokens.fontWeightSemibold,
-        },
-    },
-    favoriteColumn: {
-        flex: `0 0 ${favoriteWidth}px`,
-    },
-    idColumn: {
-        flex: `0 0 ${idWidth}px`,
-    },
-    // A zero basis, so that the column takes the space left and never grows with its text.
-    textColumn: {
-        flex: "1 1 0px",
-        minWidth: `${textMinWidth}px`,
-    },
-    numberColumn: {
-        flex: `0 0 ${numberWidth}px`,
-    },
-    shareColumn: {
-        flex: `0 0 ${shareWidth}px`,
-    },
-    numeric: {
-        justifyContent: "flex-end",
-        textAlign: "right",
-        fontFamily: tokens.fontFamilyMonospace,
-        fontVariantNumeric: "tabular-nums",
-    },
-    queryText: {
-        display: "block",
-        fontFamily: tokens.fontFamilyMonospace,
-        whiteSpace: "nowrap",
-        overflowX: "hidden",
-        textOverflow: "ellipsis",
-        minWidth: 0,
-    },
-    // The share fills the cell from the left, behind the text.
-    shareCell: {
-        position: "relative",
-        alignSelf: "stretch",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        width: "100%",
-    },
-    shareFill: {
-        position: "absolute",
-        top: 0,
-        bottom: 0,
-        left: "-8px",
-        backgroundColor: "color-mix(in srgb, var(--vscode-charts-blue) 22%, transparent)",
-    },
-    shareText: {
-        position: "relative",
-        whiteSpace: "nowrap",
-    },
-    shareValue: {
-        fontWeight: tokens.fontWeightSemibold,
-    },
-    favorite: {
-        color: tokens.colorPaletteMarigoldForeground1,
-    },
-});
+// The 16px Fluent star icons.
+const starRegularPath =
+    "M7.2 2.1a.9.9 0 0 1 1.6 0l1.53 3.08 3.4.5a.9.9 0 0 1 .5 1.53l-2.46 2.4.58 3.39a.9.9 0 0 1-1.3.95L8 12.35l-3.04 1.6a.9.9 0 0 1-1.3-.95l.57-3.39-2.46-2.4a.9.9 0 0 1 .5-1.53l3.4-.5L7.2 2.1Zm.8.63L6.55 5.67a.9.9 0 0 1-.68.5l-3.25.47 2.35 2.3c.21.2.3.5.26.79l-.56 3.24 2.91-1.53a.9.9 0 0 1 .84 0l2.9 1.53-.55-3.24a.9.9 0 0 1 .26-.8l2.36-2.3-3.26-.46a.9.9 0 0 1-.67-.5L8 2.73Z";
+const starFilledPath =
+    "M7.2 2.1a.9.9 0 0 1 1.6 0l1.53 3.08 3.4.5a.9.9 0 0 1 .5 1.53l-2.46 2.4.58 3.39a.9.9 0 0 1-1.3.95L8 12.35l-3.04 1.6a.9.9 0 0 1-1.3-.95l.57-3.39-2.46-2.4a.9.9 0 0 1 .5-1.53l3.4-.5L7.2 2.1Z";
 
 /** A number column of a query list. */
 export interface QueryGridColumn {
@@ -198,285 +75,163 @@ export interface PerformanceDashboardQueryGridProps {
     readonly favorites?: QueryGridFavorites;
     /** The rows that the grid shows at least, before the page scrolls instead. Default 5. */
     readonly visibleRows?: number;
-    /** A button at the end of each row, such as the analysis of the query. */
+    /**
+     * An action on a row, such as the analysis of the query, in the row's menu after Copy. A
+     * button at the end of each row opens the menu too.
+     */
     readonly rowAction?: QueryRowAction;
 }
 
 /**
- * A virtualized, sortable list of queries: a favorite star, the query ID (a link to the query
- * page), the query text, and number columns. The rows come ranked by the first number column,
- * so the grid shows that column sorted, from the highest value.
+ * A sortable list of queries: a favorite star, the query ID (a link to the query page), the
+ * query text, and number columns. The rows come ranked by the first number column, so the grid
+ * shows that column sorted, from the highest value.
  */
 export const PerformanceDashboardQueryGrid = ({
     rows,
     columns,
     ariaLabel,
     favorites,
-    visibleRows = 5,
+    visibleRows,
     rowAction,
 }: PerformanceDashboardQueryGridProps) => {
-    const classes = useStyles();
     const { router, navigate } = useNavigation<PerformanceDashboardRoute>();
-    const fadeIn = useFadeInClass();
 
-    const definitions = useMemo<TableColumnDefinition<QueryListRow>[]>(() => {
+    const gridColumns = useMemo<DashboardGridColumn<QueryListRow>[]>(() => {
         const text = loc.performanceDashboard;
-        const list: TableColumnDefinition<QueryListRow>[] = [];
+        const list: DashboardGridColumn<QueryListRow>[] = [];
         if (favorites) {
-            list.push(
-                createTableColumn<QueryListRow>({
-                    columnId: "favorite",
-                    compare: (left, right) =>
-                        Number(favorites.queryIds.has(left.queryId)) -
-                        Number(favorites.queryIds.has(right.queryId)),
-                    renderHeaderCell: () => "",
-                    renderCell: (row) => {
-                        const isFavorite = favorites.queryIds.has(row.queryId);
-                        return (
-                            <Button
-                                appearance="transparent"
-                                size="small"
-                                icon={
-                                    isFavorite ? (
-                                        <Star16Filled className={classes.favorite} />
-                                    ) : (
-                                        <Star16Regular />
-                                    )
-                                }
-                                aria-label={
-                                    isFavorite
-                                        ? text.removeFavorite(row.queryId)
-                                        : text.addFavorite(row.queryId)
-                                }
-                                aria-pressed={isFavorite}
-                                onClick={() => favorites.toggle(row.queryId, !isFavorite)}
-                            />
-                        );
-                    },
-                }),
-            );
+            const isFavorite = (row: QueryListRow) => favorites.queryIds.has(row.queryId);
+            list.push({
+                id: "favorite",
+                header: "",
+                control: true,
+                text: () => "",
+                sortValue: isFavorite,
+                render: (row) => {
+                    const favorite = isFavorite(row);
+                    const button = iconButton(
+                        favorite ? starFilledPath : starRegularPath,
+                        favorite ? text.removeFavorite(row.queryId) : text.addFavorite(row.queryId),
+                    );
+                    button.setAttribute("aria-pressed", String(favorite));
+                    button.classList.toggle("performance-grid-favorite", favorite);
+                    return button;
+                },
+                activate: (row) => favorites.toggle(row.queryId, !isFavorite(row)),
+            });
         }
         list.push(
-            createTableColumn<QueryListRow>({
-                columnId: "queryId",
-                compare: (left, right) => Number(left.queryId) - Number(right.queryId),
-                renderHeaderCell: () => text.queryId,
-                renderCell: (row) => {
-                    const location = router.build("query", { queryId: row.queryId });
-                    return (
-                        <Link
-                            href={`#${location}`}
-                            onClick={(event) => {
-                                event.preventDefault();
-                                navigate(location);
-                            }}>
-                            {row.queryId}
-                        </Link>
-                    );
+            {
+                id: "queryId",
+                header: text.queryId,
+                width: idWidth,
+                text: (row) => row.queryId,
+                sortValue: (row) => Number(row.queryId),
+                render: (row) =>
+                    linkCell(row.queryId, `#${router.build("query", { queryId: row.queryId })}`),
+                activate: (row) => navigate(router.build("query", { queryId: row.queryId })),
+            },
+            {
+                id: "queryText",
+                header: text.queryText,
+                width: textMinWidth,
+                grow: true,
+                text: (row) => shortQueryText(row.queryText),
+                copyText: (row) => row.queryText,
+                title: (row) => row.queryText,
+                sortValue: (row) => row.queryText,
+                render: (row) => {
+                    const span = document.createElement("span");
+                    span.className = "performance-grid-sql";
+                    appendSqlText(span, shortQueryText(row.queryText));
+                    return span;
                 },
-            }),
-            createTableColumn<QueryListRow>({
-                columnId: "queryText",
-                compare: (left, right) => left.queryText.localeCompare(right.queryText),
-                renderHeaderCell: () => text.queryText,
-                renderCell: (row) => (
-                    <SqlText
-                        className={classes.queryText}
-                        text={shortQueryText(row.queryText)}
-                        singleLine
-                        title={row.queryText}
-                    />
-                ),
-            }),
+            },
         );
         for (const column of columns) {
-            list.push(
-                createTableColumn<QueryListRow>({
-                    columnId: column.id,
-                    compare: (left, right) =>
-                        (column.value(left) ?? -1) - (column.value(right) ?? -1),
-                    renderHeaderCell: () => column.header,
-                    renderCell: (row) => {
-                        const value = column.value(row);
-                        if (value === undefined) {
-                            return "—";
-                        }
-                        const exact = column.exact?.(value);
-                        const share = column.share?.(row);
-                        if (share === undefined) {
-                            return <span title={exact}>{column.format(value)}</span>;
-                        }
-                        return (
-                            <span
-                                className={classes.shareCell}
-                                title={column.shareTitle?.(share, value) ?? exact}>
-                                <span
-                                    className={classes.shareFill}
-                                    style={{ width: `calc(${Math.min(100, share)}% + 8px)` }}
-                                    aria-hidden
-                                />
-                                <span className={classes.shareText}>
-                                    {column.showShare === false ? (
-                                        column.format(value)
-                                    ) : (
-                                        <>
-                                            <span className={classes.shareValue}>
-                                                {formatShare(share)}
-                                            </span>
-                                            {` / ${column.format(value)}`}
-                                        </>
-                                    )}
-                                </span>
-                            </span>
-                        );
-                    },
-                }),
-            );
-        }
-        if (rowAction) {
-            list.push(
-                createTableColumn<QueryListRow>({
-                    columnId: "rowAction",
-                    renderHeaderCell: () => "",
-                    renderCell: (row) => (
-                        <Tooltip content={rowAction.label} relationship="label">
-                            <Button
-                                appearance="transparent"
-                                size="small"
-                                icon={rowAction.icon}
-                                onClick={() => rowAction.run(row.queryId)}
-                            />
-                        </Tooltip>
-                    ),
-                }),
-            );
+            const formatted = (row: QueryListRow) => {
+                const value = column.value(row);
+                return value === undefined ? "—" : column.format(value);
+            };
+            list.push({
+                id: column.id,
+                header: column.header,
+                numeric: true,
+                width: column.share ? shareWidth : numberWidth,
+                text: formatted,
+                sortValue: column.value,
+                title: (row) => {
+                    const value = column.value(row);
+                    const share = column.share?.(row);
+                    if (value === undefined) {
+                        return undefined;
+                    }
+                    return share !== undefined && column.shareTitle
+                        ? column.shareTitle(share, value)
+                        : column.exact?.(value);
+                },
+                render: column.share ? (row) => shareCell(column, row, formatted(row)) : undefined,
+            });
         }
         return list;
-    }, [columns, favorites, rowAction, router, navigate, classes]);
-
-    const columnClass = useMemo(() => {
-        const byId: Record<string, string> = {
-            favorite: classes.favoriteColumn,
-            rowAction: classes.favoriteColumn,
-            queryId: classes.idColumn,
-            queryText: classes.textColumn,
-        };
-        for (const column of columns) {
-            byId[column.id] = column.share ? classes.shareColumn : classes.numberColumn;
-        }
-        return (columnId: string | number) => byId[String(columnId)];
-    }, [columns, classes]);
-    const numericIds = useMemo(() => new Set(columns.map((column) => column.id)), [columns]);
-
-    // The grid fills the space left below its siblings, and the rows scroll under the header. On
-    // a short page, it keeps room for the visible rows, and the page scrolls. It is never taller
-    // than its rows.
-    const slot = useRef<HTMLDivElement>(null);
-    const slotHeight = useElementHeight(slot);
-    const rowsHeight = Math.max(1, rows.length) * rowHeight;
-    const frameBorders = 2;
-    const visibleHeight = Math.max(1, Math.min(rows.length, visibleRows)) * rowHeight;
-    const height =
-        slotHeight > 0
-            ? Math.max(visibleHeight, Math.min(rowsHeight, slotHeight - rowHeight - frameBorders))
-            : visibleHeight;
-    const minSlotHeight = visibleHeight + rowHeight + frameBorders;
-    const bodyScrolls = height < rowsHeight;
-    // Below this width, the frame scrolls sideways. The header and every row are at least this
-    // wide, with 1px for the line after each column.
-    const columnCount = (favorites ? 1 : 0) + (rowAction ? 1 : 0) + 2 + columns.length;
-    const minGridWidth =
-        (favorites ? favoriteWidth : 0) +
-        (rowAction ? favoriteWidth : 0) +
-        idWidth +
-        textMinWidth +
-        columns.reduce((sum, column) => sum + (column.share ? shareWidth : numberWidth), 0) +
-        columnCount;
+    }, [columns, favorites, router, navigate]);
 
     return (
-        <div ref={slot} className={classes.slot} style={{ minHeight: minSlotHeight }}>
-            <div className={mergeClasses(classes.frame, fadeIn)}>
-                <DataGrid
-                    className={classes.grid}
-                    style={{ minWidth: minGridWidth }}
-                    items={[...rows]}
-                    columns={definitions}
-                    getRowId={(row: QueryListRow) => row.queryId}
-                    sortable
-                    defaultSortState={
-                        columns[0]
-                            ? { sortColumn: columns[0].id, sortDirection: "descending" }
-                            : undefined
-                    }
-                    size="small"
-                    focusMode="composite"
-                    aria-label={ariaLabel}>
-                    <DataGridHeader className={classes.header}>
-                        <DataGridRow
-                            className={mergeClasses(
-                                classes.headerRow,
-                                bodyScrolls && classes.headerRowGutter,
-                            )}
-                            style={{ minWidth: minGridWidth }}>
-                            {({
-                                renderHeaderCell,
-                                columnId,
-                            }: {
-                                renderHeaderCell: () => React.ReactNode;
-                                columnId: string | number;
-                            }) => (
-                                <DataGridHeaderCell
-                                    className={mergeClasses(
-                                        classes.cell,
-                                        classes.headerCell,
-                                        columnClass(columnId),
-                                    )}>
-                                    {renderHeaderCell()}
-                                </DataGridHeaderCell>
-                            )}
-                        </DataGridRow>
-                    </DataGridHeader>
-                    <DataGridBody<QueryListRow>
-                        itemSize={rowHeight}
-                        height={height}
-                        width={`max(100%, ${minGridWidth}px)`}
-                        listProps={{
-                            className: bodyScrolls ? classes.listGutter : undefined,
-                            // The frame scrolls sideways, not the body. The list sets its
-                            // overflow inline, so this is inline too.
-                            style: { overflowX: "hidden" },
-                        }}>
-                        {(
-                            { item, rowId }: { item: QueryListRow; rowId: string | number },
-                            style: CSSProperties,
-                        ) => (
-                            <DataGridRow<QueryListRow>
-                                key={rowId}
-                                style={{ ...style, minWidth: minGridWidth }}>
-                                {({
-                                    renderCell,
-                                    columnId,
-                                }: {
-                                    renderCell: (row: QueryListRow) => React.ReactNode;
-                                    columnId: string | number;
-                                }) => (
-                                    <DataGridCell
-                                        className={mergeClasses(
-                                            classes.cell,
-                                            columnClass(columnId),
-                                            numericIds.has(String(columnId)) && classes.numeric,
-                                        )}>
-                                        {renderCell(item)}
-                                    </DataGridCell>
-                                )}
-                            </DataGridRow>
-                        )}
-                    </DataGridBody>
-                </DataGrid>
-            </div>
-        </div>
+        <DashboardGrid<QueryListRow>
+            items={rows}
+            columns={gridColumns}
+            getRowId={(row) => row.queryId}
+            ariaLabel={ariaLabel}
+            defaultSort={
+                columns[0] ? { column: columns[0].id, direction: "descending" } : undefined
+            }
+            visibleRows={visibleRows}
+            menuButtonLabel={
+                rowAction ? (row) => loc.performanceDashboard.queryActions(row.queryId) : undefined
+            }
+            menuItems={
+                rowAction
+                    ? (row) => (
+                          <MenuItem
+                              icon={rowAction.icon}
+                              onClick={() => rowAction.run(row.queryId)}>
+                              {rowAction.label}
+                          </MenuItem>
+                      )
+                    : undefined
+            }
+        />
     );
 };
+
+/** The value of a number column over a bar of its share, which fills the cell from the left. */
+function shareCell(column: QueryGridColumn, row: QueryListRow, formatted: string): HTMLElement {
+    const share = column.value(row) === undefined ? undefined : column.share?.(row);
+    const cell = document.createElement("span");
+    cell.className = "performance-grid-share";
+    const label = document.createElement("span");
+    label.className = "performance-grid-share-text";
+    if (share === undefined) {
+        label.textContent = formatted;
+        cell.append(label);
+        return cell;
+    }
+    const fill = document.createElement("span");
+    fill.className = "performance-grid-share-fill";
+    fill.style.width = `${Math.min(100, Math.max(0, share))}%`;
+    fill.setAttribute("aria-hidden", "true");
+    if (column.showShare === false) {
+        label.textContent = formatted;
+    } else {
+        const shareValue = document.createElement("span");
+        shareValue.className = "performance-grid-share-value";
+        shareValue.textContent = formatShare(share);
+        label.append(shareValue, ` / ${formatted}`);
+    }
+    cell.append(fill, label);
+    return cell;
+}
 
 /** The query text on one line, cut after a fixed length. */
 function shortQueryText(queryText: string): string {
