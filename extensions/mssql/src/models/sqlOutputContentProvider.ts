@@ -1130,6 +1130,9 @@ export class SqlOutputContentProvider {
             this.isInMultiResultsList(newUri) &&
             this._queryResultsMap.has(newUri)
         ) {
+            // Its listeners update the state of the result at the URI, which becomes the saved
+            // query's, so detach them now rather than when a cancelled query completes.
+            this._queryResultsMap.get(newUri).listeners?.forEach((listener) => listener.dispose());
             await this.cleanupRunner(newUri);
             store.deleteUriState(newUri);
         }

@@ -289,6 +289,38 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(contentProvider.getResultsMap.get(newUri)?.queryRunner).to.equal(queryRunner);
     });
 
+    test("updateQueryRunnerUri detaches a cancelling listed result that a query is saved over", async () => {
+        const oldUri = "untitled:Untitled-96";
+        const newUri = "file:///cancelling.sql";
+        const staleRunner = {
+            isExecutingQuery: true,
+            onComplete: new vscode.EventEmitter<QueryExecutionCompleteEvent>().event,
+            dispose: sandbox.stub().resolves(),
+        } as unknown as QueryRunner;
+        const staleListener = { dispose: sandbox.stub() };
+        const staleRunnerState = new QueryRunnerState(staleRunner);
+        staleRunnerState.listeners = [staleListener];
+        contentProvider.setResultsMap = new Map<string, QueryRunnerState>([
+            [
+                oldUri,
+                new QueryRunnerState({
+                    updateQueryRunnerUri: sandbox.stub(),
+                } as unknown as QueryRunner),
+            ],
+            [newUri, staleRunnerState],
+        ]);
+        sandbox.stub(contentProvider, "cancelQuery").resolves();
+        sandbox
+            .stub(contentProvider.queryResultWebviewController, "isInMultiResultsList")
+            .withArgs(newUri)
+            .returns(true);
+
+        await contentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        // Its late notifications must not update the saved query's results.
+        expect(staleListener.dispose).to.have.been.calledOnce;
+    });
+
     test("updateQueryRunnerUri keeps a listed result when an editor without results is saved over it", async () => {
         const oldUri = "untitled:Untitled-97";
         const newUri = "file:///kept.sql";
