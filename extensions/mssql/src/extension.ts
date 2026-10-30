@@ -42,6 +42,7 @@ import {
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
 import { registerQueryStudio } from "./queryStudio/queryStudioEditorProvider";
+import { registerQueryParticipant } from "./queryResults/queryParticipant";
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
 import { isInlineCompletionFeatureEnabled } from "./copilot/inlineCompletionFeatureGate";
 import { registerSdkLanguageModelProviders } from "./nonproduction/sdkLanguageModels";
@@ -247,6 +248,11 @@ class MssqlActivation {
             controller.connectionManager,
             SqlToolsServerClient.instance,
         );
+
+        // @query (C2D-6): thin participant over the query-results platform.
+        // Always registered (its contribution is static); the handler itself
+        // explains when the Query Studio feature area is off.
+        registerQueryParticipant(context);
 
         const participant = vscode.chat.createChatParticipant(
             "mssql.agent",

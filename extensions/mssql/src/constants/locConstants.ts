@@ -6275,6 +6275,184 @@ export const QueryStudio = {
     ),
 };
 
+export class QueryResultsAnalysis {
+    public static truncatedStatistics = (count: string) =>
+        l10n.t("⚠ Statistics are incomplete: {0} truncated cell inputs were skipped.\n\n", count);
+    public static snapshotLimitReached = l10n.t(
+        "This conversation has reached its snapshot limit; release a snapshot first (release_snapshot).",
+    );
+    public static columnOutsideTransformSchema = (ordinal: string, width: string) =>
+        l10n.t("Column ordinal {0} is outside the transform schema ({1} columns).", ordinal, width);
+    public static profileOutputTruncated = l10n.t(
+        "\n\n_Profile output was truncated to the configured response limit._\n",
+    );
+    public static operation = (operation: string) => l10n.t("- Operation: {0}\n", operation);
+    public static rowCount = (count: string) => l10n.t("{0} rows", count);
+    public static truncated = (reason: string) => l10n.t(" (truncated: {0})", reason);
+    public static running = l10n.t(" (running)");
+    public static snapshots = (count: string) => l10n.t("\n\n**Snapshots** ({0})\n\n", count);
+    public static noSnapshots = l10n.t("- none");
+    public static derivedRowsOnly = l10n.t(
+        "Derived snapshots support row filters and slices. Use evaluate_transform for projections and aggregates.",
+    );
+    public static queryResultAnalysisNeedsQueryStudioEnableMssqlQueryStudioEnabled = l10n.t(
+        "Query result analysis needs Query Studio — enable `mssql.queryStudio.enabled`, run a query, then ask again.",
+    );
+    public static aIAccessToQueryResultsIsDisabledMssqlQueryResultsAi = l10n.t(
+        "AI access to query results is disabled (`mssql.queryResults.ai.enabled`).",
+    );
+    public static queryAnalysis = l10n.t("@query analysis");
+    public static noQueryResultsAreAvailableRunAQueryInQuery = l10n.t(
+        "No query results are available. Run a query in Query Studio first, then ask again.",
+    );
+    public static moreThanOneResultSourceIsOpenAndNoneIs = l10n.t(
+        "More than one result source is open and none is focused — click into the grid you mean (or pin it), then ask again.\n\n",
+    );
+    public static resultSetSRows = (arg0: string, arg1: string, arg2: string, arg3: string) =>
+        l10n.t("- **{0}** — {1} result set(s), {2} rows{3}", arg0, arg1, arg2, arg3);
+    public static thatSnapshotHasExpiredRunTheQueryAndPinIt = l10n.t(
+        "That snapshot has expired — run the query and pin it again.",
+    );
+    public static scanningRowsLocallyBoundedCancelable = (arg0: string) =>
+        l10n.t("Scanning {0} rows locally (bounded, cancelable)…", arg0);
+    public static resultSetS = (arg0: string, arg1: string) =>
+        l10n.t("**{0}** — {1} result set(s), ", arg0, arg1);
+    public static derivedView = l10n.t(" (derived view)");
+    public static columnTypeNullsMinMax = l10n.t(
+        "| column | type | nulls | min | max |\n|---|---|---|---|---|",
+    );
+    public static columnTypeNulls = l10n.t("| column | type | nulls |\n|---|---|---|");
+    public static resultSetRows = (arg0: string, arg1: string) =>
+        l10n.t("**Result set {0}** — {1} rows", arg0, arg1);
+    public static andMoreColumnsProfiledColumnsAreCapped = (arg0: string) =>
+        l10n.t("_…and {0} more columns (profiled columns are capped)._\n\n", arg0);
+    public static partialScanNumbersCoverTheFirstRows = (arg0: string, arg1: string) =>
+        l10n.t("⚠ Partial scan ({0}): numbers cover the first {1} rows.\n\n", arg0, arg1);
+    public static andMoreResultSets = (arg0: string) =>
+        l10n.t("_…and {0} more result sets._\n", arg0);
+    public static computingLocalStatisticsNoDataLeavesTheHost = l10n.t(
+        "Computing local statistics (no data leaves the host)…",
+    );
+    public static resultSetRowsDetails = (arg0: string, arg1: string) =>
+        l10n.t("Result set {0}: {1} rows", arg0, arg1);
+    public static nOTEStatisticsCoverOnlyTheFirstRows = (arg0: string, arg1: string) =>
+        l10n.t(" NOTE: statistics cover only the first {0} rows ({1}).", arg0, arg1);
+    public static noSampleRowsWereSharedTheUserDeclinedOrWas = l10n.t(
+        "No sample rows were shared (the user declined or was not asked).",
+    );
+    public static queryReportWillIncludeUpToSampleRowsFirstAnd = (arg0: string) =>
+        l10n.t(
+            "@query /report will include up to {0} sample rows (first and last) in the prompt sent to the language model.",
+            arg0,
+        );
+    public static writingTheReport = l10n.t("Writing the report…");
+    public static theReportExceedsTheConfiguredResponseSizeLimitSelectA = l10n.t(
+        "The report exceeds the configured response size limit. Select a smaller result set or use /summarize.",
+    );
+    public static shareQueryResultValuesFromWithTheLanguageModel = (arg0: string) =>
+        l10n.t("Share query result values from {0} with the language model?", arg0);
+    public static thisAllowsOneRead = (arg0: string) => l10n.t("{0} This allows one read.", arg0);
+    public static allowOnce = l10n.t("Allow once");
+    public static shareQueryResultValuesWithChat = l10n.t("Share query result values with chat?");
+    public static queryWillReadPerColumnMinimumMaximumValuesFromAnd = (arg0: string) =>
+        l10n.t(
+            "@query will read per-column minimum/maximum values from {0} and show them in this chat. ",
+            arg0,
+        );
+    public static schemaRowCountsAndNullRatiosNeverNeedThisConfirmation = l10n.t(
+        "Schema, row counts, and null ratios never need this confirmation. This allows one profile request covering up to five result sets.",
+    );
+    public static liveResults = (arg0: string) => l10n.t("**Live results** ({0})\n\n", arg0);
+    public static setSRows = (arg0: string, arg1: string, arg2: string, arg3: string) =>
+        l10n.t("- {0} — {1} set(s), {2} rows{3}", arg0, arg1, arg2, arg3);
+    public static noneRunAQueryInQueryStudio = l10n.t("- none — run a query in Query Studio");
+    public static rowsMOld = (arg0: string, arg1: string, arg2: string, arg3: string) =>
+        l10n.t("- {0} — {1} rows, {2}, {3}m old", arg0, arg1, arg2, arg3);
+    public static focusTheCompletedQueryStudioResultsYouWantToPin = l10n.t(
+        "Focus the completed Query Studio results you want to pin, then try again.",
+    );
+    public static queryPin = l10n.t("@query /pin");
+    public static pinnedFromQuery = l10n.t("Pinned from @query");
+    public static pinnedTheResultsNowLiveInAReadOnlyTab = l10n.t(
+        "Pinned — the results now live in a read-only tab that survives reruns.",
+    );
+    public static theSnapshotWasCreatedButThePinnedTabCouldNot = l10n.t(
+        "The snapshot was created but the pinned tab could not be opened.",
+    );
+    public static profileCancelledHereIsTheValueFreeSummaryInstead = l10n.t(
+        "Profile cancelled — here is the value-free summary instead.\n\n",
+    );
+    public static commandsListSummarizeProfileAddsMinMaxAsksFirstReport = l10n.t(
+        "\n_Commands: `/list`, `/summarize`, `/profile` (adds min/max, asks first), `/report`, `/pin`. ",
+    );
+    public static agentModeCanAnalyzeFurtherWithTheQueryResultsTool = l10n.t(
+        "Agent mode can analyze further with the `mssql_query_results` tool._",
+    );
+    public static queryResultSnapshotsRequireQueryStudioMssqlQueryStudioEnabled = l10n.t(
+        "Query result snapshots require Query Studio (mssql.queryStudio.enabled).",
+    );
+    public static aIAccessToQueryResultsIsDisabledMssqlQueryResultsAiDetails = l10n.t(
+        "AI access to query results is disabled (mssql.queryResults.ai.enabled).",
+    );
+    public static theResponseExceededBytesNarrowTheRequestFewerRowsColumns = (arg0: string) =>
+        l10n.t(
+            "The response exceeded {0} bytes — narrow the request (fewer rows/columns, tighter transform).",
+            arg0,
+        );
+    public static readingRawResultValuesRequiresUserConfirmationReInvokeThis = l10n.t(
+        "Reading raw result values requires user confirmation. Re-invoke this exact operation; the user will be asked to allow it.",
+    );
+    public static snapshotNotFoundOrExpired = l10n.t("Snapshot not found or expired.");
+    public static createSnapshotRequiresSourceIdSeeListLive = l10n.t(
+        "create_snapshot requires sourceId (see list_live).",
+    );
+    public static aIAnalysisSnapshot = l10n.t("AI analysis snapshot");
+    public static snapshotRetainedMinutesUseDescribeSnapshotForSchemaAndCounts = (arg0: string) =>
+        l10n.t(
+            "Snapshot retained ~{0} minutes; use describe_snapshot for schema and counts.",
+            arg0,
+        );
+    public static theSnapshotIsNowOpenAsAPinnedTabAnd = l10n.t(
+        "The snapshot is now open as a pinned tab and stays alive until the user closes it.",
+    );
+    public static resultSetIdIsRequiredSeeDescribeSnapshot = l10n.t(
+        "resultSetId is required (see describe_snapshot).",
+    );
+    public static snapshotIdIsRequired = l10n.t("snapshotId is required.");
+    public static invalidTransformSpec = (arg0: string) =>
+        l10n.t("Invalid transform spec: {0}", arg0);
+    public static queryResults = (arg0: string) => l10n.t("Query results: {0}", arg0);
+    public static resultSetSRowsPinnedSAgo = (
+        arg0: string,
+        arg1: string,
+        arg2: string,
+        arg3: string,
+    ) => l10n.t("**{0}** — {1} result set(s), {2} rows, pinned {3}s ago", arg0, arg1, arg2, arg3);
+    public static theSelectedSnapshot = l10n.t("the selected snapshot");
+    public static mSSQLShareQueryResultValuesWithTheModel = l10n.t(
+        "MSSQL: share query result values with the model?",
+    );
+    public static thisSendsRawResultValuesFromToTheLanguageModel = (arg0: string) =>
+        l10n.t("This sends **raw result values** from {0} to the language model.\n\n", arg0);
+    public static boundsAtMostRowsKBPerResponseKBPerCell = (
+        arg0: string,
+        arg1: string,
+        arg2: string,
+    ) =>
+        l10n.t(
+            "- Bounds: at most {0} rows / {1} KB per response, {2} KB per cell\n",
+            arg0,
+            arg1,
+            arg2,
+        );
+    public static scopeThisSingleRequestOnlyGrantsAreSingleUse = l10n.t(
+        "- Scope: this single request only (grants are single-use)\n\n",
+    );
+    public static schemaRowCountsAndNumericAggregatesNeverRequireThisConfirmation = l10n.t(
+        "Schema and whole-result numeric statistics do not require this confirmation. Filtered or sliced analysis and derived views require confirmation.",
+    );
+}
+
 export const QueryStudioCore = {
     generatedDefinitionExpired: l10n.t(
         "-- This generated definition has expired. Run Go to Definition again.",
