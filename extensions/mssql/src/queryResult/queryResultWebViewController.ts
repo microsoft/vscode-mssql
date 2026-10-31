@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
+import * as mr from "../sharedInterfaces/multiResults";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { WebviewViewController } from "../controllers/webviewViewController";
@@ -17,6 +18,7 @@ import SqlDocumentService from "../controllers/sqlDocumentService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import {
+    countResultSets,
     getNewResultPaneViewColumn,
     getInMemoryGridDataProcessingThreshold,
     messageToString,
@@ -27,6 +29,8 @@ import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
 import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 import { getQueryResultWebviewSource } from "./queryResultWebviewSource";
+import { MultiResultsLayout } from "./multiResultsLayout";
+import store from "./singletonStore";
 
 const QUERY_RESULT_VIEW_ID = "queryResult";
 
@@ -57,6 +61,15 @@ export class QueryResultWebviewController extends WebviewViewController<
         vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
     public actualPlanStatuses: string[] = [];
     private _sqlDocumentService: SqlDocumentService;
+    /**
+     * Set while the multi-results preview is enabled. The view then lists every result that is
+     * not open in its own tab and shows one group of them at a time.
+     */
+    private _multiResultsLayout: MultiResultsLayout | undefined;
+    /** Results whose editor has closed. They stay in the list until the user closes them. */
+    private _closedDocumentUris: Set<string> = new Set();
+    /** The entries last sent to the view, to skip sending the layout when nothing changed. */
+    private _multiResultsEntries: Map<string, mr.MultiResultsEntry> = new Map();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -98,8 +111,19 @@ export class QueryResultWebviewController extends WebviewViewController<
                 if (this._sqlDocumentService?.isUriBeingRenamedOrSaved(uri)) {
                     return;
                 }
+                if (this.isInMultiResultsList(uri)) {
+                    this._closedDocumentUris.add(uri);
+                    this.refreshMultiResultsEntry(uri);
+                    return;
+                }
                 if (this._queryResultStateMap.has(uri)) {
                     this._queryResultStateMap.delete(uri);
+                }
+            }),
+            vscode.workspace.onDidOpenTextDocument((document) => {
+                const uri = getUriKey(document.uri);
+                if (this._closedDocumentUris.delete(uri)) {
+                    this.refreshMultiResultsEntry(uri);
                 }
             }),
         );
@@ -189,11 +213,29 @@ export class QueryResultWebviewController extends WebviewViewController<
                     }
                     stateChanged = true;
                 }
+                if (
+                    e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.MultiResults)) ||
+                    e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaResultsGrid)) ||
+                    e.affectsConfiguration(Constants.configEnableExperimentalFeatures)
+                ) {
+                    this.updateMultiResultsActivation();
+                }
+                if (
+                    e.affectsConfiguration(Constants.configQueryResultsFollowActiveEditor) &&
+                    this._multiResultsLayout
+                ) {
+                    const activeUri = getUriKey(vscode.window.activeTextEditor?.document?.uri);
+                    if (this.followActiveEditor && activeUri) {
+                        this._multiResultsLayout.focus(activeUri);
+                    }
+                    this.updateMultiResultsView();
+                }
                 if (stateChanged) {
                     // Push updates to all open panel controllers
                     for (const [uri] of this._queryResultStateMap) {
                         this.updatePanelState(uri);
                     }
+                    this.sendMultiResultsActiveGroupStates();
                     // Push update to the webview view if it is visible
                     if (this.isVisible() && this.state?.uri) {
                         const currentUri = this.state.uri;
@@ -215,7 +257,15 @@ export class QueryResultWebviewController extends WebviewViewController<
             vscode.commands.registerCommand(Constants.cmdHandleSummaryOperation, async (uri) => {
                 this.handleSelectionSummary(uri);
             }),
+            vscode.commands.registerCommand(Constants.cmdEnableFollowActiveEditor, () =>
+                this.setFollowActiveEditor(true),
+            ),
+            vscode.commands.registerCommand(Constants.cmdDisableFollowActiveEditor, () =>
+                this.setFollowActiveEditor(false),
+            ),
         );
+
+        this.updateMultiResultsActivation();
     }
 
     public handleSelectionSummary(uri: string): void {
@@ -232,24 +282,18 @@ export class QueryResultWebviewController extends WebviewViewController<
     public updateResultsOnActiveEditorChange(editor: vscode.TextEditor | undefined): void {
         this.updateSelectionSummary();
 
+        if (this._multiResultsLayout) {
+            this.followEditorInMultiResults(editor);
+            return;
+        }
+
         const uri = getUriKey(editor?.document?.uri);
         const hasPanel = uri && this.hasPanel(uri);
         const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
 
         if (hasWebviewViewState) {
             if (hasPanel) {
-                const editorViewColumn = editor?.viewColumn;
-                const panelViewColumn =
-                    this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
-                /**
-                 * If the results are shown in a webview panel and the active editor is not in the same
-                 * view column as the results, then reveal the panel to the foreground. We explicitly
-                 * check that the editor and results are in different columns before revealing so that
-                 * we do not cover the query editor when the results share the same column.
-                 */
-                if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
-                    this.revealPanel(uri);
-                }
+                this.revealPanelForEditor(editor, uri);
                 /**
                  * If the results are shown in webview panel, we always set
                  * the webview view to show splash screen.
@@ -260,6 +304,36 @@ export class QueryResultWebviewController extends WebviewViewController<
             }
         } else {
             this.showSplashScreen();
+        }
+    }
+
+    /**
+     * Reveals the tab showing an editor's results, unless the tab shares the editor's column and
+     * would cover it.
+     */
+    private revealPanelForEditor(editor: vscode.TextEditor | undefined, uri: string): void {
+        const editorViewColumn = editor?.viewColumn;
+        const panelViewColumn = this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
+        if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
+            this.revealPanel(uri);
+        }
+    }
+
+    /**
+     * Shows the active editor's results in the multi-results view when following the active
+     * editor. An editor without results in the view leaves the current group showing.
+     */
+    private followEditorInMultiResults(editor: vscode.TextEditor | undefined): void {
+        const uri = getUriKey(editor?.document?.uri);
+        if (!uri) {
+            return;
+        }
+        if (this.hasPanel(uri) && this._queryResultStateMap.has(uri)) {
+            this.revealPanelForEditor(editor, uri);
+            return;
+        }
+        if (this.followActiveEditor) {
+            this.focusMultiResult(uri);
         }
     }
 
@@ -354,10 +428,58 @@ export class QueryResultWebviewController extends WebviewViewController<
             return qr.QueryResultWebviewLocation.Panel;
         });
         registerCommonRequestHandlers(this, this._correlationId);
+        this.registerMultiResultsHandlers();
+    }
+
+    private registerMultiResultsHandlers() {
+        this.onRequest(mr.GetMultiResultsFileStateRequest.type, async ({ uri }) => {
+            return this._queryResultStateMap.get(uri);
+        });
+        this.onRequest(mr.MultiResultsPaneActionRequest.type, async ({ uri, type, payload }) => {
+            const state = this._queryResultStateMap.get(uri);
+            if (!state) {
+                return;
+            }
+            const nextState = await this.applyReducer(
+                type,
+                state,
+                payload as qr.QueryResultReducers[typeof type],
+            );
+            // The result may have been run again or closed while the reducer ran.
+            if (this._queryResultStateMap.get(uri) !== state) {
+                return;
+            }
+            this._queryResultStateMap.set(uri, nextState);
+            this.sendMultiResultsFileState(uri);
+        });
+        this.onNotification(mr.FocusMultiResultNotification.type, ({ uri }) => {
+            this.focusMultiResult(uri);
+        });
+        this.onNotification(mr.MoveMultiResultNotification.type, ({ uri, target }) => {
+            if (!this._multiResultsLayout?.has(uri)) {
+                return;
+            }
+            this._multiResultsLayout.move(uri, target);
+            sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.MoveMultiResult, {
+                additionalProps: { target: target.kind },
+            });
+            this.updateMultiResultsView();
+        });
+        this.onNotification(mr.CloseMultiResultNotification.type, ({ uri }) => {
+            void this.closeMultiResult(uri);
+        });
+        this.onNotification(mr.SetMultiResultsGroupSizesNotification.type, ({ groupId, sizes }) => {
+            this._multiResultsLayout?.setSizes(groupId, sizes);
+            this.updateMultiResultsView();
+        });
     }
 
     private showSplashScreen() {
-        this.state = {
+        this.state = this.createEmptyViewState();
+    }
+
+    private createEmptyViewState(): qr.QueryResultWebviewState {
+        return {
             resultSetSummaries: {},
             messages: [],
             tabStates: undefined,
@@ -378,7 +500,270 @@ export class QueryResultWebviewController extends WebviewViewController<
         };
     }
 
+    private get followActiveEditor(): boolean {
+        return vscode.workspace
+            .getConfiguration()
+            .get<boolean>(Constants.configQueryResultsFollowActiveEditor, true);
+    }
+
+    private async setFollowActiveEditor(follow: boolean): Promise<void> {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.ToggleFollowActiveEditor, {
+            additionalProps: { followActiveEditor: String(follow) },
+        });
+        const config = vscode.workspace.getConfiguration();
+        // A workspace value overrides the user value, so change the setting where it is set.
+        const target =
+            config.inspect<boolean>(Constants.configQueryResultsFollowActiveEditor)
+                ?.workspaceValue !== undefined
+                ? vscode.ConfigurationTarget.Workspace
+                : vscode.ConfigurationTarget.Global;
+        await config.update(Constants.configQueryResultsFollowActiveEditor, follow, target);
+    }
+
+    /**
+     * The multi-results layout needs the preview grid: each result is shown in a pane of the
+     * preview grid's results view.
+     */
+    private get shouldUseMultiResults(): boolean {
+        return previewService.multiResultsEnabled && this.isBetaResultsGridEnabled;
+    }
+
+    public get isMultiResultsActive(): boolean {
+        return this._multiResultsLayout !== undefined;
+    }
+
+    /**
+     * Whether the result is listed in the multi-results view, where it stays after its editor
+     * closes.
+     */
+    public isInMultiResultsList(uri: string): boolean {
+        return this._multiResultsLayout?.has(uri) ?? false;
+    }
+
+    /**
+     * Switches the view between the single-result and multi-results layouts to match the
+     * preview settings.
+     */
+    private updateMultiResultsActivation(): void {
+        const shouldBeActive = this.shouldUseMultiResults;
+        if (shouldBeActive === this.isMultiResultsActive) {
+            return;
+        }
+        void vscode.commands.executeCommand(
+            "setContext",
+            Constants.multiResultsActiveContextKey,
+            shouldBeActive,
+        );
+
+        if (shouldBeActive) {
+            const layout = new MultiResultsLayout();
+            for (const uri of this._queryResultStateMap.keys()) {
+                if (!this.hasPanel(uri)) {
+                    layout.add(uri);
+                }
+            }
+            const shownUri =
+                this.state?.uri ?? getUriKey(vscode.window.activeTextEditor?.document?.uri);
+            if (shownUri) {
+                layout.focus(shownUri);
+            }
+            this._multiResultsLayout = layout;
+            this.updateMultiResultsView();
+            return;
+        }
+
+        this._multiResultsLayout = undefined;
+        this._multiResultsEntries.clear();
+        // The single-result view drops results when their editor closes, so do that now for the
+        // results the list was keeping.
+        for (const uri of this._closedDocumentUris) {
+            if (!this.hasPanel(uri)) {
+                void this.discardQueryResult(uri);
+            }
+        }
+        this._closedDocumentUris.clear();
+        this.updateResultsOnActiveEditorChange(vscode.window.activeTextEditor);
+    }
+
+    private getMultiResultsEntry(uri: string): mr.MultiResultsEntry {
+        const state = this._queryResultStateMap.get(uri);
+        return {
+            uri,
+            title: state?.title ?? uri,
+            resultSetCount: countResultSets(state?.resultSetSummaries ?? {}),
+            isExecuting: state?.isExecuting ?? false,
+            hasError:
+                !!state?.initializationError ||
+                (state?.messages?.some((message) => message.isError) ?? false),
+            isDocumentClosed: this._closedDocumentUris.has(uri),
+        };
+    }
+
+    /**
+     * Sends the multi-results layout to the view, along with the state of any result that has
+     * just become visible.
+     */
+    private updateMultiResultsView(): void {
+        const layout = this._multiResultsLayout;
+        if (!layout) {
+            return;
+        }
+
+        const shownUris = new Set(this.state?.multiResults ? this.getVisibleMultiResults() : []);
+        const entries: Record<string, mr.MultiResultsEntry> = {};
+        this._multiResultsEntries.clear();
+        for (const uri of layout.uris) {
+            const entry = this.getMultiResultsEntry(uri);
+            entries[uri] = entry;
+            this._multiResultsEntries.set(uri, entry);
+        }
+
+        // Send newly visible results first so their panes have state to show when they mount.
+        for (const uri of layout.activeGroup?.uris ?? []) {
+            if (!shownUris.has(uri)) {
+                this.sendMultiResultsFileState(uri);
+            }
+        }
+
+        this.state = {
+            ...this.createEmptyViewState(),
+            multiResults: {
+                entries,
+                groups: layout.groups.map((group) => ({
+                    ...group,
+                    uris: [...group.uris],
+                    sizes: group.sizes ? [...group.sizes] : undefined,
+                })),
+                activeGroupId: layout.activeGroupId,
+                followActiveEditor: this.followActiveEditor,
+            },
+        };
+    }
+
+    /** Results the view currently shows, according to the layout it was last sent. */
+    private getVisibleMultiResults(): string[] {
+        const multiResults = this.state?.multiResults;
+        return (
+            multiResults?.groups.find((group) => group.id === multiResults.activeGroupId)?.uris ??
+            []
+        );
+    }
+
+    /**
+     * Sends the view the latest state of a result it shows. Results that are listed but not
+     * shown are sent when their group is shown.
+     */
+    private sendMultiResultsFileState(uri: string): void {
+        const state = this._queryResultStateMap.get(uri);
+        if (!state || !this._multiResultsLayout?.activeGroup?.uris.includes(uri)) {
+            return;
+        }
+        void this.sendNotification(mr.MultiResultsFileStateNotification.type, { uri, state });
+    }
+
+    private sendMultiResultsActiveGroupStates(): void {
+        for (const uri of this._multiResultsLayout?.activeGroup?.uris ?? []) {
+            this.sendMultiResultsFileState(uri);
+        }
+    }
+
+    /**
+     * Updates a result's list entry, sending the layout only when the entry changed.
+     */
+    private refreshMultiResultsEntry(uri: string): void {
+        if (!this._multiResultsLayout?.has(uri)) {
+            return;
+        }
+        const previous = this._multiResultsEntries.get(uri);
+        const next = this.getMultiResultsEntry(uri);
+        if (
+            !previous ||
+            previous.title !== next.title ||
+            previous.resultSetCount !== next.resultSetCount ||
+            previous.isExecuting !== next.isExecuting ||
+            previous.hasError !== next.hasError ||
+            previous.isDocumentClosed !== next.isDocumentClosed
+        ) {
+            this.updateMultiResultsView();
+        }
+    }
+
+    /**
+     * Shows a result's latest state in the multi-results view.
+     */
+    public updateMultiResult(uri: string): void {
+        this.sendMultiResultsFileState(uri);
+        this.refreshMultiResultsEntry(uri);
+    }
+
+    /**
+     * Shows the group holding the result, with the result focused within it.
+     */
+    public focusMultiResult(uri: string): void {
+        if (this._multiResultsLayout?.focus(uri)) {
+            this.updateMultiResultsView();
+        }
+    }
+
+    /**
+     * The state of the focused result in the multi-results view, if that view is shown.
+     */
+    public getFocusedMultiResultState(): qr.QueryResultWebviewState | undefined {
+        const uri = this._multiResultsLayout?.activeGroup?.focusedUri;
+        return uri ? this._queryResultStateMap.get(uri) : undefined;
+    }
+
+    private removeFromMultiResults(uri: string): void {
+        this._multiResultsLayout?.remove(uri);
+        this._closedDocumentUris.delete(uri);
+        this.updateMultiResultsView();
+    }
+
+    /**
+     * Discards a result from the multi-results view, cancelling its query if it is running.
+     */
+    public async closeMultiResult(uri: string): Promise<void> {
+        if (!this._multiResultsLayout?.has(uri)) {
+            return;
+        }
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CloseMultiResult, {
+            additionalProps: {
+                isExecuting: String(this._queryResultStateMap.get(uri)?.isExecuting ?? false),
+            },
+        });
+        this.removeFromMultiResults(uri);
+        await this.discardQueryResult(uri);
+    }
+
+    /**
+     * Deletes a result's state and releases its query, cancelling the query if it is running.
+     */
+    private async discardQueryResult(uri: string): Promise<void> {
+        store.deleteUriState(uri);
+
+        const runner = this._sqlOutputContentProvider.getQueryRunner(uri);
+        if (runner?.isExecutingQuery) {
+            // A cancelled query still reports its messages and completion, which update its
+            // state, so keep the state until then. A new run of the editor replaces the state,
+            // which is then left alone.
+            const state = this._queryResultStateMap.get(uri);
+            const listener = runner.onComplete(() => {
+                listener.dispose();
+                if (this._queryResultStateMap.get(uri) === state) {
+                    this.deleteQueryResultState(uri);
+                }
+            });
+        } else {
+            this.deleteQueryResultState(uri);
+        }
+        await this._sqlOutputContentProvider.cleanupRunner(uri);
+    }
+
     private getCurrentPanelResultUri(): string | undefined {
+        if (this._multiResultsLayout) {
+            return this._multiResultsLayout.activeGroup?.focusedUri;
+        }
+
         const stateUri = this.state?.uri;
         if (stateUri && this._queryResultStateMap.has(stateUri) && !this.hasPanel(stateUri)) {
             return stateUri;
@@ -422,7 +807,11 @@ export class QueryResultWebviewController extends WebviewViewController<
         controller.state = this.getQueryResultState(uri);
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
-        this.showSplashScreen();
+        if (this._multiResultsLayout) {
+            this.removeFromMultiResults(uri);
+        } else {
+            this.showSplashScreen();
+        }
         // Do not block query execution on webview bootstrap, and do not dispose
         // the panel if ready is delayed or never arrives.
         void controller.whenWebviewReady().catch((e) => {
@@ -468,6 +857,16 @@ export class QueryResultWebviewController extends WebviewViewController<
             isBetaResultsGridEnabled: this.isBetaResultsGridEnabled,
         } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
+
+        // Results open in a tab stay there when their query runs again.
+        if (this._multiResultsLayout && !this.hasPanel(uri)) {
+            // Running a query shows its results even when not following the active editor.
+            this._closedDocumentUris.delete(uri);
+            this._multiResultsLayout.add(uri);
+            this._multiResultsLayout.focus(uri);
+            this.updateMultiResultsView();
+            this.sendMultiResultsFileState(uri);
+        }
     }
 
     public getAutoSizeColumnsConfig(): qr.ResultsGridAutoSizeStyle {
@@ -569,6 +968,8 @@ export class QueryResultWebviewController extends WebviewViewController<
 
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
             this.updatePanelState(uri);
+        } else if (this._multiResultsLayout) {
+            this.sendMultiResultsFileState(uri);
         } else if (this.state?.uri === uri) {
             this.state = state;
         }
@@ -581,6 +982,7 @@ export class QueryResultWebviewController extends WebviewViewController<
     public deleteQueryResultState(uri: string): void {
         this._queryResultStateMap.delete(uri);
         this._selectionSummaryContinuations.delete(uri);
+        this._multiResultsEntries.delete(uri);
     }
 
     public updatePanelState(uri: string): void {
@@ -618,9 +1020,24 @@ export class QueryResultWebviewController extends WebviewViewController<
         this._queryResultStateMap.set(newUri, state);
         this._queryResultStateMap.delete(oldUri);
 
+        if (this._multiResultsLayout?.has(oldUri)) {
+            // Replaces any result already listed under the new URI.
+            this._multiResultsLayout.rename(oldUri, newUri);
+            const wasClosed = this._closedDocumentUris.delete(oldUri);
+            this._closedDocumentUris.delete(newUri);
+            if (wasClosed) {
+                this._closedDocumentUris.add(newUri);
+            }
+        }
+
         // Update state in panel or webview view depending on where it is currently shown
         if (this._queryResultWebviewPanelControllerMap.has(newUri)) {
             this._queryResultWebviewPanelControllerMap.get(newUri).updateState(state);
+        } else if (this._multiResultsLayout) {
+            this.updateMultiResultsView();
+            // The view may already show a result under the new URI, which it keeps until sent
+            // the state that replaces it.
+            this.sendMultiResultsFileState(newUri);
         } else if (this.isVisible()) {
             this.state = state;
         }
@@ -640,7 +1057,14 @@ export class QueryResultWebviewController extends WebviewViewController<
             if (shouldKeepState) {
                 // Keep the state - only show in webview view if the document is active
                 const activeDocumentUri = getUriKey(vscode.window.activeTextEditor?.document?.uri);
-                if (activeDocumentUri === uri && this.isVisible()) {
+                if (this._multiResultsLayout) {
+                    // The results go back to the list of results in the view.
+                    this._multiResultsLayout.add(uri);
+                    if (activeDocumentUri === uri && this.followActiveEditor) {
+                        this._multiResultsLayout.focus(uri);
+                    }
+                    this.updateMultiResultsView();
+                } else if (activeDocumentUri === uri && this.isVisible()) {
                     this.state = this.getQueryResultState(uri);
                 }
                 // Otherwise just keep the state in the map for when the user switches back

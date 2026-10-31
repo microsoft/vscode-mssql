@@ -78,6 +78,7 @@ const showAllColumnsCommand = "fluent-result-grid-show-all-columns";
 
 export function useFluentResultGridController({
     containerRef,
+    domId,
     gridId,
     resultSetSummary,
     dataSource,
@@ -467,7 +468,7 @@ export function useFluentResultGridController({
         () => ({
             ...baseFluentReadOnlyGridOption,
             alwaysShowVerticalScroll: false,
-            autoResize: createFluentAutoResizeOptions(`#fluent-result-grid-body-${gridId}`, {
+            autoResize: createFluentAutoResizeOptions(`#fluent-result-grid-body-${domId}`, {
                 bottomPadding: 0,
                 minHeight: 50,
             }),
@@ -582,6 +583,7 @@ export function useFluentResultGridController({
             dataController.filterStateRef,
             dataController.hasActiveSort,
             emitStateChange,
+            domId,
             enableColumnReorder,
             frozenColumnIndex,
             gridId,

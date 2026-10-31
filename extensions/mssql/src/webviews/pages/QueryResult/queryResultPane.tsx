@@ -42,6 +42,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { QueryResultSummaryFooter } from "./queryResultSummaryFooter";
 import { CopyIndicator } from "../../common/CopyIndicator";
+import { useIsActiveResultPaneRef } from "./queryResultPaneScope";
 
 const useStyles = makeStyles({
     root: {
@@ -158,6 +159,7 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
         (s) => s.executionPlanState?.executionPlanGraphs,
     );
     const { keyBindings } = useVscodeWebview();
+    const isActivePaneRef = useIsActiveResultPaneRef();
     const [isPreviewGridSwitchChecked, setIsPreviewGridSwitchChecked] =
         useState(isBetaResultsGridEnabled);
     const [isPreviewGridSwitchPending, setIsPreviewGridSwitchPending] = useState(false);
@@ -169,6 +171,9 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
 
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
+            if (!isActivePaneRef.current) {
+                return;
+            }
             let handled = false;
             if (
                 eventMatchesShortcut(
