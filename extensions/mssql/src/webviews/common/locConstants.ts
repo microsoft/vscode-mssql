@@ -5408,6 +5408,7 @@ export class LocConstants {
             watchDemos: l10n.t("Watch demos on YouTube"),
             viewRoadmap: l10n.t("View the roadmap"),
             readDocs: l10n.t("Read the docs on Microsoft Learn"),
+            joinSqlAiWorkshop: l10n.t("Join a free SQL + AI workshop"),
             reportBug: l10n.t("Report a bug"),
             requestFeature: l10n.t("Request a feature"),
             joinDiscussions: l10n.t("Join the discussions"),

@@ -9,6 +9,7 @@ import {
     Bug20Regular,
     Chat20Regular,
     Document20Regular,
+    HatGraduation20Regular,
     Lightbulb20Regular,
     Map20Regular,
     Video20Regular,
@@ -63,6 +64,11 @@ export const ResourcesSection = () => {
             icon: <Document20Regular />,
             label: loc.readDocs,
             url: overviewLinks.documentation,
+        },
+        {
+            icon: <HatGraduation20Regular />,
+            label: loc.joinSqlAiWorkshop,
+            url: overviewLinks.sqlAiWorkshop,
         },
     ];
 

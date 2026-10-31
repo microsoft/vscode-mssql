@@ -14,6 +14,7 @@ export const overviewLinks = {
     repository: "https://aka.ms/vscode-mssql-repo",
     roadmap: "https://aka.ms/vscode-mssql-roadmap",
     documentation: "https://aka.ms/vscode-mssql-docs",
+    sqlAiWorkshop: "https://aka.ms/nextsqlaiad",
     reportBug: "https://aka.ms/vscode-mssql-bug",
     requestFeature: "https://aka.ms/vscode-mssql-feature-request",
     discussions: "https://aka.ms/vscode-mssql-discussions",

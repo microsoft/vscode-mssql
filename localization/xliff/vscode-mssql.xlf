@@ -6233,6 +6233,9 @@
     <trans-unit id="++CODE++74163645b1b5bc4c8eecb0fc8aab578ca3ecd3f9b1d92fb85206e045ffcc29a6">
       <source xml:lang="en">JSON Lines</source>
     </trans-unit>
+    <trans-unit id="++CODE++c8321841ecd2c0a373777e155776af9c19009b5e993d6d696ef8309af4bc1109">
+      <source xml:lang="en">Join a free SQL + AI workshop</source>
+    </trans-unit>
     <trans-unit id="++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673">
       <source xml:lang="en">Join the discussions</source>
     </trans-unit>
