@@ -109,19 +109,6 @@ test.describe("Query Studio vector workbench", () => {
         await expect(studio.locator(".qs-vec-facts")).toContainText("64");
         await capture("profile");
     });
-    test("Search executes a bounded exact neighbor query", async () => {
-        await workspace("Search");
-        await expect(
-            studio.getByRole("combobox", { name: "Search target", exact: true }),
-        ).toContainText("VectorSamples", { timeout: 30_000 });
-        const approximate = studio.getByRole("checkbox", { name: /^Approx/ });
-        if (await approximate.isEnabled()) await approximate.check();
-        await studio.getByRole("button", { name: "Run comparison", exact: true }).press("Enter");
-        await expect(
-            studio.getByRole("table", { name: "Rank comparison", exact: true }),
-        ).toBeVisible({ timeout: 60_000 });
-        await capture("search");
-    });
     test("Compare computes pairwise distances for selected rows", async () => {
         await workspace("Compare");
         await studio
@@ -203,6 +190,21 @@ test.describe("Query Studio vector workbench", () => {
             .first()
             .click();
         await capture("projection");
+    });
+    test("Search shows fresh results after an analysis request was cancelled", async () => {
+        // The preceding projection test cancels a real analysis request. No
+        // previous Search table exists to hide a silently discarded response.
+        await workspace("Search");
+        await expect(
+            studio.getByRole("combobox", { name: "Search target", exact: true }),
+        ).toContainText("VectorSamples", { timeout: 30_000 });
+        const approximate = studio.getByRole("checkbox", { name: /^Approx/ });
+        if (await approximate.isEnabled()) await approximate.check();
+        await studio.getByRole("button", { name: "Run comparison", exact: true }).press("Enter");
+        await expect(
+            studio.getByRole("table", { name: "Rank comparison", exact: true }),
+        ).toBeVisible({ timeout: 60_000 });
+        await capture("search");
     });
     test("Index reports capabilities and offers scripts without executing DDL", async () => {
         await workspace("Index");

@@ -427,6 +427,8 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
     const rankScrollRafRef = React.useRef(0);
     const rankPendingScrollTopRef = React.useRef(rankScrollTop);
     const requestSerial = React.useRef(0);
+    const handleRef = React.useRef(handle);
+    handleRef.current = handle;
     const modelRequestSerial = React.useRef(0);
     const searchInFlightRef = React.useRef(false);
     const latestViewStateRef = React.useRef<QsVectorSearchViewState | undefined>(undefined);
@@ -684,7 +686,7 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
                 if (
                     !cancelled &&
                     serial === requestSerial.current &&
-                    result.generation === generation &&
+                    handle === handleRef.current &&
                     result.runId === runId &&
                     result.comparison
                 ) {
@@ -947,12 +949,11 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
                     QsVectorSearchRequest.type,
                     params,
                 );
-                if (serial !== requestSerial.current) {
+                if (serial !== requestSerial.current || params.handle !== handleRef.current) {
                     return; // stale — a newer run superseded it
                 }
-                if (result.generation !== generation) {
-                    return;
-                }
+                // Analysis cancellation advances the host generation without
+                // changing this source. Search has its own request lifetime.
                 if (result.error || !result.comparison) {
                     setError(
                         result.error ?? locConstants.vectorWorkbench.theSearchReturnedNoComparison,
@@ -979,7 +980,7 @@ export function VectorSearchView(props: VectorSearchViewProps): React.JSX.Elemen
                 }
             }
         },
-        [generation, rpc],
+        [rpc],
     );
 
     const invalidateGeneratedVector = React.useCallback(() => {
