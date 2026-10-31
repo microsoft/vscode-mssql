@@ -5770,6 +5770,15 @@
                         "default": "peek",
                         "description": "%mssql.sqlLanguage.definition.mode%",
                         "scope": "application"
+                    },
+                    "mssql.queryStudio.vectorWorkbench.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "%mssql.queryStudio.vectorWorkbench.enabled%",
+                        "scope": "application",
+                        "tags": [
+                            "experimental"
+                        ]
                     }
                 }
             }

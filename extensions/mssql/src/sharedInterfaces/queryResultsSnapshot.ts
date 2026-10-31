@@ -28,6 +28,8 @@ export interface PinnedResultsState {
     errorCount: number;
     hasLocalMessages: boolean;
     gridStyle?: QsGridStyle;
+    /** Runtime preview gate; disabling it unmounts the vector pane. */
+    vectorEnabled?: boolean;
     /**
      * SPA-10 / D-0024 (revised): pinned panes carry the SAME layer surface as
      * live Query Studio — offline world outline plus host-proxied online

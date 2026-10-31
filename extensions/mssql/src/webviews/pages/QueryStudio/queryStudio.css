@@ -1147,6 +1147,13 @@ body {
 }
 
 /* Projection: fixed layout — the pane fills, inner regions scroll. */
+/* Bound the projection to the visible workspace. An auto-height tab panel
+   otherwise grows to the virtual point list's spacer, drawing the scatter
+   around an offscreen center several thousand pixels below the viewport. */
+#qs-vec-workspace-projection {
+    height: 100%;
+    min-height: 280px;
+}
 .qs-vec6-projection {
     display: flex;
     flex-direction: column;

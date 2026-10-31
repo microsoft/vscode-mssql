@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { l10n } from "vscode";
+
+export class VectorWorkbench {
+    public static disabled = l10n.t("The Vector workbench preview is disabled.");
+}
 import * as os from "os";
 import { getErrorMessage } from "../utils/utils";
 
@@ -6433,4 +6437,389 @@ export const QueryStudioCore = {
         l10n.t('Could not reconnect to database "{0}".', value0),
     couldNotSwitchToDatabase0USEFailed: (value0: string) =>
         l10n.t('Could not switch to database "{0}" (USE failed).', value0),
+};
+
+export const VectorWorkbenchMessages = {
+    vectorIndexRestrictsWrites: l10n.t("This vector index restricts table writes"),
+    vectorIndexWriteRestrictionDetail: l10n.t(
+        "On this SQL Server 2025 index format, INSERT, UPDATE, DELETE, and MERGE are blocked unless ALLOW_STALE_VECTOR_INDEX permits DML. Enabling stale writes does not keep the index synchronized; review the database configuration and write requirements.",
+    ),
+    retainedResultsCouldNotBeRead: l10n.t(
+        "The retained results could not be read completely. Rerun the query before analyzing vectors.",
+    ),
+    noVectorWithinScanBudget: l10n.t("No vector values could be analyzed within the scan budget."),
+    noAnalyzableVectorValues: l10n.t(
+        "No analyzable typed vector values in the selected column; values may be null or unavailable.",
+    ),
+    feedback1: l10n.t("The Vector Workbench session has expired; reopen the Vector tab."),
+    feedback2: l10n.t("The search binding has expired; refresh the verified target list."),
+    feedback3: l10n.t(
+        "The verified target list is stale because its last catalog refresh failed; refresh Search targets before running SQL.",
+    ),
+    feedback4: (value0: string, value1: string) =>
+        l10n.t(
+            "{0}.{1} has no single-column unique key — searches need a stable key for tie-breaks, exclusions, and recall identity.",
+            value0,
+            value1,
+        ),
+    feedback5: l10n.t("The verified search target no longer has a usable unique key."),
+    feedback6: l10n.t("The requested distance metric is not supported."),
+    feedback7: l10n.t(
+        "Source-row exclusion requires a verified result-to-table lineage binding; this STS2 result does not carry one.",
+    ),
+    feedback8: l10n.t(
+        "Source-row exclusion requires a verified result-to-table lineage binding; this STS2 result does not carry one.",
+    ),
+    feedback9: l10n.t("The vector search was cancelled because its source run closed."),
+    feedback10: (value0: string, value1: string, value2: string, value3: string, value4: string) =>
+        l10n.t(
+            "The query vector has {0} dimensions; {1}.{2}.{3} declares {4}. Incompatible dimensions cannot be searched.",
+            value0,
+            value1,
+            value2,
+            value3,
+            value4,
+        ),
+    feedback11: l10n.t("The vector search was cancelled because its source run closed."),
+    feedback12: l10n.t("No auxiliary diagnostic session is available for this connection."),
+    feedback13: l10n.t("The vector search was cancelled because its source run closed."),
+    feedback14: l10n.t(
+        "The target binding changed or can no longer be verified; refresh Search targets.",
+    ),
+    feedback15: l10n.t("The vector search was cancelled because its source run closed."),
+    feedback16: l10n.t("The vector search was cancelled because its source run closed."),
+    feedback17: l10n.t("The vector search was cancelled because its source run closed."),
+    feedback18: (value0: string) => l10n.t("Exact search failed: {0}", value0),
+    feedback19: l10n.t("The vector search was cancelled because its source run closed."),
+    feedback20: l10n.t("The vector search was cancelled because its source run closed."),
+    feedback21: l10n.t("The vector search was cancelled because its source run closed."),
+    noActiveConnectionConnectThisDocumentBeforeProbing: l10n.t(
+        "No active connection. Connect this document before probing vector capabilities.",
+    ),
+    noAuxiliaryDiagnosticSessionIsAvailableForThis: l10n.t(
+        "No auxiliary diagnostic session is available for this connection.",
+    ),
+    unableToDeriveADistinctVectorIndexName: l10n.t(
+        "Unable to derive a distinct vector index name for the selected metric.",
+    ),
+    healthDMV: l10n.t("Health DMV"),
+    healthCurrentCatalogSnapshotOnly: l10n.t("Health: current catalog snapshot only"),
+    targetHealth: l10n.t("Target health"),
+    healthHistory: l10n.t("Health history"),
+    tRUNCATETABLEBlockedWhileIndexExists: l10n.t("TRUNCATE TABLE blocked while index exists"),
+    filterColumnValueObservedInSearchFilters: (value0: string) =>
+        l10n.t('Filter column "{0}" observed in search filters', value0),
+    indexCatalog: l10n.t("Index catalog"),
+    healthUnavailable: l10n.t("Health unavailable"),
+    generateHealthSnapshotQuery: l10n.t("Generate health snapshot query"),
+    vectorIndexBuildFailedOnThisServiceTier: l10n.t(
+        "Vector index build failed on this service tier (Msg 42234)",
+    ),
+    lastCREATEAttempt: l10n.t("Last CREATE attempt"),
+    noVectorColumnsDetected: l10n.t("No vector columns detected"),
+    typeMetric: l10n.t("Type · metric"),
+    vectorIndexesVisible: l10n.t("Vector indexes visible"),
+    migrationDropsAndRecreatesTheIndex: l10n.t("Migration drops and recreates the index"),
+    earlierIndexFormatValue: (value0: string) => l10n.t("Earlier index format ({0})", value0),
+    filteredApproximateSearchesArePostFilteredOnThis: l10n.t(
+        "Filtered approximate searches are post-filtered on this format",
+    ),
+    currentIndexFormatVValue: (value0: string) => l10n.t("Current index format (v{0})", value0),
+    indexFormatIsCurrentForThisEngine: l10n.t("Index format is current for this engine"),
+    indexFormatCouldNotBeVerified: l10n.t("Index format could not be verified"),
+    metricMatchesSearchValue: (value0: string) => l10n.t("Metric matches search ({0})", value0),
+    metricMismatchIndexValueSearchValue: (value0: string, value1: string) =>
+        l10n.t("Metric mismatch: index {0}, search {1}", value0, value1),
+    generateMigrationScriptValueCurrent: (value0: string) =>
+        l10n.t("Generate migration script ({0} → current)", value0),
+    generateCompatibleValueIndexScript: (value0: string) =>
+        l10n.t("Generate compatible {0} index script", value0),
+    generateExistingIndexDefinitionReference: l10n.t(
+        "Generate existing index definition (reference)",
+    ),
+    databaseWideTransientPhantomRowValueInSys: (value0: string, value1: string) =>
+        l10n.t(
+            "Database-wide transient phantom row{0} in sys.vector_indexes ({1})",
+            value0,
+            value1,
+        ),
+    databaseWideDisabledOrHypotheticalVectorIndexRow: (value0: string, value1: string) =>
+        l10n.t("Database-wide disabled or hypothetical vector index row{0} ({1})", value0, value1),
+    vectorIndex: l10n.t("Vector index"),
+    noVectorIndexOnThisTarget: l10n.t("No vector index on this target"),
+    pREVIEWFEATURESIsOFFDatabaseScoped: l10n.t("PREVIEW_FEATURES is OFF (database-scoped)"),
+    generateCreateVectorIndexScript: l10n.t("Generate create vector index script"),
+    generateSupportingIndexReview: l10n.t("Generate supporting index (review)"),
+    generateConfigurationGateScriptPREVIEWFEATURES: l10n.t(
+        "Generate configuration-gate script (PREVIEW_FEATURES)",
+    ),
+    theModelReturnedTextThatIsNotValid: l10n.t("The model returned text that is not valid JSON."),
+    theModelReturnedJSONThatIsNotA: l10n.t(
+        "The model returned JSON that is not a non-empty array.",
+    ),
+    theModelReturnedAnArrayWithNonFinite: l10n.t(
+        "The model returned an array with non-finite or non-numeric components.",
+    ),
+    theAnalysisSessionHasExpiredReopenTheVector: l10n.t(
+        "The analysis session has expired; reopen the Vector tab.",
+    ),
+    theResultSetIsNoLongerAvailable: l10n.t("The result set is no longer available."),
+    resultRowOrdinalValueIsOutOfRange: (value0: string, value1: string) =>
+        l10n.t("Result-row ordinal {0} is out of range (0–{1}).", value0, value1),
+    theSelectedSourceTextColumnDoesNotExist: l10n.t(
+        "The selected source text column does not exist in this result.",
+    ),
+    chooseATextColumnAsTheSourceNot: l10n.t(
+        "Choose a text column as the source — not the vector column itself.",
+    ),
+    refreshTheCatalogVerifiedEMBEDDINGSModelListBefore: l10n.t(
+        "Refresh the catalog-verified EMBEDDINGS model list before re-embedding.",
+    ),
+    theModelProbeDidNotReturnAModification: l10n.t(
+        "The model probe did not return a modification identity; Pipeline will not authorize an unverifiable model call.",
+    ),
+    theSelectedRowHasNoSourceTextIn: l10n.t(
+        "The selected row has no source text in the chosen column.",
+    ),
+    theSelectedRowSSourceTextIsEmpty: l10n.t("The selected row's source text is empty."),
+    sourceTextExceedsValueCharactersPipelineWillNot: (value0: string) =>
+        l10n.t(
+            "Source text exceeds {0} characters; Pipeline will not build or retain the model-call SQL.",
+            value0,
+        ),
+    sourceTextExceedsValueUTF8BytesPipeline: (value0: string) =>
+        l10n.t(
+            "Source text exceeds {0} UTF-8 bytes; Pipeline will not build or retain the model-call SQL.",
+            value0,
+        ),
+    theSelectedRowHasNoAnalyzableStoredVector: l10n.t(
+        "The selected row has no analyzable stored vector to compare against.",
+    ),
+    theConfirmationTokenIsInvalidExpiredOrAlready: l10n.t(
+        "The confirmation token is invalid, expired, or already used.",
+    ),
+    thePipelineResultReferenceIsInvalid: l10n.t("The Pipeline result reference is invalid."),
+    theCompletedPipelineComparisonIsNoLongerAvailable: l10n.t(
+        "The completed Pipeline comparison is no longer available.",
+    ),
+    theCompletedPipelineComparisonBelongsToAnotherResult: l10n.t(
+        "The completed Pipeline comparison belongs to another result.",
+    ),
+    theVerifiedEMBEDDINGSModelChangedRefreshAndPrepare: l10n.t(
+        "The verified EMBEDDINGS model changed; refresh and prepare again.",
+    ),
+    noAuxiliarySessionIsAvailableForTheModel: l10n.t(
+        "No auxiliary session is available for the model call on this connection.",
+    ),
+    theEMBEDDINGSModelIdentityOrEndpointChangedAfter: l10n.t(
+        "The EMBEDDINGS model identity or endpoint changed after confirmation; refresh and prepare again.",
+    ),
+    theModelCallReturnedNoEmbeddingTextTo: l10n.t(
+        "The model call returned no embedding text to compare.",
+    ),
+    chunkSizeMustBeAnIntegerBetweenValue: (value0: string, value1: string) =>
+        l10n.t("Chunk size must be an integer between {0} and {1} characters.", value0, value1),
+    overlapMustBeAnIntegerBetweenValueAnd: (value0: string, value1: string) =>
+        l10n.t("Overlap must be an integer between {0} and {1} percent.", value0, value1),
+    resultSetIsNoLongerAvailable: l10n.t("Result set is no longer available."),
+    theResultSetHasNoRowsToAnalyze: l10n.t("The result set has no rows to analyze."),
+    modelParametersExceedValueUTF8Bytes: (value0: string) =>
+        l10n.t("Model parameters exceed {0} UTF-8 bytes.", value0),
+    modelParametersAreNotValidJSON: l10n.t("Model parameters are not valid JSON."),
+    modelParametersMustBeAJSONObject: l10n.t("Model parameters must be a JSON object."),
+    modelParameterValueIsNotAllowedSearchSupports: (value0: string) =>
+        l10n.t(
+            'Model parameter "{0}" is not allowed. Search supports only dimensions and sql_rest_options.retry_count.',
+            value0,
+        ),
+    dimensionsMustBeAnIntegerFrom1To: (value0: string) =>
+        l10n.t("dimensions must be an integer from 1 to {0}.", value0),
+    sqlRestOptionsMustBeAJSONObject: l10n.t("sql_rest_options must be a JSON object."),
+    sqlRestOptionsSupportsOnlyRetryCountFrom: l10n.t(
+        "sql_rest_options supports only retry_count from 0 to 10.",
+    ),
+    modelParametersMustIncludeDimensionsOrSqlRest: l10n.t(
+        "Model parameters must include dimensions or sql_rest_options.retry_count.",
+    ),
+    vectorSearchServiceValueVectorValueMustBeAString: (value0: string) =>
+        l10n.t("vectorSearchService: {0} vector value must be a string", value0),
+    vectorSearchServiceValueIsNotValidJSON: (value0: string) =>
+        l10n.t("vectorSearchService: {0} is not valid JSON", value0),
+    vectorSearchServiceValueMustBeAFlatJSONArray: (value0: string) =>
+        l10n.t("vectorSearchService: {0} must be a flat JSON array of finite numbers", value0),
+    vectorSearchServiceValueMustBeASafeInteger: (value0: string) =>
+        l10n.t("vectorSearchService: {0} must be a safe integer", value0),
+    vectorSearchServiceValueMustBeAFiniteNumber: (value0: string) =>
+        l10n.t("vectorSearchService: {0} must be a finite number", value0),
+    vectorSearchServiceValueMustBeABoolean: (value0: string) =>
+        l10n.t("vectorSearchService: {0} must be a boolean", value0),
+    vectorSearchServiceValueMustBeAString: (value0: string) =>
+        l10n.t("vectorSearchService: {0} must be a string", value0),
+    vectorSearchServiceUnsupportedParameterTypeValue: (value0: string) =>
+        l10n.t("vectorSearchService: unsupported parameter type {0}", value0),
+    vectorSearchServiceInvalidParameterNameValue: (value0: string) =>
+        l10n.t("vectorSearchService: invalid parameter name {0}", value0),
+    vectorSearchServiceDuplicateParameterValue: (value0: string) =>
+        l10n.t("vectorSearchService: duplicate parameter {0}", value0),
+    vectorSearchServiceParameterValueDoesNotAppearInThe: (value0: string) =>
+        l10n.t("vectorSearchService: parameter {0} does not appear in the statement", value0),
+    theVectorSearchWasCancelled: l10n.t("The vector search was cancelled."),
+    theVectorSearchServiceIsClosed: l10n.t("The vector search service is closed."),
+    theVectorWorkbenchSessionHasExpired: l10n.t("The Vector Workbench session has expired."),
+    embeddingModelsCouldNotBeListedValue: (value0: string) =>
+        l10n.t("Embedding models could not be listed: {0}", value0),
+    refreshTheCatalogVerifiedSearchTargetBeforeGenerating: l10n.t(
+        "Refresh the catalog-verified Search target before generating an embedding.",
+    ),
+    theVerifiedTargetHasNoSupportedDeclaredDimensions: l10n.t(
+        "The verified target has no supported declared dimensions; generated output cannot be validated safely.",
+    ),
+    refreshTheCatalogVerifiedEMBEDDINGSModelListBefore2: l10n.t(
+        "Refresh the catalog-verified EMBEDDINGS model list before generating.",
+    ),
+    theModelProbeDidNotReturnAModification2: l10n.t(
+        "The model probe did not return a modification identity; Search will not authorize an unverifiable model call.",
+    ),
+    enterTextToGenerateAnEmbedding: l10n.t("Enter text to generate an embedding."),
+    textExceedsValueCharacters: (value0: string) => l10n.t("Text exceeds {0} characters.", value0),
+    textExceedsValueUTF8Bytes: (value0: string) => l10n.t("Text exceeds {0} UTF-8 bytes.", value0),
+    textCannotContainANULCharacter: l10n.t("Text cannot contain a NUL character."),
+    theDimensionsOverrideIsValueTheVerifiedTarget: (value0: string, value1: string) =>
+        l10n.t("The dimensions override is {0}; the verified target declares {1}.", value0, value1),
+    anotherVectorSearchOperationIsStillRunning: l10n.t(
+        "Another Vector Search operation is still running.",
+    ),
+    theVerifiedTargetOrModelBindingChangedPrepare: l10n.t(
+        "The verified target or model binding changed; prepare again.",
+    ),
+    noAuxiliaryModelCallSessionIsAvailableFor: l10n.t(
+        "No auxiliary model-call session is available for this connection.",
+    ),
+    theModelCallWasCancelled: l10n.t("The model call was cancelled."),
+    theTargetBindingChangedOrCanNoLonger: l10n.t(
+        "The target binding changed or can no longer be verified; refresh Search targets.",
+    ),
+    theModelCallReturnedNoEmbeddingJSON: l10n.t("The model call returned no embedding JSON."),
+    theModelOutputExceededTheBoundedVectorPayload: l10n.t(
+        "The model output exceeded the bounded vector payload.",
+    ),
+    aVectorSearchIsAlreadyRunningOnThis: l10n.t(
+        "A vector search is already running on this document; wait for it to finish.",
+    ),
+    theCachedSearchResultIsUnavailableForThis: l10n.t(
+        "The cached search result is unavailable for this result set.",
+    ),
+    thePastedVectorExceedsValueUTF8Bytes: (value0: string) =>
+        l10n.t("The pasted vector exceeds {0} UTF-8 bytes.", value0),
+    thePastedVectorIsNotValidJSON: l10n.t("The pasted vector is not valid JSON."),
+    thePastedVectorMustBeAFlatJSON: (value0: string) =>
+        l10n.t(
+            "The pasted vector must be a flat JSON array of 1 to {0} finite numbers (no objects or nested arrays).",
+            value0,
+        ),
+    everyPastedVectorComponentMustBeRepresentableAs: l10n.t(
+        "Every pasted-vector component must be representable as a finite float32 value.",
+    ),
+    theGeneratedQueryVectorReferenceIsInvalid: l10n.t(
+        "The generated query-vector reference is invalid.",
+    ),
+    theGeneratedQueryVectorIsNoLongerAvailable: l10n.t(
+        "The generated query vector is no longer available; generate it again.",
+    ),
+    thisQueryRanWithoutTheTypedVectorTransport: l10n.t(
+        "This query ran without the typed vector transport; rerun with the Vector Workbench enabled to search from a selected row.",
+    ),
+    theVectorSearchWasCancelledBecauseItsSource: l10n.t(
+        "The vector search was cancelled because its source run closed.",
+    ),
+    rowValueHasNoAnalyzableVectorValueIn: (value0: string) =>
+        l10n.t("Row {0} has no analyzable vector value in the selected column.", value0),
+    thisQueryRanWithoutTheTypedVectorTransport2: l10n.t(
+        "This query ran without the typed vector transport; rerun with the Vector Workbench enabled to evaluate an expression.",
+    ),
+    expressionSearchRequiresACompareBasketOf2: l10n.t(
+        "Expression search requires a Compare basket of 2 to 8 result rows.",
+    ),
+    theVectorExpressionMustBeTextInThe: l10n.t(
+        "The vector expression must be text in the constrained grammar.",
+    ),
+    expressionBasketEntryValueMustMapToOne: (value0: string, value1: string) =>
+        l10n.t(
+            "Expression basket entry {0} must map to one distinct result-row ordinal between 0 and {1}.",
+            value0,
+            value1,
+        ),
+    expressionBasketValueRowValueHasNoAnalyzable: (value0: string, value1: string) =>
+        l10n.t(
+            "Expression basket {0} (row {1}) has no analyzable vector value in the selected column.",
+            value0,
+            value1,
+        ),
+    exactExecution: l10n.t("Exact execution"),
+    approximateExecution: l10n.t("Approximate execution"),
+    filterSemantics: l10n.t("Filter semantics"),
+    readConsistency: l10n.t("Read consistency"),
+    comparisonSnapshot: l10n.t("Comparison snapshot"),
+    sessionScope: l10n.t("Session scope"),
+    syntaxProbes: l10n.t("Syntax probes"),
+    recallDenominator: l10n.t("Recall denominator"),
+    queryVector: l10n.t("Query vector"),
+    indexStaleness: l10n.t("Index staleness"),
+    noResultStoreIsAvailableForThisDocument: l10n.t(
+        "No result store is available for this document.",
+    ),
+    vectorAnalysisWaitsForTheResultSetTo: l10n.t(
+        "Vector analysis waits for the result set to reach a terminal state; this result is still streaming.",
+    ),
+    theSelectedColumnIsNotANativeVector: l10n.t(
+        "The selected column is not a native vector column.",
+    ),
+    vectorWorkbench: l10n.t("Vector Workbench"),
+    theResultStoreIsClosingRerunTheQuery: l10n.t(
+        "The result store is closing; rerun the query to analyze.",
+    ),
+    theAnalysisSessionHasExpiredReopenTheTab: l10n.t(
+        "The analysis session has expired; reopen the tab.",
+    ),
+    thisQueryRanWithoutTheTypedVectorTransport3: l10n.t(
+        "This query ran without the typed vector transport; rerun with the Vector Workbench enabled to analyze.",
+    ),
+    vectorAnalysisWorkersAreDisabledByTheCurrent: l10n.t(
+        "Vector analysis workers are disabled by the current tuning profile.",
+    ),
+    theAnalysisWasCancelled: l10n.t("The analysis was cancelled."),
+    theProjectionWasCancelled: l10n.t("The projection was cancelled."),
+    selectBetweenValueAndValueResultRowsTo: (value0: string, value1: string) =>
+        l10n.t("Select between {0} and {1} result rows to compare.", value0, value1),
+    resultRowOrdinalValueAppearsMoreThanOnce: (value0: string) =>
+        l10n.t("Result-row ordinal {0} appears more than once.", value0),
+    theComparisonWasCancelled: l10n.t("The comparison was cancelled."),
+    rowValueHasValueDimensionsTheSelectionExpects: (
+        value0: string,
+        value1: string,
+        value2: string,
+    ) =>
+        l10n.t(
+            "Row {0} has {1} dimensions; the selection expects {2}. Incompatible dimensions cannot be compared jointly.",
+            value0,
+            value1,
+            value2,
+        ),
+    theAnalysisSessionHasExpired: l10n.t("The analysis session has expired."),
+    noDetailForThisFinding: l10n.t("No detail for this finding."),
+    vectorAnalysisWorkerExitedEarlyCodeValue: (value0: string) =>
+        l10n.t("Vector analysis worker exited early (code {0}).", value0),
+    theCachedSearchResultIsUnavailable: l10n.t("The cached search result is unavailable."),
+    chooseACatalogVerifiedBaseTableTargetBefore: l10n.t(
+        "Choose a catalog-verified base-table target before inspecting its vector index.",
+    ),
+    aVectorActionRequiresTheVectorResultsTab: l10n.t(
+        "A Vector action requires the Vector results tab.",
+    ),
+    queryStudioReceivedAnInvalidVectorPerformanceAction: l10n.t(
+        "Query Studio received an invalid Vector performance action.",
+    ),
+    vectorAnalysisNeedsACompletedOriginalResultSet: l10n.t(
+        "Vector analysis needs a completed, original result set. Run the query to completion and pin its results.",
+    ),
 };
