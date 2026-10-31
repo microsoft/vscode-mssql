@@ -12,6 +12,7 @@ import { IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import ConnectionManager, {
+    ConnectionInfo,
     getSqlConnectionErrorType,
     serverlessWakeMaxRetryAttempts,
     SqlConnectionErrorType,
@@ -67,6 +68,16 @@ suite("ConnectionManager Tests", () => {
     setup(async () => {
         sandbox = sinon.createSandbox();
         mockContext = stubExtensionContext(sandbox);
+        // The Entra token cache clear is kept in global state, so it must keep values.
+        const globalState = new Map<string, unknown>();
+        (mockContext.globalState.get as sinon.SinonStub).callsFake((key: string) =>
+            globalState.get(key),
+        );
+        (mockContext.globalState.update as sinon.SinonStub).callsFake(
+            async (key: string, value: unknown) => {
+                globalState.set(key, value);
+            },
+        );
         stubMessageBoxes(sandbox);
         mockLogger = createStubLogger(sandbox);
         mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
@@ -88,6 +99,7 @@ suite("ConnectionManager Tests", () => {
     });
 
     teardown(() => {
+        vscodeEntraMfaUtils.resetVscodeEntraTokenCacheForTest();
         sandbox.restore();
     });
 
@@ -204,6 +216,41 @@ suite("ConnectionManager Tests", () => {
 
             expect(await pending).to.equal(params);
             expect(perfMarkerStub).to.not.have.been.called;
+        });
+
+        test("publishes editor connection contexts as Uri values", () => {
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+            const connectedUri = vscode.Uri.file("/home/user/My Scripts/connected.sql").toString();
+            const connectingUri = "untitled:Untitled-1";
+            const connected = new ConnectionInfo();
+            connected.connectionId = "connection-id";
+            connected.connecting = false;
+            const connecting = new ConnectionInfo();
+            connecting.connecting = true;
+
+            connectionManager["addActiveConnection"](connectedUri, connected);
+            connectionManager["addActiveConnection"](connectingUri, connecting);
+
+            // VS Code maps Uri values, but not strings, to the window's URIs in remote windows.
+            const uriContextValue = (expected: string[]) =>
+                sinon.match(
+                    (value: unknown) =>
+                        Array.isArray(value) &&
+                        value.every((uri) => uri instanceof vscode.Uri) &&
+                        JSON.stringify(value.map((uri: vscode.Uri) => uri.toString())) ===
+                            JSON.stringify(expected),
+                    `Uri values ${expected.join(", ")}`,
+                );
+            expect(executeCommandStub).to.have.been.calledWith(
+                "setContext",
+                "mssql.connections",
+                uriContextValue([connectedUri]),
+            );
+            expect(executeCommandStub).to.have.been.calledWith(
+                "setContext",
+                "mssql.connecting",
+                uriContextValue([connectingUri]),
+            );
         });
     });
 
@@ -402,6 +449,37 @@ suite("ConnectionManager Tests", () => {
                 "account-id",
                 "tenant-id",
             );
+        });
+
+        test("does not reuse a Key Vault token cached by a refresh in flight when the token cache was cleared", async () => {
+            const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+            // Keeps the clear away from the real MSAL cache on disk.
+            connectionManager.azureController = mockAzureController;
+            acquireTokenStub.onFirstCall().callsFake(async () => {
+                await connectionManager.onClearAzureTokenCache();
+                return { token: { key: "akv-key", token: "pre-clear-token", expiresOn } };
+            });
+            acquireTokenStub.onSecondCall().resolves({
+                token: { key: "akv-key", token: "post-clear-token", expiresOn },
+            });
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccounts").resolves([]);
+            connectionManager["selectAccount"] = sandbox.stub().resolves("account-id");
+            connectionManager["selectTenantId"] = sandbox.stub().resolves("tenant-id");
+
+            const params: RequestSecurityTokenParams = {
+                accountId: undefined,
+                tenantId: "",
+                resource: "",
+                provider: "",
+                authority: "",
+                scopes: [],
+            };
+
+            await connectionManager["handleSecurityTokenRequest"](params);
+            const result = await connectionManager["handleSecurityTokenRequest"](params);
+
+            expect(result.token).to.equal("post-clear-token");
+            expect(acquireTokenStub).to.have.been.calledTwice;
         });
     });
 
@@ -745,9 +823,54 @@ suite("ConnectionManager Tests", () => {
         });
 
         test("onClearAzureTokenCache clears the MSAL token cache", async () => {
-            connectionManager.onClearAzureTokenCache();
+            await connectionManager.onClearAzureTokenCache();
 
             expect(mockAzureController.clearTokenCache).to.have.been.calledOnce;
+        });
+    });
+
+    suite("refreshEntraTokenIfNeeded - VS Code accounts path", () => {
+        let acquireTokenStub: sinon.SinonStub;
+
+        const expiresOn = Math.floor(Date.now() / 1000) + 3600;
+
+        setup(() => {
+            stubUseMsalEntraMfaAuthConfig(sandbox, false);
+            mockAzureController = sandbox.createStubInstance(MsalAzureController);
+            connectionManager = createConnectionManager();
+            connectionManager.azureController = mockAzureController;
+            acquireTokenStub = sandbox
+                .stub(vscodeEntraMfaUtils, "acquireTokenFromVscodeAccountForResource")
+                .resolves({
+                    account: { id: "account-1", label: "Test User" },
+                    session: { account: { label: "user@example.com" } },
+                    tenantId: "tenant-1",
+                    token: { token: "refreshed-token", expiresOn },
+                } as unknown as vscodeEntraMfaUtils.VscodeEntraSqlTokenInfo);
+        });
+
+        test("refreshes an unexpired token cached before the token cache was cleared", async () => {
+            const connectionInfo = {
+                server: "test-server",
+                authenticationType: "AzureMFA",
+                accountId: "account-1",
+                tenantId: "tenant-1",
+                azureAccountToken: "cached-token",
+                expiresOn,
+            } as IConnectionInfo;
+            connectionManager["_keyVaultTokenCache"].set("key-vault-request", {
+                key: "account-1",
+                token: "key-vault-token",
+                tokenType: "Bearer",
+                expiresOn,
+            });
+
+            await connectionManager.onClearAzureTokenCache();
+            await connectionManager.refreshEntraTokenIfNeeded(connectionInfo);
+
+            expect(connectionManager["_keyVaultTokenCache"].size).to.equal(0);
+            expect(acquireTokenStub).to.have.been.calledOnce;
+            expect(connectionInfo.azureAccountToken).to.equal("refreshed-token");
         });
     });
 

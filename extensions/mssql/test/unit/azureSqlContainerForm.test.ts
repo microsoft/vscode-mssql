@@ -409,7 +409,12 @@ suite("Azure SQL container configuration", () => {
                 validForm(),
                 mainController,
             );
-            await clock.runAllAsync();
+            // Advance through the retry backoff only. runAllAsync would also run timers the
+            // extension host schedules while the clock is faked, and can loop until Sinon aborts.
+            await clock.tickAsync(
+                containerConnectionRetryDelayMs *
+                    (Math.pow(2, containerConnectionMaxAttempts - 1) - 1),
+            );
 
             expect(await pending).to.deep.equal({
                 success: false,
