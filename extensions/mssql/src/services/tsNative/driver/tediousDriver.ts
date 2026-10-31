@@ -584,6 +584,15 @@ function mapConnectError(error: Error): TdsError & Error {
 }
 
 function mapRequestError(error: Error): TdsError {
+    // Tedious aggregates multiple server errors from a single batch. Preserve
+    // a real server error for classification; individual messages are streamed.
+    if (error instanceof AggregateError) {
+        const errors = error.errors.filter((item): item is Error => item instanceof Error);
+        error =
+            errors.find((item) => typeof (item as { number?: number }).number === "number") ??
+            errors[0] ??
+            error;
+    }
     const category = categorize(error);
     const detail = error as {
         number?: number;

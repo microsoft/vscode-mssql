@@ -216,6 +216,57 @@ suite("ts-native live engine (STS2_SQLSERVER_CONNSTRING lane)", function () {
         }
     });
 
+    test("large rows survive default and small page budgets with a slow sink", async () => {
+        const { session } = await openLive();
+        try {
+            for (const pageBytes of [262144, 16384]) {
+                const sink = new CollectingSink();
+                const record = sink.onRowsPage.bind(sink);
+                sink.onRowsPage = async (page) => {
+                    await new Promise<void>((resolve) => setTimeout(resolve, 200));
+                    record(page);
+                };
+                const handle = session.execute(
+                    "SELECT REPLICATE(CAST('x' AS varchar(max)),900000) AS a, REPLICATE(CAST('y' AS varchar(max)),900000) AS b, REPLICATE(CAST('z' AS varchar(max)),900000) AS c FROM (VALUES(1),(2),(3)) AS r(n)",
+                    { pageBytes, maxCellBytes: 1048576 },
+                    sink,
+                );
+                expect((await handle.completion).status).to.equal("succeeded");
+                expect(sink.pages.reduce((n, page) => n + page.rowCount, 0)).to.equal(3);
+                expect(sink.cell(0, 2, 2)).to.deep.include({
+                    kind: "string",
+                    value: "z".repeat(900000),
+                });
+            }
+        } finally {
+            await session.close();
+        }
+    });
+
+    for (const [sql, number] of [
+        ["SELECT missing_first, missing_second FROM sys.objects", 207],
+        ["RAISERROR('first error',16,1); RAISERROR('second error',16,2)", 50000],
+        ["SELECT 1 AS n; RAISERROR('first error',16,1); RAISERROR('second error',16,2)", 50000],
+    ] as const) {
+        test(`multiple server errors retain their classification: ${sql}`, async () => {
+            const { session } = await openLive();
+            try {
+                const { sink, summary } = await run(session, sql);
+                expect(summary.error).to.include({
+                    code: DataPlaneErrorCodes.queryFailed,
+                    retryable: false,
+                });
+                expect(summary.error?.server?.number).to.equal(number);
+                expect(sink.messages.filter((message) => message.kind === "error")).to.have.length(
+                    2,
+                );
+                expect((await run(session, "SELECT 42 AS n")).summary.status).to.equal("succeeded");
+            } finally {
+                await session.close();
+            }
+        });
+    }
+
     test("DML rows affected are structured; SELECT row counts are not rowsAffected", async () => {
         const { session } = await openLive();
         try {

@@ -21,6 +21,7 @@ import {
     TsNativeBackendDeps,
 } from "../../../src/services/tsNative/tsNativeBackend";
 import { BoundedEventLane } from "../../../src/services/tsNative/boundedEventLane";
+import { TdsCompletion, TdsQueryObserver } from "../../../src/services/tsNative/driver/tdsDriver";
 import { encodeCell, EncodePolicy } from "../../../src/services/tsNative/cellEncoder";
 import {
     parseTsNativeOverrides,
@@ -377,6 +378,109 @@ suite("ts-native review regressions", () => {
         expect(lane.snapshot().highWaterBytes).to.equal(70);
         await clock.advance(11);
     });
+
+    test("oversized row pages cross the byte watermark without losing rows", async () => {
+        const h = harness({
+            queries: [
+                {
+                    match: "LARGE",
+                    steps: [
+                        {
+                            step: "metadata",
+                            columns: [0, 1, 2].map((n) => ({ name: `s${n}`, typeName: "varchar" })),
+                        },
+                        {
+                            step: "rows",
+                            count: 12,
+                            make: () => [0, 1, 2].map(() => ({ value: "x".repeat(900_000) })),
+                        },
+                        { step: "done", token: "done", rowCount: 12, more: false },
+                    ],
+                },
+            ],
+        });
+        const session = await h.open();
+        const events = sink();
+        let rows = 0;
+        events.onRowsPage = async (page) => {
+            await new Promise<void>((resolve) => h.clock.setTimeout(resolve, 200));
+            rows += page.rowCount;
+            expect(page.compact.values[0][0]).to.equal("x".repeat(900_000));
+        };
+        const handle = session.execute(
+            "LARGE",
+            { pageBytes: 16_384, maxCellBytes: 1_048_576 },
+            events,
+        );
+        await h.clock.advance(10_000);
+        expect((await handle.completion).status).to.equal("succeeded");
+        expect(rows).to.equal(12);
+    });
+
+    for (const drains of [true, false]) {
+        test(`sink failure retains Busy until the driver ${drains ? "drains" : "is forcibly closed"}`, async () => {
+            const h = harness(
+                {
+                    queries: [
+                        {
+                            match: "NEXT",
+                            steps: [{ step: "done", token: "done", rowCount: 0, more: false }],
+                        },
+                    ],
+                },
+                { deadlines: { completeAfterCancelMs: 100 } },
+            );
+            const session = await h.open();
+            const completed = Promise.withResolvers<TdsCompletion>();
+            let observer!: TdsQueryObserver;
+            const execute = sandbox
+                .stub(h.driver.connections[0], "execute")
+                .callsFake((_request, events) => {
+                    observer = events;
+                    return {
+                        generation: 1,
+                        accepted: Promise.resolve(),
+                        completed: completed.promise,
+                        pause: () => undefined,
+                        resume: () => undefined,
+                        cancel: async () => ({ delivered: true }),
+                    };
+                });
+            const events = sink();
+            events.onRowsPage = () => {
+                throw new Error("sink failed");
+            };
+            const handle = session.execute("FAIL", { pageRows: 1 }, events);
+            observer.onEvent({
+                kind: "metadata",
+                driverSeq: 1,
+                columns: [{ name: "n", typeName: "int" }],
+            });
+            observer.onEvent({ kind: "row", driverSeq: 2, cells: [{ value: 1 }] });
+            await h.clock.flush();
+            expect((await handle.completion).error?.code).to.equal(DataPlaneErrorCodes.sinkError);
+            expect(() => session.execute("NEXT", {}, sink()))
+                .to.throw()
+                .with.property("code", DataPlaneErrorCodes.busy);
+            execute.restore();
+            if (drains) {
+                completed.resolve({
+                    ok: false,
+                    error: { category: "cancel", message: "cancelled" },
+                });
+                await h.clock.flush();
+                const next = session.execute("NEXT", {}, sink());
+                await h.clock.flush();
+                expect((await next.completion).status).to.equal("succeeded");
+            } else {
+                await h.clock.advance(101);
+                expect(h.driver.connections[0].state).to.equal("lost");
+                expect(() => session.execute("NEXT", {}, sink()))
+                    .to.throw()
+                    .with.property("code", DataPlaneErrorCodes.unavailable);
+            }
+        });
+    }
 
     test("lower-only overrides cap caller page/cell tuning and preserve tighter callers", async () => {
         const h = harness(

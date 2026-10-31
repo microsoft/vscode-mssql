@@ -46,6 +46,8 @@ interface LaneItem {
     onSettled?: () => void;
     /** One terminal callback may bypass ordinary event reservations. */
     terminal?: boolean;
+    /** A row cannot be split; its bounded page may cross the byte watermark. */
+    allowByteOverflow?: boolean;
 }
 
 export class BoundedEventLane {
@@ -95,7 +97,8 @@ export class BoundedEventLane {
 
     /**
      * Reserve and enqueue one callback. Exhausting the budget is an explicit
-     * resource failure; only terminal delivery may exceed the ordinary limit.
+     * resource failure. Row pages use bytes as a pause watermark, while the
+     * item limit remains hard even for an oversized single row.
      */
     enqueue(item: LaneItem): void {
         if (this.stopped) {
@@ -103,7 +106,11 @@ export class BoundedEventLane {
             item.onSettled?.();
             return;
         }
-        if (!item.terminal && !this.hasCapacity(item.bytes)) {
+        if (
+            !item.terminal &&
+            (this.queue.length + Number(this.inFlight) >= this.limits.maxItems ||
+                (item.bytes > 0 && !item.allowByteOverflow && !this.hasCapacity(item.bytes)))
+        ) {
             this.failLane({ kind: "resourceLimit", label: item.label });
             item.onSettled?.();
             return;

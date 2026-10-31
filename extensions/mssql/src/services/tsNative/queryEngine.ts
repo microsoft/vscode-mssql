@@ -121,7 +121,7 @@ export interface QueryEngineDeps {
     /** Forced physical teardown (dispose/cancel deadline path). */
     forceAbort: (reason: string) => void;
     onDatabaseChanged?: (database: string) => void;
-    /** Active-slot release: called exactly once at terminal. */
+    /** Active-slot release: terminal delivery and the driver must both settle. */
     onTerminal: () => void;
 }
 
@@ -151,6 +151,9 @@ export class TsNativeQuery {
     private acceptedResolve!: (a: QueryAcceptance) => void;
     private acceptedSettled = false;
     private terminalSent = false;
+    private terminalSettled = false;
+    private driverCompleted = false;
+    private activeSlotReleased = false;
     private cancelCause: CancelCause | undefined;
     private cancelRequested = false;
     private disposed = false;
@@ -271,7 +274,11 @@ export class TsNativeQuery {
                 });
             },
         );
-        void this.lease.completed.then((completionResult) => this.finish(completionResult));
+        void this.lease.completed.then((completionResult) => {
+            this.driverCompleted = true;
+            this.finish(completionResult);
+            this.releaseActiveSlot();
+        });
     }
 
     // -----------------------------------------------------------------------
@@ -455,6 +462,7 @@ export class TsNativeQuery {
         this.lane.enqueue({
             label: `rowsPage:${page.resultSetId}:${page.pageSeq}`,
             bytes: page.approxBytes,
+            allowByteOverflow: true,
             run: async () => {
                 await this.sink.onRowsPage(page);
                 if (firstPage && this.aggregates.firstPageAcceptedMs === undefined) {
@@ -513,6 +521,9 @@ export class TsNativeQuery {
     private finish(completion: TdsCompletion): void {
         this.deadlineTimer?.dispose();
         this.cancelHardTimer?.dispose();
+        if (this.terminalSent) {
+            return;
+        }
         const { closed } = this.ledger.onCompletion();
         if (closed) {
             this.flushSetEnd(closed.id, closed.rowCount, false);
@@ -632,7 +643,13 @@ export class TsNativeQuery {
         }
         this.terminalSent = true;
         this.deadlineTimer?.dispose();
-        this.cancelHardTimer?.dispose();
+        if (this.driverCompleted) {
+            this.cancelHardTimer?.dispose();
+        } else {
+            // A failed sink can settle completion before cancellation drains.
+            // Keep the session busy, and bound a driver that never acknowledges.
+            this.armCancelHardDeadline();
+        }
         this.settleAccepted({
             status: "aborted",
             clientQueryId: this.clientQueryId,
@@ -671,10 +688,18 @@ export class TsNativeQuery {
                     : summary;
                 this.aggregates.sinkWaitMsTotal = this.lane.snapshot().sinkWaitMsTotal;
                 this.deps.observer?.onTerminal?.(deliveredSummary, this.aggregates);
-                this.deps.onTerminal();
+                this.terminalSettled = true;
+                this.releaseActiveSlot();
                 this.completionResolve(deliveredSummary);
             },
         });
+    }
+
+    private releaseActiveSlot(): void {
+        if (this.driverCompleted && this.terminalSettled && !this.activeSlotReleased) {
+            this.activeSlotReleased = true;
+            this.deps.onTerminal();
+        }
     }
 
     private protocolViolation(observation: string): void {
@@ -750,7 +775,7 @@ export class TsNativeQuery {
 
     private armCancelHardDeadline(): void {
         this.cancelHardTimer ??= this.deps.clock.setTimeout(() => {
-            if (!this.terminalSent) {
+            if (!this.driverCompleted) {
                 this.deps.forceAbort("cancel/terminal deadline expired");
                 const status: QueryCompletionStatus =
                     this.cancelCause === "timeout"
