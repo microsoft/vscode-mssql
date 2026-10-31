@@ -14,6 +14,7 @@ import {
     performanceDashboardRouter,
     performanceDashboardTabs,
     settingsSectionOf,
+    showQueryStoreSettings,
     withSettings,
 } from "../../src/webviews/pages/PerformanceDashboard/performanceDashboardRoutes";
 
@@ -165,7 +166,10 @@ suite("Performance dashboard routes", () => {
         const withDialog = withSettings(queries, "queryStore");
 
         expect(withDialog).to.equal("queries?range=7d&settings=queryStore");
-        expect(settingsSectionOf(router.match(withDialog)!)).to.equal("queryStore");
+        // While the Query Store settings are hidden, the location opens no dialog.
+        expect(settingsSectionOf(router.match(withDialog)!)).to.equal(
+            showQueryStoreSettings ? "queryStore" : undefined,
+        );
         expect(pageQuery(router.match(withDialog)!)).to.deep.equal({ range: "7d" });
         expect(withSettings(router.match(withDialog)!, undefined)).to.equal("queries?range=7d");
         expect(settingsSectionOf(router.match("queries?settings=unknown")!)).to.be.undefined;

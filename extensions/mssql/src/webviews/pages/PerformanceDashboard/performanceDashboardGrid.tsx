@@ -48,8 +48,10 @@ import "./performanceDashboardGrid.css";
 const rowHeight = 32;
 /** The header row and the frame around the grid. */
 const chromeHeight = rowHeight + 2;
-const defaultWidth = 140;
+const defaultWidth = 120;
 const controlWidth = 36;
+/** The narrowest that the user can make a column. */
+const minColumnWidth = 48;
 const svgNamespace = "http://www.w3.org/2000/svg";
 // The 16px Fluent icon of the button that opens a row's menu.
 const moreIconPath =
@@ -80,9 +82,12 @@ export interface DashboardGridColumn<T> {
     /** Sorts the column by this value. Without it, the column does not sort. */
     readonly sortValue?: (item: T) => DashboardGridSortValue;
     readonly numeric?: boolean;
-    /** The width; a column that grows has at least this width. Default 140. */
+    /** The width; a column that grows has at least this width. Default 120. */
     readonly width?: number;
-    /** Takes the width left. When no column grows, they all do. */
+    /**
+     * Takes the width left, so the grid fills its frame. Without a column that grows, the
+     * columns keep their widths, and the space after them is empty.
+     */
     readonly grow?: boolean;
     /** A button or a check box: centered, without padding, and not copied. */
     readonly control?: boolean;
@@ -207,20 +212,19 @@ export function DashboardGrid<T>({
         )
         .join("\n");
     const definitions = useMemo<Column[]>(
-        () => {
-            const someGrow = latestColumns.current.some((column) => column.grow);
-            return latestColumns.current.map((column): Column => {
+        () =>
+            latestColumns.current.map((column): Column => {
                 const width = column.width ?? (column.control ? controlWidth : defaultWidth);
-                const resizes = !column.control && (column.grow || !someGrow);
+                // The user can resize every column but a control.
                 return {
                     id: column.id,
                     name: column.header,
                     field: copyField(column.id),
                     queryFieldSorter: sortField(column.id),
                     width,
-                    minWidth: width,
-                    ...(resizes ? {} : { maxWidth: width }),
-                    resizable: resizes,
+                    minWidth: column.control ? width : Math.min(width, minColumnWidth),
+                    ...(column.control ? { maxWidth: width } : {}),
+                    resizable: !column.control,
                     sortable: !!column.sortValue,
                     sortComparer: compareSortValues,
                     cssClass: column.control
@@ -231,11 +235,74 @@ export function DashboardGrid<T>({
                     formatter: (_row, _cell, _value, _column, row: GridRow<T>) =>
                         drawCell(latestColumns.current, column.id, row.item),
                 };
-            });
-        },
+            }),
         // The shape of the columns is all that the grid columns are made from.
         [shape],
     );
+    // The widths below which the columns that grow do not go: their own, or the user's.
+    const growFloors = useRef(new Map<string, number>());
+    const growKey = allColumns
+        .filter((column) => column.grow)
+        .map((column) => `${column.id}:${column.width ?? defaultWidth}`)
+        .join();
+    useEffect(() => {
+        growFloors.current = new Map(
+            growKey
+                .split(",")
+                .filter(Boolean)
+                .map((entry) => {
+                    const [id, width] = entry.split(":");
+                    return [id, Number(width)];
+                }),
+        );
+    }, [growKey]);
+
+    /**
+     * Gives the columns that grow the width that the others leave, so the grid fills its frame.
+     * SlickGrid's own fit would widen every column in proportion, and the user resizes them.
+     */
+    const fillWidth = useCallback(() => {
+        const grid = reactGrid.current?.slickGrid;
+        const viewport = grid?.getViewportNode();
+        if (!grid || !viewport || growFloors.current.size === 0) {
+            return;
+        }
+        const gridColumns = grid.getColumns();
+        const growing = gridColumns.filter((column) => growFloors.current.has(String(column.id)));
+        const fixed = gridColumns
+            .filter((column) => !growFloors.current.has(String(column.id)))
+            .reduce((sum, column) => sum + (column.width ?? 0), 0);
+        const share = Math.floor((viewport.clientWidth - fixed) / Math.max(1, growing.length));
+        let changed = false;
+        for (const column of growing) {
+            const width = Math.max(growFloors.current.get(String(column.id)) ?? 0, share);
+            if (column.width !== width) {
+                column.width = width;
+                changed = true;
+            }
+        }
+        if (changed) {
+            grid.reRenderColumns(false);
+        }
+    }, []);
+
+    // The frame resizes with the page, and a vertical scroll bar narrows the rows.
+    const [viewport, setViewport] = useState<HTMLElement | undefined>(undefined);
+    useEffect(() => {
+        if (!viewport) {
+            return;
+        }
+        let frame = 0;
+        const observer = new ResizeObserver(() => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(fillWidth);
+        });
+        observer.observe(viewport);
+        return () => {
+            cancelAnimationFrame(frame);
+            observer.disconnect();
+        };
+    }, [viewport, fillWidth]);
 
     // New rows only when what the cells show or sort by changes, so the grid does not take the
     // same rows again on each render. A control shows the row's selection or its sort value.
@@ -287,8 +354,9 @@ export function DashboardGrid<T>({
                 bottomPadding: 0,
                 minHeight: chromeHeight + rowHeight,
             }),
-            // The columns that do not resize keep their width, and the others share the rest.
-            forceFitColumns: true,
+            // The columns keep their widths, and the ones that grow fill the rest: see fillWidth.
+            forceFitColumns: false,
+            enableAutoSizeColumns: false,
             rowHeight,
             enableAutoTooltip: false,
             enableColumnReorder: false,
@@ -412,7 +480,22 @@ export function DashboardGrid<T>({
     const gridKey = `${isDark}:${definitions.map((column) => column.id).join()}`;
     const handleCreated = useCallback((event: CustomEvent) => {
         reactGrid.current = event.detail as SlickgridReactInstance;
+        setViewport(reactGrid.current.slickGrid?.getViewportNode());
     }, []);
+    // A column that grows keeps the width that the user gives it, as the least it takes.
+    const handleColumnsResized = useCallback(
+        (event: CustomEvent<{ args: { triggeredByColumn?: string } }>) => {
+            const columnId = event.detail.args.triggeredByColumn;
+            const column = reactGrid.current?.slickGrid
+                ?.getColumns()
+                .find((candidate) => String(candidate.id) === columnId);
+            if (column && columnId && growFloors.current.has(columnId)) {
+                growFloors.current.set(columnId, column.width ?? 0);
+            }
+            fillWidth();
+        },
+        [fillWidth],
+    );
     // The grid creates its element with the grid role; the label goes on that element.
     useEffect(() => {
         reactGrid.current?.slickGrid?.getContainerNode().setAttribute("aria-label", ariaLabel);
@@ -443,6 +526,7 @@ export function DashboardGrid<T>({
                 onClick={handleClick}
                 onKeyDown={handleKeyDown}
                 onContextMenu={handleContextMenu}
+                onColumnsResized={handleColumnsResized}
             />
             {menu && (
                 <Menu

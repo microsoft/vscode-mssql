@@ -33,11 +33,16 @@ import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 import { useViewTimeRange } from "./performanceDashboardTimeRange";
 
-export type HistoryMetric = "duration" | "cpuTime" | "logicalReads";
+export type HistoryMetric = "duration" | "cpuTime" | "logicalReads" | "memoryGrant";
 export type HistoryView = "total" | "avg" | "max" | "min";
 
-/** The metrics that the query page charts can show, which its reads ask for. */
-export const historyMetrics: readonly HistoryMetric[] = ["duration", "cpuTime", "logicalReads"];
+/** The metrics that the query page charts and stats can show, which its reads ask for. */
+export const historyMetrics: readonly HistoryMetric[] = [
+    "duration",
+    "cpuTime",
+    "logicalReads",
+    "memoryGrant",
+];
 const historyViews: readonly HistoryView[] = ["total", "avg", "max", "min"];
 
 const minuteMs = 60_000;
@@ -94,6 +99,8 @@ export function historyMetricLabel(metric: HistoryMetric): string {
             return text.cpuMs;
         case "logicalReads":
             return text.logicalReadsKb;
+        case "memoryGrant":
+            return text.memoryKb;
         default:
             return text.durationMs;
     }
@@ -107,6 +114,8 @@ function historyMetricOption(metric: HistoryMetric): string {
             return text.cpuMs;
         case "logicalReads":
             return text.logicalReadsKbOption;
+        case "memoryGrant":
+            return text.memoryKbOption;
         default:
             return text.durationMsOption;
     }
@@ -118,8 +127,9 @@ export function historyTitle(metric: HistoryMetric, view: HistoryView): string {
 }
 
 /**
- * The metric and statistic of the query page charts. They are in the location, so the execution
- * history and the plan summary show the same values.
+ * The metric and statistic of the query page: its stats and its charts. They are in the
+ * location, so the execution history and the plan summary show the same values, and a query
+ * opened from a category of the Queries page shows the metric of that category.
  */
 export function useHistorySelection(): { metric: HistoryMetric; view: HistoryView } {
     const { match } = useNavigation<PerformanceDashboardRoute>();

@@ -14,6 +14,7 @@ import {
 } from "../../../src/performance/performanceDashboardWebviewController";
 import { PerformanceDashboards } from "../../../src/performance/performanceDashboards";
 import { QueryStoreService } from "../../../src/performance/queryStoreService";
+import { cmdOpenGithubChat } from "../../../src/constants/constants";
 import { stubExtensionContext } from "../utils";
 
 chai.use(sinonChai);
@@ -150,6 +151,17 @@ suite("PerformanceDashboards", () => {
         expect(dashboards.switchDatabase(salesDashboard, "Orders")).to.be.false;
         expect(created[0].controller.setTarget).to.not.have.been.called;
         expect(ordersDashboard.revealToForeground).to.have.been.calledTwice;
+    });
+
+    test("sends a chat prompt in agent mode at once", async () => {
+        const executeCommand = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+        await dashboards.openChat("Explain Query Store query 913");
+
+        expect(executeCommand).to.have.been.calledOnceWithExactly(cmdOpenGithubChat, {
+            query: "Explain Query Store query 913",
+            mode: "agent",
+        });
     });
 
     test("forgets a switched dashboard when it closes", () => {

@@ -19,8 +19,9 @@ const DEBUG_CONSOLE_GATE =
     "mssql.privatePreview.debugConsoleActive && config.mssql.enableExperimentalFeatures && config.mssql.debugConsole.enabled";
 const SESSION_DIAGNOSTICS_GATE =
     "mssql.privatePreview.sessionDiagnosticsActive && config.mssql.enableExperimentalFeatures && config.mssql.sessionDiag.enabled";
+// Performance monitoring is on by default and needs no other setting.
 const PERFORMANCE_MONITORING_GATE =
-    "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled";
+    "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled";
 const OBJECT_EXPLORER_V2_GATE =
     "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled";
 
@@ -81,7 +82,6 @@ suite("Private preview manifest", () => {
         expect(settings["mssql.debugConsole.enabled"]?.default).to.equal(false);
         expect(settings["mssql.sessionDiag.enabled"]?.default).to.equal(false);
         expect(settings["mssql.objectExplorer.v2.enabled"]?.default).to.equal(false);
-        expect(settings["mssql.performanceMonitoring.enabled"]?.default).to.equal(false);
         expect(settings["mssql.copilot.inlineCompletions.enabled"]?.default).to.equal(false);
         expect(settings["mssql.copilot.inlineCompletions.useSchemaContext"]?.default).to.equal(
             false,
@@ -251,7 +251,12 @@ suite("Private preview manifest", () => {
         }
     });
 
-    test("requires the activation snapshot and complete path for performance monitoring", () => {
+    test("turns on performance monitoring by default, with no other setting", () => {
+        const settings = collectConfigurationProperties(packageJson.contributes.configuration);
+        expect(settings["mssql.performanceMonitoring.enabled"]?.default).to.equal(true);
+    });
+
+    test("requires the activation snapshot and the setting for performance monitoring", () => {
         const commandId = "mssql.performance.openDashboard";
         expect(command(commandId).enablement).to.equal(PERFORMANCE_MONITORING_GATE);
         expect(commandPalette(commandId).when).to.equal("false");

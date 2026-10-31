@@ -76,10 +76,15 @@ export interface PerformanceDashboardQueryGridProps {
     /** The rows that the grid shows at least, before the page scrolls instead. Default 5. */
     readonly visibleRows?: number;
     /**
-     * An action on a row, such as the analysis of the query, in the row's menu after Copy. A
+     * Actions on a row, such as the analysis of the query, in the row's menu after Copy. A
      * button at the end of each row opens the menu too.
      */
-    readonly rowAction?: QueryRowAction;
+    readonly rowActions?: readonly QueryRowAction[];
+    /**
+     * The query values of the query page that a query ID opens, such as the metric that the list
+     * ranks by, so the query page shows it.
+     */
+    readonly queryPageQuery?: Readonly<Record<string, string | undefined>>;
 }
 
 /**
@@ -93,12 +98,14 @@ export const PerformanceDashboardQueryGrid = ({
     ariaLabel,
     favorites,
     visibleRows,
-    rowAction,
+    rowActions,
+    queryPageQuery,
 }: PerformanceDashboardQueryGridProps) => {
     const { router, navigate } = useNavigation<PerformanceDashboardRoute>();
 
     const gridColumns = useMemo<DashboardGridColumn<QueryListRow>[]>(() => {
         const text = loc.performanceDashboard;
+        const queryPage = (queryId: string) => router.build("query", { queryId }, queryPageQuery);
         const list: DashboardGridColumn<QueryListRow>[] = [];
         if (favorites) {
             const isFavorite = (row: QueryListRow) => favorites.queryIds.has(row.queryId);
@@ -128,9 +135,8 @@ export const PerformanceDashboardQueryGrid = ({
                 width: idWidth,
                 text: (row) => row.queryId,
                 sortValue: (row) => Number(row.queryId),
-                render: (row) =>
-                    linkCell(row.queryId, `#${router.build("query", { queryId: row.queryId })}`),
-                activate: (row) => navigate(router.build("query", { queryId: row.queryId })),
+                render: (row) => linkCell(row.queryId, `#${queryPage(row.queryId)}`),
+                activate: (row) => navigate(queryPage(row.queryId)),
             },
             {
                 id: "queryText",
@@ -175,7 +181,7 @@ export const PerformanceDashboardQueryGrid = ({
             });
         }
         return list;
-    }, [columns, favorites, router, navigate]);
+    }, [columns, favorites, router, navigate, queryPageQuery]);
 
     return (
         <DashboardGrid<QueryListRow>
@@ -188,17 +194,21 @@ export const PerformanceDashboardQueryGrid = ({
             }
             visibleRows={visibleRows}
             menuButtonLabel={
-                rowAction ? (row) => loc.performanceDashboard.queryActions(row.queryId) : undefined
+                rowActions?.length
+                    ? (row) => loc.performanceDashboard.queryActions(row.queryId)
+                    : undefined
             }
             menuItems={
-                rowAction
-                    ? (row) => (
-                          <MenuItem
-                              icon={rowAction.icon}
-                              onClick={() => rowAction.run(row.queryId)}>
-                              {rowAction.label}
-                          </MenuItem>
-                      )
+                rowActions?.length
+                    ? (row) =>
+                          rowActions.map((action) => (
+                              <MenuItem
+                                  key={action.label}
+                                  icon={action.icon}
+                                  onClick={() => action.run(row.queryId)}>
+                                  {action.label}
+                              </MenuItem>
+                          ))
                     : undefined
             }
         />

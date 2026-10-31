@@ -72,6 +72,25 @@ export interface PerformanceDashboardState {
     serverName: string;
     /** Empty for the login's default database. */
     databaseName: string;
+    /**
+     * The category of the Queries page that the user chose last, in any dashboard. The extension
+     * saves it, so the page opens at it after a restart.
+     */
+    queryCategory?: QueryCategory;
+}
+
+/** The categories of the Queries page. */
+export type QueryCategory = "cpu" | "duration" | "memory" | "executions" | "reads";
+
+export interface SetQueryCategoryParams {
+    readonly category: QueryCategory;
+}
+
+/** Saves the category of the Queries page that the user chose, for the next dashboard. */
+export namespace SetQueryCategoryRequest {
+    export const type = new RequestType<SetQueryCategoryParams, void, void>(
+        "performanceDashboard/setQueryCategory",
+    );
 }
 
 export type PerformanceDashboardReducers = Record<string, never>;
@@ -326,13 +345,17 @@ export namespace SetFavoriteQueryRequest {
 /** The tabs of the query page. */
 export type QueryPageTab = "history" | "waits" | "plans" | "compare";
 
+/** What a chat prompt asks about a query: an analysis of its performance, or an explanation. */
+export type ChatPrompt = "analyze" | "explain";
+
 export interface ContinueInChatParams extends TimeWindowParams {
+    readonly prompt: ChatPrompt;
     readonly queryId: string;
 }
 
 /**
- * Opens Copilot Chat with a prompt about the query that names the dashboard's connection,
- * database, and time range, so the chat does not need to find them.
+ * Sends Copilot Chat a prompt about the query that names the dashboard's connection, database,
+ * and time range, so the chat does not need to find them.
  */
 export namespace ContinueInChatRequest {
     export const type = new RequestType<ContinueInChatParams, void, void>(

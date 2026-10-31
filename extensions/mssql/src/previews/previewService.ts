@@ -30,7 +30,6 @@ export enum PrivatePreviewFeature {
     SessionDiagnostics = "mssql.sessionDiag.enabled",
     ObjectExplorerV2 = "mssql.objectExplorer.v2.enabled",
     QueryStudio = "mssql.queryStudio.enabled",
-    PerformanceMonitoring = "mssql.performanceMonitoring.enabled",
 }
 
 /**
@@ -46,8 +45,19 @@ export enum PrivatePreviewContextKey {
     SessionDiagnosticsActive = "mssql.privatePreview.sessionDiagnosticsActive",
     ObjectExplorerV2Active = "mssql.privatePreview.objectExplorerV2Active",
     QueryStudioActive = "mssql.privatePreview.queryStudioActive",
-    PerformanceMonitoringActive = "mssql.privatePreview.performanceMonitoringActive",
 }
+
+/**
+ * The setting of performance monitoring, a preview that is on by default. It needs no other
+ * setting, and it starts the SQL data plane, which it reads through.
+ */
+export const performanceMonitoringSetting = "mssql.performanceMonitoring.enabled";
+
+/**
+ * The activation snapshot of performance monitoring. The data plane starts only at activation,
+ * so the contributed UI needs this key as well as the setting.
+ */
+export const performanceMonitoringActiveContextKey = "mssql.performanceMonitoringActive";
 
 export const CONFIG_PREVIEW_PREFIX = "mssql.preview.";
 
@@ -105,6 +115,14 @@ export class PreviewFeaturesService {
         return (
             vscode.workspace.getConfiguration("mssql").get<boolean>("enableExperimentalFeatures") ??
             false
+        );
+    }
+
+    /** Returns whether performance monitoring is on. It is on by default. */
+    public get performanceMonitoringEnabled(): boolean {
+        return (
+            vscode.workspace.getConfiguration().get<boolean>(performanceMonitoringSetting, true) ??
+            true
         );
     }
 

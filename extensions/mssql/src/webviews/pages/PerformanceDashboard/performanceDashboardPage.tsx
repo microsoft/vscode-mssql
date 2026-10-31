@@ -32,6 +32,7 @@ import {
     performanceDashboardRouter,
     performanceDashboardTabs,
     settingsSectionOf,
+    showQueryStoreSettings,
     withSettings,
 } from "./performanceDashboardRoutes";
 import { PerformanceDashboardSettingsDrawer } from "./performanceDashboardSettingsDrawer";
@@ -135,14 +136,18 @@ export const PerformanceDashboardPage = () => {
                                 onClick={refresh}
                             />
                         </Tooltip>
-                        <Tooltip content={loc.performanceDashboard.settings} relationship="label">
-                            <Button
-                                appearance="subtle"
-                                icon={<Settings20Regular />}
-                                aria-haspopup="dialog"
-                                onClick={() => navigate(withSettings(match, "queryStore"))}
-                            />
-                        </Tooltip>
+                        {showQueryStoreSettings && (
+                            <Tooltip
+                                content={loc.performanceDashboard.settings}
+                                relationship="label">
+                                <Button
+                                    appearance="subtle"
+                                    icon={<Settings20Regular />}
+                                    aria-haspopup="dialog"
+                                    onClick={() => navigate(withSettings(match, "queryStore"))}
+                                />
+                            </Tooltip>
+                        )}
                     </div>
                 </div>
                 {/* With one tab, such as Queries for now, the tab list is hidden. */}

@@ -178,6 +178,15 @@
     border-radius: 2px;
 }
 
+/* The plans of an interval of the execution history, each with its color. */
+.performance-grid .performance-grid-plans {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    overflow: hidden;
+}
+
 /* An icon after text in a cell, such as a warning. */
 .performance-grid .performance-grid-with-icon {
     display: inline-flex;

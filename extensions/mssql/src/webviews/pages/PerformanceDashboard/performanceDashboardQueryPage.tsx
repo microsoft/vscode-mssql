@@ -8,7 +8,14 @@ import {
     Button,
     Caption1,
     makeStyles,
+    Menu,
+    MenuButtonProps,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
     shorthands,
+    SplitButton,
     Subtitle2,
     Title3,
     tokens,
@@ -27,10 +34,11 @@ import {
     OpenSqlScriptRequest,
     PerformanceDashboardReducers,
     PerformanceDashboardState,
+    type ChatPrompt,
     type QueryPageTab,
     type QueryStoreQueryDetails,
 } from "../../../sharedInterfaces/performanceDashboard";
-import { CopilotChatButton } from "../../common/copilot/copilotChatButton";
+import { GithubCopilot16Regular } from "../../common/icons/fluentIcons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SegmentedControl } from "../../common/segmentedControl";
@@ -47,7 +55,13 @@ import {
     readData,
     usePerformanceRead,
 } from "./performanceDashboardParts";
-import { HistoryControls } from "./performanceDashboardPlanHistory";
+import { metrics } from "./performanceDashboardMetrics";
+import {
+    HistoryControls,
+    HistoryMetric,
+    historyMetrics,
+    useHistorySelection,
+} from "./performanceDashboardPlanHistory";
 import { PerformanceDashboardQueryCompare } from "./performanceDashboardQueryCompare";
 import { PerformanceDashboardQueryHistory } from "./performanceDashboardQueryHistory";
 import { PerformanceDashboardQueryPlans } from "./performanceDashboardQueryPlans";
@@ -60,9 +74,6 @@ import { readStatusMessage } from "./performanceDashboardStatus";
 import { useViewTimeRange } from "./performanceDashboardTimeRange";
 
 const queryTabs: readonly QueryPageTab[] = ["history", "waits", "compare", "plans"];
-
-/** The metrics of the query's stats strip. */
-const detailMetrics = ["duration"] as const;
 
 /** Below this width, the query text goes below the tabs. */
 const narrowLayout = "@media (max-width: 900px)";
@@ -211,9 +222,11 @@ export const PerformanceDashboardQueryPage = () => {
                 tab: value === "history" ? undefined : value,
             }),
         );
+    const { metric } = useHistorySelection();
+    // Every metric of the page, so another metric shows without a new read.
     const details = usePerformanceRead(
         GetQueryDetailsRequest.type,
-        { queryId, metrics: detailMetrics, ...window },
+        { queryId, metrics: historyMetrics, ...window },
         [databaseName, refreshKey],
     );
     const message = readStatusMessage(details);
@@ -254,11 +267,10 @@ export const PerformanceDashboardQueryPage = () => {
                     </Badge>
                 )}
                 <span className={classes.headerEnd}>
-                    <CopilotChatButton
-                        label={text.openInChat}
-                        tooltip={text.openInChat}
-                        onClick={() =>
+                    <ChatButton
+                        onChat={(prompt) =>
                             void extensionRpc.sendRequest(ContinueInChatRequest.type, {
+                                prompt,
                                 queryId,
                                 ...window,
                             })
@@ -271,9 +283,9 @@ export const PerformanceDashboardQueryPage = () => {
                 {message ? (
                     <StatusBar message={message} />
                 ) : isFirstLoad(details) ? (
-                    <QueryStats />
+                    <QueryStats metric={metric} />
                 ) : data ? (
-                    <QueryStats details={data} />
+                    <QueryStats metric={metric} details={data} />
                 ) : (
                     <Caption1 className={classes.secondary}>{text.queryNotFound}</Caption1>
                 )}
@@ -328,12 +340,51 @@ export const PerformanceDashboardQueryPage = () => {
     );
 };
 
-/** The stats of the query, or their labels over placeholders while the details load. */
-const QueryStats = ({ details }: { details?: QueryStoreQueryDetails }) => {
+/** Analyze in Chat, with Explain in Chat in its menu. Each sends its prompt at once. */
+const ChatButton = ({ onChat }: { onChat: (prompt: ChatPrompt) => void }) => {
     const text = loc.performanceDashboard;
-    const durationStats = details?.metrics.duration;
-    const duration = (value: number | undefined) =>
-        value === undefined ? text.notAvailable : text.milliseconds(formatNumber(value));
+    return (
+        <Menu positioning="below-end">
+            <MenuTrigger disableButtonEnhancement>
+                {(triggerProps: MenuButtonProps) => (
+                    <SplitButton
+                        appearance="subtle"
+                        size="small"
+                        icon={<GithubCopilot16Regular />}
+                        menuButton={{ ...triggerProps, "aria-label": text.moreChatActions }}
+                        primaryActionButton={{ onClick: () => onChat("analyze") }}>
+                        {text.analyzeInChat}
+                    </SplitButton>
+                )}
+            </MenuTrigger>
+            <MenuPopover>
+                <MenuList>
+                    <MenuItem icon={<GithubCopilot16Regular />} onClick={() => onChat("explain")}>
+                        {text.explainInChat}
+                    </MenuItem>
+                </MenuList>
+            </MenuPopover>
+        </Menu>
+    );
+};
+
+/**
+ * The stats of the query in the metric of the page, such as CPU when it came from the CPU
+ * queries, or their labels over placeholders while the details load.
+ */
+const QueryStats = ({
+    metric,
+    details,
+}: {
+    metric: HistoryMetric;
+    details?: QueryStoreQueryDetails;
+}) => {
+    const text = loc.performanceDashboard;
+    const definition = metrics[metric];
+    const stats = details?.metrics[metric];
+    const value = (statistic: number | undefined) =>
+        statistic === undefined ? text.notAvailable : definition.display(statistic);
+    const label = (statistic: string) => text.rankedMetric(statistic, definition.name());
     return (
         <StatStrip
             loading={!details}
@@ -342,9 +393,9 @@ const QueryStats = ({ details }: { details?: QueryStoreQueryDetails }) => {
                     label: text.executionCount,
                     value: details ? formatNumber(details.executionCount) : "",
                 },
-                { label: text.average, value: duration(durationStats?.avg) },
-                { label: text.minShort, value: duration(durationStats?.min) },
-                { label: text.maxShort, value: duration(durationStats?.max) },
+                { label: label(text.average), value: value(stats?.avg) },
+                { label: label(text.minShort), value: value(stats?.min) },
+                { label: label(text.maxShort), value: value(stats?.max) },
                 // The object only when the query is in one, such as a procedure.
                 ...(details?.objectName
                     ? [{ label: text.objectName, value: details.objectName }]

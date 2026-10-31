@@ -12,6 +12,7 @@ import {
     MessageBar,
     MessageBarActions,
     MessageBarBody,
+    MessageBarTitle,
     Select,
     shorthands,
     Text,
@@ -33,9 +34,14 @@ import {
     useExtensionRequest,
 } from "../../common/useExtensionRequest";
 import { dateTimeFormat } from "./performanceDashboardFormat";
-import { PerformanceDashboardRoute, withSettings } from "./performanceDashboardRoutes";
+import {
+    PerformanceDashboardRoute,
+    showQueryStoreSettings,
+    withSettings,
+} from "./performanceDashboardRoutes";
 import { ChartSkeleton, ValueSkeleton, useFadeInClass } from "./performanceDashboardSkeletons";
 import { StatusMessage } from "./performanceDashboardStatus";
+import type { TimeBand } from "./performanceDashboardTimeBand";
 
 const panelBorder = "1px solid var(--vscode-panel-border)";
 /** The height of the title row of a chart card, so it does not change as the value loads. */
@@ -145,13 +151,30 @@ export function isReadOnly(state: ExtensionRequestState<PerformanceRead<unknown>
         : false;
 }
 
-/** A message, with a link to the settings section that can fix the cause. */
+/**
+ * A message, with a link to a page that explains how to fix the cause, and one to the settings
+ * section that can fix it, while the settings show.
+ */
 export const StatusBar = ({ message }: { message: StatusMessage }) => {
     const { match, navigate } = useNavigation<PerformanceDashboardRoute>();
-    const section = message.settingsSection;
+    const section = showQueryStoreSettings ? message.settingsSection : undefined;
     return (
-        <MessageBar intent={message.intent}>
-            <MessageBarBody>{message.text}</MessageBarBody>
+        <MessageBar intent={message.intent} layout={message.title ? "multiline" : "auto"}>
+            <MessageBarBody>
+                {message.title && <MessageBarTitle>{message.title}</MessageBarTitle>}
+                {message.text}
+                {message.learnMore && (
+                    <>
+                        {" "}
+                        <Link
+                            href={message.learnMore.url}
+                            target="_blank"
+                            rel="noopener noreferrer">
+                            {message.learnMore.text}
+                        </Link>
+                    </>
+                )}
+            </MessageBarBody>
             {section && (
                 <MessageBarActions>
                     <Link onClick={() => navigate(withSettings(match, section))}>
@@ -294,6 +317,13 @@ const chartHeight = 260;
 const compactChartHeight = 180;
 /** The height of a time series chart, for placeholders of the same size. */
 export const timeSeriesChartHeight = chartHeight;
+/** The right margin of a time chart, the chart's default, so that a band below can line up. */
+const chartRightMargin = 20;
+/** The height of a band below a time chart, and of its legend below it. */
+const bandHeight = 10;
+const bandLegendHeight = 28;
+/** The height of a time band and its legend, for placeholders of the same size. */
+export const timeBandHeight = 6 + bandHeight + bandLegendHeight;
 /** The space for each x-axis label, so that the labels do not crowd. */
 const xLabelWidth = 120;
 const hourMs = 60 * 60 * 1000;
@@ -459,6 +489,8 @@ export interface TimeSeriesChartProps {
     readonly compact?: boolean;
     /** The y-axis tick labels below the top one. Default: `format`. */
     readonly tickFormat?: (value: number) => string;
+    /** A band below the chart, on its time axis, such as the plan that ran in each interval. */
+    readonly band?: TimeBand;
 }
 
 /**
@@ -476,6 +508,7 @@ export const TimeSeriesChart = memo(function TimeSeriesChart({
     range,
     compact,
     tickFormat,
+    band,
 }: TimeSeriesChartProps) {
     const classes = useStyles();
     const axisClasses = useAxisStyles();
@@ -517,40 +550,180 @@ export const TimeSeriesChart = memo(function TimeSeriesChart({
             },
         ],
     };
+    const left = yAxisMargin(yTicks.map(tickLabel), compact ? undefined : yAxisTitle);
     return (
-        <ChartFrame height={height}>
-            {(width) => (
-                <AreaChart
-                    data={data}
-                    width={width}
-                    height={height}
-                    hideLegend
-                    mode="tozeroy"
-                    yMinValue={0}
-                    yMaxValue={topTick}
-                    yAxisTickValues={yTicks}
-                    yAxisTickFormat={tickLabel}
-                    margins={{
-                        left: yAxisMargin(yTicks.map(tickLabel), compact ? undefined : yAxisTitle),
-                    }}
-                    yAxisTitle={compact ? undefined : yAxisTitle}
-                    {...xAxisProps(
-                        width,
-                        points.map((point) => point.x),
-                        range,
-                    )}
-                    styles={{
-                        root: axisClasses.root,
-                        xAxis: axisClasses.axis,
-                        yAxis: compact ? axisClasses.axis : axisClasses.yAxis,
-                        axisTitle: axisClasses.title,
-                    }}
-                    culture={navigator.language}
-                />
-            )}
+        <ChartFrame height={height + (band ? timeBandHeight : 0)}>
+            {(width) => {
+                const xAxis = xAxisProps(
+                    width,
+                    points.map((point) => point.x),
+                    range,
+                );
+                return (
+                    <>
+                        <div style={{ height }}>
+                            <AreaChart
+                                data={data}
+                                width={width}
+                                height={height}
+                                hideLegend
+                                mode="tozeroy"
+                                yMinValue={0}
+                                yMaxValue={topTick}
+                                yAxisTickValues={yTicks}
+                                yAxisTickFormat={tickLabel}
+                                margins={{ left, right: chartRightMargin }}
+                                yAxisTitle={compact ? undefined : yAxisTitle}
+                                {...xAxis}
+                                styles={{
+                                    root: axisClasses.root,
+                                    xAxis: axisClasses.axis,
+                                    yAxis: compact ? axisClasses.axis : axisClasses.yAxis,
+                                    axisTitle: axisClasses.title,
+                                }}
+                                culture={navigator.language}
+                            />
+                        </div>
+                        {band && (
+                            <TimeBandRow
+                                band={band}
+                                left={left}
+                                width={width - left - chartRightMargin}
+                                domain={xDomain(points, xAxis.tickValues)}
+                            />
+                        )}
+                    </>
+                );
+            }}
         </ChartFrame>
     );
 });
+
+/**
+ * The time span of a chart's x-axis. The chart spans its points and its tick values, so a band
+ * that spans the same lines up with it.
+ */
+function xDomain(
+    points: readonly TimeSeriesPoint[],
+    tickValues: readonly Date[] | undefined,
+): { readonly start: number; readonly end: number } {
+    const times = [...points.map((point) => point.x), ...(tickValues ?? [])].map((date) =>
+        date.getTime(),
+    );
+    return { start: Math.min(...times), end: Math.max(...times) };
+}
+
+const useBandStyles = makeStyles({
+    row: {
+        display: "flex",
+        alignItems: "center",
+        height: `${bandHeight}px`,
+        marginTop: "6px",
+    },
+    label: {
+        boxSizing: "border-box",
+        flexShrink: 0,
+        paddingRight: "8px",
+        textAlign: "end",
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: `${bandHeight}px`,
+        color: tokens.colorNeutralForeground2,
+    },
+    // The track shows where nothing ran.
+    track: {
+        position: "relative",
+        height: "100%",
+        ...shorthands.borderRadius(tokens.borderRadiusSmall),
+        backgroundColor: tokens.colorNeutralBackground3,
+        ...shorthands.overflow("hidden"),
+    },
+    segment: {
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+    },
+    legend: {
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        columnGap: "16px",
+        height: `${bandLegendHeight}px`,
+        ...shorthands.overflow("hidden"),
+    },
+    legendItem: {
+        display: "inline-flex",
+        alignItems: "center",
+        columnGap: "6px",
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground2,
+    },
+    swatch: {
+        width: "10px",
+        height: "10px",
+        ...shorthands.borderRadius("2px"),
+    },
+});
+
+/** The band below a time chart: its label in the y-axis margin, the segments, and the legend. */
+const TimeBandRow = ({
+    band,
+    left,
+    width,
+    domain,
+}: {
+    band: TimeBand;
+    left: number;
+    width: number;
+    domain: { readonly start: number; readonly end: number };
+}) => {
+    const classes = useBandStyles();
+    const span = domain.end - domain.start;
+    const position = (time: number) =>
+        span > 0 ? (Math.min(Math.max(time, domain.start), domain.end) - domain.start) / span : 0;
+    return (
+        <>
+            <div className={classes.row}>
+                <span className={classes.label} style={{ width: left }} aria-hidden="true">
+                    {band.label}
+                </span>
+                <div
+                    className={classes.track}
+                    style={{ width: Math.max(0, width) }}
+                    role="img"
+                    aria-label={band.description}>
+                    {band.segments.map((segment) => {
+                        const start = position(segment.start.getTime());
+                        const end = position(segment.end.getTime());
+                        return (
+                            <span
+                                key={segment.start.getTime()}
+                                className={classes.segment}
+                                title={segment.title}
+                                style={{
+                                    left: `${start * 100}%`,
+                                    width: `${(end - start) * 100}%`,
+                                    backgroundColor: segment.color,
+                                }}
+                            />
+                        );
+                    })}
+                </div>
+            </div>
+            <div className={classes.legend} style={{ paddingLeft: left }}>
+                {band.legend.map((item) => (
+                    <span key={item.label} className={classes.legendItem}>
+                        <span
+                            className={classes.swatch}
+                            style={{ backgroundColor: item.color }}
+                            aria-hidden="true"
+                        />
+                        {item.label}
+                    </span>
+                ))}
+            </div>
+        </>
+    );
+};
 
 const useInlineSelectStyles = makeStyles({
     field: {

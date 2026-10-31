@@ -28,13 +28,14 @@ import {
     type PlanChangeBlocker,
     type PlanChangeKind,
     type PlanChangeWarning,
+    type PerformanceRead,
     type PreparedPlanChange,
     type QueryStoreInterval,
     type QueryStoreMetric,
     type QueryStorePlan,
 } from "../../../sharedInterfaces/performanceDashboard";
 import { locConstants as loc } from "../../common/locConstants";
-import { isFirstLoad } from "../../common/useExtensionRequest";
+import { ExtensionRequestState, isFirstLoad } from "../../common/useExtensionRequest";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ChangeDialog } from "./performanceDashboardChangeDialog";
 import { dateTimeFormat, formatNumber } from "./performanceDashboardFormat";
@@ -129,6 +130,23 @@ export const planMetrics: readonly QueryStoreMetric[] = ["duration", "cpuTime", 
 const noIntervals: readonly QueryStoreInterval[] = [];
 
 /**
+ * The plans of the query in the time range. The Plans and Compare tabs and the execution history
+ * send the same read, so the others come from the cache, and the plans have the same colors.
+ */
+export function useQueryPlans(
+    queryId: string,
+): ExtensionRequestState<PerformanceRead<readonly QueryStorePlan[]>> {
+    const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
+    const { refreshKey } = useRefresh();
+    const { window } = useViewTimeRange();
+    return usePerformanceRead(
+        GetQueryPlansRequest.type,
+        { queryId, metrics: planMetrics, ...window },
+        [databaseName, refreshKey],
+    );
+}
+
+/**
  * The plans of the query in the time range: each plan's runs, mean duration and CPU, last
  * execution, and force status. Select one or two plans to open their XML, compare them, or force or unforce a plan
  * after a review of the T-SQL.
@@ -140,9 +158,8 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
         PerformanceDashboardState,
         PerformanceDashboardReducers
     >();
-    const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
-    const { refreshKey, refresh } = useRefresh();
-    const { window, range } = useViewTimeRange();
+    const { refresh } = useRefresh();
+    const { range } = useViewTimeRange();
     const [selected, setSelected] = useState<readonly string[]>([]);
     const [change, setChange] = useState<ChangeStage>({ stage: "idle" });
     const [busy, setBusy] = useState(false);
@@ -150,11 +167,7 @@ export const PerformanceDashboardQueryPlans = ({ queryId }: { queryId: string })
     const [notice, setNotice] = useState<Notice | undefined>(undefined);
     const [verification, setVerification] = useState<ForcedPlanVerification | undefined>(undefined);
 
-    const plansRead = usePerformanceRead(
-        GetQueryPlansRequest.type,
-        { queryId, metrics: planMetrics, ...window },
-        [databaseName, refreshKey],
-    );
+    const plansRead = useQueryPlans(queryId);
     const plansData = readData(plansRead);
     const plans = plansData ?? [];
     const planIds = useMemo(() => (plansData ?? []).map((plan) => plan.planId), [plansData]);

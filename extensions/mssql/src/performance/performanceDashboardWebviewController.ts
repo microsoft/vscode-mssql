@@ -50,10 +50,13 @@ import {
     PrepareQueryStoreSettingsChangeRequest,
     QueryWindowParams,
     SetFavoriteQueryRequest,
+    SetQueryCategoryRequest,
     SwitchDatabaseRequest,
     TimeWindowParams,
     VerifyForcedPlanRequest,
     isPerformanceUnavailable,
+    type ChatPrompt,
+    type QueryCategory,
 } from "../sharedInterfaces/performanceDashboard";
 import { QueryStoreOperation, QueryStoreService } from "./queryStoreService";
 
@@ -69,7 +72,7 @@ export interface PerformanceDashboardTarget {
 /** What a dashboard needs from the code that opens it. */
 export interface PerformanceDashboardHost {
     readonly queryStoreService: QueryStoreService;
-    /** Opens Copilot Chat in agent mode with a prompt to finish, not sent. */
+    /** Opens Copilot Chat in agent mode and sends a prompt. */
     openChat(prompt: string): Promise<void>;
     /**
      * Shows another database of the same server in the dashboard, or reveals the open dashboard
@@ -128,22 +131,28 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
         target: PerformanceDashboardTarget,
         initialLocation?: string,
     ) {
-        super(context, "performanceDashboard", "performanceDashboard", stateFor(target), {
-            title: titleFor(target),
-            viewColumn: vscode.ViewColumn.Active,
-            iconPath: {
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "performanceDashboard_light.svg",
-                ),
-                dark: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "performanceDashboard_dark.svg",
-                ),
+        super(
+            context,
+            "performanceDashboard",
+            "performanceDashboard",
+            stateFor(target, savedQueryCategory(context)),
+            {
+                title: titleFor(target),
+                viewColumn: vscode.ViewColumn.Active,
+                iconPath: {
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "performanceDashboard_light.svg",
+                    ),
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "performanceDashboard_dark.svg",
+                    ),
+                },
             },
-        });
+        );
         this._target = target;
         this._navigation = new WebviewNavigation(this, initialLocation);
         this.registerHandlers();
@@ -167,7 +176,7 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
     public setTarget(target: PerformanceDashboardTarget): void {
         this._target = target;
         this.panel.title = titleFor(target);
-        this.state = stateFor(target);
+        this.state = stateFor(target, this.state.queryCategory);
     }
 
     private registerHandlers(): void {
@@ -213,8 +222,10 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
                     }),
                 ),
         );
-        this.onRequest(ContinueInChatRequest.type, ({ queryId, startUtc, endUtc }) =>
-            this._host.openChat(continueInChatPrompt(this._target, queryId, startUtc, endUtc)),
+        this.onRequest(ContinueInChatRequest.type, ({ prompt, queryId, startUtc, endUtc }) =>
+            this._host.openChat(
+                continueInChatPrompt(prompt, this._target, queryId, startUtc, endUtc),
+            ),
         );
         this.onRequest(GetQueryPlansRequest.type, (params) =>
             this.run((reader, capabilities) =>
@@ -286,6 +297,11 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
         this.onRequest(SetFavoriteQueryRequest.type, ({ queryId, favorite }) =>
             this.setFavoriteQuery(queryId, favorite),
         );
+        this.onRequest(SetQueryCategoryRequest.type, async ({ category }) => {
+            // The state keeps it for a webview that loads again; global state, for the next one.
+            this.state = { ...this.state, queryCategory: category };
+            await this._context.globalState.update(queryCategoryKey, category);
+        });
     }
 
     /** Runs an operation on the dashboard's database. */
@@ -371,11 +387,20 @@ export function dashboardKey(target: PerformanceDashboardTarget): string {
     return JSON.stringify([target.profileId, target.databaseName]);
 }
 
-function stateFor(target: PerformanceDashboardTarget): PerformanceDashboardState {
+function stateFor(
+    target: PerformanceDashboardTarget,
+    queryCategory: QueryCategory | undefined,
+): PerformanceDashboardState {
     return {
         serverName: target.serverName,
         databaseName: target.databaseName,
+        queryCategory,
     };
+}
+
+/** The category of the Queries page that the user chose last, in any dashboard. */
+function savedQueryCategory(context: vscode.ExtensionContext): QueryCategory | undefined {
+    return context.globalState.get<QueryCategory>(queryCategoryKey);
 }
 
 function titleFor(target: PerformanceDashboardTarget): string {
@@ -388,21 +413,40 @@ function toWindow(window: TimeWindowParams): { start: Date; end: Date } {
 }
 
 /**
- * The chat prompt of a query: it names the saved profile, database, and window, so the chat
- * reads them with the Query Store tools and does not need to find them. The user adds a question.
+ * The chat prompt of a query, to analyze its performance or explain it. It names the saved
+ * profile, database, and window, so the chat reads them with the Query Store tools and does not
+ * need to find them.
  */
 export function continueInChatPrompt(
+    prompt: ChatPrompt,
     target: PerformanceDashboardTarget,
     queryId: string,
     startUtc: string,
     endUtc: string,
 ): string {
     const database = target.databaseName || LocConstants.defaultDatabaseLabel;
-    return (
+    const query =
         `Query Store query ${queryId} in database "${database}" on server "${target.serverName}" ` +
-        `(saved connection profileId "${target.profileId}"), from ${startUtc} to ${endUtc} UTC. ` +
-        `Read it with #mssql_query_store_analyze_query using that profileId and database. `
-    );
+        `(saved connection profileId "${target.profileId}") from ${startUtc} to ${endUtc} UTC. ` +
+        `Read it with #mssql_query_store_analyze_query using that profileId and database.`;
+    return prompt === "explain"
+        ? `Explain ${query}\n\n` +
+              `In plain language:\n` +
+              `1. What the query does: the tables it reads or changes, its joins and filters, and ` +
+              `the procedure or function it belongs to, if any.\n` +
+              `2. How its main plan runs it: the steps in order, and which operators cost the ` +
+              `most.\n` +
+              `3. What its numbers mean: how often it runs, how long a run takes, and how much ` +
+              `that varies.\n` +
+              `Keep it short, and don't suggest changes unless something stands out.`
+        : `Analyze the performance of ${query}\n\n` +
+              `1. Say whether the query is a problem: how much time and CPU it uses, and how ` +
+              `that changed over the window.\n` +
+              `2. Find the cause: a plan change or regression, waits (CPU, I/O, locks, memory), ` +
+              `parameter sensitivity, or expensive operators and warnings in the plan.\n` +
+              `3. Recommend fixes, the most effective first, such as an index, a query rewrite, ` +
+              `or forcing a plan. Show the T-SQL for each, and don't run anything that changes ` +
+              `the database.`;
 }
 
 function toQueryWindow({ queryId, metrics, ...window }: QueryWindowParams) {
@@ -411,3 +455,5 @@ function toQueryWindow({ queryId, metrics, ...window }: QueryWindowParams) {
 
 /** The global state key of the favorite queries, by connection and database. */
 const favoritesKey = "mssql.performanceDashboard.favoriteQueries";
+/** The global state key of the category of the Queries page that the user chose last. */
+const queryCategoryKey = "mssql.performanceDashboard.queryCategory";

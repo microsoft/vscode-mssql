@@ -594,7 +594,7 @@
     "mssql.queryStudio.openInClassicEditor": "Query Studio: Open in Classic Editor",
     "mssql.queryStudio.duplicateAsNewQuery": "Query Studio: Duplicate as New Query",
     "mssql.queryStudio.languageServiceStatus": "Query Studio: Language Service Status",
-    "mssql.performanceMonitoring.enabled.description": "Enable Query Store performance monitoring (Private Preview) from the database menu in Object Explorer. Requires `#mssql.enableExperimentalFeatures#` and `#mssql.sqlDataPlane.enabled#`. Reload the window after changing any required setting.",
+    "mssql.performanceMonitoring.enabled.description": "Show Monitor Performance (Preview), the Query Store performance dashboard, in the database menu of Object Explorer, and the Query Store tools in Copilot Chat. On by default; it needs no other setting. Reload the window after changing this setting.",
     "mssql.queryStudio.enabled": "Enable Query Studio (Private Preview) for .mssql files and untitled query documents. Requires experimental features and SQL Data Plane. Reload VS Code after changing this setting.",
     "mssql.queryStudio.statusBarGroupColor": "Color the Query Studio status bar with the connection's server-group color (text color is picked automatically for readability).",
     "mssql.queryStudio.warnWhenModifyingProduction": "Ask for confirmation before running statements that modify data (INSERT/UPDATE/DELETE/DDL/EXEC, …) on a connection whose server group is marked `\"production\": true` in `mssql.connectionGroups` (settings JSON only). Production connections also color the Query Studio status bar with the group color (red when the group has none).",

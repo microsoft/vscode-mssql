@@ -52,19 +52,19 @@ export const defaultResumeWaitMs = 3 * 60_000;
 export const defaultRetryDelayMs = 2_000;
 const maxRetryDelayMs = 10_000;
 
-/** The settings that turn on the SQL data plane. Both must be on when the window loads. */
-export const dataPlaneSettings: readonly string[] = [
-    "mssql.enableExperimentalFeatures",
-    "mssql.sqlDataPlane.enabled",
-];
+/**
+ * The setting that starts the SQL data plane for performance monitoring. It is on by default, and
+ * it must be on when the window loads.
+ */
+export const dataPlaneSettings: readonly string[] = ["mssql.performanceMonitoring.enabled"];
 
 /** The extension host facts the pool needs. Tests supply fakes. */
 export interface PerformanceDataPlaneHost {
-    /** True when the data plane settings are on now. */
+    /** True when performance monitoring is on now. */
     isEnabled(): boolean;
     /**
-     * True when the settings were on when the extension activated. SQL Tools Service starts the
-     * data plane only at startup, so a later change needs a reload.
+     * True when performance monitoring was on when the extension activated. SQL Tools Service
+     * starts the data plane only at startup, so a later change needs a reload.
      */
     wasEnabledAtActivation(): boolean;
     /** Returns the data plane service for a profile. Starts the service on first use. */

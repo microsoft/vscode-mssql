@@ -762,6 +762,9 @@
     <trans-unit id="++CODE++321d13ba1e83d7e8983d23263451f4aba17263f597fcf9178b6cf3a627d281c6">
       <source xml:lang="en">Analyze execution plans with interactive node navigation</source>
     </trans-unit>
+    <trans-unit id="++CODE++ea242bca3cdeaf4af93a0f22feace56f661f6c2f049aff6f6cc31d4340eec540">
+      <source xml:lang="en">Analyze in Chat</source>
+    </trans-unit>
     <trans-unit id="++CODE++44b00c0e282443ba0669be2f57be8a112820909a49b2e026121d446409e42d21">
       <source xml:lang="en">Analyze static code with customizable rulesets in SQL Database Projects.</source>
     </trans-unit>
@@ -4010,6 +4013,10 @@
     <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
       <source xml:lang="en">Dropping database</source>
     </trans-unit>
+    <trans-unit id="++CODE++9a28752d1556cda872cbec4cff4cce3d3495d75a79bed0ea5ecd5f77786bb043">
+      <source xml:lang="en">Duration</source>
+      <note>A category of the Queries page: the queries that run longest</note>
+    </trans-unit>
     <trans-unit id="++CODE++35d6a4d3158d6b9b442f6cbeb0eb4d0b10da5019fe0be8429fd5d6777d5884bf">
       <source xml:lang="en">Duration (ms)</source>
     </trans-unit>
@@ -4802,6 +4809,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
       <source xml:lang="en">Expiration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++df8f24cdd6265cf7e247b2fb194fa9616fcaf5f8de927349e2024a16caa21c40">
+      <source xml:lang="en">Explain in Chat</source>
     </trans-unit>
     <trans-unit id="++CODE++c267c3668f44bd7f202119c212350b10530ab3f877e5aad213ce8f633dc7b8be">
       <source xml:lang="en">Explain, fix, or analyze query performance directly from the SQL editor with GitHub Copilot.</source>
@@ -6608,6 +6618,9 @@
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
     </trans-unit>
+    <trans-unit id="++CODE++aa7c7988c34b0360d02e1e51acff3593430a561a6f3909ab95d77584e3a8f4b9">
+      <source xml:lang="en">Learn how to enable Query Store</source>
+    </trans-unit>
     <trans-unit id="++CODE++1445799c033a2d17e2bad5d8610879e71ff0d73a8a3c2b932b43ad0449dac3a1">
       <source xml:lang="en">Learn more</source>
     </trans-unit>
@@ -7045,12 +7058,6 @@
     <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
       <source xml:lang="en">Logs copied to clipboard</source>
     </trans-unit>
-    <trans-unit id="++CODE++33a2ac321aa686c9f5785ea7f95ab79d7ac7a01c186f0cf7e86efe6e1aed9974">
-      <source xml:lang="en">Longest running</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c392c29c99907ff32e29c02156c8e851b19fe437b8c519924878bb37efb5a4fa">
-      <source xml:lang="en">Longest running queries</source>
-    </trans-unit>
     <trans-unit id="++CODE++0344209e8a455cc79ca3a832582378fa88b73433a91f6b14bf26d75be1055a65">
       <source xml:lang="en">Longest wait</source>
     </trans-unit>
@@ -7304,6 +7311,9 @@
       <source xml:lang="en">Memory</source>
       <note>A choice of measure: memory</note>
     </trans-unit>
+    <trans-unit id="++CODE++c33705692062ab4f78487a5c193896fb1f0be4cf02b86610816a219e0fd794b3">
+      <source xml:lang="en">Memory (KB)</source>
+    </trans-unit>
     <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
       <source xml:lang="en">Message</source>
     </trans-unit>
@@ -7515,6 +7525,9 @@
     <trans-unit id="++CODE++0c94b5f19becc4862e3862d599e2d386c40079841aba3ab70d05241df1ff6802">
       <source xml:lang="en">More actions for {0}</source>
       <note>{0} is the name or summary of a reusable filter</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8bc4950de327ce134a92b8b604d0c343a2bb8545486e8bcab129d8af8061f9c6">
+      <source xml:lang="en">More chat actions</source>
     </trans-unit>
     <trans-unit id="++CODE++a79a38420fec4111d59e6c851e1bc74fde38f27d487e7cbb59d242d17a8c77fb">
       <source xml:lang="en">More connection commands</source>
@@ -8465,9 +8478,6 @@
     <trans-unit id="++CODE++6a9084025c4bf3e1e99c40dd84245d6b8ccf4da301ffb703a6dc1a1ea7aa1b04">
       <source xml:lang="en">Open folder</source>
     </trans-unit>
-    <trans-unit id="++CODE++1d528a208af842375a78ed852d7824e96331b44b0910575bf3a2bf652989c0ef">
-      <source xml:lang="en">Open in Chat</source>
-    </trans-unit>
     <trans-unit id="++CODE++7c2a6e6d128104ab72f768886cf074498197834446e974c04a7c589f5dc5813c">
       <source xml:lang="en">Open in Copilot</source>
     </trans-unit>
@@ -8772,6 +8782,9 @@
       <source xml:lang="en">Performance (Preview) - {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++5c12498ee6b8de217ce45366147af828f75321dadef8e8c0997fecab13470d63">
+      <source xml:lang="en">Performance monitoring is off. Turn on the mssql.performanceMonitoring.enabled setting, then reload the window.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8fbfbbfd0d6df40fb3ac544463426d3da1683e2c78c771df98e05d638d2e1101">
       <source xml:lang="en">Permission denied.</source>
     </trans-unit>
@@ -8839,6 +8852,16 @@
     <trans-unit id="++CODE++c1f927ae1aec53f4666c167ae61f8196bfdb75c0ff62cfbe553029a0275f83a3">
       <source xml:lang="en">Plan {0} is no longer forced.</source>
       <note>{0} is the Query Store plan ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++cd72dabc9b667f14af38977da8ccc48fe6aa175a52a7b495dc93ed9d5a036ea8">
+      <source xml:lang="en">Plan {0} ran most from {1} to {2}</source>
+      <note>{0} is the Query Store plan ID
+{1} and {2} are the start and end date and time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++82b29d01d811bdb761ddcf73c3b1f0033b9b3cd1195c1b98c78f4c658fb26c61">
+      <source xml:lang="en">Plan {0}: {1} executions</source>
+      <note>{0} is the Query Store plan ID
+{1} is the number of executions</note>
     </trans-unit>
     <trans-unit id="++CODE++dfe8b2f0de26bb87c6d6066acf6668807a27d8270cc08ade10018769ee380101">
       <source xml:lang="en">Plans</source>
@@ -9236,6 +9259,9 @@
     <trans-unit id="++CODE++80d2e18c7da9f0be0578da69b1701091a2c91ffc3bbf13fdc734620eb443ce0e">
       <source xml:lang="en">Queries</source>
     </trans-unit>
+    <trans-unit id="++CODE++3e1da5be4b26b5811595c0d26e1892e31c1186b6b91f2bf07f0880655558b6fa">
+      <source xml:lang="en">Queries by duration</source>
+    </trans-unit>
     <trans-unit id="++CODE++b80a37564fbb3c0753202a1f92d5da8ccfb906b244f2842bba2232cea9883abd">
       <source xml:lang="en">Query</source>
     </trans-unit>
@@ -9309,8 +9335,8 @@
     <trans-unit id="++CODE++e5aa4f61e28ed62a4ad8d24d8dd45c0fbe8fd2da2f714990e2637f0ddc1fd327">
       <source xml:lang="en">Query Store is in the error state. Turn it off and on again to recover it.</source>
     </trans-unit>
-    <trans-unit id="++CODE++ce795fffd555a56767a913d52b76aaed660cb242cf4df68d9e14c31cc58ca7b1">
-      <source xml:lang="en">Query Store is off for this database. Turn it on to see query performance.</source>
+    <trans-unit id="++CODE++14e56e02d0652300e9a0e870aae5892fc72d766bc7d6c68019ebb7a595e055a0">
+      <source xml:lang="en">Query Store is off</source>
     </trans-unit>
     <trans-unit id="++CODE++2c3253b5c7b4489dfab2d787d0002074b4295ecbd08edf588d86cd0e491cc3cf">
       <source xml:lang="en">Query Store is read-only, so it does not capture new data. The data can be old.</source>
@@ -9321,6 +9347,9 @@
     </trans-unit>
     <trans-unit id="++CODE++19b42c78728d770ff90aa77a2127a28b05e229165b5674ea80911150a56d72d1">
       <source xml:lang="en">Query Store must be read-write to change plan forcing.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++27cc94ec66599275bfddc1fb94c6fdc854a5230bb3d51603eada5ba11dfda267">
+      <source xml:lang="en">Query Store needs to be enabled on this database to see query performance.</source>
     </trans-unit>
     <trans-unit id="++CODE++14d6aae31463cfc2cd30f075a63ff421a82a5c08d5080dd859a5e77e2d832cdc">
       <source xml:lang="en">Query Store reached its maximum size.</source>
@@ -9690,8 +9719,8 @@
     <trans-unit id="++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8">
       <source xml:lang="en">Reload Visual Studio Code</source>
     </trans-unit>
-    <trans-unit id="++CODE++7ce7666e688483d5621319793520b8901b60d7f9bacdfd3337e86c3baef84d90">
-      <source xml:lang="en">Reload the window to start the SQL data plane.</source>
+    <trans-unit id="++CODE++0b64442fe64377a722e7c044e45eb0d83a6297e6dbfefd1416cabdca7fd84fb8">
+      <source xml:lang="en">Reload the window to turn on performance monitoring.</source>
     </trans-unit>
     <trans-unit id="++CODE++df5c131161a52277f378b1ef01786bab0e114c3a30f9574c9f4b325ad50e4ad3">
       <source xml:lang="en">Relocate all files</source>
@@ -12293,9 +12322,6 @@
     <trans-unit id="++CODE++4f741739bf72ecedf22b1028fb8e35adfbf2ff99d28aa41ffa0531c6deaba4e5">
       <source xml:lang="en">The password must contain characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.</source>
     </trans-unit>
-    <trans-unit id="++CODE++9e72d06f6cf90d096cedccb9abe2bbe4534b55cc8f8f8171e0003ecee2105357">
-      <source xml:lang="en">The performance dashboard needs the SQL data plane preview. Turn on the mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled settings, then reload the window.</source>
-    </trans-unit>
     <trans-unit id="++CODE++b3d79070d336f35efa23ad58896baa573b22f5a58e4bd7335ab84d79c25e8042">
       <source xml:lang="en">The pinned results tab could not be opened.</source>
     </trans-unit>
@@ -12313,6 +12339,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c0d88e1101c4420baf7ea3e799fb12769dcf2a45005bc46b7fbd5b784c336221">
       <source xml:lang="en">The plan is not forced.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8d4ca54eed32c53a3cdfed81395b53f0e08f338e5c73ee4ba2ca6e836fe4a2d9">
+      <source xml:lang="en">The plan that ran most in each interval</source>
     </trans-unit>
     <trans-unit id="++CODE++70cf7a058dee98baf1a30338b51c88e7a306c51642dc145913efe09a05c68961">
       <source xml:lang="en">The plans could not be read for the comparison.</source>
@@ -13948,6 +13977,9 @@
       <source xml:lang="en">memory</source>
       <note>A metric after a statistic, for example Total memory</note>
     </trans-unit>
+    <trans-unit id="++CODE++bfa78450284d7c014793b29da3bd5519c6dcd2196696644fdd7cf42e5d162da4">
+      <source xml:lang="en">memory (KB)</source>
+    </trans-unit>
     <trans-unit id="++CODE++6c58efd8a4e8bb43dcb07895e86264fbf6ed6b58d1323e37f3cf3b4dd54ed712">
       <source xml:lang="en">min</source>
       <note>Minutes, after a number</note>
@@ -15333,9 +15365,6 @@
     <trans-unit id="mssql.enableQueryHistoryCapture">
       <source xml:lang="en">Enable Query History Capture</source>
     </trans-unit>
-    <trans-unit id="mssql.performanceMonitoring.enabled.description">
-      <source xml:lang="en">Enable Query Store performance monitoring (Private Preview) from the database menu in Object Explorer. Requires `#mssql.enableExperimentalFeatures#` and `#mssql.sqlDataPlane.enabled#`. Reload the window after changing any required setting.</source>
-    </trans-unit>
     <trans-unit id="mssql.queryStudio.enabled">
       <source xml:lang="en">Enable Query Studio (Private Preview) for .mssql files and untitled query documents. Requires experimental features and SQL Data Plane. Reload VS Code after changing this setting.</source>
     </trans-unit>
@@ -16319,6 +16348,9 @@
     </trans-unit>
     <trans-unit id="mssql.showOverviewInObjectExplorer">
       <source xml:lang="en">Show Getting Started</source>
+    </trans-unit>
+    <trans-unit id="mssql.performanceMonitoring.enabled.description">
+      <source xml:lang="en">Show Monitor Performance (Preview), the Query Store performance dashboard, in the database menu of Object Explorer, and the Query Store tools in Copilot Chat. On by default; it needs no other setting. Reload the window after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.showStatus">
       <source xml:lang="en">Show SQL Data Plane Status</source>

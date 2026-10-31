@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type {
+    QueryCategory,
     QueryStoreRanking,
     QueryStoreRuntimeStats,
     QueryStoreStatistic,
@@ -22,9 +23,7 @@ export interface QueryListRow {
     readonly share?: number;
 }
 
-/** The categories of the Queries page, and what each one ranks by. */
-export type QueryCategory = "cpu" | "duration" | "memory" | "executions" | "reads";
-
+/** The categories of the Queries page, in the order of the picker, and what each one ranks by. */
 export const queryCategories: readonly QueryCategory[] = [
     "cpu",
     "memory",
@@ -32,6 +31,11 @@ export const queryCategories: readonly QueryCategory[] = [
     "executions",
     "reads",
 ];
+
+/** The category of a value from the location or the saved state, if it is one. */
+export function toQueryCategory(value: string | undefined): QueryCategory | undefined {
+    return queryCategories.find((category) => category === value);
+}
 
 export const queryCategoryRanking: Readonly<Record<QueryCategory, QueryStoreRanking>> = {
     cpu: "cpuTime",

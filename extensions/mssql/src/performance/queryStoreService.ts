@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { ReadResult, SessionPurpose, SqlReader, errorResult } from "sql-core";
 import { QueryStoreCapabilities, readQueryStoreCapabilities } from "sql-core/queryStore";
 import ConnectionManager from "../controllers/connectionManager";
-import { PrivatePreviewFeature, previewService } from "../previews/previewService";
+import { previewService } from "../previews/previewService";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import {
     PerformanceRead,
@@ -138,12 +138,12 @@ export function createQueryStoreService(connectionManager: ConnectionManager): Q
 }
 
 /**
- * The data plane facts for the pool. SQL Tools Service starts the data plane only at startup, so
- * the settings are also read now, at activation, to tell a needed reload apart.
+ * The data plane facts for the pool. SQL Tools Service starts the data plane at startup when
+ * performance monitoring is on, so the setting is also read now, at activation, to tell a needed
+ * reload apart.
  */
 export function createDataPlaneHost(): PerformanceDataPlaneHost {
-    const isEnabled = () =>
-        previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane);
+    const isEnabled = () => previewService.performanceMonitoringEnabled;
     const enabledAtActivation = isEnabled();
     return {
         isEnabled,

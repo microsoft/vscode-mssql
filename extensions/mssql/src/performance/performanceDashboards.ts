@@ -44,9 +44,9 @@ export class PerformanceDashboards implements PerformanceDashboardHost {
     ) {}
 
     public async openChat(prompt: string): Promise<void> {
+        // Without isPartialQuery, the chat sends the prompt at once.
         await vscode.commands.executeCommand(cmdOpenGithubChat, {
             query: prompt,
-            isPartialQuery: true,
             mode: "agent",
         });
     }

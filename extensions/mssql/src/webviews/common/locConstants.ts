@@ -4367,15 +4367,19 @@ export class LocConstants {
                 comment: ["A metric after a statistic, for example Total logical reads"],
             }),
             highCpu: l10n.t("High CPU"),
-            longestRunning: l10n.t("Longest running"),
+            durationCategory: l10n.t({
+                message: "Duration",
+                comment: ["A category of the Queries page: the queries that run longest"],
+            }),
             mostFrequent: l10n.t("Most frequent"),
             highReads: l10n.t("High reads"),
             highMemory: l10n.t("High memory"),
             highMemoryQueries: l10n.t("High memory queries"),
             durationMs: l10n.t("duration (ms)"),
             logicalReadsKb: l10n.t("logical reads (KB)"),
+            memoryKb: l10n.t("memory (KB)"),
             mostFrequentQueries: l10n.t("Most frequent queries"),
-            longestRunningQueries: l10n.t("Longest running queries"),
+            durationQueries: l10n.t("Queries by duration"),
             highReadQueries: l10n.t("High read queries"),
             queryCategory: l10n.t("Query category"),
             rankBy: l10n.t("Rank by"),
@@ -4422,6 +4426,7 @@ export class LocConstants {
             copied: l10n.t("Copied"),
             durationMsOption: l10n.t("Duration (ms)"),
             logicalReadsKbOption: l10n.t("Logical reads (KB)"),
+            memoryKbOption: l10n.t("Memory (KB)"),
             milliseconds: (value: string) =>
                 l10n.t({
                     message: "{0} ms",
@@ -4458,6 +4463,22 @@ export class LocConstants {
                     message: "Plan {0}",
                     args: [planId],
                     comment: ["{0} is the Query Store plan ID"],
+                }),
+            planBandDescription: l10n.t("The plan that ran most in each interval"),
+            planRanMost: (planId: string, start: string, end: string) =>
+                l10n.t({
+                    message: "Plan {0} ran most from {1} to {2}",
+                    args: [planId, start, end],
+                    comment: [
+                        "{0} is the Query Store plan ID",
+                        "{1} and {2} are the start and end date and time",
+                    ],
+                }),
+            planExecutions: (planId: string, executions: string) =>
+                l10n.t({
+                    message: "Plan {0}: {1} executions",
+                    args: [planId, executions],
+                    comment: ["{0} is the Query Store plan ID", "{1} is the number of executions"],
                 }),
             planSummaryTitle: (metric: string) =>
                 l10n.t({
@@ -4883,9 +4904,11 @@ export class LocConstants {
                 }),
             executionCount: l10n.t("Executions"),
             noQueries: l10n.t("No queries ran in this time range."),
+            queryStoreOffTitle: l10n.t("Query Store is off"),
             queryStoreOff: l10n.t(
-                "Query Store is off for this database. Turn it on to see query performance.",
+                "Query Store needs to be enabled on this database to see query performance.",
             ),
+            enableQueryStoreLink: l10n.t("Learn how to enable Query Store"),
             queryStoreReadOnly: l10n.t(
                 "Query Store is read-only, so it does not capture new data. The data can be old.",
             ),
@@ -4906,9 +4929,9 @@ export class LocConstants {
                     comment: ["{0} is the error message"],
                 }),
             dataPlaneDisabled: l10n.t(
-                "The performance dashboard needs the SQL data plane preview. Turn on the mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled settings, then reload the window.",
+                "Performance monitoring is off. Turn on the mssql.performanceMonitoring.enabled setting, then reload the window.",
             ),
-            reloadRequired: l10n.t("Reload the window to start the SQL data plane."),
+            reloadRequired: l10n.t("Reload the window to turn on performance monitoring."),
             dataPlaneUnavailable: l10n.t("The SQL data plane is not available."),
             connectionNotFound: l10n.t(
                 "The connection was not found. Connect to the database again.",
@@ -4935,7 +4958,9 @@ export class LocConstants {
                 "Query Store does not capture wait statistics, so new waits are not recorded.",
             ),
             turnOnWaitCapture: l10n.t("Turn on wait statistics capture"),
-            openInChat: l10n.t("Open in Chat"),
+            analyzeInChat: l10n.t("Analyze in Chat"),
+            explainInChat: l10n.t("Explain in Chat"),
+            moreChatActions: l10n.t("More chat actions"),
             preview: l10n.t("Preview"),
             queryActions: (queryId: string) =>
                 l10n.t({

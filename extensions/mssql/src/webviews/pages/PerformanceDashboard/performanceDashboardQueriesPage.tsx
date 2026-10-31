@@ -10,6 +10,9 @@ import {
     GetTopQueriesRequest,
     PerformanceDashboardReducers,
     PerformanceDashboardState,
+    SetQueryCategoryRequest,
+    type ChatPrompt,
+    type QueryCategory,
     type QueryStoreStatistic,
 } from "../../../sharedInterfaces/performanceDashboard";
 import { GithubCopilot16Regular } from "../../common/icons/fluentIcons";
@@ -33,12 +36,13 @@ import {
     QueryRowAction,
 } from "./performanceDashboardQueryGrid";
 import {
-    QueryCategory,
     queryCategories,
     queryCategoryRanking,
     queryListRows,
     rankStatistics,
+    toQueryCategory,
 } from "./performanceDashboardQueryList";
+import type { HistoryMetric, HistoryView } from "./performanceDashboardPlanHistory";
 import { useRefresh } from "./performanceDashboardRefresh";
 import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
@@ -69,9 +73,10 @@ const useStyles = makeStyles({
 });
 
 /**
- * The top queries of the database in five categories: high CPU, high memory, longest running,
- * most frequent, and high reads, ranked by a statistic. The category and the statistic are in the
- * location, for example `queries?category=duration&rank=avg`.
+ * The top queries of the database in five categories: high CPU, high memory, duration, most
+ * frequent, and high reads, ranked by a statistic. The category and the statistic are in the
+ * location, for example `queries?category=duration&rank=avg`. Without a category, the page shows
+ * the one that the user chose last, which the extension saves.
  */
 export const PerformanceDashboardQueriesPage = () => {
     const classes = useStyles();
@@ -88,9 +93,9 @@ export const PerformanceDashboardQueriesPage = () => {
     const [search, setSearch] = useState("");
     const [favoritesOnly, setFavoritesOnly] = useState(false);
 
-    const category = queryCategories.includes(match.query.category as QueryCategory)
-        ? (match.query.category as QueryCategory)
-        : "cpu";
+    const savedCategory = usePerformanceDashboardSelector((state) => state.queryCategory);
+    const category =
+        toQueryCategory(match.query.category) ?? toQueryCategory(savedCategory) ?? "cpu";
     const rankBy = queryCategoryRanking[category];
     // Executions have only a total.
     const statistic: QueryStoreStatistic =
@@ -119,18 +124,32 @@ export const PerformanceDashboardQueriesPage = () => {
         );
     }, [topQueries, rankBy, statistic, search, favoritesOnly, favorites.queryIds]);
 
-    // The menu of each row opens Copilot Chat about its query.
-    const rowAction = useMemo<QueryRowAction>(
-        () => ({
-            label: loc.performanceDashboard.openInChat,
-            icon: <GithubCopilot16Regular />,
-            run: (queryId) =>
-                void extensionRpc.sendRequest(ContinueInChatRequest.type, {
-                    queryId,
-                    ...window,
-                }),
-        }),
-        [extensionRpc, window],
+    // The menu of each row asks Copilot Chat to analyze or explain its query.
+    const rowActions = useMemo<readonly QueryRowAction[]>(() => {
+        const chat = (prompt: ChatPrompt) => (queryId: string) =>
+            void extensionRpc.sendRequest(ContinueInChatRequest.type, {
+                prompt,
+                queryId,
+                ...window,
+            });
+        return [
+            {
+                label: loc.performanceDashboard.analyzeInChat,
+                icon: <GithubCopilot16Regular />,
+                run: chat("analyze"),
+            },
+            {
+                label: loc.performanceDashboard.explainInChat,
+                icon: <GithubCopilot16Regular />,
+                run: chat("explain"),
+            },
+        ];
+    }, [extensionRpc, window]);
+
+    // A query opens at the metric and statistic of the list, so its page shows what ranked it.
+    const queryPageQuery = useMemo(
+        () => queryPageQueryOf(category, statistic),
+        [category, statistic],
     );
 
     const setQuery = (values: Record<string, string | undefined>) =>
@@ -183,9 +202,13 @@ export const PerformanceDashboardQueriesPage = () => {
                         value,
                         label: categoryShortLabel(value),
                     }))}
-                    onValueChange={(value) =>
-                        setQuery({ category: value === "cpu" ? undefined : value })
-                    }
+                    onValueChange={(value) => {
+                        // The category stays in the location, so the saved one does not apply.
+                        setQuery({ category: value });
+                        void extensionRpc.sendRequest(SetQueryCategoryRequest.type, {
+                            category: value,
+                        });
+                    }}
                 />
                 {category !== "executions" && (
                     <InlineSelect<QueryStoreStatistic>
@@ -222,12 +245,40 @@ export const PerformanceDashboardQueriesPage = () => {
                 columns={columns}
                 ariaLabel={categoryLabel(category)}
                 favorites={favorites}
-                rowAction={rowAction}
+                rowActions={rowActions}
+                queryPageQuery={queryPageQuery}
                 emptyText={favoritesOnly || search ? text.noMatchingQueries : text.noQueries}
             />
         </div>
     );
 };
+
+/**
+ * The metric and statistic of the query page for a category and its ranking: CPU for the CPU
+ * queries, and the average for a list ranked by the average. The defaults, duration and total,
+ * are left out of the location.
+ */
+function queryPageQueryOf(
+    category: QueryCategory,
+    statistic: QueryStoreStatistic,
+): Record<string, string | undefined> {
+    const metric: HistoryMetric | undefined = (
+        {
+            cpu: "cpuTime",
+            duration: undefined,
+            memory: "memoryGrant",
+            executions: undefined,
+            reads: "logicalReads",
+        } as const
+    )[category];
+    // The charts show the total, the average, the maximum, or the minimum.
+    const view: HistoryView | undefined =
+        category !== "executions" &&
+        (statistic === "avg" || statistic === "max" || statistic === "min")
+            ? statistic
+            : undefined;
+    return { metric, view };
+}
 
 export function categoryLabel(category: QueryCategory): string {
     const text = loc.performanceDashboard;
@@ -235,7 +286,7 @@ export function categoryLabel(category: QueryCategory): string {
         case "cpu":
             return text.highCpuQueries;
         case "duration":
-            return text.longestRunningQueries;
+            return text.durationQueries;
         case "memory":
             return text.highMemoryQueries;
         case "executions":
@@ -252,7 +303,7 @@ function categoryShortLabel(category: QueryCategory): string {
         case "cpu":
             return text.highCpu;
         case "duration":
-            return text.longestRunning;
+            return text.durationCategory;
         case "memory":
             return text.highMemory;
         case "executions":

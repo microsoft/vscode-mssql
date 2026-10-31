@@ -13,10 +13,18 @@ import type { SettingsSection } from "./performanceDashboardRoutes";
 
 export interface StatusMessage {
     readonly intent: "info" | "warning" | "error";
+    /** A title before the text, for a message that replaces the page, such as Query Store off. */
+    readonly title?: string;
     readonly text: string;
+    /** A page that explains how to fix the cause, for a link after the text. */
+    readonly learnMore?: { readonly text: string; readonly url: string };
     /** The settings section that can fix the cause, for a link in the message. */
     readonly settingsSection?: SettingsSection;
 }
+
+/** How to turn on Query Store, on Microsoft Learn. */
+const enableQueryStoreUrl =
+    "https://learn.microsoft.com/sql/relational-databases/performance/monitoring-performance-by-using-the-query-store#enable-the-query-store";
 
 /**
  * The message for a read that has nothing to show: the database cannot be read, Query Store is
@@ -43,7 +51,13 @@ export function readStatusMessage(
     const errorText = result.error?.message ?? "";
     switch (result.status) {
         case "notConfigured":
-            return { intent: "info", text: text.queryStoreOff, settingsSection: "queryStore" };
+            return {
+                intent: "warning",
+                title: text.queryStoreOffTitle,
+                text: text.queryStoreOff,
+                learnMore: { text: text.enableQueryStoreLink, url: enableQueryStoreUrl },
+                settingsSection: "queryStore",
+            };
         case "unsupported":
             return { intent: "info", text: text.metricUnsupported };
         case "permissionMissing":

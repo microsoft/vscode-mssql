@@ -997,7 +997,7 @@
                 },
                 {
                     "command": "mssql.performance.openDashboard",
-                    "when": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled && view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled && view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "3_MSSQL_databaseDiscover@3"
                 },
                 {
@@ -2684,7 +2684,7 @@
                 "command": "mssql.performance.openDashboard",
                 "title": "%mssql.performance.openDashboard%",
                 "category": "MS SQL",
-                "enablement": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled"
+                "enablement": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled"
             },
             {
                 "command": "mssql.rebuildIntelliSenseCache",
@@ -5653,11 +5653,11 @@
                 }
             },
             {
-                "title": "Performance Monitoring (Private Preview)",
+                "title": "Performance Monitoring (Preview)",
                 "properties": {
                     "mssql.performanceMonitoring.enabled": {
                         "type": "boolean",
-                        "default": false,
+                        "default": true,
                         "markdownDescription": "%mssql.performanceMonitoring.enabled.description%",
                         "scope": "application"
                     }
@@ -8134,8 +8134,8 @@
             },
             {
                 "name": "mssql_query_store_analyze_query",
-                "when": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled",
-                "modelDescription": "When the user explicitly references #mssql_query_store_analyze_query, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Use this tool first to explain why one query is slow or varies: it reads everything in one call. Returns the query (full text, module, stats), each plan with its stats and force status, the history in at most 48 time buckets with each plan's stats, the wait time by category (CPU, Buffer IO, Lock, Memory, ...) with the executions' total duration, so waiting can be told from working, and summaries of the main plans: statement facts such as the optimizer early abort reason and the cardinality estimation model, warnings, missing indexes, compiled parameter values, and the operators with the highest own cost. readsOnlySystemCatalog marks a query that reads only catalog views: a tool such as an object explorer most likely sent it, not the application. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means the SQL data plane setting is off.",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_analyze_query, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Use this tool first to explain why one query is slow or varies: it reads everything in one call. Returns the query (full text, module, stats), each plan with its stats and force status, the history in at most 48 time buckets with each plan's stats, the wait time by category (CPU, Buffer IO, Lock, Memory, ...) with the executions' total duration, so waiting can be told from working, and summaries of the main plans: statement facts such as the optimizer early abort reason and the cardinality estimation model, warnings, missing indexes, compiled parameter values, and the operators with the highest own cost. readsOnlySystemCatalog marks a query that reads only catalog views: a tool such as an object explorer most likely sent it, not the application. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -8204,8 +8204,8 @@
             },
             {
                 "name": "mssql_query_store_status",
-                "when": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled",
-                "modelDescription": "When the user explicitly references #mssql_query_store_status, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Use this tool before the other Query Store tools to check that Query Store can be read. Returns the Query Store state (readWrite, readOnly, off, error), why it is read-only, the start of its oldest data, the metrics that the server records, and whether it records wait statistics. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means the SQL data plane setting is off.",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_status, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Use this tool before the other Query Store tools to check that Query Store can be read. Returns the Query Store state (readWrite, readOnly, off, error), why it is read-only, the start of its oldest data, the metrics that the server records, and whether it records wait statistics. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -8240,8 +8240,8 @@
             },
             {
                 "name": "mssql_query_store_top_queries",
-                "when": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled",
-                "modelDescription": "When the user explicitly references #mssql_query_store_top_queries, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Find the queries that use the most of a resource in a time window. Use it for questions such as which queries use the most CPU, run longest, or run most often. Returns up to 50 queries, highest first, with each query's ID, its text (first 1000 characters), its module, its plan count, and its stats, and the stats of the whole workload in the window, for the share of each query. readsOnlySystemCatalog marks a query that reads only catalog views: a tool such as an object explorer most likely sent it, not the application. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means the SQL data plane setting is off.",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_top_queries, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Find the queries that use the most of a resource in a time window. Use it for questions such as which queries use the most CPU, run longest, or run most often. Returns up to 50 queries, highest first, with each query's ID, its text (first 1000 characters), its module, its plan count, and its stats, and the stats of the whole workload in the window, for the share of each query. readsOnlySystemCatalog marks a query that reads only catalog views: a tool such as an object explorer most likely sent it, not the application. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -8333,8 +8333,8 @@
             },
             {
                 "name": "mssql_query_store_query_details",
-                "when": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled",
-                "modelDescription": "When the user explicitly references #mssql_query_store_query_details, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Read one Query Store query in a time window: its full text, its module, its stats, the plan that is forced for it, and each of its plans with the plan's stats, force status, and last force failure. Use it to compare the plans of a query, for example to find a plan that is much slower than another. readsOnlySystemCatalog marks a query that reads only catalog views: a tool such as an object explorer most likely sent it, not the application. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means the SQL data plane setting is off.",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_query_details, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Read one Query Store query in a time window: its full text, its module, its stats, the plan that is forced for it, and each of its plans with the plan's stats, force status, and last force failure. Use it to compare the plans of a query, for example to find a plan that is much slower than another. readsOnlySystemCatalog marks a query that reads only catalog views: a tool such as an object explorer most likely sent it, not the application. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -8395,8 +8395,8 @@
             },
             {
                 "name": "mssql_query_store_query_history",
-                "when": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled",
-                "modelDescription": "When the user explicitly references #mssql_query_store_query_history, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Read the stats of one Query Store query over a time window, in at most 48 time buckets, with the stats of each plan that ran in each bucket. Use it to find when a query got slower and whether a plan change caused it. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means the SQL data plane setting is off.",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_query_history, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Read the stats of one Query Store query over a time window, in at most 48 time buckets, with the stats of each plan that ran in each bucket. Use it to find when a query got slower and whether a plan change caused it. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -8457,8 +8457,8 @@
             },
             {
                 "name": "mssql_query_store_wait_stats",
-                "when": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled",
-                "modelDescription": "When the user explicitly references #mssql_query_store_wait_stats, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Read the wait time by wait category (CPU, Buffer IO, Lock, Memory, Parallelism, ...) in a time window, for the whole database, one query, or one plan, with the executions and their total duration, so the time spent waiting can be compared with the time spent working. captureMode off means Query Store does not capture new waits. Not available before SQL Server 2017. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means the SQL data plane setting is off.",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_wait_stats, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Read the wait time by wait category (CPU, Buffer IO, Lock, Memory, Parallelism, ...) in a time window, for the whole database, one query, or one plan, with the executions and their total duration, so the time spent waiting can be compared with the time spent working. captureMode off means Query Store does not capture new waits. Not available before SQL Server 2017. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -8521,7 +8521,7 @@
             },
             {
                 "name": "mssql_query_store_plan_summary",
-                "when": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
                 "modelDescription": "When the user explicitly references #mssql_query_store_plan_summary, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Summarize one Query Store plan instead of reading its XML: for each statement, the estimated cost and rows, the optimizer early abort reason (for example TimeOut), the cardinality estimation model, the memory grant, the compile time, warnings (for example implicit conversions), missing indexes with their columns, the compiled parameter values, and the operators with the highest own cost, with their object, estimated rows and rows read, and predicate. Query Store plans are estimated: there are no actual row counts.",
                 "tags": [
                     "databases",
@@ -8566,7 +8566,7 @@
             },
             {
                 "name": "mssql_query_store_plan_forcing",
-                "when": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
                 "modelDescription": "When the user explicitly references #mssql_query_store_plan_forcing, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Force a Query Store plan for a query, so that the query always uses it, or unforce it. The user reviews the exact T-SQL before it runs. Read the query's plans with mssql_query_store_analyze_query or mssql_query_store_query_details first, and force a plan only when it is clearly better. The result has applied, and blockers when the change could not run: for example planAlreadyForced, autoForcedPlan (automatic tuning forced the plan), or stateChanged. After forcing, call mssql_query_store_verify_forced_plan with sinceUtc set to the result's appliedAtUtc once the query has run again.",
                 "tags": [
                     "databases",
@@ -8627,7 +8627,7 @@
             },
             {
                 "name": "mssql_query_store_verify_forced_plan",
-                "when": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
                 "modelDescription": "When the user explicitly references #mssql_query_store_verify_forced_plan, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Check whether a forced plan is used: whether the executions of the query after sinceUtc used the forced plan. The outcome is forcedPlanInUse, otherPlansInUse, noExecutions, waitingForNextInterval (verify again later), notForced, or planNotFound, with the plans that ran and their execution counts.",
                 "tags": [
                     "databases",
@@ -8684,7 +8684,7 @@
             },
             {
                 "name": "mssql_open_performance_dashboard",
-                "when": "mssql.privatePreview.performanceMonitoringActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.performanceMonitoring.enabled",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
                 "modelDescription": "When the user explicitly references #mssql_open_performance_dashboard, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Open the performance dashboard of a database for the user, at the queries list, or at one query and a tab. Use it to show the user a query that the other Query Store tools found.",
                 "tags": [
                     "databases",

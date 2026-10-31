@@ -65,6 +65,7 @@ import { TableDesignerService } from "../services/tableDesignerService";
 import {
     PrivatePreviewContextKey,
     PrivatePreviewFeature,
+    performanceMonitoringActiveContextKey,
     previewService,
 } from "../previews/previewService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
@@ -1347,18 +1348,15 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Creates the Query Store dashboards when performance monitoring is on. The data plane starts
-     * only at activation, so a change of the settings takes effect after a reload, and the context
-     * key keeps the menu hidden until then.
+     * Creates the Query Store dashboards when performance monitoring is on, which it is by
+     * default. The data plane starts only at activation, so a change of the setting takes effect
+     * after a reload, and the context key keeps the menu hidden until then.
      */
     private initializePerformanceMonitoring(): void {
-        const active = previewService.isPrivatePreviewEnabled(
-            PrivatePreviewFeature.SqlDataPlane,
-            PrivatePreviewFeature.PerformanceMonitoring,
-        );
+        const active = previewService.performanceMonitoringEnabled;
         void vscode.commands.executeCommand(
             "setContext",
-            PrivatePreviewContextKey.PerformanceMonitoringActive,
+            performanceMonitoringActiveContextKey,
             active,
         );
         if (!active) {

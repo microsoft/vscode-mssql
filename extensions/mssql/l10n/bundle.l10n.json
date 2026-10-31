@@ -5789,15 +5789,19 @@
         "comment": ["A metric after a statistic, for example Total logical reads"]
     },
     "High CPU": "High CPU",
-    "Longest running": "Longest running",
+    "Duration/A category of the Queries page: the queries that run longest": {
+        "message": "Duration",
+        "comment": ["A category of the Queries page: the queries that run longest"]
+    },
     "Most frequent": "Most frequent",
     "High reads": "High reads",
     "High memory": "High memory",
     "High memory queries": "High memory queries",
     "duration (ms)": "duration (ms)",
     "logical reads (KB)": "logical reads (KB)",
+    "memory (KB)": "memory (KB)",
     "Most frequent queries": "Most frequent queries",
-    "Longest running queries": "Longest running queries",
+    "Queries by duration": "Queries by duration",
     "High read queries": "High read queries",
     "Query category": "Query category",
     "Rank by": "Rank by",
@@ -5841,6 +5845,7 @@
     "Copy SQL": "Copy SQL",
     "Duration (ms)": "Duration (ms)",
     "Logical reads (KB)": "Logical reads (KB)",
+    "Memory (KB)": "Memory (KB)",
     "{0} ms/{0} is a number of milliseconds, for example 46.54": {
         "message": "{0} ms",
         "comment": ["{0} is a number of milliseconds, for example 46.54"]
@@ -5867,6 +5872,18 @@
     "Plan {0}/{0} is the Query Store plan ID": {
         "message": "Plan {0}",
         "comment": ["{0} is the Query Store plan ID"]
+    },
+    "The plan that ran most in each interval": "The plan that ran most in each interval",
+    "Plan {0} ran most from {1} to {2}/{0} is the Query Store plan ID{1} and {2} are the start and end date and time": {
+        "message": "Plan {0} ran most from {1} to {2}",
+        "comment": [
+            "{0} is the Query Store plan ID",
+            "{1} and {2} are the start and end date and time"
+        ]
+    },
+    "Plan {0}: {1} executions/{0} is the Query Store plan ID{1} is the number of executions": {
+        "message": "Plan {0}: {1} executions",
+        "comment": ["{0} is the Query Store plan ID", "{1} is the number of executions"]
     },
     "Plan summary: {0}/{0} is the statistic and metric, for example Total Duration (ms)": {
         "message": "Plan summary: {0}",
@@ -6165,7 +6182,9 @@
     },
     "Executions": "Executions",
     "No queries ran in this time range.": "No queries ran in this time range.",
-    "Query Store is off for this database. Turn it on to see query performance.": "Query Store is off for this database. Turn it on to see query performance.",
+    "Query Store is off": "Query Store is off",
+    "Query Store needs to be enabled on this database to see query performance.": "Query Store needs to be enabled on this database to see query performance.",
+    "Learn how to enable Query Store": "Learn how to enable Query Store",
     "Query Store is read-only, so it does not capture new data. The data can be old.": "Query Store is read-only, so it does not capture new data. The data can be old.",
     "This platform does not record this data in Query Store.": "This platform does not record this data in Query Store.",
     "You need the VIEW DATABASE STATE permission to read Query Store data.": "You need the VIEW DATABASE STATE permission to read Query Store data.",
@@ -6177,8 +6196,8 @@
         "message": "Could not read the data: {0}",
         "comment": ["{0} is the error message"]
     },
-    "The performance dashboard needs the SQL data plane preview. Turn on the mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled settings, then reload the window.": "The performance dashboard needs the SQL data plane preview. Turn on the mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled settings, then reload the window.",
-    "Reload the window to start the SQL data plane.": "Reload the window to start the SQL data plane.",
+    "Performance monitoring is off. Turn on the mssql.performanceMonitoring.enabled setting, then reload the window.": "Performance monitoring is off. Turn on the mssql.performanceMonitoring.enabled setting, then reload the window.",
+    "Reload the window to turn on performance monitoring.": "Reload the window to turn on performance monitoring.",
     "The SQL data plane is not available.": "The SQL data plane is not available.",
     "The connection was not found. Connect to the database again.": "The connection was not found. Connect to the database again.",
     "The SQL data plane does not support the authentication type of this connection.": "The SQL data plane does not support the authentication type of this connection.",
@@ -6204,7 +6223,9 @@
     "No waits were recorded in this time range.": "No waits were recorded in this time range.",
     "Query Store does not capture wait statistics, so new waits are not recorded.": "Query Store does not capture wait statistics, so new waits are not recorded.",
     "Turn on wait statistics capture": "Turn on wait statistics capture",
-    "Open in Chat": "Open in Chat",
+    "Analyze in Chat": "Analyze in Chat",
+    "Explain in Chat": "Explain in Chat",
+    "More chat actions": "More chat actions",
     "Preview": "Preview",
     "Actions for query {0}/{0} is the Query Store query ID": {
         "message": "Actions for query {0}",

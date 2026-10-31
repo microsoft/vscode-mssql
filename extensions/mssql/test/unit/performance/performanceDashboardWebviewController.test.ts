@@ -24,6 +24,7 @@ import {
 import { QueryStoreOperation, QueryStoreService } from "../../../src/performance/queryStoreService";
 import {
     ApplyPlanChangeRequest,
+    ContinueInChatRequest,
     GetFavoriteQueriesRequest,
     GetTopQueriesRequest,
     ListDatabasesRequest,
@@ -31,6 +32,7 @@ import {
     PerformanceRead,
     PreparedPlanChange,
     SetFavoriteQueryRequest,
+    SetQueryCategoryRequest,
     TopQueries,
 } from "../../../src/sharedInterfaces/performanceDashboard";
 import {
@@ -42,6 +44,9 @@ import {
 } from "../utils";
 
 chai.use(sinonChai);
+
+/** The global state key of the Queries category that the user chose last. */
+const queryCategoryKey = "mssql.performanceDashboard.queryCategory";
 
 const profile = {
     id: "profile-1",
@@ -205,9 +210,10 @@ suite("PerformanceDashboardWebviewController", () => {
         function createController(
             dashboardTarget: PerformanceDashboardTarget = target,
             initialLocation?: string,
+            context: vscode.ExtensionContext = stubExtensionContext(sandbox),
         ): PerformanceDashboardWebviewController {
             controller = new PerformanceDashboardWebviewController(
-                stubExtensionContext(sandbox),
+                context,
                 host,
                 dashboardTarget,
                 initialLocation,
@@ -229,8 +235,76 @@ suite("PerformanceDashboardWebviewController", () => {
             expect(dashboard.state).to.deep.equal({
                 serverName: "contoso.database.windows.net",
                 databaseName: "Sales",
+                queryCategory: undefined,
             });
             expect(dashboard.location).to.equal("queries/913");
+        });
+
+        test("opens with the Queries category that the user chose last", () => {
+            const context = stubExtensionContext(sandbox);
+            (context.globalState.get as sinon.SinonStub)
+                .withArgs(queryCategoryKey)
+                .returns("memory");
+
+            const dashboard = createController(target, undefined, context);
+
+            expect(dashboard.state.queryCategory).to.equal("memory");
+        });
+
+        test("saves the Queries category that the user chooses, for the next dashboard", async () => {
+            const context = stubExtensionContext(sandbox);
+            const dashboard = createController(target, undefined, context);
+
+            await request(SetQueryCategoryRequest.type.method, { category: "duration" });
+
+            expect(context.globalState.update).to.have.been.calledOnceWithExactly(
+                queryCategoryKey,
+                "duration",
+            );
+            expect(dashboard.state.queryCategory).to.equal("duration");
+        });
+
+        test("keeps the Queries category when the dashboard switches database", async () => {
+            const dashboard = createController();
+            await request(SetQueryCategoryRequest.type.method, { category: "reads" });
+
+            dashboard.setTarget({ ...target, databaseName: "Orders" });
+
+            expect(dashboard.state).to.deep.equal({
+                serverName: "contoso.database.windows.net",
+                databaseName: "Orders",
+                queryCategory: "reads",
+            });
+        });
+
+        test("sends Copilot Chat a prompt to analyze or explain a query", async () => {
+            createController();
+            const window = {
+                startUtc: "2026-10-01T00:00:00.000Z",
+                endUtc: "2026-10-02T00:00:00.000Z",
+            };
+
+            await request(ContinueInChatRequest.type.method, {
+                prompt: "analyze",
+                queryId: "913",
+                ...window,
+            });
+            await request(ContinueInChatRequest.type.method, {
+                prompt: "explain",
+                queryId: "913",
+                ...window,
+            });
+
+            const [analyze, explain] = host.openChat.args.map(([prompt]) => prompt as string);
+            const query =
+                'Query Store query 913 in database "Sales" on server ' +
+                '"contoso.database.windows.net" (saved connection profileId "profile-1") from ' +
+                "2026-10-01T00:00:00.000Z to 2026-10-02T00:00:00.000Z UTC. Read it with " +
+                "#mssql_query_store_analyze_query using that profileId and database.";
+            expect(analyze.startsWith(`Analyze the performance of ${query}\n\n`)).to.be.true;
+            expect(analyze).to.include("Recommend fixes, the most effective first");
+            expect(explain.startsWith(`Explain ${query}\n\nIn plain language:`)).to.be.true;
+            expect(explain).to.include("don't suggest changes unless something stands out");
         });
 
         test("uses the server name in the title for the default database", () => {

@@ -17,6 +17,12 @@ export interface PerformanceDashboardRoute extends RouteDefinition {
 /** A section of the settings dialog. */
 export type SettingsSection = "queryStore";
 
+/**
+ * False hides the Query Store settings for now: the toolbar button, the links to them, and the
+ * location that opens them. The settings and their requests stay, to show them again later.
+ */
+export const showQueryStoreSettings = false;
+
 const settingsSections: readonly SettingsSection[] = ["queryStore"];
 
 /**
@@ -28,7 +34,9 @@ const settingsParameter = "settings";
 /** The settings section that the location opens, if any. */
 export function settingsSectionOf(match: RouteMatch): SettingsSection | undefined {
     const section = match.query[settingsParameter];
-    return settingsSections.find((candidate) => candidate === section);
+    return showQueryStoreSettings
+        ? settingsSections.find((candidate) => candidate === section)
+        : undefined;
 }
 
 /** The query values of a location without the settings dialog. */

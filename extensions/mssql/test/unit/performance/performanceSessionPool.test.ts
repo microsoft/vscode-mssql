@@ -173,7 +173,7 @@ suite("Performance session pool", () => {
     });
 
     suite("availability", () => {
-        test("reports the SQL data plane preview when it is off", () => {
+        test("reports the performance monitoring setting when it is off", () => {
             const disabled = new PerformanceSessionPool(
                 fakeHost(service, { isEnabled: () => false }),
             );
@@ -183,8 +183,9 @@ suite("Performance session pool", () => {
             expect(result).to.deep.equal({
                 status: "unavailable",
                 reason: "dataPlaneDisabled",
-                requiredSettings: [...dataPlaneSettings],
+                requiredSettings: ["mssql.performanceMonitoring.enabled"],
             });
+            expect(dataPlaneSettings).to.deep.equal(result?.requiredSettings);
             expect(JSON.parse(JSON.stringify(result))).to.deep.equal(result);
         });
 

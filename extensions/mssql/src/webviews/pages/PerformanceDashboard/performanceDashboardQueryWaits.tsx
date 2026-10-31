@@ -48,7 +48,11 @@ import {
 import { intervalMinutesOf } from "./performanceDashboardPlanHistory";
 import { planMetrics } from "./performanceDashboardQueryPlans";
 import { useRefresh } from "./performanceDashboardRefresh";
-import { PerformanceDashboardRoute, withSettings } from "./performanceDashboardRoutes";
+import {
+    PerformanceDashboardRoute,
+    showQueryStoreSettings,
+    withSettings,
+} from "./performanceDashboardRoutes";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 import { filledSeriesPoints } from "./performanceDashboardSeries";
 import { DashboardGrid } from "./performanceDashboardGrid";
@@ -145,11 +149,13 @@ export const PerformanceDashboardQueryWaits = ({ queryId }: { queryId: string })
             {waits?.captureMode === "off" && (
                 <MessageBar intent="warning">
                     <MessageBarBody>{text.waitCaptureOff}</MessageBarBody>
-                    <MessageBarActions>
-                        <Link onClick={() => navigate(withSettings(match, "queryStore"))}>
-                            {text.turnOnWaitCapture}
-                        </Link>
-                    </MessageBarActions>
+                    {showQueryStoreSettings && (
+                        <MessageBarActions>
+                            <Link onClick={() => navigate(withSettings(match, "queryStore"))}>
+                                {text.turnOnWaitCapture}
+                            </Link>
+                        </MessageBarActions>
+                    )}
                 </MessageBar>
             )}
             {message ? (
