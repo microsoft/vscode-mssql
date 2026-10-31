@@ -4837,6 +4837,48 @@ export class SqlMoveToSchema {
     public static sqlprojUpdateFailed = (message: string): string =>
         l10n.t("Failed to update the .sqlproj after moving the file: {0}", message);
 }
+export class SpatialBasemap {
+    public static privateNetworkConsent = (name: string) =>
+        l10n.t(
+            "Allow map layer {0} to connect to private or local network addresses, including services on this machine? Only enable this for a provider you trust.",
+            name,
+        );
+    public static noCredentialSources = l10n.t(
+        "Configure a map layer with a credentialRef in mssql.queryStudio.spatial.basemap.sources first.",
+    );
+    public static selectCredentialSource = l10n.t(
+        "Select the map layer whose credential you want to set",
+    );
+    public static credentialPrompt = l10n.t(
+        "Enter the map provider bearer token. Leave empty to remove the stored credential.",
+    );
+    public static invalidCredential = l10n.t("The credential cannot contain line breaks.");
+    public static credentialSaved = l10n.t("Map layer credential updated.");
+    public static addOpenStreetMap = l10n.t("Add OpenStreetMap");
+    public static dontAskAgain = l10n.t("Don't Ask Again");
+    public static setupOfferMessage = l10n.t(
+        "Spatial results can draw your data over a world map. Add OpenStreetMap as a map layer? The tile provider receives only the tile coordinates of the area you view — never your query results.",
+    );
+    public static setupConfirmation = l10n.t(
+        "OpenStreetMap added. Pick it from the Layers dropdown in the spatial results pane.",
+    );
+    public static enable = l10n.t("Enable");
+    public static viewProviderTerms = l10n.t("View provider terms");
+    public static consentPrompt = (displayName: string, attributionText: string) =>
+        l10n.t({
+            message:
+                'Enable online map layer "{0}"? The provider ({1}) will receive tile coordinates that reveal the approximate area you view. Query results, labels, SQL text, and credentials are not sent as map data.',
+            args: [displayName, attributionText],
+            comment: [
+                "{0} is the configured display name of the map layer",
+                "{1} is the provider attribution text",
+            ],
+        });
+    public static tileCacheCleared = l10n.t("Spatial map tile cache cleared.");
+    public static consentCleared = l10n.t(
+        "Spatial map layer consent cleared. Online layers will ask again before their next use.",
+    );
+}
 
 /** Strings for the Projects workspace surface (src/dataWorkspace). */
 export class DataWorkspace {
@@ -6434,3 +6476,34 @@ export const QueryStudioCore = {
     couldNotSwitchToDatabase0USEFailed: (value0: string) =>
         l10n.t('Could not switch to database "{0}" (USE failed).', value0),
 };
+
+export class SpatialResults {
+    public static disabled = l10n.t(
+        "Spatial results are disabled. Enable the Query Studio spatial preview to use this view.",
+    );
+    public static transformedSnapshot = l10n.t(
+        "Transformed snapshots cannot be mapped — pin the original result set instead.",
+    );
+    public static noresultstoreisavailableforthisdocument = l10n.t(
+        "No result store is available for this document.",
+    );
+    public static theresultsetisnolongeravailable = l10n.t(
+        "The result set is no longer available.",
+    );
+    public static spatialanalysiswaitsuntiltheresultsetiscomplete = l10n.t(
+        "Spatial analysis waits until the result set is complete.",
+    );
+    public static theselectedcolumnwasnottransportedastypedspatial = l10n.t(
+        "The selected column was not transported as typed spatial WKB.",
+    );
+    public static aselectedlabelorcolorcolumnisoutsidethe = l10n.t(
+        "A selected label or color column is outside the result schema.",
+    );
+    public static theresultstoreisclosingrerunthequeryto = l10n.t(
+        "The result store is closing; rerun the query to inspect it.",
+    );
+    public static theSpatialsessionhasexpired = l10n.t("The Spatial session has expired.");
+    public static staleoroutoforderSpatialchunkrequest = l10n.t(
+        "Stale or out-of-order Spatial chunk request.",
+    );
+}

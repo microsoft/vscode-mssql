@@ -291,6 +291,9 @@
     <trans-unit id="++CODE++cfdcb47ff9f029cb83b66a913ad547fff407ef9ff383c870163fd5538a10068a">
       <source xml:lang="en">A saved filter with this name already exists.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e82901b960438313daebb449c806d9a69635a5565cf9a6232e999e52c6f3d75d">
+      <source xml:lang="en">A selected label or color column is outside the result schema.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2a40053b5c7c4638c958ed8af2d4f5c7b4ea80f9eb9bd4276b90a63e91116ca4">
       <source xml:lang="en">A tour of what the extension can do, grouped by task.</source>
     </trans-unit>
@@ -407,6 +410,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e055f3ddb9f539f2c4d96b44e4821f09a1d8760a52da1eb0a8cdbf1002b3100e">
       <source xml:lang="en">Add MCP server to workspace configuration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++50f7055428f0ad82923fa95a0903d1917c5a5d49376cd17d35658f5776351b52">
+      <source xml:lang="en">Add OpenStreetMap</source>
     </trans-unit>
     <trans-unit id="++CODE++de3d0b4f0d9ffd5c28abdaedfda299d9d874069cd590eb145b999df7681688a8">
       <source xml:lang="en">Add ProjectGuid</source>
@@ -603,11 +609,17 @@
     <trans-unit id="++CODE++80c43c38e97b1fd6b4b2eda6132cd4dd155dc65661361224c56dafe6ad3f7a4e">
       <source xml:lang="en">All Project Types</source>
     </trans-unit>
+    <trans-unit id="++CODE++9fb56a10a2a4f6d8d8b05d97c6e1522162c3560ac1e83252a3ae452e4c21d381">
+      <source xml:lang="en">All SRIDs</source>
+    </trans-unit>
     <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
       <source xml:lang="en">All Schemas</source>
     </trans-unit>
     <trans-unit id="++CODE++866956901fd1536273ad6dd922ba6ae8f46bf4cc51a14b5f21353cdd56d7570d">
       <source xml:lang="en">All files</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f39a9ab4aef036971d091c009c8ce5f90c501f15784771b47abb3b5681f3289">
+      <source xml:lang="en">All geometry types</source>
     </trans-unit>
     <trans-unit id="++CODE++003c8c9a9b2a9babfada323e12b8162dd8662ac3ff0515baaa891a698e4c7ce2">
       <source xml:lang="en">All object types</source>
@@ -632,6 +644,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ef77fd7e7de3068a3369a87288164dfc52c45a4fe4f9dde764612fd73c757c5e">
       <source xml:lang="en">Allow incompatible platform during deployment</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a497cc2ded7ad27253d19dea87cbe309756754056ad836ec78c4e8412812c2e3">
+      <source xml:lang="en">Allow map layer {0} to connect to private or local network addresses, including services on this machine? Only enable this for a provider you trust.</source>
     </trans-unit>
     <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
       <source xml:lang="en">Allow null</source>
@@ -969,6 +984,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f9dcbb55deba4b9fc8f81c4045718a29cb9b7481508475edb9d52eb869b303a9">
       <source xml:lang="en">Automate</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d461a493a3753877c9486cffa3444265a33370af8a7fff242fb119b71750839c">
+      <source xml:lang="en">Automatic</source>
     </trans-unit>
     <trans-unit id="++CODE++0c89dde3b83072aada1e77d3c1953bdedee2dc881621069be7ad8f97d1046366">
       <source xml:lang="en">Automatic trigger debounce</source>
@@ -1457,6 +1475,9 @@
     <trans-unit id="++CODE++cb0415b7eba8d09fece0299cef934d73da69c94720cfc5583914aca2a16fcac2">
       <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
     </trans-unit>
+    <trans-unit id="++CODE++3824a9f4dafe92c6f1b80b40656a59784c03a824c27d58125d7d0ace753e2df2">
+      <source xml:lang="en">Canvas</source>
+    </trans-unit>
     <trans-unit id="++CODE++bd9b6abb39811686a3ce6937ab20e015e9670dd7284c04ffef25cc751b7317d6">
       <source xml:lang="en">Caps</source>
     </trans-unit>
@@ -1890,6 +1911,9 @@
     <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
       <source xml:lang="en">Cloud</source>
     </trans-unit>
+    <trans-unit id="++CODE++92d5e4c5cd37431e5a659de27354604b4b95684a307f2b9602c51d84585a85b0">
+      <source xml:lang="en">Clusters</source>
+    </trans-unit>
     <trans-unit id="++CODE++3c7b470089d5686bf5295ce8455026208381441672b649aebdc03663e68b6975">
       <source xml:lang="en">Code Analysis</source>
     </trans-unit>
@@ -1933,11 +1957,17 @@
     <trans-unit id="++CODE++3c9c88307ac2637ebf206d18b530363f5b9a09fb9d44a6817d8da20da0b4f7d1">
       <source xml:lang="en">Collapse connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++f8eabdcfc1345cf137950e6b35f4723e75a5ef6bc52199d8d35a175236faed53">
+      <source xml:lang="en">Collapse feature details</source>
+    </trans-unit>
     <trans-unit id="++CODE++e5897a8be4e878fff778bf29be7ce1b1a7160314d8a80a5033c68078be6c157b">
       <source xml:lang="en">Collapse filters</source>
     </trans-unit>
     <trans-unit id="++CODE++37a3009e612d2ec139d2a34ef9d77f859aefb5d3eb3c585162bd1c8c2251bf9f">
       <source xml:lang="en">Collapse settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++db45b6dfdf9967ee24d0aa8747067d39a2b7fb346856db9ee433b3577a84d6dc">
+      <source xml:lang="en">Collapse the feature list</source>
     </trans-unit>
     <trans-unit id="++CODE++c16e13787ef517fceffdaa331280019a2a731f1c586faaf511680f3da0e9c96b">
       <source xml:lang="en">Collapse {0}</source>
@@ -1952,6 +1982,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
+    </trans-unit>
+    <trans-unit id="++CODE++26e43ef8709fee68365fba0b2ecb94eb2cbb9cfde3a0a3b32ac82a09b4f221a5">
+      <source xml:lang="en">Color by</source>
     </trans-unit>
     <trans-unit id="++CODE++b608c0199deaa5b9acb5b6e1fe8aa247e4b06e9e53b5f51d43b95904f48b61be">
       <source xml:lang="en">Cols/object</source>
@@ -2142,6 +2175,9 @@
     </trans-unit>
     <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
       <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
+    </trans-unit>
+    <trans-unit id="++CODE++39256e4b8140c3c52037f9c9f6b82926e42c54b310cac28e338e0d9c54318e0a">
+      <source xml:lang="en">Configure a map layer with a credentialRef in mssql.queryStudio.spatial.basemap.sources first.</source>
     </trans-unit>
     <trans-unit id="++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71">
       <source xml:lang="en">Configure and customize Azure SQL Databases</source>
@@ -2707,6 +2743,13 @@
     </trans-unit>
     <trans-unit id="++CODE++3445c4802a96131120ac2a8e228d505e08afc53b917172374c3810badc0407c7">
       <source xml:lang="en">Copy error details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3cb27ae0fbca8ae3efdf8fa92493efc9cae666d90b99ae18d2cadf586f5dad32">
+      <source xml:lang="en">Copy image</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ddbc8827ac5b601ca4c6f2db7eb0b6f4247dc8dec73ec75d835e24b0bee728d3">
+      <source xml:lang="en">Copy image failed: {0}</source>
+      <note>{0} is a short error message</note>
     </trans-unit>
     <trans-unit id="++CODE++dbf362d4f210c780513a9258278d4d07abe8a224f84ba7ad775d819039342e77">
       <source xml:lang="en">Copy link</source>
@@ -3325,6 +3368,9 @@
     <trans-unit id="++CODE++99c40ab405926cb5ad1def9cff4d7ce624f8f8abfff4e85f655347fcb949d08e">
       <source xml:lang="en">Date</source>
     </trans-unit>
+    <trans-unit id="++CODE++5191aa33efee0799a1c940701c80f431062de1587ff3fc034a8a963a7fdaac65">
+      <source xml:lang="en">Decoded features</source>
+    </trans-unit>
     <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
       <source xml:lang="en">Default</source>
     </trans-unit>
@@ -3838,6 +3884,9 @@
     <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
       <source xml:lang="en">Dropping database</source>
     </trans-unit>
+    <trans-unit id="++CODE++4fc52a3c4c558b517c463b22d86d0e3b9cfd4255c98fe3510f9075b37ab419c9">
+      <source xml:lang="en">Duration</source>
+    </trans-unit>
     <trans-unit id="++CODE++4a87bc4a6f84b6911fabebc702ad8d32dbb799d7bec2abf53a05c86d91b456bf">
       <source xml:lang="en">EF Core</source>
     </trans-unit>
@@ -3912,6 +3961,9 @@
     <trans-unit id="++CODE++31454898fb5d76942853db1f60ad91011d720eed17e47d241b55647d69ad8706">
       <source xml:lang="en">Elevated capture duration (auto-reverts)</source>
     </trans-unit>
+    <trans-unit id="++CODE++c6c094bc0054f9cbe34102ff49f86b3928b5ac09f3d2ac87e170d0500675921f">
+      <source xml:lang="en">Empty</source>
+    </trans-unit>
     <trans-unit id="++CODE++5342e09f2729fbc6514528e727aeb9857afb31719d43568e6b18661ace7d1014">
       <source xml:lang="en">Enable</source>
     </trans-unit>
@@ -3963,6 +4015,11 @@
     </trans-unit>
     <trans-unit id="++CODE++e72ac5afd58e711f9a8a595f2e1591803f4d1d5bf8c508218fe2a94062cd841d">
       <source xml:lang="en">Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++29ba5db7b2307576ffcf26407a663e786f49ebcc0b822d2c15a67c1bbeafcb5d">
+      <source xml:lang="en">Enable online map layer &quot;{0}&quot;? The provider ({1}) will receive tile coordinates that reveal the approximate area you view. Query results, labels, SQL text, and credentials are not sent as map data.</source>
+      <note>{0} is the configured display name of the map layer
+{1} is the provider attribution text</note>
     </trans-unit>
     <trans-unit id="++CODE++fb0bb2387237028dc70c4153c6f199ba4dcf1d78c143ac148621a822e41d2f04">
       <source xml:lang="en">Enable or disable SQLCMD mode for the active SQL document</source>
@@ -4168,6 +4225,9 @@
       <source xml:lang="en">Enter the SQL Login password for user &apos;{0}&apos;.</source>
       <note>{0} is the SQL Login username</note>
     </trans-unit>
+    <trans-unit id="++CODE++04cae0bcbcd61bac09ab13ed66c0a740d2edfb7b6809ce01fe7770e7194d0fa5">
+      <source xml:lang="en">Enter the map provider bearer token. Leave empty to remove the stored credential.</source>
+    </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
     </trans-unit>
@@ -4204,6 +4264,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
       <source xml:lang="en">Entra token cache cleared successfully.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++47a1436c7090cfb59614a6bee2c6ef99043cddceda2b6df9d996427f6e42077d">
+      <source xml:lang="en">Envelope</source>
     </trans-unit>
     <trans-unit id="++CODE++6a26ff8ea94b68652cba40696c6b1f68207e110027a0862a3a5e030c2d103eb1">
       <source xml:lang="en">Equal to</source>
@@ -4575,6 +4638,9 @@
     <trans-unit id="++CODE++a278c1ed2486fecd0d324085d0a85dc6b97cb2444cd15978e2ccbea319157b62">
       <source xml:lang="en">Expand connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++7cf9e3bc58608088aade792969d329e8d48a32703e308ae5fc708037a99012ff">
+      <source xml:lang="en">Expand feature details</source>
+    </trans-unit>
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
     </trans-unit>
@@ -4595,6 +4661,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1f6fd5837dbaa5405a58b9b5a8a025cab673664f697a7c9a9ed2a59189e1843b">
       <source xml:lang="en">Expand the active grid to fill the panel</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a541901ea440d40b58cf538ebca90c15372bb3e2dc27fc8f62d04656b685d726">
+      <source xml:lang="en">Expand the feature list</source>
     </trans-unit>
     <trans-unit id="++CODE++f3d94f8f0d2b5fc0a15cfced91afb81c48cf6f0664b564fb6129d58ddb328327">
       <source xml:lang="en">Expand {0}</source>
@@ -5228,6 +5297,12 @@
     <trans-unit id="++CODE++60a33e6cf5151f2d52eddae9685cfa270426aa89d8dbc7dfb854606f1d1a40fe">
       <source xml:lang="en">False</source>
     </trans-unit>
+    <trans-unit id="++CODE++db977fde0b1cbb3a3a5c4093cbff6b231ea747d7daebfb7bd6b9280805625bcc">
+      <source xml:lang="en">Feature details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5697d03daef4de9cf8db7cb11755f71358a32b4acca94909a9d449f71040d2dd">
+      <source xml:lang="en">Features</source>
+    </trans-unit>
     <trans-unit id="++CODE++aac77df347205252b074d45aff7891debdba0ff1466cc0c351416d1662bb71ab">
       <source xml:lang="en">Feedback</source>
     </trans-unit>
@@ -5471,6 +5546,12 @@
     <trans-unit id="++CODE++50f82f3bd4638f41e11892aa681c016d9f858ac119041d52c52d5fb661c5936f">
       <source xml:lang="en">First Page</source>
     </trans-unit>
+    <trans-unit id="++CODE++f52a2f2671751a32f1233ec911b45d88946f6f2c23a154d6378b9018ae356ea1">
+      <source xml:lang="en">First paints</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9f872ed43d00d8bdb372b1c05bd345b22f2ad5f7f41e06656d05625602e065b1">
+      <source xml:lang="en">Fit</source>
+    </trans-unit>
     <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
       <source xml:lang="en">Flat</source>
     </trans-unit>
@@ -5612,6 +5693,9 @@
     <trans-unit id="++CODE++75e942e5b366227eccb9def7fcea18422c7c5e164812c112c921461b2c587727">
       <source xml:lang="en">Functions</source>
     </trans-unit>
+    <trans-unit id="++CODE++1917ffe7c4493824e9bb04458b22b335056e7b2917cd72798da86a77ab093d2c">
+      <source xml:lang="en">GPU points</source>
+    </trans-unit>
     <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
       <source xml:lang="en">General</source>
     </trans-unit>
@@ -5667,6 +5751,12 @@
     </trans-unit>
     <trans-unit id="++CODE++10990bf5e602e929a28b2b4c29a15161d0b50a53837cfaf936e89bed619098ac">
       <source xml:lang="en">Geo-redundant backup storage</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa9da5754ccfd409028cef393a17acae922be11469a590d1f2b99d9f45349337">
+      <source xml:lang="en">Geometry</source>
+    </trans-unit>
+    <trans-unit id="++CODE++87b666c8b99621c291c2a2567af02e6c25d1717e7634aad62ebe803345ec3cb8">
+      <source xml:lang="en">Geometry type</source>
     </trans-unit>
     <trans-unit id="++CODE++4a7b451ef6baef1b63397c9b94e65e95fd6491764724706fdc24cde499344f2a">
       <source xml:lang="en">Get Apple container</source>
@@ -5801,6 +5891,10 @@
     </trans-unit>
     <trans-unit id="++CODE++e7a0f5d984721771397ee01588da1bac07c6f45150113d1ba8c4c3de194cfdb0">
       <source xml:lang="en">Group differences by</source>
+    </trans-unit>
+    <trans-unit id="++CODE++39328434f7cc46533fb21fdd1d89878a47e4c82063edcd72c5875f4151ddbc88">
+      <source xml:lang="en">Groups: {0}</source>
+      <note>{0} is a summary of safe spatial type or SRID group counts</note>
     </trans-unit>
     <trans-unit id="++CODE++1e91df29a258656892131271997fb30c0164413a6a5b91d922eb2bf3589ce964">
       <source xml:lang="en">Hard character budget for formatted schema context before degradation.</source>
@@ -6275,6 +6369,9 @@
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
     </trans-unit>
+    <trans-unit id="++CODE++f5387f9bb6ed70315a77fdcb9335facc27a9bf241f35955bd2755c55e0c016c7">
+      <source xml:lang="en">Kind</source>
+    </trans-unit>
     <trans-unit id="++CODE++e71ea5244992eed4be41156fdad430db88cc0b4461ffc93668706c486a7ddeef">
       <source xml:lang="en">LM Request</source>
     </trans-unit>
@@ -6283,6 +6380,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f89417d53ba776c805f239fe55d55177f66764a88a5ae08085341e904985b900">
       <source xml:lang="en">LRS backup (locally redundant)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e66373f45dcf3dd656151e519f7ee5e3d558d9c22cb87df339bbdd2b6c6a3c1">
+      <source xml:lang="en">Label</source>
     </trans-unit>
     <trans-unit id="++CODE++a4fe65264ef7dbb38d104b1e81eb3350f3142f3d16f32bdec39b1d9b42c1b8d1">
       <source xml:lang="en">Language</source>
@@ -6316,6 +6416,12 @@
     </trans-unit>
     <trans-unit id="++CODE++e50ad98d51d6c665dad03d3a770a4c3346d6e449ff0c88ad895cd9f03c045684">
       <source xml:lang="en">Launching the engine process</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0c2d726ad29eb4e6920bad8b69f788ff6b4ca7b08d83f2130d4d4ef330c0375c">
+      <source xml:lang="en">Layer: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0bcd66e677f4ee7288547da02b6cd5594fd8b8c3abbc6482dfd42c788ecbe448">
+      <source xml:lang="en">Layers</source>
     </trans-unit>
     <trans-unit id="++CODE++a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5">
       <source xml:lang="en">Layout</source>
@@ -6555,6 +6661,9 @@
     <trans-unit id="++CODE++54de42320518e4ac2e773353f4d9f9a7be92f4afc008a3b33a3247b39a19aa68">
       <source xml:lang="en">Loading Schema Designer Model...</source>
     </trans-unit>
+    <trans-unit id="++CODE++d63b3e2f5cae2836cf9451c389e17acb187d62868ad9987f00f44701713a434b">
+      <source xml:lang="en">Loading Spatial view…</source>
+    </trans-unit>
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
     </trans-unit>
@@ -6678,6 +6787,11 @@
     </trans-unit>
     <trans-unit id="++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a">
       <source xml:lang="en">Loading workspaces...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++000818b889f2c179b884f373f20379a71dd67750d9f76d559109840b754dab17">
+      <source xml:lang="en">Loading {0} of {1}…</source>
+      <note>{0} is the scanned row count
+{1} is the total row count</note>
     </trans-unit>
     <trans-unit id="++CODE++34525049c90bba19fea22f7e8b9311706414257b13e95ce6cf18dab467b4bd12">
       <source xml:lang="en">Loading …</source>
@@ -6872,6 +6986,24 @@
     </trans-unit>
     <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
       <source xml:lang="en">Mandatory (True)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d4ac36585215c432f50cc74fcaa1b5dcbd68d7cfd317efa5cda7aa8cbfa147b1">
+      <source xml:lang="en">Map actions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6d8289091873de993a3173035e757e1c42a6bfefd08ed2edacdcf13db5d78820">
+      <source xml:lang="en">Map image copied to the clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2507e7a80c8e69e9ee48a97512619a0594f95c6d67f37650c9749a9b870de3eb">
+      <source xml:lang="en">Map layer could not be loaded</source>
+    </trans-unit>
+    <trans-unit id="++CODE++16c31483f24b0de6c539ff0553dadf3c758bf932b8916daeeb21ca99cdfb6f8a">
+      <source xml:lang="en">Map layer credential updated.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bddd21dda7f5e469bff450d2005296b2af7de2bf8d04215e2b22c8bc14c16853">
+      <source xml:lang="en">Map layer unavailable for this coordinate system</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4d2c1b44580c3174463c5515d330b289c012384751e5350be4cb2b5d568d174f">
+      <source xml:lang="en">Map zoom controls</source>
     </trans-unit>
     <trans-unit id="++CODE++12f219ba7bf6711635f0f1f52391fa89fc993a8612262d94846160b40161ba03">
       <source xml:lang="en">Matrix cell</source>
@@ -7457,6 +7589,9 @@
       <source xml:lang="en">No SQL Tools MCP connection found for connectionName: {0}</source>
       <note>{0} is the SQL Tools MCP registered connection name</note>
     </trans-unit>
+    <trans-unit id="++CODE++212b6a0fa5aececa42bf5175a9e51c01c1eb0cab3ee5c55904dc7fbe3b1d5cc3">
+      <source xml:lang="en">No Spatial activity</source>
+    </trans-unit>
     <trans-unit id="++CODE++b300684f69c156846b5dd1df5f5b5475f5c574b10e9dad8fa74601e129ec019b">
       <source xml:lang="en">No access to this database.</source>
     </trans-unit>
@@ -7612,6 +7747,9 @@
     <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
       <source xml:lang="en">No elements found</source>
     </trans-unit>
+    <trans-unit id="++CODE++e93ca69f8c0c25ca28aad47bc9953a774f54a2a71e5b00521eba992710d54ec0">
+      <source xml:lang="en">No eligible spatial columns.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
       <source xml:lang="en">No entities found</source>
     </trans-unit>
@@ -7714,6 +7852,9 @@
       <source xml:lang="en">No resource of type &apos;{0}&apos; is configured for the current cloud &apos;{1}&apos;. Please update your Azure account settings.</source>
       <note>{0} is the resource type
 {1} is the display name of the current cloud</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ee87f865e1b1f051a435f9528210ccee6adc4ea0c7e53f89a68d7253a4896761">
+      <source xml:lang="en">No result store is available for this document.</source>
     </trans-unit>
     <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
       <source xml:lang="en">No results</source>
@@ -7973,6 +8114,9 @@
     <trans-unit id="++CODE++d9413e8998b3f8a0601aef1508acf810c9f02fca3952c801bfcf29e13d5b2060">
       <source xml:lang="en">Off (0)</source>
     </trans-unit>
+    <trans-unit id="++CODE++fc9246f00d5d990217d65613d5ce96efdb0cfe7250cc5e8fb7b842ca077bed0a">
+      <source xml:lang="en">Offline · no basemap requests</source>
+    </trans-unit>
     <trans-unit id="++CODE++843ac01149cced785dfebd0028d3b03ba78e286e1c6f9517ebfcdb609d97af4c">
       <source xml:lang="en">Ok</source>
     </trans-unit>
@@ -8001,6 +8145,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5c96a0d717cf95bc5e8a44accd180436a5606ded18cb29001f3e9df57614ed31">
       <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++591ddf96c29680f1ba3e3549693049fa4b6db4cfc7112f6c64fa4ccc05ce5756">
+      <source xml:lang="en">Online layer disabled in an untrusted workspace</source>
     </trans-unit>
     <trans-unit id="++CODE++46c0e2d94b6989f19eb6cc2ae1d2418d69dc81cfb7d9b9e35c5e5f13345be8ee">
       <source xml:lang="en">Only moving files and folders are supported</source>
@@ -8086,6 +8233,9 @@
     <trans-unit id="++CODE++2b1004d060800d1c4dacdeb9f86c00b83db5b48e88f9b6a09a9a15fbca714f86">
       <source xml:lang="en">Open a perf-runs directory</source>
     </trans-unit>
+    <trans-unit id="++CODE++f22bd213b6a2f93198a3fda9b1dc6e58526c5f68f06380fc6124774c30af6faa">
+      <source xml:lang="en">Open an eligible Spatial result tab to see host preparation, worker decode, renderer, interaction, and cleanup evidence here.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
     </trans-unit>
@@ -8165,6 +8315,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f019e0add1fccf57f3aafbd4e20ea0b7806b423d468bfa8c358092adfeaafe3f">
       <source xml:lang="en">Open-source container engine, often used as a Docker alternative. · Windows, macOS, Linux</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0415708c0be7f6bc586e3605a88e4b07d3c4e303266e0d1a755a7ce20cc069ff">
+      <source xml:lang="en">OpenStreetMap added. Pick it from the Layers dropdown in the spatial results pane.</source>
     </trans-unit>
     <trans-unit id="++CODE++0184aa15fddaf2cf9c1019f5b52366b5f0f9c3e32bcb7bbbf5abe19a72962252">
       <source xml:lang="en">Opened the Dev Containers extension&apos;s template picker instead.</source>
@@ -8296,11 +8449,21 @@
     <trans-unit id="++CODE++5f9bc63bdfd0c971d0c8f9af20722aa912e97313e862b2123c52a1ab2a65125a">
       <source xml:lang="en">Parse (syntax check only)</source>
     </trans-unit>
+    <trans-unit id="++CODE++66b45de27e1411a123aeed6e4928add19d8ddd09659a5af511731dedf4c360fd">
+      <source xml:lang="en">Partial / errors</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6a2170f25a5151345d9ba5d84fabef1c3c43dadb85cf7e9f96bfd5fecbc8e5b">
+      <source xml:lang="en">Partial view · safety limit: {0}</source>
+      <note>{0} is a bounded internal safety-limit category</note>
+    </trans-unit>
     <trans-unit id="++CODE++875d97950049c1ba7d3bb95d81167d4b9944cce2045fdbb132ceff5b417d0d33">
       <source xml:lang="en">Partition Functions</source>
     </trans-unit>
     <trans-unit id="++CODE++f477e622d6992772ae9983376f5b8989363fc88bdbdf23ae6d5616f58775900d">
       <source xml:lang="en">Partition Schemes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++efbcd674b4f43dccabacb225785788da668a0a975e51eae40b05687ddea370f9">
+      <source xml:lang="en">Parts</source>
     </trans-unit>
     <trans-unit id="++CODE++e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23bd38ec221a">
       <source xml:lang="en">Password</source>
@@ -9011,6 +9174,9 @@
     <trans-unit id="++CODE++64eb0638da2ca01334778c2f5992e854d714839cb7a963823ba7cf5e369a00af">
       <source xml:lang="en">Real-time database activity monitoring with Extended Events</source>
     </trans-unit>
+    <trans-unit id="++CODE++f81ab834de5f84918dc040b884267c2b61cb1a52d46442de10e97f35a94d0500">
+      <source xml:lang="en">Reason</source>
+    </trans-unit>
     <trans-unit id="++CODE++8a80b1d53b5bbf9ca48c886b0c5defb1205801ca264c6b06de6cd5c6389a2086">
       <source xml:lang="en">Reason for elevated (full) capture — recorded in the session log</source>
     </trans-unit>
@@ -9207,6 +9373,9 @@
       <note>{0} is the current database name
 {1} is the new database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++9deb780b4331c60e997ac3b4855911f7e0fc8c432d7607992e566cb0087e7ca2">
+      <source xml:lang="en">Renderer</source>
+    </trans-unit>
     <trans-unit id="++CODE++361e78911e1bf0379262ab92b60ee5ef118764a2f7ec389696a5e120a18e8b01">
       <source xml:lang="en">Replace bottom plan…</source>
     </trans-unit>
@@ -9319,11 +9488,17 @@
       <source xml:lang="en">Resize column &apos;{0}&apos;</source>
       <note>{0} is the name of the column</note>
     </trans-unit>
+    <trans-unit id="++CODE++15d997d74a205b6029b0ff22ca99705808fd2fc5f73e6c51517b513952b2c92b">
+      <source xml:lang="en">Resize feature details</source>
+    </trans-unit>
     <trans-unit id="++CODE++83eea39be736728236fb22f8c3db766aa09720fb5aae4a7ef908a8d1a158b4ae">
       <source xml:lang="en">Resize plans</source>
     </trans-unit>
     <trans-unit id="++CODE++f8266045b5596ddc5cd3d4af27e2af2af3242d50c27ef97945b665ad805b41f2">
       <source xml:lang="en">Resize the active result grid column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba50184c03e5671b84f9fe34814a98c248dc7250e79df61fa1de6635beff3876">
+      <source xml:lang="en">Resize the feature list</source>
     </trans-unit>
     <trans-unit id="++CODE++610d2469ca9f85e91ba3c5aff68859fe46b822e0477dd30a07e4b26c3c7ecaa1">
       <source xml:lang="en">Resolving a runtime that can run the CLI</source>
@@ -9511,6 +9686,9 @@
     <trans-unit id="++CODE++a8bf3ae888c8f555b2d5c8a5b243ee29886ba2f096002ead4472389431b4d4ff">
       <source xml:lang="en">Right-click completed events in Live or Sessions and add them to the replay trace.</source>
     </trans-unit>
+    <trans-unit id="++CODE++bab4c75d0722c872ee0bc206f672c3ae2d20219a780e3d6cf5ef0e82a2d15ec4">
+      <source xml:lang="en">Rings</source>
+    </trans-unit>
     <trans-unit id="++CODE++c25337055464f8d31fb1498bc94025cba5eae3b0e1cf07741f09f8b873d00103">
       <source xml:lang="en">Roles</source>
     </trans-unit>
@@ -9531,6 +9709,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
       <source xml:lang="en">Row marked for removal.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b45f1e3b69953e74281481b588fe89f31f968fbb356448e9d60703387b87c730">
+      <source xml:lang="en">Row number</source>
     </trans-unit>
     <trans-unit id="++CODE++101f2ff3de22441fcab3e15ca0b09ac3428642cf628558f16fa404fc3137baea">
       <source xml:lang="en">Rows</source>
@@ -9770,6 +9951,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a7e5c26c01b7c6e199165e627138d104755d24adb0ac611e42bc8b6787b7216c">
       <source xml:lang="en">SQLCMD variable name &apos;{0}&apos; cannot contain whitespace</source>
+    </trans-unit>
+    <trans-unit id="++CODE++de61aa1f92cfd24adc5f04d3800af6ec3513a856e66b385afc008594838b4025">
+      <source xml:lang="en">SRID</source>
     </trans-unit>
     <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
       <source xml:lang="en">SVG</source>
@@ -10256,6 +10440,9 @@
     <trans-unit id="++CODE++d9e5e69540871a387c5d20d2ae4ad26a58613e40b8f16e0712ec3c0dcc7ff96a">
       <source xml:lang="en">Select a deployment target</source>
     </trans-unit>
+    <trans-unit id="++CODE++6bc21e615e3f1c0ee7a14aed4b6f65fd94e342f3aa3646d6260df1aa5572d6f6">
+      <source xml:lang="en">Select a feature on the map or in the list.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
       <source xml:lang="en">Select a file</source>
     </trans-unit>
@@ -10447,6 +10634,12 @@
     <trans-unit id="++CODE++9ecda0247fcac26fa6b5b650012315b4faeaf853a3d1147f243e0af310d6c1da">
       <source xml:lang="en">Select the entire current row</source>
     </trans-unit>
+    <trans-unit id="++CODE++0b91e6a7cffe5e81876eb8ce2abfa1910afb48c04364b236b607549f64f9bc93">
+      <source xml:lang="en">Select the layer again to confirm online map access</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1465e8567018acc525257d933b605183bace32ca695a8bd35b448cae29a519bf">
+      <source xml:lang="en">Select the map layer whose credential you want to set</source>
+    </trans-unit>
     <trans-unit id="++CODE++21f736a51b932eed3aed712f5cc2cd8ca7fd204ad2690df8c6d8d1f6cd926e1a">
       <source xml:lang="en">Select the target schema</source>
     </trans-unit>
@@ -10467,6 +10660,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2cafc5757485d935e51fd715bb3ad14ec8c53f8875ed9e218b427244de032f15">
       <source xml:lang="en">Selected query-editor text</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c5d73b03f5712446ca6cd4aae18d6a8c85ba213db560a22376456562e839d9e6">
+      <source xml:lang="en">Selected spatial feature details</source>
     </trans-unit>
     <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
       <source xml:lang="en">Selection</source>
@@ -10926,6 +11122,9 @@
     <trans-unit id="++CODE++f757ef1e62a52c257451f92fbdd24174fc804cebd5eeb040763d5875feae7864">
       <source xml:lang="en">Source database</source>
     </trans-unit>
+    <trans-unit id="++CODE++dc2ec826bf30a7434d345d8b1e114e649e2c0bea7e4d34741a81996f6022bc90">
+      <source xml:lang="en">Source row</source>
+    </trans-unit>
     <trans-unit id="++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the fully qualified DAB source object name</note>
@@ -10933,6 +11132,45 @@
     <trans-unit id="++CODE++30ecb608c5cff9e821a41d28312d0070cbeb3901bc8e32ecefd17171f87dc53a">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the task source</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f94a59f5619b20aef0a4a38316801f035b9a1534a26e79ccd8c8a11cc02be5dd">
+      <source xml:lang="en">Spatial</source>
+    </trans-unit>
+    <trans-unit id="++CODE++47470109acd1231804737b1307f93610b65a1b31155246f25e7cfa8032bd4774">
+      <source xml:lang="en">Spatial analysis waits until the result set is complete.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c2d495b1562f6f037ceb191ffa9f825a9034363d852d261ff341413f311e929d">
+      <source xml:lang="en">Spatial column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a98d3295f8978a1c5f5f8ec11d5e5607db542c9ec569fd54077102185fc79454">
+      <source xml:lang="en">Spatial controls</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1f3f70fdcb20c383825395ca5bde21613410f74785d7bb06a0bf493902133876">
+      <source xml:lang="en">Spatial decode worker failed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++48a82b83199ee31101979baeba2f3b8826ce91bb605db8dc8776e655962c2abd">
+      <source xml:lang="en">Spatial feature map</source>
+    </trans-unit>
+    <trans-unit id="++CODE++89ff5697374c47bc35d008eecad946bbc67d0dbb517fcdb6ee806a5e645459b7">
+      <source xml:lang="en">Spatial features</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4d78a6277f73daad992f6679cab9b41514df1fdad0c27bcaa21aa35ec91af369">
+      <source xml:lang="en">Spatial map layer consent cleared. Online layers will ask again before their next use.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f747ba9dc4e0624b2abc89f8217292353684b7694750e9426d7fe7936a40289">
+      <source xml:lang="en">Spatial map tile cache cleared.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3a4a2039189d95ac8717438746dbae5f24c167eaeeb080a73d6f8b7210b11836">
+      <source xml:lang="en">Spatial results analysis</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f3d7ea2bc1756a5c273cb53a209b83535390f6d73f38c31daf7d4c6e9160498b">
+      <source xml:lang="en">Spatial results are disabled. Enable the Query Studio spatial preview to use this view.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++92e22b4f9ae9d53f25c83ec2da78e4f1b0527c329c816516367beb6b633a3fb2">
+      <source xml:lang="en">Spatial results can draw your data over a world map. Add OpenStreetMap as a map layer? The tile provider receives only the tile coordinates of the area you view — never your query results.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bdbc9d96a4e6017cd25eff17e86ca1cd230435429813bd402621ff7e0400c689">
+      <source xml:lang="en">Spatial session could not be opened.</source>
     </trans-unit>
     <trans-unit id="++CODE++300a6fea7e27e277c0c31a7efb59b467a32f2dc0e1620bcac852e655727936bb">
       <source xml:lang="en">Specified GUID is invalid: {0}</source>
@@ -10951,6 +11189,12 @@
     </trans-unit>
     <trans-unit id="++CODE++c2fed746cc0e2142b5a2bb118d3d02721c0800c3bf25385c936a6c846d773f7f">
       <source xml:lang="en">Stacked</source>
+    </trans-unit>
+    <trans-unit id="++CODE++de838855e4a6e04ea2f284b246a07a1126e7fcd151be9449e112006ad7db5c50">
+      <source xml:lang="en">Stage</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c6424086ed60d2e5588ca6503a049437d8a2d823f8b054019be1cb2288b847f1">
+      <source xml:lang="en">Stale or out-of-order Spatial chunk request.</source>
     </trans-unit>
     <trans-unit id="++CODE++042beab64062efc6a2e69013111afa772e5cb23c39d380bc06cc12b9bf4c8042">
       <source xml:lang="en">Standby file</source>
@@ -11494,6 +11738,9 @@
     <trans-unit id="++CODE++72c65e70a4db945f4b9dccbbdda3aaeade2926ad368b312dd0d820995250e9f8">
       <source xml:lang="en">The Schema Compare extension must be installed to a update a project from a database.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2c380162a85a1cccaac2028d690fccac194344ac16c3f9b57b5843a0da3ec7b6">
+      <source xml:lang="en">The Spatial session has expired.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
     </trans-unit>
@@ -11546,6 +11793,9 @@
     <trans-unit id="++CODE++1a187c0bb776eac7a356f6623badf4084f701ae47f405cfc74374c79fbf44ddb">
       <source xml:lang="en">The container {0} will be stopped and removed, and its endpoints will stop responding.</source>
       <note>{0} is the Docker container name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4e12d91819e8808c9158ac0c6d88ba59d9fc9b017f114e7603a45e948c13ab3f">
+      <source xml:lang="en">The credential cannot contain line breaks.</source>
     </trans-unit>
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
@@ -11662,6 +11912,12 @@
     <trans-unit id="++CODE++19edb2921020d6d5903fd3e186755e4237736ae2697694fc51568c369a4f7263">
       <source xml:lang="en">The result data is no longer available in full. The export could not be completed.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a9ae9d609d6952eaf7400038ea6bb43a42414c12d602ff2dde95c0a15ac47183">
+      <source xml:lang="en">The result set is no longer available.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e0080b778c7f121a330868cefa4d2bb525dcb54471d073bcf7eebc2059f42d2e">
+      <source xml:lang="en">The result store is closing; rerun the query to inspect it.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
@@ -11669,6 +11925,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dcc368e5cecae7f8a0551b1a10f920940276c11de668e2c7e38cd72bfc755563">
       <source xml:lang="en">The selected clone path &apos;{0}&apos; does not exist or is not a directory.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++53af8a4a46fb84830fa0bc6d3a0a458a92f587b8aeade4762acdb4cc7b5e6282">
+      <source xml:lang="en">The selected column was not transported as typed spatial WKB.</source>
     </trans-unit>
     <trans-unit id="++CODE++20739c0f9c9b2162681835aa37d40b6d1723c5e9ae3f2d36c29326fcf87036c9">
       <source xml:lang="en">The selected file does not contain an execution plan.</source>
@@ -12031,6 +12290,9 @@
     <trans-unit id="++CODE++573843c55dfcb6caf7a345bf40ff4dfe681f4e262ed72c68ac5f55ce0b2a7749">
       <source xml:lang="en">Transfer active connection (Default)</source>
     </trans-unit>
+    <trans-unit id="++CODE++cb60e384ae135cff9ee8c3513e85cefe0c9eac1a71f50ed6d0110974875cec3f">
+      <source xml:lang="en">Transformed snapshots cannot be mapped — pin the original result set instead.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8b9c643731c941195b61d1f3de78fda81ac490ee73f420bb7543df59d6a92206">
       <source xml:lang="en">Trigger</source>
     </trans-unit>
@@ -12238,6 +12500,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
       <source xml:lang="en">Unsaved Changes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++54324658e2eba91c826cb01a802414559c8b8b713b28b4df68cd5075611cf1b5">
+      <source xml:lang="en">Unsupported</source>
     </trans-unit>
     <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
       <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
@@ -12514,6 +12779,9 @@
     <trans-unit id="++CODE++e509726379509070e45ef82e21ca793ccbf057370bfda716fc16727246a30094">
       <source xml:lang="en">Version must not be empty</source>
     </trans-unit>
+    <trans-unit id="++CODE++f5af129ea336fc4a23c0c6eb2bb8a2505e41346d7bc12f595ff1085547e4e625">
+      <source xml:lang="en">Vertices</source>
+    </trans-unit>
     <trans-unit id="++CODE++7ef8939f723e18dae31afe6a66699cdd093848ce10e84fcb5d34e15950cc2a06">
       <source xml:lang="en">Very Dissatisfied</source>
     </trans-unit>
@@ -12559,6 +12827,9 @@
     </trans-unit>
     <trans-unit id="++CODE++20672423d71690888afb7caa922ea2a23592d49346341b1eee292de65189a296">
       <source xml:lang="en">View on GitHub</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56f120aa5343154a3604fcd5db4e828f39dfa0b9d3e4786c687e287e37c45bcf">
+      <source xml:lang="en">View provider terms</source>
     </trans-unit>
     <trans-unit id="++CODE++7b5b2bbcd1ff04bd807888af5196f4956355d5d4c3b7d23c190f98c572c80099">
       <source xml:lang="en">View roadmap</source>
@@ -12609,8 +12880,14 @@
     <trans-unit id="++CODE++b6af395c5020f3f19337172a94b2607d19ef6f8fed2424cf788b0d00b0572264">
       <source xml:lang="en">WHERE</source>
     </trans-unit>
+    <trans-unit id="++CODE++dc1a08f64a7e7dcec2ef1709e9ae0e63e6d6fc929509ad7ea1b058a0fc622be5">
+      <source xml:lang="en">WKB bytes</source>
+    </trans-unit>
     <trans-unit id="++CODE++cf95aa41b5e92646701fd3a8ed7c359d126c2bb738e702f6b2300c670f5c3a24">
       <source xml:lang="en">WSL container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e293a8c009e001103199768f7bcbea1729c59f9fc1ef2748958757f47ab99ed">
+      <source xml:lang="en">Waiting</source>
     </trans-unit>
     <trans-unit id="++CODE++d5c7fe9b21751cb7dce95d9d0153ce2f1e7051fead29607c7b04c26a6d474eb4">
       <source xml:lang="en">Walkthroughs</source>
@@ -12705,6 +12982,12 @@
     </trans-unit>
     <trans-unit id="++CODE++d53a5854df209c578705bfaec402128f2a44624d1e435ae700ef0f56c958c15e">
       <source xml:lang="en">Workspace is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++24eaaedc380dc1d8805ec936ffdf0f1e4943475ac07a1fcab04f049c8d83cf30">
+      <source xml:lang="en">World outline</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6e1e5b3543b138100ae82e90e4050783a955adb3268d9c73b3dedb5055358f4">
+      <source xml:lang="en">World outline (offline)</source>
     </trans-unit>
     <trans-unit id="++CODE++687f18249c3d167aac61254957df3d2cd669ee30d31548e228ae611f932b2b9e">
       <source xml:lang="en">Would you like to reload your database project?</source>
@@ -12820,6 +13103,12 @@
     </trans-unit>
     <trans-unit id="++CODE++6af7d7b77b492a1ab706508c2bfd23391aa5f31d081efc876da60eee29bad51a">
       <source xml:lang="en">Zoom controls</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e47f09a748fa1321dbaee5c8983f8e8f2880b1212956fb4f21ae9d60b88a8b2">
+      <source xml:lang="en">Zoom in</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bc7b631a689b45ca5c51923515d31eb3597b2d9b129d88d0dbee066ee5c35453">
+      <source xml:lang="en">Zoom out</source>
     </trans-unit>
     <trans-unit id="++CODE++dc81206350e3da642fed43285f8b5a1dc00e0d91b4b81b6bffe3181d0e261d2e">
       <source xml:lang="en">Zoom to Fit</source>
@@ -13332,6 +13621,11 @@
       <note>{0} is the one-based position of the selected schema difference
 {1} is the total number of visible schema differences</note>
     </trans-unit>
+    <trans-unit id="++CODE++8b58842c5c8b4e9424aab89f63ca3f920a6a0a235f1303ac9c8b216b4d725d92">
+      <source xml:lang="en">{0} / {1} rows</source>
+      <note>{0} is the scanned row count
+{1} is the total row count</note>
+    </trans-unit>
     <trans-unit id="++CODE++244e9a452ed5b376bb0ec7d5161e489ab950a8c7a0ba8948d811b32e4d5f8288">
       <source xml:lang="en">{0} API authentication failed. Check your API key.</source>
     </trans-unit>
@@ -13528,6 +13822,10 @@
       <source xml:lang="en">{0} must define one or more key fields to be used with Data API builder</source>
       <note>{0} is the DAB source type, e.g. Table or View</note>
     </trans-unit>
+    <trans-unit id="++CODE++bf1f5ddb7b3a894a6412012918b1b81a99b65f250b623edb110f8c13ec9745f0">
+      <source xml:lang="en">{0} null / unsupported</source>
+      <note>{0} is the number of unavailable spatial features</note>
+    </trans-unit>
     <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
       <source xml:lang="en">{0} objects found</source>
       <note>{0} is the number of objects found</note>
@@ -13596,6 +13894,10 @@
     <trans-unit id="++CODE++5cfce2c8b0bf6572d859afa030e35d76e8740a8750643214bd34c31876496f67">
       <source xml:lang="en">{0} query</source>
       <note>{0} is the Quick Query shortcut name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++746f8ff96534fae2aa9932a24de85ee39ab3360c0f297da61d0e1b6a9a458517">
+      <source xml:lang="en">{0} renderable</source>
+      <note>{0} is the number of renderable spatial features</note>
     </trans-unit>
     <trans-unit id="++CODE++08d28ae712434acde7968129899d99a2085a2a11f46288f0ae410bbc1d7af999">
       <source xml:lang="en">{0} rows</source>
@@ -13688,6 +13990,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1fb3b6ab635c309decc33aa98f7b6b51d2f4303a3cb3845a54a8f09c3849bd8b">
       <source xml:lang="en">{0} | intentMode={1}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bd704d982ce6b1817d67a2dd5cf111819c382c799a14527875e56eff0807f3e1">
+      <source xml:lang="en">{0} · online</source>
     </trans-unit>
     <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
       <source xml:lang="en">{0}, +{1} more</source>
@@ -13988,6 +14293,9 @@
     </trans-unit>
     <trans-unit id="mssql.format.options.alignClauseBodies">
       <source xml:lang="en">Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.sources.allowPrivateNetwork">
+      <source xml:lang="en">Allow a source that resolves to loopback/private addresses (additional confirmation required).</source>
     </trans-unit>
     <trans-unit id="mssql.format.options.allowExternalLanguagePaths">
       <source xml:lang="en">Allow external language content to use file paths.</source>
@@ -14322,6 +14630,9 @@
     <trans-unit id="mssql.disconnect">
       <source xml:lang="en">Disconnect (MSSQL)</source>
     </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.cache.maxMb">
+      <source xml:lang="en">Disk budget for cached spatial map tiles (MB). Tiles are evicted by size and age; use &quot;MS SQL: Spatial Map Layers: Clear Tile Cache&quot; to remove them immediately.</source>
+    </trans-unit>
     <trans-unit id="mssql.quickQueries.name">
       <source xml:lang="en">Display name for this Quick Query.</source>
     </trans-unit>
@@ -14454,8 +14765,14 @@
     <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
       <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
     </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.enabled">
+      <source xml:lang="en">Enable optional online map layers in the Query Studio spatial preview. Online layers require workspace trust and network consent. The bundled world outline is available offline without this setting.</source>
+    </trans-unit>
     <trans-unit id="sqlDatabaseProjects.enablePreviewFeatures">
       <source xml:lang="en">Enable preview SQL Database Projects features</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.enabled">
+      <source xml:lang="en">Enable the Spatial results tab (preview): queries with native geometry or geography columns transport complete typed WKB and gain the offline spatial analysis pane. Applies to the next query execution.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
       <source xml:lang="en">Enabled</source>
@@ -14595,6 +14912,9 @@
     <trans-unit id="mssql.objectExplorer.v2.groupBySchema.description">
       <source xml:lang="en">Group supported Connections (Private Preview) database objects by schema.</source>
     </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.sources.urlTemplate">
+      <source xml:lang="en">HTTPS tile URL template containing exactly one {z}, {x}, and {y} placeholder and no other placeholders or credentials.</source>
+    </trans-unit>
     <trans-unit id="mssql.hideOverviewInObjectExplorer">
       <source xml:lang="en">Hide</source>
     </trans-unit>
@@ -14678,6 +14998,9 @@
     </trans-unit>
     <trans-unit id="mssql.manageProfiles">
       <source xml:lang="en">Manage Connection Profiles</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.cache.maxAgeDays">
+      <source xml:lang="en">Maximum age for cached spatial map tiles (days).</source>
     </trans-unit>
     <trans-unit id="mssql.sessionDiag.maxAgeDays.description">
       <source xml:lang="en">Maximum age in days for locally retained diagnostic sessions.</source>
@@ -14766,6 +15089,9 @@
     <trans-unit id="mssql.objectExplorerV2.moveToGroup">
       <source xml:lang="en">Move to Group...</source>
     </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.sources.displayName">
+      <source xml:lang="en">Name shown in the Layers selector (plain text).</source>
+    </trans-unit>
     <trans-unit id="new-command">
       <source xml:lang="en">New</source>
     </trans-unit>
@@ -14825,6 +15151,9 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.altText">
       <source xml:lang="en">Object Explorer filters</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.sources">
+      <source xml:lang="en">Online map tile sources for the Spatial tab (user settings only — workspace values are ignored). Each source is a host-proxied HTTPS XYZ raster endpoint; the Query Studio webview never contacts the provider directly. Selecting a source requires a one-time confirmation because tile requests reveal the approximate viewed area to the provider.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
       <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
@@ -14906,6 +15235,9 @@
     </trans-unit>
     <trans-unit id="mssql.copilot.sdkProviders.openai.baseUrl.description">
       <source xml:lang="en">Optional OpenAI-compatible API base URL for a proxy, gateway, or Azure OpenAI endpoint.</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.sources.credentialRef">
+      <source xml:lang="en">Optional SecretStorage key name; the secret is sent host-side as an Authorization bearer token. Never place a secret in this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.inlineCompletions.modelFamily.description">
       <source xml:lang="en">Optional language model selector for SQL inline completions, such as copilot/gpt-6.1-sol. Accepts a vendor/id selector or a bare family name. Leave empty to use the active profile, which prefers GPT-6.1 Sol for intent. Only models available to your account are used.</source>
@@ -15399,6 +15731,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description">
       <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
     </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.sources.kind">
+      <source xml:lang="en">Source protocol. Only host-proxied XYZ raster tiles are supported.</source>
+    </trans-unit>
     <trans-unit id="mssql.customEnvironment.dynamicsCrmDnsSuffix">
       <source xml:lang="en">Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)</source>
     </trans-unit>
@@ -15428,6 +15763,18 @@
     </trans-unit>
     <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
       <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
+    </trans-unit>
+    <trans-unit id="mssql.spatialBasemap.clearConsent.title">
+      <source xml:lang="en">Spatial Map Layers: Clear Layer Consent</source>
+    </trans-unit>
+    <trans-unit id="mssql.spatialBasemap.clearCache.title">
+      <source xml:lang="en">Spatial Map Layers: Clear Tile Cache</source>
+    </trans-unit>
+    <trans-unit id="mssql.spatialBasemap.setCredential">
+      <source xml:lang="en">Spatial Map Layers: Set Layer Credential</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryStudio.spatial.basemap.sources.id">
+      <source xml:lang="en">Stable ASCII identifier for this source (letters, digits, hyphens).</source>
     </trans-unit>
     <trans-unit id="mssql.startQueryHistoryCapture">
       <source xml:lang="en">Start Query History Capture</source>

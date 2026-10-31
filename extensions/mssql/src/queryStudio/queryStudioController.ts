@@ -12,6 +12,7 @@
  * counts only; the grid pulls windows via QsGetRows (addendum §3.6).
  */
 
+import { isSpatialResultsEnabled } from "../queryResults/spatial/spatialFeatureGate";
 import * as vscode from "vscode";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
@@ -80,6 +81,25 @@ import { buildBoundedMessagesText } from "../sharedInterfaces/queryStudioMessage
 import { copyQueryStudioSelection } from "./resultClipboard";
 import { resolveQueryTuning } from "./tuning/queryTuningResolver";
 import { QUERY_TUNING_DEFAULTS } from "../sharedInterfaces/queryTuning";
+import { SpatialSessionManager } from "../queryResults/spatial/spatialSessionManager";
+import { SpatialBasemapSessionManager } from "../queryResults/spatialBasemap/spatialBasemapSessionManager";
+import {
+    spatialBasemapCacheRoot,
+    spatialBasemapHost,
+    onDidChangeSpatialBasemap,
+} from "../queryResults/spatialBasemap/spatialBasemapHost";
+import {
+    QsSpatialBasemapCloseRequest,
+    QsSpatialBasemapListRequest,
+    QsSpatialBasemapOpenRequest,
+    QsSpatialBasemapTileRequest,
+} from "../sharedInterfaces/spatialBasemap";
+import {
+    QsSpatialCancelRequest,
+    QsSpatialCloseRequest,
+    QsSpatialNextRequest,
+    QsSpatialOpenRequest,
+} from "../sharedInterfaces/spatialResults";
 import {
     QsLangCompletionRequest,
     QsLangDefinitionRequest,
@@ -129,7 +149,10 @@ import {
     normalizeQueryStudioPanelViewState,
     resetQueryStudioPanelViewState,
 } from "../sharedInterfaces/queryStudioViewState";
-import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
+import {
+    QueryStudioCore as QueryStudioCoreLoc,
+    SpatialResults as SpatialResultsLoc,
+} from "../constants/locConstants";
 
 /** Scan-and-detect: idle beat after the webview is ready (plan §3.4). */
 const OPEN_SCAN_DELAY_MS = 1_500;
@@ -165,6 +188,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     /** Database names cached from QsListDatabases for USE completions. */
     private _languageDatabasesCache: string[] | undefined;
     private restoreEditorFocusWhenActive = false;
+    /** Spatial pull sessions — created only when the lazy pane opens. */
+    private spatialService: SpatialSessionManager | undefined;
     /** Per-panel, memory-only UI state; deliberately excluded from QsState. */
     private panelViewState: QueryStudioPanelViewState;
 
@@ -183,9 +208,18 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         );
         this.panelViewState.shell.resultsHeightPct =
             QueryStudioController.currentGridStyle().resultsPaneHeightPct ?? 50;
+        // SPA-10 / D-0022: the basemap tile cache directory is the ONLY extra
+        // local root — never all of global storage (addendum §6.4). Derived
+        // from context, NOT the host singleton: restored editors resolve
+        // mid-activation before the host initializes, and roots are fixed at
+        // construction — omitting it here 401s every tile for the panel's
+        // lifetime.
         this.panel.webview.options = {
             enableScripts: true,
-            localResourceRoots: [vscode.Uri.file(context.extensionPath)],
+            localResourceRoots: [
+                vscode.Uri.file(context.extensionPath),
+                spatialBasemapCacheRoot(context),
+            ],
         };
         this.panel.webview.html = this._getHtmlTemplate();
         // Bind the RPC reader/writer to the PROVIDED panel's webview — the
@@ -206,6 +240,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         this.registerDisposable(
             this.panel.onDidChangeViewState((event) => {
                 if (!event.webviewPanel.visible) {
+                    this.resetSpatialServices("disposed");
                     this.queueStatePush();
                     return;
                 }
@@ -243,6 +278,13 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             }),
         );
         this.registerDisposable(
+            onDidChangeSpatialBasemap(() => {
+                this.spatialBasemapService?.dispose("consentChanged");
+                this.spatialBasemapEpoch++;
+                this.queueStatePush();
+            }),
+        );
+        this.registerDisposable(
             vscode.workspace.onDidChangeConfiguration((e) => {
                 if (affectsQueryStudioGridStyle(e)) {
                     this.queueStatePush();
@@ -255,6 +297,24 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     e.affectsConfiguration("mssql.intelliSense")
                 ) {
                     this.languageService.onDiagnosticsSettingChanged();
+                }
+                if (
+                    e.affectsConfiguration("mssql.queryStudio.spatial.enabled") ||
+                    e.affectsConfiguration("mssql.enableExperimentalFeatures") ||
+                    e.affectsConfiguration("mssql.sqlDataPlane.enabled") ||
+                    e.affectsConfiguration("mssql.queryStudio.enabled")
+                ) {
+                    if (!isSpatialResultsEnabled()) {
+                        this.resetSpatialServices("configChanged");
+                    }
+                    this.queueStatePush();
+                }
+                if (e.affectsConfiguration("mssql.queryStudio.spatial.basemap")) {
+                    this.spatialBasemapService?.dispose("configChanged");
+                    // Epoch bump makes mounted spatial panes re-fetch the
+                    // layer list (one-click OSM setup lands live).
+                    this.spatialBasemapEpoch++;
+                    this.queueStatePush();
                 }
             }),
         );
@@ -280,7 +340,19 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             }),
         );
 
+        const spatialBindingKey = () =>
+            JSON.stringify([
+                this.model.sessionBinding.connectionIdentity,
+                this.model.sessionBinding.connectionState.backend,
+            ]);
+        let lastSpatialBindingKey = spatialBindingKey();
         this.bindingListener = this.model.sessionBinding.onDidChange(() => {
+            const nextKey = spatialBindingKey();
+            // Metadata/status updates do not invalidate an in-flight map pull.
+            if (nextKey !== lastSpatialBindingKey) {
+                lastSpatialBindingKey = nextKey;
+                this.resetSpatialServices("configChanged");
+            }
             this.queueStatePush();
         });
 
@@ -300,6 +372,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
                     this.panelViewState,
                     String(startedEpochMs),
                 );
+                this.resetSpatialServices("rerun");
                 void this.sendNotification(QsRunStartedNotification.type, { startedEpochMs });
                 this.queueStatePush();
             },
@@ -454,6 +527,8 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             gridStyle: QueryStudioController.currentGridStyle(),
             statusMessage: { kind: "ready", text: QueryStudioCoreLoc.readyNotConnected },
             capabilities: {
+                spatialResults: model.executionHost.spatialResultsGate(),
+                spatialBasemap: QueryStudioController.spatialBasemapGate(),
                 panelVisible: true,
             },
         };
@@ -595,7 +670,10 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             };
         }
         state.completions = { enabled: isInlineCompletionFeatureEnabled() };
+        state.capabilities.spatialResults = this.model.executionHost.spatialResultsGate();
+        state.capabilities.spatialBasemap = QueryStudioController.spatialBasemapGate();
         state.capabilities.panelVisible = this.panel.visible;
+        state.spatialBasemapEpoch = this.spatialBasemapEpoch;
         // Grid windowing knobs ride the style snapshot (QO-7): the run's
         // tuning when one exists, else the current resolution.
         const tuning = (this.model.executionHost.currentTuning ?? resolveQueryTuning()).params;
@@ -733,6 +811,10 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
     protected override cspOptions(): { enabled: boolean; allowWorker?: boolean } {
         return { enabled: true, allowWorker: true };
     }
+
+    private spatialBasemapService: SpatialBasemapSessionManager | undefined;
+    /** Bumped on basemap config changes so panes re-fetch the layer list. */
+    private spatialBasemapEpoch = 0;
     /** Recently served scripted definitions, addressed by cacheKey (LRU). */
     private readonly scriptedDefinitions = new Map<string, ScriptedDefinitionContent>();
 
@@ -743,6 +825,48 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             const oldest = this.scriptedDefinitions.keys().next().value as string;
             this.scriptedDefinitions.delete(oldest);
         }
+    }
+
+    private spatialResults(): SpatialSessionManager {
+        this.spatialService ??= new SpatialSessionManager();
+        return this.spatialService;
+    }
+
+    /** SPA-10: the Layers selector gate; read live so a settings flip lands on the next state push. */
+    private static spatialBasemapGate(): boolean {
+        return (
+            isSpatialResultsEnabled() &&
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean>("mssql.queryStudio.spatial.basemap.enabled") === true
+        );
+    }
+
+    private resetSpatialServices(reason: "rerun" | "configChanged" | "disposed" = "rerun"): void {
+        this.spatialService?.dispose();
+        this.spatialService = undefined;
+        this.spatialBasemapService?.dispose(reason);
+        this.spatialBasemapService = undefined;
+    }
+
+    /** Lazy per-panel basemap sessions over the extension-level host seams. */
+    private spatialBasemap(): SpatialBasemapSessionManager | undefined {
+        if (!this.spatialBasemapService) {
+            const host = spatialBasemapHost();
+            if (!host) {
+                return undefined;
+            }
+            this.spatialBasemapService = new SpatialBasemapSessionManager({
+                sources: () => host.sources(),
+                consent: host.consent,
+                cache: host.cache,
+                fetcher: host.fetcher,
+                isTrusted: () => host.isTrusted(),
+                confirm: (source) => host.confirm(source),
+                secretFor: (ref) => host.secretFor(ref),
+            });
+        }
+        return this.spatialBasemapService;
     }
 
     private registerHandlers(): void {
@@ -1135,6 +1259,71 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             };
             await showPlanXml(state, { sqlPlanContent });
         });
+
+        // --- spatial results: lazy, opaque, bounded pull sessions -----------
+        this.onRequest(QsSpatialOpenRequest.type, async (params) => {
+            if (!isSpatialResultsEnabled())
+                return {
+                    handle: "",
+                    generation: 0,
+                    totalRows: 0,
+                    chunkRows: 512,
+                    error: SpatialResultsLoc.disabled,
+                };
+            // First spatial view is the moment map layers become relevant:
+            // offer the one-click OpenStreetMap setup (no-op once configured
+            // or dismissed; the host caps it at once per session).
+            void spatialBasemapHost()?.maybeOfferSetup();
+            return this.spatialResults().open(this.model.executionHost.retainedStore, params);
+        });
+        this.onRequest(QsSpatialNextRequest.type, async (params) =>
+            this.spatialResults().next(params),
+        );
+        this.onRequest(QsSpatialCancelRequest.type, async ({ handle, generation }) => {
+            this.spatialService?.cancel(handle, generation);
+        });
+        this.onRequest(QsSpatialCloseRequest.type, async ({ handle }) => {
+            this.spatialService?.close(handle);
+        });
+
+        // --- spatial basemap (SPA-10): host-proxied layers -------------------
+        this.onRequest(QsSpatialBasemapListRequest.type, async () => {
+            const host = spatialBasemapHost();
+            if (!host || !QueryStudioController.spatialBasemapGate()) {
+                return { layers: [], trusted: host?.isTrusted() ?? false };
+            }
+            return {
+                layers: host.sources().map((source) => source.descriptor),
+                trusted: host.isTrusted(),
+            };
+        });
+        this.onRequest(QsSpatialBasemapOpenRequest.type, async (params) => {
+            const sessions = this.spatialBasemap();
+            if (!sessions || !QueryStudioController.spatialBasemapGate()) {
+                return { status: "unavailable" as const };
+            }
+            const outcome = await sessions.open(params);
+            return { ...outcome, tileProjection: "EPSG:3857" as const };
+        });
+        this.onRequest(QsSpatialBasemapTileRequest.type, async (params) => {
+            const sessions = this.spatialBasemapService;
+            if (!sessions) {
+                return { status: "cancelled" as const };
+            }
+            const outcome = await sessions.tile(params);
+            if (outcome.status !== "ready" || !outcome.filePath) {
+                return { status: outcome.status };
+            }
+            return {
+                status: "ready" as const,
+                localUri: this.panel.webview
+                    .asWebviewUri(vscode.Uri.file(outcome.filePath))
+                    .toString(),
+            };
+        });
+        this.onRequest(QsSpatialBasemapCloseRequest.type, async ({ handle, reason }) => {
+            this.spatialBasemapService?.close(handle, reason);
+        });
         this.onRequest(QsShowPlanQueryRequest.type, async ({ query }) => {
             const seam = await this.executionPlanSeam();
             if (!seam) {
@@ -1416,6 +1605,7 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
         }
         this.inlineCompletionCts?.cancel();
         this.inlineCompletionCts = undefined;
+        this.resetSpatialServices("disposed");
         this.languageService.dispose();
         this.modelListener.dispose();
         this.bindingListener?.dispose();

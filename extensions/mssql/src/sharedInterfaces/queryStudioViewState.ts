@@ -19,7 +19,7 @@ import { SortProperties, type ColumnFilterMap, type GridViewState } from "./quer
 
 export const QS_PANEL_VIEW_STATE_VERSION = 3;
 
-export type QueryStudioTabId = "results" | "messages" | "queryPlan";
+export type QueryStudioTabId = "results" | "messages" | "spatial" | "queryPlan";
 
 export function resolveQueryStudioVisibleTab(
     requested: QueryStudioTabId,
@@ -97,6 +97,7 @@ export function resolveQueryStudioTerminalAutoTab(
 export const QUERY_STUDIO_TAB_ORDER: readonly QueryStudioTabId[] = [
     "results",
     "messages",
+    "spatial",
     "queryPlan",
 ];
 
@@ -150,6 +151,37 @@ export interface QsExecutionPlanViewState {
     graphs: Record<string, QsExecutionPlanGraphViewState>;
 }
 
+export interface QsSpatialPanelViewState {
+    selectedColumn?: { resultSetId: string; columnOrdinal: number };
+    labelColumnOrdinal?: number;
+    colorColumnOrdinal?: number;
+    groupBy: "none" | "srid" | "geometryType";
+    renderer: "auto" | "canvas" | "clusters" | "gpuPoints";
+    sidebarOpen: boolean;
+    listOpen: boolean;
+    detailsOpen: boolean;
+    filters: {
+        showNull: boolean;
+        showEmpty: boolean;
+        showUnsupported: boolean;
+        geometryType?: string;
+        srid?: number;
+    };
+    selectedRowOrdinal?: number;
+    camera?: { centerX: number; centerY: number; zoom: number; rotation: number };
+    listScrollTop: number;
+    /** Feature-list / details panel widths in px (splitter-adjusted). */
+    listWidth?: number;
+    detailsWidth?: number;
+    /**
+     * Selected map layer id (SPA-10): "worldOutline" or a configured online
+     * source id. Absent means None. Only the id persists — never a URL,
+     * credential, or attribution; online ids are revalidated (source, consent,
+     * trust) on restore before any session opens.
+     */
+    layerId?: string;
+}
+
 export interface QueryStudioPanelViewState {
     version: typeof QS_PANEL_VIEW_STATE_VERSION;
     /** Run start epoch as a string, or "idle" before the first run. */
@@ -167,6 +199,7 @@ export interface QueryStudioPanelViewState {
         textView?: QsResultsTextViewState;
     };
     messages: QsMessagesPanelViewState;
+    spatial: QsSpatialPanelViewState;
     queryPlan: QsExecutionPlanViewState;
 }
 
@@ -182,6 +215,15 @@ export function createQueryStudioPanelViewState(generation: string): QueryStudio
         },
         results: { stackScrollTop: 0, grids: {} },
         messages: { scrollTop: 0 },
+        spatial: {
+            groupBy: "none",
+            renderer: "auto",
+            sidebarOpen: true,
+            listOpen: true,
+            detailsOpen: true,
+            filters: { showNull: true, showEmpty: true, showUnsupported: true },
+            listScrollTop: 0,
+        },
         queryPlan: { pageScrollTop: 0, graphs: {} },
     };
 }
@@ -194,6 +236,27 @@ export function resetQueryStudioPanelViewState(
     const next = createQueryStudioPanelViewState(generation);
     next.shell.resultsHeightPct = previous.shell.resultsHeightPct;
     next.shell.resultsPaneMaximized = previous.shell.resultsPaneMaximized;
+    next.spatial.groupBy = previous.spatial.groupBy;
+    next.spatial.renderer = previous.spatial.renderer;
+    next.spatial.sidebarOpen = previous.spatial.sidebarOpen;
+    next.spatial.listOpen = previous.spatial.listOpen;
+    next.spatial.detailsOpen = previous.spatial.detailsOpen;
+    if (previous.spatial.listWidth !== undefined) {
+        next.spatial.listWidth = previous.spatial.listWidth;
+    }
+    if (previous.spatial.detailsWidth !== undefined) {
+        next.spatial.detailsWidth = previous.spatial.detailsWidth;
+    }
+    next.spatial.filters = {
+        showNull: previous.spatial.filters.showNull,
+        showEmpty: previous.spatial.filters.showEmpty,
+        showUnsupported: previous.spatial.filters.showUnsupported,
+    };
+    // Layer choice survives reruns (SPA-10 / D-0031); eligibility, consent,
+    // and trust are re-checked against the NEW result before anything renders.
+    if (previous.spatial.layerId !== undefined) {
+        next.spatial.layerId = previous.spatial.layerId;
+    }
     return next;
 }
 
@@ -241,6 +304,7 @@ export function normalizeQueryStudioPanelViewState(
         !isShellState(candidate.shell) ||
         !isResultsState(candidate.results) ||
         !isMessagesState(candidate.messages) ||
+        !isSpatialState(candidate.spatial) ||
         !isExecutionPlanState(candidate.queryPlan)
     ) {
         return undefined;
@@ -259,6 +323,14 @@ function isBoundedString(value: unknown, maxLength = MAX_SHORT_STRING_LENGTH): v
 
 function isFiniteNumber(value: unknown, min = 0, max = Number.MAX_SAFE_INTEGER): value is number {
     return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
+}
+
+function isAnyFiniteNumber(value: unknown): value is number {
+    return typeof value === "number" && Number.isFinite(value);
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+    return Number.isInteger(value) && isFiniteNumber(value);
 }
 
 function hasOnlyKeys(record: Record<string, unknown>, allowed: readonly string[]): boolean {
@@ -449,6 +521,77 @@ function isMessagesState(value: unknown): boolean {
     );
 }
 
+function isSpatialState(value: unknown): boolean {
+    if (!isRecord(value) || !isRecord(value.filters)) {
+        return false;
+    }
+    const selectedColumn = value.selectedColumn;
+    const camera = value.camera;
+    return (
+        hasOnlyKeys(value, [
+            "selectedColumn",
+            "labelColumnOrdinal",
+            "colorColumnOrdinal",
+            "groupBy",
+            "renderer",
+            "sidebarOpen",
+            "listOpen",
+            "detailsOpen",
+            "filters",
+            "selectedRowOrdinal",
+            "camera",
+            "listScrollTop",
+            "listWidth",
+            "detailsWidth",
+            "layerId",
+        ]) &&
+        (value.layerId === undefined ||
+            (isBoundedString(value.layerId, 64) &&
+                /^[A-Za-z][A-Za-z0-9_-]*$/.test(value.layerId as string))) &&
+        (selectedColumn === undefined ||
+            (isRecord(selectedColumn) &&
+                hasOnlyKeys(selectedColumn, ["resultSetId", "columnOrdinal"]) &&
+                isBoundedString(selectedColumn.resultSetId) &&
+                isNonNegativeInteger(selectedColumn.columnOrdinal))) &&
+        (value.labelColumnOrdinal === undefined ||
+            isNonNegativeInteger(value.labelColumnOrdinal)) &&
+        (value.colorColumnOrdinal === undefined ||
+            isNonNegativeInteger(value.colorColumnOrdinal)) &&
+        ["none", "srid", "geometryType"].includes(value.groupBy as string) &&
+        ["auto", "canvas", "clusters", "gpuPoints"].includes(value.renderer as string) &&
+        typeof value.sidebarOpen === "boolean" &&
+        typeof value.listOpen === "boolean" &&
+        typeof value.detailsOpen === "boolean" &&
+        // geometryType/srid are optional runtime filter keys — omitting them
+        // here used to reject (and silently drop) the whole persisted state.
+        hasOnlyKeys(value.filters, [
+            "showNull",
+            "showEmpty",
+            "showUnsupported",
+            "geometryType",
+            "srid",
+        ]) &&
+        typeof value.filters.showNull === "boolean" &&
+        typeof value.filters.showEmpty === "boolean" &&
+        typeof value.filters.showUnsupported === "boolean" &&
+        (value.filters.geometryType === undefined ||
+            isBoundedString(value.filters.geometryType, 64)) &&
+        (value.filters.srid === undefined || isNonNegativeInteger(value.filters.srid)) &&
+        (value.selectedRowOrdinal === undefined ||
+            isNonNegativeInteger(value.selectedRowOrdinal)) &&
+        (value.listWidth === undefined || isFiniteNumber(value.listWidth, 120, 4000)) &&
+        (value.detailsWidth === undefined || isFiniteNumber(value.detailsWidth, 120, 4000)) &&
+        (camera === undefined ||
+            (isRecord(camera) &&
+                hasOnlyKeys(camera, ["centerX", "centerY", "zoom", "rotation"]) &&
+                isAnyFiniteNumber(camera.centerX) &&
+                isAnyFiniteNumber(camera.centerY) &&
+                isFiniteNumber(camera.zoom, 0, 30) &&
+                isAnyFiniteNumber(camera.rotation))) &&
+        isFiniteNumber(value.listScrollTop)
+    );
+}
+
 function isExecutionPlanState(value: unknown): boolean {
     if (!isRecord(value) || !isFiniteNumber(value.pageScrollTop) || !isRecord(value.graphs)) {
         return false;
@@ -499,14 +642,23 @@ function isExecutionPlanGraphState(value: unknown): boolean {
 export function orderedQueryStudioTabs(options: {
     results: boolean;
     messages?: boolean;
+    spatial?: boolean;
     queryPlan: boolean;
 }): QueryStudioTabId[] {
     const applies: Record<QueryStudioTabId, boolean> = {
         results: options.results,
         messages: options.messages !== false,
+        spatial: options.spatial === true,
         queryPlan: options.queryPlan,
     };
     return QUERY_STUDIO_TAB_ORDER.filter((tab) => applies[tab]);
+}
+
+export function isSpatialTabEligible(
+    featureEnabled: boolean,
+    columns: readonly { spatial?: { encoding: "wkb-v1" } }[],
+): boolean {
+    return featureEnabled && columns.some((column) => column.spatial?.encoding === "wkb-v1");
 }
 
 export namespace QsGetPanelViewStateRequest {
