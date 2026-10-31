@@ -74,7 +74,9 @@ for (const backend of ["sts2-local", "ts-native"]) {
             const pinned = page
                 .frameLocator(`.webview:not([name="${studioName}"])`)
                 .frameLocator("#active-frame");
-            await expect(pinned.locator(".qs-pinned-root")).toBeVisible();
+            // Cold, coverage-instrumented webviews need the same startup budget
+            // as the source editor; subsequent interactions keep normal waits.
+            await expect(pinned.locator(".qs-pinned-root")).toBeVisible({ timeout: 60_000 });
             if (process.env.MSSQL_EXPECT_WEBVIEW_COVERAGE === "1") {
                 for (const frame of [studio, pinned]) {
                     expect(
