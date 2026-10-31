@@ -169,6 +169,17 @@ for (const enabled of [true, false]) {
         if (enabled)
             test("reruns clear geometry/SRID filters and narrow panes keep controls reachable", async () => {
                 const { page } = getContext();
+                await page
+                    .getByRole("tab", { name: /Untitled-1/ })
+                    .first()
+                    .click();
+                await studio.getByRole("tab", { name: "Spatial", exact: true }).click();
+                await expect(
+                    studio
+                        .getByRole("listbox", { name: "Spatial features" })
+                        .getByRole("option", { name: /Point$/ })
+                        .first(),
+                ).toBeVisible({ timeout: 20_000 });
                 await studio
                     .getByRole("combobox", { name: "Geometry type", exact: true })
                     .selectOption("Point");
@@ -215,9 +226,23 @@ for (const enabled of [true, false]) {
             });
         if (enabled)
             test("disabling spatial releases live and pinned map resources", async () => {
-                const { userDataDir } = getContext();
-                for (const frame of [studio, pinned])
-                    await expect(frame.locator(".qs-spatial-map-region")).toHaveCount(1);
+                const { page, userDataDir } = getContext();
+                for (const [frame, title] of [
+                    [pinned, /Pinned Results/],
+                    [studio, /Untitled-1/],
+                ] as const) {
+                    await page.getByRole("tab", { name: title }).first().click();
+                    await frame.getByRole("tab", { name: "Spatial", exact: true }).click();
+                    await expect(
+                        frame
+                            .getByRole("listbox", { name: "Spatial features" })
+                            .getByRole("option")
+                            .first(),
+                    ).toBeVisible({ timeout: 20_000 });
+                    await expect(
+                        frame.locator(".qs-spatial-map-region canvas").first(),
+                    ).toBeVisible();
+                }
                 const userDir = path.join(userDataDir, "User");
                 const profiles = path.join(userDir, "profiles");
                 const settingsPaths = [path.join(userDir, "settings.json")];
