@@ -167,6 +167,53 @@ for (const enabled of [true, false]) {
                 await expect(studio.locator(".qs-spatial-map-region canvas").first()).toBeVisible();
             });
         if (enabled)
+            test("reruns clear geometry/SRID filters and narrow panes keep controls reachable", async () => {
+                const { page } = getContext();
+                await studio
+                    .getByRole("combobox", { name: "Geometry type", exact: true })
+                    .selectOption("Point");
+                await studio
+                    .getByRole("combobox", { name: "SRID", exact: true })
+                    .selectOption("4326");
+                await studio.locator(".monaco-editor .view-lines").click();
+                await page.keyboard.press("ControlOrMeta+a");
+                await page.keyboard.insertText(
+                    "SELECT geometry::STGeomFromText('LINESTRING(0 0, 1 1)', 0) AS route;",
+                );
+                await studio.getByTitle("Execute (F5 / Ctrl+E)", { exact: true }).click();
+                await expect(
+                    studio.getByText("Query executed successfully.", { exact: true }),
+                ).toBeVisible({ timeout: 60000 });
+                await studio.getByRole("tab", { name: "Spatial", exact: true }).click();
+                await expect(
+                    studio
+                        .getByRole("listbox", { name: "Spatial features" })
+                        .getByRole("option", { name: /LineString$/ }),
+                ).toHaveCount(1, { timeout: 20000 });
+                await expect(
+                    studio.getByRole("combobox", { name: "Geometry type", exact: true }),
+                ).toHaveValue("");
+                await expect(
+                    studio.getByRole("combobox", { name: "SRID", exact: true }),
+                ).toHaveValue("");
+                const body = studio.locator(".qs-spatial-body");
+                await body.evaluate((element) => {
+                    element.style.width = "266px";
+                });
+                await expect
+                    .poll(() =>
+                        body.evaluate((element) => {
+                            element.scrollLeft = element.scrollWidth;
+                            return element.scrollLeft;
+                        }),
+                    )
+                    .toBeGreaterThan(0);
+                await body.evaluate((element) => {
+                    element.style.width = "";
+                    element.scrollLeft = 0;
+                });
+            });
+        if (enabled)
             test("disabling spatial releases live and pinned map resources", async () => {
                 const { userDataDir } = getContext();
                 for (const frame of [studio, pinned])

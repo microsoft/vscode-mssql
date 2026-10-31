@@ -207,7 +207,8 @@ export function validateSpatialBasemapSources(raw: unknown): SpatialBasemapConfi
         }
         if (attribution.termsUrl !== undefined) {
             try {
-                if (new URL(attribution.termsUrl as string).protocol !== "https:") {
+                const terms = new URL(attribution.termsUrl as string);
+                if (terms.protocol !== "https:" || terms.username || terms.password) {
                     reject("invalidTermsUrl");
                     return;
                 }

@@ -490,6 +490,16 @@ suite("spatial basemap source validation (SPA-10 §5.2)", () => {
                 "invalidTermsUrl",
             ],
             [{ ...GOOD_SOURCE, credentialRef: "bad ref!" }, "invalidCredentialRef"],
+            [
+                {
+                    ...GOOD_SOURCE,
+                    attribution: {
+                        text: "ok",
+                        termsUrl: "https://user:secret@maps.contoso.example/terms",
+                    },
+                },
+                "invalidTermsUrl",
+            ],
         ];
         for (const [candidate, code] of cases) {
             const { sources, issues } = validateSpatialBasemapSources([candidate]);

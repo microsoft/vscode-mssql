@@ -180,6 +180,13 @@ suite("Query Studio panel view state", () => {
         state.spatial.camera = { centerX: -122, centerY: 47, zoom: 5, rotation: 0 };
         state.spatial.selectedRowOrdinal = 3;
         state.spatial.layerId = "worldOutline";
+        state.spatial.filters = {
+            showNull: false,
+            showEmpty: true,
+            showUnsupported: false,
+            geometryType: "Polygon",
+            srid: 4326,
+        };
         expect(
             normalizeQueryStudioPanelViewState(JSON.parse(JSON.stringify(state)), "run-1"),
         ).to.deep.equal(state);
@@ -194,6 +201,11 @@ suite("Query Studio panel view state", () => {
         expect(reset.spatial.selectedColumn).to.equal(undefined);
         expect(reset.spatial.selectedRowOrdinal).to.equal(undefined);
         expect(reset.spatial.camera).to.equal(undefined);
+        expect(reset.spatial.filters).to.deep.equal({
+            showNull: false,
+            showEmpty: true,
+            showUnsupported: false,
+        });
         const malformed = {
             ...state,
             spatial: { ...state.spatial, camera: { ...state.spatial.camera, zoom: NaN } },

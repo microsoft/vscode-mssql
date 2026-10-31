@@ -340,8 +340,19 @@ export class QueryStudioController extends WebviewBaseController<QsState, void> 
             }),
         );
 
+        const spatialBindingKey = () =>
+            JSON.stringify([
+                this.model.sessionBinding.connectionIdentity,
+                this.model.sessionBinding.connectionState.backend,
+            ]);
+        let lastSpatialBindingKey = spatialBindingKey();
         this.bindingListener = this.model.sessionBinding.onDidChange(() => {
-            this.resetSpatialServices("configChanged");
+            const nextKey = spatialBindingKey();
+            // Metadata/status updates do not invalidate an in-flight map pull.
+            if (nextKey !== lastSpatialBindingKey) {
+                lastSpatialBindingKey = nextKey;
+                this.resetSpatialServices("configChanged");
+            }
             this.queueStatePush();
         });
 

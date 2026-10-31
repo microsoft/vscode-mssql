@@ -304,8 +304,13 @@ export function PinnedResultsApp() {
     );
     const spatialColumns = useMemo(
         () =>
-            gridSummaries.flatMap(
-                (summary, resultIndex) =>
+            gridSummaries.flatMap((summary, resultIndex) => {
+                const columns = (summary.columns ?? []).map((candidate, index) => ({
+                    ordinal: index,
+                    name: candidate.displayName || candidate.name,
+                    ...(candidate.sqlType ? { sqlType: candidate.sqlType } : {}),
+                }));
+                return (
                     summary.columns?.flatMap((column, ordinal) =>
                         column.spatial?.encoding === "wkb-v1"
                             ? [
@@ -316,18 +321,13 @@ export function PinnedResultsApp() {
                                       columnName: column.displayName || column.name,
                                       kind: column.spatial.kind,
                                       totalRows: summary.rowCount,
-                                      columns: (summary.columns ?? []).map((candidate, index) => ({
-                                          ordinal: index,
-                                          name: candidate.displayName || candidate.name,
-                                          ...(candidate.sqlType
-                                              ? { sqlType: candidate.sqlType }
-                                              : {}),
-                                      })),
+                                      columns,
                                   },
                               ]
                             : [],
-                    ) ?? [],
-            ),
+                    ) ?? []
+                );
+            }),
         [gridSummaries],
     );
     // Plan graphs load once (the snapshot is frozen) when the tab first mounts.

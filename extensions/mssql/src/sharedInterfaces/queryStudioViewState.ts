@@ -247,7 +247,11 @@ export function resetQueryStudioPanelViewState(
     if (previous.spatial.detailsWidth !== undefined) {
         next.spatial.detailsWidth = previous.spatial.detailsWidth;
     }
-    next.spatial.filters = { ...previous.spatial.filters };
+    next.spatial.filters = {
+        showNull: previous.spatial.filters.showNull,
+        showEmpty: previous.spatial.filters.showEmpty,
+        showUnsupported: previous.spatial.filters.showUnsupported,
+    };
     // Layer choice survives reruns (SPA-10 / D-0031); eligibility, consent,
     // and trust are re-checked against the NEW result before anything renders.
     if (previous.spatial.layerId !== undefined) {
