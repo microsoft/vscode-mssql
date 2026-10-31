@@ -100,4 +100,18 @@ test.describe("Object Explorer v2 view parity", () => {
         await expect(gettingStarted(preview)).toBeVisible();
         await expect(gettingStarted(classic)).toBeVisible();
     });
+
+    test("opens the shared deployment wizard from the v2 toolbar", async () => {
+        const { page } = getContext();
+        const preview = page.locator(".pane").filter({
+            has: page.getByRole("heading", { name: "Connections (Private Preview)", exact: true }),
+        });
+        await preview.locator(".pane-header").hover();
+        await preview.getByRole("button", { name: "New Deployment", exact: true }).click();
+        await expect(page.getByRole("tab", { name: "New Deployment", exact: true })).toBeVisible();
+        const wizard = page.frameLocator(".webview:visible").frameLocator("#active-frame");
+        await expect(
+            wizard.getByRole("button", { name: /Create a Local Docker SQL Server/ }),
+        ).toBeVisible();
+    });
 });

@@ -29,6 +29,11 @@ import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTree
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
+import {
+    ContainerConnectAdapter,
+    oeV2ContainerConnectAdapter,
+} from "../deployment/containerConnectAdapter";
+import { registerOeV2ContainerPerfSeams } from "../objectExplorer/v2/perf/oeV2ContainerPerfSeams";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { MetadataStore } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
@@ -1728,7 +1733,20 @@ export default class MainController implements vscode.Disposable {
             objectExplorerV2ActiveAtActivation,
         );
         if (objectExplorerV2ActiveAtActivation) {
+            registerOeV2ContainerPerfSeams(this._context, {
+                isEnabled: objectExplorerV2Enabled,
+                saveProfile: (profile) => this.connectionManager.connectionUI.saveProfile(profile),
+                removeProfile: async (profile) => {
+                    await this.connectionManager.connectionStore.removeProfile(profile);
+                },
+            });
             activateObjectExplorerV2(this._context, {
+                deployNewDatabase: () =>
+                    this.onDeployNewDatabase(
+                        undefined,
+                        undefined,
+                        oeV2ContainerConnectAdapter(this),
+                    ),
                 instantiationService: this._instantiationService,
                 profiles: this._connectionMgr.connectionStore,
                 tokens: vscodeSqlTokenSource,
@@ -3189,6 +3207,7 @@ export default class MainController implements vscode.Disposable {
     public onDeployNewDatabase(
         initialConnectionGroup?: string,
         initialDeploymentType?: DeploymentType,
+        containerConnect?: ContainerConnectAdapter,
     ): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
@@ -3197,6 +3216,7 @@ export default class MainController implements vscode.Disposable {
             this,
             initialConnectionGroup,
             initialDeploymentType,
+            containerConnect,
         );
         reactPanel.revealToForeground();
     }

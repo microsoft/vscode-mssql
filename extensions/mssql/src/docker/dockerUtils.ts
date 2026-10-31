@@ -29,6 +29,8 @@ import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
+import { diag, diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
+import { ContainerHostAdapter, NULL_CONTAINER_HOST } from "./containerHostAdapter";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "./dockerodeClient";
 
@@ -631,7 +633,7 @@ export async function isDockerContainerRunning(name: string): Promise<boolean> {
  * Attempts to start Docker Desktop within 30 seconds.
  */
 export async function startDocker(
-    node?: ConnectionNode,
+    hostOrNode: ContainerHostAdapter | ConnectionNode = NULL_CONTAINER_HOST,
     objectExplorerService?: ObjectExplorerService,
     cancellationTokenSource?: vscode.CancellationTokenSource,
 ): Promise<DockerCommandParams> {
@@ -656,7 +658,35 @@ export async function startDocker(
         }
         // Otherwise docker is likely not running, so we proceed to start it.
     }
-    if (node && objectExplorerService) {
+    let host: ContainerHostAdapter | undefined;
+    let node: ConnectionNode | undefined;
+    if (isContainerHostAdapter(hostOrNode)) {
+        host = hostOrNode;
+    } else {
+        node = hostOrNode;
+    }
+    const span = diag.startSpan({
+        feature: "deployment",
+        kind: "span",
+        type: "docker.engine.start",
+        fields: {},
+    });
+    const finish = (result: DockerCommandParams): DockerCommandParams => {
+        span.end(result.success ? "ok" : result.canceled ? "info" : "error", {
+            ...(result.success || result.canceled
+                ? {}
+                : {
+                      errorClass: {
+                          raw: diagnosticErrorClass(new Error(result.error ?? "unknown")),
+                          cls: "diagnostic.metadata" as const,
+                      },
+                  }),
+        });
+        return result;
+    };
+    if (host !== undefined) {
+        await host.setStatus(LocalContainers.startingDockerLoadingLabel);
+    } else if (node && objectExplorerService) {
         node.loadingLabel = LocalContainers.startingDockerLoadingLabel;
         await objectExplorerService.setLoadingUiForNode(node, cancellationTokenSource);
     }
@@ -664,20 +694,20 @@ export async function startDocker(
     if (platform() === Platform.Windows) {
         dockerDesktopPath = await getDockerPath(windowsDockerDesktopExecutable);
         if (!dockerDesktopPath) {
-            return {
+            return finish({
                 success: false,
                 error: LocalContainers.dockerDesktopPathError,
-            };
+            });
         }
     }
     const startCommands = COMMANDS.START_DOCKER(dockerDesktopPath);
     const startCommand = startCommands[platform()];
 
     if (!startCommand) {
-        return {
+        return finish({
             success: false,
             error: LocalContainers.unsupportedDockerPlatformError(platform()),
-        };
+        });
     }
 
     try {
@@ -697,7 +727,7 @@ export async function startDocker(
         }
 
         if (dockerStartCanceled || cancellationTokenSource?.token.isCancellationRequested) {
-            return { success: false, canceled: true };
+            return finish({ success: false, canceled: true });
         }
 
         let attempts = 0;
@@ -714,7 +744,7 @@ export async function startDocker(
                 completed = true;
                 clearInterval(checkDocker);
                 cancellationListener?.dispose();
-                resolve(result);
+                resolve(finish(result));
             };
 
             const checkDocker = setInterval(async () => {
@@ -751,12 +781,23 @@ export async function startDocker(
             }
         });
     } catch (e) {
-        return {
+        return finish({
             success: false,
             error: LocalContainers.dockerFailedToStartWithinTimeout,
             fullErrorText: getErrorMessage(e),
-        };
+        });
     }
+}
+
+export function isContainerHostAdapter(
+    value: ContainerHostAdapter | ConnectionNode | undefined,
+): value is ContainerHostAdapter {
+    return (
+        value !== undefined &&
+        "setStatus" in value &&
+        "showError" in value &&
+        "onContainerMissing" in value
+    );
 }
 
 /**
@@ -940,18 +981,29 @@ export async function findAvailablePort(
  */
 export async function prepareForDockerContainerCommand(
     containerName: string,
-    containerNode: ConnectionNode,
-    objectExplorerService: ObjectExplorerService,
+    hostOrNode: ContainerHostAdapter | ConnectionNode,
+    objectExplorerService?: ObjectExplorerService,
     cancellationTokenSource?: vscode.CancellationTokenSource,
 ): Promise<DockerCommandParams> {
     const startDockerResult = await startDocker(
-        containerNode,
+        hostOrNode,
         objectExplorerService,
         cancellationTokenSource,
     );
+    let host: ContainerHostAdapter | undefined;
+    let containerNode: ConnectionNode | undefined;
+    if (isContainerHostAdapter(hostOrNode)) {
+        host = hostOrNode;
+    } else {
+        containerNode = hostOrNode;
+    }
     if (!startDockerResult.success) {
         if (!startDockerResult.canceled) {
-            vscode.window.showErrorMessage(startDockerResult.error);
+            if (host !== undefined) {
+                host.showError(startDockerResult.error);
+            } else {
+                vscode.window.showErrorMessage(startDockerResult.error);
+            }
         }
         return startDockerResult;
     }
@@ -959,15 +1011,19 @@ export async function prepareForDockerContainerCommand(
     const containerExists = await checkContainerExists(containerName);
 
     if (!containerExists) {
-        containerNode.loadingLabel = Common.error;
-        await objectExplorerService.setLoadingUiForNode(containerNode);
-        const confirmation = await vscode.window.showInformationMessage(
-            LocalContainers.containerDoesNotExistError,
-            { modal: true },
-            Common.remove,
-        );
-        if (confirmation === Common.remove) {
-            await objectExplorerService.removeNode(containerNode, false);
+        if (host !== undefined) {
+            await host.onContainerMissing();
+        } else if (containerNode !== undefined && objectExplorerService !== undefined) {
+            containerNode.loadingLabel = Common.error;
+            await objectExplorerService.setLoadingUiForNode(containerNode);
+            const confirmation = await vscode.window.showInformationMessage(
+                LocalContainers.containerDoesNotExistError,
+                { modal: true },
+                Common.remove,
+            );
+            if (confirmation === Common.remove) {
+                await objectExplorerService.removeNode(containerNode, false);
+            }
         }
         return {
             success: false,
