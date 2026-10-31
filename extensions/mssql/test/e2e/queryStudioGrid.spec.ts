@@ -81,7 +81,10 @@ test.describe("Query Studio grid parity", () => {
                 .frameLocator(`.webview:not([name="${name}"])`)
                 .frameLocator("#active-frame");
             pinnedGrid = pinned.locator(".fluent-result-grid").first();
-            await expect(pinnedGrid).toHaveAttribute("data-row-count", "3");
+            // Pinning initializes a separate webview, including coverage in CI.
+            await expect(pinnedGrid).toHaveAttribute("data-row-count", "3", {
+                timeout: 60_000,
+            });
         },
     });
 
