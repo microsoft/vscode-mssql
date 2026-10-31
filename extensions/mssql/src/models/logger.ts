@@ -20,13 +20,13 @@ interface LoggerChannelState {
 }
 
 let defaultChannel: vscode.LogOutputChannel | undefined;
+export function getMssqlOutputChannel(): vscode.LogOutputChannel {
+    defaultChannel ??= vscode.window.createOutputChannel(loggerOutputChannelName, { log: true });
+    return defaultChannel;
+}
+
 const defaultChannelState: LoggerChannelState = {
-    createChannel: () => {
-        defaultChannel ??= vscode.window.createOutputChannel(loggerOutputChannelName, {
-            log: true,
-        });
-        return defaultChannel;
-    },
+    createChannel: getMssqlOutputChannel,
     ownsChannel: false,
 };
 

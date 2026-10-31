@@ -23,6 +23,7 @@ import { AzureSqlDatabaseDeploymentWizard } from "./AzureSqlDatabase/azureSqlDat
 import { AzureSqlDatabaseDeploymentTypePage } from "./AzureSqlDatabase/azureSqlDatabaseDeploymentTypePage";
 import { AzureSqlDatabaseIcon } from "../../common/icons/azureSqlDatabase";
 import { AzureSqlDatabaseLocalContainerWizard } from "./AzureSqlDatabase/azureSqlDatabaseLocalContainerWizard";
+import { AzureSqlDatabaseSourcePage } from "./AzureSqlDatabase/azureSqlDatabaseSourcePage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -42,7 +43,7 @@ const useStyles = makeStyles({
     },
 });
 
-type AzureSqlDatabasePage = "deploymentType" | "localContainer";
+type AzureSqlDatabasePage = "deploymentType" | "localContainer" | "deployLocalDatabase";
 
 export const DeploymentStartPage = () => {
     const classes = useStyles();
@@ -92,16 +93,13 @@ export const DeploymentStartPage = () => {
             return;
         }
         hasAutoSelected.current = true;
-        if (
-            initialDeploymentType === DeploymentType.AzureSqlDatabase &&
-            isAzureSqlContainerEnabled
-        ) {
+        if (initialDeploymentType === DeploymentType.AzureSqlDatabase) {
             setAzureSqlDatabasePage("deploymentType");
             return;
         }
         setPendingDeploymentType(initialDeploymentType);
         context.initializeDeploymentSpecifics(initialDeploymentType);
-    }, [context, initialDeploymentType, isAzureSqlContainerEnabled, loadState]);
+    }, [context, initialDeploymentType, loadState]);
 
     useEffect(() => {
         if (pendingDeploymentType === undefined || deploymentType !== pendingDeploymentType) {
@@ -169,9 +167,7 @@ export const DeploymentStartPage = () => {
                 onBackToStart={() => {
                     setActiveDeploymentType(undefined);
                     setPendingDeploymentType(undefined);
-                    setAzureSqlDatabasePage(
-                        isAzureSqlContainerEnabled ? "deploymentType" : undefined,
-                    );
+                    setAzureSqlDatabasePage("deploymentType");
                 }}
             />
         );
@@ -182,7 +178,7 @@ export const DeploymentStartPage = () => {
             return;
         }
 
-        if (deploymentType === DeploymentType.AzureSqlDatabase && isAzureSqlContainerEnabled) {
+        if (deploymentType === DeploymentType.AzureSqlDatabase) {
             setAzureSqlDatabasePage("deploymentType");
             return;
         }
@@ -232,6 +228,12 @@ export const DeploymentStartPage = () => {
         );
     }
 
+    if (azureSqlDatabasePage === "deployLocalDatabase") {
+        return (
+            <AzureSqlDatabaseSourcePage onBack={() => setAzureSqlDatabasePage("deploymentType")} />
+        );
+    }
+
     if (azureSqlDatabasePage === "deploymentType") {
         return (
             <div className={classes.outerDiv}>
@@ -258,6 +260,9 @@ export const DeploymentStartPage = () => {
                         }
                         onLocalContainerSelected={() => setAzureSqlDatabasePage("localContainer")}
                         onFreeDeploymentSelected={handleFreeAzureSqlDatabaseSelected}
+                        onDeployLocalDatabaseSelected={() =>
+                            setAzureSqlDatabasePage("deployLocalDatabase")
+                        }
                     />
                 </DialogPageShell>
             </div>

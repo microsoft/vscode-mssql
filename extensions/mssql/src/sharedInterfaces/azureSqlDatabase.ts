@@ -9,7 +9,7 @@ import { IDialogProps } from "./connectionDialog";
 import { FirewallRuleSpec } from "./firewallRule";
 import { KnownFreeLimitExhaustionBehavior, KnownSampleName, Server } from "@azure/arm-sql";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
-import { RequestType } from "vscode-jsonrpc";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 
 /**
  * Ordered list of Azure component names used for cascading load/reset.
@@ -104,7 +104,169 @@ export interface AzureSqlContainerProvisioningResult {
     connectionString?: string;
 }
 
+export interface LocalDatabaseSource {
+    id: string;
+    profileName: string;
+    server: string;
+    database: string;
+    isConnected: boolean;
+    serverVersion?: string;
+    isAzureSql?: boolean;
+}
+
+export type LocalDatabaseDeploymentContent = "schemaAndData" | "schemaOnly";
+
+export interface LocalDatabaseCompatibilityRequest {
+    validationId: string;
+    sourceId: string;
+    deploymentContent: LocalDatabaseDeploymentContent;
+}
+
+export type LocalDatabaseCompatibilityStage =
+    | "extractingSchema"
+    | "validatingSchema"
+    | "checkingPackage";
+
+export interface LocalDatabaseCompatibilityProgress {
+    validationId: string;
+    stage: LocalDatabaseCompatibilityStage;
+}
+
+export interface LocalDatabaseCompatibilityDiagnostic {
+    severity: "error" | "warning";
+    category: "compatibility" | "dependency" | "tooling";
+    code: string;
+    message: string;
+    file?: string;
+    line?: number;
+}
+
+export interface LocalDatabaseCompatibilityResult {
+    validationId: string;
+    sourceId: string;
+    database: string;
+    deploymentContent: LocalDatabaseDeploymentContent;
+    target: "AzureSqlDatabase";
+    status: "passed" | "warnings" | "blocked" | "error" | "cancelled";
+    diagnostics: LocalDatabaseCompatibilityDiagnostic[];
+    objectsValidated?: number;
+    schemaObjects?: string[];
+    packageId?: string;
+    packageFileName?: string;
+    snapshotCreatedAt: string;
+    errorMessage?: string;
+}
+
+export type LocalDatabaseDeploymentStage =
+    | "authenticating"
+    | "validatingSettings"
+    | "exportingData"
+    | "creatingDatabase"
+    | "connecting"
+    | "publishingSchema"
+    | "importingData"
+    | "verifying"
+    | "savingConnection";
+
+export interface LocalDatabaseDeploymentRequest extends LocalDatabaseCompatibilityRequest {
+    deploymentId: string;
+    target: Pick<
+        AzureSqlDatabaseFormState,
+        "subscriptionId" | "resourceGroup" | "serverName" | "databaseName"
+    >;
+    tags: Record<string, string>;
+}
+
+export interface LocalDatabaseDeploymentProgress {
+    deploymentId: string;
+    stage: LocalDatabaseDeploymentStage;
+    completedStages: LocalDatabaseDeploymentStage[];
+}
+
+export interface LocalDatabaseDeploymentResult {
+    deploymentId: string;
+    status: "succeeded" | "error" | "cancelled";
+    database: string;
+    server: string;
+    sourceDatabase: string;
+    objectsDeployed?: number;
+    resourcesMayRemain: boolean;
+    errorMessage?: string;
+    scriptSettings?: Pick<
+        AzureSqlDatabaseFormState,
+        | "collation"
+        | "maxVcores"
+        | "freeLimitBehavior"
+        | "maintenanceConfig"
+        | "enableAlwaysEncrypted"
+    > & {
+        databaseName: string;
+        serverName: string;
+        resourceGroup: string;
+        serverResourceId: string;
+        location: string;
+        tags: Record<string, string>;
+    };
+}
+
 export namespace AzureSqlDatabaseRequests {
+    export const LocalDatabaseDeploymentAction = new RequestType<
+        { deploymentId: string; action: "copyConnectionString" | "openPortal" },
+        void,
+        void
+    >("deployment/localDatabaseDeploymentAction");
+
+    export const DeployLocalDatabase = new RequestType<
+        LocalDatabaseDeploymentRequest,
+        LocalDatabaseDeploymentResult,
+        void
+    >("deployment/deployLocalDatabase");
+
+    export const LocalDatabaseDeploymentProgress =
+        new NotificationType<LocalDatabaseDeploymentProgress>(
+            "deployment/localDatabaseDeploymentProgress",
+        );
+
+    export const CancelLocalDatabaseDeployment = new RequestType<
+        { deploymentId: string },
+        void,
+        void
+    >("deployment/cancelLocalDatabaseDeployment");
+
+    export const LocalDatabaseCompatibilityProgress =
+        new NotificationType<LocalDatabaseCompatibilityProgress>(
+            "deployment/localDatabaseCompatibilityProgress",
+        );
+
+    export const GetLocalDatabaseSources = new RequestType<void, LocalDatabaseSource[], void>(
+        "deployment/getLocalDatabaseSources",
+    );
+    export const ConnectLocalDatabaseSource = new RequestType<
+        { id: string },
+        LocalDatabaseSource,
+        void
+    >("deployment/connectLocalDatabaseSource");
+
+    export const ValidateLocalDatabaseCompatibility = new RequestType<
+        LocalDatabaseCompatibilityRequest,
+        LocalDatabaseCompatibilityResult,
+        void
+    >("deployment/validateLocalDatabaseCompatibility");
+
+    export const CancelLocalDatabaseCompatibility = new RequestType<
+        { validationId: string },
+        void,
+        void
+    >("deployment/cancelLocalDatabaseCompatibility");
+
+    export const ClearLocalDatabaseCompatibility = new RequestType<void, void, void>(
+        "deployment/clearLocalDatabaseCompatibility",
+    );
+
+    export const ShowLocalDatabaseCompatibilityOutput = new RequestType<void, void, void>(
+        "deployment/showLocalDatabaseCompatibilityOutput",
+    );
+
     export const PrepareContainerForm = new RequestType<
         AzureSqlContainerForm,
         { form: AzureSqlContainerForm; errors: AzureSqlContainerFormErrors },
