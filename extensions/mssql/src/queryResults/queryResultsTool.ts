@@ -26,7 +26,7 @@ import * as vscode from "vscode";
 import { Perf } from "../perf/perfTelemetry";
 import { ToolBase } from "../copilot/tools/toolBase";
 import { isQueryStudioEnabled } from "../queryStudio/queryStudioFeatureGate";
-import { windowCellReader } from "./cellReader";
+import { cellPreviewValue, windowCellReader } from "./cellReader";
 import { getQueryResultAccessService } from "./queryResultAccessService";
 import { pinExistingSnapshot } from "./pinCommands";
 import { boundResultModelCell, wrapValuesPayload } from "./resultModelContent";
@@ -319,7 +319,7 @@ export class QueryResultsTool extends ToolBase<QueryResultsToolParams> {
                         const cell = cells.cellAt(r, c);
                         return cell.isNull
                             ? null
-                            : boundResultModelCell(cell.value, params.aiMaxCellBytes);
+                            : boundResultModelCell(cellPreviewValue(cell), params.aiMaxCellBytes);
                     }),
                 );
                 return wrapValuesPayload({

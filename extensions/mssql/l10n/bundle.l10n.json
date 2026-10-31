@@ -3059,6 +3059,7 @@
     "Exporting results…": "Exporting results…",
     "Open a .mssql document or create an untitled query to use Query Studio.": "Open a .mssql document or create an untitled query to use Query Studio.",
     "Enable the Query Studio private preview and SQL Data Plane, then reload VS Code to open queries from Connections.": "Enable the Query Studio private preview and SQL Data Plane, then reload VS Code to open queries from Connections.",
+    "Some snapshot rows could not be read. Run the query again before analyzing these results.": "Some snapshot rows could not be read. Run the query again before analyzing these results.",
     "⚠ Statistics are incomplete: {0} truncated cell inputs were skipped.\n\n": "⚠ Statistics are incomplete: {0} truncated cell inputs were skipped.\n\n",
     "This conversation has reached its snapshot limit; release a snapshot first (release_snapshot).": "This conversation has reached its snapshot limit; release a snapshot first (release_snapshot).",
     "Column ordinal {0} is outside the transform schema ({1} columns).": "Column ordinal {0} is outside the transform schema ({1} columns).",

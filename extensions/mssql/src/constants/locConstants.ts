@@ -6276,6 +6276,9 @@ export const QueryStudio = {
 };
 
 export class QueryResultsAnalysis {
+    public static readonly snapshotRowsUnavailable = l10n.t(
+        "Some snapshot rows could not be read. Run the query again before analyzing these results.",
+    );
     public static truncatedStatistics = (count: string) =>
         l10n.t("⚠ Statistics are incomplete: {0} truncated cell inputs were skipped.\n\n", count);
     public static snapshotLimitReached = l10n.t(

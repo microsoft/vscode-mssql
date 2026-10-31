@@ -574,8 +574,11 @@ export class QueryResultAccessService {
                         rowCount: Math.min(chunk, end - offset),
                         reason,
                     });
-                    if (window.rowCount === 0) {
-                        return;
+                    if (window.rowCount !== Math.min(chunk, end - offset)) {
+                        throw new QueryResultAccessError(
+                            "storeUnavailable",
+                            AnalysisLoc.snapshotRowsUnavailable,
+                        );
                     }
                     yield window;
                     offset += window.rowCount;

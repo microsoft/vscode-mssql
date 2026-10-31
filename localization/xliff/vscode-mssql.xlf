@@ -11049,6 +11049,9 @@
     <trans-unit id="++CODE++8bf3923dd5886ec034ff01795fffb84338d56725df6fc968372750a60709b0ed">
       <source xml:lang="en">Some events were no longer in the live ring and were not added to the replay cart.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d192a419991dad0aa1c1440b19d040407d23bf75996dfb2ebd0e0985d628907b">
+      <source xml:lang="en">Some snapshot rows could not be read. Run the query again before analyzing these results.</source>
+    </trans-unit>
     <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
       <source xml:lang="en">Sort</source>
     </trans-unit>

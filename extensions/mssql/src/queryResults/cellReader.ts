@@ -26,6 +26,11 @@ export interface CellRead {
     readonly truncation?: { of: "string" | "binary"; bytes?: number; digest?: string };
 }
 
+/** Value-bearing model output must visibly distinguish a retained prefix. */
+export function cellPreviewValue(cell: CellRead): unknown {
+    return cell.isNull ? null : cell.isTruncated ? `${String(cell.value)}…` : cell.value;
+}
+
 /** Decode one window's base64 null bitmap into an indexable bit reader. */
 function bitmapReader(bitmap: string | undefined): (index: number) => boolean {
     if (!bitmap) {

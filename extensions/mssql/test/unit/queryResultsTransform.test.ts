@@ -907,6 +907,63 @@ suite("queryResults transform engine", () => {
         expect(result.stats.truncatedCellsSkipped).to.equal(1);
     });
 
+    test("truncated filters and Top-K are partial while NULL predicates remain complete", async () => {
+        for (const terminal of [
+            { kind: "aggregate", aggs: [{ fn: "count" }] },
+            { kind: "topK", col: 0, by: "value", k: 2 },
+            { kind: "topK", col: 0, by: "frequency", k: 2 },
+        ] as TransformSpec["terminal"][]) {
+            const result = await evaluateTransform(
+                {
+                    v: 1,
+                    source,
+                    ops:
+                        terminal.kind === "aggregate"
+                            ? [{ op: "filter", pred: { col: 0, cmp: "contains", value: "error" } }]
+                            : [],
+                    terminal,
+                },
+                memoryReader(
+                    ["v"],
+                    [
+                        [{ $t: "truncated", of: "string", v: "error prefix", bytes: 999 }],
+                        [null],
+                        ["ok"],
+                    ],
+                ),
+                options(),
+            );
+            expect(result.stats.partial).to.equal(true);
+            expect(result.stats.partialReason).to.equal("truncatedCells");
+        }
+        const result = await evaluateTransform(
+            {
+                v: 1,
+                source,
+                ops: [{ op: "filter", pred: { col: 0, cmp: "eq", value: "error" } }],
+                terminal: { kind: "aggregate", aggs: [{ fn: "count" }] },
+            },
+            memoryReader(["v"], [[null], ["error"]]),
+            options(),
+        );
+        expect(result.stats.partial).to.equal(false);
+        expect(result.rows).to.deep.equal([[1]]);
+    });
+
+    test("rows and samples visibly mark retained prefixes even below the model output cap", async () => {
+        for (const terminal of [
+            { kind: "rows", limit: 10 },
+            { kind: "sample", strategy: "head", n: 10 },
+        ] as TransformSpec["terminal"][]) {
+            const result = await evaluateTransform(
+                { v: 1, source, ops: [], terminal },
+                memoryReader(["v"], [[{ $t: "truncated", of: "string", v: "prefix", bytes: 999 }]]),
+                options(),
+            );
+            expect(result.rows).to.deep.equal([["prefix…"]]);
+        }
+    });
+
     test("seeded property test: engine ≡ naive reference over random specs", async () => {
         let seed = 0xc2d7;
         const rand = () => {
@@ -1127,6 +1184,60 @@ suite("queryResults derived snapshots", () => {
         });
         return { fixture, lease };
     }
+
+    test("incomplete filters cannot be pinned as complete and short reads fail analysis", async () => {
+        const service = makeService();
+        const fixture = new DeriveFakeSource();
+        await fixture.seed([
+            [{ $t: "truncated", of: "string", v: "error", bytes: 999 }, 1],
+            ["ok", 2],
+        ]);
+        service.registerLiveSource(fixture);
+        const lease = await service.createSnapshot({
+            owner: { kind: "pinnedDocument" },
+            reason: "truncated input",
+            sourceId: "derive-src",
+            scope: { kind: "allCompleteResultSets" },
+        });
+        try {
+            const error = await service
+                .deriveSnapshot(
+                    {
+                        v: 1,
+                        source: { snapshotId: lease.snapshotId, resultSetId: "rs1" },
+                        ops: [{ op: "filter", pred: { col: 0, cmp: "contains", value: "error" } }],
+                        terminal: { kind: "rows", limit: 100 },
+                    },
+                    { kind: "pinnedDocument" },
+                )
+                .then(
+                    () => undefined,
+                    (error) => error,
+                );
+            expect(error?.code).to.equal("storeUnavailable");
+            const stub = sinon
+                .stub(service, "getWindow")
+                .resolves(windowOf([["ok", 2]], 0, ["region", "amount"]));
+            try {
+                const reader = service.snapshotReader(lease.snapshotId, "rs1", "aiTool")!;
+                const readError = await reader
+                    .stream(0, 2, 2)
+                    [Symbol.asyncIterator]()
+                    .next()
+                    .then(
+                        () => undefined,
+                        (error) => error,
+                    );
+                expect(readError?.code).to.equal("storeUnavailable");
+            } finally {
+                stub.restore();
+            }
+        } finally {
+            lease.dispose();
+            service.dispose();
+            fixture.store?.releaseLiveOwner("documentClosed");
+        }
+    });
 
     test("derive filters into a windowable row-id view; lineage in describe", async () => {
         const service = makeService();

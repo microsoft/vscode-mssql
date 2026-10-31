@@ -20,7 +20,13 @@
 import { QueryResultAccessError } from "./queryResultTypes";
 import { QueryResultsAnalysis as AnalysisLoc } from "../constants/locConstants";
 import { QsCellWindow } from "../sharedInterfaces/queryStudio";
-import { CellRead, cellEqualityKey, cellNumeric, windowCellReader } from "./cellReader";
+import {
+    CellRead,
+    cellEqualityKey,
+    cellNumeric,
+    cellPreviewValue,
+    windowCellReader,
+} from "./cellReader";
 import {
     TransformAggregate,
     TransformPredicate,
@@ -603,7 +609,7 @@ export async function evaluateTransform(
                         entry = overflowEntry;
                     } else {
                         entry = {
-                            keyValues: keyCells.map((cell) => (cell.isNull ? null : cell.value)),
+                            keyValues: keyCells.map(cellPreviewValue),
                             accs: makeAggs(finalColumnLabel, terminal.aggs),
                         };
                         groups!.set(compositeKey, entry);
@@ -618,7 +624,7 @@ export async function evaluateTransform(
                 const cell = cellAt(terminal.col);
                 if (cell.isNull || cell.isTruncated) {
                     if (cell.isTruncated) {
-                        stats.truncatedCellsSkipped++;
+                        flagTruncated();
                     }
                     return true;
                 }
@@ -673,7 +679,7 @@ export async function evaluateTransform(
                 }
                 const row = finalMapping.map((_, index) => {
                     const cell = cellAt(index);
-                    return cell.isNull ? null : cell.value;
+                    return cellPreviewValue(cell);
                 });
                 if (!chargeOutput(row)) {
                     return false;
@@ -687,7 +693,7 @@ export async function evaluateTransform(
             case "sample": {
                 const row = finalMapping.map((_, index) => {
                     const cell = cellAt(index);
-                    return cell.isNull ? null : cell.value;
+                    return cellPreviewValue(cell);
                 });
                 switch (terminal.strategy) {
                     case "head":
@@ -933,7 +939,12 @@ export async function evaluateTransform(
         let sliceIndex = 0;
         for (const op of opPlan) {
             if (op.kind === "filter") {
-                if (evaluatePredicate(op.pred, (col) => raw(op.mapping[col]), stats) !== true) {
+                const skippedBefore = stats.truncatedCellsSkipped;
+                const matches = evaluatePredicate(op.pred, (col) => raw(op.mapping[col]), stats);
+                if (matches === undefined && stats.truncatedCellsSkipped > skippedBefore) {
+                    incompleteStatistics = true;
+                }
+                if (matches !== true) {
                     return false;
                 }
             } else {
