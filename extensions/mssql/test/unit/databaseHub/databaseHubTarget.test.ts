@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import { expect } from "chai";
 
 import {
@@ -12,6 +13,7 @@ import {
     classifyDatabaseHubTarget,
     getAzureSqlServerName,
     getManagedInstanceName,
+    isLocalServer,
 } from "../../../src/databaseHub/databaseHubTarget";
 
 suite("Database Hub target", () => {
@@ -156,6 +158,13 @@ suite("Database Hub target", () => {
             );
             expect(getManagedInstanceName("srv.database.windows.net")).to.be.undefined;
             expect(getManagedInstanceName("srv.privatelink.database.windows.net")).to.be.undefined;
+        });
+
+        test("treats this machine's name as a local server", () => {
+            const machine = os.hostname().split(".")[0];
+            expect(isLocalServer(`${machine.toUpperCase()}\\MSSQLSERVER2022`)).to.be.true;
+            expect(isLocalServer(`tcp:${machine},1433`)).to.be.true;
+            expect(isLocalServer(`${machine}x\\SQLEXPRESS`)).to.be.false;
         });
     });
 });

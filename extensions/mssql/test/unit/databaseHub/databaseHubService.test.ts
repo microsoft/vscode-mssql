@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import * as vscode from "vscode";
 import * as chai from "chai";
 import { expect } from "chai";
@@ -11,9 +12,14 @@ import sinonChai from "sinon-chai";
 import { AzureResource, Wrapper } from "@microsoft/vscode-azureresources-api";
 
 import { requestFor } from "../../../src/databaseHub/databaseHubContribution";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
+
+import { VsCodeAzureHelper } from "../../../src/connectionconfig/azureHelpers";
 import {
     AccountDatabaseHubAzureLookup,
+    AzureResourceType,
     FabricApiDatabaseHubLookup,
+    resourceGraphQuery,
 } from "../../../src/databaseHub/databaseHubLookups";
 import {
     DatabaseHubServerFactsDetector,
@@ -106,8 +112,7 @@ suite("DatabaseHubService", () => {
         azure = sandbox.createStubInstance(AccountDatabaseHubAzureLookup);
         azure.accounts.resolves(["account"]);
         azure.azureSqlServerId.resolves(undefined);
-        azure.managedInstanceId.resolves(undefined);
-        azure.sqlVirtualMachineId.resolves(undefined);
+        azure.resourceId.resolves(undefined);
         fabric = sandbox.createStubInstance(FabricApiDatabaseHubLookup);
         fabric.sqlDatabaseId.resolves(undefined);
         service = new DatabaseHubService(
@@ -189,7 +194,9 @@ suite("DatabaseHubService", () => {
     });
 
     test("deep-links a managed instance, from any of its databases", async () => {
-        azure.managedInstanceId.withArgs("account", "mi").resolves(instanceId);
+        azure.resourceId
+            .withArgs("account", [{ type: AzureResourceType.ManagedInstance, name: "mi" }])
+            .resolves(instanceId);
 
         await open({ server: "mi.zone.database.windows.net" }, "master");
 
@@ -249,7 +256,9 @@ suite("DatabaseHubService", () => {
         });
 
         test("deep-links an Azure VM's SQL virtual machine when Arc has no ID", async () => {
-            azure.sqlVirtualMachineId.withArgs("account", "vm01").resolves(vmId);
+            azure.resourceId
+                .withArgs("account", [{ type: AzureResourceType.SqlVirtualMachine, name: "vm01" }])
+                .resolves(vmId);
 
             await open({ server: "vm01.contoso.com" }, undefined, {
                 engineEdition: 2,
@@ -275,13 +284,44 @@ suite("DatabaseHubService", () => {
                 arc: { state: "notRegistered" },
             });
 
-            expect(azure.sqlVirtualMachineId).to.not.have.been.called;
+            expect(azure.resourceId).to.not.have.been.called;
             expect(showInformationMessage).to.have.been.calledWith(
                 LocalizedConstants.DatabaseHub.arcNotRegistered("devbox"),
             );
             const url = openedUrl();
             expect(url.searchParams.has("databaseResourceId")).to.be.false;
             expect(filters(url)).to.deep.equal([]);
+        });
+
+        test("doesn't search Azure VMs for a server named after this machine", async () => {
+            await open({ server: `${os.hostname()}\\MSSQLSERVER2022` }, undefined, {
+                engineEdition: 3,
+                machineName: os.hostname(),
+                arc: { state: "notRegistered" },
+            });
+
+            expect(azure.resourceId).to.not.have.been.called;
+            expect(showInformationMessage).to.have.been.calledWith(
+                LocalizedConstants.DatabaseHub.arcNotRegistered(os.hostname()),
+            );
+        });
+
+        test("offers Arc when the Azure VM search times out", async () => {
+            const clock = sandbox.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+            azure.resourceId.returns(new Promise(() => undefined));
+
+            const opening = open({ server: "box01.contoso.com" }, undefined, {
+                engineEdition: 3,
+                machineName: "box01",
+                arc: { state: "notRegistered" },
+            });
+            await clock.tickAsync(30_000);
+            await opening;
+
+            expect(showInformationMessage).to.have.been.calledWith(
+                LocalizedConstants.DatabaseHub.arcNotRegistered("box01"),
+            );
+            expect(openExternal).to.not.have.been.called;
         });
 
         test("opens Microsoft Learn from the Arc prompt", async () => {
@@ -292,6 +332,30 @@ suite("DatabaseHubService", () => {
             expect(openExternal.lastCall.args[0].toString()).to.equal(
                 vscode.Uri.parse(connectToArcLearnMoreUrl).toString(),
             );
+        });
+
+        test("finds a named instance's Arc resource when the login can't read the Arc table", async () => {
+            azure.resourceId
+                .withArgs("account", [
+                    { type: AzureResourceType.ArcSqlServer, name: "BOX01_SQL2022" },
+                    { type: AzureResourceType.SqlVirtualMachine, name: "BOX01" },
+                ])
+                .resolves(arcId);
+
+            await open({ server: "box01.contoso.com\\SQL2022" }, undefined, {
+                engineEdition: 3,
+                machineName: "BOX01",
+                logicalServerName: "BOX01\\SQL2022",
+                arc: { state: "unknown" },
+            });
+
+            const url = openedUrl();
+            expect(url.searchParams.get("databaseResourceId")).to.equal(arcId);
+            expect(filters(url)).to.deep.include({
+                key: "resourceType",
+                operator: "in",
+                value: ["ArcSqlServer", "AzureSqlVM"],
+            });
         });
 
         test("searches by machine name when the login can't read the Arc table", async () => {
@@ -451,5 +515,74 @@ suite("DatabaseHubService", () => {
                 } as FabricWorkspaceItemNode),
             ).to.be.undefined;
         });
+    });
+});
+
+suite("AccountDatabaseHubAzureLookup", () => {
+    let sandbox: sinon.SinonSandbox;
+    let postJson: sinon.SinonStub;
+    let lookup: AccountDatabaseHubAzureLookup;
+
+    const ok = (data: unknown[]) => ({ ok: true, status: 200, data: { data } });
+    const candidates = [
+        { type: AzureResourceType.ArcSqlServer, name: "box01_SQL2022" },
+        { type: AzureResourceType.SqlVirtualMachine, name: "box01" },
+    ];
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        sandbox
+            .stub(VsCodeAzureHelper, "getSubscriptionsForAccount")
+            .resolves([...mockSubscriptions, { ...mockSubscriptions[0], subscriptionId: sub }]);
+        postJson = sandbox.stub(VscodeHttpClient.prototype, "postJson");
+        lookup = new AccountDatabaseHubAzureLookup(createStubLogger(sandbox));
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("queries Resource Graph once per tenant and prefers the first candidate", async () => {
+        postJson.resolves(ok([]));
+        postJson
+            .withArgs(
+                sinon.match.any,
+                sinon.match({ subscriptions: [mockSubscriptions[1].subscriptionId] }),
+            )
+            .resolves(
+                ok([
+                    { id: vmId, type: AzureResourceType.SqlVirtualMachine, name: "BOX01" },
+                    {
+                        id: arcId,
+                        type: "microsoft.azurearcdata/sqlserverinstances",
+                        name: "BOX01_sql2022",
+                    },
+                ]),
+            );
+
+        expect(await lookup.resourceId("account", candidates)).to.equal(arcId);
+
+        expect(postJson).to.have.been.calledTwice;
+        expect(postJson).to.have.been.calledWithMatch(sinon.match.any, {
+            subscriptions: [mockSubscriptions[0].subscriptionId, sub],
+            query: resourceGraphQuery(candidates),
+        });
+    });
+
+    test("caches a miss only when every tenant answered", async () => {
+        postJson.resolves({ ok: false, status: 429, data: {} });
+        expect(await lookup.resourceId("account", candidates)).to.be.undefined;
+
+        postJson.resolves(ok([]));
+        expect(await lookup.resourceId("account", candidates)).to.be.undefined;
+        expect(await lookup.resourceId("account", candidates)).to.be.undefined;
+
+        expect(postJson).to.have.callCount(4);
+    });
+
+    test("escapes names in the query", () => {
+        expect(resourceGraphQuery([{ type: "t", name: "o'brien\\x" }])).to.equal(
+            "resources | where (type =~ 't' and name =~ 'o\\'brien\\\\x') | project id, type, name",
+        );
     });
 });

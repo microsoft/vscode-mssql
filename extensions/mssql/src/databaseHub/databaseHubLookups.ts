@@ -8,7 +8,6 @@
  * Fabric item IDs from the Fabric API. Lookups run only on click, never while a menu draws.
  */
 
-import { SqlManagementClient } from "@azure/arm-sql";
 import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 import { VscodeHttpClient, withBearerToken } from "extension-toolkit/vscode";
 import { getCloudProviderSettings } from "../azure/providerSettings";
@@ -16,9 +15,25 @@ import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { formatArmResourceId } from "../fabric/fabricDatabaseHub";
 import { ILogger } from "../sharedInterfaces/logger";
-import { getErrorMessage, listAllIterator } from "../utils/utils";
+import { getErrorMessage } from "../utils/utils";
 
-const sqlVirtualMachineApiVersion = "2022-02-01";
+const resourceGraphApiVersion = "2022-10-01";
+
+/** The most subscriptions that one Resource Graph request may name. */
+const resourceGraphSubscriptionLimit = 1000;
+
+/** ARM resource types that the Hub lists and that are looked up by name. */
+export const AzureResourceType = {
+    ArcSqlServer: "Microsoft.AzureArcData/sqlServerInstances",
+    ManagedInstance: "Microsoft.Sql/managedInstances",
+    SqlVirtualMachine: "Microsoft.SqlVirtualMachine/sqlVirtualMachines",
+} as const;
+
+/** A resource to look for: its ARM type and its name. */
+export interface AzureResourceCandidate {
+    readonly type: string;
+    readonly name: string;
+}
 
 /** Looks up ARM IDs with the user's Azure accounts. */
 export interface DatabaseHubAzureLookup {
@@ -28,8 +43,14 @@ export interface DatabaseHubAzureLookup {
      */
     accounts(preferredAccountId?: string): Promise<string[]>;
     azureSqlServerId(accountId: string, serverName: string): Promise<string | undefined>;
-    managedInstanceId(accountId: string, instanceName: string): Promise<string | undefined>;
-    sqlVirtualMachineId(accountId: string, vmName: string): Promise<string | undefined>;
+    /**
+     * Returns the ID of the first candidate found in the account's subscriptions. One Azure
+     * Resource Graph query searches all the subscriptions of each tenant.
+     */
+    resourceId(
+        accountId: string,
+        candidates: readonly AzureResourceCandidate[],
+    ): Promise<string | undefined>;
 }
 
 /** Looks up Fabric SQL database IDs with the Fabric API. */
@@ -79,92 +100,133 @@ export class AccountDatabaseHubAzureLookup implements DatabaseHubAzureLookup {
               });
     }
 
-    public managedInstanceId(accountId: string, instanceName: string): Promise<string | undefined> {
-        return this.cached(`managedInstance|${accountId}|${instanceName}`, () =>
-            this.searchSubscriptions(accountId, async (subscription) => {
-                const sql = new SqlManagementClient(
-                    subscription.credential,
-                    subscription.subscriptionId,
-                    { endpoint: getCloudProviderSettings().settings.armResource.endpoint },
-                );
-                const instances = await listAllIterator(sql.managedInstances.list());
-                return instances.find((instance) => sameName(instance.name, instanceName))?.id;
-            }),
-        );
-    }
-
-    public sqlVirtualMachineId(accountId: string, vmName: string): Promise<string | undefined> {
-        return this.cached(`sqlVirtualMachine|${accountId}|${vmName}`, () =>
-            this.searchSubscriptions(accountId, async (subscription) => {
-                const endpoint = getCloudProviderSettings().settings.armResource.endpoint;
-                const token = await subscription.credential.getToken(
-                    `${endpoint.replace(/\/$/, "")}/.default`,
-                );
-                if (!token?.token) {
-                    return undefined;
-                }
-                const http = new VscodeHttpClient({ logger: this._logger });
-                let next: string | undefined = new URL(
-                    `subscriptions/${subscription.subscriptionId}/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines?api-version=${sqlVirtualMachineApiVersion}`,
-                    endpoint,
-                ).toString();
-                while (next) {
-                    const response = await http.get<{
-                        value?: { id?: string; name?: string }[];
-                        nextLink?: string;
-                    }>(next, withBearerToken(token.token));
-                    if (!response.ok) {
-                        return undefined;
-                    }
-                    const match = response.data.value?.find((vm) => sameName(vm.name, vmName));
-                    if (match?.id) {
-                        return match.id;
-                    }
-                    next = response.data.nextLink;
-                }
-                return undefined;
-            }),
-        );
-    }
-
-    private cached(
-        key: string,
-        lookup: () => Promise<string | undefined>,
+    public resourceId(
+        accountId: string,
+        candidates: readonly AzureResourceCandidate[],
     ): Promise<string | undefined> {
-        const normalized = key.toLowerCase();
-        let result = this._cache.get(normalized);
+        const key = [accountId, ...candidates.map(({ type, name }) => `${type}/${name}`)]
+            .join("|")
+            .toLowerCase();
+        let result = this._cache.get(key);
         if (!result) {
-            result = lookup();
-            this._cache.set(normalized, result);
+            result = this.findResource(accountId, candidates).then(({ id, complete }) => {
+                // A miss is cached only when every tenant answered.
+                if (!id && !complete) {
+                    this._cache.delete(key);
+                }
+                return id;
+            });
+            this._cache.set(key, result);
         }
         return result;
     }
 
-    private async searchSubscriptions(
+    private async findResource(
         accountId: string,
-        search: (subscription: AzureSubscription) => Promise<string | undefined>,
-    ): Promise<string | undefined> {
+        candidates: readonly AzureResourceCandidate[],
+    ): Promise<{ id?: string; complete: boolean }> {
+        if (candidates.length === 0) {
+            return { complete: true };
+        }
         let subscriptions: AzureSubscription[];
         try {
             subscriptions = await VsCodeAzureHelper.getSubscriptionsForAccount(accountId);
         } catch (error) {
             this._logger.debug(`Listing subscriptions failed: ${getErrorMessage(error)}`);
+            return { complete: false };
+        }
+        const tenants = new Map<string, AzureSubscription[]>();
+        for (const subscription of subscriptions) {
+            tenants.set(subscription.tenantId, [
+                ...(tenants.get(subscription.tenantId) ?? []),
+                subscription,
+            ]);
+        }
+        const query = resourceGraphQuery(candidates);
+        const answers = await Promise.all(
+            [...tenants.values()].map((tenantSubscriptions) =>
+                this.queryResourceGraph(tenantSubscriptions, query),
+            ),
+        );
+        const rows = answers.flatMap((answer) => answer ?? []);
+        const match = candidates
+            .map((candidate) =>
+                rows.find(
+                    (row) =>
+                        sameName(row.type, candidate.type) && sameName(row.name, candidate.name),
+                ),
+            )
+            .find((row) => row?.id);
+        return { id: match?.id, complete: answers.every((answer) => answer !== undefined) };
+    }
+
+    /**
+     * Runs a Resource Graph query over the subscriptions of one tenant, which share a credential.
+     *
+     * @returns undefined when the query fails.
+     */
+    private async queryResourceGraph(
+        subscriptions: readonly AzureSubscription[],
+        query: string,
+    ): Promise<ResourceGraphRow[] | undefined> {
+        const tenantId = subscriptions[0].tenantId;
+        try {
+            const endpoint = getCloudProviderSettings().settings.armResource.endpoint;
+            const token = await subscriptions[0].credential.getToken(
+                `${endpoint.replace(/\/$/, "")}/.default`,
+            );
+            if (!token?.token) {
+                return undefined;
+            }
+            const url = new URL(
+                `providers/Microsoft.ResourceGraph/resources?api-version=${resourceGraphApiVersion}`,
+                endpoint,
+            );
+            const http = new VscodeHttpClient({ logger: this._logger });
+            const rows: ResourceGraphRow[] = [];
+            for (let i = 0; i < subscriptions.length; i += resourceGraphSubscriptionLimit) {
+                const response = await http.postJson<{ data?: ResourceGraphRow[] }>(
+                    url,
+                    {
+                        subscriptions: subscriptions
+                            .slice(i, i + resourceGraphSubscriptionLimit)
+                            .map((subscription) => subscription.subscriptionId),
+                        query,
+                    },
+                    withBearerToken(token.token),
+                );
+                if (!response.ok) {
+                    this._logger.debug(
+                        `Resource Graph query in tenant ${tenantId} failed with status ${response.status}.`,
+                    );
+                    return undefined;
+                }
+                rows.push(...(response.data.data ?? []));
+            }
+            return rows;
+        } catch (error) {
+            this._logger.debug(
+                `Resource Graph query in tenant ${tenantId} failed: ${getErrorMessage(error)}`,
+            );
             return undefined;
         }
-        for (const subscription of subscriptions) {
-            try {
-                const id = await search(subscription);
-                if (id) {
-                    return id;
-                }
-            } catch (error) {
-                this._logger.debug(
-                    `Searching subscription ${subscription.subscriptionId} failed: ${getErrorMessage(error)}`,
-                );
-            }
-        }
-        return undefined;
     }
+}
+
+interface ResourceGraphRow {
+    readonly id?: string;
+    readonly type?: string;
+    readonly name?: string;
+}
+
+/** A Resource Graph query for the resources that match any of the candidates. */
+export function resourceGraphQuery(candidates: readonly AzureResourceCandidate[]): string {
+    // KQL string literals escape quotes and backslashes with a backslash.
+    const literal = (value: string) => `'${value.replace(/['\\]/g, "\\$&")}'`;
+    const conditions = candidates
+        .map(({ type, name }) => `(type =~ ${literal(type)} and name =~ ${literal(name)})`)
+        .join(" or ");
+    return `resources | where ${conditions} | project id, type, name`;
 }
 
 /** Lists a workspace's SQL databases with the Fabric API and matches on the database name. */

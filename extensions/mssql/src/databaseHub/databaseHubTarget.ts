@@ -12,6 +12,7 @@
  * an earlier connection, so it can run while a tree draws, without a connection or the network.
  */
 
+import * as os from "os";
 import { DatabaseEngineEdition } from "../databaseProjects/common/enums";
 import {
     getFabricEnvironment,
@@ -136,10 +137,15 @@ export function getServerHost(server: string | undefined): string {
     return withoutPort.replace(/^tcp:/, "").split("\\")[0];
 }
 
-/** Whether the server runs on this machine. */
+/** Whether the server runs on this machine, named as a loopback host or by this machine's name. */
 export function isLocalServer(server: string | undefined): boolean {
     const host = getServerHost(server);
-    return localHosts.has(host) || host.startsWith("(localdb)");
+    const machine = os.hostname().toLowerCase();
+    return (
+        localHosts.has(host) ||
+        host.startsWith("(localdb)") ||
+        (!!host && (host === machine || host === machine.split(".")[0]))
+    );
 }
 
 /** Whether a machine name is the short container ID that Docker uses as a container's host name. */

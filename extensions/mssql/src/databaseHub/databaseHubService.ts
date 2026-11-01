@@ -36,7 +36,12 @@ import {
 } from "../fabric/fabricDatabaseHub";
 import { ILogger } from "../sharedInterfaces/logger";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import type { DatabaseHubAzureLookup, DatabaseHubFabricLookup } from "./databaseHubLookups";
+import {
+    AzureResourceCandidate,
+    AzureResourceType,
+    DatabaseHubAzureLookup,
+    DatabaseHubFabricLookup,
+} from "./databaseHubLookups";
 import {
     DatabaseHubProfile,
     DatabaseHubServerFactsDetector,
@@ -257,7 +262,8 @@ export class DatabaseHubService implements vscode.Disposable {
 
     /**
      * Resolves a request, showing progress while lookups run. A lookup that outlasts the timeout
-     * gives way to the request's fallback link.
+     * gives way to the request's fallback, built from the server facts read by then, so a SQL
+     * Server that isn't connected to Arc still gets the Arc prompt.
      *
      * @returns undefined when the user cancels.
      */
@@ -270,7 +276,6 @@ export class DatabaseHubService implements vscode.Disposable {
                     cancellable: true,
                 },
                 async (_progress, token) => {
-                    const fallback = this.fallback(request);
                     const deadline = new LookupDeadline(resolveTimeoutMs);
                     const canceled = new Promise<undefined>((resolve) =>
                         token.onCancellationRequested(() => resolve(undefined)),
@@ -281,9 +286,9 @@ export class DatabaseHubService implements vscode.Disposable {
                                 this._logger.error(
                                     `Resolving the Database Hub link failed: ${error instanceof Error ? error.message : String(error)}`,
                                 );
-                                return fallback;
+                                return this.fallback(request);
                             }),
-                            deadline.expired.then(() => fallback),
+                            deadline.expired.then(() => this.fallback(request)),
                             canceled,
                         ]);
                     } finally {
@@ -334,7 +339,7 @@ export class DatabaseHubService implements vscode.Disposable {
         return opened ? resolution.result : DatabaseHubResult.Failed;
     }
 
-    /** The link a request falls back to when its lookups fail or time out. */
+    /** What a request falls back to when its lookups find nothing, fail, or time out. */
     private fallback(request: DatabaseHubRequest): Resolution {
         switch (request.kind) {
             case "connection":
@@ -456,6 +461,14 @@ export class DatabaseHubService implements vscode.Disposable {
                     search: getFabricSqlDatabaseDisplayName(database),
                 });
             case DatabaseHubPlatform.SqlServer:
+                if (facts?.arc?.state === "notRegistered") {
+                    return {
+                        platform,
+                        result: DatabaseHubResult.ArcNotRegistered,
+                        arcNotRegisteredServer: searchNameOf(profile, facts),
+                        link: getDatabaseHubLink(),
+                    };
+                }
                 return fallbackTo(platform, {
                     resourceTypes: [
                         DatabaseHubResourceType.ArcSqlServer,
@@ -529,7 +542,9 @@ export class DatabaseHubService implements vscode.Disposable {
                 : undefined;
         if (!instanceId && instanceName) {
             for (const accountId of await this.accounts(profile, deadline)) {
-                instanceId = await this._azure.managedInstanceId(accountId, instanceName);
+                instanceId = await this._azure.resourceId(accountId, [
+                    { type: AzureResourceType.ManagedInstance, name: instanceName },
+                ]);
                 if (instanceId) {
                     break;
                 }
@@ -581,8 +596,8 @@ export class DatabaseHubService implements vscode.Disposable {
     }
 
     /**
-     * Rows 3, 4 and 6: the Arc ID from the Arc table, or the SQL virtual machine named after the
-     * machine. A local server can't be an Azure VM, so it isn't looked up there.
+     * Rows 3, 4 and 6: the Arc ID from the Arc table, or else the Arc instance or SQL virtual
+     * machine that Azure Resource Graph finds by name.
      */
     private async resolveSqlServer(
         profile: DatabaseHubConnectionProfile,
@@ -604,24 +619,19 @@ export class DatabaseHubService implements vscode.Disposable {
             }
         }
 
-        const machineName = searchNameOf(profile, facts);
-        if (!isLocalServer(profile.server)) {
+        const candidates = sqlServerCandidates(profile, facts);
+        if (candidates.length > 0) {
             for (const accountId of await this.accounts(profile, deadline)) {
-                const vmId = await this._azure.sqlVirtualMachineId(accountId, machineName);
-                const parts = parseArmResourceId(vmId);
-                if (vmId && parts) {
-                    return sqlServerDeepLink(vmId, parts.subscriptionId, true);
+                const id = await this._azure.resourceId(accountId, candidates);
+                const parts = parseArmResourceId(id);
+                if (id && parts) {
+                    return sqlServerDeepLink(
+                        id,
+                        parts.subscriptionId,
+                        parts.resourceType === "microsoft.sqlvirtualmachine/sqlvirtualmachines",
+                    );
                 }
             }
-        }
-
-        if (arc?.state === "notRegistered") {
-            return {
-                platform: DatabaseHubPlatform.SqlServer,
-                result: DatabaseHubResult.ArcNotRegistered,
-                arcNotRegisteredServer: machineName,
-                link: getDatabaseHubLink(),
-            };
         }
         return this.connectionFallback(profile, undefined, facts);
     }
@@ -736,6 +746,35 @@ function sqlServerDeepLink(
             : [DatabaseHubResourceType.ArcSqlServer, DatabaseHubResourceType.AzureSqlVM],
         subscriptionId,
     });
+}
+
+/**
+ * The Azure resources that may stand for a SQL Server instance, in order of preference.
+ *
+ * - The Arc instance, unless the Arc table said the instance isn't registered. Arc names a
+ *   default instance after its machine, and a named instance `<machine>_<instance>`.
+ * - The SQL virtual machine, which is named after its Azure VM. A local server can't be an Azure
+ *   VM, so it isn't looked up there.
+ */
+function sqlServerCandidates(
+    profile: DatabaseHubProfile,
+    facts: DatabaseHubServerFacts | undefined,
+): AzureResourceCandidate[] {
+    const machineName = searchNameOf(profile, facts);
+    const instanceName = (facts?.logicalServerName ?? profile.server.split(",")[0])
+        .split("\\")[1]
+        ?.trim();
+    const candidates: AzureResourceCandidate[] = [];
+    if (facts?.arc?.state !== "notRegistered") {
+        candidates.push({
+            type: AzureResourceType.ArcSqlServer,
+            name: instanceName ? `${machineName}_${instanceName}` : machineName,
+        });
+    }
+    if (!isLocalServer(profile.server)) {
+        candidates.push({ type: AzureResourceType.SqlVirtualMachine, name: machineName });
+    }
+    return candidates;
 }
 
 function sameName(first: string | undefined, second: string | undefined): boolean {
