@@ -1534,6 +1534,23 @@ export class FirewallRule {
     };
 }
 
+export class DatabaseHub {
+    public static findingResource = l10n.t("Finding this resource in Database Hub...");
+    public static learnHowToConnectToArc = l10n.t("Learn how to connect to Arc");
+    public static openDatabaseHub = l10n.t("Open Database Hub");
+    public static notInDatabaseHub = l10n.t(
+        "Database Hub doesn't track this kind of server or database.",
+    );
+    public static arcNotRegistered(serverName: string): string {
+        return l10n.t({
+            message:
+                "'{0}' isn't connected to Azure Arc, so Database Hub can't show it. Connect it to Azure Arc to review its findings in Database Hub.",
+            args: [serverName],
+            comment: ["{0} is the name of a SQL Server machine"],
+        });
+    }
+}
+
 export class Azure {
     public static systemDatabaseNotInFabricDatabaseHub(databaseName: string): string {
         return l10n.t({
@@ -3750,6 +3767,124 @@ export class DacpacDialog {
             comment: ["{0} is the file path"],
         });
     }
+}
+
+export class PerformanceDashboard {
+    public static connectionMayBeResuming = (detail: string) =>
+        l10n.t({
+            message:
+                "The server did not finish the login. A paused serverless database can take a minute to resume, so try again shortly. {0}",
+            args: [detail],
+            comment: ["{0} is the error from the server"],
+        });
+    public static title = (databaseName: string) =>
+        l10n.t({
+            message: "Performance (Preview) - {0}",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static noSavedConnection = l10n.t(
+        "Open performance monitoring from a database of a saved connection in Object Explorer.",
+    );
+    public static planTitle = (queryId: string, planId: string) =>
+        l10n.t({
+            message: "Query {0} - Plan {1}",
+            args: [queryId, planId],
+            comment: ["{0} is the Query Store query ID", "{1} is the Query Store plan ID"],
+        });
+}
+
+export class QueryStoreTools {
+    public static savedProfileRequired = l10n.t(
+        "Query Store tools need a connection that was opened from a saved connection profile.",
+    );
+    public static invalidTimeWindow = l10n.t(
+        "Give hours from 1 to 8760, or both startUtc and endUtc as ISO 8601 times, with startUtc before endUtc.",
+    );
+    public static connectionOrProfileRequired = l10n.t(
+        "Give the connectionId of an open connection or the profileId of a saved connection profile.",
+    );
+    public static profileNotFound = (profileId: string) =>
+        l10n.t({
+            message: "There is no saved connection profile with the ID '{0}'.",
+            args: [profileId],
+            comment: ["{0} is the connection profile ID"],
+        });
+    public static readInvocation = (databaseName: string, displayName: string) =>
+        l10n.t({
+            message: "Reading Query Store data of database '{0}' on '{1}'",
+            args: [databaseName, displayName],
+            comment: ["{0} is the database name", "{1} is the connection display name"],
+        });
+    public static forcePlanTitle = l10n.t("Force Query Store Plan");
+    public static unforcePlanTitle = l10n.t("Unforce Query Store Plan");
+    public static forcePlanConfirmation = (
+        planId: string,
+        queryId: string,
+        databaseName: string,
+        displayName: string,
+    ) =>
+        l10n.t({
+            message:
+                "Force plan {0} for query {1} in database '{2}' on '{3}'? This runs the following T-SQL:",
+            args: [planId, queryId, databaseName, displayName],
+            comment: [
+                "{0} is the Query Store plan ID",
+                "{1} is the Query Store query ID",
+                "{2} is the database name",
+                "{3} is the connection display name",
+            ],
+        });
+    public static unforcePlanConfirmation = (
+        planId: string,
+        queryId: string,
+        databaseName: string,
+        displayName: string,
+    ) =>
+        l10n.t({
+            message:
+                "Unforce plan {0} for query {1} in database '{2}' on '{3}'? This runs the following T-SQL:",
+            args: [planId, queryId, databaseName, displayName],
+            comment: [
+                "{0} is the Query Store plan ID",
+                "{1} is the Query Store query ID",
+                "{2} is the database name",
+                "{3} is the connection display name",
+            ],
+        });
+    public static forcePlanInvocation = (planId: string, queryId: string) =>
+        l10n.t({
+            message: "Forcing plan {0} for query {1}",
+            args: [planId, queryId],
+            comment: ["{0} is the Query Store plan ID", "{1} is the Query Store query ID"],
+        });
+    public static unforcePlanInvocation = (planId: string, queryId: string) =>
+        l10n.t({
+            message: "Unforcing plan {0} for query {1}",
+            args: [planId, queryId],
+            comment: ["{0} is the Query Store plan ID", "{1} is the Query Store query ID"],
+        });
+    public static planChangeWarnings = l10n.t("Warnings:");
+    public static warningReplacesForcedPlan = l10n.t(
+        "Forcing this plan replaces the plan that is forced now.",
+    );
+    public static warningPlanForcingTypeUnknown = l10n.t(
+        "The server does not show whether automatic tuning forced the current plan.",
+    );
+    public static warningVariantPlan = l10n.t(
+        "This is a variant plan of parameter sensitive plan optimization.",
+    );
+    public static warningDispatcherPlan = l10n.t("This is a dispatcher plan.");
+    public static warningPreviousForceFailures = l10n.t("Forcing this plan failed before.");
+    public static planChangeNotReviewed = l10n.t(
+        "The plan change was not reviewed, so it did not run. Call the tool again.",
+    );
+    public static openDashboardInvocation = (databaseName: string, displayName: string) =>
+        l10n.t({
+            message: "Opening the performance dashboard of database '{0}' on '{1}'",
+            args: [databaseName, displayName],
+            comment: ["{0} is the database name", "{1} is the connection display name"],
+        });
 }
 
 export class SearchDatabase {

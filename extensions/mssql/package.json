@@ -89,7 +89,10 @@
         "@ctrl/tinycolor": "^4.2.0",
         "@dagrejs/dagre": "^1.1.4",
         "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
+        "@fluentui/react-charts": "9.3.14",
         "@fluentui/react-components": "^9.72.3",
+        "@fluentui/react-datepicker-compat": "0.6.27",
+        "@fluentui/react-timepicker-compat": "0.4.32",
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
         "@monaco-editor/react": "^4.6.0",
         "@playwright/test": "1.58.2",
@@ -184,6 +187,7 @@
         "recharts": "^3.10.1",
         "semver": "^7.7.4",
         "shallow-equal": "^3.1.0",
+        "sql-core": "file:../../packages/sql-core",
         "strip-json-comments": "^5.0.1",
         "tar": "^7.5.21",
         "tmp": "^0.2.7",
@@ -990,6 +994,21 @@
                     "command": "mssql.searchDatabase",
                     "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
                     "group": "3_MSSQL_databaseDiscover@1"
+                },
+                {
+                    "command": "mssql.performance.openDashboard",
+                    "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled && view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "3_MSSQL_databaseDiscover@3"
+                },
+                {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view == objectExplorer && viewItem =~ /\\bdatabaseHub=(yes|maybe)\\b/ && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "3_MSSQL_databaseDiscover@4"
+                },
+                {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view == objectExplorer && viewItem =~ /\\bdatabaseHub=(yes|maybe)\\b/ && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/ && !(viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "4_MSSQL_discoverAndProfile@3"
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
@@ -1855,6 +1874,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.performance.openDashboard",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.editConnection",
                     "when": "false"
                 },
@@ -2666,6 +2689,12 @@
                 "command": "mssql.searchDatabase",
                 "title": "%mssql.searchDatabase%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.performance.openDashboard",
+                "title": "%mssql.performance.openDashboard%",
+                "category": "MS SQL",
+                "enablement": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled"
             },
             {
                 "command": "mssql.rebuildIntelliSenseCache",
@@ -5634,6 +5663,17 @@
                 }
             },
             {
+                "title": "Performance Monitoring (Preview)",
+                "properties": {
+                    "mssql.performanceMonitoring.enabled": {
+                        "type": "boolean",
+                        "default": true,
+                        "markdownDescription": "%mssql.performanceMonitoring.enabled.description%",
+                        "scope": "application"
+                    }
+                }
+            },
+            {
                 "title": "Query Studio (Private Preview)",
                 "properties": {
                     "mssql.queryStudio.enabled": {
@@ -8101,6 +8141,609 @@
                 "toolReferenceName": "mssql_run_query",
                 "userDescription": "Execute a SQL query against a connected MSSQL database.",
                 "icon": "$(play)"
+            },
+            {
+                "name": "mssql_query_store_analyze_query",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_analyze_query, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Use this tool first to explain why one query is slow or varies: it reads everything in one call. Returns the query (full text, module, stats), each plan with its stats and force status, the history in at most 48 time buckets with each plan's stats, the wait time by category (CPU, Buffer IO, Lock, Memory, ...) with the executions' total duration, so waiting can be told from working, and summaries of the main plans: statement facts such as the optimizer early abort reason and the cardinality estimation model, warnings, missing indexes, compiled parameter values, and the operators with the highest own cost. readsOnlySystemCatalog marks a query that reads only catalog views: a tool such as an object explorer most likely sent it, not the application. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "performance",
+                    "query store",
+                    "analysis"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID of an open connection. Give it or profileId.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile, for example a profileId from mssql_list_servers. Give it or connectionId: the Query Store tools read through the profile without opening a connection.",
+                            "title": "Profile ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database to read. Default: the database of the connection or profile.",
+                            "title": "Database",
+                            "type": "string"
+                        },
+                        "queryId": {
+                            "description": "Query Store query_id, as decimal text.",
+                            "title": "Query ID",
+                            "type": "string"
+                        },
+                        "planIds": {
+                            "description": "Plans to summarize first. Default: the plans with the most total duration.",
+                            "title": "Plan IDs",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "hours": {
+                            "description": "The window is the last this many hours, from 1 to 8760. Default 24. Ignored when startUtc and endUtc are given.",
+                            "title": "Hours",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 8760
+                        },
+                        "startUtc": {
+                            "description": "Start of the window, ISO 8601 UTC. Give it with endUtc for a window other than the last hours.",
+                            "title": "Start (UTC)",
+                            "type": "string"
+                        },
+                        "endUtc": {
+                            "description": "End of the window, ISO 8601 UTC.",
+                            "title": "End (UTC)",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "queryId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Analyze Query",
+                "toolReferenceName": "mssql_query_store_analyze_query",
+                "userDescription": "Read everything that explains a Query Store query's performance.",
+                "icon": "$(sparkle)"
+            },
+            {
+                "name": "mssql_query_store_status",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_status, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Use this tool before the other Query Store tools to check that Query Store can be read. Returns the Query Store state (readWrite, readOnly, off, error), why it is read-only, the start of its oldest data, the metrics that the server records, and whether it records wait statistics. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "performance",
+                    "query store"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID of an open connection. Give it or profileId.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile, for example a profileId from mssql_list_servers. Give it or connectionId: the Query Store tools read through the profile without opening a connection.",
+                            "title": "Profile ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database to read. Default: the database of the connection or profile.",
+                            "title": "Database",
+                            "type": "string"
+                        }
+                    }
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Read Query Store Status",
+                "toolReferenceName": "mssql_query_store_status",
+                "userDescription": "Check whether Query Store is on in a database, and how far back its data goes.",
+                "icon": "$(pulse)"
+            },
+            {
+                "name": "mssql_query_store_top_queries",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_top_queries, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Find the queries that use the most of a resource in a time window. Use it for questions such as which queries use the most CPU, run longest, or run most often. Returns up to 50 queries, highest first, with each query's ID, its text (first 1000 characters), its module, its plan count, and its stats, and the stats of the whole workload in the window, for the share of each query. readsOnlySystemCatalog marks a query that reads only catalog views: a tool such as an object explorer most likely sent it, not the application. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "performance",
+                    "query store",
+                    "queries"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID of an open connection. Give it or profileId.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile, for example a profileId from mssql_list_servers. Give it or connectionId: the Query Store tools read through the profile without opening a connection.",
+                            "title": "Profile ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database to read. Default: the database of the connection or profile.",
+                            "title": "Database",
+                            "type": "string"
+                        },
+                        "rankBy": {
+                            "description": "What to rank the queries by: a metric, or executionCount.",
+                            "title": "Rank by",
+                            "type": "string",
+                            "enum": [
+                                "cpuTime",
+                                "duration",
+                                "logicalReads",
+                                "logicalWrites",
+                                "physicalReads",
+                                "memoryGrant",
+                                "rowCount",
+                                "logBytesUsed",
+                                "tempdbSpaceUsed",
+                                "executionCount"
+                            ]
+                        },
+                        "statistic": {
+                            "description": "The statistic of the metric to rank by. Default total. Ignored for executionCount.",
+                            "title": "Statistic",
+                            "type": "string",
+                            "enum": [
+                                "total",
+                                "avg",
+                                "min",
+                                "max",
+                                "stdev"
+                            ]
+                        },
+                        "top": {
+                            "description": "How many queries to return, from 1 to 50. Default 10.",
+                            "title": "Top",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 50
+                        },
+                        "hours": {
+                            "description": "The window is the last this many hours, from 1 to 8760. Default 24. Ignored when startUtc and endUtc are given.",
+                            "title": "Hours",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 8760
+                        },
+                        "startUtc": {
+                            "description": "Start of the window, ISO 8601 UTC. Give it with endUtc for a window other than the last hours.",
+                            "title": "Start (UTC)",
+                            "type": "string"
+                        },
+                        "endUtc": {
+                            "description": "End of the window, ISO 8601 UTC.",
+                            "title": "End (UTC)",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "rankBy"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Read Top Queries",
+                "toolReferenceName": "mssql_query_store_top_queries",
+                "userDescription": "Find the queries that use the most CPU, time, reads, or memory, from Query Store.",
+                "icon": "$(list-ordered)"
+            },
+            {
+                "name": "mssql_query_store_query_details",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_query_details, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Read one Query Store query in a time window: its full text, its module, its stats, the plan that is forced for it, and each of its plans with the plan's stats, force status, and last force failure. Use it to compare the plans of a query, for example to find a plan that is much slower than another. readsOnlySystemCatalog marks a query that reads only catalog views: a tool such as an object explorer most likely sent it, not the application. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "performance",
+                    "query store",
+                    "plans"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID of an open connection. Give it or profileId.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile, for example a profileId from mssql_list_servers. Give it or connectionId: the Query Store tools read through the profile without opening a connection.",
+                            "title": "Profile ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database to read. Default: the database of the connection or profile.",
+                            "title": "Database",
+                            "type": "string"
+                        },
+                        "queryId": {
+                            "description": "Query Store query_id, as decimal text.",
+                            "title": "Query ID",
+                            "type": "string"
+                        },
+                        "hours": {
+                            "description": "The window is the last this many hours, from 1 to 8760. Default 24. Ignored when startUtc and endUtc are given.",
+                            "title": "Hours",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 8760
+                        },
+                        "startUtc": {
+                            "description": "Start of the window, ISO 8601 UTC. Give it with endUtc for a window other than the last hours.",
+                            "title": "Start (UTC)",
+                            "type": "string"
+                        },
+                        "endUtc": {
+                            "description": "End of the window, ISO 8601 UTC.",
+                            "title": "End (UTC)",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "queryId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Read Query Details",
+                "toolReferenceName": "mssql_query_store_query_details",
+                "userDescription": "Read a Query Store query, its plans, and their stats.",
+                "icon": "$(search)"
+            },
+            {
+                "name": "mssql_query_store_query_history",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_query_history, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Read the stats of one Query Store query over a time window, in at most 48 time buckets, with the stats of each plan that ran in each bucket. Use it to find when a query got slower and whether a plan change caused it. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "performance",
+                    "query store",
+                    "history"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID of an open connection. Give it or profileId.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile, for example a profileId from mssql_list_servers. Give it or connectionId: the Query Store tools read through the profile without opening a connection.",
+                            "title": "Profile ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database to read. Default: the database of the connection or profile.",
+                            "title": "Database",
+                            "type": "string"
+                        },
+                        "queryId": {
+                            "description": "Query Store query_id, as decimal text.",
+                            "title": "Query ID",
+                            "type": "string"
+                        },
+                        "hours": {
+                            "description": "The window is the last this many hours, from 1 to 8760. Default 24. Ignored when startUtc and endUtc are given.",
+                            "title": "Hours",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 8760
+                        },
+                        "startUtc": {
+                            "description": "Start of the window, ISO 8601 UTC. Give it with endUtc for a window other than the last hours.",
+                            "title": "Start (UTC)",
+                            "type": "string"
+                        },
+                        "endUtc": {
+                            "description": "End of the window, ISO 8601 UTC.",
+                            "title": "End (UTC)",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "queryId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Read Query History",
+                "toolReferenceName": "mssql_query_store_query_history",
+                "userDescription": "Read how a Query Store query performed over time, by plan.",
+                "icon": "$(history)"
+            },
+            {
+                "name": "mssql_query_store_wait_stats",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_wait_stats, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Read the wait time by wait category (CPU, Buffer IO, Lock, Memory, Parallelism, ...) in a time window, for the whole database, one query, or one plan, with the executions and their total duration, so the time spent waiting can be compared with the time spent working. captureMode off means Query Store does not capture new waits. Not available before SQL Server 2017. Times are in milliseconds and sizes in KB. Each metric has total, avg, min, max, and stdev over its executions. A status other than ready or noData, or a reason, says why the data could not be read: for example notConfigured means Query Store is off, and dataPlaneDisabled means performance monitoring is turned off.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "performance",
+                    "query store",
+                    "waits"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID of an open connection. Give it or profileId.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile, for example a profileId from mssql_list_servers. Give it or connectionId: the Query Store tools read through the profile without opening a connection.",
+                            "title": "Profile ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database to read. Default: the database of the connection or profile.",
+                            "title": "Database",
+                            "type": "string"
+                        },
+                        "queryId": {
+                            "description": "Query Store query_id. Default: every query of the database.",
+                            "title": "Query ID",
+                            "type": "string"
+                        },
+                        "planId": {
+                            "description": "Query Store plan_id, for one plan's waits.",
+                            "title": "Plan ID",
+                            "type": "string"
+                        },
+                        "hours": {
+                            "description": "The window is the last this many hours, from 1 to 8760. Default 24. Ignored when startUtc and endUtc are given.",
+                            "title": "Hours",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 8760
+                        },
+                        "startUtc": {
+                            "description": "Start of the window, ISO 8601 UTC. Give it with endUtc for a window other than the last hours.",
+                            "title": "Start (UTC)",
+                            "type": "string"
+                        },
+                        "endUtc": {
+                            "description": "End of the window, ISO 8601 UTC.",
+                            "title": "End (UTC)",
+                            "type": "string"
+                        }
+                    }
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Read Wait Statistics",
+                "toolReferenceName": "mssql_query_store_wait_stats",
+                "userDescription": "Read what a database or a query waits on, from Query Store.",
+                "icon": "$(watch)"
+            },
+            {
+                "name": "mssql_query_store_plan_summary",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_plan_summary, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Prefer the Query Store tools over mssql_run_query for Query Store data, and mssql_query_store_plan_summary over reading plan XML. Summarize one Query Store plan instead of reading its XML: for each statement, the estimated cost and rows, the optimizer early abort reason (for example TimeOut), the cardinality estimation model, the memory grant, the compile time, warnings (for example implicit conversions), missing indexes with their columns, the compiled parameter values, and the operators with the highest own cost, with their object, estimated rows and rows read, and predicate. Query Store plans are estimated: there are no actual row counts.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "performance",
+                    "query store",
+                    "plans"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID of an open connection. Give it or profileId.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile, for example a profileId from mssql_list_servers. Give it or connectionId: the Query Store tools read through the profile without opening a connection.",
+                            "title": "Profile ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database to read. Default: the database of the connection or profile.",
+                            "title": "Database",
+                            "type": "string"
+                        },
+                        "planId": {
+                            "description": "Query Store plan_id, as decimal text.",
+                            "title": "Plan ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "planId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Summarize Query Store Plan",
+                "toolReferenceName": "mssql_query_store_plan_summary",
+                "userDescription": "Summarize a Query Store execution plan.",
+                "icon": "$(type-hierarchy)"
+            },
+            {
+                "name": "mssql_query_store_plan_forcing",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_plan_forcing, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Force a Query Store plan for a query, so that the query always uses it, or unforce it. The user reviews the exact T-SQL before it runs. Read the query's plans with mssql_query_store_analyze_query or mssql_query_store_query_details first, and force a plan only when it is clearly better. The result has applied, and blockers when the change could not run: for example planAlreadyForced, autoForcedPlan (automatic tuning forced the plan), or stateChanged. After forcing, call mssql_query_store_verify_forced_plan with sinceUtc set to the result's appliedAtUtc once the query has run again.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "performance",
+                    "query store",
+                    "plans"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID of an open connection. Give it or profileId.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile, for example a profileId from mssql_list_servers. Give it or connectionId: the Query Store tools read through the profile without opening a connection.",
+                            "title": "Profile ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database to read. Default: the database of the connection or profile.",
+                            "title": "Database",
+                            "type": "string"
+                        },
+                        "action": {
+                            "description": "force to force the plan, or unforce to remove a forced plan.",
+                            "title": "Action",
+                            "type": "string",
+                            "enum": [
+                                "force",
+                                "unforce"
+                            ]
+                        },
+                        "queryId": {
+                            "description": "Query Store query_id, as decimal text.",
+                            "title": "Query ID",
+                            "type": "string"
+                        },
+                        "planId": {
+                            "description": "Query Store plan_id, as decimal text.",
+                            "title": "Plan ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "action",
+                        "queryId",
+                        "planId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Force Query Store Plan",
+                "toolReferenceName": "mssql_query_store_plan_forcing",
+                "userDescription": "Force or unforce a Query Store plan, after you review the T-SQL.",
+                "icon": "$(pin)"
+            },
+            {
+                "name": "mssql_query_store_verify_forced_plan",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_query_store_verify_forced_plan, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Check whether a forced plan is used: whether the executions of the query after sinceUtc used the forced plan. The outcome is forcedPlanInUse, otherPlansInUse, noExecutions, waitingForNextInterval (verify again later), notForced, or planNotFound, with the plans that ran and their execution counts.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "performance",
+                    "query store",
+                    "plans"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID of an open connection. Give it or profileId.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile, for example a profileId from mssql_list_servers. Give it or connectionId: the Query Store tools read through the profile without opening a connection.",
+                            "title": "Profile ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database to read. Default: the database of the connection or profile.",
+                            "title": "Database",
+                            "type": "string"
+                        },
+                        "queryId": {
+                            "description": "Query Store query_id, as decimal text.",
+                            "title": "Query ID",
+                            "type": "string"
+                        },
+                        "planId": {
+                            "description": "Query Store plan_id, as decimal text.",
+                            "title": "Plan ID",
+                            "type": "string"
+                        },
+                        "sinceUtc": {
+                            "description": "When the plan was forced, ISO 8601 UTC: the appliedAtUtc of mssql_query_store_plan_forcing.",
+                            "title": "Since (UTC)",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "queryId",
+                        "planId",
+                        "sinceUtc"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Verify Forced Plan",
+                "toolReferenceName": "mssql_query_store_verify_forced_plan",
+                "userDescription": "Check whether a query uses the plan that was forced for it.",
+                "icon": "$(check)"
+            },
+            {
+                "name": "mssql_open_performance_dashboard",
+                "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled",
+                "modelDescription": "When the user explicitly references #mssql_open_performance_dashboard, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Open the performance dashboard of a database for the user, at the queries list, or at one query and a tab. Use it to show the user a query that the other Query Store tools found.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "performance",
+                    "query store",
+                    "dashboard"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID of an open connection. Give it or profileId.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile, for example a profileId from mssql_list_servers. Give it or connectionId: the Query Store tools read through the profile without opening a connection.",
+                            "title": "Profile ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database to read. Default: the database of the connection or profile.",
+                            "title": "Database",
+                            "type": "string"
+                        },
+                        "queryId": {
+                            "description": "Query Store query_id to open. Default: the queries list.",
+                            "title": "Query ID",
+                            "type": "string"
+                        },
+                        "tab": {
+                            "description": "Tab of the query to show. Default history.",
+                            "title": "Tab",
+                            "type": "string",
+                            "enum": [
+                                "history",
+                                "waits",
+                                "plans",
+                                "compare"
+                            ]
+                        }
+                    }
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Open Performance Dashboard",
+                "toolReferenceName": "mssql_open_performance_dashboard",
+                "userDescription": "Open the performance dashboard of a database, at a query.",
+                "icon": "$(dashboard)"
             }
         ],
         "colors": [

@@ -730,10 +730,12 @@ export default class SqlToolsServiceClient {
         // Enable parallel message processing to improve performance
         args.push("--parallel-message-processing");
         // STS v2 shares the existing stdio transport and stays completely
-        // disabled unless the experimental SQL Data Plane is enabled.
+        // disabled unless the experimental SQL Data Plane is enabled, or
+        // performance monitoring, which reads through it, is on.
         configureSqlDataPlaneLaunchArgs(
             args,
-            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane),
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane) ||
+                previewService.performanceMonitoringEnabled,
         );
         args.push("--parallel-message-processing-limit");
         args.push(String(100));

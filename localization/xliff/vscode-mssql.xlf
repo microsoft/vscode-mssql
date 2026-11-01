@@ -54,6 +54,10 @@
       <source xml:lang="en">&apos;{0}&apos; is a system database, so it isn&apos;t tracked in the Fabric Database Hub.</source>
       <note>{0} is the name of the system database, such as &apos;master&apos;</note>
     </trans-unit>
+    <trans-unit id="++CODE++adf8e04f50ceb08ed05e22cbfc53a0ac2ea0dec32ae4298d7b37a23ba00a6143">
+      <source xml:lang="en">&apos;{0}&apos; isn&apos;t connected to Azure Arc, so Database Hub can&apos;t show it. Connect it to Azure Arc to review its findings in Database Hub.</source>
+      <note>{0} is the name of a SQL Server machine</note>
+    </trans-unit>
     <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
       <source xml:lang="en">&apos;{0}&apos; started.</source>
       <note>{0} is the service name</note>
@@ -194,8 +198,17 @@
     <trans-unit id="++CODE++6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b">
       <source xml:lang="en">1</source>
     </trans-unit>
+    <trans-unit id="++CODE++27b0f312f4c87c2942cd98a69eca10b7537b956dd8e64af684a8cc73ec002cbe">
+      <source xml:lang="en">1 change</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa665d95d29e83bc8dc7afc598bc4d3329e56628d5304eb7ca7502fe4a4f03c0">
+      <source xml:lang="en">1 day</source>
+    </trans-unit>
     <trans-unit id="++CODE++f3715b57be27000462959853dd6e8195e067db349e0e9cdf56820c8e9afa26f8">
       <source xml:lang="en">1 engine detected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f8b8883f0c9d8d823a8df096ebde57ec04abe9f9cbc4eea1cbc3454c5025c484">
+      <source xml:lang="en">1 hour</source>
     </trans-unit>
     <trans-unit id="++CODE++07c30a3a0d752e12c0b2a23084bf77b6747f3b7fa00b7e9d820a3bc18040418a">
       <source xml:lang="en">1 row</source>
@@ -203,11 +216,20 @@
     <trans-unit id="++CODE++41cf433995f12e73203aa3213ef1239975fae6486ddfbac3758709f815d0f57b">
       <source xml:lang="en">1 row returned</source>
     </trans-unit>
+    <trans-unit id="++CODE++0e222355f5230d3a069a6110d2340ced9a98a63bc491871826f19b22df0afbcb">
+      <source xml:lang="en">1 selected</source>
+    </trans-unit>
     <trans-unit id="++CODE++623e78b5bca41393286d3b34ba12d740b3dfc69c0d7c8af4db2229b7c3bc67de">
       <source xml:lang="en">1 skill</source>
     </trans-unit>
     <trans-unit id="++CODE++88af2fae162f54cc7b5d4efe02c132217c5bccb05fd1b82cbbfee5b450dc9a44">
       <source xml:lang="en">100K vCore seconds</source>
+    </trans-unit>
+    <trans-unit id="++CODE++907050b936fff65138d1b58f40a8f1a783201adedbecf2d2b7b8f888c0ceab5e">
+      <source xml:lang="en">2 selected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++40d8d22f89cbb251a550912cba4546124e6eeea56603098f03cef9a8c5bb5628">
+      <source xml:lang="en">30 days before</source>
     </trans-unit>
     <trans-unit id="++CODE++edf70be4cc3997d84703d19bd61ed05b95494ec7d58abb5a78ae4250ddefadcf">
       <source xml:lang="en">32 GB</source>
@@ -217,6 +239,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b63f1f48f79dc3c0319a846b9df813b98c4882df4d8b885b7f74d4ad237cf24f">
       <source xml:lang="en">60 min</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c39de786f9ad63ee4bea2274dc6ab09a1de0a7fc59e3f80970feb5114aa5523">
+      <source xml:lang="en">7 days before</source>
     </trans-unit>
     <trans-unit id="++CODE++380918b946a526640a40df5dced6516794f3d97bbd9e6bb553d037c4439f31c3">
       <source xml:lang="en">=</source>
@@ -248,6 +273,9 @@
     <trans-unit id="++CODE++c8de997b7629be28d0a23b5051675226cd94e8dbce3b837e10491b7d60dc9903">
       <source xml:lang="en">A database with this name already exists on the server</source>
     </trans-unit>
+    <trans-unit id="++CODE++4d736941ab49576b9e1d321b9def559b6921a32023b2b76cbfa9abeb13a443ff">
+      <source xml:lang="en">A dispatcher plan cannot be forced. Force one of its variant plans.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b120c5984701afdfec284eb8567363262db10fa29e8c4bd4c8ba44d673511b45">
       <source xml:lang="en">A file named &apos;{0}&apos; already exists in the workspace root.</source>
       <note>{0} is the deployment script file name</note>
@@ -266,6 +294,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
       <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9a3f4dcb8d00d77d27a03c716032f15e1dedc065981e6efc522136594f99cfa3">
+      <source xml:lang="en">A longer flush interval loses more data if the server stops unexpectedly.</source>
     </trans-unit>
     <trans-unit id="++CODE++045d71b1a3454db180c918941024e788e68689e951e9d51ea41f3283ed5b7666">
       <source xml:lang="en">A name for this deployment</source>
@@ -290,6 +321,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cfdcb47ff9f029cb83b66a913ad547fff407ef9ff383c870163fd5538a10068a">
       <source xml:lang="en">A saved filter with this name already exists.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4dcf05a44cbb1db82f1cd8739832e3965536559c31f7a883bcf0af045fc96f2f">
+      <source xml:lang="en">A shorter interval gives more detail but uses more storage.</source>
     </trans-unit>
     <trans-unit id="++CODE++2a40053b5c7c4638c958ed8af2d4f5c7b4ea80f9eb9bd4276b90a63e91116ca4">
       <source xml:lang="en">A tour of what the extension can do, grouped by task.</source>
@@ -361,6 +395,14 @@
     </trans-unit>
     <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
       <source xml:lang="en">Actions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a391b159a5a2a6b9353e98d7b8ca4b8ffbd82153c2f4850105f6e2ab0e36c8c6">
+      <source xml:lang="en">Actions for plan {0}</source>
+      <note>{0} is the Query Store plan ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5d4ec9a53f2cbe502e36ff86aaeba73faea341a9f13f9510375da085f8d6099b">
+      <source xml:lang="en">Actions for query {0}</source>
+      <note>{0} is the Query Store query ID</note>
     </trans-unit>
     <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
       <source xml:lang="en">Active filters:</source>
@@ -480,6 +522,10 @@
     </trans-unit>
     <trans-unit id="++CODE++18ef399051716731a65e9412dca68fc9d35b38850e7dff905d9771fe15bde438">
       <source xml:lang="en">Add new foreign key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c14a10cbe40eb4bfe655f4b40a34e3e1240dbf4cd3c5b46bf4c0b0deed868a85">
+      <source xml:lang="en">Add query {0} to favorites</source>
+      <note>{0} is the Query Store query ID</note>
     </trans-unit>
     <trans-unit id="++CODE++e891f9e2ee7ea16cb59e0300e28e862e02117c23fab36f0eefe9cbec2520e74f">
       <source xml:lang="en">Add reference</source>
@@ -615,6 +661,9 @@
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
     </trans-unit>
+    <trans-unit id="++CODE++55e91685e997d613688a4a720cb33f10a7b0d535d8e8bffc50080a9179d386ba">
+      <source xml:lang="en">All plans</source>
+    </trans-unit>
     <trans-unit id="++CODE++c41468c144a7b98197e8c756c135db6069fdaa622c54b2bfe84e601f07dbb13c">
       <source xml:lang="en">All schemas</source>
     </trans-unit>
@@ -717,6 +766,9 @@
     <trans-unit id="++CODE++321d13ba1e83d7e8983d23263451f4aba17263f597fcf9178b6cf3a627d281c6">
       <source xml:lang="en">Analyze execution plans with interactive node navigation</source>
     </trans-unit>
+    <trans-unit id="++CODE++ea242bca3cdeaf4af93a0f22feace56f661f6c2f049aff6f6cc31d4340eec540">
+      <source xml:lang="en">Analyze in Chat</source>
+    </trans-unit>
     <trans-unit id="++CODE++44b00c0e282443ba0669be2f57be8a112820909a49b2e026121d446409e42d21">
       <source xml:lang="en">Analyze static code with customizable rulesets in SQL Database Projects.</source>
     </trans-unit>
@@ -731,6 +783,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e7a8aa2df7e5d0b233da615af4e7fef148bec39aef1709da0a80391ad0316563">
       <source xml:lang="en">Anonymous</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b14d163bae8eee8f8d4efd8cc2709c488f32b1b5c3ff9204f88adb1b04986ffb">
+      <source xml:lang="en">Another plan of this query is forced. This change replaces it.</source>
     </trans-unit>
     <trans-unit id="++CODE++c76fd92a59a84d588534d9cc45c793cf341192e0e9df83275f7efc90637c2daf">
       <source xml:lang="en">Another run is active; queue controls are paused.</source>
@@ -796,6 +851,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b7a29a0664722b59ea2bc598ce82feac6ef017534cb0564b53d9b3189f7233ce">
       <source xml:lang="en">Apply failed. Fix the error and retry, or run Schema Compare again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++08eefab94b8ed23020b55a01dc583cec2936c4040c89b3097542f02d5bfb078c">
+      <source xml:lang="en">Apply runs this script on the database. You can also open it in a query editor and run it yourself.</source>
     </trans-unit>
     <trans-unit id="++CODE++65660be4b1aada743a043b8bfae0d7ab62971f6ef37c3e6860d6449dc85609e5">
       <source xml:lang="en">Applying changes, this might take a while...</source>
@@ -896,6 +954,9 @@
     <trans-unit id="++CODE++fea765474e97df1fb824cc8008ffaa21df00215e1782a61e27c1acdf0c9e9311">
       <source xml:lang="en">Asymmetric Keys</source>
     </trans-unit>
+    <trans-unit id="++CODE++fd4039f81a5a6dbc625b5ede30bb59b09f334f9d26a81f631c21f5d178e5f472">
+      <source xml:lang="en">At 90% of the max size, removes the oldest and least costly queries until about 80%. SQL Server sets these thresholds.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b17def22e3775d608a7cdc7f600aa9fd107e2209e657a6d358a5687f9f7c7bd">
       <source xml:lang="en">At least one API type must be selected.</source>
     </trans-unit>
@@ -940,6 +1001,9 @@
     <trans-unit id="++CODE++7eaca18a3c11c60ab2d50c764174699f66bb634b8d7324a2303d1e3ea541b626">
       <source xml:lang="en">Authentication not supported</source>
     </trans-unit>
+    <trans-unit id="++CODE++0286249762f7c94349cdc0ba3bb2255baf9a80036e2193ead1d77696f888582f">
+      <source xml:lang="en">Auto</source>
+    </trans-unit>
     <trans-unit id="++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d">
       <source xml:lang="en">Auto Arrange</source>
     </trans-unit>
@@ -951,6 +1015,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3da1ef996b0b508a04344c06e2672689c5ae9a5990a2b818c41e4fa53a8148ee">
       <source xml:lang="en">Auto Scroll</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9e2acd5543785a858258aca5157ac0ff5e0ee634d9a56cfa0057b81ad265efd6">
+      <source xml:lang="en">Auto skips infrequent and insignificant queries</source>
     </trans-unit>
     <trans-unit id="++CODE++4c5540399ea50cb52c6ca24ab5aebf272d0e39920af434bec1fa87fa821f1bbd">
       <source xml:lang="en">Auto-pause</source>
@@ -976,11 +1043,20 @@
     <trans-unit id="++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0">
       <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
     </trans-unit>
+    <trans-unit id="++CODE++711196aad2495e2c8997c90166d2ea0d06f1c348532fcbfa0415a08b4a14f294">
+      <source xml:lang="en">Automatic tuning forced a plan for this query, so the plan forcing cannot be changed here.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b5cc185ca6a07f98625ce51f17da6ab56e7003264c3b98dac6324d231d61652">
       <source xml:lang="en">Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.</source>
     </trans-unit>
     <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
       <source xml:lang="en">Available Servers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b38ae2c5b84529e8027b43a69c8ce9426a3cb081dae97b77bdcd2fdc5a9df742">
+      <source xml:lang="en">Average</source>
+    </trans-unit>
+    <trans-unit id="++CODE++27aaaa95190cb06182c8b91238189ddd51bc9a9f4feb24d769aed8f6a5b0b0ec">
+      <source xml:lang="en">Average per execution</source>
     </trans-unit>
     <trans-unit id="++CODE++fb226d6b73aa48dadaf6a46992c5d7a707fb8d1fe58b0865de04d08c848fecff">
       <source xml:lang="en">Average: {0}</source>
@@ -989,6 +1065,10 @@
     <trans-unit id="++CODE++8dd4f3a846ac5cf5452d53cc438aaae7ad47df96a29ad32857a87718cdeefbca">
       <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
       <note>{0} is the average, {1} is the count, {2} is the sum</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d22e68ea450b14ced02880d755321c6c41669c007e42c1261d0a707c4aa6f4cb">
+      <source xml:lang="en">Avg</source>
+      <note>Short for average, before a metric</note>
     </trans-unit>
     <trans-unit id="++CODE++41835ff14ac6b8c789e93c4f3af5fdda54d093c45144a3cce1bb907e9c222162">
       <source xml:lang="en">Avg</source>
@@ -1161,6 +1241,18 @@
     <trans-unit id="++CODE++e3ea81f5c09231f1e54b897c6a7d4a742d37c4776769a19d4cc267a8b4632852">
       <source xml:lang="en">Balanced (default)</source>
     </trans-unit>
+    <trans-unit id="++CODE++a6f43c38ec488f6281abbedabf16441abbf1de98c6e9b8580599fd57011c2054">
+      <source xml:lang="en">Baseline</source>
+      <note>The earlier period that a comparison compares with</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9a6e9a2ef671fa22ce409d2e5427bed347472a277ad19af7de1b7a9879f82107">
+      <source xml:lang="en">Baseline {0}</source>
+      <note>{0} is a measure, for example Avg CPU</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0a7bab16ce0aeb20f7ce076b0d61d285774b055f1373075e59e21b37497f022a">
+      <source xml:lang="en">Baseline · {0} that</source>
+      <note>{0} is a period, for example 30 days before</note>
+    </trans-unit>
     <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
       <source xml:lang="en">Batch execution time: {0}</source>
       <note>{0} is the batch time</note>
@@ -1204,6 +1296,9 @@
     <trans-unit id="++CODE++ccf0f7d8ca72435242c2a0bb7d339db3e48a986cde65596b19d6b05e616b69e1">
       <source xml:lang="en">Bottom operation: {0}</source>
       <note>{0} is an execution plan operation name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2bd873d6c734e63ea80e163a6a643f75bf87a3d24e3164987d176a2e3e5c567e">
+      <source xml:lang="en">Breadcrumb</source>
     </trans-unit>
     <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
       <source xml:lang="en">Brightness</source>
@@ -1324,6 +1419,20 @@
     </trans-unit>
     <trans-unit id="++CODE++6248ef8e6f3f4bffe577436b4b10be7aac958451c9c04117656b54ca93601f2b">
       <source xml:lang="en">By group · latency p95</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2aac2c046961ef327560ac1a1d0f169de4961eaf3a93b59c0c645a0918e9d9f8">
+      <source xml:lang="en">CPU</source>
+      <note>A choice of measure: CPU time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b06b261185147e6937e2c909eb4b00620ebe0e71f7b939b1eb95dac558772889">
+      <source xml:lang="en">CPU</source>
+      <note>A metric after a statistic, for example Total CPU</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9f158c7179189aaec446b5301093b0ca185091854d7aefb6430d28ee753466af">
+      <source xml:lang="en">CPU (ms)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1f3d52c395b7926d3087135bd609bb40e93c5967914e7eb9cfc4c93d7e02edf0">
+      <source xml:lang="en">CPU time</source>
     </trans-unit>
     <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
       <source xml:lang="en">CSV</source>
@@ -1460,6 +1569,18 @@
     <trans-unit id="++CODE++bd9b6abb39811686a3ce6937ab20e015e9670dd7284c04ffef25cc751b7317d6">
       <source xml:lang="en">Caps</source>
     </trans-unit>
+    <trans-unit id="++CODE++22a8df9139b50e37639f65ca5093eaba943d92cd2aab104cf4d9a3e8cee4c440">
+      <source xml:lang="en">Capture a query that runs at least this many times</source>
+    </trans-unit>
+    <trans-unit id="++CODE++06fa7cec8d6f120e36772b67ca138d4b0a4b668b8be593d3916379d2b62c64ab">
+      <source xml:lang="en">Capture mode</source>
+    </trans-unit>
+    <trans-unit id="++CODE++01212fbcf27fb5f30fcf36d4207a11ea919dc79c213ce68171382d15318e31e1">
+      <source xml:lang="en">Capture mode None stops the capture of new queries.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b14a2fac35d9ddd0ba4c078243d33ce192181373dafe0fe120665248ccd97a0">
+      <source xml:lang="en">Capture what queries spend time waiting on</source>
+    </trans-unit>
     <trans-unit id="++CODE++eea1c06ee7b32ae358d581041bc06ce027f7f9438860cf2ecdbb3923a6575782">
       <source xml:lang="en">Captured ({0})</source>
     </trans-unit>
@@ -1472,6 +1593,9 @@
     <trans-unit id="++CODE++c04b5456582ed299c03fd190e880ad4824ce6b536cd706265735f36d6ff31184">
       <source xml:lang="en">Captured snapshot (read-only)</source>
     </trans-unit>
+    <trans-unit id="++CODE++595ebee89159139286b386f0829d82f4fa2f1d76f26fb95e8d6c3a6be2c1668b">
+      <source xml:lang="en">Capturing secondary replicas</source>
+    </trans-unit>
     <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
       <source xml:lang="en">Cascade</source>
     </trans-unit>
@@ -1480,6 +1604,10 @@
     </trans-unit>
     <trans-unit id="++CODE++16f637921eba69b04b80b33acfce138c0f48121ce6b33eda1a10aaf7c5216b23">
       <source xml:lang="en">Certificates</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bd76e7f6a65f9cafb993a2403498372e53ae75ce8e484965b7d1d91fa5beb92e">
+      <source xml:lang="en">Change</source>
+      <note>The change from one period to another</note>
     </trans-unit>
     <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
       <source xml:lang="en">Change</source>
@@ -1496,6 +1624,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a949f46230748d3f7496809b82cec6daa6ec8a671d17ac1ca03a17173cbcb2d6">
       <source xml:lang="en">Change Password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++57dc29afccb34b17a18f97b6247b03723eb27c9ba679a8bc17d27cf8bad621c8">
+      <source xml:lang="en">Change Query Store settings</source>
     </trans-unit>
     <trans-unit id="++CODE++fad48517dc5d23758f7a5fb69e52de0ad54bde81726bd0450e14f969067d971e">
       <source xml:lang="en">Change Setting</source>
@@ -1735,6 +1866,10 @@
     <trans-unit id="++CODE++ae25d6481fc1741ffee4a95cd05de7b6375f7e1b0c63c006640b366094f2c4a9">
       <source xml:lang="en">Classic</source>
     </trans-unit>
+    <trans-unit id="++CODE++c5d10023c74d627d391fd82ec720a12aeb9898938f2aa5365be81652144a9453">
+      <source xml:lang="en">Cleanup starts at {0}</source>
+      <note>{0} is a percentage of the maximum size, for example 90%</note>
+    </trans-unit>
     <trans-unit id="++CODE++83b12c2216efb4fdc924e1deb5182e905e4926ed0c1c324d467107f46d5a26a9">
       <source xml:lang="en">Clear</source>
     </trans-unit>
@@ -1950,6 +2085,12 @@
     <trans-unit id="++CODE++2a741bf60e87cb92c5850d89286135aaed0b73927b901114af28ad88fe82951f">
       <source xml:lang="en">Collation</source>
     </trans-unit>
+    <trans-unit id="++CODE++31f1ba2b9bb4789c63daefd6429f72e2ddbceef784c4136664a82fcee7972b26">
+      <source xml:lang="en">Collecting</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7b790708ff1b171315a152018f3712e8c71c82f4f9000635f77a1336c34f1893">
+      <source xml:lang="en">Collection</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
     </trans-unit>
@@ -2062,6 +2203,9 @@
     <trans-unit id="++CODE++bfb50f40d677806eb1c3fa2b02c9048eade68bcf1237e4c6268522333d903edc">
       <source xml:lang="en">Compare and synchronize schemas between databases or DACPACs</source>
     </trans-unit>
+    <trans-unit id="++CODE++30d9abfd7c7af513814bdfadcafe7ec4a90bc6bcee519086dc513f63f2cd7384">
+      <source xml:lang="en">Compare plans</source>
+    </trans-unit>
     <trans-unit id="++CODE++9fb1b0a3d5937c4d492e2d8e65acae3e3d8eb9bab5422aa3b80eb895872ef088">
       <source xml:lang="en">Comparing...</source>
     </trans-unit>
@@ -2076,6 +2220,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0891b63d1c799ce3a1d712cee42286cac8db64e6a57701839b06d7937855b14e">
       <source xml:lang="en">Compatibility Level</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ff09ed14e260f89ad6e0aed11f1a11048f6f238137e3bc68ef97c9ab279fa63e">
+      <source xml:lang="en">Compile CPU</source>
     </trans-unit>
     <trans-unit id="++CODE++421428d865d9212a46a8ab340467e462b3c6ae40050c2c1cb90551b3bf703ab9">
       <source xml:lang="en">Completed with errors.</source>
@@ -2586,6 +2733,9 @@
     <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
       <source xml:lang="en">Continue Editing</source>
     </trans-unit>
+    <trans-unit id="++CODE++e755d33279174089803267f30ec4ea489a5c08afc0905e1cdadd7538b6b88830">
+      <source xml:lang="en">Continue investigating this database</source>
+    </trans-unit>
     <trans-unit id="++CODE++f331832c8bdfb5c52a1430795650caa56eb169ffa1dfea7084b518fcf9511d48">
       <source xml:lang="en">Continue on error</source>
     </trans-unit>
@@ -2650,6 +2800,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b2438ae936ce1b04cc796587cfbb853c474023d603be2d98fde7be3526f9a295">
       <source xml:lang="en">Copy Query</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4f61ddf87f04daa497bc88efa7c7fdc5e0af4a1d16e48a4ed7fc3ca9cedc720f">
+      <source xml:lang="en">Copy SQL</source>
     </trans-unit>
     <trans-unit id="++CODE++970a1f3493ca367ca4e95e0f203ef44c08040fa0563dd8b2cc2c9c69cf125da4">
       <source xml:lang="en">Copy Script</source>
@@ -2801,6 +2954,18 @@
     </trans-unit>
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56d39ec1e8163f0966464f66392c8d028981d568f3a30e02e506d9fbc12b4f8b">
+      <source xml:lang="en">Could not load the database list: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0d4400b691051ae4194ffbcb87a0329b751d4719977ad305fab07d6abe912859">
+      <source xml:lang="en">Could not read from the database: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4671f0df2f5441ca2dbfa24ad935690928fae2e2bf62aba3f9051d828ee69b33">
+      <source xml:lang="en">Could not read the data: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++4e92c9fee41350bf30db096559334cf711a7d3a2f0a378c3534597686c6c6981">
       <source xml:lang="en">Could not reconnect to database &quot;{0}&quot;.</source>
@@ -3020,6 +3185,10 @@
     <trans-unit id="++CODE++d48a617c7da5163c44f117b9b23d8c920e69b4aa83d7b6570d71a66f3a857183">
       <source xml:lang="en">Credentials</source>
     </trans-unit>
+    <trans-unit id="++CODE++53bca1888ec8b7ebe96fb179f4cd8442ff87d52744b2818aebd4072262c9617c">
+      <source xml:lang="en">Critical (≥ {0})</source>
+      <note>{0} is the threshold, for example 80%</note>
+    </trans-unit>
     <trans-unit id="++CODE++fffe840efaba69fcb5f88dd3c3472b066470eeb08bba1ed2cc7cd876a561423f">
       <source xml:lang="en">Cross-platform, ARM and x64</source>
     </trans-unit>
@@ -3058,6 +3227,12 @@
     </trans-unit>
     <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
       <source xml:lang="en">Custom Zoom</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5064b6f4b64ab5bbac986e48da4e361216067ef2822cd58febcb5b0e01f1ad53">
+      <source xml:lang="en">Custom capture: the period in which a query must reach a threshold below</source>
+    </trans-unit>
+    <trans-unit id="++CODE++add9164abf66c6154545762c87e61c935084086ec51845233b7e5651a28f20dc">
+      <source xml:lang="en">Custom range</source>
     </trans-unit>
     <trans-unit id="++CODE++0cac62cfde0ac1239ee6047e6b525f3afe5d6e6b4bf07c9733a023bed0452180">
       <source xml:lang="en">Custom system prompt</source>
@@ -3182,11 +3357,18 @@
     <trans-unit id="++CODE++b38a72417c43cfd4c4b1d08d6877fe572934f1c8b321347af7ff1d06a47b2238">
       <source xml:lang="en">Data file folder</source>
     </trans-unit>
+    <trans-unit id="++CODE++b5521e491246f30be2e361bccb99dc09eea4223717ce7a282e5f541ad69ed84e">
+      <source xml:lang="en">Data flush interval</source>
+    </trans-unit>
     <trans-unit id="++CODE++548c5b4d99727c76519438c8f3ae4cdd9fce1c53f1e12fdc4705bfedc47a7a8b">
       <source xml:lang="en">Data source</source>
     </trans-unit>
     <trans-unit id="++CODE++a22bd608ff67405e99b1f334c2bd3748916a74c0cc6d11b06d712e0eec54fe9d">
       <source xml:lang="en">Data sources</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f7ddcb910436544d0a7458e217530d64be369b93a61e00790da8552f2a2374c6">
+      <source xml:lang="en">Data starts {0}. Partial ranges show what&apos;s available.</source>
+      <note>{0} is the date and time of the oldest data</note>
     </trans-unit>
     <trans-unit id="++CODE++a8c55c54905b7625783e023a4e77ce3d61564755ab1c292df80008c499ed4caa">
       <source xml:lang="en">Data then rules</source>
@@ -3228,6 +3410,9 @@
     </trans-unit>
     <trans-unit id="++CODE++331a6c931050da7a047695a8068d30760c2c3abcdc09249f23c6a68a585d2ca7">
       <source xml:lang="en">Database Details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7707874a8154778a0c34b6781d9a5a020c17a7f5ae860c1c3a32786950e6aa21">
+      <source xml:lang="en">Database Hub doesn&apos;t track this kind of server or database.</source>
     </trans-unit>
     <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
       <source xml:lang="en">Database Name</source>
@@ -3838,6 +4023,13 @@
     <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
       <source xml:lang="en">Dropping database</source>
     </trans-unit>
+    <trans-unit id="++CODE++9a28752d1556cda872cbec4cff4cce3d3495d75a79bed0ea5ecd5f77786bb043">
+      <source xml:lang="en">Duration</source>
+      <note>A category of the Queries page: the queries that run longest</note>
+    </trans-unit>
+    <trans-unit id="++CODE++35d6a4d3158d6b9b442f6cbeb0eb4d0b10da5019fe0be8429fd5d6777d5884bf">
+      <source xml:lang="en">Duration (ms)</source>
+    </trans-unit>
     <trans-unit id="++CODE++4a87bc4a6f84b6911fabebc702ad8d32dbb799d7bec2abf53a05c86d91b456bf">
       <source xml:lang="en">EF Core</source>
     </trans-unit>
@@ -4418,6 +4610,9 @@
     <trans-unit id="++CODE++009889f8da222c45ffbfecd313bd7a242a48218c5e6f476811f811a2791d97ea">
       <source xml:lang="en">Estimated query progress: {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++209ebcbb441fd183536a4070f5393bf47567755d3df8c9466e8203a86fe7c502">
+      <source xml:lang="en">Evaluation period</source>
+    </trans-unit>
     <trans-unit id="++CODE++4e1f49a9c8ae8a158434e647c0c410352d718984a4fcd144d26cca3c394caa02">
       <source xml:lang="en">Event</source>
     </trans-unit>
@@ -4511,11 +4706,20 @@
     <trans-unit id="++CODE++afcade8e64986320796c898ae55c028e1ed4a7d4300b9732faa73c944178ee20">
       <source xml:lang="en">Executing query…</source>
     </trans-unit>
+    <trans-unit id="++CODE++f73018e811a2501accd881c731a187c02183ea7b8484e9480efecb06cd305599">
+      <source xml:lang="en">Execution CPU</source>
+    </trans-unit>
     <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
       <source xml:lang="en">Execution Plan</source>
     </trans-unit>
     <trans-unit id="++CODE++f93991ad07957c41dfc5212f2709590b0a723ccb5f5c397fb7c681b218de236d">
       <source xml:lang="en">Execution cancelled</source>
+    </trans-unit>
+    <trans-unit id="++CODE++878ac77aee32486b49ff1facfcee03f7b5456b911631f0f0e6862f8832289c53">
+      <source xml:lang="en">Execution count</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5377c3681859c1b8e9f8f9be26dcb76a1d2b2c1d112412ee749ce7c2aaafb6e6">
+      <source xml:lang="en">Execution history</source>
     </trans-unit>
     <trans-unit id="++CODE++d51c3b17ea5975cd62952525332525dc58daab2c3d2a8ef4ce2534a039da1291">
       <source xml:lang="en">Execution order</source>
@@ -4538,6 +4742,12 @@
     </trans-unit>
     <trans-unit id="++CODE++9c1c3546bc3e94eb9cf8d7e8bef7d64b5f0213e752e4be0185a9ffc4d87f671c">
       <source xml:lang="en">Execution time unavailable</source>
+    </trans-unit>
+    <trans-unit id="++CODE++93af2616998cbe789ee5e2ec8e7bb302ebef588858c4f87f69a1d4c2c1d768d8">
+      <source xml:lang="en">Executions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3b9094bd77ac83f0b0b367fd435295ea0724ac13c996d2573272e3e608d1a6c8">
+      <source xml:lang="en">Executions (recent / baseline)</source>
     </trans-unit>
     <trans-unit id="++CODE++e6f85bab1a8295e091b4d2324b0e37eeacee571d5d3d7cd29827be17e7a0aa52">
       <source xml:lang="en">Existing Database</source>
@@ -4609,6 +4819,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
       <source xml:lang="en">Expiration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++df8f24cdd6265cf7e247b2fb194fa9616fcaf5f8de927349e2024a16caa21c40">
+      <source xml:lang="en">Explain in Chat</source>
     </trans-unit>
     <trans-unit id="++CODE++c267c3668f44bd7f202119c212350b10530ab3f877e5aad213ce8f633dc7b8be">
       <source xml:lang="en">Explain, fix, or analyze query performance directly from the SQL editor with GitHub Copilot.</source>
@@ -5228,6 +5441,9 @@
     <trans-unit id="++CODE++60a33e6cf5151f2d52eddae9685cfa270426aa89d8dbc7dfb854606f1d1a40fe">
       <source xml:lang="en">False</source>
     </trans-unit>
+    <trans-unit id="++CODE++3033ce280484b7561b413e60665aeccfe353296596164c879502fe52830fef28">
+      <source xml:lang="en">Favorites only</source>
+    </trans-unit>
     <trans-unit id="++CODE++aac77df347205252b074d45aff7891debdba0ff1466cc0c351416d1662bb71ab">
       <source xml:lang="en">Feedback</source>
     </trans-unit>
@@ -5446,6 +5662,9 @@
     <trans-unit id="++CODE++848b9a6cfe9db6c8bbda02730a9818a8713a88c8259c94dfefce31815c0af978">
       <source xml:lang="en">Find in primary plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++bc12828833bc9ee18470ba7153b2cb126440d09c75b13217854e625eead2c922">
+      <source xml:lang="en">Finding this resource in Database Hub...</source>
+    </trans-unit>
     <trans-unit id="++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc">
       <source xml:lang="en">Finish</source>
     </trans-unit>
@@ -5522,8 +5741,48 @@
     <trans-unit id="++CODE++20b04b0eb9264d54736120dae88c712700ee14a95803823187961e630998a7fc">
       <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cfda1755ffb11565e5b6b5081f92f40749fedd31fa578e8af78b89937f89a6a3">
+      <source xml:lang="en">Force</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0123b42fb4642be7a5361a46ac8863193962ebf05a243e4696741f16812cfccd">
+      <source xml:lang="en">Force Query Store Plan</source>
+    </trans-unit>
     <trans-unit id="++CODE++647da5cac1ce93e913f21be22e9dcb571b96b96a9d7aa7eaa2bac2f2d0ccd5b8">
       <source xml:lang="en">Force fit columns</source>
+    </trans-unit>
+    <trans-unit id="++CODE++58a60687c3e56e2b921bf8e62146f241302ad16b2d02953da11e3d1358debdbf">
+      <source xml:lang="en">Force plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++82462ba07cadca0d65723f614abdc86ddfd453d7cc8bb36b36ed20027ad00330">
+      <source xml:lang="en">Force plan {0}</source>
+      <note>{0} is the Query Store plan ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++dd44ddaff8cc1dd551962fe56fa5a78d3edcb74c22368de72a616affc5c9e6b3">
+      <source xml:lang="en">Force plan {0} for query {1} in database &apos;{2}&apos; on &apos;{3}&apos;? This runs the following T-SQL:</source>
+      <note>{0} is the Query Store plan ID
+{1} is the Query Store query ID
+{2} is the database name
+{3} is the connection display name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8738dc9e7a35fea8e56d692417fb0b8e8edab8ba3da38385ef5e26ecea43ee9d">
+      <source xml:lang="en">Forced (Automatic tuning)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++12f42d5c5b30a58af234c69e3dd3c6ec70344e85fc1929bdbe4b2fd576eba644">
+      <source xml:lang="en">Forced (Manual)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6f1b4d639303b04e6b5ba7f6bfd1134316510d555c03761297496f4d0cc69348">
+      <source xml:lang="en">Forcing plan {0} for query {1}</source>
+      <note>{0} is the Query Store plan ID
+{1} is the Query Store query ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8fe323a25856276a79f0a3382add498440ff3a9292d801adb6d86c48de11a336">
+      <source xml:lang="en">Forcing this plan failed before.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++65f3d3158fd8825173e5f3aa04fab2f5a24ee15e40eccb3ce5d8fd60673bcafa">
+      <source xml:lang="en">Forcing this plan failed before. Check the last failure reason.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++167a952e815e3c36c7eba18f053d7694244fa84cdb2f487282d3821f01b6de1a">
+      <source xml:lang="en">Forcing this plan replaces the plan that is forced now.</source>
     </trans-unit>
     <trans-unit id="++CODE++2390e8502ba64cd13706dd2af52d9983efe51a28984739601b0b86fbf7c65904">
       <source xml:lang="en">Foreign Column</source>
@@ -5584,9 +5843,18 @@
     <trans-unit id="++CODE++bb2f46cfafa54c18afeb7e7efc7ccf3b2d72b160c0381d2ad116e8f7139be42d">
       <source xml:lang="en">Freeze columns</source>
     </trans-unit>
+    <trans-unit id="++CODE++218197693424e0154cefc0af31aed96c084b987e08136e91d5528ddbb5461e24">
+      <source xml:lang="en">From</source>
+    </trans-unit>
     <trans-unit id="++CODE++589c6d8e7bd5cc5626c229ddacca440a0d228fd6c50c856d46b86b002a9ac8dd">
       <source xml:lang="en">From</source>
       <note>Label for the start IP address in the firewall rule IP range</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3813fd079009b900370730c8257f14aee2df6f72bbb4c0a165d67b26682bffc0">
+      <source xml:lang="en">From date</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ec4245e0f1da435f41ee7220796ef0a07a76241b8f6065d192c03cd19017c7cb">
+      <source xml:lang="en">From time</source>
     </trans-unit>
     <trans-unit id="++CODE++008dacb6d1e85bd8c0ae9661c4472810ef75537f690dd75d77fc74ca62f78fec">
       <source xml:lang="en">Full</source>
@@ -5764,6 +6032,12 @@
     <trans-unit id="++CODE++808c0afe2d813932b671d5b7875fed627733f5560312cf52102072581d756b9d">
       <source xml:lang="en">Give GitHub Copilot Azure SQL expertise to help you connect your app, design schemas, write queries, add vector search, and troubleshoot database issues.</source>
     </trans-unit>
+    <trans-unit id="++CODE++fa613dba66e9e02ac269e47835c487ba77c186c048e1b8a287d2f50823399d66">
+      <source xml:lang="en">Give hours from 1 to 8760, or both startUtc and endUtc as ISO 8601 times, with startUtc before endUtc.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e4508d0f6311adfc152e26ce0fa374a18198c8cd07d4bd64ecce9b98ccdf3434">
+      <source xml:lang="en">Give the connectionId of an open connection or the profileId of a saved connection profile.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7a8c82361b26dcdb0c5a9a1f8235d8d92ad4765db1852209d6d696ca80bf7e4">
       <source xml:lang="en">Go to line {0}</source>
     </trans-unit>
@@ -5850,6 +6124,24 @@
     <trans-unit id="++CODE++f1ca12c9d1c87c360fb52aae045a6db596b77ac01622f227a9e1847aaa45f3a0">
       <source xml:lang="en">Hide trace files</source>
     </trans-unit>
+    <trans-unit id="++CODE++a334c698ddaa332ae63ee2c7856fd8e663c8fbfbe24ce2c3e683e73355913745">
+      <source xml:lang="en">High CPU</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1a7535a9b5596409b0d3be32c778d2b2f15e222fd499d5e4f5177667c06cf204">
+      <source xml:lang="en">High CPU usage queries</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5e644c364e57f06907106424c229e0935a2d8c1b013791d19842b959a17158aa">
+      <source xml:lang="en">High memory</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fcc99575b887d6eb9ea0a799101fcec0b3390c5e29e5b79ced4a919141fbd5d4">
+      <source xml:lang="en">High memory queries</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2ab06500100d0b597e07c23e8085074fbeb7a2eb0a4791a9d711abc918009beb">
+      <source xml:lang="en">High read queries</source>
+    </trans-unit>
+    <trans-unit id="++CODE++646951c19f782ccf8674e8f8b5310cc207f3fb34cbdd8610c3f2654ec03b4af7">
+      <source xml:lang="en">High reads</source>
+    </trans-unit>
     <trans-unit id="++CODE++b2306b8a2c95daafdb1651bc3790ef251195b8eab916f792150b784f41aa81b9">
       <source xml:lang="en">Highlight Changes</source>
     </trans-unit>
@@ -5878,6 +6170,12 @@
     </trans-unit>
     <trans-unit id="++CODE++42e746a45011321b661459a4a5bff6312360244050814e0813284fb729dfc90d">
       <source xml:lang="en">How many tables are in this database?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++68844e2b7994f031cfe978855058a8f212ee255b3d5d19587a62adad23aca76a">
+      <source xml:lang="en">How often collected data is written to disk</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f606778de2b0ceeb2b0be1e607ae298a52f916c309c539582fec6fde15dbab7f">
+      <source xml:lang="en">How often runtime statistics are aggregated</source>
     </trans-unit>
     <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
       <source xml:lang="en">Hue</source>
@@ -6248,6 +6546,9 @@
     <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
       <source xml:lang="en">Keep in query pane</source>
     </trans-unit>
+    <trans-unit id="++CODE++5e136c9a45b3d76b126d4495832b204e22cb92c3dd40c7f94b0c89cbb703aa9c">
+      <source xml:lang="en">Keep queries for</source>
+    </trans-unit>
     <trans-unit id="++CODE++39e27cd8be4870acc5d351bad34671241daba2773d60c8ec6d447c0a7e212929">
       <source xml:lang="en">Keep recording while the debug panel is closed</source>
     </trans-unit>
@@ -6293,6 +6594,13 @@
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
     </trans-unit>
+    <trans-unit id="++CODE++0761905d035db1351b9ea5a94e53e708c45a45b7c6da2ff5418634015383c0e8">
+      <source xml:lang="en">Last executed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b8f3640255f78d304f45c51f9295dce5cc05665dd3064d437b763a6a4cc80051">
+      <source xml:lang="en">Last force failed: {0}</source>
+      <note>{0} is the failure reason code, for example NO_INDEX</note>
+    </trans-unit>
     <trans-unit id="++CODE++77f1336674762d8238a6694c12dd79f2837fba43d26a7cbb0ed945b76ccf8b99">
       <source xml:lang="en">Lat mean</source>
     </trans-unit>
@@ -6322,6 +6630,12 @@
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ff58a1626d87860c0fb58d9abe7a8d48472897aeb063b3bc8031539a4888e977">
+      <source xml:lang="en">Learn how to connect to Arc</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aa7c7988c34b0360d02e1e51acff3593430a561a6f3909ab95d77584e3a8f4b9">
+      <source xml:lang="en">Learn how to enable Query Store</source>
     </trans-unit>
     <trans-unit id="++CODE++1445799c033a2d17e2bad5d8610879e71ff0d73a8a3c2b932b43ad0449dac3a1">
       <source xml:lang="en">Learn more</source>
@@ -6745,6 +7059,12 @@
     <trans-unit id="++CODE++155952ddf38c19af2c08d64095b80c9fe510faade4f78b6f0c6113fda082eda0">
       <source xml:lang="en">Logical operator</source>
     </trans-unit>
+    <trans-unit id="++CODE++2455cda99afb467e5b409c225473e79059c32c430e8b3f16ef508712e4fa147a">
+      <source xml:lang="en">Logical reads</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aa4075881e71671f10ac35bb76f311e36e782fb5faa35f3dc0b36ae98940b1d5">
+      <source xml:lang="en">Logical reads (KB)</source>
+    </trans-unit>
     <trans-unit id="++CODE++543eb6e59b2d9076bcd19e7217a2437aa8f9f26de4e313560f4ca0827225a787">
       <source xml:lang="en">Logins</source>
     </trans-unit>
@@ -6754,8 +7074,15 @@
     <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
       <source xml:lang="en">Logs copied to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++0344209e8a455cc79ca3a832582378fa88b73433a91f6b14bf26d75be1055a65">
+      <source xml:lang="en">Longest wait</source>
+    </trans-unit>
     <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
       <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++49dea82cdfee99724e008074322a1639991fb4b725e74f02ac90a47d9248deda">
+      <source xml:lang="en">MB</source>
+      <note>Megabytes, after a number</note>
     </trans-unit>
     <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
       <source xml:lang="en">MCP</source>
@@ -6885,6 +7212,10 @@
     <trans-unit id="++CODE++2891e15755b0bc8cd87920c3cd141d34c943974ef31037b7bdfae0abb04a2011">
       <source xml:lang="en">Matrix...</source>
     </trans-unit>
+    <trans-unit id="++CODE++ca4794453da3f56b63b96c536385f6b598e740199fc5c905c25bef3f035aec29">
+      <source xml:lang="en">Max</source>
+      <note>Short for maximum</note>
+    </trans-unit>
     <trans-unit id="++CODE++a1a5936d3b0f8a69fd62c91ed9990d3bd414c5e78c603e2837c65c9f46a93eb8">
       <source xml:lang="en">Max</source>
     </trans-unit>
@@ -6905,6 +7236,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3cb29430462001e8edb74afebb929c2e967e7eac89679c4d549a8305ec4a2fe7">
       <source xml:lang="en">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</source>
+    </trans-unit>
+    <trans-unit id="++CODE++59eed040eaeb601474abda2599b3066979c16aa1a54097da5c3700e8113be474">
+      <source xml:lang="en">Max size</source>
     </trans-unit>
     <trans-unit id="++CODE++7fa9b3a3ecdb58f903a9e00f53f07b146ed29f48c7e669ca1df34bc6d8260a59">
       <source xml:lang="en">Max tok</source>
@@ -6974,6 +7308,12 @@
     <trans-unit id="++CODE++98a75688ef2284379b616bd1fdf2aa7ff7d87ca45a2191a6294c3b85af5ccdee">
       <source xml:lang="en">Maximum tokens</source>
     </trans-unit>
+    <trans-unit id="++CODE++57dadefdc0343faa65a0b347e44a4c810f4c1a447245f73504f165cfa589bcd5">
+      <source xml:lang="en">Mean CPU</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0aa3184ff9a4e0a5f351a104e0f22d0de8049651dbd5895f80b12ab3fafe4ed4">
+      <source xml:lang="en">Mean duration</source>
+    </trans-unit>
     <trans-unit id="++CODE++d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd">
       <source xml:lang="en">Media</source>
     </trans-unit>
@@ -6982,6 +7322,13 @@
     </trans-unit>
     <trans-unit id="++CODE++927853630df5ee306a9b44a868e0a34b91e055e070b630b5dc2451bd2163fab9">
       <source xml:lang="en">Media set name is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3ad28160ab99a8fbb6e0eeaadfef3ab2924e3edc26344c75a4099b63391461e1">
+      <source xml:lang="en">Memory</source>
+      <note>A choice of measure: memory</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c33705692062ab4f78487a5c193896fb1f0be4cf02b86610816a219e0fd794b3">
+      <source xml:lang="en">Memory (KB)</source>
     </trans-unit>
     <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
       <source xml:lang="en">Message</source>
@@ -7099,6 +7446,10 @@
     <trans-unit id="++CODE++c99a4a3d019aba3f12f0490492a859058ace12b890177062abfaa3d3796cfa7d">
       <source xml:lang="en">Migrate saved connections, connection groups, and connection settings from Azure Data Studio into the MSSQL extension. Additionally, the MSSQL Data Management Keymap can be installed to add familiar shortcuts from Azure Data Studio.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b8a1ecb66b3dd16e81ae37bae44ad1cb781f1a7f1c48e113aefb47fe34a6e72a">
+      <source xml:lang="en">Min</source>
+      <note>Short for minimum</note>
+    </trans-unit>
     <trans-unit id="++CODE++dea79332147ffe1fb2a81cf9a5bdf0066ddcc625699996ede0ce140e5cb004b1">
       <source xml:lang="en">Min</source>
     </trans-unit>
@@ -7191,6 +7542,9 @@
       <source xml:lang="en">More actions for {0}</source>
       <note>{0} is the name or summary of a reusable filter</note>
     </trans-unit>
+    <trans-unit id="++CODE++8bc4950de327ce134a92b8b604d0c343a2bb8545486e8bcab129d8af8061f9c6">
+      <source xml:lang="en">More chat actions</source>
+    </trans-unit>
     <trans-unit id="++CODE++a79a38420fec4111d59e6c851e1bc74fde38f27d487e7cbb59d242d17a8c77fb">
       <source xml:lang="en">More connection commands</source>
     </trans-unit>
@@ -7202,6 +7556,12 @@
     </trans-unit>
     <trans-unit id="++CODE++9acd598e4a9cf44ed31faf5037f1a93640240d34d2d71281d143ab7b352d7ca4">
       <source xml:lang="en">More objects, columns, routines, and two-hop FK expansion.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aec644415fff6887fc7dedf9225800873fc837b77ee62cc381e598bcd959a1df">
+      <source xml:lang="en">Most frequent</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d3ac32fed9bbf9b1bd4b8fa39f4afc0944249e75738c3db71bb858b7e9470cef">
+      <source xml:lang="en">Most frequent queries</source>
     </trans-unit>
     <trans-unit id="++CODE++6ecc3df6bffdd06c58cd4f6e276929e119c8f653c53f5a6a5a5e66dfa1c3fc93">
       <source xml:lang="en">Move</source>
@@ -7287,6 +7647,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b">
       <source xml:lang="en">N</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e2f79e5b60330bba4c289962231b6ba2957d0b14e7deb3110417003c79dea635">
+      <source xml:lang="en">N/A</source>
     </trans-unit>
     <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
       <source xml:lang="en">NULL</source>
@@ -7392,6 +7755,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4f892896fe4d51df804e3c51630936afa5e8326e519f40158b4c60800a8d85fb">
       <source xml:lang="en">New database name must be different from the current name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++357ad0ff269c814782b429dc587640660a36e70b9dd6e6276d217cb32bab0024">
+      <source xml:lang="en">New executions use the forced plan.</source>
     </trans-unit>
     <trans-unit id="++CODE++48f1dcb4a6002e872ccadde9ece53ebc6da7168299656a635450ec7d66fcfbee">
       <source xml:lang="en">New media set description</source>
@@ -7508,6 +7874,9 @@
     <trans-unit id="++CODE++29b8c8b535a3642dbc2b304fb226b5ea8d7e872d7a219b780325fe82f7b6ca05">
       <source xml:lang="en">No categories</source>
     </trans-unit>
+    <trans-unit id="++CODE++c699aa00b26d36f6dae847bbc716720c946489fb5ed3307a88be0c1f0bc9ee1d">
+      <source xml:lang="en">No changes</source>
+    </trans-unit>
     <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
       <source xml:lang="en">No changes detected</source>
     </trans-unit>
@@ -7574,6 +7943,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
       <source xml:lang="en">No data available</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7e5b49561e97d0d15801a433b0db95166d90ff811b92808be3c6a4943047eae9">
+      <source xml:lang="en">No data for this time range.</source>
     </trans-unit>
     <trans-unit id="++CODE++3579208a7b43a25bc936763f617afcbd477eca466e85cc62c381423149058572">
       <source xml:lang="en">No data sources in this project</source>
@@ -7701,6 +8073,12 @@
     <trans-unit id="++CODE++cf34d3ee7de6fe08d706a22899bdb22aacfb37a03185c2938b399c04d77ecd3a">
       <source xml:lang="en">No provider was found for the following projects: {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++9155ab7ad2738df292fb7b32d6c87979b874c0e6925f7c7c8eb5bdc7c7a3b33f">
+      <source xml:lang="en">No queries match.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cf628b1c71bbf3f33eaa125d83a2b2905071080611468992cd11298f25bbc460">
+      <source xml:lang="en">No queries ran in this time range.</source>
+    </trans-unit>
     <trans-unit id="++CODE++07fa58bdd9de910a1e070b49104fd2eb37a4665f9cae70f35a28130d6fb1cf10">
       <source xml:lang="en">No query set</source>
     </trans-unit>
@@ -7806,6 +8184,12 @@
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
     </trans-unit>
+    <trans-unit id="++CODE++8c086859915b816d7383758d1095952b41a26c69c62d8342a1f434bdb5f1d29e">
+      <source xml:lang="en">No value is different from the current settings.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10057c3dc02e5172c61e779afaeb4e4374314f9ccc7690d337697a06af2ee3ef">
+      <source xml:lang="en">No waits were recorded in this time range.</source>
+    </trans-unit>
     <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
       <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
     </trans-unit>
@@ -7878,6 +8262,9 @@
     <trans-unit id="++CODE++441818ccc4c33fe807938249c80e7be1eddc196d87077b06367d567dc08eaf05">
       <source xml:lang="en">Not exposed</source>
     </trans-unit>
+    <trans-unit id="++CODE++01a400a18393c6332bc141c855476ae01259d1d6484039eb42ffcb506368a590">
+      <source xml:lang="en">Not forced</source>
+    </trans-unit>
     <trans-unit id="++CODE++e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31">
       <source xml:lang="en">Not found</source>
     </trans-unit>
@@ -7886,6 +8273,9 @@
     </trans-unit>
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a0e63d7c7125d29af84d6919af5550529be77c327324940c98c4b2cb13a99c8c">
+      <source xml:lang="en">Not now</source>
     </trans-unit>
     <trans-unit id="++CODE++9e3856eef37c48e551fcb274637d0d3499eec816116e0a3aa509990a59a49040">
       <source xml:lang="en">Not running</source>
@@ -7955,6 +8345,9 @@
     <trans-unit id="++CODE++546d0970d096d96c736e2d508b5302e04c916e87aad311121bc927a2e30bc7b9">
       <source xml:lang="en">Object count where large-schema compaction starts.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a108c4391925fcd8cda31f797f34e7ba51924da254f2c0922fa816dc5ae21278">
+      <source xml:lang="en">Object name</source>
+    </trans-unit>
     <trans-unit id="++CODE++91784155a9e16c0fedb92961751ac2a931cf4d42d795446d8936c0c2dffda260">
       <source xml:lang="en">Object not found in the current catalog generation. Refresh the parent folder.</source>
     </trans-unit>
@@ -7975,6 +8368,9 @@
     </trans-unit>
     <trans-unit id="++CODE++843ac01149cced785dfebd0028d3b03ba78e286e1c6f9517ebfcdb609d97af4c">
       <source xml:lang="en">Ok</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9201088ae5ff632d664115ef14bb0457cba99c8dde67c9376d0577c16253827f">
+      <source xml:lang="en">Older query data is removed</source>
     </trans-unit>
     <trans-unit id="++CODE++3d371d39d42ed88021e2eb01088039bc934a712a3d74c7813debf543f8dba608">
       <source xml:lang="en">On Delete</source>
@@ -8020,6 +8416,9 @@
     <trans-unit id="++CODE++2f51d650687c9201f9367014fa093415a3b9612e4ae2738e50210ef39ed0253e">
       <source xml:lang="en">Open Containing Folder</source>
     </trans-unit>
+    <trans-unit id="++CODE++d61a0c0a653081a08b5ade2c20c4ff6f11b9cff2cdf6467c37f9984288376237">
+      <source xml:lang="en">Open Database Hub</source>
+    </trans-unit>
     <trans-unit id="++CODE++e101ffec2eeb2888337e5337f00dcbd1abea9e525f9c8d4a0596e20c76f01f97">
       <source xml:lang="en">Open Existing Project</source>
     </trans-unit>
@@ -8049,6 +8448,9 @@
     </trans-unit>
     <trans-unit id="++CODE++404eb1204c0e313b45f63c32657b2cabf3f3930b7a731969c82b5bc3061311ff">
       <source xml:lang="en">Open Query History</source>
+    </trans-unit>
+    <trans-unit id="++CODE++45d7146982afaaf4d87567f0d6a0c126508438220bd67102994ea773fa0ba25c">
+      <source xml:lang="en">Open Query Store settings</source>
     </trans-unit>
     <trans-unit id="++CODE++2c1ff609e9acedfcd56ba1c75b3cc704ce0c59afafb9f280e75d37376028e9cd">
       <source xml:lang="en">Open SQL editor and connect</source>
@@ -8101,8 +8503,14 @@
     <trans-unit id="++CODE++7c2a6e6d128104ab72f768886cf074498197834446e974c04a7c589f5dc5813c">
       <source xml:lang="en">Open in Copilot</source>
     </trans-unit>
+    <trans-unit id="++CODE++3535ff74e4d09277f7a89b64c5267499cf4fd9f8d285a8c3d971610553261211">
+      <source xml:lang="en">Open in Database Hub</source>
+    </trans-unit>
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4a2a1e49b523264763b9897cf254579fa57c35ca0c61dfda1873bf492c6352ec">
+      <source xml:lang="en">Open in Fabric Database Hub</source>
     </trans-unit>
     <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>
@@ -8119,11 +8527,24 @@
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++1a01d7feba6f4b653e8ac84ff8786e45de5a9b65cbd90376543f4359dd600507">
+      <source xml:lang="en">Open in query editor</source>
+    </trans-unit>
     <trans-unit id="++CODE++2459090e2f5b55ad3e76eb8a0c8dc4c969e4285aefa4f5279d62885e8e0c4bfa">
       <source xml:lang="en">Open in the execution plan viewer</source>
     </trans-unit>
     <trans-unit id="++CODE++98d03db7b37aae7f194c1969557b119e09a712fd4b8cbdb79f8f637f5b0658da">
       <source xml:lang="en">Open output</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f0e0de88359f0514f314f9cdd6a00bdd048a839473d2ab335af356a09dcc49a1">
+      <source xml:lang="en">Open performance monitoring from a database of a saved connection in Object Explorer.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++88f660ebf2e914262c4d8305d03429f68575871196361a1f7ddedf6b2ab49154">
+      <source xml:lang="en">Open plan XML</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d6024632dd84700838276c473bb287f9f8fae5671e1b966d9a768ee312221a85">
+      <source xml:lang="en">Open plan {0} in the execution plan viewer</source>
+      <note>{0} is the Query Store plan ID</note>
     </trans-unit>
     <trans-unit id="++CODE++9dcffdf11df4b3a383824e2c9f70dbcd0642eccf2a35385f3cb43e2d08155dcd">
       <source xml:lang="en">Open query plan in new tab</source>
@@ -8178,11 +8599,19 @@
     <trans-unit id="++CODE++fe0d6bd1aef549a43c5fca4a838882918bd3a85e9641cb5150f31df976e18e38">
       <source xml:lang="en">Opening schema designer...</source>
     </trans-unit>
+    <trans-unit id="++CODE++ddd76bedf653f86f49a5645b4eaf7744a3f40fbb8e54092c9e1c315d41d695e7">
+      <source xml:lang="en">Opening the performance dashboard of database &apos;{0}&apos; on &apos;{1}&apos;</source>
+      <note>{0} is the database name
+{1} is the connection display name</note>
+    </trans-unit>
     <trans-unit id="++CODE++0f044feb6ca7d6764650e6b800425a84b5ea518d6f531ee92c3995d6c3eca11e">
       <source xml:lang="en">Operation</source>
     </trans-unit>
     <trans-unit id="++CODE++4e1af7c74096cf0a47ce343febcea35ec03b9599324314b5b8fc1de2fa479705">
       <source xml:lang="en">Operation failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a33ca265672abcab565cafa9f18d860ee816b4af91db99991dd0fa022604f68f">
+      <source xml:lang="en">Operation mode</source>
     </trans-unit>
     <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
       <source xml:lang="en">Operator</source>
@@ -8217,11 +8646,21 @@
     <trans-unit id="++CODE++974ccf82fb956ae52dd736ed3f1046fe6da2fcb80bc6679104cbd37773665175">
       <source xml:lang="en">Options have changed. Recompare to see the comparison?</source>
     </trans-unit>
+    <trans-unit id="++CODE++10a47230d53eb82a58d4beb1a59489f577cd029ad1d7d1114a59a9fc10e1a0fc">
+      <source xml:lang="en">Or that uses at least this much CPU to compile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d9dc37f9d4ee3a539c86cca6c0cc6ee29ea31f27f19c6a49f62b5f410a167b22">
+      <source xml:lang="en">Or that uses at least this much CPU to run</source>
+    </trans-unit>
     <trans-unit id="++CODE++fe67056347dc51e46560e6ebbb3515e734993bbd450e78a8f6cfec81e79b0c96">
       <source xml:lang="en">Orders the rules and data messages sent to the language model.</source>
     </trans-unit>
     <trans-unit id="++CODE++110b7288ee54432862487c6ca5ea2579493dc3b078d51218ff4e2bfdcac4986c">
       <source xml:lang="en">Original file name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d8acea4492afa41bb531f751a724ded715a0bd752d405757b3ecbf8d02aa36a1">
+      <source xml:lang="en">Other</source>
+      <note>The other wait categories</note>
     </trans-unit>
     <trans-unit id="++CODE++ba0f79f8e6b404bef26409b2931e81b2052e932cee9299698e54213e4b2dfe88">
       <source xml:lang="en">Other supported engines</source>
@@ -8296,6 +8735,10 @@
     <trans-unit id="++CODE++5f9bc63bdfd0c971d0c8f9af20722aa912e97313e862b2123c52a1ab2a65125a">
       <source xml:lang="en">Parse (syntax check only)</source>
     </trans-unit>
+    <trans-unit id="++CODE++72b8a1a7970571ec2e7d20630bdf801913c6008f67196cd1e01e028d7d3fce07">
+      <source xml:lang="en">Partial</source>
+      <note>A time range that starts before the oldest data</note>
+    </trans-unit>
     <trans-unit id="++CODE++875d97950049c1ba7d3bb95d81167d4b9944cce2045fdbb132ceff5b417d0d33">
       <source xml:lang="en">Partition Functions</source>
     </trans-unit>
@@ -8323,6 +8766,21 @@
     <trans-unit id="++CODE++b6eb82cd3300c838f99773b371b2f81d5ad517b3ba903de637d3e5920de7c04f">
       <source xml:lang="en">Passwords do not match</source>
     </trans-unit>
+    <trans-unit id="++CODE++48e5c0ddd9e15cf903005a9b01c45d387d7808b44b8f602a03a4996326ca847a">
+      <source xml:lang="en">Past 12 hours</source>
+    </trans-unit>
+    <trans-unit id="++CODE++324f17e9530a55283663172e664c0d721d386d494da84483f6654cb2fdae632a">
+      <source xml:lang="en">Past 24 hours</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ea8721e4f083a922c86106b3fcbf56c955aba8d05d8e013d27225ee4acae7b19">
+      <source xml:lang="en">Past 30 days</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8a28e5fd00f4f704027aba2a10c2f0b2944b463b7b8569809a0e8119cb69e3c1">
+      <source xml:lang="en">Past 7 days</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6c7d1baa98ceb72c7ef4730986c35e731c65d734bcf3146a2f442f4a067371c5">
+      <source xml:lang="en">Past hour</source>
+    </trans-unit>
     <trans-unit id="++CODE++f3380f7b44bd70af2a369de6026bf2ca2a7b36fde9086935efcd62a0e379cc7a">
       <source xml:lang="en">Paste</source>
     </trans-unit>
@@ -8347,6 +8805,13 @@
     </trans-unit>
     <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
       <source xml:lang="en">Perform checksum before writing to media</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8a02cafd2d8e48b35f0ecfe68240cac0da1e2044b3cb4bd06562a665e722e4ed">
+      <source xml:lang="en">Performance (Preview) - {0}</source>
+      <note>{0} is the database name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5c12498ee6b8de217ce45366147af828f75321dadef8e8c0997fecab13470d63">
+      <source xml:lang="en">Performance monitoring is off. Turn on the mssql.performanceMonitoring.enabled setting, then reload the window.</source>
     </trans-unit>
     <trans-unit id="++CODE++8fbfbbfd0d6df40fb3ac544463426d3da1683e2c78c771df98e05d638d2e1101">
       <source xml:lang="en">Permission denied.</source>
@@ -8395,6 +8860,39 @@
     </trans-unit>
     <trans-unit id="++CODE++4b72565b89cf34e3c9d2ef1cd5cec6f4459f950e94b5a42785c0cee4767898d4">
       <source xml:lang="en">Plan layout</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4715b1bef4537f4bf954807a0a5322722a59f9d3a06a60832c821211fac8842e">
+      <source xml:lang="en">Plan summary: {0}</source>
+      <note>{0} is the statistic and metric, for example Total Duration (ms)</note>
+    </trans-unit>
+    <trans-unit id="++CODE++05e21aef915d6f4c1087ef9f7a26b39ec02f4b14befcdd90031c2eef06c47c64">
+      <source xml:lang="en">Plan {0}</source>
+      <note>{0} is the Query Store plan ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++196e641105a91b29be7642bebd7cfdbe01eebcea71f5ce99ad66fd55a1f3d76f">
+      <source xml:lang="en">Plan {0} forced</source>
+      <note>{0} is the Query Store plan ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9e883f2b2b978246e488400443c9bb0437315d0ce6b0368ea5c52beae4b014c4">
+      <source xml:lang="en">Plan {0} is forced.</source>
+      <note>{0} is the Query Store plan ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c1f927ae1aec53f4666c167ae61f8196bfdb75c0ff62cfbe553029a0275f83a3">
+      <source xml:lang="en">Plan {0} is no longer forced.</source>
+      <note>{0} is the Query Store plan ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++cd72dabc9b667f14af38977da8ccc48fe6aa175a52a7b495dc93ed9d5a036ea8">
+      <source xml:lang="en">Plan {0} ran most from {1} to {2}</source>
+      <note>{0} is the Query Store plan ID
+{1} and {2} are the start and end date and time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++82b29d01d811bdb761ddcf73c3b1f0033b9b3cd1195c1b98c78f4c658fb26c61">
+      <source xml:lang="en">Plan {0}: {1} executions</source>
+      <note>{0} is the Query Store plan ID
+{1} is the number of executions</note>
+    </trans-unit>
+    <trans-unit id="++CODE++dfe8b2f0de26bb87c6d6066acf6668807a27d8270cc08ade10018769ee380101">
+      <source xml:lang="en">Plans</source>
     </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
@@ -8786,6 +9284,12 @@
     <trans-unit id="++CODE++1ccde94ff3f5c16749c8ae57866958f186e6ce12fa0cfac86bf4b9250cc4af75">
       <source xml:lang="en">Python + Azure SQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++80d2e18c7da9f0be0578da69b1701091a2c91ffc3bbf13fdc734620eb443ce0e">
+      <source xml:lang="en">Queries</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3e1da5be4b26b5811595c0d26e1892e31c1186b6b91f2bf07f0880655558b6fa">
+      <source xml:lang="en">Queries by duration</source>
+    </trans-unit>
     <trans-unit id="++CODE++b80a37564fbb3c0753202a1f92d5da8ccfb906b244f2842bba2232cea9883abd">
       <source xml:lang="en">Query</source>
     </trans-unit>
@@ -8800,6 +9304,9 @@
     </trans-unit>
     <trans-unit id="++CODE++78ce37187f269b9e700f1ffe8bfa8a246f612fe88cdc8b39aa770152712c6add">
       <source xml:lang="en">Query Execution</source>
+    </trans-unit>
+    <trans-unit id="++CODE++07e73f3636fc8f275412a00382135b751e78dd28bebbb60b20d8f1482aaf75d4">
+      <source xml:lang="en">Query ID</source>
     </trans-unit>
     <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
       <source xml:lang="en">Query Plan</source>
@@ -8830,6 +9337,68 @@
     </trans-unit>
     <trans-unit id="++CODE++550d6df770c45124f2ef8e35eadde05921ef14c3133e100268aeaecfc688b5ba">
       <source xml:lang="en">Query Results Pane</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c25062a6627f5ca7b8f0413465f32406668ebcb58b644e9ef6528f9678aefb0e">
+      <source xml:lang="en">Query Store</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4a390fdb660d946f7aa87e76594bf636547150f529c3527500087e0a9d781f78">
+      <source xml:lang="en">Query Store can&apos;t be turned off on Azure SQL Database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3877c0ea92e0d7f4143d13120f0d49e8f652a8edca2be5a3d4cfa39b4f2972c2">
+      <source xml:lang="en">Query Store does not capture wait statistics, so new waits are not recorded.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++19999cbcc31a02c672546c154de3a3dde544a1569994c5f6e3f36bd975ab7b6c">
+      <source xml:lang="en">Query Store does not have this plan.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e44caf77fa48428f61eb4fe4b4836a0bd7754501279ccce70f67da743734b8e3">
+      <source xml:lang="en">Query Store has no data for this query in this time range.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5d53a7560d2a32d4c10c8e03867b6a590c190e2e8f5f746c6f2ec7c18bb07dd0">
+      <source xml:lang="en">Query Store has no plan XML for plan {0}.</source>
+      <note>{0} is the Query Store plan ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++56bbbdca4295158c823ed5bca8fd0338fa8eb838f68c9670df050aa1c8dbc337">
+      <source xml:lang="en">Query Store has no plans for this query.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e5aa4f61e28ed62a4ad8d24d8dd45c0fbe8fd2da2f714990e2637f0ddc1fd327">
+      <source xml:lang="en">Query Store is in the error state. Turn it off and on again to recover it.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++14e56e02d0652300e9a0e870aae5892fc72d766bc7d6c68019ebb7a595e055a0">
+      <source xml:lang="en">Query Store is off</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2c3253b5c7b4489dfab2d787d0002074b4295ecbd08edf588d86cd0e491cc3cf">
+      <source xml:lang="en">Query Store is read-only, so it does not capture new data. The data can be old.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++37a00bc7e101d1f732b29c0e4fc7201a8047f5004d679f7e90be3d212b2b1085">
+      <source xml:lang="en">Query Store is read-only. {0}</source>
+      <note>{0} is the reason, for example: Query Store reached its maximum size.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++19b42c78728d770ff90aa77a2127a28b05e229165b5674ea80911150a56d72d1">
+      <source xml:lang="en">Query Store must be read-write to change plan forcing.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++27cc94ec66599275bfddc1fb94c6fdc854a5230bb3d51603eada5ba11dfda267">
+      <source xml:lang="en">Query Store needs to be enabled on this database to see query performance.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++14d6aae31463cfc2cd30f075a63ff421a82a5c08d5080dd859a5e77e2d832cdc">
+      <source xml:lang="en">Query Store reached its maximum size.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++25d10a68922075ea590549259ccb316a028f9e9dddbb0a79d59a00c96953d6b7">
+      <source xml:lang="en">Query Store reached its memory limit.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1154cfded8100e7886d3b7c59fc61932486bb79d3aa388af12c1bd150ee916f1">
+      <source xml:lang="en">Query Store settings can&apos;t be changed from here on this platform.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0b613dd96be630c77aeac92e229d34de68c6beb208534cd20a55916e69cc7f35">
+      <source xml:lang="en">Query Store settings changed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa5678e8055a92a234296448dc25b26ae96f72df95909d95d0e94c11f3cb5dd4">
+      <source xml:lang="en">Query Store stops collecting data, and forced plans are no longer forced. The data that it has stays.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c4ea5d2bce73200a7cb191c68b40bf004314ab8004f6794654317fe0966e3d8">
+      <source xml:lang="en">Query Store storage</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aef595b3a4541cccb0abf0ba7aedeecb28227fd3de8d36c5d83d56abbe043f53">
+      <source xml:lang="en">Query Store tools need a connection that was opened from a saved connection profile.</source>
     </trans-unit>
     <trans-unit id="++CODE++18933e28cfd79a7d1d31f461b64ec0237cc4e1c44aec1afae06bb82fa5e7d7b3">
       <source xml:lang="en">Query Studio could not connect: {0}</source>
@@ -8879,6 +9448,9 @@
     <trans-unit id="++CODE++7ad6d45e756b38b387308c155505589aac8fb3e0f102d9e8bd8e61973539aebe">
       <source xml:lang="en">Query Studio: connect with saved profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++0c659a7ae476e3cd3e213aabb137c2c416ff408796d78d5e04f7aece93f6f345">
+      <source xml:lang="en">Query category</source>
+    </trans-unit>
     <trans-unit id="++CODE++3dd2984885ceb7c9591c74b48a11baafda636d82b815b8dd6b6ea010633eb5a5">
       <source xml:lang="en">Query editor for {0}</source>
       <note>{0} is the Quick Query shortcut name</note>
@@ -8910,12 +9482,30 @@
     <trans-unit id="++CODE++9bb19ac86101a6dfe00ba121dc8fab54c216992ef8d061c9cf27bd93a4424a91">
       <source xml:lang="en">Query succeeded</source>
     </trans-unit>
+    <trans-unit id="++CODE++3b34eb25d4f98499397c2acb35f6b73265b1f17e3a54a660311ed5cfbf283662">
+      <source xml:lang="en">Query text</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9840cb4c3bf093f8a8eb99a0063d2d4e4d9e85149f2c981628f882a435de80b4">
+      <source xml:lang="en">Query text, read-only</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ff8285e157112dcc919fc9ea975d8a3214e812a14a9deb741244716b67a07e1d">
+      <source xml:lang="en">Query views</source>
+    </trans-unit>
     <trans-unit id="++CODE++c955f29937648f74a17c2d92a4e10d7feb686d9a1109237ba52531d2adfd61b2">
       <source xml:lang="en">Query was cancelled.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8e7ee5265bf9b3ca624a58c70f47030a90ff04de6bf70e7c15a45fb367035617">
+      <source xml:lang="en">Query {0}</source>
+      <note>{0} is the Query Store query ID</note>
     </trans-unit>
     <trans-unit id="++CODE++deb1a9c8e97e16607d476d2629a1b1d6662cd61971180d3747130b12a2b3a88e">
       <source xml:lang="en">Query {0}</source>
       <note>{0} is the Quick Query slot number</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c5c61b74c44e46274db1165ff74de558b6f24926b6d99c67727c63d68de079c0">
+      <source xml:lang="en">Query {0} - Plan {1}</source>
+      <note>{0} is the Query Store query ID
+{1} is the Query Store plan ID</note>
     </trans-unit>
     <trans-unit id="++CODE++9f24e982799f47ef97760b8fbb95ce6c89390fba37aa7fe9b6314f69aaa691ea">
       <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}%</source>
@@ -8962,6 +9552,9 @@
     <trans-unit id="++CODE++581627cba40f213340516f0d39805addaf361c69917155ec912ee6ec7b272a18">
       <source xml:lang="en">RESTORE WITH STANDBY</source>
     </trans-unit>
+    <trans-unit id="++CODE++a66d853164cd562f00484a8815fd33cac31b8fcab7f7cc833bd44cc47eacc1a6">
+      <source xml:lang="en">Rank by</source>
+    </trans-unit>
     <trans-unit id="++CODE++9a6d0aced8d18633810a99dd716adb681d2fc727b42b6a66ff9a39c674ad430d">
       <source xml:lang="en">Raw Response</source>
     </trans-unit>
@@ -8983,12 +9576,29 @@
     <trans-unit id="++CODE++fd523668f3222a1544fd470a1900656f4fe1a89dbb518262cd6f9bb2460019d4">
       <source xml:lang="en">Read-Only</source>
     </trans-unit>
+    <trans-unit id="++CODE++72bb90897ab1eadc924fa1358773c5949372c1f06d8dd53d730bbfa3b0c5b695">
+      <source xml:lang="en">Read-only</source>
+    </trans-unit>
     <trans-unit id="++CODE++b521c7ed9a58c1ac646cdbdd914ba0867a1be379440fb6c8b9caa22b7f579013">
       <source xml:lang="en">Read-only SQL text editor</source>
     </trans-unit>
     <trans-unit id="++CODE++60c9871ec9518d202a3029e9d9bd63e0fb135ddcc133140686873c2f44b28c61">
       <source xml:lang="en">Read-only disconnected mode for &apos;{0}&apos;. Cannot create or start live sessions without a database connection.</source>
       <note>{0} is the XEL file name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4c7be313a8ca0aea78b59cee5d556836c9e742367235653c9bd4d5ed992df7e8">
+      <source xml:lang="en">Read-only stops collecting new data. Off also stops plan forcing.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf4d5fab1834246563570216d0d51aa702ae94381ed4a31c8ff6113abdcd418a">
+      <source xml:lang="en">Read-only stops the capture of new queries and statistics.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++227ae6c1b9aa1bc810eae9aaa1d35f5835e5f3100c869224c1cc9897885f236f">
+      <source xml:lang="en">Read-write</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8311521a791e90ffee58665be49dd2be98a22957769fe199440c2ceb2a857567">
+      <source xml:lang="en">Reading Query Store data of database &apos;{0}&apos; on &apos;{1}&apos;</source>
+      <note>{0} is the database name
+{1} is the connection display name</note>
     </trans-unit>
     <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
       <source xml:lang="en">Ready</source>
@@ -9020,6 +9630,10 @@
     <trans-unit id="++CODE++e21f6bf1a475160ce5ac97cd7f75640fadb28798c86849005249bfcd5e10704b">
       <source xml:lang="en">Recency bias</source>
     </trans-unit>
+    <trans-unit id="++CODE++6432f8a3990d412c06d95c284b646d4defcf8f166613f2747d5a81e15a82c8ac">
+      <source xml:lang="en">Recent</source>
+      <note>The recent period of a comparison</note>
+    </trans-unit>
     <trans-unit id="++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93">
       <source xml:lang="en">Recent</source>
     </trans-unit>
@@ -9031,6 +9645,17 @@
     </trans-unit>
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3faa38a0cb6200cd4512867380174fc08f7e19386df8aef9ad19f53365833471">
+      <source xml:lang="en">Recent is the time range at the top. Baseline is the period before it, so the two never overlap. Per execution, periods of different length compare fairly.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac89a8d202749d86f2c907e2db480a7212adc2c55ca0cdd788d3c134b2de5d4d">
+      <source xml:lang="en">Recent {0}</source>
+      <note>{0} is a measure, for example Avg CPU</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0a2506e81cb4ce48656ae304c5930d5cb9667ba11198e672b10fda8929165cfc">
+      <source xml:lang="en">Recent · {0}</source>
+      <note>{0} is a period, for example past 24 hours</note>
     </trans-unit>
     <trans-unit id="++CODE++1f47d8366934f024275d2126cc2693f6ea8e1a6815af400835993032a05dd518">
       <source xml:lang="en">Recheck</source>
@@ -9122,6 +9747,9 @@
     <trans-unit id="++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8">
       <source xml:lang="en">Reload Visual Studio Code</source>
     </trans-unit>
+    <trans-unit id="++CODE++0b64442fe64377a722e7c044e45eb0d83a6297e6dbfefd1416cabdca7fd84fb8">
+      <source xml:lang="en">Reload the window to turn on performance monitoring.</source>
+    </trans-unit>
     <trans-unit id="++CODE++df5c131161a52277f378b1ef01786bab0e114c3a30f9574c9f4b325ad50e4ad3">
       <source xml:lang="en">Relocate all files</source>
     </trans-unit>
@@ -9158,6 +9786,10 @@
     </trans-unit>
     <trans-unit id="++CODE++45a768226b6eb7eca5f849cc961fce9ec9c5c278deae1db8acfddce9cd5f43c5">
       <source xml:lang="en">Remove from saved filters</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eba484ffd6dfa04b765e333a58fef0e0a7ceab50b469e3fce78d254be120c665">
+      <source xml:lang="en">Remove query {0} from favorites</source>
+      <note>{0} is the Query Store query ID</note>
     </trans-unit>
     <trans-unit id="++CODE++d5001dd4aab39b12094fd9e9b68e3b8ab67a6437c8eeaf592f0943dcd5851890">
       <source xml:lang="en">Remove sort</source>
@@ -9324,6 +9956,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f8266045b5596ddc5cd3d4af27e2af2af3242d50c27ef97945b665ad805b41f2">
       <source xml:lang="en">Resize the active result grid column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c3c45f64620368b034ba8a6e6d4c315fa5b9791ef22525756bef5c2f237c80d1">
+      <source xml:lang="en">Resize the query text</source>
     </trans-unit>
     <trans-unit id="++CODE++610d2469ca9f85e91ba3c5aff68859fe46b822e0477dd30a07e4b26c3c7ecaa1">
       <source xml:lang="en">Resolving a runtime that can run the CLI</source>
@@ -9498,8 +10133,14 @@
     <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
       <source xml:lang="en">Revert values to project defaults</source>
     </trans-unit>
+    <trans-unit id="++CODE++da59c55382da6161c8f7ce12f775a7d6dc1427daf065a0a53ea2ba1372b162ad">
+      <source xml:lang="en">Review change</source>
+    </trans-unit>
     <trans-unit id="++CODE++d5e832b4db09e18ec03a7950f5715dfdc9cd633c72852e5ed12e67a6a71b6ee9">
       <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9996bb7e9255f22a2b0717bec3036cbd4df93e8be250406b83bcf5fc85f8a62e">
+      <source xml:lang="en">Review performance, security, and optimization findings for this database and related resources. Database Hub opens the same database and issue so you can continue investigating and take action when available.</source>
     </trans-unit>
     <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
       <source xml:lang="en">Reviewing Copilot Change</source>
@@ -9642,6 +10283,9 @@
       <source xml:lang="en">Running: {0}</source>
       <note>{0} is how long the query has been running</note>
     </trans-unit>
+    <trans-unit id="++CODE++848f54e89660cea4357644039ac5d7146f76c8e85df5c04076e08feb7e7547f0">
+      <source xml:lang="en">Runs</source>
+    </trans-unit>
     <trans-unit id="++CODE++352c59bc5b59bba13bb085699f2c07a1103715439ec1a8d57b294dc06d2fbd1b">
       <source xml:lang="en">Runs Data API builder as a local process on this machine. No Docker required.</source>
     </trans-unit>
@@ -9776,6 +10420,9 @@
     </trans-unit>
     <trans-unit id="++CODE++63bd75ed5678f58b4971e060437e117233755c5d3ba3b35cfc74bb64a80c5bef">
       <source xml:lang="en">Same database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++43eb0b1406027122b75c091cea17af853f79d9a950c46e8158e76b6e88be971b">
+      <source xml:lang="en">Same length before</source>
     </trans-unit>
     <trans-unit id="++CODE++95a2f1edb08a76120b82cec7c93ca477618639f04beac7d2aeba2dc039d43715">
       <source xml:lang="en">Sample</source>
@@ -10101,6 +10748,9 @@
     <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
       <source xml:lang="en">Search connection groups</source>
     </trans-unit>
+    <trans-unit id="++CODE++1cf83a1fe892674a1b2059008782602852d4c3b4221b53634aca36f143cf56e3">
+      <source xml:lang="en">Search databases</source>
+    </trans-unit>
     <trans-unit id="++CODE++bf02e2b6200125d467ce1c048b8124906131963d7af4568a0b538aecede4da47">
       <source xml:lang="en">Search extension shortcut</source>
     </trans-unit>
@@ -10112,6 +10762,9 @@
     </trans-unit>
     <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
       <source xml:lang="en">Search options...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ce4982451b9a6820da6a83b6fd5c65695ee7a60c124abc7abfed340798260789">
+      <source xml:lang="en">Search queries</source>
     </trans-unit>
     <trans-unit id="++CODE++9c9335630fa6b9edd2fa273ee1c7bbf05139a475c4491339a5a5b0579d5c4961">
       <source xml:lang="en">Search rules...</source>
@@ -10396,6 +11049,9 @@
       <source xml:lang="en">Select new permission for extension: &apos;{0}&apos;</source>
       <note>{0} is the extension name</note>
     </trans-unit>
+    <trans-unit id="++CODE++79e3475e1556e08097720bcde3111a35cc0391f896ec1ff2345e2adb47ff539e">
+      <source xml:lang="en">Select one plan to open or force, or two plans to compare.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a387a608fae904e256b03c48e16889d585f52ddd5dfbceccf00959b34f384031">
       <source xml:lang="en">Select or clear all connection groups</source>
     </trans-unit>
@@ -10404,6 +11060,10 @@
     </trans-unit>
     <trans-unit id="++CODE++abfd7db0b03514a66749641525344550918faa842cd1455111b0531217e05074">
       <source xml:lang="en">Select package file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aede62e8b69df33429696fefcb5bf4ffcbfa7c9b828c986e89ae5d31f0b04498">
+      <source xml:lang="en">Select plan {0}</source>
+      <note>{0} is the Query Store plan ID</note>
     </trans-unit>
     <trans-unit id="++CODE++25110856ccaba00f1fef5b15a8baf2dd6e225eee8fb18294854babe658fbf730">
       <source xml:lang="en">Select profile to edit</source>
@@ -10681,6 +11341,9 @@
     <trans-unit id="++CODE++e0e492707f85ff1f9c23155494a54382b52bf34888091adc7a6bb338ef78f88d">
       <source xml:lang="en">Shape</source>
     </trans-unit>
+    <trans-unit id="++CODE++269dad4d4a2221929f62a2c8e4790974f34397c4fcbd6f841e67a78c15e690a6">
+      <source xml:lang="en">Share of waits</source>
+    </trans-unit>
     <trans-unit id="++CODE++7539cb114300e5f93b3de7f659e4e114973b4b06b1ca980094071b06a32ea24b">
       <source xml:lang="en">Shared connections</source>
     </trans-unit>
@@ -10869,6 +11532,12 @@
     <trans-unit id="++CODE++fb76b3e236d48ccb7f384d081d3ed08690d98b2683161f8f7bba7fddfced9f41">
       <source xml:lang="en">Size adaptivity</source>
     </trans-unit>
+    <trans-unit id="++CODE++e623faa2de489340430a6e2533792823a4a97c8a2b56df93e88bb77ddbd8ddee">
+      <source xml:lang="en">Size-based cleanup</source>
+    </trans-unit>
+    <trans-unit id="++CODE++58ba13aa57176d39f20ff059b258608dc42964028c4dd8c6a71906d57a89a0f2">
+      <source xml:lang="en">Size-based cleanup off</source>
+    </trans-unit>
     <trans-unit id="++CODE++28d03596d24eeb4eab2d6fe21ca1cb95be7cb1fa6f92933db05e2cc4f4cdfa06">
       <source xml:lang="en">Skip</source>
     </trans-unit>
@@ -10892,6 +11561,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8bf3923dd5886ec034ff01795fffb84338d56725df6fc968372750a60709b0ed">
       <source xml:lang="en">Some events were no longer in the live ring and were not added to the replay cart.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8aca858dbe398e65ee8b6b4113ed04b71c3343ebec0271e26d7507cec06cd8d0">
+      <source xml:lang="en">Some new executions use another plan. The last force failure can say why.</source>
     </trans-unit>
     <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
       <source xml:lang="en">Sort</source>
@@ -11032,6 +11704,9 @@
       <source xml:lang="en">Statement {0}</source>
       <note>{0} is an execution plan statement number</note>
     </trans-unit>
+    <trans-unit id="++CODE++2e8bd95dd5620e6196782fff0c06daff092981e4cd875c72e10d8210028b1ba5">
+      <source xml:lang="en">Statistics interval</source>
+    </trans-unit>
     <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
       <source xml:lang="en">Status</source>
     </trans-unit>
@@ -11041,6 +11716,9 @@
     <trans-unit id="++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3">
       <source xml:lang="en">Status: {0}</source>
       <note>{0} is the task status</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7f6bcacf7cee94f966fab56746ac93aaad74a7506fa42d4dfc9b2652082f63fa">
+      <source xml:lang="en">Std dev</source>
     </trans-unit>
     <trans-unit id="++CODE++2cdc7c498eef5948067e981e9486667e8d90de2aa0ea85c245ecf2a2b5a8028f">
       <source xml:lang="en">Step {0} of {1}</source>
@@ -11079,6 +11757,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6549c4671adc57fc8e91f8f954ddc90c5afa351bdac948dc76c0a1bdc604d3bc">
       <source xml:lang="en">Storage Account is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++364163e89d03ef8fe1a496897347e1712b9cf1ffe4890d8bd32e6d6956732b72">
+      <source xml:lang="en">Storage limit for collected data</source>
     </trans-unit>
     <trans-unit id="++CODE++c7b8b06aab73c64f55558b47032bc9bd5e482199d0a16a1b479549141010ba8a">
       <source xml:lang="en">Store embeddings, write the similarity query, and catch silent full-table scans.</source>
@@ -11488,11 +12169,20 @@
       <source xml:lang="en">The SQL Server extension couldn&apos;t start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++9f4adae54770965f9be3cbbf3f857b3a5a74f9f5adaa37feda96f1fa47887056">
+      <source xml:lang="en">The SQL data plane does not support the authentication type of this connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++10a30efbc42c182bee98327f01c48a3bda361e1bae91ce5429ad275fa7df1c7e">
       <source xml:lang="en">The SQL data plane is disabled. Enable mssql.sqlDataPlane.enabled (and reload) to use Query Studio connections.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7e5ef99f61d341d89db8fb3ef595fba50b3d058d04b275fe352408636c9f526e">
+      <source xml:lang="en">The SQL data plane is not available.</source>
+    </trans-unit>
     <trans-unit id="++CODE++72c65e70a4db945f4b9dccbbdda3aaeade2926ad368b312dd0d820995250e9f8">
       <source xml:lang="en">The Schema Compare extension must be installed to a update a project from a database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5a37c966651379a4c78f604c2ab8dcaef93d17a72999aeffdba2e036b8ed9b0f">
+      <source xml:lang="en">The T-SQL of the change, read-only</source>
     </trans-unit>
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
@@ -11531,6 +12221,9 @@
     <trans-unit id="++CODE++70ece7402eaedb300906107bea039eae51bf2b850127528ddb1d48e174d64515">
       <source xml:lang="en">The connection profile for this request no longer exists.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ae23bdd80423e3a12f853f025960184596ff60f6eb1f426ab0c7ac1dd5354977">
+      <source xml:lang="en">The connection was not found. Connect to the database again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e">
       <source xml:lang="en">The connection with ID &apos;{0}&apos; does not have the &apos;server&apos; property set and is being ignored.  Please set the &apos;server&apos; property on this connection in order to use it.</source>
       <note>{0} is the connection ID for the connection that has been ignored</note>
@@ -11549,6 +12242,22 @@
     </trans-unit>
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c1d54be35e12d5fff144d7203a35f058b0df5c54816e18ad219e58f4e944e7dc">
+      <source xml:lang="en">The database did not answer in time. Try again. {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++70a3873c568e99482e72063f2b1cee6e0c6e2a8fea710b994b3d3d719de8c828">
+      <source xml:lang="en">The database is a secondary that applies the log.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e4818fd082dac2406040385cab6e93c21c4d7463f6eb84f9b3e9a88665562e75">
+      <source xml:lang="en">The database is in emergency mode.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b5aa29d27b5ad1f2f0ca4bd570e88ccd6c135ea49390e6ad963802c3d3f33f1">
+      <source xml:lang="en">The database is in single-user mode.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1c73ed6506589da0433a93c24d519af53c1d1b95091a6b265bf331eef1b06e35">
+      <source xml:lang="en">The database is read-only.</source>
     </trans-unit>
     <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
       <source xml:lang="en">The description of the check constraint.</source>
@@ -11575,6 +12284,9 @@
     <trans-unit id="++CODE++dcf10fd537a0660c98f1a3890997024dfebb2ac795ee02dcbc7581ec4a0fe141">
       <source xml:lang="en">The extension &apos;{0}&apos; is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.</source>
       <note>{0} is the extension name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b58209bf2d30a2123296eec55b7334a09f00b5b4d20cf0ce50673b931f6058fe">
+      <source xml:lang="en">The first Query Store interval after the change has not started yet. Verify again later.</source>
     </trans-unit>
     <trans-unit id="++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e">
       <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
@@ -11632,6 +12344,9 @@
     <trans-unit id="++CODE++644a28f160d2df093fab1a8c94e5176f21c1af3bee1915315edd409d14397021">
       <source xml:lang="en">The name of the index.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2e2b9350a12655559d49203101d8a906bbbbd67ec948049cfa50d538b5c05144">
+      <source xml:lang="en">The new maximum size is less than the current size, so Query Store becomes read-only.</source>
+    </trans-unit>
     <trans-unit id="++CODE++272506f9c62042553eaf9c72b757e5be6cfceeb0cc13c88115850578f6483bb9">
       <source xml:lang="en">The password must be 8–128 characters long.</source>
     </trans-unit>
@@ -11640,6 +12355,27 @@
     </trans-unit>
     <trans-unit id="++CODE++b3d79070d336f35efa23ad58896baa573b22f5a58e4bd7335ab84d79c25e8042">
       <source xml:lang="en">The pinned results tab could not be opened.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++32e16c62cfa571fc9fb685dba4e06d9a28838d6170b441c12f813d3f1c56fcaa">
+      <source xml:lang="en">The plan belongs to another query.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5ffeed0e303f0476b685bcc525538ab03a1e5cd68069bcc2efb285d8cf4cebb5">
+      <source xml:lang="en">The plan change was not reviewed, so it did not run. Call the tool again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8e600f99bc70b706c2fd86513391d035df221227c10c3464b099b44786f96408">
+      <source xml:lang="en">The plan forcing changed after you prepared the change. Prepare it again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a27155491936d873e9754d48aeac061408427c83b6ca7fbd193e8697559d3c21">
+      <source xml:lang="en">The plan is already forced.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c0d88e1101c4420baf7ea3e799fb12769dcf2a45005bc46b7fbd5b784c336221">
+      <source xml:lang="en">The plan is not forced.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8d4ca54eed32c53a3cdfed81395b53f0e08f338e5c73ee4ba2ca6e836fe4a2d9">
+      <source xml:lang="en">The plan that ran most in each interval</source>
+    </trans-unit>
+    <trans-unit id="++CODE++70cf7a058dee98baf1a30338b51c88e7a306c51642dc145913efe09a05c68961">
+      <source xml:lang="en">The plans could not be read for the comparison.</source>
     </trans-unit>
     <trans-unit id="++CODE++1541ca54eaafab6eaf10bd1051af6f50394e0b8f11aad6012045ce761a8ff683">
       <source xml:lang="en">The project &apos;{0}&apos; will not be fully compatible with SSDT after conversion. A backup copy of the project file will be created in the project folder prior to conversion. More information is available at https://aka.ms/sqlprojsdk. Continue with converting to SDK-style project?</source>
@@ -11650,17 +12386,32 @@
     <trans-unit id="++CODE++044da47086134e9a85176a52a9b6c7e8f89f587210c49b06b1232fda151e0932">
       <source xml:lang="en">The project {0} has been updated to be an SDK-style project. Click &apos;Learn More&apos; for details on the Microsoft.Build.Sql SDK and ways to simplify the project file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++dd36f92ba48d55456c5b5aa2cf3e1867446acdedc4f8c1ea448149bceb86229a">
+      <source xml:lang="en">The query did not run in the recent or the baseline period.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++24123fe00a32890cadd1eec242d44e1d789bb7dba83da914887e14578d29722a">
+      <source xml:lang="en">The query has not run since the change.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1a8f5ee7653df34f60fb72efebdd9ef164005d91939502c2fefcf6982d6631a4">
       <source xml:lang="en">The query results panel failed to load. Please try running the query again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++f0a344f5b13a251577615d102ac7a01bf5fd3127fb06f911ab0d51e7ef797303">
+      <source xml:lang="en">The query text is not available.</source>
+    </trans-unit>
     <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
       <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a376f4b95da7d2693ee72fe3cf08dd0798dad371c880df2428c67aff5f7ee13c">
+      <source xml:lang="en">The recent period is the time range at the top of the page.</source>
     </trans-unit>
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
     </trans-unit>
     <trans-unit id="++CODE++19edb2921020d6d5903fd3e186755e4237736ae2697694fc51568c369a4f7263">
       <source xml:lang="en">The result data is no longer available in full. The export could not be completed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++58eb8c2d39a2f2828eb58bdfe2cc8c15773ce5a8403383edbdd34b138515a9f4">
+      <source xml:lang="en">The script is not the script for this change. Prepare it again.</source>
     </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
@@ -11709,11 +12460,24 @@
     <trans-unit id="++CODE++30dc10f2e5d6502d78b8e778df18e5f010e5ec3fa432d4e92c526d86a84375e0">
       <source xml:lang="en">The selected {0} file &apos;{1}&apos; does not exist or is not a file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++771923640d0a31ba118808084e13aea67762e43e09c715c28bd6a22473abdb1a">
+      <source xml:lang="en">The server did not finish the login. A paused serverless database can take a minute to resume, so try again shortly. {0}</source>
+      <note>{0} is the error from the server</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a86e2ead14b2a9e0d57302dddc7ad0efa3b75c5ec50bd729dbdda6bbf351e910">
+      <source xml:lang="en">The server does not show whether automatic tuning forced the current plan.</source>
+    </trans-unit>
     <trans-unit id="++CODE++221a6647042e962a326162fd3dcdd7a1e01f628fb4eedc3ecc4b2c33038109fe">
       <source xml:lang="en">The service is no longer running a query for this editor. The editor&apos;s execution state has been reset.</source>
     </trans-unit>
+    <trans-unit id="++CODE++4f69c6c2bd47b2ba0fb456d94ef85afd900d674c7dc7b7a20076ea2fdd1c0bdd">
+      <source xml:lang="en">The settings changed after you prepared the change. Prepare it again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ccf13c4e33fc0204cb223ea33f27de0018976f1459b4835ba0b8f74a13ce8f71">
       <source xml:lang="en">The skills list couldn&apos;t be loaded from GitHub. Check your connection and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c4012e1170d6996b865917ed3202746f525fc484814f31d5d904785644d026e6">
+      <source xml:lang="en">The start must be before the end, inside the available data.</source>
     </trans-unit>
     <trans-unit id="++CODE++13c88dccbc0c16d34702d4b664c78552a13156f154731119eaaa1dfc41be428d">
       <source xml:lang="en">The system database references need to be updated to build the project &apos;{0}&apos;. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
@@ -11752,6 +12516,10 @@
     <trans-unit id="++CODE++1a7dce1f7d58b78f71a31ac2a4451b08304b7426c9609ec2b348c9002e866c68">
       <source xml:lang="en">There is no query text to execute. Enter a query or select non-empty query text.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ab56570a00817f452eeb6c3c9bad0d10b65f345457f6fcb2931710b8149c17e6">
+      <source xml:lang="en">There is no saved connection profile with the ID &apos;{0}&apos;.</source>
+      <note>{0} is the connection profile ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
     </trans-unit>
@@ -11775,6 +12543,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7f3b508c5df6af5c73b74af4fa1b87ddac20dfc3d6592207e9ecd25162e112d4">
       <source xml:lang="en">This action needs a database. Use a database node.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1d5a0e4294af7ff4294cc0d40a35ceda4da4b6a0db8514de857fe9658520e19b">
+      <source xml:lang="en">This change turns Query Store on.</source>
     </trans-unit>
     <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
       <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
@@ -11835,11 +12606,26 @@
     <trans-unit id="++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84">
       <source xml:lang="en">This file name is reserved for use by Windows. Choose another name and try again</source>
     </trans-unit>
+    <trans-unit id="++CODE++66a045be71d2c3ed806236f9c3a18bca4f77af0eba747b54bd8e9c96737d3e2f">
+      <source xml:lang="en">This is a dispatcher plan.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4efcf9765935937ef2c1f89227ccf0b0e579fc30bec86330123d0569a8ae2573">
+      <source xml:lang="en">This is a variant plan of a parameter-sensitive query.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3929da5455186bd09164638d3a49a87201800f45060f9529df8f8c3de00bd23e">
+      <source xml:lang="en">This is a variant plan of parameter sensitive plan optimization.</source>
+    </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
     </trans-unit>
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++74828fb9e09e7e2d5484c07434620e7a3a7bd1684f787869985bf9a0f3bbf302">
+      <source xml:lang="en">This platform does not record this data in Query Store.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0ea51f86429c0402ba83e86b75d2aa1f64451fa2df4e713975dd5e88e4a29512">
+      <source xml:lang="en">This platform has no Query Store settings.</source>
     </trans-unit>
     <trans-unit id="++CODE++174959f5d73693f0a200518e8628bc5f2a3a1eaa6e9a834296e47264ea7f9548">
       <source xml:lang="en">This port is already in use. Choose a different port.</source>
@@ -11868,6 +12654,15 @@
     <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
       <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e39944ff00c0dc1e22db237f5c4b0980dfca011bde4647071db7c6cb1d8a3077">
+      <source xml:lang="en">This version cannot tell manual from automatic forcing.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0ce90031d0d87d75a2bb98d80fe1cfbe96c91d88267ed2e520c3751c6661f940">
+      <source xml:lang="en">This version of SQL Server does not capture wait statistics in Query Store.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fb5ea544d44e350c3d3822e4842d70cb9f7c6d39c180997275afa06cb911deec">
+      <source xml:lang="en">This version of SQL Server does not have the custom capture policy.</source>
+    </trans-unit>
     <trans-unit id="++CODE++57fab0af2acb374655d853bc448fcbfec0a2c47c19d965017e05d2ae07974c99">
       <source xml:lang="en">This will deploy a Data API builder container locally using Docker. The container will expose {0} APIs based on your configuration.</source>
       <note>{0} is a list of API types, e.g. &apos;REST and GraphQL&apos;</note>
@@ -11885,11 +12680,24 @@
     <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
       <source xml:lang="en">Time</source>
     </trans-unit>
+    <trans-unit id="++CODE++4aabac76d00cc1fd15e917bf18fa1ae2749503e4c1474e1ea0348f5d844475ca">
+      <source xml:lang="en">Time interval</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5a291bfb163cc25554bea9a6f8e32c95cc89b8d512776a94bf67792df1655235">
+      <source xml:lang="en">Time range: {0}</source>
+      <note>{0} is the selected time range, for example Past 24 hours</note>
+    </trans-unit>
     <trans-unit id="++CODE++1f8f54104073c3e190e619b6d7de16e513221898193fc369857dace61d7be92c">
       <source xml:lang="en">Time series · latency p95</source>
     </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fc4e84255a41a3a28fede3ebca9eb1130e112bc53d8371fa038bb953eb7326b8">
+      <source xml:lang="en">Timing</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146">
+      <source xml:lang="en">To</source>
     </trans-unit>
     <trans-unit id="++CODE++9f0579d320976e14e7280ec17e960103c91dc619a776e8469b47aeab90278fad">
       <source xml:lang="en">To</source>
@@ -11898,8 +12706,14 @@
     <trans-unit id="++CODE++94843fe76f0c666e2bce801eb3dbfa672cd6517a14f968c8e41669c580b60cb3">
       <source xml:lang="en">To compare two schemas, first select a source schema and target schema, then press compare.</source>
     </trans-unit>
+    <trans-unit id="++CODE++485348889fedcc4b3fd8a6c95bed0b36c44153b81cdadcbc117c999fdebf916d">
+      <source xml:lang="en">To date</source>
+    </trans-unit>
     <trans-unit id="++CODE++b6ecb97fd3934d27e281539de8b6f9ab3cd3a6b3ea47ff5664fdc8e9787030f6">
       <source xml:lang="en">To successfully build, update the project to have one pre-deployment script and/or one post-deployment script</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0180a79c83e77a9270b0f98995eebcb16f36a23ac9f977c9fe951afbe35ad658">
+      <source xml:lang="en">To time</source>
     </trans-unit>
     <trans-unit id="++CODE++4c4d50191531a82f528c2802cf6b245d0c776a5d4b51d3b5da127aaf21728547">
       <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to &quot;SQL&quot; -or- Select T-SQL text in the active SQL editor.</source>
@@ -11994,8 +12808,20 @@
       <source xml:lang="en">Top operation: {0}</source>
       <note>{0} is an execution plan operation name</note>
     </trans-unit>
+    <trans-unit id="++CODE++7b77cb9135d9b70277a1c06fae8a98a383e007c753de906c23ab7a50fa720ee2">
+      <source xml:lang="en">Top wait</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c9b3c38247f744e17dd26fda097d6a9ba9332586b6bdaa038bf8f313a863f2b8">
+      <source xml:lang="en">Total</source>
+    </trans-unit>
+    <trans-unit id="++CODE++328a3c1910c6af39a520fe7c5945de81f645c528eaff7e8e573358c618731ab1">
+      <source xml:lang="en">Total CPU</source>
+    </trans-unit>
     <trans-unit id="++CODE++99fcc234d426c195f7a6aed926a0800f6f2f6384ced08d5bcfec3610471f465e">
       <source xml:lang="en">Total completions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fcdcdd5afa3310caf49962f4cb56ca0a78e793eff7790ef4c0b834386c4ed487">
+      <source xml:lang="en">Total duration</source>
     </trans-unit>
     <trans-unit id="++CODE++199bbc6fb777258a22b315f57db820f668cf7f25db74b563c23fe71f9022ed8d">
       <source xml:lang="en">Total execution time: {0}</source>
@@ -12004,8 +12830,14 @@
       <source xml:lang="en">Total execution time: {0}</source>
       <note>{0} is the elapsed time</note>
     </trans-unit>
+    <trans-unit id="++CODE++52f2dd7df3a0e390091e2cc6a4f32c647127ea70e92e400f5fb5c264bd476a69">
+      <source xml:lang="en">Total per day</source>
+    </trans-unit>
     <trans-unit id="++CODE++3018218f5b66be1c5027fdc1d75389f30f30ac7cfa00c77c3453790d8830dc9a">
       <source xml:lang="en">Total rows to fetch:</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b2f20679b07879e6a088c67222dd8c9a456c5318ce7bb13e5cc4bb0538d96682">
+      <source xml:lang="en">Total wait</source>
     </trans-unit>
     <trans-unit id="++CODE++781284eb7b604f556a45bd84c8d48c01d5974f5e2b25bacb0bef95f5ce7a0b6c">
       <source xml:lang="en">Trace collection is off</source>
@@ -12060,6 +12892,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1ae28ccb95a9e8a208a88da08177dd26341fcd71294e1a5b620c47f7c710c80c">
       <source xml:lang="en">Turn assessment findings into an actionable, safe migration plan.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++246fc64dc8d8a304a23966d1f90741cba8c280b8db111729577214aee111834c">
+      <source xml:lang="en">Turn on wait statistics capture</source>
     </trans-unit>
     <trans-unit id="++CODE++01784a9b43e430d8e9da6c5eb5040785fee224b69c3f1f6cfafdbb9560ce4cfc">
       <source xml:lang="en">Two-hop (2)</source>
@@ -12175,6 +13010,28 @@
     </trans-unit>
     <trans-unit id="++CODE++47bfaa5d500415abb1304d2f26f8faf8874320419d65476c51968c75a7ba088a">
       <source xml:lang="en">Undo All Copilot Changes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c7d46deae74e1d9f9b1aba987608d02e9e0bf09b9366bf22f2c1f60c3fd5a66">
+      <source xml:lang="en">Unforce Query Store Plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ef76450ab91516eb3f6231b8d74fb88f249de5a204e55f155225f519d1edb5ca">
+      <source xml:lang="en">Unforce plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9239b1b892b3a7f15a17bd595fb7cc1881f2370ac290ed64eb64a7c00f21fe3e">
+      <source xml:lang="en">Unforce plan {0}</source>
+      <note>{0} is the Query Store plan ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d0df46b4dc1f58dcf341364fb9677f31e669ce9f3b906b7b1291ac406152a873">
+      <source xml:lang="en">Unforce plan {0} for query {1} in database &apos;{2}&apos; on &apos;{3}&apos;? This runs the following T-SQL:</source>
+      <note>{0} is the Query Store plan ID
+{1} is the Query Store query ID
+{2} is the database name
+{3} is the connection display name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c314cbf7e4d7fa19f67610a3884e6e7cc519f9148397ffbac9545ca9c693d07a">
+      <source xml:lang="en">Unforcing plan {0} for query {1}</source>
+      <note>{0} is the Query Store plan ID
+{1} is the Query Store query ID</note>
     </trans-unit>
     <trans-unit id="++CODE++0c79e1387ac8034b8d51c64dd2349fe325ba5b03148a5eef241e5d0e77096b1a">
       <source xml:lang="en">Unfreeze columns</source>
@@ -12295,6 +13152,10 @@
     </trans-unit>
     <trans-unit id="++CODE++8671756ce1f486e98ffd9b8be6825b3f751e4bd700c84b0585a449f494aff99f">
       <source xml:lang="en">Update {0} for cross-platform support?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6d2fcaf21c97e8f5cc81880e9dd7611ee7d73094c21baf32e11fd6f0e49a6e1">
+      <source xml:lang="en">Updated {0}</source>
+      <note>{0} is a time, for example 3:02 AM</note>
     </trans-unit>
     <trans-unit id="++CODE++92294188e79b2a13584eb3e6120f971c94ada2a387f3199a4cd3cb17039f9d37">
       <source xml:lang="en">Updating IntelliSense...</source>
@@ -12490,8 +13351,14 @@
     <trans-unit id="++CODE++2cd57109145ab1cb603c7417e2c382756f332d0fc0f9a43b4d461f7d55f5a09f">
       <source xml:lang="en">Verbose</source>
     </trans-unit>
+    <trans-unit id="++CODE++eea2745e2867a6772adc3e813211e6ce7b6ebd312d7e84a7c1b1aa2f8c75fd4b">
+      <source xml:lang="en">Verify</source>
+    </trans-unit>
     <trans-unit id="++CODE++895538d92b916860948aefae4e0444d5fb238835e6cc5af248c89c0582e741dd">
       <source xml:lang="en">Verify a container image by using the Notation CLI</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0cd925d11e7aefa9bc7e63d19e4ca7de2c42b40f0aa75a5d8b19ddd246eacf19">
+      <source xml:lang="en">Verify after the query runs again: Query Store counts the executions from the interval after the change.</source>
     </trans-unit>
     <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
       <source xml:lang="en">Verify backup when finished</source>
@@ -12540,6 +13407,9 @@
     </trans-unit>
     <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
       <source xml:lang="en">View Table Diagram</source>
+    </trans-unit>
+    <trans-unit id="++CODE++72057bd929c6fa80c5d08704eac7beeb1546ee9c89630aab286bbeb163fe7e08">
+      <source xml:lang="en">View by</source>
     </trans-unit>
     <trans-unit id="++CODE++1759988fd95773a6e5fffcc896143f0bb8b7798322561aa8ea5ddbf79da0e9d1">
       <source xml:lang="en">View changes in Schema Compare</source>
@@ -12612,6 +13482,23 @@
     <trans-unit id="++CODE++cf95aa41b5e92646701fd3a8ed7c359d126c2bb738e702f6b2300c670f5c3a24">
       <source xml:lang="en">WSL container</source>
     </trans-unit>
+    <trans-unit id="++CODE++5efb902f04088cb4ccff8c5577e96b6a6d2636cb8c91c95f8de68c805b06d95f">
+      <source xml:lang="en">Wait category</source>
+    </trans-unit>
+    <trans-unit id="++CODE++43fef9270e611cc704b5c76d8dab18bebdde254887331672a65943a864438a7e">
+      <source xml:lang="en">Wait statistics</source>
+    </trans-unit>
+    <trans-unit id="++CODE++652039dbaa0fa1d2c1eaf5d8c62ded730c0ec4565708c15fbf639d95f3e5ead9">
+      <source xml:lang="en">Wait time (ms)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e908d0179394b946333bc7bdaed76f9f6bd3c89c92d8377626f9087817394b2a">
+      <source xml:lang="en">Waiting</source>
+      <note>The part of the query&apos;s duration that it spent waiting</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c7509c760c1421c054e612ee8305e0f4fd1653956e0105d5457b53e26461f782">
+      <source xml:lang="en">Waits</source>
+      <note>A tab: what the query waits on</note>
+    </trans-unit>
     <trans-unit id="++CODE++d5c7fe9b21751cb7dce95d9d0153ce2f1e7051fead29607c7b04c26a6d474eb4">
       <source xml:lang="en">Walkthroughs</source>
     </trans-unit>
@@ -12631,6 +13518,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
       <source xml:lang="en">Warnings detected. Please review the changes.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f112088162c193e09607316c0716d126f875766c3831875fe05e172eadbbb0a8">
+      <source xml:lang="en">Warnings:</source>
     </trans-unit>
     <trans-unit id="++CODE++d7e723ab8286a6853d1f6fc0a59d215824e9ab149d391667863d3d3d46e91ad6">
       <source xml:lang="en">Watch demo</source>
@@ -12696,6 +13586,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8fd327e952b1908d7b6e1208d2d1fe2af7a479232accca6c08eebc9c8bb8094e">
       <source xml:lang="en">Wire up a SQL trigger and an HTTP endpoint, verified locally against your data.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a8cd3874038a348c2ffa56f6ea377541cc9ea03316107d556b705f9b6768705c">
+      <source xml:lang="en">Without size-based cleanup, Query Store becomes read-only when it reaches its max size.</source>
     </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
@@ -12765,6 +13658,15 @@
     </trans-unit>
     <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
       <source xml:lang="en">You must review and accept the terms to proceed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ab8777152cf969abbc877d75cce394eec2e194315322ff5ec2b2ce227c886957">
+      <source xml:lang="en">You need ALTER permission on the database to change the Query Store settings.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++195e37521997c2babcc31002da531abc557b8186fa2feb73e6fb7161f9d09637">
+      <source xml:lang="en">You need the ALTER permission on the database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e8014582371a2bc976e6b417ccc814debf0d4624b677b08b4e3d06dfbf92193b">
+      <source xml:lang="en">You need the VIEW DATABASE STATE permission to read Query Store data.</source>
     </trans-unit>
     <trans-unit id="++CODE++fb7accfff8c6f8ea9b03c91ee5576d0d08080e9ba35918d801aaeb6020dbc88c">
       <source xml:lang="en">YouTube</source>
@@ -12932,6 +13834,10 @@
     <trans-unit id="++CODE++8d346a8cc8f064446a92da046fb4859794e202406e68cefb00b7105f455cb283">
       <source xml:lang="en">database access may have changed</source>
     </trans-unit>
+    <trans-unit id="++CODE++79ee284a95448e36da0b45e1efe84186c7c28fefb125283dc1e6c2947853bfe3">
+      <source xml:lang="en">days</source>
+      <note>After a number of days</note>
+    </trans-unit>
     <trans-unit id="++CODE++37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f">
       <source xml:lang="en">default</source>
     </trans-unit>
@@ -12953,6 +13859,13 @@
     </trans-unit>
     <trans-unit id="++CODE++bb683a1c31253688bd32e5dbcadb5428b7f024ade6b99a1ad7c105dad91b2490">
       <source xml:lang="en">dropped from the live ring (bounded buffer) — save or export sooner to keep them.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a3b454246f895e76437af93d063bb835f4a2533856aa0827c524d72d20a4450b">
+      <source xml:lang="en">duration</source>
+      <note>A metric after a statistic, for example Total duration</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9d120ac2a6f8617e4fbb463cfb879b0f660808530705b5fc11d9ffb4b4ae3377">
+      <source xml:lang="en">duration (ms)</source>
     </trans-unit>
     <trans-unit id="++CODE++9213fe0ba9ab011cd201be662e521ffae88e0c1824e6ee49dd9d525fd3f115ce">
       <source xml:lang="en">e.g. My tables</source>
@@ -13017,6 +13930,10 @@
     <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
       <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
     </trans-unit>
+    <trans-unit id="++CODE++ec9a415372dfda0255971f41cc0924ea2f1f3fd9e26b8206729532c5d8cb48c2">
+      <source xml:lang="en">hours</source>
+      <note>After a number of hours</note>
+    </trans-unit>
     <trans-unit id="++CODE++1b52f3a2e15148731314bf167145c54565ed2385a862b5eb7771eaf719e4f82e">
       <source xml:lang="en">hr</source>
     </trans-unit>
@@ -13071,6 +13988,13 @@
     <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
       <source xml:lang="en">location</source>
     </trans-unit>
+    <trans-unit id="++CODE++5256c5b06a5894ea57b7e2d8b67e6bcef4f82c4a74fbbdb59c45c9e845b44e60">
+      <source xml:lang="en">logical reads</source>
+      <note>A metric after a statistic, for example Total logical reads</note>
+    </trans-unit>
+    <trans-unit id="++CODE++cda28ff0d78764881714224437a83dae73a92121d11731ace6a2b05e7899c2bf">
+      <source xml:lang="en">logical reads (KB)</source>
+    </trans-unit>
     <trans-unit id="++CODE++aed6b7aa2a0511a9bbcaae2a10127a3139fc6494c57769b31b1a694c14483ce7">
       <source xml:lang="en">macOS</source>
     </trans-unit>
@@ -13080,11 +14004,26 @@
     <trans-unit id="++CODE++7114b2c6e8b632c0fdecdc346698eb406f06e072e56be6b95d3eb4f2e7d24e2d">
       <source xml:lang="en">max {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++6383921f2b39957b0347f79e3c61f21b53a296d771a1fa36667dad0b3876e430">
+      <source xml:lang="en">memory</source>
+      <note>A metric after a statistic, for example Total memory</note>
+    </trans-unit>
+    <trans-unit id="++CODE++bfa78450284d7c014793b29da3bd5519c6dcd2196696644fdd7cf42e5d162da4">
+      <source xml:lang="en">memory (KB)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6c58efd8a4e8bb43dcb07895e86264fbf6ed6b58d1323e37f3cf3b4dd54ed712">
+      <source xml:lang="en">min</source>
+      <note>Minutes, after a number</note>
+    </trans-unit>
     <trans-unit id="++CODE++1f6fa6f69d185e6086d04e7330361bf9001a3b8d0ce511171055dc34eb90c1c5">
       <source xml:lang="en">min</source>
     </trans-unit>
     <trans-unit id="++CODE++f7c8c6b2e1521290911ea2bd863537d9389f33c111f6bebeaee6fec41baf2a23">
       <source xml:lang="en">model x profile x schema</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa597524e168ab9cefdcbf0c95a7503ab23176f340352c4b9b844c31628029df">
+      <source xml:lang="en">ms</source>
+      <note>Milliseconds, after a number</note>
     </trans-unit>
     <trans-unit id="++CODE++f785c3ce1d580c8f22c1db8a14cf1268e44279ff5d461361dbbfaf19e8b11578">
       <source xml:lang="en">ms</source>
@@ -13121,6 +14060,10 @@
     </trans-unit>
     <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
       <source xml:lang="en">of</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bdba32e67709a20dbedb8459ebc2896bc511906bc07e7a609410946179dcbf11">
+      <source xml:lang="en">of {0} MB used</source>
+      <note>{0} is the maximum size in MB. It follows the used size, 1 MB</note>
     </trans-unit>
     <trans-unit id="++CODE++8e2c7ac508139a02af859de64a4743c1f3946837279332c35ec8f5ddf20654ae">
       <source xml:lang="en">offline</source>
@@ -13164,6 +14107,10 @@
     <trans-unit id="++CODE++ea19ebfd2febbc18a8ac51e1921b4cd591640f7c2ecbfd8967585143417c05d6">
       <source xml:lang="en">reading model response</source>
     </trans-unit>
+    <trans-unit id="++CODE++ec04b83423a17f6f72afe7bdd817fec13414cf837a3078a9a3fecd52c2018bc1">
+      <source xml:lang="en">reads</source>
+      <note>Logical reads, after a statistic, for example Total reads</note>
+    </trans-unit>
     <trans-unit id="++CODE++776477ae292948ef829d3a791d16060bb7ff8397f8ac4daae8cfb1e8128d124e">
       <source xml:lang="en">recovering</source>
     </trans-unit>
@@ -13193,6 +14140,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8d6ebe0c311978716cb43f13d3e5ff00f8bbd611fad0f17a6df6557a04516b0f">
       <source xml:lang="en">section failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a63a1585a5276ee5c297c8889f3f61cbd65a9cde8e3b88769d7e2e920371acda">
+      <source xml:lang="en">select two plans to compare</source>
     </trans-unit>
     <trans-unit id="++CODE++1146c5b5731e4190820f353801b42388142fe45f8705a70a8ee122ef834a4534">
       <source xml:lang="en">selecting model</source>
@@ -13275,6 +14225,10 @@
     <trans-unit id="++CODE++cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619">
       <source xml:lang="en">value</source>
     </trans-unit>
+    <trans-unit id="++CODE++94813937fb6549cc37566b690da587fb956404f2a4e30b1d4b16cf676d31345e">
+      <source xml:lang="en">vs</source>
+      <note>Short for versus, between two periods</note>
+    </trans-unit>
     <trans-unit id="++CODE++e8323618dc0c780b04eaa2c128b393964435f01fc03aa97d1293342585124690">
       <source xml:lang="en">vscode-mssql · copilot-completion-debug</source>
     </trans-unit>
@@ -13327,6 +14281,21 @@
       <note>{0} is the name of a collection of agent skills
 {1} is the number of skills listed in that collection</note>
     </trans-unit>
+    <trans-unit id="++CODE++4880100faaf7c23c3f7b7422d9199d2ef5519b5ec577154f037fd03273e6e8b3">
+      <source xml:lang="en">{0} - {1}</source>
+      <note>{0} is the start date and time
+{1} is the end date and time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++785d3dbaec2449e1e18af3f5365b94f5df958d80f21066ef7864c28ba8ecdc1e">
+      <source xml:lang="en">{0} - {1}</source>
+      <note>{0} is the start date and time
+{1} is the end time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++16c96b68947d2c0c3f9db25fe1f3e472119632c071adf26bb4f76a70bd960eaf">
+      <source xml:lang="en">{0} / {1}</source>
+      <note>{0} is the server name
+{1} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++60f820e33dc2ebb9ace1ef9c084e6b0ce9c75e159edf59e955aa68a7b304783b">
       <source xml:lang="en">{0} / {1}</source>
       <note>{0} is the one-based position of the selected schema difference
@@ -13365,11 +14334,24 @@
     <trans-unit id="++CODE++08fefe04a78a12b9e4ac61ac107a5237d5d6993e0dc8c6706949b4c9fe54ca6f">
       <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
     </trans-unit>
+    <trans-unit id="++CODE++06ebf69343b8e3793af57a7d92328c0036c03f95e983b24591f47ec06f2ac363">
+      <source xml:lang="en">{0} KB</source>
+      <note>{0} is a number of kilobytes, for example 2,588</note>
+    </trans-unit>
     <trans-unit id="++CODE++92083c699bd07fde5310a20c64170f692b74e4d385244e55d9b7b951419f10e1">
       <source xml:lang="en">{0} KB</source>
     </trans-unit>
+    <trans-unit id="++CODE++2ad6aa78731a8e4aa800e613bcc26ec5714a5b69f790a717b49fcf40d78ac828">
+      <source xml:lang="en">{0} MB</source>
+      <note>{0} is the used size in MB</note>
+    </trans-unit>
     <trans-unit id="++CODE++a698208f1c3ae9af68e515eeea74a3665369e6b8cf119a1d2686f2b72e5c0588">
       <source xml:lang="en">{0} MB</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bfbb726dcb945b6a99fbbf9fb49d1601726a75440394a4c3e002bf8e691eb536">
+      <source xml:lang="en">{0} MB of {1} MB</source>
+      <note>{0} is the used size in MB
+{1} is the maximum size in MB</note>
     </trans-unit>
     <trans-unit id="++CODE++2e4a8d54824349107a9f32cd027c66548aab1cb7024d6bcc83a7aecb2792160a">
       <source xml:lang="en">{0} SDK language models are disabled.</source>
@@ -13400,6 +14382,10 @@
       <note>{0} is the display name of the property
 {1} is the old value
 {2} is the new value</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1cb998a5e5c3af981cdbc4fd3f6d291c1ce765010639609fc10dee5da2aab83c">
+      <source xml:lang="en">{0} changes</source>
+      <note>{0} is the number of changed settings</note>
     </trans-unit>
     <trans-unit id="++CODE++3622690088dccaafa6adcd1ab8138466d048c4f4cf087aa51eaf4bf0af9e383b">
       <source xml:lang="en">{0} changes</source>
@@ -13514,9 +14500,17 @@
       <source xml:lang="en">{0} issues</source>
       <note>{0} is the number of issues</note>
     </trans-unit>
+    <trans-unit id="++CODE++73afd2cf9e611fa484ed41a837c246f7ced8b96bfa508814d3066138e7a26b07">
+      <source xml:lang="en">{0} min</source>
+      <note>{0} is a number of minutes</note>
+    </trans-unit>
     <trans-unit id="++CODE++2e39ee748df53ec4f2cfc15f5579d4fe23c8b379a219e1988778380c09c6b38e">
       <source xml:lang="en">{0} minutes</source>
       <note>{0} is a number of minutes</note>
+    </trans-unit>
+    <trans-unit id="++CODE++589686730a4f1bccc91d67c7e4499902b5619e2a6fcdd691439449654b9f9d64">
+      <source xml:lang="en">{0} ms</source>
+      <note>{0} is a number of milliseconds, for example 46.54</note>
     </trans-unit>
     <trans-unit id="++CODE++978a6092f1e358d16f44a635883e314ef15f03bbfb507ee3c1a5bbd049c528ce">
       <source xml:lang="en">{0} ms</source>
@@ -13534,6 +14528,11 @@
     </trans-unit>
     <trans-unit id="++CODE++8a81d0a02b853dbde5739a315e38158961595f09a59d5db5c71277b101b5b3da">
       <source xml:lang="en">{0} objs | system={1} | fks={2}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3a29869a55130eb6a609b18adc8338b9f16a4a80d9b4766d85d458aafa09b77a">
+      <source xml:lang="en">{0} of the total of all queries, {1}</source>
+      <note>{0} is a percentage, for example 91.3%
+{1} is the exact value, for example 34,630 ms</note>
     </trans-unit>
     <trans-unit id="++CODE++48f8bded11e525503381f9350e33b4f291585451934e4dfff2baed0e7a8959a3">
       <source xml:lang="en">{0} of {1}</source>
@@ -13582,6 +14581,10 @@
     </trans-unit>
     <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
       <source xml:lang="en">{0} password doesn&apos;t match the confirmation password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3712a50d34ecae2e201f60f4d6c2fc5d1e7623e07ad2d6c757d62544e69b7b89">
+      <source xml:lang="en">{0} per day</source>
+      <note>{0} is a measure, for example CPU</note>
     </trans-unit>
     <trans-unit id="++CODE++761c4cd09a923eec7c6bca127c873be212d0eb7187903873617146e06794fe1f">
       <source xml:lang="en">{0} pinned result tabs are open. Each keeps its data and view in memory — close ones you no longer need.</source>
@@ -13666,6 +14669,11 @@
     </trans-unit>
     <trans-unit id="++CODE++cae2c3d90c47b81d0cc503a5ce7809d61e2358ec2f097074d940fa0e52a4a254">
       <source xml:lang="en">{0} x {1}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++508eecda5a613e634cf644dce67da9b6f9270378550f55d38d0ad1f359a1dc89">
+      <source xml:lang="en">{0} {1}</source>
+      <note>{0} is a statistic, for example Total or Average
+{1} is a metric with its unit, for example CPU (ms)</note>
     </trans-unit>
     <trans-unit id="++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda">
       <source xml:lang="en">{0} {1} issue</source>
@@ -14763,6 +15771,9 @@
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Modify Table Structure...</source>
     </trans-unit>
+    <trans-unit id="mssql.performance.openDashboard">
+      <source xml:lang="en">Monitor Performance (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorerV2.moveToGroup">
       <source xml:lang="en">Move to Group...</source>
     </trans-unit>
@@ -14873,6 +15884,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorerV2.openClassicObjectExplorer">
       <source xml:lang="en">Open in Classic Object Explorer</source>
+    </trans-unit>
+    <trans-unit id="mssql.openInFabricDatabaseHub">
+      <source xml:lang="en">Open in Database Hub</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.openInDesigner">
       <source xml:lang="en">Open in Designer</source>
@@ -15135,9 +16149,6 @@
     <trans-unit id="sqlDatabaseProjects.findFileBehavior.revealAndOpen">
       <source xml:lang="en">Reveal the file in the Database Projects view and open it in the editor.</source>
     </trans-unit>
-    <trans-unit id="mssql.openInFabricDatabaseHub">
-      <source xml:lang="en">Review health in Database Hub (Preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.copilot.rewriteQuery">
       <source xml:lang="en">Rewrite Query</source>
     </trans-unit>
@@ -15368,6 +16379,9 @@
     </trans-unit>
     <trans-unit id="mssql.showOverviewInObjectExplorer">
       <source xml:lang="en">Show Getting Started</source>
+    </trans-unit>
+    <trans-unit id="mssql.performanceMonitoring.enabled.description">
+      <source xml:lang="en">Show Monitor Performance (Preview), the Query Store performance dashboard, in the database menu of Object Explorer, and the Query Store tools in Copilot Chat. On by default; it needs no other setting. Reload the window after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.showStatus">
       <source xml:lang="en">Show SQL Data Plane Status</source>

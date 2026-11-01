@@ -85,6 +85,8 @@ export const FabricBrowsePage = () => {
                 setConnectionProperty("server", database.server);
                 setConnectionProperty("database", database.databases[0]);
                 setCommonConnectionProperties(database);
+                // Database Hub opens the database by its Fabric item ID.
+                setConnectionProperty("resourceId", database.id);
 
                 return;
             case SqlArtifactTypes.Warehouse:

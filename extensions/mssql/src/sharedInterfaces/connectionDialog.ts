@@ -194,6 +194,11 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     emptyPasswordInput?: boolean;
     azureAuthType?: vscodeMssql.AzureAuthType;
     id?: string;
+    /**
+     * The ARM ID of the Azure SQL server or managed instance, or the item ID of the Fabric SQL
+     * database, set when the user picks it in Azure or Fabric browse.
+     */
+    resourceId?: string;
 }
 
 export enum AuthenticationType {
