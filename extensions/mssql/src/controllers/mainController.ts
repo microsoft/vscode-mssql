@@ -168,6 +168,7 @@ import {
     performanceDashboardTargetForNode,
 } from "../performance/performanceDashboardWebviewController";
 import { PerformanceDashboards } from "../performance/performanceDashboards";
+import { PerformanceDashboardSource } from "../performance/performanceDashboardTelemetry";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
@@ -203,7 +204,6 @@ import {
     quickQueryCount,
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { AzureResourcesExtensionIntegration } from "../integration/azureResourcesIntegration";
-import { FabricDatabaseHubIntegration } from "../integration/fabricDatabaseHubIntegration";
 
 const overviewVisibilityStorageKey = "overviewVisibility";
 
@@ -263,7 +263,6 @@ export default class MainController implements vscode.Disposable {
     public inlineCompletionSchemaContextService: CompletionSchemaContextService | undefined;
     public protocolHandler: MssqlProtocolHandler;
     public azureResourcesIntegration: AzureResourcesExtensionIntegration;
-    public fabricDatabaseHubIntegration: FabricDatabaseHubIntegration;
 
     /**
      * The main controller constructor
@@ -888,11 +887,8 @@ export default class MainController implements vscode.Disposable {
             this.azureResourcesIntegration = new AzureResourcesExtensionIntegration(
                 this.protocolHandler,
             );
-            this.fabricDatabaseHubIntegration = new FabricDatabaseHubIntegration();
-
             this._context.subscriptions.push(
                 this.azureResourcesIntegration.registerOpenInMssqlCommand(),
-                this.fabricDatabaseHubIntegration.registerOpenInFabricDatabaseHubCommand(),
             );
 
             // Register a virtual document provider once during extension activation
@@ -1429,7 +1425,7 @@ export default class MainController implements vscode.Disposable {
             [
                 Constants.copilotOpenPerformanceDashboardToolName,
                 new OpenPerformanceDashboardTool(connections, (target, location) => {
-                    dashboards.open(target, location);
+                    dashboards.open(target, location, PerformanceDashboardSource.Copilot);
                 }),
             ],
         ];
@@ -3861,7 +3857,11 @@ export default class MainController implements vscode.Disposable {
             );
             return;
         }
-        this.performanceDashboards.open(target);
+        this.performanceDashboards.open(
+            target,
+            undefined,
+            PerformanceDashboardSource.ObjectExplorer,
+        );
     }
 
     public async onSearchDatabase(node?: TreeNodeInfo): Promise<void> {

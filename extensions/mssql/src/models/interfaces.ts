@@ -78,6 +78,12 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
      * Optional sort order for display in the Object Explorer. Set manually in config JSON.
      */
     order?: number;
+    /**
+     * The ARM ID of the Azure SQL server or managed instance, or the item ID of the Fabric SQL
+     * database, saved when the profile is created from Azure or Fabric. Database Hub opens the
+     * resource with it.
+     */
+    resourceId?: string;
     isValidProfile(): boolean;
     isAzureActiveDirectory(): boolean;
 }

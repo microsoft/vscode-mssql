@@ -418,6 +418,8 @@ export class ConnectionMatcher {
             "profileName",
             "savePassword",
             "id",
+            // Metadata for Database Hub, not a connection property.
+            "resourceId",
         ]);
 
         for (const key of Object.keys(expected).filter(

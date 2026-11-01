@@ -4962,6 +4962,13 @@ export class LocConstants {
             explainInChat: l10n.t("Explain in Chat"),
             moreChatActions: l10n.t("More chat actions"),
             preview: l10n.t("Preview"),
+            databaseHubEyebrow: l10n.t("Continue in Fabric Database Hub"),
+            databaseHubTitle: l10n.t("Continue investigating this database issue"),
+            databaseHubDescription: l10n.t(
+                "Review performance, security, and optimization findings for this database and related resources. Database Hub opens the same database and issue so you can continue investigating and take action when available.",
+            ),
+            databaseHubNotNow: l10n.t("Not now"),
+            openInDatabaseHub: l10n.t("Open in Database Hub"),
             queryActions: (queryId: string) =>
                 l10n.t({
                     message: "Actions for query {0}",

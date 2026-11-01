@@ -11,6 +11,7 @@ import {
     PerformanceDashboardWebviewController,
     dashboardKey,
 } from "./performanceDashboardWebviewController";
+import { PerformanceDashboardSource } from "./performanceDashboardTelemetry";
 import { QueryStoreService } from "./queryStoreService";
 
 export type PerformanceDashboardFactory = (
@@ -34,6 +35,8 @@ export interface PerformanceDashboardEditors {
 /** Keeps one open dashboard for each connection and database. */
 export class PerformanceDashboards implements PerformanceDashboardHost {
     private readonly _open = new Map<string, PerformanceDashboardWebviewController>();
+    /** Connections whose Database Hub banner the user dismissed. Cleared by a restart. */
+    private readonly _dismissedDatabaseHubBanners = new Set<string>();
 
     constructor(
         private readonly _context: vscode.ExtensionContext,
@@ -58,6 +61,7 @@ export class PerformanceDashboards implements PerformanceDashboardHost {
     public open(
         target: PerformanceDashboardTarget,
         location?: string,
+        source: PerformanceDashboardSource = PerformanceDashboardSource.Unknown,
     ): PerformanceDashboardWebviewController {
         const existing = this.find(target);
         if (existing) {
@@ -65,10 +69,12 @@ export class PerformanceDashboards implements PerformanceDashboardHost {
                 existing.navigate(location);
             }
             existing.revealToForeground();
+            existing.reportOpened(source, true);
             return existing;
         }
 
         const dashboard = this._create(this._context, this, target, location);
+        dashboard.reportOpened(source, false);
         this._open.set(dashboardKey(target), dashboard);
         dashboard.onDisposed(() => {
             for (const [key, open] of this._open) {
@@ -94,6 +100,19 @@ export class PerformanceDashboards implements PerformanceDashboardHost {
 
     public openSqlScript(sql: string, target: PerformanceDashboardTarget): Promise<void> {
         return this._editors.openQuery(sql, target);
+    }
+
+    public isDatabaseHubBannerDismissed(profileId: string): boolean {
+        return this._dismissedDatabaseHubBanners.has(profileId);
+    }
+
+    public dismissDatabaseHubBanner(profileId: string): void {
+        this._dismissedDatabaseHubBanners.add(profileId);
+        for (const dashboard of this._open.values()) {
+            if (!dashboard.isDisposed && dashboard.target.profileId === profileId) {
+                dashboard.hideDatabaseHubBanner();
+            }
+        }
     }
 
     public switchDatabase(

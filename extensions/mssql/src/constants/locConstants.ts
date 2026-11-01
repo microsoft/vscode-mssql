@@ -1534,6 +1534,23 @@ export class FirewallRule {
     };
 }
 
+export class DatabaseHub {
+    public static findingResource = l10n.t("Finding this resource in Database Hub...");
+    public static learnHowToConnectToArc = l10n.t("Learn how to connect to Arc");
+    public static openDatabaseHub = l10n.t("Open Database Hub");
+    public static notInDatabaseHub = l10n.t(
+        "Database Hub doesn't track this kind of server or database.",
+    );
+    public static arcNotRegistered(serverName: string): string {
+        return l10n.t({
+            message:
+                "'{0}' isn't connected to Azure Arc, so Database Hub can't show it. Connect it to Azure Arc to review its findings in Database Hub.",
+            args: [serverName],
+            comment: ["{0} is the name of a SQL Server machine"],
+        });
+    }
+}
+
 export class Azure {
     public static systemDatabaseNotInFabricDatabaseHub(databaseName: string): string {
         return l10n.t({

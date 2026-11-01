@@ -99,6 +99,12 @@ export class AzureResourcesExtensionIntegration {
             params.set("database", databaseName);
         }
 
+        // Database Hub opens the server's databases by the server's ARM ID.
+        const serverResourceId = resource.id.split(/\/databases\//i)[0];
+        if (serverResourceId) {
+            params.set("resourceId", serverResourceId);
+        }
+
         // Connect using the same account and tenant the user was browsing with
         if (subscription.account?.id) {
             params.set("accountId", subscription.account.id);

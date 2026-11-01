@@ -618,6 +618,9 @@ async function addAzureSqlContainerConnection(
         authenticationType: sqlAuthentication,
         user: sa,
         trustServerCertificate: true,
+        // Mark the profile as a container now, rather than when a later connection matches the
+        // machine name: the container reports the Azure SQL Database engine edition.
+        containerName: form.containerName,
     };
 
     try {

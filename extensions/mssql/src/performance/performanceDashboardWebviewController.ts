@@ -31,6 +31,7 @@ import {
     ComparePlansRequest,
     ContinueInChatRequest,
     CopyTextRequest,
+    DismissDatabaseHubBannerRequest,
     GetFavoriteQueriesRequest,
     GetQueryDetailsRequest,
     GetQueryHistoryRequest,
@@ -41,6 +42,7 @@ import {
     GetTopQueriesRequest,
     ListDatabasesRequest,
     ListDatabasesResult,
+    OpenInDatabaseHubRequest,
     OpenPlanRequest,
     OpenSqlScriptRequest,
     PerformanceDashboardReducers,
@@ -48,6 +50,7 @@ import {
     PerformanceRead,
     PreparePlanChangeRequest,
     PrepareQueryStoreSettingsChangeRequest,
+    RefreshDashboardNotification,
     QueryWindowParams,
     SetFavoriteQueryRequest,
     SetQueryCategoryRequest,
@@ -59,6 +62,15 @@ import {
     type QueryCategory,
 } from "../sharedInterfaces/performanceDashboard";
 import { QueryStoreOperation, QueryStoreService } from "./queryStoreService";
+import { DatabaseHubSource, getDatabaseHubService } from "../databaseHub/databaseHubService";
+import { RequestType } from "vscode-jsonrpc/node";
+import { TelemetryActions } from "../sharedInterfaces/telemetry";
+import {
+    PerformanceDashboardSource,
+    PerformanceDashboardTelemetry,
+    codeList,
+    readOutcomeOf,
+} from "./performanceDashboardTelemetry";
 
 /** The database that a dashboard shows. */
 export interface PerformanceDashboardTarget {
@@ -88,6 +100,10 @@ export interface PerformanceDashboardHost {
     ): Promise<void>;
     /** Opens T-SQL in a query editor connected to the dashboard's server and database. */
     openSqlScript(sql: string, target: PerformanceDashboardTarget): Promise<void>;
+    /** Whether the user dismissed the Database Hub banner for a connection in this session. */
+    isDatabaseHubBannerDismissed(profileId: string): boolean;
+    /** Hides the Database Hub banner of a connection's dashboards until the next restart. */
+    dismissDatabaseHubBanner(profileId: string): void;
 }
 
 /**
@@ -119,6 +135,7 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
     PerformanceDashboardReducers
 > {
     private readonly _navigation: WebviewNavigation;
+    private readonly _telemetry: PerformanceDashboardTelemetry;
     private _target: PerformanceDashboardTarget;
 
     /**
@@ -154,8 +171,17 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
             },
         );
         this._target = target;
+        this._telemetry = new PerformanceDashboardTelemetry(target.profileId);
         this._navigation = new WebviewNavigation(this, initialLocation);
+        this._navigation.onDidChangeLocation((location) => this._telemetry.navigated(location));
+        this.onDisposed(() => this._telemetry.closed());
         this.registerHandlers();
+        void this.updateDatabaseHubBanner();
+    }
+
+    /** Records that the dashboard opened, or that an open one was shown again. */
+    public reportOpened(source: PerformanceDashboardSource, reused: boolean): void {
+        this._telemetry.opened(source, this.location, reused);
     }
 
     public get target(): PerformanceDashboardTarget {
@@ -177,17 +203,21 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
         this._target = target;
         this.panel.title = titleFor(target);
         this.state = stateFor(target, this.state.queryCategory);
+        void this.updateDatabaseHubBanner();
     }
 
     private registerHandlers(): void {
+        const telemetry = this._telemetry;
         this.onRequest(ListDatabasesRequest.type, () => this.listDatabases());
-        this.onRequest(SwitchDatabaseRequest.type, ({ database }) => ({
-            switched: this._host.switchDatabase(this, database),
-        }));
-        this.onRequest(GetQueryStoreOverviewRequest.type, () =>
+        this.onRequest(SwitchDatabaseRequest.type, ({ database }) => {
+            const switched = this._host.switchDatabase(this, database);
+            telemetry.action(TelemetryActions.SwitchDatabase, { switched: String(switched) });
+            return { switched };
+        });
+        this.onRead(GetQueryStoreOverviewRequest.type, () =>
             this.run((reader, capabilities) => getQueryStoreOverview(reader, capabilities)),
         );
-        this.onRequest(GetTopQueriesRequest.type, ({ rankBy, statistic, top, ...window }) =>
+        this.onRead(GetTopQueriesRequest.type, ({ rankBy, statistic, top, ...window }) =>
             this.run((reader, capabilities) =>
                 getTopQueries(reader, capabilities, {
                     ...toWindow(window),
@@ -197,12 +227,12 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
                 }),
             ),
         );
-        this.onRequest(GetQueryDetailsRequest.type, (params) =>
+        this.onRead(GetQueryDetailsRequest.type, (params) =>
             this.run((reader, capabilities) =>
                 getQueryDetails(reader, capabilities, toQueryWindow(params)),
             ),
         );
-        this.onRequest(GetQueryHistoryRequest.type, (params) =>
+        this.onRead(GetQueryHistoryRequest.type, (params) =>
             this.run((reader, capabilities) =>
                 getQueryHistory(reader, capabilities, {
                     ...toQueryWindow(params),
@@ -210,7 +240,7 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
                 }),
             ),
         );
-        this.onRequest(
+        this.onRead(
             GetQueryWaitStatsRequest.type,
             ({ queryId, planId, bucketMinutes, ...window }) =>
                 this.run((reader, capabilities) =>
@@ -222,12 +252,13 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
                     }),
                 ),
         );
-        this.onRequest(ContinueInChatRequest.type, ({ prompt, queryId, startUtc, endUtc }) =>
-            this._host.openChat(
+        this.onRequest(ContinueInChatRequest.type, ({ prompt, queryId, startUtc, endUtc }) => {
+            telemetry.action(TelemetryActions.ContinueInChat, { prompt });
+            return this._host.openChat(
                 continueInChatPrompt(prompt, this._target, queryId, startUtc, endUtc),
-            ),
-        );
-        this.onRequest(GetQueryPlansRequest.type, (params) =>
+            );
+        });
+        this.onRead(GetQueryPlansRequest.type, (params) =>
             this.run((reader, capabilities) =>
                 getQueryPlans(reader, capabilities, toQueryWindow(params)),
             ),
@@ -240,11 +271,18 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
                     LocConstants.PerformanceDashboard.planTitle(queryId, planId),
                 );
             }
+            telemetry.action(TelemetryActions.OpenPlan, { opened: String(!!planXml) });
             return { opened: !!planXml };
         });
         this.onRequest(ComparePlansRequest.type, async ({ queryId, planIds }) => {
             const [first, second] = await Promise.all(planIds.map((id) => this.readPlanXml(id)));
-            if (!first || !second) {
+            const opened = !!first && !!second;
+            telemetry.action(
+                TelemetryActions.ComparePlans,
+                { opened: String(opened) },
+                { planCount: planIds.length },
+            );
+            if (!opened) {
                 return { opened: false };
             }
             const text = LocConstants.PerformanceDashboard;
@@ -254,54 +292,171 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
             );
             return { opened: true };
         });
-        this.onRequest(PreparePlanChangeRequest.type, (target) =>
-            this.run((reader, capabilities) => preparePlanChange(reader, capabilities, target)),
-        );
+        this.onRequest(PreparePlanChangeRequest.type, async (target) => {
+            const result = await this.run((reader, capabilities) =>
+                preparePlanChange(reader, capabilities, target),
+            );
+            const prepared = dataOf(result);
+            telemetry.action(TelemetryActions.PreparePlanChange, {
+                kind: target.kind,
+                ...readOutcomeOf(result),
+                blockers: codeList(prepared?.blockers),
+                warnings: codeList(prepared?.warnings),
+            });
+            return result;
+        });
         // sql-core reads the plan state again, rebuilds the SQL from the target, and refuses a
         // prepared change whose SQL or state differ, so the webview cannot run other SQL.
-        this.onRequest(ApplyPlanChangeRequest.type, (prepared) =>
-            this.run(
+        this.onRequest(ApplyPlanChangeRequest.type, async (prepared) => {
+            const result = await this.run(
                 (reader, capabilities) => applyPlanChange(reader, capabilities, prepared),
                 "change",
-            ),
-        );
-        this.onRequest(VerifyForcedPlanRequest.type, (request) =>
-            this.run((reader, capabilities) => verifyForcedPlan(reader, capabilities, request)),
-        );
-        this.onRequest(GetQueryStoreSettingsRequest.type, () =>
+            );
+            const applied = dataOf(result);
+            telemetry.action(TelemetryActions.ApplyPlanChange, {
+                kind: prepared.target.kind,
+                ...readOutcomeOf(result),
+                applied: String(!!applied?.applied),
+                blockers: codeList(applied?.blockers),
+            });
+            return result;
+        });
+        this.onRequest(VerifyForcedPlanRequest.type, async (request) => {
+            const result = await this.run((reader, capabilities) =>
+                verifyForcedPlan(reader, capabilities, request),
+            );
+            telemetry.action(TelemetryActions.VerifyForcedPlan, {
+                ...readOutcomeOf(result),
+                verification: dataOf(result)?.outcome ?? "",
+            });
+            return result;
+        });
+        this.onRead(GetQueryStoreSettingsRequest.type, () =>
             this.run((reader, capabilities) => readQueryStoreSettings(reader, capabilities)),
         );
-        this.onRequest(PrepareQueryStoreSettingsChangeRequest.type, (change) =>
-            this.run((reader, capabilities) =>
+        this.onRequest(PrepareQueryStoreSettingsChangeRequest.type, async (change) => {
+            const result = await this.run((reader, capabilities) =>
                 prepareQueryStoreSettingsChange(reader, capabilities, change),
-            ),
-        );
+            );
+            const prepared = dataOf(result);
+            telemetry.action(TelemetryActions.PrepareQueryStoreSettingsChange, {
+                changed: codeList(Object.keys(change)),
+                operationMode: change.operationMode ?? "",
+                ...readOutcomeOf(result),
+                blockers: codeList(prepared?.blockers),
+                warnings: codeList(prepared?.warnings),
+            });
+            return result;
+        });
         // sql-core reads the settings again, rebuilds the SQL from the change, and refuses a
         // prepared change whose SQL or settings differ, so the webview cannot run other SQL.
-        this.onRequest(ApplyQueryStoreSettingsChangeRequest.type, (prepared) =>
-            this.run(
+        this.onRequest(ApplyQueryStoreSettingsChangeRequest.type, async (prepared) => {
+            const result = await this.run(
                 (reader, capabilities) =>
                     applyQueryStoreSettingsChange(reader, capabilities, prepared),
                 "change",
-            ),
-        );
-        this.onRequest(OpenSqlScriptRequest.type, ({ sql }) =>
-            this._host.openSqlScript(sql, this._target),
-        );
+            );
+            const applied = dataOf(result);
+            telemetry.action(TelemetryActions.ApplyQueryStoreSettingsChange, {
+                changed: codeList(Object.keys(prepared.change)),
+                operationMode: prepared.change.operationMode ?? "",
+                ...readOutcomeOf(result),
+                applied: String(!!applied?.applied),
+                blockers: codeList(applied?.blockers),
+            });
+            return result;
+        });
+        this.onRequest(OpenSqlScriptRequest.type, ({ sql }) => {
+            telemetry.action(TelemetryActions.OpenSqlScript);
+            return this._host.openSqlScript(sql, this._target);
+        });
         this.onRequest(CopyTextRequest.type, async ({ text }) => {
+            telemetry.action(TelemetryActions.CopyText);
             await vscode.env.clipboard.writeText(text);
         });
         this.onRequest(GetFavoriteQueriesRequest.type, () => ({
             queryIds: this.favoriteQueries(),
         }));
-        this.onRequest(SetFavoriteQueryRequest.type, ({ queryId, favorite }) =>
-            this.setFavoriteQuery(queryId, favorite),
+        this.onRequest(SetFavoriteQueryRequest.type, async ({ queryId, favorite }) => {
+            const result = await this.setFavoriteQuery(queryId, favorite);
+            telemetry.action(
+                TelemetryActions.SetFavoriteQuery,
+                { favorite: String(favorite) },
+                { favorites: result.queryIds.length },
+            );
+            return result;
+        });
+        this.onNotification(RefreshDashboardNotification.type, () =>
+            telemetry.action(TelemetryActions.Refresh),
         );
         this.onRequest(SetQueryCategoryRequest.type, async ({ category }) => {
             // The state keeps it for a webview that loads again; global state, for the next one.
             this.state = { ...this.state, queryCategory: category };
             await this._context.globalState.update(queryCategoryKey, category);
         });
+        this.onRequest(OpenInDatabaseHubRequest.type, () => {
+            telemetry.action(TelemetryActions.OpenInDatabaseHub);
+            return getDatabaseHubService()?.openProfile(
+                this._target.profileId,
+                this._target.databaseName,
+                DatabaseHubSource.PerformanceDashboard,
+            );
+        });
+        this.onRequest(DismissDatabaseHubBannerRequest.type, () => {
+            telemetry.action(TelemetryActions.DismissDatabaseHubBanner);
+            this._host.dismissDatabaseHubBanner(this._target.profileId);
+            this.hideDatabaseHubBanner();
+        });
+    }
+
+    /** Handles a read request, and records its outcome. */
+    private onRead<TParams, TResult>(
+        type: RequestType<TParams, PerformanceRead<TResult>, void>,
+        read: (params: TParams) => Promise<PerformanceRead<TResult>>,
+    ): void {
+        this.onRequest(type, async (params) => {
+            const database = this._target.databaseName;
+            const result = await read(params);
+            this._telemetry.read(type.method, database, result);
+            return result;
+        });
+    }
+
+    /** Hides the Database Hub banner, which the user dismissed for the connection. */
+    public hideDatabaseHubBanner(): void {
+        if (this.state.showDatabaseHubBanner) {
+            this.state = { ...this.state, showDatabaseHubBanner: false };
+        }
+    }
+
+    /**
+     * Shows the Database Hub banner when the database has, or may have, a Hub row, unless the
+     * user dismissed it for the connection since the last restart.
+     */
+    private async updateDatabaseHubBanner(): Promise<void> {
+        const target = this._target;
+        let show = false;
+        if (!this._host.isDatabaseHubBannerDismissed(target.profileId)) {
+            try {
+                const eligibility = await getDatabaseHubService()?.eligibilityForProfile(
+                    target.profileId,
+                    target.databaseName,
+                );
+                show = eligibility === "yes" || eligibility === "maybe";
+            } catch {
+                show = false;
+            }
+        }
+        if (
+            this._target === target &&
+            !this.isDisposed &&
+            show !== !!this.state.showDatabaseHubBanner
+        ) {
+            this.state = { ...this.state, showDatabaseHubBanner: show };
+            if (show) {
+                this._telemetry.bannerShown();
+            }
+        }
     }
 
     /** Runs an operation on the dashboard's database. */
@@ -313,7 +468,10 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
         return this._host.queryStoreService.run(
             this._target.profileId,
             database || undefined,
-            operation,
+            (reader, capabilities) => {
+                this._telemetry.setPlatform(capabilities.platform);
+                return operation(reader, capabilities);
+            },
             purpose,
         );
     }
@@ -405,6 +563,11 @@ function savedQueryCategory(context: vscode.ExtensionContext): QueryCategory | u
 
 function titleFor(target: PerformanceDashboardTarget): string {
     return LocConstants.PerformanceDashboard.title(target.databaseName || target.serverName);
+}
+
+/** The data of a read, or undefined when the read did not return any. */
+function dataOf<T>(result: PerformanceRead<T>): T | undefined {
+    return isPerformanceUnavailable(result) ? undefined : result.data;
 }
 
 /** A time window from the webview. An invalid date makes the read fail with a range error. */

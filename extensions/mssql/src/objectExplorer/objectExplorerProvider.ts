@@ -14,6 +14,7 @@ import { serverLabel } from "../constants/constants";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { getNodeDescriptor } from "./nodes/nodeUtils";
+import { applyDatabaseHubContext } from "../databaseHub/databaseHubEligibility";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -45,6 +46,9 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public getTreeItem(node: TreeNodeInfo): TreeNodeInfo {
+        if (node instanceof TreeNodeInfo) {
+            applyDatabaseHubContext(node);
+        }
         return node;
     }
 

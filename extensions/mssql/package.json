@@ -1001,6 +1001,16 @@
                     "group": "3_MSSQL_databaseDiscover@3"
                 },
                 {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view == objectExplorer && viewItem =~ /\\bdatabaseHub=(yes|maybe)\\b/ && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "3_MSSQL_databaseDiscover@4"
+                },
+                {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view == objectExplorer && viewItem =~ /\\bdatabaseHub=(yes|maybe)\\b/ && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/ && !(viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "4_MSSQL_discoverAndProfile@3"
+                },
+                {
                     "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "7_MSSQL_compareAndDacpac@2"

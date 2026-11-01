@@ -190,6 +190,7 @@ export class MssqlProtocolHandler {
 
         this.fillConnectionProperty(connectionInfo, args, "tenantId");
         this.fillConnectionProperty(connectionInfo, args, "accountId");
+        this.fillConnectionProperty(connectionInfo, args, "resourceId");
 
         const connectionOptionProperties: ConnectionOptionProperty[] = connectionOptions.map(
             (option) =>

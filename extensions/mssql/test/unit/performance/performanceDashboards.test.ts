@@ -13,6 +13,7 @@ import {
     PerformanceDashboardWebviewController,
 } from "../../../src/performance/performanceDashboardWebviewController";
 import { PerformanceDashboards } from "../../../src/performance/performanceDashboards";
+import { PerformanceDashboardSource } from "../../../src/performance/performanceDashboardTelemetry";
 import { QueryStoreService } from "../../../src/performance/queryStoreService";
 import { cmdOpenGithubChat } from "../../../src/constants/constants";
 import { stubExtensionContext } from "../utils";
@@ -171,5 +172,33 @@ suite("PerformanceDashboards", () => {
         dashboards.open(orders);
 
         expect(factory).to.have.been.calledTwice;
+    });
+
+    test("hides the Database Hub banner of every open dashboard of a connection", () => {
+        dashboards.open(sales);
+        dashboards.open(orders);
+        dashboards.open({ ...sales, profileId: "profile-2" });
+
+        dashboards.dismissDatabaseHubBanner("profile-1");
+
+        expect(dashboards.isDatabaseHubBannerDismissed("profile-1")).to.be.true;
+        expect(dashboards.isDatabaseHubBannerDismissed("profile-2")).to.be.false;
+        expect(created[0].controller.hideDatabaseHubBanner).to.have.been.calledOnce;
+        expect(created[1].controller.hideDatabaseHubBanner).to.have.been.calledOnce;
+        expect(created[2].controller.hideDatabaseHubBanner).to.not.have.been.called;
+    });
+
+    test("records where a dashboard was opened from, and whether it was open already", () => {
+        dashboards.open(sales, undefined, PerformanceDashboardSource.ObjectExplorer);
+        dashboards.open(sales, undefined, PerformanceDashboardSource.Copilot);
+
+        expect(created[0].controller.reportOpened.firstCall).to.have.been.calledWith(
+            PerformanceDashboardSource.ObjectExplorer,
+            false,
+        );
+        expect(created[0].controller.reportOpened.secondCall).to.have.been.calledWith(
+            PerformanceDashboardSource.Copilot,
+            true,
+        );
     });
 });

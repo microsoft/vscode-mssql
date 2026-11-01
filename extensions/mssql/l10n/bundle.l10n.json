@@ -912,6 +912,14 @@
         "message": "Add Firewall Rule to {0}",
         "comment": ["{0} is the server name"]
     },
+    "Finding this resource in Database Hub...": "Finding this resource in Database Hub...",
+    "Learn how to connect to Arc": "Learn how to connect to Arc",
+    "Open Database Hub": "Open Database Hub",
+    "Database Hub doesn't track this kind of server or database.": "Database Hub doesn't track this kind of server or database.",
+    "'{0}' isn't connected to Azure Arc, so Database Hub can't show it. Connect it to Azure Arc to review its findings in Database Hub./{0} is the name of a SQL Server machine": {
+        "message": "'{0}' isn't connected to Azure Arc, so Database Hub can't show it. Connect it to Azure Arc to review its findings in Database Hub.",
+        "comment": ["{0} is the name of a SQL Server machine"]
+    },
     "'{0}' is a system database, so it isn't tracked in the Fabric Database Hub./{0} is the name of the system database, such as 'master'": {
         "message": "'{0}' is a system database, so it isn't tracked in the Fabric Database Hub.",
         "comment": ["{0} is the name of the system database, such as 'master'"]
@@ -6227,6 +6235,11 @@
     "Explain in Chat": "Explain in Chat",
     "More chat actions": "More chat actions",
     "Preview": "Preview",
+    "Continue in Fabric Database Hub": "Continue in Fabric Database Hub",
+    "Continue investigating this database issue": "Continue investigating this database issue",
+    "Review performance, security, and optimization findings for this database and related resources. Database Hub opens the same database and issue so you can continue investigating and take action when available.": "Review performance, security, and optimization findings for this database and related resources. Database Hub opens the same database and issue so you can continue investigating and take action when available.",
+    "Not now": "Not now",
+    "Open in Database Hub": "Open in Database Hub",
     "Actions for query {0}/{0} is the Query Store query ID": {
         "message": "Actions for query {0}",
         "comment": ["{0} is the Query Store query ID"]

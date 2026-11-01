@@ -22,15 +22,21 @@ import {
     performanceDashboardTargetForNode,
 } from "../../../src/performance/performanceDashboardWebviewController";
 import { QueryStoreOperation, QueryStoreService } from "../../../src/performance/queryStoreService";
+import * as databaseHubService from "../../../src/databaseHub/databaseHubService";
+import { TelemetryActions, TelemetryViews } from "../../../src/sharedInterfaces/telemetry";
+import { LocationChangedNotification } from "../../../src/sharedInterfaces/webviewNavigation";
 import {
     ApplyPlanChangeRequest,
     ContinueInChatRequest,
+    DismissDatabaseHubBannerRequest,
     GetFavoriteQueriesRequest,
     GetTopQueriesRequest,
     ListDatabasesRequest,
+    OpenInDatabaseHubRequest,
     OpenPlanRequest,
     PerformanceRead,
     PreparedPlanChange,
+    RefreshDashboardNotification,
     SetFavoriteQueryRequest,
     SetQueryCategoryRequest,
     TopQueries,
@@ -98,6 +104,7 @@ const stateSet: SqlResultSet = { columns: ["actual_state", "readonly_reason"], r
 
 suite("PerformanceDashboardWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
+    let sendActionEvent: sinon.SinonStub;
 
     suiteSetup(() => {
         // Tree nodes read their icons when they are created.
@@ -106,7 +113,7 @@ suite("PerformanceDashboardWebviewController", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        stubTelemetry(sandbox);
+        ({ sendActionEvent } = stubTelemetry(sandbox));
     });
 
     teardown(() => {
@@ -157,8 +164,11 @@ suite("PerformanceDashboardWebviewController", () => {
             compareExecutionPlans: sinon.SinonStub;
             openSqlScript: sinon.SinonStub;
             openChat: sinon.SinonStub;
+            isDatabaseHubBannerDismissed: sinon.SinonStub;
+            dismissDatabaseHubBanner: sinon.SinonStub;
         };
         let requestHandlers: Map<string, (params: unknown) => unknown>;
+        let notificationHandlers: Map<string, (params: unknown) => void>;
         /** The batches that the fake reader answers, by database. */
         let batches: Map<string, SqlResultSet[][]>;
         let reads: { database: string | undefined; purpose: string; sql: string }[];
@@ -193,12 +203,20 @@ suite("PerformanceDashboardWebviewController", () => {
                 compareExecutionPlans: sandbox.stub().resolves(),
                 openSqlScript: sandbox.stub().resolves(),
                 openChat: sandbox.stub().resolves(),
+                isDatabaseHubBannerDismissed: sandbox.stub().returns(false),
+                dismissDatabaseHubBanner: sandbox.stub(),
             };
             requestHandlers = new Map();
             sandbox
                 .stub(WebviewBaseController.prototype, "onRequest")
                 .callsFake((type: { method: string }, handler: (params: unknown) => unknown) => {
                     requestHandlers.set(type.method, handler);
+                });
+            notificationHandlers = new Map();
+            sandbox
+                .stub(WebviewBaseController.prototype, "onNotification")
+                .callsFake((type: { method: string }, handler: (params: unknown) => void) => {
+                    notificationHandlers.set(type.method, handler);
                 });
         });
 
@@ -274,6 +292,77 @@ suite("PerformanceDashboardWebviewController", () => {
                 serverName: "contoso.database.windows.net",
                 databaseName: "Orders",
                 queryCategory: "reads",
+            });
+        });
+
+        suite("Database Hub banner", () => {
+            let hub: { eligibilityForProfile: sinon.SinonStub; openProfile: sinon.SinonStub };
+
+            /** Lets the dashboard finish reading whether the database is in the Hub. */
+            const settled = async () => {
+                await hub.eligibilityForProfile.lastCall?.returnValue;
+                for (let i = 0; i < 3; i++) {
+                    await Promise.resolve();
+                }
+            };
+
+            setup(() => {
+                hub = {
+                    eligibilityForProfile: sandbox.stub().resolves("yes"),
+                    openProfile: sandbox.stub().resolves(),
+                };
+                sandbox
+                    .stub(databaseHubService, "getDatabaseHubService")
+                    .returns(hub as unknown as databaseHubService.DatabaseHubService);
+            });
+
+            test("shows the banner for a database the Hub may list, and opens the Hub", async () => {
+                const dashboard = createController();
+                await settled();
+
+                expect(hub.eligibilityForProfile).to.have.been.calledWith("profile-1", "Sales");
+                expect(dashboard.state.showDatabaseHubBanner).to.be.true;
+
+                await request(OpenInDatabaseHubRequest.type.method);
+
+                expect(hub.openProfile).to.have.been.calledWith(
+                    "profile-1",
+                    "Sales",
+                    databaseHubService.DatabaseHubSource.PerformanceDashboard,
+                );
+            });
+
+            test("hides the banner for a database the Hub can't list", async () => {
+                hub.eligibilityForProfile.resolves("no");
+
+                const dashboard = createController();
+                await settled();
+
+                expect(dashboard.state.showDatabaseHubBanner).to.not.be.true;
+            });
+
+            test("Not now hides the banner for the connection until a restart", async () => {
+                const context = stubExtensionContext(sandbox);
+                const dashboard = createController(target, undefined, context);
+                await settled();
+                expect(dashboard.state.showDatabaseHubBanner).to.be.true;
+
+                await request(DismissDatabaseHubBannerRequest.type.method);
+
+                expect(dashboard.state.showDatabaseHubBanner).to.be.false;
+                expect(host.dismissDatabaseHubBanner).to.have.been.calledOnceWith("profile-1");
+                // Not saved: a restart shows the banner again.
+                expect(context.globalState.update).to.not.have.been.called;
+            });
+
+            test("stays hidden for a connection the user dismissed it for", async () => {
+                host.isDatabaseHubBannerDismissed.withArgs("profile-1").returns(true);
+
+                const dashboard = createController({ ...target, databaseName: "Orders" });
+                await settled();
+
+                expect(dashboard.state.showDatabaseHubBanner).to.not.be.true;
+                expect(hub.eligibilityForProfile).to.not.have.been.called;
             });
         });
 
@@ -355,6 +444,57 @@ suite("PerformanceDashboardWebviewController", () => {
                 sinon.match.func,
                 "change",
             );
+        });
+
+        test("records toolbar refreshes and page views with the dashboard's page", async () => {
+            createController(target, "queries?range=7d");
+
+            notificationHandlers.get(LocationChangedNotification.type.method)!({
+                location: "queries/913?tab=waits&range=7d",
+            });
+            notificationHandlers.get(RefreshDashboardNotification.type.method)!(undefined);
+            for (let i = 0; i < 5; i++) {
+                await Promise.resolve();
+            }
+
+            const dashboardEvents = sendActionEvent
+                .getCalls()
+                .filter((call) => call.args[0] === TelemetryViews.PerformanceDashboard);
+            expect(dashboardEvents.map((call) => call.args[1])).to.deep.equal([
+                TelemetryActions.Navigate,
+                TelemetryActions.Refresh,
+            ]);
+            expect(dashboardEvents[0].args[2].additionalProps).to.include({
+                page: "query",
+                tab: "waits",
+                timeRange: "7d",
+            });
+        });
+
+        test("records a plan change with its kind and outcome, for the funnel", async () => {
+            createController();
+
+            await request(ApplyPlanChangeRequest.type.method, {
+                target: { kind: "forcePlan", queryId: "42", planId: "7" },
+                sql: "",
+                prior: { queryStore: { actualState: "readWrite" }, forcedPlans: [] },
+                blockers: [],
+                warnings: [],
+            } satisfies PreparedPlanChange);
+            for (let i = 0; i < 5; i++) {
+                await Promise.resolve();
+            }
+
+            const event = sendActionEvent
+                .getCalls()
+                .find(
+                    (call) =>
+                        call.args[0] === TelemetryViews.PerformanceDashboard &&
+                        call.args[1] === TelemetryActions.ApplyPlanChange,
+                );
+            expect(event?.args[2].additionalProps).to.include({ kind: "forcePlan" });
+            expect(event?.args[2].additionalProps.dashboardId).to.be.a("string");
+            expect(event?.args[2].additionalProps.status).to.be.a("string");
         });
 
         test("opens a plan's XML in the plan viewer, and says when it has none", async () => {

@@ -44,7 +44,7 @@
     "mssql.disconnect": "Disconnect (MSSQL)",
     "mssql.cancelConnect": "Cancel Connection (MSSQL)",
     "mssql.openInMssqlExtensionFromAzureResources": "Open in MSSQL extension",
-    "mssql.openInFabricDatabaseHub": "Review health in Database Hub (Preview)",
+    "mssql.openInFabricDatabaseHub": "Open in Database Hub",
     "mssql.manageProfiles": "Manage Connection Profiles",
     "mssql.clearPooledConnections": "Clear Pooled Connections",
     "mssql.chooseDatabase": "Use Database",

@@ -54,6 +54,10 @@
       <source xml:lang="en">&apos;{0}&apos; is a system database, so it isn&apos;t tracked in the Fabric Database Hub.</source>
       <note>{0} is the name of the system database, such as &apos;master&apos;</note>
     </trans-unit>
+    <trans-unit id="++CODE++adf8e04f50ceb08ed05e22cbfc53a0ac2ea0dec32ae4298d7b37a23ba00a6143">
+      <source xml:lang="en">&apos;{0}&apos; isn&apos;t connected to Azure Arc, so Database Hub can&apos;t show it. Connect it to Azure Arc to review its findings in Database Hub.</source>
+      <note>{0} is the name of a SQL Server machine</note>
+    </trans-unit>
     <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
       <source xml:lang="en">&apos;{0}&apos; started.</source>
       <note>{0} is the service name</note>
@@ -2729,6 +2733,12 @@
     <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
       <source xml:lang="en">Continue Editing</source>
     </trans-unit>
+    <trans-unit id="++CODE++11da87e499b62bf2701c5f572c29b0ae3f7e99ed8669328fba9387a90479c197">
+      <source xml:lang="en">Continue in Fabric Database Hub</source>
+    </trans-unit>
+    <trans-unit id="++CODE++83523e6e36d3499b2aa86f47056bd4e8500fcfac89562625e7ebe964dec9ffac">
+      <source xml:lang="en">Continue investigating this database issue</source>
+    </trans-unit>
     <trans-unit id="++CODE++f331832c8bdfb5c52a1430795650caa56eb169ffa1dfea7084b518fcf9511d48">
       <source xml:lang="en">Continue on error</source>
     </trans-unit>
@@ -3403,6 +3413,9 @@
     </trans-unit>
     <trans-unit id="++CODE++331a6c931050da7a047695a8068d30760c2c3abcdc09249f23c6a68a585d2ca7">
       <source xml:lang="en">Database Details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7707874a8154778a0c34b6781d9a5a020c17a7f5ae860c1c3a32786950e6aa21">
+      <source xml:lang="en">Database Hub doesn&apos;t track this kind of server or database.</source>
     </trans-unit>
     <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
       <source xml:lang="en">Database Name</source>
@@ -5652,6 +5665,9 @@
     <trans-unit id="++CODE++848b9a6cfe9db6c8bbda02730a9818a8713a88c8259c94dfefce31815c0af978">
       <source xml:lang="en">Find in primary plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++bc12828833bc9ee18470ba7153b2cb126440d09c75b13217854e625eead2c922">
+      <source xml:lang="en">Finding this resource in Database Hub...</source>
+    </trans-unit>
     <trans-unit id="++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc">
       <source xml:lang="en">Finish</source>
     </trans-unit>
@@ -6617,6 +6633,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ff58a1626d87860c0fb58d9abe7a8d48472897aeb063b3bc8031539a4888e977">
+      <source xml:lang="en">Learn how to connect to Arc</source>
     </trans-unit>
     <trans-unit id="++CODE++aa7c7988c34b0360d02e1e51acff3593430a561a6f3909ab95d77584e3a8f4b9">
       <source xml:lang="en">Learn how to enable Query Store</source>
@@ -8258,6 +8277,9 @@
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
     </trans-unit>
+    <trans-unit id="++CODE++a0e63d7c7125d29af84d6919af5550529be77c327324940c98c4b2cb13a99c8c">
+      <source xml:lang="en">Not now</source>
+    </trans-unit>
     <trans-unit id="++CODE++9e3856eef37c48e551fcb274637d0d3499eec816116e0a3aa509990a59a49040">
       <source xml:lang="en">Not running</source>
     </trans-unit>
@@ -8397,6 +8419,9 @@
     <trans-unit id="++CODE++2f51d650687c9201f9367014fa093415a3b9612e4ae2738e50210ef39ed0253e">
       <source xml:lang="en">Open Containing Folder</source>
     </trans-unit>
+    <trans-unit id="++CODE++d61a0c0a653081a08b5ade2c20c4ff6f11b9cff2cdf6467c37f9984288376237">
+      <source xml:lang="en">Open Database Hub</source>
+    </trans-unit>
     <trans-unit id="++CODE++e101ffec2eeb2888337e5337f00dcbd1abea9e525f9c8d4a0596e20c76f01f97">
       <source xml:lang="en">Open Existing Project</source>
     </trans-unit>
@@ -8480,6 +8505,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7c2a6e6d128104ab72f768886cf074498197834446e974c04a7c589f5dc5813c">
       <source xml:lang="en">Open in Copilot</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3535ff74e4d09277f7a89b64c5267499cf4fd9f8d285a8c3d971610553261211">
+      <source xml:lang="en">Open in Database Hub</source>
     </trans-unit>
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
@@ -10110,6 +10138,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d5e832b4db09e18ec03a7950f5715dfdc9cd633c72852e5ed12e67a6a71b6ee9">
       <source xml:lang="en">Review or propose API configuration changes in chat, and GitHub Copilot updates your configuration instantly in the Data API builder.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9996bb7e9255f22a2b0717bec3036cbd4df93e8be250406b83bcf5fc85f8a62e">
+      <source xml:lang="en">Review performance, security, and optimization findings for this database and related resources. Database Hub opens the same database and issue so you can continue investigating and take action when available.</source>
     </trans-unit>
     <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
       <source xml:lang="en">Reviewing Copilot Change</source>
@@ -15854,6 +15885,9 @@
     <trans-unit id="mssql.objectExplorerV2.openClassicObjectExplorer">
       <source xml:lang="en">Open in Classic Object Explorer</source>
     </trans-unit>
+    <trans-unit id="mssql.openInFabricDatabaseHub">
+      <source xml:lang="en">Open in Database Hub</source>
+    </trans-unit>
     <trans-unit id="sqlDatabaseProjects.openInDesigner">
       <source xml:lang="en">Open in Designer</source>
     </trans-unit>
@@ -16114,9 +16148,6 @@
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.findFileBehavior.revealAndOpen">
       <source xml:lang="en">Reveal the file in the Database Projects view and open it in the editor.</source>
-    </trans-unit>
-    <trans-unit id="mssql.openInFabricDatabaseHub">
-      <source xml:lang="en">Review health in Database Hub (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.rewriteQuery">
       <source xml:lang="en">Rewrite Query</source>

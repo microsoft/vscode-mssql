@@ -16,10 +16,17 @@ import {
 import { ArrowClockwise20Regular, Settings20Regular } from "@fluentui/react-icons";
 import { useRef } from "react";
 import { locConstants as loc } from "../../common/locConstants";
+import {
+    PerformanceDashboardReducers,
+    PerformanceDashboardState,
+    RefreshDashboardNotification,
+} from "../../../sharedInterfaces/performanceDashboard";
 import { NavigationBackButton } from "../../common/navigation/navigationBackButton";
 import { NavigationBreadcrumb } from "../../common/navigation/navigationBreadcrumb";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { RouteParams } from "../../common/navigation/router";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { PerformanceDashboardDatabaseHubBanner } from "./performanceDashboardDatabaseHubBanner";
 import { PerformanceDashboardDatabasePicker } from "./performanceDashboardDatabasePicker";
 import { timeFormat } from "./performanceDashboardFormat";
 import { PerformanceDashboardQueriesPage } from "./performanceDashboardQueriesPage";
@@ -107,6 +114,10 @@ export const PerformanceDashboardPage = () => {
     const classes = useStyles();
     const { router, match, navigate } = useNavigation<PerformanceDashboardRoute>();
     const { refresh, updatedAt } = useRefresh();
+    const { extensionRpc } = useVscodeWebview<
+        PerformanceDashboardState,
+        PerformanceDashboardReducers
+    >();
     const settingsSection = settingsSectionOf(match);
     const topRoute = router.topRoute(match);
     const isTopRoute = match.route.id === topRoute.id;
@@ -133,7 +144,12 @@ export const PerformanceDashboardPage = () => {
                             <Button
                                 appearance="subtle"
                                 icon={<ArrowClockwise20Regular />}
-                                onClick={refresh}
+                                onClick={() => {
+                                    refresh();
+                                    void extensionRpc.sendNotification(
+                                        RefreshDashboardNotification.type,
+                                    );
+                                }}
                             />
                         </Tooltip>
                         {showQueryStoreSettings && (
@@ -168,6 +184,7 @@ export const PerformanceDashboardPage = () => {
                 )}
             </header>
             <main className={classes.content}>
+                <PerformanceDashboardDatabaseHubBanner />
                 {/* Below a tab, Back and the breadcrumb show the way back up, also from a deep link. */}
                 {!isTopRoute && (
                     <div className={classes.location}>

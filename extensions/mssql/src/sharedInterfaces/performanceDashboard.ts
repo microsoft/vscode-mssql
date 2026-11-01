@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-jsonrpc";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 import type { ReadResult } from "sql-core";
 import type {
     AppliedPlanChange,
@@ -77,6 +77,12 @@ export interface PerformanceDashboardState {
      * saves it, so the page opens at it after a restart.
      */
     queryCategory?: QueryCategory;
+    /**
+     * Shows the banner that offers to continue in the Fabric Database Hub. Set when the database
+     * has, or may have, a Hub row and the user hasn't dismissed the banner for the connection
+     * since the last restart.
+     */
+    showDatabaseHubBanner?: boolean;
 }
 
 /** The categories of the Queries page. */
@@ -361,4 +367,21 @@ export namespace ContinueInChatRequest {
     export const type = new RequestType<ContinueInChatParams, void, void>(
         "performanceDashboard/continueInChat",
     );
+}
+
+/** Opens the dashboard's database in the Fabric Database Hub. */
+export namespace OpenInDatabaseHubRequest {
+    export const type = new RequestType<void, void, void>("performanceDashboard/openInDatabaseHub");
+}
+
+/** Hides the Database Hub banner of the dashboard's connection until the next restart. */
+export namespace DismissDatabaseHubBannerRequest {
+    export const type = new RequestType<void, void, void>(
+        "performanceDashboard/dismissDatabaseHubBanner",
+    );
+}
+
+/** The user clicked Refresh in the toolbar. For telemetry; the page reads the data again itself. */
+export namespace RefreshDashboardNotification {
+    export const type = new NotificationType<void>("performanceDashboard/refresh");
 }

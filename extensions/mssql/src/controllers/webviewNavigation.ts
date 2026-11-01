@@ -29,6 +29,7 @@ export class WebviewNavigation {
     private _location: string;
     /** True after the page asked for its location, so it receives navigate notifications. */
     private _pageStarted = false;
+    private readonly _locationListeners = new Set<(location: string) => void>();
 
     /**
      * @param initialLocation The location to show when the page starts. An empty string is the
@@ -45,12 +46,21 @@ export class WebviewNavigation {
         });
         _host.onNotification(LocationChangedNotification.type, ({ location }) => {
             this._location = location;
+            for (const listener of this._locationListeners) {
+                listener(location);
+            }
         });
     }
 
     /** The last location of the page, or the location that the page will start at. */
     public get location(): string {
         return this._location;
+    }
+
+    /** Calls the listener each time the page reports that its location changed. */
+    public onDidChangeLocation(listener: (location: string) => void): { dispose(): void } {
+        this._locationListeners.add(listener);
+        return { dispose: () => this._locationListeners.delete(listener) };
     }
 
     /** Shows a location in the page. */

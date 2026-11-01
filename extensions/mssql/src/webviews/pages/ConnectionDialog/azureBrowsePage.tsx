@@ -104,6 +104,8 @@ export const AzureBrowsePage = () => {
                             );
                             setConnectionProperty("accountId", selectedAccountId ?? "");
                             setConnectionProperty("tenantId", selectedTenantId ?? "");
+                            // Database Hub opens the server's databases by this ID.
+                            setConnectionProperty("resourceId", db.resourceId ?? "");
                         }}
                         strings={{
                             title: Loc.connectionDialog.azureDatabases,
