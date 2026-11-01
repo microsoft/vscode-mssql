@@ -4962,8 +4962,8 @@ export class LocConstants {
             explainInChat: l10n.t("Explain in Chat"),
             moreChatActions: l10n.t("More chat actions"),
             preview: l10n.t("Preview"),
-            databaseHubEyebrow: l10n.t("Continue in Fabric Database Hub"),
-            databaseHubTitle: l10n.t("Continue investigating this database issue"),
+            databaseHubEyebrow: l10n.t("Open in Fabric Database Hub"),
+            databaseHubTitle: l10n.t("Continue investigating this database"),
             databaseHubDescription: l10n.t(
                 "Review performance, security, and optimization findings for this database and related resources. Database Hub opens the same database and issue so you can continue investigating and take action when available.",
             ),

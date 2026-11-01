@@ -2733,11 +2733,8 @@
     <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
       <source xml:lang="en">Continue Editing</source>
     </trans-unit>
-    <trans-unit id="++CODE++11da87e499b62bf2701c5f572c29b0ae3f7e99ed8669328fba9387a90479c197">
-      <source xml:lang="en">Continue in Fabric Database Hub</source>
-    </trans-unit>
-    <trans-unit id="++CODE++83523e6e36d3499b2aa86f47056bd4e8500fcfac89562625e7ebe964dec9ffac">
-      <source xml:lang="en">Continue investigating this database issue</source>
+    <trans-unit id="++CODE++e755d33279174089803267f30ec4ea489a5c08afc0905e1cdadd7538b6b88830">
+      <source xml:lang="en">Continue investigating this database</source>
     </trans-unit>
     <trans-unit id="++CODE++f331832c8bdfb5c52a1430795650caa56eb169ffa1dfea7084b518fcf9511d48">
       <source xml:lang="en">Continue on error</source>
@@ -8511,6 +8508,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4a2a1e49b523264763b9897cf254579fa57c35ca0c61dfda1873bf492c6352ec">
+      <source xml:lang="en">Open in Fabric Database Hub</source>
     </trans-unit>
     <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>

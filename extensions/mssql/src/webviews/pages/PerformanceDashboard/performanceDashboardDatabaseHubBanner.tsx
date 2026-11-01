@@ -35,14 +35,14 @@ const useStyles = makeStyles({
     body: {
         display: "flex",
         alignItems: "flex-start",
-        ...shorthands.gap("12px"),
+        ...shorthands.gap("16px"),
         flexGrow: 1,
         flexBasis: "320px",
         minWidth: 0,
     },
     logo: {
-        width: "20px",
-        height: "20px",
+        width: "40px",
+        height: "40px",
         flexShrink: 0,
     },
     text: {
