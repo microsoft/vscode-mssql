@@ -5,7 +5,13 @@
 
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
-import { Common, ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
+import {
+    Accounts,
+    Common,
+    ConnectionDialog,
+    Fabric,
+    FabricProvisioning,
+} from "../constants/locConstants";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { ILogger } from "../sharedInterfaces/logger";
 import {
@@ -25,7 +31,7 @@ import {
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
-import { fetchUserGroups } from "../azure/utils";
+import { graphClient } from "../azure/graphClient";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
@@ -439,6 +445,7 @@ export async function getWorkspaces(
             deploymentController,
             workspaces,
             WorkspaceRole.Contributor,
+            tenantId,
         );
 
         // Handle workspace state updates
@@ -519,7 +526,20 @@ export async function sortWorkspacesByPermission(
     // Ensure userGroupIds are loaded
     if (state.userGroupIds.length === 0) {
         const userId = state.formState.accountId.split(".")[0];
-        const userGroups = await fetchUserGroups(userId);
+        const account = await VsCodeAzureHelper.getAccountById(state.formState.accountId);
+        if (!account) {
+            throw new Error(
+                Accounts.accountNotAvailableThroughVsCode(
+                    state.formState.accountId,
+                    tenantId ?? state.formState.tenantId,
+                ),
+            );
+        }
+        const userGroups = await graphClient.fetchUserGroups(
+            userId,
+            account,
+            tenantId ?? state.formState.tenantId,
+        );
         if (userGroups.length > 0) {
             state.userGroupIds = userGroups.map((userGroup) => userGroup.id);
         }

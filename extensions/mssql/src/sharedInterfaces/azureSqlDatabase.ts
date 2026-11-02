@@ -5,7 +5,7 @@
 
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
-import { IDialogProps } from "./connectionDialog";
+import { AuthenticationType, IDialogProps } from "./connectionDialog";
 import { FirewallRuleSpec } from "./firewallRule";
 import { KnownFreeLimitExhaustionBehavior, KnownSampleName, Server } from "@azure/arm-sql";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
@@ -78,6 +78,16 @@ export interface ContainerEnginePrerequisiteResult {
 }
 
 export interface AzureSqlContainerForm {
+    authenticationType?:
+        | AuthenticationType.SqlLogin
+        | AuthenticationType.AzureMFA
+        | AuthenticationType.ActiveDirectoryDefault
+        | AuthenticationType.ActiveDirectoryServicePrincipal;
+    accountId?: string;
+    tenantId?: string;
+    applicationId?: string;
+    pfxFilePath?: string;
+    servicePrincipalClientSecret?: string;
     password: string;
     savePassword: boolean;
     profileName: string;
@@ -88,13 +98,49 @@ export interface AzureSqlContainerForm {
     acceptEula: boolean;
 }
 
+export interface ContainerEntraOption {
+    value: string;
+    displayName: string;
+}
+
+export interface ContainerCertificateFiles {
+    pfxFilePath: string;
+    privateKeyFilePath: string;
+    publicCertificateFilePath: string;
+}
+
 export type AzureSqlContainerFormErrors = Partial<Record<keyof AzureSqlContainerForm, string>>;
 
 export enum AzureSqlContainerProvisioningStep {
     PullImage = "pullImage",
+    UploadCertificate = "uploadCertificate",
     CreateContainer = "createContainer",
     WaitForReady = "waitForReady",
     Connect = "connect",
+}
+
+export function isAzureSqlContainerEntraAuthentication(
+    authenticationType: AzureSqlContainerForm["authenticationType"],
+): boolean {
+    return (
+        authenticationType === AuthenticationType.AzureMFA ||
+        authenticationType === AuthenticationType.ActiveDirectoryDefault ||
+        authenticationType === AuthenticationType.ActiveDirectoryServicePrincipal
+    );
+}
+
+export function getAzureSqlContainerProvisioningSteps(
+    authenticationType: AzureSqlContainerForm["authenticationType"],
+): AzureSqlContainerProvisioningStep[] {
+    return [
+        AzureSqlContainerProvisioningStep.PullImage,
+        ...(isAzureSqlContainerEntraAuthentication(authenticationType)
+            ? [AzureSqlContainerProvisioningStep.UploadCertificate]
+            : []),
+        AzureSqlContainerProvisioningStep.CreateContainer,
+        AzureSqlContainerProvisioningStep.WaitForReady,
+        AzureSqlContainerProvisioningStep.Connect,
+    ];
 }
 
 export interface AzureSqlContainerProvisioningResult {
@@ -105,6 +151,40 @@ export interface AzureSqlContainerProvisioningResult {
 }
 
 export namespace AzureSqlDatabaseRequests {
+    export const ContainerEntraAccounts = new RequestType<
+        { signIn?: boolean },
+        ContainerEntraOption[],
+        void
+    >("deployment/azureSqlContainerEntraAccounts");
+
+    export const ContainerEntraTenants = new RequestType<
+        { accountId: string },
+        ContainerEntraOption[],
+        void
+    >("deployment/azureSqlContainerEntraTenants");
+
+    export const ContainerEntraApplications = new RequestType<
+        { accountId: string; tenantId: string },
+        ContainerEntraOption[],
+        void
+    >("deployment/azureSqlContainerEntraApplications");
+
+    export const CreateContainerEntraApplication = new RequestType<
+        { accountId: string; tenantId: string; displayName: string },
+        ContainerEntraOption,
+        void
+    >("deployment/createAzureSqlContainerEntraApplication");
+
+    export const SelectContainerPfxFile = new RequestType<void, string | undefined, void>(
+        "deployment/selectAzureSqlContainerPfxFile",
+    );
+
+    export const GenerateContainerCertificateFiles = new RequestType<
+        void,
+        ContainerCertificateFiles | undefined,
+        void
+    >("deployment/generateAzureSqlContainerCertificateFiles");
+
     export const PrepareContainerForm = new RequestType<
         AzureSqlContainerForm,
         { form: AzureSqlContainerForm; errors: AzureSqlContainerFormErrors },

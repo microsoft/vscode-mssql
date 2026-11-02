@@ -17,6 +17,8 @@ import * as fp from "../../src/sharedInterfaces/fabricProvisioning";
 import { Fabric } from "../../src/constants/locConstants";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { FabricHelper } from "../../src/fabric/fabricHelper";
+import { GraphClient, graphClient } from "../../src/azure/graphClient";
+import { WorkspaceRole } from "../../src/sharedInterfaces/fabric";
 import {
     BackgroundTaskHandle,
     BackgroundTaskState,
@@ -385,6 +387,70 @@ suite("Fabric Provisioning logic", () => {
         expect(options[1].value).to.equal("ws2");
         expect(options[1].description).to.equal(Fabric.insufficientWorkspacePermissions);
         expect(options[1].icon).to.equal("Warning20Regular");
+    });
+
+    test("workspace permissions fetch Graph memberships for the selected account and tenant", async () => {
+        const state = new fp.FabricProvisioningState({
+            formState: {
+                accountId: "user-id.home-tenant",
+                tenantId: "selected-tenant",
+                workspace: "",
+                databaseName: "",
+                profileName: "",
+                groupId: "default",
+            },
+        });
+        deploymentController.state.deploymentTypeState = state;
+        const account = { id: state.formState.accountId, label: "Selected account" };
+        sandbox.stub(VsCodeAzureHelper, "getAccountById").resolves(account);
+        const graph = sandbox.createStubInstance(GraphClient);
+        graph.fetchUserGroups.resolves([{ id: "group-id", displayName: "Group" }]);
+        sandbox.stub(graphClient, "fetchUserGroups").callsFake(graph.fetchUserGroups);
+
+        await fabricHelpers.sortWorkspacesByPermission(
+            deploymentController,
+            [],
+            WorkspaceRole.Contributor,
+        );
+
+        expect(graph.fetchUserGroups).to.have.been.calledWith(
+            "user-id",
+            account,
+            "selected-tenant",
+        );
+        expect(state.userGroupIds).to.deep.equal(["group-id", "user-id"]);
+    });
+
+    test("workspace permission discovery surfaces Graph failures without caching partial identity data", async () => {
+        const state = new fp.FabricProvisioningState({
+            formState: {
+                accountId: "user-id.home-tenant",
+                tenantId: "selected-tenant",
+                workspace: "",
+                databaseName: "",
+                profileName: "",
+                groupId: "default",
+            },
+        });
+        deploymentController.state.deploymentTypeState = state;
+        sandbox
+            .stub(VsCodeAzureHelper, "getAccountById")
+            .resolves({ id: state.formState.accountId, label: "Selected account" });
+        const error = new Error("Graph unavailable");
+        sandbox.stub(graphClient, "fetchUserGroups").rejects(error);
+
+        try {
+            await fabricHelpers.sortWorkspacesByPermission(
+                deploymentController,
+                [],
+                WorkspaceRole.Contributor,
+                "selected-tenant",
+            );
+            expect.fail("Expected Graph failure");
+        } catch (failure) {
+            expect(failure).to.equal(error);
+        }
+        expect(state.userGroupIds).to.deep.equal([]);
     });
 
     test("getWorkspaces updates state with workspace options", async () => {

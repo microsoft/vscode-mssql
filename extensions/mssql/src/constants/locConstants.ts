@@ -1552,6 +1552,31 @@ export class Azure {
         });
     }
 
+    public static unableToAcquireGraphTokenFromAzureCli(tenantId: string): string {
+        return l10n.t({
+            message:
+                "Unable to acquire a Microsoft Graph token from Azure CLI. Make sure Azure CLI is installed and sign in with 'az login --tenant {0} --allow-no-subscriptions', then retry.",
+            args: [tenantId],
+            comment: ["{0} is the selected Microsoft Entra tenant ID"],
+        });
+    }
+
+    public static azureCliGraphAccountMismatch(
+        accountDisplayName: string,
+        tenantId: string,
+    ): string {
+        return l10n.t({
+            message:
+                "Azure CLI is signed in with a different account than the selected VS Code account '{0}'. Sign in to Azure CLI with that account using 'az login --tenant {1} --allow-no-subscriptions', then retry.",
+            args: [accountDisplayName, tenantId],
+            comment: ["{0} is the selected account label", "{1} is the selected tenant ID"],
+        });
+    }
+
+    public static unableToVerifyGraphAccount = l10n.t(
+        "Unable to verify the Microsoft Graph account. No app registrations were loaded.",
+    );
+
     public static noResourceConfiguredForCurrentCloud(
         resourceType: string,
         cloudName: string,
@@ -2082,6 +2107,70 @@ export class QueryResult {
 }
 
 export class AzureSqlContainer {
+    public static savePfxFile = l10n.t("Save PFX file");
+    public static pfxExtensionRequired = l10n.t("Choose a filename with the .pfx extension.");
+    public static localCertificateLocationRequired = l10n.t(
+        "Choose a local filesystem location for the certificate files.",
+    );
+    public static certificateFilesAlreadyExist = l10n.t(
+        "A PFX, private key, or public certificate file already exists with this name. Choose a different filename; existing files will not be overwritten.",
+    );
+    public static certificateCleanupFailed = l10n.t(
+        "Certificate generation failed and some generated files could not be removed.",
+    );
+    public static certificateFilesSaved = (
+        pfxFilePath: string,
+        privateKeyFilePath: string,
+        publicCertificateFilePath: string,
+    ) =>
+        l10n.t({
+            message:
+                "Saved certificate files: {0}, {1}, {2}. The PFX has an empty password and the private key is unencrypted. Keep these files in a secure location.",
+            args: [pfxFilePath, privateKeyFilePath, publicCertificateFilePath],
+            comment: [
+                "{0} is the PFX path",
+                "{1} is the private key path",
+                "{2} is the public certificate path",
+            ],
+        });
+    public static appRegistrationNameRequired = l10n.t("Enter an app registration name.");
+    public static invalidAppRegistrationResponse = l10n.t(
+        "Microsoft Graph did not return a valid app registration after creation.",
+    );
+    public static selectPfxFile = l10n.t("Select PFX file");
+    public static pfxFiles = l10n.t("PFX files");
+    public static invalidAuthenticationType = l10n.t("Select a supported authentication type.");
+    public static selectEntraAccount = l10n.t("Select a Microsoft Entra account.");
+    public static selectAppRegistration = l10n.t("Select an app registration.");
+    public static pfxFileRequired = l10n.t("Select a local PFX file.");
+    public static invalidPfxCertificate = l10n.t(
+        "Choose a valid passwordless PFX containing a current RSA certificate and its matching private key.",
+    );
+    public static pfxCertificateChanged = l10n.t(
+        "The selected PFX changed after its certificate was uploaded. Return to configuration and provision again.",
+    );
+    public static invalidEntraAdministrator = l10n.t(
+        "Microsoft Graph did not return a valid tenant-local user ID and user principal name for the selected account.",
+    );
+    public static servicePrincipalClientSecretRequired = l10n.t(
+        "Enter the client secret for the selected app registration.",
+    );
+    public static invalidServicePrincipal = l10n.t(
+        "Microsoft Graph did not return a valid service principal for the selected app registration.",
+    );
+    public static invalidApplicationCredentials = l10n.t(
+        "The app's existing certificate credentials could not be read completely. No credentials were changed.",
+    );
+    public static certificateUploadRequired = l10n.t(
+        "Upload the selected PFX's public certificate before creating the Entra container.",
+    );
+    public static invalidProvisioningStep = l10n.t(
+        "This provisioning step is not available for the selected authentication type.",
+    );
+    public static certificateUploadFailed = l10n.t(
+        "Failed to upload the public certificate. The selected account must have permission to manage the app registration's certificates.",
+    );
+    public static uploadingCertificate = l10n.t("Uploading public certificate");
     public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
     public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
     public static portInUse = l10n.t("This port is already in use. Choose a different port.");

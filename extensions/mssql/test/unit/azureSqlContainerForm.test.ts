@@ -5,11 +5,14 @@
 
 import * as chai from "chai";
 import * as sinon from "sinon";
+import * as vscode from "vscode";
 import sinonChai from "sinon-chai";
 import {
     defaultAzureSqlContainerName,
     generateAzureSqlContainerName,
     getAzureSqlContainerProvisioningCommand,
+    generateContainerCertificateFiles,
+    readContainerCertificate,
     executeContainerEngineCommand,
     prepareAzureSqlContainerForm,
     registerAzureSqlRpcHandlers,
@@ -25,7 +28,7 @@ import {
     AzureSqlDatabaseRequests,
     ContainerEngine,
 } from "../../src/sharedInterfaces/azureSqlDatabase";
-import { AzureSqlContainer } from "../../src/constants/locConstants";
+import { Accounts, AzureSqlContainer, ConnectionDialog } from "../../src/constants/locConstants";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
@@ -36,14 +39,44 @@ import {
     sa,
 } from "../../src/constants/constants";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
-import { BackgroundTaskState } from "../../src/backgroundTasks/backgroundTasksService";
+import {
+    BackgroundTasksService,
+    BackgroundTaskState,
+} from "../../src/backgroundTasks/backgroundTasksService";
 import { CancellationToken } from "vscode-jsonrpc";
+import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
+import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
+import * as containerEngine from "../../src/docker/containerEngine";
+import { GraphClient, graphClient } from "../../src/azure/graphClient";
+import { X509Certificate } from "node:crypto";
+import { promises as fs } from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 
 chai.use(sinonChai);
 const { expect } = chai;
 
 suite("Azure SQL container configuration", () => {
     let sandbox: sinon.SinonSandbox;
+    let certificate: X509Certificate;
+    let certificateDirectory: string;
+    let certificatePfxFilePath: string;
+
+    suiteSetup(async () => {
+        certificateDirectory = await fs.mkdtemp(
+            path.join(os.tmpdir(), "mssql-entra-provisioning-"),
+        );
+        certificatePfxFilePath = path.join(certificateDirectory, "certificate.pfx");
+        await generateContainerCertificateFiles(certificatePfxFilePath);
+        certificate = await readContainerCertificate(certificatePfxFilePath);
+    });
+
+    suiteTeardown(async () => {
+        for (const name of await fs.readdir(certificateDirectory)) {
+            await fs.unlink(path.join(certificateDirectory, name));
+        }
+        await fs.rmdir(certificateDirectory);
+    });
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -73,6 +106,667 @@ suite("Azure SQL container configuration", () => {
 
     test("accepts the default configuration with a valid password and accepted terms", () => {
         expect(validateAzureSqlContainerForm(validForm())).to.deep.equal({});
+    });
+
+    const entraForm = (): AzureSqlContainerForm => ({
+        ...validForm(),
+        authenticationType: AuthenticationType.AzureMFA,
+        accountId: "account-id",
+        tenantId: "11111111-1111-1111-1111-111111111111",
+        applicationId: "22222222-2222-2222-2222-222222222222",
+        pfxFilePath: certificatePfxFilePath,
+    });
+
+    test("accepts Entra configuration and still requires the SQL administrator password", () => {
+        expect(validateAzureSqlContainerForm(entraForm())).to.deep.equal({});
+        expect(validateAzureSqlContainerForm({ ...entraForm(), password: "" })).to.have.property(
+            "password",
+        );
+    });
+
+    for (const authenticationType of [
+        AuthenticationType.ActiveDirectoryDefault,
+        AuthenticationType.ActiveDirectoryServicePrincipal,
+    ] as const) {
+        test(`requires complete Entra provisioning configuration for ${authenticationType}`, () => {
+            const form: AzureSqlContainerForm = {
+                ...entraForm(),
+                authenticationType,
+                servicePrincipalClientSecret: "app-secret",
+            };
+            expect(validateAzureSqlContainerForm(form)).to.deep.equal({});
+            const errors = validateAzureSqlContainerForm({
+                ...form,
+                accountId: undefined,
+                tenantId: undefined,
+                applicationId: undefined,
+                pfxFilePath: undefined,
+                servicePrincipalClientSecret: " ",
+            });
+            expect(errors).to.include.keys("accountId", "tenantId", "applicationId", "pfxFilePath");
+            if (authenticationType === AuthenticationType.ActiveDirectoryServicePrincipal) {
+                expect(errors.servicePrincipalClientSecret).to.equal(
+                    AzureSqlContainer.servicePrincipalClientSecretRequired,
+                );
+            } else {
+                expect(errors).not.to.have.property("servicePrincipalClientSecret");
+            }
+        });
+    }
+
+    test("preserves selected Entra configuration when preparing the form", async () => {
+        sandbox.stub(dockerUtils, "findAvailablePort").withArgs(1433).resolves(1433);
+        const form = entraForm();
+        const prepared = await prepareAzureSqlContainerForm(form);
+
+        expect(prepared.errors).to.deep.equal({});
+        expect(prepared.form).to.deep.equal(form);
+    });
+
+    test("requires an account, tenant, app, and local PFX for Entra provisioning only", () => {
+        const form: AzureSqlContainerForm = {
+            ...entraForm(),
+            accountId: undefined,
+            tenantId: undefined,
+            applicationId: undefined,
+            pfxFilePath: undefined,
+        };
+        expect(validateAzureSqlContainerForm(form)).to.deep.equal({
+            accountId: AzureSqlContainer.selectEntraAccount,
+            tenantId: ConnectionDialog.tenantIdIsRequired,
+            applicationId: AzureSqlContainer.selectAppRegistration,
+            pfxFilePath: AzureSqlContainer.pfxFileRequired,
+        });
+        expect(
+            validateAzureSqlContainerForm({
+                ...form,
+                authenticationType: AuthenticationType.SqlLogin,
+            }),
+        ).to.deep.equal({});
+    });
+
+    const getPfxSelectionHandler = () => {
+        const controller = sandbox.createStubInstance(DeploymentWebviewController);
+        registerAzureSqlRpcHandlers(controller);
+        return controller.onRequest.withArgs(AzureSqlDatabaseRequests.SelectContainerPfxFile)
+            .firstCall.args[1];
+    };
+
+    test("selects a single PFX file and returns its filesystem path", async () => {
+        const file = vscode.Uri.file("C:\\certificates\\selected.pfx");
+        const showOpenDialog = sandbox.stub(vscode.window, "showOpenDialog").resolves([file]);
+
+        expect(await getPfxSelectionHandler()(undefined, CancellationToken.None)).to.equal(
+            file.fsPath,
+        );
+        expect(showOpenDialog).to.have.been.calledWith({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            openLabel: AzureSqlContainer.selectPfxFile,
+            filters: { [AzureSqlContainer.pfxFiles]: ["pfx"] },
+        });
+    });
+
+    test("returns no PFX selection when the file dialog is cancelled", async () => {
+        sandbox.stub(vscode.window, "showOpenDialog").resolves(undefined);
+        expect(await getPfxSelectionHandler()(undefined, CancellationToken.None)).to.be.undefined;
+    });
+
+    test("propagates PFX picker errors instead of treating them as cancellation", async () => {
+        const failure = new Error("File dialog failed");
+        sandbox.stub(vscode.window, "showOpenDialog").rejects(failure);
+        try {
+            await getPfxSelectionHandler()(undefined, CancellationToken.None);
+            expect.fail("Expected PFX selection failure");
+        } catch (error) {
+            expect(error).to.equal(failure);
+        }
+    });
+
+    const getCertificateGenerationHandler = () => {
+        const controller = sandbox.createStubInstance(DeploymentWebviewController);
+        registerAzureSqlRpcHandlers(controller);
+        return controller.onRequest.withArgs(
+            AzureSqlDatabaseRequests.GenerateContainerCertificateFiles,
+        ).firstCall.args[1];
+    };
+
+    test("generates all three certificate files at the selected location without asking for a password", async () => {
+        const file = vscode.Uri.file(path.join(certificateDirectory, "generated.pfx"));
+        const files = {
+            pfxFilePath: file.fsPath,
+            privateKeyFilePath: vscode.Uri.file(path.join(certificateDirectory, "generated.key"))
+                .fsPath,
+            publicCertificateFilePath: vscode.Uri.file(
+                path.join(certificateDirectory, "generated.cer"),
+            ).fsPath,
+        };
+        sandbox.stub(vscode.window, "showSaveDialog").resolves(file);
+        const passwordPrompt = sandbox.stub(vscode.window, "showInputBox");
+        const notification = sandbox.stub(vscode.window, "showInformationMessage").resolves();
+        expect(
+            await getCertificateGenerationHandler()(undefined, CancellationToken.None),
+        ).to.deep.equal(files);
+        for (const filePath of Object.values(files)) {
+            expect((await fs.stat(filePath)).isFile()).to.equal(true);
+        }
+        expect(passwordPrompt).not.to.have.been.called;
+        expect(notification).to.have.been.calledWith(
+            AzureSqlContainer.certificateFilesSaved(
+                files.pfxFilePath,
+                files.privateKeyFilePath,
+                files.publicCertificateFilePath,
+            ),
+        );
+    });
+
+    test("does not generate certificate files when the save dialog is cancelled", async () => {
+        sandbox.stub(vscode.window, "showSaveDialog").resolves(undefined);
+        const open = sandbox.stub(fs, "open");
+        expect(await getCertificateGenerationHandler()(undefined, CancellationToken.None)).to.be
+            .undefined;
+        expect(open).not.to.have.been.called;
+    });
+
+    test("does not report certificate generation as successful after a write error", async () => {
+        sandbox
+            .stub(vscode.window, "showSaveDialog")
+            .resolves(vscode.Uri.file("C:\\certificates\\generated.pfx"));
+        const failure = new Error("Certificate write failed");
+        sandbox.stub(fs, "open").rejects(failure);
+        const notification = sandbox.stub(vscode.window, "showInformationMessage");
+        try {
+            await getCertificateGenerationHandler()(undefined, CancellationToken.None);
+            expect.fail("Expected certificate generation failure");
+        } catch (error) {
+            expect(error).to.equal(failure);
+        }
+        expect(notification).not.to.have.been.called;
+    });
+
+    test("rejects non-local certificate destinations before generating files", async () => {
+        sandbox
+            .stub(vscode.window, "showSaveDialog")
+            .resolves(vscode.Uri.parse("untitled:certificate.pfx"));
+        const open = sandbox.stub(fs, "open");
+        try {
+            await getCertificateGenerationHandler()(undefined, CancellationToken.None);
+            expect.fail("Expected local filesystem validation");
+        } catch (error) {
+            expect(error).to.have.property(
+                "message",
+                AzureSqlContainer.localCertificateLocationRequired,
+            );
+        }
+        expect(open).not.to.have.been.called;
+    });
+
+    test("loads container accounts and tenants through the existing VS Code Azure helpers", async () => {
+        const account = { id: "account-id", label: "Account" };
+        sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccounts").resolves([account]);
+        const signIn = sandbox.stub(azureHelpers.VsCodeAzureHelper, "signIn").resolves();
+        sandbox.stub(azureHelpers.VsCodeAzureHelper, "getTenantsForAccount").resolves([
+            {
+                tenantId: entraForm().tenantId!,
+                displayName: "Tenant",
+                account,
+            },
+        ]);
+        const controller = sandbox.createStubInstance(DeploymentWebviewController);
+        registerAzureSqlRpcHandlers(controller);
+        const accounts = controller.onRequest.withArgs(
+            AzureSqlDatabaseRequests.ContainerEntraAccounts,
+        ).firstCall.args[1];
+        const tenants = controller.onRequest.withArgs(
+            AzureSqlDatabaseRequests.ContainerEntraTenants,
+        ).firstCall.args[1];
+
+        expect(await accounts({}, CancellationToken.None)).to.deep.equal([
+            { value: account.id, displayName: account.label },
+        ]);
+        expect(signIn).not.to.have.been.called;
+        await accounts({ signIn: true }, CancellationToken.None);
+        expect(signIn).to.have.been.calledWith(true);
+        expect(await tenants({ accountId: account.id }, CancellationToken.None)).to.deep.equal([
+            {
+                value: entraForm().tenantId,
+                displayName: "Tenant",
+            },
+        ]);
+    });
+
+    const getApplicationListingHandler = () => {
+        const controller = sandbox.createStubInstance(DeploymentWebviewController);
+        registerAzureSqlRpcHandlers(controller);
+        return controller.onRequest.withArgs(AzureSqlDatabaseRequests.ContainerEntraApplications)
+            .firstCall.args[1];
+    };
+
+    const getApplicationCreationHandler = () => {
+        const controller = sandbox.createStubInstance(DeploymentWebviewController);
+        registerAzureSqlRpcHandlers(controller);
+        return controller.onRequest.withArgs(
+            AzureSqlDatabaseRequests.CreateContainerEntraApplication,
+        ).firstCall.args[1];
+    };
+
+    test("creates an app registration for the selected account and tenant and returns its client ID", async () => {
+        const account = { id: "account-id", label: "Selected account" };
+        sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccountById").resolves(account);
+        const create = sandbox.stub(graphClient, "createAppRegistration").resolves({
+            id: "new-object",
+            appId: "new-client",
+            displayName: "New application",
+        });
+        const tenantId = entraForm().tenantId!;
+        expect(
+            await getApplicationCreationHandler()(
+                { accountId: account.id, tenantId, displayName: "New application" },
+                CancellationToken.None,
+            ),
+        ).to.deep.equal({ value: "new-client", displayName: "New application" });
+        expect(create).to.have.been.calledWith("New application", account, tenantId);
+    });
+
+    test("rejects app creation when the selected account is unavailable", async () => {
+        sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccountById").resolves(undefined);
+        const create = sandbox.stub(graphClient, "createAppRegistration");
+        const tenantId = entraForm().tenantId!;
+        try {
+            await getApplicationCreationHandler()(
+                { accountId: "missing-account", tenantId, displayName: "Application" },
+                CancellationToken.None,
+            );
+            expect.fail("Expected account validation failure");
+        } catch (error) {
+            expect(error).to.have.property(
+                "message",
+                Accounts.accountNotAvailableThroughVsCode("missing-account", tenantId),
+            );
+        }
+        expect(create).not.to.have.been.called;
+    });
+
+    test("propagates app creation errors to the drawer", async () => {
+        const account = { id: "account-id", label: "Selected account" };
+        sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccountById").resolves(account);
+        const failure = new Error("Application creation denied");
+        sandbox.stub(graphClient, "createAppRegistration").rejects(failure);
+        try {
+            await getApplicationCreationHandler()(
+                {
+                    accountId: account.id,
+                    tenantId: entraForm().tenantId!,
+                    displayName: "Application",
+                },
+                CancellationToken.None,
+            );
+            expect.fail("Expected application creation failure");
+        } catch (error) {
+            expect(error).to.equal(failure);
+        }
+    });
+
+    test("lists registrations for the selected account and tenant using Graph client IDs", async () => {
+        const account = { id: "account-id", label: "Selected account" };
+        sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccountById").resolves(account);
+        const graph = sandbox.createStubInstance(GraphClient);
+        graph.fetchAppRegistrations.resolves([
+            { id: "object-id", appId: "client-id", displayName: "Application" },
+            { id: "unnamed-object", appId: "unnamed-client", displayName: "" },
+        ]);
+        sandbox.stub(graphClient, "fetchAppRegistrations").callsFake(graph.fetchAppRegistrations);
+        const tenantId = entraForm().tenantId!;
+
+        expect(
+            await getApplicationListingHandler()(
+                { accountId: account.id, tenantId },
+                CancellationToken.None,
+            ),
+        ).to.deep.equal([
+            { value: "client-id", displayName: "Application" },
+            { value: "unnamed-client", displayName: "unnamed-client" },
+        ]);
+        expect(graph.fetchAppRegistrations).to.have.been.calledWith(account, tenantId);
+    });
+
+    test("rejects registration lookup when the selected account is unavailable", async () => {
+        sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccountById").resolves(undefined);
+        const graph = sandbox.stub(graphClient, "fetchAppRegistrations");
+        const tenantId = entraForm().tenantId!;
+
+        try {
+            await getApplicationListingHandler()(
+                { accountId: "missing-account", tenantId },
+                CancellationToken.None,
+            );
+            expect.fail("Expected missing account error");
+        } catch (error) {
+            expect(error).to.have.property(
+                "message",
+                Accounts.accountNotAvailableThroughVsCode("missing-account", tenantId),
+            );
+        }
+        expect(graph).not.to.have.been.called;
+    });
+
+    test("requires a selected tenant before fetching app registrations", async () => {
+        const graph = sandbox.stub(graphClient, "fetchAppRegistrations");
+
+        try {
+            await getApplicationListingHandler()(
+                { accountId: "account-id", tenantId: "" },
+                CancellationToken.None,
+            );
+            expect.fail("Expected missing tenant error");
+        } catch (error) {
+            expect(error).to.have.property("message", ConnectionDialog.tenantIdIsRequired);
+        }
+        expect(graph).not.to.have.been.called;
+    });
+
+    test("propagates Graph registration errors instead of returning an empty list", async () => {
+        const account = { id: "account-id", label: "Selected account" };
+        sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccountById").resolves(account);
+        const failure = new Error("Graph consent required");
+        sandbox.stub(graphClient, "fetchAppRegistrations").rejects(failure);
+
+        try {
+            await getApplicationListingHandler()(
+                { accountId: account.id, tenantId: entraForm().tenantId! },
+                CancellationToken.None,
+            );
+            expect.fail("Expected Graph listing error");
+        } catch (error) {
+            expect(error).to.equal(failure);
+        }
+    });
+
+    const stubCertificateUpload = () => {
+        const account = { id: "account-id", label: "Selected account" };
+        sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccountById").resolves(account);
+        sandbox.stub(graphClient, "fetchCurrentUser").resolves({
+            id: "33333333-3333-3333-3333-333333333333",
+            userPrincipalName: "admin@contoso.com",
+        });
+        return { account, upload: sandbox.stub(graphClient, "uploadAppCertificate").resolves() };
+    };
+
+    test("uploads only the selected PFX's public certificate and resolves the selected tenant's admin", async () => {
+        const { account, upload } = stubCertificateUpload();
+        const state = {};
+        const form = entraForm();
+        const signal = new AbortController().signal;
+        expect(
+            await runAzureSqlContainerProvisioningStep(
+                ContainerEngine.Docker,
+                AzureSqlContainerProvisioningStep.UploadCertificate,
+                form,
+                sandbox.createStubInstance(MainController),
+                signal,
+                state,
+            ),
+        ).to.deep.equal({ success: true });
+        expect(upload).to.have.been.calledWith(
+            form.applicationId,
+            sinon.match
+                .instanceOf(X509Certificate)
+                .and(sinon.match((value: X509Certificate) => value.raw.equals(certificate.raw))),
+            account,
+            form.tenantId,
+            signal,
+        );
+        expect(state).to.deep.equal({
+            administrator: {
+                id: "33333333-3333-3333-3333-333333333333",
+                name: "admin@contoso.com",
+            },
+            certificateThumbprint: certificate.fingerprint256,
+            identity: JSON.stringify([
+                form.authenticationType,
+                form.accountId,
+                form.tenantId,
+                form.applicationId,
+            ]),
+        });
+
+        test("uses the selected application's service-principal object ID as the Entra admin", async () => {
+            const { account, upload } = stubCertificateUpload();
+            const form: AzureSqlContainerForm = {
+                ...entraForm(),
+                authenticationType: AuthenticationType.ActiveDirectoryServicePrincipal,
+                servicePrincipalClientSecret: "app-secret",
+            };
+            const principal = {
+                id: "44444444-4444-4444-4444-444444444444",
+                displayName: "Container app",
+            };
+            const ensure = sandbox.stub(graphClient, "ensureServicePrincipal").resolves(principal);
+            const state = {};
+            const result = await runAzureSqlContainerProvisioningStep(
+                ContainerEngine.Docker,
+                AzureSqlContainerProvisioningStep.UploadCertificate,
+                form,
+                sandbox.createStubInstance(MainController),
+                undefined,
+                state,
+            );
+            expect(result.success).to.equal(true);
+            expect(ensure).to.have.been.calledWith(
+                form.applicationId,
+                account,
+                form.tenantId,
+                undefined,
+            );
+            expect(state).to.have.property("administrator").that.deep.equals({
+                id: principal.id,
+                name: principal.displayName,
+            });
+            expect(upload).to.have.been.called;
+            expect(graphClient.fetchCurrentUser).not.to.have.been.called;
+        });
+    });
+
+    test("surfaces upload permission failures without retaining successful Entra state", async () => {
+        const { upload } = stubCertificateUpload();
+        upload.rejects(new Error("Graph returned 403"));
+        const state = {};
+        const result = await runAzureSqlContainerProvisioningStep(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.UploadCertificate,
+            entraForm(),
+            sandbox.createStubInstance(MainController),
+            undefined,
+            state,
+        );
+        expect(result).to.deep.equal({
+            success: false,
+            error: AzureSqlContainer.certificateUploadFailed,
+            fullErrorText: "Graph returned 403",
+        });
+        expect(state).to.deep.equal({});
+    });
+
+    test("stops canceled uploads before marking the certificate as provisioned", async () => {
+        const { upload } = stubCertificateUpload();
+        const abort = new AbortController();
+        upload.callsFake(async () => abort.abort());
+        const state = {};
+        expect(
+            (
+                await runAzureSqlContainerProvisioningStep(
+                    ContainerEngine.Docker,
+                    AzureSqlContainerProvisioningStep.UploadCertificate,
+                    entraForm(),
+                    sandbox.createStubInstance(MainController),
+                    abort.signal,
+                    state,
+                )
+            ).success,
+        ).to.equal(false);
+        expect(state).to.deep.equal({});
+    });
+
+    test("does not start an Entra container without a successful certificate upload", async () => {
+        const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
+        const result = await runAzureSqlContainerProvisioningStep(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.CreateContainer,
+            entraForm(),
+            sandbox.createStubInstance(MainController),
+        );
+        expect(result.success).to.equal(false);
+        expect(result.fullErrorText).to.equal(AzureSqlContainer.certificateUploadRequired);
+        expect(execute).not.to.have.been.called;
+    });
+
+    test("rejects a PFX changed after upload instead of starting with mismatched app credentials", async () => {
+        const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
+        const result = await runAzureSqlContainerProvisioningStep(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.CreateContainer,
+            entraForm(),
+            sandbox.createStubInstance(MainController),
+            undefined,
+            {
+                administrator: { id: "user-id", name: "admin@contoso.com" },
+                certificateThumbprint: "previous certificate",
+                identity: JSON.stringify([
+                    entraForm().authenticationType,
+                    entraForm().accountId,
+                    entraForm().tenantId,
+                    entraForm().applicationId,
+                ]),
+            },
+        );
+        expect(result.fullErrorText).to.equal(AzureSqlContainer.pfxCertificateChanged);
+        expect(execute).not.to.have.been.called;
+    });
+
+    test("rejects cached user-admin state when switching to service-principal authentication", async () => {
+        stubCertificateUpload();
+        const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
+        const controller = sandbox.createStubInstance(MainController);
+        const form = entraForm();
+        const state = {};
+        await runAzureSqlContainerProvisioningStep(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.UploadCertificate,
+            form,
+            controller,
+            undefined,
+            state,
+        );
+        const result = await runAzureSqlContainerProvisioningStep(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.CreateContainer,
+            {
+                ...form,
+                authenticationType: AuthenticationType.ActiveDirectoryServicePrincipal,
+                servicePrincipalClientSecret: "app-secret",
+            },
+            controller,
+            undefined,
+            state,
+        );
+        expect(result.fullErrorText).to.equal(AzureSqlContainer.certificateUploadRequired);
+        expect(execute).not.to.have.been.called;
+    });
+
+    test("reuses uploaded certificate and admin state when container creation is retried", async () => {
+        const { upload } = stubCertificateUpload();
+        const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
+        execute.onFirstCall().rejects(new Error("Temporary container error"));
+        execute.onSecondCall().resolves({ stdout: "container-id", stderr: "" });
+        const state = {};
+        const controller = sandbox.createStubInstance(MainController);
+        await runAzureSqlContainerProvisioningStep(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.UploadCertificate,
+            entraForm(),
+            controller,
+            undefined,
+            state,
+        );
+        expect(
+            (
+                await runAzureSqlContainerProvisioningStep(
+                    ContainerEngine.Docker,
+                    AzureSqlContainerProvisioningStep.CreateContainer,
+                    entraForm(),
+                    controller,
+                    undefined,
+                    state,
+                )
+            ).success,
+        ).to.equal(false);
+        expect(
+            (
+                await runAzureSqlContainerProvisioningStep(
+                    ContainerEngine.Docker,
+                    AzureSqlContainerProvisioningStep.CreateContainer,
+                    entraForm(),
+                    controller,
+                    undefined,
+                    state,
+                )
+            ).success,
+        ).to.equal(true);
+        expect(upload).to.have.been.calledOnce;
+        expect(execute).to.have.been.calledWith(
+            sinon.match.has(
+                "args",
+                sinon.match.array.contains([
+                    "MSSQL_AAD_SERVER_ADMIN_SID=33333333-3333-3333-3333-333333333333",
+                ]),
+            ),
+            120_000,
+            undefined,
+        );
+    });
+
+    test("does not reuse a successful upload for a different selected app", async () => {
+        stubCertificateUpload();
+        const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
+        const state = {};
+        const controller = sandbox.createStubInstance(MainController);
+        await runAzureSqlContainerProvisioningStep(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.UploadCertificate,
+            entraForm(),
+            controller,
+            undefined,
+            state,
+        );
+        const result = await runAzureSqlContainerProvisioningStep(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.CreateContainer,
+            { ...entraForm(), applicationId: "55555555-5555-5555-5555-555555555555" },
+            controller,
+            undefined,
+            state,
+        );
+        expect(result.fullErrorText).to.equal(AzureSqlContainer.certificateUploadRequired);
+        expect(execute).not.to.have.been.called;
+    });
+
+    test("rejects the certificate-upload RPC for SQL Login instead of starting the wrong deployment step", async () => {
+        const controller = sandbox.createStubInstance(DeploymentWebviewController);
+        registerAzureSqlRpcHandlers(controller);
+        const run = controller.onRequest.withArgs(
+            AzureSqlDatabaseRequests.RunContainerProvisioningStep,
+        ).firstCall.args[1];
+        expect(
+            await run(
+                {
+                    engine: ContainerEngine.Docker,
+                    form: validForm(),
+                    step: AzureSqlContainerProvisioningStep.UploadCertificate,
+                },
+                CancellationToken.None,
+            ),
+        ).to.deep.equal({ success: false, error: AzureSqlContainer.invalidProvisioningStep });
     });
 
     test("validates the direct form RPC payload", async () => {
@@ -268,6 +962,30 @@ suite("Azure SQL container configuration", () => {
         });
     });
 
+    test("builds the Entra run command with a read-only PFX mount and tenant-local user admin", () => {
+        const form = {
+            ...entraForm(),
+            pfxFilePath: path.resolve("certificate folder", "selected.pfx"),
+        };
+        const command = getAzureSqlContainerProvisioningCommand(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.CreateContainer,
+            form,
+            { id: "33333333-3333-3333-3333-333333333333", name: "admin@contoso.com" },
+        );
+        expect(command.args).to.include.members([
+            "MSSQL_AAD_CLIENT_ID=22222222-2222-2222-2222-222222222222",
+            "MSSQL_AAD_PRIMARY_TENANT=11111111-1111-1111-1111-111111111111",
+            "MSSQL_AAD_CERTIFICATE_FILE_PATH=/var/opt/mssql/mssql-entra-id.pfx",
+            "MSSQL_AAD_SERVER_ADMIN_NAME=admin@contoso.com",
+            "MSSQL_AAD_SERVER_ADMIN_TYPE=0",
+            "MSSQL_AAD_SERVER_ADMIN_SID=33333333-3333-3333-3333-333333333333",
+            `${form.pfxFilePath}:/var/opt/mssql/mssql-entra-id.pfx:ro`,
+            "1433:1433",
+        ]);
+        expect(command.args.join(" ")).not.to.include(form.password);
+        expect(command.env).to.deep.equal({ MSSQL_SA_PASSWORD: form.password });
+    });
     for (const engine of Object.values(ContainerEngine)) {
         test(`passes the SA password through the environment, not arguments, for ${engine}`, () => {
             const form = { ...validForm(), password: "Example '\"$&=123!\n" };
@@ -374,6 +1092,256 @@ suite("Azure SQL container configuration", () => {
             connectionManager.getConnectionString.resolves("Server=localhost,1433");
             connectionManager.disconnect.resolves(true);
             mainController.createObjectExplorerSession.resolves();
+        });
+
+        for (const authenticationType of [
+            AuthenticationType.AzureMFA,
+            AuthenticationType.ActiveDirectoryDefault,
+            AuthenticationType.ActiveDirectoryServicePrincipal,
+        ] as const) {
+            test(`provisions all five ${authenticationType} steps through RPC and retains upload state across a create retry`, async () => {
+                const { upload } = stubCertificateUpload();
+                sandbox.stub(graphClient, "ensureServicePrincipal").resolves({
+                    id: "44444444-4444-4444-4444-444444444444",
+                    displayName: "Container app",
+                });
+                const tasks = sandbox.createStubInstance(BackgroundTasksService);
+                const complete = sandbox.stub();
+                tasks.registerTask.returns({
+                    id: "entra-container-task",
+                    update: sandbox.stub(),
+                    complete,
+                    remove: sandbox.stub(),
+                });
+                mainController.backgroundTasksService = tasks;
+                connectionManager.connect.resolves(true);
+                const controller = sandbox.createStubInstance(DeploymentWebviewController);
+                controller.mainController = mainController;
+                registerAzureSqlRpcHandlers(controller);
+                const run = controller.onRequest.withArgs(
+                    AzureSqlDatabaseRequests.RunContainerProvisioningStep,
+                ).firstCall.args[1];
+                const form: AzureSqlContainerForm = {
+                    ...entraForm(),
+                    authenticationType,
+                    containerName: "entra-container",
+                    servicePrincipalClientSecret: "app-secret",
+                };
+                let failedCreate = false;
+                const execute = sandbox
+                    .stub(containerEngine, "executeContainerEngineCommand")
+                    .callsFake(async (command) => {
+                        if (command.args[0] === "run" && !failedCreate) {
+                            failedCreate = true;
+                            throw new Error("Temporary container start failure");
+                        }
+                        return { stdout: "ok", stderr: "" };
+                    });
+                const runStep = (step: AzureSqlContainerProvisioningStep, retry = false) =>
+                    run(
+                        { engine: ContainerEngine.Docker, form, step, retry },
+                        CancellationToken.None,
+                    );
+                expect(await runStep(AzureSqlContainerProvisioningStep.PullImage)).to.have.property(
+                    "success",
+                    true,
+                );
+                expect(
+                    await runStep(AzureSqlContainerProvisioningStep.UploadCertificate),
+                ).to.have.property("success", true);
+                expect(
+                    await runStep(AzureSqlContainerProvisioningStep.CreateContainer),
+                ).to.have.property("success", false);
+                expect(
+                    await runStep(AzureSqlContainerProvisioningStep.CreateContainer, true),
+                ).to.have.property("success", true);
+                expect(
+                    await runStep(AzureSqlContainerProvisioningStep.WaitForReady),
+                ).to.have.property("success", true);
+                expect(await runStep(AzureSqlContainerProvisioningStep.Connect)).to.have.property(
+                    "success",
+                    true,
+                );
+                expect(upload).to.have.been.calledOnce;
+                expect(execute).to.have.been.calledWith(
+                    sinon.match(
+                        (command: { args: string[] }) =>
+                            command.args[0] === "run" &&
+                            command.args.includes(
+                                `MSSQL_AAD_SERVER_ADMIN_SID=${
+                                    authenticationType ===
+                                    AuthenticationType.ActiveDirectoryServicePrincipal
+                                        ? "44444444-4444-4444-4444-444444444444"
+                                        : "33333333-3333-3333-3333-333333333333"
+                                }`,
+                            ) &&
+                            !command.args.some((arg) =>
+                                arg.includes(form.servicePrincipalClientSecret),
+                            ),
+                    ),
+                    sinon.match.any,
+                );
+                expect(complete).to.have.been.calledWith(
+                    BackgroundTaskState.Succeeded,
+                    sinon.match.object,
+                );
+                expect(connectionUI.saveProfile).to.have.been.calledWith(
+                    sinon.match({
+                        user:
+                            authenticationType ===
+                            AuthenticationType.ActiveDirectoryServicePrincipal
+                                ? form.applicationId
+                                : authenticationType === AuthenticationType.AzureMFA
+                                  ? "Selected account"
+                                  : "",
+                        authenticationType,
+                        accountId:
+                            authenticationType === AuthenticationType.AzureMFA
+                                ? form.accountId
+                                : undefined,
+                        tenantId: form.tenantId,
+                        password:
+                            authenticationType ===
+                            AuthenticationType.ActiveDirectoryServicePrincipal
+                                ? form.servicePrincipalClientSecret
+                                : "",
+                        savePassword: false,
+                        containerName: form.containerName,
+                    }),
+                );
+            });
+        }
+
+        test("redacts both SQL and client secrets from service-principal connection failures", async () => {
+            const clock = sandbox.useFakeTimers();
+            const form: AzureSqlContainerForm = {
+                ...entraForm(),
+                authenticationType: AuthenticationType.ActiveDirectoryServicePrincipal,
+                servicePrincipalClientSecret: "different-client-secret",
+            };
+            connectionManager.connect.rejects(
+                new Error(
+                    `Authentication failed: ${form.password}; ${form.servicePrincipalClientSecret}`,
+                ),
+            );
+            const pending = runAzureSqlContainerProvisioningStep(
+                ContainerEngine.Docker,
+                AzureSqlContainerProvisioningStep.Connect,
+                form,
+                mainController,
+            );
+            await clock.runAllAsync();
+            const result = await pending;
+            expect(result.success).to.equal(false);
+            expect(result.fullErrorText).to.include("Authentication failed");
+            expect(result.fullErrorText).not.to.include(form.password);
+            expect(result.fullErrorText).not.to.include(form.servicePrincipalClientSecret);
+            expect(connectionUI.saveProfile).not.to.have.been.called;
+        });
+
+        test("does not substitute the SA password when the service-principal secret is missing", async () => {
+            const result = await runAzureSqlContainerProvisioningStep(
+                ContainerEngine.Docker,
+                AzureSqlContainerProvisioningStep.Connect,
+                {
+                    ...entraForm(),
+                    authenticationType: AuthenticationType.ActiveDirectoryServicePrincipal,
+                },
+                mainController,
+            );
+            expect(result.fullErrorText).to.equal(
+                AzureSqlContainer.servicePrincipalClientSecretRequired,
+            );
+            expect(connectionManager.connect).not.to.have.been.called;
+        });
+
+        test("connects and saves Entra authentication with the selected account and tenant, without SQL credentials", async () => {
+            const account = { id: "account-id", label: "admin@contoso.com" };
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccountById").resolves(account);
+            connectionManager.connect.resolves(true);
+            const form = { ...entraForm(), containerName: "entra-container", savePassword: true };
+            const result = await runAzureSqlContainerProvisioningStep(
+                ContainerEngine.Docker,
+                AzureSqlContainerProvisioningStep.Connect,
+                form,
+                mainController,
+            );
+            expect(result.success).to.equal(true);
+            const expectedProfile = sinon.match({
+                authenticationType: AuthenticationType.AzureMFA,
+                accountId: account.id,
+                tenantId: form.tenantId,
+                user: account.label,
+                email: account.label,
+                password: "",
+                savePassword: false,
+                emptyPasswordInput: true,
+                server: "localhost,1433",
+                containerEngine: ContainerEngine.Docker,
+                containerName: form.containerName,
+            });
+            expect(connectionManager.connect).to.have.been.calledWith(
+                `localhost,1433/${form.containerName}/deployment`,
+                expectedProfile,
+                { shouldHandleErrors: false },
+            );
+            expect(connectionUI.saveProfile).to.have.been.calledWith(expectedProfile);
+            expect(mainController.createObjectExplorerSession).to.have.been.calledWith(
+                expectedProfile,
+            );
+        });
+
+        test("does not fall back to SQL Login when the selected Entra account is unavailable", async () => {
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccountById").resolves(undefined);
+            const form = entraForm();
+            const result = await runAzureSqlContainerProvisioningStep(
+                ContainerEngine.Docker,
+                AzureSqlContainerProvisioningStep.Connect,
+                form,
+                mainController,
+            );
+            expect(result).to.deep.equal({
+                success: false,
+                error: AzureSqlContainer.connectContainerFailed,
+                fullErrorText: Accounts.accountNotAvailableThroughVsCode(
+                    form.accountId!,
+                    form.tenantId!,
+                ),
+            });
+            expect(connectionManager.connect).not.to.have.been.called;
+            expect(connectionUI.saveProfile).not.to.have.been.called;
+            expect(mainController.createObjectExplorerSession).not.to.have.been.called;
+        });
+
+        test("retries Entra connection failures without switching to SQL Login or saving the SA password", async () => {
+            const clock = sandbox.useFakeTimers();
+            const account = { id: "account-id", label: "admin@contoso.com" };
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccountById").resolves(account);
+            connectionManager.connect.rejects(new Error("Entra authentication failed"));
+            const form = { ...entraForm(), containerName: "entra-container" };
+            const pending = runAzureSqlContainerProvisioningStep(
+                ContainerEngine.Docker,
+                AzureSqlContainerProvisioningStep.Connect,
+                form,
+                mainController,
+            );
+            await clock.runAllAsync();
+            const result = await pending;
+            expect(result.success).to.equal(false);
+            expect(result.fullErrorText).to.equal("Entra authentication failed");
+            expect(
+                connectionManager.connect
+                    .getCalls()
+                    .every(
+                        (call) =>
+                            call.args[1].authenticationType === AuthenticationType.AzureMFA &&
+                            call.args[1].accountId === account.id &&
+                            call.args[1].tenantId === form.tenantId &&
+                            call.args[1].password === "",
+                    ),
+            ).to.equal(true);
+            expect(connectionUI.saveProfile).not.to.have.been.called;
+            expect(mainController.createObjectExplorerSession).not.to.have.been.called;
         });
 
         for (const engine of Object.values(ContainerEngine)) {

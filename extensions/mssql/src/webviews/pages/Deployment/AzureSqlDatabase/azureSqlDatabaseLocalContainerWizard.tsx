@@ -19,6 +19,7 @@ import {
     AzureSqlContainerFormErrors,
     AzureSqlDatabaseRequests,
     ContainerEngine,
+    isAzureSqlContainerEntraAuthentication,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import {
     DeploymentReducers,
@@ -31,6 +32,7 @@ import { getSqlPasswordValidationError } from "../../../../utils/sqlStringUtils"
 import { AzureSqlDatabaseContainerProvisioningPage } from "./azureSqlDatabaseContainerProvisioningPage";
 import { ContainerDeploymentError } from "./containerDeploymentError";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
 
 const useStyles = makeStyles({
     placeholder: {
@@ -54,6 +56,7 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
     const groups = useDeploymentSelector((s) => s.connectionGroupOptions);
     const initialGroupId = useDeploymentSelector((s) => s.formState.groupId);
     const [form, setForm] = useState<AzureSqlContainerForm>(() => ({
+        authenticationType: AuthenticationType.SqlLogin,
         password: "",
         savePassword: false,
         profileName: "",
@@ -255,6 +258,13 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
                 !isLoadingDefaults &&
                 !isPortValidating &&
                 !formErrors.port &&
+                (!isAzureSqlContainerEntraAuthentication(form.authenticationType) ||
+                    (!!form.accountId &&
+                        !!form.tenantId &&
+                        !!form.applicationId &&
+                        !!form.pfxFilePath?.trim())) &&
+                (form.authenticationType !== AuthenticationType.ActiveDirectoryServicePrincipal ||
+                    !!form.servicePrincipalClientSecret?.trim()) &&
                 !getSqlPasswordValidationError(form.password) &&
                 form.acceptEula,
             onNext: async () => {
