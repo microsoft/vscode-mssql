@@ -3682,6 +3682,19 @@ export class ConnectionGroup {
 }
 
 export class ConnectionConfig {
+    public static itemNotFound = (id: string) =>
+        l10n.t({
+            message: "The connection or connection group with ID '{0}' no longer exists.",
+            args: [id],
+            comment: ["{0} is the ID of the connection or connection group being updated"],
+        });
+    public static settingsWriteFailed = (location: string, error: string) =>
+        l10n.t({
+            message:
+                "Failed to write connection settings to {0}: {1}. Any copies saved before the failure have been kept. Review the saved settings before retrying.",
+            args: [location, error],
+            comment: ["{0} is the configuration location", "{1} is the write error"],
+        });
     public static parentGroupNotFound = (parentId: string) =>
         l10n.t({
             message: "Parent connection group with ID '{0}' was not found.",

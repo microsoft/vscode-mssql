@@ -81,6 +81,7 @@ export class ConnectionConfig implements IConnectionConfig {
     private _hasDisplayedGroupParentWarning: boolean = false;
     private _hasDisplayedOrphanedConnectionWarning: boolean = false;
     private _hasDisplayedDefaultConnectionIdWarning: boolean = false;
+    private _settingsMutation: Promise<void> = Promise.resolve();
 
     /**
      * Constructor
@@ -92,33 +93,37 @@ export class ConnectionConfig implements IConnectionConfig {
 
     private async initialize(): Promise<void> {
         try {
-            const groups = this.getRawGroupsFromSettings();
-            let connections = this.getRawConnectionsFromSettings();
+            await this.withSettingsMutation(async () => {
+                const groups = this.getRawGroupsFromSettings();
+                let connections = this.getRawConnectionsFromSettings();
 
-            let { groupsChanged, connectionsChanged } = this.addOrUpdateRootGroup(
-                groups,
-                connections,
-            );
-            groupsChanged = this.assignConnectionGroupMissingIds(groups) || groupsChanged;
-            connectionsChanged = this.assignConnectionMissingIds(connections) || connectionsChanged;
-
-            const connectionStringCleanup = this.removeConnectionStringsFromProfiles(connections);
-            connections = connectionStringCleanup.profiles;
-            connectionsChanged = connectionStringCleanup.changed || connectionsChanged;
-
-            if (groupsChanged) {
-                this._logger.info(
-                    `Updates made to connection groups. Writing all ${groups.length} group(s) to settings.`,
+                let { groupsChanged, connectionsChanged } = this.addOrUpdateRootGroup(
+                    groups,
+                    connections,
                 );
-                await this.writeConnectionGroupsToSettings(groups);
-            }
+                groupsChanged = this.assignConnectionGroupMissingIds(groups) || groupsChanged;
+                connectionsChanged =
+                    this.assignConnectionMissingIds(connections) || connectionsChanged;
 
-            if (connectionsChanged) {
-                this._logger.info(
-                    `Updates made to connection profiles. Writing all ${connections.length} profile(s) to settings.`,
-                );
-                await this.writeConnectionsToSettings(connections);
-            }
+                const connectionStringCleanup =
+                    this.removeConnectionStringsFromProfiles(connections);
+                connections = connectionStringCleanup.profiles;
+                connectionsChanged = connectionStringCleanup.changed || connectionsChanged;
+
+                if (groupsChanged) {
+                    this._logger.info(
+                        `Updates made to connection groups. Writing all ${groups.length} group(s) to settings.`,
+                    );
+                    await this.writeConnectionGroupsToSettings(groups);
+                }
+
+                if (connectionsChanged) {
+                    this._logger.info(
+                        `Updates made to connection profiles. Writing all ${connections.length} profile(s) to settings.`,
+                    );
+                    await this.writeConnectionsToSettings(connections);
+                }
+            });
         } catch (err) {
             // Resolve anyway so callers waiting on initialization don't hang when settings can't be written
             this._logger.error(
@@ -304,18 +309,20 @@ export class ConnectionConfig implements IConnectionConfig {
      * The config source is inferred when not explicitly provided.
      */
     public async addConnection(profile: IConnectionProfile): Promise<void> {
-        this.populateMissingConnectionMetadata(profile);
-        const location = this.resolveConnectionConfigLocation(profile);
+        return this.withSettingsMutation(async () => {
+            this.populateMissingConnectionMetadata(profile);
+            const location = this.resolveConnectionConfigLocation(profile);
 
-        let profiles = this.getRawConnectionsFromSettings().filter((conn) =>
-            this.isSameConfigLocation(conn, location),
-        );
+            let profiles = this.getRawConnectionsFromSettings().filter((conn) =>
+                this.isSameConfigLocation(conn, location),
+            );
 
-        // Remove the profile if already set
-        profiles = profiles.filter((value) => !Utils.isSameProfile(value, profile));
-        profiles.push(profile);
+            // Remove the profile if already set
+            profiles = profiles.filter((value) => !Utils.isSameProfile(value, profile));
+            profiles.push(profile);
 
-        return await this.writeConnectionsToSettings(profiles, location);
+            return await this.writeConnectionsToSettings(profiles, location);
+        });
     }
 
     /**
@@ -323,39 +330,30 @@ export class ConnectionConfig implements IConnectionConfig {
      * @returns true if the connection was removed, false if the connection wasn't found.
      */
     public async removeConnection(profile: IConnectionProfile): Promise<boolean> {
-        const allProfiles = this.getRawConnectionsFromSettings();
-        const location = this.resolveConnectionConfigLocation(profile, allProfiles);
-        let profiles = allProfiles.filter((conn) => this.isSameConfigLocation(conn, location));
+        return this.withSettingsMutation(async () => {
+            const allProfiles = this.getRawConnectionsFromSettings();
+            const location = this.resolveConnectionConfigLocation(profile, allProfiles);
+            let profiles = allProfiles.filter((conn) => this.isSameConfigLocation(conn, location));
 
-        const found = this.removeConnectionHelper(profile, profiles);
-        if (found) {
-            await this.writeConnectionsToSettings(profiles, location);
-        }
-        return found;
+            const found = this.removeConnectionHelper(profile, profiles);
+            if (found) {
+                await this.writeConnectionsToSettings(profiles, location);
+            }
+            return found;
+        });
     }
 
+    /** Updates only the requested connection changes against the latest saved settings. */
     public async updateConnection(updatedProfile: IConnectionProfile): Promise<boolean> {
-        const allProfiles = this.getRawConnectionsFromSettings();
-        const index = allProfiles.findIndex((profile) => profile.id === updatedProfile.id);
-        if (index === -1) {
-            throw new Error(`Connection with ID ${updatedProfile.id} not found`);
-        }
-
-        const existingProfile = allProfiles[index];
-        const location = await this.resolveLocationAfterParentChange(
+        return this.updateItem(
+            updatedProfile,
             getConnectionDisplayName(updatedProfile),
-            this.resolveConnectionConfigLocation(existingProfile, allProfiles),
-            existingProfile.groupId,
-            updatedProfile.groupId,
+            () => this.getRawConnectionsFromSettings(),
+            (profile) => profile.groupId,
+            (profiles) => this.writeConnectionsToSettings(profiles),
+            (profile) =>
+                this.validateParentHierarchy(profile.groupId, this.getRawGroupsFromSettings()),
         );
-        if (!location) {
-            return false;
-        }
-
-        this.applyConfigLocation(updatedProfile, location);
-        allProfiles[index] = updatedProfile;
-        await this.writeConnectionsToSettings(allProfiles);
-        return true;
     }
 
     //#endregion
@@ -414,54 +412,59 @@ export class ConnectionConfig implements IConnectionConfig {
      * Saves connection groups in parent-first order and persists all changes together.
      */
     public async addGroups(groupsToAdd: IConnectionGroup[]): Promise<void> {
-        if (groupsToAdd.length === 0) {
-            return;
-        }
+        return this.withSettingsMutation(async () => {
+            if (groupsToAdd.length === 0) {
+                return;
+            }
 
-        for (const group of groupsToAdd) {
-            group.id ||= uuid();
-            group.parentId ||= ConnectionConfig.ROOT_GROUP_ID;
-        }
+            for (const group of groupsToAdd) {
+                group.id ||= uuid();
+                group.parentId ||= ConnectionConfig.ROOT_GROUP_ID;
+            }
 
-        const existingGroups = this.getRawGroupsFromSettings();
-        const knownGroupIds = new Set([
-            ConnectionConfig.ROOT_GROUP_ID,
-            ...existingGroups.map((group) => group.id),
-            ...groupsToAdd.map((group) => group.id),
-        ]);
-        const groupWithMissingParent = groupsToAdd.find(
-            (group) => !knownGroupIds.has(group.parentId),
-        );
-        if (groupWithMissingParent) {
-            throw new Error(
-                LocalizedConstants.ConnectionConfig.parentGroupNotFound(
-                    groupWithMissingParent.parentId,
-                ),
+            const existingGroups = this.getRawGroupsFromSettings();
+            const knownGroupIds = new Set([
+                ConnectionConfig.ROOT_GROUP_ID,
+                ...existingGroups.map((group) => group.id),
+                ...groupsToAdd.map((group) => group.id),
+            ]);
+            const groupWithMissingParent = groupsToAdd.find(
+                (group) => !knownGroupIds.has(group.parentId),
             );
-        }
-
-        const { orderedItems, unresolvedItems } = orderItemsParentFirst(
-            groupsToAdd,
-            (group) => group.id,
-            (group) => group.parentId,
-            new Set([ConnectionConfig.ROOT_GROUP_ID, ...existingGroups.map((group) => group.id)]),
-        );
-        if (unresolvedItems.length > 0) {
-            throw new Error(LocalizedConstants.ConnectionConfig.groupHierarchyContainsCycle);
-        }
-
-        for (const group of orderedItems) {
-            if (group.parentId !== ConnectionConfig.ROOT_GROUP_ID) {
-                const parentGroup = this.getParentGroupOrThrow(group.parentId, existingGroups);
-                this.applyConfigLocation(
-                    group,
-                    this.resolveGroupConfigLocation(parentGroup, existingGroups),
+            if (groupWithMissingParent) {
+                throw new Error(
+                    LocalizedConstants.ConnectionConfig.parentGroupNotFound(
+                        groupWithMissingParent.parentId,
+                    ),
                 );
             }
-            existingGroups.push(group);
-        }
 
-        await this.writeConnectionGroupsToSettings(existingGroups);
+            const { orderedItems, unresolvedItems } = orderItemsParentFirst(
+                groupsToAdd,
+                (group) => group.id,
+                (group) => group.parentId,
+                new Set([
+                    ConnectionConfig.ROOT_GROUP_ID,
+                    ...existingGroups.map((group) => group.id),
+                ]),
+            );
+            if (unresolvedItems.length > 0) {
+                throw new Error(LocalizedConstants.ConnectionConfig.groupHierarchyContainsCycle);
+            }
+
+            for (const group of orderedItems) {
+                if (group.parentId !== ConnectionConfig.ROOT_GROUP_ID) {
+                    const parentGroup = this.getParentGroupOrThrow(group.parentId, existingGroups);
+                    this.applyConfigLocation(
+                        group,
+                        this.resolveGroupConfigLocation(parentGroup, existingGroups),
+                    );
+                }
+                existingGroups.push(group);
+            }
+
+            await this.writeConnectionGroupsToSettings(existingGroups);
+        });
     }
 
     /**
@@ -475,118 +478,206 @@ export class ConnectionConfig implements IConnectionConfig {
         id: string,
         contentAction: "delete" | "move" = "delete",
     ): Promise<boolean> {
-        const connections = this.getRawConnectionsFromSettings();
-        const groups = this.getRawGroupsFromSettings();
-        const rootGroup = this.getRootGroup();
+        return this.withSettingsMutation(async () => {
+            const connections = this.getRawConnectionsFromSettings();
+            const groups = this.getRawGroupsFromSettings();
+            const rootGroup = this.getRootGroup();
 
-        if (!rootGroup) {
-            throw new Error("Root group not found when removing group");
-        }
-
-        // Find all subgroup IDs recursively for the delete case
-        const getAllSubgroupIds = (groupId: string): Set<string> => {
-            const subgroupIds = new Set<string>();
-            subgroupIds.add(groupId);
-            for (const group of groups) {
-                if (group.parentId === groupId) {
-                    const childSubgroups = getAllSubgroupIds(group.id);
-                    childSubgroups.forEach((id) => subgroupIds.add(id));
-                }
+            if (!rootGroup) {
+                throw new Error("Root group not found when removing group");
             }
-            return subgroupIds;
-        };
 
-        let connectionModified = false;
-        let remainingConnections: IConnectionProfile[];
-        let remainingGroups: IConnectionGroup[];
-
-        if (contentAction === "delete") {
-            // Get all nested subgroups to remove
-            const groupsToRemove = getAllSubgroupIds(id);
-
-            // Remove all connections in the groups being removed
-            remainingConnections = connections.filter((conn) => {
-                if (groupsToRemove.has(conn.groupId)) {
-                    this._logger.debug(
-                        `Removing connection '${conn.id}' because its group '${conn.groupId}' was removed`,
-                    );
-                    connectionModified = true;
-                    return false;
+            // Find all subgroup IDs recursively for the delete case
+            const getAllSubgroupIds = (groupId: string): Set<string> => {
+                const subgroupIds = new Set<string>();
+                subgroupIds.add(groupId);
+                for (const group of groups) {
+                    if (group.parentId === groupId) {
+                        const childSubgroups = getAllSubgroupIds(group.id);
+                        childSubgroups.forEach((id) => subgroupIds.add(id));
+                    }
                 }
-                return true;
-            });
+                return subgroupIds;
+            };
 
-            // Remove all groups that were marked for removal
-            remainingGroups = groups.filter((g) => !groupsToRemove.has(g.id));
-        } else {
-            // Move immediate child connections to root
-            remainingConnections = connections.map((conn) => {
-                if (conn.groupId === id) {
-                    this._logger.debug(
-                        `Moving connection '${conn.id}' to root group because its immediate parent group '${id}' was removed`,
-                    );
-                    connectionModified = true;
-                    return { ...conn, groupId: rootGroup.id };
-                }
-                return conn;
-            });
+            let connectionModified = false;
+            let remainingConnections: IConnectionProfile[];
+            let remainingGroups: IConnectionGroup[];
 
-            // First remove the target group
-            remainingGroups = groups.filter((g) => g.id !== id);
+            if (contentAction === "delete") {
+                // Get all nested subgroups to remove
+                const groupsToRemove = getAllSubgroupIds(id);
 
-            // Then reparent immediate children to root
-            remainingGroups = remainingGroups.map((g) => {
-                if (g.parentId === id) {
-                    this._logger.debug(
-                        `Moving group '${g.id}' to root group because its immediate parent group '${id}' was removed`,
-                    );
-                    return { ...g, parentId: rootGroup.id };
-                }
-                return g;
-            });
-        }
+                // Remove all connections in the groups being removed
+                remainingConnections = connections.filter((conn) => {
+                    if (groupsToRemove.has(conn.groupId)) {
+                        this._logger.debug(
+                            `Removing connection '${conn.id}' because its group '${conn.groupId}' was removed`,
+                        );
+                        connectionModified = true;
+                        return false;
+                    }
+                    return true;
+                });
 
-        if (remainingGroups.length === groups.length) {
-            this._logger.error(`Connection group with ID '${id}' not found when removing.`);
-            return false;
-        }
+                // Remove all groups that were marked for removal
+                remainingGroups = groups.filter((g) => !groupsToRemove.has(g.id));
+            } else {
+                // Move immediate child connections to root
+                remainingConnections = connections.map((conn) => {
+                    if (conn.groupId === id) {
+                        this._logger.debug(
+                            `Moving connection '${conn.id}' to root group because its immediate parent group '${id}' was removed`,
+                        );
+                        connectionModified = true;
+                        return { ...conn, groupId: rootGroup.id };
+                    }
+                    return conn;
+                });
 
-        if (connectionModified) {
-            await this.writeConnectionsToSettings(remainingConnections);
-        }
+                // First remove the target group
+                remainingGroups = groups.filter((g) => g.id !== id);
 
-        await this.writeConnectionGroupsToSettings(remainingGroups);
-        return true;
+                // Then reparent immediate children to root
+                remainingGroups = remainingGroups.map((g) => {
+                    if (g.parentId === id) {
+                        this._logger.debug(
+                            `Moving group '${g.id}' to root group because its immediate parent group '${id}' was removed`,
+                        );
+                        return { ...g, parentId: rootGroup.id };
+                    }
+                    return g;
+                });
+            }
+
+            if (remainingGroups.length === groups.length) {
+                this._logger.error(`Connection group with ID '${id}' not found when removing.`);
+                return false;
+            }
+
+            if (connectionModified) {
+                await this.writeConnectionsToSettings(remainingConnections);
+            }
+
+            await this.writeConnectionGroupsToSettings(remainingGroups);
+            return true;
+        });
     }
 
+    /** Updates a group after revalidating its latest parent hierarchy and storage location. */
     public async updateGroup(updatedGroup: IConnectionGroup): Promise<boolean> {
-        const groups = this.getRawGroupsFromSettings();
-        const index = groups.findIndex((g) => g.id === updatedGroup.id);
-        if (index === -1) {
-            throw Error(`Connection group with ID ${updatedGroup.id} not found when updating`);
-        }
-
-        const existingGroup = groups[index];
-        this.validateGroupParent(updatedGroup, groups);
-        const location = await this.resolveLocationAfterParentChange(
+        return this.updateItem(
+            updatedGroup,
             updatedGroup.name,
-            this.resolveGroupConfigLocation(existingGroup, groups),
-            existingGroup.parentId,
-            updatedGroup.parentId,
+            () => this.getRawGroupsFromSettings(),
+            (group) => group.parentId,
+            (groups) => this.writeConnectionGroupsToSettings(groups),
+            (group, groups) => this.validateGroupParent(group, groups),
         );
-        if (!location) {
-            return false;
-        }
-
-        this.applyConfigLocation(updatedGroup, location);
-        groups[index] = updatedGroup;
-        await this.writeConnectionGroupsToSettings(groups);
-        return true;
     }
 
     //#endregion
 
     //#region Shared/Helpers
+
+    private withSettingsMutation<T>(work: () => Promise<T>): Promise<T> {
+        const pending = this._settingsMutation.then(work);
+        // Keep the queue usable after a failed write; the caller still receives the rejection.
+        this._settingsMutation = pending.then(
+            () => undefined,
+            () => undefined,
+        );
+        return pending;
+    }
+
+    private async updateItem<T extends IConnectionProfile | IConnectionGroup>(
+        updatedItem: T,
+        itemName: string,
+        readItems: () => T[],
+        getParentId: (item: T) => string | undefined,
+        writeItems: (items: T[]) => Promise<void>,
+        validateParent?: (item: T, items: T[]) => void,
+    ): Promise<boolean> {
+        let changes: Partial<T> | undefined;
+        const deletedKeys = new Set<keyof T>();
+        const readUpdate = () => {
+            const items = readItems();
+            const index = items.findIndex((item) => item.id === updatedItem.id);
+            if (index === -1) {
+                throw new Error(LocalizedConstants.ConnectionConfig.itemNotFound(updatedItem.id));
+            }
+
+            const existing = items[index];
+            if (!changes) {
+                changes = {};
+                const keys = new Set([
+                    ...Object.keys(existing),
+                    ...Object.keys(updatedItem),
+                ] as (keyof T)[]);
+                for (const key of keys) {
+                    if (key === "configSource" || key === "workspaceFolderUri") {
+                        continue;
+                    }
+                    if (!Object.hasOwn(updatedItem, key)) {
+                        deletedKeys.add(key);
+                    } else if (!isEqual(updatedItem[key], existing[key])) {
+                        changes[key] = updatedItem[key];
+                    }
+                }
+            }
+
+            const item = { ...existing, ...changes };
+            for (const key of deletedKeys) {
+                delete item[key];
+            }
+            const parentId = getParentId(item);
+            const parent =
+                parentId && parentId !== ConnectionConfig.ROOT_GROUP_ID
+                    ? this.getParentGroupOrThrow(parentId, this.getRawGroupsFromSettings())
+                    : undefined;
+            validateParent?.(item, items);
+            const context = {
+                currentLocation: this.createConfigLocation(
+                    existing.configSource,
+                    existing.workspaceFolderUri,
+                ),
+                currentParentId: getParentId(existing),
+                updatedParentId: parentId,
+                parent,
+            };
+            return { items, index, item, context };
+        };
+
+        for (;;) {
+            const beforePrompt = await this.withSettingsMutation(async () => readUpdate());
+            const { currentLocation, currentParentId, updatedParentId } = beforePrompt.context;
+            // Modal input must not hold the mutation queue and block unrelated saves.
+            const location = await this.resolveLocationAfterParentChange(
+                itemName,
+                currentLocation,
+                currentParentId,
+                updatedParentId,
+            );
+            if (!location) {
+                return false;
+            }
+
+            const saved = await this.withSettingsMutation(async () => {
+                const latest = readUpdate();
+                if (!isEqual(latest.context, beforePrompt.context)) {
+                    return false; // Ask again if the locations shown to the user changed.
+                }
+                this.applyConfigLocation(latest.item, location);
+                latest.items[latest.index] = latest.item;
+                await writeItems(latest.items);
+                this.applyConfigLocation(updatedItem, location);
+                return true;
+            });
+            if (saved) {
+                return true;
+            }
+        }
+    }
 
     private removeConnectionHelper(
         toRemove: IConnectionProfile,
@@ -932,10 +1023,6 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /**
-     * Replace existing profiles in the user settings with a new set of profiles.
-     * @param profiles the set of profiles to insert into the settings file.
-     */
-    /**
      * Persists the provided profiles. When `location` is undefined, this method automatically
      * splits the profiles by physical storage location.
      */
@@ -945,7 +1032,8 @@ export class ConnectionConfig implements IConnectionConfig {
     ): Promise<void> {
         const groupedProfiles = new Map<string, IConnectionProfile[]>();
         const locationsToUpdate = new Map<string, ConfigLocation>();
-        for (const profile of this.getRawConnectionsFromSettings()) {
+        const existingProfiles = this.getRawConnectionsFromSettings();
+        for (const profile of existingProfiles) {
             const existingLocation = this.resolveConnectionConfigLocation(profile);
             locationsToUpdate.set(this.getConfigLocationKey(existingLocation), existingLocation);
         }
@@ -969,10 +1057,12 @@ export class ConnectionConfig implements IConnectionConfig {
             const targetProfiles = groupedProfiles.get(locationKey) ?? [];
             await this.persistConnectionsForLocation(targetProfiles, location);
         } else {
-            for (const [locationKey, configLocation] of locationsToUpdate) {
-                const targetProfiles = groupedProfiles.get(locationKey) ?? [];
-                await this.persistConnectionsForLocation(targetProfiles, configLocation);
-            }
+            await this.persistItemsAcrossLocations(
+                existingProfiles,
+                groupedProfiles,
+                locationsToUpdate,
+                (items, target) => this.persistConnectionsForLocation(items, target),
+            );
         }
     }
 
@@ -1012,7 +1102,8 @@ export class ConnectionConfig implements IConnectionConfig {
     ): Promise<void> {
         const groupedGroups = new Map<string, IConnectionGroup[]>();
         const locationsToUpdate = new Map<string, ConfigLocation>();
-        for (const group of this.getRawGroupsFromSettings()) {
+        const existingGroups = this.getRawGroupsFromSettings();
+        for (const group of existingGroups) {
             const existingLocation = this.resolveGroupConfigLocation(group);
             locationsToUpdate.set(this.getConfigLocationKey(existingLocation), existingLocation);
         }
@@ -1034,9 +1125,65 @@ export class ConnectionConfig implements IConnectionConfig {
             const targetGroups = groupedGroups.get(locationKey) ?? [];
             await this.persistGroupsForLocation(targetGroups, location);
         } else {
-            for (const [locationKey, configLocation] of locationsToUpdate) {
-                const targetGroups = groupedGroups.get(locationKey) ?? [];
-                await this.persistGroupsForLocation(targetGroups, configLocation);
+            await this.persistItemsAcrossLocations(
+                existingGroups,
+                groupedGroups,
+                locationsToUpdate,
+                (items, target) => this.persistGroupsForLocation(items, target),
+            );
+        }
+    }
+
+    private async persistItemsAcrossLocations<T extends IConnectionProfile | IConnectionGroup>(
+        existingItems: T[],
+        groupedItems: Map<string, T[]>,
+        locations: Map<string, ConfigLocation>,
+        persist: (items: T[], location: ConfigLocation) => Promise<void>,
+    ): Promise<void> {
+        const destinationKeys = new Map(
+            [...groupedItems].flatMap(([key, items]) =>
+                items.map((item) => [item.id, key] as const),
+            ),
+        );
+        const plans = [...locations].map(([key, location]) => {
+            const desired = groupedItems.get(key) ?? [];
+            const existing = existingItems.filter((item) =>
+                this.isSameConfigLocation(item, location),
+            );
+            const movingOut = existing.filter(
+                (item) => destinationKeys.has(item.id) && destinationKeys.get(item.id) !== key,
+            );
+            const movingIds = new Set(movingOut.map((item) => item.id));
+            const staged = [...desired];
+            for (const [index, item] of existing.entries()) {
+                if (movingIds.has(item.id)) {
+                    staged.splice(index, 0, item);
+                }
+            }
+            return { location, desired, staged, movingOut };
+        });
+
+        const write = async (items: T[], location: ConfigLocation) => {
+            try {
+                await persist(items, location);
+            } catch (error) {
+                const message = LocalizedConstants.ConnectionConfig.settingsWriteFailed(
+                    this.getConfigLocationDisplayName(location),
+                    getErrorMessage(error),
+                );
+                this._logger.error(message);
+                throw new Error(message);
+            }
+        };
+
+        // Keep every source copy until all destinations have accepted their new contents.
+        // A cleanup failure deliberately leaves recoverable duplicates rather than losing data.
+        for (const plan of plans) {
+            await write(plan.staged, plan.location);
+        }
+        for (const plan of plans) {
+            if (plan.movingOut.length > 0) {
+                await write(plan.desired, plan.location);
             }
         }
     }
@@ -1202,21 +1349,31 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     private validateGroupParent(updatedGroup: IConnectionGroup, groups: IConnectionGroup[]): void {
-        if (!updatedGroup.parentId || updatedGroup.parentId === ConnectionConfig.ROOT_GROUP_ID) {
+        this.validateParentHierarchy(updatedGroup.parentId, groups, updatedGroup);
+    }
+
+    private validateParentHierarchy(
+        parentId: string | undefined,
+        groups: IConnectionGroup[],
+        updatedGroup?: IConnectionGroup,
+    ): void {
+        if (!parentId || parentId === ConnectionConfig.ROOT_GROUP_ID) {
             return;
         }
 
-        const selectedParent = this.getParentGroupOrThrow(updatedGroup.parentId, groups);
-        const visitedGroupIds = new Set([updatedGroup.id]);
+        const selectedParent = this.getParentGroupOrThrow(parentId, groups);
+        const visitedGroupIds = new Set(updatedGroup ? [updatedGroup.id] : []);
         let ancestor = selectedParent;
 
         while (ancestor.id !== ConnectionConfig.ROOT_GROUP_ID) {
             if (visitedGroupIds.has(ancestor.id)) {
                 throw new Error(
-                    LocalizedConstants.ConnectionConfig.groupMoveCreatesCycle(
-                        updatedGroup.name,
-                        selectedParent.name,
-                    ),
+                    updatedGroup
+                        ? LocalizedConstants.ConnectionConfig.groupMoveCreatesCycle(
+                              updatedGroup.name,
+                              selectedParent.name,
+                          )
+                        : LocalizedConstants.ConnectionConfig.groupHierarchyContainsCycle,
                 );
             }
 

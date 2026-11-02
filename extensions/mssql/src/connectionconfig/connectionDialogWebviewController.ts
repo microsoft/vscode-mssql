@@ -1706,7 +1706,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         this._mainController.connectionManager.getUriForConnection(this._connectionBeingEdited);
-        await this._objectExplorerProvider.removeConnectionNodes([this._connectionBeingEdited]);
+        await this._objectExplorerProvider.removeConnectionNodes([this._connectionBeingEdited], {
+            preserveProfiles: true,
+        });
 
         this._connectionBeingEdited = undefined;
     }

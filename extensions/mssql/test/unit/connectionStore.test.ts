@@ -157,6 +157,92 @@ suite("ConnectionStore Tests", () => {
         expect(mockCredentialStore.saveCredential).to.have.been.calledOnce;
     });
 
+    for (const intoFolder of [true, false]) {
+        test(`updateProfile synchronizes location before a subsequent save ${intoFolder ? "into" : "out of"} a folder`, async () => {
+            const folderUri = vscode.Uri.file("/workspace/folder").toString();
+            const destination = intoFolder
+                ? vscode.ConfigurationTarget.WorkspaceFolder
+                : vscode.ConfigurationTarget.Workspace;
+            mockConnectionConfig.updateConnection.callsFake(async (savedProfile) => {
+                savedProfile.configSource = destination;
+                if (intoFolder) {
+                    savedProfile.workspaceFolderUri = folderUri;
+                } else {
+                    delete savedProfile.workspaceFolderUri;
+                }
+                return true;
+            });
+            connectionStore = new ConnectionStore(
+                mockContextService,
+                mockCredentialStore,
+                mockConnectionConfig,
+                mockLogger,
+            );
+            await connectionStore.initialized;
+            const profile: IConnectionProfile = {
+                ...sqlAuthConn,
+                id: "moving-profile",
+                configSource: intoFolder
+                    ? vscode.ConfigurationTarget.Global
+                    : vscode.ConfigurationTarget.WorkspaceFolder,
+                ...(intoFolder ? {} : { workspaceFolderUri: folderUri }),
+            };
+
+            expect(await connectionStore.updateProfile(profile)).to.be.true;
+            await connectionStore.saveProfile(profile);
+
+            expect(profile.configSource).to.equal(destination);
+            expect(mockConnectionConfig.addConnection).to.have.been.calledWith(
+                sinon.match({ id: profile.id, configSource: destination }),
+            );
+            const resavedProfile = mockConnectionConfig.addConnection.firstCall.args[0];
+            if (intoFolder) {
+                expect(profile.workspaceFolderUri).to.equal(folderUri);
+                expect(resavedProfile.workspaceFolderUri).to.equal(folderUri);
+            } else {
+                expect(profile).not.to.have.property("workspaceFolderUri");
+                expect(resavedProfile).not.to.have.property("workspaceFolderUri");
+            }
+        });
+    }
+
+    for (const fails of [false, true]) {
+        test(`updateProfile keeps the caller location when the update ${fails ? "fails" : "is cancelled"}`, async () => {
+            mockConnectionConfig.updateConnection.callsFake(async (savedProfile) => {
+                savedProfile.configSource = vscode.ConfigurationTarget.Workspace;
+                delete savedProfile.workspaceFolderUri;
+                if (fails) {
+                    throw new Error("Write failed");
+                }
+                return false;
+            });
+            connectionStore = new ConnectionStore(
+                mockContextService,
+                mockCredentialStore,
+                mockConnectionConfig,
+                mockLogger,
+            );
+            await connectionStore.initialized;
+            const profile: IConnectionProfile = {
+                ...sqlAuthConn,
+                id: "moving-profile",
+                configSource: vscode.ConfigurationTarget.WorkspaceFolder,
+                workspaceFolderUri: vscode.Uri.file("/workspace/folder").toString(),
+            };
+            const original = { ...profile };
+            let error: Error | undefined;
+            try {
+                expect(await connectionStore.updateProfile(profile)).to.be.false;
+            } catch (caught) {
+                error = caught as Error;
+            }
+
+            expect(error?.message).to.equal(fails ? "Write failed" : undefined);
+            expect(profile).to.deep.equal(original);
+            expect(mockCredentialStore.saveCredential).not.to.have.been.called;
+        });
+    }
+
     test("formatCredentialId", () => {
         const testServer = "localhost";
         const testDatabase = "TestDb";

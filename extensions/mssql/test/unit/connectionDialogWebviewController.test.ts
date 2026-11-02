@@ -1217,7 +1217,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(connectionStore.updateProfile.firstCall.args[1]).to.deep.include(testConnection);
             expect(connectionStore.saveProfile).to.not.have.been.called;
             expect(connectionStore.removeProfile).to.not.have.been.called;
-            expect(mockObjectExplorerProvider.removeConnectionNodes).to.have.been.calledOnce;
+            expect(mockObjectExplorerProvider.removeConnectionNodes).to.have.been.calledWith(
+                [sinon.match(testConnection)],
+                { preserveProfiles: true },
+            );
             expect(controller["_connectionBeingEdited"]).to.be.undefined;
             expect(controller.state.connectionStatus).to.equal(ApiStatus.Loaded);
         });

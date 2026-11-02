@@ -2015,6 +2015,14 @@
         "message": "Edit Connection Group - {0}",
         "comment": ["{0} is the connection group name"]
     },
+    "The connection or connection group with ID '{0}' no longer exists./{0} is the ID of the connection or connection group being updated": {
+        "message": "The connection or connection group with ID '{0}' no longer exists.",
+        "comment": ["{0} is the ID of the connection or connection group being updated"]
+    },
+    "Failed to write connection settings to {0}: {1}. Any copies saved before the failure have been kept. Review the saved settings before retrying./{0} is the configuration location{1} is the write error": {
+        "message": "Failed to write connection settings to {0}: {1}. Any copies saved before the failure have been kept. Review the saved settings before retrying.",
+        "comment": ["{0} is the configuration location", "{1} is the write error"]
+    },
     "Parent connection group with ID '{0}' was not found./{0} is the missing parent connection group ID": {
         "message": "Parent connection group with ID '{0}' was not found.",
         "comment": ["{0} is the missing parent connection group ID"]

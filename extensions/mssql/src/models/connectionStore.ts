@@ -424,6 +424,13 @@ export class ConnectionStore implements IConnectionStore {
             return false;
         }
 
+        profile.configSource = savedProfile.configSource;
+        if (savedProfile.workspaceFolderUri) {
+            profile.workspaceFolderUri = savedProfile.workspaceFolderUri;
+        } else {
+            delete profile.workspaceFolderUri;
+        }
+
         if (originalProfile) {
             await this.removeProfileArtifacts(originalProfile);
         }

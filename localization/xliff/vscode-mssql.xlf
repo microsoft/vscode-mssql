@@ -5240,6 +5240,11 @@
     <trans-unit id="++CODE++f1b9a1054c1b8d303c21a78abec22481d5d6c9e56dc0d06d19ff3f2a70815de4">
       <source xml:lang="en">Failed to update the .sqlproj after moving the file: {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++a6179931bae0f7fcdacf1ed63ebc03d32bcb9bc9a8c546b1117fe62526552542">
+      <source xml:lang="en">Failed to write connection settings to {0}: {1}. Any copies saved before the failure have been kept. Review the saved settings before retrying.</source>
+      <note>{0} is the configuration location
+{1} is the write error</note>
+    </trans-unit>
     <trans-unit id="++CODE++3da3d1bf74778c00be7d4094e931f49f5fc1d9532d1dbc01d55a2ca34921984c">
       <source xml:lang="en">Failed to write the Data API builder configuration file.</source>
     </trans-unit>
@@ -11559,6 +11564,10 @@
     <trans-unit id="++CODE++a238f8494c24670d2a99bca7863c04c3b523e1ffd7502d240c9aadca7e53c9c1">
       <source xml:lang="en">The connection ID &apos;{0}&apos; set in &apos;mssql.defaultConnectionId&apos; does not match any known connection profile. New editors will fall back to transferring the active connection.</source>
       <note>{0} is the connection ID that was not found</note>
+    </trans-unit>
+    <trans-unit id="++CODE++37ae454a0acf9c64b44acf565a1114197e690b85ce9021c98f427b344aae246e">
+      <source xml:lang="en">The connection or connection group with ID &apos;{0}&apos; no longer exists.</source>
+      <note>{0} is the ID of the connection or connection group being updated</note>
     </trans-unit>
     <trans-unit id="++CODE++70ece7402eaedb300906107bea039eae51bf2b850127528ddb1d48e174d64515">
       <source xml:lang="en">The connection profile for this request no longer exists.</source>

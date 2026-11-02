@@ -408,8 +408,21 @@ suite("Object Explorer Provider Tests", function () {
         objectExplorerServiceStub.removeConnectionNodes.resolves();
         const connections = [{ server: "test_server" } as IConnectionInfo];
         await objectExplorerProvider.removeConnectionNodes(connections);
-        expect(objectExplorerServiceStub.removeConnectionNodes).to.have.been.calledOnceWithExactly(
+        expect(objectExplorerServiceStub.removeConnectionNodes).to.have.been.calledWith(
             connections,
+            undefined,
+        );
+    });
+
+    test("forwards profile preservation when removing edited connection nodes", async () => {
+        objectExplorerServiceStub.removeConnectionNodes.resolves(true);
+        const connections = [{ server: "test_server" } as IConnectionInfo];
+
+        await objectExplorerProvider.removeConnectionNodes(connections, { preserveProfiles: true });
+
+        expect(objectExplorerServiceStub.removeConnectionNodes).to.have.been.calledWith(
+            connections,
+            { preserveProfiles: true },
         );
     });
 
