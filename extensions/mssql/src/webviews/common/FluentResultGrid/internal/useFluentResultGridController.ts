@@ -63,7 +63,9 @@ import {
     activateFluentResultGridCellWithoutChangingSelection,
     getFirstVisibleCellInFluentResultGridRange,
     getDisplayedFluentResultGridSelectionForCopy,
+    getFluentResultGridDataSelectionsFromRanges,
     getFluentResultGridSlickRangesFromDataSelections,
+    isFluentResultGridAllCellsSelected,
     clearFluentResultGridSelection,
 } from "./fluentResultGridSelection";
 import { getFluentResultGridColumnResizeDoubleClickTarget } from "./fluentResultGridColumnAutosize";
@@ -84,8 +86,12 @@ export function useFluentResultGridController({
     inMemoryDataProcessingThreshold = FLUENT_RESULT_GRID_DEFAULT_IN_MEMORY_DATA_PROCESSING_THRESHOLD,
     gridSettings,
     rowHeight: rowHeightOverride,
+    windowSize,
+    autosizeSampleRows,
+    autosizeMaxColumnWidth,
     toolbar,
     commands,
+    enableColumnReorder = true,
     viewMode = "grid",
     canToggleViewMode,
     canToggleMaximize,
@@ -93,6 +99,9 @@ export function useFluentResultGridController({
     initialState,
     initialStateReady = true,
     onCommand,
+    onGridCreated,
+    onGridDisposed,
+    onGridRendered,
     onStateChange,
     onSelectionChange,
     onSelectionSummaryChange,
@@ -144,10 +153,13 @@ export function useFluentResultGridController({
         inMemoryDataProcessingThreshold,
         onInMemoryDataProcessingThresholdExceeded,
         restoreHorizontalScrollPosition: restoreFluentResultGridHorizontalScrollPosition,
+        windowSize,
     });
 
     const layoutController = useFluentResultGridLayout({
         autoSizeColumnsMode,
+        autosizeSampleRows,
+        autosizeMaxColumnWidth,
         containerRef,
         dataView: dataController.dataView,
         dataViewRef: dataController.dataViewRef,
@@ -159,9 +171,10 @@ export function useFluentResultGridController({
         () =>
             createFluentResultGridColumns({
                 columnInfo: stableColumnInfo,
+                enableColumnReorder,
                 showRowNumberColumn,
             }),
-        [showRowNumberColumn, stableColumnInfo],
+        [enableColumnReorder, showRowNumberColumn, stableColumnInfo],
     );
 
     const emitStateChange = useCallback(
@@ -201,7 +214,13 @@ export function useFluentResultGridController({
     );
 
     useEffect(() => {
+        const flushOnPageHide = () => persistScrollPosition.flush();
+        window.addEventListener("pagehide", flushOnPageHide);
         return () => {
+            window.removeEventListener("pagehide", flushOnPageHide);
+            // A fast tab switch/webview teardown can happen inside the 100ms
+            // debounce window. Flush the last viewport before disposing it.
+            persistScrollPosition.flush();
             persistScrollPosition.cancel();
         };
     }, [persistScrollPosition]);
@@ -398,7 +417,12 @@ export function useFluentResultGridController({
                     });
                 }
 
-                updateHeaderButtonStates(grid);
+                if (
+                    dataController.hasActiveSort() ||
+                    hasActiveFluentResultGridFilters(dataController.filterStateRef.current)
+                ) {
+                    updateHeaderButtonStates(grid);
+                }
                 grid.invalidate();
                 if (shouldAutoSizeColumns) {
                     layoutController.scheduleAutoSizeColumns();
@@ -453,7 +477,7 @@ export function useFluentResultGridController({
             enableAutoSizeColumns: false,
             enableCellNavigation: true,
             enableColumnPicker: false,
-            enableColumnReorder: true,
+            enableColumnReorder,
             // Resolved in handleColumnsResizeDblClick instead: the library's
             // resize-by-content measures dataView.getItems(), which is empty for this
             // grid's windowed row store and would collapse the column.
@@ -463,7 +487,9 @@ export function useFluentResultGridController({
             enableExcelCopyBuffer: false,
             enableGridMenu: true,
             enableSorting: false,
-            enableMouseWheelScrollHandler: true,
+            // Let Chromium preserve trackpad pixel deltas and momentum. The
+            // legacy wheel handler reduces horizontal gestures to small steps.
+            enableMouseWheelScrollHandler: false,
             enableSelection: true,
             forceFitColumns: false,
             frozenColumn: frozenColumnIndex,
@@ -556,6 +582,7 @@ export function useFluentResultGridController({
             dataController.filterStateRef,
             dataController.hasActiveSort,
             emitStateChange,
+            enableColumnReorder,
             frozenColumnIndex,
             gridId,
             layoutController,
@@ -572,6 +599,9 @@ export function useFluentResultGridController({
         detachFrozenPaneWheelHandler: layoutController.detachFrozenPaneWheelHandler,
         emitStateChange,
         handleKeyDown: keyboardController.handleKeyDown,
+        onGridCreated,
+        onGridDisposed,
+        onGridRendered,
         onSelectionChange,
         onSelectionSummaryChange,
         persistScrollPosition,
@@ -580,6 +610,53 @@ export function useFluentResultGridController({
         shouldSuppressSelectionSummaryChange: () => isRestoringInitialStateRef.current,
         transformedRowsRef: dataController.transformedRowsRef,
     });
+
+    const scrollToRow = useCallback((rowIndex: number): boolean => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid || grid.getDataLength() <= 0) {
+            return false;
+        }
+        grid.scrollRowToTop(Math.max(0, Math.min(Math.trunc(rowIndex), grid.getDataLength() - 1)));
+        return true;
+    }, []);
+
+    const selectAll = useCallback((): "selected" | "alreadySelected" | false => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid || grid.getDataLength() <= 0) {
+            return false;
+        }
+        const selected = grid.getSelectionModel()?.getSelectedRanges() ?? [];
+        const current = selected.length === 1 ? selected[0] : undefined;
+        const alreadySelected = isFluentResultGridAllCellsSelected(
+            selected,
+            grid.getDataLength(),
+            grid.getColumns().length,
+        );
+        commandController.selectAllCells(grid);
+        // SlickGrid suppresses its change event when the same full range was
+        // restored from view state. Imperative callers still need the same
+        // selection-summary contract as a user-initiated change.
+        if (alreadySelected && current) {
+            void onSelectionSummaryChange?.(
+                getFluentResultGridDataSelectionsFromRanges([current], grid.getColumns()),
+            );
+        }
+        return alreadySelected ? "alreadySelected" : "selected";
+    }, [commandController.selectAllCells, onSelectionSummaryChange]);
+
+    const scrollToColumn = useCallback((columnIndex: number): boolean => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid || grid.getDataLength() <= 0) {
+            return false;
+        }
+        const target = Math.max(0, Math.trunc(columnIndex));
+        const cell = grid.getColumns().findIndex((column) => Number(column.field) === target);
+        if (cell < 0) {
+            return false;
+        }
+        grid.scrollCellIntoView(Math.max(0, grid.getViewport().top), cell, false);
+        return true;
+    }, []);
 
     const handleColumnsResizeDblClick = useCallback(
         (event: CustomEvent) => {
@@ -602,6 +679,9 @@ export function useFluentResultGridController({
         displayedRowCount: dataController.displayedRowCount,
         clearSelection,
         focusGrid: keyboardController.focusGrid,
+        selectAll,
+        scrollToRow,
+        scrollToColumn,
         gridOptions,
         handleBeforeHeaderCellDestroy: headerController.handleBeforeHeaderCellDestroy,
         handleClick: commandController.handleClick,

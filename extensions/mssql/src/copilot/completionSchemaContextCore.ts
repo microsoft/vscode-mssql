@@ -6,15 +6,15 @@
 /**
  * Inline-completion schema context CORE (MD-4): the budget profiles,
  * runtime-settings resolution, payload normalization, relevance-term
- * extraction, and relevance-driven selection pipeline ported VERBATIM from
+ * extraction, and relevance-driven selection pipeline originally ported from
  * dev/karlb/completions @ 065208582 sqlInlineCompletionSchemaContextService.ts.
  *
  * The original service fetched a RawSchemaContextPayload with one mega
  * T-SQL query per connection; here the payload is synthesized from the
  * MetadataService catalog snapshot (catalogSchemaContextPayload.ts) and this
  * module stays pure: payload + relevance text + budget in, deterministic
- * SqlInlineCompletionSchemaContext out. Keeping the pipeline verbatim is
- * what the MD-4 golden parity test asserts against.
+ * SqlInlineCompletionSchemaContext out. Golden tests cover prompt formatting;
+ * selection tests cover budgeted foreign-key paths between mentioned tables.
  */
 
 import { InlineCompletionDebugSchemaContextOverrides } from "../sharedInterfaces/inlineCompletionDebug";
@@ -358,7 +358,7 @@ const schemaBudgetProfiles: Record<
         smallSchemaThreshold: 40,
         largeSchemaThreshold: 800,
         outlierSchemaThreshold: 7500,
-        foreignKeyExpansionDepth: 1,
+        foreignKeyExpansionDepth: 2,
         foreignKeyExpansionObjectCap: 16,
         columnNameRelevanceWeight: 0.36,
         defaultSchemaWeight: 12000,
@@ -1468,10 +1468,7 @@ export function selectSchemaContextForPrompt(
 
     const tableNameOnlyInventory = rankQualifiedNames(
         uniqueStringsByLowerCase(
-            [
-                ...rankedTables.slice(effectiveBudget.maxTables).map((table) => table.name),
-                ...(context.tableNameOnlyInventory ?? []),
-            ],
+            [...rankedTables.map((table) => table.name), ...(context.tableNameOnlyInventory ?? [])],
             caseSensitive,
         ).filter((tableName) => !selectedTableNames.has(identityKey(tableName, caseSensitive))),
         relevanceTerms,
@@ -1793,7 +1790,17 @@ function selectDetailedTablesWithForeignKeyExpansion(
     if (expansionReserve > 0) {
         const reverseReferenceMap = buildReverseForeignKeyReferenceMap(allTables, caseSensitive);
         let frontier = [...selectedByName.values()];
-
+        // Spend the reserved slots on complete joins between explicitly named
+        // tables before a popular table's unrelated neighbors consume them.
+        addConnectingForeignKeyTables(
+            selectedByName,
+            tableByName,
+            reverseReferenceMap,
+            relevanceTerms,
+            budget.foreignKeyExpansionDepth,
+            maxDetailedTables,
+            caseSensitive,
+        );
         for (let depth = 0; depth < budget.foreignKeyExpansionDepth; depth++) {
             const nextFrontier: SqlInlineCompletionSchemaObject[] = [];
             for (const table of frontier) {
@@ -1843,6 +1850,70 @@ function selectDetailedTablesWithForeignKeyExpansion(
         defaultSchema,
         budget,
     ).slice(0, maxDetailedTables);
+}
+
+function addConnectingForeignKeyTables(
+    selected: Map<string, SqlInlineCompletionSchemaObject>,
+    all: Map<string, SqlInlineCompletionSchemaObject>,
+    reverseReferences: Map<string, string[]>,
+    relevanceTerms: SchemaRelevanceTerm[],
+    expansionDepth: number,
+    maxTables: number,
+    caseSensitive: boolean,
+): void {
+    const terms = new Set(relevanceTerms.map((term) => term.text));
+    const anchors = [...selected.values()].filter((table) => {
+        const [, name] = splitQualifiedName(table.name);
+        return (
+            terms.has(normalizeRelevanceTerm(name) ?? "") ||
+            terms.has(normalizeRelevanceTerm(table.name) ?? "")
+        );
+    });
+    for (let index = 0; index < anchors.length - 1 && selected.size < maxTables; index++) {
+        const start = identityKey(anchors[index].name, caseSensitive);
+        const targets = new Set(
+            anchors.slice(index + 1).map((table) => identityKey(table.name, caseSensitive)),
+        );
+        const parents = new Map<string, string | undefined>([[start, undefined]]);
+        const queue = [{ key: start, depth: 0 }];
+        // A path of at most 2 * depth edges stays within the configured radius
+        // of its two anchors. Never insert a partial path that exceeds the cap.
+        for (let cursor = 0; cursor < queue.length && selected.size < maxTables; cursor++) {
+            const { key, depth } = queue[cursor];
+            if (targets.has(key)) {
+                const missing: string[] = [];
+                for (
+                    let step: string | undefined = key;
+                    step !== undefined;
+                    step = parents.get(step)
+                ) {
+                    if (!selected.has(step)) {
+                        missing.push(step);
+                    }
+                }
+                if (selected.size + missing.length <= maxTables) {
+                    for (const step of missing.reverse()) {
+                        selected.set(step, all.get(step)!);
+                    }
+                }
+            }
+            if (depth >= expansionDepth * 2) {
+                continue;
+            }
+            const table = all.get(key)!;
+            for (const related of getRelatedForeignKeyTableNames(
+                table,
+                reverseReferences,
+                caseSensitive,
+            )) {
+                const next = identityKey(related, caseSensitive);
+                if (!parents.has(next) && all.has(next)) {
+                    parents.set(next, key);
+                    queue.push({ key: next, depth: depth + 1 });
+                }
+            }
+        }
+    }
 }
 
 function getForeignKeyExpansionReserve(

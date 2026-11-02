@@ -3,6 +3,46 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const fs = require("fs").promises;
+const path = require("path");
+function preloadManifestPlugin() {
+    return {
+        name: "webview-preload-manifest",
+        setup(build) {
+            build.onEnd(async (result) => {
+                if (result.errors.length > 0 || !result.metafile) {
+                    return;
+                }
+                const outputs = result.metafile.outputs;
+                const manifest = {};
+                for (const [file, output] of Object.entries(outputs)) {
+                    if (!output.entryPoint || !file.endsWith(".js")) {
+                        continue;
+                    }
+                    const seen = new Set();
+                    const visit = (current) => {
+                        if (seen.has(current) || !outputs[current]) {
+                            return;
+                        }
+                        seen.add(current);
+                        for (const imported of outputs[current].imports ?? []) {
+                            if (imported.kind === "import-statement") {
+                                visit(imported.path);
+                            }
+                        }
+                    };
+                    visit(file);
+                    seen.delete(file);
+                    manifest[path.basename(file, ".js")] = [...seen].map((current) =>
+                        path.basename(current),
+                    );
+                }
+                await fs.writeFile("./dist/views/preload-manifest.json", JSON.stringify(manifest));
+            });
+        },
+    };
+}
+
 const { createBrowserConfig, run } = require("../../../scripts/esbuild-utils");
 
 // Build configuration
@@ -25,6 +65,9 @@ void run(
                 flatFileImport: "src/webviews/pages/FlatFileImport/index.tsx",
                 tableDesigner: "src/webviews/pages/TableDesigner/index.tsx",
                 objectExplorerFilter: "src/webviews/pages/ObjectExplorerFilter/index.tsx",
+                queryStudio: "src/webviews/pages/QueryStudio/index.tsx",
+                queryResultsSnapshot: "src/webviews/pages/QueryResultsSnapshot/index.tsx",
+                editorWorker: "monaco-editor/esm/vs/editor/editor.worker.js",
                 queryResult: "src/webviews/pages/QueryResult/index.tsx",
                 queryResultPreview: "src/webviews/pages/QueryResult/queryResultPreviewIndex.tsx",
                 userSurvey: "src/webviews/pages/UserSurvey/index.tsx",
@@ -55,10 +98,11 @@ void run(
                 ".webp": "file",
                 ".ttf": "file",
             },
-            metafile: !isProd,
+            metafile: true,
+            plugins: [preloadManifestPlugin()],
             minify: isProd,
             outdir: "dist/views",
-            sourcemap: isProd ? false : "inline",
+            sourcemap: isProd ? false : "linked",
             splitting: true,
             tsconfig: "./tsconfig.webviews.json",
         }),

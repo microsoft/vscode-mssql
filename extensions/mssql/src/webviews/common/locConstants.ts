@@ -8,6 +8,114 @@ import type { ConfigurableKeyCommandId } from "../../sharedInterfaces/shortcutsC
 import { WebviewAction } from "../../sharedInterfaces/webview";
 
 export class LocConstants {
+    public get queryStudioCore() {
+        return {
+            mSSQLInlineSQLCompletionAccepted: l10n.t("MSSQL inline SQL completion accepted"),
+            pinThisResultSetToAReadOnly: l10n.t("Pin this result set to a read-only tab"),
+            pinResultSet: l10n.t("Pin result set"),
+            pRODUCTIONConnectionModificationsWillAskForConfirmation: l10n.t(
+                "PRODUCTION connection — modifications will ask for confirmation",
+            ),
+            synchronizeBeforeActionFailed: l10n.t(
+                "Could not synchronize editor changes. Try again before saving or running the query.",
+            ),
+            results: l10n.t("Results"),
+            messages: l10n.t("Messages"),
+            queryPlan: l10n.t("Query Plan"),
+            queryStudioToolbar: l10n.t("Query Studio toolbar"),
+            changeConnection: l10n.t("Change connection"),
+            connectToASQLServer: l10n.t("Connect to a SQL Server"),
+            change: l10n.t("Change"),
+            connect: l10n.t("Connect"),
+            moreConnectionCommands: l10n.t("More connection commands"),
+            disconnect: l10n.t("Disconnect"),
+            changeDatabase: l10n.t("Change database"),
+            connectFirst: l10n.t("Connect first"),
+            loading: l10n.t("Loading…"),
+            executeF5CtrlE: l10n.t("Execute (F5 / Ctrl+E)"),
+            execute: l10n.t("Execute"),
+            cancelExecutingQueryAltB: l10n.t("Cancel executing query (Alt+B)"),
+            parseSyntaxCheckOnly: l10n.t("Parse (syntax check only)"),
+            displayEstimatedExecutionPlan: l10n.t("Display estimated execution plan"),
+            includeActualExecutionPlanAppliesToNextExecute: l10n.t(
+                "Include actual execution plan (applies to next execute)",
+            ),
+            toggleSQLCMDModeSetvarConnectROnError: l10n.t(
+                "Toggle SQLCMD mode (:setvar, :connect, :r, :on error, $(variables))",
+            ),
+            sQLCMD: l10n.t("SQLCMD"),
+            toggleResultsPaneCtrlR: l10n.t("Toggle results pane (Ctrl+R)"),
+            traceRecordingDigests: l10n.t("Trace: recording digests"),
+            pinAllResultsToAReadOnlyTab: l10n.t(
+                "Pin all results to a read-only tab that survives reruns",
+            ),
+            pinAllResults: l10n.t("Pin all results"),
+            switchToGridView: l10n.t("Switch to Grid View"),
+            switchToTextView: l10n.t("Switch to Text View"),
+            openInNewTab: l10n.t("Open in New Tab"),
+            openQueryPlanInNewTab: l10n.t("Open query plan in new tab"),
+            restoreEditorAndResultsSplit: l10n.t("Restore editor and results split"),
+            maximizeResultsPane: l10n.t("Maximize results pane"),
+            streaming: l10n.t("streaming…"),
+            wARNINGPRODUCTION: l10n.t("WARNING: PRODUCTION"),
+            sQLCMDModeIsOn: l10n.t("SQLCMD mode is on"),
+            valueOpenTransactionSOnThisSessionCOMMIT: (value0: string) =>
+                l10n.t(
+                    "{0} open transaction(s) on this session — COMMIT or ROLLBACK, or they roll back on disconnect",
+                    value0,
+                ),
+            tRAN: l10n.t("TRAN ("),
+            serverProcessId: l10n.t("Server process id"),
+            sPID: l10n.t("SPID"),
+            ln: l10n.t("Ln"),
+            col: l10n.t(", Col"),
+            loadingResultsView: l10n.t("Loading results view…"),
+            couldNotBeRendered: (label: string) => l10n.t("{0} could not be rendered.", label),
+            pinnedResults: l10n.t("Pinned Results"),
+            textViewWaitingForResults: l10n.t(
+                "Text output updates when each result set finishes loading.",
+            ),
+            retryValue: (value0: string) => l10n.t("Retry {0}", value0),
+            result: l10n.t("Result"),
+            truncatedValue: (value0: string) => l10n.t(" · truncated ({0})", value0),
+            streaming2: l10n.t(" · streaming…"),
+            openInTheExecutionPlanViewer: l10n.t("Open in the execution plan viewer"),
+            openExecutionPlan: l10n.t("Open execution plan"),
+            restoreTheStackedResultsView: l10n.t("Restore the stacked results view"),
+            maximizeThisGridToFillTheResultsPane: l10n.t(
+                "Maximize this grid to fill the results pane",
+            ),
+            restoreStackedView: l10n.t("Restore stacked view"),
+            maximizeGrid: l10n.t("Maximize grid"),
+            scrollToLoad: l10n.t("— scroll to load"),
+            goToLineValue: (value0: string) => l10n.t("Go to line {0}", value0),
+            copyAllMessages: l10n.t("Copy all messages"),
+            copyAll: l10n.t("Copy All"),
+            noMessages: l10n.t("No messages."),
+            loadingPinnedResults: l10n.t("Loading pinned results…"),
+            thesePinnedResultsAreNoLongerAvailable: l10n.t(
+                "These pinned results are no longer available",
+            ),
+            pinnedResultsLiveInMemoryForThisWindow: l10n.t(
+                "Pinned results live in memory for this window session. They are released when the tab closes, when the window reloads, or when the retention limit or time-to-live is reached. Re-run the query and pin the results again.",
+            ),
+            resultSet: l10n.t("result set"),
+            pinnedValue: (value0: string) => l10n.t(" · pinned {0}", value0),
+            readOnly: l10n.t("· read-only"),
+            resultsValue: (value0: string) => l10n.t("Results{0}", value0),
+            messagesValue: (value0: string) => l10n.t("Messages{0}", value0),
+            loadingMessages: l10n.t("Loading messages…"),
+            loadingPlanView: l10n.t("Loading plan view…"),
+            couldNotStartTheRun: l10n.t("Could not start the run."),
+            couldNotSwitchDatabase: l10n.t("Could not switch database."),
+            executionPlanCouldNotBeLoaded: l10n.t("Execution plan could not be loaded."),
+            database: l10n.t("Database"),
+            readyNotConnected: l10n.t("Ready — not connected"),
+            value0Ms: (value0: string) => l10n.t("{0}ms", value0),
+            queryResults: l10n.t("Query results"),
+        };
+    }
+
     private static _instance = new LocConstants();
     private constructor() {}
 

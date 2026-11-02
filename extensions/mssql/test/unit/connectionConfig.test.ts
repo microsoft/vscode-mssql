@@ -287,6 +287,18 @@ suite("ConnectionConfig Tests", () => {
             );
         });
 
+        test("Initialization completes when settings can't be written", async () => {
+            updateConfigurationStub.rejects(new Error("Unable to write settings"));
+            const logger = createStubLogger(sandbox);
+
+            const connConfig = new ConnectionConfig(logger);
+            await connConfig.initialized;
+
+            expect(logger.error).to.have.been.calledOnceWith(
+                sinon.match("Unable to write settings"),
+            );
+        });
+
         test("Initialization doesn't make changes when all IDs are present", async () => {
             mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
                 { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },

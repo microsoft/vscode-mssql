@@ -33,8 +33,8 @@ suite("ConnectionGroupWebviewController Tests", () => {
     });
 
     test("uses the lowercase bundle name for webview resources", () => {
-        expect(controller.panel.webview.html).to.contain('href="connectionGroup.css"');
-        expect(controller.panel.webview.html).to.contain('src="connectionGroup.js"');
+        expect(controller.panel.webview.html).to.match(/href="connectionGroup\.css(?:\?[^\"]+)?"/);
+        expect(controller.panel.webview.html).to.match(/src="connectionGroup\.js(?:\?[^\"]+)?"/);
     });
 
     test("distinct instances share the same injected connection configuration", () => {

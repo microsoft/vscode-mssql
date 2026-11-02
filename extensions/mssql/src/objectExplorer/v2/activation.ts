@@ -57,7 +57,8 @@ export interface OeV2ActivationDeps {
     readonly profiles: ConnectionProfileSource &
         ProfileSecretSource &
         Pick<IConnectionStore, "removeProfile">;
-    readonly tokens?: ProfileTokenSource;
+    /** Required for Entra profiles, including lazy opens when expanding a node. */
+    readonly tokens: ProfileTokenSource;
     /** Classic connection seam for the EXPLICIT legacy handoff door (B20). */
     readonly legacyConnections?: HandoffConnectionSeam;
     /** Shared group storage (B26): the classic ConnectionConfig instance. */

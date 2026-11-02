@@ -1139,7 +1139,14 @@ suite("SqlOutputProvider Tests using mocks", () => {
             expect(executeCommand).to.have.been.calledWith(
                 "setContext",
                 "mssql.executionPlan.urisWithLiveQueryStatisticsEnabled",
-                [renamed],
+                sinon.match(
+                    (value: unknown) =>
+                        Array.isArray(value) &&
+                        value.length === 1 &&
+                        value[0] instanceof vscode.Uri &&
+                        value[0].toString() === vscode.Uri.parse(renamed).toString(),
+                    `Uri value ${renamed}`,
+                ),
             );
             original._callbacks.onError("stale error");
             replacement._callbacks.onPlans([liveGraph]);

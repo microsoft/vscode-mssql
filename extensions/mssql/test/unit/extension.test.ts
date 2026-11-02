@@ -86,6 +86,7 @@ suite("Extension API Tests", () => {
         sandbox.stub(vscode.workspace, "getConfiguration").returns(configuration);
         sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
         sandbox.stub(vscode.commands, "registerCommand").returns(disposable);
+        sandbox.stub(vscode.window, "registerCustomEditorProvider").returns(disposable);
         sandbox.stub(vscode.extensions, "getExtension").returns(undefined);
         sandbox.stub(vscode.chat, "createChatParticipant").returns(chatParticipant);
         sandbox.stub(OverviewWebviewController, "showWelcomeOnExtensionUpdate").resolves();

@@ -19,6 +19,7 @@ import {
 import { ReplayRunRepository } from "../../src/diagnostics/featureCapture/replayRunRepository";
 import { ConfigGroupV1 } from "../../src/sharedInterfaces/configGroup";
 import { MemJournalFs } from "./support/memJournalFs";
+import type { SqlInlineCompletionSchemaBudgetOverrides } from "../../src/copilot/completionSchemaContextCore";
 
 const SENTINEL = "CANARY-PROMPT-a7f3e9-do-not-persist";
 
@@ -86,6 +87,59 @@ function groupWithNestedSentinel(): ConfigGroupV1 {
 }
 
 suite("Config-group sanitizer (shared allowlist)", () => {
+    test("preserves every supported numeric schema budget on disk and wire", () => {
+        const budget: Required<SqlInlineCompletionSchemaBudgetOverrides> = {
+            maxSchemas: 1,
+            maxTables: 2,
+            maxViews: 3,
+            maxColumnsPerObject: 4,
+            smallSchemaMaxColumnsPerObject: 5,
+            largeSchemaMaxColumnsPerObject: 6,
+            maxFetchedTables: 7,
+            maxFetchedViews: 8,
+            maxTableNameOnlyInventory: 9,
+            maxViewNameOnlyInventory: 10,
+            largeTableNameOnlyInventory: 11,
+            largeViewNameOnlyInventory: 12,
+            outlierNameOnlyInventory: 13,
+            maxFetchedSchemas: 14,
+            maxSystemObjects: 15,
+            maxMasterSymbols: 16,
+            maxForeignKeys: 17,
+            maxSchemaContextRelevanceTerms: 18,
+            maxRoutines: 19,
+            maxFetchedRoutines: 20,
+            maxRoutineNameOnlyInventory: 21,
+            largeRoutineNameOnlyInventory: 22,
+            maxParametersPerRoutine: 23,
+            maxPromptChars: 24,
+            maxPromptTokens: 0,
+            smallSchemaThreshold: 26,
+            largeSchemaThreshold: 27,
+            outlierSchemaThreshold: 28,
+            foreignKeyExpansionDepth: 29,
+            foreignKeyExpansionObjectCap: 30,
+            columnNameRelevanceWeight: 0.5,
+            defaultSchemaWeight: 0.75,
+            inventoryChunkSize: 33,
+            cacheTtlMs: 34,
+        };
+        const schemaContext = { budgetOverrides: budget };
+        const group = groupWithSentinel();
+        group.partialOverrides = { schemaContext };
+        group.effectiveConfig = { schemaContext };
+        const persisted = sanitizeConfigGroupForPersistence(group);
+        expect(persisted.partialOverrides.schemaContext).to.deep.equal(schemaContext);
+        expect(persisted.effectiveConfig!.schemaContext).to.deep.equal(schemaContext);
+        expect(sanitizeReplayLabConfigGroup(group).overridesSummary.schemaContext).to.deep.equal(
+            schemaContext,
+        );
+        expect(sanitizeConfigGroupForPersistence(persisted)).to.deep.equal(persisted);
+        expect(sanitizeReplayLabConfigGroup(persisted)).to.deep.equal(
+            sanitizeReplayLabConfigGroup(group),
+        );
+    });
+
     test("nested schema settings retain only known typed knobs on disk and wire", () => {
         const group = groupWithNestedSentinel();
         const expected = {

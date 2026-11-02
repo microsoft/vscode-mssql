@@ -51,6 +51,9 @@ export interface FluentResultGridControllerResult {
     frozenColumnIndex: number;
     clearSelection: () => void;
     focusGrid: () => void;
+    selectAll: () => "selected" | "alreadySelected" | false;
+    scrollToRow: (rowIndex: number) => boolean;
+    scrollToColumn: (columnIndex: number) => boolean;
     gridOptions: GridOption;
     handleBeforeHeaderCellDestroy: (event: CustomEvent) => void;
     handleClick: (event: CustomEvent) => void;

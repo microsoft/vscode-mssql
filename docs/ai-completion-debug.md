@@ -52,8 +52,8 @@ The view shares classic Object Explorer's Getting Started page and hide/show
 preference, toolbar actions and icons, and default group expansion. The existing
 `mssql.objectExplorer.collapseConnectionGroupsOnStartup` setting still overrides
 the expanded default. Saved server connections remain collapsed. Native query
-and scripting commands remain deferred to Query Studio; existing administration
-commands retain their classic connection bridge.
+and scripting commands are available with the separate [Query Studio preview](query-studio.md);
+existing administration commands retain their classic connection bridge.
 
 ## Capture and privacy
 

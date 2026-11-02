@@ -42,6 +42,11 @@ npm run package -- --target mssql
 
 Omit `--target` only when you intend to run an action for every target that supports it.
 
+MSSQL lint runs extension code, webviews, and tests in sequential processes to stay within the
+hosted CI Node heap limit. Each pass has its own cache under `extensions/mssql/out/.eslintcache`.
+ESLint options are forwarded to every pass; for example,
+`npm run lint -- --target mssql --no-cache` checks all files without using the caches.
+
 ## Tests
 
 Run every configured test target or select one target from the repository root:

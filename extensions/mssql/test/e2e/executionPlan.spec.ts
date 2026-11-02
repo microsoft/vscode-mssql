@@ -63,7 +63,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
             await writeCoverage(iframe, "executionPlan");
 
             // Close query plan webview
-            await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
+            await closePlanTab(vsCodePage, "plan.sqlplan");
         },
     });
 
@@ -695,16 +695,14 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await tooltipsToggle(comparison).click();
         await expect(tooltipsToggle(comparison)).toHaveAttribute("aria-pressed", "false");
         await writeCoverage(comparison, "executionPlanComparison");
-        await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
+        await closePlanTab(vsCodePage, "Compare Execution Plans 1");
 
         await refocusQueryPlanTab(vsCodePage);
         await iframe.getByRole("button", { name: "Compare Execution Plan", exact: true }).click();
         const activeTab = vsCodePage.locator('div[role="tab"].active');
         await expect(activeTab).toHaveAttribute("aria-label", /^Compare Execution Plans \d+$/);
-        const reopened = await getWebviewByTitle(
-            vsCodePage,
-            (await activeTab.getAttribute("aria-label"))!,
-        );
+        const reopenedTitle = (await activeTab.getAttribute("aria-label"))!;
+        const reopened = await getWebviewByTitle(vsCodePage, reopenedTitle);
         await expect(reopened.getByRole("region", { name: "Primary plan" })).toBeVisible();
         await expect(reopened.locator(".react-flow__minimap")).toHaveCount(0);
         await expect(tooltipsToggle(reopened)).toHaveAttribute("aria-pressed", "false");
@@ -713,7 +711,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await expect(reopened.locator(".react-flow__minimap")).toHaveCount(1);
         await tooltipsToggle(reopened).click();
         await expect(tooltipsToggle(reopened)).toHaveAttribute("aria-pressed", "true");
-        await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
+        await closePlanTab(vsCodePage, reopenedTitle);
     });
 
     test("Test Comparing Plans Added to a Blank Comparison", async () => {
@@ -725,10 +723,8 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         // Each comparison editor is numbered, so take the title of the one just opened.
         const activeTab = vsCodePage.locator('div[role="tab"].active');
         await expect(activeTab).toHaveAttribute("aria-label", /^Compare Execution Plans \d+$/);
-        const comparison = await getWebviewByTitle(
-            vsCodePage,
-            (await activeTab.getAttribute("aria-label"))!,
-        );
+        const comparisonTitle = (await activeTab.getAttribute("aria-label"))!;
+        const comparison = await getWebviewByTitle(vsCodePage, comparisonTitle);
         const placeholders = comparison.locator(".execution-plan-comparison-placeholder");
         await expect(placeholders).toHaveCount(2);
 
@@ -765,9 +761,21 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await quickInput.filter("plan.sqlplan");
         await quickInput.pick("plan.sqlplan");
         await expect(secondary.getByRole("treeitem").first()).toBeVisible();
-        await vsCodePage.keyboard.press(`${getModifierKey()}+W`);
+        await closePlanTab(vsCodePage, comparisonTitle);
     });
 });
+
+async function closePlanTab(page: Page, title: string): Promise<void> {
+    // Closing a focused webview via Ctrl+W can destroy its input target before
+    // Playwright receives the key-dispatch reply. Click in the workbench instead.
+    const tab = page.getByRole("tab", { name: title, exact: true });
+    await tab.hover();
+    await tab.getByRole("button", { name: /^Close(?:\s|$)/ }).click();
+    await expect(tab).toHaveCount(0);
+    // Do not leave the pointer over another tab's close button: its delayed
+    // workbench tooltip can cover controls in the next webview.
+    await page.mouse.move(0, 0);
+}
 
 /** Whether an operator lies inside the visible canvas of a plan pane. */
 async function isWithin(pane: Locator, node: Locator): Promise<boolean> {

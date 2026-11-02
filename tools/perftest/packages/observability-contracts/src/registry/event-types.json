@@ -1501,7 +1501,8 @@
                 "columnCount": "structuralMetadata",
                 "totalColumns": "structuralMetadata",
                 "requestedCells": "structuralMetadata",
-                "projected": "structuralMetadata"
+                "projected": "structuralMetadata",
+                "purpose": "structuralMetadata"
             },
             "attrsComplete": true,
             "notes": "Grid viewport window RPC issued from the webview data source with exact row/column projection cardinality (QO-2/QO-6)."
@@ -3226,6 +3227,28 @@
                 "outcome": "safeEnum"
             },
             "notes": "SPA-10: the selected map layer painted (outcome ok) or reached a terminal failure (outcome unavailable). Feature rendering is never blocked by this state."
+        },
+        {
+            "name": "queryStudio.dbSwitch",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "queryStudio.open.resolve",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
         }
     ],
     "metrics": [

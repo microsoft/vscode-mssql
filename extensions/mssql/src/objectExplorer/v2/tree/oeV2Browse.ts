@@ -360,6 +360,7 @@ export function databaseNode(connectionId: string, info: ServerDatabaseInfo): Oe
             : NOT_APPLICABLE,
         capabilities: {
             canRefresh: true,
+            canOpenQuery: !inaccessible,
             canSearch: !inaccessible,
             // v1 parity: databases carry Copy Object Name (copies the db name).
             canCopyQualifiedName: !inaccessible,
@@ -842,6 +843,7 @@ export function objectNode(
     presentation: { suffix?: string; icon?: string } = {},
 ): OeV2Node {
     const path: OeV2Path = { kind: "object", connectionId, database, schema, name, objectKind };
+    const isTable = objectKind === "table";
     return {
         id: encodePath(path),
         path,
@@ -858,8 +860,28 @@ export function objectNode(
         capabilities: {
             canCopyName: true,
             canCopyQualifiedName: true,
+            canGenerateScript: [
+                "table",
+                "view",
+                "procedure",
+                "scalarFunction",
+                "tableFunction",
+                "synonym",
+            ].includes(objectKind),
+            canScriptCreate: [
+                "table",
+                "view",
+                "procedure",
+                "scalarFunction",
+                "tableFunction",
+            ].includes(objectKind),
+            canScriptAlter: ["view", "procedure", "scalarFunction", "tableFunction"].includes(
+                objectKind,
+            ),
             // v1 parity: Refresh appears on object nodes too (Table menu).
             canRefresh: true,
+            ...(isTable || objectKind === "view" ? { canSelectTop: true } : {}),
+            ...(objectKind === "procedure" ? { canScriptExecute: true } : {}),
         },
         icon: presentation.icon ?? OBJECT_ICONS[objectKind],
     };

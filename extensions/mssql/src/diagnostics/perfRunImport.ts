@@ -99,7 +99,10 @@ export interface BoundedJsonl {
 export function readJsonlBounded(file: string, maxFileBytes = MAX_JSONL_FILE_BYTES): BoundedJsonl {
     let size: number;
     try {
-        file = containedPath(path.parse(path.resolve(file)).root, file);
+        // Callers validate nested artifacts against their source root. Checking
+        // ancestors above this directory would reject OS aliases such as /var
+        // on macOS, even when the imported directory and file are ordinary files.
+        file = containedPath(path.dirname(path.resolve(file)), file);
         size = fs.statSync(file).size;
     } catch {
         return { lines: [], refusedLines: 0, refusedReason: "unreadable" };
@@ -337,7 +340,7 @@ export function importPerfRep(repDir: string, repLabel: string): DiagEvent[] {
     }
 
     const sqlPath = path.join(repDir, "artifacts", "sql", "sql-activity.jsonl");
-    if (fs.existsSync(sqlPath)) {
+    if (isContainedPath(repDir, sqlPath) && fs.existsSync(sqlPath)) {
         for (const trimmed of readJsonlBounded(sqlPath).lines) {
             try {
                 const row = JSON.parse(trimmed) as {

@@ -1228,7 +1228,7 @@ export class SqlOutputContentProvider {
         vscode.commands.executeCommand(
             "setContext",
             "mssql.executionPlan.urisWithActualPlanEnabled",
-            this._actualPlanStatuses,
+            Utils.toResourceContextValue(this._actualPlanStatuses),
         );
     }
 
@@ -1302,7 +1302,7 @@ export class SqlOutputContentProvider {
         void vscode.commands.executeCommand(
             "setContext",
             "mssql.executionPlan.urisWithLiveQueryStatisticsEnabled",
-            this._liveQueryStatisticsStatuses,
+            Utils.toResourceContextValue(this._liveQueryStatisticsStatuses),
         );
     }
 

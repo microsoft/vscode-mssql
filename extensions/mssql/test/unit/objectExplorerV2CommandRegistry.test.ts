@@ -62,6 +62,7 @@ suite("Object Explorer v2 command registry (B25)", () => {
     test("targeting matrix: v1 menu parity per node kind", () => {
         // Database node = the full v1 database menu (registry order).
         expect(commandFlagsFor({ kind: "database", database: "AppDb" })).to.deep.equal([
+            "oe2:cmd=newQuery",
             "oe2:cmd=schemaDesigner",
             "oe2:cmd=buildDataApi",
             "oe2:cmd=search",
@@ -80,6 +81,7 @@ suite("Object Explorer v2 command registry (B25)", () => {
         // Server-scoped connection: server-flavor placements, no database
         // maintenance (backup/rename/drop need a database identity).
         expect(commandFlagsFor({ kind: "connectedServer" })).to.deep.equal([
+            "oe2:cmd=newQuery",
             "oe2:cmd=profiler",
             "oe2:cmd=restore",
             "oe2:cmd=importDataSrv",
@@ -93,6 +95,7 @@ suite("Object Explorer v2 command registry (B25)", () => {
         // DB-scoped top-level connection IS its database (K4) — database
         // flavors, plus rename/drop stay database-node-only per v1.
         expect(commandFlagsFor({ kind: "connectedServer", database: "AppDb" })).to.deep.equal([
+            "oe2:cmd=newQuery",
             "oe2:cmd=schemaDesigner",
             "oe2:cmd=buildDataApi",
             "oe2:cmd=search",
@@ -110,6 +113,7 @@ suite("Object Explorer v2 command registry (B25)", () => {
         // Table objects = the v1 table menu (dogfood #8 + parity batch).
         expect(commandFlagsFor({ kind: "object" })).to.deep.equal([]);
         expect(commandFlagsFor({ kind: "object", objectKind: "table" })).to.deep.equal([
+            "oe2:cmd=newQuery",
             "oe2:cmd=editTableData",
             "oe2:cmd=editTable",
             "oe2:cmd=copilotChat",
@@ -118,6 +122,7 @@ suite("Object Explorer v2 command registry (B25)", () => {
         expect(commandFlagsFor({ kind: "object", objectKind: "view" })).to.deep.equal([]);
         expect(commandFlagsFor({ kind: "databaseFolder", database: "AppDb" })).to.deep.equal([]);
         expect(commandFlagsFor({ kind: "lostConnection" })).to.deep.equal([
+            "oe2:cmd=newQuery",
             "oe2:cmd=profiler",
             "oe2:cmd=copyConnectionString",
             "oe2:cmd=copilotChat",

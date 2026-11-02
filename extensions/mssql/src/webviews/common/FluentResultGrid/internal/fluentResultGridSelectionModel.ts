@@ -7,12 +7,13 @@ import {
     SlickHybridSelectionModel,
     type HybridSelectionModelOption,
     type SlickEventData,
+    type SlickRange,
 } from "@slickgrid-universal/common";
 import { getFluentResultGridRowNumberClickSelection } from "./fluentResultGridSelection";
 import { FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID } from "./fluentResultGridConstants";
 
 /**
- * Adds row-number gutter selection to the base cell selection model.
+ * Adds row-number gutter selection and focus after a completed range gesture.
  *
  * Everything else this class used to override — Shift-click ranges, Ctrl/Cmd append, keeping the
  * active cell in sync with the selected range, and multi-range drags — is handled by
@@ -21,6 +22,28 @@ import { FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID } from "./fluentResultGridConst
 export class FluentResultGridSelectionModel extends SlickHybridSelectionModel {
     constructor(options?: Partial<HybridSelectionModelOption>) {
         super(options);
+    }
+
+    protected override handleCellRangeSelected(
+        eventData: SlickEventData,
+        args: {
+            range: SlickRange;
+            selectionMode: string;
+            allowAutoEdit?: boolean;
+            addToSelection?: boolean;
+            caller: "onCellRangeSelecting" | "onCellRangeSelected";
+        },
+    ): boolean {
+        const handled = super.handleCellRangeSelected(eventData, args);
+        if (handled && args.caller === "onCellRangeSelected") {
+            // The click following a drag restores the browser's text selection.
+            // A stale selection in Monaco's native edit context steals focus back
+            // from the grid. Cell ranges supersede that DOM selection; clearing
+            // it leaves Monaco's model selection and the grid range intact.
+            this._grid.getContainerNode().ownerDocument.getSelection()?.removeAllRanges();
+            this._grid.focus();
+        }
+        return handled;
     }
 
     protected override handleClick(eventData: SlickEventData): boolean | void {

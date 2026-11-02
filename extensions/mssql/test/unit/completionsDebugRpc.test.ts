@@ -14,6 +14,7 @@
  */
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -45,6 +46,7 @@ import {
     validateIcDebugCommand,
 } from "../../src/sharedInterfaces/completionsDebugRpc";
 import { InlineCompletionDebugEvent } from "../../src/sharedInterfaces/inlineCompletionDebug";
+import * as languageModelSelection from "../../src/copilot/languageModelSelection";
 
 const SENTINELS = {
     systemPrompt: "CANARY_SYSTEM_PROMPT_77aa",
@@ -176,10 +178,6 @@ function liveRows(params?: { cursor?: string; limit?: number }) {
         revision: 7,
         droppedFromRing: inlineCompletionDebugStore.evictedEventCount > 0,
     });
-}
-
-function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 suite("completions debug rpc: privacy canary (WI-1.3)", () => {
@@ -328,8 +326,16 @@ suite("completions debug rpc: live-row paging (WI-1.3)", () => {
 suite("completions debug rpc: revision + typed commands (WI-1.2)", () => {
     let record: FakeHostRecord;
     let host: ConsoleCompletionsDebugHost;
+    let sandbox: sinon.SinonSandbox;
+    let clock: sinon.SinonFakeTimers;
 
     setup(async () => {
+        sandbox = sinon.createSandbox();
+        clock = sandbox.useFakeTimers({
+            now: Date.now(),
+            toFake: ["Date", "setTimeout", "clearTimeout"],
+        });
+        sandbox.stub(languageModelSelection, "selectConfiguredLanguageModels").resolves([]);
         resetSingletonStore();
         record = { infoMessages: [], openDialogUris: undefined };
         host = new ConsoleCompletionsDebugHost({
@@ -338,12 +344,13 @@ suite("completions debug rpc: revision + typed commands (WI-1.2)", () => {
         });
         // Let construction-time async work (model catalog refresh) settle so
         // its config change does not bleed into the assertions below.
-        await sleep(400);
+        await clock.tickAsync(500);
     });
 
     teardown(() => {
         host.dispose();
         resetSingletonStore();
+        sandbox.restore();
     });
 
     test("capabilities: protocol version + the FULL command surface (WI-1.4/1.5)", () => {
@@ -373,7 +380,7 @@ suite("completions debug rpc: revision + typed commands (WI-1.2)", () => {
         inlineCompletionDebugStore.updateOverrides({ debounceMs: 400 });
         expect(host.revision).to.equal(before + 3);
 
-        await sleep(100);
+        await clock.tickAsync(0);
         expect(notifications).to.have.length(1);
         expect(notifications[0].revision).to.equal(host.revision);
         expect(notifications[0].changed).to.deep.equal(["live", "config"]);
@@ -381,7 +388,9 @@ suite("completions debug rpc: revision + typed commands (WI-1.2)", () => {
 
         // A later change flushes separately with a strictly higher revision.
         inlineCompletionDebugStore.addEvent(createTestEvent());
-        await sleep(400);
+        await clock.tickAsync(249);
+        expect(notifications).to.have.length(1);
+        await clock.tickAsync(1);
         expect(notifications).to.have.length(2);
         expect(notifications[1].revision).to.be.greaterThan(notifications[0].revision);
         expect(notifications[1].changed).to.deep.equal(["live", "config"]);

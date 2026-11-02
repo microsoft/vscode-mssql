@@ -41,6 +41,7 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
+import { registerQueryStudio } from "./queryStudio/queryStudioEditorProvider";
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
 import { isInlineCompletionFeatureEnabled } from "./copilot/inlineCompletionFeatureGate";
 import { registerSdkLanguageModelProviders } from "./nonproduction/sdkLanguageModels";
@@ -221,6 +222,7 @@ class MssqlActivation {
             await startStsDiagListener();
         }
         await controller.activate();
+        registerQueryStudio(context);
 
         const sharedConnectionsService = new SharedConnectionsService(
             sharedConnectionsAuthenticationProvider,
