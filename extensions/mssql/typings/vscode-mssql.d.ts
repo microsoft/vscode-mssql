@@ -325,6 +325,11 @@ declare module "vscode-mssql" {
          * connection is not hosted by a container
          */
         containerName: string | undefined;
+
+        /**
+         * Container engine used for lifecycle commands; omitted for legacy Docker profiles.
+         */
+        containerEngine?: "docker" | "podman" | "containerd" | "appleContainer" | "wslContainer";
     }
 
     /**

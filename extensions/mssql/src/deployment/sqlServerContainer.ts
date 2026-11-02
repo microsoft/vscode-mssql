@@ -20,6 +20,7 @@ import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "../docker/dockerodeClient";
+import { startContainer } from "../docker/containerEngine";
 import { getSqlPasswordValidationError, SqlPasswordValidationError } from "../utils/sqlStringUtils";
 import {
     DockerCommand,
@@ -233,6 +234,37 @@ export async function restartSqlServerContainer(
 ): Promise<boolean | undefined> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     try {
+        const engine = containerNode.connectionProfile.containerEngine;
+        if (engine) {
+            const abortController = new AbortController();
+            const cancellationListener = cancellationTokenSource.token.onCancellationRequested(() =>
+                abortController.abort(),
+            );
+            try {
+                containerNode.loadingLabel = LocalContainers.startingContainerLoadingLabel;
+                await objectExplorerService.setLoadingUiForNode(
+                    containerNode,
+                    cancellationTokenSource,
+                );
+                await startContainer(engine, containerName, abortController.signal);
+                containerNode.loadingLabel = ObjectExplorer.LoadingNodeLabel;
+                return true;
+            } catch (error) {
+                if (abortController.signal.aborted) {
+                    return undefined;
+                }
+                const errorMessage = getErrorMessage(error);
+                dockerLogger.error(errorMessage);
+                void vscode.window.showErrorMessage(errorMessage);
+                sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+                    error,
+                    includeErrorMessage: false,
+                });
+                return false;
+            } finally {
+                cancellationListener.dispose();
+            }
+        }
         const dockerPreparedResult = await prepareForDockerContainerCommand(
             containerName,
             containerNode,
