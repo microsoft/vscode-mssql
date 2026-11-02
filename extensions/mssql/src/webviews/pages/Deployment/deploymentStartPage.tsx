@@ -52,6 +52,7 @@ export const DeploymentStartPage = () => {
     const deploymentType = useDeploymentSelector((s) => s.deploymentType);
     const deploymentTypeState = useDeploymentSelector((s) => s.deploymentTypeState);
     const initialDeploymentType = useDeploymentSelector((s) => s.initialDeploymentType);
+    const isAzureSqlContainerEnabled = useDeploymentSelector((s) => s.isAzureSqlContainerEnabled);
     const [activeDeploymentType, setActiveDeploymentType] = useState<DeploymentType>();
     const [pendingDeploymentType, setPendingDeploymentType] = useState<DeploymentType>();
     const [azureSqlDatabasePage, setAzureSqlDatabasePage] = useState<AzureSqlDatabasePage>();
@@ -91,9 +92,16 @@ export const DeploymentStartPage = () => {
             return;
         }
         hasAutoSelected.current = true;
+        if (
+            initialDeploymentType === DeploymentType.AzureSqlDatabase &&
+            isAzureSqlContainerEnabled
+        ) {
+            setAzureSqlDatabasePage("deploymentType");
+            return;
+        }
         setPendingDeploymentType(initialDeploymentType);
         context.initializeDeploymentSpecifics(initialDeploymentType);
-    }, [context, initialDeploymentType, loadState]);
+    }, [context, initialDeploymentType, isAzureSqlContainerEnabled, loadState]);
 
     useEffect(() => {
         if (pendingDeploymentType === undefined || deploymentType !== pendingDeploymentType) {
@@ -161,7 +169,9 @@ export const DeploymentStartPage = () => {
                 onBackToStart={() => {
                     setActiveDeploymentType(undefined);
                     setPendingDeploymentType(undefined);
-                    setAzureSqlDatabasePage("deploymentType");
+                    setAzureSqlDatabasePage(
+                        isAzureSqlContainerEnabled ? "deploymentType" : undefined,
+                    );
                 }}
             />
         );
@@ -172,7 +182,7 @@ export const DeploymentStartPage = () => {
             return;
         }
 
-        if (deploymentType === DeploymentType.AzureSqlDatabase) {
+        if (deploymentType === DeploymentType.AzureSqlDatabase && isAzureSqlContainerEnabled) {
             setAzureSqlDatabasePage("deploymentType");
             return;
         }
@@ -190,12 +200,15 @@ export const DeploymentStartPage = () => {
         context.initializeDeploymentSpecifics(DeploymentType.AzureSqlDatabase);
     };
 
+    // Hide the chooser on the first render, before the auto-selection effect runs.
+    const loadingDeploymentType =
+        pendingDeploymentType ?? (!hasAutoSelected.current ? initialDeploymentType : undefined);
     const deploymentLoadingMessage =
-        pendingDeploymentType === DeploymentType.LocalContainers
+        loadingDeploymentType === DeploymentType.LocalContainers
             ? locConstants.localContainers.loadingLocalContainers
-            : pendingDeploymentType === DeploymentType.FabricProvisioning
+            : loadingDeploymentType === DeploymentType.FabricProvisioning
               ? locConstants.fabricProvisioning.loadingFabricProvisioning
-              : pendingDeploymentType === DeploymentType.AzureSqlDatabase
+              : loadingDeploymentType === DeploymentType.AzureSqlDatabase
                 ? locConstants.azureSqlDatabase.loadingAzureSqlDatabase
                 : undefined;
 
@@ -211,7 +224,7 @@ export const DeploymentStartPage = () => {
         </Button>
     );
 
-    if (azureSqlDatabasePage === "localContainer") {
+    if (azureSqlDatabasePage === "localContainer" && isAzureSqlContainerEnabled) {
         return (
             <AzureSqlDatabaseLocalContainerWizard
                 onBackToDeploymentType={() => setAzureSqlDatabasePage("deploymentType")}
@@ -239,6 +252,7 @@ export const DeploymentStartPage = () => {
                     }
                     footerEnd={previousButton(() => setAzureSqlDatabasePage(undefined))}>
                     <AzureSqlDatabaseDeploymentTypePage
+                        isLocalContainerEnabled={isAzureSqlContainerEnabled}
                         isFreeDeploymentLoading={
                             pendingDeploymentType === DeploymentType.AzureSqlDatabase
                         }
@@ -270,7 +284,7 @@ export const DeploymentStartPage = () => {
                         {locConstants.common.cancel}
                     </Button>
                 }>
-                {loadState === ApiStatus.Loaded ? (
+                {loadState === ApiStatus.Loaded && loadingDeploymentType === undefined ? (
                     <ChooseDeploymentTypePage
                         selectedDeploymentType={pendingDeploymentType}
                         onDeploymentTypeChange={handleDeploymentTypeSelected}

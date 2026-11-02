@@ -211,6 +211,8 @@ export interface DbCellValue {
     displayValue: string;
     isNull: boolean;
     rowId?: number;
+    /** Optional host-provided document language for cells rendered as openable links. */
+    languageId?: "xml" | "json";
 }
 
 export interface ResultSetSubset {

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Card, makeStyles, mergeClasses, Text, tokens } from "@fluentui/react-components";
+import { Card, makeStyles, Text, tokens } from "@fluentui/react-components";
 import { AzureSqlDatabaseIcon } from "../../../common/icons/azureSqlDatabase";
 import { DockerIcon } from "../../../common/icons/docker";
 import { KeyCode } from "../../../common/keys";
@@ -44,19 +44,6 @@ const useStyles = makeStyles({
             border: `1px solid ${tokens.colorNeutralStroke1}`,
         },
     },
-    selectedCard: {
-        border: "1px solid var(--vscode-focusBorder)",
-        boxShadow: `0 0 0 1px var(--vscode-focusBorder), ${tokens.shadow8}`,
-    },
-    disabledCard: {
-        cursor: "default",
-        opacity: 0.7,
-        ":hover": {
-            transform: "none",
-            boxShadow: tokens.shadow4,
-            border: `1px solid ${tokens.colorNeutralStroke2}`,
-        },
-    },
     iconBadge: {
         width: "56px",
         height: "56px",
@@ -95,6 +82,7 @@ const useStyles = makeStyles({
 });
 
 interface AzureSqlDatabaseDeploymentTypePageProps {
+    isLocalContainerEnabled: boolean;
     isFreeDeploymentLoading: boolean;
     onLocalContainerSelected: () => void;
     onFreeDeploymentSelected: () => void;
@@ -102,8 +90,17 @@ interface AzureSqlDatabaseDeploymentTypePageProps {
 
 export const AzureSqlDatabaseDeploymentTypePage: React.FC<
     AzureSqlDatabaseDeploymentTypePageProps
-> = ({ isFreeDeploymentLoading, onLocalContainerSelected, onFreeDeploymentSelected }) => {
+> = ({
+    isLocalContainerEnabled,
+    isFreeDeploymentLoading,
+    onLocalContainerSelected,
+    onFreeDeploymentSelected,
+}) => {
     const classes = useStyles();
+
+    if (isFreeDeploymentLoading) {
+        return undefined;
+    }
 
     const handleKeyDown = (event: React.KeyboardEvent, onSelect: () => void) => {
         if (event.code === KeyCode.Enter || event.code === KeyCode.Space) {
@@ -114,51 +111,36 @@ export const AzureSqlDatabaseDeploymentTypePage: React.FC<
 
     return (
         <div className={classes.cardRow}>
+            {isLocalContainerEnabled && (
+                <Card
+                    className={classes.card}
+                    onClick={onLocalContainerSelected}
+                    onKeyDown={(event) => handleKeyDown(event, onLocalContainerSelected)}
+                    tabIndex={0}
+                    role="button">
+                    <div className={classes.iconBadge}>
+                        <DockerIcon
+                            className={classes.icon}
+                            role="img"
+                            aria-label={locConstants.azureSqlDatabase.localContainer}
+                        />
+                    </div>
+                    <div className={classes.content}>
+                        <Text className={classes.cardHeader}>
+                            {locConstants.azureSqlDatabase.localContainer}
+                        </Text>
+                        <Text className={classes.cardDescription}>
+                            {locConstants.azureSqlDatabase.localContainerDescription}
+                        </Text>
+                    </div>
+                </Card>
+            )}
             <Card
-                className={mergeClasses(
-                    classes.card,
-                    isFreeDeploymentLoading ? classes.disabledCard : undefined,
-                )}
-                onClick={isFreeDeploymentLoading ? undefined : onLocalContainerSelected}
-                onKeyDown={
-                    isFreeDeploymentLoading
-                        ? undefined
-                        : (event) => handleKeyDown(event, onLocalContainerSelected)
-                }
-                tabIndex={isFreeDeploymentLoading ? -1 : 0}
-                role="button"
-                aria-disabled={isFreeDeploymentLoading}>
-                <div className={classes.iconBadge}>
-                    <DockerIcon
-                        className={classes.icon}
-                        role="img"
-                        aria-label={locConstants.azureSqlDatabase.localContainer}
-                    />
-                </div>
-                <div className={classes.content}>
-                    <Text className={classes.cardHeader}>
-                        {locConstants.azureSqlDatabase.localContainer}
-                    </Text>
-                    <Text className={classes.cardDescription}>
-                        {locConstants.azureSqlDatabase.localContainerDescription}
-                    </Text>
-                </div>
-            </Card>
-            <Card
-                className={mergeClasses(
-                    classes.card,
-                    isFreeDeploymentLoading ? classes.selectedCard : undefined,
-                    isFreeDeploymentLoading ? classes.disabledCard : undefined,
-                )}
-                onClick={isFreeDeploymentLoading ? undefined : onFreeDeploymentSelected}
-                onKeyDown={
-                    isFreeDeploymentLoading
-                        ? undefined
-                        : (event) => handleKeyDown(event, onFreeDeploymentSelected)
-                }
-                tabIndex={isFreeDeploymentLoading ? -1 : 0}
-                role="button"
-                aria-disabled={isFreeDeploymentLoading}>
+                className={classes.card}
+                onClick={onFreeDeploymentSelected}
+                onKeyDown={(event) => handleKeyDown(event, onFreeDeploymentSelected)}
+                tabIndex={0}
+                role="button">
                 <div className={classes.iconBadge}>
                     <AzureSqlDatabaseIcon
                         className={classes.icon}

@@ -334,6 +334,49 @@ suite("ConnectionConfig Tests", () => {
             );
         });
 
+        test("Initialization completes when settings can't be written", async () => {
+            updateConfigurationStub.rejects(new Error("Unable to write settings"));
+            const logger = createStubLogger(sandbox);
+
+            const connConfig = new ConnectionConfig(logger);
+            await connConfig.initialized;
+
+            expect(logger.error).to.have.been.calledOnceWith(
+                sinon.match("Unable to write settings"),
+            );
+        });
+
+        test("Initialization completes when connection repairs can't be written after group repairs", async () => {
+            mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                { name: "ROOT", id: "legacy-root-id" },
+                { name: "Child Group", parentId: "legacy-root-id" },
+            ]);
+            mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                {
+                    server: "test-server",
+                    groupId: "legacy-root-id",
+                    authenticationType: "Integrated",
+                },
+            ]);
+            updateConfigurationStub
+                .withArgs(Constants.connectionsArrayName)
+                .rejects(new Error("Unable to write repaired connections"));
+            const logger = createStubLogger(sandbox);
+
+            const connConfig = new ConnectionConfig(logger);
+            await connConfig.initialized;
+
+            const savedGroups = mockGlobalConfigData.get(
+                Constants.connectionGroupsArrayName,
+            ) as IConnectionGroup[];
+            expect(savedGroups.find((group) => group.name === "Child Group")).to.include({
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
+            });
+            expect(logger.error).to.have.been.calledWith(
+                sinon.match("Unable to write repaired connections"),
+            );
+        });
+
         test("Initialization doesn't make changes when all IDs are present", async () => {
             mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
                 { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },

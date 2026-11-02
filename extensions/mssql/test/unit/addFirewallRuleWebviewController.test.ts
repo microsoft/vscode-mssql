@@ -46,8 +46,12 @@ suite("AddFirewallRuleWebviewController Tests", () => {
         test("uses the lowercase bundle name for webview resources", async () => {
             await finishSetup(false);
 
-            expect(controller.panel.webview.html).to.contain('href="addFirewallRule.css"');
-            expect(controller.panel.webview.html).to.contain('src="addFirewallRule.js"');
+            expect(controller.panel.webview.html).to.match(
+                /href="addFirewallRule\.css(?:\?[^\"]+)?"/,
+            );
+            expect(controller.panel.webview.html).to.match(
+                /src="addFirewallRule\.js(?:\?[^\"]+)?"/,
+            );
         });
 
         test("Should initialize correctly for not signed into Azure", async () => {

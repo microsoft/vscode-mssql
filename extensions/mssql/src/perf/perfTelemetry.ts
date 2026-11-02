@@ -64,12 +64,20 @@ export function featureFor(name: string): string {
         return "activation";
     }
     if (name.startsWith("mssql.command")) return "shell";
+    if (name.startsWith("completions.")) return "completions";
+    if (name.startsWith("replay.")) return "replay";
     if (name.startsWith("mssql.connection")) return "connection";
     if (name.startsWith("mssql.sts")) return "stsLifecycle";
+    if (name.startsWith("mssql.queryStudio") || name.startsWith("queryStudio.")) {
+        return "queryStudio";
+    }
     if (name.startsWith("mssql.queryResults")) return "queryResults";
     if (name.startsWith("mssql.query")) return "query";
     if (name.startsWith("mssql.resultsGrid")) return "resultsGrid";
-    if (name.startsWith("mssql.oe")) return "objectExplorer";
+    if (name.startsWith("mssql.oe") || name.startsWith("objectExplorerV2.")) {
+        return "objectExplorer";
+    }
+    if (name.startsWith("sqlDataPlane.")) return "sqlDataPlane";
     if (name.startsWith("sqlLanguage.") || name.startsWith("sqlScripting.")) {
         return "sqlLanguage";
     }
@@ -81,6 +89,13 @@ export function featureFor(name: string): string {
     ) {
         return "metadata";
     }
+    if (
+        name.startsWith("debugConsole.") ||
+        name.startsWith("sessionDiag.") ||
+        name.startsWith("system.rich.")
+    ) {
+        return "diagnostics";
+    }
     if (name.startsWith("driver.")) return "harness";
     return "system";
 }
@@ -91,9 +106,173 @@ export function featureFor(name: string): string {
  * metadata; in normal use, name-bearing keys are classified so the
  * redaction policy governs them.
  */
+const QUERY_STUDIO_STRUCTURAL_PERF_ATTRS = [
+    "action",
+    "activeTab",
+    "ageMs",
+    "appendMsTotal",
+    "authKind",
+    "availableRows",
+    "backend",
+    "batchCount",
+    "batchIndex",
+    "batches",
+    "buildMs",
+    "bytes",
+    "bytesRemoved",
+    "cacheHit",
+    "canceled",
+    "characters",
+    "clipboardAttempts",
+    "clipboardMode",
+    "clipboardMs",
+    "columnCount",
+    "columnStart",
+    "columns",
+    "connects",
+    "copyRoute",
+    "count",
+    "dataResultSets",
+    "deserializeMs",
+    "dirsRemoved",
+    "durationMs",
+    "enabled",
+    "encoding",
+    "encrypted",
+    "errorCode",
+    "errors",
+    "executionKind",
+    "expired",
+    "failures",
+    "fetchDecodeMs",
+    "fetchedColumns",
+    "firstPageIndex",
+    "format",
+    "formatMs",
+    "fromCache",
+    "fromSpill",
+    "generationChanged",
+    "gridPreview",
+    "hasMore",
+    "hasSelection",
+    "hostRowFetches",
+    "includeHeaders",
+    "includes",
+    "intervalMs",
+    "ioMs",
+    "leaseCount",
+    "matched",
+    "materializeMsTotal",
+    "materializedPages",
+    "memoryBytesBefore",
+    "memoryBytesPeak",
+    "metadataSession",
+    "mounted",
+    "ms",
+    "msFromWindowReceived",
+    "msToAck",
+    "msToTerminal",
+    "nextIndex",
+    "onError",
+    "outcome",
+    "ownerKind",
+    "pageCount",
+    "pages",
+    "pagesMissing",
+    "pagesVisited",
+    "partial",
+    "pendingSpillBytesPeak",
+    "planMs",
+    "planResultSets",
+    "plans",
+    "preprocessMs",
+    "projected",
+    "purpose",
+    "ranges",
+    "renderedRows",
+    "requestedCells",
+    "residentPageBytes",
+    "resultColumns",
+    "resultRows",
+    "resultSetCount",
+    "resultSetId",
+    "retainedRows",
+    "retainedStores",
+    "returned",
+    "returnedCells",
+    "returnedColumns",
+    "returnedRows",
+    "returnedValueCharacters",
+    "rowLimit",
+    "rows",
+    "rpcRequests",
+    "rules",
+    "sampledLines",
+    "scanFree",
+    "scope",
+    "selectedCells",
+    "selection",
+    "serializeMs",
+    "setvars",
+    "shortWindow",
+    "snapshots",
+    "source",
+    "sourceKind",
+    "sourceValueCharacters",
+    "spillBytes",
+    "spillDeserializeMsTotal",
+    "spillEncoding",
+    "spillFileRemoved",
+    "spillReadMsTotal",
+    "spillReads",
+    "spillSerializeMsTotal",
+    "spillWriteIoMsTotal",
+    "spillWriteMsTotal",
+    "spillWrites",
+    "start",
+    "startIndex",
+    "status",
+    "steps",
+    "storeDisposed",
+    "streamed",
+    "streaming",
+    "swept",
+    "targetBytes",
+    "terminal",
+    "textCharacters",
+    "total",
+    "totalColumns",
+    "totalRows",
+    "trigger",
+    "urgent",
+    "valueMode",
+    "visibleMessages",
+    "visibleRows",
+    "waitedForByRender",
+    "windowCache",
+    "windowCacheBypasses",
+    "windowCacheBytes",
+    "windowCacheEvictions",
+    "windowCacheHits",
+    "windowCacheMaxBytes",
+    "windowCacheMisses",
+    "windowCacheOversizeSkips",
+    "windowCachePeakBytes",
+    "windowRows",
+];
+
 export const PERF_ATTR_CLASSIFICATION: Readonly<Record<string, DataClassification>> = {
+    ...Object.fromEntries(
+        QUERY_STUDIO_STRUCTURAL_PERF_ATTRS.map((key) => [key, "diagnostic.metadata" as const]),
+    ),
     nodePath: "object.name",
     nodeType: "diagnostic.metadata",
+    childCount: "diagnostic.metadata",
+    batchId: "diagnostic.metadata",
+    resultId: "diagnostic.metadata",
+    rowStart: "diagnostic.metadata",
+    numberOfRows: "diagnostic.metadata",
+    rowsReturned: "diagnostic.metadata",
     objects: "diagnostic.metadata",
     objectName: "object.name",
     documentUri: "source.path",
@@ -102,14 +281,18 @@ export const PERF_ATTR_CLASSIFICATION: Readonly<Record<string, DataClassificatio
     error: "diagnostic.metadata",
     errorClass: "diagnostic.metadata",
     errorNumber: "diagnostic.metadata",
+    events: "diagnostic.metadata",
     failed: "diagnostic.metadata",
     commandId: "diagnostic.metadata",
     hasError: "diagnostic.metadata",
     pid: "diagnostic.metadata",
     rafThrottled: "diagnostic.metadata",
     reason: "diagnostic.metadata",
+    redactions: "diagnostic.metadata",
     resultSets: "diagnostic.metadata",
     rowCount: "diagnostic.metadata",
+    captureMode: "diagnostic.metadata",
+    durationMinutes: "diagnostic.metadata",
     waitedMs: "diagnostic.metadata",
 };
 

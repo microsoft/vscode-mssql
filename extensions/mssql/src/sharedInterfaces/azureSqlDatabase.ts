@@ -25,7 +25,7 @@ export const AZURE_SQL_DB_COMPONENT_ORDER = [
 
 /** Centralized Azure SQL documentation URLs used across wizard pages. */
 export const AzureSqlDatabaseLinks = {
-    freeOffer: "https://learn.microsoft.com/azure/azure-sql/database/free-offer",
+    freeTier: "https://learn.microsoft.com/azure/azure-sql/database/free-offer",
     serviceTiers:
         "https://learn.microsoft.com/azure/azure-sql/database/service-tiers-sql-database-vcore",
     createQuickstart:

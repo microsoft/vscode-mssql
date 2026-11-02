@@ -165,10 +165,7 @@ export default [
             parser: tseslint.parser,
             parserOptions: {
                 tsconfigRootDir: __dirname,
-                project: [
-                    "./extensions/mssql/tsconfig.extension.json",
-                    "./extensions/mssql/tsconfig.webviews.json",
-                ],
+                project: "./extensions/mssql/tsconfig.extension.json",
                 ecmaFeatures: {
                     jsx: true,
                 },
@@ -192,6 +189,17 @@ export default [
             ...sharedRules,
             "custom-eslint-rules/banned-imports": "error",
             "custom-eslint-rules/no-direct-l10n": "error",
+        },
+    },
+
+    // Select the webview project directly instead of also loading the extension
+    // project while looking for each webview file's type information.
+    {
+        files: ["extensions/mssql/src/webviews/**/*.ts", "extensions/mssql/src/webviews/**/*.tsx"],
+        languageOptions: {
+            parserOptions: {
+                project: "./extensions/mssql/tsconfig.webviews.json",
+            },
         },
     },
 

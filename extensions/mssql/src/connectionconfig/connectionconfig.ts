@@ -8,7 +8,7 @@ import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
-import { uuid } from "../utils/utils";
+import { getErrorMessage, uuid } from "../utils/utils";
 import { orderItemsParentFirst } from "../utils/hierarchyUtils";
 import { createServiceIdentifier } from "extension-toolkit/base";
 import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
@@ -91,32 +91,42 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     private async initialize(): Promise<void> {
-        const groups = this.getRawGroupsFromSettings();
-        let connections = this.getRawConnectionsFromSettings();
+        try {
+            const groups = this.getRawGroupsFromSettings();
+            let connections = this.getRawConnectionsFromSettings();
 
-        let { groupsChanged, connectionsChanged } = this.addOrUpdateRootGroup(groups, connections);
-        groupsChanged = this.assignConnectionGroupMissingIds(groups) || groupsChanged;
-        connectionsChanged = this.assignConnectionMissingIds(connections) || connectionsChanged;
-
-        const connectionStringCleanup = this.removeConnectionStringsFromProfiles(connections);
-        connections = connectionStringCleanup.profiles;
-        connectionsChanged = connectionStringCleanup.changed || connectionsChanged;
-
-        if (groupsChanged) {
-            this._logger.info(
-                `Updates made to connection groups. Writing all ${groups.length} group(s) to settings.`,
+            let { groupsChanged, connectionsChanged } = this.addOrUpdateRootGroup(
+                groups,
+                connections,
             );
-            await this.writeConnectionGroupsToSettings(groups);
-        }
+            groupsChanged = this.assignConnectionGroupMissingIds(groups) || groupsChanged;
+            connectionsChanged = this.assignConnectionMissingIds(connections) || connectionsChanged;
 
-        if (connectionsChanged) {
-            this._logger.info(
-                `Updates made to connection profiles. Writing all ${connections.length} profile(s) to settings.`,
+            const connectionStringCleanup = this.removeConnectionStringsFromProfiles(connections);
+            connections = connectionStringCleanup.profiles;
+            connectionsChanged = connectionStringCleanup.changed || connectionsChanged;
+
+            if (groupsChanged) {
+                this._logger.info(
+                    `Updates made to connection groups. Writing all ${groups.length} group(s) to settings.`,
+                );
+                await this.writeConnectionGroupsToSettings(groups);
+            }
+
+            if (connectionsChanged) {
+                this._logger.info(
+                    `Updates made to connection profiles. Writing all ${connections.length} profile(s) to settings.`,
+                );
+                await this.writeConnectionsToSettings(connections);
+            }
+        } catch (err) {
+            // Resolve anyway so callers waiting on initialization don't hang when settings can't be written
+            this._logger.error(
+                `Failed to update connection settings during initialization: ${getErrorMessage(err)}`,
             );
-            await this.writeConnectionsToSettings(connections);
+        } finally {
+            this.initialized.resolve();
         }
-
-        this.initialized.resolve();
 
         // Must come after `initialized` is resolved because it calls methods that await `initialized`.
         // Since this is only meant to show a warning if the default connection ID is misconfigured, and not a data consistency check,

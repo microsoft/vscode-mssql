@@ -17,12 +17,25 @@ import {
 } from "@slickgrid-universal/common";
 import type { DbCellValue } from "../../../../sharedInterfaces/queryResult";
 import type {
+    FluentResultGridColumnWindow,
+    FluentResultGridColumnWindowingOptions,
     FluentResultGridDataSource,
+    FluentResultGridReadPurpose,
     FluentResultGridRow,
 } from "../types/fluentResultGridDataSource";
 import type { MaybePromise } from "../types/fluentResultGridPrimitives";
+import { resolveFluentResultGridColumnWindow } from "./fluentResultGridColumnWindow";
 
 export const FLUENT_RESULT_GRID_ROW_NUMBER_FIELD = "_fluentResultGridRowNumber";
+
+/**
+ * How long the viewport must be scroll-quiet before a streaming row-count
+ * change may relayout the grid. SlickGrid's updateRowCount() reaches
+ * scrollTo(), which writes the viewport's scrollTop when the virtual
+ * page/offset mapping shifts — mid-drag that teleports the scrollbar thumb
+ * (block jumps, sometimes against the drag direction).
+ */
+export const SCROLL_QUIET_ROW_COUNT_DEFER_MS = 200;
 
 export interface FluentResultGridCellValue extends DbCellValue {
     ariaLabel: string;
@@ -46,6 +59,7 @@ export interface FluentResultGridRowStore<T extends Slick.SlickData> {
     setLength(length: number, resetData?: boolean): void;
     setRows?: (rows: FluentResultGridRow[], length?: number) => number;
     resetAroundIndex?: (index: number, forceReload?: boolean) => void;
+    setColumnWindow?: (columnWindow: FluentResultGridColumnWindow | undefined) => boolean;
     getItems(): T[];
     dispose(): void;
 }
@@ -98,7 +112,11 @@ function createDefaultCellValue(cell: DbCellValue | undefined, absoluteRowIndex:
         ariaLabel: displayValue,
         isNull: cell?.isNull ?? false,
         invariantCultureDisplayValue: displayValue,
-        rowId: absoluteRowIndex,
+        // Preserve a source-supplied row id (SOURCE row space) so consumers
+        // can resolve the original row after sort/filter reorders display
+        // rows; fall back to the absolute display index.
+        rowId: cell?.rowId ?? absoluteRowIndex,
+        ...(cell?.languageId ? { languageId: cell.languageId } : {}),
     } satisfies FluentResultGridCellValue;
 }
 
@@ -225,11 +243,12 @@ class FluentResultGridInMemoryRowStore<T extends Slick.SlickData>
 }
 
 class FluentResultGridDataWindow<T extends Slick.SlickData> {
-    private isLoading = false;
     private rows: T[] | undefined;
     private length = 0;
     private offset = -1;
     private requestId = 0;
+    private loading = false;
+    private complete = false;
 
     constructor(
         private readonly loadRows: (offset: number, count: number) => MaybePromise<T[]>,
@@ -250,7 +269,7 @@ class FluentResultGridDataWindow<T extends Slick.SlickData> {
     }
 
     public getItem(index: number): T {
-        if (this.contains(index) && !this.rows && !this.isLoading) {
+        if (this.contains(index) && !this.rows?.[index - this.offset] && !this.loading) {
             this.positionWindow(this.offset, this.length, this.getEndIndex());
         }
 
@@ -265,64 +284,139 @@ class FluentResultGridDataWindow<T extends Slick.SlickData> {
         return this.rows[index - this.offset];
     }
 
+    public invalidate(): void {
+        this.rows = undefined;
+        this.loading = false;
+        this.complete = false;
+        this.requestId++;
+    }
+
     public positionWindow(
         offset: number,
         length: number,
         totalItems: number,
         forceReload = false,
     ): void {
+        if (forceReload) {
+            this.invalidate();
+        }
         const totalLength = toNonNegativeInteger(totalItems);
         const nextOffset = clamp(toNonNegativeInteger(offset), 0, totalLength);
         const nextLength = clamp(toNonNegativeInteger(length), 0, totalLength - nextOffset);
 
         if (
-            !forceReload &&
-            this.offset === nextOffset &&
-            this.length === nextLength &&
-            (this.rows !== undefined || this.isLoading)
+            nextOffset === this.offset &&
+            nextLength === this.length &&
+            (this.complete || this.loading || nextLength === 0)
         ) {
+            return;
+        }
+
+        const previousOffset = this.offset;
+        const previousLength = this.length;
+        const previousRows = this.rows;
+
+        // Streaming result sets commonly grow inside the same viewport
+        // window. Preserve the immutable prefix and request only the newly
+        // appended suffix instead of retransferring 1, 2, ... N rows.
+        if (
+            nextOffset === previousOffset &&
+            nextLength > previousLength &&
+            previousRows !== undefined &&
+            this.complete
+        ) {
+            this.offset = nextOffset;
+            this.length = nextLength;
+            const suffixOffset = previousOffset + previousLength;
+            const suffixLength = nextLength - previousLength;
+            const retainedRows = previousRows.slice(0, previousLength);
+            const currentRequestId = ++this.requestId;
+            this.loading = true;
+            this.complete = false;
+            Promise.resolve(this.loadRows(suffixOffset, suffixLength)).then(
+                (rows) => {
+                    if (currentRequestId !== this.requestId) {
+                        return;
+                    }
+                    this.loading = false;
+                    if (!Array.isArray(rows)) {
+                        return;
+                    }
+                    const merged = new Array<T>(nextLength);
+                    for (let index = 0; index < retainedRows.length; index++) {
+                        merged[index] = retainedRows[index];
+                    }
+                    for (let index = 0; index < rows.length && index < suffixLength; index++) {
+                        merged[previousLength + index] = rows[index];
+                    }
+                    this.rows = merged;
+                    this.complete = rows.length >= suffixLength;
+                    this.loadCompleteCallback(suffixOffset, suffixOffset + suffixLength);
+                },
+                () => {
+                    if (currentRequestId === this.requestId) {
+                        this.loading = false;
+                    }
+                },
+            );
+            return;
+        }
+
+        if (
+            nextOffset === previousOffset &&
+            nextLength < previousLength &&
+            previousRows !== undefined &&
+            this.complete
+        ) {
+            this.offset = nextOffset;
+            this.length = nextLength;
+            this.rows = previousRows.slice(0, nextLength);
+            this.loading = false;
+            this.complete = true;
+            this.requestId++;
             return;
         }
 
         this.offset = nextOffset;
         this.length = nextLength;
         this.rows = undefined;
+        this.complete = false;
 
         const currentRequestId = ++this.requestId;
         if (nextLength === 0) {
-            this.isLoading = false;
+            this.loading = false;
+            this.complete = true;
             return;
         }
 
-        this.isLoading = true;
+        this.loading = true;
         Promise.resolve(this.loadRows(nextOffset, nextLength)).then(
             (rows) => {
                 if (currentRequestId !== this.requestId) {
                     return;
                 }
 
-                this.isLoading = false;
+                this.loading = false;
                 if (!Array.isArray(rows) || rows.length !== nextLength) {
                     return;
                 }
 
                 this.rows = rows;
+                this.complete = rows.length >= this.length;
                 this.loadCompleteCallback(this.offset, this.offset + this.length);
             },
             () => {
                 if (currentRequestId === this.requestId) {
-                    this.isLoading = false;
+                    this.loading = false;
                 }
             },
         );
     }
 
     public dispose(): void {
-        this.isLoading = false;
-        this.rows = undefined;
+        this.invalidate();
         this.length = 0;
         this.offset = -1;
-        this.requestId++;
     }
 }
 
@@ -342,9 +436,16 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
         windowSize: number,
         private readonly createPlaceholderRow: (index: number) => T,
         private length: number,
-        private readonly loadRows: (offset: number, count: number) => MaybePromise<T[]>,
+        private readonly loadRows: (
+            offset: number,
+            count: number,
+            columnWindow?: FluentResultGridColumnWindow,
+            readPurpose?: FluentResultGridReadPurpose,
+        ) => MaybePromise<T[]>,
+        private readonly columnWindowingEnabled: boolean,
     ) {
         this.windowSize = toPositiveInteger(windowSize, 1);
+        this.columnWindowInitialized = !columnWindowingEnabled;
 
         const loadCompleteCallback = (start: number, end: number) => {
             if (!this.disposed) {
@@ -362,10 +463,37 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
         loadCompleteCallback: (start: number, end: number) => void,
     ): FluentResultGridDataWindow<T> {
         return new FluentResultGridDataWindow(
-            this.loadRows,
+            (offset, count) => this.loadRows(offset, count, this.columnWindow, "viewport"),
             this.createPlaceholderRow,
             loadCompleteCallback,
         );
+    }
+
+    private columnWindow: FluentResultGridColumnWindow | undefined;
+    private columnWindowInitialized: boolean;
+
+    private createPlaceholderRange(start: number, end: number): T[] {
+        return Array.from({ length: end - start }, (_value, index) =>
+            this.createPlaceholderRow(start + index),
+        );
+    }
+
+    public setColumnWindow(columnWindow: FluentResultGridColumnWindow | undefined): boolean {
+        if (!this.columnWindowingEnabled) {
+            return false;
+        }
+        const unchanged =
+            this.columnWindowInitialized &&
+            this.columnWindow?.start === columnWindow?.start &&
+            this.columnWindow?.count === columnWindow?.count;
+        this.columnWindowInitialized = true;
+        if (unchanged) {
+            return false;
+        }
+        this.columnWindow = columnWindow;
+        this.invalidateWindows();
+        this.lengthChanged = true;
+        return true;
     }
 
     public getLength(): number {
@@ -381,8 +509,17 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
     public setLength(length: number, resetData = true): void {
         const nextLength = toNonNegativeInteger(length);
         const shouldResetWindows = resetData || nextLength < this.length;
+        if (shouldResetWindows) {
+            this.invalidateWindows();
+        }
         this.lengthChanged = this.lengthChanged || shouldResetWindows;
         this.length = nextLength;
+    }
+
+    private invalidateWindows(): void {
+        this.bufferWindowBefore.invalidate();
+        this.window.invalidate();
+        this.bufferWindowAfter.invalidate();
     }
 
     public at(index: number): T {
@@ -400,6 +537,14 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
 
         if (range.end <= range.start) {
             return [];
+        }
+
+        // SlickGrid reads its data synchronously during construction, before
+        // setGrid() gives us the horizontal viewport. Keep those reads as
+        // placeholders so a wide source never starts an unprojected row
+        // generation that competes with the first projected viewport load.
+        if (!this.columnWindowInitialized) {
+            return this.createPlaceholderRange(range.start, range.end);
         }
 
         const currentRows = this.getRangeFromCurrentWindows(range.start, range.end);
@@ -461,13 +606,17 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
             return [];
         }
 
-        const loadedRows = this.getLoadedRangeFromCurrentWindows(range.start, range.end);
-        if (loadedRows) {
-            return loadedRows;
+        // A projected viewport row is deliberately sparse. Explicit async
+        // reads (autosize/commands) retain the historical full-row contract.
+        if (!this.columnWindowingEnabled) {
+            const loadedRows = this.getLoadedRangeFromCurrentWindows(range.start, range.end);
+            if (loadedRows) {
+                return loadedRows;
+            }
         }
 
         const rows = await Promise.resolve(
-            this.loadRows(range.start, range.end - range.start),
+            this.loadRows(range.start, range.end - range.start, undefined, "authoritative"),
         ).catch(() => []);
         return Array.from(
             { length: range.end - range.start },
@@ -476,6 +625,7 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
     }
 
     public resetAroundIndex(index: number, forceReload = false): void {
+        this.lengthChanged = false;
         const targetIndex = clamp(toNonNegativeInteger(index), 0, this.length);
         const beforeStart = Math.max(0, targetIndex - this.windowSize * 1.5);
         const beforeEnd = Math.max(0, targetIndex - this.windowSize / 2);
@@ -587,8 +737,16 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
     private gridEventHandler = new SlickEventHandler();
     private disposed = false;
     private pendingAnimationFrame: number | undefined;
+    private columnWindow: FluentResultGridColumnWindow | undefined;
+    /** Last grid onScroll timestamp — streaming row-count relayouts wait it out. */
+    private lastScrollAt = 0;
+    private pendingRowCountTimer: ReturnType<typeof setTimeout> | undefined;
 
-    constructor(private readonly rowStore: FluentResultGridRowStore<T>) {
+    constructor(
+        private readonly rowStore: FluentResultGridRowStore<T>,
+        private readonly columnWindowing?: FluentResultGridColumnWindowingOptions,
+        private readonly sourceColumnCount = 0,
+    ) {
         this.rowStore.setCollectionChangedCallback((startIndex, count) => {
             if (this.disposed) {
                 return;
@@ -610,11 +768,20 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
         return this.rowStore.isFullyInMemory;
     }
 
+    public get hasColumnWindowing(): boolean {
+        return this.columnWindowing !== undefined;
+    }
+
     public setGrid(grid: SlickGrid): void {
         this.gridEventHandler.unsubscribeAll();
         this.grid = grid;
         this.gridEventHandler.subscribe(grid.onViewportChanged, () => this.ensureViewportLoaded());
-        this.gridEventHandler.subscribe(grid.onScroll, () => this.ensureViewportLoaded());
+        this.gridEventHandler.subscribe(grid.onScroll, () => {
+            this.lastScrollAt = performance.now();
+            this.ensureViewportLoaded();
+        });
+        this.gridEventHandler.subscribe(grid.onColumnsResized, () => this.ensureViewportLoaded());
+        this.gridEventHandler.subscribe(grid.onColumnsReordered, () => this.ensureViewportLoaded());
         this.ensureViewportLoaded();
         requestAnimationFrame(() => this.ensureViewportLoaded());
     }
@@ -719,6 +886,16 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
     }
 
     public refresh(startIndex = 0): void {
+        if (this.columnWindowing) {
+            if (!this.grid) {
+                return;
+            }
+            this.grid.invalidateAllRows();
+            this.grid.updateRowCount();
+            this.scheduleRender();
+            this.ensureViewportLoaded();
+            return;
+        }
         this.rowStore.resetAroundIndex?.(toNonNegativeInteger(startIndex), true);
 
         this.grid?.invalidateAllRows();
@@ -740,6 +917,22 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
 
         const start = Math.max(0, viewport.top);
         const end = Math.min(length, Math.max(start + 1, viewport.bottom + 1));
+        if (this.columnWindowing) {
+            const nextColumnWindow = resolveFluentResultGridColumnWindow({
+                columns: this.grid.getColumns(),
+                sourceColumnCount: this.sourceColumnCount,
+                viewport,
+                frozenColumnIndex: this.grid.getOptions().frozenColumn,
+                activeCellIndex: this.grid.getActiveCell()?.cell,
+                options: this.columnWindowing,
+                currentWindow: this.columnWindow,
+            });
+            if (this.rowStore.setColumnWindow?.(nextColumnWindow)) {
+                this.columnWindow = nextColumnWindow;
+                this.grid.invalidateAllRows();
+                this.scheduleRender();
+            }
+        }
         this.rowStore.getRange(start, end);
     }
 
@@ -753,6 +946,10 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
             cancelAnimationFrame(this.pendingAnimationFrame);
             this.pendingAnimationFrame = undefined;
         }
+        if (this.pendingRowCountTimer !== undefined) {
+            clearTimeout(this.pendingRowCountTimer);
+            this.pendingRowCountTimer = undefined;
+        }
         this.gridEventHandler.unsubscribeAll();
         this.grid = undefined;
         this.rowStore.dispose();
@@ -760,6 +957,23 @@ export class FluentResultGridDataView<T extends Slick.SlickData> implements Cust
 
     private scheduleRowCountUpdate(): void {
         if (!this.grid || this.disposed) {
+            return;
+        }
+
+        // SlickGrid's updateRowCount() reaches scrollTo(), which WRITES the
+        // viewport's scrollTop whenever the virtual page/offset mapping
+        // shifts. Doing that while the user is scrolling teleports the
+        // scrollbar thumb mid-drag: block jumps, sometimes OPPOSITE to the
+        // drag direction (streaming runs made grids jerky until the run
+        // finished). Streaming row growth therefore waits for a scroll-quiet
+        // window; the deferred update also coalesces the relayout burst.
+        if (performance.now() - this.lastScrollAt < SCROLL_QUIET_ROW_COUNT_DEFER_MS) {
+            if (this.pendingRowCountTimer === undefined) {
+                this.pendingRowCountTimer = setTimeout(() => {
+                    this.pendingRowCountTimer = undefined;
+                    this.scheduleRowCountUpdate();
+                }, SCROLL_QUIET_ROW_COUNT_DEFER_MS);
+            }
             return;
         }
 
@@ -805,8 +1019,8 @@ export function createFluentResultGridDataView<T extends Slick.SlickData = Fluen
             options.windowSize ?? defaultWindowSize,
             (index) => rowFactory.createPlaceholderRow(index, columnCount),
             dataSource.rowCount,
-            async (offset, count) => {
-                const rows = await dataSource.getRows(offset, count);
+            async (offset, count, columnWindow, readPurpose) => {
+                const rows = await dataSource.getRows(offset, count, columnWindow, readPurpose);
                 if (!Array.isArray(rows)) {
                     return rows;
                 }
@@ -815,7 +1029,10 @@ export function createFluentResultGridDataView<T extends Slick.SlickData = Fluen
                     rowFactory.createRow(row, offset + rowOffset, columnCount),
                 );
             },
+            dataSource.columnWindowing !== undefined,
         ),
+        dataSource.columnWindowing,
+        columnCount,
     );
 }
 

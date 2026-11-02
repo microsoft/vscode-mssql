@@ -2,7 +2,7 @@
     "name": "data-workspace-vscode",
     "displayName": "Data Workspace",
     "description": "Additional common functionality for database projects",
-    "version": "0.8.0",
+    "version": "0.8.1",
     "publisher": "ms-mssql",
     "preview": true,
     "license": "SEE LICENSE IN LICENSE.txt",

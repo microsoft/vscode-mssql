@@ -700,7 +700,7 @@ export class VsCodeAzureHelper {
 
         const skuName = options.maxVcores ? `GP_S_Gen5_${options.maxVcores}` : "GP_S_Gen5";
 
-        const freeOfferOptions = options.useFreeLimit
+        const freeTierOptions = options.useFreeLimit
             ? {
                   sku: {
                       name: skuName,
@@ -718,7 +718,7 @@ export class VsCodeAzureHelper {
             resourceGroupName,
             serverName,
             databaseName,
-            { ...options, ...freeOfferOptions, location: server.location },
+            { ...options, ...freeTierOptions, location: server.location },
         );
         return poller.pollUntilDone();
     }

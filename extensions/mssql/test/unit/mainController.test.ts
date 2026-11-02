@@ -39,6 +39,7 @@ import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/tel
 import * as Utils from "../../src/models/utils";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { Deferred } from "../../src/protocol";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
@@ -164,6 +165,29 @@ suite("MainController Tests", function () {
         await controller.onManageProfiles();
 
         expect(connectionManager.onManageProfiles).to.have.been.called;
+    });
+
+    test("sanitizeConnectionProfiles waits for connection settings initialization", async () => {
+        const connectionStore = sandbox.createStubInstance(ConnectionStore);
+        const connectionConfig = sandbox.createStubInstance(ConnectionConfig);
+        connectionConfig.initialized = new Deferred<void>();
+        sandbox.stub(connectionStore, "connectionConfig").get(() => connectionConfig);
+        sandbox.stub(connectionManager, "connectionStore").get(() => connectionStore);
+        const inspectStub = sandbox.stub().returns({});
+        sandbox
+            .stub(vscode.workspace, "getConfiguration")
+            .returns({ inspect: inspectStub } as unknown as vscode.WorkspaceConfiguration);
+
+        const sanitizing = mainController.sanitizeConnectionProfiles();
+        await new Promise((resolve) => setImmediate(resolve));
+
+        expect(inspectStub, "Settings should not be read before initialization").to.not.have.been
+            .called;
+
+        connectionConfig.initialized.resolve();
+        await sanitizing;
+
+        expect(inspectStub).to.have.been.calledOnceWith(Constants.connectionsArrayName);
     });
 
     suite("Delete Container", () => {

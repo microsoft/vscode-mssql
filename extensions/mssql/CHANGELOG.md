@@ -1,5 +1,22 @@
 # Change Log
 
+## Version 1.47.0
+
+- Release date: October 21, 2026
+- Release status: GA
+
+### What's new in 1.47.0
+
+- Released the MSSQL Getting Started page as generally available (GA), with one-click Microsoft SQL Agent skills installation, dev container templates, walkthroughs, and learning resources
+- Added execution plan comparison with side-by-side layouts, operator matching, and property filtering, plus live query statistics with animated row-count updates while queries run
+- Added quick file search to the SQL Database Projects view (`Ctrl/Cmd` + `F`), helping users to quickly find the script they need across their SQL projects
+- Added an optional status bar display for the active connection's server process ID (SPID). Enable with `mssql.statusBar.showServerProcessId`
+- Fixed issues with execution plan rendering and navigation, and added access to full property values
+- Fixed bugs and issues related to usability in the Query Results grid
+- Improved Excel export experience with formatted headers, frozen header rows, enable filtering, and automatically size columns
+
+Thank you to @ckaczor for contributing the Excel export improvements!
+
 ## Version 1.46.0
 
 - Release date: September 28, 2026
