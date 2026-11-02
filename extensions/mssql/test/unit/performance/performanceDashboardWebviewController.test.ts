@@ -366,7 +366,7 @@ suite("PerformanceDashboardWebviewController", () => {
             });
         });
 
-        test("sends Copilot Chat a prompt to analyze or explain a query", async () => {
+        test("sends Copilot Chat a prompt to summarize or optimize a query", async () => {
             createController();
             const window = {
                 startUtc: "2026-10-01T00:00:00.000Z",
@@ -374,26 +374,32 @@ suite("PerformanceDashboardWebviewController", () => {
             };
 
             await request(ContinueInChatRequest.type.method, {
-                prompt: "analyze",
+                prompt: "summarize",
                 queryId: "913",
                 ...window,
             });
             await request(ContinueInChatRequest.type.method, {
-                prompt: "explain",
+                prompt: "optimize",
                 queryId: "913",
                 ...window,
             });
 
-            const [analyze, explain] = host.openChat.args.map(([prompt]) => prompt as string);
+            const [summarize, optimize] = host.openChat.args.map(([prompt]) => prompt as string);
             const query =
                 'Query Store query 913 in database "Sales" on server ' +
-                '"contoso.database.windows.net" (saved connection profileId "profile-1") from ' +
-                "2026-10-01T00:00:00.000Z to 2026-10-02T00:00:00.000Z UTC. Read it with " +
-                "#mssql_query_store_analyze_query using that profileId and database.";
-            expect(analyze.startsWith(`Analyze the performance of ${query}\n\n`)).to.be.true;
-            expect(analyze).to.include("Recommend fixes, the most effective first");
-            expect(explain.startsWith(`Explain ${query}\n\nIn plain language:`)).to.be.true;
-            expect(explain).to.include("don't suggest changes unless something stands out");
+                '"contoso.database.windows.net" (saved connection profileId "profile-1"), from ' +
+                "2026-10-01T00:00:00.000Z to 2026-10-02T00:00:00.000Z UTC.\n\nUse " +
+                "#mssql_query_store_analyze_query with the specified profileId and database.";
+            expect(summarize).to.equal(
+                `${query} Briefly summarize the query's performance, key trends, and any notable ` +
+                    "execution plan changes. Then ask what I want to explore further.",
+            );
+            expect(optimize).to.equal(
+                `${query}\n\nIdentify potential performance bottlenecks and briefly recommend ` +
+                    "actionable optimizations based on the available data and execution plans. " +
+                    "Then ask what I want to improve or change. Do not apply changes until I " +
+                    "confirm.",
+            );
         });
 
         test("uses the server name in the title for the default database", () => {

@@ -124,7 +124,7 @@ export const PerformanceDashboardQueriesPage = () => {
         );
     }, [topQueries, rankBy, statistic, search, favoritesOnly, favorites.queryIds]);
 
-    // The menu of each row asks Copilot Chat to analyze or explain its query.
+    // The menu of each row asks Copilot Chat to summarize or optimize its query.
     const rowActions = useMemo<readonly QueryRowAction[]>(() => {
         const chat = (prompt: ChatPrompt) => (queryId: string) =>
             void extensionRpc.sendRequest(ContinueInChatRequest.type, {
@@ -134,14 +134,14 @@ export const PerformanceDashboardQueriesPage = () => {
             });
         return [
             {
-                label: loc.performanceDashboard.analyzeInChat,
+                label: loc.performanceDashboard.summarizeInChat,
                 icon: <GithubCopilot16Regular />,
-                run: chat("analyze"),
+                run: chat("summarize"),
             },
             {
-                label: loc.performanceDashboard.explainInChat,
+                label: loc.performanceDashboard.optimizeInChat,
                 icon: <GithubCopilot16Regular />,
-                run: chat("explain"),
+                run: chat("optimize"),
             },
         ];
     }, [extensionRpc, window]);

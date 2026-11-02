@@ -340,7 +340,7 @@ export const PerformanceDashboardQueryPage = () => {
     );
 };
 
-/** Analyze in Chat, with Explain in Chat in its menu. Each sends its prompt at once. */
+/** Summarize in chat, with Optimize in its menu. Each sends its prompt at once. */
 const ChatButton = ({ onChat }: { onChat: (prompt: ChatPrompt) => void }) => {
     const text = loc.performanceDashboard;
     return (
@@ -352,15 +352,15 @@ const ChatButton = ({ onChat }: { onChat: (prompt: ChatPrompt) => void }) => {
                         size="small"
                         icon={<GithubCopilot16Regular />}
                         menuButton={{ ...triggerProps, "aria-label": text.moreChatActions }}
-                        primaryActionButton={{ onClick: () => onChat("analyze") }}>
-                        {text.analyzeInChat}
+                        primaryActionButton={{ onClick: () => onChat("summarize") }}>
+                        {text.summarizeInChat}
                     </SplitButton>
                 )}
             </MenuTrigger>
             <MenuPopover>
                 <MenuList>
-                    <MenuItem icon={<GithubCopilot16Regular />} onClick={() => onChat("explain")}>
-                        {text.explainInChat}
+                    <MenuItem icon={<GithubCopilot16Regular />} onClick={() => onChat("optimize")}>
+                        {text.optimizeInChat}
                     </MenuItem>
                 </MenuList>
             </MenuPopover>

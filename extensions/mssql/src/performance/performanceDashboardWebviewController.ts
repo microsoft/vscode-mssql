@@ -576,7 +576,7 @@ function toWindow(window: TimeWindowParams): { start: Date; end: Date } {
 }
 
 /**
- * The chat prompt of a query, to analyze its performance or explain it. It names the saved
+ * The chat prompt of a query, to summarize its performance or optimize it. It names the saved
  * profile, database, and window, so the chat reads them with the Query Store tools and does not
  * need to find them.
  */
@@ -590,26 +590,15 @@ export function continueInChatPrompt(
     const database = target.databaseName || LocConstants.defaultDatabaseLabel;
     const query =
         `Query Store query ${queryId} in database "${database}" on server "${target.serverName}" ` +
-        `(saved connection profileId "${target.profileId}") from ${startUtc} to ${endUtc} UTC. ` +
-        `Read it with #mssql_query_store_analyze_query using that profileId and database.`;
-    return prompt === "explain"
-        ? `Explain ${query}\n\n` +
-              `In plain language:\n` +
-              `1. What the query does: the tables it reads or changes, its joins and filters, and ` +
-              `the procedure or function it belongs to, if any.\n` +
-              `2. How its main plan runs it: the steps in order, and which operators cost the ` +
-              `most.\n` +
-              `3. What its numbers mean: how often it runs, how long a run takes, and how much ` +
-              `that varies.\n` +
-              `Keep it short, and don't suggest changes unless something stands out.`
-        : `Analyze the performance of ${query}\n\n` +
-              `1. Say whether the query is a problem: how much time and CPU it uses, and how ` +
-              `that changed over the window.\n` +
-              `2. Find the cause: a plan change or regression, waits (CPU, I/O, locks, memory), ` +
-              `parameter sensitivity, or expensive operators and warnings in the plan.\n` +
-              `3. Recommend fixes, the most effective first, such as an index, a query rewrite, ` +
-              `or forcing a plan. Show the T-SQL for each, and don't run anything that changes ` +
-              `the database.`;
+        `(saved connection profileId "${target.profileId}"), from ${startUtc} to ${endUtc} UTC.\n\n` +
+        `Use #mssql_query_store_analyze_query with the specified profileId and database.`;
+    return prompt === "optimize"
+        ? `${query}\n\n` +
+              `Identify potential performance bottlenecks and briefly recommend actionable ` +
+              `optimizations based on the available data and execution plans. Then ask what I ` +
+              `want to improve or change. Do not apply changes until I confirm.`
+        : `${query} Briefly summarize the query's performance, key trends, and any notable ` +
+              `execution plan changes. Then ask what I want to explore further.`;
 }
 
 function toQueryWindow({ queryId, metrics, ...window }: QueryWindowParams) {

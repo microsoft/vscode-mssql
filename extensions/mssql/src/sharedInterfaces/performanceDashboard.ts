@@ -352,7 +352,7 @@ export namespace SetFavoriteQueryRequest {
 export type QueryPageTab = "history" | "waits" | "plans" | "compare";
 
 /** What a chat prompt asks about a query: an analysis of its performance, or an explanation. */
-export type ChatPrompt = "analyze" | "explain";
+export type ChatPrompt = "summarize" | "optimize";
 
 export interface ContinueInChatParams extends TimeWindowParams {
     readonly prompt: ChatPrompt;

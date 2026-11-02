@@ -766,9 +766,6 @@
     <trans-unit id="++CODE++321d13ba1e83d7e8983d23263451f4aba17263f597fcf9178b6cf3a627d281c6">
       <source xml:lang="en">Analyze execution plans with interactive node navigation</source>
     </trans-unit>
-    <trans-unit id="++CODE++ea242bca3cdeaf4af93a0f22feace56f661f6c2f049aff6f6cc31d4340eec540">
-      <source xml:lang="en">Analyze in Chat</source>
-    </trans-unit>
     <trans-unit id="++CODE++44b00c0e282443ba0669be2f57be8a112820909a49b2e026121d446409e42d21">
       <source xml:lang="en">Analyze static code with customizable rulesets in SQL Database Projects.</source>
     </trans-unit>
@@ -2732,6 +2729,9 @@
     </trans-unit>
     <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
       <source xml:lang="en">Continue Editing</source>
+    </trans-unit>
+    <trans-unit id="++CODE++11da87e499b62bf2701c5f572c29b0ae3f7e99ed8669328fba9387a90479c197">
+      <source xml:lang="en">Continue in Fabric Database Hub</source>
     </trans-unit>
     <trans-unit id="++CODE++e755d33279174089803267f30ec4ea489a5c08afc0905e1cdadd7538b6b88830">
       <source xml:lang="en">Continue investigating this database</source>
@@ -4819,9 +4819,6 @@
     </trans-unit>
     <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
       <source xml:lang="en">Expiration</source>
-    </trans-unit>
-    <trans-unit id="++CODE++df8f24cdd6265cf7e247b2fb194fa9616fcaf5f8de927349e2024a16caa21c40">
-      <source xml:lang="en">Explain in Chat</source>
     </trans-unit>
     <trans-unit id="++CODE++c267c3668f44bd7f202119c212350b10530ab3f877e5aad213ce8f633dc7b8be">
       <source xml:lang="en">Explain, fix, or analyze query performance directly from the SQL editor with GitHub Copilot.</source>
@@ -8509,9 +8506,6 @@
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
     </trans-unit>
-    <trans-unit id="++CODE++4a2a1e49b523264763b9897cf254579fa57c35ca0c61dfda1873bf492c6352ec">
-      <source xml:lang="en">Open in Fabric Database Hub</source>
-    </trans-unit>
     <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>
     </trans-unit>
@@ -8615,6 +8609,9 @@
     </trans-unit>
     <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
       <source xml:lang="en">Operator</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aa5f530acb509a3547fc2a5cc3f1c92da93af2f5b466417527e59d0f50f00c7b">
+      <source xml:lang="en">Optimize</source>
     </trans-unit>
     <trans-unit id="++CODE++e262d629c99156bd48e759790fae3387d08f1b1651ff7ec74a3ca9ad9202e0c9">
       <source xml:lang="en">Option Description</source>
@@ -11826,6 +11823,9 @@
     <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
       <source xml:lang="en">Sum: {0}</source>
       <note>{0} is the sum</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e2683724d3eec401d6f3f88afa85812a346d838f85c2ac1406b057f0233c6c27">
+      <source xml:lang="en">Summarize</source>
     </trans-unit>
     <trans-unit id="++CODE++8e76a94ac8320d515375e625bef1829238b097ecbd33611b59eeefd4ffefebfb">
       <source xml:lang="en">Summary</source>
@@ -15771,9 +15771,6 @@
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Modify Table Structure...</source>
     </trans-unit>
-    <trans-unit id="mssql.performance.openDashboard">
-      <source xml:lang="en">Monitor Performance (Preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.objectExplorerV2.moveToGroup">
       <source xml:lang="en">Move to Group...</source>
     </trans-unit>
@@ -15869,6 +15866,9 @@
     </trans-unit>
     <trans-unit id="mssql.commandPaletteQueryHistory">
       <source xml:lang="en">Open Query History in Command Palette</source>
+    </trans-unit>
+    <trans-unit id="mssql.performance.openDashboard">
+      <source xml:lang="en">Open Query Performance Dashboard</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.openXelFile">
       <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>
@@ -16381,7 +16381,7 @@
       <source xml:lang="en">Show Getting Started</source>
     </trans-unit>
     <trans-unit id="mssql.performanceMonitoring.enabled.description">
-      <source xml:lang="en">Show Monitor Performance (Preview), the Query Store performance dashboard, in the database menu of Object Explorer, and the Query Store tools in Copilot Chat. On by default; it needs no other setting. Reload the window after changing this setting.</source>
+      <source xml:lang="en">Show Open Query Performance Dashboard in the database menu of Object Explorer, and the Query Store tools in Copilot Chat. On by default; it needs no other setting. Reload the window after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.showStatus">
       <source xml:lang="en">Show SQL Data Plane Status</source>
