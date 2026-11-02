@@ -1,8 +1,8 @@
-# Pull Request Review Instructions
+---
+applyTo: "**/package.json,**/package-lock.json"
+---
 
-Follow [the reviewer guidelines](REVIEW_GUIDELINES.md) when reviewing pull requests.
-
-## npm Dependencies
+# npm Dependencies
 
 - For npm dependency additions and updates, including transitive lockfile changes, flag any
   selected version published less than seven full days ago. Check the actual version's publication
