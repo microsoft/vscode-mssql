@@ -36,6 +36,7 @@ import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
 import { Perf } from "../perf/perfTelemetry";
+import { containerConnections } from "../docker/containerConnection";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionInfo } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
@@ -891,9 +892,9 @@ export class ObjectExplorerService {
             return undefined;
         }
 
-        const connectionDetails = ConnectionCredentials.createConnectionDetails(
+        const connectionDetails = containerConnections.withEndpoint(
             connectionProfile,
-            true,
+            ConnectionCredentials.createConnectionDetails(connectionProfile),
         );
 
         let sessionCompleted = false;

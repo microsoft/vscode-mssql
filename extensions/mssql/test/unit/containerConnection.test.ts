@@ -153,6 +153,8 @@ suite("Container connection transport", function () {
         ]) {
             expect(await connections.prepare(target)).to.be.undefined;
             expect(connections.getServer(target)).to.be.undefined;
+            const details = { options: { server: "localhost,1433" } };
+            expect(connections.withEndpoint(target, details)).to.equal(details);
         }
         expect(execute.called).to.be.false;
         expect(relay.called).to.be.false;
@@ -207,7 +209,12 @@ suite("Container connection transport", function () {
             containerEngine: ContainerEngine.Podman,
         });
         sandbox.stub(containerConnections, "getServer").returns(undefined);
-        expect(() => ConnectionCredentials.createConnectionDetails(profile, true)).to.throw();
+        expect(() =>
+            containerConnections.withEndpoint(
+                profile,
+                ConnectionCredentials.createConnectionDetails(profile),
+            ),
+        ).to.throw();
         expect(ConnectionCredentials.createConnectionDetails(profile).options.server).to.equal(
             "localhost,1442",
         );
@@ -259,9 +266,10 @@ suite("Container connection transport", function () {
         expect(ConnectionCredentials.createConnectionDetails(target).options.server).to.equal(
             "localhost,1442",
         );
-        expect(ConnectionCredentials.createConnectionDetails(target, true).options.server).to.equal(
-            "127.0.0.1,54321",
-        );
+        const details = ConnectionCredentials.createConnectionDetails(target);
+        const runtimeDetails = containerConnections.withEndpoint(target, details);
+        expect(runtimeDetails.options.server).to.equal("127.0.0.1,54321");
+        expect(details.options.server).to.equal("localhost,1442");
         expect(await prepared.auth.serverProvider()).to.equal("127.0.0.1,54321");
         expect(secrets.lookupPassword.called).to.be.false;
         expect(prepared.profileRef.server).to.equal("localhost,1442");

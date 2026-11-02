@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { containerConnections } from "../docker/containerConnection";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerWebviewController } from "./schemaDesignerWebviewController";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
@@ -99,11 +100,10 @@ export class SchemaDesignerWebviewManager {
             )) as IConnectionProfile;
             connectionInfo.database = databaseName;
 
-            const connectionDetails =
-                await mainController.connectionManager.createConnectionDetails(
-                    connectionInfo,
-                    true,
-                );
+            const connectionDetails = containerConnections.withEndpoint(
+                connectionInfo,
+                mainController.connectionManager.createConnectionDetails(connectionInfo),
+            );
 
             treeNode.updateConnectionProfile(connectionInfo);
 
@@ -120,11 +120,10 @@ export class SchemaDesignerWebviewManager {
                     ...connInfo.credentials,
                     database: databaseName,
                 } as IConnectionProfile;
-                const connectionDetails =
-                    await mainController.connectionManager.createConnectionDetails(
-                        connectionInfo,
-                        true,
-                    );
+                const connectionDetails = containerConnections.withEndpoint(
+                    connectionInfo,
+                    mainController.connectionManager.createConnectionDetails(connectionInfo),
+                );
 
                 connectionString = await mainController.connectionManager.getConnectionString(
                     connectionDetails,

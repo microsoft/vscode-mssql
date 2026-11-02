@@ -27,6 +27,7 @@ import {
 } from "../../src/sharedInterfaces/azureSqlDatabase";
 import { AzureSqlContainer } from "../../src/constants/locConstants";
 import * as dockerUtils from "../../src/docker/dockerUtils";
+import { containerConnections } from "../../src/docker/containerConnection";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ConnectionUI } from "../../src/views/connectionUI";
@@ -371,6 +372,7 @@ suite("Azure SQL container configuration", () => {
             sandbox.stub(connectionManager, "connectionUI").get(() => connectionUI);
             connectionUI.saveProfile.callsFake(async (profile) => profile);
             connectionManager.createConnectionDetails.returns({ options: {} });
+            sandbox.stub(containerConnections, "getServer").returns("127.0.0.1,54321");
             connectionManager.getConnectionString.resolves("Server=localhost,1433");
             connectionManager.disconnect.resolves(true);
             mainController.createObjectExplorerSession.resolves();
@@ -403,6 +405,13 @@ suite("Azure SQL container configuration", () => {
                 expect(mainController.createObjectExplorerSession).to.have.been.calledWith(
                     expectedProfile,
                 );
+                if (engine === ContainerEngine.Podman || engine === ContainerEngine.WslContainer) {
+                    expect(connectionManager.getConnectionString).to.have.been.calledWith(
+                        sinon.match({ options: sinon.match({ server: "127.0.0.1,54321" }) }),
+                        false,
+                        false,
+                    );
+                }
             });
         }
 

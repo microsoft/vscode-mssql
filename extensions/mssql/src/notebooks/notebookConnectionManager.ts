@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { containerConnections } from "../docker/containerConnection";
 import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
 import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
@@ -431,7 +432,10 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
         let connectionDetails: ConnectionDetails;
         try {
-            connectionDetails = this.connectionMgr.createConnectionDetails(sourceInfo, true);
+            connectionDetails = containerConnections.withEndpoint(
+                sourceInfo,
+                this.connectionMgr.createConnectionDetails(sourceInfo),
+            );
         } catch (err: any) {
             this.log.warn(
                 `[connectCellForIntellisense] createConnectionDetails failed: ${err.message} cell=${cellDocumentUri}`,

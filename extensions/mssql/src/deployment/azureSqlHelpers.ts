@@ -18,6 +18,7 @@ import { DeploymentWebviewController } from "./deploymentWebviewController";
 import { validateSqlServerPassword } from "./sqlServerContainer";
 import { AzureSqlContainer } from "../constants/locConstants";
 import * as dockerUtils from "../docker/dockerUtils";
+import { containerConnections } from "../docker/containerConnection";
 import { defaultPortNumber, localhost, sa, sqlAuthentication } from "../constants/constants";
 import { ConnectionProfile } from "../models/connectionProfile";
 import MainController from "../controllers/mainController";
@@ -642,7 +643,10 @@ async function addAzureSqlContainerConnection(
             return { success: false };
         }
         const connectionString = await mainController.connectionManager.getConnectionString(
-            mainController.connectionManager.createConnectionDetails(profile, true),
+            containerConnections.withEndpoint(
+                profile,
+                mainController.connectionManager.createConnectionDetails(profile),
+            ),
             false,
             false,
         );

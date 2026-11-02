@@ -470,11 +470,8 @@ export default class ConnectionManager {
      * @param connectionInfo connection info of the connection
      * @returns connection details credentials for the connection
      */
-    public createConnectionDetails(
-        connectionInfo: IConnectionInfo,
-        useContainerEndpoint = false,
-    ): ConnectionDetails {
-        return ConnectionCredentials.createConnectionDetails(connectionInfo, useContainerEndpoint);
+    public createConnectionDetails(connectionInfo: IConnectionInfo): ConnectionDetails {
+        return ConnectionCredentials.createConnectionDetails(connectionInfo);
     }
 
     /**
@@ -1504,7 +1501,10 @@ export default class ConnectionManager {
         this._logger.info(LocalizedConstants.msgConnecting(credentials.server, fileUri));
 
         // Create connection request params
-        const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials, true);
+        const connectionDetails = containerConnections.withEndpoint(
+            credentials,
+            ConnectionCredentials.createConnectionDetails(credentials),
+        );
         let connectParams = new ConnectionContracts.ConnectParams();
         connectParams.ownerUri = fileUri;
         connectParams.connection = connectionDetails;

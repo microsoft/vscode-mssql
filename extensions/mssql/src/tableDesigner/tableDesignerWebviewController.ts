@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { containerConnections } from "../docker/containerConnection";
 import ConnectionManager from "../controllers/connectionManager";
 import { randomUUID } from "crypto";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
@@ -165,9 +166,9 @@ export class TableDesignerWebviewController extends WebviewPanelController<
 
         let connectionString: string | undefined;
         try {
-            const connectionDetails = await this._connectionManager.createConnectionDetails(
+            const connectionDetails = containerConnections.withEndpoint(
                 connectionInfo,
-                true,
+                this._connectionManager.createConnectionDetails(connectionInfo),
             );
             connectionString = await this._connectionManager.getConnectionString(
                 connectionDetails,

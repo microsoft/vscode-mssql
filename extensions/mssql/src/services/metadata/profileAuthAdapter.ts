@@ -180,9 +180,8 @@ export function buildAuthBundle(
     }
     switch (authKind) {
         case "sql":
-            return {
-                passwordProvider: async () => stored.password || secrets.lookupPassword(stored),
-            };
+            auth.passwordProvider = async () => stored.password || secrets.lookupPassword(stored);
+            break;
         case "aad":
             auth.tokenProvider = async () => {
                 if (!tokens) {

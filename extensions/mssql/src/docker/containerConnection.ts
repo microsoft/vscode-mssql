@@ -5,7 +5,7 @@
 
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { createServer, Server, Socket } from "node:net";
-import { IConnectionInfo } from "vscode-mssql";
+import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 import { AzureSqlContainer } from "../constants/locConstants";
 import { logger } from "../models/logger";
 import { ContainerEngine } from "../sharedInterfaces/azureSqlDatabase";
@@ -58,6 +58,17 @@ export class ContainerConnections {
 
     getServer(target: ContainerTarget): string | undefined {
         return this.tunnels.get(this.key(target))?.endpoint;
+    }
+
+    withEndpoint(target: ContainerTarget, details: ConnectionDetails): ConnectionDetails {
+        if (!needsContainerConnection(target)) {
+            return details;
+        }
+        const server = this.getServer(target);
+        if (!server) {
+            throw new Error(AzureSqlContainer.containerTransportNotPrepared);
+        }
+        return { ...details, options: { ...details.options, server } };
     }
 
     async prepare(target: ContainerTarget): Promise<string | undefined> {

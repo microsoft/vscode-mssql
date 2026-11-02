@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import { IConnectionInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
+import { containerConnections } from "../docker/containerConnection";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ChangePasswordWebviewController } from "../controllers/changePasswordWebviewController";
 import { ChangePasswordRequest } from "../models/contracts/changePassword";
@@ -43,7 +44,10 @@ export class ChangePasswordService {
         credentials: IConnectionInfo,
         newPassword: string,
     ): Promise<ChangePasswordResult> {
-        const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials, true);
+        const connectionDetails = containerConnections.withEndpoint(
+            credentials,
+            ConnectionCredentials.createConnectionDetails(credentials),
+        );
         try {
             return await this._client.sendRequest(ChangePasswordRequest.type, {
                 ownerUri: `changePassword:${uuid()}`,

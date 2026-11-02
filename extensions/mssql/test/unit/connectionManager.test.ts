@@ -948,7 +948,13 @@ suite("ConnectionManager Tests", () => {
                 expect(profile.id).to.equal("saved-container-id");
                 expect(result.server).to.equal("localhost,1442");
                 expect(
-                    testConnectionManager.createConnectionDetails(result, true).options.server,
+                    testConnectionManager.createConnectionDetails(result).options.server,
+                ).to.equal("localhost,1442");
+                expect(
+                    containerConnections.withEndpoint(
+                        result,
+                        testConnectionManager.createConnectionDetails(result),
+                    ).options.server,
                 ).to.equal("127.0.0.1,54321");
             });
         }
