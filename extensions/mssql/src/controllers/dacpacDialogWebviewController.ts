@@ -14,7 +14,11 @@ import { IConnectionProfile } from "../models/interfaces";
 import * as vscodeMssql from "vscode-mssql";
 import { WebviewPanelController } from "./webviewPanelController";
 import * as LocConstants from "../constants/locConstants";
-import { startActivity } from "extension-toolkit/vscode";
+import {
+    startWorkflow,
+    type ActivityObject,
+    type WorkflowTelemetryObject,
+} from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
 import * as dacpacDialog from "../sharedInterfaces/dacpacDialog";
 import { TaskExecutionMode } from "../enums";
@@ -37,6 +41,39 @@ export const BACPAC_EXTENSION = ".bacpac";
 // View ID constant for NPS survey
 const DACPAC_DIALOG_VIEW_ID = "DacpacDialog";
 
+const DacpacDialogWorkflowStep = {
+    [dacpacDialog.DacpacDialogTelemetryEventName.Opened]: {
+        name: dacpacDialog.DacpacDialogTelemetryEventName.Opened,
+        ordinal: 1,
+    },
+    [dacpacDialog.DacpacDialogTelemetryEventName.ConnectionReady]: {
+        name: dacpacDialog.DacpacDialogTelemetryEventName.ConnectionReady,
+        ordinal: 2,
+    },
+    [dacpacDialog.DacpacDialogTelemetryEventName.SubmitAttempted]: {
+        name: dacpacDialog.DacpacDialogTelemetryEventName.SubmitAttempted,
+        ordinal: 3,
+    },
+    [dacpacDialog.DacpacDialogTelemetryEventName.ValidationFailed]: {
+        name: dacpacDialog.DacpacDialogTelemetryEventName.SubmitAttempted,
+        ordinal: 3,
+    },
+    [dacpacDialog.DacpacDialogTelemetryEventName.OperationStarted]: {
+        name: dacpacDialog.DacpacDialogTelemetryEventName.OperationStarted,
+        ordinal: 4,
+    },
+    [dacpacDialog.DacpacDialogTelemetryEventName.OperationCompleted]: {
+        name: dacpacDialog.DacpacDialogTelemetryEventName.OperationCompleted,
+        ordinal: 5,
+    },
+} as const;
+
+type DacpacDialogStepEventName = Exclude<
+    dacpacDialog.DacpacDialogTelemetryEventName,
+    | dacpacDialog.DacpacDialogTelemetryEventName.Cancelled
+    | dacpacDialog.DacpacDialogTelemetryEventName.Closed
+>;
+
 /**
  * Controller for the DacpacDialog webview.
  * Manages DACPAC and BACPAC operations (Deploy, Extract, Import, Export) using the Data-tier Application Framework (DacFx).
@@ -47,6 +84,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     dacpacDialog.DacpacDialogResult
 > {
     private _ownerUri: string;
+    private readonly _workflow: WorkflowTelemetryObject;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -66,6 +104,17 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         });
 
         this._ownerUri = ownerUri;
+        this._workflow = startWorkflow(
+            TelemetryViews.DacpacDialog,
+            TelemetryActions.DacpacDialogWorkflow,
+            dacpacDialog.DacpacDialogTelemetryEventName.Opened,
+            {
+                step: {
+                    ...DacpacDialogWorkflowStep[dacpacDialog.DacpacDialogTelemetryEventName.Opened],
+                    branch: initialState.operationType,
+                },
+            },
+        );
         this.registerRpcHandlers();
     }
 
@@ -290,9 +339,77 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
         // Cancel operation notification handler
         this.onNotification(dacpacDialog.CancelDacpacDialogWebviewNotification.type, () => {
+            this._workflow.end(dacpacDialog.DacpacDialogTelemetryEventName.Cancelled, {
+                outcome: "Cancelled",
+                step: this._workflow.currentStep && {
+                    ...this._workflow.currentStep,
+                    branch: this.state.operationType,
+                },
+            });
             this.dialogResult.resolve(undefined);
             this.panel.dispose();
         });
+
+        this.onNotification(
+            dacpacDialog.DacpacDialogTelemetryNotification.type,
+            (params: dacpacDialog.DacpacDialogTelemetryParams) => {
+                this.recordWorkflowEvent(
+                    params.eventName,
+                    params.operationType,
+                    params.eventName ===
+                        dacpacDialog.DacpacDialogTelemetryEventName.ValidationFailed
+                        ? "Failed"
+                        : undefined,
+                );
+            },
+        );
+    }
+
+    private recordWorkflowEvent(
+        eventName: DacpacDialogStepEventName,
+        operationType: dacpacDialog.DacPacDialogOperationType,
+        outcome?: "Succeeded" | "Failed" | "Cancelled",
+    ): void {
+        this._workflow.record(eventName, {
+            step: {
+                ...DacpacDialogWorkflowStep[eventName],
+                branch: operationType,
+            },
+            outcome,
+        });
+    }
+
+    private startTrackedOperation(
+        action: TelemetryActions,
+        operationType: dacpacDialog.DacPacDialogOperationType,
+        additionalProps: Record<string, string> = {},
+    ): ActivityObject {
+        const activity = this._workflow.startChildActivity(action, {
+            additionalProps,
+        });
+        this.recordWorkflowEvent(
+            dacpacDialog.DacpacDialogTelemetryEventName.OperationStarted,
+            operationType,
+        );
+        return activity;
+    }
+
+    private completeOperationActivity(
+        activity: ActivityObject,
+        operationType: dacpacDialog.DacPacDialogOperationType,
+        outcome: "Succeeded" | "Failed",
+        error?: Error,
+    ): void {
+        if (outcome === "Succeeded") {
+            activity.end(ActivityStatus.Succeeded);
+        } else {
+            activity.endFailed(error, false);
+        }
+        this.recordWorkflowEvent(
+            dacpacDialog.DacpacDialogTelemetryEventName.OperationCompleted,
+            operationType,
+            outcome,
+        );
     }
 
     /**
@@ -303,14 +420,10 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         this.logger.debug("Starting Deploy DACPAC operation");
 
-        const activity = startActivity(
-            TelemetryViews.DacpacDialog,
+        const activity = this.startTrackedOperation(
             TelemetryActions.DacpacDialogDeployDacpac,
-            {
-                additionalProps: {
-                    isNewDatabase: params.isNewDatabase.toString(),
-                },
-            },
+            dacpacDialog.DacPacDialogOperationType.Deploy,
+            { isNewDatabase: params.isNewDatabase.toString() },
         );
 
         try {
@@ -330,7 +443,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
             if (result.success) {
                 this.logger.debug("Deploy DACPAC operation completed successfully");
-                activity.end(ActivityStatus.Succeeded);
+                this.completeOperationActivity(
+                    activity,
+                    dacpacDialog.DacPacDialogOperationType.Deploy,
+                    "Succeeded",
+                );
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
                     `${DACPAC_DIALOG_VIEW_ID}_deploy`,
@@ -338,9 +455,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                 this.dialogResult.resolve(appResult);
             } else {
                 this.logger.error("Deploy DACPAC operation failed");
-                activity.endFailed(
+                this.completeOperationActivity(
+                    activity,
+                    dacpacDialog.DacPacDialogOperationType.Deploy,
+                    "Failed",
                     new Error(result.errorMessage || "Deploy operation failed"),
-                    false,
                 );
                 this.dialogResult.resolve(appResult);
             }
@@ -352,7 +471,12 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             this.logger.error(
                 `Deploy DACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
             );
-            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
+            this.completeOperationActivity(
+                activity,
+                dacpacDialog.DacPacDialogOperationType.Deploy,
+                "Failed",
+                error instanceof Error ? error : new Error(errorMessage),
+            );
             return {
                 success: false,
                 errorMessage: errorMessage,
@@ -368,9 +492,9 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         this.logger.debug("Starting Extract DACPAC operation");
 
-        const activity = startActivity(
-            TelemetryViews.DacpacDialog,
+        const activity = this.startTrackedOperation(
             TelemetryActions.DacpacDialogExtractDacpac,
+            dacpacDialog.DacPacDialogOperationType.Extract,
         );
 
         try {
@@ -391,7 +515,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
             if (result.success) {
                 this.logger.debug("Extract DACPAC operation completed successfully");
-                activity.end(ActivityStatus.Succeeded);
+                this.completeOperationActivity(
+                    activity,
+                    dacpacDialog.DacPacDialogOperationType.Extract,
+                    "Succeeded",
+                );
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
                     `${DACPAC_DIALOG_VIEW_ID}_extract`,
@@ -399,9 +527,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                 this.dialogResult.resolve(appResult);
             } else {
                 this.logger.error("Extract DACPAC operation failed");
-                activity.endFailed(
+                this.completeOperationActivity(
+                    activity,
+                    dacpacDialog.DacPacDialogOperationType.Extract,
+                    "Failed",
                     new Error(result.errorMessage || "Extract operation failed"),
-                    false,
                 );
                 this.dialogResult.resolve(appResult);
             }
@@ -413,7 +543,12 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             this.logger.error(
                 `Extract DACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
             );
-            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
+            this.completeOperationActivity(
+                activity,
+                dacpacDialog.DacPacDialogOperationType.Extract,
+                "Failed",
+                error instanceof Error ? error : new Error(errorMessage),
+            );
             return {
                 success: false,
                 errorMessage: errorMessage,
@@ -429,9 +564,9 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         this.logger.debug("Starting Import BACPAC operation");
 
-        const activity = startActivity(
-            TelemetryViews.DacpacDialog,
+        const activity = this.startTrackedOperation(
             TelemetryActions.DacpacDialogImportBacpac,
+            dacpacDialog.DacPacDialogOperationType.Import,
         );
 
         try {
@@ -450,7 +585,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
             if (result.success) {
                 this.logger.debug("Import BACPAC operation completed successfully");
-                activity.end(ActivityStatus.Succeeded);
+                this.completeOperationActivity(
+                    activity,
+                    dacpacDialog.DacPacDialogOperationType.Import,
+                    "Succeeded",
+                );
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
                     `${DACPAC_DIALOG_VIEW_ID}_import`,
@@ -458,9 +597,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                 this.dialogResult.resolve(appResult);
             } else {
                 this.logger.error("Import BACPAC operation failed");
-                activity.endFailed(
+                this.completeOperationActivity(
+                    activity,
+                    dacpacDialog.DacPacDialogOperationType.Import,
+                    "Failed",
                     new Error(result.errorMessage || "Import operation failed"),
-                    false,
                 );
                 this.dialogResult.resolve(appResult);
             }
@@ -472,7 +613,12 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             this.logger.error(
                 `Import BACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
             );
-            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
+            this.completeOperationActivity(
+                activity,
+                dacpacDialog.DacPacDialogOperationType.Import,
+                "Failed",
+                error instanceof Error ? error : new Error(errorMessage),
+            );
             return {
                 success: false,
                 errorMessage: errorMessage,
@@ -488,9 +634,9 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         this.logger.debug("Starting Export BACPAC operation");
 
-        const activity = startActivity(
-            TelemetryViews.DacpacDialog,
+        const activity = this.startTrackedOperation(
             TelemetryActions.DacpacDialogExportBacpac,
+            dacpacDialog.DacPacDialogOperationType.Export,
         );
 
         try {
@@ -509,7 +655,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
             if (result.success) {
                 this.logger.debug("Export BACPAC operation completed successfully");
-                activity.end(ActivityStatus.Succeeded);
+                this.completeOperationActivity(
+                    activity,
+                    dacpacDialog.DacPacDialogOperationType.Export,
+                    "Succeeded",
+                );
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
                     `${DACPAC_DIALOG_VIEW_ID}_export`,
@@ -517,9 +667,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                 this.dialogResult.resolve(appResult);
             } else {
                 this.logger.error("Export BACPAC operation failed");
-                activity.endFailed(
+                this.completeOperationActivity(
+                    activity,
+                    dacpacDialog.DacPacDialogOperationType.Export,
+                    "Failed",
                     new Error(result.errorMessage || "Export operation failed"),
-                    false,
                 );
                 this.dialogResult.resolve(appResult);
             }
@@ -531,7 +683,12 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             this.logger.error(
                 `Export BACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
             );
-            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
+            this.completeOperationActivity(
+                activity,
+                dacpacDialog.DacPacDialogOperationType.Export,
+                "Failed",
+                error instanceof Error ? error : new Error(errorMessage),
+            );
             return {
                 success: false,
                 errorMessage: errorMessage,
@@ -742,6 +899,10 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
                     matchingConnection.profile,
                     params.initialOwnerUri,
                 );
+                this.recordWorkflowEvent(
+                    dacpacDialog.DacpacDialogTelemetryEventName.ConnectionReady,
+                    this.state.operationType,
+                );
                 return { ...existingConnResult, connections, isFabric };
             }
 
@@ -856,6 +1017,10 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             let ownerUri = this.connectionManager.getUriForConnection(profile);
             if (ownerUri && this.connectionManager.isConnected(ownerUri)) {
                 // Connection is active and valid
+                this.recordWorkflowEvent(
+                    dacpacDialog.DacpacDialogTelemetryEventName.ConnectionReady,
+                    this.state.operationType,
+                );
                 return {
                     ownerUri,
                     isConnected: true,
@@ -872,6 +1037,10 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             if (result) {
                 // Get the actual ownerUri that was used for the connection
                 ownerUri = this.connectionManager.getUriForConnection(profile);
+                this.recordWorkflowEvent(
+                    dacpacDialog.DacpacDialogTelemetryEventName.ConnectionReady,
+                    this.state.operationType,
+                );
                 return {
                     ownerUri,
                     isConnected: true,
@@ -1023,5 +1192,15 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
      */
     public get ownerUri(): string {
         return this._ownerUri;
+    }
+
+    public override dispose(): void {
+        this._workflow.end(dacpacDialog.DacpacDialogTelemetryEventName.Closed, {
+            step: this._workflow.currentStep && {
+                ...this._workflow.currentStep,
+                branch: this.state.operationType,
+            },
+        });
+        super.dispose();
     }
 }

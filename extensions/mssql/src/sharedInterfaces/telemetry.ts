@@ -225,6 +225,7 @@ export enum TelemetryActions {
     DacpacDialogExtractDacpac = "DacpacDialogExtractDacpac",
     DacpacDialogImportBacpac = "DacpacDialogImportBacpac",
     DacpacDialogExportBacpac = "DacpacDialogExportBacpac",
+    DacpacDialogWorkflow = "DacpacDialogWorkflow",
     Script = "Script",
     CommitChanges = "CommitChanges",
     CreateRow = "CreateRow",

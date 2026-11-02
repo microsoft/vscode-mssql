@@ -24,6 +24,8 @@ import {
     CancelDacpacDialogWebviewNotification,
     ConfirmDeployToExistingWebviewRequest,
     ConnectToServerWebviewRequest,
+    DacpacDialogTelemetryEventName,
+    DacpacDialogTelemetryNotification,
     DacpacDialogResult,
     DacPacDialogOperationType,
     DeployDacpacWebviewRequest,
@@ -57,6 +59,7 @@ import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import * as fs from "fs";
 import * as path from "path";
+import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
 chai.use(sinonChai);
 suite("DacpacDialogWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -73,6 +76,7 @@ suite("DacpacDialogWebviewController", () => {
     let panelStub: vscode.WebviewPanel;
     let controller: DacpacDialogWebviewController;
     let fsExistsSyncStub: sinon.SinonStub;
+    let telemetry: ReturnType<typeof stubTelemetry>;
     const ownerUri = "test-connection-uri";
     const initialState = {
         operationType: DacPacDialogOperationType.Deploy,
@@ -80,7 +84,7 @@ suite("DacpacDialogWebviewController", () => {
     };
     setup(() => {
         sandbox = sinon.createSandbox();
-        stubTelemetry(sandbox);
+        telemetry = stubTelemetry(sandbox);
         stubUserSurvey(sandbox);
 
         stubLogger(sandbox);
@@ -137,6 +141,12 @@ suite("DacpacDialogWebviewController", () => {
         );
         return controller;
     }
+    function workflowEvents(): Record<string, string>[] {
+        return telemetry.sendActionEvent
+            .getCalls()
+            .filter((call) => call.args[1] === TelemetryActions.DacpacDialogWorkflow)
+            .map((call) => call.args[2].additionalProps as Record<string, string>);
+    }
     suite("Deployment Operations", () => {
         test("Publish DACPAC succeeds for new database", async () => {
             const mockResult: DacFxResult = {
@@ -170,6 +180,25 @@ suite("DacpacDialogWebviewController", () => {
                 operationId: "operation-123",
             });
             expect(resolveSpy).to.have.been.calledOnce;
+            const events = workflowEvents();
+            const started = events.find(
+                (event) => event.eventName === DacpacDialogTelemetryEventName.OperationStarted,
+            );
+            const completed = events.find(
+                (event) => event.eventName === DacpacDialogTelemetryEventName.OperationCompleted,
+            );
+            expect(started).to.include({
+                stepName: DacpacDialogTelemetryEventName.OperationStarted,
+                stepOrdinal: "4",
+                branch: DacPacDialogOperationType.Deploy,
+            });
+            expect(completed).to.include({
+                outcome: "Succeeded",
+                stepName: DacpacDialogTelemetryEventName.OperationCompleted,
+                stepOrdinal: "5",
+                branch: DacPacDialogOperationType.Deploy,
+            });
+            expect(completed?.workflowCorrelationId).to.equal(started?.workflowCorrelationId);
         });
         test("Publish DACPAC succeeds for existing database", async () => {
             const mockResult: DacFxResult = {
@@ -1028,6 +1057,11 @@ suite("DacpacDialogWebviewController", () => {
             expect(resolveSpy).to.have.been.calledOnceWithExactly(undefined);
             expect(panelStub.dispose).to.have.been.calledOnce;
             expect(resolvedValue).to.be.undefined;
+            const events = workflowEvents();
+            expect(events.at(-1)).to.include({
+                eventName: DacpacDialogTelemetryEventName.Cancelled,
+                outcome: "Cancelled",
+            });
         });
     });
     suite("Deploy to Existing Database Confirmation", () => {
@@ -1093,6 +1127,18 @@ suite("DacpacDialogWebviewController", () => {
                 sinon.match.any,
             );
         });
+        test("emits an opened workflow event with a dialog correlation ID", () => {
+            createController();
+            expect(workflowEvents()[0]).to.include({
+                eventName: DacpacDialogTelemetryEventName.Opened,
+                stepName: DacpacDialogTelemetryEventName.Opened,
+                stepOrdinal: "1",
+                branch: DacPacDialogOperationType.Deploy,
+            });
+            expect(workflowEvents()[0].workflowCorrelationId).to.match(
+                /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+            );
+        });
         test("registers all request handlers", () => {
             createController();
             expect(requestHandlers.has(DeployDacpacWebviewRequest.type.method)).to.be.true;
@@ -1111,6 +1157,29 @@ suite("DacpacDialogWebviewController", () => {
             createController();
             expect(notificationHandlers.has(CancelDacpacDialogWebviewNotification.type.method)).to
                 .be.true;
+        });
+        test("records submit and validation workflow notifications", () => {
+            createController();
+            const telemetryHandler = notificationHandlers.get(
+                DacpacDialogTelemetryNotification.type.method,
+            );
+            expect(telemetryHandler, "Telemetry handler was not registered").to.be.a("function");
+            (
+                telemetryHandler as unknown as (params: {
+                    eventName: DacpacDialogTelemetryEventName;
+                    operationType: DacPacDialogOperationType;
+                }) => void
+            )({
+                eventName: DacpacDialogTelemetryEventName.ValidationFailed,
+                operationType: DacPacDialogOperationType.Import,
+            });
+            expect(workflowEvents().at(-1)).to.include({
+                eventName: DacpacDialogTelemetryEventName.ValidationFailed,
+                outcome: "Failed",
+                stepName: DacpacDialogTelemetryEventName.SubmitAttempted,
+                stepOrdinal: "3",
+                branch: DacPacDialogOperationType.Import,
+            });
         });
         test("returns correct owner URI", () => {
             createController();
