@@ -3728,19 +3728,11 @@ export class LocConstants {
 
     public get azureSqlContainer() {
         return {
-            appRegistration: l10n.t("App registration"),
-            createAppRegistration: l10n.t("Create new app registration"),
-            appRegistrationName: l10n.t("App registration name"),
-            enterAppRegistrationName: l10n.t("Enter an app registration name"),
-            creatingAppRegistration: l10n.t("Creating app registration..."),
-            selectAppRegistration: l10n.t("Select an app registration"),
-            loadingAppRegistrations: l10n.t("Loading app registrations..."),
-            searchAppRegistrations: l10n.t("Search app registrations"),
+            applicationClientId: l10n.t("Application (client) ID"),
+            enterApplicationClientId: l10n.t("Enter the application client ID"),
             pfxFilePath: l10n.t("PFX file path"),
             selectPfxFile: l10n.t("Select a PFX file"),
             browsePfxFile: l10n.t("Browse for a PFX file"),
-            generatePfxFile: l10n.t("Generate PFX file"),
-            generatingPfxFile: l10n.t("Generating certificate files..."),
             sqlLogin: l10n.t("SQL Login"),
             entraMfa: l10n.t("Microsoft Entra ID - Universal with MFA support"),
             entraDefault: l10n.t("Microsoft Entra ID - Default"),
@@ -3794,10 +3786,6 @@ export class LocConstants {
             pullingContainerImage: l10n.t("Pulling container image"),
             pullingContainerImageDescription: l10n.t(
                 "Downloading the Azure SQL Database developer container image from the registry.",
-            ),
-            uploadingCertificate: l10n.t("Uploading public certificate"),
-            uploadingCertificateDescription: l10n.t(
-                "Adding the selected PFX's public certificate to the chosen app registration.",
             ),
             creatingContainer: l10n.t("Creating container"),
             creatingContainerDescription: l10n.t(

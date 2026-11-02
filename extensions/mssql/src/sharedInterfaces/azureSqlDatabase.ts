@@ -103,17 +103,10 @@ export interface ContainerEntraOption {
     displayName: string;
 }
 
-export interface ContainerCertificateFiles {
-    pfxFilePath: string;
-    privateKeyFilePath: string;
-    publicCertificateFilePath: string;
-}
-
 export type AzureSqlContainerFormErrors = Partial<Record<keyof AzureSqlContainerForm, string>>;
 
 export enum AzureSqlContainerProvisioningStep {
     PullImage = "pullImage",
-    UploadCertificate = "uploadCertificate",
     CreateContainer = "createContainer",
     WaitForReady = "waitForReady",
     Connect = "connect",
@@ -129,19 +122,12 @@ export function isAzureSqlContainerEntraAuthentication(
     );
 }
 
-export function getAzureSqlContainerProvisioningSteps(
-    authenticationType: AzureSqlContainerForm["authenticationType"],
-): AzureSqlContainerProvisioningStep[] {
-    return [
-        AzureSqlContainerProvisioningStep.PullImage,
-        ...(isAzureSqlContainerEntraAuthentication(authenticationType)
-            ? [AzureSqlContainerProvisioningStep.UploadCertificate]
-            : []),
-        AzureSqlContainerProvisioningStep.CreateContainer,
-        AzureSqlContainerProvisioningStep.WaitForReady,
-        AzureSqlContainerProvisioningStep.Connect,
-    ];
-}
+export const azureSqlContainerProvisioningSteps = [
+    AzureSqlContainerProvisioningStep.PullImage,
+    AzureSqlContainerProvisioningStep.CreateContainer,
+    AzureSqlContainerProvisioningStep.WaitForReady,
+    AzureSqlContainerProvisioningStep.Connect,
+] as const;
 
 export interface AzureSqlContainerProvisioningResult {
     success: boolean;
@@ -163,27 +149,9 @@ export namespace AzureSqlDatabaseRequests {
         void
     >("deployment/azureSqlContainerEntraTenants");
 
-    export const ContainerEntraApplications = new RequestType<
-        { accountId: string; tenantId: string },
-        ContainerEntraOption[],
-        void
-    >("deployment/azureSqlContainerEntraApplications");
-
-    export const CreateContainerEntraApplication = new RequestType<
-        { accountId: string; tenantId: string; displayName: string },
-        ContainerEntraOption,
-        void
-    >("deployment/createAzureSqlContainerEntraApplication");
-
     export const SelectContainerPfxFile = new RequestType<void, string | undefined, void>(
         "deployment/selectAzureSqlContainerPfxFile",
     );
-
-    export const GenerateContainerCertificateFiles = new RequestType<
-        void,
-        ContainerCertificateFiles | undefined,
-        void
-    >("deployment/generateAzureSqlContainerCertificateFiles");
 
     export const PrepareContainerForm = new RequestType<
         AzureSqlContainerForm,

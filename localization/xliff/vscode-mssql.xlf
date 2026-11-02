@@ -224,9 +224,6 @@
     <trans-unit id="++CODE++c61a041f6ca5abff2c94cefc531083c11d3f3b2af7131fb9640dda59a551e289">
       <source xml:lang="en">A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.</source>
     </trans-unit>
-    <trans-unit id="++CODE++769eeeca28fec935b761d3a65ba685455843ae3e5514d7538ef10b67b8f008ce">
-      <source xml:lang="en">A PFX, private key, or public certificate file already exists with this name. Choose a different filename; existing files will not be overwritten.</source>
-    </trans-unit>
     <trans-unit id="++CODE++646d218b74cf8fcc4644195bd9dae9ef4615c9d33d9afc5a4ff24e492ce3fb1f">
       <source xml:lang="en">A SQL Projects build task has been added to the existing tasks.json file.</source>
     </trans-unit>
@@ -528,9 +525,6 @@
     <trans-unit id="++CODE++5d8cde3035bbe2c8bbbf5881dfc0a0a2c6439a21267726716a7d61663511e18b">
       <source xml:lang="en">Added plan</source>
     </trans-unit>
-    <trans-unit id="++CODE++e38895d3e76c5558bee0f4fe7aa996ea229f7d42a389538883fca1e6957eced6">
-      <source xml:lang="en">Adding the selected PFX&apos;s public certificate to the chosen app registration.</source>
-    </trans-unit>
     <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
       <source xml:lang="en">Additional parameters</source>
     </trans-unit>
@@ -741,12 +735,6 @@
     <trans-unit id="++CODE++c76fd92a59a84d588534d9cc45c793cf341192e0e9df83275f7efc90637c2daf">
       <source xml:lang="en">Another run is active; queue controls are paused.</source>
     </trans-unit>
-    <trans-unit id="++CODE++eb50751d1ed4b6f0c85d6d48a28f1dc41030ea6860344c233ac992c170e9324f">
-      <source xml:lang="en">App registration</source>
-    </trans-unit>
-    <trans-unit id="++CODE++efdca01394832e7469b9063d0f98948a1f81475904f8dcbce3e7209c25555fb5">
-      <source xml:lang="en">App registration name</source>
-    </trans-unit>
     <trans-unit id="++CODE++a6f31505cd1943fe9695363ab1c0a08e79c015c0747830d411a24e29689f4899">
       <source xml:lang="en">Append to the existing backup set</source>
     </trans-unit>
@@ -758,6 +746,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e6e909c5bd0a3e25a1abcddd1dab13780ce9e4f673139a56842b1e3a26c981c0">
       <source xml:lang="en">Application (Client) ID is required.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++576111a7aee1dceb26cea96a10ff916ffb087796f8a5c1b6e97bcb16f47b01c3">
+      <source xml:lang="en">Application (client) ID</source>
     </trans-unit>
     <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
       <source xml:lang="en">Application Intent</source>
@@ -1498,9 +1489,6 @@
     <trans-unit id="++CODE++292c06f0045a45d044be282b132b7055ae224e18e02b523a451d8ea96fadfd24">
       <source xml:lang="en">Category</source>
     </trans-unit>
-    <trans-unit id="++CODE++79340f360c1c554676bc7be77c3311c3a92ba2535fb3750b0be1da4e5ded0351">
-      <source xml:lang="en">Certificate generation failed and some generated files could not be removed.</source>
-    </trans-unit>
     <trans-unit id="++CODE++16f637921eba69b04b80b33acfce138c0f48121ce6b33eda1a10aaf7c5216b23">
       <source xml:lang="en">Certificates</source>
     </trans-unit>
@@ -1714,23 +1702,14 @@
     <trans-unit id="++CODE++3b961516b68d49db85d3ded5bc5c1129e02be1a647845d77b1eb2ab5260284cb">
       <source xml:lang="en">Choose a database from the list below</source>
     </trans-unit>
-    <trans-unit id="++CODE++ddc25456311d10e409631c20e8b1c8420a4e21e895af391a16b7cfbf4a3ad160">
-      <source xml:lang="en">Choose a filename with the .pfx extension.</source>
-    </trans-unit>
     <trans-unit id="++CODE++f374a2978746011d60b5e1785696b4f2c1fe9165edc4f876767d2f1282240cb2">
       <source xml:lang="en">Choose a hostname for the container</source>
-    </trans-unit>
-    <trans-unit id="++CODE++305b26cc27048d6483bf81294ca4df11c43232deadfcfb1ea40f9d22a68a20e2">
-      <source xml:lang="en">Choose a local filesystem location for the certificate files.</source>
     </trans-unit>
     <trans-unit id="++CODE++3152aa1eecc4ae815f286d840683f8a27d00ed17af850886caef1ff5e3d9e122">
       <source xml:lang="en">Choose a name for the SQL Server Docker Container</source>
     </trans-unit>
     <trans-unit id="++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319">
       <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
-    </trans-unit>
-    <trans-unit id="++CODE++0608dbbdb2a3284dc5ae8139c6a5df48da1e0f8e1fda2024052dd78870cf21ca">
-      <source xml:lang="en">Choose a valid passwordless PFX containing a current RSA certificate and its matching private key.</source>
     </trans-unit>
     <trans-unit id="++CODE++0e5a270df8b544ad79ba4ec8c1900744376eccf4ac1a2d19a091dab2a4e09782">
       <source xml:lang="en">Choose an execution plan to compare.</source>
@@ -2989,9 +2968,6 @@
     <trans-unit id="++CODE++9f3df753a41ae98ee68246dcf9727a0e2c18af3b99e9921a55b7d75aed543f44">
       <source xml:lang="en">Create new</source>
     </trans-unit>
-    <trans-unit id="++CODE++f56414b9f9368ee6cb281d9ab1a1f0f88257d0fcfce96a9c6c04cdafe7705dff">
-      <source xml:lang="en">Create new app registration</source>
-    </trans-unit>
     <trans-unit id="++CODE++df70f437cafdeb7517ec4a9fd9ce6fc0c92b4b70ef5e7c79436341201f731fdb">
       <source xml:lang="en">Create new connection copied from {0}</source>
       <note>{0} is the name of the connection profile</note>
@@ -3034,9 +3010,6 @@
     </trans-unit>
     <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
       <source xml:lang="en">Creating and starting your SQL Server container</source>
-    </trans-unit>
-    <trans-unit id="++CODE++da15f0ed07164867ab887230ab647916d75c72e37259639e3d1d21cf92c92638">
-      <source xml:lang="en">Creating app registration...</source>
     </trans-unit>
     <trans-unit id="++CODE++1b12d9c7046f7ee58dd557095e1f7227dab92c90750af8e380a7c343457d2463">
       <source xml:lang="en">Creating container</source>
@@ -4133,6 +4106,9 @@
     <trans-unit id="++CODE++99423f847824fcaa5126b691889e26782436157dbcbb9ae40af381c1175e72eb">
       <source xml:lang="en">Enter a port number between 1 and 65535.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a8e4f171f5dac43721baa859301efdae50cab325345ed4b8cfa83d98fceef9c4">
+      <source xml:lang="en">Enter a valid application (client) ID.</source>
+    </trans-unit>
     <trans-unit id="++CODE++885dd0087e9192594843144ef7d051d40c814ddf786b582e0e5a9c2f6ae7fcf1">
       <source xml:lang="en">Enter a valid hostname.</source>
     </trans-unit>
@@ -4141,12 +4117,6 @@
     </trans-unit>
     <trans-unit id="++CODE++2029b6cedb7a8d6b58872d33896e8d2d86134cb98d9194706758d32238c9dee2">
       <source xml:lang="en">Enter admin username</source>
-    </trans-unit>
-    <trans-unit id="++CODE++31ee0ad7cb379126260f402a4318838b2e368eeff13ae45f0b404dc3f46cf257">
-      <source xml:lang="en">Enter an app registration name</source>
-    </trans-unit>
-    <trans-unit id="++CODE++9e5ba8193a6546111d3122e893857a06dad581bb8ffb53c8f5b147b383084c64">
-      <source xml:lang="en">Enter an app registration name.</source>
     </trans-unit>
     <trans-unit id="++CODE++21f7927c143ff4e0d1715d4f5fd3d8e798ea4a065971480a91c147706fe74f0e">
       <source xml:lang="en">Enter an object name or prefix</source>
@@ -4223,6 +4193,9 @@
     <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
       <source xml:lang="en">Enter the SQL Login password for user &apos;{0}&apos;.</source>
       <note>{0} is the SQL Login username</note>
+    </trans-unit>
+    <trans-unit id="++CODE++509319429f2a0965b79fc02012bf0aaf52759e7f64f89f4465e037e4d1d14635">
+      <source xml:lang="en">Enter the application client ID</source>
     </trans-unit>
     <trans-unit id="++CODE++1d2db8e24c656cf7880c0ca98a2f89b3ae6a7fccdb0d9576cecf6249b5f64455">
       <source xml:lang="en">Enter the client secret for the selected app registration.</source>
@@ -5281,9 +5254,6 @@
     <trans-unit id="++CODE++f1b9a1054c1b8d303c21a78abec22481d5d6c9e56dc0d06d19ff3f2a70815de4">
       <source xml:lang="en">Failed to update the .sqlproj after moving the file: {0}</source>
     </trans-unit>
-    <trans-unit id="++CODE++4187694f1a60ec8f3ab62e7a6eea4a9af689d4f6fcd1192ef12973da6aac2a17">
-      <source xml:lang="en">Failed to upload the public certificate. The selected account must have permission to manage the app registration&apos;s certificates.</source>
-    </trans-unit>
     <trans-unit id="++CODE++3da3d1bf74778c00be7d4094e931f49f5fc1d9532d1dbc01d55a2ca34921984c">
       <source xml:lang="en">Failed to write the Data API builder configuration file.</source>
     </trans-unit>
@@ -5686,9 +5656,6 @@
     <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
       <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
     </trans-unit>
-    <trans-unit id="++CODE++8d1641347aab7b17efd6c5930aecf046741c023fe8d1fe66176816e060af67f6">
-      <source xml:lang="en">Generate PFX file</source>
-    </trans-unit>
     <trans-unit id="++CODE++3fe2318b777a1d9c6304a9e2bff0d636f51cfb872de17793c8962acbdc1370cd">
       <source xml:lang="en">Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.</source>
     </trans-unit>
@@ -5717,9 +5684,6 @@
     <trans-unit id="++CODE++477df2f898333747408b1de0e018c9395e977dede103a99aa0babeffc68398e1">
       <source xml:lang="en">Generating SAS key failed: {0}</source>
       <note>{0} is the error message</note>
-    </trans-unit>
-    <trans-unit id="++CODE++12dd39032d73024b0970ee131a285414f009da64c0fd507521b51892d98fa88e">
-      <source xml:lang="en">Generating certificate files...</source>
     </trans-unit>
     <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
       <source xml:lang="en">Generating report, this might take a while...</source>
@@ -6633,9 +6597,6 @@
       <source xml:lang="en">Loading XEL file: {0}</source>
       <note>{0} is the file name</note>
     </trans-unit>
-    <trans-unit id="++CODE++d3860d4db94dd670bd5daaa27effaa8aae809e03454f0974aeaf0d0ea5145b96">
-      <source xml:lang="en">Loading app registrations...</source>
-    </trans-unit>
     <trans-unit id="++CODE++6880273ecc41baec6f34c9193fcbb8e2a6b7497d5ba44b0e7b683351954f6f51">
       <source xml:lang="en">Loading backup database...</source>
     </trans-unit>
@@ -7142,9 +7103,6 @@
     </trans-unit>
     <trans-unit id="++CODE++e61384c6682ddc6334bc27e7ff7910666e979c089f0b764e40debf9bddf56fc4">
       <source xml:lang="en">Microsoft Fabric integration</source>
-    </trans-unit>
-    <trans-unit id="++CODE++2b8e5a88718040656c4bb488ad7958c1fe342b1a0a8e1166854740d22a1cf821">
-      <source xml:lang="en">Microsoft Graph did not return a valid app registration after creation.</source>
     </trans-unit>
     <trans-unit id="++CODE++34968c6d7ba4736f4948bcb9d731cf2b7cb1e849d0b7ddfe316f7d10cd270d17">
       <source xml:lang="en">Microsoft Graph did not return a valid service principal for the selected app registration.</source>
@@ -9911,9 +9869,6 @@
     <trans-unit id="++CODE++cf564a428e81bbe6843b079291c1bf098f4e7dc933decd522db75052937b9fed">
       <source xml:lang="en">Save Infrastructure-as-Code templates to recreate this database later.</source>
     </trans-unit>
-    <trans-unit id="++CODE++eecfb3d871d847c50bcdd659bc7ced3e8952db49c0f7e122fe472284a4c5be04">
-      <source xml:lang="en">Save PFX file</source>
-    </trans-unit>
     <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
       <source xml:lang="en">Save Password</source>
     </trans-unit>
@@ -10014,12 +9969,6 @@
     </trans-unit>
     <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
       <source xml:lang="en">Saved Connections</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d13923e2759b0bac86b772f12c7d6a662ac0bdcea589c373fcafef509d0e0b25">
-      <source xml:lang="en">Saved certificate files: {0}, {1}, {2}. The PFX has an empty password and the private key is unencrypted. Keep these files in a secure location.</source>
-      <note>{0} is the PFX path
-{1} is the private key path
-{2} is the public certificate path</note>
     </trans-unit>
     <trans-unit id="++CODE++f7fdd5b0b1aa6beecb02dab9409db0a6853b395f5bf95a4d3098a057f1284209">
       <source xml:lang="en">Saved connection &apos;{0}&apos; not found.</source>
@@ -10192,9 +10141,6 @@
     </trans-unit>
     <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
       <source xml:lang="en">Search Workspaces</source>
-    </trans-unit>
-    <trans-unit id="++CODE++66c38687813332113672dbd600845cebc3a1a40cc0048ace2fc7eed039b7ed36">
-      <source xml:lang="en">Search app registrations</source>
     </trans-unit>
     <trans-unit id="++CODE++835fe744506efdec82aceb836376bcd5d0208201907accc16550edc325218947">
       <source xml:lang="en">Search by file name, path, or project</source>
@@ -10378,9 +10324,6 @@
     <trans-unit id="++CODE++74bed7b49a5d8b99451913d44c2a60cce198c1d94b408e4f19a09ce0cc1d2a47">
       <source xml:lang="en">Select a folder</source>
     </trans-unit>
-    <trans-unit id="++CODE++79412185c05ba0438f672f9531076419c9a07fbe1f09ce14160e76f6d6ac7f93">
-      <source xml:lang="en">Select a local PFX file.</source>
-    </trans-unit>
     <trans-unit id="++CODE++741a06b13d57f36b0e124ffa0f78c13e53741b902f999b2656bbc8e7f75d625a">
       <source xml:lang="en">Select a location for the resource group</source>
     </trans-unit>
@@ -10465,12 +10408,6 @@
     <trans-unit id="++CODE++3e75bab98257a9ea127e284caff7f62dff2d154f115bb79a6a087b51fd54936d">
       <source xml:lang="en">Select an account for authentication</source>
     </trans-unit>
-    <trans-unit id="++CODE++effb604a4f36ba803c3d884340a11b94d67c64855e39111c2302b23241ac0f4f">
-      <source xml:lang="en">Select an app registration</source>
-    </trans-unit>
-    <trans-unit id="++CODE++ffcee727e70e870ae9cabeb27c602bafd50edb08f793d882c4b196d64e56172d">
-      <source xml:lang="en">Select an app registration.</source>
-    </trans-unit>
     <trans-unit id="++CODE++6d09782581da3458c2a3bfc491a488337d364887ae33df0dfa92629811ebe6ce">
       <source xml:lang="en">Select an event to inspect its prompt and response.</source>
     </trans-unit>
@@ -10480,6 +10417,9 @@
     <trans-unit id="++CODE++2feddedc429af59e438afc4eb6fbbf8d819d6570863c8cca67547390a5687a3e">
       <source xml:lang="en">Select an execution plan to replace {0}</source>
       <note>{0} is the name of the execution plan being replaced</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1fb234c93431039615e3eb3b38557f8535125d00a4659301e81e67cba9363e3d">
+      <source xml:lang="en">Select an existing, readable local PFX file.</source>
     </trans-unit>
     <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
       <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
@@ -11634,9 +11574,6 @@
     <trans-unit id="++CODE++937f464ef0aeec05ccd346845932275ed958c6a2703921f0ef89d5095e189f82">
       <source xml:lang="en">The affected extensions could not be opened. Open the Extensions view and uninstall older Data Workspace and SQL Database Projects extensions.</source>
     </trans-unit>
-    <trans-unit id="++CODE++a914f30111a0eebb30fe69dbff5798f5ca37751a874de4fd28e39aabb01fc01b">
-      <source xml:lang="en">The app&apos;s existing certificate credentials could not be read completely. No credentials were changed.</source>
-    </trans-unit>
     <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
       <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>
@@ -11794,9 +11731,6 @@
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-    </trans-unit>
-    <trans-unit id="++CODE++0b54ef3a6869c4b62388dae51c842e96db964cc6389c8b9390688053c59f05f6">
-      <source xml:lang="en">The selected PFX changed after its certificate was uploaded. Return to configuration and provision again.</source>
     </trans-unit>
     <trans-unit id="++CODE++dcc368e5cecae7f8a0551b1a10f920940276c11de668e2c7e38cd72bfc755563">
       <source xml:lang="en">The selected clone path &apos;{0}&apos; does not exist or is not a directory.</source>
@@ -12448,12 +12382,6 @@
     </trans-unit>
     <trans-unit id="++CODE++9a6565ec4e8fda62572630799ef7a2581b04afa9e96adf8cc413237611337e62">
       <source xml:lang="en">Updating {0} from {1}...</source>
-    </trans-unit>
-    <trans-unit id="++CODE++21f7c910acea81864c7c0a00d44743be6433d87f6f842adc85a9647d0bfad1a2">
-      <source xml:lang="en">Upload the selected PFX&apos;s public certificate before creating the Entra container.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++515b017cda567ced67096950fbe03f46c848eda766d2d9476c6ce109b8968241">
-      <source xml:lang="en">Uploading public certificate</source>
     </trans-unit>
     <trans-unit id="++CODE++c83ce937073615b8c93e7c38ed529e567ff2c01f291f92e3b4d08245018f362b">
       <source xml:lang="en">Usage limits exceeded. Try again later, or consider optimizing your requests.</source>

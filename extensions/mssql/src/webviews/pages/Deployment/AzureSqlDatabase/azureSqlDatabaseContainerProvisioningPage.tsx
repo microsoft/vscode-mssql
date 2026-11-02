@@ -5,14 +5,14 @@
 
 import { Badge, Button, makeStyles } from "@fluentui/react-components";
 import { Desktop20Regular } from "@fluentui/react-icons";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     AzureSqlContainerForm,
     AzureSqlContainerProvisioningResult,
     AzureSqlContainerProvisioningStep,
     AzureSqlDatabaseRequests,
     ContainerEngine,
-    getAzureSqlContainerProvisioningSteps,
+    azureSqlContainerProvisioningSteps as provisioningSteps,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import {
     DeploymentReducers,
@@ -68,15 +68,10 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
     onStatusChange,
 }) => {
     const classes = useStyles();
-    const provisioningSteps = useMemo(
-        () => getAzureSqlContainerProvisioningSteps(form.authenticationType),
-        [form.authenticationType],
-    );
     const { extensionRpc } = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
     const [statuses, setStatuses] = useState<Record<AzureSqlContainerProvisioningStep, ApiStatus>>(
         () => ({
             [AzureSqlContainerProvisioningStep.PullImage]: ApiStatus.NotStarted,
-            [AzureSqlContainerProvisioningStep.UploadCertificate]: ApiStatus.NotStarted,
             [AzureSqlContainerProvisioningStep.CreateContainer]: ApiStatus.NotStarted,
             [AzureSqlContainerProvisioningStep.WaitForReady]: ApiStatus.NotStarted,
             [AzureSqlContainerProvisioningStep.Connect]: ApiStatus.NotStarted,
@@ -151,17 +146,13 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
         return () => {
             cancelled = true;
         };
-    }, [attempt, currentStepIndex, engine, extensionRpc, form, onStatusChange, provisioningSteps]);
+    }, [attempt, currentStepIndex, engine, extensionRpc, form, onStatusChange]);
 
     const failedStep = provisioningSteps.find((step) => statuses[step] === ApiStatus.Error);
     const stepContent = {
         [AzureSqlContainerProvisioningStep.PullImage]: {
             title: locConstants.azureSqlContainer.pullingContainerImage,
             description: locConstants.azureSqlContainer.pullingContainerImageDescription,
-        },
-        [AzureSqlContainerProvisioningStep.UploadCertificate]: {
-            title: locConstants.azureSqlContainer.uploadingCertificate,
-            description: locConstants.azureSqlContainer.uploadingCertificateDescription,
         },
         [AzureSqlContainerProvisioningStep.CreateContainer]: {
             title: locConstants.azureSqlContainer.creatingContainer,

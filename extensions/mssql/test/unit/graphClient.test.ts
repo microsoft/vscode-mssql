@@ -10,15 +10,9 @@ import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { AzureCliCredential } from "@azure/identity";
 import { GraphClient } from "../../src/azure/graphClient";
-import { AppRegistration } from "../../src/models/contracts/azure";
 import * as loggerModule from "../../src/models/logger";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { createStubLogger } from "./utils";
-import { X509Certificate } from "node:crypto";
-import * as fs from "node:fs/promises";
-import * as os from "node:os";
-import * as path from "node:path";
-import { generateContainerCertificateFiles } from "../../src/deployment/azureSqlHelpers";
 
 chai.use(sinonChai);
 
@@ -28,6 +22,13 @@ suite("Microsoft Graph client", () => {
         label: "Test account",
     };
     const scopes = ["https://graph.microsoft.com/User.Read", "VSCODE_TENANT:tenant-id"];
+    const appId = "22222222-2222-2222-2222-222222222222";
+    const principal = {
+        appId,
+        id: "44444444-4444-4444-4444-444444444444",
+        displayName: "Container app",
+    };
+    const principalUrl = `https://graph.microsoft.com/v1.0/servicePrincipals(appId='${appId}')?$select=id,appId,displayName`;
     let sandbox: sinon.SinonSandbox;
     let client: GraphClient;
     let getSession: sinon.SinonStub;
@@ -59,6 +60,9 @@ suite("Microsoft Graph client", () => {
         fetch
             .withArgs("https://graph.microsoft.com/v1.0/me?$select=id", sinon.match.any)
             .callsFake(async () => Response.json({ id: "tenant-user-id" }));
+        fetch
+            .withArgs(principalUrl, sinon.match.any)
+            .callsFake(async () => Response.json(principal));
         client = new GraphClient(createCliCredential);
     });
 
@@ -423,56 +427,13 @@ suite("Microsoft Graph client", () => {
         );
     });
 
-    test("lists all app-registration pages with object IDs, client IDs, and display names", async () => {
-        const first: AppRegistration = {
-            id: "object-id",
-            appId: "client-id",
-            displayName: "Application",
-        };
-        const second: AppRegistration = {
-            id: "second-object",
-            appId: "second-client",
-            // eslint-disable-next-line no-restricted-syntax -- Microsoft Graph can return null display names.
-            displayName: null,
-        };
-        const nextLink =
-            "https://graph.microsoft.com/v1.0/applications?$select=id,appId,displayName&$skiptoken=next";
-        fetch
-            .withArgs(
-                "https://graph.microsoft.com/v1.0/applications?$select=id,appId,displayName",
-                sinon.match.any,
-            )
-            .resolves(
-                Response.json({
-                    value: [{ ...first, passwordCredentials: [{ secretText: "not-returned" }] }],
-                    "@odata.nextLink": nextLink,
-                }),
-            );
-        fetch.withArgs(nextLink, sinon.match.any).resolves(Response.json({ value: [second] }));
-
-        const applications = await client.fetchAppRegistrations(account, "tenant-id");
-
-        expect(applications).to.deep.equal([first, second]);
-        expect(fetch).to.have.been.calledWith(
-            "https://graph.microsoft.com/v1.0/applications?$select=id,appId,displayName",
-            sinon.match.any,
-        );
-        expect(fetch).to.have.been.calledWith(nextLink, sinon.match.any);
-        expect(getSession).to.have.been.calledWith("microsoft", scopes, { account, silent: true });
-        expect(createCliCredential).to.have.been.calledWith("tenant-id");
-        expect(cliCredential.getToken).to.have.been.calledWith(
-            "https://graph.microsoft.com/.default",
-        );
-        expectToken("azure-cli-graph-token");
-    });
-
-    test("caches concurrent app authentication separately from user-read authentication", async () => {
+    test("caches concurrent service-principal authentication separately from user-read authentication", async () => {
         await client.fetchUserGroups("user-id", account, "tenant-id");
         await Promise.all([
-            client.fetchAppRegistrations(account, "tenant-id"),
-            client.fetchAppRegistrations(account, "tenant-id"),
+            client.ensureServicePrincipal(appId, account, "tenant-id"),
+            client.ensureServicePrincipal(appId, account, "tenant-id"),
         ]);
-        await client.fetchAppRegistrations(account, "tenant-id");
+        await client.ensureServicePrincipal(appId, account, "tenant-id");
         await client.fetchUserGroups("user-id", account, "tenant-id");
 
         expectToken("existing-graph-token");
@@ -491,228 +452,7 @@ suite("Microsoft Graph client", () => {
         );
     });
 
-    test("returns an empty list for a tenant with no app registrations", async () => {
-        expect(await client.fetchAppRegistrations(account, "tenant-id")).to.deep.equal([]);
-    });
-
-    test("creates a single-tenant app using the same verified CLI token as app listing", async () => {
-        const application = {
-            id: "new-object",
-            appId: "new-client",
-            displayName: "New application",
-        };
-        fetch
-            .withArgs(
-                "https://graph.microsoft.com/v1.0/applications",
-                sinon.match.has("method", "POST"),
-            )
-            .resolves(Response.json({ ...application, passwordCredentials: [] }, { status: 201 }));
-        await client.fetchAppRegistrations(account, "tenant-id");
-
-        expect(
-            await client.createAppRegistration(" New application ", account, "tenant-id"),
-        ).to.deep.equal(application);
-        expect(fetch).to.have.been.calledWith(
-            "https://graph.microsoft.com/v1.0/applications",
-            sinon.match((options: RequestInit) => {
-                if (typeof options.body !== "string") {
-                    return false;
-                }
-                return (
-                    options.method === "POST" &&
-                    new Headers(options.headers).get("Authorization") ===
-                        "Bearer azure-cli-graph-token" &&
-                    JSON.stringify(JSON.parse(options.body)) ===
-                        JSON.stringify({
-                            displayName: "New application",
-                            signInAudience: "AzureADMyOrg",
-                        })
-                );
-            }),
-        );
-        expect(cliCredential.getToken.getCalls()).to.have.lengthOf(1);
-    });
-
-    test("rejects an empty app name before acquiring a token or sending a request", async () => {
-        await expectFailure(
-            client.createAppRegistration("  ", account, "tenant-id"),
-            "Enter an app registration name",
-        );
-        expect(fetch).not.to.have.been.called;
-        expect(cliCredential.getToken).not.to.have.been.called;
-    });
-
-    test("logs Graph creation permission errors instead of reporting success", async () => {
-        fetch
-            .withArgs(
-                "https://graph.microsoft.com/v1.0/applications",
-                sinon.match.has("method", "POST"),
-            )
-            .resolves(graphError(403));
-        await expectFailure(
-            client.createAppRegistration("Application", account, "tenant-id"),
-            "Graph returned 403",
-        );
-        expect(logger.error).to.have.been.calledWith(
-            "Error creating app registration: Graph returned 403",
-            sinon.match({ statusCode: 403, code: "GraphFailure" }),
-        );
-    });
-
-    test("does not treat a malformed app creation response as success", async () => {
-        fetch
-            .withArgs(
-                "https://graph.microsoft.com/v1.0/applications",
-                sinon.match.has("method", "POST"),
-            )
-            .resolves(Response.json({ displayName: "Application" }, { status: 201 }));
-        await expectFailure(
-            client.createAppRegistration("Application", account, "tenant-id"),
-            "did not return a valid app registration",
-        );
-    });
-
-    test("retries an unauthorized create request only once without changing its payload", async () => {
-        const application = { id: "object", appId: "client", displayName: "Application" };
-        const post = fetch.withArgs(
-            "https://graph.microsoft.com/v1.0/applications",
-            sinon.match.has("method", "POST"),
-        );
-        post.onFirstCall().resolves(graphError(401));
-        post.onSecondCall().resolves(Response.json(application, { status: 201 }));
-        expect(
-            await client.createAppRegistration("Application", account, "tenant-id"),
-        ).to.deep.equal(application);
-        expect(
-            post.args.every(
-                ([, options]) => JSON.parse(options.body).signInAudience === "AzureADMyOrg",
-            ),
-        ).to.equal(true);
-        expect(cliCredential.getToken.getCalls()).to.have.lengthOf(2);
-    });
-
-    suite("Container certificate upload", () => {
-        const applicationId = "22222222-2222-2222-2222-222222222222";
-        const url = `https://graph.microsoft.com/v1.0/applications(appId='${applicationId}')`;
-        const existing = {
-            keyId: "44444444-4444-4444-4444-444444444444",
-            key: Buffer.from("Existing public certificate").toString("base64"),
-            type: "AsymmetricX509Cert",
-            usage: "Verify",
-            displayName: "Existing certificate",
-            startDateTime: "2025-01-01T00:00:00Z",
-            endDateTime: "2027-01-01T00:00:00Z",
-        };
-        let certificate: X509Certificate;
-
-        suiteSetup(async () => {
-            const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-graph-certificate-"));
-            try {
-                const files = await generateContainerCertificateFiles(
-                    path.join(directory, "certificate.pfx"),
-                );
-                certificate = new X509Certificate(
-                    await fs.readFile(files.publicCertificateFilePath),
-                );
-            } finally {
-                for (const name of await fs.readdir(directory)) {
-                    await fs.unlink(path.join(directory, name));
-                }
-                await fs.rmdir(directory);
-            }
-        });
-
-        setup(() => {
-            fetch
-                .withArgs(`${url}?$select=appId,keyCredentials`, sinon.match.any)
-                .resolves(Response.json({ appId: applicationId, keyCredentials: [existing] }));
-            fetch
-                .withArgs(url, sinon.match.has("method", "PATCH"))
-                .callsFake(async () => new Response(undefined, { status: 204 }));
-        });
-
-        test("uploads only public DER data while preserving existing credentials and unrelated app settings", async () => {
-            await client.uploadAppCertificate(applicationId, certificate, account, "tenant-id");
-            const patch = fetch.withArgs(url, sinon.match.has("method", "PATCH"));
-            const body = JSON.parse(patch.firstCall.args[1].body);
-            expect(Object.keys(body)).to.deep.equal(["keyCredentials"]);
-            expect(body.keyCredentials[0]).to.deep.equal(existing);
-            expect(body.keyCredentials[1]).to.deep.include({
-                key: certificate.raw.toString("base64"),
-                type: "AsymmetricX509Cert",
-                usage: "Verify",
-                startDateTime: new Date(certificate.validFrom).toISOString(),
-                endDateTime: new Date(certificate.validTo).toISOString(),
-            });
-            expect(
-                new X509Certificate(Buffer.from(body.keyCredentials[1].key, "base64")).raw.equals(
-                    certificate.raw,
-                ),
-            ).to.equal(true);
-            expectToken("azure-cli-graph-token");
-        });
-
-        test("does not append the same certificate again on retry", async () => {
-            fetch.withArgs(`${url}?$select=appId,keyCredentials`, sinon.match.any).resolves(
-                Response.json({
-                    appId: applicationId,
-                    keyCredentials: [{ ...existing, key: certificate.raw.toString("base64") }],
-                }),
-            );
-            await client.uploadAppCertificate(applicationId, certificate, account, "tenant-id");
-            expect(fetch.withArgs(url, sinon.match.has("method", "PATCH"))).not.to.have.been.called;
-        });
-
-        test("refuses to replace credentials when existing public key data cannot be read", async () => {
-            fetch.withArgs(`${url}?$select=appId,keyCredentials`, sinon.match.any).resolves(
-                Response.json({
-                    appId: applicationId,
-                    // eslint-disable-next-line no-restricted-syntax -- Graph can omit credential key data.
-                    keyCredentials: [{ ...existing, key: null }],
-                }),
-            );
-            await expectFailure(
-                client.uploadAppCertificate(applicationId, certificate, account, "tenant-id"),
-                "No credentials were changed",
-            );
-            expect(fetch.withArgs(url, sinon.match.has("method", "PATCH"))).not.to.have.been.called;
-        });
-
-        test("logs and propagates certificate upload permission failures", async () => {
-            fetch.withArgs(url, sinon.match.has("method", "PATCH")).resolves(graphError(403));
-            await expectFailure(
-                client.uploadAppCertificate(applicationId, certificate, account, "tenant-id"),
-                "Graph returned 403",
-            );
-            expect(logger.error).to.have.been.calledWith(
-                "Error uploading app registration certificate",
-                sinon.match({ statusCode: 403 }),
-            );
-        });
-
-        test("re-reads all credentials on a user retry after an unauthorized PATCH", async () => {
-            const patch = fetch.withArgs(url, sinon.match.has("method", "PATCH"));
-            patch.onFirstCall().resolves(graphError(401));
-            await expectFailure(
-                client.uploadAppCertificate(applicationId, certificate, account, "tenant-id"),
-                "Graph returned 401",
-            );
-            const additional = {
-                ...existing,
-                keyId: "55555555-5555-5555-5555-555555555555",
-                key: "additional-public-certificate",
-            };
-            fetch
-                .withArgs(`${url}?$select=appId,keyCredentials`, sinon.match.any)
-                .resolves(
-                    Response.json({ appId: applicationId, keyCredentials: [existing, additional] }),
-                );
-            await client.uploadAppCertificate(applicationId, certificate, account, "tenant-id");
-            expect(
-                JSON.parse(patch.secondCall.args[1].body).keyCredentials.slice(0, 2),
-            ).to.deep.equal([existing, additional]);
-        });
-
+    suite("Container administrator", () => {
         test("uses the selected account's tenant-local Graph identity rather than a home account ID", async () => {
             const user = {
                 id: "33333333-3333-3333-3333-333333333333",
@@ -744,74 +484,13 @@ suite("Microsoft Graph client", () => {
                 "tenant-local user ID",
             );
         });
-
-        test("does not send an app request when certificate upload was already canceled", async () => {
-            const abort = new AbortController();
-            abort.abort();
-            await expectFailure(
-                client.uploadAppCertificate(
-                    applicationId,
-                    certificate,
-                    account,
-                    "tenant-id",
-                    abort.signal,
-                ),
-                "aborted",
-            );
-            expect(fetch).not.to.have.been.called;
-        });
     });
 
-    test("logs and propagates app-registration page errors without returning partial results", async () => {
-        fetch
-            .withArgs(
-                "https://graph.microsoft.com/v1.0/applications?$select=id,appId,displayName",
-                sinon.match.any,
-            )
-            .resolves(
-                Response.json({
-                    value: [{ id: "object", appId: "client", displayName: "Application" }],
-                    "@odata.nextLink":
-                        "https://graph.microsoft.com/v1.0/applications?$skiptoken=next",
-                }),
-            );
-        fetch
-            .withArgs(
-                "https://graph.microsoft.com/v1.0/applications?$skiptoken=next",
-                sinon.match.any,
-            )
-            .resolves(
-                Response.json(
-                    {
-                        error: {
-                            code: "Authorization_RequestDenied",
-                            message: "Graph returned 403",
-                            innerError: { "request-id": "test-request-id" },
-                        },
-                    },
-                    { status: 403 },
-                ),
-            );
-
+    test("rejects app requests without an explicit tenant before authenticating", async () => {
         await expectFailure(
-            client.fetchAppRegistrations(account, "tenant-id"),
-            "Graph returned 403",
+            client.ensureServicePrincipal(appId, account, ""),
+            "Tenant ID is required",
         );
-
-        expect(logger.error).to.have.been.calledWith(
-            "Error fetching app registrations: Graph returned 403",
-            sinon.match({
-                code: "Authorization_RequestDenied",
-                statusCode: 403,
-                requestId: "test-request-id",
-                stack: sinon.match.string,
-            }),
-        );
-        expect(getSession.getCalls()).to.have.lengthOf(1);
-    });
-
-    test("rejects app listing without an explicit tenant before authenticating", async () => {
-        await expectFailure(client.fetchAppRegistrations(account), "Tenant ID is required");
         expect(cliCredential.getToken).not.to.have.been.called;
         expect(getSession).not.to.have.been.called;
         expect(fetch).not.to.have.been.called;
@@ -822,7 +501,7 @@ suite("Microsoft Graph client", () => {
             new Error("CLI output containing sensitive-token-not-for-logs"),
         );
         await expectFailure(
-            client.fetchAppRegistrations(account, "tenant-id"),
+            client.ensureServicePrincipal(appId, account, "tenant-id"),
             "az login --tenant tenant-id --allow-no-subscriptions",
         );
         expect(fetch).not.to.have.been.called;
@@ -835,11 +514,11 @@ suite("Microsoft Graph client", () => {
             token: "recovered-cli-token",
             expiresOnTimestamp: Date.now() + 3_600_000,
         });
-        await client.fetchAppRegistrations(account, "tenant-id");
+        await client.ensureServicePrincipal(appId, account, "tenant-id");
         expectToken("recovered-cli-token");
     });
 
-    test("rejects a different CLI user before requesting any app registrations", async () => {
+    test("rejects a different CLI user before resolving a service principal", async () => {
         fetch
             .withArgs("https://graph.microsoft.com/v1.0/me?$select=id", sinon.match.any)
             .callsFake(async (_url: string, options: RequestInit) =>
@@ -853,25 +532,25 @@ suite("Microsoft Graph client", () => {
             );
 
         await expectFailure(
-            client.fetchAppRegistrations(account, "tenant-id"),
+            client.ensureServicePrincipal(appId, account, "tenant-id"),
             "different account than the selected VS Code account",
         );
         expect(fetch).not.to.have.been.calledWith(
-            sinon.match((url: string) => url.includes("/applications")),
+            sinon.match((url: string) => url.includes("/servicePrincipals")),
             sinon.match.any,
         );
     });
 
-    test("rejects incomplete identity responses before listing applications", async () => {
+    test("rejects incomplete identity responses before resolving a service principal", async () => {
         fetch
             .withArgs("https://graph.microsoft.com/v1.0/me?$select=id", sinon.match.any)
             .callsFake(async () => Response.json({}));
         await expectFailure(
-            client.fetchAppRegistrations(account, "tenant-id"),
+            client.ensureServicePrincipal(appId, account, "tenant-id"),
             "Unable to verify the Microsoft Graph account",
         );
         expect(fetch).not.to.have.been.calledWith(
-            sinon.match((url: string) => url.includes("/applications")),
+            sinon.match((url: string) => url.includes("/servicePrincipals")),
             sinon.match.any,
         );
     });
@@ -887,9 +566,9 @@ suite("Microsoft Graph client", () => {
             expiresOnTimestamp: Date.now() + 3_600_000,
         });
 
-        await client.fetchAppRegistrations(account, "tenant-id");
+        await client.ensureServicePrincipal(appId, account, "tenant-id");
         clock.tick(70_000);
-        await client.fetchAppRegistrations(account, "tenant-id");
+        await client.ensureServicePrincipal(appId, account, "tenant-id");
 
         expectToken("initial-cli-token");
         expectToken("refreshed-cli-token");
@@ -897,19 +576,13 @@ suite("Microsoft Graph client", () => {
     });
 
     test("reacquires CLI authentication once when Graph rejects its token", async () => {
-        fetch
-            .withArgs(
-                "https://graph.microsoft.com/v1.0/applications?$select=id,appId,displayName",
-                sinon.match.any,
-            )
-            .onFirstCall()
-            .resolves(graphError(401));
+        fetch.withArgs(principalUrl, sinon.match.any).onFirstCall().resolves(graphError(401));
         cliCredential.getToken.onSecondCall().resolves({
             token: "retried-cli-token",
             expiresOnTimestamp: Date.now() + 3_600_000,
         });
 
-        await client.fetchAppRegistrations(account, "tenant-id");
+        await client.ensureServicePrincipal(appId, account, "tenant-id");
         expect(cliCredential.getToken.getCalls()).to.have.lengthOf(2);
         expectToken("retried-cli-token");
     });

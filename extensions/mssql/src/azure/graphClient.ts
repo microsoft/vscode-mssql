@@ -7,21 +7,9 @@ import { Client, GraphError } from "@microsoft/microsoft-graph-client";
 import { AccessToken, AzureCliCredential } from "@azure/identity";
 import * as vscode from "vscode";
 import { Azure, AzureSqlContainer, ConnectionDialog } from "../constants/locConstants";
-import { AppRegistration, UserGroup } from "../models/contracts/azure";
+import { UserGroup } from "../models/contracts/azure";
 import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
-import { randomUUID, X509Certificate } from "node:crypto";
-
-interface GraphKeyCredential {
-    keyId: string;
-    key: string;
-    type: string;
-    usage: string;
-    customKeyIdentifier?: string;
-    displayName?: string;
-    startDateTime?: string;
-    endDateTime?: string;
-}
 
 interface GraphServicePrincipal {
     id: string;
@@ -126,64 +114,6 @@ export class GraphClient implements vscode.Disposable {
         }
     }
 
-    public async fetchAppRegistrations(
-        account: vscode.AuthenticationSessionAccountInformation,
-        tenantId?: string,
-    ): Promise<AppRegistration[]> {
-        try {
-            const connection = this.getConnection(account, ".default", tenantId);
-            const applications = await this.getAll<AppRegistration>(
-                connection,
-                "/applications?$select=id,appId,displayName",
-            );
-            return applications.map(({ id, appId, displayName }) => ({ id, appId, displayName }));
-        } catch (error) {
-            this._logger.error(
-                `Error fetching app registrations: ${getErrorMessage(error)}`,
-                getGraphErrorDetails(error),
-            );
-            throw error;
-        }
-    }
-
-    public async createAppRegistration(
-        displayName: string,
-        account: vscode.AuthenticationSessionAccountInformation,
-        tenantId: string,
-    ): Promise<AppRegistration> {
-        try {
-            if (typeof displayName !== "string" || !displayName.trim()) {
-                throw new Error(AzureSqlContainer.appRegistrationNameRequired);
-            }
-            const connection = this.getConnection(account, ".default", tenantId);
-            const application = await this.sendRequest<AppRegistration>(
-                connection,
-                "/applications",
-                { displayName: displayName.trim(), signInAudience: "AzureADMyOrg" },
-            );
-            if (
-                !application ||
-                typeof application.id !== "string" ||
-                !application.id ||
-                typeof application.appId !== "string" ||
-                !application.appId
-            ) {
-                throw new Error(AzureSqlContainer.invalidAppRegistrationResponse);
-            }
-            return {
-                id: application.id,
-                appId: application.appId,
-                displayName: application.displayName,
-            };
-        } catch (error) {
-            this._logger.error(
-                `Error creating app registration: ${getErrorMessage(error)}`,
-                getGraphErrorDetails(error),
-            );
-            throw error;
-        }
-    }
-
     public async fetchCurrentUser(
         account: vscode.AuthenticationSessionAccountInformation,
         tenantId: string,
@@ -195,7 +125,6 @@ export class GraphClient implements vscode.Disposable {
                 "/me?$select=id,userPrincipalName",
                 undefined,
                 true,
-                "POST",
                 signal,
             );
             if (
@@ -225,7 +154,7 @@ export class GraphClient implements vscode.Disposable {
     ): Promise<{ id: string; displayName: string }> {
         try {
             if (!guidPattern.test(applicationId)) {
-                throw new Error(AzureSqlContainer.selectAppRegistration);
+                throw new Error(AzureSqlContainer.invalidApplicationClientId);
             }
             const connection = this.getConnection(account, ".default", tenantId);
             let principal: GraphServicePrincipal;
@@ -235,7 +164,6 @@ export class GraphClient implements vscode.Disposable {
                     `/servicePrincipals(appId='${applicationId}')?$select=id,appId,displayName`,
                     undefined,
                     true,
-                    "POST",
                     signal,
                 );
             } catch (error) {
@@ -247,7 +175,6 @@ export class GraphClient implements vscode.Disposable {
                     "/servicePrincipals",
                     { appId: applicationId },
                     true,
-                    "POST",
                     signal,
                 );
             }
@@ -267,103 +194,6 @@ export class GraphClient implements vscode.Disposable {
         } catch (error) {
             this._logger.error(
                 "Error resolving container service principal",
-                getGraphErrorDetails(error),
-            );
-            throw error;
-        }
-    }
-
-    public async uploadAppCertificate(
-        applicationId: string,
-        certificate: X509Certificate,
-        account: vscode.AuthenticationSessionAccountInformation,
-        tenantId: string,
-        signal?: AbortSignal,
-    ): Promise<void> {
-        try {
-            if (!guidPattern.test(applicationId)) {
-                throw new Error(AzureSqlContainer.selectAppRegistration);
-            }
-            const connection = this.getConnection(account, ".default", tenantId);
-            const url = `/applications(appId='${applicationId}')`;
-            const application = await this.sendRequest<{
-                appId: string;
-                keyCredentials: GraphKeyCredential[];
-            }>(connection, `${url}?$select=appId,keyCredentials`, undefined, true, "POST", signal);
-            if (
-                !application ||
-                typeof application.appId !== "string" ||
-                application.appId.toLowerCase() !== applicationId.toLowerCase() ||
-                !Array.isArray(application.keyCredentials) ||
-                !application.keyCredentials.every(
-                    (credential) =>
-                        credential &&
-                        typeof credential.keyId === "string" &&
-                        typeof credential.key === "string" &&
-                        !!credential.key &&
-                        typeof credential.type === "string" &&
-                        typeof credential.usage === "string",
-                )
-            ) {
-                throw new Error(AzureSqlContainer.invalidApplicationCredentials);
-            }
-            const key = certificate.raw.toString("base64");
-            if (
-                application.keyCredentials.some(
-                    (credential) =>
-                        credential.key === key &&
-                        credential.type === "AsymmetricX509Cert" &&
-                        credential.usage === "Verify",
-                )
-            ) {
-                return;
-            }
-            const credentials = application.keyCredentials.map(
-                ({
-                    keyId,
-                    key,
-                    type,
-                    usage,
-                    customKeyIdentifier,
-                    displayName,
-                    startDateTime,
-                    endDateTime,
-                }) => ({
-                    keyId,
-                    key,
-                    type,
-                    usage,
-                    customKeyIdentifier,
-                    displayName,
-                    startDateTime,
-                    endDateTime,
-                }),
-            );
-            await this.sendRequest<void>(
-                connection,
-                url,
-                {
-                    keyCredentials: [
-                        ...credentials,
-                        {
-                            keyId: randomUUID(),
-                            key,
-                            type: "AsymmetricX509Cert",
-                            usage: "Verify",
-                            displayName: certificate.subject.slice(0, 90),
-                            startDateTime: new Date(certificate.validFrom).toISOString(),
-                            endDateTime: new Date(certificate.validTo).toISOString(),
-                        },
-                    ],
-                },
-                // A rejected PATCH must be retried from a fresh read of all existing credentials.
-                false,
-                "PATCH",
-                signal,
-            );
-        } catch (error) {
-            this._logger.error(
-                "Error uploading app registration certificate",
                 getGraphErrorDetails(error),
             );
             throw error;
@@ -550,7 +380,6 @@ export class GraphClient implements vscode.Disposable {
         url: string,
         body?: Record<string, unknown>,
         retryOnUnauthorized = true,
-        method: "POST" | "PATCH" = "POST",
         signal?: AbortSignal,
     ): Promise<T> {
         const generation = connection.generation;
@@ -560,11 +389,7 @@ export class GraphClient implements vscode.Disposable {
             if (signal) {
                 request.options({ signal });
             }
-            return body === undefined
-                ? await request.get()
-                : method === "PATCH"
-                  ? await request.patch(body)
-                  : await request.post(body);
+            return body === undefined ? await request.get() : await request.post(body);
         } catch (error) {
             if (!(error instanceof GraphError) || error.statusCode !== 401) {
                 throw error;
@@ -576,7 +401,7 @@ export class GraphClient implements vscode.Disposable {
             if (!retryOnUnauthorized) {
                 throw error;
             }
-            return await this.sendRequest<T>(connection, url, body, false, method, signal);
+            return await this.sendRequest<T>(connection, url, body, false, signal);
         }
     }
 
