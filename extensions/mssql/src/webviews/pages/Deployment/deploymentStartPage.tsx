@@ -20,6 +20,7 @@ import { LocalContainersDeploymentWizard } from "./LocalContainers/localContaine
 import { FabricDeploymentWizard } from "./FabricProvisioning/fabricDeploymentWizard";
 import { AzureSqlDatabaseDeploymentWizard } from "./AzureSqlDatabase/azureSqlDatabaseDeploymentWizard";
 import { AzureSqlDatabaseLocalContainerWizard } from "./AzureSqlDatabase/azureSqlDatabaseLocalContainerWizard";
+import { AzureSqlDatabaseSourcePage } from "./AzureSqlDatabase/azureSqlDatabaseSourcePage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -45,6 +46,7 @@ export const DeploymentStartPage = () => {
     const [activeDeploymentType, setActiveDeploymentType] = useState<DeploymentType>();
     const [pendingDeploymentType, setPendingDeploymentType] = useState<DeploymentType>();
     const [showAzureSqlContainer, setShowAzureSqlContainer] = useState(false);
+    const [showLocalToCloud, setShowLocalToCloud] = useState(false);
 
     const isLocalContainersStateReady = (state: unknown) =>
         Array.isArray((state as LocalContainersState | undefined)?.dockerSteps);
@@ -183,6 +185,10 @@ export const DeploymentStartPage = () => {
         );
     }
 
+    if (showLocalToCloud) {
+        return <AzureSqlDatabaseSourcePage onBack={() => setShowLocalToCloud(false)} />;
+    }
+
     return (
         <div className={classes.outerDiv}>
             <DialogPageShell
@@ -208,6 +214,7 @@ export const DeploymentStartPage = () => {
                         selectedDeploymentType={pendingDeploymentType}
                         onDeploymentTypeChange={handleDeploymentTypeSelected}
                         onAzureSqlContainerSelected={() => setShowAzureSqlContainer(true)}
+                        onLocalToCloudSelected={() => setShowLocalToCloud(true)}
                     />
                 ) : (
                     <div style={{ minHeight: "240px" }}>

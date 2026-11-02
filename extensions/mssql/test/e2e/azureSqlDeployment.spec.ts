@@ -21,26 +21,45 @@ test.describe("Azure SQL deployment options", () => {
         const { page } = getContext();
         await runCommandFromPalette(page, "MS SQL: New Deployment", "MS SQL: New Deployment");
         const deployment = await getWebviewByTitle(page, "New Deployment");
-        const sqlServer = deployment.getByRole("button", {
+        const local = deployment.getByRole("region", { name: "Local provisioning", exact: true });
+        const remote = deployment.getByRole("region", { name: "Remote provisioning", exact: true });
+        const migration = deployment.getByRole("region", { name: "Deployment", exact: true });
+        await expect(local.getByRole("button")).toHaveCount(2);
+        await expect(remote.getByRole("button")).toHaveCount(2);
+        await expect(migration.getByRole("button")).toHaveCount(1);
+        const sqlServer = local.getByRole("button", {
             name: /^Create a Local Docker SQL Server/,
         });
-        const azureContainer = deployment.getByRole("button", {
-            name: /^Azure SQL Database developer container \(Preview\)/,
+        const azureContainer = local.getByRole("button", {
+            name: /^Azure SQL Database container \(Preview\)/,
         });
-        const fabric = deployment.getByRole("button", {
+        const fabric = remote.getByRole("button", {
             name: /^Create a SQL database in Fabric/,
         });
-        const azure = deployment.getByRole("button", {
+        const azure = remote.getByRole("button", {
             name: /^Create an Azure SQL Database/,
+        });
+        const localToCloud = migration.getByRole("button", {
+            name: /^Deploy a local database/,
         });
 
         await expect(sqlServer).toBeVisible();
         await expect(azureContainer).toBeVisible();
         await expect(fabric).toBeVisible();
         await expect(azure).toBeVisible();
+        await expect(localToCloud).toBeVisible();
+        await localToCloud.click();
+        await expect(
+            deployment.getByText("Select a local database", { exact: true }),
+        ).toBeVisible();
+        await expect(deployment.getByLabel("Deployment steps").getByRole("listitem")).toHaveCount(
+            5,
+        );
+        await deployment.getByRole("button", { name: "Previous", exact: true }).click();
+        await expect(localToCloud).toBeVisible();
         await azureContainer.click();
         await expect(
-            deployment.getByText("Azure SQL Database developer container", { exact: true }),
+            deployment.getByText("Azure SQL Database container", { exact: true }),
         ).toBeVisible();
         await deployment.getByRole("button", { name: "Previous", exact: true }).click();
 

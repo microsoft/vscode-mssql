@@ -20,7 +20,8 @@ import {
     DeploymentType,
     DeploymentTypeState,
 } from "../sharedInterfaces/deployment";
-import { TelemetryViews } from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as localContainers from "./localContainersHelpers";
 import { LocalContainersState } from "../sharedInterfaces/localContainers";
@@ -28,6 +29,7 @@ import * as fabricProvisioning from "./fabricProvisioningHelpers";
 import * as azureSqlDatabase from "./azureSqlDatabaseHelpers";
 import {
     deploymentScriptAlreadyExists,
+    LocalToCloud,
     newDeployment,
     noWorkspaceOpenForDeploymentScript,
     overwriteDeploymentScript,
@@ -36,9 +38,20 @@ import { FabricProvisioningState } from "../sharedInterfaces/fabricProvisioning"
 import {
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
+    AzureSqlDatabaseRequests,
+    LocalDatabaseSource,
 } from "../sharedInterfaces/azureSqlDatabase";
 import { findFirstFavoriteOption } from "../sharedInterfaces/form";
 import * as azureSql from "./azureSqlHelpers";
+import {
+    AzureSqlCompatibilityBuilder,
+    connectLocalDatabaseSource,
+    getLocalDatabaseSources,
+    LocalDatabaseCompatibilityService,
+    LocalDatabaseDeploymentService,
+} from "./localToCloudHelpers";
+import SqlToolsServiceClient from "../languageservice/serviceclient";
+import { getMssqlOutputChannel } from "../models/logger";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
 const DEPLOYMENT_FAVORITES_STATE_KEY = "mssql.deploymentResourceFavorites";
@@ -313,6 +326,104 @@ export class DeploymentWebviewController extends FormWebviewController<
         fabricProvisioning.registerFabricProvisioningReducers(this);
         azureSqlDatabase.registerAzureSqlDatabaseReducers(this);
         azureSql.registerAzureSqlRpcHandlers(this);
+        let localWizardOpenedAt: number | undefined;
+        this.registerDisposable(
+            new vscode.Disposable(() => {
+                if (localWizardOpenedAt !== undefined) {
+                    sendActionEvent(TelemetryViews.LocalToCloudDeployment, TelemetryActions.Close, {
+                        additionalMeasurements: {
+                            durationInMs: performance.now() - localWizardOpenedAt,
+                        },
+                    });
+                }
+            }),
+        );
+        const compatibilityOutput = getMssqlOutputChannel();
+        const compatibility = new LocalDatabaseCompatibilityService(
+            this.mainController.connectionManager,
+            SqlToolsServiceClient.instance,
+            this.mainController.sqlTasksService,
+            this.mainController.sqlProjectsService,
+            this.mainController.dacFxService,
+            new AzureSqlCompatibilityBuilder(compatibilityOutput),
+            this.logger,
+        );
+        const deployment = new LocalDatabaseDeploymentService(
+            this,
+            compatibility,
+            SqlToolsServiceClient.instance,
+            compatibilityOutput,
+            this.logger,
+        );
+        this.registerDisposable(deployment);
+        this.onRequest(
+            AzureSqlDatabaseRequests.LocalDatabaseDeploymentAction,
+            ({ deploymentId, action }) => deployment.performAction(deploymentId, action),
+        );
+        this.onRequest(AzureSqlDatabaseRequests.DeployLocalDatabase, (request) =>
+            deployment.deploy(request, (progress) => {
+                void this.sendNotification(
+                    AzureSqlDatabaseRequests.LocalDatabaseDeploymentProgress,
+                    progress,
+                ).catch((error) =>
+                    this.logger.error("Failed to report database deployment progress.", error),
+                );
+            }),
+        );
+        this.onRequest(AzureSqlDatabaseRequests.CancelLocalDatabaseDeployment, ({ deploymentId }) =>
+            deployment.cancel(deploymentId),
+        );
+        this.onRequest(AzureSqlDatabaseRequests.ShowLocalDatabaseCompatibilityOutput, () =>
+            compatibilityOutput.show(true),
+        );
+        this.onRequest(AzureSqlDatabaseRequests.ValidateLocalDatabaseCompatibility, (request) => {
+            if (deployment.isRunning) {
+                throw new Error(LocalToCloud.invalidDeployment);
+            }
+            return compatibility.validate(request, (progress) => {
+                void this.sendNotification(
+                    AzureSqlDatabaseRequests.LocalDatabaseCompatibilityProgress,
+                    progress,
+                ).catch((error) =>
+                    this.logger.error("Failed to report compatibility progress.", error),
+                );
+            });
+        });
+        this.onRequest(
+            AzureSqlDatabaseRequests.CancelLocalDatabaseCompatibility,
+            ({ validationId }) =>
+                deployment.isRunning ? Promise.resolve() : compatibility.cancel(validationId),
+        );
+        this.onRequest(AzureSqlDatabaseRequests.ClearLocalDatabaseCompatibility, () =>
+            deployment.isRunning ? Promise.resolve() : compatibility.clear(),
+        );
+        this.onRequest(AzureSqlDatabaseRequests.GetLocalDatabaseSources, async () => {
+            if (localWizardOpenedAt === undefined) {
+                localWizardOpenedAt = performance.now();
+                sendActionEvent(TelemetryViews.LocalToCloudDeployment, TelemetryActions.Open);
+            }
+            const manager = this.mainController.connectionManager;
+            const connections = await manager.connectionStore.connectionConfig.getConnections();
+            return getLocalDatabaseSources(connections);
+        });
+        const pendingConnections = new Map<string, Promise<LocalDatabaseSource>>();
+        this.onRequest(AzureSqlDatabaseRequests.ConnectLocalDatabaseSource, async ({ id }) => {
+            const pending = pendingConnections.get(id);
+            if (pending) {
+                return pending;
+            }
+            const request = connectLocalDatabaseSource(
+                this.mainController.connectionManager,
+                id,
+                SqlToolsServiceClient.instance,
+            );
+            pendingConnections.set(id, request);
+            try {
+                return await request;
+            } finally {
+                pendingConnections.delete(id);
+            }
+        });
     }
 
     private applyFavoritesToFormComponents(state: DeploymentWebviewState): void {

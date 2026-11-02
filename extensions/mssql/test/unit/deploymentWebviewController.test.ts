@@ -16,10 +16,21 @@ import { stubTelemetry } from "./utils";
 import { createWorkspaceConfiguration } from "./stubs";
 import * as connectionGroups from "../../src/controllers/connectionGroupWebviewController";
 import MainController from "../../src/controllers/mainController";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { FormItemType } from "../../src/sharedInterfaces/form";
-import { TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { ConnectionProfile } from "../../src/models/connectionProfile";
+import { ConnectionStore } from "../../src/models/connectionStore";
+import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import * as azureSql from "../../src/deployment/azureSqlHelpers";
+import * as logger from "../../src/models/logger";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import {
+    LocalDatabaseDeploymentService,
+    LocalDatabaseCompatibilityService,
+} from "../../src/deployment/localToCloudHelpers";
+import { LocalToCloud } from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -29,19 +40,216 @@ suite("Deployment webview controller", () => {
     let controller: sinon.SinonStubbedInstance<DeploymentWebviewController>;
     let closePanel: sinon.SinonStub;
     let close: (state: DeploymentWebviewState, payload: {}) => Promise<DeploymentWebviewState>;
+    let telemetry: ReturnType<typeof stubTelemetry>;
+    let disposables: vscode.Disposable[];
+    let connectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
+    let manager: sinon.SinonStubbedInstance<ConnectionManager>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        stubTelemetry(sandbox);
-        controller = sandbox.createStubInstance(DeploymentWebviewController);
+        telemetry = stubTelemetry(sandbox);
+        ({ controller, disposables } = registerLocalWizardHandlers());
         closePanel = sandbox.stub();
         sandbox.stub(controller, "panel").get(() => ({ dispose: closePanel }));
-        DeploymentWebviewController.prototype["registerRpcHandlers"].call(controller);
         close = controller.registerReducer.getCalls().find((call) => call.args[0] === "dispose")!
             .args[1] as typeof close;
     });
 
-    teardown(() => sandbox.restore());
+    function registerLocalWizardHandlers() {
+        sandbox.spy(azureSql, "registerAzureSqlRpcHandlers");
+        const client = sandbox.createStubInstance(SqlToolsServiceClient);
+        sandbox.stub(SqlToolsServiceClient, "instance").get(() => client);
+        const output: vscode.LogOutputChannel = {
+            name: "test",
+            append: sandbox.stub(),
+            appendLine: sandbox.stub(),
+            replace: sandbox.stub(),
+            clear: sandbox.stub(),
+            show: () => {},
+            hide: sandbox.stub(),
+            dispose: sandbox.stub(),
+            logLevel: vscode.LogLevel.Info,
+            onDidChangeLogLevel: sandbox.stub(),
+            trace: sandbox.stub(),
+            debug: sandbox.stub(),
+            info: sandbox.stub(),
+            warn: sandbox.stub(),
+            error: sandbox.stub(),
+        };
+        sandbox.stub(logger, "getMssqlOutputChannel").returns(output);
+        const controller = sandbox.createStubInstance(DeploymentWebviewController);
+        const disposables: vscode.Disposable[] = [];
+        controller["registerDisposable"] = (disposable) => {
+            disposables.push(disposable);
+        };
+        const main = sandbox.createStubInstance(MainController);
+        manager = sandbox.createStubInstance(ConnectionManager);
+        const store = sandbox.createStubInstance(ConnectionStore);
+        store.readAllConnections.resolves([]);
+        connectionConfig = sandbox.createStubInstance(ConnectionConfig);
+        connectionConfig.getConnections.resolves([]);
+        sandbox.stub(store, "connectionConfig").get(() => connectionConfig);
+        sandbox.stub(manager, "connectionStore").get(() => store);
+        const active: Record<string, ConnectionInfo> = {};
+        sandbox.stub(manager, "activeConnections").get(() => active);
+        sandbox.stub(main, "connectionManager").get(() => manager);
+        controller.mainController = main;
+        DeploymentWebviewController.prototype["registerRpcHandlers"].call(controller);
+        return { controller, disposables };
+    }
+
+    test("records opening once across source refreshes and closing when the panel is disposed", async () => {
+        const handler = controller.onRequest
+            .getCalls()
+            .find(
+                (call) =>
+                    call.args[0].method === AzureSqlDatabaseRequests.GetLocalDatabaseSources.method,
+            )!.args[1];
+        const token: vscode.CancellationToken = {
+            isCancellationRequested: false,
+            onCancellationRequested: sandbox.stub(),
+        };
+        await handler(undefined, token);
+        expect(telemetry.sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.LocalToCloudDeployment,
+            TelemetryActions.Open,
+        );
+        const opened = telemetry.sendActionEvent.getCalls().map((call) => call.args);
+        await handler(undefined, token);
+        expect(telemetry.sendActionEvent.getCalls().map((call) => call.args)).to.deep.equal(opened);
+        for (const disposable of disposables) {
+            disposable.dispose();
+        }
+        expect(telemetry.sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.LocalToCloudDeployment,
+            TelemetryActions.Close,
+            sinon.match({ additionalMeasurements: { durationInMs: sinon.match.number } }),
+        );
+    });
+
+    test("lists and refreshes only local database connections from mssql.connections", async () => {
+        const configured = Object.assign(new ConnectionProfile(), {
+            id: "configured",
+            profileName: "Configured database",
+            server: "localhost,1433",
+            database: "InventoryDb",
+            password: "not-for-the-webview",
+        });
+        connectionConfig.getConnections.resolves([
+            configured,
+            Object.assign(new ConnectionProfile(), {
+                id: "remote",
+                server: "remote.example.com",
+                database: "RemoteDb",
+            }),
+            Object.assign(new ConnectionProfile(), {
+                id: "server-only",
+                server: "localhost",
+                database: "",
+            }),
+        ]);
+        const active = new ConnectionInfo();
+        active.credentials = Object.assign(new ConnectionProfile(), {
+            id: "active-only",
+            server: "localhost",
+            database: "HistoricalDb",
+        });
+        manager.activeConnections["active-only"] = active;
+        manager.isConnected.withArgs("active-only").returns(true);
+        const handler = controller.onRequest
+            .getCalls()
+            .find(
+                (call) =>
+                    call.args[0].method === AzureSqlDatabaseRequests.GetLocalDatabaseSources.method,
+            )!.args[1];
+        const token: vscode.CancellationToken = {
+            isCancellationRequested: false,
+            onCancellationRequested: sandbox.stub(),
+        };
+
+        expect(await handler(undefined, token)).to.deep.equal([
+            {
+                id: configured.id,
+                profileName: configured.profileName,
+                server: configured.server,
+                database: configured.database,
+                isConnected: false,
+                serverVersion: undefined,
+            },
+        ]);
+        connectionConfig.getConnections.resolves([]);
+        expect(await handler(undefined, token)).to.deep.equal([]);
+        expect(manager.connectionStore.readAllConnections).not.to.have.been.called;
+        expect(manager.connect).not.to.have.been.called;
+    });
+
+    test("stale compatibility cleanup cannot invalidate a running deployment", async () => {
+        let running = true;
+        sandbox.stub(LocalDatabaseDeploymentService.prototype, "isRunning").get(() => running);
+        const cancel = sandbox
+            .stub(LocalDatabaseCompatibilityService.prototype, "cancel")
+            .resolves();
+        const clear = sandbox.stub(LocalDatabaseCompatibilityService.prototype, "clear").resolves();
+        const validate = sandbox.stub(LocalDatabaseCompatibilityService.prototype, "validate");
+        const token: vscode.CancellationToken = {
+            isCancellationRequested: false,
+            onCancellationRequested: sandbox.stub(),
+        };
+        const handler = (method: string) =>
+            controller.onRequest.getCalls().find((call) => call.args[0].method === method)!.args[1];
+        await handler(AzureSqlDatabaseRequests.CancelLocalDatabaseCompatibility.method)(
+            { validationId: "validation" },
+            token,
+        );
+        await handler(AzureSqlDatabaseRequests.ClearLocalDatabaseCompatibility.method)(
+            undefined,
+            token,
+        );
+        expect(cancel).not.to.have.been.called;
+        expect(clear).not.to.have.been.called;
+        expect(() =>
+            handler(AzureSqlDatabaseRequests.ValidateLocalDatabaseCompatibility.method)(
+                { validationId: "validation" },
+                token,
+            ),
+        ).to.throw(LocalToCloud.invalidDeployment);
+        expect(validate).not.to.have.been.called;
+        running = false;
+        await handler(AzureSqlDatabaseRequests.CancelLocalDatabaseCompatibility.method)(
+            { validationId: "validation" },
+            token,
+        );
+        await handler(AzureSqlDatabaseRequests.ClearLocalDatabaseCompatibility.method)(
+            undefined,
+            token,
+        );
+        expect(cancel).to.have.been.calledWith("validation");
+        expect(clear).to.have.been.called;
+    });
+
+    test("registers local-to-cloud handlers alongside the container requests", () => {
+        expect(
+            controller.onRequest.getCalls().map((call) => call.args[0].method),
+        ).to.include.members([
+            AzureSqlDatabaseRequests.GetLocalDatabaseSources.method,
+            AzureSqlDatabaseRequests.ConnectLocalDatabaseSource.method,
+            AzureSqlDatabaseRequests.ValidateLocalDatabaseCompatibility.method,
+            AzureSqlDatabaseRequests.CancelLocalDatabaseCompatibility.method,
+            AzureSqlDatabaseRequests.ClearLocalDatabaseCompatibility.method,
+            AzureSqlDatabaseRequests.ShowLocalDatabaseCompatibilityOutput.method,
+            AzureSqlDatabaseRequests.DeployLocalDatabase.method,
+            AzureSqlDatabaseRequests.CancelLocalDatabaseDeployment.method,
+            AzureSqlDatabaseRequests.LocalDatabaseDeploymentAction.method,
+        ]);
+        expect(azureSql.registerAzureSqlRpcHandlers).to.have.been.calledWith(controller);
+    });
+
+    teardown(() => {
+        for (const disposable of disposables ?? []) {
+            disposable.dispose();
+        }
+        sandbox.restore();
+    });
 
     for (const withGroupComponent of [false, true]) {
         test(`creates and selects a group ${withGroupComponent ? "with" : "without"} initialized deployment form components`, async () => {
