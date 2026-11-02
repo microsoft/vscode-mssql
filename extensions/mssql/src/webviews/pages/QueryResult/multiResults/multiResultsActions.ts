@@ -5,6 +5,7 @@
 
 import { createContext, type DragEvent, useContext } from "react";
 import {
+    isMultiResultAtTarget,
     MultiResultsDropTarget,
     MultiResultsGroup,
 } from "../../../../sharedInterfaces/multiResults";
@@ -14,6 +15,7 @@ export interface MultiResultsActions {
     focus(uri: string): void;
     move(uri: string, target: MultiResultsDropTarget): void;
     close(uri: string): void;
+    openInNewTab(uri: string): void;
     setGroupSizes(groupId: string, sizes: number[]): void;
 }
 
@@ -30,14 +32,33 @@ export function useMultiResultsActions(): MultiResultsActions {
 /** Drag data type for a result dragged within the multi-results view. */
 const MULTI_RESULT_DRAG_TYPE = "application/vnd.mssql.query-result";
 
+/** The result being dragged, as a drag's own data can only be read once it is dropped. */
+let draggedUri: string | undefined;
+
 export function startMultiResultDrag(event: DragEvent, uri: string): void {
     event.dataTransfer.setData(MULTI_RESULT_DRAG_TYPE, uri);
     event.dataTransfer.effectAllowed = "move";
+    draggedUri = uri;
+    const endDrag = () => {
+        draggedUri = undefined;
+        window.removeEventListener("dragend", endDrag);
+        window.removeEventListener("drop", endDrag);
+    };
+    window.addEventListener("dragend", endDrag);
+    window.addEventListener("drop", endDrag);
 }
 
-/** Whether a drag carries a result. Its URI can only be read once it is dropped. */
+/** Whether a drag carries a result. */
 export function isMultiResultDrag(event: DragEvent): boolean {
     return event.dataTransfer.types.includes(MULTI_RESULT_DRAG_TYPE);
+}
+
+/** Whether dropping the dragged result on a target would leave it where it already is. */
+export function isDraggedResultAtTarget(
+    groups: readonly MultiResultsGroup[],
+    target: MultiResultsDropTarget,
+): boolean {
+    return draggedUri !== undefined && isMultiResultAtTarget(groups, draggedUri, target);
 }
 
 export function getDroppedMultiResult(event: DragEvent): string | undefined {

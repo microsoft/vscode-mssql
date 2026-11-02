@@ -27,11 +27,16 @@ import {
     useRef,
     useState,
 } from "react";
-import { MultiResultsGroup, MultiResultsState } from "../../../../sharedInterfaces/multiResults";
+import {
+    MultiResultsDropTarget,
+    MultiResultsGroup,
+    MultiResultsState,
+} from "../../../../sharedInterfaces/multiResults";
 import { locConstants } from "../../../common/locConstants";
 import {
     getDroppedMultiResult,
     getNewGroupTarget,
+    isDraggedResultAtTarget,
     isMultiResultDrag,
     startMultiResultDrag,
     useMultiResultsActions,
@@ -327,13 +332,25 @@ export const MultiResultsList = ({ state }: MultiResultsListProps) => {
         }
     };
 
-    const onItemDragOver = (event: DragEvent<HTMLDivElement>, uri: string) => {
+    // Dropping a result on another one splits it with that result.
+    const getItemDropTarget = (item: ListItem): MultiResultsDropTarget => ({
+        kind: "joinGroup",
+        groupId: item.group.id,
+        index: item.indexInGroup + 1,
+    });
+
+    const onItemDragOver = (event: DragEvent<HTMLDivElement>, item: ListItem) => {
         if (!isMultiResultDrag(event)) {
             return;
         }
         event.preventDefault();
+        if (isDraggedResultAtTarget(groups, getItemDropTarget(item))) {
+            event.dataTransfer.dropEffect = "none";
+            setDropTargetUri(undefined);
+            return;
+        }
         event.dataTransfer.dropEffect = "move";
-        setDropTargetUri(uri);
+        setDropTargetUri(item.uri);
     };
 
     const onItemDragLeave = (event: DragEvent<HTMLDivElement>, uri: string) => {
@@ -342,7 +359,6 @@ export const MultiResultsList = ({ state }: MultiResultsListProps) => {
         }
     };
 
-    // Dropping a result on another one splits it with that result.
     const onItemDrop = (event: DragEvent<HTMLDivElement>, item: ListItem) => {
         const droppedUri = getDroppedMultiResult(event);
         setDropTargetUri(undefined);
@@ -351,20 +367,23 @@ export const MultiResultsList = ({ state }: MultiResultsListProps) => {
         }
         event.preventDefault();
         if (droppedUri !== item.uri) {
-            actions.move(droppedUri, {
-                kind: "joinGroup",
-                groupId: item.group.id,
-                index: item.indexInGroup + 1,
-            });
+            actions.move(droppedUri, getItemDropTarget(item));
         }
     };
 
     // Dropping a result below the list puts it in a group of its own at the end.
+    const tailDropTarget: MultiResultsDropTarget = { kind: "newGroup", index: groups.length };
+
     const onTailDragOver = (event: DragEvent<HTMLDivElement>) => {
         if (!isMultiResultDrag(event)) {
             return;
         }
         event.preventDefault();
+        if (isDraggedResultAtTarget(groups, tailDropTarget)) {
+            event.dataTransfer.dropEffect = "none";
+            setIsDropOnTail(false);
+            return;
+        }
         event.dataTransfer.dropEffect = "move";
         setIsDropOnTail(true);
     };
@@ -376,7 +395,7 @@ export const MultiResultsList = ({ state }: MultiResultsListProps) => {
             return;
         }
         event.preventDefault();
-        actions.move(droppedUri, { kind: "newGroup", index: groups.length });
+        actions.move(droppedUri, tailDropTarget);
     };
 
     const getGroupLabel = (group: MultiResultsGroup) =>
@@ -431,7 +450,7 @@ export const MultiResultsList = ({ state }: MultiResultsListProps) => {
                             )}
                             draggable
                             onDragStart={(event) => startMultiResultDrag(event, item.uri)}
-                            onDragOver={(event) => onItemDragOver(event, item.uri)}
+                            onDragOver={(event) => onItemDragOver(event, item)}
                             onDragLeave={(event) => onItemDragLeave(event, item.uri)}
                             onDrop={(event) => onItemDrop(event, item)}
                             onClick={() => {

@@ -131,9 +131,15 @@ const useStyles = makeStyles({
 interface QueryResultPaneProps {
     GridView: ComponentType;
     isBetaResultsGridEnabled: boolean;
+    /** The multi-results view offers this action in the title bar of each pane instead. */
+    hideOpenInNewTab?: boolean;
 }
 
-export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryResultPaneProps) => {
+export const QueryResultPane = ({
+    GridView,
+    isBetaResultsGridEnabled,
+    hideOpenInNewTab,
+}: QueryResultPaneProps) => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
 
@@ -346,24 +352,25 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
 
                 <Toolbar aria-label={locConstants.queryResult.resultsToolbar}>
                     <CopyIndicator visible={context.copyIndicatorVisible} />
-                    {webviewLocation === qr.QueryResultWebviewLocation.Panel && (
-                        <Button
-                            icon={<OpenRegular />}
-                            iconPosition="after"
-                            appearance="subtle"
-                            onClick={async () => {
-                                await context.extensionRpc.sendRequest(
-                                    qr.OpenInNewTabRequest.type,
-                                    {
-                                        uri: uri!,
-                                    },
-                                );
-                            }}
-                            title={locConstants.queryResult.openResultInNewTab}
-                            style={{ marginTop: "4px", marginBottom: "4px" }}>
-                            {locConstants.queryResult.openResultInNewTab}
-                        </Button>
-                    )}
+                    {!hideOpenInNewTab &&
+                        webviewLocation === qr.QueryResultWebviewLocation.Panel && (
+                            <Button
+                                icon={<OpenRegular />}
+                                iconPosition="after"
+                                appearance="subtle"
+                                onClick={async () => {
+                                    await context.extensionRpc.sendRequest(
+                                        qr.OpenInNewTabRequest.type,
+                                        {
+                                            uri: uri!,
+                                        },
+                                    );
+                                }}
+                                title={locConstants.queryResult.openResultInNewTab}
+                                style={{ marginTop: "4px", marginBottom: "4px" }}>
+                                {locConstants.queryResult.openResultInNewTab}
+                            </Button>
+                        )}
                     <Menu
                         checkedValues={{
                             previewGrid: isPreviewGridSwitchChecked ? ["enabled"] : [],

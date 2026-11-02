@@ -52,6 +52,34 @@ export type MultiResultsDropTarget =
     | { kind: "joinGroup"; groupId: string; index: number }
     | { kind: "newGroup"; index: number };
 
+/**
+ * Whether dropping a result on a target would leave it where it already is.
+ */
+export function isMultiResultAtTarget(
+    groups: readonly MultiResultsGroup[],
+    uri: string,
+    target: MultiResultsDropTarget,
+): boolean {
+    const source = groups.find((group) => group.uris.includes(uri));
+    if (!source) {
+        return false;
+    }
+    let from: number;
+    if (target.kind === "joinGroup") {
+        if (target.groupId !== source.id) {
+            return false;
+        }
+        from = source.uris.indexOf(uri);
+    } else {
+        if (source.uris.length > 1) {
+            return false;
+        }
+        from = groups.indexOf(source);
+    }
+    // Indexes count the result itself, so the positions on both sides of it are where it is.
+    return target.index === from || target.index === from + 1;
+}
+
 export namespace GetMultiResultsFileStateRequest {
     export const type = new RequestType<{ uri: string }, QueryResultWebviewState | undefined, void>(
         "multiResults/getFileState",

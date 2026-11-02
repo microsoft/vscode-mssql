@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, makeStyles, Spinner, Text } from "@fluentui/react-components";
-import { ArrowExitRegular, DismissRegular } from "@fluentui/react-icons";
+import { ArrowExitRegular, DismissRegular, OpenRegular } from "@fluentui/react-icons";
 import {
     type ComponentType,
     memo,
@@ -202,6 +202,14 @@ export const MultiResultsPane = memo(function MultiResultsPane({
                         ? locConstants.multiResults.closedEditorTitle(title)
                         : title}
                 </Text>
+                <Button
+                    appearance="subtle"
+                    size="small"
+                    icon={<OpenRegular />}
+                    title={locConstants.queryResult.openResultInNewTab}
+                    aria-label={locConstants.queryResult.openResultInNewTab}
+                    onClick={() => actions.openInNewTab(uri)}
+                />
                 {group.uris.length > 1 && (
                     <Button
                         appearance="subtle"
@@ -231,6 +239,7 @@ export const MultiResultsPane = memo(function MultiResultsPane({
                                     <QueryResultPane
                                         GridView={GridView}
                                         isBetaResultsGridEnabled={isBetaResultsGridEnabled}
+                                        hideOpenInNewTab
                                     />
                                 </QueryResultStateProvider>
                             </QueryResultPaneScopeContext.Provider>

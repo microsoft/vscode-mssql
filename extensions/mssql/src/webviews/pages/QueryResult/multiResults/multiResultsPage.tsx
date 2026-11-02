@@ -15,6 +15,7 @@ import {
     SetMultiResultsGroupSizesNotification,
 } from "../../../../sharedInterfaces/multiResults";
 import {
+    OpenInNewTabRequest,
     QueryResultReducers,
     QueryResultWebviewState,
 } from "../../../../sharedInterfaces/queryResult";
@@ -123,6 +124,7 @@ export const MultiResultsPage = ({ GridView, isBetaResultsGridEnabled }: MultiRe
                 }),
             close: (uri) =>
                 void extensionRpc.sendNotification(CloseMultiResultNotification.type, { uri }),
+            openInNewTab: (uri) => void extensionRpc.sendRequest(OpenInNewTabRequest.type, { uri }),
             setGroupSizes: (groupId, sizes) =>
                 void extensionRpc.sendNotification(SetMultiResultsGroupSizesNotification.type, {
                     groupId,

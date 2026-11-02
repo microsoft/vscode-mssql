@@ -15,11 +15,16 @@ import {
     useState,
 } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { MultiResultsEntry, MultiResultsGroup } from "../../../../sharedInterfaces/multiResults";
+import {
+    MultiResultsDropTarget,
+    MultiResultsEntry,
+    MultiResultsGroup,
+} from "../../../../sharedInterfaces/multiResults";
 import { MultiResultsStore } from "./multiResultsStore";
 import { MultiResultsPane } from "./multiResultsPane";
 import {
     getDroppedMultiResult,
+    isDraggedResultAtTarget,
     isMultiResultDrag,
     useMultiResultsActions,
 } from "./multiResultsActions";
@@ -156,13 +161,24 @@ export const MultiResultsGroupView = ({
         return event.clientY < rect.top + rect.height / 2 ? "before" : "after";
     };
 
+    const getDropTarget = (uri: string, side: DropSide): MultiResultsDropTarget => ({
+        kind: "joinGroup",
+        groupId: group.id,
+        index: group.uris.indexOf(uri) + (side === "after" ? 1 : 0),
+    });
+
     const onDragOver = (event: DragEvent<HTMLElement>, uri: string) => {
         if (!isMultiResultDrag(event)) {
             return;
         }
         event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
         const side = getDropSide(event);
+        if (isDraggedResultAtTarget(groups, getDropTarget(uri, side))) {
+            event.dataTransfer.dropEffect = "none";
+            setDropIndicator(undefined);
+            return;
+        }
+        event.dataTransfer.dropEffect = "move";
         setDropIndicator((current) =>
             current?.uri === uri && current.side === side ? current : { uri, side },
         );
@@ -181,8 +197,7 @@ export const MultiResultsGroupView = ({
             return;
         }
         event.preventDefault();
-        const index = group.uris.indexOf(uri) + (getDropSide(event) === "after" ? 1 : 0);
-        actions.move(droppedUri, { kind: "joinGroup", groupId: group.id, index });
+        actions.move(droppedUri, getDropTarget(uri, getDropSide(event)));
     };
 
     const getDropOverlayClass = (side: DropSide) => {

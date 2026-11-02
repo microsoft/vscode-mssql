@@ -3,7 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { MultiResultsDropTarget, MultiResultsGroup } from "../sharedInterfaces/multiResults";
+import {
+    isMultiResultAtTarget,
+    MultiResultsDropTarget,
+    MultiResultsGroup,
+} from "../sharedInterfaces/multiResults";
 
 /**
  * Tracks how results are grouped in the multi-results view. Every result belongs to exactly one
@@ -78,11 +82,17 @@ export class MultiResultsLayout {
     }
 
     /**
-     * Moves a result into another group, or into a new group of its own, and shows it there.
+     * Moves a result into another group, or into a new group of its own, and shows it there. A
+     * result that is already there is only shown, so its group keeps its pane sizes.
      */
     public move(uri: string, target: MultiResultsDropTarget): void {
         const source = this.getGroup(uri);
         if (!source) {
+            return;
+        }
+
+        if (isMultiResultAtTarget(this._groups, uri, target)) {
+            this.focus(uri);
             return;
         }
 
