@@ -44,23 +44,23 @@ const useStyles = makeStyles({
 });
 
 interface AzureSqlDatabaseLocalContainerWizardProps {
-    onBackToDeploymentType: () => void;
+    onBackToStart: () => void;
 }
 
 export const AzureSqlDatabaseLocalContainerWizard: React.FC<
     AzureSqlDatabaseLocalContainerWizardProps
-> = ({ onBackToDeploymentType }) => {
+> = ({ onBackToStart }) => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
     const { extensionRpc } = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
     const groups = useDeploymentSelector((s) => s.connectionGroupOptions);
-    const initialGroupId = useDeploymentSelector((s) => s.formState.groupId);
+    const selectedGroupId = useDeploymentSelector((s) => s.formState.groupId);
     const [form, setForm] = useState<AzureSqlContainerForm>(() => ({
         authenticationType: AuthenticationType.SqlLogin,
         password: "",
         savePassword: false,
         profileName: "",
-        groupId: initialGroupId ?? groups[0]?.value ?? "",
+        groupId: selectedGroupId ?? groups[0]?.value ?? "",
         containerName: "",
         port: "",
         hostname: "",
@@ -76,6 +76,13 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
     const [isPortValidating, setIsPortValidating] = useState(false);
     const [isLoadingDefaults, setIsLoadingDefaults] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
+    useEffect(() => {
+        if (selectedGroupId) {
+            setForm((current) => ({ ...current, groupId: selectedGroupId }));
+            setFormErrors((current) => ({ ...current, groupId: undefined }));
+        }
+    }, [selectedGroupId]);
+
     const portEditedRef = useRef(false);
     const handlePrerequisitesReadyChange = useCallback((isReady: boolean) => {
         setArePrerequisitesReady(isReady);
@@ -198,7 +205,7 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
             render: () => <AzureSqlDatabaseLocalContainerInfoPage />,
             nextLabel: locConstants.common.next,
             onPrevious: () => {
-                onBackToDeploymentType();
+                onBackToStart();
                 return false;
             },
         },

@@ -33,6 +33,11 @@ import {
     SqlPasswordValidationError,
 } from "../../../../utils/sqlStringUtils";
 import { AzureSqlContainerEntraForm } from "./azureSqlContainerEntraForm";
+import {
+    CREATE_NEW_GROUP_ID,
+    CreateConnectionGroupDialogProps,
+} from "../../../../sharedInterfaces/connectionGroup";
+import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 
 const useStyles = makeStyles({
     form: {
@@ -101,6 +106,7 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
     const authenticationType = form.authenticationType ?? AuthenticationType.SqlLogin;
     const context = useContext(DeploymentContext);
     const groups = useDeploymentSelector((s) => s.connectionGroupOptions);
+    const dialog = useDeploymentSelector((s) => s.dialog);
     const groupOptions = groups.map((group) => ({
         value: group.value,
         text: group.displayName,
@@ -180,6 +186,14 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
 
     return (
         <div className={classes.form}>
+            {dialog?.type === "createConnectionGroup" && (
+                <ConnectionGroupDialog
+                    mode="modal"
+                    state={(dialog as CreateConnectionGroupDialogProps).props}
+                    saveConnectionGroup={context.createConnectionGroup}
+                    closeDialog={() => context.setConnectionGroupDialogState(false)}
+                />
+            )}
             {isEntraAuthentication ? (
                 <AzureSqlContainerEntraForm
                     form={form}
@@ -215,6 +229,7 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
                         size="small"
                         type="password"
                         autoComplete="new-password"
+                        placeholder={loc.servicePrincipalClientSecretPlaceholder}
                         value={form.servicePrincipalClientSecret ?? ""}
                         disabled={disabled}
                         onChange={(_, data) =>
@@ -289,7 +304,13 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
                     showPlaceholder={!form.groupId}
                     placeholder={loc.selectConnectionGroup}
                     disabled={disabled}
-                    onSelect={(option) => onChange({ ...form, groupId: option.value })}
+                    onSelect={(option) => {
+                        if (option.value === CREATE_NEW_GROUP_ID) {
+                            context.setConnectionGroupDialogState(true);
+                        } else {
+                            onChange({ ...form, groupId: option.value });
+                        }
+                    }}
                 />
             </Field>
             <CollapsibleSection title={locConstants.connectionDialog.advancedOptions} defaultOpen>

@@ -10,6 +10,7 @@ import { DockerIcon } from "../../common/icons/docker";
 import { SqlDbInFabricIcon } from "../../common/icons/sqlDbInFabric";
 import { AzureSqlDatabaseIcon } from "../../common/icons/azureSqlDatabase";
 import { KeyCode } from "../../common/keys";
+import azureSqlContainerIcon from "../../media/azureSqlContainer.svg";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -110,11 +111,13 @@ const useStyles = makeStyles({
 interface ChooseDeploymentTypePageProps {
     selectedDeploymentType?: DeploymentType;
     onDeploymentTypeChange: (deploymentType: DeploymentType) => void;
+    onAzureSqlContainerSelected: () => void;
 }
 
 export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> = ({
     selectedDeploymentType,
     onDeploymentTypeChange,
+    onAzureSqlContainerSelected,
 }) => {
     const classes = useStyles();
     return (
@@ -149,6 +152,29 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                         </Text>
                         <Text className={classes.cardDescription}>
                             {locConstants.deployment.dockerSqlServerDescription}
+                        </Text>
+                    </div>
+                </Card>
+                <Card
+                    className={classes.cardDiv}
+                    onClick={onAzureSqlContainerSelected}
+                    onKeyDown={(event) => {
+                        if (event.code === KeyCode.Enter || event.code === KeyCode.Space) {
+                            event.preventDefault();
+                            onAzureSqlContainerSelected();
+                        }
+                    }}
+                    tabIndex={0}
+                    role="button">
+                    <div className={classes.iconBadge}>
+                        <img src={azureSqlContainerIcon} className={classes.azureSqlIcon} alt="" />
+                    </div>
+                    <div className={classes.content}>
+                        <Text className={classes.cardHeader}>
+                            {locConstants.azureSqlDatabase.developerContainerPreview}
+                        </Text>
+                        <Text className={classes.cardDescription}>
+                            {locConstants.azureSqlDatabase.localContainerDescription}
                         </Text>
                     </div>
                 </Card>

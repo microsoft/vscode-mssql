@@ -3738,6 +3738,7 @@ export class LocConstants {
             entraDefault: l10n.t("Microsoft Entra ID - Default"),
             entraServicePrincipal: l10n.t("Microsoft Entra ID - Service Principal"),
             servicePrincipalClientSecret: l10n.t("Client secret"),
+            servicePrincipalClientSecretPlaceholder: l10n.t("Enter the client secret"),
             servicePrincipalClientSecretTooltip: l10n.t(
                 "Client secret for the selected app registration. This is separate from the SQL administrator password.",
             ),
@@ -3807,14 +3808,9 @@ export class LocConstants {
             azureSqlDatabaseDescription: l10n.t(
                 "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.",
             ),
-            chooseDeploymentOption: l10n.t("Choose how to run Azure SQL Database"),
-            localContainer: l10n.t("Local container (Preview)"),
+            developerContainerPreview: l10n.t("Azure SQL Database developer container (Preview)"),
             localContainerDescription: l10n.t(
                 "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.",
-            ),
-            free: l10n.t("Free"),
-            freeDescription: l10n.t(
-                "Try Azure SQL Database at no cost with the free tier — a fully managed cloud database, ready for your app, ORM, or migration tools.",
             ),
             localContainerTbd: l10n.t("TBD"),
             localContainerWizardTitle: l10n.t("(Preview) New Azure SQL Database - Container"),
