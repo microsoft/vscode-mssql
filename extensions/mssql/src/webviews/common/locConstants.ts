@@ -1284,6 +1284,7 @@ export class LocConstants {
             loadingFabricAccounts: l10n.t("Loading Fabric Accounts"),
             fabricAccount: l10n.t("Fabric Account"),
             selectAnAccount: l10n.t("Select an account"),
+            addAccount: l10n.t("Add account"),
             account: l10n.t("Account"),
             tenantId: l10n.t("Tenant ID"),
             fabricDatabases: l10n.t("Fabric Databases"),
@@ -3619,11 +3620,32 @@ export class LocConstants {
 
     public get azureSqlContainer() {
         return {
+            appRegistration: l10n.t("App registration"),
+            createAppRegistration: l10n.t("Create new app registration"),
+            appRegistrationName: l10n.t("App registration name"),
+            enterAppRegistrationName: l10n.t("Enter an app registration name"),
+            creatingAppRegistration: l10n.t("Creating app registration..."),
+            selectAppRegistration: l10n.t("Select an app registration"),
+            loadingAppRegistrations: l10n.t("Loading app registrations..."),
+            searchAppRegistrations: l10n.t("Search app registrations"),
+            pfxFilePath: l10n.t("PFX file path"),
+            selectPfxFile: l10n.t("Select a PFX file"),
+            browsePfxFile: l10n.t("Browse for a PFX file"),
+            generatePfxFile: l10n.t("Generate PFX file"),
+            generatingPfxFile: l10n.t("Generating certificate files..."),
             sqlLogin: l10n.t("SQL Login"),
             entraMfa: l10n.t("Microsoft Entra ID - Universal with MFA support"),
             entraDefault: l10n.t("Microsoft Entra ID - Default"),
             entraServicePrincipal: l10n.t("Microsoft Entra ID - Service Principal"),
-            authenticationTooltip: l10n.t("The developer container uses SQL Login authentication."),
+            servicePrincipalClientSecret: l10n.t("Client secret"),
+            servicePrincipalClientSecretTooltip: l10n.t(
+                "Client secret for the selected app registration. This is separate from the SQL administrator password.",
+            ),
+            sqlAdministratorUserName: l10n.t("SQL administrator user name"),
+            sqlAdministratorPassword: l10n.t("SQL administrator password"),
+            authenticationTooltip: l10n.t(
+                "Choose SQL Login or Microsoft Entra ID authentication for the developer container.",
+            ),
             userNameTooltip: l10n.t(
                 "The built-in administrator login for the developer container.",
             ),
@@ -3664,6 +3686,10 @@ export class LocConstants {
             pullingContainerImage: l10n.t("Pulling container image"),
             pullingContainerImageDescription: l10n.t(
                 "Downloading the Azure SQL Database developer container image from the registry.",
+            ),
+            uploadingCertificate: l10n.t("Uploading public certificate"),
+            uploadingCertificateDescription: l10n.t(
+                "Adding the selected PFX's public certificate to the chosen app registration.",
             ),
             creatingContainer: l10n.t("Creating container"),
             creatingContainerDescription: l10n.t(

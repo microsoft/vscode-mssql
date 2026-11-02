@@ -266,3 +266,9 @@ export interface UserGroup {
     id: string;
     displayName: string;
 }
+
+export interface AppRegistration {
+    id: string;
+    appId: string;
+    displayName: string | null;
+}

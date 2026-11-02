@@ -5,13 +5,14 @@
 
 import { Badge, Button, makeStyles } from "@fluentui/react-components";
 import { Desktop20Regular } from "@fluentui/react-icons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
     AzureSqlContainerForm,
     AzureSqlContainerProvisioningResult,
     AzureSqlContainerProvisioningStep,
     AzureSqlDatabaseRequests,
     ContainerEngine,
+    getAzureSqlContainerProvisioningSteps,
 } from "../../../../sharedInterfaces/azureSqlDatabase";
 import {
     DeploymentReducers,
@@ -25,13 +26,6 @@ import { DeploymentStepCard } from "../deploymentStepCard";
 import { WhatsNextCard } from "../whatsNextCard";
 import { getContainerEngineDisplayName } from "./azureSqlDatabaseContainerEnginePage";
 import { ContainerDeploymentError } from "./containerDeploymentError";
-
-const provisioningSteps = [
-    AzureSqlContainerProvisioningStep.PullImage,
-    AzureSqlContainerProvisioningStep.CreateContainer,
-    AzureSqlContainerProvisioningStep.WaitForReady,
-    AzureSqlContainerProvisioningStep.Connect,
-] as const;
 
 const useStyles = makeStyles({
     outer: {
@@ -74,10 +68,15 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
     onStatusChange,
 }) => {
     const classes = useStyles();
+    const provisioningSteps = useMemo(
+        () => getAzureSqlContainerProvisioningSteps(form.authenticationType),
+        [form.authenticationType],
+    );
     const { extensionRpc } = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
     const [statuses, setStatuses] = useState<Record<AzureSqlContainerProvisioningStep, ApiStatus>>(
         () => ({
             [AzureSqlContainerProvisioningStep.PullImage]: ApiStatus.NotStarted,
+            [AzureSqlContainerProvisioningStep.UploadCertificate]: ApiStatus.NotStarted,
             [AzureSqlContainerProvisioningStep.CreateContainer]: ApiStatus.NotStarted,
             [AzureSqlContainerProvisioningStep.WaitForReady]: ApiStatus.NotStarted,
             [AzureSqlContainerProvisioningStep.Connect]: ApiStatus.NotStarted,
@@ -152,13 +151,17 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
         return () => {
             cancelled = true;
         };
-    }, [attempt, currentStepIndex, engine, extensionRpc, form, onStatusChange]);
+    }, [attempt, currentStepIndex, engine, extensionRpc, form, onStatusChange, provisioningSteps]);
 
     const failedStep = provisioningSteps.find((step) => statuses[step] === ApiStatus.Error);
     const stepContent = {
         [AzureSqlContainerProvisioningStep.PullImage]: {
             title: locConstants.azureSqlContainer.pullingContainerImage,
             description: locConstants.azureSqlContainer.pullingContainerImageDescription,
+        },
+        [AzureSqlContainerProvisioningStep.UploadCertificate]: {
+            title: locConstants.azureSqlContainer.uploadingCertificate,
+            description: locConstants.azureSqlContainer.uploadingCertificateDescription,
         },
         [AzureSqlContainerProvisioningStep.CreateContainer]: {
             title: locConstants.azureSqlContainer.creatingContainer,
