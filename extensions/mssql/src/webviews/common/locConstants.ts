@@ -3614,7 +3614,7 @@ export class LocConstants {
             saturation: l10n.t("Saturation"),
             brightness: l10n.t("Brightness"),
             organizationNote: l10n.t(
-                "Connection profiles and groups can be also be reorganized into different connection groups by dragging and dropping them in the Connections view.",
+                "Connection profiles and groups can also be reorganized into different connection groups by dragging and dropping them in the Connections view.",
             ),
         };
     }

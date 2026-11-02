@@ -417,26 +417,42 @@ export class ConnectionStore implements IConnectionStore {
         originalProfile?: IConnectionProfile,
         forceWritePlaintextPassword?: boolean,
     ): Promise<boolean> {
-        this._connectionConfig.populateMissingConnectionMetadata(profile);
         const savedProfile = this.prepareProfileForStorage(profile, forceWritePlaintextPassword);
+        this._connectionConfig.populateMissingConnectionMetadata(savedProfile);
 
         if (!(await this._connectionConfig.updateConnection(savedProfile))) {
             return false;
         }
 
-        profile.configSource = savedProfile.configSource;
-        if (savedProfile.workspaceFolderUri) {
-            profile.workspaceFolderUri = savedProfile.workspaceFolderUri;
-        } else {
-            delete profile.workspaceFolderUri;
+        const updatedProfile = { ...profile };
+        const keys = new Set([
+            ...Object.keys(profile),
+            ...Object.keys(savedProfile),
+        ] as (keyof IConnectionProfile)[]);
+        for (const key of keys) {
+            // These values may be scrubbed in storage, but are still needed by Connect.
+            if (key === "password" || key === "azureAccountToken") {
+                continue;
+            }
+            if (Object.hasOwn(savedProfile, key)) {
+                Object.assign(updatedProfile, { [key]: savedProfile[key] });
+            } else {
+                delete updatedProfile[key];
+            }
         }
 
         if (originalProfile) {
             await this.removeProfileArtifacts(originalProfile);
         }
-        if (await this.saveProfilePasswordIfNeeded(profile)) {
-            ConnInfo.fixupConnectionCredentials(profile);
+        if (await this.saveProfilePasswordIfNeeded(updatedProfile)) {
+            ConnInfo.fixupConnectionCredentials(updatedProfile);
         }
+        for (const key of Object.keys(profile) as (keyof IConnectionProfile)[]) {
+            if (!Object.hasOwn(updatedProfile, key)) {
+                delete profile[key];
+            }
+        }
+        Object.assign(profile, updatedProfile);
         return true;
     }
 

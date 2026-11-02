@@ -110,18 +110,18 @@ export class ConnectionConfig implements IConnectionConfig {
                 connections = connectionStringCleanup.profiles;
                 connectionsChanged = connectionStringCleanup.changed || connectionsChanged;
 
-                if (groupsChanged) {
-                    this._logger.info(
-                        `Updates made to connection groups. Writing all ${groups.length} group(s) to settings.`,
-                    );
-                    await this.writeConnectionGroupsToSettings(groups);
-                }
-
                 if (connectionsChanged) {
                     this._logger.info(
                         `Updates made to connection profiles. Writing all ${connections.length} profile(s) to settings.`,
                     );
                     await this.writeConnectionsToSettings(connections);
+                }
+
+                if (groupsChanged) {
+                    this._logger.info(
+                        `Updates made to connection groups. Writing all ${groups.length} group(s) to settings.`,
+                    );
+                    await this.writeRepairedGroupsToSettings(groups);
                 }
             });
         } catch (err) {
@@ -670,7 +670,12 @@ export class ConnectionConfig implements IConnectionConfig {
                 this.applyConfigLocation(latest.item, location);
                 latest.items[latest.index] = latest.item;
                 await writeItems(latest.items);
-                this.applyConfigLocation(updatedItem, location);
+                for (const key of Object.keys(updatedItem) as (keyof T)[]) {
+                    if (!Object.hasOwn(latest.item, key)) {
+                        delete updatedItem[key];
+                    }
+                }
+                Object.assign(updatedItem, latest.item);
                 return true;
             });
             if (saved) {
@@ -1186,6 +1191,27 @@ export class ConnectionConfig implements IConnectionConfig {
                 await write(plan.desired, plan.location);
             }
         }
+    }
+
+    private async writeRepairedGroupsToSettings(groups: IConnectionGroup[]): Promise<void> {
+        const root = groups.find((group) => group.id === ConnectionConfig.ROOT_GROUP_ID);
+        const rootLocation = this.resolveGroupConfigLocation(root, groups);
+        const rootLocationKey = this.getConfigLocationKey(rootLocation);
+        const locations = new Map(
+            [...this.getRawGroupsFromSettings(), ...groups].map((group) => {
+                const location = this.resolveGroupConfigLocation(group, groups);
+                return [this.getConfigLocationKey(location), location];
+            }),
+        );
+
+        // Retain the legacy root ID until every profile and child group reference is repaired.
+        // If any earlier write fails, the next startup can still discover and retry the mapping.
+        for (const [key, location] of locations) {
+            if (key !== rootLocationKey) {
+                await this.writeConnectionGroupsToSettings(groups, location);
+            }
+        }
+        await this.writeConnectionGroupsToSettings(groups, rootLocation);
     }
 
     private async persistGroupsForLocation(

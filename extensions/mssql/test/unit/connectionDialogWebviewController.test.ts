@@ -1392,6 +1392,46 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(mockObjectExplorerProvider.createSession.calledOnce).to.be.true;
             });
 
+            test("Connect uses the final saved profile fields and retains in-memory credentials", async () => {
+                connectionStore.updateProfile.callsFake(async (profile) => {
+                    profile.server = "latest-server";
+                    profile.database = "latest-database";
+                    delete profile.containerName;
+                    return true;
+                });
+                mockObjectExplorerProvider.createSession.resolves({
+                    sessionId: "testSessionId",
+                    rootNode: mockConnectionNode,
+                    success: true,
+                } as CreateSessionResponse);
+                connectionManager.connect.resolves(true);
+                mainController.objectExplorerTree = {
+                    reveal: sandbox.stub().resolves(),
+                } as unknown as vscode.TreeView<TreeNodeInfo>;
+                const original = {
+                    ...testFormState,
+                    id: "editing-profile",
+                    containerName: "old-container",
+                };
+                await controller["_reducerHandlers"].get("loadConnectionForEdit")(
+                    controller.state,
+                    { connection: original },
+                );
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(connectionStore.updateProfile).to.have.been.called;
+                expect(mockObjectExplorerProvider.createSession).to.have.been.calledWith(
+                    sinon
+                        .match({
+                            server: "latest-server",
+                            database: "latest-database",
+                            password: "testPassword",
+                        })
+                        .and(sinon.match((profile) => !Object.hasOwn(profile, "containerName"))),
+                );
+            });
+
             test("testConnection only validates connectivity without saving or creating session", async () => {
                 connectionManager.connect.resolves(true);
                 controller.state.formState = testFormState;

@@ -5369,7 +5369,7 @@
     "Hue": "Hue",
     "Saturation": "Saturation",
     "Brightness": "Brightness",
-    "Connection profiles and groups can be also be reorganized into different connection groups by dragging and dropping them in the Connections view.": "Connection profiles and groups can be also be reorganized into different connection groups by dragging and dropping them in the Connections view.",
+    "Connection profiles and groups can also be reorganized into different connection groups by dragging and dropping them in the Connections view.": "Connection profiles and groups can also be reorganized into different connection groups by dragging and dropping them in the Connections view.",
     "Loading deployment": "Loading deployment",
     "New SQL database": "New SQL database",
     "Choose an option to provision a database": "Choose an option to provision a database",

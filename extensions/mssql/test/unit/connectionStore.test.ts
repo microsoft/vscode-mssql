@@ -210,6 +210,8 @@ suite("ConnectionStore Tests", () => {
         test(`updateProfile keeps the caller location when the update ${fails ? "fails" : "is cancelled"}`, async () => {
             mockConnectionConfig.updateConnection.callsFake(async (savedProfile) => {
                 savedProfile.configSource = vscode.ConfigurationTarget.Workspace;
+                savedProfile.server = "latest-server";
+                delete savedProfile.database;
                 delete savedProfile.workspaceFolderUri;
                 if (fails) {
                     throw new Error("Write failed");
@@ -242,6 +244,42 @@ suite("ConnectionStore Tests", () => {
             expect(mockCredentialStore.saveCredential).not.to.have.been.called;
         });
     }
+
+    test("updateProfile leaves the caller unchanged if saving credentials rejects", async () => {
+        mockConnectionConfig.populateMissingConnectionMetadata.callsFake((savedProfile) => {
+            savedProfile.configSource = vscode.ConfigurationTarget.Global;
+            return true;
+        });
+        mockConnectionConfig.updateConnection.callsFake(async (savedProfile) => {
+            savedProfile.server = "latest-server";
+            delete savedProfile.database;
+            return true;
+        });
+        mockCredentialStore.saveCredential.rejects(new Error("Credential write failed"));
+        connectionStore = new ConnectionStore(
+            mockContextService,
+            mockCredentialStore,
+            mockConnectionConfig,
+            mockLogger,
+        );
+        const profile: IConnectionProfile = {
+            ...sqlAuthConn,
+            id: "editing-profile",
+            password: "session-password",
+            savePassword: true,
+        };
+        const original = { ...profile };
+        let error: Error | undefined;
+
+        try {
+            await connectionStore.updateProfile(profile);
+        } catch (caught) {
+            error = caught as Error;
+        }
+
+        expect(error?.message).to.equal("Credential write failed");
+        expect(profile).to.deep.equal(original);
+    });
 
     test("formatCredentialId", () => {
         const testServer = "localhost";

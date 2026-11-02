@@ -2450,8 +2450,8 @@
     <trans-unit id="++CODE++44b8a8a9840bc6053acbd80a7515867533fd1a1ba95d3fd45fae6a4db6a2e3ce">
       <source xml:lang="en">Connection profile preparation failed.</source>
     </trans-unit>
-    <trans-unit id="++CODE++dcd8669f447f6b2c4ecdfcb6281599e7c32e1f08a0491aa0a03d3a9b7cd7de78">
-      <source xml:lang="en">Connection profiles and groups can be also be reorganized into different connection groups by dragging and dropping them in the Connections view.</source>
+    <trans-unit id="++CODE++3d6b9692961345a1c561b2459401c97e7daeaa146e91d8e823788224764e38eb">
+      <source xml:lang="en">Connection profiles and groups can also be reorganized into different connection groups by dragging and dropping them in the Connections view.</source>
     </trans-unit>
     <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
       <source xml:lang="en">Connection sharing permission denied for extension: &apos;{0}&apos;. Use the permission management commands to change this.</source>

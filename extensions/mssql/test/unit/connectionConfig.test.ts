@@ -358,7 +358,7 @@ suite("ConnectionConfig Tests", () => {
             );
         });
 
-        test("Initialization completes when connection repairs can't be written after group repairs", async () => {
+        test("Initialization keeps the legacy root when connection repairs can't be written", async () => {
             mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
                 { name: "ROOT", id: "legacy-root-id" },
                 { name: "Child Group", parentId: "legacy-root-id" },
@@ -382,12 +382,119 @@ suite("ConnectionConfig Tests", () => {
                 Constants.connectionGroupsArrayName,
             ) as IConnectionGroup[];
             expect(savedGroups.find((group) => group.name === "Child Group")).to.include({
-                parentId: ConnectionConfig.ROOT_GROUP_ID,
+                parentId: "legacy-root-id",
             });
+            expect(savedGroups.find((group) => group.name === "ROOT")?.id).to.equal(
+                "legacy-root-id",
+            );
             expect(logger.error).to.have.been.calledWith(
                 sinon.match("Unable to write repaired connections"),
             );
         });
+
+        for (const setting of [
+            Constants.connectionsArrayName,
+            Constants.connectionGroupsArrayName,
+        ]) {
+            for (const target of [
+                ConfigurationTarget.Global,
+                ConfigurationTarget.Workspace,
+                ConfigurationTarget.WorkspaceFolder,
+            ]) {
+                test(`Initialization recovers legacy references after a ${setting} write fails in ${ConfigurationTarget[target]}`, async () => {
+                    const folder = addMockWorkspaceFolder("migration-folder", 0);
+                    const legacyRootId = "legacy-root-id";
+                    mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                        { name: "ROOT", id: legacyRootId },
+                        {
+                            ...createStoredGroup("global-child", "Global Child"),
+                            parentId: legacyRootId,
+                        },
+                    ]);
+                    mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                        {
+                            ...createStoredGroup("workspace-child", "Workspace Child"),
+                            parentId: legacyRootId,
+                        },
+                    ]);
+                    setWorkspaceFolderData(folder.uri, Constants.connectionGroupsArrayName, [
+                        {
+                            ...createStoredGroup("folder-child", "Folder Child"),
+                            parentId: legacyRootId,
+                        },
+                        { ...createStoredGroup("nested", "Nested"), parentId: "folder-child" },
+                    ]);
+                    mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                        createStoredProfile("global-profile", legacyRootId),
+                        createStoredProfile("child-profile", "global-child"),
+                    ]);
+                    mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                        createStoredProfile("workspace-profile", legacyRootId),
+                    ]);
+                    setWorkspaceFolderData(folder.uri, Constants.connectionsArrayName, [
+                        createStoredProfile("folder-profile", legacyRootId),
+                        createStoredProfile("nested-profile", "nested"),
+                    ]);
+                    updateConfigurationStub
+                        .withArgs(setting, sinon.match.any, target)
+                        .rejects(new Error("Settings write interrupted"));
+                    const logger = createStubLogger(sandbox);
+                    const first = new ConnectionConfig(logger);
+                    await first.initialized;
+
+                    expect(logger.error).to.have.been.calledWith(
+                        sinon.match("Settings write interrupted"),
+                    );
+                    expect(
+                        getStoredGroups().find((group: IConnectionGroup) => group.name === "ROOT")
+                            ?.id,
+                    ).to.equal(legacyRootId);
+                    expect(
+                        [
+                            ...getStoredConnections(),
+                            ...getStoredConnections(ConfigurationTarget.Workspace),
+                            ...getWorkspaceFolderData<IConnectionProfile[]>(
+                                folder.uri,
+                                Constants.connectionsArrayName,
+                            ),
+                        ].map((profile) => profile.id),
+                    ).to.have.members([
+                        "global-profile",
+                        "child-profile",
+                        "workspace-profile",
+                        "folder-profile",
+                        "nested-profile",
+                    ]);
+                    updateConfigurationStub.resetBehavior();
+                    updateConfigurationStub.resolves();
+
+                    const restarted = new ConnectionConfig();
+                    await restarted.initialized;
+
+                    expect(
+                        (await restarted.getConnections()).map((profile) => profile.id),
+                    ).to.have.members([
+                        "global-profile",
+                        "child-profile",
+                        "workspace-profile",
+                        "folder-profile",
+                        "nested-profile",
+                    ]);
+                    for (const id of ["global-profile", "workspace-profile", "folder-profile"]) {
+                        expect(await restarted.getConnectionById(id)).to.have.property(
+                            "groupId",
+                            ConnectionConfig.ROOT_GROUP_ID,
+                        );
+                    }
+                    for (const id of ["global-child", "workspace-child", "folder-child"]) {
+                        expect(restarted.getGroupById(id)?.parentId).to.equal(
+                            ConnectionConfig.ROOT_GROUP_ID,
+                        );
+                    }
+                    expect(restarted.getGroupById("nested")?.parentId).to.equal("folder-child");
+                });
+            }
+        }
 
         test("Initialization doesn't make changes when all IDs are present", async () => {
             mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
@@ -479,6 +586,81 @@ suite("ConnectionConfig Tests", () => {
                 { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
             ]);
         });
+
+        for (const authenticationType of ["SqlLogin", "AzureMFA"]) {
+            test(`updateProfile returns concurrent non-secret edits and deletions to Connect while preserving ${authenticationType} credentials`, async () => {
+                const config = new ConnectionConfig();
+                await config.initialized;
+                await config.addGroup({
+                    ...createStoredGroup("parent", "Workspace parent"),
+                    configSource: ConfigurationTarget.Workspace,
+                });
+                const credentials = sandbox.createStubInstance(CredentialStore);
+                credentials.saveCredential.resolves(true);
+                credentials.deleteCredential.resolves();
+                const context = stubExtensionContext(sandbox);
+                (context.globalState.get as sinon.SinonStub).returns([]);
+                (context.globalState.update as sinon.SinonStub).resolves();
+                const store = new ConnectionStore(
+                    new ExtensionContextService(context),
+                    credentials,
+                    config,
+                    createStubLogger(sandbox),
+                );
+                const original: IConnectionProfile = {
+                    ...createStoredProfile("editing", ConnectionConfig.ROOT_GROUP_ID),
+                    authenticationType,
+                    server: "original-server",
+                    database: "original-database",
+                    containerName: "old-container",
+                    password: authenticationType === "SqlLogin" ? "session-password" : "",
+                    azureAccountToken: authenticationType === "AzureMFA" ? "session-token" : "",
+                    savePassword: true,
+                };
+                await store.saveProfile(original);
+                const edited = { ...original, groupId: "parent" };
+                const opened = new Deferred<void>();
+                const choice = new Deferred<string>();
+                messageBoxes.showInformationMessage.callsFake(() => {
+                    opened.resolve();
+                    return choice.promise;
+                });
+                const pending = store.updateProfile(edited, original);
+                await opened.promise;
+                const concurrent = (await config.getConnectionById(original.id))!;
+                concurrent.server = "latest-server";
+                concurrent.database = "latest-database";
+                delete concurrent.containerName;
+                await config.updateConnection(concurrent);
+                choice.resolve(
+                    LocalizedConstants.ConnectionConfig.updateSaveLocation(
+                        LocalizedConstants.ConnectionConfig.workspaceConfig,
+                    ),
+                );
+
+                expect(await pending).to.be.true;
+                const saved = await config.getConnectionById(original.id);
+                expect(saved).to.include({ server: "latest-server", database: "latest-database" });
+                expect(saved).not.to.have.property("containerName");
+                expect(edited).to.include({
+                    server: saved.server,
+                    database: saved.database,
+                    configSource: ConfigurationTarget.Workspace,
+                    password: original.password,
+                    azureAccountToken: original.azureAccountToken,
+                });
+                expect(edited).not.to.have.property("containerName");
+                expect(
+                    saved[authenticationType === "SqlLogin" ? "password" : "azureAccountToken"],
+                ).to.equal("");
+                if (authenticationType === "SqlLogin") {
+                    expect(credentials.saveCredential).to.have.been.calledWith(
+                        ConnectionStore.formatCredentialIdForCred(edited),
+                        "session-password",
+                    );
+                }
+            });
+        }
 
         for (const preserveProfiles of [true, false]) {
             test(`real node removal ${preserveProfiles ? "preserves edited" : "deletes saved"} profiles and credentials`, async () => {
@@ -653,6 +835,40 @@ suite("ConnectionConfig Tests", () => {
                     )
                         .to.have.property(nameKey, "External edit")
                         .and.not.to.have.property(optionalKey);
+                });
+
+                test("returns the final merged fields and deletions to the update caller", async () => {
+                    const optionalKey = kind === "connection" ? "containerName" : "description";
+                    const nameKey = kind === "connection" ? "profileName" : "name";
+                    mockGlobalConfigData.set(
+                        setting,
+                        stored().map((item) =>
+                            item.id === "target" ? { ...item, [optionalKey]: "Original" } : item,
+                        ),
+                    );
+                    const prompt = deferPrompt();
+                    const item = { ...makeItem("target", "parent"), [optionalKey]: "Original" };
+                    const pending =
+                        kind === "connection"
+                            ? config.updateConnection(item as IConnectionProfile)
+                            : config.updateGroup(item as IConnectionGroup);
+                    await prompt.opened;
+                    mockGlobalConfigData.set(
+                        setting,
+                        stored().map((entry) => {
+                            if (entry.id !== "target") {
+                                return entry;
+                            }
+                            const latest = { ...entry, [nameKey]: "Latest name" };
+                            delete latest[optionalKey];
+                            return latest;
+                        }),
+                    );
+                    prompt.choice.resolve(moveChoice());
+
+                    expect(await pending).to.be.true;
+                    expect(item).to.have.property(nameKey, "Latest name");
+                    expect(item).not.to.have.property(optionalKey);
                 });
 
                 for (const change of ["add", "delete", "update", "same-target update"] as const) {
