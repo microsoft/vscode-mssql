@@ -812,7 +812,10 @@ export class OeV2TreeController {
         const operation = this.containerOperations.get(profileId);
         const activityText = this.containerActivity.get(profileId) ?? operation?.text;
         if (operation || this.containerConnects.has(profileId)) {
-            return { state: "connecting", ...(activityText !== undefined ? { activityText } : {}) };
+            return {
+                state: operation ? "disconnecting" : "connecting",
+                ...(activityText !== undefined ? { activityText } : {}),
+            };
         }
         if (!session) {
             return activityText !== undefined ? { state: "disconnected", activityText } : undefined;

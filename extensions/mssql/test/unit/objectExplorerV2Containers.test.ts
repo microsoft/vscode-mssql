@@ -311,6 +311,7 @@ suite("Object Explorer v2 container startup", () => {
         const node = (await h.controller.children()).find((item) => item.connectionId === "p1")!;
         expect(node.kind).to.equal("connectingConnection");
         expect(node.description).to.equal("Stopping");
+        expect(node.capabilities.canCancelConnect).not.to.equal(true);
         expect(await h.controller.connectProfile("p1")).to.equal(false);
         expect(h.controller.beginContainerOperation("p1", "Deleting")).to.equal(undefined);
         expect(h.open).to.have.been.calledOnce;
