@@ -38,6 +38,7 @@ export interface SpatialDecodedFeature {
     geometryType?: string;
     layout?: string;
     vertices?: number;
+    geometryCount?: number;
     envelope?: [minX: number, minY: number, maxX: number, maxY: number];
     parts?: number;
     rings?: number;

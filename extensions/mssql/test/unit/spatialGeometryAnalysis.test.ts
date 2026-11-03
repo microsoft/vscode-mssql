@@ -42,6 +42,7 @@ suite("Spatial geometry analysis", () => {
         });
         expect(analysis).to.deep.equal({
             vertices: 50004,
+            geometryCount: 5,
             envelope: [-10, -20, 49999, 49999],
             parts: 3,
             rings: 1,
@@ -83,6 +84,7 @@ suite("Spatial geometry analysis", () => {
         ]);
         assert.deepEqual(result, {
             vertices: 7,
+            geometryCount: 1,
             envelope: [-1, -5, 3, 7],
             parts: 1,
             rings: 2,
@@ -125,7 +127,13 @@ suite("Spatial geometry analysis", () => {
             null,
             [4, 5],
         ]);
-        assert.deepEqual(result, { vertices: 1, envelope: [4, 5, 4, 5], parts: 1, rings: 0 });
+        assert.deepEqual(result, {
+            vertices: 1,
+            geometryCount: 1,
+            envelope: [4, 5, 4, 5],
+            parts: 1,
+            rings: 0,
+        });
     });
 
     test("handles a large point batch iteratively at each collection level", () => {

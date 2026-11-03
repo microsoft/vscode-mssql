@@ -58,7 +58,7 @@ function decodeFeature(feature: SpatialDecodeRequest["features"][number]): Spati
         const geometryType = geometry.getType();
         const analysis = analyzeSpatialGeometry(geometryObject);
         const projection =
-            feature.spatial.kind === "geography" || feature.spatial.srid === 4326
+            feature.spatial.srid === 4326
                 ? ("EPSG:4326" as const)
                 : feature.spatial.srid === 3857
                   ? ("EPSG:3857" as const)
@@ -74,6 +74,7 @@ function decodeFeature(feature: SpatialDecodeRequest["features"][number]): Spati
                     ? geometry.getLayout()
                     : undefined,
             vertices: analysis.vertices,
+            geometryCount: analysis.geometryCount,
             envelope: analysis.envelope,
             parts: analysis.parts,
             rings: analysis.rings,
@@ -114,6 +115,7 @@ self.onmessage = (event: MessageEvent<SpatialDecodeRequest>) => {
             featureVertices,
             feature.label?.length,
             feature.colorValue?.length,
+            feature.geometryCount,
         );
         budgetReason = spatialBudgetReason(
             vertices,

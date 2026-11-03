@@ -26,6 +26,7 @@ import {
     createSpatialBasemapConsentStore,
 } from "./spatialBasemapConsent";
 import { SpatialBasemapTileCache } from "./spatialBasemapTileCache";
+import { SpatialBasemapCredentialUpdates } from "./spatialBasemapCredentialUpdates";
 import { createSpatialBasemapSetupOffer } from "./spatialBasemapOnboarding";
 import { dns, fetchBasemapResponse } from "./spatialBasemapNode";
 import { SpatialBasemap as Loc } from "../../constants/locConstants";
@@ -102,6 +103,10 @@ function initialize(context: vscode.ExtensionContext): void {
         maxAgeMs: budgets.maxAgeMs,
     });
     context.subscriptions.push(cache);
+    const credentialUpdates = new SpatialBasemapCredentialUpdates(
+        () => changed.fire(),
+        () => cache.clearAll(),
+    );
     void vscode.workspace.fs.createDirectory(cacheRoot);
     const setupOffer = createSpatialBasemapSetupOffer({
         memento: context.globalState,
@@ -139,6 +144,13 @@ function initialize(context: vscode.ExtensionContext): void {
         confirm: () => void vscode.window.showInformationMessage(Loc.setupConfirmation),
         recordConsent: (fingerprint) => consent.record(fingerprint),
     });
+    const configuredSources = () => {
+        // Read only application settings, then validate before exposing sources.
+        const raw = vscode.workspace
+            .getConfiguration()
+            .inspect("mssql.queryStudio.spatial.basemap.sources");
+        return validateSpatialBasemapSources(raw?.globalValue ?? []).sources;
+    };
     host = {
         cacheRoot,
         consent,
@@ -148,15 +160,7 @@ function initialize(context: vscode.ExtensionContext): void {
             lookup: async (hostname) =>
                 (await dns.lookup(hostname, { all: true })).map((entry) => entry.address),
         },
-        sources: () => {
-            // Application scope is enforced by the settings schema; reading the
-            // effective value and re-validating keeps a hostile workspace from
-            // smuggling a source even if scoping regressed (addendum §5.1).
-            const raw = vscode.workspace
-                .getConfiguration()
-                .inspect("mssql.queryStudio.spatial.basemap.sources");
-            return validateSpatialBasemapSources(raw?.globalValue ?? []).sources;
-        },
+        sources: () => (credentialUpdates.active ? [] : configuredSources()),
         confirm: async (source) => {
             const enable = Loc.enable;
             const viewTerms = Loc.viewProviderTerms;
@@ -213,7 +217,7 @@ function initialize(context: vscode.ExtensionContext): void {
             }
         }),
         vscode.commands.registerCommand("mssql.spatialBasemap.setCredential", async () => {
-            const sources = host?.sources().filter((source) => source.config.credentialRef) ?? [];
+            const sources = configuredSources().filter((source) => source.config.credentialRef);
             if (!sources.length) {
                 void vscode.window.showInformationMessage(Loc.noCredentialSources);
                 return;
@@ -231,10 +235,9 @@ function initialize(context: vscode.ExtensionContext): void {
             });
             if (value === undefined) return;
             const key = "mssql.spatialBasemap." + picked.source.config.credentialRef!;
-            if (value) await context.secrets.store(key, value);
-            else await context.secrets.delete(key);
-            changed.fire();
-            await cache.clearAll();
+            await credentialUpdates.update(() =>
+                value ? context.secrets.store(key, value) : context.secrets.delete(key),
+            );
             void vscode.window.showInformationMessage(Loc.credentialSaved);
         }),
     );

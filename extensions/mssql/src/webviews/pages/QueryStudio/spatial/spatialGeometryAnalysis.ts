@@ -5,6 +5,7 @@
 
 export interface SpatialGeometryAnalysis {
     vertices: number;
+    geometryCount: number;
     envelope?: [minX: number, minY: number, maxX: number, maxY: number];
     parts: number;
     rings: number;
@@ -15,11 +16,12 @@ export function analyzeSpatialGeometry(geometry: Record<string, unknown>): Spati
     if (geometry.type !== "GeometryCollection") {
         return analyzeSpatialCoordinates(String(geometry.type), geometry.coordinates);
     }
-    const result: SpatialGeometryAnalysis = { vertices: 0, parts: 0, rings: 0 };
+    const result: SpatialGeometryAnalysis = { vertices: 0, geometryCount: 1, parts: 0, rings: 0 };
     for (const member of Array.isArray(geometry.geometries) ? geometry.geometries : []) {
         if (!member || typeof member !== "object") continue;
         const child = analyzeSpatialGeometry(member as Record<string, unknown>);
         result.vertices += child.vertices;
+        result.geometryCount += child.geometryCount;
         result.parts += child.parts;
         result.rings += child.rings;
         if (child.envelope) {
@@ -39,8 +41,9 @@ export function estimateSpatialDerivedBytes(
     vertices: number,
     labelLength = 0,
     colorValueLength = 0,
+    geometryCount = 1,
 ): number {
-    return 1024 + vertices * 128 + labelLength * 2 + colorValueLength * 2;
+    return geometryCount * 1024 + vertices * 128 + labelLength * 2 + colorValueLength * 2;
 }
 
 export function spatialBudgetReason(
@@ -111,6 +114,7 @@ export function analyzeSpatialCoordinates(
 
     return {
         vertices,
+        geometryCount: 1,
         ...(Number.isFinite(minX)
             ? {
                   envelope: [minX, minY, maxX, maxY].map((value) => (value === 0 ? 0 : value)) as [

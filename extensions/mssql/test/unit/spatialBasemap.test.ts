@@ -37,6 +37,7 @@ import {
     SPATIAL_BASEMAP_OFFER_DISMISSED_KEY,
 } from "../../src/queryResults/spatialBasemap/spatialBasemapOnboarding";
 import { SpatialBasemapTileCache } from "../../src/queryResults/spatialBasemap/spatialBasemapTileCache";
+import { SpatialBasemapCredentialUpdates } from "../../src/queryResults/spatialBasemap/spatialBasemapCredentialUpdates";
 import { fetchSpatialBasemapTile } from "../../src/queryResults/spatialBasemap/spatialBasemapFetcher";
 import { SpatialBasemapSessionManager } from "../../src/queryResults/spatialBasemap/spatialBasemapSessionManager";
 import type {
@@ -111,6 +112,7 @@ interface ManagerOptions {
     cache?: SpatialBasemapTileCache;
     source?: SpatialBasemapValidatedSource;
     secret?: string;
+    sources?: () => readonly SpatialBasemapValidatedSource[];
 }
 
 function manager(options: ManagerOptions = {}) {
@@ -122,7 +124,7 @@ function manager(options: ManagerOptions = {}) {
     const confirmed: string[] = [];
     const cache = options.cache ?? tempCache();
     const sessions = new SpatialBasemapSessionManager({
-        sources: () => [source],
+        sources: options.sources ?? (() => [source]),
         consent,
         cache,
         fetcher: options.fetcher ?? fakeFetcher(() => pngResponse()),
@@ -139,6 +141,50 @@ function manager(options: ManagerOptions = {}) {
 suite("spatial basemap review regressions", () => {
     const sandbox = sinon.createSandbox();
     teardown(() => sandbox.restore());
+
+    test("credential rotation suspends old and new sessions until cached tiles are purged", async () => {
+        const source = validated();
+        const purge = Promise.withResolvers<void>();
+        let updates: SpatialBasemapCredentialUpdates;
+        const ctx = manager({ source, sources: () => (updates?.active ? [] : [source]) });
+        updates = new SpatialBasemapCredentialUpdates(
+            () => ctx.sessions.dispose("consentChanged"),
+            async () => {
+                await purge.promise;
+                await ctx.cache.clearAll();
+            },
+        );
+        const open = () =>
+            ctx.sessions.open({
+                layerId: source.config.id,
+                activeProjection: "EPSG:4326",
+                interactive: false,
+            });
+        const opened = await open();
+        const tile = { handle: opened.handle!, generation: opened.generation!, z: 1, x: 0, y: 0 };
+        expect((await ctx.sessions.tile(tile)).status).to.equal("ready");
+        try {
+            const pending = updates.update(async () => undefined);
+            expect((await ctx.sessions.tile(tile)).status).to.equal("cancelled");
+            expect((await open()).status).to.equal("unavailable");
+            purge.resolve();
+            await pending;
+            expect((await open()).status).to.equal("ready");
+        } finally {
+            ctx.sessions.dispose("test");
+            await ctx.cache.clearAll();
+        }
+    });
+
+    test("a failed credential cache purge keeps source access suspended until retry succeeds", async () => {
+        const clear = sandbox.stub().onFirstCall().rejects(new Error("disk unavailable"));
+        clear.onSecondCall().resolves();
+        const updates = new SpatialBasemapCredentialUpdates(() => undefined, clear);
+        await updates.update(async () => undefined).catch(() => undefined);
+        expect(updates.active).to.equal(true);
+        await updates.update(async () => undefined);
+        expect(updates.active).to.equal(false);
+    });
 
     test("private address detection covers mapped IPv6 without rejecting DNS names", () => {
         for (const host of [
