@@ -548,7 +548,7 @@ suite("ts-native live engine (STS2_SQLSERVER_CONNSTRING lane)", function () {
             expect(summary.status).to.equal("succeeded");
             const hints = sink.pages[0].compact.typeHints ?? [];
             expect(hints).to.deep.equal([
-                "number:approx", // bigint: exact STRING carrier
+                "number:approx", // bigint: exact int64 wrapper overrides the hint
                 "number",
                 "number",
                 "number",
@@ -566,6 +566,7 @@ suite("ts-native live engine (STS2_SQLSERVER_CONNSTRING lane)", function () {
                 return "value" in cell ? String(cell.value) : JSON.stringify(cell);
             };
             expect(cellText(0)).to.equal("9007199254740993", "bigint beyond 2^53 stays exact");
+            expect(sink.cell(0, 0, 0)).to.deep.include({ kind: "number", exact: true });
             expect(sink.cell(0, 0, 1)).to.deep.include({ kind: "number", value: 1 });
             expect(sink.cell(0, 0, 2)).to.deep.include({ kind: "number", value: -2 });
             expect(sink.cell(0, 0, 3)).to.deep.include({ kind: "number", value: 1.25 });

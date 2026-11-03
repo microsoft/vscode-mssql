@@ -156,12 +156,11 @@ export function encodeCell(cell: TdsCell, column: TdsColumn, policy: EncodePolic
             approxBytes: 20,
         };
     }
-    if (typeof raw === "bigint") {
+    if (typeof raw === "bigint" || (type === "bigint" && typeof raw === "string")) {
         const text = raw.toString();
-        return { value: text, isNull: false, approxBytes: text.length + 2 };
+        return { value: { $t: "int64", v: text }, isNull: false, approxBytes: text.length + 32 };
     }
     if (typeof raw === "string") {
-        // bigint (tedious yields strings) and character data share this path.
         return encodeStringCell(raw, type, policy);
     }
     if (raw instanceof Date) {

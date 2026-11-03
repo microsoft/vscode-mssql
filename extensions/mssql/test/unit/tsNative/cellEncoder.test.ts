@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import { createHash } from "crypto";
 import { TdsColumn } from "../../../src/services/tsNative/driver/tdsDriver";
+import { decodeCell } from "../../../src/services/sqlDataPlane/api";
 import {
     encodeCell,
     EncodePolicy,
@@ -20,6 +21,27 @@ const POLICY: EncodePolicy = {
     vectorBinary: false,
 };
 const NVARCHAR: TdsColumn = { name: "payload", typeName: "nvarchar" };
+
+suite("ts-native exact bigint cell encoding", () => {
+    for (const value of ["9223372036854775807", "-9223372036854775808", 9007199254740993n]) {
+        test(`retains ${value} exactly even with a small string limit`, () => {
+            const encoded = encodeCell({ value }, { name: "n", typeName: "bigint" }, POLICY);
+            expect(encoded.value).to.deep.equal({ $t: "int64", v: String(value) });
+            expect(
+                decodeCell(
+                    {
+                        values: [[encoded.value]],
+                        nullBitmap: "AA==",
+                        typeHints: ["number:approx"],
+                    },
+                    0,
+                    0,
+                    1,
+                ),
+            ).to.deep.equal({ kind: "number", value: String(value), exact: true });
+        });
+    }
+});
 
 suite("ts-native bounded string cell encoding", () => {
     test("returns a UTF-8-safe prefix without materializing the complete byte buffer", () => {
