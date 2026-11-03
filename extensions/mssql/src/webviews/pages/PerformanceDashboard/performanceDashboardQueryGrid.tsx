@@ -4,18 +4,28 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Caption1, makeStyles, MenuItem, tokens } from "@fluentui/react-components";
-import { ReactElement, useMemo } from "react";
-import type { PerformanceRead } from "../../../sharedInterfaces/performanceDashboard";
+import { ReactElement, ReactNode, useMemo } from "react";
+import {
+    ContinueInChatRequest,
+    type ChatPrompt,
+    type PerformanceDashboardReducers,
+    type PerformanceDashboardState,
+    type PerformanceRead,
+    type TimeWindowParams,
+} from "../../../sharedInterfaces/performanceDashboard";
+import { GithubCopilot16Regular } from "../../common/icons/fluentIcons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { appendSqlText } from "../../common/sqlText";
 import { ExtensionRequestState, isFirstLoad } from "../../common/useExtensionRequest";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { formatShare } from "./performanceDashboardFormat";
 import {
     DashboardGrid,
     DashboardGridColumn,
     iconButton,
     linkCell,
+    textSpan,
 } from "./performanceDashboardGrid";
 import { StatusBar } from "./performanceDashboardParts";
 import { QueryListRow } from "./performanceDashboardQueryList";
@@ -23,6 +33,8 @@ import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
 import { TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
 
+/** The queries that each category lists. */
+export const queryCount = 25;
 /** The query text shown in a row. The full text is in the tooltip and on the query page. */
 const maxQueryTextLength = 160;
 const idWidth = 100;
@@ -36,18 +48,20 @@ const starFilledPath =
     "M7.2 2.1a.9.9 0 0 1 1.6 0l1.53 3.08 3.4.5a.9.9 0 0 1 .5 1.53l-2.46 2.4.58 3.39a.9.9 0 0 1-1.3.95L8 12.35l-3.04 1.6a.9.9 0 0 1-1.3-.95l.57-3.39-2.46-2.4a.9.9 0 0 1 .5-1.53l3.4-.5L7.2 2.1Z";
 
 /** A number column of a query list. */
-export interface QueryGridColumn {
+export interface QueryGridColumn<TRow extends QueryListRow = QueryListRow> {
     readonly id: string;
     readonly header: string;
-    readonly value: (row: QueryListRow) => number | undefined;
+    readonly value: (row: TRow) => number | undefined;
     readonly format: (value: number) => string;
     /** The exact value, for the tooltip, when the format rounds it. */
     readonly exact?: (value: number) => string;
+    /** A class of the grid for the text of the cell, such as a color. */
+    readonly textClass?: string;
     /**
      * The share of the value in percent. The cell shows the share and the value, for example
      * "91.3% / 34.63s", over a bar of the share.
      */
-    readonly share?: (row: QueryListRow) => number | undefined;
+    readonly share?: (row: TRow) => number | undefined;
     /**
      * False shows only the value over the bar, for a share that is not a part of a whole, such
      * as an average against the highest average. Default true.
@@ -68,9 +82,47 @@ export interface QueryRowAction {
     readonly run: (queryId: string) => void;
 }
 
-export interface PerformanceDashboardQueryGridProps {
-    readonly rows: readonly QueryListRow[];
-    readonly columns: readonly QueryGridColumn[];
+/** What the Queries page gives the view of a category. */
+export interface QueryCategoryViewProps {
+    /** The controls of the page, with the category's own after the category picker. */
+    readonly controls: (own?: ReactNode) => ReactNode;
+    readonly search: string;
+    readonly favoritesOnly: boolean;
+    readonly favorites: QueryGridFavorites;
+    readonly setQuery: (values: Record<string, string | undefined>) => void;
+}
+
+/** The menu of a list's rows, which asks Copilot Chat to summarize or optimize a query. */
+export function useChatRowActions(window: TimeWindowParams): readonly QueryRowAction[] {
+    const { extensionRpc } = useVscodeWebview<
+        PerformanceDashboardState,
+        PerformanceDashboardReducers
+    >();
+    return useMemo<readonly QueryRowAction[]>(() => {
+        const chat = (prompt: ChatPrompt) => (queryId: string) =>
+            void extensionRpc.sendRequest(ContinueInChatRequest.type, {
+                prompt,
+                queryId,
+                ...window,
+            });
+        return [
+            {
+                label: loc.performanceDashboard.summarizeInChat,
+                icon: <GithubCopilot16Regular />,
+                run: chat("summarize"),
+            },
+            {
+                label: loc.performanceDashboard.optimizeInChat,
+                icon: <GithubCopilot16Regular />,
+                run: chat("optimize"),
+            },
+        ];
+    }, [extensionRpc, window]);
+}
+
+export interface PerformanceDashboardQueryGridProps<TRow extends QueryListRow = QueryListRow> {
+    readonly rows: readonly TRow[];
+    readonly columns: readonly QueryGridColumn<TRow>[];
     readonly ariaLabel: string;
     readonly favorites?: QueryGridFavorites;
     /** The rows that the grid shows at least, before the page scrolls instead. Default 5. */
@@ -92,7 +144,7 @@ export interface PerformanceDashboardQueryGridProps {
  * query text, and number columns. The rows come ranked by the first number column, so the grid
  * shows that column sorted, from the highest value.
  */
-export const PerformanceDashboardQueryGrid = ({
+export const PerformanceDashboardQueryGrid = <TRow extends QueryListRow = QueryListRow>({
     rows,
     columns,
     ariaLabel,
@@ -100,15 +152,15 @@ export const PerformanceDashboardQueryGrid = ({
     visibleRows,
     rowActions,
     queryPageQuery,
-}: PerformanceDashboardQueryGridProps) => {
+}: PerformanceDashboardQueryGridProps<TRow>) => {
     const { router, navigate } = useNavigation<PerformanceDashboardRoute>();
 
-    const gridColumns = useMemo<DashboardGridColumn<QueryListRow>[]>(() => {
+    const gridColumns = useMemo<DashboardGridColumn<TRow>[]>(() => {
         const text = loc.performanceDashboard;
         const queryPage = (queryId: string) => router.build("query", { queryId }, queryPageQuery);
-        const list: DashboardGridColumn<QueryListRow>[] = [];
+        const list: DashboardGridColumn<TRow>[] = [];
         if (favorites) {
-            const isFavorite = (row: QueryListRow) => favorites.queryIds.has(row.queryId);
+            const isFavorite = (row: TRow) => favorites.queryIds.has(row.queryId);
             list.push({
                 id: "favorite",
                 header: "",
@@ -156,7 +208,7 @@ export const PerformanceDashboardQueryGrid = ({
             },
         );
         for (const column of columns) {
-            const formatted = (row: QueryListRow) => {
+            const formatted = (row: TRow) => {
                 const value = column.value(row);
                 return value === undefined ? "—" : column.format(value);
             };
@@ -177,14 +229,18 @@ export const PerformanceDashboardQueryGrid = ({
                         ? column.shareTitle(share, value)
                         : column.exact?.(value);
                 },
-                render: column.share ? (row) => shareCell(column, row, formatted(row)) : undefined,
+                render: column.share
+                    ? (row) => shareCell(column, row, formatted(row))
+                    : column.textClass
+                      ? (row) => textSpan(formatted(row), column.textClass)
+                      : undefined,
             });
         }
         return list;
     }, [columns, favorites, router, navigate, queryPageQuery]);
 
     return (
-        <DashboardGrid<QueryListRow>
+        <DashboardGrid<TRow>
             items={rows}
             columns={gridColumns}
             getRowId={(row) => row.queryId}
@@ -216,7 +272,11 @@ export const PerformanceDashboardQueryGrid = ({
 };
 
 /** The value of a number column over a bar of its share, which fills the cell from the left. */
-function shareCell(column: QueryGridColumn, row: QueryListRow, formatted: string): HTMLElement {
+function shareCell<TRow extends QueryListRow>(
+    column: QueryGridColumn<TRow>,
+    row: TRow,
+    formatted: string,
+): HTMLElement {
     const share = column.value(row) === undefined ? undefined : column.share?.(row);
     const cell = document.createElement("span");
     cell.className = "performance-grid-share";
@@ -250,18 +310,19 @@ function shortQueryText(queryText: string): string {
     return line.length > maxQueryTextLength ? `${line.slice(0, maxQueryTextLength)}…` : line;
 }
 
-export interface PerformanceDashboardQueryListProps extends PerformanceDashboardQueryGridProps {
+export interface PerformanceDashboardQueryListProps<TRow extends QueryListRow = QueryListRow>
+    extends PerformanceDashboardQueryGridProps<TRow> {
     /** The read of the rows. Its message, a skeleton, or the empty text replaces the grid. */
     readonly read: ExtensionRequestState<PerformanceRead<unknown>>;
     readonly emptyText?: string;
 }
 
 /** A query grid, or the message, skeleton, or empty text of its read. */
-export const PerformanceDashboardQueryList = ({
+export const PerformanceDashboardQueryList = <TRow extends QueryListRow = QueryListRow>({
     read,
     emptyText,
     ...grid
-}: PerformanceDashboardQueryListProps) => {
+}: PerformanceDashboardQueryListProps<TRow>) => {
     const classes = useListStyles();
     const message = readStatusMessage(read);
     if (message) {

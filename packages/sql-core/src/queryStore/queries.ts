@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { sqlBigIntLiteral, sqlIntLiteral } from "../common/literals";
+import { sqlBigIntLiteral, sqlDateTimeOffsetLiteral, sqlIntLiteral } from "../common/literals";
 import {
     SqlReader,
     SqlRecord,
@@ -170,6 +170,154 @@ ORDER BY t.rank_value DESC, t.query_id;`;
             };
         },
     });
+}
+
+export interface RegressedQueriesRequest {
+    /** The period to check. */
+    readonly recent: TimeWindow;
+    /** The period to compare it with. It ends when the recent period starts, or earlier. */
+    readonly baseline: TimeWindow;
+    readonly metric: QueryStoreMetric;
+    /** From 1 to 1000. */
+    readonly top: number;
+    /** The executions that a query needs in each period. From 1. Default 1. */
+    readonly minExecutions?: number;
+}
+
+/** A query whose average per execution of a metric went up from one period to another. */
+export interface RegressedQuery {
+    /** The Query Store `query_id`, a `bigint` as decimal text. */
+    readonly queryId: string;
+    /** The first {@link queryTextPreviewLength} characters of the query text. */
+    readonly queryText: string;
+    /** `schema.name` of the module that has the query. Absent for ad hoc queries. */
+    readonly objectName?: string;
+    /** True when the query reads only system catalog views. See {@link readsOnlySystemCatalog}. */
+    readonly readsOnlySystemCatalog: boolean;
+    readonly recentExecutionCount: number;
+    readonly baselineExecutionCount: number;
+    /** The average per execution in the recent period, in the metric's unit. */
+    readonly recentAverage: number;
+    /** The average per execution in the baseline period, in the metric's unit. */
+    readonly baselineAverage: number;
+    /** What the slowdown added: the increase in the average times the recent executions. */
+    readonly addedImpact: number;
+    /** The increase in the average in percent. Absent when the baseline average is 0. */
+    readonly changePercent?: number;
+    /** The plans that ran in the recent period and not in the baseline period. */
+    readonly newPlanCount: number;
+}
+
+/**
+ * Reads the queries whose average per execution went up the most, weighted by how often they ran
+ * in the recent period, so a slowdown that costs the most comes first. A query must run in both
+ * periods to compare them, so a new query is not a regression. One batch, like
+ * {@link getTopQueries}. `noData` when no query got worse.
+ */
+export async function getRegressedQueries(
+    reader: SqlReader,
+    capabilities: QueryStoreCapabilities,
+    request: RegressedQueriesRequest,
+    options?: QueryStoreReadOptions,
+): Promise<QueryStoreResult<readonly RegressedQuery[]>> {
+    const { recent, baseline, metric } = request;
+    windowDeclarations(recent);
+    windowDeclarations(baseline);
+    if (baseline.end.getTime() > recent.start.getTime()) {
+        throw new RangeError("The baseline period must end before the recent period starts.");
+    }
+    const { column, factor } = definitionOf(metric);
+    if (!capabilities.metrics.includes(metric)) {
+        return { status: "unsupported" };
+    }
+    const top = sqlIntLiteral(request.top, 1, 1000);
+    const minExecutions = sqlIntLiteral(request.minExecutions ?? 1, 1, 2147483647);
+    const isRecent = "rsi.start_time >= @recent_start";
+    const value = `rs.avg_${column} * rs.count_executions`;
+    const body = `DECLARE @plans TABLE (
+    plan_id bigint NOT NULL PRIMARY KEY,
+    query_id bigint NOT NULL,
+    recent_executions bigint NOT NULL,
+    recent_total float NULL,
+    baseline_executions bigint NOT NULL,
+    baseline_total float NULL
+);
+INSERT INTO @plans (plan_id, query_id, recent_executions, recent_total, baseline_executions, baseline_total)
+SELECT p.plan_id, p.query_id, s.recent_executions, s.recent_total, s.baseline_executions, s.baseline_total
+FROM (
+    SELECT
+    rs.plan_id,
+    SUM(CASE WHEN ${isRecent} THEN rs.count_executions ELSE 0 END) AS recent_executions,
+    SUM(CASE WHEN ${isRecent} THEN ${value} ELSE 0 END) AS recent_total,
+    SUM(CASE WHEN ${isRecent} THEN 0 ELSE rs.count_executions END) AS baseline_executions,
+    SUM(CASE WHEN ${isRecent} THEN 0 ELSE ${value} END) AS baseline_total
+${windowedRuntimeStats(capabilities, `(rsi.start_time < @baseline_end OR ${isRecent})`)}
+    GROUP BY rs.plan_id
+) AS s
+    JOIN sys.query_store_plan AS p ON p.plan_id = s.plan_id;
+SELECT
+    t.*,
+    LEFT(qt.query_sql_text, ${queryTextPreviewLength}) AS query_text,
+    OBJECT_SCHEMA_NAME(q.object_id) AS object_schema_name,
+    OBJECT_NAME(q.object_id) AS object_name
+FROM (
+    SELECT TOP (${top})
+        a.*,
+        (a.recent_average - a.baseline_average) * a.recent_executions AS added_impact
+    FROM (
+        SELECT
+            pl.query_id,
+            SUM(pl.recent_executions) AS recent_executions,
+            SUM(pl.baseline_executions) AS baseline_executions,
+            SUM(pl.recent_total) / NULLIF(SUM(pl.recent_executions), 0) AS recent_average,
+            SUM(pl.baseline_total) / NULLIF(SUM(pl.baseline_executions), 0) AS baseline_average,
+            SUM(CASE WHEN pl.recent_executions > 0 AND pl.baseline_executions = 0 THEN 1 ELSE 0 END) AS new_plan_count
+        FROM @plans AS pl
+        GROUP BY pl.query_id
+        HAVING SUM(pl.recent_executions) >= ${minExecutions}
+            AND SUM(pl.baseline_executions) >= ${minExecutions}
+    ) AS a
+    WHERE a.recent_average > a.baseline_average
+    ORDER BY added_impact DESC, a.query_id
+) AS t
+    JOIN sys.query_store_query AS q ON q.query_id = t.query_id
+    JOIN sys.query_store_query_text AS qt ON qt.query_text_id = q.query_text_id
+ORDER BY t.added_impact DESC, t.query_id;`;
+    return runQueryStoreRead(reader, capabilities, options, {
+        declarations: [
+            ...windowDeclarations({ start: baseline.start, end: recent.end }),
+            `DECLARE @baseline_end datetimeoffset = ${sqlDateTimeOffsetLiteral(baseline.end)};`,
+            `DECLARE @recent_start datetimeoffset = ${sqlDateTimeOffsetLiteral(recent.start)};`,
+        ],
+        body,
+        map: ([querySet]) => {
+            const queries = toRecords(querySet).map((record) => toRegressedQuery(record, factor));
+            return queries.length > 0 ? queries : undefined;
+        },
+    });
+}
+
+function toRegressedQuery(record: SqlRecord, factor: number): RegressedQuery {
+    const schema = readString(record, "object_schema_name");
+    const name = readString(record, "object_name");
+    const queryText = readString(record, "query_text") ?? "";
+    const recentAverage = (readNumber(record, "recent_average") ?? 0) * factor;
+    const baselineAverage = (readNumber(record, "baseline_average") ?? 0) * factor;
+    return {
+        queryId: readId(record, "query_id") ?? "",
+        queryText,
+        readsOnlySystemCatalog: readsOnlySystemCatalog(queryText),
+        ...(name ? { objectName: schema ? `${schema}.${name}` : name } : {}),
+        recentExecutionCount: readNumber(record, "recent_executions") ?? 0,
+        baselineExecutionCount: readNumber(record, "baseline_executions") ?? 0,
+        recentAverage,
+        baselineAverage,
+        addedImpact: (readNumber(record, "added_impact") ?? 0) * factor,
+        ...(baselineAverage > 0
+            ? { changePercent: ((recentAverage - baselineAverage) / baselineAverage) * 100 }
+            : {}),
+        newPlanCount: readNumber(record, "new_plan_count") ?? 0,
+    };
 }
 
 export interface QueryDetailsRequest extends TimeWindow {

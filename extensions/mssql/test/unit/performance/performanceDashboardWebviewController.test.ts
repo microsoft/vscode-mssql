@@ -30,6 +30,7 @@ import {
     ContinueInChatRequest,
     DismissDatabaseHubBannerRequest,
     GetFavoriteQueriesRequest,
+    GetRegressedQueriesRequest,
     GetTopQueriesRequest,
     ListDatabasesRequest,
     OpenInDatabaseHubRequest,
@@ -431,6 +432,36 @@ suite("PerformanceDashboardWebviewController", () => {
             expect(reads[0]).to.include({ database: "Sales", purpose: "read" });
             expect(reads[0].sql).to.match(/SELECT TOP \(25\)/);
             expect(reads[0].sql).to.include("CAST(N'2026-10-01T00:00:00.000Z' AS datetimeoffset)");
+        });
+
+        test("reads the regressed queries of the dashboard's database in both periods", async () => {
+            batches.set("Sales", [[stateSet]]);
+            createController();
+
+            const result = await request<PerformanceRead<readonly unknown[]>>(
+                GetRegressedQueriesRequest.type.method,
+                {
+                    recent: {
+                        startUtc: "2026-10-02T00:00:00.000Z",
+                        endUtc: "2026-10-03T00:00:00.000Z",
+                    },
+                    baseline: {
+                        startUtc: "2026-10-01T00:00:00.000Z",
+                        endUtc: "2026-10-02T00:00:00.000Z",
+                    },
+                    metric: "cpuTime",
+                    top: 25,
+                    minExecutions: 2,
+                },
+            );
+
+            expect(result.status).to.equal("noData");
+            expect(reads).to.have.length(1);
+            expect(reads[0]).to.include({ database: "Sales", purpose: "read" });
+            expect(reads[0].sql).to.match(/SELECT TOP \(25\)/);
+            expect(reads[0].sql).to.include("rs.avg_cpu_time");
+            expect(reads[0].sql).to.include("CAST(N'2026-10-01T00:00:00.000Z' AS datetimeoffset)");
+            expect(reads[0].sql).to.include("CAST(N'2026-10-03T00:00:00.000Z' AS datetimeoffset)");
         });
 
         test("applies a plan change on a session for changes", async () => {

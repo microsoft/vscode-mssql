@@ -4850,6 +4850,40 @@ export class LocConstants {
             baselineSameLength: l10n.t("Same length before"),
             baseline7Days: l10n.t("7 days before"),
             baseline30Days: l10n.t("30 days before"),
+            regressed: l10n.t({
+                message: "Regressed",
+                comment: ["A category of the Queries page: the queries that got worse"],
+            }),
+            regressedQueries: l10n.t("Regressed queries"),
+            addedMetric: (metric: string) =>
+                l10n.t({
+                    message: "Added {0}",
+                    args: [metric],
+                    comment: [
+                        "{0} is a measure, for example duration. What a query's slowdown added: the increase in its average times its recent executions",
+                    ],
+                }),
+            newPlans: l10n.t({
+                message: "New plans",
+                comment: ["The plans that ran in the recent period and not in the baseline period"],
+            }),
+            noRegressedQueries: l10n.t("No query got worse between these periods."),
+            baselineOverlapsRecent: l10n.t(
+                "The baseline must end before the recent period starts. Choose another baseline.",
+            ),
+            regressedNote: (minExecutions: string) =>
+                l10n.t({
+                    message:
+                        "Lists the queries that ran at least {0} times in both periods and got worse per execution. The most added comes first: the increase in the average, times the recent executions.",
+                    args: [minExecutions],
+                    comment: ["{0} is a number of executions"],
+                }),
+            baselineRangeLabel: (range: string) =>
+                l10n.t({
+                    message: "Baseline period: {0}",
+                    args: [range],
+                    comment: ["{0} is the selected time range, for example 7 days before"],
+                }),
             averagePerExecution: l10n.t("Average per execution"),
             totalPerDay: l10n.t("Total per day"),
             change: l10n.t({

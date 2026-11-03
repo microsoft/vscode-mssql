@@ -107,6 +107,10 @@ export interface TimeRangePickerProps {
      * earlier, and keeps a custom range inside the data.
      */
     readonly availableFrom?: Date;
+    /** Where the presets end, and the latest that a custom range can end. Default: now. */
+    readonly presetEnd?: Date;
+    /** The accessible name of the button, for a page with more than one range. */
+    readonly ariaLabel?: (range: string) => string;
 }
 
 interface Draft {
@@ -130,12 +134,14 @@ export const TimeRangePicker = ({
     value,
     onChange,
     availableFrom,
+    presetEnd,
+    ariaLabel,
 }: TimeRangePickerProps) => {
     const classes = useStyles();
     const [open, setOpen] = useState(false);
     const [draft, setDraft] = useState<Draft | undefined>(undefined);
 
-    const now = new Date();
+    const now = presetEnd ?? new Date();
     const resolved = resolveTimeRange(value, presets, now);
     const label =
         value.kind === "preset"
@@ -163,7 +169,7 @@ export const TimeRangePicker = ({
                     className={classes.trigger}
                     icon={<ChevronDown16Regular />}
                     iconPosition="after"
-                    aria-label={loc.timeRange.timeRangeLabel(label)}>
+                    aria-label={ariaLabel?.(label) ?? loc.timeRange.timeRangeLabel(label)}>
                     <Clock16Regular className={classes.clock} />
                     {label}
                 </Button>

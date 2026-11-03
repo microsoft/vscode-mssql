@@ -13,6 +13,7 @@ import {
     getQueryHistory,
     getQueryPlans,
     getQueryStoreOverview,
+    getRegressedQueries,
     getTopQueries,
     getWaitStats,
     preparePlanChange,
@@ -39,6 +40,7 @@ import {
     GetQueryStoreOverviewRequest,
     GetQueryStoreSettingsRequest,
     GetQueryWaitStatsRequest,
+    GetRegressedQueriesRequest,
     GetTopQueriesRequest,
     ListDatabasesRequest,
     ListDatabasesResult,
@@ -226,6 +228,19 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
                     top,
                 }),
             ),
+        );
+        this.onRead(
+            GetRegressedQueriesRequest.type,
+            ({ recent, baseline, metric, top, minExecutions }) =>
+                this.run((reader, capabilities) =>
+                    getRegressedQueries(reader, capabilities, {
+                        recent: toWindow(recent),
+                        baseline: toWindow(baseline),
+                        metric,
+                        top,
+                        minExecutions,
+                    }),
+                ),
         );
         this.onRead(GetQueryDetailsRequest.type, (params) =>
             this.run((reader, capabilities) =>

@@ -6153,6 +6153,31 @@
     "Same length before": "Same length before",
     "7 days before": "7 days before",
     "30 days before": "30 days before",
+    "Regressed/A category of the Queries page: the queries that got worse": {
+        "message": "Regressed",
+        "comment": ["A category of the Queries page: the queries that got worse"]
+    },
+    "Regressed queries": "Regressed queries",
+    "Added {0}/{0} is a measure, for example duration. What a query's slowdown added: the increase in its average times its recent executions": {
+        "message": "Added {0}",
+        "comment": [
+            "{0} is a measure, for example duration. What a query's slowdown added: the increase in its average times its recent executions"
+        ]
+    },
+    "New plans/The plans that ran in the recent period and not in the baseline period": {
+        "message": "New plans",
+        "comment": ["The plans that ran in the recent period and not in the baseline period"]
+    },
+    "No query got worse between these periods.": "No query got worse between these periods.",
+    "The baseline must end before the recent period starts. Choose another baseline.": "The baseline must end before the recent period starts. Choose another baseline.",
+    "Lists the queries that ran at least {0} times in both periods and got worse per execution. The most added comes first: the increase in the average, times the recent executions./{0} is a number of executions": {
+        "message": "Lists the queries that ran at least {0} times in both periods and got worse per execution. The most added comes first: the increase in the average, times the recent executions.",
+        "comment": ["{0} is a number of executions"]
+    },
+    "Baseline period: {0}/{0} is the selected time range, for example 7 days before": {
+        "message": "Baseline period: {0}",
+        "comment": ["{0} is the selected time range, for example 7 days before"]
+    },
     "Average per execution": "Average per execution",
     "Total per day": "Total per day",
     "Change/The change from one period to another": {

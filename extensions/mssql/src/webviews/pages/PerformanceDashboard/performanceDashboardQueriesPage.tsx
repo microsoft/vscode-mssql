@@ -4,18 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, SearchBox, shorthands, Switch } from "@fluentui/react-components";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import {
-    ContinueInChatRequest,
     GetTopQueriesRequest,
     PerformanceDashboardReducers,
     PerformanceDashboardState,
     SetQueryCategoryRequest,
-    type ChatPrompt,
     type QueryCategory,
     type QueryStoreStatistic,
 } from "../../../sharedInterfaces/performanceDashboard";
-import { GithubCopilot16Regular } from "../../common/icons/fluentIcons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SegmentedControl } from "../../common/segmentedControl";
@@ -32,10 +29,14 @@ import {
 } from "./performanceDashboardParts";
 import {
     PerformanceDashboardQueryList,
+    QueryCategoryViewProps,
     QueryGridColumn,
-    QueryRowAction,
+    queryCount,
+    useChatRowActions,
 } from "./performanceDashboardQueryGrid";
 import {
+    RankedQueryCategory,
+    filterQueryRows,
     queryCategories,
     queryCategoryRanking,
     queryListRows,
@@ -44,12 +45,10 @@ import {
 } from "./performanceDashboardQueryList";
 import type { HistoryMetric, HistoryView } from "./performanceDashboardPlanHistory";
 import { useRefresh } from "./performanceDashboardRefresh";
+import { PerformanceDashboardRegressedQueries } from "./performanceDashboardRegressedQueries";
 import { PerformanceDashboardRoute } from "./performanceDashboardRoutes";
 import { usePerformanceDashboardSelector } from "./performanceDashboardSelector";
 import { useViewTimeRange } from "./performanceDashboardTimeRange";
-
-/** The queries that each category lists. */
-const queryCount = 25;
 
 const useStyles = makeStyles({
     page: {
@@ -73,18 +72,16 @@ const useStyles = makeStyles({
 });
 
 /**
- * The top queries of the database in five categories: high CPU, high memory, duration, most
- * frequent, and high reads, ranked by a statistic. The category and the statistic are in the
- * location, for example `queries?category=duration&rank=avg`. Without a category, the page shows
- * the one that the user chose last, which the extension saves.
+ * The queries of the database by category: the top queries by high CPU, high memory, duration,
+ * most frequent, and high reads, and the queries that regressed. The category is in the location,
+ * for example `queries?category=duration`. Without a category, the page shows the one that the
+ * user chose last, which the extension saves.
  */
 export const PerformanceDashboardQueriesPage = () => {
     const classes = useStyles();
     const text = loc.performanceDashboard;
     const { router, match, navigate } = useNavigation<PerformanceDashboardRoute>();
     const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
-    const { refreshKey } = useRefresh();
-    const { window } = useViewTimeRange();
     const { extensionRpc } = useVscodeWebview<
         PerformanceDashboardState,
         PerformanceDashboardReducers
@@ -96,6 +93,83 @@ export const PerformanceDashboardQueriesPage = () => {
     const savedCategory = usePerformanceDashboardSelector((state) => state.queryCategory);
     const category =
         toQueryCategory(match.query.category) ?? toQueryCategory(savedCategory) ?? "cpu";
+
+    useEffect(() => setSearch(""), [databaseName]);
+
+    const setQuery = (values: Record<string, string | undefined>) =>
+        navigate(router.build("queries", {}, { ...match.query, ...values }));
+
+    const controls = (own?: ReactNode) => (
+        <div className={classes.controls}>
+            <SegmentedControl<QueryCategory>
+                size="small"
+                ariaLabel={text.queryCategory}
+                value={category}
+                options={queryCategories.map((value) => ({
+                    value,
+                    label: categoryShortLabel(value),
+                }))}
+                onValueChange={(value) => {
+                    // The category stays in the location, so the saved one does not apply.
+                    setQuery({ category: value });
+                    void extensionRpc.sendRequest(SetQueryCategoryRequest.type, {
+                        category: value,
+                    });
+                }}
+            />
+            {own}
+            <span className={classes.grow} />
+            <SearchBox
+                className={classes.search}
+                size="small"
+                placeholder={text.searchQueries}
+                aria-label={text.searchQueries}
+                value={search}
+                onChange={(_event, data) => setSearch(data.value)}
+            />
+            <Switch
+                label={text.favoritesOnly}
+                checked={favoritesOnly}
+                onChange={(_event, data) => setFavoritesOnly(data.checked)}
+            />
+        </div>
+    );
+    const view: QueryCategoryViewProps = {
+        controls,
+        search,
+        favoritesOnly,
+        favorites,
+        setQuery,
+    };
+
+    return (
+        <div className={classes.page}>
+            {category === "regressed" ? (
+                <PerformanceDashboardRegressedQueries {...view} />
+            ) : (
+                <TopQueries category={category} {...view} />
+            )}
+        </div>
+    );
+};
+
+/**
+ * The queries of one period, ranked by a statistic of the category's metric. The statistic is in
+ * the location, for example `queries?category=duration&rank=avg`.
+ */
+const TopQueries = ({
+    category,
+    controls,
+    search,
+    favoritesOnly,
+    favorites,
+    setQuery,
+}: QueryCategoryViewProps & { readonly category: RankedQueryCategory }) => {
+    const text = loc.performanceDashboard;
+    const { match } = useNavigation<PerformanceDashboardRoute>();
+    const databaseName = usePerformanceDashboardSelector((state) => state.databaseName);
+    const { refreshKey } = useRefresh();
+    const { window } = useViewTimeRange();
     const rankBy = queryCategoryRanking[category];
     // Executions have only a total.
     const statistic: QueryStoreStatistic =
@@ -104,8 +178,6 @@ export const PerformanceDashboardQueriesPage = () => {
             ? (match.query.rank as QueryStoreStatistic)
             : "total";
 
-    useEffect(() => setSearch(""), [databaseName]);
-
     const topQueries = usePerformanceRead(
         GetTopQueriesRequest.type,
         { ...window, rankBy, statistic, top: queryCount },
@@ -113,47 +185,23 @@ export const PerformanceDashboardQueriesPage = () => {
     );
 
     const isTotal = statistic === "total";
-    const rows = useMemo(() => {
-        const needle = search.trim().toLowerCase();
-        return queryListRows(readData(topQueries), rankBy, statistic).filter(
-            (row) =>
-                (!favoritesOnly || favorites.queryIds.has(row.queryId)) &&
-                (!needle ||
-                    row.queryId.includes(needle) ||
-                    row.queryText.toLowerCase().includes(needle)),
-        );
-    }, [topQueries, rankBy, statistic, search, favoritesOnly, favorites.queryIds]);
+    const rows = useMemo(
+        () =>
+            filterQueryRows(
+                queryListRows(readData(topQueries), rankBy, statistic),
+                search,
+                favoritesOnly ? favorites.queryIds : undefined,
+            ),
+        [topQueries, rankBy, statistic, search, favoritesOnly, favorites.queryIds],
+    );
 
-    // The menu of each row asks Copilot Chat to summarize or optimize its query.
-    const rowActions = useMemo<readonly QueryRowAction[]>(() => {
-        const chat = (prompt: ChatPrompt) => (queryId: string) =>
-            void extensionRpc.sendRequest(ContinueInChatRequest.type, {
-                prompt,
-                queryId,
-                ...window,
-            });
-        return [
-            {
-                label: loc.performanceDashboard.summarizeInChat,
-                icon: <GithubCopilot16Regular />,
-                run: chat("summarize"),
-            },
-            {
-                label: loc.performanceDashboard.optimizeInChat,
-                icon: <GithubCopilot16Regular />,
-                run: chat("optimize"),
-            },
-        ];
-    }, [extensionRpc, window]);
+    const rowActions = useChatRowActions(window);
 
     // A query opens at the metric and statistic of the list, so its page shows what ranked it.
     const queryPageQuery = useMemo(
         () => queryPageQueryOf(category, statistic),
         [category, statistic],
     );
-
-    const setQuery = (values: Record<string, string | undefined>) =>
-        navigate(router.build("queries", {}, { ...match.query, ...values }));
 
     // The grid builds its columns again when these change, so they change only with the view.
     const columns = useMemo<QueryGridColumn[]>(() => {
@@ -192,25 +240,9 @@ export const PerformanceDashboardQueriesPage = () => {
     }, [category, statistic, isTotal]);
 
     return (
-        <div className={classes.page}>
-            <div className={classes.controls}>
-                <SegmentedControl<QueryCategory>
-                    size="small"
-                    ariaLabel={text.queryCategory}
-                    value={category}
-                    options={queryCategories.map((value) => ({
-                        value,
-                        label: categoryShortLabel(value),
-                    }))}
-                    onValueChange={(value) => {
-                        // The category stays in the location, so the saved one does not apply.
-                        setQuery({ category: value });
-                        void extensionRpc.sendRequest(SetQueryCategoryRequest.type, {
-                            category: value,
-                        });
-                    }}
-                />
-                {category !== "executions" && (
+        <>
+            {controls(
+                category !== "executions" && (
                     <InlineSelect<QueryStoreStatistic>
                         label={text.rankBy}
                         value={statistic}
@@ -222,22 +254,8 @@ export const PerformanceDashboardQueriesPage = () => {
                             setQuery({ rank: value === "total" ? undefined : value })
                         }
                     />
-                )}
-                <span className={classes.grow} />
-                <SearchBox
-                    className={classes.search}
-                    size="small"
-                    placeholder={text.searchQueries}
-                    aria-label={text.searchQueries}
-                    value={search}
-                    onChange={(_event, data) => setSearch(data.value)}
-                />
-                <Switch
-                    label={text.favoritesOnly}
-                    checked={favoritesOnly}
-                    onChange={(_event, data) => setFavoritesOnly(data.checked)}
-                />
-            </div>
+                ),
+            )}
             {isReadOnly(topQueries) && <ReadOnlyNotice />}
             <PerformanceDashboardQueryList
                 read={topQueries}
@@ -249,7 +267,7 @@ export const PerformanceDashboardQueriesPage = () => {
                 queryPageQuery={queryPageQuery}
                 emptyText={favoritesOnly || search ? text.noMatchingQueries : text.noQueries}
             />
-        </div>
+        </>
     );
 };
 
@@ -259,7 +277,7 @@ export const PerformanceDashboardQueriesPage = () => {
  * are left out of the location.
  */
 function queryPageQueryOf(
-    category: QueryCategory,
+    category: RankedQueryCategory,
     statistic: QueryStoreStatistic,
 ): Record<string, string | undefined> {
     const metric: HistoryMetric | undefined = (
@@ -280,7 +298,7 @@ function queryPageQueryOf(
     return { metric, view };
 }
 
-export function categoryLabel(category: QueryCategory): string {
+export function categoryLabel(category: RankedQueryCategory): string {
     const text = loc.performanceDashboard;
     switch (category) {
         case "cpu":
@@ -308,13 +326,15 @@ function categoryShortLabel(category: QueryCategory): string {
             return text.highMemory;
         case "executions":
             return text.mostFrequent;
+        case "regressed":
+            return text.regressed;
         default:
             return text.highReads;
     }
 }
 
 /** The metric of a category after a statistic, for example the "CPU time" of Total CPU time. */
-function categoryMetricName(category: QueryCategory): string {
+function categoryMetricName(category: RankedQueryCategory): string {
     const text = loc.performanceDashboard;
     switch (category) {
         case "cpu":
@@ -330,7 +350,7 @@ function categoryMetricName(category: QueryCategory): string {
 
 /** The formats of the values of a category: readable, and exact for the tooltip. */
 /** The formats of the values of a category, from the metric catalog: with the unit, and exact. */
-function categoryFormat(category: QueryCategory): {
+function categoryFormat(category: RankedQueryCategory): {
     format: (value: number) => string;
     exact: (value: number) => string;
 } {
