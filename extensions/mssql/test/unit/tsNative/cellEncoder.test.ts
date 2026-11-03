@@ -62,3 +62,23 @@ suite("ts-native bounded string cell encoding", () => {
         expect(Buffer.byteLength((encoded.value as { v: string }).v, "utf8")).to.equal(5);
     });
 });
+
+suite("ts-native bounded spatial cell encoding", () => {
+    test("passes the effective cell limit to spatial conversion", () => {
+        const raw = Buffer.from("e6100000010c000000000000f03f0000000000000040", "hex");
+        const column: TdsColumn = { name: "shape", typeName: "udt", udtName: "geometry" };
+        const policy = { ...POLICY, spatialWkb: true, maxCellBytes: 20 };
+        expect(encodeCell({ value: raw }, column, policy).value).to.include({
+            $t: "spatial",
+            status: "unrenderable",
+            reason: "maxCellBytes",
+        });
+        expect(
+            encodeCell({ value: raw }, column, { ...policy, maxCellBytes: 21 }).value,
+        ).to.include({
+            $t: "spatial",
+            status: "ok",
+            wkbBytes: 21,
+        });
+    });
+});

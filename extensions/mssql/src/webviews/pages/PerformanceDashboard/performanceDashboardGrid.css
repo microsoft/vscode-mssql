@@ -1,0 +1,246 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* The dashboard grids in the colors of the VS Code theme. The variables are set on the grid
+ * element, after the grid's dark mode, so they replace its colors in every theme. */
+.performance-grid .slickgrid-container {
+    --slick-font-family: var(--vscode-font-family);
+    --slick-font-size-base: var(--vscode-font-size, 13px);
+    --slick-header-font-size: var(--vscode-font-size, 13px);
+    --slick-text-color: var(--vscode-foreground);
+    --slick-font-color: var(--vscode-foreground);
+    --slick-focus-outline-color: var(--vscode-focusBorder);
+    --slick-scrollbar-color: var(--vscode-scrollbarSlider-background)
+        var(--vscode-editor-background);
+
+    /* Rows */
+    --slick-canvas-bg-color: var(--vscode-editor-background);
+    --slick-cell-even-background-color: var(--vscode-editor-background);
+    --slick-cell-odd-background-color: var(--vscode-editor-background);
+    --slick-cell-text-color: var(--vscode-foreground);
+    --slick-row-mouse-hover-color: var(--vscode-list-hoverBackground);
+    --slick-row-mouse-hover-box-shadow: none;
+    --slick-row-selected-color: var(--vscode-list-inactiveSelectionBackground);
+    --slick-cell-selected-color: var(--vscode-list-inactiveSelectionBackground);
+    --slick-cell-active-box-shadow: inset 0 0 0 1px var(--vscode-focusBorder);
+    --slick-cell-box-shadow: none;
+    --slick-cell-padding: 0 8px;
+    --slick-cell-display: flex;
+
+    /* Lines between the rows and the columns. The slot draws the frame. */
+    --slick-border-color: var(--vscode-panel-border);
+    --slick-grid-border-color: var(--vscode-panel-border);
+    --slick-cell-border-top: 0;
+    --slick-cell-border-bottom: 1px solid var(--vscode-panel-border);
+    --slick-cell-border-left: 0;
+    --slick-cell-border-right: 1px solid var(--vscode-panel-border);
+    --slick-container-border-top: 0;
+    --slick-container-border-bottom: 0;
+    --slick-container-border-left: 0;
+    --slick-container-border-right: 0;
+    --slick-pane-top-border-top: 0;
+
+    /* The header, shaded, with the sort indicator at the end. The Fluent colors come from the
+     * theme of the webview; the fallbacks keep the grid's own light colors out of a dark theme. */
+    --slick-header-background-color: var(
+        --colorNeutralBackground2,
+        var(--vscode-editorWidget-background)
+    );
+    --slick-header-column-background-active: var(--slick-header-background-color);
+    --slick-header-column-background-hover: var(--vscode-list-hoverBackground);
+    --slick-header-column-sortable-background-hover: var(--vscode-list-hoverBackground);
+    --slick-header-text-color: var(--colorNeutralForeground2, var(--vscode-descriptionForeground));
+    --slick-sorting-header-color: var(--colorNeutralForeground1, var(--vscode-foreground));
+    --slick-header-border-bottom: 1px solid var(--vscode-panel-border);
+    --slick-icon-sort-color: var(--colorNeutralForeground1, var(--vscode-foreground));
+    --slick-icon-sort-position-right: 8px;
+    --slick-icon-sort-position-top: 9px;
+}
+
+.performance-grid
+    .slickgrid-container
+    .slick-header-columns
+    .slick-header-column.slick-state-default {
+    height: 32px;
+    padding: 0 28px 0 8px;
+    line-height: 32px;
+    box-sizing: border-box;
+    border-right: 1px solid var(--vscode-panel-border) !important;
+}
+
+.performance-grid
+    .slickgrid-container
+    .slick-header-columns
+    .slick-header-column.slick-header-column-sorted {
+    background-color: var(
+        --colorNeutralBackground3,
+        var(--vscode-list-inactiveSelectionBackground)
+    );
+    font-weight: var(--fontWeightSemibold, 600);
+}
+
+/* A selected row, such as a plan picked for a comparison. */
+.performance-grid .slickgrid-container .slick-row.performance-grid-row-selected {
+    background-color: var(--vscode-list-inactiveSelectionBackground);
+}
+
+.performance-grid .performance-grid-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Numbers line up on the right, in digits of one width. */
+.performance-grid .slick-cell.performance-grid-number {
+    justify-content: flex-end;
+    font-family: var(--vscode-editor-font-family);
+    font-variant-numeric: tabular-nums;
+}
+
+/* A button or a check box, centered in its cell. */
+.performance-grid .slickgrid-container .grid-canvas .slick-cell.performance-grid-control {
+    justify-content: center;
+    padding: 0;
+}
+
+.performance-grid .performance-grid-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--vscode-icon-foreground, var(--vscode-foreground));
+    cursor: pointer;
+}
+
+.performance-grid .performance-grid-button:hover {
+    background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.performance-grid svg {
+    flex-shrink: 0;
+    fill: currentColor;
+}
+
+.performance-grid .performance-grid-favorite {
+    color: var(--colorPaletteMarigoldForeground1, var(--vscode-charts-yellow));
+}
+
+.performance-grid .performance-grid-checkbox {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    box-sizing: border-box;
+    border: 1px solid var(--vscode-checkbox-border, var(--vscode-foreground));
+    border-radius: 2px;
+    background-color: var(--vscode-checkbox-background, transparent);
+    cursor: pointer;
+}
+
+.performance-grid .performance-grid-checkbox[aria-checked="true"] {
+    border-color: var(--vscode-button-background);
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.performance-grid .performance-grid-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--vscode-textLink-foreground);
+    text-decoration: none;
+}
+
+.performance-grid .performance-grid-link:hover {
+    color: var(--vscode-textLink-activeForeground);
+    text-decoration: underline;
+}
+
+.performance-grid .performance-grid-swatched {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.performance-grid .performance-grid-swatch {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border-radius: 2px;
+}
+
+/* The plans of an interval of the execution history, each with its color. */
+.performance-grid .performance-grid-plans {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* An icon after text in a cell, such as a warning. */
+.performance-grid .performance-grid-with-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.performance-grid .performance-grid-warning {
+    display: inline-flex;
+    color: var(--colorPaletteYellowForeground1, var(--vscode-editorWarning-foreground));
+}
+
+.performance-grid .performance-grid-worse {
+    color: var(--colorPaletteDarkOrangeForeground1, var(--vscode-charts-orange));
+}
+
+.performance-grid .performance-grid-better {
+    color: var(--colorPaletteGreenForeground1, var(--vscode-charts-green));
+}
+
+/* The query text on one line, cut with an ellipsis, in the colors of SQL. */
+.performance-grid .performance-grid-sql {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--vscode-editor-font-family);
+    color: var(--vscode-foreground);
+}
+
+/* A share fills the whole cell from the left, behind the text. */
+.performance-grid .performance-grid-share {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 8px;
+}
+
+.performance-grid .performance-grid-share-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background-color: color-mix(in srgb, var(--vscode-charts-blue) 22%, transparent);
+}
+
+.performance-grid .performance-grid-share-text {
+    position: relative;
+}
+
+.performance-grid .performance-grid-share-value {
+    font-weight: var(--fontWeightSemibold, 600);
+}

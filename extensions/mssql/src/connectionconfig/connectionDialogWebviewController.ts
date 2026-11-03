@@ -1677,6 +1677,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             connection as any,
         ) as IConnectionDialogProfile;
+        // Browse clears the resource ID with an empty string when the pick has none.
+        if (!preparedConnection.resourceId) {
+            delete preparedConnection.resourceId;
+        }
 
         if ((preparedConnection as IConnectionProfile).configSource === undefined) {
             const connectionGroup =

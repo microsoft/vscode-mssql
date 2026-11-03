@@ -187,11 +187,8 @@ export function encodeCell(cell: TdsCell, column: TdsColumn, policy: EncodePolic
 
 /** D-0020 typed spatial cell — EXACT STS2 wire field names. */
 function encodeSpatialCell(raw: Buffer, kind: SpatialKind, maxCellBytes: number): EncodedCell {
-    const result = transcodeSpatial(raw, kind);
-    if (
-        result.status === "ok" &&
-        result.wkb.byteLength <= Math.min(SPATIAL_MAX_WKB_BYTES, maxCellBytes)
-    ) {
+    const result = transcodeSpatial(raw, kind, Math.min(SPATIAL_MAX_WKB_BYTES, maxCellBytes));
+    if (result.status === "ok") {
         const wkbBase64 = result.wkb.toString("base64");
         return {
             value: {
@@ -208,12 +205,8 @@ function encodeSpatialCell(raw: Buffer, kind: SpatialKind, maxCellBytes: number)
             approxBytes: wkbBase64.length + 96,
         };
     }
-    const reason =
-        result.status === "ok"
-            ? "maxCellBytes" // over the pinned STS2 spatial ceiling
-            : result.reason;
     return {
-        value: { $t: "spatial", version: 1, status: "unrenderable", kind, reason },
+        value: { $t: "spatial", version: 1, status: "unrenderable", kind, reason: result.reason },
         isNull: false,
         approxBytes: 96,
     };

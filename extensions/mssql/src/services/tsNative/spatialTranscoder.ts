@@ -82,7 +82,11 @@ interface ParsedPayload {
     shapes: { parentOffset: number; figureOffset: number; type: number }[];
 }
 
-export function transcodeSpatial(payload: Buffer, kind: SpatialKind): SpatialTranscodeResult {
+export function transcodeSpatial(
+    payload: Buffer,
+    kind: SpatialKind,
+    maxWkbBytes = MAX_WKB_BYTES,
+): SpatialTranscodeResult {
     let parsed: ParsedPayload;
     try {
         parsed = parseClr(payload, kind);
@@ -97,19 +101,18 @@ export function transcodeSpatial(payload: Buffer, kind: SpatialKind): SpatialTra
         };
     }
     try {
-        const wkb = writeWkb(parsed);
-        if (wkb.byteLength > MAX_WKB_BYTES) {
-            return { status: "unrenderable", kind, reason: "maxCellBytes" };
-        }
+        const wkb = writeWkb(parsed, Math.min(MAX_WKB_BYTES, maxWkbBytes));
         return { status: "ok", kind, srid: parsed.srid, wkb };
     } catch (error) {
         return {
             status: "unrenderable",
             kind,
             reason:
-                error instanceof UnsupportedShapeError
-                    ? "unsupportedNativeValue"
-                    : "conversionFailed",
+                error instanceof WkbLimitError
+                    ? "maxCellBytes"
+                    : error instanceof UnsupportedShapeError
+                      ? "unsupportedNativeValue"
+                      : "conversionFailed",
         };
     }
 }
@@ -266,39 +269,45 @@ function boundCheck(count: number, unitBytes: number, bufferLength: number): voi
 // WKB writing
 // ---------------------------------------------------------------------------
 
+class WkbLimitError extends Error {}
+
 class WkbWriter {
-    private chunks: Buffer[] = [];
+    private buffer: Buffer = Buffer.alloc(0);
     private length = 0;
 
+    constructor(private readonly limit: number) {}
+
     byte(value: number): void {
-        const buffer = Buffer.allocUnsafe(1);
-        buffer.writeUInt8(value, 0);
-        this.push(buffer);
+        this.reserve(1);
+        this.length = this.buffer.writeUInt8(value, this.length);
     }
     uint32(value: number): void {
-        const buffer = Buffer.allocUnsafe(4);
-        buffer.writeUInt32LE(value >>> 0, 0);
-        this.push(buffer);
+        this.reserve(4);
+        this.length = this.buffer.writeUInt32LE(value >>> 0, this.length);
     }
     double(value: number): void {
-        const buffer = Buffer.allocUnsafe(8);
-        buffer.writeDoubleLE(value, 0);
-        this.push(buffer);
+        this.reserve(8);
+        this.length = this.buffer.writeDoubleLE(value, this.length);
     }
-    private push(buffer: Buffer): void {
-        this.chunks.push(buffer);
-        this.length += buffer.length;
-        if (this.length > MAX_WKB_BYTES) {
-            throw new Error("WKB output bound exceeded");
+    private reserve(bytes: number): void {
+        const required = this.length + bytes;
+        if (required > this.limit) {
+            throw new WkbLimitError("WKB output bound exceeded");
+        }
+        if (required > this.buffer.length) {
+            const capacity = Math.min(this.limit, Math.max(64, this.buffer.length * 2));
+            const buffer = Buffer.allocUnsafe(capacity);
+            this.buffer.copy(buffer, 0, 0, this.length);
+            this.buffer = buffer;
         }
     }
     finish(): Buffer {
-        return Buffer.concat(this.chunks, this.length);
+        return this.buffer.subarray(0, this.length);
     }
 }
 
-function writeWkb(parsed: ParsedPayload): Buffer {
-    const writer = new WkbWriter();
+function writeWkb(parsed: ParsedPayload, maxWkbBytes: number): Buffer {
+    const writer = new WkbWriter(maxWkbBytes);
     const childrenByParent = new Map<number, number[]>();
     for (let index = 0; index < parsed.shapes.length; index++) {
         const parent = parsed.shapes[index].parentOffset;

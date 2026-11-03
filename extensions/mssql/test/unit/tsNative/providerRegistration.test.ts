@@ -5,9 +5,12 @@
 
 import { expect } from "chai";
 import * as sinon from "sinon";
+import * as path from "path";
 import { DataPlaneConfigReader } from "../../../src/services/sqlDataPlane/backendFactory";
 import { DataPlaneErrorCodes, SqlDataPlaneError } from "../../../src/services/sqlDataPlane/api";
 import { SqlDataPlaneService } from "../../../src/services/sqlDataPlane/sqlDataPlaneService";
+import { openWithServerlessWake } from "../../../src/services/sqlDataPlane/serverlessWake";
+import * as providerEntry from "../../../src/services/tsNative/providerEntry";
 
 suite("Native TypeScript provider registration", () => {
     const sandbox = sinon.createSandbox();
@@ -88,4 +91,58 @@ suite("Native TypeScript provider registration", () => {
         expect(registry.enabled).to.equal(false);
         expect(registry.entrySnapshots().every((entry) => entry.state === "idle")).to.equal(true);
     });
+
+    for (const category of ["timeout", "auth"] as const) {
+        test(`preserves bundled ${category} errors across the factory and serverless retry boundary`, async () => {
+            // Exercise the shipped chunk, whose error constructor is distinct
+            // from the compiled unit-test/activation API constructor.
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const bundled = require(
+                path.resolve(__dirname, "../../../../dist/tsNativeProvider.js"),
+            ) as typeof providerEntry;
+            const backend = bundled.createBackend({
+                overrides: { faults: { seed: 1, openFailure: category } },
+            });
+            const dispose = sandbox.spy(
+                backend as typeof backend & { dispose(): Promise<void> },
+                "dispose",
+            );
+            const params = {
+                profile: {
+                    profileFingerprint: "bundled-serverless",
+                    server: "unused.database.windows.net",
+                    database: "paused-db",
+                    authKind: "aad" as const,
+                    accountId: "test-account",
+                },
+                applicationName: "test",
+                auth: { tokenProvider: async () => "test-token" },
+            };
+            const original = await backend.openSession(params).catch((error: unknown) => error);
+            expect(original).to.be.instanceOf(Error).and.not.instanceOf(SqlDataPlaneError);
+            sandbox.stub(providerEntry, "createBackend").returns(backend);
+            values.set("mssql.sqlDataPlane.backend", "ts-native");
+            const service = await registry.service();
+            const open = sandbox.spy(service, "openSession");
+            const error = await openWithServerlessWake(
+                params.profile,
+                () => service.openSession(params),
+                { getStatus: async () => "Paused", delayMs: 0, maxRetryAttempts: 1 },
+            ).catch((failure: unknown) => failure);
+            expect(error).to.be.instanceOf(SqlDataPlaneError);
+            expect(error).to.include({
+                code:
+                    category === "timeout"
+                        ? DataPlaneErrorCodes.unavailable
+                        : DataPlaneErrorCodes.auth,
+                retryable: category === "timeout",
+                message: (original as Error).message,
+            });
+            expect((error as SqlDataPlaneError).backend).to.deep.equal({ kind: "ts-native" });
+            expect(open.callCount).to.equal(category === "timeout" ? 2 : 1);
+            await registry.dispose();
+            sinon.assert.calledOnce(dispose);
+            expect(dispose.firstCall.thisValue).to.equal(backend);
+        });
+    }
 });

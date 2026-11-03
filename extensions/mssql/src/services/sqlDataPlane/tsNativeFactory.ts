@@ -105,7 +105,7 @@ export function tsNativeFactory(providerVersion: string): SqlBackendFactory {
                 context.config.get<unknown>(TS_NATIVE_OVERRIDES_SETTING, undefined),
             );
             const provider = loadTsNativeProvider();
-            return provider.createBackend({
+            const backend = provider.createBackend({
                 // Bound to the activation-bundle diag singleton (the one with
                 // registered sinks) — see the import note above.
                 observer: createDiagEngineObserver(),
@@ -129,6 +129,34 @@ export function tsNativeFactory(providerVersion: string): SqlBackendFactory {
                 },
                 overrides,
             });
+            const openSession = backend.openSession.bind(backend);
+            backend.openSession = async (params) => {
+                try {
+                    return await openSession(params);
+                } catch (error) {
+                    // The lazy bundle has its own error constructor. Rehydrate its
+                    // typed errors here so activation-side retry/status handling
+                    // sees the same class as errors from the other backends.
+                    if (
+                        error instanceof Error &&
+                        !(error instanceof SqlDataPlaneError) &&
+                        error.name === "SqlDataPlaneError" &&
+                        "code" in error &&
+                        typeof error.code === "string" &&
+                        "retryable" in error &&
+                        typeof error.retryable === "boolean"
+                    ) {
+                        throw new SqlDataPlaneError(
+                            error.code,
+                            error.message,
+                            error.retryable,
+                            error as SqlDataPlaneError,
+                        );
+                    }
+                    throw error;
+                }
+            };
+            return backend;
         },
     };
 }

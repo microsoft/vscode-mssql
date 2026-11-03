@@ -12,6 +12,7 @@
  */
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import { transcodeSpatial } from "../../../src/services/tsNative/spatialTranscoder";
 import { transcodeVectorText } from "../../../src/services/tsNative/vectorTranscoder";
 
@@ -108,6 +109,44 @@ function wkbType(buffer: Buffer): number {
 }
 
 suite("ts-native spatial transcoder (TSQ2-11)", () => {
+    test("honors the cell limit at the exact WKB boundary", () => {
+        expect(transcodeSpatial(GEOMETRY_POINT_CLR, "geometry", 20)).to.deep.equal({
+            status: "unrenderable",
+            kind: "geometry",
+            reason: "maxCellBytes",
+        });
+        const result = transcodeSpatial(GEOMETRY_POINT_CLR, "geometry", 21);
+        expect(result.status).to.equal("ok");
+        if (result.status === "ok") expect(result.wkb).to.deep.equal(GEOMETRY_POINT_WKB);
+    });
+
+    test("bounds output allocations for a 65,536-point line exceeding the default cell limit", () => {
+        const payload = clr({
+            flags: 0x04,
+            points: Array.from({ length: 65_536 }, (_, index) => [index, index]),
+            figures: [[1, 0]],
+            shapes: [[-1, 0, 2]],
+        });
+        const limit = 1024 * 1024;
+        const allocations = sinon.spy(Buffer, "allocUnsafe");
+        try {
+            const result = transcodeSpatial(payload, "geometry", limit);
+            expect(result).to.deep.equal({
+                status: "unrenderable",
+                kind: "geometry",
+                reason: "maxCellBytes",
+            });
+            // Guard against one retained Buffer per coordinate and against
+            // materializing the entire output before applying the cell cap.
+            expect(allocations.callCount).to.be.lessThan(32);
+            expect(allocations.args.reduce((total, [bytes]) => total + bytes, 0)).to.be.at.most(
+                2 * limit,
+            );
+        } finally {
+            allocations.restore();
+        }
+    });
+
     test("live geometry POINT: transcoded WKB is byte-identical to STAsBinary()", () => {
         const result = transcodeSpatial(GEOMETRY_POINT_CLR, "geometry");
         expect(result.status).to.equal("ok");
