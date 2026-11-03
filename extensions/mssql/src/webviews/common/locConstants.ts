@@ -3771,7 +3771,7 @@ export class LocConstants {
             gettingContainerReady: l10n.t("Getting container ready for connections"),
             pullingContainerImage: l10n.t("Pulling container image"),
             pullingContainerImageDescription: l10n.t(
-                "Downloading the Azure SQL Database developer container image from the private registry.",
+                "Downloading the Azure SQL Database developer container image from the registry.",
             ),
             creatingContainer: l10n.t("Creating container"),
             creatingContainerDescription: l10n.t(
@@ -6088,6 +6088,7 @@ export class LocConstants {
             watchDemos: l10n.t("Watch demos on YouTube"),
             viewRoadmap: l10n.t("View the roadmap"),
             readDocs: l10n.t("Read the docs on Microsoft Learn"),
+            joinSqlAiWorkshop: l10n.t("Join a free SQL + AI workshop"),
             reportBug: l10n.t("Report a bug"),
             requestFeature: l10n.t("Request a feature"),
             joinDiscussions: l10n.t("Join the discussions"),
