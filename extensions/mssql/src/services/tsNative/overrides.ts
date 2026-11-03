@@ -75,7 +75,9 @@ export function parseTsNativeOverrides(raw: unknown): TsNativeOverrides {
     }
     for (const key of ["pageRows", "pageBytes", "maxCellBytes", "memoryBudgetMiB"] as const) {
         const value = source[key];
-        if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+        // Sub-unit values would floor to zero, which means "use the default"
+        // to the engine and could silently widen a caller's tighter limit.
+        if (typeof value === "number" && Number.isFinite(value) && value >= 1) {
             out[key] = Math.floor(value);
         }
     }

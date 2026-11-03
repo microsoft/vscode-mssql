@@ -70,6 +70,17 @@ suite("ts-native overrides and memory breaker (TSQ2-5/8)", () => {
         expect(parseTsNativeOverrides("nope")).to.deep.equal({});
     });
 
+    test("sub-unit numeric overrides are ignored rather than becoming zero", () => {
+        expect(
+            parseTsNativeOverrides({
+                pageRows: 0.5,
+                pageBytes: 0.5,
+                maxCellBytes: 0.5,
+                memoryBudgetMiB: 0.5,
+            }),
+        ).to.deep.equal({});
+    });
+
     test("capability mask forces struct fields OFF, never on", () => {
         const masked = maskCapabilities(TS_NATIVE_CAPABILITIES, [
             "exec.compactRows",

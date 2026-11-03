@@ -112,6 +112,69 @@ suite("ts-native review regressions", () => {
         expect(h.driver.connections).to.have.length(0);
     });
 
+    for (const forceClose of [false, true]) {
+        test(`concurrent close/dispose waits for ${forceClose ? "the original deadline" : "physical close"}`, async () => {
+            const h = harness({ faults: { seed: 1, hangOnClose: forceClose } });
+            const session = await h.open();
+            const physical = h.driver.connections[0];
+            const release = Promise.withResolvers<void>();
+            if (!forceClose) {
+                const close = physical.close.bind(physical);
+                sandbox.stub(physical, "close").callsFake(async (context) => {
+                    await release.promise;
+                    await close(context);
+                });
+            }
+            const completed = {
+                close: false,
+                reentrant: false,
+                dispose: false,
+                secondDispose: false,
+            };
+            session.onDidChangeState(({ current }) => {
+                if (current === "closing") {
+                    void session.close().then(() => {
+                        completed.reentrant = true;
+                    });
+                }
+            });
+            const closing = session.close({ timeoutMs: 100 }).then(() => {
+                completed.close = true;
+            });
+            const disposing = h.backend.dispose().then(() => {
+                completed.dispose = true;
+            });
+            const secondDisposal = h.backend.dispose().then(() => {
+                completed.secondDispose = true;
+            });
+            await h.clock.advance(99);
+            expect(completed).to.deep.equal({
+                close: false,
+                reentrant: false,
+                dispose: false,
+                secondDispose: false,
+            });
+            expect(h.backend.snapshot().sessions).to.have.length(1);
+            expect(session.state).to.equal("closing");
+            if (forceClose) {
+                await h.clock.advance(1);
+            } else {
+                release.resolve();
+                await h.clock.flush();
+            }
+            await Promise.all([closing, disposing, secondDisposal]);
+            expect(completed).to.deep.equal({
+                close: true,
+                reentrant: true,
+                dispose: true,
+                secondDispose: true,
+            });
+            expect(h.backend.snapshot().sessions).to.deep.equal([]);
+            expect(physical.state).to.equal(forceClose ? "lost" : "closed");
+            expect(h.clock.pendingTimerCount()).to.equal(0);
+        });
+    }
+
     for (const [encrypt, expected] of [
         ["Optional", false],
         [" optional ", false],
@@ -518,6 +581,82 @@ suite("ts-native review regressions", () => {
                 v: "x".repeat(100),
             });
         }
+    });
+
+    for (const parsed of [false, true]) {
+        test(`${parsed ? "parsed" : "direct"} sub-unit overrides preserve tighter caller limits`, async () => {
+            const invalid = { pageRows: 0.5, pageBytes: 0.5, maxCellBytes: 0.5 };
+            const h = harness(
+                {
+                    queries: [
+                        {
+                            match: "ROWS",
+                            steps: [
+                                {
+                                    step: "metadata",
+                                    columns: [{ name: "s", typeName: "nvarchar" }],
+                                },
+                                {
+                                    step: "rows",
+                                    count: 20,
+                                    make: () => [{ value: "x".repeat(200) }],
+                                },
+                                { step: "done", token: "done", rowCount: 20, more: false },
+                            ],
+                        },
+                    ],
+                },
+                { defaultExecuteOptions: parsed ? parseTsNativeOverrides(invalid) : invalid },
+            );
+            const session = await h.open();
+            const pages: RowsPage[] = [];
+            const events = sink();
+            events.onRowsPage = (page) => {
+                pages.push(page);
+            };
+            const handle = session.execute(
+                "ROWS",
+                { pageRows: 1, pageBytes: 128, maxCellBytes: 10 },
+                events,
+            );
+            await h.clock.advance(100);
+            expect((await handle.completion).status).to.equal("succeeded");
+            expect(pages).to.have.length(20);
+            expect(pages.every((page) => page.rowCount === 1)).to.equal(true);
+            expect(pages[0].compact.values[0][0]).to.include({
+                $t: "truncated",
+                v: "x".repeat(10),
+            });
+        });
+    }
+
+    test("fractional caller tuning cannot disable valid override ceilings", async () => {
+        const h = harness(
+            {
+                queries: [
+                    {
+                        match: "ROWS",
+                        steps: [
+                            { step: "metadata", columns: [{ name: "s", typeName: "nvarchar" }] },
+                            { step: "rows", count: 20, make: () => [{ value: "x".repeat(200) }] },
+                            { step: "done", token: "done", rowCount: 20, more: false },
+                        ],
+                    },
+                ],
+            },
+            { defaultExecuteOptions: { pageRows: 10, maxCellBytes: 100 } },
+        );
+        const session = await h.open();
+        const pages: RowsPage[] = [];
+        const events = sink();
+        events.onRowsPage = (page) => {
+            pages.push(page);
+        };
+        const handle = session.execute("ROWS", { pageRows: 0.5, maxCellBytes: 0.5 }, events);
+        await h.clock.advance(100);
+        expect((await handle.completion).status).to.equal("succeeded");
+        expect(pages).to.have.length(2);
+        expect(pages[0].compact.values[0][0]).to.include({ $t: "truncated", v: "x".repeat(100) });
     });
 
     test("unimplemented live fault keys are ignored, not reported as active", () => {

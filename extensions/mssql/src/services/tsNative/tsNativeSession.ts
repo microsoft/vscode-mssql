@@ -97,6 +97,7 @@ export class TsNativeSession implements ISqlSession {
 
     private activeQuery: TsNativeQuery | undefined;
     private finalized = false;
+    private closePromise: Promise<void> | undefined;
 
     constructor(
         private readonly connection: ITdsConnection,
@@ -163,10 +164,10 @@ export class TsNativeSession implements ISqlSession {
         const effectiveOpts: ExecuteOptions = { ...opts };
         for (const key of ["pageRows", "pageBytes", "maxCellBytes"] as const) {
             const ceiling = defaults?.[key];
-            if (ceiling !== undefined) {
+            if (ceiling !== undefined && Number.isInteger(ceiling) && ceiling > 0) {
                 const requested = opts[key];
                 effectiveOpts[key] =
-                    typeof requested === "number" && Number.isFinite(requested) && requested > 0
+                    typeof requested === "number" && Number.isInteger(requested) && requested > 0
                         ? Math.min(ceiling, requested)
                         : ceiling;
             }
@@ -211,10 +212,20 @@ export class TsNativeSession implements ISqlSession {
         return query.handle;
     }
 
-    async close(opts?: CloseOptions): Promise<void> {
-        if (this.state === "closed" || this.state === "closing") {
-            return;
+    close(opts?: CloseOptions): Promise<void> {
+        if (this.closePromise) {
+            return this.closePromise;
         }
+        if (this.state === "closed") return Promise.resolve();
+        // Publish before notifying subscribers: a reentrant close/dispose must
+        // join the same physical teardown and its original deadline.
+        const closing = Promise.withResolvers<void>();
+        this.closePromise = closing.promise;
+        void this.closeOnce(opts).then(closing.resolve, closing.reject);
+        return closing.promise;
+    }
+
+    private async closeOnce(opts?: CloseOptions): Promise<void> {
         this.transition("closing", opts?.reason ?? "close requested");
         const active = this.activeQuery;
         const timeoutMs = opts?.timeoutMs ?? this.deps.deadlines.closeMs;

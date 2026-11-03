@@ -131,6 +131,7 @@ export class TsNativeBackend implements ISqlConnectionService {
     private readonly sessions = new Map<string, TsNativeSession>();
     private readonly openingConnections = new Set<ITdsConnection>();
     private disposed = false;
+    private disposePromise: Promise<void> | undefined;
 
     private readonly effectiveCapabilities: SqlBackendCapabilities;
 
@@ -423,8 +424,16 @@ export class TsNativeBackend implements ISqlConnectionService {
         };
     }
 
-    async dispose(): Promise<void> {
+    dispose(): Promise<void> {
+        if (this.disposePromise) return this.disposePromise;
         this.disposed = true;
+        const disposing = Promise.withResolvers<void>();
+        this.disposePromise = disposing.promise;
+        void this.disposeOnce().then(disposing.resolve, disposing.reject);
+        return disposing.promise;
+    }
+
+    private async disposeOnce(): Promise<void> {
         for (const connection of this.openingConnections) connection.destroy("backend disposed");
         this.openingConnections.clear();
         await Promise.all(
