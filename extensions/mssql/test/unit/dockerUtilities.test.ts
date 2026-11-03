@@ -628,6 +628,48 @@ suite("Docker Utilities", () => {
         expect(spawnStub.callCount).to.be.greaterThanOrEqual(3);
     });
 
+    for (const phase of ["daemon probe", "Windows path lookup"] as const) {
+        test(`startDocker: cancellation during ${phase} never launches Docker`, async () => {
+            const windows = phase === "Windows path lookup";
+            sandbox.stub(os, "platform").returns(windows ? Platform.Windows : Platform.Linux);
+            const spawnStub = sandbox.stub(childProcess, "spawn");
+            spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
+                if (command === "docker" && args?.[0] === "info") {
+                    return createSpawnFailureByErrorProcess(new Error("Docker not running"), {
+                        dataDelayMs: windows ? 0 : 50,
+                    });
+                }
+                if (command === "powershell.exe") {
+                    return createSpawnSuccessProcess(
+                        path.join("C:", "Program Files", "Docker", "Docker", "docker.exe"),
+                        { closeDelayMs: 50 },
+                    );
+                }
+                return createSpawnSuccessProcess("Started Docker");
+            });
+            const cancellationTokenSource = new vscode.CancellationTokenSource();
+            const clock = sandbox.useFakeTimers({ shouldClearNativeTimers: true });
+            try {
+                const resultPromise = dockerUtils.startDocker(
+                    node,
+                    mockObjectExplorerService,
+                    cancellationTokenSource,
+                );
+                await clock.tickAsync(10);
+                expect(spawnStub.callCount).to.equal(windows ? 2 : 1);
+                cancellationTokenSource.cancel();
+                await clock.tickAsync(100);
+
+                expect(await resultPromise).to.deep.equal({ success: false, canceled: true });
+                expect(spawnStub.callCount).to.equal(windows ? 2 : 1);
+                expect(spawnStub).not.to.have.been.calledWith("systemctl");
+                expect(spawnStub).not.to.have.been.calledWith("cmd.exe");
+            } finally {
+                cancellationTokenSource.dispose();
+            }
+        });
+    }
+
     test("startDocker: cancels while waiting for Docker to start", async () => {
         sandbox.stub(os, "platform").returns(Platform.Linux);
         const spawnStub = sandbox.stub(childProcess, "spawn");

@@ -713,6 +713,9 @@ export async function startDocker(
     }
 
     try {
+        if (cancellationTokenSource?.token.isCancellationRequested) {
+            return finish({ success: false, canceled: true });
+        }
         dockerLogger.info("Waiting for Docker to start...");
         let startCancellationListener: vscode.Disposable | undefined;
         let dockerStartCanceled: boolean;
