@@ -11,7 +11,6 @@ import * as vscode from "vscode";
  * allowing per-feature overrides of the global `mssql.enableExperimentalFeatures` flag.
  */
 export enum PreviewFeature {
-    AzureSqlContainers = "azureSqlContainers",
     BetaResultsGrid = "betaResultsGrid",
     LiveQueryStatistics = "liveQueryStatistics",
 }
@@ -47,6 +46,18 @@ export enum PrivatePreviewContextKey {
     ObjectExplorerV2Active = "mssql.privatePreview.objectExplorerV2Active",
     QueryStudioActive = "mssql.privatePreview.queryStudioActive",
 }
+
+/**
+ * The setting of performance monitoring, a preview that is on by default. It needs no other
+ * setting, and it starts the SQL data plane, which it reads through.
+ */
+export const performanceMonitoringSetting = "mssql.performanceMonitoring.enabled";
+
+/**
+ * The activation snapshot of performance monitoring. The data plane starts only at activation,
+ * so the contributed UI needs this key as well as the setting.
+ */
+export const performanceMonitoringActiveContextKey = "mssql.performanceMonitoringActive";
 
 export const CONFIG_PREVIEW_PREFIX = "mssql.preview.";
 
@@ -86,16 +97,6 @@ export class PreviewFeaturesService {
         return this.experimentalFeaturesEnabled;
     }
 
-    public get azureSqlContainersEnabled(): boolean {
-        return (
-            vscode.workspace
-                .getConfiguration()
-                .get<
-                    boolean | undefined
-                >(getPreviewConfigKey(PreviewFeature.AzureSqlContainers), false) ?? false
-        );
-    }
-
     /**
      * Returns whether the global experimental features flag is enabled,
      * ignoring per-feature overrides.
@@ -104,6 +105,14 @@ export class PreviewFeaturesService {
         return (
             vscode.workspace.getConfiguration("mssql").get<boolean>("enableExperimentalFeatures") ??
             false
+        );
+    }
+
+    /** Returns whether performance monitoring is on. It is on by default. */
+    public get performanceMonitoringEnabled(): boolean {
+        return (
+            vscode.workspace.getConfiguration().get<boolean>(performanceMonitoringSetting, true) ??
+            true
         );
     }
 

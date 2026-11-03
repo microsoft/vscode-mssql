@@ -73,6 +73,7 @@ export const cmdCopilotNewQueryWithConnection = "mssql.copilot.newQueryWithConne
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
 export const cmdSearchDatabase = "mssql.searchDatabase";
+export const cmdOpenPerformanceDashboard = "mssql.performance.openDashboard";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
 export const triggerSchemaCompareAutomatic = "automatic";
@@ -312,6 +313,16 @@ export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 export const copilotSchemaDesignerToolName = "mssql_schema_designer";
 export const copilotDabToolName = "mssql_dab";
+export const copilotQueryStoreStatusToolName = "mssql_query_store_status";
+export const copilotQueryStoreTopQueriesToolName = "mssql_query_store_top_queries";
+export const copilotQueryStoreQueryDetailsToolName = "mssql_query_store_query_details";
+export const copilotQueryStoreQueryHistoryToolName = "mssql_query_store_query_history";
+export const copilotQueryStorePlanForcingToolName = "mssql_query_store_plan_forcing";
+export const copilotQueryStoreVerifyForcedPlanToolName = "mssql_query_store_verify_forced_plan";
+export const copilotQueryStoreWaitStatsToolName = "mssql_query_store_wait_stats";
+export const copilotQueryStorePlanSummaryToolName = "mssql_query_store_plan_summary";
+export const copilotQueryStoreAnalyzeQueryToolName = "mssql_query_store_analyze_query";
+export const copilotOpenPerformanceDashboardToolName = "mssql_open_performance_dashboard";
 
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
