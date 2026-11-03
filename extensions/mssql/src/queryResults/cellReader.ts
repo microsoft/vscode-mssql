@@ -98,9 +98,9 @@ export function windowCellReader(window: QsCellWindow): WindowCellReader {
 
 /**
  * Equality key for grouping/distinct: type-prefixed so 1 and "1" stay
- * distinct; truncated cells key by full-value digest when present, else by
- * an explicit incomparable marker unique per prefix (honest overcount beats
- * silent merge).
+ * distinct; truncated cells key by full-value digest when present.
+ * Digest-less truncated cells are incomparable: callers must skip them and
+ * report incomplete statistics rather than compare their retained prefixes.
  */
 export function cellEqualityKey(cell: CellRead): string {
     if (cell.isNull) {

@@ -15,7 +15,10 @@ import * as settings from "../../src/queryResults/queryResultsParams";
 import { registerQueryParticipant } from "../../src/queryResults/queryParticipant";
 import { QueryResultsTool } from "../../src/queryResults/queryResultsTool";
 import { boundResultModelCell } from "../../src/queryResults/resultModelContent";
-import { QueryResultSnapshotDescription } from "../../src/queryResults/queryResultTypes";
+import {
+    QueryResultAccessError,
+    QueryResultSnapshotDescription,
+} from "../../src/queryResults/queryResultTypes";
 import { TransformResult } from "../../src/queryResults/transformEngine";
 import { TransformSpec, validateTransformSpec } from "../../src/queryResults/transformSpec";
 
@@ -144,6 +147,23 @@ suite("Query results chat boundaries", () => {
         );
         expect(JSON.parse(response).success).to.equal(false);
         expect(service.listLiveSources.called).to.equal(false);
+    });
+
+    test("typed tool errors obey the UTF-8 response budget and keep their error code", async () => {
+        params.aiMaxBytesPerResponse = 4096;
+        service.listLiveSources.throws(
+            new QueryResultAccessError("invalidTransformSpec", "界".repeat(2000)),
+        );
+        const response = await new QueryResultsTool().call(
+            { input: { operation: "list_live" }, toolInvocationToken: undefined },
+            cancellation.token,
+        );
+        expect(Buffer.byteLength(response, "utf8")).to.be.at.most(4096);
+        expect(JSON.parse(response)).to.include({
+            success: false,
+            code: "invalidTransformSpec",
+            truncated: true,
+        });
     });
 
     test("repeated chat summaries release their temporary snapshots", async () => {

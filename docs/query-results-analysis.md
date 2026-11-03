@@ -33,6 +33,8 @@ The engine supports filter, project, slice, rows, aggregates, grouping, top-K, h
 
 Derived pins preserve source rows; they support filters and slices, not aggregate tables or column projection. The original immutable store stays leased while a derived pin is open. Closing the source or rerunning its query does not replace the pinned data. Derived views that reach their requested row limit report truncation when more matching rows exist. Transient participant snapshots are released when a request finishes. Tool snapshots expire under the existing retention policy and can also be released explicitly.
 
+During preview, derived pins support at most 15 filter/slice operations. Evaluation permits 16, but pinning reserves one internal operation to enforce its row limit. Simplify a 16-operation transform before pinning it; otherwise pinning returns a validation error.
+
 Policy overrides use the existing `mssql.queryResults.overrides` dictionary. For example:
 
 ```json

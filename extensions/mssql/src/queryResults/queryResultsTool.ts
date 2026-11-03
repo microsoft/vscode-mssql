@@ -164,7 +164,22 @@ export class QueryResultsTool extends ToolBase<QueryResultsToolParams> {
             }
             if (error instanceof QueryResultAccessError) {
                 outcome = error.code;
-                return JSON.stringify({ success: false, code: error.code, message: error.message });
+                const response = JSON.stringify({
+                    success: false,
+                    code: error.code,
+                    message: error.message,
+                });
+                return Buffer.byteLength(response, "utf8") > params.aiMaxBytesPerResponse
+                    ? JSON.stringify({
+                          success: false,
+                          code: error.code,
+                          truncated: true,
+                          message:
+                              AnalysisLoc.theResponseExceededBytesNarrowTheRequestFewerRowsColumns(
+                                  String(params.aiMaxBytesPerResponse),
+                              ),
+                      })
+                    : response;
             }
             outcome = "error";
             throw error;

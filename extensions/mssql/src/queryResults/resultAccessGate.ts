@@ -312,15 +312,28 @@ export class GatedQueryResultAccess {
             throw new ResultAccessDenied("values", verdict.reason ?? "denied");
         }
         const params = this.params();
-        return this.service.getWindow({
-            snapshotId: request.snapshotId,
-            resultSetId: request.resultSetId,
-            rowStart: Number.isSafeInteger(request.rowStart) ? Math.max(0, request.rowStart) : 0,
-            rowCount: Number.isSafeInteger(request.rowCount)
-                ? Math.min(Math.max(1, request.rowCount), params.aiMaxRowsPerResponse)
-                : params.aiMaxRowsPerResponse,
-            reason: "aiTool",
-        });
+        const lease = this.service.acquireSnapshot(request.snapshotId, { kind: "aiTool" });
+        if (!lease) {
+            throw new QueryResultAccessError(
+                "snapshotNotFound",
+                AnalysisLoc.snapshotNotFoundOrExpired,
+            );
+        }
+        try {
+            return await this.service.getWindow({
+                snapshotId: request.snapshotId,
+                resultSetId: request.resultSetId,
+                rowStart: Number.isSafeInteger(request.rowStart)
+                    ? Math.max(0, request.rowStart)
+                    : 0,
+                rowCount: Number.isSafeInteger(request.rowCount)
+                    ? Math.min(Math.max(1, request.rowCount), params.aiMaxRowsPerResponse)
+                    : params.aiMaxRowsPerResponse,
+                reason: "aiTool",
+            });
+        } finally {
+            lease.dispose();
+        }
     }
 
     private reserveSnapshotSlot(ownerKey: string): () => void {

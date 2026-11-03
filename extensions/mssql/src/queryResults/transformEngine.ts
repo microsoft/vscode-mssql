@@ -318,7 +318,12 @@ function makeAccumulator(
                     if (capped) {
                         return;
                     }
-                    seen.add(cellEqualityKey(cellAt(agg.col!)));
+                    const cell = cellAt(agg.col!);
+                    if (cell.isTruncated && !cell.truncation?.digest) {
+                        flagTruncated();
+                        return;
+                    }
+                    seen.add(cellEqualityKey(cell));
                     if (seen.size >= maxDistinctExact) {
                         capped = true;
                         flagApproximate();
@@ -589,6 +594,13 @@ export async function evaluateTransform(
                 return true;
             case "groupBy": {
                 const keyCells = terminal.keys.map((key) => cellAt(key));
+                const incomparable = keyCells.filter(
+                    (cell) => cell.isTruncated && !cell.truncation?.digest,
+                );
+                if (incomparable.length) {
+                    incomparable.forEach(() => flagTruncated());
+                    return true;
+                }
                 const compositeKey = JSON.stringify(keyCells.map(cellEqualityKey));
                 let entry = groups!.get(compositeKey);
                 if (!entry) {
@@ -651,14 +663,20 @@ export async function evaluateTransform(
                 }
                 return true;
             }
-            case "distinctCount":
+            case "distinctCount": {
                 if (!distinctCapped) {
-                    distinct!.add(cellEqualityKey(cellAt(terminal.col)));
+                    const cell = cellAt(terminal.col);
+                    if (cell.isTruncated && !cell.truncation?.digest) {
+                        flagTruncated();
+                        return true;
+                    }
+                    distinct!.add(cellEqualityKey(cell));
                     if (distinct!.size >= options.maxDistinctExact) {
                         distinctCapped = true;
                     }
                 }
                 return true;
+            }
             case "histogram": {
                 const cell = cellAt(terminal.col);
                 if (cell.isTruncated) flagTruncated();
@@ -752,7 +770,14 @@ export async function evaluateTransform(
                     span.start +
                     allocated +
                     Math.floor(((span.count - n) * i) / Math.max(1, windows - 1));
-                yield await reader.window(start, count);
+                const window = await reader.window(start, count);
+                if (window.rowCount !== count) {
+                    throw new QueryResultAccessError(
+                        "storeUnavailable",
+                        AnalysisLoc.snapshotRowsUnavailable,
+                    );
+                }
+                yield window;
                 allocated += count;
             }
         }
@@ -922,7 +947,10 @@ export async function evaluateTransform(
                         }
                     }
                     const raw: CellAt = (sourceCol) => cells.cellAt(r, sourceCol);
-                    if (!passesOpsBound(raw)) continue;
+                    if (!passesOpsBound(raw)) {
+                        if (stopped) return;
+                        continue;
+                    }
                     if (
                         !(await onRow((col) => raw(finalMapping[col]), window.start + r)) ||
                         stopped

@@ -12,6 +12,7 @@
  */
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -147,6 +148,47 @@ async function seedSnapshot(service: QueryResultAccessService, gated: GatedQuery
 }
 
 suite("queryResults access gate", () => {
+    for (const failRead of [false, true]) {
+        test(`raw reads retain their snapshot across a sweep and release it after ${failRead ? "failure" : "success"}`, async () => {
+            let now = 0;
+            const { service, gate, gated } = harness({ snapshotTtlMinutes: 1 }, () => now);
+            const { fixture, snapshotId } = await seedSnapshot(service, gated);
+            fixture.store!.releaseLiveOwner("documentClosed");
+            const sandbox = sinon.createSandbox();
+            const read = service.getWindow.bind(service);
+            sandbox.stub(service, "getWindow").callsFake(async (request) => {
+                await Promise.resolve();
+                now = 61_000;
+                service.sweepNow();
+                expect(service.describeSnapshot(snapshotId)).not.to.equal(undefined);
+                if (failRead) throw new Error("read failed");
+                return read(request);
+            });
+            try {
+                const grant = gate.mint({
+                    snapshotId,
+                    ownerKey: "ownerA",
+                    operationClass: "values",
+                });
+                const result = await gated
+                    .getRows(
+                        { snapshotId, resultSetId: "rs1", rowStart: 0, rowCount: 3 },
+                        { ownerKey: "ownerA", grantId: grant.grantId },
+                    )
+                    .catch((error: unknown) => error);
+                if (failRead)
+                    expect(result).to.be.instanceOf(Error).with.property("message", "read failed");
+                else expect(result).to.have.property("rowCount", 3);
+                now = 122_000;
+                service.sweepNow();
+                expect(service.describeSnapshot(snapshotId)).to.equal(undefined);
+            } finally {
+                sandbox.restore();
+                service.dispose();
+            }
+        });
+    }
+
     test("hostile caller: value-class reads fail at the facade without a grant", async () => {
         const { service, gated } = harness();
         const { snapshotId } = await seedSnapshot(service, gated);

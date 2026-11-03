@@ -635,6 +635,80 @@ suite("queryResults transform spec", () => {
 suite("queryResults transform engine", () => {
     const source = { snapshotId: "s", resultSetId: "rs1" };
 
+    test("equality statistics skip digest-less prefixes but retain full-value digests", async () => {
+        for (const terminal of [
+            { kind: "aggregate", aggs: [{ fn: "distinctCount", col: 0 }] },
+            { kind: "distinctCount", col: 0 },
+            { kind: "groupBy", keys: [0], aggs: [{ fn: "count" }] },
+        ] as TransformSpec["terminal"][]) {
+            const prefix = { $t: "truncated", of: "string", v: "same prefix", bytes: 999 };
+            const full = [
+                { ...prefix, digest: "sha256:a" },
+                { ...prefix, digest: "sha256:b" },
+            ];
+            const baseline = await evaluateTransform(
+                { v: 1, source, terminal },
+                memoryReader(
+                    ["v"],
+                    full.map((cell) => [cell]),
+                ),
+                options(),
+            );
+            expect(baseline.stats.partial).to.equal(false);
+            const incomplete = await evaluateTransform(
+                { v: 1, source, terminal },
+                memoryReader(
+                    ["v"],
+                    [...full, prefix, prefix].map((cell) => [cell]),
+                ),
+                options(),
+            );
+            expect(incomplete.rows).to.deep.equal(baseline.rows);
+            expect(incomplete.stats.partial).to.equal(true);
+            expect(incomplete.stats.partialReason).to.equal("truncatedCells");
+            expect(incomplete.stats.truncatedCellsSkipped).to.equal(2);
+        }
+    });
+
+    test("uniform-window sampling refuses unreadable retained rows", async () => {
+        const reader = memoryReader(
+            ["v"],
+            Array.from({ length: 100 }, (_, index) => [index]),
+        );
+        const sandbox = sinon.createSandbox();
+        sandbox.stub(reader, "window").resolves(windowOf([], 0, ["v"]));
+        try {
+            const error = await evaluateTransform(
+                { v: 1, source, terminal: { kind: "sample", strategy: "uniform_windows", n: 64 } },
+                reader,
+                options(),
+            ).catch((failure: unknown) => failure);
+            expect(error)
+                .to.be.instanceOf(QueryResultAccessError)
+                .with.property("code", "storeUnavailable");
+        } finally {
+            sandbox.restore();
+        }
+    });
+
+    test("a completed slice stays complete when its lookahead reaches the scan budget", async () => {
+        const result = await evaluateTransform(
+            {
+                v: 1,
+                source,
+                ops: [{ op: "slice", offset: 0, limit: 999 }],
+                terminal: { kind: "aggregate", aggs: [{ fn: "count" }] },
+            },
+            memoryReader(
+                ["v"],
+                Array.from({ length: 1002 }, (_, index) => [index]),
+            ),
+            options({ budget: { ...options().budget, maxRowsScanned: 1000 } }),
+        );
+        expect(result.rows).to.deep.equal([[999]]);
+        expect(result.stats.partial).to.equal(false);
+    });
+
     test("filter + project + rows matches the naive reference", async () => {
         const spec: TransformSpec = {
             v: 1,
