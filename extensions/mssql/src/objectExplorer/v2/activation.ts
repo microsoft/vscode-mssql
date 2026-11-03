@@ -609,6 +609,11 @@ export function activateObjectExplorerV2(
                 const identity = profileConnectionIdentity(selected.stored);
                 const isCurrent = () =>
                     matchesContainerProfile(connectionId, identity, activeController);
+                const operation = activeController.beginContainerOperation(
+                    connectionId,
+                    LocalContainers.stoppingContainerLoadingLabel,
+                );
+                if (!operation) return;
                 try {
                     if (!(await isCurrent())) return;
                     const prepared = await prepareForDockerContainerCommand(
@@ -640,6 +645,7 @@ export function activateObjectExplorerV2(
                     );
                 } finally {
                     activeController.setContainerActivity(connectionId, undefined);
+                    operation.dispose();
                 }
             },
         ),
@@ -687,6 +693,11 @@ export function activateObjectExplorerV2(
                 ) {
                     return;
                 }
+                const operation = activeController.beginContainerOperation(
+                    connectionId,
+                    LocalContainers.deletingContainerLoadingLabel,
+                );
+                if (!operation) return;
                 try {
                     if (!(await isCurrent())) return;
                     const prepared = await prepareForDockerContainerCommand(
@@ -728,6 +739,7 @@ export function activateObjectExplorerV2(
                     }
                 } finally {
                     activeController.setContainerActivity(connectionId, undefined);
+                    operation.dispose();
                 }
             },
         ),

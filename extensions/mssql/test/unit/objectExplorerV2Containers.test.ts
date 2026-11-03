@@ -17,7 +17,12 @@ import { OeV2ClassicHandoffService } from "../../src/objectExplorer/v2/legacy/oe
 import { OeV2MetadataCoordinator } from "../../src/objectExplorer/v2/metadata/oeV2MetadataCoordinator";
 import { OeV2SessionRegistry } from "../../src/objectExplorer/v2/sessions/oeV2SessionRegistry";
 import { OeV2TreeController } from "../../src/objectExplorer/v2/tree/oeV2TreeController";
-import { ISqlSession, SessionStateChange } from "../../src/services/sqlDataPlane/api";
+import {
+    DataPlaneErrorCodes,
+    ISqlSession,
+    SessionStateChange,
+    SqlDataPlaneError,
+} from "../../src/services/sqlDataPlane/api";
 import { PreparedConnection } from "../../src/services/metadata/profileAuthAdapter";
 import { ObjectExplorerV2Provider } from "../../src/objectExplorer/v2/objectExplorerV2Provider";
 import { ContainerEngine } from "../../src/sharedInterfaces/azureSqlDatabase";
@@ -297,6 +302,54 @@ suite("Object Explorer v2 container startup", () => {
         });
     }
 
+    test("Stop/Delete keeps the node busy and blocks new connections after disconnect", async () => {
+        const h = harness();
+        expect(await h.controller.connectProfile("p1")).to.equal(true);
+        const operation = h.controller.beginContainerOperation("p1", "Stopping");
+        expect(operation).not.to.equal(undefined);
+        await h.controller.disconnectProfile("p1");
+        const node = (await h.controller.children()).find((item) => item.connectionId === "p1")!;
+        expect(node.kind).to.equal("connectingConnection");
+        expect(node.description).to.equal("Stopping");
+        expect(await h.controller.connectProfile("p1")).to.equal(false);
+        expect(h.controller.beginContainerOperation("p1", "Deleting")).to.equal(undefined);
+        expect(h.open).to.have.been.calledOnce;
+        operation!.dispose();
+        expect(await h.controller.connectProfile("p1")).to.equal(true);
+        expect(h.open).to.have.been.calledTwice;
+    });
+
+    test("retries a classified STS2 transport reset without depending on redacted text", async () => {
+        const clock = sandbox.useFakeTimers();
+        const h = harness();
+        h.open
+            .onFirstCall()
+            .rejects(
+                new SqlDataPlaneError(
+                    DataPlaneErrorCodes.transportClosed,
+                    "SQL Tools Service v2 is unavailable.",
+                    true,
+                ),
+            );
+        const connected = h.controller.connectProfile("p1");
+        await clock.tickAsync(11);
+        expect(await connected).to.equal(true);
+        expect(h.open).to.have.been.calledTwice;
+    });
+
+    test("does not retry a generic STS2 unavailable failure", async () => {
+        const h = harness();
+        h.open.rejects(
+            new SqlDataPlaneError(
+                DataPlaneErrorCodes.unavailable,
+                "SQL Tools Service v2 is unavailable.",
+                true,
+            ),
+        );
+        expect(await h.controller.connectProfile("p1")).to.equal(false);
+        expect(h.open).to.have.been.calledOnce;
+    });
+
     test("retries a transient pre-login reset while SQL Server is starting", async () => {
         const clock = sandbox.useFakeTimers();
         const h = harness();
@@ -563,6 +616,38 @@ suite("Object Explorer v2 container commands", () => {
     });
 
     for (const command of ["stopContainer", "deleteContainer"]) {
+        test(`${command} holds its operation guard until engine and profile work finishes`, async () => {
+            const h = harness();
+            h.warn.resolves(Common.delete as never);
+            const begin = sandbox.spy(OeV2TreeController.prototype, "beginContainerOperation");
+            const engine = command === "stopContainer" ? h.stop : h.removeContainer;
+            let release!: (value: boolean) => void;
+            let started!: () => void;
+            const ready = new Promise<void>((resolve) => {
+                started = resolve;
+            });
+            engine.callsFake(() => {
+                started();
+                return new Promise<boolean>((resolve) => {
+                    release = resolve;
+                });
+            });
+            const pending = h.invoke(command);
+            await ready;
+            const controller = begin.firstCall.thisValue as OeV2TreeController;
+            expect(controller.beginContainerOperation("p1", "Other operation")).to.equal(undefined);
+            h.remove.callsFake(async () => {
+                expect(controller.beginContainerOperation("p1", "During removal")).to.equal(
+                    undefined,
+                );
+            });
+            release(true);
+            await pending;
+            const next = controller.beginContainerOperation("p1", "After completion");
+            expect(next).not.to.equal(undefined);
+            next!.dispose();
+        });
+
         for (const boundary of ["prepare", "disconnect"] as const) {
             test(`editing a connection during ${boundary} prevents ${command}`, async () => {
                 const h = harness();

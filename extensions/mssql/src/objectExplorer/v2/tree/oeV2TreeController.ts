@@ -18,6 +18,8 @@
  */
 
 import { diag } from "../../../diagnostics/diagnosticsCore";
+import { DataPlaneErrorCodes } from "../../../services/sqlDataPlane/api";
+import { isTransientSqlStartupError } from "../../../services/sqlDataPlane/connectionOpenErrors";
 import {
     PreparedConnection,
     prepareConnection,
@@ -278,7 +280,7 @@ export class OeV2TreeController {
 
     /** Explicit connect: opens the data-plane session + metadata coordinator. */
     async connectProfile(connectionId: string, options?: OeV2ConnectOptions): Promise<boolean> {
-        if (this.disposed) {
+        if (this.disposed || this.containerOperations.has(connectionId)) {
             return false;
         }
         this.explicitlyDisconnected.delete(connectionId);
@@ -290,6 +292,7 @@ export class OeV2TreeController {
         const profile = await this.findProfile(connectionId);
         if (
             this.disposed ||
+            this.containerOperations.has(connectionId) ||
             !profile ||
             this.profileLookupEpoch.get(connectionId) !== lookupEpoch
         ) {
@@ -763,6 +766,7 @@ export class OeV2TreeController {
         for (const connectionId of this.containerConnects.keys()) {
             this.cancelContainerConnect(connectionId);
         }
+        this.containerOperations.clear();
         this.registrySubscription?.dispose();
         for (const runtime of this.runtimes.values()) {
             runtime.clearTransientAuth?.();
@@ -805,8 +809,9 @@ export class OeV2TreeController {
 
     private connectionFacts(profileId: string): ConnectionNodeFacts | undefined {
         const session = this.deps.sessions?.get(profileId);
-        const activityText = this.containerActivity.get(profileId);
-        if (this.containerConnects.has(profileId)) {
+        const operation = this.containerOperations.get(profileId);
+        const activityText = this.containerActivity.get(profileId) ?? operation?.text;
+        if (operation || this.containerConnects.has(profileId)) {
             return { state: "connecting", ...(activityText !== undefined ? { activityText } : {}) };
         }
         if (!session) {
@@ -827,6 +832,23 @@ export class OeV2TreeController {
 
     /** Transient per-connection docker activity text (renders as description). */
     private readonly containerActivity = new Map<string, string>();
+    private readonly containerOperations = new Map<string, { text: string }>();
+
+    /** Hold Stop/Delete busy through disconnect, engine work, and profile removal. */
+    beginContainerOperation(connectionId: string, text: string): { dispose(): void } | undefined {
+        if (this.disposed || this.containerOperations.has(connectionId)) return undefined;
+        const operation = { text };
+        this.containerOperations.set(connectionId, operation);
+        this.cancelContainerConnect(connectionId);
+        this.fireChange();
+        return {
+            dispose: () => {
+                if (this.containerOperations.get(connectionId) !== operation) return;
+                this.containerOperations.delete(connectionId);
+                this.fireChange();
+            },
+        };
+    }
 
     private cancelContainerConnect(connectionId: string): void {
         this.profileLookupEpoch.set(
@@ -952,17 +974,20 @@ export class OeV2TreeController {
         const loginGraceMs = freshContainer
             ? (this.deps.waits?.containerLoginRetryGraceMs ?? 5_000)
             : 0;
-        const retryable = (reason: string | undefined) =>
-            isRetryableContainerOpenError(reason) ||
+        const retryable = (session: OeV2ConnectionSession) =>
+            session.failureCode === DataPlaneErrorCodes.transportClosed ||
+            isTransientSqlStartupError(session.failureReason) ||
             (Date.now() - startedAt < loginGraceMs &&
-                /^(?:Login failed for user\b|SQL authentication failed\.?$)/i.test(reason ?? ""));
+                /^(?:Login failed for user\b|SQL authentication failed\.?$)/i.test(
+                    session.failureReason ?? "",
+                ));
         let session = await sessions.connect(connectionId, prepared, signal);
         let attempt = 0;
         while (
             !this.disposed &&
             !signal.aborted &&
             session.state === "failed" &&
-            retryable(session.failureReason) &&
+            retryable(session) &&
             Date.now() - startedAt < budgetMs
         ) {
             attempt++;
@@ -977,7 +1002,7 @@ export class OeV2TreeController {
                 this.disposed ||
                 signal.aborted ||
                 Date.now() - startedAt >= budgetMs ||
-                !retryable(session.failureReason)
+                !retryable(session)
             ) {
                 span.end("info", {
                     result: {
@@ -1219,20 +1244,6 @@ const CONTAINER_PREFLIGHT_WAIT_MS = 360_000;
  */
 const CONTAINER_OPEN_RETRY_BUDGET_MS = 60_000;
 const CONTAINER_OPEN_RETRY_BACKOFF_MS = 2_000;
-
-/**
- * True only for the transient errors a still-booting SQL container throws —
- * transport/pre-login resets, "server not currently available". Explicitly
- * NOT "Login failed" (a wrong password must fail fast, not retry for 10s).
- */
-function isRetryableContainerOpenError(reason: string | undefined): boolean {
-    if (!reason || /login failed|password|certificate|authentication/i.test(reason)) {
-        return false;
-    }
-    return /pre-login handshake|forcibly closed|transport-level|being established|actively refused|not currently available|semaphore timeout/i.test(
-        reason,
-    );
-}
 
 /** Stop waiting immediately on cancellation; observe late errors without reviving the attempt. */
 function waitForContainerResult<T>(
