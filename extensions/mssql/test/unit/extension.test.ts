@@ -120,6 +120,7 @@ suite("Extension API Tests", () => {
                     isConnected: () => false,
                     onConnectionsChanged: () => disposable,
                     onDidChangeDatabaseContext: () => disposable,
+                    onSuccessfulConnection: () => disposable,
                 }) as unknown as ConnectionManager,
         );
 
