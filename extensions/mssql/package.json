@@ -4441,6 +4441,17 @@
                                     "default": "",
                                     "description": "%mssql.connection.containerName%"
                                 },
+                                "containerEngine": {
+                                    "type": "string",
+                                    "enum": [
+                                        "docker",
+                                        "podman",
+                                        "containerd",
+                                        "appleContainer",
+                                        "wslContainer"
+                                    ],
+                                    "description": "%mssql.connection.containerEngine%"
+                                },
                                 "order": {
                                     "type": "number",
                                     "minimum": 0,

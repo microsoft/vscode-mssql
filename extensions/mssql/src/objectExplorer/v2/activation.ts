@@ -120,11 +120,13 @@ export function activateObjectExplorerV2(
         connectionId: string,
         signal: AbortSignal,
         expectedIdentity?: string,
+        engine?: ContainerHostAdapter["containerEngine"],
     ): ContainerHostAdapter => {
         const owner = controller;
         const isActive = () =>
             Boolean(owner) && controller === owner && deps.isEnabled() && !signal.aborted;
         return {
+            containerEngine: engine,
             setStatus: (text: string) => {
                 if (isActive()) owner?.setContainerActivity(connectionId, text);
             },
@@ -204,7 +206,7 @@ export function activateObjectExplorerV2(
                     try {
                         return await restartSqlServerContainer(
                             name,
-                            containerHost(id, signal, identity),
+                            containerHost(id, signal, identity, selected.stored.containerEngine),
                             undefined,
                             cancellation.token,
                         );
@@ -611,7 +613,12 @@ export function activateObjectExplorerV2(
                     if (!(await isCurrent())) return;
                     const prepared = await prepareForDockerContainerCommand(
                         containerName,
-                        containerHost(connectionId, new AbortController().signal, identity),
+                        containerHost(
+                            connectionId,
+                            new AbortController().signal,
+                            identity,
+                            selected.stored.containerEngine,
+                        ),
                     );
                     if (!prepared.success || !(await isCurrent())) return;
                     activeController.setContainerActivity(
@@ -622,7 +629,10 @@ export function activateObjectExplorerV2(
                     if (!(await isCurrent())) return;
                     await activeController.disconnectProfile(connectionId);
                     if (!(await isCurrent())) return;
-                    const stopped = await stopContainer(containerName);
+                    const stopped = await stopContainer(
+                        containerName,
+                        selected.stored.containerEngine,
+                    );
                     void vscode.window.showInformationMessage(
                         stopped
                             ? LocalContainers.stoppedContainerSucessfully(containerName)
@@ -651,7 +661,9 @@ export function activateObjectExplorerV2(
                 const others = profiles.filter(
                     (profile) =>
                         profile.profileId !== connectionId &&
-                        profile.stored.containerName === containerName,
+                        profile.stored.containerName === containerName &&
+                        (profile.stored.containerEngine ?? "docker") ===
+                            (selected.stored.containerEngine ?? "docker"),
                 );
                 const confirmation =
                     others.length > 0
@@ -679,7 +691,12 @@ export function activateObjectExplorerV2(
                     if (!(await isCurrent())) return;
                     const prepared = await prepareForDockerContainerCommand(
                         containerName,
-                        containerHost(connectionId, new AbortController().signal, identity),
+                        containerHost(
+                            connectionId,
+                            new AbortController().signal,
+                            identity,
+                            selected.stored.containerEngine,
+                        ),
                     );
                     if (!prepared.success || !(await isCurrent())) return;
                     activeController.setContainerActivity(
@@ -690,7 +707,10 @@ export function activateObjectExplorerV2(
                     if (!(await isCurrent())) return;
                     await activeController.disconnectProfile(connectionId);
                     if (!(await isCurrent())) return;
-                    const deleted = await deleteContainer(containerName);
+                    const deleted = await deleteContainer(
+                        containerName,
+                        selected.stored.containerEngine,
+                    );
                     void vscode.window.showInformationMessage(
                         deleted
                             ? LocalContainers.deletedContainerSucessfully(containerName)

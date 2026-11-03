@@ -20,6 +20,9 @@ import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
 import * as dockerodeClient from "../../src/docker/dockerodeClient";
 import { PassThrough } from "stream";
+import * as containerEngine from "../../src/docker/containerEngine";
+import { ContainerEngine } from "../../src/sharedInterfaces/azureSqlDatabase";
+import { ContainerHostAdapter } from "../../src/docker/containerHostAdapter";
 
 chai.use(sinonChai);
 
@@ -733,6 +736,59 @@ suite("Docker Utilities", () => {
         expect(result.error).to.equal(LocalContainers.dockerSocketPermissionError);
         // Should NOT have attempted systemctl start docker
         expect(spawnStub).to.have.been.calledOnceWith("docker", ["info"]);
+    });
+
+    test("uses the saved engine for preparation, stop, and delete without Docker discovery", async () => {
+        stubTelemetry(sandbox);
+        node.connectionProfile.containerEngine = ContainerEngine.Podman;
+        const inspect = sandbox.stub(containerEngine, "inspectContainer").resolves(false);
+        const execute = sandbox
+            .stub(containerEngine, "executeContainerEngineCommand")
+            .resolves({ stdout: "", stderr: "" });
+        const docker = sandbox.stub(dockerodeClient, "getDockerodeClient");
+
+        expect(
+            (
+                await dockerUtils.prepareForDockerContainerCommand(
+                    "testContainer",
+                    node,
+                    mockObjectExplorerService,
+                )
+            ).success,
+        ).to.be.true;
+        expect(inspect).to.have.been.calledWith(ContainerEngine.Podman, "testContainer");
+        expect(await dockerUtils.stopContainer("testContainer", ContainerEngine.Podman)).to.be.true;
+        expect(await dockerUtils.deleteContainer("testContainer", ContainerEngine.Podman)).to.be
+            .true;
+        expect(execute).to.have.been.calledWith(
+            { executable: "podman", args: ["stop", "testContainer"] },
+            120_000,
+        );
+        expect(execute).to.have.been.calledWith(
+            { executable: "podman", args: ["rm", "--force", "testContainer"] },
+            120_000,
+        );
+        expect(docker).not.to.have.been.called;
+    });
+
+    test("adapter preparation inspects its saved engine and routes errors through the host", async () => {
+        const host: ContainerHostAdapter = {
+            containerEngine: ContainerEngine.Podman,
+            setStatus: sandbox.stub(),
+            showError: sandbox.stub(),
+            onContainerMissing: sandbox.stub().resolves(),
+        };
+        const inspect = sandbox.stub(containerEngine, "inspectContainer").resolves(false);
+        const docker = sandbox.stub(dockerodeClient, "getDockerodeClient");
+
+        expect((await dockerUtils.prepareForDockerContainerCommand("testContainer", host)).success)
+            .to.be.true;
+        expect(inspect).to.have.been.calledWith(ContainerEngine.Podman, "testContainer");
+        inspect.rejects(new Error("engine unavailable"));
+        expect((await dockerUtils.prepareForDockerContainerCommand("testContainer", host)).success)
+            .to.be.false;
+        expect(host.showError).to.have.been.calledWith("engine unavailable");
+        expect(docker).not.to.have.been.called;
     });
 
     test("deleteContainer: should delete the container and return success or error", async () => {

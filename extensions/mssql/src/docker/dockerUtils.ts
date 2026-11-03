@@ -33,6 +33,8 @@ import { diag, diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { ContainerHostAdapter, NULL_CONTAINER_HOST } from "./containerHostAdapter";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "./dockerodeClient";
+import * as containerEngine from "./containerEngine";
+import { IConnectionInfo } from "vscode-mssql";
 
 export const invalidContainerNameValidationResult: FormItemValidationState = {
     isValid: false,
@@ -803,8 +805,19 @@ export function isContainerHostAdapter(
 /**
  * Deletes a Docker container with the specified name.
  */
-export async function deleteContainer(containerName: string): Promise<boolean> {
+export async function deleteContainer(
+    containerName: string,
+    engine?: IConnectionInfo["containerEngine"],
+): Promise<boolean> {
     try {
+        if (engine) {
+            await containerEngine.executeContainerEngineCommand(
+                containerEngine.getContainerLifecycleCommand(engine, "delete", containerName),
+                120_000,
+            );
+            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.DeleteContainer);
+            return true;
+        }
         const container = await getContainerByName(containerName);
         if (!container) {
             throw new Error(`Container ${containerName} does not exist.`);
@@ -830,8 +843,19 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
 /**
  * Stops a Docker container with the specified name.
  */
-export async function stopContainer(containerName: string): Promise<boolean> {
+export async function stopContainer(
+    containerName: string,
+    engine?: IConnectionInfo["containerEngine"],
+): Promise<boolean> {
     try {
+        if (engine) {
+            await containerEngine.executeContainerEngineCommand(
+                containerEngine.getContainerLifecycleCommand(engine, "stop", containerName),
+                120_000,
+            );
+            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StopContainer);
+            return true;
+        }
         const container = await getContainerByName(containerName);
         if (!container) {
             throw new Error(`Container ${containerName} does not exist.`);
@@ -976,8 +1000,8 @@ export async function findAvailablePort(
 }
 
 /**
- * Prepares the given Docker container for command execution.
- * This function checks if Docker is running and if the specified container exists.
+ * Checks the saved engine and container before running lifecycle commands.
+ * Profiles without engine metadata retain the legacy Docker startup flow.
  */
 export async function prepareForDockerContainerCommand(
     containerName: string,
@@ -985,11 +1009,6 @@ export async function prepareForDockerContainerCommand(
     objectExplorerService?: ObjectExplorerService,
     cancellationTokenSource?: vscode.CancellationTokenSource,
 ): Promise<DockerCommandParams> {
-    const startDockerResult = await startDocker(
-        hostOrNode,
-        objectExplorerService,
-        cancellationTokenSource,
-    );
     let host: ContainerHostAdapter | undefined;
     let containerNode: ConnectionNode | undefined;
     if (isContainerHostAdapter(hostOrNode)) {
@@ -997,6 +1016,24 @@ export async function prepareForDockerContainerCommand(
     } else {
         containerNode = hostOrNode;
     }
+    const engine = host?.containerEngine ?? containerNode?.connectionProfile.containerEngine;
+    if (engine) {
+        try {
+            await containerEngine.inspectContainer(engine, containerName);
+            return { success: true };
+        } catch (error) {
+            const errorMessage = getErrorMessage(error);
+            dockerLogger.error(errorMessage);
+            if (host) host.showError(errorMessage);
+            else void vscode.window.showErrorMessage(errorMessage);
+            return { success: false, error: errorMessage };
+        }
+    }
+    const startDockerResult = await startDocker(
+        hostOrNode,
+        objectExplorerService,
+        cancellationTokenSource,
+    );
     if (!startDockerResult.success) {
         if (!startDockerResult.canceled) {
             if (host !== undefined) {

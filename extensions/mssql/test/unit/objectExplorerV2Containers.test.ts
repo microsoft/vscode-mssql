@@ -20,6 +20,7 @@ import { OeV2TreeController } from "../../src/objectExplorer/v2/tree/oeV2TreeCon
 import { ISqlSession, SessionStateChange } from "../../src/services/sqlDataPlane/api";
 import { PreparedConnection } from "../../src/services/metadata/profileAuthAdapter";
 import { ObjectExplorerV2Provider } from "../../src/objectExplorer/v2/objectExplorerV2Provider";
+import { ContainerEngine } from "../../src/sharedInterfaces/azureSqlDatabase";
 
 suite("Object Explorer v2 container startup", () => {
     let sandbox: sinon.SinonSandbox;
@@ -398,6 +399,7 @@ suite("Object Explorer v2 container commands", () => {
                 server: "localhost,14330",
                 authenticationType: "Integrated",
                 containerName: "shared-container",
+                containerEngine: undefined as ContainerHostAdapter["containerEngine"],
             },
             {
                 id: "p2",
@@ -405,6 +407,7 @@ suite("Object Explorer v2 container commands", () => {
                 server: "localhost,14330",
                 authenticationType: "Integrated",
                 containerName: "shared-container",
+                containerEngine: undefined as ContainerHostAdapter["containerEngine"],
             },
         ];
         const remove = sandbox.stub().resolves();
@@ -502,6 +505,53 @@ suite("Object Explorer v2 container commands", () => {
         expect(h.removeContainer).to.have.been.calledWith("shared-container");
         expect(h.remove).to.have.been.calledOnce;
         expect(h.remove.firstCall.args[0]).to.include({ id: "p1" });
+    });
+
+    test("deletion routes to the saved engine and does not warn about another engine's container", async () => {
+        const h = harness();
+        h.profiles[0].containerEngine = ContainerEngine.Podman;
+        h.info.resolves(Common.delete as never);
+        await h.invoke("deleteContainer");
+        expect(h.warn).not.to.have.been.called;
+        expect(h.info).to.have.been.calledWith(
+            LocalContainers.deleteContainerConfirmation("shared-container"),
+            { modal: true },
+            Common.delete,
+        );
+        expect(h.prepare).to.have.been.calledWith(
+            "shared-container",
+            sinon.match({ containerEngine: ContainerEngine.Podman }),
+        );
+        expect(h.removeContainer).to.have.been.calledWith(
+            "shared-container",
+            ContainerEngine.Podman,
+        );
+        expect(h.remove).to.have.been.calledWith(sinon.match({ id: "p1" }), false);
+    });
+
+    test("legacy Docker profiles share a container with explicitly selected Docker profiles", async () => {
+        const h = harness();
+        h.profiles[0].containerEngine = ContainerEngine.Docker;
+        await h.invoke("deleteContainer");
+        expect(h.warn).to.have.been.calledWith(
+            LocalContainers.deleteSharedContainerConfirmation("shared-container", [
+                "Other database",
+            ]),
+            { modal: true },
+            Common.delete,
+        );
+        expect(h.removeContainer).not.to.have.been.called;
+    });
+
+    test("stop uses the selected engine for preparation and the lifecycle command", async () => {
+        const h = harness();
+        h.profiles[0].containerEngine = ContainerEngine.WslContainer;
+        await h.invoke("stopContainer");
+        expect(h.prepare).to.have.been.calledWith(
+            "shared-container",
+            sinon.match({ containerEngine: ContainerEngine.WslContainer }),
+        );
+        expect(h.stop).to.have.been.calledWith("shared-container", ContainerEngine.WslContainer);
     });
 
     test("failed deletion keeps the saved profile", async () => {

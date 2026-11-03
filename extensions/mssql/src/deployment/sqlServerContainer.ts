@@ -22,6 +22,7 @@ import { diag, diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { ContainerHostAdapter } from "../docker/containerHostAdapter";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "../docker/dockerodeClient";
+import { startContainer } from "../docker/containerEngine";
 import { getSqlPasswordValidationError, SqlPasswordValidationError } from "../utils/sqlStringUtils";
 import {
     DockerCommand,
@@ -268,6 +269,44 @@ export async function restartSqlServerContainer(
         if (cancellationTokenSource.token.isCancellationRequested) {
             span.end("info", { result: { raw: "canceled", cls: "diagnostic.metadata" } });
             return undefined;
+        }
+        const engine = host?.containerEngine ?? containerNode?.connectionProfile.containerEngine;
+        if (engine) {
+            const abortController = new AbortController();
+            const cancellationListener = cancellationTokenSource.token.onCancellationRequested(() =>
+                abortController.abort(),
+            );
+            try {
+                await setStatus(LocalContainers.startingContainerLoadingLabel);
+                if (cancellationTokenSource.token.isCancellationRequested) abortController.abort();
+                await startContainer(engine, containerName, abortController.signal);
+                if (abortController.signal.aborted) {
+                    span.end("info", { result: { raw: "canceled", cls: "diagnostic.metadata" } });
+                    return undefined;
+                }
+                await setStatus(ObjectExplorer.LoadingNodeLabel, false);
+                span.end("ok");
+                return true;
+            } catch (error) {
+                if (abortController.signal.aborted) {
+                    span.end("info", { result: { raw: "canceled", cls: "diagnostic.metadata" } });
+                    return undefined;
+                }
+                const errorMessage = getErrorMessage(error);
+                dockerLogger.error(errorMessage);
+                if (host) host.showError(errorMessage);
+                else void vscode.window.showErrorMessage(errorMessage);
+                sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+                    error,
+                    includeErrorMessage: false,
+                });
+                span.end("error", {
+                    errorClass: { raw: diagnosticErrorClass(error), cls: "diagnostic.metadata" },
+                });
+                return false;
+            } finally {
+                cancellationListener.dispose();
+            }
         }
         const dockerPreparedResult = await prepareForDockerContainerCommand(
             containerName,

@@ -6,16 +6,19 @@
 import * as chai from "chai";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
+import * as vscode from "vscode";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import * as localContainers from "../../src/deployment/localContainersHelpers";
 import { DeploymentWebviewState } from "../../src/sharedInterfaces/deployment";
 import { LocalContainersState } from "../../src/sharedInterfaces/localContainers";
+import { AzureSqlDatabaseRequests } from "../../src/sharedInterfaces/azureSqlDatabase";
 import { stubTelemetry } from "./utils";
+import { createWorkspaceConfiguration } from "./stubs";
 
 chai.use(sinonChai);
 const { expect } = chai;
 
-suite("Deployment dialog closing", () => {
+suite("Deployment webview controller", () => {
     let sandbox: sinon.SinonSandbox;
     let controller: sinon.SinonStubbedInstance<DeploymentWebviewController>;
     let closePanel: sinon.SinonStub;
@@ -33,6 +36,24 @@ suite("Deployment dialog closing", () => {
     });
 
     teardown(() => sandbox.restore());
+
+    test("registers Azure SQL container requests even when preview flags are disabled", () => {
+        sandbox.stub(vscode.workspace, "getConfiguration").returns(
+            createWorkspaceConfiguration({
+                "mssql.preview.azureSqlContainers": false,
+                enableExperimentalFeatures: false,
+            }),
+        );
+        controller.onRequest.resetHistory();
+        DeploymentWebviewController.prototype["registerRpcHandlers"].call(controller);
+
+        expect(controller.onRequest).to.have.been.calledWith(
+            AzureSqlDatabaseRequests.DetectContainerEngines,
+        );
+        expect(controller.onRequest).to.have.been.calledWith(
+            AzureSqlDatabaseRequests.ValidateContainerForm,
+        );
+    });
 
     test("Finish closes the Azure container dialog without legacy Docker state", async () => {
         const telemetry = sandbox.spy(localContainers, "sendLocalContainersCloseEventTelemetry");

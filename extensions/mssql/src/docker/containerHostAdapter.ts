@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { IConnectionInfo } from "vscode-mssql";
+
 /**
  * Host seams for the docker orchestration layer (DOCK-0).
  *
@@ -16,6 +18,8 @@
  */
 
 export interface ContainerHostAdapter {
+    /** Saved engine; absent for profiles using the legacy Docker flow. */
+    readonly containerEngine?: IConnectionInfo["containerEngine"];
     /** Progress/status text on the owning tree node ("Starting Docker…"). */
     setStatus(text: string): Promise<void> | void;
     /** Surface a user-facing error message. */
