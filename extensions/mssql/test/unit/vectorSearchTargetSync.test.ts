@@ -5,8 +5,51 @@
 
 import { expect } from "chai";
 import { resolveAuthoritativeVectorTargetIndex } from "../../src/webviews/pages/QueryStudio/vectorSearchTargetSync";
+import { resolveVectorPerfSearchTarget } from "../../src/webviews/pages/QueryStudio/vectorPerfAction";
+import type { QsVectorPerfSearchAction } from "../../src/sharedInterfaces/queryStudio";
+import type { VectorSearchTargetInfo } from "../../src/sharedInterfaces/vectorSearch";
 
 const TARGETS = [{ id: "t-alpha" }, { id: "t-beta" }, { id: "t-gamma" }] as const;
+
+suite("vector performance target resolution", () => {
+    const action: QsVectorPerfSearchAction = {
+        source: { kind: "selectedRow", ordinal: 0 },
+        target: { schema: "dbo", table: "Vectors", vectorColumn: "embedding" },
+        metric: "cosine",
+        k: 10,
+        includeApprox: false,
+    };
+    const target: VectorSearchTargetInfo = {
+        id: "exact",
+        ...action.target,
+        keyColumn: "id",
+        keyIsUnique: true,
+        filterColumns: [],
+    };
+    const foldedTarget = { ...target, id: "folded", table: "vectors" };
+
+    test("prefers exact catalog identifiers on case-sensitive databases", () => {
+        expect(resolveVectorPerfSearchTarget(action, [foldedTarget, target])).to.deep.equal({
+            target,
+            targetIndex: 1,
+        });
+    });
+
+    test("retains a unique case-insensitive fallback", () => {
+        expect(resolveVectorPerfSearchTarget(action, [foldedTarget])).to.deep.equal({
+            target: foldedTarget,
+            targetIndex: 0,
+        });
+    });
+
+    test("rejects an ambiguous fallback rather than choosing another catalog target", () => {
+        const result = resolveVectorPerfSearchTarget(
+            { ...action, target: { ...action.target, table: "VECTORS" } },
+            [target, foldedTarget],
+        );
+        expect(result).to.have.property("error").that.includes("ambiguous");
+    });
+});
 
 suite("vectorSearchTargetSync", () => {
     suite("resolveAuthoritativeVectorTargetIndex", () => {

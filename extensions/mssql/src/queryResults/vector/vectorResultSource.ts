@@ -114,13 +114,10 @@ export function planWindows(
     for (let w = 0; w < windowCount && planned < targetRows; w++) {
         // Evenly spaced window starts across the whole set (deterministic).
         const start = Math.floor((w * totalRows) / windowCount);
-        const rows = Math.min(WINDOW_ROWS, targetRows - planned, totalRows - start);
+        const nextStart = Math.floor(((w + 1) * totalRows) / windowCount);
+        const rows = Math.min(WINDOW_ROWS, targetRows - planned, nextStart - start);
         if (rows <= 0) {
             continue;
-        }
-        const previous = windows[windows.length - 1];
-        if (previous && start < previous.start + previous.rows) {
-            continue; // windows collapsed onto each other for tiny sets
         }
         windows.push({ start, rows });
         planned += rows;

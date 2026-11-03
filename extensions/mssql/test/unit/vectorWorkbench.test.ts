@@ -396,6 +396,22 @@ suite("vector ingest source", () => {
         expect(componentBound.targetRows).to.equal(100);
     });
 
+    test("sampling just beyond the component budget preserves every planned row", () => {
+        const sampled = planWindows(501, 1998, {
+            ...BUDGET,
+            maxComponents: 1_000_000,
+        });
+        expect(sampled.method).to.equal("uniformWindows");
+        expect(sampled.targetRows).to.equal(500);
+        const ordinals = sampled.windows.flatMap(({ start, rows }) =>
+            Array.from({ length: rows }, (_, i) => start + i),
+        );
+        expect(ordinals).to.have.length(500);
+        expect(new Set(ordinals).size).to.equal(500);
+        expect(Math.max(...ordinals)).to.be.at.most(500);
+        expect(Math.max(...ordinals)).to.be.at.least(499);
+    });
+
     function vectorCell(values: number[]): object {
         const bytes = Buffer.alloc(values.length * 4);
         values.forEach((v, i) => bytes.writeFloatLE(v, i * 4));

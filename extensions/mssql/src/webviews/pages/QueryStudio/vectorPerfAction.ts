@@ -19,14 +19,22 @@ export function resolveVectorPerfSearchTarget(
     action: QsVectorPerfSearchAction,
     targets: readonly VectorSearchTargetInfo[],
 ): VectorPerfTargetResolution {
-    const matches = targets
-        .map((target, targetIndex) => ({ target, targetIndex }))
-        .filter(
-            ({ target }) =>
-                sameIdentifier(target.schema, action.target.schema) &&
-                sameIdentifier(target.table, action.target.table) &&
-                sameIdentifier(target.vectorColumn, action.target.vectorColumn),
-        );
+    const indexedTargets = targets.map((target, targetIndex) => ({ target, targetIndex }));
+    const exactMatches = indexedTargets.filter(
+        ({ target }) =>
+            target.schema === action.target.schema &&
+            target.table === action.target.table &&
+            target.vectorColumn === action.target.vectorColumn,
+    );
+    const matches =
+        exactMatches.length > 0
+            ? exactMatches
+            : indexedTargets.filter(
+                  ({ target }) =>
+                      sameIdentifier(target.schema, action.target.schema) &&
+                      sameIdentifier(target.table, action.target.table) &&
+                      sameIdentifier(target.vectorColumn, action.target.vectorColumn),
+              );
     if (matches.length === 0) {
         return { error: "The requested Vector performance target was not found in the catalog." };
     }
