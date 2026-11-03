@@ -904,6 +904,7 @@ export async function evaluateTransform(
 
     function withinBudget(): boolean {
         if (options.isCancelled?.()) cut("canceled");
+        else if (sliceStates.some((state) => state.taken >= state.op.limit)) stopped = true;
         else if (stats.rowsScanned >= options.budget.maxRowsScanned) cut("rows");
         else if (now() - startedAt > options.budget.maxEvalMs) cut("time");
         return !stopped;

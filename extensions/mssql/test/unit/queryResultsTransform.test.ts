@@ -691,23 +691,26 @@ suite("queryResults transform engine", () => {
         }
     });
 
-    test("a completed slice stays complete when its lookahead reaches the scan budget", async () => {
-        const result = await evaluateTransform(
-            {
-                v: 1,
-                source,
-                ops: [{ op: "slice", offset: 0, limit: 999 }],
-                terminal: { kind: "aggregate", aggs: [{ fn: "count" }] },
-            },
-            memoryReader(
-                ["v"],
-                Array.from({ length: 1002 }, (_, index) => [index]),
-            ),
-            options({ budget: { ...options().budget, maxRowsScanned: 1000 } }),
-        );
-        expect(result.rows).to.deep.equal([[999]]);
-        expect(result.stats.partial).to.equal(false);
-    });
+    for (const limit of [999, 1000]) {
+        test(`a completed ${limit}-row slice stays complete at the scan budget`, async () => {
+            const result = await evaluateTransform(
+                {
+                    v: 1,
+                    source,
+                    ops: [{ op: "slice", offset: 0, limit }],
+                    terminal: { kind: "aggregate", aggs: [{ fn: "count" }] },
+                },
+                memoryReader(
+                    ["v"],
+                    Array.from({ length: 1002 }, (_, index) => [index]),
+                ),
+                options({ budget: { ...options().budget, maxRowsScanned: 1000 } }),
+            );
+            expect(result.rows).to.deep.equal([[limit]]);
+            expect(result.stats.partial).to.equal(false);
+            expect(result.stats.rowsScanned).to.equal(limit);
+        });
+    }
 
     test("filter + project + rows matches the naive reference", async () => {
         const spec: TransformSpec = {
