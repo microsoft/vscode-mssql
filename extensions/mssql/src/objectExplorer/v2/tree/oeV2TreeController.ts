@@ -32,6 +32,7 @@ import {
     ConnectionProfileSource,
     OeV2ProfileRecord,
     OeV2ProfileTree,
+    OeV2StoredProfile,
     readProfileTree,
 } from "../sessions/oeV2ProfileAdapter";
 import { OeV2ConnectionSession, OeV2SessionRegistry } from "../sessions/oeV2SessionRegistry";
@@ -124,6 +125,14 @@ export interface OeV2ConnectOptions {
 
 const DEFAULT_SETTINGS: OeV2BrowseSettings = { groupBySchema: false, showSystemDatabases: true };
 
+function containerOperationKey(
+    container: Pick<OeV2StoredProfile, "containerName" | "containerEngine"> | undefined,
+): string | undefined {
+    return container?.containerName
+        ? JSON.stringify([container.containerEngine ?? "docker", container.containerName])
+        : undefined;
+}
+
 export class OeV2TreeController {
     private disposed = false;
     private tree: OeV2ProfileTree | undefined;
@@ -134,7 +143,7 @@ export class OeV2TreeController {
     private readonly profileLookupEpoch = new Map<string, number>();
     private readonly containerConnects = new Map<
         string,
-        { cancellation: AbortController; pending: Promise<boolean> }
+        { cancellation: AbortController; pending: Promise<boolean>; containerKey: string }
     >();
 
     constructor(private readonly deps: OeV2TreeControllerDeps) {
@@ -280,7 +289,7 @@ export class OeV2TreeController {
 
     /** Explicit connect: opens the data-plane session + metadata coordinator. */
     async connectProfile(connectionId: string, options?: OeV2ConnectOptions): Promise<boolean> {
-        if (this.disposed || this.containerOperations.has(connectionId)) {
+        if (this.disposed || this.containerOperationFor(connectionId)) {
             return false;
         }
         this.explicitlyDisconnected.delete(connectionId);
@@ -292,13 +301,14 @@ export class OeV2TreeController {
         const profile = await this.findProfile(connectionId);
         if (
             this.disposed ||
-            this.containerOperations.has(connectionId) ||
             !profile ||
+            this.containerOperationFor(connectionId, profile.stored) ||
             this.profileLookupEpoch.get(connectionId) !== lookupEpoch
         ) {
             return false;
         }
-        if (!profile.stored.containerName) {
+        const containerKey = containerOperationKey(profile.stored);
+        if (!containerKey) {
             return this.connectPreparedProfile(connectionId, profile, undefined, options);
         }
         // The wizard and profile-change reconciliation can request the same
@@ -319,7 +329,11 @@ export class OeV2TreeController {
                 this.setContainerActivity(connectionId, undefined);
             }
         });
-        this.containerConnects.set(connectionId, { cancellation, pending });
+        this.containerConnects.set(connectionId, {
+            cancellation,
+            pending,
+            containerKey,
+        });
         this.fireChange();
         return pending;
     }
@@ -340,7 +354,12 @@ export class OeV2TreeController {
                 profile.stored.containerName,
                 cancellation,
             );
-            if (this.disposed || cancellation.signal.aborted || !ready.proceed) {
+            if (
+                this.disposed ||
+                cancellation.signal.aborted ||
+                this.containerOperationFor(connectionId, profile.stored) ||
+                !ready.proceed
+            ) {
                 return false;
             }
             preflightWarning = ready.warning;
@@ -809,7 +828,7 @@ export class OeV2TreeController {
 
     private connectionFacts(profileId: string): ConnectionNodeFacts | undefined {
         const session = this.deps.sessions?.get(profileId);
-        const operation = this.containerOperations.get(profileId);
+        const operation = this.containerOperationFor(profileId);
         const activityText = this.containerActivity.get(profileId) ?? operation?.text;
         if (operation || this.containerConnects.has(profileId)) {
             return {
@@ -835,14 +854,30 @@ export class OeV2TreeController {
 
     /** Transient per-connection docker activity text (renders as description). */
     private readonly containerActivity = new Map<string, string>();
-    private readonly containerOperations = new Map<string, { text: string }>();
+    private readonly containerOperations = new Map<
+        string,
+        { text: string; containerKey: string }
+    >();
 
-    /** Hold Stop/Delete busy through disconnect, engine work, and profile removal. */
-    beginContainerOperation(connectionId: string, text: string): { dispose(): void } | undefined {
-        if (this.disposed || this.containerOperations.has(connectionId)) return undefined;
-        const operation = { text };
+    /** Hold every profile for this engine/container busy until Stop/Delete finishes. */
+    beginContainerOperation(
+        connectionId: string,
+        text: string,
+        container: Pick<OeV2StoredProfile, "containerName" | "containerEngine">,
+    ): { dispose(): void } | undefined {
+        const containerKey = containerOperationKey(container);
+        if (this.disposed || !containerKey || this.containerOperationFor(connectionId, container)) {
+            return undefined;
+        }
+        const operation = { text, containerKey };
         this.containerOperations.set(connectionId, operation);
-        this.cancelContainerConnect(connectionId);
+        // A different saved profile can be opening the same physical container.
+        // Cancel its pre-flight and pending SQL open before engine teardown.
+        const affected = new Set([connectionId]);
+        for (const [profileId, pending] of this.containerConnects) {
+            if (pending.containerKey === containerKey) affected.add(profileId);
+        }
+        for (const profileId of affected) this.cancelConnect(profileId);
         this.fireChange();
         return {
             dispose: () => {
@@ -851,6 +886,24 @@ export class OeV2TreeController {
                 this.fireChange();
             },
         };
+    }
+
+    private containerOperationFor(
+        connectionId: string,
+        container?: Pick<OeV2StoredProfile, "containerName" | "containerEngine">,
+    ): { text: string; containerKey: string } | undefined {
+        if (this.containerOperations.size === 0) return undefined;
+        const own = this.containerOperations.get(connectionId);
+        if (own) return own;
+        const key = containerOperationKey(
+            container ??
+                this.tree?.profiles.find((profile) => profile.profileId === connectionId)?.stored,
+        );
+        if (!key) return undefined;
+        for (const operation of this.containerOperations.values()) {
+            if (operation.containerKey === key) return operation;
+        }
+        return undefined;
     }
 
     private cancelContainerConnect(connectionId: string): void {

@@ -305,7 +305,8 @@ suite("Object Explorer v2 container startup", () => {
     test("Stop/Delete keeps the node busy and blocks new connections after disconnect", async () => {
         const h = harness();
         expect(await h.controller.connectProfile("p1")).to.equal(true);
-        const operation = h.controller.beginContainerOperation("p1", "Stopping");
+        const container = { containerName: "test-container" };
+        const operation = h.controller.beginContainerOperation("p1", "Stopping", container);
         expect(operation).not.to.equal(undefined);
         await h.controller.disconnectProfile("p1");
         const node = (await h.controller.children()).find((item) => item.connectionId === "p1")!;
@@ -313,11 +314,113 @@ suite("Object Explorer v2 container startup", () => {
         expect(node.description).to.equal("Stopping");
         expect(node.capabilities.canCancelConnect).not.to.equal(true);
         expect(await h.controller.connectProfile("p1")).to.equal(false);
-        expect(h.controller.beginContainerOperation("p1", "Deleting")).to.equal(undefined);
+        expect(h.controller.beginContainerOperation("p1", "Deleting", container)).to.equal(
+            undefined,
+        );
         expect(h.open).to.have.been.calledOnce;
         operation!.dispose();
         expect(await h.controller.connectProfile("p1")).to.equal(true);
         expect(h.open).to.have.been.calledTwice;
+    });
+
+    function sharedContainerProfiles() {
+        return ["p1", "p2"].map((id) => ({
+            id,
+            server: "localhost,14330",
+            authenticationType: "Integrated",
+            containerName: "test-container",
+        }));
+    }
+
+    test("Stop/Delete blocks all profiles for its container while other engines and containers connect", async () => {
+        const h = harness();
+        const profiles = sharedContainerProfiles();
+        h.profiles.readAllConnections.resolves([
+            profiles[0],
+            { ...profiles[1], containerEngine: ContainerEngine.Docker },
+            { ...profiles[1], id: "p3", containerEngine: ContainerEngine.Podman },
+            { ...profiles[1], id: "p4", containerName: "another-container" },
+        ]);
+        await h.controller.children();
+        const operation = h.controller.beginContainerOperation("p1", "Stopping", profiles[0]);
+        expect(operation).not.to.equal(undefined);
+        expect(await h.controller.connectProfile("p1")).to.equal(false);
+        expect(await h.controller.connectProfile("p2")).to.equal(false);
+        expect(h.controller.beginContainerOperation("p2", "Deleting", profiles[1])).to.equal(
+            undefined,
+        );
+        const node = (await h.controller.children()).find((item) => item.connectionId === "p2")!;
+        expect(node.description).to.equal("Stopping");
+        expect(node.capabilities.canCancelConnect).not.to.equal(true);
+        expect(h.restart).not.to.have.been.called;
+        expect(h.open).not.to.have.been.called;
+        expect(await h.controller.connectProfile("p3")).to.equal(true);
+        expect(await h.controller.connectProfile("p4")).to.equal(true);
+        operation!.dispose();
+        expect(await h.controller.connectProfile("p2")).to.equal(true);
+    });
+
+    test("a shared-container operation blocks a profile lookup already in progress", async () => {
+        const h = harness();
+        const profiles = sharedContainerProfiles();
+        const entered = Promise.withResolvers<void>();
+        const lookup = Promise.withResolvers<typeof profiles>();
+        h.profiles.readAllConnections.callsFake(() => {
+            entered.resolve();
+            return lookup.promise;
+        });
+        const connecting = h.controller.connectProfile("p2");
+        await entered.promise;
+        const operation = h.controller.beginContainerOperation("p1", "Deleting", profiles[0]);
+        lookup.resolve(profiles);
+        expect(await connecting).to.equal(false);
+        expect(h.restart).not.to.have.been.called;
+        expect(h.open).not.to.have.been.called;
+        operation!.dispose();
+        expect(await h.controller.connectProfile("p2")).to.equal(true);
+    });
+
+    test("Stop/Delete cancels another profile's in-flight container pre-flight", async () => {
+        const h = harness();
+        const profiles = sharedContainerProfiles();
+        h.profiles.readAllConnections.resolves(profiles);
+        const entered = Promise.withResolvers<void>();
+        const ready = Promise.withResolvers<boolean>();
+        h.restart.callsFake(() => {
+            entered.resolve();
+            return ready.promise;
+        });
+        const connecting = h.controller.connectProfile("p2");
+        await entered.promise;
+        const operation = h.controller.beginContainerOperation("p1", "Stopping", profiles[0]);
+        expect(await connecting).to.equal(false);
+        expect(h.restart.firstCall.args[2].aborted).to.equal(true);
+        ready.resolve(true);
+        expect(await h.controller.connectProfile("p2")).to.equal(false);
+        expect(h.open).not.to.have.been.called;
+        operation!.dispose();
+        expect(await h.controller.connectProfile("p2")).to.equal(true);
+    });
+
+    test("Stop/Delete retires another profile's pending SQL open", async () => {
+        const h = harness();
+        const profiles = sharedContainerProfiles();
+        h.profiles.readAllConnections.resolves(profiles);
+        const entered = Promise.withResolvers<void>();
+        const opened = Promise.withResolvers<{ session: ISqlSession }>();
+        h.open.callsFake(() => {
+            entered.resolve();
+            return opened.promise;
+        });
+        const connecting = h.controller.connectProfile("p2");
+        await entered.promise;
+        const operation = h.controller.beginContainerOperation("p1", "Deleting", profiles[0]);
+        opened.resolve({ session: h.session });
+        expect(await connecting).to.equal(false);
+        expect(h.session.close).to.have.been.called;
+        expect(h.registry.stateOf("p2")).not.to.equal("connected");
+        expect(await h.controller.connectProfile("p2")).to.equal(false);
+        operation!.dispose();
     });
 
     test("retries a classified STS2 transport reset without depending on redacted text", async () => {
@@ -636,15 +739,24 @@ suite("Object Explorer v2 container commands", () => {
             const pending = h.invoke(command);
             await ready;
             const controller = begin.firstCall.thisValue as OeV2TreeController;
-            expect(controller.beginContainerOperation("p1", "Other operation")).to.equal(undefined);
+            expect(
+                controller.beginContainerOperation("p1", "Other operation", h.profiles[0]),
+            ).to.equal(undefined);
+            expect(
+                controller.beginContainerOperation("p2", "Shared container", h.profiles[1]),
+            ).to.equal(undefined);
             h.remove.callsFake(async () => {
-                expect(controller.beginContainerOperation("p1", "During removal")).to.equal(
-                    undefined,
-                );
+                expect(
+                    controller.beginContainerOperation("p1", "During removal", h.profiles[0]),
+                ).to.equal(undefined);
             });
             release(true);
             await pending;
-            const next = controller.beginContainerOperation("p1", "After completion");
+            const next = controller.beginContainerOperation(
+                "p1",
+                "After completion",
+                h.profiles[0],
+            );
             expect(next).not.to.equal(undefined);
             next!.dispose();
         });

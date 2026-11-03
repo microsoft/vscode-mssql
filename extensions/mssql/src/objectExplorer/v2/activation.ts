@@ -612,6 +612,7 @@ export function activateObjectExplorerV2(
                 const operation = activeController.beginContainerOperation(
                     connectionId,
                     LocalContainers.stoppingContainerLoadingLabel,
+                    selected.stored,
                 );
                 if (!operation) return;
                 try {
@@ -696,6 +697,7 @@ export function activateObjectExplorerV2(
                 const operation = activeController.beginContainerOperation(
                     connectionId,
                     LocalContainers.deletingContainerLoadingLabel,
+                    selected.stored,
                 );
                 if (!operation) return;
                 try {
