@@ -378,6 +378,27 @@ suite("QueryResultWebviewController", () => {
             );
         });
 
+        test("turns the preview grid off from the title bar menu and claims the change", async () => {
+            await multiController["setPreviewGridEnabled"](false);
+
+            expect(configuration.update).to.have.been.calledWith(
+                getPreviewConfigKey(PreviewFeature.BetaResultsGrid),
+                false,
+                vscode.ConfigurationTarget.Global,
+            );
+            expect(multiController["_gridModeChangeReportedBySwitch"]).to.be.true;
+        });
+
+        test("turns the multi-results layout off from the title bar menu", async () => {
+            await multiController["setMultiResultsEnabled"](false);
+
+            expect(configuration.update).to.have.been.calledWith(
+                getPreviewConfigKey(PreviewFeature.MultiResults),
+                false,
+                vscode.ConfigurationTarget.Global,
+            );
+        });
+
         test("keeps results that are open in a tab out of the list when their query runs again", () => {
             multiController["_queryResultWebviewPanelControllerMap"].set(otherUri, {} as never);
             multiController["removeFromMultiResults"](otherUri);

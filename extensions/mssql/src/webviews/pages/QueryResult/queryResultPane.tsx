@@ -371,55 +371,60 @@ export const QueryResultPane = ({
                                 {locConstants.queryResult.openResultInNewTab}
                             </Button>
                         )}
-                    <Menu
-                        checkedValues={{
-                            previewGrid: isPreviewGridSwitchChecked ? ["enabled"] : [],
-                        }}
-                        onCheckedValueChange={(_event, data) => {
-                            if (data.name !== "previewGrid") {
-                                return;
-                            }
+                    {/* The results panel offers this in its title bar menu instead. */}
+                    {webviewLocation === qr.QueryResultWebviewLocation.Document && (
+                        <Menu
+                            checkedValues={{
+                                previewGrid: isPreviewGridSwitchChecked ? ["enabled"] : [],
+                            }}
+                            onCheckedValueChange={(_event, data) => {
+                                if (data.name !== "previewGrid") {
+                                    return;
+                                }
 
-                            const previousValue = isPreviewGridSwitchChecked;
-                            setIsPreviewGridSwitchChecked(data.checkedItems.includes("enabled"));
-                            setIsPreviewGridSwitchPending(true);
+                                const previousValue = isPreviewGridSwitchChecked;
+                                setIsPreviewGridSwitchChecked(
+                                    data.checkedItems.includes("enabled"),
+                                );
+                                setIsPreviewGridSwitchPending(true);
 
-                            // Not awaited: switching the mode reloads this webview into the other
-                            // bundle, so the response may never arrive. Roll back only if the
-                            // extension reports a failure before the reload.
-                            void context.extensionRpc
-                                .sendRequest(qr.ToggleResultsGridModeRequest.type, {
-                                    gridCount: getGridCount(resultSetSummaries),
-                                    rowCount: getTotalResultSetRowCount(resultSetSummaries),
-                                })
-                                .catch((error) => {
-                                    setIsPreviewGridSwitchChecked(previousValue);
-                                    setIsPreviewGridSwitchPending(false);
-                                    log.error(`Failed to toggle results grid mode: ${error}`);
-                                });
-                        }}>
-                        <MenuTrigger disableButtonEnhancement>
-                            <ToolbarButton
-                                appearance="subtle"
-                                icon={<MoreVertical20Filled />}
-                                aria-label={locConstants.queryResult.moreActions}
-                                title={locConstants.queryResult.moreActions}
-                            />
-                        </MenuTrigger>
-                        <MenuPopover>
-                            <MenuList>
-                                <MenuItemSwitch
-                                    data-testid="preview-grid-switch"
-                                    name="previewGrid"
-                                    value="enabled"
-                                    disabled={isPreviewGridSwitchPending}
-                                    title={locConstants.queryResult.previewGridSwitchTooltip}
-                                    persistOnClick>
-                                    {locConstants.queryResult.previewGrid}
-                                </MenuItemSwitch>
-                            </MenuList>
-                        </MenuPopover>
-                    </Menu>
+                                // Not awaited: switching the mode reloads this webview into the other
+                                // bundle, so the response may never arrive. Roll back only if the
+                                // extension reports a failure before the reload.
+                                void context.extensionRpc
+                                    .sendRequest(qr.ToggleResultsGridModeRequest.type, {
+                                        gridCount: getGridCount(resultSetSummaries),
+                                        rowCount: getTotalResultSetRowCount(resultSetSummaries),
+                                    })
+                                    .catch((error) => {
+                                        setIsPreviewGridSwitchChecked(previousValue);
+                                        setIsPreviewGridSwitchPending(false);
+                                        log.error(`Failed to toggle results grid mode: ${error}`);
+                                    });
+                            }}>
+                            <MenuTrigger disableButtonEnhancement>
+                                <ToolbarButton
+                                    appearance="subtle"
+                                    icon={<MoreVertical20Filled />}
+                                    aria-label={locConstants.queryResult.moreActions}
+                                    title={locConstants.queryResult.moreActions}
+                                />
+                            </MenuTrigger>
+                            <MenuPopover>
+                                <MenuList>
+                                    <MenuItemSwitch
+                                        data-testid="preview-grid-switch"
+                                        name="previewGrid"
+                                        value="enabled"
+                                        disabled={isPreviewGridSwitchPending}
+                                        title={locConstants.queryResult.previewGridSwitchTooltip}
+                                        persistOnClick>
+                                        {locConstants.queryResult.previewGrid}
+                                    </MenuItemSwitch>
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
+                    )}
                 </Toolbar>
             </div>
 

@@ -24,6 +24,7 @@ import {
     messageToString,
     recordLength,
     registerCommonRequestHandlers,
+    writeResultsGridMode,
 } from "./utils";
 import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
@@ -262,6 +263,18 @@ export class QueryResultWebviewController extends WebviewViewController<
             ),
             vscode.commands.registerCommand(Constants.cmdDisableFollowActiveEditor, () =>
                 this.setFollowActiveEditor(false),
+            ),
+            vscode.commands.registerCommand(Constants.cmdEnablePreviewGrid, () =>
+                this.setPreviewGridEnabled(true),
+            ),
+            vscode.commands.registerCommand(Constants.cmdDisablePreviewGrid, () =>
+                this.setPreviewGridEnabled(false),
+            ),
+            vscode.commands.registerCommand(Constants.cmdEnableMultiResults, () =>
+                this.setMultiResultsEnabled(true),
+            ),
+            vscode.commands.registerCommand(Constants.cmdDisableMultiResults, () =>
+                this.setMultiResultsEnabled(false),
             ),
         );
 
@@ -518,6 +531,32 @@ export class QueryResultWebviewController extends WebviewViewController<
                 ? vscode.ConfigurationTarget.Workspace
                 : vscode.ConfigurationTarget.Global;
         await config.update(Constants.configQueryResultsFollowActiveEditor, follow, target);
+    }
+
+    private async setPreviewGridEnabled(enabled: boolean): Promise<void> {
+        // Sent before the update because writing the setting reloads the webviews.
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.ToggleResultsGridMode, {
+            additionalProps: {
+                correlationId: this._correlationId,
+                newMode: enabled ? "preview" : "classic",
+                source: "viewTitleMenu",
+                webviewLocation: "panel",
+            },
+        });
+        await writeResultsGridMode(this, enabled);
+    }
+
+    private async setMultiResultsEnabled(enabled: boolean): Promise<void> {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.ToggleMultiResults, {
+            additionalProps: { enabled: String(enabled) },
+        });
+        await vscode.workspace
+            .getConfiguration()
+            .update(
+                getPreviewConfigKey(PreviewFeature.MultiResults),
+                enabled,
+                vscode.ConfigurationTarget.Global,
+            );
     }
 
     /**

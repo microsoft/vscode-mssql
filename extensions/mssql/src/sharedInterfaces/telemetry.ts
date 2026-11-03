@@ -126,6 +126,7 @@ export enum TelemetryActions {
     MoveMultiResult = "MoveMultiResult",
     CloseMultiResult = "CloseMultiResult",
     ToggleFollowActiveEditor = "ToggleFollowActiveEditor",
+    ToggleMultiResults = "ToggleMultiResults",
     Restore = "Restore",
     LoadConnection = "LoadConnection",
     LoadConnectionProperties = "LoadConnectionProperties",

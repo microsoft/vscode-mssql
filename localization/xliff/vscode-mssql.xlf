@@ -14818,6 +14818,9 @@
     <trans-unit id="mssql.objectExplorerV2.moveToGroup">
       <source xml:lang="en">Move to Group...</source>
     </trans-unit>
+    <trans-unit id="mssql.queryResults.enableMultiResults">
+      <source xml:lang="en">Multi-Results Layout</source>
+    </trans-unit>
     <trans-unit id="new-command">
       <source xml:lang="en">New</source>
     </trans-unit>
@@ -15039,6 +15042,9 @@
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryResults.enablePreviewGrid">
+      <source xml:lang="en">Preview Grid</source>
     </trans-unit>
     <trans-unit id="mssql.queryResults.pinnedDocuments.enabled">
       <source xml:lang="en">Preview: allow pinning Query Studio results into read-only result documents that survive query reruns.</source>
@@ -15819,6 +15825,12 @@
     </trans-unit>
     <trans-unit id="mssql.copilot.sdkProviders.xai.timeout.description">
       <source xml:lang="en">xAI API request timeout in milliseconds.</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryResults.disableMultiResults">
+      <source xml:lang="en">✓ Multi-Results Layout</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryResults.disablePreviewGrid">
+      <source xml:lang="en">✓ Preview Grid</source>
     </trans-unit>
   </body></file>
 </xliff>
