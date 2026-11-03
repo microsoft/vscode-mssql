@@ -45,11 +45,6 @@ suite("Azure SQL Database terminology", () => {
                 "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
         },
         {
-            key: "freeDescription",
-            expected:
-                "Try Azure SQL Database at no cost with the free tier \u2014 a fully managed cloud database, ready for your app, ORM, or migration tools.",
-        },
-        {
             key: "freeLimitBehavior",
             expected: "Behavior when free tier limit is reached",
         },

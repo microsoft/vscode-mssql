@@ -11876,6 +11876,9 @@
     <trans-unit id="++CODE++10dbcc17721e3abad0e3b372a444fb35e5e22c354ccda55e36c477ffbf2b8db2">
       <source xml:lang="en">This connection&apos;s server group is marked as production, and the query contains statements that can change or destroy data. This can result in data loss. Would you like to continue?</source>
     </trans-unit>
+    <trans-unit id="++CODE++613081b07643e66f1cd6f4934dc34812a75ce7b365d2124acec987c6074b7bee">
+      <source xml:lang="en">This container provisioning step is not supported.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
@@ -11923,9 +11926,6 @@
     </trans-unit>
     <trans-unit id="++CODE++d2cd4222b87fe208131546fa04e7a1627d7270f2581fc96c91e88a4e870c9fc0">
       <source xml:lang="en">This project type does not support drag and drop.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e3755a69d978ecc333c82373bfb1f21c00340506d599a19d308e15e260ea65de">
-      <source xml:lang="en">This provisioning step is not available for the selected authentication type.</source>
     </trans-unit>
     <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
       <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
@@ -12229,8 +12229,8 @@
     <trans-unit id="++CODE++a38bee0d6e2500966d3b6a21896c9f5dedaf92acdfa83ed3ba50a4a1850670d4">
       <source xml:lang="en">Unable to validate the container configuration.</source>
     </trans-unit>
-    <trans-unit id="++CODE++e19a89488e4992511a70b3a1baa236ba1671075a5444d5c53abdce9c9dc23ae7">
-      <source xml:lang="en">Unable to verify the Microsoft Graph account. No app registrations were loaded.</source>
+    <trans-unit id="++CODE++7546b9b74f7d85150167f9668a681226e9eb5dd5ced3ef652489b21be11314e5">
+      <source xml:lang="en">Unable to verify the Microsoft Graph account. Check that Azure CLI and VS Code are signed in with the same account.</source>
     </trans-unit>
     <trans-unit id="++CODE++124ca56333c7f32c616c30516bbaebdd39e4cc4821f247c3d4df5b9419ec9a0a">
       <source xml:lang="en">Unable to verify {0}. Check its configuration and retry.</source>

@@ -1241,6 +1241,7 @@ suite("Azure SQL container configuration", () => {
             expect(await pending).to.deep.equal({
                 success: false,
                 error: AzureSqlContainer.connectContainerFailed,
+                fullErrorText: "Login failed",
             });
             expect(connectionManager.connect).to.have.callCount(containerConnectionMaxAttempts);
             expect(connectionUI.saveProfile).not.to.have.been.called;

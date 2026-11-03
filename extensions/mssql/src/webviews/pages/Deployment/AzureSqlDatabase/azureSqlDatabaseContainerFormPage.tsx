@@ -150,7 +150,10 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
 
     const authenticationField = (
         <Field
-            label={locConstants.azureSqlDatabase.authenticationType}
+            label={label(
+                locConstants.azureSqlDatabase.authenticationType,
+                loc.authenticationTooltip,
+            )}
             validationState={errors.authenticationType ? "error" : "none"}
             validationMessage={errors.authenticationType}>
             <Dropdown
@@ -267,22 +270,24 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
                     props={{ disabled, autoComplete: "new-password" }}
                 />
             </Field>
-            <div className={classes.savePasswordRow}>
-                <span className={classes.savePasswordLabel}>
-                    <InfoLabel info={loc.savePasswordTooltip}>
-                        {locConstants.azureSqlDatabase.savePassword}
-                    </InfoLabel>
-                </span>
-                <Checkbox
-                    size="medium"
-                    aria-label={locConstants.azureSqlDatabase.savePassword}
-                    checked={form.savePassword}
-                    disabled={disabled}
-                    onChange={(_, data) =>
-                        onChange({ ...form, savePassword: data.checked === true })
-                    }
-                />
-            </div>
+            {!isEntraAuthentication && (
+                <div className={classes.savePasswordRow}>
+                    <span className={classes.savePasswordLabel}>
+                        <InfoLabel info={loc.savePasswordTooltip}>
+                            {locConstants.azureSqlDatabase.savePassword}
+                        </InfoLabel>
+                    </span>
+                    <Checkbox
+                        size="medium"
+                        aria-label={locConstants.azureSqlDatabase.savePassword}
+                        checked={form.savePassword}
+                        disabled={disabled}
+                        onChange={(_, data) =>
+                            onChange({ ...form, savePassword: data.checked === true })
+                        }
+                    />
+                </div>
+            )}
             <Field label={label(loc.profileName, loc.profileNameTooltip)}>
                 <Input
                     size="small"

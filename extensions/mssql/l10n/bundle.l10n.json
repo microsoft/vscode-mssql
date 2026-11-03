@@ -928,7 +928,7 @@
         "message": "Azure CLI is signed in with a different account than the selected VS Code account '{0}'. Sign in to Azure CLI with that account using 'az login --tenant {1} --allow-no-subscriptions', then retry.",
         "comment": ["{0} is the selected account label", "{1} is the selected tenant ID"]
     },
-    "Unable to verify the Microsoft Graph account. No app registrations were loaded.": "Unable to verify the Microsoft Graph account. No app registrations were loaded.",
+    "Unable to verify the Microsoft Graph account. Check that Azure CLI and VS Code are signed in with the same account.": "Unable to verify the Microsoft Graph account. Check that Azure CLI and VS Code are signed in with the same account.",
     "No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings./{0} is the resource type{1} is the display name of the current cloud": {
         "message": "No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.",
         "comment": ["{0} is the resource type", "{1} is the display name of the current cloud"]
@@ -1210,7 +1210,7 @@
     "Microsoft Graph did not return a valid tenant-local user ID and user principal name for the selected account.": "Microsoft Graph did not return a valid tenant-local user ID and user principal name for the selected account.",
     "Enter the client secret for the selected app registration.": "Enter the client secret for the selected app registration.",
     "Microsoft Graph did not return a valid service principal for the selected app registration.": "Microsoft Graph did not return a valid service principal for the selected app registration.",
-    "This provisioning step is not available for the selected authentication type.": "This provisioning step is not available for the selected authentication type.",
+    "This container provisioning step is not supported.": "This container provisioning step is not supported.",
     "Provisioning Azure SQL Database container": "Provisioning Azure SQL Database container",
     "Enter a port number between 1 and 65535.": "Enter a port number between 1 and 65535.",
     "This port is already in use. Choose a different port.": "This port is already in use. Choose a different port.",

@@ -1574,7 +1574,7 @@ export class Azure {
     }
 
     public static unableToVerifyGraphAccount = l10n.t(
-        "Unable to verify the Microsoft Graph account. No app registrations were loaded.",
+        "Unable to verify the Microsoft Graph account. Check that Azure CLI and VS Code are signed in with the same account.",
     );
 
     public static noResourceConfiguredForCurrentCloud(
@@ -2123,7 +2123,7 @@ export class AzureSqlContainer {
         "Microsoft Graph did not return a valid service principal for the selected app registration.",
     );
     public static invalidProvisioningStep = l10n.t(
-        "This provisioning step is not available for the selected authentication type.",
+        "This container provisioning step is not supported.",
     );
     public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
     public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
