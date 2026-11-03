@@ -42,7 +42,7 @@ suite("Azure SQL Database terminology", () => {
         {
             key: "azureSqlDatabaseDescription",
             expected:
-                "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.",
+                "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
         },
         {
             key: "freeDescription",

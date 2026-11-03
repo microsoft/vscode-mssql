@@ -3619,15 +3619,20 @@ export class LocConstants {
             loadingDeploymentPage: l10n.t("Loading deployment"),
             deploymentHeader: l10n.t("New SQL database"),
             deploymentDescription: l10n.t("Choose an option to provision a database"),
+            localProvisioning: l10n.t("Run locally"),
+            remoteProvisioning: l10n.t("Run in the cloud"),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
             dockerSqlServerHeader: l10n.t("Create a Local Docker SQL Server"),
+            dockerSqlServerCardHeader: l10n.t("SQL Server container"),
             dockerSqlServerDescription: l10n.t(
-                "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
+                "Runs SQL Server in Docker, set up in a few clicks. Best for apps on SQL Server or Azure SQL Managed Instance.",
             ),
             fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric"),
+            fabricProvisioningCardHeader: l10n.t("SQL database in Fabric"),
             fabricProvisioningDescription: l10n.t(
-                "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
+                "A fully managed database that auto-scales, auto-tunes, and copies your data to OneLake automatically. Best for apps whose data also powers analytics and reporting in Microsoft Fabric.",
             ),
+            azureSqlDatabaseCardHeader: l10n.t("Azure SQL Database"),
         };
     }
 
@@ -3806,11 +3811,11 @@ export class LocConstants {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
             azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database"),
             azureSqlDatabaseDescription: l10n.t(
-                "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.",
+                "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
             ),
-            developerContainerPreview: l10n.t("Azure SQL Database developer container (Preview)"),
+            developerContainerPreview: l10n.t("Azure SQL Database container (Preview)"),
             localContainerDescription: l10n.t(
-                "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.",
+                "Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.",
             ),
             localContainerTbd: l10n.t("TBD"),
             localContainerWizardTitle: l10n.t("(Preview) New Azure SQL Database - Container"),

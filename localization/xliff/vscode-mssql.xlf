@@ -264,8 +264,8 @@
     <trans-unit id="++CODE++228153baa9f76de67fc4c204040b276a83c8f599e241c07f32851bf19d62a856">
       <source xml:lang="en">A folder with the name &apos;{0}&apos; already exists on disk at this location. Please choose another name.</source>
     </trans-unit>
-    <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
-      <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
+    <trans-unit id="++CODE++15f4008d1e3cd264d71001c3ca6b67b9f0209d53dc528dd977eeb1b39ea1f684">
+      <source xml:lang="en">A fully managed database that auto-scales, auto-tunes, and copies your data to OneLake automatically. Best for apps whose data also powers analytics and reporting in Microsoft Fabric.</source>
     </trans-unit>
     <trans-unit id="++CODE++045d71b1a3454db180c918941024e788e68689e951e9d51ea41f3283ed5b7666">
       <source xml:lang="en">A name for this deployment</source>
@@ -1044,11 +1044,11 @@
       <source xml:lang="en">Azure SQL Database container &apos;{0}&apos; was provisioned successfully.</source>
       <note>{0} is the container name</note>
     </trans-unit>
+    <trans-unit id="++CODE++e416075a91aab54519143288791421f0076f9883b5ce41d6391c89a71fc7c18f">
+      <source xml:lang="en">Azure SQL Database container (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++e449024435d9bf391c84ac2d47dc8e861cf2e81db21000998c4dd9de37c2b7e2">
       <source xml:lang="en">Azure SQL Database developer container</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3deee91289ee3486d8f14bd18a242f65e4622725518829d072d080b05ab0e773">
-      <source xml:lang="en">Azure SQL Database developer container (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++ba5528fbaf5a47fa7cb9ab8214c97d40ed77a42a1258edd947bff8447eb8dabf">
       <source xml:lang="en">Azure SQL Database is not supported for backup.</source>
@@ -3866,9 +3866,6 @@
     </trans-unit>
     <trans-unit id="++CODE++0306077f5b3fdefe209b7a12da63dafa6c59890fdb6c0ad2032b94706c0cda63">
       <source xml:lang="en">Eagerness</source>
-    </trans-unit>
-    <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
-      <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
     </trans-unit>
     <trans-unit id="++CODE++2f7514a7052124c11a8ce6b0e1142e55c5cca7611f0cf9d28bb94e5dcecbc07a">
       <source xml:lang="en">Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.</source>
@@ -9085,6 +9082,9 @@
     <trans-unit id="++CODE++d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef">
       <source xml:lang="en">Recommended</source>
     </trans-unit>
+    <trans-unit id="++CODE++fe619db26a91caecebe7aecd57159dea5f49c5c98543244d4d220a8ecdc5b824">
+      <source xml:lang="en">Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ab596c05382fa89fa36fa6f0ef1744964ad6619f2a1226d92074b6d867bfe1e1">
       <source xml:lang="en">Record closed</source>
     </trans-unit>
@@ -9611,9 +9611,6 @@
     <trans-unit id="++CODE++00d60e31a4e6b8344d4201f25a6a7dee770713107f6d097abb01559d32b17f26">
       <source xml:lang="en">Run</source>
     </trans-unit>
-    <trans-unit id="++CODE++34ef2e4e57e03bb3051579a7ad4a25ac18b6a045198cb6114bcd5d49f11e7bc3">
-      <source xml:lang="en">Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.</source>
-    </trans-unit>
     <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
       <source xml:lang="en">Run Query</source>
     </trans-unit>
@@ -9640,6 +9637,12 @@
     </trans-unit>
     <trans-unit id="++CODE++e4a7eef54f61befcda35db794ab6b91a9c78f0dc71ed873af0e5ad085dbd90bc">
       <source xml:lang="en">Run config matrix</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1c49c6e772c68dc112a5ef60569f242be6e31d9dad5c980e4e561a72c1e11d5b">
+      <source xml:lang="en">Run in the cloud</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a28ec84e59a23904c60d0abf7bf2ebf32938819f4be027bfa7cc79eff9f7f150">
+      <source xml:lang="en">Run locally</source>
     </trans-unit>
     <trans-unit id="++CODE++2c757183a36d594602187e88cad67e8e38ab92dd5c9c01ca69eb4c67f465b8e3">
       <source xml:lang="en">Run query on connection &apos;{0}&apos; (ID: {1})?&#10;&#10;Query: {2}</source>
@@ -9694,6 +9697,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1535db1c91172380e70396d4a07899000757727b521ac651eb91dbcaee2460e4">
       <source xml:lang="en">Runs Data API builder in a container on this machine, published on a local port.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++da343d583a7a7a73b9b687d5dcc9991a9cd6454c8cbcadecd5a091bf2c91fc5e">
+      <source xml:lang="en">Runs SQL Server in Docker, set up in a few clicks. Best for apps on SQL Server or Azure SQL Managed Instance.</source>
     </trans-unit>
     <trans-unit id="++CODE++76086ca76a113f441793f5f388b976f1b83690e0fd9fa4bb54d1000b9107cb58">
       <source xml:lang="en">Runs containers through Windows Subsystem for Linux (WSL). · Windows</source>
@@ -9761,6 +9767,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
       <source xml:lang="en">SQL Server admin password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ec80fe299151f0b93c8d0f3ce2f2cf29b185e4c4008e70bf6f6b3765c51c25ed">
+      <source xml:lang="en">SQL Server container</source>
     </trans-unit>
     <trans-unit id="++CODE++82a5a935a9143edc89ac046512a9ba03026e4774cde53feb82c959225904e638">
       <source xml:lang="en">SQL Server container &apos;{0}&apos; was provisioned successfully.</source>
@@ -11035,6 +11044,9 @@
     <trans-unit id="++CODE++081917aac8ef49fe296c61c39645bd49befe725bd8511f72c5e02ef75226117e">
       <source xml:lang="en">Start anyway · {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++3009ce75e6d4c08a042ab2d77360f5334cd765390fc51f1c2740a66b12eaed46">
+      <source xml:lang="en">Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0224c763e5d0c066c2560725e331c4e0833a545774a52355fb8b2849b473dd0d">
       <source xml:lang="en">Start matrix run · {0}</source>
     </trans-unit>
@@ -12107,9 +12119,6 @@
     </trans-unit>
     <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
       <source xml:lang="en">Truncate the transaction log</source>
-    </trans-unit>
-    <trans-unit id="++CODE++35ab6441ab2035c69e2f496ec51319ca8e0bb84ca1ef6b5c6f3c715b90200aab">
-      <source xml:lang="en">Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.</source>
     </trans-unit>
     <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
       <source xml:lang="en">Try adjusting your search or filters</source>

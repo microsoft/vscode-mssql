@@ -21,23 +21,42 @@ test.describe("Azure SQL deployment options", () => {
         const { page } = getContext();
         await runCommandFromPalette(page, "MS SQL: New Deployment", "MS SQL: New Deployment");
         const deployment = await getWebviewByTitle(page, "New Deployment");
-        const sqlServer = deployment.getByRole("button", {
-            name: /^Create a Local Docker SQL Server/,
+        const localSection = deployment.getByRole("region", { name: "Run locally", exact: true });
+        const cloudSection = deployment.getByRole("region", {
+            name: "Run in the cloud",
+            exact: true,
         });
-        const azureContainer = deployment.getByRole("button", {
-            name: /^Azure SQL Database developer container \(Preview\)/,
+        await expect(
+            localSection.getByRole("heading", { name: "Run locally", level: 2 }),
+        ).toBeVisible();
+        await expect(
+            cloudSection.getByRole("heading", { name: "Run in the cloud", level: 2 }),
+        ).toBeVisible();
+        const sqlServer = localSection.getByRole("button", {
+            name: /^SQL Server container/,
         });
-        const fabric = deployment.getByRole("button", {
-            name: /^Create a SQL database in Fabric/,
+        const azureContainer = localSection.getByRole("button", {
+            name: /^Azure SQL Database container \(Preview\)/,
         });
-        const azure = deployment.getByRole("button", {
-            name: /^Create an Azure SQL Database/,
+        const fabric = cloudSection.getByRole("button", {
+            name: /^SQL database in Fabric/,
+        });
+        const azure = cloudSection.getByRole("button", {
+            name: /^Azure SQL Database(?! container)/,
         });
 
         await expect(sqlServer).toBeVisible();
         await expect(azureContainer).toBeVisible();
         await expect(fabric).toBeVisible();
         await expect(azure).toBeVisible();
+        await expect(localSection.getByRole("button")).toHaveText([
+            /Azure SQL Database container \(Preview\)/,
+            /SQL Server container/,
+        ]);
+        await expect(cloudSection.getByRole("button")).toHaveText([
+            /Azure SQL Database/,
+            /SQL database in Fabric/,
+        ]);
         await azureContainer.click();
         await expect(
             deployment.getByText("Azure SQL Database developer container", { exact: true }),
