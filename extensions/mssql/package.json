@@ -594,6 +594,36 @@
             ],
             "view/title": [
                 {
+                    "command": "mssql.queryResults.enableFollowActiveEditor",
+                    "when": "view == queryResult && mssql.multiResults.active && !config.mssql.queryResults.followActiveEditor",
+                    "group": "navigation"
+                },
+                {
+                    "command": "mssql.queryResults.disableFollowActiveEditor",
+                    "when": "view == queryResult && mssql.multiResults.active && config.mssql.queryResults.followActiveEditor",
+                    "group": "navigation"
+                },
+                {
+                    "command": "mssql.queryResults.enablePreviewGrid",
+                    "when": "view == queryResult && !config.mssql.preview.betaResultsGrid",
+                    "group": "1_queryResults@1"
+                },
+                {
+                    "command": "mssql.queryResults.disablePreviewGrid",
+                    "when": "view == queryResult && config.mssql.preview.betaResultsGrid",
+                    "group": "1_queryResults@1"
+                },
+                {
+                    "command": "mssql.queryResults.enableMultiResults",
+                    "when": "view == queryResult && config.mssql.preview.betaResultsGrid && !config.mssql.preview.multiResults",
+                    "group": "1_queryResults@2"
+                },
+                {
+                    "command": "mssql.queryResults.disableMultiResults",
+                    "when": "view == queryResult && mssql.multiResults.active",
+                    "group": "1_queryResults@2"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer",
                     "title": "%mssql.addObjectExplorer%",
@@ -1453,6 +1483,30 @@
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "mssql.queryResults.enableFollowActiveEditor",
+                    "when": "mssql.multiResults.active && !config.mssql.queryResults.followActiveEditor"
+                },
+                {
+                    "command": "mssql.queryResults.disableFollowActiveEditor",
+                    "when": "mssql.multiResults.active && config.mssql.queryResults.followActiveEditor"
+                },
+                {
+                    "command": "mssql.queryResults.enablePreviewGrid",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.queryResults.disablePreviewGrid",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.queryResults.enableMultiResults",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.queryResults.disableMultiResults",
+                    "when": "false"
+                },
                 {
                     "command": "mssql.copilot.sdkProviders.anthropic.setApiKey",
                     "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
@@ -2579,6 +2633,38 @@
             {
                 "command": "mssql.toggleQueryResultPanel",
                 "title": "%mssql.toggleQueryResultPanel%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryResults.enableFollowActiveEditor",
+                "title": "%mssql.queryResults.enableFollowActiveEditor%",
+                "category": "MS SQL",
+                "icon": "$(pinned)"
+            },
+            {
+                "command": "mssql.queryResults.disableFollowActiveEditor",
+                "title": "%mssql.queryResults.disableFollowActiveEditor%",
+                "category": "MS SQL",
+                "icon": "$(pin)"
+            },
+            {
+                "command": "mssql.queryResults.enablePreviewGrid",
+                "title": "%mssql.queryResults.enablePreviewGrid%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryResults.disablePreviewGrid",
+                "title": "%mssql.queryResults.disablePreviewGrid%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryResults.enableMultiResults",
+                "title": "%mssql.queryResults.enableMultiResults%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryResults.disableMultiResults",
+                "title": "%mssql.queryResults.disableMultiResults%",
                 "category": "MS SQL"
             },
             {
@@ -4045,6 +4131,12 @@
                         "description": "%mssql.preview.betaResultsGrid.description%",
                         "scope": "application"
                     },
+                    "mssql.preview.multiResults": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "%mssql.preview.multiResults.description%",
+                        "scope": "application"
+                    },
                     "mssql.useMsalEntraMfaAuth": {
                         "type": "boolean",
                         "default": false,
@@ -5463,6 +5555,12 @@
                         "type": "boolean",
                         "default": false,
                         "description": "%mssql.autoRevealResultsPanel%",
+                        "scope": "window"
+                    },
+                    "mssql.queryResults.followActiveEditor": {
+                        "type": "boolean",
+                        "default": true,
+                        "markdownDescription": "%mssql.queryResults.followActiveEditor%",
                         "scope": "window"
                     },
                     "mssql.customEnvironment": {

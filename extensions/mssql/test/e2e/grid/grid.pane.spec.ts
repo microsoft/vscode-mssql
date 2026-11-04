@@ -257,10 +257,14 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
         await executeQueryAndWait(page);
         await waitForResultGrid(resultsFrame, "0_0", MIXED_TYPES_ROW_COUNT);
 
-        await resultsFrame.getByRole("button", { name: "More Actions" }).click();
-        const previewSwitch = resultsFrame.getByTestId("preview-grid-switch");
-        await expect(previewSwitch).toHaveAttribute("aria-checked", "true");
-        await previewSwitch.click();
+        const clickPanelMenuItem = async (name: string) => {
+            await page
+                .locator(".part.panel")
+                .getByRole("button", { name: /More Actions/ })
+                .click();
+            await page.getByRole("menuitem", { name, exact: true }).click();
+        };
+        await clickPanelMenuItem("✓ Preview Grid");
 
         try {
             await expect(
@@ -281,16 +285,7 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
             // useSharedVsCodeLifecycle keeps this VS Code instance for the rest of the file, so
             // classic results left on would run every later test against the wrong grid -- and
             // quietly, because the classic view satisfies some of the same selectors.
-            //
-            // The switch is persistOnClick, so its menu is still open here and clicking More
-            // Actions again would toggle it shut rather than reopen it. Dismissing first makes
-            // this reachable from whatever state the assertions above left behind, and dismissing
-            // after leaves no menu sitting over the next test's toolbar.
-            await page.keyboard.press("Escape");
-            await resultsFrame.getByRole("button", { name: "More Actions" }).click();
-            await previewSwitch.click();
-            await expect(previewSwitch).toHaveAttribute("aria-checked", "true");
-            await page.keyboard.press("Escape");
+            await clickPanelMenuItem("Preview Grid");
             await expect(resultsFrame.getByTestId("summary-footer")).toBeVisible();
         }
     });

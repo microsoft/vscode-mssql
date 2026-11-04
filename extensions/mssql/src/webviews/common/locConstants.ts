@@ -2214,6 +2214,48 @@ export class LocConstants {
         };
     }
 
+    public get multiResults() {
+        return {
+            resultsList: l10n.t("Query results"),
+            resultSetCount: (count: number) =>
+                l10n.t({
+                    message: "Result sets: {0}",
+                    args: [count],
+                    comment: ["{0} is the number of result sets the query returned"],
+                }),
+            running: l10n.t("Running"),
+            hasErrors: l10n.t("Completed with errors"),
+            closedEditorTitle: (title: string) =>
+                l10n.t({
+                    message: "{0} (closed)",
+                    args: [title],
+                    comment: ["{0} is the name of a query file whose editor has been closed"],
+                }),
+            closedEditorTooltip: l10n.t(
+                "The editor for these results is closed. The results stay until you close them.",
+            ),
+            closeResults: l10n.t("Close Results"),
+            moveToNewGroup: l10n.t("Move to New Group"),
+            joinGroup: l10n.t("Join Group"),
+            resultActions: (title: string) =>
+                l10n.t({
+                    message: "Actions for {0}",
+                    args: [title],
+                    comment: ["{0} is the name of a query file"],
+                }),
+            resultsFor: (title: string) =>
+                l10n.t({
+                    message: "Results for {0}",
+                    args: [title],
+                    comment: ["{0} is the name of a query file"],
+                }),
+            noResultsHeader: l10n.t("No query results"),
+            noResultsMessage: l10n.t(
+                "Run a query to see its results here. Drag results onto each other to view them side by side.",
+            ),
+        };
+    }
+
     public get schemaDesigner() {
         return {
             schema: l10n.t("Schema"),
