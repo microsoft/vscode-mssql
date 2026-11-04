@@ -8,7 +8,6 @@ import {
     containerConnectionMaxAttempts,
     containerConnectionRetryDelayMs,
     defaultPortNumber,
-    localhost,
     MAX_PORT_NUMBER,
     sa,
     sqlAuthentication,
@@ -419,7 +418,9 @@ export async function addContainerConnection(
             : (owner as ContainerConnectAdapter));
     const connection = {
         ...dockerProfile,
-        server: `${localhost},${dockerProfile.port}`,
+        // Local engines can publish only IPv4 while SqlClient resolves localhost
+        // to IPv6. Use the published IPv4 endpoint for both readiness and saving.
+        server: `127.0.0.1,${dockerProfile.port}`,
         profileName: dockerProfile.profileName || dockerProfile.containerName,
         savePassword: dockerProfile.savePassword,
         emptyPasswordInput: false,

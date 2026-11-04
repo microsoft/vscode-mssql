@@ -9,7 +9,7 @@ import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import { localhost, sa, sqlAuthentication } from "../../src/constants/constants";
+import { sa, sqlAuthentication } from "../../src/constants/constants";
 import { FormItemType } from "../../src/sharedInterfaces/form";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import * as sqlServerContainer from "../../src/deployment/sqlServerContainer";
@@ -69,7 +69,7 @@ suite("localContainers logic", () => {
                         saveProfile: sandbox.stub().resolves({}),
                     },
                     createConnectionDetails: sandbox.stub().returns({}),
-                    getConnectionString: sandbox.stub().resolves("Server=localhost,1433"),
+                    getConnectionString: sandbox.stub().resolves("Server=127.0.0.1,1433"),
                 },
                 createObjectExplorerSession: sandbox.stub().resolves({}),
             },
@@ -480,7 +480,7 @@ suite("localContainers logic", () => {
             const getConnectionStringStub = sandbox
                 .stub()
                 .withArgs(connectionDetails, false, false)
-                .resolves("Server=localhost,1433;User ID=sa;Trust Server Certificate=True");
+                .resolves("Server=127.0.0.1,1433;User ID=sa;Trust Server Certificate=True");
 
             const mainController = {
                 connectionManager: {
@@ -499,11 +499,11 @@ suite("localContainers logic", () => {
             );
             expect(result).to.deep.equal({
                 success: true,
-                connectionString: "Server=localhost,1433;User ID=sa;Trust Server Certificate=True",
+                connectionString: "Server=127.0.0.1,1433;User ID=sa;Trust Server Certificate=True",
             });
             expect(connectStub).to.have.been.calledWithMatch(
-                sinon.match.string,
-                sinon.match.object,
+                "127.0.0.1,1433/c/deployment",
+                { server: "127.0.0.1,1433" },
                 {
                     shouldHandleErrors: false,
                 },
@@ -516,7 +516,7 @@ suite("localContainers logic", () => {
                 );
             }
             expect(saveProfileStub).to.have.been.calledWithMatch({
-                server: "localhost,1433",
+                server: "127.0.0.1,1433",
                 user: "SA",
             });
             expect(createSessionStub).to.have.been.calledWith(savedProfile);
@@ -541,7 +541,7 @@ suite("localContainers logic", () => {
         connectStub.onSecondCall().resolves(true);
         const disconnectStub = sandbox.stub().resolves();
         const createConnectionDetailsStub = sandbox.stub().returns(connectionDetails);
-        const getConnectionStringStub = sandbox.stub().resolves("Server=localhost,1433");
+        const getConnectionStringStub = sandbox.stub().resolves("Server=127.0.0.1,1433");
 
         const mainController = {
             connectionManager: {
@@ -563,12 +563,12 @@ suite("localContainers logic", () => {
 
         expect(await resultPromise).to.deep.equal({
             success: true,
-            connectionString: "Server=localhost,1433",
+            connectionString: "Server=127.0.0.1,1433",
         });
         expect(connectStub).to.have.been.calledTwice;
         expect(disconnectStub).to.have.been.called;
         expect(saveProfileStub).to.have.been.calledWithMatch({
-            server: "localhost,1433",
+            server: "127.0.0.1,1433",
         });
         expect(createSessionStub).to.have.been.calledWith(savedProfile);
     });
@@ -584,7 +584,7 @@ suite("localContainers logic", () => {
         const getConnectionStringStub = sandbox
             .stub()
             .withArgs(connectionDetails, false, false)
-            .resolves("Server=localhost,1433;User ID=sa;Trust Server Certificate=True");
+            .resolves("Server=127.0.0.1,1433;User ID=sa;Trust Server Certificate=True");
         const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
         executeCommandStub
             .withArgs("mssql.objectExplorerV2.connectProfileById", "container-profile")
@@ -600,7 +600,7 @@ suite("localContainers logic", () => {
         } as unknown as MainController;
 
         const connectionString = await oeV2ContainerConnectAdapter(mainController).saveAndConnect({
-            server: "localhost,1433",
+            server: "127.0.0.1,1433",
             authenticationType: sqlAuthentication,
             user: sa,
             password: "test-only-password",
@@ -608,7 +608,7 @@ suite("localContainers logic", () => {
         } as any);
 
         expect(connectionString).to.equal(
-            "Server=localhost,1433;User ID=sa;Trust Server Certificate=True",
+            "Server=127.0.0.1,1433;User ID=sa;Trust Server Certificate=True",
         );
         expect(executeCommandStub).to.have.been.calledWith(
             "mssql.objectExplorerV2.connectProfileById",
@@ -631,18 +631,18 @@ suite("localContainers logic", () => {
         const okAdapter = {
             saveAndConnect: async (profile: unknown) => {
                 seen = profile;
-                return "Server=localhost,1450;User ID=sa;Trust Server Certificate=True";
+                return "Server=127.0.0.1,1450;User ID=sa;Trust Server Certificate=True";
             },
         };
         expect(
             await localContainersHelpers.addContainerConnection(dockerProfile, okAdapter),
         ).to.deep.equal({
             success: true,
-            connectionString: "Server=localhost,1450;User ID=sa;Trust Server Certificate=True",
+            connectionString: "Server=127.0.0.1,1450;User ID=sa;Trust Server Certificate=True",
         });
         // The profile the seam receives is the container connection contract:
-        // localhost,<port> / sa / SqlLogin / trusted cert / container marker.
-        expect(seen.server).to.equal(`${localhost},1450`);
+        // IPv4 loopback,<port> / sa / SqlLogin / trusted cert / container marker.
+        expect(seen.server).to.equal("127.0.0.1,1450");
         expect(seen.user).to.equal(sa);
         expect(seen.authenticationType).to.equal(sqlAuthentication);
         expect(seen.trustServerCertificate).to.equal(true);
@@ -689,7 +689,7 @@ suite("localContainers logic", () => {
                 connectionManager: {
                     connectionUI: { saveProfile },
                     createConnectionDetails: sandbox.stub().returns({ options: {} }),
-                    getConnectionString: sandbox.stub().resolves("Server=localhost,1450"),
+                    getConnectionString: sandbox.stub().resolves("Server=127.0.0.1,1450"),
                 },
                 createObjectExplorerSession: classicConnect,
             } as unknown as MainController;
@@ -709,6 +709,8 @@ suite("localContainers logic", () => {
                 (await localContainersHelpers.addContainerConnection(profile, adapter)).success,
             ).to.equal(true);
             expect(saveProfile.secondCall.args[0].id).to.equal(savedId);
+            expect(saveProfile.firstCall.args[0].server).to.equal("127.0.0.1,1450");
+            expect(saveProfile.secondCall.args[0].server).to.equal("127.0.0.1,1450");
             expect(savedIds.size).to.equal(1);
             expect(profile.id).to.equal(savedId);
         });
