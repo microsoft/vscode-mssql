@@ -780,6 +780,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         autoConnected: boolean;
     } {
         this.logger.debug(`Using existing connection from Object Explorer: ${ownerUri}`);
+        this._ownerUri = ownerUri;
         return {
             selectedConnection: matchingConnection,
             ownerUri,
@@ -839,6 +840,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         isFabric?: boolean;
         databaseName?: string;
     }> {
+        this._ownerUri = "";
         try {
             // Find the profile in saved connections
             const savedConnections =
@@ -865,6 +867,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             let ownerUri = this.connectionManager.getUriForConnection(profile);
             if (ownerUri && this.connectionManager.isConnected(ownerUri)) {
                 // Connection is active and valid
+                this._ownerUri = ownerUri;
                 return {
                     ownerUri,
                     isConnected: true,
@@ -881,6 +884,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             if (result) {
                 // Get the actual ownerUri that was used for the connection
                 ownerUri = this.connectionManager.getUriForConnection(profile);
+                this._ownerUri = ownerUri;
                 return {
                     ownerUri,
                     isConnected: true,

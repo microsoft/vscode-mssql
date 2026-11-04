@@ -203,7 +203,6 @@ export class ScriptingService {
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ScriptNode,
             {
-                ...getConnectionTelemetryInfo(this._connectionManager, node.connectionProfile),
                 additionalProps: {
                     operation: this.stringifyScriptOperation(operation),
                     nodeType: node.nodeType,
@@ -214,7 +213,7 @@ export class ScriptingService {
 
         try {
             const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-            let connectionCreds = node.connectionProfile;
+            const connectionCreds = { ...node.connectionProfile };
             const databaseName = ObjectExplorerUtils.getDatabaseName(node);
             if (
                 !this._connectionManager.isConnected(nodeUri) ||
@@ -241,6 +240,9 @@ export class ScriptingService {
                     }
                 }
             }
+            scriptTelemetryActivity.update(
+                getConnectionTelemetryInfo(this._connectionManager, nodeUri),
+            );
 
             // Get scripting object first to validate it exists
             let scriptingObject = this.getScriptingObjectFromNode(node);

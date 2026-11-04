@@ -108,7 +108,18 @@ export class FlatFileImportWebviewController extends FormWebviewController<
      * Initialize the controller
      */
     protected override get telemetryContext() {
-        return getConnectionTelemetryInfo(this.connectionManager, this.profile);
+        return this.getSelectedDatabaseTelemetryContext();
+    }
+
+    private getSelectedDatabaseTelemetryContext() {
+        const selectedDatabase = this.state.formState.databaseName;
+        const ownerUri =
+            selectedDatabase === this.databaseName
+                ? this.ownerUri
+                : this._schemaConnectionDatabase === selectedDatabase
+                  ? this._schemaConnectionUri
+                  : undefined;
+        return getConnectionTelemetryInfo(this.connectionManager, ownerUri);
     }
 
     private async initialize(): Promise<void> {
@@ -149,8 +160,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         this.updateState();
 
         sendActionEvent(TelemetryViews.FlatFile, TelemetryActions.Initialize, {
-            connectionInfo: this.profile,
-            serverInfo: this.connectionManager.getServerInfo(this.profile),
+            ...this.getSelectedDatabaseTelemetryContext(),
         });
     }
 
@@ -230,8 +240,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 state.importDataStatus = ApiStatus.Loaded;
 
                 sendActionEvent(TelemetryViews.FlatFile, TelemetryActions.ImportFile, {
-                    connectionInfo: this.profile,
-                    serverInfo: this.connectionManager.getServerInfo(this.profile),
+                    ...this.getSelectedDatabaseTelemetryContext(),
                 });
             } catch (error) {
                 state.errorMessage = Loc.FlatFileImport.importFailed;
@@ -239,8 +248,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 state.importDataStatus = ApiStatus.Error;
 
                 sendErrorEvent(TelemetryViews.FlatFile, TelemetryActions.ImportFile, {
-                    connectionInfo: this.profile,
-                    serverInfo: this.connectionManager.getServerInfo(this.profile),
+                    ...this.getSelectedDatabaseTelemetryContext(),
                     error,
                     includeErrorMessage: false,
                 });

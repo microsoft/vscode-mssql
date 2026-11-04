@@ -15,12 +15,16 @@ export function getConnectionTelemetryInfo(
     connectionManager: ConnectionManager | undefined,
     connection: string | IConnectionInfo | undefined,
 ): TelemetryEventOptions {
-    const connectionInfo =
-        typeof connection === "string"
-            ? connectionManager?.getConnectionInfo(connection)?.credentials
-            : connection;
+    if (typeof connection === "string") {
+        const resolvedConnection = connectionManager?.getConnectionInfo(connection);
+        return {
+            connectionInfo: resolvedConnection?.credentials,
+            serverInfo: resolvedConnection?.serverInfo,
+        };
+    }
+
     return {
-        connectionInfo,
-        serverInfo: connectionInfo ? connectionManager?.getServerInfo(connectionInfo) : undefined,
+        connectionInfo: connection,
+        serverInfo: connection ? connectionManager?.getServerInfo(connection) : undefined,
     };
 }

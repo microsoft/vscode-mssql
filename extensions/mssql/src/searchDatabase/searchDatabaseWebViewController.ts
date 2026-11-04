@@ -160,7 +160,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
      * so log lines from different Search Database sessions can be distinguished.
      */
     protected override get telemetryContext() {
-        return getConnectionTelemetryInfo(this._connectionManager, this._connectionCredentials);
+        return getConnectionTelemetryInfo(this._connectionManager, this._ownerUri);
     }
 
     private logInfo(message: string): void {
@@ -188,8 +188,6 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             TelemetryViews.SearchDatabase,
             TelemetryActions.Initialize,
             {
-                connectionInfo: this._connectionCredentials,
-                serverInfo: this._connectionManager.getServerInfo(this._connectionCredentials),
                 correlationId: this._operationId,
                 additionalProps: {
                     operationId: this._operationId,
@@ -203,6 +201,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
 
         // Ensure connection is established
         await this.ensureConnection(connectionUri);
+        endActivity.update(this.telemetryContext);
 
         // Load available databases
         await this.loadDatabases();
@@ -330,8 +329,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             this.logVerbose(`Using cached metadata for ${this.state.selectedDatabase}`);
 
             sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.LoadMetadata, {
-                connectionInfo: this._connectionCredentials,
-                serverInfo: this._connectionManager.getServerInfo(this._connectionCredentials),
+                ...this.telemetryContext,
                 additionalProps: {
                     operationId: this._operationId,
                     source: "cache",
@@ -355,8 +353,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             TelemetryViews.SearchDatabase,
             TelemetryActions.LoadMetadata,
             {
-                connectionInfo: this._connectionCredentials,
-                serverInfo: this._connectionManager.getServerInfo(this._connectionCredentials),
+                ...this.telemetryContext,
                 correlationId: uuid(),
                 additionalProps: {
                     operationId: this._operationId,
@@ -576,8 +573,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             this.applyFiltersAndSearch();
 
             sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.Search, {
-                connectionInfo: this._connectionCredentials,
-                serverInfo: this._connectionManager.getServerInfo(this._connectionCredentials),
+                ...this.telemetryContext,
                 additionalProps: {
                     operationId: this._operationId,
                     resultCount: state.totalResultCount.toString(),
@@ -607,10 +603,6 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
                     TelemetryViews.SearchDatabase,
                     TelemetryActions.SetDatabase,
                     {
-                        connectionInfo: this._connectionCredentials,
-                        serverInfo: this._connectionManager.getServerInfo(
-                            this._connectionCredentials,
-                        ),
                         correlationId: uuid(),
                         additionalProps: { operationId: this._operationId },
                     },
@@ -629,6 +621,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
 
                 try {
                     await this.ensureConnection(connectionUri);
+                    endActivity.update(this.telemetryContext);
                     await this.loadMetadata();
 
                     endActivity.end(ActivityStatus.Succeeded, {
@@ -736,8 +729,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             );
 
             sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.CopyObjectName, {
-                connectionInfo: this._connectionCredentials,
-                serverInfo: this._connectionManager.getServerInfo(this._connectionCredentials),
+                ...this.telemetryContext,
                 additionalProps: {
                     operationId: this._operationId,
                     objectType: payload.object.metadataTypeName,
@@ -786,8 +778,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
                 TelemetryViews.SearchDatabase,
                 TelemetryActions.RefreshResults,
                 {
-                    connectionInfo: this._connectionCredentials,
-                    serverInfo: this._connectionManager.getServerInfo(this._connectionCredentials),
+                    ...this.telemetryContext,
                     correlationId: uuid(),
                     additionalProps: { operationId: this._operationId },
                 },
@@ -895,8 +886,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
      */
     private async scriptObject(object: SearchResultItem, scriptType: ScriptType): Promise<void> {
         const endActivity = startActivity(TelemetryViews.SearchDatabase, TelemetryActions.Script, {
-            connectionInfo: this._connectionCredentials,
-            serverInfo: this._connectionManager.getServerInfo(this._connectionCredentials),
+            ...this.telemetryContext,
             correlationId: uuid(),
             additionalProps: {
                 operationId: this._operationId,
@@ -994,8 +984,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             TelemetryViews.SearchDatabase,
             TelemetryActions.EditData,
             {
-                connectionInfo: this._connectionCredentials,
-                serverInfo: this._connectionManager.getServerInfo(this._connectionCredentials),
+                ...this.telemetryContext,
                 correlationId: uuid(),
                 additionalProps: {
                     operationId: this._operationId,
@@ -1059,8 +1048,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             TelemetryViews.SearchDatabase,
             TelemetryActions.ModifyTable,
             {
-                connectionInfo: this._connectionCredentials,
-                serverInfo: this._connectionManager.getServerInfo(this._connectionCredentials),
+                ...this.telemetryContext,
                 correlationId: uuid(),
                 additionalProps: {
                     operationId: this._operationId,

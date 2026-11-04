@@ -49,20 +49,56 @@ suite("Connection telemetry context", () => {
     });
 
     test("resolves the requested owner URI rather than another editor's connection", () => {
-        manager.getConnectionInfo.withArgs("query://requested").returns({
-            credentials: profile,
-        } as ConnectionInfo);
+        const uriServerInfo = {
+            ...serverInfo,
+            databaseServiceTier: "GeneralPurpose",
+            databaseServiceObjective: "GP_Gen5_2",
+        };
+        manager.getConnectionInfo.withArgs("query://requested").returns(
+            Object.assign(new ConnectionInfo(), {
+                credentials: profile,
+                serverInfo: uriServerInfo,
+            }),
+        );
         manager.getConnectionInfo.withArgs("query://other").returns({
             credentials: { server: "other-server", authenticationType: "SqlLogin" },
         } as ConnectionInfo);
 
         expect(getConnectionTelemetryInfo(manager, "query://requested")).to.deep.equal({
             connectionInfo: profile,
-            serverInfo,
+            serverInfo: uriServerInfo,
         });
         sinon.assert.calledWithExactly(manager.getConnectionInfo, "query://requested");
-        sinon.assert.calledWithExactly(manager.getServerInfo, profile);
+        sinon.assert.notCalled(manager.getServerInfo);
         sinon.assert.notCalled(manager.connect);
+    });
+
+    test("uses URI-owned metadata for different databases on the same saved profile", () => {
+        const databaseA = { ...profile, id: "shared-profile", database: "database-a" };
+        const databaseB = { ...profile, id: "shared-profile", database: "database-b" };
+        const databaseBServerInfo = {
+            ...serverInfo,
+            databaseServiceTier: "BusinessCritical",
+            databaseServiceObjective: "BC_Gen5_4",
+        };
+        manager.getConnectionInfo.withArgs("query://database-b").returns(
+            Object.assign(new ConnectionInfo(), {
+                credentials: databaseB,
+                serverInfo: databaseBServerInfo,
+            }),
+        );
+        manager.getServerInfo.withArgs(databaseB).returns({
+            ...serverInfo,
+            databaseServiceTier: "GeneralPurpose",
+            databaseServiceObjective: "GP_Gen5_2",
+        });
+        manager.getServerInfo.withArgs(databaseA).returns(serverInfo);
+
+        expect(getConnectionTelemetryInfo(manager, "query://database-b")).to.deep.equal({
+            connectionInfo: databaseB,
+            serverInfo: databaseBServerInfo,
+        });
+        sinon.assert.notCalled(manager.getServerInfo);
     });
 
     test("leaves an unknown owner URI without context", () => {
