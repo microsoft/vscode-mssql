@@ -103,6 +103,154 @@ suite("Query Store capabilities", () => {
     });
 });
 
+suite("Query Store regressed queries", () => {
+    const recent = { start: new Date(Date.UTC(2026, 9, 2)), end: new Date(Date.UTC(2026, 9, 3)) };
+    const baseline = { start: new Date(Date.UTC(2026, 8, 25)), end: recent.start };
+    const columns = [
+        "query_id",
+        "recent_executions",
+        "baseline_executions",
+        "recent_average",
+        "baseline_average",
+        "new_plan_count",
+        "added_impact",
+        "query_text",
+        "object_schema_name",
+        "object_name",
+    ];
+
+    test("compares the two periods in one batch and converts to the metric's unit", async () => {
+        const reader = scriptedReader([
+            [
+                stateSet(),
+                resultSet(columns, [
+                    ["7", 10, 40, 800_000, 200_000, 1, 6_000_000, "SELECT 1", "dbo", "usp_Orders"],
+                ]),
+            ],
+        ]);
+
+        const result = await qs.getRegressedQueries(reader, capabilities(), {
+            recent,
+            baseline,
+            metric: "duration",
+            top: 25,
+            minExecutions: 2,
+        });
+
+        assert.equal(reader.calls.length, 1);
+        assert.equal(result.status, "ready");
+        assert.deepEqual(result.data, [
+            {
+                queryId: "7",
+                queryText: "SELECT 1",
+                readsOnlySystemCatalog: false,
+                objectName: "dbo.usp_Orders",
+                recentExecutionCount: 10,
+                baselineExecutionCount: 40,
+                recentAverage: 800,
+                baselineAverage: 200,
+                addedImpact: 6000,
+                changePercent: 300,
+                newPlanCount: 1,
+            },
+        ]);
+    });
+
+    test("asks only for queries that ran enough in both periods and got worse", async () => {
+        const reader = scriptedReader([[stateSet(), resultSet(columns, [])]]);
+
+        const result = await qs.getRegressedQueries(reader, capabilities(), {
+            recent,
+            baseline,
+            metric: "cpuTime",
+            top: 25,
+            minExecutions: 2,
+        });
+
+        assert.equal(result.status, "noData");
+        const [sql] = reader.calls;
+        assert.match(sql, /SELECT TOP \(25\)/);
+        assert.match(sql, /rs\.avg_cpu_time \* rs\.count_executions/);
+        assert.match(sql, /SUM\(pl\.recent_executions\) >= 2/);
+        assert.match(sql, /SUM\(pl\.baseline_executions\) >= 2/);
+        assert.match(sql, /a\.recent_average > a\.baseline_average/);
+        assert.match(sql, /ORDER BY added_impact DESC/);
+        assert.match(sql, /@window_start datetimeoffset = CAST\(N'2026-09-25T00:00:00/);
+        assert.match(sql, /@window_end datetimeoffset = CAST\(N'2026-10-03T00:00:00/);
+        assert.match(sql, /@baseline_end datetimeoffset = CAST\(N'2026-10-02T00:00:00/);
+        assert.match(sql, /@recent_start datetimeoffset = CAST\(N'2026-10-02T00:00:00/);
+    });
+
+    test("leaves out rows between the periods and other replicas", async () => {
+        const reader = scriptedReader([[stateSet(), resultSet(columns, [])]]);
+
+        await qs.getRegressedQueries(reader, capabilities({ hasReplicaGroups: true }), {
+            recent,
+            baseline,
+            metric: "duration",
+            top: 5,
+        });
+
+        const [sql] = reader.calls;
+        assert.match(
+            sql,
+            /\(rsi\.start_time < @baseline_end OR rsi\.start_time >= @recent_start\)/,
+        );
+        assert.match(sql, /rs\.replica_group_id = 1/);
+    });
+
+    test("has no percent change from a baseline average of zero", async () => {
+        const reader = scriptedReader([
+            [stateSet(), resultSet(columns, [["7", 1, 1, 10, 0, 0, 10, "SELECT 1", null, null]])],
+        ]);
+
+        const result = await qs.getRegressedQueries(reader, capabilities(), {
+            recent,
+            baseline,
+            metric: "logicalReads",
+            top: 5,
+        });
+
+        assert.equal(result.data[0].recentAverage, 80);
+        assert.equal("changePercent" in result.data[0], false);
+    });
+
+    test("rejects a baseline that overlaps the recent period, and a bad metric", async () => {
+        const reader = scriptedReader([]);
+        await assert.rejects(
+            qs.getRegressedQueries(reader, capabilities(), {
+                recent,
+                baseline: { start: baseline.start, end: recent.end },
+                metric: "duration",
+                top: 5,
+            }),
+            RangeError,
+        );
+        await assert.rejects(
+            qs.getRegressedQueries(reader, capabilities(), {
+                recent,
+                baseline,
+                metric: "cpu",
+                top: 5,
+            }),
+            RangeError,
+        );
+        assert.equal(reader.calls.length, 0);
+    });
+
+    test("is unsupported when the server does not record the metric", async () => {
+        const reader = scriptedReader([]);
+        const result = await qs.getRegressedQueries(reader, capabilities({ metrics: [] }), {
+            recent,
+            baseline,
+            metric: "duration",
+            top: 5,
+        });
+        assert.equal(result.status, "unsupported");
+        assert.equal(reader.calls.length, 0);
+    });
+});
+
 suite("Query Store reads", () => {
     test("reads the top queries and the workload in one batch", async () => {
         const reader = scriptedReader([

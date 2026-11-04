@@ -8,6 +8,7 @@ import type {
     QueryStoreRanking,
     QueryStoreRuntimeStats,
     QueryStoreStatistic,
+    RegressedQuery,
     TopQueries,
 } from "../../../sharedInterfaces/performanceDashboard";
 
@@ -23,21 +24,37 @@ export interface QueryListRow {
     readonly share?: number;
 }
 
-/** The categories of the Queries page, in the order of the picker, and what each one ranks by. */
+/** The categories of the Queries page, in the order of the picker. */
 export const queryCategories: readonly QueryCategory[] = [
     "cpu",
     "memory",
     "duration",
     "executions",
     "reads",
+    "regressed",
 ];
 
-/** The category of a value from the location or the saved state, if it is one. */
-export function toQueryCategory(value: string | undefined): QueryCategory | undefined {
-    return queryCategories.find((category) => category === value);
+/** The categories that rank the queries of one period. */
+export type RankedQueryCategory = Exclude<QueryCategory, "regressed">;
+
+/** The categories that the page offers. The regressed queries need their setting. */
+export function availableQueryCategories(
+    regressedQueriesEnabled: boolean,
+): readonly QueryCategory[] {
+    return regressedQueriesEnabled
+        ? queryCategories
+        : queryCategories.filter((category) => category !== "regressed");
 }
 
-export const queryCategoryRanking: Readonly<Record<QueryCategory, QueryStoreRanking>> = {
+/** The category of a value from the location or the saved state, if the page offers it. */
+export function toQueryCategory(
+    value: string | undefined,
+    categories: readonly QueryCategory[],
+): QueryCategory | undefined {
+    return categories.find((category) => category === value);
+}
+
+export const queryCategoryRanking: Readonly<Record<RankedQueryCategory, QueryStoreRanking>> = {
     cpu: "cpuTime",
     duration: "duration",
     memory: "memoryGrant",
@@ -82,4 +99,50 @@ export function queryListRows(
             ...(whole && value !== undefined ? { share: (value / whole) * 100 } : {}),
         };
     });
+}
+
+/** A row of the regressed queries. Its value is the added impact, and its executions the recent. */
+export interface RegressedQueryRow extends QueryListRow {
+    readonly recentAverage: number;
+    readonly baselineAverage: number;
+    readonly changePercent?: number;
+    readonly newPlanCount: number;
+}
+
+/**
+ * Returns the rows of a regressed queries read, which comes ranked. The added impact is not a
+ * part of a whole, so its share compares each query with the first.
+ */
+export function regressedQueryRows(
+    queries: readonly RegressedQuery[] | undefined,
+): RegressedQueryRow[] {
+    const highest = queries?.[0]?.addedImpact ?? 0;
+    return (queries ?? []).map((query) => ({
+        queryId: query.queryId,
+        queryText: query.queryText,
+        ...(query.objectName ? { objectName: query.objectName } : {}),
+        value: query.addedImpact,
+        executions: query.recentExecutionCount,
+        ...(highest > 0 ? { share: (query.addedImpact / highest) * 100 } : {}),
+        recentAverage: query.recentAverage,
+        baselineAverage: query.baselineAverage,
+        ...(query.changePercent !== undefined ? { changePercent: query.changePercent } : {}),
+        newPlanCount: query.newPlanCount,
+    }));
+}
+
+/** The rows that match the search, in the query ID or the text, and that are favorites if asked. */
+export function filterQueryRows<TRow extends QueryListRow>(
+    rows: readonly TRow[],
+    search: string,
+    favoriteQueryIds?: ReadonlySet<string>,
+): TRow[] {
+    const needle = search.trim().toLowerCase();
+    return rows.filter(
+        (row) =>
+            (!favoriteQueryIds || favoriteQueryIds.has(row.queryId)) &&
+            (!needle ||
+                row.queryId.includes(needle) ||
+                row.queryText.toLowerCase().includes(needle)),
+    );
 }

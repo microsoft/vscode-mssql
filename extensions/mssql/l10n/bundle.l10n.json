@@ -6167,6 +6167,27 @@
     "Same length before": "Same length before",
     "7 days before": "7 days before",
     "30 days before": "30 days before",
+    "Regressed/A category of the Queries page: the queries that got worse": {
+        "message": "Regressed",
+        "comment": ["A category of the Queries page: the queries that got worse"]
+    },
+    "Regressed queries": "Regressed queries",
+    "Added {0}/{0} is a measure, for example duration. What a query's slowdown added: the increase in its average times its recent executions": {
+        "message": "Added {0}",
+        "comment": [
+            "{0} is a measure, for example duration. What a query's slowdown added: the increase in its average times its recent executions"
+        ]
+    },
+    "New plans/The plans that ran in the recent period and not in the baseline period": {
+        "message": "New plans",
+        "comment": ["The plans that ran in the recent period and not in the baseline period"]
+    },
+    "No query got worse between these periods.": "No query got worse between these periods.",
+    "The baseline must end before the recent period starts. Choose another baseline.": "The baseline must end before the recent period starts. Choose another baseline.",
+    "Baseline period: {0}/{0} is the selected time range, for example 7 days before": {
+        "message": "Baseline period: {0}",
+        "comment": ["{0} is the selected time range, for example 7 days before"]
+    },
     "Average per execution": "Average per execution",
     "Total per day": "Total per day",
     "Change/The change from one period to another": {
@@ -6247,9 +6268,6 @@
     "No waits were recorded in this time range.": "No waits were recorded in this time range.",
     "Query Store does not capture wait statistics, so new waits are not recorded.": "Query Store does not capture wait statistics, so new waits are not recorded.",
     "Turn on wait statistics capture": "Turn on wait statistics capture",
-    "Summarize": "Summarize",
-    "Optimize": "Optimize",
-    "More chat actions": "More chat actions",
     "Preview": "Preview",
     "Continue in Fabric Database Hub": "Continue in Fabric Database Hub",
     "Continue investigating this database": "Continue investigating this database",

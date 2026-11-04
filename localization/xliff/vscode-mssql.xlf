@@ -574,6 +574,10 @@
     <trans-unit id="++CODE++5d8cde3035bbe2c8bbbf5881dfc0a0a2c6439a21267726716a7d61663511e18b">
       <source xml:lang="en">Added plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++46efec0674c4aa930094f51059adc699aec7f58ebc402c1fdcc6757f679fa29b">
+      <source xml:lang="en">Added {0}</source>
+      <note>{0} is a measure, for example duration. What a query&apos;s slowdown added: the increase in its average times its recent executions</note>
+    </trans-unit>
     <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
       <source xml:lang="en">Additional parameters</source>
     </trans-unit>
@@ -1244,6 +1248,10 @@
     <trans-unit id="++CODE++a6f43c38ec488f6281abbedabf16441abbf1de98c6e9b8580599fd57011c2054">
       <source xml:lang="en">Baseline</source>
       <note>The earlier period that a comparison compares with</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3875d5d8fa71e03517242432bb0c59b5a10b6c5598c32f4b2ebcdde28edc030f">
+      <source xml:lang="en">Baseline period: {0}</source>
+      <note>{0} is the selected time range, for example 7 days before</note>
     </trans-unit>
     <trans-unit id="++CODE++9a6e9a2ef671fa22ce409d2e5427bed347472a277ad19af7de1b7a9879f82107">
       <source xml:lang="en">Baseline {0}</source>
@@ -7560,9 +7568,6 @@
       <source xml:lang="en">More actions for {0}</source>
       <note>{0} is the name or summary of a reusable filter</note>
     </trans-unit>
-    <trans-unit id="++CODE++8bc4950de327ce134a92b8b604d0c343a2bb8545486e8bcab129d8af8061f9c6">
-      <source xml:lang="en">More chat actions</source>
-    </trans-unit>
     <trans-unit id="++CODE++a79a38420fec4111d59e6c851e1bc74fde38f27d487e7cbb59d242d17a8c77fb">
       <source xml:lang="en">More connection commands</source>
     </trans-unit>
@@ -7785,6 +7790,10 @@
     </trans-unit>
     <trans-unit id="++CODE++14b597fbf3bcf6c5c2d537614aacd0fc0ad22c1a5fee4bec6f2d9fedf0591d38">
       <source xml:lang="en">New media set name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++84ddaa59242721bbdb5e6a518bef14cefff9c4c285a912d7e41c259701a8b13b">
+      <source xml:lang="en">New plans</source>
+      <note>The plans that ran in the recent period and not in the baseline period</note>
     </trans-unit>
     <trans-unit id="++CODE++19266c62f80623721599e09db254321ee085c2f4f10fafd28dbd3f89863202b9">
       <source xml:lang="en">New query</source>
@@ -8099,6 +8108,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cf628b1c71bbf3f33eaa125d83a2b2905071080611468992cd11298f25bbc460">
       <source xml:lang="en">No queries ran in this time range.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c3c5ace71e54b867815f1b160f4c1af0bfc68d4bcc35039b231b06f615ed70c2">
+      <source xml:lang="en">No query got worse between these periods.</source>
     </trans-unit>
     <trans-unit id="++CODE++07fa58bdd9de910a1e070b49104fd2eb37a4665f9cae70f35a28130d6fb1cf10">
       <source xml:lang="en">No query set</source>
@@ -8633,9 +8645,6 @@
     </trans-unit>
     <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
       <source xml:lang="en">Operator</source>
-    </trans-unit>
-    <trans-unit id="++CODE++aa5f530acb509a3547fc2a5cc3f1c92da93af2f5b466417527e59d0f50f00c7b">
-      <source xml:lang="en">Optimize</source>
     </trans-unit>
     <trans-unit id="++CODE++e262d629c99156bd48e759790fae3387d08f1b1651ff7ec74a3ca9ad9202e0c9">
       <source xml:lang="en">Option Description</source>
@@ -9758,6 +9767,13 @@
     </trans-unit>
     <trans-unit id="++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083">
       <source xml:lang="en">Register</source>
+    </trans-unit>
+    <trans-unit id="++CODE++260371f27b52a501cdd634b1602f2035bac4850aad8fe99341dc5c22f1583d13">
+      <source xml:lang="en">Regressed</source>
+      <note>A category of the Queries page: the queries that got worse</note>
+    </trans-unit>
+    <trans-unit id="++CODE++698464f7c169c019d7dc98d55bad82e8435ab3d46a54e09253a926d4937efdb1">
+      <source xml:lang="en">Regressed queries</source>
     </trans-unit>
     <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
       <source xml:lang="en">Reject</source>
@@ -11854,9 +11870,6 @@
       <source xml:lang="en">Sum: {0}</source>
       <note>{0} is the sum</note>
     </trans-unit>
-    <trans-unit id="++CODE++e2683724d3eec401d6f3f88afa85812a346d838f85c2ac1406b057f0233c6c27">
-      <source xml:lang="en">Summarize</source>
-    </trans-unit>
     <trans-unit id="++CODE++8e76a94ac8320d515375e625bef1829238b097ecbd33611b59eeefd4ffefebfb">
       <source xml:lang="en">Summary</source>
     </trans-unit>
@@ -12237,6 +12250,9 @@
     </trans-unit>
     <trans-unit id="++CODE++937f464ef0aeec05ccd346845932275ed958c6a2703921f0ef89d5095e189f82">
       <source xml:lang="en">The affected extensions could not be opened. Open the Extensions view and uninstall older Data Workspace and SQL Database Projects extensions.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++da2282046faea4f8b041fcbd9df14a0a986cd8cfd5c29974e415064e706ec87e">
+      <source xml:lang="en">The baseline must end before the recent period starts. Choose another baseline.</source>
     </trans-unit>
     <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
       <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
@@ -16073,6 +16089,9 @@
     </trans-unit>
     <trans-unit id="mssql.metadataCache.enabled.description">
       <source xml:lang="en">Private preview. Persist structural metadata catalog snapshots locally for metadata-backed preview features. Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Snapshots contain schemas, objects, columns, and keys, but never descriptions, default or computed SQL definitions, module definitions, query results, credentials, or other secrets. Reload the window after changing any required setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.performanceMonitoring.regressedQueries.enabled.description">
+      <source xml:lang="en">Private preview. Show the Regressed category on the Queries page of the Query Performance Dashboard. Requires mssql.enableExperimentalFeatures. Reopen the dashboard after changing this setting.</source>
     </trans-unit>
     <trans-unit id="title.projectsView">
       <source xml:lang="en">Projects</source>

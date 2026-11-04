@@ -19,6 +19,11 @@ import {
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SegmentedControl } from "../../common/segmentedControl";
+import {
+    ResolvedTimeRange,
+    TimeRangePreset,
+    TimeRangeValue,
+} from "../../common/timeRange/timeRange";
 import { isFirstLoad } from "../../common/useExtensionRequest";
 import { dateTimeFormat, formatNumber } from "./performanceDashboardFormat";
 import { metrics } from "./performanceDashboardMetrics";
@@ -158,8 +163,35 @@ const changeFormat = new Intl.NumberFormat(undefined, {
     signDisplay: "exceptZero",
 });
 
+/** The name of the recent period of a comparison, which is the dashboard's time range. */
+export function recentPeriodLabel(
+    range: ResolvedTimeRange,
+    value: TimeRangeValue,
+    presets: readonly TimeRangePreset[],
+): string {
+    return value.kind === "preset"
+        ? (presets.find((preset) => preset.id === value.presetId)?.label ?? "")
+        : loc.performanceDashboard.timeIntervalRange(
+              dateTimeFormat.format(range.from),
+              dateTimeFormat.format(range.to),
+          );
+}
+
+/** The recent period of a comparison. The time range at the top of the page sets it. */
+export const RecentPeriod = ({ label }: { readonly label: string }) => {
+    const classes = useStyles();
+    return (
+        <Tooltip content={loc.performanceDashboard.recentSetByRange} relationship="description">
+            <span className={classes.recent}>
+                <Clock16Regular aria-hidden />
+                {label}
+            </span>
+        </Tooltip>
+    );
+};
+
 /** A change such as +12% or −8%, with a minus sign, not a hyphen. */
-function formatChange(percent: number | undefined): string {
+export function formatChange(percent: number | undefined): string {
     return percent === undefined
         ? "—"
         : `${changeFormat.format(Math.round(percent)).replace("-", "−")}%`;
@@ -231,13 +263,7 @@ export const PerformanceDashboardQueryCompare = ({ queryId }: { queryId: string 
               ? "performance-grid-worse"
               : "performance-grid-better";
 
-    const recentLabel =
-        value.kind === "preset"
-            ? (presets.find((preset) => preset.id === value.presetId)?.label ?? "")
-            : text.timeIntervalRange(
-                  dateTimeFormat.format(range.from),
-                  dateTimeFormat.format(range.to),
-              );
+    const recentLabel = recentPeriodLabel(range, value, presets);
     const baselineLabel = {
         same: text.baselineSameLength,
         "7d": text.baseline7Days,
@@ -310,12 +336,7 @@ export const PerformanceDashboardQueryCompare = ({ queryId }: { queryId: string 
                         }
                     />
                     <Text className={classes.muted}>{text.compareRecent}</Text>
-                    <Tooltip content={text.recentSetByRange} relationship="description">
-                        <span className={classes.recent}>
-                            <Clock16Regular aria-hidden />
-                            {recentLabel}
-                        </span>
-                    </Tooltip>
+                    <RecentPeriod label={recentLabel} />
                     <Text className={classes.muted}>{text.versus}</Text>
                     <InlineSelect<CompareBaseline>
                         label={text.compareBaseline}
