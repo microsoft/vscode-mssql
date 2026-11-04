@@ -66,8 +66,15 @@ test.describe("Azure SQL deployment options", () => {
         await expect(next).toBeEnabled({ timeout: 60_000 });
         await next.click();
         await deployment.getByRole("combobox", { name: "Authentication Type" }).click();
+        await expect(deployment.getByRole("option")).toHaveText([
+            "SQL Login",
+            "Microsoft Entra ID - Universal with MFA support",
+        ]);
         await deployment
-            .getByRole("option", { name: "Microsoft Entra ID - Service Principal", exact: true })
+            .getByRole("option", {
+                name: "Microsoft Entra ID - Universal with MFA support",
+                exact: true,
+            })
             .click();
         await expect(deployment.getByRole("combobox", { name: "Azure Account" })).toBeVisible();
         await expect(
@@ -88,13 +95,7 @@ test.describe("Azure SQL deployment options", () => {
                 exact: true,
             }),
         ).toHaveCount(0);
-        await expect(
-            deployment.getByText(
-                "The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.",
-                { exact: true },
-            ),
-        ).toBeVisible();
-        await expect(deployment.getByText("Client secret", { exact: true })).toBeVisible();
+        await expect(deployment.getByText("Client secret", { exact: true })).toHaveCount(0);
         await deployment.getByRole("button", { name: "Previous", exact: true }).click();
         await expect(next).toBeEnabled();
         await deployment.getByRole("button", { name: "Previous", exact: true }).click();

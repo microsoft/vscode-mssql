@@ -116,11 +116,6 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
     const authenticationOptions = [
         { value: AuthenticationType.SqlLogin, label: loc.sqlLogin },
         { value: AuthenticationType.AzureMFA, label: loc.entraMfa },
-        { value: AuthenticationType.ActiveDirectoryDefault, label: loc.entraDefault },
-        {
-            value: AuthenticationType.ActiveDirectoryServicePrincipal,
-            label: loc.entraServicePrincipal,
-        },
     ];
 
     if (!context) {
@@ -168,9 +163,7 @@ export const AzureSqlDatabaseContainerFormPage: React.FC<
                 onOptionSelect={(_, data) => {
                     if (
                         data.optionValue === AuthenticationType.SqlLogin ||
-                        data.optionValue === AuthenticationType.AzureMFA ||
-                        data.optionValue === AuthenticationType.ActiveDirectoryDefault ||
-                        data.optionValue === AuthenticationType.ActiveDirectoryServicePrincipal
+                        data.optionValue === AuthenticationType.AzureMFA
                     ) {
                         onChange({
                             ...form,
