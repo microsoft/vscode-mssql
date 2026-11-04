@@ -37,9 +37,21 @@ export const queryCategories: readonly QueryCategory[] = [
 /** The categories that rank the queries of one period. */
 export type RankedQueryCategory = Exclude<QueryCategory, "regressed">;
 
-/** The category of a value from the location or the saved state, if it is one. */
-export function toQueryCategory(value: string | undefined): QueryCategory | undefined {
-    return queryCategories.find((category) => category === value);
+/** The categories that the page offers. The regressed queries need their setting. */
+export function availableQueryCategories(
+    regressedQueriesEnabled: boolean,
+): readonly QueryCategory[] {
+    return regressedQueriesEnabled
+        ? queryCategories
+        : queryCategories.filter((category) => category !== "regressed");
+}
+
+/** The category of a value from the location or the saved state, if the page offers it. */
+export function toQueryCategory(
+    value: string | undefined,
+    categories: readonly QueryCategory[],
+): QueryCategory | undefined {
+    return categories.find((category) => category === value);
 }
 
 export const queryCategoryRanking: Readonly<Record<RankedQueryCategory, QueryStoreRanking>> = {

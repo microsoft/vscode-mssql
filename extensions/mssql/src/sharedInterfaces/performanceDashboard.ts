@@ -78,6 +78,8 @@ export interface PerformanceDashboardState {
      * saves it, so the page opens at it after a restart.
      */
     queryCategory?: QueryCategory;
+    /** Offers the regressed queries on the Queries page, which a private preview setting turns on. */
+    regressedQueriesEnabled: boolean;
     /**
      * Shows the banner that offers to continue in the Fabric Database Hub. Set when the database
      * has, or may have, a Hub row and the user hasn't dismissed the banner for the connection
@@ -371,11 +373,7 @@ export namespace SetFavoriteQueryRequest {
 /** The tabs of the query page. */
 export type QueryPageTab = "history" | "waits" | "plans" | "compare";
 
-/** What a chat prompt asks about a query: an analysis of its performance, or an explanation. */
-export type ChatPrompt = "summarize" | "optimize";
-
 export interface ContinueInChatParams extends TimeWindowParams {
-    readonly prompt: ChatPrompt;
     readonly queryId: string;
 }
 

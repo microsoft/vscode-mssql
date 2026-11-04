@@ -5681,6 +5681,12 @@
                         "default": true,
                         "markdownDescription": "%mssql.performanceMonitoring.enabled.description%",
                         "scope": "application"
+                    },
+                    "mssql.performanceMonitoring.regressedQueries.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "%mssql.performanceMonitoring.regressedQueries.enabled.description%",
+                        "scope": "application"
                     }
                 }
             },

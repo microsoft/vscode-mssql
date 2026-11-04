@@ -7,6 +7,7 @@ import { expect } from "chai";
 import type { RegressedQuery } from "../../../src/sharedInterfaces/performanceDashboard";
 import {
     filterQueryRows,
+    availableQueryCategories,
     queryCategories,
     queryCategoryRanking,
     regressedQueryRows,
@@ -31,8 +32,18 @@ function regressed(queryId: string, addedImpact: number): RegressedQuery {
 suite("performance dashboard query list", () => {
     test("offers the regressed queries as the last category, which ranks nothing", () => {
         expect(queryCategories[queryCategories.length - 1]).to.equal("regressed");
-        expect(toQueryCategory("regressed")).to.equal("regressed");
+        expect(toQueryCategory("regressed", queryCategories)).to.equal("regressed");
         expect(queryCategoryRanking).to.not.have.property("regressed");
+    });
+
+    test("offers the regressed queries only with their setting", () => {
+        expect(availableQueryCategories(true)).to.deep.equal(queryCategories);
+
+        const categories = availableQueryCategories(false);
+        expect(categories).to.not.include("regressed");
+        // A location or a saved category from when the setting was on does not apply.
+        expect(toQueryCategory("regressed", categories)).to.equal(undefined);
+        expect(toQueryCategory("cpu", categories)).to.equal("cpu");
     });
 
     test("compares the added impact of each regressed query with the first", () => {

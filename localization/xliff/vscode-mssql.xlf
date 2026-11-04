@@ -7553,9 +7553,6 @@
       <source xml:lang="en">More actions for {0}</source>
       <note>{0} is the name or summary of a reusable filter</note>
     </trans-unit>
-    <trans-unit id="++CODE++8bc4950de327ce134a92b8b604d0c343a2bb8545486e8bcab129d8af8061f9c6">
-      <source xml:lang="en">More chat actions</source>
-    </trans-unit>
     <trans-unit id="++CODE++a79a38420fec4111d59e6c851e1bc74fde38f27d487e7cbb59d242d17a8c77fb">
       <source xml:lang="en">More connection commands</source>
     </trans-unit>
@@ -8630,9 +8627,6 @@
     </trans-unit>
     <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
       <source xml:lang="en">Operator</source>
-    </trans-unit>
-    <trans-unit id="++CODE++aa5f530acb509a3547fc2a5cc3f1c92da93af2f5b466417527e59d0f50f00c7b">
-      <source xml:lang="en">Optimize</source>
     </trans-unit>
     <trans-unit id="++CODE++e262d629c99156bd48e759790fae3387d08f1b1651ff7ec74a3ca9ad9202e0c9">
       <source xml:lang="en">Option Description</source>
@@ -11851,9 +11845,6 @@
     <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
       <source xml:lang="en">Sum: {0}</source>
       <note>{0} is the sum</note>
-    </trans-unit>
-    <trans-unit id="++CODE++e2683724d3eec401d6f3f88afa85812a346d838f85c2ac1406b057f0233c6c27">
-      <source xml:lang="en">Summarize</source>
     </trans-unit>
     <trans-unit id="++CODE++8e76a94ac8320d515375e625bef1829238b097ecbd33611b59eeefd4ffefebfb">
       <source xml:lang="en">Summary</source>
@@ -16053,6 +16044,9 @@
     </trans-unit>
     <trans-unit id="mssql.metadataCache.enabled.description">
       <source xml:lang="en">Private preview. Persist structural metadata catalog snapshots locally for metadata-backed preview features. Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Snapshots contain schemas, objects, columns, and keys, but never descriptions, default or computed SQL definitions, module definitions, query results, credentials, or other secrets. Reload the window after changing any required setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.performanceMonitoring.regressedQueries.enabled.description">
+      <source xml:lang="en">Private preview. Show the Regressed category on the Queries page of the Query Performance Dashboard. Requires mssql.enableExperimentalFeatures. Reopen the dashboard after changing this setting.</source>
     </trans-unit>
     <trans-unit id="title.projectsView">
       <source xml:lang="en">Projects</source>

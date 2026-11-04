@@ -36,8 +36,8 @@ import {
 } from "./performanceDashboardQueryGrid";
 import {
     RankedQueryCategory,
+    availableQueryCategories,
     filterQueryRows,
-    queryCategories,
     queryCategoryRanking,
     queryListRows,
     rankStatistics,
@@ -73,9 +73,9 @@ const useStyles = makeStyles({
 
 /**
  * The queries of the database by category: the top queries by high CPU, high memory, duration,
- * most frequent, and high reads, and the queries that regressed. The category is in the location,
- * for example `queries?category=duration`. Without a category, the page shows the one that the
- * user chose last, which the extension saves.
+ * most frequent, and high reads, and, with their setting, the queries that regressed. The category
+ * is in the location, for example `queries?category=duration`. Without a category, the page shows
+ * the one that the user chose last, which the extension saves.
  */
 export const PerformanceDashboardQueriesPage = () => {
     const classes = useStyles();
@@ -90,9 +90,15 @@ export const PerformanceDashboardQueriesPage = () => {
     const [search, setSearch] = useState("");
     const [favoritesOnly, setFavoritesOnly] = useState(false);
 
+    const regressedQueriesEnabled = usePerformanceDashboardSelector(
+        (state) => state.regressedQueriesEnabled,
+    );
+    const categories = availableQueryCategories(regressedQueriesEnabled);
     const savedCategory = usePerformanceDashboardSelector((state) => state.queryCategory);
     const category =
-        toQueryCategory(match.query.category) ?? toQueryCategory(savedCategory) ?? "cpu";
+        toQueryCategory(match.query.category, categories) ??
+        toQueryCategory(savedCategory, categories) ??
+        "cpu";
 
     useEffect(() => setSearch(""), [databaseName]);
 
@@ -105,7 +111,7 @@ export const PerformanceDashboardQueriesPage = () => {
                 size="small"
                 ariaLabel={text.queryCategory}
                 value={category}
-                options={queryCategories.map((value) => ({
+                options={categories.map((value) => ({
                     value,
                     label: categoryShortLabel(value),
                 }))}

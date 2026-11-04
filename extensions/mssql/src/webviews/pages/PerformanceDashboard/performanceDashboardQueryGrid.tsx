@@ -7,7 +7,6 @@ import { Caption1, makeStyles, MenuItem, tokens } from "@fluentui/react-componen
 import { ReactElement, ReactNode, useMemo } from "react";
 import {
     ContinueInChatRequest,
-    type ChatPrompt,
     type PerformanceDashboardReducers,
     type PerformanceDashboardState,
     type PerformanceRead,
@@ -92,32 +91,26 @@ export interface QueryCategoryViewProps {
     readonly setQuery: (values: Record<string, string | undefined>) => void;
 }
 
-/** The menu of a list's rows, which asks Copilot Chat to summarize or optimize a query. */
+/** The menu of a list's rows, which opens a query in Copilot Chat. */
 export function useChatRowActions(window: TimeWindowParams): readonly QueryRowAction[] {
     const { extensionRpc } = useVscodeWebview<
         PerformanceDashboardState,
         PerformanceDashboardReducers
     >();
-    return useMemo<readonly QueryRowAction[]>(() => {
-        const chat = (prompt: ChatPrompt) => (queryId: string) =>
-            void extensionRpc.sendRequest(ContinueInChatRequest.type, {
-                prompt,
-                queryId,
-                ...window,
-            });
-        return [
+    return useMemo<readonly QueryRowAction[]>(
+        () => [
             {
-                label: loc.performanceDashboard.summarizeInChat,
+                label: loc.performanceDashboard.chat,
                 icon: <GithubCopilot16Regular />,
-                run: chat("summarize"),
+                run: (queryId) =>
+                    void extensionRpc.sendRequest(ContinueInChatRequest.type, {
+                        queryId,
+                        ...window,
+                    }),
             },
-            {
-                label: loc.performanceDashboard.optimizeInChat,
-                icon: <GithubCopilot16Regular />,
-                run: chat("optimize"),
-            },
-        ];
-    }, [extensionRpc, window]);
+        ],
+        [extensionRpc, window],
+    );
 }
 
 export interface PerformanceDashboardQueryGridProps<TRow extends QueryListRow = QueryListRow> {

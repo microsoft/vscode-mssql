@@ -8,14 +8,7 @@ import {
     Button,
     Caption1,
     makeStyles,
-    Menu,
-    MenuButtonProps,
-    MenuItem,
-    MenuList,
-    MenuPopover,
-    MenuTrigger,
     shorthands,
-    SplitButton,
     Subtitle2,
     Title3,
     tokens,
@@ -34,11 +27,10 @@ import {
     OpenSqlScriptRequest,
     PerformanceDashboardReducers,
     PerformanceDashboardState,
-    type ChatPrompt,
     type QueryPageTab,
     type QueryStoreQueryDetails,
 } from "../../../sharedInterfaces/performanceDashboard";
-import { GithubCopilot16Regular } from "../../common/icons/fluentIcons";
+import { CopilotChatButton } from "../../common/copilot/copilotChatButton";
 import { locConstants as loc } from "../../common/locConstants";
 import { useNavigation } from "../../common/navigation/navigationProvider";
 import { SegmentedControl } from "../../common/segmentedControl";
@@ -267,10 +259,11 @@ export const PerformanceDashboardQueryPage = () => {
                     </Badge>
                 )}
                 <span className={classes.headerEnd}>
-                    <ChatButton
-                        onChat={(prompt) =>
-                            void extensionRpc.sendRequest(ContinueInChatRequest.type, {
-                                prompt,
+                    <CopilotChatButton
+                        label={text.chat}
+                        tooltip={text.openInChat}
+                        onClick={() =>
+                            extensionRpc.sendRequest(ContinueInChatRequest.type, {
                                 queryId,
                                 ...window,
                             })
@@ -337,34 +330,6 @@ export const PerformanceDashboardQueryPage = () => {
             />
             <QueryTextPanel queryText={queryText} panelRef={panel} />
         </div>
-    );
-};
-
-/** Summarize in chat, with Optimize in its menu. Each sends its prompt at once. */
-const ChatButton = ({ onChat }: { onChat: (prompt: ChatPrompt) => void }) => {
-    const text = loc.performanceDashboard;
-    return (
-        <Menu positioning="below-end">
-            <MenuTrigger disableButtonEnhancement>
-                {(triggerProps: MenuButtonProps) => (
-                    <SplitButton
-                        appearance="subtle"
-                        size="small"
-                        icon={<GithubCopilot16Regular />}
-                        menuButton={{ ...triggerProps, "aria-label": text.moreChatActions }}
-                        primaryActionButton={{ onClick: () => onChat("summarize") }}>
-                        {text.summarizeInChat}
-                    </SplitButton>
-                )}
-            </MenuTrigger>
-            <MenuPopover>
-                <MenuList>
-                    <MenuItem icon={<GithubCopilot16Regular />} onClick={() => onChat("optimize")}>
-                        {text.optimizeInChat}
-                    </MenuItem>
-                </MenuList>
-            </MenuPopover>
-        </Menu>
     );
 };
 
