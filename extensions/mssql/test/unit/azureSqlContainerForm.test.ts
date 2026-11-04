@@ -44,8 +44,8 @@ import {
 import { CancellationToken } from "vscode-jsonrpc";
 import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
+import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as containerEngine from "../../src/docker/containerEngine";
-import { graphClient } from "../../src/azure/graphClient";
 import { promises as fs } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -57,6 +57,7 @@ suite("Azure SQL container configuration", () => {
     let sandbox: sinon.SinonSandbox;
     let certificateDirectory: string;
     let certificatePfxFilePath: string;
+    let acquireToken: sinon.SinonStub;
 
     suiteSetup(async () => {
         certificateDirectory = await fs.mkdtemp(
@@ -75,6 +76,9 @@ suite("Azure SQL container configuration", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        acquireToken = sandbox
+            .stub(vscodeEntraMfaUtils, "acquireTokenFromVscodeAccountForResource")
+            .resolves(entraIdentity());
     });
 
     teardown(() => {
@@ -112,17 +116,33 @@ suite("Azure SQL container configuration", () => {
         pfxFilePath: certificatePfxFilePath,
     });
 
-    const stubEntraAdministrator = () => {
+    const stubEntraAccount = () => {
         const account = { id: "account-id", label: "Selected account" };
         const getAccount = sandbox
             .stub(azureHelpers.VsCodeAzureHelper, "getAccountById")
             .resolves(account);
-        const user = {
-            id: "33333333-3333-3333-3333-333333333333",
-            userPrincipalName: "admin@contoso.com",
+        return { account, getAccount };
+    };
+
+    const entraIdentity = (
+        claims: unknown = {
+            oid: "33333333-3333-3333-3333-333333333333",
+            tid: "11111111-1111-1111-1111-111111111111",
+        },
+    ): vscodeEntraMfaUtils.VscodeEntraSqlTokenInfo => {
+        const account = { id: "account-id", label: "Selected account" };
+        const accessToken = `header.${Buffer.from(JSON.stringify(claims)).toString("base64url")}.signature`;
+        return {
+            account,
+            session: { id: "session-id", account, scopes: [], accessToken },
+            tenantId: "11111111-1111-1111-1111-111111111111",
+            token: {
+                key: account.id,
+                token: accessToken,
+                tokenType: "Bearer",
+                expiresOn: Math.floor(Date.now() / 1000) + 3600,
+            },
         };
-        const fetchUser = sandbox.stub(graphClient, "fetchCurrentUser").resolves(user);
-        return { account, getAccount, user, fetchUser };
     };
 
     for (const authenticationType of [
@@ -130,7 +150,12 @@ suite("Azure SQL container configuration", () => {
         AuthenticationType.ActiveDirectoryDefault,
     ] as const) {
         test(`creates a ${authenticationType} container directly using an externally prepared PFX`, async () => {
-            const { account, user, fetchUser } = stubEntraAdministrator();
+            const getAccount = sandbox
+                .stub(azureHelpers.VsCodeAzureHelper, "getAccountById")
+                .rejects(new Error("Account resolution is handled by the token helper"));
+            const getSession = sandbox
+                .stub(vscode.authentication, "getSession")
+                .rejects(new Error("Provisioning must not request Graph authentication"));
             const execute = sandbox
                 .stub(containerEngine, "executeContainerEngineCommand")
                 .resolves({ stdout: "container-id", stderr: "" });
@@ -144,15 +169,21 @@ suite("Azure SQL container configuration", () => {
                 signal,
             );
             expect(result).to.deep.equal({ success: true });
-            expect(fetchUser).to.have.been.calledWith(account, form.tenantId, signal);
+            expect(acquireToken).to.have.been.calledWith(
+                vscodeEntraMfaUtils.getCloudResourceEndpoint("armResource"),
+                form.accountId,
+                form.tenantId,
+            );
+            expect(getAccount).not.to.have.been.called;
+            expect(getSession).not.to.have.been.called;
             expect(execute).to.have.been.calledWith(
                 sinon.match.has(
                     "args",
                     sinon.match.array.contains([
                         `MSSQL_AAD_CLIENT_ID=${form.applicationId}`,
                         `MSSQL_AAD_PRIMARY_TENANT=${form.tenantId}`,
-                        `MSSQL_AAD_SERVER_ADMIN_SID=${user.id}`,
-                        `MSSQL_AAD_SERVER_ADMIN_NAME=${user.userPrincipalName}`,
+                        "MSSQL_AAD_SERVER_ADMIN_SID=33333333-3333-3333-3333-333333333333",
+                        "MSSQL_AAD_SERVER_ADMIN_NAME=Selected account",
                         `${certificatePfxFilePath}:/var/opt/mssql/mssql-entra-id.pfx:ro`,
                     ]),
                 ),
@@ -162,13 +193,15 @@ suite("Azure SQL container configuration", () => {
         });
     }
 
-    test("resolves the selected app's service-principal administrator during creation", async () => {
-        const { account, fetchUser } = stubEntraAdministrator();
-        const principal = {
-            id: "44444444-4444-4444-4444-444444444444",
-            displayName: "Container app",
-        };
-        const ensure = sandbox.stub(graphClient, "ensureServicePrincipal").resolves(principal);
+    test("uses the signed-in Microsoft user as administrator for service-principal authentication without Graph", async () => {
+        const getAccount = sandbox
+            .stub(azureHelpers.VsCodeAzureHelper, "getAccountById")
+            .rejects(new Error("Account resolution is handled by the token helper"));
+        const getSession = sandbox
+            .stub(vscode.authentication, "getSession")
+            .rejects(
+                new Error("Service-principal provisioning must not request Graph authentication"),
+            );
         const execute = sandbox
             .stub(containerEngine, "executeContainerEngineCommand")
             .resolves({ stdout: "container-id", stderr: "" });
@@ -184,27 +217,26 @@ suite("Azure SQL container configuration", () => {
             sandbox.createStubInstance(MainController),
         );
         expect(result.success).to.equal(true);
-        expect(ensure).to.have.been.calledWith(
-            form.applicationId,
-            account,
+        expect(acquireToken).to.have.been.calledWith(
+            vscodeEntraMfaUtils.getCloudResourceEndpoint("armResource"),
+            form.accountId,
             form.tenantId,
-            undefined,
         );
-        expect(fetchUser).not.to.have.been.called;
+        expect(getAccount).not.to.have.been.called;
+        expect(getSession).not.to.have.been.called;
         expect(execute).to.have.been.calledWith(
             sinon.match.has(
                 "args",
                 sinon.match.array.contains([
-                    `MSSQL_AAD_SERVER_ADMIN_SID=${principal.id}`,
-                    `MSSQL_AAD_SERVER_ADMIN_NAME=${principal.displayName}`,
+                    "MSSQL_AAD_SERVER_ADMIN_SID=33333333-3333-3333-3333-333333333333",
+                    "MSSQL_AAD_SERVER_ADMIN_NAME=Selected account",
                     "MSSQL_AAD_SERVER_ADMIN_TYPE=0",
                 ]),
             ),
         );
     });
 
-    test("rejects nonexistent or unreadable PFX files before resolving the administrator", async () => {
-        const { fetchUser } = stubEntraAdministrator();
+    test("rejects nonexistent or unreadable PFX files before creating a container", async () => {
         const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
         const access = sandbox.stub(fs, "access");
         for (const form of [
@@ -220,12 +252,10 @@ suite("Azure SQL container configuration", () => {
             );
             expect(result.success).to.equal(false);
         }
-        expect(fetchUser).not.to.have.been.called;
         expect(execute).not.to.have.been.called;
     });
 
     test("rejects a PFX path pointing to a directory before creating a container", async () => {
-        const { fetchUser } = stubEntraAdministrator();
         const stats = await fs.stat(certificatePfxFilePath);
         sandbox.stub(stats, "isFile").returns(false);
         sandbox.stub(fs, "stat").resolves(stats);
@@ -240,13 +270,86 @@ suite("Azure SQL container configuration", () => {
             success: false,
             fullErrorText: AzureSqlContainer.pfxFileRequired,
         });
-        expect(fetchUser).not.to.have.been.called;
         expect(execute).not.to.have.been.called;
     });
 
-    test("surfaces administrator lookup failures without starting a container", async () => {
-        const { fetchUser } = stubEntraAdministrator();
-        fetchUser.rejects(new Error("Administrator lookup denied"));
+    test("rejects missing or wrong-tenant administrator claims before creating a container", async () => {
+        const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
+        for (const claims of [
+            null,
+            {},
+            { oid: "not-an-object-id", tid: entraForm().tenantId },
+            { oid: "33333333-3333-3333-3333-333333333333" },
+            {
+                oid: "33333333-3333-3333-3333-333333333333",
+                tid: "55555555-5555-5555-5555-555555555555",
+            },
+        ]) {
+            acquireToken.resolves(entraIdentity(claims));
+            const result = await runAzureSqlContainerProvisioningStep(
+                ContainerEngine.Docker,
+                AzureSqlContainerProvisioningStep.CreateContainer,
+                entraForm(),
+                sandbox.createStubInstance(MainController),
+            );
+            expect(result).to.include({
+                success: false,
+                fullErrorText: AzureSqlContainer.invalidEntraAdministrator,
+            });
+        }
+        expect(execute).not.to.have.been.called;
+    });
+
+    test("rejects opaque or malformed identity tokens rather than guessing an administrator", async () => {
+        const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
+        for (const accessToken of ["opaque-token", "header.invalid-json.signature"]) {
+            const identity = entraIdentity();
+            identity.session = { ...identity.session, accessToken };
+            acquireToken.resolves(identity);
+            const result = await runAzureSqlContainerProvisioningStep(
+                ContainerEngine.Docker,
+                AzureSqlContainerProvisioningStep.CreateContainer,
+                entraForm(),
+                sandbox.createStubInstance(MainController),
+            );
+            expect(result).to.include({
+                success: false,
+                fullErrorText: AzureSqlContainer.invalidEntraAdministrator,
+            });
+        }
+        expect(execute).not.to.have.been.called;
+    });
+
+    test("uses the guest user's target-tenant object ID rather than the home-account ID", async () => {
+        const identity = entraIdentity();
+        identity.account = {
+            id: "99999999-9999-9999-9999-999999999999.aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            label: "Guest account",
+        };
+        acquireToken.resolves(identity);
+        const execute = sandbox
+            .stub(containerEngine, "executeContainerEngineCommand")
+            .resolves({ stdout: "container-id", stderr: "" });
+        const result = await runAzureSqlContainerProvisioningStep(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.CreateContainer,
+            { ...entraForm(), accountId: identity.account.id },
+            sandbox.createStubInstance(MainController),
+        );
+        expect(result.success).to.equal(true);
+        expect(execute).to.have.been.calledWith(
+            sinon.match.has(
+                "args",
+                sinon.match.array.contains([
+                    "MSSQL_AAD_SERVER_ADMIN_SID=33333333-3333-3333-3333-333333333333",
+                    "MSSQL_AAD_SERVER_ADMIN_NAME=Guest account",
+                ]),
+            ),
+        );
+    });
+
+    test("surfaces authentication failures without starting a container", async () => {
+        acquireToken.rejects(new Error("Authentication cancelled"));
         const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
         const result = await runAzureSqlContainerProvisioningStep(
             ContainerEngine.Docker,
@@ -254,16 +357,32 @@ suite("Azure SQL container configuration", () => {
             entraForm(),
             sandbox.createStubInstance(MainController),
         );
-        expect(result).to.include({ success: false, fullErrorText: "Administrator lookup denied" });
+        expect(result).to.include({ success: false, fullErrorText: "Authentication cancelled" });
         expect(execute).not.to.have.been.called;
     });
 
-    test("cancels creation if authentication completes after cancellation", async () => {
-        const { user, fetchUser } = stubEntraAdministrator();
+    test("cancels creation if account authentication completes after cancellation", async () => {
         const abort = new AbortController();
-        fetchUser.callsFake(async () => {
+        acquireToken.callsFake(async () => {
             abort.abort();
-            return user;
+            return entraIdentity();
+        });
+        const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
+        const result = await runAzureSqlContainerProvisioningStep(
+            ContainerEngine.Docker,
+            AzureSqlContainerProvisioningStep.CreateContainer,
+            entraForm(),
+            sandbox.createStubInstance(MainController),
+            abort.signal,
+        );
+        expect(result.success).to.equal(false);
+        expect(execute).not.to.have.been.called;
+    });
+
+    test("cancels creation if the certificate check completes after cancellation", async () => {
+        const abort = new AbortController();
+        sandbox.stub(fs, "access").callsFake(async () => {
+            abort.abort();
         });
         const execute = sandbox.stub(containerEngine, "executeContainerEngineCommand");
         const result = await runAzureSqlContainerProvisioningStep(
@@ -763,11 +882,7 @@ suite("Azure SQL container configuration", () => {
             AuthenticationType.ActiveDirectoryServicePrincipal,
         ] as const) {
             test(`provisions all four ${authenticationType} steps through RPC and retries creation without uploading a certificate`, async () => {
-                stubEntraAdministrator();
-                sandbox.stub(graphClient, "ensureServicePrincipal").resolves({
-                    id: "44444444-4444-4444-4444-444444444444",
-                    displayName: "Container app",
-                });
+                stubEntraAccount();
                 const tasks = sandbox.createStubInstance(BackgroundTasksService);
                 const complete = sandbox.stub();
                 tasks.registerTask.returns({
@@ -827,12 +942,7 @@ suite("Azure SQL container configuration", () => {
                         (command: { args: string[] }) =>
                             command.args[0] === "run" &&
                             command.args.includes(
-                                `MSSQL_AAD_SERVER_ADMIN_SID=${
-                                    authenticationType ===
-                                    AuthenticationType.ActiveDirectoryServicePrincipal
-                                        ? "44444444-4444-4444-4444-444444444444"
-                                        : "33333333-3333-3333-3333-333333333333"
-                                }`,
+                                "MSSQL_AAD_SERVER_ADMIN_SID=33333333-3333-3333-3333-333333333333",
                             ) &&
                             !command.args.some((arg) =>
                                 arg.includes(form.servicePrincipalClientSecret),

@@ -1552,31 +1552,6 @@ export class Azure {
         });
     }
 
-    public static unableToAcquireGraphTokenFromAzureCli(tenantId: string): string {
-        return l10n.t({
-            message:
-                "Unable to acquire a Microsoft Graph token from Azure CLI. Make sure Azure CLI is installed and sign in with 'az login --tenant {0} --allow-no-subscriptions', then retry.",
-            args: [tenantId],
-            comment: ["{0} is the selected Microsoft Entra tenant ID"],
-        });
-    }
-
-    public static azureCliGraphAccountMismatch(
-        accountDisplayName: string,
-        tenantId: string,
-    ): string {
-        return l10n.t({
-            message:
-                "Azure CLI is signed in with a different account than the selected VS Code account '{0}'. Sign in to Azure CLI with that account using 'az login --tenant {1} --allow-no-subscriptions', then retry.",
-            args: [accountDisplayName, tenantId],
-            comment: ["{0} is the selected account label", "{1} is the selected tenant ID"],
-        });
-    }
-
-    public static unableToVerifyGraphAccount = l10n.t(
-        "Unable to verify the Microsoft Graph account. Check that Azure CLI and VS Code are signed in with the same account.",
-    );
-
     public static noResourceConfiguredForCurrentCloud(
         resourceType: string,
         cloudName: string,
@@ -2114,13 +2089,10 @@ export class AzureSqlContainer {
     public static invalidApplicationClientId = l10n.t("Enter a valid application (client) ID.");
     public static pfxFileRequired = l10n.t("Select an existing, readable local PFX file.");
     public static invalidEntraAdministrator = l10n.t(
-        "Microsoft Graph did not return a valid tenant-local user ID and user principal name for the selected account.",
+        "Unable to determine the selected Microsoft account's administrator identity in this tenant. Sign in to the tenant and try again.",
     );
     public static servicePrincipalClientSecretRequired = l10n.t(
         "Enter the client secret for the selected app registration.",
-    );
-    public static invalidServicePrincipal = l10n.t(
-        "Microsoft Graph did not return a valid service principal for the selected app registration.",
     );
     public static invalidProvisioningStep = l10n.t(
         "This container provisioning step is not supported.",

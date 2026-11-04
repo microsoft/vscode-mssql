@@ -10,12 +10,16 @@ import { PagedAsyncIterableIterator } from "@azure/core-paging";
 import * as path from "path";
 import * as os from "os";
 import * as vscode from "vscode";
-import { AzureAuthType, IToken } from "../models/contracts/azure";
+import { VscodeHttpClient, withBearerToken } from "extension-toolkit/vscode";
+import { AzureAuthType, IToken, UserGroup } from "../models/contracts/azure";
 import * as Constants from "./constants";
 import { TokenCredentialWrapper } from "./credentialWrapper";
+import { getLogger } from "../models/logger";
+import { getErrorMessage } from "../utils/utils";
 import * as ExtensionConstants from "../constants/constants";
 
 const configAzureAD = "azureActiveDirectory";
+const logger = getLogger("AzureUtils");
 
 /**
  * Helper method to convert azure results that comes as pages to an array
@@ -111,4 +115,52 @@ export function getAppDataPath(): string {
         default:
             throw new Error("Platform not supported");
     }
+}
+
+/**
+ * Fetches the groups a user belongs to from Microsoft Graph.
+ *
+ * @param userId - The Azure AD user ID of the user.
+ * @returns A promise that resolves to an array of UserGroup objects containing `id` and `displayName`.
+ *
+ * @throws Will throw an error if no access token is available.
+ */
+export async function fetchUserGroups(userId: string): Promise<UserGroup[]> {
+    const graphBaseUri = vscode.Uri.parse("https://graph.microsoft.com/v1.0/");
+    const uri = vscode.Uri.joinPath(graphBaseUri, `users/${userId}/memberOf`);
+    const httpHelper = new VscodeHttpClient();
+
+    const session = await vscode.authentication.getSession("microsoft", [], {
+        createIfNone: true,
+    });
+    const token = session?.accessToken;
+    if (!token) {
+        throw new Error("No access token found");
+    }
+
+    const options = withBearerToken(token);
+    let groups: UserGroup[] = [];
+    let nextUrl: string | undefined = uri.toString();
+    while (nextUrl) {
+        try {
+            const response = await httpHelper.get<{
+                value: UserGroup[];
+                "@odata.nextLink"?: string;
+            }>(nextUrl, options);
+
+            const result = response.data.value.map(
+                (group) => ({ displayName: group.displayName, id: group.id }) as UserGroup,
+            );
+
+            groups = groups.concat(result);
+
+            // Update nextUrl for the next iteration
+            nextUrl = response.data["@odata.nextLink"];
+        } catch (error) {
+            logger.error(`Error fetching user groups: ${getErrorMessage(error)}`);
+            break; // Exit the loop on error
+        }
+    }
+
+    return groups;
 }

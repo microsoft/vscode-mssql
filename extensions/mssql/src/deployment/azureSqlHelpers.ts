@@ -43,7 +43,10 @@ import {
 } from "../docker/containerEngine";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
-import { graphClient } from "../azure/graphClient";
+import {
+    acquireTokenFromVscodeAccountForResource,
+    getCloudResourceEndpoint,
+} from "../azure/vscodeEntraMfaUtils";
 import * as vscode from "vscode";
 import * as path from "node:path";
 import * as fs from "node:fs/promises";
@@ -56,6 +59,7 @@ export const azureSqlContainerImage =
 const containerReadyTimeoutMs = 300_000;
 const containerReadyPollIntervalMs = 2_000;
 const containerEntraCertificatePath = "/var/opt/mssql/mssql-entra-id.pfx";
+const guidPattern = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 
 interface ContainerEntraAdministrator {
     id: string;
@@ -456,11 +460,7 @@ export function validateAzureSqlContainerForm(
         if (!form.tenantId) {
             errors.tenantId = ConnectionDialog.tenantIdIsRequired;
         }
-        if (
-            !/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(
-                form.applicationId ?? "",
-            )
-        ) {
+        if (!guidPattern.test(form.applicationId ?? "")) {
             errors.applicationId = AzureSqlContainer.invalidApplicationClientId;
         }
         if (
@@ -595,7 +595,14 @@ function getRunArguments(
         args.push("--hostname", form.hostname);
     }
     if (isAzureSqlContainerEntraAuthentication(form.authenticationType)) {
-        if (!administrator || !form.applicationId || !form.tenantId || !form.pfxFilePath) {
+        if (
+            !administrator ||
+            !guidPattern.test(administrator.id) ||
+            !administrator.name.trim() ||
+            !form.applicationId ||
+            !form.tenantId ||
+            !form.pfxFilePath
+        ) {
             throw new Error(AzureSqlContainer.invalidEntraAdministrator);
         }
         for (const setting of [
@@ -832,33 +839,36 @@ async function addAzureSqlContainerConnection(
 
 async function resolveContainerEntraAdministrator(
     form: AzureSqlContainerForm,
-    signal?: AbortSignal,
 ): Promise<ContainerEntraAdministrator> {
-    if (!form.accountId) {
-        throw new Error(AzureSqlContainer.selectEntraAccount);
+    const identity = await acquireTokenFromVscodeAccountForResource(
+        getCloudResourceEndpoint("armResource"),
+        form.accountId,
+        form.tenantId,
+    );
+    const parts = identity.session.accessToken.split(".");
+    let claims: unknown;
+    try {
+        claims =
+            parts.length === 3
+                ? JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"))
+                : undefined;
+    } catch {
+        throw new Error(AzureSqlContainer.invalidEntraAdministrator);
     }
-    if (!form.tenantId) {
-        throw new Error(ConnectionDialog.tenantIdIsRequired);
+    if (
+        !claims ||
+        typeof claims !== "object" ||
+        !("oid" in claims) ||
+        typeof claims.oid !== "string" ||
+        !guidPattern.test(claims.oid) ||
+        !("tid" in claims) ||
+        typeof claims.tid !== "string" ||
+        claims.tid.toLowerCase() !== form.tenantId?.toLowerCase() ||
+        !identity.account.label.trim()
+    ) {
+        throw new Error(AzureSqlContainer.invalidEntraAdministrator);
     }
-    if (!form.applicationId) {
-        throw new Error(AzureSqlContainer.invalidApplicationClientId);
-    }
-    const account = await VsCodeAzureHelper.getAccountById(form.accountId);
-    if (!account) {
-        throw new Error(Accounts.accountNotAvailableThroughVsCode(form.accountId, form.tenantId));
-    }
-    signal?.throwIfAborted();
-    if (form.authenticationType === AuthenticationType.ActiveDirectoryServicePrincipal) {
-        const principal = await graphClient.ensureServicePrincipal(
-            form.applicationId,
-            account,
-            form.tenantId,
-            signal,
-        );
-        return { id: principal.id, name: principal.displayName };
-    }
-    const user = await graphClient.fetchCurrentUser(account, form.tenantId, signal);
-    return { id: user.id, name: user.userPrincipalName };
+    return { id: claims.oid, name: identity.account.label.trim() };
 }
 
 export async function runAzureSqlContainerProvisioningStep(
@@ -888,7 +898,7 @@ export async function runAzureSqlContainerProvisioningStep(
                     }
                     await fs.access(form.pfxFilePath, fs.constants.R_OK);
                     signal?.throwIfAborted();
-                    administrator = await resolveContainerEntraAdministrator(form, signal);
+                    administrator = await resolveContainerEntraAdministrator(form);
                     signal?.throwIfAborted();
                 }
                 const command = getAzureSqlContainerProvisioningCommand(

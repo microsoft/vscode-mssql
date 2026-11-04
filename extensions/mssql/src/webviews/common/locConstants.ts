@@ -3735,6 +3735,9 @@ export class LocConstants {
         return {
             applicationClientId: l10n.t("Application (client) ID"),
             enterApplicationClientId: l10n.t("Enter the application client ID"),
+            servicePrincipalAdministratorDescription: l10n.t(
+                "The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.",
+            ),
             pfxFilePath: l10n.t("PFX file path"),
             selectPfxFile: l10n.t("Select a PFX file"),
             browsePfxFile: l10n.t("Browse for a PFX file"),

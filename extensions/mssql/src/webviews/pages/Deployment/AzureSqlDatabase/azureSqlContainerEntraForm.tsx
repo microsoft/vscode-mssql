@@ -29,6 +29,7 @@ import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { FormField } from "../../../common/forms/form.component";
 import { locConstants } from "../../../common/locConstants";
 import { getCoreRPCs } from "../../../common/utils";
+import { AuthenticationType } from "../../../../sharedInterfaces/connectionDialog";
 
 type EntraProperty = "accountId" | "tenantId";
 
@@ -324,6 +325,11 @@ export const AzureSqlContainerEntraForm = ({
                 </MessageBar>
             )}
             {children}
+            {form.authenticationType === AuthenticationType.ActiveDirectoryServicePrincipal && (
+                <MessageBar intent="info">
+                    <MessageBarBody>{loc.servicePrincipalAdministratorDescription}</MessageBarBody>
+                </MessageBar>
+            )}
             <fieldset className={classes.fields} disabled={disabled}>
                 <fieldset className={classes.fields} disabled={loadingAccounts}>
                     {renderField(

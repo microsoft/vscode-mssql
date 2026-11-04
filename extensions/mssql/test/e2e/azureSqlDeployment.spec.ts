@@ -61,6 +61,46 @@ test.describe("Azure SQL deployment options", () => {
         await expect(
             deployment.getByText("Azure SQL Database developer container", { exact: true }),
         ).toBeVisible();
+        const next = deployment.getByRole("button", { name: "Next", exact: true });
+        await next.click();
+        await expect(next).toBeEnabled({ timeout: 60_000 });
+        await next.click();
+        await deployment.getByRole("combobox", { name: "Authentication Type" }).click();
+        await deployment
+            .getByRole("option", { name: "Microsoft Entra ID - Service Principal", exact: true })
+            .click();
+        await expect(deployment.getByRole("combobox", { name: "Azure Account" })).toBeVisible();
+        await expect(
+            deployment.getByRole("combobox", { name: "Tenant ID", exact: true }),
+        ).toBeVisible();
+        await deployment
+            .getByRole("textbox", { name: "Application (client) ID", exact: true })
+            .fill("22222222-2222-2222-2222-222222222222");
+        await expect(
+            deployment.getByRole("textbox", {
+                name: "Microsoft Entra administrator object ID",
+                exact: true,
+            }),
+        ).toHaveCount(0);
+        await expect(
+            deployment.getByRole("textbox", {
+                name: "Microsoft Entra administrator name",
+                exact: true,
+            }),
+        ).toHaveCount(0);
+        await expect(
+            deployment.getByText(
+                "The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.",
+                { exact: true },
+            ),
+        ).toBeVisible();
+        await expect(deployment.getByText("Client secret", { exact: true })).toBeVisible();
+        await deployment.getByRole("button", { name: "Previous", exact: true }).click();
+        await expect(next).toBeEnabled();
+        await deployment.getByRole("button", { name: "Previous", exact: true }).click();
+        await expect(
+            deployment.getByText("Azure SQL Database developer container", { exact: true }),
+        ).toBeVisible();
         await deployment.getByRole("button", { name: "Previous", exact: true }).click();
 
         await expect(azureContainer).toBeVisible();

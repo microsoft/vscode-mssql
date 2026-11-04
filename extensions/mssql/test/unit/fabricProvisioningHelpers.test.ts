@@ -17,7 +17,7 @@ import * as fp from "../../src/sharedInterfaces/fabricProvisioning";
 import { Fabric } from "../../src/constants/locConstants";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { FabricHelper } from "../../src/fabric/fabricHelper";
-import { GraphClient, graphClient } from "../../src/azure/graphClient";
+import * as azureUtils from "../../src/azure/utils";
 import { WorkspaceRole } from "../../src/sharedInterfaces/fabric";
 import {
     BackgroundTaskHandle,
@@ -389,7 +389,7 @@ suite("Fabric Provisioning logic", () => {
         expect(options[1].icon).to.equal("Warning20Regular");
     });
 
-    test("workspace permissions fetch Graph memberships for the selected account and tenant", async () => {
+    test("workspace permissions use the original Azure membership helper", async () => {
         const state = new fp.FabricProvisioningState({
             formState: {
                 accountId: "user-id.home-tenant",
@@ -401,11 +401,9 @@ suite("Fabric Provisioning logic", () => {
             },
         });
         deploymentController.state.deploymentTypeState = state;
-        const account = { id: state.formState.accountId, label: "Selected account" };
-        sandbox.stub(VsCodeAzureHelper, "getAccountById").resolves(account);
-        const graph = sandbox.createStubInstance(GraphClient);
-        graph.fetchUserGroups.resolves([{ id: "group-id", displayName: "Group" }]);
-        sandbox.stub(graphClient, "fetchUserGroups").callsFake(graph.fetchUserGroups);
+        const fetchUserGroups = sandbox
+            .stub(azureUtils, "fetchUserGroups")
+            .resolves([{ id: "group-id", displayName: "Group" }]);
 
         await fabricHelpers.sortWorkspacesByPermission(
             deploymentController,
@@ -413,15 +411,11 @@ suite("Fabric Provisioning logic", () => {
             WorkspaceRole.Contributor,
         );
 
-        expect(graph.fetchUserGroups).to.have.been.calledWith(
-            "user-id",
-            account,
-            "selected-tenant",
-        );
+        expect(fetchUserGroups).to.have.been.calledWithExactly("user-id");
         expect(state.userGroupIds).to.deep.equal(["group-id", "user-id"]);
     });
 
-    test("workspace permission discovery surfaces Graph failures without caching partial identity data", async () => {
+    test("workspace permission discovery surfaces membership helper failures without caching partial identity data", async () => {
         const state = new fp.FabricProvisioningState({
             formState: {
                 accountId: "user-id.home-tenant",
@@ -433,11 +427,8 @@ suite("Fabric Provisioning logic", () => {
             },
         });
         deploymentController.state.deploymentTypeState = state;
-        sandbox
-            .stub(VsCodeAzureHelper, "getAccountById")
-            .resolves({ id: state.formState.accountId, label: "Selected account" });
-        const error = new Error("Graph unavailable");
-        sandbox.stub(graphClient, "fetchUserGroups").rejects(error);
+        const error = new Error("Membership lookup unavailable");
+        sandbox.stub(azureUtils, "fetchUserGroups").rejects(error);
 
         try {
             await fabricHelpers.sortWorkspacesByPermission(
@@ -446,7 +437,7 @@ suite("Fabric Provisioning logic", () => {
                 WorkspaceRole.Contributor,
                 "selected-tenant",
             );
-            expect.fail("Expected Graph failure");
+            expect.fail("Expected membership lookup failure");
         } catch (failure) {
             expect(failure).to.equal(error);
         }

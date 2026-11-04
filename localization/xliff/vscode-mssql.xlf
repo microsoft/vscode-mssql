@@ -1011,11 +1011,6 @@
     <trans-unit id="++CODE++9caca4621a4e79e9eba8871a8b0772c87fe7af38b1e5ce6518083abfd676c241">
       <source xml:lang="en">Azure Account is required</source>
     </trans-unit>
-    <trans-unit id="++CODE++8f66543b61cb319e122759f6d0488340a78b41e7bfcac47f38b0754c6a3d5dea">
-      <source xml:lang="en">Azure CLI is signed in with a different account than the selected VS Code account &apos;{0}&apos;. Sign in to Azure CLI with that account using &apos;az login --tenant {1} --allow-no-subscriptions&apos;, then retry.</source>
-      <note>{0} is the selected account label
-{1} is the selected tenant ID</note>
-    </trans-unit>
     <trans-unit id="++CODE++34ec466979918ed648dd5ae40b41e849fa6398b0d0a5f076ac3b0061d149d168">
       <source xml:lang="en">Azure Code Grant</source>
     </trans-unit>
@@ -7101,12 +7096,6 @@
     <trans-unit id="++CODE++e61384c6682ddc6334bc27e7ff7910666e979c089f0b764e40debf9bddf56fc4">
       <source xml:lang="en">Microsoft Fabric integration</source>
     </trans-unit>
-    <trans-unit id="++CODE++34968c6d7ba4736f4948bcb9d731cf2b7cb1e849d0b7ddfe316f7d10cd270d17">
-      <source xml:lang="en">Microsoft Graph did not return a valid service principal for the selected app registration.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c7d984ea453b16e1d87ee52f886359fad47cd0a1bc75994a975adb30fc65b744">
-      <source xml:lang="en">Microsoft Graph did not return a valid tenant-local user ID and user principal name for the selected account.</source>
-    </trans-unit>
     <trans-unit id="++CODE++37a030ea6da8310fdf7a80444a8422c23a11db46259cb36e5efcde0c3731f719">
       <source xml:lang="en">Microsoft SQL</source>
     </trans-unit>
@@ -11744,6 +11733,9 @@
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
     </trans-unit>
+    <trans-unit id="++CODE++930b10cc0233d500dbf4d8b27a0903e7e7b9334b28ccc77d3fd0f53766cce2d3">
+      <source xml:lang="en">The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.</source>
+    </trans-unit>
     <trans-unit id="++CODE++dcc368e5cecae7f8a0551b1a10f920940276c11de668e2c7e38cd72bfc755563">
       <source xml:lang="en">The selected clone path &apos;{0}&apos; does not exist or is not a directory.</source>
     </trans-unit>
@@ -12160,10 +12152,6 @@
       <source xml:lang="en">Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}</source>
       <note>{0} is the account label or ID</note>
     </trans-unit>
-    <trans-unit id="++CODE++d56dd5ca9f1f3614658deb0be37b7465657963352c948a324b52eafefe76ab95">
-      <source xml:lang="en">Unable to acquire a Microsoft Graph token from Azure CLI. Make sure Azure CLI is installed and sign in with &apos;az login --tenant {0} --allow-no-subscriptions&apos;, then retry.</source>
-      <note>{0} is the selected Microsoft Entra tenant ID</note>
-    </trans-unit>
     <trans-unit id="++CODE++0f8e75246db2971314d4ccab6451fac39308e60133f90443516d207a4b717983">
       <source xml:lang="en">Unable to acquire a valid token. (expires: {0}, but is currently {1})</source>
       <note>{0} is the token expiration time
@@ -12175,6 +12163,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0749eac937735a54efbd2572de25232bb773c43b1ed6b2407da37b6235f20410">
       <source xml:lang="en">Unable to construct connection: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a351282b73682a7c762b03903b4bd5da0c91b490c029de4f84d0a270d5396c50">
+      <source xml:lang="en">Unable to determine the selected Microsoft account&apos;s administrator identity in this tenant. Sign in to the tenant and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++45f72ef532c602c155033a6d27f0b8842d5514272f174487daece16c8ae600a1">
       <source xml:lang="en">Unable to determine the server authentication type.</source>
@@ -12228,9 +12219,6 @@
     </trans-unit>
     <trans-unit id="++CODE++a38bee0d6e2500966d3b6a21896c9f5dedaf92acdfa83ed3ba50a4a1850670d4">
       <source xml:lang="en">Unable to validate the container configuration.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++7546b9b74f7d85150167f9668a681226e9eb5dd5ced3ef652489b21be11314e5">
-      <source xml:lang="en">Unable to verify the Microsoft Graph account. Check that Azure CLI and VS Code are signed in with the same account.</source>
     </trans-unit>
     <trans-unit id="++CODE++124ca56333c7f32c616c30516bbaebdd39e4cc4821f247c3d4df5b9419ec9a0a">
       <source xml:lang="en">Unable to verify {0}. Check its configuration and retry.</source>

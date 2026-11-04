@@ -920,15 +920,6 @@
         "message": "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}",
         "comment": ["{0} is the account label or ID"]
     },
-    "Unable to acquire a Microsoft Graph token from Azure CLI. Make sure Azure CLI is installed and sign in with 'az login --tenant {0} --allow-no-subscriptions', then retry./{0} is the selected Microsoft Entra tenant ID": {
-        "message": "Unable to acquire a Microsoft Graph token from Azure CLI. Make sure Azure CLI is installed and sign in with 'az login --tenant {0} --allow-no-subscriptions', then retry.",
-        "comment": ["{0} is the selected Microsoft Entra tenant ID"]
-    },
-    "Azure CLI is signed in with a different account than the selected VS Code account '{0}'. Sign in to Azure CLI with that account using 'az login --tenant {1} --allow-no-subscriptions', then retry./{0} is the selected account label{1} is the selected tenant ID": {
-        "message": "Azure CLI is signed in with a different account than the selected VS Code account '{0}'. Sign in to Azure CLI with that account using 'az login --tenant {1} --allow-no-subscriptions', then retry.",
-        "comment": ["{0} is the selected account label", "{1} is the selected tenant ID"]
-    },
-    "Unable to verify the Microsoft Graph account. Check that Azure CLI and VS Code are signed in with the same account.": "Unable to verify the Microsoft Graph account. Check that Azure CLI and VS Code are signed in with the same account.",
     "No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings./{0} is the resource type{1} is the display name of the current cloud": {
         "message": "No resource of type '{0}' is configured for the current cloud '{1}'. Please update your Azure account settings.",
         "comment": ["{0} is the resource type", "{1} is the display name of the current cloud"]
@@ -1207,9 +1198,8 @@
     "Select a Microsoft Entra account.": "Select a Microsoft Entra account.",
     "Enter a valid application (client) ID.": "Enter a valid application (client) ID.",
     "Select an existing, readable local PFX file.": "Select an existing, readable local PFX file.",
-    "Microsoft Graph did not return a valid tenant-local user ID and user principal name for the selected account.": "Microsoft Graph did not return a valid tenant-local user ID and user principal name for the selected account.",
+    "Unable to determine the selected Microsoft account's administrator identity in this tenant. Sign in to the tenant and try again.": "Unable to determine the selected Microsoft account's administrator identity in this tenant. Sign in to the tenant and try again.",
     "Enter the client secret for the selected app registration.": "Enter the client secret for the selected app registration.",
-    "Microsoft Graph did not return a valid service principal for the selected app registration.": "Microsoft Graph did not return a valid service principal for the selected app registration.",
     "This container provisioning step is not supported.": "This container provisioning step is not supported.",
     "Provisioning Azure SQL Database container": "Provisioning Azure SQL Database container",
     "Enter a port number between 1 and 65535.": "Enter a port number between 1 and 65535.",
@@ -5400,6 +5390,7 @@
     "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
     "Application (client) ID": "Application (client) ID",
     "Enter the application client ID": "Enter the application client ID",
+    "The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.": "The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.",
     "PFX file path": "PFX file path",
     "Select a PFX file": "Select a PFX file",
     "Browse for a PFX file": "Browse for a PFX file",
