@@ -6,31 +6,31 @@
 import * as chai from "chai";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
+import * as vscode from "vscode";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import * as localContainers from "../../src/deployment/localContainersHelpers";
 import { DeploymentWebviewState } from "../../src/sharedInterfaces/deployment";
 import { LocalContainersState } from "../../src/sharedInterfaces/localContainers";
+import { AzureSqlDatabaseRequests } from "../../src/sharedInterfaces/azureSqlDatabase";
 import { stubTelemetry } from "./utils";
-import * as vscode from "vscode";
-import { previewService } from "../../src/previews/previewService";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import * as azureSql from "../../src/deployment/azureSqlHelpers";
 import * as logger from "../../src/models/logger";
-import { AzureSqlDatabaseRequests } from "../../src/sharedInterfaces/azureSqlDatabase";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import {
     LocalDatabaseDeploymentService,
     LocalDatabaseCompatibilityService,
 } from "../../src/deployment/localToCloudHelpers";
 import { LocalToCloud } from "../../src/constants/locConstants";
+import { createWorkspaceConfiguration } from "./stubs";
 
 chai.use(sinonChai);
 const { expect } = chai;
 
-suite("Deployment dialog closing", () => {
+suite("Deployment webview controller", () => {
     let sandbox: sinon.SinonSandbox;
     let controller: sinon.SinonStubbedInstance<DeploymentWebviewController>;
     let closePanel: sinon.SinonStub;
@@ -41,7 +41,6 @@ suite("Deployment dialog closing", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         telemetry = stubTelemetry(sandbox);
-        sandbox.stub(previewService, "azureSqlContainersEnabled").get(() => false);
         ({ controller, disposables } = registerLocalWizardHandlers());
         closePanel = sandbox.stub();
         sandbox.stub(controller, "panel").get(() => ({ dispose: closePanel }));
@@ -50,7 +49,7 @@ suite("Deployment dialog closing", () => {
     });
 
     function registerLocalWizardHandlers() {
-        sandbox.stub(azureSql, "registerAzureSqlRpcHandlers");
+        sandbox.spy(azureSql, "registerAzureSqlRpcHandlers");
         const client = sandbox.createStubInstance(SqlToolsServiceClient);
         sandbox.stub(SqlToolsServiceClient, "instance").get(() => client);
         const output: vscode.LogOutputChannel = {
@@ -161,7 +160,7 @@ suite("Deployment dialog closing", () => {
         expect(clear).to.have.been.called;
     });
 
-    test("registers local-to-cloud handlers with the container preview disabled", () => {
+    test("registers local-to-cloud handlers alongside container requests", () => {
         expect(
             controller.onRequest.getCalls().map((call) => call.args[0].method),
         ).to.include.members([
@@ -175,7 +174,7 @@ suite("Deployment dialog closing", () => {
             AzureSqlDatabaseRequests.CancelLocalDatabaseDeployment.method,
             AzureSqlDatabaseRequests.LocalDatabaseDeploymentAction.method,
         ]);
-        expect(azureSql.registerAzureSqlRpcHandlers).not.to.have.been.called;
+        expect(azureSql.registerAzureSqlRpcHandlers).to.have.been.calledWith(controller);
     });
 
     teardown(() => {
@@ -183,6 +182,24 @@ suite("Deployment dialog closing", () => {
             disposable.dispose();
         }
         sandbox.restore();
+    });
+
+    test("registers Azure SQL container requests even when preview flags are disabled", () => {
+        sandbox.stub(vscode.workspace, "getConfiguration").returns(
+            createWorkspaceConfiguration({
+                "mssql.preview.azureSqlContainers": false,
+                enableExperimentalFeatures: false,
+            }),
+        );
+        controller.onRequest.resetHistory();
+        DeploymentWebviewController.prototype["registerRpcHandlers"].call(controller);
+
+        expect(controller.onRequest).to.have.been.calledWith(
+            AzureSqlDatabaseRequests.DetectContainerEngines,
+        );
+        expect(controller.onRequest).to.have.been.calledWith(
+            AzureSqlDatabaseRequests.ValidateContainerForm,
+        );
     });
 
     test("Finish closes the Azure container dialog without legacy Docker state", async () => {

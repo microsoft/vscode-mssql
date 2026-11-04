@@ -83,7 +83,6 @@ const useStyles = makeStyles({
 });
 
 interface AzureSqlDatabaseDeploymentTypePageProps {
-    isLocalContainerEnabled: boolean;
     isFreeDeploymentLoading: boolean;
     onLocalContainerSelected: () => void;
     onFreeDeploymentSelected: () => void;
@@ -93,7 +92,6 @@ interface AzureSqlDatabaseDeploymentTypePageProps {
 export const AzureSqlDatabaseDeploymentTypePage: React.FC<
     AzureSqlDatabaseDeploymentTypePageProps
 > = ({
-    isLocalContainerEnabled,
     isFreeDeploymentLoading,
     onLocalContainerSelected,
     onFreeDeploymentSelected,
@@ -114,30 +112,28 @@ export const AzureSqlDatabaseDeploymentTypePage: React.FC<
 
     return (
         <div className={classes.cardRow}>
-            {isLocalContainerEnabled && (
-                <Card
-                    className={classes.card}
-                    onClick={onLocalContainerSelected}
-                    onKeyDown={(event) => handleKeyDown(event, onLocalContainerSelected)}
-                    tabIndex={0}
-                    role="button">
-                    <div className={classes.iconBadge}>
-                        <DockerIcon
-                            className={classes.icon}
-                            role="img"
-                            aria-label={locConstants.azureSqlDatabase.localContainer}
-                        />
-                    </div>
-                    <div className={classes.content}>
-                        <Text className={classes.cardHeader}>
-                            {locConstants.azureSqlDatabase.localContainer}
-                        </Text>
-                        <Text className={classes.cardDescription}>
-                            {locConstants.azureSqlDatabase.localContainerDescription}
-                        </Text>
-                    </div>
-                </Card>
-            )}
+            <Card
+                className={classes.card}
+                onClick={onLocalContainerSelected}
+                onKeyDown={(event) => handleKeyDown(event, onLocalContainerSelected)}
+                tabIndex={0}
+                role="button">
+                <div className={classes.iconBadge}>
+                    <DockerIcon
+                        className={classes.icon}
+                        role="img"
+                        aria-label={locConstants.azureSqlDatabase.localContainer}
+                    />
+                </div>
+                <div className={classes.content}>
+                    <Text className={classes.cardHeader}>
+                        {locConstants.azureSqlDatabase.localContainer}
+                    </Text>
+                    <Text className={classes.cardDescription}>
+                        {locConstants.azureSqlDatabase.localContainerDescription}
+                    </Text>
+                </div>
+            </Card>
             <Card
                 className={classes.card}
                 onClick={onFreeDeploymentSelected}

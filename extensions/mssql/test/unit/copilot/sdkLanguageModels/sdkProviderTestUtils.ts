@@ -11,6 +11,10 @@ export class FakeSecretStorage implements vscode.SecretStorage {
     private readonly _onDidChange = new vscode.EventEmitter<vscode.SecretStorageChangeEvent>();
     public readonly onDidChange = this._onDidChange.event;
 
+    public keys(): Thenable<string[]> {
+        return Promise.resolve([...this._values.keys()]);
+    }
+
     public get(key: string): Thenable<string | undefined> {
         return Promise.resolve(this._values.get(key));
     }

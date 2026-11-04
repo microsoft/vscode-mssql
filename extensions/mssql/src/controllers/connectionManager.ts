@@ -18,7 +18,10 @@ import {
 } from "../connectionconfig/azureHelpers";
 import {
     acquireTokenFromVscodeAccountForResource,
+    clearVscodeEntraTokenCache,
     getCloudResourceEndpoint,
+    initializeVscodeEntraTokenCacheState,
+    isVscodeEntraTokenStale,
     MissingEntraAuthAccountError,
 } from "../azure/vscodeEntraMfaUtils";
 import * as Constants from "../constants/constants";
@@ -205,6 +208,10 @@ export default class ConnectionManager {
         }
 
         this._entraLogger = logger.withPrefix("Entra Auth");
+
+        if (context?.globalState) {
+            initializeVscodeEntraTokenCacheState(context.globalState);
+        }
 
         if (!this.azureController) {
             this.azureController = new MsalAzureController(
@@ -1151,46 +1158,21 @@ export default class ConnectionManager {
     }
 
     private updateConnectionsContext() {
-        /**
-         * Making sure we keep encodings in the context. We need to convert the keys
-         * to Uri and back to string because the keys in _connections might have skipped encoding.
-         * This is done to match the behavior of how vscode core handles resource URIs in
-         * contexts.
-         * https://github.com/microsoft/vscode/blob/bb5a3c607b14787009f8e9fadb720beee596133c/src/vs/workbench/common/contextkeys.ts#L261C1-L262C1
-         * TODO: aaskhan find the underlying issue that causes the mismatch in encoding and fix it.
-         */
+        // Pass Uri values so VS Code maps them to the window's resource URIs
         vscode.commands.executeCommand(
             "setContext",
             "mssql.connections",
-            Object.keys(this._connections)
-                .filter((key) => this.isConnected(key))
-                .map((key) => {
-                    try {
-                        key = vscode.Uri.parse(key).toString();
-                    } catch {
-                        // ignore invalid URIs (for example OE-only keys) in context resource list
-                        return undefined;
-                    }
-                    return key;
-                })
-                .filter((key): key is string => !!key),
+            Utils.toResourceContextValue(
+                Object.keys(this._connections).filter((key) => this.isConnected(key)),
+            ),
         );
 
         vscode.commands.executeCommand(
             "setContext",
             "mssql.connecting",
-            Object.keys(this._connections)
-                .filter((key) => this.isConnecting(key))
-                .map((key) => {
-                    try {
-                        key = vscode.Uri.parse(key).toString();
-                    } catch {
-                        // ignore invalid URIs (for example OE-only keys) in context resource list
-                        return undefined;
-                    }
-                    return key;
-                })
-                .filter((key): key is string => !!key),
+            Utils.toResourceContextValue(
+                Object.keys(this._connections).filter((key) => this.isConnecting(key)),
+            ),
         );
     }
 
@@ -1278,7 +1260,10 @@ export default class ConnectionManager {
         if (!getUseMsalEntraMfaAuthConfig()) {
             const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
 
+            const isStale = isVscodeEntraTokenStale(connectionInfo.azureAccountToken);
+
             if (
+                !isStale &&
                 AzureController.isTokenValid(
                     connectionInfo.azureAccountToken,
                     connectionInfo.expiresOn,
@@ -1291,7 +1276,9 @@ export default class ConnectionManager {
             }
 
             this._entraLogger?.debug(
-                `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) expired at ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}) and needs to be refreshed.`,
+                isStale
+                    ? `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) was cached before the Entra token cache was cleared and needs to be refreshed.`
+                    : `Entra token for account ${connectionInfo.user} (${connectionInfo.email}) expired at ${connectionInfo.expiresOn} (${expiry.iso}, ${expiry.relative}) and needs to be refreshed.`,
             );
 
             const tokenInfo = await acquireTokenFromVscodeAccountForResource(
@@ -2291,7 +2278,9 @@ export default class ConnectionManager {
         }
     }
 
-    public onClearAzureTokenCache(): void {
+    public async onClearAzureTokenCache(): Promise<void> {
+        this._keyVaultTokenCache.clear();
+        await clearVscodeEntraTokenCache();
         this.azureController.clearTokenCache();
         vscode.window.showInformationMessage(LocalizedConstants.Accounts.clearedEntraTokenCache);
     }
@@ -2413,7 +2402,11 @@ export default class ConnectionManager {
         // Cache check is independent of auth provider
         if (this._keyVaultTokenCache.has(cacheKey)) {
             const cached = this._keyVaultTokenCache.get(cacheKey)!;
-            if (AzureController.isTokenExpired(cached.expiresOn)) {
+            // A refresh in flight when the token cache was cleared can cache a pre-clear token.
+            if (
+                AzureController.isTokenExpired(cached.expiresOn) ||
+                (!getUseMsalEntraMfaAuthConfig() && isVscodeEntraTokenStale(cached.token))
+            ) {
                 this._keyVaultTokenCache.delete(cacheKey);
             } else {
                 return {

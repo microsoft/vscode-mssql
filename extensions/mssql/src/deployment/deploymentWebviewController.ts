@@ -43,7 +43,6 @@ import {
 } from "../sharedInterfaces/azureSqlDatabase";
 import { findFirstFavoriteOption } from "../sharedInterfaces/form";
 import * as azureSql from "./azureSqlHelpers";
-import { previewService } from "../previews/previewService";
 import {
     AzureSqlCompatibilityBuilder,
     connectLocalDatabaseSource,
@@ -100,7 +99,6 @@ export class DeploymentWebviewController extends FormWebviewController<
             this.state.formState.groupId = initialConnectionGroup;
         }
         this.state.initialDeploymentType = initialDeploymentType;
-        this.state.isAzureSqlContainerEnabled = previewService.azureSqlContainersEnabled;
         this.state.connectionGroupOptions =
             await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
         this.registerRpcHandlers();
@@ -318,9 +316,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         localContainers.registerLocalContainersReducers(this);
         fabricProvisioning.registerFabricProvisioningReducers(this);
         azureSqlDatabase.registerAzureSqlDatabaseReducers(this);
-        if (previewService.azureSqlContainersEnabled) {
-            azureSql.registerAzureSqlRpcHandlers(this);
-        }
+        azureSql.registerAzureSqlRpcHandlers(this);
         let localWizardOpenedAt: number | undefined;
         this.registerDisposable(
             new vscode.Disposable(() => {

@@ -1163,6 +1163,8 @@ export class VsCodeAzureHelper {
                 collectionName: subscription.name,
                 tenantId: subscription.tenantId,
                 resourceGroup: extractFromResourceId(server.id!, "resourceGroups"),
+                // Synapse workspaces have no Database Hub row.
+                resourceId: isSynapseWorkspace ? undefined : server.id,
             });
         }
 
