@@ -38,13 +38,13 @@ import {
 } from "./gridFixtures";
 
 /**
- * Selection and keyboard navigation for the preview results grid.
+ * Selection and keyboard navigation for the results grid.
  *
  * Assertions read the grid's own markers: SlickGrid tags selected cells with `.selected` and the
  * anchor cell with `.active`, so counting them says exactly what is selected without inspecting
  * colours or geometry.
  */
-test.describe("MSSQL Extension - Preview Grid Selection", () => {
+test.describe("MSSQL Extension - Results Grid Selection", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
 
@@ -423,7 +423,7 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
             "true",
         );
         await page.keyboard.press("Control+Alt+R");
-        await expect(tabs.getByRole("tab", { name: /Results Preview/ })).toHaveAttribute(
+        await expect(tabs.getByRole("tab", { name: /^Results/ })).toHaveAttribute(
             "aria-selected",
             "true",
         );
@@ -435,7 +435,7 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
         await clickCell(grid, 3, 2, { modifiers: ["Control"] });
         await expect(selectedCells()).toHaveCount(2);
         await tabs.getByRole("tab", { name: "Messages" }).click();
-        await tabs.getByRole("tab", { name: /Results Preview/ }).click();
+        await tabs.getByRole("tab", { name: /^Results/ }).click();
         await expect(selectedCells()).toHaveCount(2);
         await expect(getCell(grid, 3, 2)).toHaveClass(/active/);
     });

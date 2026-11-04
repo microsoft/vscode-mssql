@@ -24,12 +24,10 @@ import {
     messageToString,
     recordLength,
     registerCommonRequestHandlers,
-    writeResultsGridMode,
 } from "./utils";
 import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
 import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
-import { getQueryResultWebviewSource } from "./queryResultWebviewSource";
 import { MultiResultsLayout } from "./multiResultsLayout";
 import store from "./singletonStore";
 
@@ -47,19 +45,6 @@ export class QueryResultWebviewController extends WebviewViewController<
         new Map<string, QueryResultWebviewPanelController>();
     private _selectionSummaryContinuations: Map<string, Deferred<void>> = new Map();
     private _correlationId: string = randomUUID();
-    /**
-     * Set while the results grid mode is being changed by the in-product switch, which reports
-     * its own telemetry. The configuration listener below fires for that write as well, so this
-     * keeps a single toggle from being counted twice.
-     */
-    private _gridModeChangeReportedBySwitch: boolean = false;
-    /**
-     * Editor status bar item used to show the grid selection summary when the query results
-     * footer preview is disabled. When the footer preview is enabled, the selection summary is
-     * shown inside the results view footer instead and this item stays hidden.
-     */
-    private _selectionSummaryStatusBarItem: vscode.StatusBarItem =
-        vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
     public actualPlanStatuses: string[] = [];
     private _sqlDocumentService: SqlDocumentService;
     /**
@@ -77,33 +62,22 @@ export class QueryResultWebviewController extends WebviewViewController<
         private _executionPlanService: ExecutionPlanService,
         private _sqlOutputContentProvider: SqlOutputContentProvider,
     ) {
-        const isBetaResultsGridEnabled = previewService.isFeatureEnabled(
-            PreviewFeature.BetaResultsGrid,
-        );
-        super(
-            context,
-            getQueryResultWebviewSource(isBetaResultsGridEnabled),
-            QUERY_RESULT_VIEW_ID,
-            {
-                resultSetSummaries: {},
-                messages: [],
-                tabStates: {
-                    resultPaneTab: qr.QueryResultPaneTabs.Messages,
-                },
-                executionPlanState: {},
-                fontSettings: {},
-                gridSettings: {},
-                autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
-                isExecuting: false,
-                executionElapsedMilliseconds: undefined,
-                rowsAffected: undefined,
-                isBetaResultsGridEnabled,
+        super(context, QUERY_RESULT_VIEW_ID, QUERY_RESULT_VIEW_ID, {
+            resultSetSummaries: {},
+            messages: [],
+            tabStates: {
+                resultPaneTab: qr.QueryResultPaneTabs.Messages,
             },
-        );
+            executionPlanState: {},
+            fontSettings: {},
+            gridSettings: {},
+            autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
+            isExecuting: false,
+            executionElapsedMilliseconds: undefined,
+            rowsAffected: undefined,
+        });
 
         void this.initialize();
-
-        context.subscriptions.push(this._selectionSummaryStatusBarItem);
 
         // not the best api but it's the best we can do in VSCode
         context.subscriptions.push(
@@ -165,42 +139,6 @@ export class QueryResultWebviewController extends WebviewViewController<
                     stateChanged = true;
                 }
                 if (
-                    e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaResultsGrid)) ||
-                    e.affectsConfiguration(Constants.configEnableExperimentalFeatures)
-                ) {
-                    const newValue = this.isBetaResultsGridEnabled;
-
-                    // The in-product switch reports its own richer event, so only report the
-                    // changes that came from elsewhere (the Settings UI, settings sync, or a
-                    // change to the global experimental features flag).
-                    if (this._gridModeChangeReportedBySwitch) {
-                        this._gridModeChangeReportedBySwitch = false;
-                    } else {
-                        sendActionEvent(
-                            TelemetryViews.QueryResult,
-                            TelemetryActions.ToggleResultsGridMode,
-                            {
-                                additionalProps: {
-                                    correlationId: this._correlationId,
-                                    newMode: newValue ? "preview" : "classic",
-                                    source: "settings",
-                                },
-                            },
-                        );
-                    }
-
-                    for (const [uri, state] of this._queryResultStateMap) {
-                        state.isBetaResultsGridEnabled = newValue;
-                        this._queryResultStateMap.set(uri, state);
-                    }
-                    this.reloadWebview(getQueryResultWebviewSource(newValue));
-                    for (const controller of this._queryResultWebviewPanelControllerMap.values()) {
-                        controller.reloadForResultsGridChange(newValue);
-                    }
-                    this.updateSelectionSummary();
-                    stateChanged = true;
-                }
-                if (
                     e.affectsConfiguration("mssql.resultsGrid.alternatingRowColors") ||
                     e.affectsConfiguration("mssql.resultsGrid.freezeFirstColumnByDefault") ||
                     e.affectsConfiguration("mssql.resultsGrid.showGridLines") ||
@@ -214,11 +152,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                     }
                     stateChanged = true;
                 }
-                if (
-                    e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.MultiResults)) ||
-                    e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaResultsGrid)) ||
-                    e.affectsConfiguration(Constants.configEnableExperimentalFeatures)
-                ) {
+                if (e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.MultiResults))) {
                     this.updateMultiResultsActivation();
                 }
                 if (
@@ -264,12 +198,6 @@ export class QueryResultWebviewController extends WebviewViewController<
             vscode.commands.registerCommand(Constants.cmdDisableFollowActiveEditor, () =>
                 this.setFollowActiveEditor(false),
             ),
-            vscode.commands.registerCommand(Constants.cmdEnablePreviewGrid, () =>
-                this.setPreviewGridEnabled(true),
-            ),
-            vscode.commands.registerCommand(Constants.cmdDisablePreviewGrid, () =>
-                this.setPreviewGridEnabled(false),
-            ),
             vscode.commands.registerCommand(Constants.cmdEnableMultiResults, () =>
                 this.setMultiResultsEnabled(true),
             ),
@@ -293,8 +221,6 @@ export class QueryResultWebviewController extends WebviewViewController<
     }
 
     public updateResultsOnActiveEditorChange(editor: vscode.TextEditor | undefined): void {
-        this.updateSelectionSummary();
-
         if (this._multiResultsLayout) {
             this.followEditorInMultiResults(editor);
             return;
@@ -371,19 +297,6 @@ export class QueryResultWebviewController extends WebviewViewController<
             !this.isOpenQueryResultsInTabByDefaultEnabled &&
             !this.isDefaultQueryResultToDocumentDoNotShowPromptEnabled
         );
-    }
-
-    /**
-     * Suppresses the configuration listener's telemetry for the next results grid mode change,
-     * for use by the in-product switch which reports the change itself. Pass `false` to release
-     * the suppression if the configuration write ends up failing.
-     */
-    public setGridModeChangeReportedBySwitch(reported: boolean): void {
-        this._gridModeChangeReportedBySwitch = reported;
-    }
-
-    private get isBetaResultsGridEnabled(): boolean {
-        return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
     }
 
     private registerRpcHandlers() {
@@ -508,7 +421,6 @@ export class QueryResultWebviewController extends WebviewViewController<
             gridSettings: this.getGridSettingsConfig(),
             autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
-            isBetaResultsGridEnabled: this.isBetaResultsGridEnabled,
             initializationError: undefined,
         };
     }
@@ -533,19 +445,6 @@ export class QueryResultWebviewController extends WebviewViewController<
         await config.update(Constants.configQueryResultsFollowActiveEditor, follow, target);
     }
 
-    private async setPreviewGridEnabled(enabled: boolean): Promise<void> {
-        // Sent before the update because writing the setting reloads the webviews.
-        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.ToggleResultsGridMode, {
-            additionalProps: {
-                correlationId: this._correlationId,
-                newMode: enabled ? "preview" : "classic",
-                source: "viewTitleMenu",
-                webviewLocation: "panel",
-            },
-        });
-        await writeResultsGridMode(this, enabled);
-    }
-
     private async setMultiResultsEnabled(enabled: boolean): Promise<void> {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.ToggleMultiResults, {
             additionalProps: { enabled: String(enabled) },
@@ -557,14 +456,6 @@ export class QueryResultWebviewController extends WebviewViewController<
                 enabled,
                 vscode.ConfigurationTarget.Global,
             );
-    }
-
-    /**
-     * The multi-results layout needs the preview grid: each result is shown in a pane of the
-     * preview grid's results view.
-     */
-    private get shouldUseMultiResults(): boolean {
-        return previewService.multiResultsEnabled && this.isBetaResultsGridEnabled;
     }
 
     public get isMultiResultsActive(): boolean {
@@ -584,7 +475,7 @@ export class QueryResultWebviewController extends WebviewViewController<
      * preview settings.
      */
     private updateMultiResultsActivation(): void {
-        const shouldBeActive = this.shouldUseMultiResults;
+        const shouldBeActive = previewService.multiResultsEnabled;
         if (shouldBeActive === this.isMultiResultsActive) {
             return;
         }
@@ -893,7 +784,6 @@ export class QueryResultWebviewController extends WebviewViewController<
             isExecuting: false,
             executionElapsedMilliseconds: undefined,
             rowsAffected: undefined,
-            isBetaResultsGridEnabled: this.isBetaResultsGridEnabled,
         } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
 
@@ -1112,43 +1002,6 @@ export class QueryResultWebviewController extends WebviewViewController<
                 this._queryResultStateMap.delete(uri);
                 await this._sqlOutputContentProvider.cleanupRunner(uri);
             }
-
-            this.updateSelectionSummary();
-        }
-    }
-
-    /**
-     * Updates the editor status bar item that shows the grid selection summary.
-     *
-     * When the query results footer preview is enabled the selection summary is rendered inside
-     * the results view footer, so the status bar item is hidden. Otherwise it reflects the
-     * selection summary of the active query result.
-     */
-    public updateSelectionSummary(): void {
-        if (this.isBetaResultsGridEnabled) {
-            this._selectionSummaryStatusBarItem.hide();
-            return;
-        }
-
-        let activeUri = Array.from(this._queryResultWebviewPanelControllerMap.keys()).find(
-            (uri) => this._queryResultWebviewPanelControllerMap.get(uri).panel.active,
-        );
-
-        if (!activeUri) {
-            activeUri = getUriKey(vscode.window.activeTextEditor?.document.uri);
-        }
-
-        const summary = activeUri
-            ? this._queryResultStateMap.get(activeUri)?.selectionSummary
-            : undefined;
-
-        if (summary?.text) {
-            this._selectionSummaryStatusBarItem.text = summary.text;
-            this._selectionSummaryStatusBarItem.tooltip = summary.tooltip;
-            this._selectionSummaryStatusBarItem.command = summary.command;
-            this._selectionSummaryStatusBarItem.show();
-        } else {
-            this._selectionSummaryStatusBarItem.hide();
         }
     }
 

@@ -10,7 +10,7 @@ import { getGridLaunchConfig } from "./gridLaunchConfig";
 import { getCell, stageQuery } from "./gridActions";
 import { SELECTION_QUERY, SELECTION_ROW_COUNT } from "./gridFixtures";
 
-test.describe("MSSQL Extension - Preview Grid Accessibility", () => {
+test.describe("MSSQL Extension - Results Grid Accessibility", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
 

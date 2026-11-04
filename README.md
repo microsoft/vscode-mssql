@@ -31,7 +31,7 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 | [Object Explorer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#object-explorer-filtering)       | Browse and filter database objects with type-aware search                                                          |
 | [Database Object Search](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-database-operations#database-object-search)            | Search for tables, views, stored procedures, and other objects across a database                                   |
 | [Fabric integration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-fabric-integration)                                        | Browse Fabric workspaces and provision SQL databases                                                               |
-| [Query Results](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-results-pane)                | View, sort, copy, and export query results                                                                         |
+| [Query Results](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-results-pane)                | View, sort, filter, copy, and export query results, and freeze, show, or hide columns                              |
 | [Query Plan Visualizer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#query-plan-visualizer)     | Analyze execution plans with interactive node navigation                                                           |
 | [Query Profiler](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-query-profiler)                                                | Real-time database activity monitoring with Extended Events                                                        |
 | [Table Designer](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#table-designer)                   | Create and manage tables with a visual interface                                                                   |
@@ -58,10 +58,9 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 
 ### Public Preview
 
-| Capability                                                                                                                                                                      | Description                                                                      |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| [New Query Results Grid](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code?view=sql-server-ver17#query-results-pane) | New results grid experience with more column customizations (freeze, show, hide) |
-| [New SQL Formatter](https://aka.ms/vscode-mssql-formatter)                                                                                                                      | SQL formatter with more formatting options                                       |
+| Capability                                                 | Description                                |
+| ---------------------------------------------------------- | ------------------------------------------ |
+| [New SQL Formatter](https://aka.ms/vscode-mssql-formatter) | SQL formatter with more formatting options |
 
 ## Using the MSSQL Extension
 
@@ -216,7 +215,6 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 // Query Results & Grid
 {
   "mssql.openQueryResultsInTabByDefault": false,           // Open query results in a tab instead of side panel
-  "mssql.preview.betaResultsGrid": false,                  // (Preview) Enable the new query results grid with improved state management and column show/hide/freeze options
   "mssql.resultsFontFamily": null,                         // Font family for results grid (null = VS Code default)
   "mssql.resultsFontSize": null,                           // Font size for results grid in pixels (null = VS Code default)
   "mssql.defaultQueryResultsViewMode": "Grid",             // Default results view: "Grid" or "Text"

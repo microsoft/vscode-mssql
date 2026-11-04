@@ -5,7 +5,7 @@
 
 import { makeStyles, Text, Title3 } from "@fluentui/react-components";
 import { DatabaseSearch24Regular } from "@fluentui/react-icons";
-import { type ComponentType, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {
     CloseMultiResultNotification,
@@ -91,15 +91,10 @@ function getListPercent(pixels: number, viewWidth: number, fallbackPercent: numb
     return Math.min(Math.max((pixels / viewWidth) * 100, 1), 50);
 }
 
-interface MultiResultsPageProps {
-    GridView: ComponentType;
-    isBetaResultsGridEnabled: boolean;
-}
-
 /**
  * Lists every query result on the right, and shows one group of them side by side.
  */
-export const MultiResultsPage = ({ GridView, isBetaResultsGridEnabled }: MultiResultsPageProps) => {
+export const MultiResultsPage = () => {
     const classes = useStyles();
     const { extensionRpc } = useVscodeWebview<QueryResultWebviewState, QueryResultReducers>();
     const multiResults = useQueryResultSelector((state) => state.multiResults);
@@ -188,8 +183,6 @@ export const MultiResultsPage = ({ GridView, isBetaResultsGridEnabled }: MultiRe
                                     entries={multiResults.entries}
                                     orientation={orientation}
                                     store={store}
-                                    GridView={GridView}
-                                    isBetaResultsGridEnabled={isBetaResultsGridEnabled}
                                 />
                             ) : (
                                 <div className={classes.empty}>

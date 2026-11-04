@@ -4,32 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as qr from "../../../sharedInterfaces/queryResult";
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-
-export const saveAsCsvIcon = (theme: ColorThemeKind) => {
-    return theme === ColorThemeKind.Light
-        ? require("../../media/saveCsv.svg")
-        : require("../../media/saveCsv_inverse.svg");
-};
-
-export const saveAsJsonIcon = (theme: ColorThemeKind) => {
-    return theme === ColorThemeKind.Light
-        ? require("../../media/saveJson.svg")
-        : require("../../media/saveJson_inverse.svg");
-};
-
-export const saveAsExcelIcon = (theme: ColorThemeKind) => {
-    return theme === ColorThemeKind.Light
-        ? require("../../media/saveExcel.svg")
-        : require("../../media/saveExcel_inverse.svg");
-};
-
-export const saveAsInsertIcon = (theme: ColorThemeKind) => {
-    return theme === ColorThemeKind.Light
-        ? require("../../media/saveInsert.svg")
-        : require("../../media/saveInsert_inverse.svg");
-};
-
 export function hasResultsOrMessages(
     resultSetSummaries: Record<number, Record<number, qr.ResultSetSummary>>,
     messages: qr.IMessage[],
@@ -115,4 +89,23 @@ export function getDisplayedRowsCount(
     }
 
     return rowsAffected;
+}
+
+/**
+ * Gets the total count of grid result sets from the result set summaries.
+ * @param summaries The result set summaries.
+ * @returns The total count of grid result sets.
+ */
+export function getGridCount(
+    summaries: Record<number, Record<number, qr.ResultSetSummary>>,
+): number {
+    let count = 0;
+    const batchIds = Object.keys(summaries ?? {});
+    for (const batchId of batchIds) {
+        const summary = summaries[parseInt(batchId)];
+        if (summary) {
+            count += Object.keys(summary).length;
+        }
+    }
+    return count;
 }

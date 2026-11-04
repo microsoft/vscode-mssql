@@ -69,7 +69,6 @@ void run(
                 queryResultsSnapshot: "src/webviews/pages/QueryResultsSnapshot/index.tsx",
                 editorWorker: "monaco-editor/esm/vs/editor/editor.worker.js",
                 queryResult: "src/webviews/pages/QueryResult/index.tsx",
-                queryResultPreview: "src/webviews/pages/QueryResult/queryResultPreviewIndex.tsx",
                 userSurvey: "src/webviews/pages/UserSurvey/index.tsx",
                 schemaDesigner: "src/webviews/pages/SchemaDesigner/index.tsx",
                 schemaCompare: "src/webviews/pages/SchemaCompare/index.tsx",

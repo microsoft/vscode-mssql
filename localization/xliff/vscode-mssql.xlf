@@ -7589,9 +7589,6 @@
     <trans-unit id="++CODE++7b2f513a67abc570d3348717ad85ae669570734afe2bf57015c2cc9b0dce3764">
       <source xml:lang="en">Monthly limits</source>
     </trans-unit>
-    <trans-unit id="++CODE++98eea4c1c21f333640ea131c6484e3a8a861029affc6ac5438a67df28df6af68">
-      <source xml:lang="en">More Actions</source>
-    </trans-unit>
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
     </trans-unit>
@@ -9122,9 +9119,6 @@
     <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
       <source xml:lang="en">Preview Database Updates</source>
     </trans-unit>
-    <trans-unit id="++CODE++cd3c37c0fff7336e44e0cf23750941ac5a52b322309637bd4733036d1b863ce8">
-      <source xml:lang="en">Preview Grid</source>
-    </trans-unit>
     <trans-unit id="++CODE++a57b08a480b822a0a572b993391c292ede593bf8000b406675b180bbb16260fa">
       <source xml:lang="en">Previous</source>
     </trans-unit>
@@ -10156,17 +10150,6 @@
     <trans-unit id="++CODE++82d510eecb9f37659e99b55edff96e66aced3765063d0981d26bb433381f1945">
       <source xml:lang="en">Results ({0})</source>
       <note>{0} is the keyboard shortcut for the results tab</note>
-    </trans-unit>
-    <trans-unit id="++CODE++2d69137f5dd060efac1008188981aff344c1d3de8f7c3bf54359e68cc4e19b5e">
-      <source xml:lang="en">Results Preview</source>
-    </trans-unit>
-    <trans-unit id="++CODE++2944b5a2b1f061b198f19a818d051f7246c0494c3a7150d757f2301e3ab9e06a">
-      <source xml:lang="en">Results Preview ({0})</source>
-      <note>{0} is the number of preview results</note>
-    </trans-unit>
-    <trans-unit id="++CODE++19845d8a46ab987a3d8bf7a121f630c6f4dd5bbf37f30e81ec6fb187bba7a8e3">
-      <source xml:lang="en">Results Preview ({0})</source>
-      <note>{0} is the keyboard shortcut for the preview results tab</note>
     </trans-unit>
     <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
       <source xml:lang="en">Results exported successfully to {0}</source>
@@ -11513,13 +11496,6 @@
     <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
       <source xml:lang="en">Show MSSQL output</source>
     </trans-unit>
-    <trans-unit id="++CODE++a16e132b133cc57c4d467bde193d78fe48f170a197d0581c2e6578162824902f">
-      <source xml:lang="en">Show Menu</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d014d52362848d2e01dc78db0a3788e52c984baecefb3c94fd4539d03e331e78">
-      <source xml:lang="en">Show Menu ({0})</source>
-      <note>{0} is the keyboard shortcut for showing the menu</note>
-    </trans-unit>
     <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
       <source xml:lang="en">Show New Password</source>
     </trans-unit>
@@ -11986,9 +11962,6 @@
     </trans-unit>
     <trans-unit id="++CODE++5f9a6468c67e9a70a4b7b3b9b65d5c8d1ff0dcd29d0deeebf7232dde003c2918">
       <source xml:lang="en">Switch between result panes and tabs</source>
-    </trans-unit>
-    <trans-unit id="++CODE++6652212ed4ac6802693dae6e359f8c57272ec99f52ac06f1bc5f7d7948fb9e89">
-      <source xml:lang="en">Switch between the classic and the preview results grid</source>
     </trans-unit>
     <trans-unit id="++CODE++d797c6360240f8a9e067207c81426437b0a655a0a744840a19a889ab8de4b58e">
       <source xml:lang="en">Switch results view</source>
@@ -12898,9 +12871,6 @@
     </trans-unit>
     <trans-unit id="++CODE++0888fb768c96dbbea7f193833d4dc8ec6ac4cf63d8a49991b8768eaa9dab7e6a">
       <source xml:lang="en">Toggle Similar Areas</source>
-    </trans-unit>
-    <trans-unit id="++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa">
-      <source xml:lang="en">Toggle Sort</source>
     </trans-unit>
     <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
       <source xml:lang="en">Toggle Tooltips</source>
@@ -15644,9 +15614,6 @@
     <trans-unit id="mssql.preview.liveQueryStatistics.description">
       <source xml:lang="en">Enables the preview Live Query Statistics commands to watch a running query plan refresh with live row counts. When unset, follows mssql.enableExperimentalFeatures. Set to true or false to override that setting.</source>
     </trans-unit>
-    <trans-unit id="mssql.preview.betaResultsGrid.description">
-      <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
-    </trans-unit>
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
@@ -15846,7 +15813,7 @@
       <source xml:lang="en">List of projects in the workspace to exclude from the projects viewlet</source>
     </trans-unit>
     <trans-unit id="mssql.preview.multiResults.description">
-      <source xml:lang="en">Lists the results of every query editor in the Query Results panel, and lets you drag results together to view them side by side. Requires `#mssql.preview.betaResultsGrid#`. Not enabled by `#mssql.enableExperimentalFeatures#`.</source>
+      <source xml:lang="en">Lists the results of every query editor in the Query Results panel, and lets you drag results together to view them side by side. Not enabled by `#mssql.enableExperimentalFeatures#`.</source>
     </trans-unit>
     <trans-unit id="mssql.Configuration">
       <source xml:lang="en">MSSQL</source>
@@ -16180,9 +16147,6 @@
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
-    </trans-unit>
-    <trans-unit id="mssql.queryResults.enablePreviewGrid">
-      <source xml:lang="en">Preview Grid</source>
     </trans-unit>
     <trans-unit id="mssql.queryResults.pinnedDocuments.enabled">
       <source xml:lang="en">Preview: allow pinning Query Studio results into read-only result documents that survive query reruns.</source>
@@ -16969,9 +16933,6 @@
     </trans-unit>
     <trans-unit id="mssql.queryResults.disableMultiResults">
       <source xml:lang="en">✓ Multi-Results Layout</source>
-    </trans-unit>
-    <trans-unit id="mssql.queryResults.disablePreviewGrid">
-      <source xml:lang="en">✓ Preview Grid</source>
     </trans-unit>
   </body></file>
 </xliff>

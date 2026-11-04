@@ -5,15 +5,7 @@
 
 import { makeStyles, mergeClasses } from "@fluentui/react-components";
 import debounce from "lodash/debounce";
-import {
-    type ComponentType,
-    type DragEvent,
-    Fragment,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
+import { type DragEvent, Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {
     MultiResultsDropTarget,
@@ -103,8 +95,6 @@ interface MultiResultsGroupViewProps {
     entries: Record<string, MultiResultsEntry>;
     orientation: MultiResultsOrientation;
     store: MultiResultsStore;
-    GridView: ComponentType;
-    isBetaResultsGridEnabled: boolean;
 }
 
 /**
@@ -117,8 +107,6 @@ export const MultiResultsGroupView = ({
     entries,
     orientation,
     store,
-    GridView,
-    isBetaResultsGridEnabled,
 }: MultiResultsGroupViewProps) => {
     const classes = useStyles();
     const actions = useMultiResultsActions();
@@ -235,8 +223,6 @@ export const MultiResultsGroupView = ({
                                 groups={groups}
                                 isFocused={group.focusedUri === uri}
                                 store={store}
-                                GridView={GridView}
-                                isBetaResultsGridEnabled={isBetaResultsGridEnabled}
                             />
                             {dropIndicator?.uri === uri && (
                                 <div
