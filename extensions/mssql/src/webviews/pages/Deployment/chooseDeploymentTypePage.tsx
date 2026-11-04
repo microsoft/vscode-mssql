@@ -17,7 +17,7 @@ const useStyles = makeStyles({
     outerDiv: {
         display: "flex",
         flexDirection: "column",
-        gap: "24px",
+        gap: "20px",
         alignItems: "stretch",
         justifyContent: "center",
         width: "100%",
@@ -27,9 +27,9 @@ const useStyles = makeStyles({
     section: {
         display: "flex",
         flexDirection: "column",
-        gap: "12px",
+        gap: "10px",
         width: "100%",
-        maxWidth: "732px",
+        maxWidth: "672px",
         alignSelf: "center",
     },
     sectionHeading: {
@@ -37,7 +37,7 @@ const useStyles = makeStyles({
     },
     cardRow: {
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(320px, 360px))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 330px))",
         justifyContent: "center",
         gap: "12px",
         width: "100%",
@@ -48,12 +48,12 @@ const useStyles = makeStyles({
         flexDirection: "column",
         alignItems: "flex-start",
         justifyContent: "flex-start",
-        padding: "22px 24px",
-        gap: "14px",
+        padding: "18px 20px",
+        gap: "12px",
         width: "100%",
-        maxWidth: "360px",
-        minHeight: "220px",
-        borderRadius: "18px",
+        maxWidth: "330px",
+        minHeight: "200px",
+        borderRadius: "16px",
         border: `1px solid ${tokens.colorNeutralStroke2}`,
         backgroundColor: tokens.colorNeutralBackground1,
         boxShadow: tokens.shadow4,
@@ -70,46 +70,46 @@ const useStyles = makeStyles({
         },
     },
     iconBadge: {
-        width: "56px",
-        height: "56px",
+        width: "48px",
+        height: "48px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        borderRadius: "14px",
+        borderRadius: "12px",
         backgroundColor: "color-mix(in srgb, var(--vscode-focusBorder) 12%, transparent)",
         color: "var(--vscode-focusBorder)",
         flexShrink: 0,
     },
     dockerIcon: {
-        width: "32px",
-        height: "32px",
+        width: "28px",
+        height: "28px",
     },
     sqlInFabricIcon: {
-        width: "32px",
-        height: "32px",
+        width: "28px",
+        height: "28px",
     },
     azureSqlIcon: {
-        width: "32px",
-        height: "32px",
+        width: "28px",
+        height: "28px",
     },
     content: {
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
-        gap: "8px",
+        gap: "6px",
         width: "100%",
     },
     cardHeader: {
         fontWeight: 600,
-        fontSize: "18px",
-        lineHeight: "24px",
+        fontSize: "16px",
+        lineHeight: "22px",
         letterSpacing: "0",
         color: tokens.colorNeutralForeground1,
     },
     cardDescription: {
         fontWeight: 400,
-        fontSize: "14px",
-        lineHeight: "22px",
+        fontSize: "13px",
+        lineHeight: "20px",
         letterSpacing: "0",
         color: tokens.colorNeutralForeground3,
         textAlign: "left",
@@ -139,7 +139,7 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                 <Text
                     as="h2"
                     id={`${id}-local`}
-                    size={500}
+                    size={400}
                     weight="semibold"
                     className={classes.sectionHeading}>
                     {locConstants.deployment.localProvisioning}
@@ -210,7 +210,7 @@ export const ChooseDeploymentTypePage: React.FC<ChooseDeploymentTypePageProps> =
                 <Text
                     as="h2"
                     id={`${id}-cloud`}
-                    size={500}
+                    size={400}
                     weight="semibold"
                     className={classes.sectionHeading}>
                     {locConstants.deployment.remoteProvisioning}
