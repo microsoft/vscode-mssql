@@ -181,7 +181,11 @@ import {
     OverviewOpenSource,
 } from "../sharedInterfaces/overview";
 import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
-import { AgentPluginsInstaller, AgentSkillsDownloads } from "../agentPlugins/agentPluginsInstaller";
+import {
+    AgentPluginsInstaller,
+    AgentSkillsDownloads,
+    LocalPluginFolderInvalidError,
+} from "../agentPlugins/agentPluginsInstaller";
 import { DeploymentType, isDeploymentType } from "../sharedInterfaces/deployment";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
@@ -3002,9 +3006,36 @@ export default class MainController implements vscode.Disposable {
         // Best effort. An unreachable network, a bad archive or a filesystem failure leaves the
         // installed copy alone, so it is logged rather than allowed to reject out of activation.
         for (const [plugin, installer] of this._agentPluginsInstallers) {
-            void installer.checkForUpdates().catch((error) => {
-                this._logger.error(`Checking for ${plugin} skill updates failed`, error);
-            });
+            // The local folder is applied first, because a check for updates skips a plugin
+            // that uses one.
+            void this.syncAgentPluginLocalFolder(plugin, installer)
+                .then(() => installer.checkForUpdates())
+                .catch((error) => {
+                    this._logger.error(`Checking for ${plugin} skill updates failed`, error);
+                });
+        }
+    }
+
+    /**
+     * Registers or removes the local plugin folder set in the user settings. An invalid folder is
+     * reported rather than thrown, so the downloaded copy keeps working.
+     */
+    private async syncAgentPluginLocalFolder(
+        plugin: AgentSkillPluginName,
+        installer: AgentPluginsInstaller,
+    ): Promise<void> {
+        try {
+            await installer.syncLocalFolder();
+        } catch (error) {
+            this._logger.error(`Applying the local ${plugin} plugin folder failed`, error);
+            if (error instanceof LocalPluginFolderInvalidError) {
+                void vscode.window.showWarningMessage(
+                    LocalizedConstants.Overview.LocalAgentPluginFolderInvalid(
+                        installer.localFolderSetting,
+                        error.folder,
+                    ),
+                );
+            }
         }
     }
 
@@ -4001,6 +4032,11 @@ export default class MainController implements vscode.Disposable {
         }
         if (e.affectsConfiguration(Constants.mssqlPiiLogging)) {
             this.updatePiiLoggingLevel();
+        }
+        for (const [plugin, installer] of this._agentPluginsInstallers ?? []) {
+            if (e.affectsConfiguration(installer.localFolderSetting)) {
+                void this.syncAgentPluginLocalFolder(plugin, installer);
+            }
         }
 
         // Prompt to reload VS Code when any of these settings are updated.

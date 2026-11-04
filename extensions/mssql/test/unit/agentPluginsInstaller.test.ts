@@ -15,8 +15,10 @@ import { createHttpHeaders } from "extension-toolkit/base";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { AGENT_SKILL_PLUGINS } from "../../src/sharedInterfaces/overview";
 import {
+    AGENT_SKILL_LOCAL_FOLDER_SETTINGS,
     AgentPluginsInstaller,
     AgentSkillsDownloads,
+    LocalPluginFolderInvalidError,
     parseSkillFrontMatter,
     RemoteWindowUnsupportedError,
 } from "../../src/agentPlugins/agentPluginsInstaller";
@@ -34,6 +36,7 @@ suite("Agent Plugins Installer", () => {
     let context: vscode.ExtensionContext;
     let globalStateValues: Record<string, unknown>;
     let userLocations: Record<string, boolean> | undefined;
+    let settingValues: Record<string, unknown>;
     let updateStub: sinon.SinonStub;
 
     async function createPluginOnDisk(): Promise<void> {
@@ -46,6 +49,7 @@ suite("Agent Plugins Installer", () => {
         sandbox = sinon.createSandbox();
         globalStateValues = {};
         userLocations = undefined;
+        settingValues = {};
         storageDir = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-agent-plugins-"));
 
         updateStub = sinon.stub().callsFake((_section: string, value: unknown) => {
@@ -56,6 +60,7 @@ suite("Agent Plugins Installer", () => {
         sandbox.stub(vscode.workspace, "getConfiguration").returns({
             inspect: (section: string) =>
                 section === PLUGIN_LOCATIONS ? { globalValue: userLocations } : undefined,
+            get: (section: string) => settingValues[section],
             update: updateStub,
         } as unknown as vscode.WorkspaceConfiguration);
 
@@ -266,6 +271,134 @@ suite("Agent Plugins Installer", () => {
 
         expect(await installer.checkForUpdates()).to.equal(false);
         expect(globalStateValues[LAST_CHECK_KEY]).to.equal(lastCheck);
+    });
+
+    suite("local plugin folders", () => {
+        const setting = AGENT_SKILL_LOCAL_FOLDER_SETTINGS[AGENT_SKILL_PLUGINS[0]];
+        let localDir: string;
+        let downloadedRoot: string;
+
+        async function createManifest(root: string): Promise<void> {
+            await fs.mkdir(path.join(root, ".claude-plugin"), { recursive: true });
+            await fs.writeFile(path.join(root, ".claude-plugin", "plugin.json"), "{}");
+        }
+
+        setup(async () => {
+            localDir = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-local-plugin-"));
+            downloadedRoot = installer.pluginRoot.fsPath;
+        });
+
+        teardown(async () => {
+            await fs.rm(localDir, { recursive: true, force: true });
+        });
+
+        test("uses the local folder as the plugin root while the setting is set", () => {
+            settingValues[setting] = `  ${localDir}  `;
+
+            expect(installer.usesLocalFolder).to.equal(true);
+            expect(installer.pluginRoot.fsPath).to.equal(vscode.Uri.file(localDir).fsPath);
+        });
+
+        test("ignores a relative path", () => {
+            settingValues[setting] = "plugins/microsoft-sql-vscode";
+
+            expect(installer.usesLocalFolder).to.equal(false);
+            expect(installer.pluginRoot.fsPath).to.equal(downloadedRoot);
+        });
+
+        test("expands a home-relative path", () => {
+            settingValues[setting] = "~/skills/plugins/microsoft-sql-vscode";
+
+            expect(installer.pluginRoot.fsPath).to.equal(
+                vscode.Uri.file(
+                    path.join(os.homedir(), "skills", "plugins", "microsoft-sql-vscode"),
+                ).fsPath,
+            );
+        });
+
+        test("installs by registering the local folder without downloading", async () => {
+            await createManifest(localDir);
+            settingValues[setting] = localDir;
+            const download = sandbox.stub(VscodeHttpClient.prototype, "downloadToPath");
+
+            expect(await installer.install()).to.equal(true);
+
+            expect(download).to.not.have.been.called;
+            expect(userLocations).to.deep.equal({ [installer.pluginRoot.fsPath]: true });
+            expect(await installer.isInstalled()).to.equal(true);
+        });
+
+        test("refuses a local folder without a plugin manifest", async () => {
+            settingValues[setting] = localDir;
+
+            let thrown: unknown;
+            try {
+                await installer.syncLocalFolder();
+            } catch (error) {
+                thrown = error;
+            }
+
+            expect(thrown).to.be.instanceOf(LocalPluginFolderInvalidError);
+            expect(updateStub).to.not.have.been.called;
+        });
+
+        test("replaces the downloaded copy, and restores it when the setting is cleared", async () => {
+            await createManifest(downloadedRoot);
+            await createManifest(localDir);
+            userLocations = { [downloadedRoot]: true, "/another/plugin": true };
+
+            settingValues[setting] = localDir;
+            await installer.syncLocalFolder();
+            const localRoot = installer.pluginRoot.fsPath;
+            expect(userLocations).to.deep.equal({ [localRoot]: true, "/another/plugin": true });
+
+            delete settingValues[setting];
+            await installer.syncLocalFolder();
+            expect(userLocations).to.deep.equal({
+                [downloadedRoot]: true,
+                "/another/plugin": true,
+            });
+        });
+
+        test("removes the local folder without installing the downloaded copy it did not replace", async () => {
+            await createManifest(localDir);
+
+            settingValues[setting] = localDir;
+            await installer.syncLocalFolder();
+            delete settingValues[setting];
+            await installer.syncLocalFolder();
+
+            expect(userLocations).to.equal(undefined);
+            expect(await installer.isInstalled()).to.equal(false);
+        });
+
+        test("moves the registration from one local folder to another", async () => {
+            const otherDir = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-local-plugin-"));
+            try {
+                await createManifest(localDir);
+                await createManifest(otherDir);
+
+                settingValues[setting] = localDir;
+                await installer.syncLocalFolder();
+                settingValues[setting] = otherDir;
+                await installer.syncLocalFolder();
+
+                expect(userLocations).to.deep.equal({ [installer.pluginRoot.fsPath]: true });
+                expect(installer.pluginRoot.fsPath).to.equal(vscode.Uri.file(otherDir).fsPath);
+            } finally {
+                await fs.rm(otherDir, { recursive: true, force: true });
+            }
+        });
+
+        test("never updates a local folder", async () => {
+            await createManifest(localDir);
+            settingValues[setting] = localDir;
+            await installer.install();
+            const fetchSha = sandbox.stub(AgentSkillsDownloads.prototype, "fetchLatestSha");
+
+            expect(await installer.checkForUpdates(true)).to.equal(false);
+            expect(fetchSha).to.not.have.been.called;
+        });
     });
 
     suite("remote windows", () => {

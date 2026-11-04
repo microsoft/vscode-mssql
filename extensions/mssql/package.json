@@ -3934,6 +3934,18 @@
                         "description": "%mssql.enableExperimentalFeatures.description%",
                         "scope": "application"
                     },
+                    "mssql.agentSkills.sqlPluginFolder": {
+                        "type": "string",
+                        "default": "",
+                        "markdownDescription": "%mssql.agentSkills.sqlPluginFolder.description%",
+                        "scope": "machine"
+                    },
+                    "mssql.agentSkills.migrationPluginFolder": {
+                        "type": "string",
+                        "default": "",
+                        "markdownDescription": "%mssql.agentSkills.migrationPluginFolder.description%",
+                        "scope": "machine"
+                    },
                     "mssql.sqlDataPlane.enabled": {
                         "type": "boolean",
                         "default": false,

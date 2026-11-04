@@ -306,6 +306,8 @@
     "mssql.filterNode": "Filter",
     "mssql.clearFilters": "Clear Filters",
     "mssql.openExecutionPlanFile": "Open Execution Plan File",
+    "mssql.agentSkills.sqlPluginFolder.description": "Absolute or home-relative path to a local copy of the `microsoft-sql-vscode` agent plugin, for example `~/src/skills/plugins/microsoft-sql-vscode`. When set, this folder is registered in place of the downloaded plugin and is not updated. Leave empty to download the plugin.",
+    "mssql.agentSkills.migrationPluginFolder.description": "Absolute or home-relative path to a local copy of the `microsoft-sql-migration` agent plugin, for example `~/src/skills/plugins/microsoft-sql-migration`. When set, this folder is registered in place of the downloaded plugin and is not updated. Leave empty to download the plugin.",
     "mssql.enableExperimentalFeatures.description": "Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
     "mssql.legacySetting.deprecationMessage": "This setting will be removed in a future release.",
     "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane.",

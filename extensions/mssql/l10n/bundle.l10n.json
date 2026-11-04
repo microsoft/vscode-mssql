@@ -2257,6 +2257,10 @@
     "Skip": "Skip",
     "Overwrite All": "Overwrite All",
     "Could not install the selected agent skills. Check your network connection and try again.": "Could not install the selected agent skills. Check your network connection and try again.",
+    "The folder '{1}' in the '{0}' setting does not contain an agent plugin. Select the plugin folder that contains its plugin.json file./{0} is a setting name.{1} is a folder path.": {
+        "message": "The folder '{1}' in the '{0}' setting does not contain an agent plugin. Select the plugin folder that contains its plugin.json file.",
+        "comment": ["{0} is a setting name.", "{1} is a folder path."]
+    },
     "Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.": "Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.",
     "The Dev Containers extension is required to reopen this folder in a container.": "The Dev Containers extension is required to reopen this folder in a container.",
     "Install": "Install",

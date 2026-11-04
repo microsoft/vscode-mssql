@@ -67,6 +67,8 @@ import { DeploymentType } from "../sharedInterfaces/deployment";
 import { RecentSqlFilesStore, ResolvedRecentSqlFile } from "../models/recentSqlFilesStore";
 import {
     AgentPluginsInstaller,
+    LocalPluginFolderInvalidError,
+    PLUGIN_LOCATIONS_SETTING,
     RemoteWindowUnsupportedError,
 } from "../agentPlugins/agentPluginsInstaller";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
@@ -395,6 +397,21 @@ export class OverviewWebviewController extends WebviewPanelController<
             }),
         );
 
+        // A local plugin folder setting moves the registration, and VS Code's plugin view can
+        // remove it, so the state is checked again whenever either setting changes.
+        this.registerDisposable(
+            vscode.workspace.onDidChangeConfiguration((e) => {
+                if (
+                    e.affectsConfiguration(PLUGIN_LOCATIONS_SETTING) ||
+                    [...this._agentSkillsInstallers.values()].some((installer) =>
+                        e.affectsConfiguration(installer.localFolderSetting),
+                    )
+                ) {
+                    void this.refreshAgentSkillsState();
+                }
+            }),
+        );
+
         void this.refreshAgentSkillsState();
 
         void this.refreshWorkspaceState();
@@ -552,6 +569,7 @@ export class OverviewWebviewController extends WebviewPanelController<
                 activity.end(ActivityStatus.Succeeded);
             } catch (error) {
                 const remoteUnsupported = error instanceof RemoteWindowUnsupportedError;
+                const localFolderInvalid = error instanceof LocalPluginFolderInvalidError;
                 if (!remoteUnsupported) {
                     this.logger.error("Failed to install the agent skills", error);
                 }
@@ -559,14 +577,23 @@ export class OverviewWebviewController extends WebviewPanelController<
                     error instanceof Error ? error : undefined,
                     false,
                     undefined,
-                    remoteUnsupported ? "remoteWindow" : "downloadFailed",
+                    remoteUnsupported
+                        ? "remoteWindow"
+                        : localFolderInvalid
+                          ? "localFolderInvalid"
+                          : "downloadFailed",
                 );
                 // Surfaced as a notification rather than in the page: the button simply returns
                 // to offering the install, which on its own looks like nothing happened.
                 void vscode.window.showErrorMessage(
                     remoteUnsupported
                         ? Overview.InstallAgentSkillsRemoteUnsupported
-                        : Overview.InstallAgentSkillsFailed,
+                        : localFolderInvalid
+                          ? Overview.LocalAgentPluginFolderInvalid(
+                                installer.localFolderSetting,
+                                error.folder,
+                            )
+                          : Overview.InstallAgentSkillsFailed,
                 );
             } finally {
                 if (this._agentSkillsActivities.get(params.pluginName) === activity) {

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as fs from "fs/promises";
+import * as os from "os";
 import * as path from "path";
 import { randomUUID } from "crypto";
 import * as tar from "tar";
@@ -74,12 +75,26 @@ function repositoryUrl(source: SkillsSource): string {
  * Each key is a plugin root directory and the value enables it. Writing it registers the skills
  * without an install prompt, and VS Code re-reads it immediately, so no window reload is needed.
  */
-const PLUGIN_LOCATIONS_SETTING = "chat.pluginLocations";
+export const PLUGIN_LOCATIONS_SETTING = "chat.pluginLocations";
+
+/**
+ * Each plugin can be pointed at a folder on disk, e.g. a clone of the skills repository, so a
+ * local version of the plugin can be tested. While one is set, that folder is registered in place
+ * of the downloaded copy and is never updated.
+ */
+export const AGENT_SKILL_LOCAL_FOLDER_SETTINGS: Record<AgentSkillPluginName, string> = {
+    "microsoft-sql-vscode": "mssql.agentSkills.sqlPluginFolder",
+    "microsoft-sql-migration": "mssql.agentSkills.migrationPluginFolder",
+};
 
 const UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 const STATE_INSTALLED_SHA = "overview/agentSkills.sha";
 const STATE_LAST_CHECK_MS = "overview/agentSkills.lastCheckMs";
+/** The local folder this extension last registered, so it can be removed when the setting changes. */
+const STATE_LOCAL_FOLDER = "overview/agentSkills.localFolder";
+/** Whether the downloaded copy was registered when a local folder replaced it. */
+const STATE_RESTORE_DOWNLOADED = "overview/agentSkills.restoreDownloaded";
 
 /**
  * Both plugins check at activation, and this keeps that to one call against GitHub's
@@ -113,6 +128,32 @@ export class RemoteWindowUnsupportedError extends Error {
         super("The agent skills cannot be installed from a remote window.");
         this.name = "RemoteWindowUnsupportedError";
     }
+}
+
+/** The folder named by a local folder setting has no plugin manifest. */
+export class LocalPluginFolderInvalidError extends Error {
+    constructor(public readonly folder: string) {
+        super(`The folder ${folder} does not contain an agent plugin manifest.`);
+        this.name = "LocalPluginFolderInvalidError";
+    }
+}
+
+/**
+ * Reads a local folder setting, e.g. `~/src/skills/plugins/microsoft-sql-vscode`. A relative path
+ * is ignored, because there is no folder it could reliably be resolved against.
+ */
+function readLocalFolderSetting(setting: string): string | undefined {
+    const value = vscode.workspace.getConfiguration().get<string>(setting)?.trim();
+    if (!value) {
+        return undefined;
+    }
+    let folder = value;
+    if (folder === "~") {
+        folder = os.homedir();
+    } else if (folder.startsWith("~/") || folder.startsWith("~\\")) {
+        folder = path.join(os.homedir(), folder.slice(2));
+    }
+    return path.isAbsolute(folder) ? path.resolve(folder) : undefined;
 }
 
 function stagingRoot(context: vscode.ExtensionContext): string {
@@ -299,7 +340,23 @@ export class AgentPluginsInstaller {
         return this._pluginName;
     }
 
+    /** The setting that points this plugin at a local folder instead of the downloaded copy. */
+    public get localFolderSetting(): string {
+        return AGENT_SKILL_LOCAL_FOLDER_SETTINGS[this._pluginName];
+    }
+
+    /** True while {@link localFolderSetting} names a folder, so nothing is downloaded. */
+    public get usesLocalFolder(): boolean {
+        return readLocalFolderSetting(this.localFolderSetting) !== undefined;
+    }
+
+    /** The local folder when one is set, otherwise the downloaded copy. */
     public get pluginRoot(): vscode.Uri {
+        const localFolder = readLocalFolderSetting(this.localFolderSetting);
+        return localFolder ? vscode.Uri.file(localFolder) : this.downloadedRoot;
+    }
+
+    private get downloadedRoot(): vscode.Uri {
         return vscode.Uri.joinPath(this._context.globalStorageUri, "agentSkills", this._pluginName);
     }
 
@@ -309,6 +366,14 @@ export class AgentPluginsInstaller {
 
     private get lastCheckKey(): string {
         return `${STATE_LAST_CHECK_MS}/${this._pluginName}`;
+    }
+
+    private get localFolderKey(): string {
+        return `${STATE_LOCAL_FOLDER}/${this._pluginName}`;
+    }
+
+    private get restoreDownloadedKey(): string {
+        return `${STATE_RESTORE_DOWNLOADED}/${this._pluginName}`;
     }
 
     public getSkillsCatalog(): Promise<AgentSkillGroup[]> {
@@ -374,6 +439,10 @@ export class AgentPluginsInstaller {
             throw new RemoteWindowUnsupportedError();
         }
         return this.runExclusive(async () => {
+            if (this.usesLocalFolder) {
+                await this.registerLocalFolder();
+                return true;
+            }
             if (await this.isPluginPresent()) {
                 this._logger.info("Agent skills already on disk; re-registering.");
                 await this.register();
@@ -395,7 +464,8 @@ export class AgentPluginsInstaller {
      * silently given them back.
      */
     public async checkForUpdates(force = false): Promise<boolean> {
-        if (!(await this.isInstalled())) {
+        // A local folder belongs to the user, so it is never overwritten with a download.
+        if (this.usesLocalFolder || !(await this.isInstalled())) {
             return false;
         }
 
@@ -420,12 +490,69 @@ export class AgentPluginsInstaller {
                 return false;
             }
 
+            // The setting can be set while the revision is read, and the local folder must not be
+            // replaced by the download.
+            if (this.usesLocalFolder) {
+                return false;
+            }
             this._logger.info(`Agent skills moved from ${current ?? "unknown"} to ${latest}.`);
             await this.downloadInto(this.pluginRoot, latest);
             await this._context.globalState.update(this.installedShaKey, latest);
             await this.register();
             return true;
         });
+    }
+
+    /**
+     * Applies {@link localFolderSetting}. Called at activation and when the setting changes.
+     *
+     * A local folder is registered at once, without the install button, and replaces the
+     * downloaded copy so that the plugin is not loaded twice. When the setting is cleared, the
+     * local folder is removed and the downloaded copy is registered again if it was registered
+     * before.
+     *
+     * @throws {LocalPluginFolderInvalidError} if the folder has no plugin manifest.
+     */
+    public async syncLocalFolder(): Promise<void> {
+        if (!this.isSupported) {
+            return;
+        }
+        await this.runExclusive(async () => {
+            if (this.usesLocalFolder) {
+                await this.registerLocalFolder();
+                return;
+            }
+
+            const previousFolder = this._context.globalState.get<string>(this.localFolderKey);
+            if (previousFolder === undefined) {
+                return;
+            }
+            const restoreDownloaded =
+                this._context.globalState.get<boolean>(this.restoreDownloadedKey) === true &&
+                (await this.isPluginPresent());
+            if (restoreDownloaded) {
+                // Removes the previous local folder in the same settings write.
+                await this.register();
+            } else {
+                await this.unregister(previousFolder);
+                await this.forgetLocalFolder();
+            }
+            this._logger.info(`Stopped using the local ${this._pluginName} plugin folder.`);
+        });
+    }
+
+    private async registerLocalFolder(): Promise<void> {
+        const folder = this.pluginRoot.fsPath;
+        if (!(await this.hasPluginManifest(folder))) {
+            throw new LocalPluginFolderInvalidError(folder);
+        }
+        await this.register();
+        this._logger.info(`Using the local ${this._pluginName} plugin folder ${folder}.`);
+    }
+
+    private async forgetLocalFolder(): Promise<void> {
+        await this._context.globalState.update(this.localFolderKey, undefined);
+        await this._context.globalState.update(this.restoreDownloadedKey, undefined);
     }
 
     /** Serializes install and update work so two callers cannot extract over each other. */
@@ -579,26 +706,57 @@ export class AgentPluginsInstaller {
         return locations[this.pluginRoot.fsPath] === true;
     }
 
+    /**
+     * Registers {@link pluginRoot} and removes every other folder this plugin was registered
+     * from, so the downloaded copy and a local folder are never loaded together.
+     */
     private async register(): Promise<void> {
+        const key = this.pluginRoot.fsPath;
+        const downloadedKey = this.downloadedRoot.fsPath;
+        const usesLocalFolder = key !== downloadedKey;
+        const previousFolder = this._context.globalState.get<string>(this.localFolderKey);
+        let downloadedWasRegistered = false;
+
         await AgentPluginsInstaller.mutateSettings(async () => {
-            const key = this.pluginRoot.fsPath;
             const locations = this.readUserPluginLocations();
-            if (locations[key] === true) {
+            const next = { ...locations };
+            if (previousFolder !== undefined && previousFolder !== key) {
+                delete next[previousFolder];
+            }
+            if (usesLocalFolder) {
+                downloadedWasRegistered = next[downloadedKey] === true;
+                delete next[downloadedKey];
+            }
+            next[key] = true;
+
+            const changed =
+                Object.keys(next).length !== Object.keys(locations).length ||
+                Object.entries(next).some(([location, enabled]) => locations[location] !== enabled);
+            if (!changed) {
                 return;
             }
             await vscode.workspace
                 .getConfiguration()
-                .update(
-                    PLUGIN_LOCATIONS_SETTING,
-                    { ...locations, [key]: true },
-                    vscode.ConfigurationTarget.Global,
-                );
+                .update(PLUGIN_LOCATIONS_SETTING, next, vscode.ConfigurationTarget.Global);
         });
+
+        if (!usesLocalFolder) {
+            await this.forgetLocalFolder();
+            return;
+        }
+        // Recorded only when a local folder first replaces the downloaded copy. Moving from one
+        // local folder to another keeps the original answer.
+        if (previousFolder === undefined) {
+            await this._context.globalState.update(
+                this.restoreDownloadedKey,
+                downloadedWasRegistered,
+            );
+        }
+        await this._context.globalState.update(this.localFolderKey, key);
     }
 
-    private async unregister(): Promise<void> {
+    private async unregister(key: string = this.pluginRoot.fsPath): Promise<void> {
         await AgentPluginsInstaller.mutateSettings(async () => {
-            const key = this.pluginRoot.fsPath;
             const locations = this.readUserPluginLocations();
             if (!(key in locations)) {
                 return;

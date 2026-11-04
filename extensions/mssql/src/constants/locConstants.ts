@@ -4161,6 +4161,13 @@ export class Overview {
     public static InstallAgentSkillsFailed = l10n.t(
         "Could not install the selected agent skills. Check your network connection and try again.",
     );
+    public static LocalAgentPluginFolderInvalid = (setting: string, folder: string) =>
+        l10n.t({
+            message:
+                "The folder '{1}' in the '{0}' setting does not contain an agent plugin. Select the plugin folder that contains its plugin.json file.",
+            args: [setting, folder],
+            comment: ["{0} is a setting name.", "{1} is a folder path."],
+        });
     public static InstallAgentSkillsRemoteUnsupported = l10n.t(
         "Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.",
     );
