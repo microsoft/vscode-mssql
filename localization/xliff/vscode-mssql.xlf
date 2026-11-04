@@ -6812,10 +6812,6 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
-    <trans-unit id="++CODE++58fb17f7a22ecd31e9a0bfbd98a16b7ad860ef4d0f47a4a718987578279183c2">
-      <source xml:lang="en">Lists the queries that ran at least {0} times in both periods and got worse per execution. The most added comes first: the increase in the average, times the recent executions.</source>
-      <note>{0} is a number of executions</note>
-    </trans-unit>
     <trans-unit id="++CODE++65d5e2f3c9144913a6f8bca055f6790146892827ac3567b3605fce500ebdab4c">
       <source xml:lang="en">Live</source>
       <note>Badge for the execution plan of a currently running query.</note>

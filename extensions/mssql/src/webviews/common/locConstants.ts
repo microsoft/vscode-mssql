@@ -4871,13 +4871,6 @@ export class LocConstants {
             baselineOverlapsRecent: l10n.t(
                 "The baseline must end before the recent period starts. Choose another baseline.",
             ),
-            regressedNote: (minExecutions: string) =>
-                l10n.t({
-                    message:
-                        "Lists the queries that ran at least {0} times in both periods and got worse per execution. The most added comes first: the increase in the average, times the recent executions.",
-                    args: [minExecutions],
-                    comment: ["{0} is a number of executions"],
-                }),
             baselineRangeLabel: (range: string) =>
                 l10n.t({
                     message: "Baseline period: {0}",

@@ -243,9 +243,6 @@ export const PerformanceDashboardRegressedQueries = ({
                                 : text.noRegressedQueries
                         }
                     />
-                    <Caption1 className={classes.muted}>
-                        {text.regressedNote(formatNumber(minExecutions))}
-                    </Caption1>
                 </>
             )}
         </>

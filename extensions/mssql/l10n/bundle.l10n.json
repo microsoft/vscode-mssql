@@ -6170,10 +6170,6 @@
     },
     "No query got worse between these periods.": "No query got worse between these periods.",
     "The baseline must end before the recent period starts. Choose another baseline.": "The baseline must end before the recent period starts. Choose another baseline.",
-    "Lists the queries that ran at least {0} times in both periods and got worse per execution. The most added comes first: the increase in the average, times the recent executions./{0} is a number of executions": {
-        "message": "Lists the queries that ran at least {0} times in both periods and got worse per execution. The most added comes first: the increase in the average, times the recent executions.",
-        "comment": ["{0} is a number of executions"]
-    },
     "Baseline period: {0}/{0} is the selected time range, for example 7 days before": {
         "message": "Baseline period: {0}",
         "comment": ["{0} is the selected time range, for example 7 days before"]
