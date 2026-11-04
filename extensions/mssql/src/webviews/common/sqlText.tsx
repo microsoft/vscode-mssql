@@ -231,19 +231,8 @@ const sqlTypes = new Set([
 
 const sqlOperators = ["!<", "!>", "!=", "*=", "+=", "-=", "/=", "::", "<=", "<>", ">=", "||"];
 
-const useStyles = makeStyles({
-    root: {
-        color: fluentTokens.colorNeutralForeground1,
-        fontFamily: fluentTokens.fontFamilyMonospace,
-        whiteSpace: "pre-wrap",
-    },
-    singleLine: {
-        display: "block",
-        minWidth: 0,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-    },
+/** The look of each kind of token, for SqlText and for SQL drawn outside React. */
+const sqlTokenStyles = {
     keyword: {
         color: "var(--vscode-textLink-foreground)",
         fontWeight: fluentTokens.fontWeightSemibold,
@@ -273,6 +262,22 @@ const useStyles = makeStyles({
     operator: {
         color: "var(--vscode-symbolIcon-operatorForeground, var(--vscode-charts-purple))",
     },
+} satisfies Partial<Record<SqlTextTokenKind, Partial<CSSStyleDeclaration>>>;
+
+const useStyles = makeStyles({
+    root: {
+        color: fluentTokens.colorNeutralForeground1,
+        fontFamily: fluentTokens.fontFamilyMonospace,
+        whiteSpace: "pre-wrap",
+    },
+    singleLine: {
+        display: "block",
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    ...sqlTokenStyles,
 });
 
 function isWhitespace(character: string): boolean {
@@ -485,6 +490,21 @@ export function tokenizeSingleLineSqlText(sql: string): SqlTextToken[] {
         ...token,
         text: token.text.replace(/\r\n|\r|\n/g, ` ${SQL_TEXT_LINE_BREAK} `),
     }));
+}
+
+/**
+ * Appends SQL, colored like SqlText, to an element that React does not render, such as a grid
+ * cell. The text is set as text, never parsed as HTML.
+ */
+export function appendSqlText(parent: HTMLElement, text: string): void {
+    for (const token of tokenizeSqlText(text)) {
+        const span = document.createElement("span");
+        span.textContent = token.text;
+        if (token.kind !== "text") {
+            Object.assign(span.style, sqlTokenStyles[token.kind]);
+        }
+        parent.append(span);
+    }
 }
 
 export interface SqlTextProps extends Omit<HTMLAttributes<HTMLSpanElement>, "children"> {

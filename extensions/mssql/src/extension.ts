@@ -63,6 +63,7 @@ import {
 import { extensionId } from "./constants/constants";
 import { ISqlProjectLookup, SqlProjectLookup } from "./languageservice/sqlProjectLookup";
 import { SqlProjectRefactoringContribution } from "./languageservice/sqlProjectRefactoringContribution";
+import { DatabaseHubContribution } from "./databaseHub/databaseHubContribution";
 import { ExecutionPlanComparisonContribution } from "./controllers/executionPlanComparisonContribution";
 import { SharedConnectionsAuthenticationProvider } from "./connectionSharing/sharedConnectionsAuthenticationProvider";
 import {
@@ -238,6 +239,11 @@ class MssqlActivation {
                 ExecutionPlanComparisonContribution,
                 controller.executionPlanService,
                 controller.sqlDocumentService,
+            ),
+            this._instantiationService.createInstance(
+                DatabaseHubContribution,
+                controller.connectionManager,
+                controller.objectEpxplorerProvider,
             ),
         );
 

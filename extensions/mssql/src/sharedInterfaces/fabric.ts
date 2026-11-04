@@ -15,6 +15,8 @@ export interface SqlDbInfo {
     collectionName: string;
     tenantId: string;
     resourceGroup?: string;
+    /** The ARM ID of an Azure SQL server or managed instance. */
+    resourceId?: string;
 }
 
 /** @deprecated Use SqlDbInfo */

@@ -736,6 +736,8 @@ async function addAzureSqlContainerConnection(
     Object.assign(connection, {
         server: `${localhost},${form.port}`,
         profileName: form.profileName || form.containerName,
+        // Mark the profile as a container now, rather than when a later connection matches the
+        // machine name: the container reports the Azure SQL Database engine edition.
         containerName: form.containerName,
         containerEngine: engine,
         groupId: form.groupId,
