@@ -549,6 +549,22 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
     }
 
     /**
+     * Runs a registered reducer against the given state, leaving this controller's state alone.
+     * For views that show more than one state at a time.
+     */
+    protected async applyReducer<Method extends keyof Reducers>(
+        method: Method,
+        state: State,
+        payload: Reducers[Method],
+    ): Promise<State> {
+        const reducer = this._reducerHandlers.get(method);
+        if (!reducer) {
+            throw new Error(`No reducer registered for action ${method as string}`);
+        }
+        return reducer(state, payload);
+    }
+
+    /**
      * Registers a request handler for a specific request type.
      * @param type The request type that the handler will handle
      * @param handler The handler that will be called when the request is made

@@ -15,6 +15,12 @@ import * as localContainersHelpers from "../../src/deployment/localContainersHel
 import * as lc from "../../src/sharedInterfaces/localContainers";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import MainController from "../../src/controllers/mainController";
+import ConnectionManager from "../../src/controllers/connectionManager";
+import { ConnectionUI } from "../../src/views/connectionUI";
+import {
+    containerConnectionMaxAttempts,
+    containerConnectionRetryDelayMs,
+} from "../../src/constants/constants";
 import { stubTelemetry, stubUserSurvey } from "./utils";
 import { uuid } from "../e2e/baseFixtures";
 import {
@@ -564,6 +570,40 @@ suite("localContainers logic", () => {
             server: "localhost,1433",
         });
         expect(createSessionStub).to.have.been.calledWith(savedProfile);
+    });
+
+    test("addContainerConnection reports the final login error without exposing the password", async () => {
+        const clock = sandbox.useFakeTimers();
+        const mainController = sandbox.createStubInstance(MainController);
+        const connectionManager = sandbox.createStubInstance(ConnectionManager);
+        const connectionUI = sandbox.createStubInstance(ConnectionUI);
+        sandbox.stub(mainController, "connectionManager").get(() => connectionManager);
+        sandbox.stub(connectionManager, "connectionUI").get(() => connectionUI);
+        const dockerProfile = {
+            containerName: "container",
+            port: 1433,
+            password: "Example123!",
+            profileName: "",
+            savePassword: false,
+        } as lc.DockerConnectionProfile;
+        connectionManager.connect.rejects(
+            new Error(`Login failed with password ${dockerProfile.password}`),
+        );
+
+        const pending = localContainersHelpers.addContainerConnection(
+            dockerProfile,
+            mainController,
+        );
+        await clock.tickAsync(
+            containerConnectionRetryDelayMs * (Math.pow(2, containerConnectionMaxAttempts - 1) - 1),
+        );
+
+        expect(await pending).to.deep.equal({
+            success: false,
+            fullErrorText: "Login failed with password ******",
+        });
+        expect(connectionUI.saveProfile).not.to.have.been.called;
+        expect(mainController.createObjectExplorerSession).not.to.have.been.called;
     });
 
     test("sendLocalContainersCloseEventTelemetry sends telemetry event", async () => {

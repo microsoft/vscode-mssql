@@ -65,6 +65,32 @@ export function getNewResultPaneViewColumn(uri: string): vscode.ViewColumn {
     }
 }
 
+/**
+ * Writes the preview grid setting for a toggle in the product. The configuration listener fires
+ * for this write too and reports changes made outside the product, so this claims the change to
+ * keep the single toggle from being counted twice.
+ */
+export async function writeResultsGridMode(
+    controller: QueryResultWebviewController,
+    isPreviewGrid: boolean,
+): Promise<void> {
+    controller.setGridModeChangeReportedBySwitch(true);
+    try {
+        await vscode.workspace
+            .getConfiguration()
+            .update(
+                getPreviewConfigKey(PreviewFeature.BetaResultsGrid),
+                isPreviewGrid,
+                vscode.ConfigurationTarget.Global,
+            );
+    } catch (error) {
+        // The listener will not fire, so release the claim rather than swallowing the next
+        // genuine settings-driven change.
+        controller.setGridModeChangeReportedBySwitch(false);
+        throw error;
+    }
+}
+
 export function registerCommonRequestHandlers(
     webviewController: QueryResultWebviewController | QueryResultWebviewPanelController,
     correlationId: string,
@@ -107,23 +133,7 @@ export function registerCommonRequestHandlers(
             additionalMeasurements: measurements,
         });
 
-        // The configuration listener fires for this write too and reports changes made outside
-        // the product. Claim this one so the single toggle is not counted twice.
-        webviewViewController.setGridModeChangeReportedBySwitch(true);
-        try {
-            await vscode.workspace
-                .getConfiguration()
-                .update(
-                    getPreviewConfigKey(PreviewFeature.BetaResultsGrid),
-                    newValue,
-                    vscode.ConfigurationTarget.Global,
-                );
-        } catch (error) {
-            // The listener will not fire, so release the claim rather than swallowing the next
-            // genuine settings-driven change.
-            webviewViewController.setGridModeChangeReportedBySwitch(false);
-            throw error;
-        }
+        await writeResultsGridMode(webviewViewController, newValue);
     });
 
     webviewController.onRequest(qr.HandleSelectionSummaryRequest.type, async (uri) => {
@@ -469,7 +479,12 @@ export function registerCommonRequestHandlers(
         return (await updateTotalCost(state, payload)) as qr.QueryResultWebviewState;
     });
     webviewController.onNotification(CompareExecutionPlanNotification.type, ({ graphIndex }) => {
-        const state = webviewController.state;
+        // The multi-results view shows several results; the plan is in the one the user is
+        // working in, which has focus.
+        const state =
+            (webviewController === webviewViewController &&
+                webviewViewController.getFocusedMultiResultState()) ||
+            webviewController.state;
         openExecutionPlanComparisonWebview(
             webviewViewController.getContext(),
             webviewViewController.executionPlanService,

@@ -42,6 +42,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { QueryResultSummaryFooter } from "./queryResultSummaryFooter";
 import { CopyIndicator } from "../../common/CopyIndicator";
+import { useIsActiveResultPaneRef } from "./queryResultPaneScope";
 
 const useStyles = makeStyles({
     root: {
@@ -130,9 +131,15 @@ const useStyles = makeStyles({
 interface QueryResultPaneProps {
     GridView: ComponentType;
     isBetaResultsGridEnabled: boolean;
+    /** The multi-results view offers this action in the title bar of each pane instead. */
+    hideOpenInNewTab?: boolean;
 }
 
-export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryResultPaneProps) => {
+export const QueryResultPane = ({
+    GridView,
+    isBetaResultsGridEnabled,
+    hideOpenInNewTab,
+}: QueryResultPaneProps) => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
 
@@ -158,6 +165,7 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
         (s) => s.executionPlanState?.executionPlanGraphs,
     );
     const { keyBindings } = useVscodeWebview();
+    const isActivePaneRef = useIsActiveResultPaneRef();
     const [isPreviewGridSwitchChecked, setIsPreviewGridSwitchChecked] =
         useState(isBetaResultsGridEnabled);
     const [isPreviewGridSwitchPending, setIsPreviewGridSwitchPending] = useState(false);
@@ -169,6 +177,9 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
 
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
+            if (!isActivePaneRef.current) {
+                return;
+            }
             let handled = false;
             if (
                 eventMatchesShortcut(
@@ -341,73 +352,79 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
 
                 <Toolbar aria-label={locConstants.queryResult.resultsToolbar}>
                     <CopyIndicator visible={context.copyIndicatorVisible} />
-                    {webviewLocation === qr.QueryResultWebviewLocation.Panel && (
-                        <Button
-                            icon={<OpenRegular />}
-                            iconPosition="after"
-                            appearance="subtle"
-                            onClick={async () => {
-                                await context.extensionRpc.sendRequest(
-                                    qr.OpenInNewTabRequest.type,
-                                    {
-                                        uri: uri!,
-                                    },
-                                );
-                            }}
-                            title={locConstants.queryResult.openResultInNewTab}
-                            style={{ marginTop: "4px", marginBottom: "4px" }}>
-                            {locConstants.queryResult.openResultInNewTab}
-                        </Button>
-                    )}
-                    <Menu
-                        checkedValues={{
-                            previewGrid: isPreviewGridSwitchChecked ? ["enabled"] : [],
-                        }}
-                        onCheckedValueChange={(_event, data) => {
-                            if (data.name !== "previewGrid") {
-                                return;
-                            }
-
-                            const previousValue = isPreviewGridSwitchChecked;
-                            setIsPreviewGridSwitchChecked(data.checkedItems.includes("enabled"));
-                            setIsPreviewGridSwitchPending(true);
-
-                            // Not awaited: switching the mode reloads this webview into the other
-                            // bundle, so the response may never arrive. Roll back only if the
-                            // extension reports a failure before the reload.
-                            void context.extensionRpc
-                                .sendRequest(qr.ToggleResultsGridModeRequest.type, {
-                                    gridCount: getGridCount(resultSetSummaries),
-                                    rowCount: getTotalResultSetRowCount(resultSetSummaries),
-                                })
-                                .catch((error) => {
-                                    setIsPreviewGridSwitchChecked(previousValue);
-                                    setIsPreviewGridSwitchPending(false);
-                                    log.error(`Failed to toggle results grid mode: ${error}`);
-                                });
-                        }}>
-                        <MenuTrigger disableButtonEnhancement>
-                            <ToolbarButton
+                    {!hideOpenInNewTab &&
+                        webviewLocation === qr.QueryResultWebviewLocation.Panel && (
+                            <Button
+                                icon={<OpenRegular />}
+                                iconPosition="after"
                                 appearance="subtle"
-                                icon={<MoreVertical20Filled />}
-                                aria-label={locConstants.queryResult.moreActions}
-                                title={locConstants.queryResult.moreActions}
-                            />
-                        </MenuTrigger>
-                        <MenuPopover>
-                            <MenuList>
-                                <MenuItemSwitch
-                                    data-testid="preview-grid-switch"
-                                    name="previewGrid"
-                                    value="enabled"
-                                    disabled={isPreviewGridSwitchPending}
-                                    title={locConstants.queryResult.previewGridSwitchTooltip}
-                                    persistOnClick>
-                                    {locConstants.queryResult.previewGrid}
-                                </MenuItemSwitch>
-                            </MenuList>
-                        </MenuPopover>
-                    </Menu>
+                                onClick={async () => {
+                                    await context.extensionRpc.sendRequest(
+                                        qr.OpenInNewTabRequest.type,
+                                        {
+                                            uri: uri!,
+                                        },
+                                    );
+                                }}
+                                title={locConstants.queryResult.openResultInNewTab}
+                                style={{ marginTop: "4px", marginBottom: "4px" }}>
+                                {locConstants.queryResult.openResultInNewTab}
+                            </Button>
+                        )}
+                    {/* The results panel offers this in its title bar menu instead. */}
+                    {webviewLocation === qr.QueryResultWebviewLocation.Document && (
+                        <Menu
+                            checkedValues={{
+                                previewGrid: isPreviewGridSwitchChecked ? ["enabled"] : [],
+                            }}
+                            onCheckedValueChange={(_event, data) => {
+                                if (data.name !== "previewGrid") {
+                                    return;
+                                }
+
+                                const previousValue = isPreviewGridSwitchChecked;
+                                setIsPreviewGridSwitchChecked(
+                                    data.checkedItems.includes("enabled"),
+                                );
+                                setIsPreviewGridSwitchPending(true);
+
+                                // Not awaited: switching the mode reloads this webview into the other
+                                // bundle, so the response may never arrive. Roll back only if the
+                                // extension reports a failure before the reload.
+                                void context.extensionRpc
+                                    .sendRequest(qr.ToggleResultsGridModeRequest.type, {
+                                        gridCount: getGridCount(resultSetSummaries),
+                                        rowCount: getTotalResultSetRowCount(resultSetSummaries),
+                                    })
+                                    .catch((error) => {
+                                        setIsPreviewGridSwitchChecked(previousValue);
+                                        setIsPreviewGridSwitchPending(false);
+                                        log.error(`Failed to toggle results grid mode: ${error}`);
+                                    });
+                            }}>
+                            <MenuTrigger disableButtonEnhancement>
+                                <ToolbarButton
+                                    appearance="subtle"
+                                    icon={<MoreVertical20Filled />}
+                                    aria-label={locConstants.queryResult.moreActions}
+                                    title={locConstants.queryResult.moreActions}
+                                />
+                            </MenuTrigger>
+                            <MenuPopover>
+                                <MenuList>
+                                    <MenuItemSwitch
+                                        data-testid="preview-grid-switch"
+                                        name="previewGrid"
+                                        value="enabled"
+                                        disabled={isPreviewGridSwitchPending}
+                                        title={locConstants.queryResult.previewGridSwitchTooltip}
+                                        persistOnClick>
+                                        {locConstants.queryResult.previewGrid}
+                                    </MenuItemSwitch>
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
+                    )}
                 </Toolbar>
             </div>
 

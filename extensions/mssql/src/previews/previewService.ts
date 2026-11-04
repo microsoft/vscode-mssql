@@ -13,6 +13,7 @@ import * as vscode from "vscode";
 export enum PreviewFeature {
     BetaResultsGrid = "betaResultsGrid",
     LiveQueryStatistics = "liveQueryStatistics",
+    MultiResults = "multiResults",
 }
 
 /**
@@ -29,6 +30,7 @@ export enum PrivatePreviewFeature {
     SessionDiagnostics = "mssql.sessionDiag.enabled",
     ObjectExplorerV2 = "mssql.objectExplorer.v2.enabled",
     QueryStudio = "mssql.queryStudio.enabled",
+    RegressedQueries = "mssql.performanceMonitoring.regressedQueries.enabled",
 }
 
 /**
@@ -45,6 +47,18 @@ export enum PrivatePreviewContextKey {
     ObjectExplorerV2Active = "mssql.privatePreview.objectExplorerV2Active",
     QueryStudioActive = "mssql.privatePreview.queryStudioActive",
 }
+
+/**
+ * The setting of performance monitoring, a preview that is on by default. It needs no other
+ * setting, and it starts the SQL data plane, which it reads through.
+ */
+export const performanceMonitoringSetting = "mssql.performanceMonitoring.enabled";
+
+/**
+ * The activation snapshot of performance monitoring. The data plane starts only at activation,
+ * so the contributed UI needs this key as well as the setting.
+ */
+export const performanceMonitoringActiveContextKey = "mssql.performanceMonitoringActive";
 
 export const CONFIG_PREVIEW_PREFIX = "mssql.preview.";
 
@@ -85,6 +99,20 @@ export class PreviewFeaturesService {
     }
 
     /**
+     * Returns whether the multi-results layout preview is enabled. Unlike most preview features
+     * it does not follow `mssql.enableExperimentalFeatures`; it is on only when its own setting
+     * is.
+     */
+    public get multiResultsEnabled(): boolean {
+        return (
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean | null>(getPreviewConfigKey(PreviewFeature.MultiResults), false) ===
+            true
+        );
+    }
+
+    /**
      * Returns whether the global experimental features flag is enabled,
      * ignoring per-feature overrides.
      */
@@ -92,6 +120,14 @@ export class PreviewFeaturesService {
         return (
             vscode.workspace.getConfiguration("mssql").get<boolean>("enableExperimentalFeatures") ??
             false
+        );
+    }
+
+    /** Returns whether performance monitoring is on. It is on by default. */
+    public get performanceMonitoringEnabled(): boolean {
+        return (
+            vscode.workspace.getConfiguration().get<boolean>(performanceMonitoringSetting, true) ??
+            true
         );
     }
 
