@@ -1138,7 +1138,14 @@ suite("ConnectionConfig Tests", () => {
                             destination.set(setting, [
                                 ...(destination.get(setting) ?? []),
                                 makeItem("destination-sibling"),
+                                makeItem("destination-sibling"),
                             ]);
+                            if (kind === "group") {
+                                source.set(Constants.connectionsArrayName, [
+                                    createStoredProfile("nested-profile", "nested"),
+                                    createStoredProfile("target-profile", "target"),
+                                ]);
+                            }
                             const sourceBefore = deepClone(source.get(setting));
                             const destinationBefore = deepClone(destination.get(setting));
                             messageBoxes.showInformationMessage.resolves(
@@ -1189,6 +1196,59 @@ suite("ConnectionConfig Tests", () => {
                             expect(logger.error).to.have.been.calledWith(
                                 sinon.match(`${failure} write failed`),
                             );
+                            if (failure === "cleanup") {
+                                const destinationAfterFailure = deepClone(destination.get(setting));
+                                await expectFailure(
+                                    update("target", "parent"),
+                                    `${failure} write failed`,
+                                );
+                                expect(source.get(setting)).to.deep.equal(sourceBefore);
+                                expect(destination.get(setting)).to.deep.equal(
+                                    destinationAfterFailure,
+                                );
+                                updateConfigurationStub.resetBehavior();
+                                updateConfigurationStub.resolves();
+
+                                expect(await update("target", "parent", "Retried target")).to.be
+                                    .true;
+
+                                const physicalStores = [
+                                    mockGlobalConfigData,
+                                    mockWorkspaceConfigData,
+                                    ...mockWorkspaceFolderConfigData.values(),
+                                ];
+                                const copies = physicalStores.flatMap((store) =>
+                                    (store.get(setting) ?? []).filter(
+                                        (item: { id: string }) => item.id === "target",
+                                    ),
+                                );
+                                const replacement = {
+                                    ...makeItem("target", "parent"),
+                                    [kind === "connection" ? "profileName" : "name"]:
+                                        "Retried target",
+                                };
+                                expect(copies).to.deep.equal([replacement]);
+                                expect(destination.get(setting)).to.deep.include(replacement);
+                                const withoutTarget = (items: Array<{ id: string }>) =>
+                                    items.filter((item) => item.id !== "target");
+                                expect(source.get(setting)).to.deep.equal(
+                                    withoutTarget(sourceBefore),
+                                );
+                                expect(withoutTarget(destination.get(setting))).to.deep.equal(
+                                    withoutTarget(destinationBefore),
+                                );
+                                if (kind === "group") {
+                                    expect(
+                                        source.get(Constants.connectionsArrayName),
+                                    ).to.deep.equal([
+                                        createStoredProfile("nested-profile", "nested"),
+                                        createStoredProfile("target-profile", "target"),
+                                    ]);
+                                    expect(config.getGroupById("nested")?.parentId).to.equal(
+                                        "target",
+                                    );
+                                }
+                            }
                         });
                     }
                 }

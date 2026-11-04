@@ -669,7 +669,10 @@ export class ConnectionConfig implements IConnectionConfig {
                 }
                 this.applyConfigLocation(latest.item, location);
                 latest.items[latest.index] = latest.item;
-                await writeItems(latest.items);
+                const itemsToSave = latest.items.filter(
+                    (item, index) => item.id !== latest.item.id || index === latest.index,
+                );
+                await writeItems(itemsToSave);
                 for (const key of Object.keys(updatedItem) as (keyof T)[]) {
                     if (!Object.hasOwn(latest.item, key)) {
                         delete updatedItem[key];
