@@ -1392,6 +1392,7 @@ export class LocConstants {
             loadingFabricAccounts: l10n.t("Loading Fabric Accounts"),
             fabricAccount: l10n.t("Fabric Account"),
             selectAnAccount: l10n.t("Select an account"),
+            addAccount: l10n.t("Add account"),
             account: l10n.t("Account"),
             tenantId: l10n.t("Tenant ID"),
             fabricDatabases: l10n.t("Fabric Databases"),
@@ -3660,15 +3661,20 @@ export class LocConstants {
             loadingDeploymentPage: l10n.t("Loading deployment"),
             deploymentHeader: l10n.t("New SQL database"),
             deploymentDescription: l10n.t("Choose an option to provision a database"),
+            localProvisioning: l10n.t("Run locally"),
+            remoteProvisioning: l10n.t("Run in the cloud"),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
             dockerSqlServerHeader: l10n.t("Create a Local Docker SQL Server"),
+            dockerSqlServerCardHeader: l10n.t("SQL Server container"),
             dockerSqlServerDescription: l10n.t(
-                "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
+                "Runs SQL Server in Docker, set up in a few clicks. Best for apps on SQL Server or Azure SQL Managed Instance.",
             ),
             fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric"),
+            fabricProvisioningCardHeader: l10n.t("SQL database in Fabric"),
             fabricProvisioningDescription: l10n.t(
-                "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
+                "A fully managed database that auto-scales, auto-tunes, and copies your data to OneLake automatically. Best for apps whose data also powers analytics and reporting in Microsoft Fabric.",
             ),
+            azureSqlDatabaseCardHeader: l10n.t("Azure SQL Database"),
         };
     }
 
@@ -3769,11 +3775,28 @@ export class LocConstants {
 
     public get azureSqlContainer() {
         return {
+            applicationClientId: l10n.t("Application (client) ID"),
+            enterApplicationClientId: l10n.t("Enter the application client ID"),
+            servicePrincipalAdministratorDescription: l10n.t(
+                "The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.",
+            ),
+            pfxFilePath: l10n.t("PFX file path"),
+            selectPfxFile: l10n.t("Select a PFX file"),
+            browsePfxFile: l10n.t("Browse for a PFX file"),
             sqlLogin: l10n.t("SQL Login"),
             entraMfa: l10n.t("Microsoft Entra ID - Universal with MFA support"),
             entraDefault: l10n.t("Microsoft Entra ID - Default"),
             entraServicePrincipal: l10n.t("Microsoft Entra ID - Service Principal"),
-            authenticationTooltip: l10n.t("The developer container uses SQL Login authentication."),
+            servicePrincipalClientSecret: l10n.t("Client secret"),
+            servicePrincipalClientSecretPlaceholder: l10n.t("Enter the client secret"),
+            servicePrincipalClientSecretTooltip: l10n.t(
+                "Client secret for the selected app registration. This is separate from the SQL administrator password.",
+            ),
+            sqlAdministratorUserName: l10n.t("SQL administrator user name"),
+            sqlAdministratorPassword: l10n.t("SQL administrator password"),
+            authenticationTooltip: l10n.t(
+                "Choose SQL Login or Microsoft Entra ID authentication for the developer container.",
+            ),
             userNameTooltip: l10n.t(
                 "The built-in administrator login for the developer container.",
             ),
@@ -3833,16 +3856,11 @@ export class LocConstants {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
             azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database"),
             azureSqlDatabaseDescription: l10n.t(
-                "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.",
+                "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
             ),
-            chooseDeploymentOption: l10n.t("Choose how to run Azure SQL Database"),
-            localContainer: l10n.t("Local container (Preview)"),
+            developerContainerPreview: l10n.t("Azure SQL Database container (Preview)"),
             localContainerDescription: l10n.t(
-                "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.",
-            ),
-            free: l10n.t("Free"),
-            freeDescription: l10n.t(
-                "Try Azure SQL Database at no cost with the free tier — a fully managed cloud database, ready for your app, ORM, or migration tools.",
+                "Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.",
             ),
             localContainerTbd: l10n.t("TBD"),
             localContainerWizardTitle: l10n.t("(Preview) New Azure SQL Database - Container"),

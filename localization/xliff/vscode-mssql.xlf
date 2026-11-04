@@ -295,8 +295,8 @@
     <trans-unit id="++CODE++228153baa9f76de67fc4c204040b276a83c8f599e241c07f32851bf19d62a856">
       <source xml:lang="en">A folder with the name &apos;{0}&apos; already exists on disk at this location. Please choose another name.</source>
     </trans-unit>
-    <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
-      <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
+    <trans-unit id="++CODE++15f4008d1e3cd264d71001c3ca6b67b9f0209d53dc528dd977eeb1b39ea1f684">
+      <source xml:lang="en">A fully managed database that auto-scales, auto-tunes, and copies your data to OneLake automatically. Best for apps whose data also powers analytics and reporting in Microsoft Fabric.</source>
     </trans-unit>
     <trans-unit id="++CODE++9a3f4dcb8d00d77d27a03c716032f15e1dedc065981e6efc522136594f99cfa3">
       <source xml:lang="en">A longer flush interval loses more data if the server stops unexpectedly.</source>
@@ -810,6 +810,9 @@
     <trans-unit id="++CODE++e6e909c5bd0a3e25a1abcddd1dab13780ce9e4f673139a56842b1e3a26c981c0">
       <source xml:lang="en">Application (Client) ID is required.</source>
     </trans-unit>
+    <trans-unit id="++CODE++576111a7aee1dceb26cea96a10ff916ffb087796f8a5c1b6e97bcb16f47b01c3">
+      <source xml:lang="en">Application (client) ID</source>
+    </trans-unit>
     <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
       <source xml:lang="en">Application Intent</source>
     </trans-unit>
@@ -1124,6 +1127,9 @@
       <source xml:lang="en">Azure SQL Database container &apos;{0}&apos; was provisioned successfully.</source>
       <note>{0} is the container name</note>
     </trans-unit>
+    <trans-unit id="++CODE++e416075a91aab54519143288791421f0076f9883b5ce41d6391c89a71fc7c18f">
+      <source xml:lang="en">Azure SQL Database container (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++e449024435d9bf391c84ac2d47dc8e861cf2e81db21000998c4dd9de37c2b7e2">
       <source xml:lang="en">Azure SQL Database developer container</source>
     </trans-unit>
@@ -1341,6 +1347,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a06957fcc715d602f999320581c943bdf57d5773107c22e71de68da88949b120">
       <source xml:lang="en">Browse folder</source>
+    </trans-unit>
+    <trans-unit id="++CODE++97e9c58e419ace8beaa3b4fd69ba7e2b589bf84e6e83835eb1f66dfde31f481d">
+      <source xml:lang="en">Browse for a PFX file</source>
     </trans-unit>
     <trans-unit id="++CODE++879c21b0945cca2c0ee41f421f5a066be758d466518552f403c029d7b6c66a77">
       <source xml:lang="en">Browse for an execution plan...</source>
@@ -1813,6 +1822,9 @@
     <trans-unit id="++CODE++a1578b6089ec41921bc4a70b05ca1b1171199d5d5fea6ac6c345cba9b29a83ef">
       <source xml:lang="en">Choose SQL Language</source>
     </trans-unit>
+    <trans-unit id="++CODE++b2c08d10dfa4a341c9d2d927fa2db03856765fe2a45a2660e3b8103e6053b4fc">
+      <source xml:lang="en">Choose SQL Login or Microsoft Entra ID authentication for the developer container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d4b455dc8237ce7460f9bde4850dc92b735297b2b498b06b350dca028b33a936">
       <source xml:lang="en">Choose SQLCMD variables to modify</source>
     </trans-unit>
@@ -1848,9 +1860,6 @@
     </trans-unit>
     <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
       <source xml:lang="en">Choose color</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d0a50b3c66ed08ff5e7bb4903c4593ac6050d5493dccbfbf9442a0466bf2c2cc">
-      <source xml:lang="en">Choose how to run Azure SQL Database</source>
     </trans-unit>
     <trans-unit id="++CODE++33cae60710d18883f5948aa5911afb6dd1569629731526de9d6fbf18856274a0">
       <source xml:lang="en">Choose other folder</source>
@@ -1996,6 +2005,12 @@
     </trans-unit>
     <trans-unit id="++CODE++ae21cf6d24b8ca460e91fe9dc61432a60403b1dabea53792a9c95c63a7cb0db2">
       <source xml:lang="en">Client Secret</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4aded5faf15623c5c91eb87d39dbe4366fc73e1affb46dfbfcc1865e7704f157">
+      <source xml:lang="en">Client secret</source>
+    </trans-unit>
+    <trans-unit id="++CODE++deda015a0a919b18de891022b10c28ce289ac326f50c23594577a26b82f9bcbc">
+      <source xml:lang="en">Client secret for the selected app registration. This is separate from the SQL administrator password.</source>
     </trans-unit>
     <trans-unit id="++CODE++b88d22f627afd019becae5972c1ad1c05cca30f1c24c21e6a1ebf5492207904b">
       <source xml:lang="en">Client secret is required.</source>
@@ -4069,9 +4084,6 @@
     <trans-unit id="++CODE++0306077f5b3fdefe209b7a12da63dafa6c59890fdb6c0ad2032b94706c0cda63">
       <source xml:lang="en">Eagerness</source>
     </trans-unit>
-    <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
-      <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
-    </trans-unit>
     <trans-unit id="++CODE++2f7514a7052124c11a8ce6b0e1142e55c5cca7611f0cf9d28bb94e5dcecbc07a">
       <source xml:lang="en">Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.</source>
     </trans-unit>
@@ -4308,6 +4320,9 @@
     <trans-unit id="++CODE++99423f847824fcaa5126b691889e26782436157dbcbb9ae40af381c1175e72eb">
       <source xml:lang="en">Enter a port number between 1 and 65535.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a8e4f171f5dac43721baa859301efdae50cab325345ed4b8cfa83d98fceef9c4">
+      <source xml:lang="en">Enter a valid application (client) ID.</source>
+    </trans-unit>
     <trans-unit id="++CODE++885dd0087e9192594843144ef7d051d40c814ddf786b582e0e5a9c2f6ae7fcf1">
       <source xml:lang="en">Enter a valid hostname.</source>
     </trans-unit>
@@ -4392,6 +4407,15 @@
     <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
       <source xml:lang="en">Enter the SQL Login password for user &apos;{0}&apos;.</source>
       <note>{0} is the SQL Login username</note>
+    </trans-unit>
+    <trans-unit id="++CODE++509319429f2a0965b79fc02012bf0aaf52759e7f64f89f4465e037e4d1d14635">
+      <source xml:lang="en">Enter the application client ID</source>
+    </trans-unit>
+    <trans-unit id="++CODE++886189310100f47aea0296511a3b3e2a4c30f2322c931b0550fa2a9e20e05517">
+      <source xml:lang="en">Enter the client secret</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1d2db8e24c656cf7880c0ca98a2f89b3ae6a7fccdb0d9576cecf6249b5f64455">
+      <source xml:lang="en">Enter the client secret for the selected app registration.</source>
     </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
@@ -7056,9 +7080,6 @@
     <trans-unit id="++CODE++44fe2df974d8b80786309f264819c59c4f54ef54e4c1ae57b1dd7983d08b6ba5">
       <source xml:lang="en">Local clone path</source>
     </trans-unit>
-    <trans-unit id="++CODE++361bad9f7864ba91d621aa931828237741303dc125d67ac76c81ea7b3001090b">
-      <source xml:lang="en">Local container (Preview)</source>
-    </trans-unit>
     <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
       <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
     </trans-unit>
@@ -8751,6 +8772,12 @@
     <trans-unit id="++CODE++4b1b8aa3608a26da451ae0630d75b60ab1bc2dd229c41a80838fc7993e835c46">
       <source xml:lang="en">Owner</source>
     </trans-unit>
+    <trans-unit id="++CODE++7b44936bb16e8051d2b18d6b9b7ec49247110df09cabb390ad7d6306632a071f">
+      <source xml:lang="en">PFX file path</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f64f4cfcb376e12149ac8e392aa0fcbe1fc9a09c184f0f0a4d648315535d0a14">
+      <source xml:lang="en">PFX files</source>
+    </trans-unit>
     <trans-unit id="++CODE++fcab7fcc2b4cffd9bb45003bfc2e468a04ef6f77ca8200a7341f027631584d25">
       <source xml:lang="en">PK</source>
     </trans-unit>
@@ -9715,6 +9742,9 @@
     <trans-unit id="++CODE++d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef">
       <source xml:lang="en">Recommended</source>
     </trans-unit>
+    <trans-unit id="++CODE++fe619db26a91caecebe7aecd57159dea5f49c5c98543244d4d220a8ecdc5b824">
+      <source xml:lang="en">Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ab596c05382fa89fa36fa6f0ef1744964ad6619f2a1226d92074b6d867bfe1e1">
       <source xml:lang="en">Record closed</source>
     </trans-unit>
@@ -10272,9 +10302,6 @@
     <trans-unit id="++CODE++00d60e31a4e6b8344d4201f25a6a7dee770713107f6d097abb01559d32b17f26">
       <source xml:lang="en">Run</source>
     </trans-unit>
-    <trans-unit id="++CODE++34ef2e4e57e03bb3051579a7ad4a25ac18b6a045198cb6114bcd5d49f11e7bc3">
-      <source xml:lang="en">Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.</source>
-    </trans-unit>
     <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
       <source xml:lang="en">Run Query</source>
     </trans-unit>
@@ -10304,6 +10331,12 @@
     </trans-unit>
     <trans-unit id="++CODE++e4a7eef54f61befcda35db794ab6b91a9c78f0dc71ed873af0e5ad085dbd90bc">
       <source xml:lang="en">Run config matrix</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1c49c6e772c68dc112a5ef60569f242be6e31d9dad5c980e4e561a72c1e11d5b">
+      <source xml:lang="en">Run in the cloud</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a28ec84e59a23904c60d0abf7bf2ebf32938819f4be027bfa7cc79eff9f7f150">
+      <source xml:lang="en">Run locally</source>
     </trans-unit>
     <trans-unit id="++CODE++2c757183a36d594602187e88cad67e8e38ab92dd5c9c01ca69eb4c67f465b8e3">
       <source xml:lang="en">Run query on connection &apos;{0}&apos; (ID: {1})?&#10;&#10;Query: {2}</source>
@@ -10361,6 +10394,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1535db1c91172380e70396d4a07899000757727b521ac651eb91dbcaee2460e4">
       <source xml:lang="en">Runs Data API builder in a container on this machine, published on a local port.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++da343d583a7a7a73b9b687d5dcc9991a9cd6454c8cbcadecd5a091bf2c91fc5e">
+      <source xml:lang="en">Runs SQL Server in Docker, set up in a few clicks. Best for apps on SQL Server or Azure SQL Managed Instance.</source>
     </trans-unit>
     <trans-unit id="++CODE++76086ca76a113f441793f5f388b976f1b83690e0fd9fa4bb54d1000b9107cb58">
       <source xml:lang="en">Runs containers through Windows Subsystem for Linux (WSL). · Windows</source>
@@ -10429,6 +10465,9 @@
     <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
       <source xml:lang="en">SQL Server admin password</source>
     </trans-unit>
+    <trans-unit id="++CODE++ec80fe299151f0b93c8d0f3ce2f2cf29b185e4c4008e70bf6f6b3765c51c25ed">
+      <source xml:lang="en">SQL Server container</source>
+    </trans-unit>
     <trans-unit id="++CODE++82a5a935a9143edc89ac046512a9ba03026e4774cde53feb82c959225904e638">
       <source xml:lang="en">SQL Server container &apos;{0}&apos; was provisioned successfully.</source>
       <note>{0} is the container name</note>
@@ -10448,6 +10487,12 @@
     </trans-unit>
     <trans-unit id="++CODE++6a6bf6063fe6e46acf60d08c0ba2dba1d05dd22efb279588eeca536a4850299b">
       <source xml:lang="en">SQL Tools (MSSQL)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++194b00f1ade2cfa7f0bd1d5faa08208c54b9b4a9be5aec86e97c59229b194105">
+      <source xml:lang="en">SQL administrator password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++018348b418e39ee569a6de6af9d230eddf43702499067bb1749c0aa0cb1f4d47">
+      <source xml:lang="en">SQL administrator user name</source>
     </trans-unit>
     <trans-unit id="++CODE++f82bf397fbecb2b80b5ae141ab451c140c4635d090b66f828705d7ac5e31f98f">
       <source xml:lang="en">SQL connection string</source>
@@ -10910,6 +10955,9 @@
     <trans-unit id="++CODE++79e5e71c56f13bb3c722fd134f6fb39e747de15dc979295882ecac8d67d45559">
       <source xml:lang="en">Select Max vCores</source>
     </trans-unit>
+    <trans-unit id="++CODE++47b397e32086b5d48f33d380a63b9e4c4167835fa11eca9d5ba4e7895a4a184b">
+      <source xml:lang="en">Select PFX file</source>
+    </trans-unit>
     <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
       <source xml:lang="en">Select Profile</source>
     </trans-unit>
@@ -10939,6 +10987,12 @@
     </trans-unit>
     <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
       <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3310905b88996cc8faca840d24fe8f84c5d229e34def2d4828732425eb1a4627">
+      <source xml:lang="en">Select a Microsoft Entra account.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c4f51bc82339f74a69dab3f8077d0ef3ac5b660897b932f862dca4bdf1a62f8c">
+      <source xml:lang="en">Select a PFX file</source>
     </trans-unit>
     <trans-unit id="++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c">
       <source xml:lang="en">Select a Workspace</source>
@@ -11021,6 +11075,9 @@
     <trans-unit id="++CODE++fac4c702f7790e41763806f2cdc67d0521f91fe1cd0cc1ac492506ea2842b5dc">
       <source xml:lang="en">Select a subscription to view servers in it.</source>
     </trans-unit>
+    <trans-unit id="++CODE++af249974055c6abde49a71dc16b1e5521a624eb0edbb1f7a89af564529be5338">
+      <source xml:lang="en">Select a supported authentication type.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba9bb750744bd9e7ebb8626d0c7104abe572221c6a4f846fe7e635076be038da">
       <source xml:lang="en">Select a target schema, then press Compare.</source>
     </trans-unit>
@@ -11075,6 +11132,9 @@
     <trans-unit id="++CODE++2feddedc429af59e438afc4eb6fbbf8d819d6570863c8cca67547390a5687a3e">
       <source xml:lang="en">Select an execution plan to replace {0}</source>
       <note>{0} is the name of the execution plan being replaced</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1fb234c93431039615e3eb3b38557f8535125d00a4659301e81e67cba9363e3d">
+      <source xml:lang="en">Select an existing, readable local PFX file.</source>
     </trans-unit>
     <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
       <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
@@ -11708,6 +11768,9 @@
     </trans-unit>
     <trans-unit id="++CODE++081917aac8ef49fe296c61c39645bd49befe725bd8511f72c5e02ef75226117e">
       <source xml:lang="en">Start anyway · {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3009ce75e6d4c08a042ab2d77360f5334cd765390fc51f1c2740a66b12eaed46">
+      <source xml:lang="en">Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.</source>
     </trans-unit>
     <trans-unit id="++CODE++0224c763e5d0c066c2560725e331c4e0833a545774a52355fb8b2849b473dd0d">
       <source xml:lang="en">Start matrix run · {0}</source>
@@ -12362,9 +12425,6 @@
     <trans-unit id="++CODE++4ed30ce390b4a87aa521240a8313735faff4c4cb4df0c01292ffdaf5b9a44c58">
       <source xml:lang="en">The description of the primary key.</source>
     </trans-unit>
-    <trans-unit id="++CODE++44d1028a4f9813fa5404247a36ba5c244cf826267718ec8031f44ea1744cd9f5">
-      <source xml:lang="en">The developer container uses SQL Login authentication.</source>
-    </trans-unit>
     <trans-unit id="++CODE++ee3b2c978f3d423b040d97d7b48e445431bf81ad403553962e605c08cbbee3f4">
       <source xml:lang="en">The editor for these results is closed. The results stay until you close them.</source>
     </trans-unit>
@@ -12511,6 +12571,9 @@
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
+    </trans-unit>
+    <trans-unit id="++CODE++930b10cc0233d500dbf4d8b27a0903e7e7b9334b28ccc77d3fd0f53766cce2d3">
+      <source xml:lang="en">The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.</source>
     </trans-unit>
     <trans-unit id="++CODE++dcc368e5cecae7f8a0551b1a10f920940276c11de668e2c7e38cd72bfc755563">
       <source xml:lang="en">The selected clone path &apos;{0}&apos; does not exist or is not a directory.</source>
@@ -12663,6 +12726,9 @@
     </trans-unit>
     <trans-unit id="++CODE++10dbcc17721e3abad0e3b372a444fb35e5e22c354ccda55e36c477ffbf2b8db2">
       <source xml:lang="en">This connection&apos;s server group is marked as production, and the query contains statements that can change or destroy data. This can result in data loss. Would you like to continue?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++613081b07643e66f1cd6f4934dc34812a75ce7b365d2124acec987c6074b7bee">
+      <source xml:lang="en">This container provisioning step is not supported.</source>
     </trans-unit>
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
@@ -12966,12 +13032,6 @@
     <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
       <source xml:lang="en">Truncate the transaction log</source>
     </trans-unit>
-    <trans-unit id="++CODE++35ab6441ab2035c69e2f496ec51319ca8e0bb84ca1ef6b5c6f3c715b90200aab">
-      <source xml:lang="en">Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a6ad83aa61def89d0a2bc23f61f91102da392701c49a76fc3dae6f1199f42f89">
-      <source xml:lang="en">Try Azure SQL Database at no cost with the free tier — a fully managed cloud database, ready for your app, ORM, or migration tools.</source>
-    </trans-unit>
     <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
       <source xml:lang="en">Try adjusting your search or filters</source>
     </trans-unit>
@@ -13026,6 +13086,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0749eac937735a54efbd2572de25232bb773c43b1ed6b2407da37b6235f20410">
       <source xml:lang="en">Unable to construct connection: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a351282b73682a7c762b03903b4bd5da0c91b490c029de4f84d0a270d5396c50">
+      <source xml:lang="en">Unable to determine the selected Microsoft account&apos;s administrator identity in this tenant. Sign in to the tenant and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++45f72ef532c602c155033a6d27f0b8842d5514272f174487daece16c8ae600a1">
       <source xml:lang="en">Unable to determine the server authentication type.</source>

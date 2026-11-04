@@ -2099,6 +2099,21 @@ export class QueryResult {
 }
 
 export class AzureSqlContainer {
+    public static selectPfxFile = l10n.t("Select PFX file");
+    public static pfxFiles = l10n.t("PFX files");
+    public static invalidAuthenticationType = l10n.t("Select a supported authentication type.");
+    public static selectEntraAccount = l10n.t("Select a Microsoft Entra account.");
+    public static invalidApplicationClientId = l10n.t("Enter a valid application (client) ID.");
+    public static pfxFileRequired = l10n.t("Select an existing, readable local PFX file.");
+    public static invalidEntraAdministrator = l10n.t(
+        "Unable to determine the selected Microsoft account's administrator identity in this tenant. Sign in to the tenant and try again.",
+    );
+    public static servicePrincipalClientSecretRequired = l10n.t(
+        "Enter the client secret for the selected app registration.",
+    );
+    public static invalidProvisioningStep = l10n.t(
+        "This container provisioning step is not supported.",
+    );
     public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
     public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
     public static portInUse = l10n.t("This port is already in use. Choose a different port.");

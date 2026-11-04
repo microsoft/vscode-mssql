@@ -420,13 +420,16 @@ export async function addContainerConnection(
     } as unknown as IConnectionProfile;
 
     const connectionManager = mainController.connectionManager;
-    if (
-        !(await waitForContainerConnection(connection, dockerProfile.containerName, mainController))
-    ) {
-        return { success: false };
-    }
-
     try {
+        if (
+            !(await waitForContainerConnection(
+                connection,
+                dockerProfile.containerName,
+                mainController,
+            ))
+        ) {
+            return { success: false };
+        }
         const profile = await connectionManager.connectionUI.saveProfile(connection);
         const connectionString = await connectionManager.getConnectionString(
             connectionManager.createConnectionDetails(profile),
@@ -437,7 +440,15 @@ export async function addContainerConnection(
 
         return { success: true, connectionString };
     } catch (error) {
-        return { success: false, fullErrorText: getErrorMessage(error) };
+        const errorMessage = getErrorMessage(error);
+        return {
+            success: false,
+            fullErrorText: dockerUtils.sanitizeErrorText(
+                dockerProfile.password
+                    ? errorMessage.replaceAll(dockerProfile.password, "******")
+                    : errorMessage,
+            ),
+        };
     }
 }
 
@@ -460,8 +471,13 @@ export async function waitForContainerConnection(
             if (connected) {
                 break;
             }
-        } catch {
-            // Retry while SQL Server finishes initializing authentication.
+        } catch (error) {
+            if (signal?.aborted) {
+                return false;
+            }
+            if (attempt + 1 === containerConnectionMaxAttempts) {
+                throw error;
+            }
         }
 
         if (attempt + 1 === containerConnectionMaxAttempts) {

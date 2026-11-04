@@ -201,13 +201,24 @@ export class DeploymentWebviewController extends FormWebviewController<
             if (typeof createConnectionGroupResult === "string") {
                 // If the result is a string, it means there was an error creating the group
                 state.formErrors.push(createConnectionGroupResult);
+                const dialog = getDefaultConnectionGroupDialogProps();
+                dialog.props = {
+                    ...payload.connectionGroupSpec,
+                    message: createConnectionGroupResult,
+                };
+                state.dialog = dialog;
+                state.deploymentTypeState.dialog = dialog;
+                return state;
             } else {
                 // If the result is an IConnectionGroup, it means the group was created successfully
                 state.formState.groupId = createConnectionGroupResult.id;
             }
 
-            state.formComponents.groupId.options =
+            state.connectionGroupOptions =
                 await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
+            if (state.formComponents.groupId) {
+                state.formComponents.groupId.options = state.connectionGroupOptions;
+            }
 
             state.dialog = undefined;
             state.deploymentTypeState.dialog = undefined;
