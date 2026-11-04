@@ -1122,6 +1122,20 @@ export class SqlOutputContentProvider {
         if (oldUri === newUri) {
             return;
         }
+        // A query can be saved over a file whose results the multi-results list kept after the
+        // file closed. When the saved query has results, they replace those, so release them
+        // first.
+        if (
+            this._queryResultsMap.has(oldUri) &&
+            this.isInMultiResultsList(newUri) &&
+            this._queryResultsMap.has(newUri)
+        ) {
+            // Its listeners update the state of the result at the URI, which becomes the saved
+            // query's, so detach them now rather than when a cancelled query completes.
+            this._queryResultsMap.get(newUri).listeners?.forEach((listener) => listener.dispose());
+            await this.cleanupRunner(newUri);
+            store.deleteUriState(newUri);
+        }
         this.migrateThrottledUpdateUri(oldUri, newUri);
 
         // Keep the execution slot with the editor: the runner releases it under its new URI.
@@ -1177,10 +1191,11 @@ export class SqlOutputContentProvider {
             if (closedDocumentUri === key) {
                 /**
                  * If the result is in a webview view, immediately dispose the runner
-                 * For panel based results, we just cancel the query but keep the results
-                 * available until the user closes the panel
+                 * For panel based results, and results listed in the multi-results view, we
+                 * just cancel the query but keep the results available until the user closes
+                 * them
                  */
-                if (this._queryResultWebviewController.hasPanel(key)) {
+                if (this.keepsResultsAfterDocumentClose(key)) {
                     await _value.queryRunner.cancel();
                     continue;
                 }
@@ -1218,6 +1233,17 @@ export class SqlOutputContentProvider {
         );
     }
 
+    /**
+     * Whether a result stays available after its editor closes, until the user closes it.
+     */
+    public keepsResultsAfterDocumentClose(uri: string): boolean {
+        return this._queryResultWebviewController.hasPanel(uri) || this.isInMultiResultsList(uri);
+    }
+
+    public isInMultiResultsList(uri: string): boolean {
+        return this._queryResultWebviewController.isInMultiResultsList(uri);
+    }
+
     public async cleanupRunner(uri: string): Promise<void> {
         this.stopLiveQueryStatistics(uri);
         this._liveQueryStatisticsRuns.delete(uri);
@@ -1230,8 +1256,19 @@ export class SqlOutputContentProvider {
                 this._stateUpdateThrottles.delete(uri);
             }
             if (queryRunnerState.queryRunner.isExecutingQuery) {
-                // We need to cancel it, which will dispose it
-                await this.cancelQuery(queryRunnerState.queryRunner);
+                // Cancelling does not release the query on the service, so release it once the
+                // query reports completion. The service identifies queries by editor, so leave it
+                // to a new run of the editor that started by then.
+                const runner = queryRunnerState.queryRunner;
+                const completionListener = runner.onComplete(() => {
+                    completionListener.dispose();
+                    queryRunnerState.listeners?.forEach((listener) => listener.dispose());
+                    const currentRunner = this._queryResultsMap.get(uri)?.queryRunner;
+                    if (!currentRunner || currentRunner === runner) {
+                        void runner.dispose();
+                    }
+                });
+                await this.cancelQuery(runner);
             } else {
                 // We need to explicitly dispose the query
                 void queryRunnerState.queryRunner.dispose();
@@ -1537,6 +1574,9 @@ export class SqlOutputContentProvider {
             (hasState && !this._queryResultWebviewController.hasPanel(uri));
 
         if (shouldFocus) {
+            if (hasState) {
+                this._queryResultWebviewController.focusMultiResult(uri);
+            }
             vscode.commands.executeCommand("queryResult.focus", {
                 preserveFocus: true,
             });
@@ -1609,6 +1649,8 @@ export class SqlOutputContentProvider {
         // Set the state to the right webview.
         if (this._queryResultWebviewController.hasPanel(uri)) {
             this._queryResultWebviewController.updatePanelState(uri);
+        } else if (this._queryResultWebviewController.isMultiResultsActive) {
+            this._queryResultWebviewController.updateMultiResult(uri);
         } else {
             /**
              * If the user is working on some other editor, do not display the results

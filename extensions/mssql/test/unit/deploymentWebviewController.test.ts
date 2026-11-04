@@ -26,6 +26,9 @@ import {
 } from "../../src/deployment/localToCloudHelpers";
 import { LocalToCloud } from "../../src/constants/locConstants";
 import { createWorkspaceConfiguration } from "./stubs";
+import * as connectionGroups from "../../src/controllers/connectionGroupWebviewController";
+import { ConnectionUI } from "../../src/views/connectionUI";
+import { FormItemType } from "../../src/sharedInterfaces/form";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -182,6 +185,72 @@ suite("Deployment webview controller", () => {
             disposable.dispose();
         }
         sandbox.restore();
+    });
+
+    for (const withGroupComponent of [false, true]) {
+        test(`creates and selects a group ${withGroupComponent ? "with" : "without"} initialized deployment form components`, async () => {
+            const state = new DeploymentWebviewState();
+            state.dialog = connectionGroups.getDefaultConnectionGroupDialogProps();
+            if (withGroupComponent) {
+                state.formComponents.groupId = {
+                    type: FormItemType.SearchableDropdown,
+                    propertyName: "groupId",
+                    label: "Connection group",
+                    required: true,
+                    componentWidth: "100%",
+                    options: [],
+                };
+            }
+            const group = {
+                id: "created-group",
+                name: "Container connections",
+                configSource: vscode.ConfigurationTarget.Global,
+            };
+            const spec = { name: group.name };
+            const create = sandbox.stub(connectionGroups, "createConnectionGroup").resolves(group);
+            const main = sandbox.createStubInstance(MainController);
+            const manager = sandbox.createStubInstance(ConnectionManager);
+            const connectionUI = sandbox.createStubInstance(ConnectionUI);
+            sandbox.stub(manager, "connectionUI").get(() => connectionUI);
+            main.connectionManager = manager;
+            controller.mainController = main;
+            const options = [{ value: group.id, displayName: group.name }];
+            connectionUI.getConnectionGroupOptions.resolves(options);
+            const save = controller.registerReducer
+                .getCalls()
+                .find((call) => call.args[0] === "createConnectionGroup")!.args[1];
+
+            await save(state, { connectionGroupSpec: spec });
+
+            expect(create).to.have.been.calledWith(spec, manager, TelemetryViews.ConnectionDialog);
+            expect(state.formState.groupId).to.equal(group.id);
+            expect(state.connectionGroupOptions).to.deep.equal(options);
+            if (withGroupComponent) {
+                expect(state.formComponents.groupId.options).to.deep.equal(options);
+            }
+            expect(state.dialog).to.equal(undefined);
+            expect(state.deploymentTypeState.dialog).to.equal(undefined);
+        });
+    }
+
+    test("keeps the group dialog open with the save error and preserves the selected group", async () => {
+        const state = new DeploymentWebviewState();
+        state.formState.groupId = "existing-group";
+        const spec = { name: "New group", color: "#0078D4" };
+        sandbox.stub(connectionGroups, "createConnectionGroup").resolves("Unable to save group");
+        controller.mainController = sandbox.createStubInstance(MainController);
+        const save = controller.registerReducer
+            .getCalls()
+            .find((call) => call.args[0] === "createConnectionGroup")!.args[1];
+
+        await save(state, { connectionGroupSpec: spec });
+
+        expect(state.formState.groupId).to.equal("existing-group");
+        expect(state.dialog).to.deep.equal({
+            type: "createConnectionGroup",
+            props: { ...spec, message: "Unable to save group" },
+        });
+        expect(state.deploymentTypeState.dialog).to.deep.equal(state.dialog);
     });
 
     test("registers Azure SQL container requests even when preview flags are disabled", () => {

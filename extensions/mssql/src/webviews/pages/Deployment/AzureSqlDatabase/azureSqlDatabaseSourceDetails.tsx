@@ -115,6 +115,7 @@ export const AzureSqlDatabaseSourceDetails = ({
         void extensionRpc
             .sendRequest(AzureSqlDatabaseRequests.ConnectLocalDatabaseSource, {
                 id: source.id,
+                database: source.database,
             })
             .then((result) => {
                 if (!cancelled) {

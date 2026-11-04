@@ -38,6 +38,7 @@ import {
 import { ExtractTarget, TaskExecutionMode } from "../enums";
 import type SqlToolsServiceClient from "../languageservice/serviceclient";
 import { ConnectionProfile } from "../models/connectionProfile";
+import { ConnectionCredentials } from "../models/connectionCredentials";
 import { QueryCancelRequest } from "../models/contracts/queryCancel";
 import type { DacFxService } from "../services/dacFxService";
 import type { SqlProjectsService } from "../services/sqlProjectsService";
@@ -66,6 +67,7 @@ import type { ILogger } from "../sharedInterfaces/logger";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
+import { isSystemDatabase } from "../utils/databaseUtils";
 import type { DeploymentWebviewController } from "./deploymentWebviewController";
 
 //#region Local database sources
@@ -96,14 +98,48 @@ export async function connectLocalDatabaseSource(
     manager: ConnectionManager,
     id: string,
     client: SqlToolsServiceClient,
+    database?: string,
 ): Promise<LocalDatabaseSource> {
+    const { source } = await connectLocalSource(manager, id, client, database);
+    if (!source.database) {
+        throw new Error(LocalToCloud.sourceUnavailable);
+    }
+    return source;
+}
+
+export async function getLocalServerDatabases(
+    manager: ConnectionManager,
+    id: string,
+    client: SqlToolsServiceClient,
+): Promise<string[]> {
+    const { uri } = await connectLocalSource(manager, id, client);
+    const databases = await manager.listDatabases(uri);
+    return [...new Set(databases.filter((database) => database && !isSystemDatabase(database)))];
+}
+
+async function connectLocalSource(
+    manager: ConnectionManager,
+    id: string,
+    client: SqlToolsServiceClient,
+    database?: string,
+): Promise<{ source: LocalDatabaseSource; uri: string }> {
     const profiles = await manager.connectionStore.readAllConnections(true);
     const profile = profiles.find((connection) => connection.id === id);
-    const active = Object.entries(manager.activeConnections).find(
+    let active = Object.entries(manager.activeConnections).find(
         ([uri, connection]) =>
             getLocalDatabaseConnectionId(connection) === id && manager.isConnected(uri),
     );
-    const credentials = active?.[1].credentials ?? profile;
+    let credentials = active?.[1].credentials ?? profile;
+    if (credentials && database !== undefined && database !== credentials.database) {
+        const password =
+            !credentials.password && ConnectionCredentials.isPasswordBasedCredential(credentials)
+                ? await manager.connectionStore.lookupPassword(credentials)
+                : credentials.password;
+        id = randomUUID();
+        const databaseCredentials = { ...credentials, id, database, password };
+        credentials = databaseCredentials;
+        active = undefined;
+    }
     const source = getLocalDatabaseSources(
         credentials
             ? [
@@ -118,7 +154,7 @@ export async function connectLocalDatabaseSource(
             : [],
     )[0];
     if (!source || !credentials) {
-        throw new Error("The selected local database connection is no longer available.");
+        throw new Error(LocalToCloud.sourceUnavailable);
     }
     const uri = active?.[0] ?? `mssql-deployment:${randomUUID()}`;
     if (
@@ -132,12 +168,12 @@ export async function connectLocalDatabaseSource(
             },
         ))
     ) {
-        throw new Error("Unable to connect to the selected local database.");
+        throw new Error(LocalToCloud.sourceConnectionFailed);
     }
     const serverInfo = active?.[1].serverInfo ?? manager.getConnectionInfo(uri)?.serverInfo;
     const isAzureSql = isAzureSqlDatabaseSource(serverInfo);
     let serverVersion = serverInfo?.serverVersion;
-    if (!isAzureSql) {
+    if (source.database && !isAzureSql) {
         const result = await client.sendRequest(versionRequest, {
             ownerUri: uri,
             queryString: "SELECT @@VERSION AS version;",
@@ -152,10 +188,13 @@ export async function connectLocalDatabaseSource(
         serverVersion = year;
     }
     return {
-        ...source,
-        isConnected: true,
-        serverVersion,
-        ...(isAzureSql ? { isAzureSql: true } : {}),
+        uri,
+        source: {
+            ...source,
+            isConnected: true,
+            serverVersion,
+            ...(isAzureSql ? { isAzureSql: true } : {}),
+        },
     };
 }
 
@@ -177,7 +216,6 @@ export function getLocalDatabaseSources(
         if (
             !connection.id ||
             !server ||
-            !connection.database?.trim() ||
             !/^(?:tcp:|np:|lpc:)?\s*(?:localhost|127(?:\.\d{1,3}){3}|\[::1\]|::1|\(local\)|\.)(?=$|[,\\])/i.test(
                 server,
             ) ||
@@ -186,11 +224,16 @@ export function getLocalDatabaseSources(
             continue;
         }
 
+        const existing = sources.get(connection.id);
         sources.set(connection.id, {
             id: connection.id,
             profileName: connection.profileName || sources.get(connection.id)?.profileName || "",
             server,
-            database: connection.database,
+            // A server profile remains expandable when its active session defaults to master.
+            database:
+                existing?.database === "" || !connection.database?.trim()
+                    ? ""
+                    : connection.database,
             isConnected: connection.isConnected ?? false,
             serverVersion: connection.serverVersion,
             ...(connection.isAzureSql ? { isAzureSql: true } : {}),
@@ -328,15 +371,12 @@ export class AzureSqlCompatibilityBuilder {
         signal: AbortSignal,
         onCheckingPackage?: () => void,
     ): Promise<AzureSqlCompatibilityBuildResult> {
+        signal.throwIfAborted();
         const tool = new NetCoreTool(this.output);
-        await tool.verifyNetCoreInstallation();
+        const executable = await tool.acquireNetCoreSdk();
         signal.throwIfAborted();
         const directory = await fs.realpath(path.dirname(projectPath));
         const outputDirectory = path.join(directory, "package");
-        const executable = path.join(
-            tool.netcoreInstallLocation,
-            process.platform === "win32" ? "dotnet.exe" : "dotnet",
-        );
         const args = [
             "build",
             projectPath,
@@ -628,7 +668,7 @@ export class LocalDatabaseCompatibilityService {
             const source =
                 active &&
                 getLocalDatabaseSources([{ ...active[1].credentials, id: request.sourceId }])[0];
-            if (!source) {
+            if (!source?.database) {
                 throw new Error(LocalToCloud.sourceUnavailable);
             }
             result.database = source.database;

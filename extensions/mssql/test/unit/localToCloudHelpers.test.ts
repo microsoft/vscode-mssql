@@ -10,6 +10,8 @@ import * as vscode from "vscode";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
+import * as childProcess from "node:child_process";
+import { PassThrough } from "node:stream";
 import type { DacFxResult, IServerInfo, SimpleExecuteResult } from "vscode-mssql";
 import { KnownFreeLimitExhaustionBehavior } from "@azure/arm-sql";
 import MainController from "../../src/controllers/mainController";
@@ -34,6 +36,7 @@ import {
     connectLocalDatabaseSource,
     getCompatibilityModelObjects,
     getLocalDatabaseSources,
+    getLocalServerDatabases,
     LocalDatabaseCompatibilityService,
     LocalDatabaseDeploymentService,
     parseCompatibilityDiagnostics,
@@ -119,14 +122,19 @@ suite("Local-to-cloud helpers", () => {
             ).to.deep.equal([]);
         });
 
-        test("excludes server-level connections without a selected database", () => {
+        test("includes server-level connections alongside database connections", () => {
             const sources = getLocalDatabaseSources([
                 { id: "missing", server: "localhost,1433" },
                 { id: "empty", server: "localhost,1433", database: "" },
                 { id: "whitespace", server: "localhost,1433", database: "   " },
                 { id: "database", server: "localhost,1433", database: "InventoryDb" },
             ]);
-            expect(sources.map((source) => source.id)).to.deep.equal(["database"]);
+            expect(sources.map((source) => [source.id, source.database])).to.deep.equal([
+                ["missing", ""],
+                ["empty", ""],
+                ["whitespace", ""],
+                ["database", "InventoryDb"],
+            ]);
         });
 
         test("deduplicates by identity, not display values, and only returns display fields", () => {
@@ -188,6 +196,29 @@ suite("Local-to-cloud helpers", () => {
                     database: "AppDb",
                     isConnected: true,
                     serverVersion: "17.0.1000",
+                },
+            ]);
+        });
+
+        test("keeps a saved server expandable when its active session has a default database", () => {
+            const sources = getLocalDatabaseSources([
+                { id: "server", server: "localhost,1433", profileName: "Local server" },
+                {
+                    id: "server",
+                    server: "localhost,1433",
+                    database: "master",
+                    isConnected: true,
+                },
+            ]);
+
+            expect(sources).to.deep.equal([
+                {
+                    id: "server",
+                    server: "localhost,1433",
+                    profileName: "Local server",
+                    database: "",
+                    isConnected: true,
+                    serverVersion: undefined,
                 },
             ]);
         });
@@ -296,6 +327,101 @@ suite("Local-to-cloud helpers", () => {
             });
         });
 
+        test("connects a selected child database with its own identity without changing the server profile", async () => {
+            profile.database = "";
+            profile.authenticationType = "SqlLogin";
+            store.lookupPassword.resolves("test-only-password");
+            manager.connect.resolves(true);
+
+            const result = await connectLocalDatabaseSource(
+                manager,
+                profile.id,
+                client,
+                "InventoryDb",
+            );
+
+            expect(result).to.include({ database: "InventoryDb", isConnected: true });
+            expect(result.id).not.to.equal(profile.id);
+            expect(result).not.to.have.property("password");
+            expect(profile.database).to.equal("");
+            expect(profile.password).not.to.equal("test-only-password");
+            expect(store.lookupPassword).to.have.been.calledWith(profile);
+            expect(manager.connect).to.have.been.calledWith(
+                sinon.match.string,
+                sinon.match({
+                    id: result.id,
+                    database: "InventoryDb",
+                    password: "test-only-password",
+                }),
+                sinon.match.any,
+            );
+        });
+
+        test("does not reuse or retarget an active server connection for a different database", async () => {
+            profile.database = "";
+            active.existing = connection;
+            manager.isConnected.withArgs("existing").returns(true);
+            manager.connect.resolves(true);
+
+            const result = await connectLocalDatabaseSource(manager, profile.id, client, "AppDb");
+
+            expect(result.database).to.equal("AppDb");
+            expect(result.id).not.to.equal(profile.id);
+            expect(connection.credentials.database).to.equal("");
+            expect(manager.connect).to.have.been.calledWith(
+                sinon.match((uri: string) => uri !== "existing"),
+                sinon.match({ id: result.id, database: "AppDb" }),
+                sinon.match.any,
+            );
+        });
+
+        test("connects a server without a database and lists only distinct user databases", async () => {
+            profile.database = "";
+            manager.connect.resolves(true);
+            manager.listDatabases.resolves([
+                "master",
+                "tempdb",
+                "MODEL",
+                "msdb",
+                "InventoryDb",
+                "AppDb",
+                "InventoryDb",
+            ]);
+
+            expect(await getLocalServerDatabases(manager, profile.id, client)).to.deep.equal([
+                "InventoryDb",
+                "AppDb",
+            ]);
+            expect(manager.listDatabases).to.have.been.calledWith(
+                manager.connect.firstCall.args[0],
+            );
+            expect(client.sendRequest).not.to.have.been.called;
+        });
+
+        test("reuses an active server connection when expanding its databases", async () => {
+            profile.database = "";
+            active.existing = connection;
+            manager.isConnected.withArgs("existing").returns(true);
+            manager.listDatabases.resolves([]);
+
+            expect(await getLocalServerDatabases(manager, profile.id, client)).to.deep.equal([]);
+            expect(manager.listDatabases).to.have.been.calledWith("existing");
+            expect(manager.connect).not.to.have.been.called;
+        });
+
+        test("propagates database enumeration errors rather than treating them as an empty server", async () => {
+            profile.database = "";
+            manager.connect.resolves(true);
+            const failure = new Error("Database access denied");
+            manager.listDatabases.rejects(failure);
+
+            const actual = await getLocalServerDatabases(manager, profile.id, client).then(
+                () => undefined,
+                (error: unknown) => error,
+            );
+            expect(actual).to.equal(failure);
+        });
+
         test("rejects a failed connection instead of returning a stale version", async () => {
             manager.connect.resolves(false);
             let failure: unknown;
@@ -305,10 +431,7 @@ suite("Local-to-cloud helpers", () => {
                 failure = error;
             }
             expect(failure).to.be.instanceOf(Error);
-            expect(failure).to.have.property(
-                "message",
-                "Unable to connect to the selected local database.",
-            );
+            expect(failure).to.have.property("message", LocalToCloud.sourceConnectionFailed);
         });
 
         test("propagates credential or connection errors", async () => {
@@ -528,6 +651,16 @@ suite("Local-to-cloud helpers", () => {
             } finally {
                 await fs.rm(deploymentDirectory, { recursive: true, force: true });
             }
+        });
+
+        test("does not validate a server connection without a selected database", async () => {
+            manager.activeConnections["source-uri"].credentials.database = "";
+
+            const result = await service.validate(request);
+
+            expect(result.status).to.equal("error");
+            expect(result.errorMessage).to.equal(LocalToCloud.sourceUnavailable);
+            expect(dacFx.createProjectFromDatabase).not.to.have.been.called;
         });
 
         test("refuses stale validations and mismatched source or deployment modes", async () => {
@@ -947,6 +1080,68 @@ suite("Local-to-cloud helpers", () => {
                 "[dbo].[Sales&Inventory]",
             ]);
             expect(() => getCompatibilityModelObjects("<invalid />")).to.throw();
+        });
+
+        test("builds with the acquired SDK executable rather than the system installation", async () => {
+            const executable = path.join("acquired-sdk", "dotnet");
+            sandbox.stub(netCore.NetCoreTool.prototype, "acquireNetCoreSdk").resolves(executable);
+            const output = vscode.window.createOutputChannel("SDK acquisition build test");
+            const buildDirectory = await fs.mkdtemp(
+                path.join(os.tmpdir(), "mssql-sdk-build-test-"),
+            );
+            const stdout = new PassThrough();
+            const child = new childProcess.ChildProcess();
+            child.stdout = stdout;
+            child.stderr = new PassThrough();
+            const spawn = sandbox.stub(childProcess, "spawn").callsFake(() => {
+                queueMicrotask(() => {
+                    stdout.end("MSBUILD : error MSB1009: Test build failure.");
+                    child.emit("close", 1);
+                });
+                return child;
+            });
+            try {
+                const project = path.join(buildDirectory, "Compatibility.sqlproj");
+                const result = await new AzureSqlCompatibilityBuilder(output).build(
+                    project,
+                    new AbortController().signal,
+                );
+                expect(spawn).to.have.been.calledWith(
+                    executable,
+                    sinon.match.array.contains(["build", project]),
+                );
+                expect(result.diagnostics).to.deep.include({
+                    severity: "error",
+                    category: "tooling",
+                    code: "MSB1009",
+                    message: "Test build failure.",
+                });
+            } finally {
+                output.dispose();
+                await fs.rm(buildDirectory, { recursive: true, force: true });
+            }
+        });
+
+        test("does not acquire an SDK for an already cancelled compatibility check", async () => {
+            const acquire = sandbox.stub(netCore.NetCoreTool.prototype, "acquireNetCoreSdk");
+            const controller = new AbortController();
+            controller.abort();
+            const output = vscode.window.createOutputChannel("Cancelled SDK build test");
+            try {
+                let failure: unknown;
+                try {
+                    await new AzureSqlCompatibilityBuilder(output).build(
+                        "unused.sqlproj",
+                        controller.signal,
+                    );
+                } catch (error) {
+                    failure = error;
+                }
+                expect(failure).to.equal(controller.signal.reason);
+                expect(acquire).not.to.have.been.called;
+            } finally {
+                output.dispose();
+            }
         });
 
         test("builds a supported schema and blocks FILESTREAM under the Azure target", async function () {

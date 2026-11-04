@@ -13,6 +13,7 @@ import {
     getQueryHistory,
     getQueryPlans,
     getQueryStoreOverview,
+    getRegressedQueries,
     getTopQueries,
     getWaitStats,
     preparePlanChange,
@@ -25,6 +26,7 @@ import { WebviewNavigation } from "../controllers/webviewNavigation";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { PrivatePreviewFeature, previewService } from "../previews/previewService";
 import {
     ApplyPlanChangeRequest,
     ApplyQueryStoreSettingsChangeRequest,
@@ -39,6 +41,7 @@ import {
     GetQueryStoreOverviewRequest,
     GetQueryStoreSettingsRequest,
     GetQueryWaitStatsRequest,
+    GetRegressedQueriesRequest,
     GetTopQueriesRequest,
     ListDatabasesRequest,
     ListDatabasesResult,
@@ -58,7 +61,6 @@ import {
     TimeWindowParams,
     VerifyForcedPlanRequest,
     isPerformanceUnavailable,
-    type ChatPrompt,
     type QueryCategory,
 } from "../sharedInterfaces/performanceDashboard";
 import { QueryStoreOperation, QueryStoreService } from "./queryStoreService";
@@ -227,6 +229,19 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
                 }),
             ),
         );
+        this.onRead(
+            GetRegressedQueriesRequest.type,
+            ({ recent, baseline, metric, top, minExecutions }) =>
+                this.run((reader, capabilities) =>
+                    getRegressedQueries(reader, capabilities, {
+                        recent: toWindow(recent),
+                        baseline: toWindow(baseline),
+                        metric,
+                        top,
+                        minExecutions,
+                    }),
+                ),
+        );
         this.onRead(GetQueryDetailsRequest.type, (params) =>
             this.run((reader, capabilities) =>
                 getQueryDetails(reader, capabilities, toQueryWindow(params)),
@@ -252,10 +267,10 @@ export class PerformanceDashboardWebviewController extends WebviewPanelControlle
                     }),
                 ),
         );
-        this.onRequest(ContinueInChatRequest.type, ({ prompt, queryId, startUtc, endUtc }) => {
-            telemetry.action(TelemetryActions.ContinueInChat, { prompt });
+        this.onRequest(ContinueInChatRequest.type, ({ queryId, startUtc, endUtc }) => {
+            telemetry.action(TelemetryActions.ContinueInChat);
             return this._host.openChat(
-                continueInChatPrompt(prompt, this._target, queryId, startUtc, endUtc),
+                continueInChatPrompt(this._target, queryId, startUtc, endUtc),
             );
         });
         this.onRead(GetQueryPlansRequest.type, (params) =>
@@ -553,6 +568,9 @@ function stateFor(
         serverName: target.serverName,
         databaseName: target.databaseName,
         queryCategory,
+        regressedQueriesEnabled: previewService.isPrivatePreviewEnabled(
+            PrivatePreviewFeature.RegressedQueries,
+        ),
     };
 }
 
@@ -576,29 +594,26 @@ function toWindow(window: TimeWindowParams): { start: Date; end: Date } {
 }
 
 /**
- * The chat prompt of a query, to summarize its performance or optimize it. It names the saved
- * profile, database, and window, so the chat reads them with the Query Store tools and does not
- * need to find them.
+ * The chat prompt of a query, to summarize its performance and suggest how to optimize it. It
+ * names the saved profile, database, and window, so the chat reads them with the Query Store tools
+ * and does not need to find them.
  */
 export function continueInChatPrompt(
-    prompt: ChatPrompt,
     target: PerformanceDashboardTarget,
     queryId: string,
     startUtc: string,
     endUtc: string,
 ): string {
     const database = target.databaseName || LocConstants.defaultDatabaseLabel;
-    const query =
+    return (
         `Query Store query ${queryId} in database "${database}" on server "${target.serverName}" ` +
         `(saved connection profileId "${target.profileId}"), from ${startUtc} to ${endUtc} UTC.\n\n` +
-        `Use #mssql_query_store_analyze_query with the specified profileId and database.`;
-    return prompt === "optimize"
-        ? `${query}\n\n` +
-              `Identify potential performance bottlenecks and briefly recommend actionable ` +
-              `optimizations based on the available data and execution plans. Then ask what I ` +
-              `want to improve or change. Do not apply changes until I confirm.`
-        : `${query} Briefly summarize the query's performance, key trends, and any notable ` +
-              `execution plan changes. Then ask what I want to explore further.`;
+        `Use #mssql_query_store_analyze_query with the specified profileId and database.\n\n` +
+        `Briefly summarize the query's performance, key trends, and any notable execution plan ` +
+        `changes. Identify potential performance bottlenecks and recommend actionable ` +
+        `optimizations based on the available data and execution plans. Then ask what I want to ` +
+        `explore further or change. Do not apply changes until I confirm.`
+    );
 }
 
 function toQueryWindow({ queryId, metrics, ...window }: QueryWindowParams) {

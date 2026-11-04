@@ -49,6 +49,7 @@ import {
     getLocalDatabaseConnectionId,
     isAzureSqlDatabaseSource,
     getLocalDatabaseSources,
+    getLocalServerDatabases,
     LocalDatabaseCompatibilityService,
     LocalDatabaseDeploymentService,
 } from "./localToCloudHelpers";
@@ -216,13 +217,24 @@ export class DeploymentWebviewController extends FormWebviewController<
             if (typeof createConnectionGroupResult === "string") {
                 // If the result is a string, it means there was an error creating the group
                 state.formErrors.push(createConnectionGroupResult);
+                const dialog = getDefaultConnectionGroupDialogProps();
+                dialog.props = {
+                    ...payload.connectionGroupSpec,
+                    message: createConnectionGroupResult,
+                };
+                state.dialog = dialog;
+                state.deploymentTypeState.dialog = dialog;
+                return state;
             } else {
                 // If the result is an IConnectionGroup, it means the group was created successfully
                 state.formState.groupId = createConnectionGroupResult.id;
             }
 
-            state.formComponents.groupId.options =
+            state.connectionGroupOptions =
                 await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
+            if (state.formComponents.groupId) {
+                state.formComponents.groupId.options = state.connectionGroupOptions;
+            }
 
             state.dialog = undefined;
             state.deploymentTypeState.dialog = undefined;
@@ -407,23 +419,46 @@ export class DeploymentWebviewController extends FormWebviewController<
             return getLocalDatabaseSources([...connections, ...activeConnections]);
         });
         const pendingConnections = new Map<string, Promise<LocalDatabaseSource>>();
-        this.onRequest(AzureSqlDatabaseRequests.ConnectLocalDatabaseSource, async ({ id }) => {
-            const pending = pendingConnections.get(id);
+        const pendingServerDatabases = new Map<string, Promise<string[]>>();
+        this.onRequest(AzureSqlDatabaseRequests.GetLocalServerDatabases, async ({ id }) => {
+            const pending = pendingServerDatabases.get(id);
             if (pending) {
                 return pending;
             }
-            const request = connectLocalDatabaseSource(
+            const request = getLocalServerDatabases(
                 this.mainController.connectionManager,
                 id,
                 SqlToolsServiceClient.instance,
             );
-            pendingConnections.set(id, request);
+            pendingServerDatabases.set(id, request);
             try {
                 return await request;
             } finally {
-                pendingConnections.delete(id);
+                pendingServerDatabases.delete(id);
             }
         });
+        this.onRequest(
+            AzureSqlDatabaseRequests.ConnectLocalDatabaseSource,
+            async ({ id, database }) => {
+                const key = JSON.stringify([id, database]);
+                const pending = pendingConnections.get(key);
+                if (pending) {
+                    return pending;
+                }
+                const request = connectLocalDatabaseSource(
+                    this.mainController.connectionManager,
+                    id,
+                    SqlToolsServiceClient.instance,
+                    database,
+                );
+                pendingConnections.set(key, request);
+                try {
+                    return await request;
+                } finally {
+                    pendingConnections.delete(key);
+                }
+            },
+        );
     }
 
     private applyFavoritesToFormComponents(state: DeploymentWebviewState): void {

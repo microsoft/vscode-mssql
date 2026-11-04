@@ -44,6 +44,9 @@ export class SqlToolsMcp {
 }
 
 export class LocalToCloud {
+    public static sourceConnectionFailed = l10n.t(
+        "Unable to connect to the selected local connection.",
+    );
     public static sourceUnavailable = l10n.t(
         "The selected local database is no longer connected. Return to Source and reconnect.",
     );
@@ -2183,6 +2186,21 @@ export class QueryResult {
 }
 
 export class AzureSqlContainer {
+    public static selectPfxFile = l10n.t("Select PFX file");
+    public static pfxFiles = l10n.t("PFX files");
+    public static invalidAuthenticationType = l10n.t("Select a supported authentication type.");
+    public static selectEntraAccount = l10n.t("Select a Microsoft Entra account.");
+    public static invalidApplicationClientId = l10n.t("Enter a valid application (client) ID.");
+    public static pfxFileRequired = l10n.t("Select an existing, readable local PFX file.");
+    public static invalidEntraAdministrator = l10n.t(
+        "Unable to determine the selected Microsoft account's administrator identity in this tenant. Sign in to the tenant and try again.",
+    );
+    public static servicePrincipalClientSecretRequired = l10n.t(
+        "Enter the client secret for the selected app registration.",
+    );
+    public static invalidProvisioningStep = l10n.t(
+        "This container provisioning step is not supported.",
+    );
     public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
     public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
     public static portInUse = l10n.t("This port is already in use. Choose a different port.");
@@ -6097,12 +6115,22 @@ export class SqlProjects {
     public static tasksJsonFriendlyName = l10n.t("Tasks.json");
 
     public static DotnetInstallationConfirmation: string = l10n.t(
-        "The .NET SDK cannot be located. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK location in settings if already installed.",
+        "The .NET SDK cannot be located. Project build will not work. Please install .NET 10 SDK or higher or update the .NET SDK location in settings if already installed.",
+    );
+
+    public static AcquiringDotnetSdk = l10n.t("Acquiring the .NET SDK for SQL project builds...");
+
+    public static DotnetSdkAcquisitionFailed = l10n.t(
+        "The .NET SDK could not be acquired. Check the .NET Install Tool output and try again.",
+    );
+
+    public static DotnetSdkAcquisitionUnavailable = l10n.t(
+        "A supported .NET SDK was not found. Install or enable the .NET Install Tool extension to acquire it automatically.",
     );
 
     public static NetCoreSupportedVersionInstallationConfirmation(installedVersion: string) {
         return l10n.t(
-            "Currently installed .NET SDK version is {0}, which is not supported. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK supported version location in settings if already installed.",
+            "Currently installed .NET SDK version is {0}, which is not supported. Project build will not work. Please install .NET 10 SDK or higher or update the .NET SDK supported version location in settings if already installed.",
             installedVersion,
         );
     }
