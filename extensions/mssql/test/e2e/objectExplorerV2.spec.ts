@@ -110,8 +110,9 @@ test.describe("Object Explorer v2 view parity", () => {
         await preview.getByRole("button", { name: "New Deployment", exact: true }).click();
         await expect(page.getByRole("tab", { name: "New Deployment", exact: true })).toBeVisible();
         const wizard = page.frameLocator(".webview:visible").frameLocator("#active-frame");
+        await wizard.getByRole("button", { name: /^SQL Server container/ }).click();
         await expect(
-            wizard.getByRole("button", { name: /Create a Local Docker SQL Server/ }),
+            wizard.getByText("Create a Local Docker SQL Server", { exact: true }),
         ).toBeVisible();
     });
 });

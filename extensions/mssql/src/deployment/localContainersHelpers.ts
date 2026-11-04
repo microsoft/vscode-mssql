@@ -429,15 +429,18 @@ export async function addContainerConnection(
         trustServerCertificate: true,
     } as unknown as IConnectionProfile;
 
-    if (
-        mainController &&
-        !connectAdapter.usesDataPlane &&
-        !(await waitForContainerConnection(connection, dockerProfile.containerName, mainController))
-    ) {
-        return { success: false };
-    }
-
     try {
+        if (
+            mainController &&
+            !connectAdapter.usesDataPlane &&
+            !(await waitForContainerConnection(
+                connection,
+                dockerProfile.containerName,
+                mainController,
+            ))
+        ) {
+            return { success: false };
+        }
         // The seam decides WHICH Object Explorer persists and opens the
         // profile (classic OE session vs v2 data-plane connect, DOCK-1).
         const connectionString = await connectAdapter.saveAndConnect(
@@ -446,7 +449,15 @@ export async function addContainerConnection(
 
         return { success: true, connectionString };
     } catch (error) {
-        return { success: false, fullErrorText: getErrorMessage(error) };
+        const errorMessage = getErrorMessage(error);
+        return {
+            success: false,
+            fullErrorText: dockerUtils.sanitizeErrorText(
+                dockerProfile.password
+                    ? errorMessage.replaceAll(dockerProfile.password, "******")
+                    : errorMessage,
+            ),
+        };
     } finally {
         // Saving succeeds before SQL can fail. Retain only its identity in
         // the wizard form so a retry updates that profile instead of adding one.
@@ -473,8 +484,13 @@ export async function waitForContainerConnection(
             if (connected) {
                 break;
             }
-        } catch {
-            // Retry while SQL Server finishes initializing authentication.
+        } catch (error) {
+            if (signal?.aborted) {
+                return false;
+            }
+            if (attempt + 1 === containerConnectionMaxAttempts) {
+                throw error;
+            }
         }
 
         if (attempt + 1 === containerConnectionMaxAttempts) {

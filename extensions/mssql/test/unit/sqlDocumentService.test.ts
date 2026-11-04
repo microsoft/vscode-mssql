@@ -89,6 +89,7 @@ suite("SqlDocumentService Tests", () => {
         const mockOutputContentProvider = {
             onDidCloseTextDocument: sandbox.stub().resolves(),
             updateQueryRunnerUri: sandbox.stub().resolves(),
+            isInMultiResultsList: sandbox.stub().returns(false),
         } as any;
         mainController["_outputContentProvider"] = mockOutputContentProvider;
         sqlDocumentService["_outputContentProvider"] = mockOutputContentProvider;

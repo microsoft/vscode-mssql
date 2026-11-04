@@ -107,7 +107,7 @@ export function historyMetricLabel(metric: HistoryMetric): string {
 }
 
 /** The label of a metric on its own, for example "Duration (ms)". */
-function historyMetricOption(metric: HistoryMetric): string {
+export function historyMetricOption(metric: HistoryMetric): string {
     const text = loc.performanceDashboard;
     switch (metric) {
         case "cpuTime":
