@@ -1015,9 +1015,6 @@ export class SqlOutputContentProvider {
                     e.continue as Deferred<void> | undefined,
                 );
                 this.updateWebviewState(e.uri, state);
-                // Refresh the editor status bar summary, which is shown when the results footer
-                // preview is disabled.
-                this._queryResultWebviewController.updateSelectionSummary();
             });
 
             const queryRunnerState = new QueryRunnerState(queryRunner);

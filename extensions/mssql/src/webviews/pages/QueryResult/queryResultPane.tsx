@@ -6,11 +6,6 @@
 import {
     Button,
     Link,
-    Menu,
-    MenuItemSwitch,
-    MenuList,
-    MenuPopover,
-    MenuTrigger,
     Tab,
     TabList,
     Title3,
@@ -18,23 +13,16 @@ import {
     Text,
     Spinner,
     Toolbar,
-    ToolbarButton,
 } from "@fluentui/react-components";
-import { type ComponentType, useContext, useEffect, useState } from "react";
-import {
-    DatabaseSearch24Regular,
-    ErrorCircle24Regular,
-    MoreVertical20Filled,
-    OpenRegular,
-} from "@fluentui/react-icons";
+import { useContext, useEffect, useState } from "react";
+import { DatabaseSearch24Regular, ErrorCircle24Regular, OpenRegular } from "@fluentui/react-icons";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
-import { getTotalResultSetRowCount, hasResultsOrMessages } from "./queryResultUtils";
+import { getGridCount, hasResultsOrMessages } from "./queryResultUtils";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import { ExecutionPlanGraph } from "../../../sharedInterfaces/executionPlan";
-import { getGridCount } from "./table/utils";
 import { QueryMessageTab } from "./queryMessageTab";
 import { QueryExecutionPlanTab } from "./queryExecutionPlanTab";
 import { QueryResultsTab } from "./queryResultsTab";
@@ -129,17 +117,11 @@ const useStyles = makeStyles({
 });
 
 interface QueryResultPaneProps {
-    GridView: ComponentType;
-    isBetaResultsGridEnabled: boolean;
     /** The multi-results view offers this action in the title bar of each pane instead. */
     hideOpenInNewTab?: boolean;
 }
 
-export const QueryResultPane = ({
-    GridView,
-    isBetaResultsGridEnabled,
-    hideOpenInNewTab,
-}: QueryResultPaneProps) => {
+export const QueryResultPane = ({ hideOpenInNewTab }: QueryResultPaneProps) => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
 
@@ -166,14 +148,6 @@ export const QueryResultPane = ({
     );
     const { keyBindings } = useVscodeWebview();
     const isActivePaneRef = useIsActiveResultPaneRef();
-    const [isPreviewGridSwitchChecked, setIsPreviewGridSwitchChecked] =
-        useState(isBetaResultsGridEnabled);
-    const [isPreviewGridSwitchPending, setIsPreviewGridSwitchPending] = useState(false);
-
-    useEffect(() => {
-        setIsPreviewGridSwitchChecked(isBetaResultsGridEnabled);
-        setIsPreviewGridSwitchPending(false);
-    }, [isBetaResultsGridEnabled]);
 
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
@@ -251,7 +225,7 @@ export const QueryResultPane = ({
                         <Text className={classes.noResultMessage}>{initilizationError}</Text>
                     </div>
                 </div>
-                {isBetaResultsGridEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
+                <QueryResultSummaryFooter hideMetrics={true} />
             </div>
         );
     }
@@ -287,7 +261,7 @@ export const QueryResultPane = ({
                         )}
                     </div>
                 </div>
-                {isBetaResultsGridEnabled && <QueryResultSummaryFooter hideMetrics={true} />}
+                <QueryResultSummaryFooter hideMetrics={true} />
             </div>
         );
     }
@@ -306,25 +280,11 @@ export const QueryResultPane = ({
                     {Object.keys(resultSetSummaries).length > 0 && (
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
-                            title={
-                                isBetaResultsGridEnabled
-                                    ? locConstants.queryResult.resultBetaTabTooltip(
-                                          keyBindings[WebviewAction.QueryResultSwitchToResultsTab]
-                                              .label,
-                                      )
-                                    : locConstants.queryResult.resultTabTooltip(
-                                          keyBindings[WebviewAction.QueryResultSwitchToResultsTab]
-                                              .label,
-                                      )
-                            }
+                            title={locConstants.queryResult.resultTabTooltip(
+                                keyBindings[WebviewAction.QueryResultSwitchToResultsTab].label,
+                            )}
                             key={qr.QueryResultPaneTabs.Results}>
-                            {isBetaResultsGridEnabled
-                                ? locConstants.queryResult.resultsBeta(
-                                      getGridCount(resultSetSummaries),
-                                  )
-                                : locConstants.queryResult.results(
-                                      getGridCount(resultSetSummaries),
-                                  )}
+                            {locConstants.queryResult.results(getGridCount(resultSetSummaries))}
                         </Tab>
                     )}
                     <Tab
@@ -371,60 +331,6 @@ export const QueryResultPane = ({
                                 {locConstants.queryResult.openResultInNewTab}
                             </Button>
                         )}
-                    {/* The results panel offers this in its title bar menu instead. */}
-                    {webviewLocation === qr.QueryResultWebviewLocation.Document && (
-                        <Menu
-                            checkedValues={{
-                                previewGrid: isPreviewGridSwitchChecked ? ["enabled"] : [],
-                            }}
-                            onCheckedValueChange={(_event, data) => {
-                                if (data.name !== "previewGrid") {
-                                    return;
-                                }
-
-                                const previousValue = isPreviewGridSwitchChecked;
-                                setIsPreviewGridSwitchChecked(
-                                    data.checkedItems.includes("enabled"),
-                                );
-                                setIsPreviewGridSwitchPending(true);
-
-                                // Not awaited: switching the mode reloads this webview into the other
-                                // bundle, so the response may never arrive. Roll back only if the
-                                // extension reports a failure before the reload.
-                                void context.extensionRpc
-                                    .sendRequest(qr.ToggleResultsGridModeRequest.type, {
-                                        gridCount: getGridCount(resultSetSummaries),
-                                        rowCount: getTotalResultSetRowCount(resultSetSummaries),
-                                    })
-                                    .catch((error) => {
-                                        setIsPreviewGridSwitchChecked(previousValue);
-                                        setIsPreviewGridSwitchPending(false);
-                                        log.error(`Failed to toggle results grid mode: ${error}`);
-                                    });
-                            }}>
-                            <MenuTrigger disableButtonEnhancement>
-                                <ToolbarButton
-                                    appearance="subtle"
-                                    icon={<MoreVertical20Filled />}
-                                    aria-label={locConstants.queryResult.moreActions}
-                                    title={locConstants.queryResult.moreActions}
-                                />
-                            </MenuTrigger>
-                            <MenuPopover>
-                                <MenuList>
-                                    <MenuItemSwitch
-                                        data-testid="preview-grid-switch"
-                                        name="previewGrid"
-                                        value="enabled"
-                                        disabled={isPreviewGridSwitchPending}
-                                        title={locConstants.queryResult.previewGridSwitchTooltip}
-                                        persistOnClick>
-                                        {locConstants.queryResult.previewGrid}
-                                    </MenuItemSwitch>
-                                </MenuList>
-                            </MenuPopover>
-                        </Menu>
-                    )}
                 </Toolbar>
             </div>
 
@@ -438,7 +344,7 @@ export const QueryResultPane = ({
                                 : "hidden",
                     }}
                     aria-hidden={tabStates!.resultPaneTab !== qr.QueryResultPaneTabs.Results}>
-                    <QueryResultsTab GridView={GridView} />
+                    <QueryResultsTab />
                 </div>
 
                 <div
@@ -469,7 +375,7 @@ export const QueryResultPane = ({
                     <QueryExecutionPlanTab />
                 </div>
             </div>
-            {isBetaResultsGridEnabled && <QueryResultSummaryFooter />}
+            <QueryResultSummaryFooter />
         </div>
     );
 };

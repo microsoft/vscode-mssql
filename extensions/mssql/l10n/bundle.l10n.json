@@ -4412,36 +4412,18 @@
         "message": "Results ({0})",
         "comment": ["{0} is the keyboard shortcut for the results tab"]
     },
-    "Results Preview ({0})/{0} is the keyboard shortcut for the preview results tab": {
-        "message": "Results Preview ({0})",
-        "comment": ["{0} is the keyboard shortcut for the preview results tab"]
-    },
-    "Results Preview": "Results Preview",
     "Results ({0})/{0} is the number of results": {
         "message": "Results ({0})",
         "comment": ["{0} is the number of results"]
-    },
-    "Results Preview ({0})/{0} is the number of preview results": {
-        "message": "Results Preview ({0})",
-        "comment": ["{0} is the number of preview results"]
     },
     "Messages ({0})/{0} is the keyboard shortcut for the messages tab": {
         "message": "Messages ({0})",
         "comment": ["{0} is the keyboard shortcut for the messages tab"]
     },
     "Results toolbar": "Results toolbar",
-    "More Actions": "More Actions",
-    "Preview Grid": "Preview Grid",
-    "Switch between the classic and the preview results grid": "Switch between the classic and the preview results grid",
     "Showplan XML": "Showplan XML",
-    "Show Menu ({0})/{0} is the keyboard shortcut for showing the menu": {
-        "message": "Show Menu ({0})",
-        "comment": ["{0} is the keyboard shortcut for showing the menu"]
-    },
-    "Show Menu": "Show Menu",
     "Sort Ascending": "Sort Ascending",
     "Sort Descending": "Sort Descending",
-    "Toggle Sort": "Toggle Sort",
     "Clear Sort": "Clear Sort",
     "Save as CSV ({0})/{0} is the keyboard shortcut for saving as CSV": {
         "message": "Save as CSV ({0})",

@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, shorthands } from "@fluentui/react-components";
-import { type ComponentType } from "react";
 import { QueryResultPane } from "./queryResultPane";
 
 const useStyles = makeStyles({
@@ -87,22 +86,14 @@ const useStyles = makeStyles({
     },
 });
 
-interface QueryResultProps {
-    GridView: ComponentType;
-    isBetaResultsGridEnabled: boolean;
-}
-
-export const QueryResult = ({ GridView, isBetaResultsGridEnabled }: QueryResultProps) => {
+export const QueryResult = () => {
     const classes = useStyles();
 
     return (
         <div className={classes.root}>
             {
                 <div className={classes.mainContent}>
-                    <QueryResultPane
-                        GridView={GridView}
-                        isBetaResultsGridEnabled={isBetaResultsGridEnabled}
-                    />
+                    <QueryResultPane />
                 </div>
             }
         </div>

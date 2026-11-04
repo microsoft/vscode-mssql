@@ -86,7 +86,6 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     gridSettings?: GridSettings;
     autoSizeColumnsMode?: ResultsGridAutoSizeStyle;
     inMemoryDataProcessingThreshold?: number;
-    isBetaResultsGridEnabled?: boolean;
     initializationError?: string;
     selectionSummary?: SelectionSummary;
     isExecuting?: boolean;
@@ -420,25 +419,6 @@ export namespace CloseResultsPanelRequest {
     export const type = new RequestType<void, void, void>("queryResult/closePanel");
 }
 
-/**
- * Describes the results on screen when the grid mode is switched, so telemetry can tell whether
- * users abandon the preview grid on large result sets. The new mode itself is not included: the
- * webview only knows the mode its bundle was built for, while the extension host resolves the
- * effective setting, so the host computes the new value itself.
- */
-export interface ToggleResultsGridModeParams {
-    /** Number of result grids displayed. */
-    gridCount?: number;
-    /** Total rows across all result sets; bucketized by the host before being reported. */
-    rowCount?: number;
-}
-
-export namespace ToggleResultsGridModeRequest {
-    export const type = new RequestType<ToggleResultsGridModeParams, void, void>(
-        "queryResult/toggleResultsGridMode",
-    );
-}
-
 export interface OpenInNewTabParams {
     uri: string;
 }
@@ -575,15 +555,4 @@ export namespace GetMaximizedGridRequest {
     export const type = new RequestType<{ uri: string }, { gridId: string | null }, void>(
         "getMaximizedGrid",
     );
-}
-
-export enum GridContextMenuAction {
-    SelectAll = "select-all",
-    CopySelection = "copy-selection",
-    CopyHeaders = "copy-headers",
-    CopyWithHeaders = "copy-with-headers",
-    CopyAsCsv = "copy-as-csv",
-    CopyAsJson = "copy-as-json",
-    CopyAsInClause = "copy-as-in-clause",
-    CopyAsInsertInto = "copy-as-insert-into",
 }

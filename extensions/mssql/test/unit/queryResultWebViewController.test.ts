@@ -22,13 +22,7 @@ import {
     MultiResultsState,
 } from "../../src/sharedInterfaces/multiResults";
 import * as qr from "../../src/sharedInterfaces/queryResult";
-import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
-import {
-    stubExtensionContext,
-    stubPreviewService,
-    stubTelemetry,
-    stubVscodeWorkspace,
-} from "./utils";
+import { stubExtensionContext, stubPreviewService, stubVscodeWorkspace } from "./utils";
 
 chai.use(sinonChai);
 
@@ -172,56 +166,6 @@ suite("QueryResultWebviewController", () => {
         expect(createPanelControllerStub).to.have.been.calledWithExactly(testUri);
     });
 
-    test("reports results grid mode changes made through settings", () => {
-        const { sendActionEvent } = stubTelemetry(sandbox);
-        stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: true });
-
-        onDidChangeConfigurationHandler?.({
-            affectsConfiguration: (section: string) =>
-                section === getPreviewConfigKey(PreviewFeature.BetaResultsGrid),
-        } as vscode.ConfigurationChangeEvent);
-
-        expect(sendActionEvent).to.have.been.calledWithMatch(
-            TelemetryViews.QueryResult,
-            TelemetryActions.ToggleResultsGridMode,
-            sinon.match({
-                additionalProps: {
-                    correlationId: sinon.match.string,
-                    newMode: "preview",
-                    source: "settings",
-                },
-            }),
-        );
-        expect(controller.getQueryResultState(testUri).isBetaResultsGridEnabled).to.be.true;
-    });
-
-    test("suppresses switch telemetry once without suppressing the next settings change", () => {
-        const { sendActionEvent } = stubTelemetry(sandbox);
-        stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: false });
-        const betaGridConfigurationChange = {
-            affectsConfiguration: (section: string) =>
-                section === getPreviewConfigKey(PreviewFeature.BetaResultsGrid),
-        } as vscode.ConfigurationChangeEvent;
-
-        controller.setGridModeChangeReportedBySwitch(true);
-        onDidChangeConfigurationHandler?.(betaGridConfigurationChange);
-
-        expect(sendActionEvent).to.not.have.been.called;
-
-        onDidChangeConfigurationHandler?.(betaGridConfigurationChange);
-
-        expect(sendActionEvent).to.have.been.calledWithMatch(
-            TelemetryViews.QueryResult,
-            TelemetryActions.ToggleResultsGridMode,
-            sinon.match({
-                additionalProps: sinon.match({
-                    newMode: "classic",
-                    source: "settings",
-                }),
-            }),
-        );
-    });
-
     test("copies messages to the clipboard", async () => {
         controller.setQueryResultState(testUri, {
             ...controller.getQueryResultState(testUri),
@@ -266,7 +210,6 @@ suite("QueryResultWebviewController", () => {
 
         setup(() => {
             previews = {
-                [PreviewFeature.BetaResultsGrid]: true,
                 [PreviewFeature.MultiResults]: true,
             };
             stubPreviewService(sandbox, previews);
@@ -376,17 +319,6 @@ suite("QueryResultWebviewController", () => {
                 false,
                 vscode.ConfigurationTarget.Workspace,
             );
-        });
-
-        test("turns the preview grid off from the title bar menu and claims the change", async () => {
-            await multiController["setPreviewGridEnabled"](false);
-
-            expect(configuration.update).to.have.been.calledWith(
-                getPreviewConfigKey(PreviewFeature.BetaResultsGrid),
-                false,
-                vscode.ConfigurationTarget.Global,
-            );
-            expect(multiController["_gridModeChangeReportedBySwitch"]).to.be.true;
         });
 
         test("turns the multi-results layout off from the title bar menu", async () => {

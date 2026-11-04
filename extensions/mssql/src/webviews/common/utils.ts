@@ -238,51 +238,6 @@ export function getPreviousFocusableElement(
     return getAdjacentFocusableElement(currentElement, -1, root ?? document);
 }
 
-/**
- * Get the next focusable element outside the given container.
- * @param container The container element to check against.
- * @returns The next focusable element outside the container, or null if none found.
- */
-export function getNextFocusableElementOutside(container: HTMLElement): HTMLElement | null {
-    const focusables = getFocusableElements();
-    const active = document.activeElement as HTMLElement | null;
-    if (!active) return null;
-
-    const currentIndex = focusables.findIndex((el) => el === active && container.contains(el));
-    if (currentIndex === -1) return null;
-
-    for (let i = currentIndex + 1; i < focusables.length; i++) {
-        const el = focusables[i];
-        if (!container.contains(el)) {
-            el.focus();
-            return el;
-        }
-    }
-    return null; // no next element outside the container
-}
-
-/**
- * Get the previous focusable element outside the given container.
- * @param container The container element to check against.
- * @returns The previous focusable element outside the container, or null if none found.
- */
-export function getPreviousFocusableElementOutside(container: HTMLElement): HTMLElement | null {
-    const focusables = getFocusableElements();
-    const active = document.activeElement as HTMLElement | null;
-    if (!active) return null;
-
-    const currentIndex = focusables.findIndex((el) => el === active && container.contains(el));
-    if (currentIndex === -1) return null;
-    for (let i = currentIndex - 1; i >= 0; i--) {
-        const el = focusables[i];
-        if (!container.contains(el)) {
-            el.focus();
-            return el;
-        }
-    }
-    return null; // no previous element outside the container
-}
-
 export function uuid(): string {
     return crypto.randomUUID();
 }

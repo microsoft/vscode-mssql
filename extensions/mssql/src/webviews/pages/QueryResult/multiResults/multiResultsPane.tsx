@@ -5,15 +5,7 @@
 
 import { Button, makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ArrowExitRegular, DismissRegular, OpenRegular } from "@fluentui/react-icons";
-import {
-    type ComponentType,
-    memo,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useSyncExternalStore,
-} from "react";
+import { memo, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
 import {
     GetMultiResultsFileStateRequest,
     MultiResultsEntry,
@@ -132,8 +124,6 @@ interface MultiResultsPaneProps {
     groups: readonly MultiResultsGroup[];
     isFocused: boolean;
     store: MultiResultsStore;
-    GridView: ComponentType;
-    isBetaResultsGridEnabled: boolean;
 }
 
 export const MultiResultsPane = memo(function MultiResultsPane({
@@ -143,8 +133,6 @@ export const MultiResultsPane = memo(function MultiResultsPane({
     groups,
     isFocused,
     store,
-    GridView,
-    isBetaResultsGridEnabled,
 }: MultiResultsPaneProps) {
     const classes = useStyles();
     const actions = useMultiResultsActions();
@@ -236,11 +224,7 @@ export const MultiResultsPane = memo(function MultiResultsPane({
                             value={context as VscodeWebviewContextProps<unknown, unknown>}>
                             <QueryResultPaneScopeContext.Provider value={paneScope}>
                                 <QueryResultStateProvider>
-                                    <QueryResultPane
-                                        GridView={GridView}
-                                        isBetaResultsGridEnabled={isBetaResultsGridEnabled}
-                                        hideOpenInNewTab
-                                    />
+                                    <QueryResultPane hideOpenInNewTab />
                                 </QueryResultStateProvider>
                             </QueryResultPaneScopeContext.Provider>
                         </VscodeWebviewContext.Provider>

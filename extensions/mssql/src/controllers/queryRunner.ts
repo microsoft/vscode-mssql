@@ -642,10 +642,6 @@ export default class QueryRunner {
         const hasError = this._batchSets.some((batch) => batch.hasError === true);
         try {
             this._statusView.executedQuery(result.ownerUri);
-            this._statusView.setExecutionTime(
-                result.ownerUri,
-                Utils.durationToDisplay(this._totalElapsedMilliseconds, { format: "clock" }),
-            );
             // The SPID can change when the connection reconnects, so refresh it after every run.
             if (result.serverConnectionId) {
                 this._statusView.setServerProcessId(result.ownerUri, result.serverConnectionId);
@@ -798,13 +794,6 @@ export default class QueryRunner {
 
         // Send the message so non-display state, such as rows affected, remains current
         this._messageEmitter.fire(message);
-
-        // Set row count on status bar if there are no errors
-        if (!obj.message.isError) {
-            this._statusView.showRowCount(obj.ownerUri, obj.message.message);
-        } else {
-            this._statusView.hideRowCount(obj.ownerUri, true);
-        }
     }
 
     /**

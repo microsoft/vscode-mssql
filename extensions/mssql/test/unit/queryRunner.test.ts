@@ -516,10 +516,6 @@ suite("Query Runner tests", () => {
             message.message,
         ]);
         expect(messageListener).to.have.been.calledWith(message.message);
-        expect(testStatusView.showRowCount).to.have.been.calledWith(
-            standardUri,
-            message.message.message,
-        );
     });
 
     test("Notification - Message preserves errors when batch messages are disabled", () => {
@@ -547,7 +543,6 @@ suite("Query Runner tests", () => {
             message.message,
         ]);
         expect(messageListener).to.have.been.calledWith(message.message);
-        expect(testStatusView.hideRowCount).to.have.been.calledWith(standardUri, true);
     });
 
     test("Notification - Query complete", () => {

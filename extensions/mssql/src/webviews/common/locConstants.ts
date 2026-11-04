@@ -1881,27 +1881,11 @@ export class LocConstants {
                 }
                 return l10n.t("Results");
             },
-            resultBetaTabTooltip: (shortcut?: string) => {
-                if (shortcut) {
-                    return l10n.t({
-                        message: "Results Preview ({0})",
-                        args: [shortcut],
-                        comment: ["{0} is the keyboard shortcut for the preview results tab"],
-                    });
-                }
-                return l10n.t("Results Preview");
-            },
             results: (count: number) =>
                 l10n.t({
                     message: "Results ({0})",
                     args: [count],
                     comment: ["{0} is the number of results"],
-                }),
-            resultsBeta: (count: number) =>
-                l10n.t({
-                    message: "Results Preview ({0})",
-                    args: [count],
-                    comment: ["{0} is the number of preview results"],
                 }),
             messagesTabTooltip: (shortcut?: string) => {
                 if (shortcut) {
@@ -1918,25 +1902,9 @@ export class LocConstants {
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             resultsToolbar: l10n.t("Results toolbar"),
-            moreActions: l10n.t("More Actions"),
-            previewGrid: l10n.t("Preview Grid"),
-            previewGridSwitchTooltip: l10n.t(
-                "Switch between the classic and the preview results grid",
-            ),
             showplanXML: l10n.t("Showplan XML"),
-            showMenu: (shortcut: string) => {
-                if (shortcut) {
-                    return l10n.t({
-                        message: "Show Menu ({0})",
-                        args: [shortcut],
-                        comment: ["{0} is the keyboard shortcut for showing the menu"],
-                    });
-                }
-                return l10n.t("Show Menu");
-            },
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
-            toggleSort: l10n.t("Toggle Sort"),
             clearSort: l10n.t("Clear Sort"),
             saveAsCsv: (shortcut: string) => {
                 if (shortcut) {

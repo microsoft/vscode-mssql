@@ -23,7 +23,6 @@ import store, { QueryResultSingletonStore } from "./singletonStore";
 import * as LocalizedConstants from "../constants/locConstants";
 import { formatXml } from "../utils/utils";
 import { getLogger } from "../models/logger";
-import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 
 export const MAX_VIEW_COLUMN = 9;
 const logger = getLogger("QueryResult");
@@ -65,32 +64,6 @@ export function getNewResultPaneViewColumn(uri: string): vscode.ViewColumn {
     }
 }
 
-/**
- * Writes the preview grid setting for a toggle in the product. The configuration listener fires
- * for this write too and reports changes made outside the product, so this claims the change to
- * keep the single toggle from being counted twice.
- */
-export async function writeResultsGridMode(
-    controller: QueryResultWebviewController,
-    isPreviewGrid: boolean,
-): Promise<void> {
-    controller.setGridModeChangeReportedBySwitch(true);
-    try {
-        await vscode.workspace
-            .getConfiguration()
-            .update(
-                getPreviewConfigKey(PreviewFeature.BetaResultsGrid),
-                isPreviewGrid,
-                vscode.ConfigurationTarget.Global,
-            );
-    } catch (error) {
-        // The listener will not fire, so release the claim rather than swallowing the next
-        // genuine settings-driven change.
-        controller.setGridModeChangeReportedBySwitch(false);
-        throw error;
-    }
-}
-
 export function registerCommonRequestHandlers(
     webviewController: QueryResultWebviewController | QueryResultWebviewPanelController,
     correlationId: string,
@@ -102,38 +75,6 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CloseResultsPanelRequest.type, async () => {
         await vscode.commands.executeCommand("workbench.action.closePanel");
-    });
-
-    webviewController.onRequest(qr.ToggleResultsGridModeRequest.type, async (message) => {
-        // Negate the effective value rather than the stored one: when the preview setting is
-        // unset it falls back to the global experimental flag, and only negating what the user
-        // currently sees guarantees the toggle actually changes the grid.
-        const newValue = !previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
-
-        const measurements: Record<string, number> = {};
-        if (message?.gridCount !== undefined) {
-            measurements.gridCount = message.gridCount;
-        }
-        if (message?.rowCount !== undefined) {
-            measurements.rowCount = bucketizeRowCount(message.rowCount);
-        }
-
-        // Sent before the update because writing the setting reloads this webview, which may
-        // tear down the caller before the request resolves.
-        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.ToggleResultsGridMode, {
-            additionalProps: {
-                correlationId: correlationId,
-                newMode: newValue ? "preview" : "classic",
-                source: "resultsPaneSwitch",
-                webviewLocation:
-                    webviewController instanceof QueryResultWebviewController
-                        ? "panel"
-                        : "document",
-            },
-            additionalMeasurements: measurements,
-        });
-
-        await writeResultsGridMode(webviewViewController, newValue);
     });
 
     webviewController.onRequest(qr.HandleSelectionSummaryRequest.type, async (uri) => {
