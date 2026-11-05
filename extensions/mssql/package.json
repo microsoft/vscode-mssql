@@ -686,22 +686,22 @@
                 {
                     "command": "mssql.objectExplorerV2.addConnection",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2",
-                    "group": "navigation"
+                    "group": "navigation@1"
                 },
                 {
                     "command": "mssql.objectExplorerV2.connectionGroups.create",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2",
-                    "group": "navigation"
+                    "group": "navigation@2"
                 },
                 {
                     "command": "mssql.objectExplorerV2.enableGroupBySchema",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && !config.mssql.objectExplorer.v2.groupBySchema",
-                    "group": "navigation"
+                    "group": "navigation@4"
                 },
                 {
                     "command": "mssql.objectExplorerV2.disableGroupBySchema",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && config.mssql.objectExplorer.v2.groupBySchema",
-                    "group": "navigation"
+                    "group": "navigation@4"
                 },
                 {
                     "command": "mssql.showOverviewInObjectExplorer",
