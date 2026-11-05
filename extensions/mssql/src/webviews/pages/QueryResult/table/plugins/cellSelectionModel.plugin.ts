@@ -7,26 +7,13 @@
 // heavily modified
 
 import { CellRangeSelector, ICellRangeSelector } from "./cellRangeSelector";
-import {
-    ISlickRange,
-    ResultSetSummary,
-    SetSelectionSummaryRequest,
-} from "../../../../../sharedInterfaces/queryResult";
 
 import { isUndefinedOrNull } from "../tableDataView";
 import { mixin } from "../objects";
 import { tokens } from "@fluentui/react-components";
 import { KeyCode } from "../../../../common/keys";
-import { QueryResultReactProvider } from "../../queryResultStateProvider";
-import { convertDisplayedSelectionToActual } from "../utils";
-import { HeaderMenu } from "./headerFilter.plugin";
-import {
-    getNextFocusableElementOutside,
-    getPreviousFocusableElementOutside,
-    isMetaOrCtrlKeyPressed,
-} from "../../../../common/utils";
-import { WebviewAction, WebviewKeyBindings } from "../../../../../sharedInterfaces/webview";
-import { eventMatchesKey, eventMatchesShortcut } from "../../../../common/keyboardUtils";
+import { isMetaOrCtrlKeyPressed } from "../../../../common/utils";
+import { eventMatchesKey } from "../../../../common/keyboardUtils";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -54,15 +41,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     public onSelectedRangesChanged = new Slick.Event<Array<Slick.Range>>();
 
-    constructor(
-        private options: ICellSelectionModelOptions = defaults,
-        private context?: QueryResultReactProvider,
-        private uri?: string,
-        private resultSetSummary?: ResultSetSummary,
-        public keyBindings?: WebviewKeyBindings,
-        private gridId?: string,
-        private headerFilter?: HeaderMenu<T>,
-    ) {
+    constructor(private options: ICellSelectionModelOptions = defaults) {
         this.options = mixin(this.options, defaults, false);
         if (this.options.cellRangeSelector) {
             this.selector = this.options.cellRangeSelector;
@@ -150,12 +129,9 @@ export class CellSelectionModel<T extends Slick.SlickData>
         return result;
     }
 
-    public setSelectedRanges(ranges: Array<Slick.Range>, updateSummary: boolean = true): void {
+    public setSelectedRanges(ranges: Array<Slick.Range>): void {
         this.ranges = this.removeInvalidRanges(ranges);
         this.onSelectedRangesChanged.notify(this.ranges);
-        if (updateSummary && this.context) {
-            void this.updateSummaryText(this.ranges);
-        }
     }
 
     public getSelectedRanges(): Slick.Range[] {
@@ -611,149 +587,28 @@ export class CellSelectionModel<T extends Slick.SlickData>
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         const keyCode = e.code;
         let isHandled = false;
-        const keyBindings = this.keyBindings;
 
-        if (keyBindings) {
-            // Full keybinding support (query editor with configurable shortcuts)
-            if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridExpandSelectionLeft].keyCombination,
-                )
-            ) {
-                this.expandSelection(KeyCode.ArrowLeft);
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridExpandSelectionRight].keyCombination,
-                )
-            ) {
-                this.expandSelection(KeyCode.ArrowRight);
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridExpandSelectionUp].keyCombination,
-                )
-            ) {
-                this.expandSelection(KeyCode.ArrowUp);
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridExpandSelectionDown].keyCombination,
-                )
-            ) {
-                this.expandSelection(KeyCode.ArrowDown);
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridOpenColumnMenu].keyCombination,
-                )
-            ) {
-                await this.headerFilter?.openHeaderContextMenuForActiveColumn();
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridOpenFilterMenu].keyCombination,
-                )
-            ) {
-                await this.headerFilter?.openMenuForActiveColumn();
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridSelectAll].keyCombination,
-                )
-            ) {
-                await this.handleSelectAll();
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridMoveToRowStart].keyCombination,
-                )
-            ) {
-                this.moveToFirstCellInRow();
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridMoveToRowEnd].keyCombination,
-                )
-            ) {
-                this.moveToLastCellInRow();
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridSelectColumn].keyCombination,
-                )
-            ) {
-                this.selectActiveCellColumn();
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridSelectRow].keyCombination,
-                )
-            ) {
-                this.selectActiveCellRow();
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridToggleSort].keyCombination,
-                )
-            ) {
-                await this.toggleSortForActiveCell();
-                isHandled = true;
-            } else if (
-                eventMatchesShortcut(
-                    e,
-                    keyBindings[WebviewAction.ResultGridChangeColumnWidth].keyCombination,
-                )
-            ) {
-                await this.resizeColumnForActiveCell();
-                isHandled = true;
-            } else if ((e.shiftKey && keyCode === KeyCode.F10) || keyCode === KeyCode.ContextMenu) {
-                return;
-            } else if (e.shiftKey && keyCode === KeyCode.Tab) {
-                e.stopImmediatePropagation();
-                await this.moveFocusToOutsideGrid(false);
-                isHandled = true;
-            } else if (!e.shiftKey && keyCode === KeyCode.Tab) {
-                e.stopImmediatePropagation();
-                await this.moveFocusToOutsideGrid(true);
-                isHandled = true;
-            }
-        } else {
-            // Basic keyboard support (e.g. notebook renderer without custom keybindings)
-            if (isMetaOrCtrlKeyPressed(e) && eventMatchesKey(e, { key: "a", code: KeyCode.KeyA })) {
-                await this.handleSelectAll();
-                isHandled = true;
-            } else if (e.shiftKey && !isMetaOrCtrlKeyPressed(e)) {
-                switch (keyCode) {
-                    case KeyCode.ArrowLeft:
-                        this.expandSelection(KeyCode.ArrowLeft);
-                        isHandled = true;
-                        break;
-                    case KeyCode.ArrowRight:
-                        this.expandSelection(KeyCode.ArrowRight);
-                        isHandled = true;
-                        break;
-                    case KeyCode.ArrowUp:
-                        this.expandSelection(KeyCode.ArrowUp);
-                        isHandled = true;
-                        break;
-                    case KeyCode.ArrowDown:
-                        this.expandSelection(KeyCode.ArrowDown);
-                        isHandled = true;
-                        break;
-                }
+        if (isMetaOrCtrlKeyPressed(e) && eventMatchesKey(e, { key: "a", code: KeyCode.KeyA })) {
+            await this.handleSelectAll();
+            isHandled = true;
+        } else if (e.shiftKey && !isMetaOrCtrlKeyPressed(e)) {
+            switch (keyCode) {
+                case KeyCode.ArrowLeft:
+                    this.expandSelection(KeyCode.ArrowLeft);
+                    isHandled = true;
+                    break;
+                case KeyCode.ArrowRight:
+                    this.expandSelection(KeyCode.ArrowRight);
+                    isHandled = true;
+                    break;
+                case KeyCode.ArrowUp:
+                    this.expandSelection(KeyCode.ArrowUp);
+                    isHandled = true;
+                    break;
+                case KeyCode.ArrowDown:
+                    this.expandSelection(KeyCode.ArrowDown);
+                    isHandled = true;
+                    break;
             }
         }
 
@@ -828,132 +683,6 @@ export class CellSelectionModel<T extends Slick.SlickData>
         this.grid.scrollCellIntoView(viewRow, viewCell, false);
 
         this.setSelectedRanges(ranges);
-    }
-
-    private moveToFirstCellInRow(): void {
-        const active = this.grid.getActiveCell();
-        if (active) {
-            this.grid.setActiveCell(active.row, 1);
-            this.grid
-                .getSelectionModel()
-                .setSelectedRanges([new Slick.Range(active.row, 1, active.row, 1)]);
-        }
-    }
-
-    private moveToLastCellInRow(): void {
-        const active = this.grid.getActiveCell();
-        if (active) {
-            this.grid.setActiveCell(active.row, this.grid.getColumns().length - 1);
-            this.grid
-                .getSelectionModel()
-                .setSelectedRanges([
-                    new Slick.Range(
-                        active.row,
-                        this.grid.getColumns().length - 1,
-                        active.row,
-                        this.grid.getColumns().length - 1,
-                    ),
-                ]);
-        }
-    }
-
-    private selectActiveCellColumn(): void {
-        const active = this.grid.getActiveCell();
-        if (active) {
-            const rowCount = this.grid.getDataLength();
-            const newSelectedRange = new Slick.Range(0, active.cell, rowCount - 1, active.cell);
-            this.setSelectedRanges([newSelectedRange]);
-            this.grid.setActiveCell(active.row, active.cell);
-        }
-    }
-
-    private selectActiveCellRow(): void {
-        const active = this.grid.getActiveCell();
-        if (active) {
-            const columnCount = this.grid.getColumns().length;
-            const newSelectedRange = new Slick.Range(active.row, 1, active.row, columnCount - 1);
-            this.setSelectedRanges([newSelectedRange]);
-            this.grid.setActiveCell(active.row, active.cell);
-        }
-    }
-
-    private async moveFocusToOutsideGrid(forward: boolean): Promise<void> {
-        const gridContainer = this.grid.getContainerNode();
-        if (gridContainer) {
-            let element: HTMLElement | null = null;
-            if (forward) {
-                element = getNextFocusableElementOutside(gridContainer);
-            } else {
-                element = getPreviousFocusableElementOutside(gridContainer);
-            }
-            if (element) {
-                element.focus();
-            }
-        }
-    }
-
-    private async toggleSortForActiveCell(): Promise<void> {
-        const active = this.grid.getActiveCell();
-        if (active && this.headerFilter) {
-            await this.headerFilter.toggleSortForColumn(active.cell);
-        }
-    }
-
-    private async resizeColumnForActiveCell(): Promise<void> {
-        const active = this.grid.getActiveCell();
-        if (!active || !this.context || !this.gridId) {
-            return;
-        }
-
-        const columns = this.grid.getColumns();
-        const column = columns[active.cell];
-        if (!column) {
-            return;
-        }
-
-        this.context.openResizeDialog({
-            open: true,
-            columnId: column.id ?? "",
-            columnName: column.name ?? "",
-            initialWidth: column.width ?? 0,
-            gridId: this.gridId,
-            onDismiss: () => {
-                this.headerFilter?.resizeCancel();
-            },
-            onSubmit: (newWidth: number) => {
-                this.headerFilter?.resizeColumn(column.id ?? "", newWidth);
-            },
-        });
-    }
-
-    public async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {
-        if (!this.context || !this.uri || !this.resultSetSummary || !this.gridId) {
-            return;
-        }
-        if (!ranges) {
-            ranges = this.getSelectedRanges();
-        }
-        const displaySelection: ISlickRange[] = ranges.map((range) => ({
-            fromRow: range.fromRow,
-            fromCell: range.fromCell,
-            toRow: range.toRow,
-            toCell: range.toCell,
-        }));
-        const simplifiedRanges = ranges.map((range) => ({
-            fromRow: range.fromRow,
-            fromCell: range.fromCell - 1, // adjust for number column
-            toRow: range.toRow,
-            toCell: range.toCell - 1, // adjust for number column
-        }));
-        const actualRanges = convertDisplayedSelectionToActual(this.grid, simplifiedRanges);
-        await this.context.extensionRpc.sendNotification(SetSelectionSummaryRequest.type, {
-            selection: actualRanges,
-            displaySelection,
-            uri: this.uri,
-            gridId: this.gridId,
-            batchId: this.resultSetSummary.batchId,
-            resultId: this.resultSetSummary.id,
-        });
     }
 
     private handleAfterKeyboardNavigationEvent(): void {

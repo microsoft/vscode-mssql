@@ -32,13 +32,13 @@ import {
 import { GUID_VALUE, MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
 
 /**
- * Clipboard and cell-formatting coverage for the preview results grid.
+ * Clipboard and cell-formatting coverage for the results grid.
  *
  * The fixture query runs once for the whole file; each test operates on the grid that is already
  * on screen and hands it back in the state it found it. That is what keeps the suite inside its
  * time budget - re-running the query per test would cost seconds, relaunching VS Code a minute.
  */
-test.describe("MSSQL Extension - Preview Grid Clipboard", () => {
+test.describe("MSSQL Extension - Results Grid Clipboard", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
 

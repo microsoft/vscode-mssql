@@ -30,6 +30,11 @@ import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTree
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
+import {
+    ContainerConnectAdapter,
+    oeV2ContainerConnectAdapter,
+} from "../deployment/containerConnectAdapter";
+import { registerOeV2ContainerPerfSeams } from "../objectExplorer/v2/perf/oeV2ContainerPerfSeams";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { MetadataStore } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
@@ -66,6 +71,7 @@ import { TableDesignerService } from "../services/tableDesignerService";
 import {
     PrivatePreviewContextKey,
     PrivatePreviewFeature,
+    performanceMonitoringActiveContextKey,
     previewService,
 } from "../previews/previewService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
@@ -136,6 +142,18 @@ import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
 import { DabTool } from "../copilot/tools/dabTool";
+import {
+    AnalyzeQueryTool,
+    OpenPerformanceDashboardTool,
+    PlanForcingTool,
+    PlanSummaryTool,
+    QueryDetailsTool,
+    QueryHistoryTool,
+    QueryStoreStatusTool,
+    TopQueriesTool,
+    VerifyForcedPlanTool,
+    WaitStatsTool,
+} from "../copilot/tools/queryStoreTools";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
@@ -149,6 +167,14 @@ import { ProfilerService } from "../services/profilerService";
 import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
+import { createMssqlInternalApi } from "./internalApiFactory";
+import { QueryStoreService, createQueryStoreService } from "../performance/queryStoreService";
+import {
+    PerformanceDashboardTarget,
+    performanceDashboardTargetForNode,
+} from "../performance/performanceDashboardWebviewController";
+import { PerformanceDashboards } from "../performance/performanceDashboards";
+import { PerformanceDashboardSource } from "../performance/performanceDashboardTelemetry";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
@@ -184,7 +210,6 @@ import {
     quickQueryCount,
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { AzureResourcesExtensionIntegration } from "../integration/azureResourcesIntegration";
-import { FabricDatabaseHubIntegration } from "../integration/fabricDatabaseHubIntegration";
 
 const overviewVisibilityStorageKey = "overviewVisibility";
 
@@ -238,11 +263,12 @@ export default class MainController implements vscode.Disposable {
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
     public cloudDeployService: CloudDeployService;
+    /** Set when performance monitoring was on at activation. */
+    public performanceDashboards: PerformanceDashboards | undefined;
     private completionBundles: ObservabilityBundleManager | undefined;
     public inlineCompletionSchemaContextService: CompletionSchemaContextService | undefined;
     public protocolHandler: MssqlProtocolHandler;
     public azureResourcesIntegration: AzureResourcesExtensionIntegration;
-    public fabricDatabaseHubIntegration: FabricDatabaseHubIntegration;
 
     /**
      * The main controller constructor
@@ -899,11 +925,8 @@ export default class MainController implements vscode.Disposable {
             this.azureResourcesIntegration = new AzureResourcesExtensionIntegration(
                 this.protocolHandler,
             );
-            this.fabricDatabaseHubIntegration = new FabricDatabaseHubIntegration();
-
             this._context.subscriptions.push(
                 this.azureResourcesIntegration.registerOpenInMssqlCommand(),
-                this.fabricDatabaseHubIntegration.registerOpenInFabricDatabaseHubCommand(),
             );
 
             // Register a virtual document provider once during extension activation
@@ -1211,6 +1234,7 @@ export default class MainController implements vscode.Disposable {
             );
         }
         this.initializeMetadataStore();
+        this.initializePerformanceMonitoring();
 
         this._sqlDocumentService = new SqlDocumentService(this);
         this.configureQuickQueryService();
@@ -1359,6 +1383,123 @@ export default class MainController implements vscode.Disposable {
                 provider,
             ),
         );
+    }
+
+    /**
+     * Creates the Query Store dashboards when performance monitoring is on, which it is by
+     * default. The data plane starts only at activation, so a change of the setting takes effect
+     * after a reload, and the context key keeps the menu hidden until then.
+     */
+    private initializePerformanceMonitoring(): void {
+        const active = previewService.performanceMonitoringEnabled;
+        void vscode.commands.executeCommand(
+            "setContext",
+            performanceMonitoringActiveContextKey,
+            active,
+        );
+        if (!active) {
+            return;
+        }
+        const queryStoreService = createQueryStoreService(this._connectionMgr);
+        this._context.subscriptions.push(queryStoreService);
+        this.performanceDashboards = new PerformanceDashboards(this._context, queryStoreService, {
+            openPlan: (planXml, name) =>
+                openExecutionPlanWebview(
+                    this._context,
+                    this.executionPlanService,
+                    this.sqlDocumentService,
+                    planXml,
+                    name,
+                ),
+            comparePlans: (first, second) =>
+                createMssqlInternalApi(this).compareExecutionPlans(first, second),
+            openQuery: (sql, target) => this.openPerformanceQuery(sql, target),
+        });
+        this.registerQueryStoreLanguageModelTools(queryStoreService, this.performanceDashboards);
+    }
+
+    /**
+     * Registers the Query Store tools. They read through the same service as the dashboards, so
+     * they exist only while performance monitoring is active.
+     */
+    private registerQueryStoreLanguageModelTools(
+        queryStoreService: QueryStoreService,
+        dashboards: PerformanceDashboards,
+    ): void {
+        const connections = this._connectionMgr;
+        const tools: [string, vscode.LanguageModelTool<unknown>][] = [
+            [
+                Constants.copilotQueryStoreStatusToolName,
+                new QueryStoreStatusTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreTopQueriesToolName,
+                new TopQueriesTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreQueryDetailsToolName,
+                new QueryDetailsTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreQueryHistoryToolName,
+                new QueryHistoryTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreWaitStatsToolName,
+                new WaitStatsTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStorePlanSummaryToolName,
+                new PlanSummaryTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreAnalyzeQueryToolName,
+                new AnalyzeQueryTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStorePlanForcingToolName,
+                new PlanForcingTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotQueryStoreVerifyForcedPlanToolName,
+                new VerifyForcedPlanTool(connections, queryStoreService),
+            ],
+            [
+                Constants.copilotOpenPerformanceDashboardToolName,
+                new OpenPerformanceDashboardTool(connections, (target, location) => {
+                    dashboards.open(target, location, PerformanceDashboardSource.Copilot);
+                }),
+            ],
+        ];
+        for (const [name, tool] of tools) {
+            this._context.subscriptions.push(vscode.lm.registerTool(name, tool));
+        }
+    }
+
+    /**
+     * Opens T-SQL from a performance dashboard in a query editor that is connected to the
+     * dashboard's profile and database, or not connected when the profile is gone.
+     */
+    private async openPerformanceQuery(
+        sql: string,
+        target: PerformanceDashboardTarget,
+    ): Promise<void> {
+        const profile =
+            await this._connectionMgr.connectionStore.connectionConfig.getConnectionById(
+                target.profileId,
+            );
+        await this.sqlDocumentService.newQuery({
+            content: sql,
+            ...(profile
+                ? {
+                      connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                      connectionInfo: {
+                          ...profile,
+                          ...(target.databaseName ? { database: target.databaseName } : {}),
+                      },
+                  }
+                : { connectionStrategy: ConnectionStrategy.DoNotConnect }),
+        });
     }
 
     /**
@@ -1765,7 +1906,20 @@ export default class MainController implements vscode.Disposable {
             objectExplorerV2ActiveAtActivation,
         );
         if (objectExplorerV2ActiveAtActivation) {
+            registerOeV2ContainerPerfSeams(this._context, {
+                isEnabled: objectExplorerV2Enabled,
+                saveProfile: (profile) => this.connectionManager.connectionUI.saveProfile(profile),
+                removeProfile: async (profile) => {
+                    await this.connectionManager.connectionStore.removeProfile(profile);
+                },
+            });
             activateObjectExplorerV2(this._context, {
+                deployNewDatabase: () =>
+                    this.onDeployNewDatabase(
+                        undefined,
+                        undefined,
+                        oeV2ContainerConnectAdapter(this),
+                    ),
                 instantiationService: this._instantiationService,
                 profiles: this._connectionMgr.connectionStore,
                 tokens: vscodeSqlTokenSource,
@@ -2326,6 +2480,13 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdSearchDatabase, async (node: any) =>
                 this.onSearchDatabase(node),
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdOpenPerformanceDashboard,
+                (node?: TreeNodeInfo) => this.onOpenPerformanceDashboard(node),
             ),
         );
 
@@ -3232,6 +3393,7 @@ export default class MainController implements vscode.Disposable {
     public onDeployNewDatabase(
         initialConnectionGroup?: string,
         initialDeploymentType?: DeploymentType,
+        containerConnect?: ContainerConnectAdapter,
     ): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
@@ -3240,6 +3402,7 @@ export default class MainController implements vscode.Disposable {
             this,
             initialConnectionGroup,
             initialDeploymentType,
+            containerConnect,
         );
         reactPanel.revealToForeground();
     }
@@ -3747,6 +3910,25 @@ export default class MainController implements vscode.Disposable {
         );
 
         tableExplorerWebView.revealToForeground();
+    }
+
+    /** Opens the Query Store performance dashboard for the database of an Object Explorer node. */
+    public onOpenPerformanceDashboard(node?: TreeNodeInfo): void {
+        if (!this.performanceDashboards) {
+            return;
+        }
+        const target = performanceDashboardTargetForNode(node);
+        if (!target) {
+            void vscode.window.showErrorMessage(
+                LocalizedConstants.PerformanceDashboard.noSavedConnection,
+            );
+            return;
+        }
+        this.performanceDashboards.open(
+            target,
+            undefined,
+            PerformanceDashboardSource.ObjectExplorer,
+        );
     }
 
     public async onSearchDatabase(node?: TreeNodeInfo): Promise<void> {

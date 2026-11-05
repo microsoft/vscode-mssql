@@ -112,6 +112,20 @@ for (const enabled of [false, true]) {
                 .poll(() => fs.readFile(savedPath, "utf8").catch(() => ""))
                 .toContain("SELECT 33 AS saved;");
             // Save As replaces the untitled webview with a fresh editor.
+            // Re-resolve its nested frames during replacement; a long-running
+            // assertion can otherwise stay attached to the discarded frame.
+            await expect
+                .poll(
+                    () =>
+                        page
+                            .frameLocator(".webview:visible")
+                            .frameLocator("#active-frame")
+                            .getByRole("toolbar", { name: "Query Studio toolbar" })
+                            .isVisible()
+                            .catch(() => false),
+                    { timeout: 60_000 },
+                )
+                .toBe(true);
             await expect(
                 studio.getByRole("toolbar", { name: "Query Studio toolbar" }),
             ).toBeInViewport({ timeout: 30_000 });

@@ -5,7 +5,7 @@
 
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
-import { IDialogProps } from "./connectionDialog";
+import { AuthenticationType, IDialogProps } from "./connectionDialog";
 import { FirewallRuleSpec } from "./firewallRule";
 import { KnownFreeLimitExhaustionBehavior, KnownSampleName, Server } from "@azure/arm-sql";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
@@ -78,6 +78,16 @@ export interface ContainerEnginePrerequisiteResult {
 }
 
 export interface AzureSqlContainerForm {
+    authenticationType?:
+        | AuthenticationType.SqlLogin
+        | AuthenticationType.AzureMFA
+        | AuthenticationType.ActiveDirectoryDefault
+        | AuthenticationType.ActiveDirectoryServicePrincipal;
+    accountId?: string;
+    tenantId?: string;
+    applicationId?: string;
+    pfxFilePath?: string;
+    servicePrincipalClientSecret?: string;
     password: string;
     savePassword: boolean;
     profileName: string;
@@ -86,6 +96,11 @@ export interface AzureSqlContainerForm {
     port: string;
     hostname: string;
     acceptEula: boolean;
+}
+
+export interface ContainerEntraOption {
+    value: string;
+    displayName: string;
 }
 
 export type AzureSqlContainerFormErrors = Partial<Record<keyof AzureSqlContainerForm, string>>;
@@ -97,6 +112,23 @@ export enum AzureSqlContainerProvisioningStep {
     Connect = "connect",
 }
 
+export function isAzureSqlContainerEntraAuthentication(
+    authenticationType: AzureSqlContainerForm["authenticationType"],
+): boolean {
+    return (
+        authenticationType === AuthenticationType.AzureMFA ||
+        authenticationType === AuthenticationType.ActiveDirectoryDefault ||
+        authenticationType === AuthenticationType.ActiveDirectoryServicePrincipal
+    );
+}
+
+export const azureSqlContainerProvisioningSteps = [
+    AzureSqlContainerProvisioningStep.PullImage,
+    AzureSqlContainerProvisioningStep.CreateContainer,
+    AzureSqlContainerProvisioningStep.WaitForReady,
+    AzureSqlContainerProvisioningStep.Connect,
+] as const;
+
 export interface AzureSqlContainerProvisioningResult {
     success: boolean;
     error?: string;
@@ -105,6 +137,22 @@ export interface AzureSqlContainerProvisioningResult {
 }
 
 export namespace AzureSqlDatabaseRequests {
+    export const ContainerEntraAccounts = new RequestType<
+        { signIn?: boolean },
+        ContainerEntraOption[],
+        void
+    >("deployment/azureSqlContainerEntraAccounts");
+
+    export const ContainerEntraTenants = new RequestType<
+        { accountId: string },
+        ContainerEntraOption[],
+        void
+    >("deployment/azureSqlContainerEntraTenants");
+
+    export const SelectContainerPfxFile = new RequestType<void, string | undefined, void>(
+        "deployment/selectAzureSqlContainerPfxFile",
+    );
+
     export const PrepareContainerForm = new RequestType<
         AzureSqlContainerForm,
         { form: AzureSqlContainerForm; errors: AzureSqlContainerFormErrors },

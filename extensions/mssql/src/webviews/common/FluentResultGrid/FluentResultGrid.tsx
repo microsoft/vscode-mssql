@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
+import { forwardRef, useId, useImperativeHandle, useMemo, useRef } from "react";
 import { FluentSlickGrid } from "../FluentSlickGrid/FluentSlickGrid";
 import { FluentResultGridToolbar } from "./FluentResultGridToolbar";
 import { useFluentResultGridProvider } from "./FluentResultGridProvider";
@@ -33,9 +33,14 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
     (props, ref) => {
         const { strings, theme } = useFluentResultGridProvider();
         const containerRef = useRef<HTMLDivElement>(null);
+        // SlickGrid finds its container by DOM id. Grid ids are only unique within one set of
+        // results, and a webview can show several, so the DOM ids also carry an id unique to
+        // this grid. React ids contain characters that are not valid in a CSS id selector.
+        const domId = `${props.gridId}-${useId().replace(/[^\w-]/g, "")}`;
         const controller = useFluentResultGridController({
             ...props,
             containerRef,
+            domId,
         });
 
         useImperativeHandle(
@@ -89,7 +94,7 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
 
         return (
             <div
-                id={`fluent-result-grid-container-${props.gridId}`}
+                id={`fluent-result-grid-container-${domId}`}
                 ref={containerRef}
                 className={classNames}
                 style={containerStyle}
@@ -105,12 +110,12 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
                 onBlur={controller.handleGridContainerBlur}
                 onKeyDownCapture={controller.handleGridKeyDownCapture}>
                 <div
-                    id={`fluent-result-grid-body-${props.gridId}`}
+                    id={`fluent-result-grid-body-${domId}`}
                     className="fluent-result-grid-body"
                     data-fluent-result-grid-body="true">
                     <FluentSlickGrid
                         key={controller.dataViewKey}
-                        gridId={`fluent-result-grid-${props.gridId}`}
+                        gridId={`fluent-result-grid-${domId}`}
                         columns={controller.columns}
                         options={controller.gridOptions}
                         dataset={controller.emptyDataset}

@@ -254,27 +254,6 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         }
     }
 
-    /**
-     * Reloads the current webview with a different bundle entry point while preserving the
-     * controller and its state. If the webview has not been resolved yet, the selected entry point
-     * is used when it is first created.
-     */
-    protected reloadWebview(sourceFile: string): void {
-        if (sourceFile === this._sourceFile) {
-            return;
-        }
-
-        this._sourceFile = sourceFile;
-        const webview = this._getWebview();
-        if (!webview) {
-            return;
-        }
-
-        this._loadStartTime = Date.now();
-        this.updateConnectionWebview(webview);
-        webview.html = this._getHtmlTemplate();
-    }
-
     protected initializeBase() {
         if (!this.state) {
             this.state = this._initialData;
@@ -560,6 +539,22 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         reducer: (state: State, payload: Reducers[Method]) => ReducerResponse<State>,
     ) {
         this._reducerHandlers.set(method, reducer);
+    }
+
+    /**
+     * Runs a registered reducer against the given state, leaving this controller's state alone.
+     * For views that show more than one state at a time.
+     */
+    protected async applyReducer<Method extends keyof Reducers>(
+        method: Method,
+        state: State,
+        payload: Reducers[Method],
+    ): Promise<State> {
+        const reducer = this._reducerHandlers.get(method);
+        if (!reducer) {
+            throw new Error(`No reducer registered for action ${method as string}`);
+        }
+        return reducer(state, payload);
     }
 
     /**

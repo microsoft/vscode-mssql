@@ -1130,6 +1130,18 @@ export class ObjectExplorer {
 
 /** User-visible strings for the Connections (Private Preview) surface. */
 export class ObjectExplorerV2 {
+    public static startContainer = l10n.t("Start Container");
+    public static containerAndConnectionFailed = (dockerError: string, sqlError: string) =>
+        l10n.t("Docker preparation failed: {0}\nSQL connection failed: {1}", dockerError, sqlError);
+    public static containerConnectionFailed = l10n.t(
+        "Connections (Private Preview) could not connect to the new container.",
+    );
+    public static containerStartupTimedOut = l10n.t(
+        "The SQL container did not become ready in time. Docker may be unresponsive.",
+    );
+    public static containerStartupFailed = l10n.t(
+        "The SQL container could not be started. Check the Docker logs and try again.",
+    );
     static selectObjectToScript = l10n.t("Select a database object to script.");
     static connectBeforeScripting = l10n.t(
         "Connect this profile in Connections (Private Preview) first.",
@@ -1532,6 +1544,23 @@ export class FirewallRule {
             comment: ["{0} is the server name"],
         });
     };
+}
+
+export class DatabaseHub {
+    public static findingResource = l10n.t("Finding this resource in Database Hub...");
+    public static learnHowToConnectToArc = l10n.t("Learn how to connect to Arc");
+    public static openDatabaseHub = l10n.t("Open Database Hub");
+    public static notInDatabaseHub = l10n.t(
+        "Database Hub doesn't track this kind of server or database.",
+    );
+    public static arcNotRegistered(serverName: string): string {
+        return l10n.t({
+            message:
+                "'{0}' isn't connected to Azure Arc, so Database Hub can't show it. Connect it to Azure Arc to review its findings in Database Hub.",
+            args: [serverName],
+            comment: ["{0} is the name of a SQL Server machine"],
+        });
+    }
 }
 
 export class Azure {
@@ -2082,6 +2111,21 @@ export class QueryResult {
 }
 
 export class AzureSqlContainer {
+    public static selectPfxFile = l10n.t("Select PFX file");
+    public static pfxFiles = l10n.t("PFX files");
+    public static invalidAuthenticationType = l10n.t("Select a supported authentication type.");
+    public static selectEntraAccount = l10n.t("Select a Microsoft Entra account.");
+    public static invalidApplicationClientId = l10n.t("Enter a valid application (client) ID.");
+    public static pfxFileRequired = l10n.t("Select an existing, readable local PFX file.");
+    public static invalidEntraAdministrator = l10n.t(
+        "Unable to determine the selected Microsoft account's administrator identity in this tenant. Sign in to the tenant and try again.",
+    );
+    public static servicePrincipalClientSecretRequired = l10n.t(
+        "Enter the client secret for the selected app registration.",
+    );
+    public static invalidProvisioningStep = l10n.t(
+        "This container provisioning step is not supported.",
+    );
     public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
     public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
     public static portInUse = l10n.t("This port is already in use. Choose a different port.");
@@ -3754,6 +3798,124 @@ export class DacpacDialog {
             comment: ["{0} is the file path"],
         });
     }
+}
+
+export class PerformanceDashboard {
+    public static connectionMayBeResuming = (detail: string) =>
+        l10n.t({
+            message:
+                "The server did not finish the login. A paused serverless database can take a minute to resume, so try again shortly. {0}",
+            args: [detail],
+            comment: ["{0} is the error from the server"],
+        });
+    public static title = (databaseName: string) =>
+        l10n.t({
+            message: "Performance (Preview) - {0}",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static noSavedConnection = l10n.t(
+        "Open performance monitoring from a database of a saved connection in Object Explorer.",
+    );
+    public static planTitle = (queryId: string, planId: string) =>
+        l10n.t({
+            message: "Query {0} - Plan {1}",
+            args: [queryId, planId],
+            comment: ["{0} is the Query Store query ID", "{1} is the Query Store plan ID"],
+        });
+}
+
+export class QueryStoreTools {
+    public static savedProfileRequired = l10n.t(
+        "Query Store tools need a connection that was opened from a saved connection profile.",
+    );
+    public static invalidTimeWindow = l10n.t(
+        "Give hours from 1 to 8760, or both startUtc and endUtc as ISO 8601 times, with startUtc before endUtc.",
+    );
+    public static connectionOrProfileRequired = l10n.t(
+        "Give the connectionId of an open connection or the profileId of a saved connection profile.",
+    );
+    public static profileNotFound = (profileId: string) =>
+        l10n.t({
+            message: "There is no saved connection profile with the ID '{0}'.",
+            args: [profileId],
+            comment: ["{0} is the connection profile ID"],
+        });
+    public static readInvocation = (databaseName: string, displayName: string) =>
+        l10n.t({
+            message: "Reading Query Store data of database '{0}' on '{1}'",
+            args: [databaseName, displayName],
+            comment: ["{0} is the database name", "{1} is the connection display name"],
+        });
+    public static forcePlanTitle = l10n.t("Force Query Store Plan");
+    public static unforcePlanTitle = l10n.t("Unforce Query Store Plan");
+    public static forcePlanConfirmation = (
+        planId: string,
+        queryId: string,
+        databaseName: string,
+        displayName: string,
+    ) =>
+        l10n.t({
+            message:
+                "Force plan {0} for query {1} in database '{2}' on '{3}'? This runs the following T-SQL:",
+            args: [planId, queryId, databaseName, displayName],
+            comment: [
+                "{0} is the Query Store plan ID",
+                "{1} is the Query Store query ID",
+                "{2} is the database name",
+                "{3} is the connection display name",
+            ],
+        });
+    public static unforcePlanConfirmation = (
+        planId: string,
+        queryId: string,
+        databaseName: string,
+        displayName: string,
+    ) =>
+        l10n.t({
+            message:
+                "Unforce plan {0} for query {1} in database '{2}' on '{3}'? This runs the following T-SQL:",
+            args: [planId, queryId, databaseName, displayName],
+            comment: [
+                "{0} is the Query Store plan ID",
+                "{1} is the Query Store query ID",
+                "{2} is the database name",
+                "{3} is the connection display name",
+            ],
+        });
+    public static forcePlanInvocation = (planId: string, queryId: string) =>
+        l10n.t({
+            message: "Forcing plan {0} for query {1}",
+            args: [planId, queryId],
+            comment: ["{0} is the Query Store plan ID", "{1} is the Query Store query ID"],
+        });
+    public static unforcePlanInvocation = (planId: string, queryId: string) =>
+        l10n.t({
+            message: "Unforcing plan {0} for query {1}",
+            args: [planId, queryId],
+            comment: ["{0} is the Query Store plan ID", "{1} is the Query Store query ID"],
+        });
+    public static planChangeWarnings = l10n.t("Warnings:");
+    public static warningReplacesForcedPlan = l10n.t(
+        "Forcing this plan replaces the plan that is forced now.",
+    );
+    public static warningPlanForcingTypeUnknown = l10n.t(
+        "The server does not show whether automatic tuning forced the current plan.",
+    );
+    public static warningVariantPlan = l10n.t(
+        "This is a variant plan of parameter sensitive plan optimization.",
+    );
+    public static warningDispatcherPlan = l10n.t("This is a dispatcher plan.");
+    public static warningPreviousForceFailures = l10n.t("Forcing this plan failed before.");
+    public static planChangeNotReviewed = l10n.t(
+        "The plan change was not reviewed, so it did not run. Call the tool again.",
+    );
+    public static openDashboardInvocation = (databaseName: string, displayName: string) =>
+        l10n.t({
+            message: "Opening the performance dashboard of database '{0}' on '{1}'",
+            args: [databaseName, displayName],
+            comment: ["{0} is the database name", "{1} is the connection display name"],
+        });
 }
 
 export class SearchDatabase {
@@ -6438,3 +6600,33 @@ export const QueryStudioCore = {
     couldNotSwitchToDatabase0USEFailed: (value0: string) =>
         l10n.t('Could not switch to database "{0}" (USE failed).', value0),
 };
+
+export class NativeSqlProvider {
+    public static strictUnsupported = l10n.t(
+        "Strict encryption is not supported by the Native TypeScript preview. Use SQL Tools Service for this connection.",
+    );
+    public static tcpOnly = l10n.t(
+        "The Native TypeScript provider supports TCP connections only. Use SQL Tools Service for other protocols or LocalDB.",
+    );
+    public static backendDisposed = l10n.t("The Native TypeScript provider has been disposed.");
+    public static openAbandoned = l10n.t("The connection finished opening after its deadline.");
+    public static sessionFactsFailed = l10n.t("Could not read SQL Server session information.");
+    public static loginFailed = l10n.t("Login failed.");
+    public static connectionTimedOut = l10n.t("Connection timed out.");
+    public static connectionFailed = l10n.t("Connection failed.");
+    public static valueUnavailable = (type: string) =>
+        l10n.t("<exact {0} value unavailable from this provider>", type);
+    public static approximateValue = (value: string) => l10n.t("{0} (approximate)", value);
+    public static resultDeliveryFailed = (kind: string, callback: string) =>
+        l10n.t("Query result delivery failed ({0}) while processing {1}.", kind, callback);
+    public static name = l10n.t("Native TypeScript (Tedious)");
+    public static unsupportedRuntime = (minimum: number, actual: string) =>
+        l10n.t(
+            "The Native TypeScript provider requires Node.js {0} or newer; this host uses {1}.",
+            minimum,
+            actual,
+        );
+    public static bundleUnavailable = l10n.t(
+        "The Native TypeScript provider could not be loaded. Reinstall the extension or select SQL Tools Service.",
+    );
+}
