@@ -209,10 +209,6 @@ export const VsCodeCommand = {
         filter: "MS SQL: Change Connection",
         label: "MS SQL: Change Connection (MSSQL)",
     },
-    mssqlRunCurrentStatement: {
-        filter: "MS SQL: Execute Selection or Current Statement",
-        label: "MS SQL: Execute Selection or Current Statement (MSSQL)",
-    },
 } as const satisfies Record<string, PaletteCommand>;
 
 function getPaletteModifier(): string {
