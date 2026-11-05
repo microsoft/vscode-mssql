@@ -97,6 +97,7 @@ export function featureFor(name: string): string {
         return "diagnostics";
     }
     if (name.startsWith("driver.")) return "harness";
+    if (name.startsWith("docker.")) return "deployment";
     return "system";
 }
 

@@ -72,6 +72,8 @@ export interface ConnectionNodeFacts {
     readonly failureReason?: string;
     /** B27: elapsed connect time — slow connects surface honestly. */
     readonly connectingForMs?: number;
+    /** Transient docker activity text ("Starting container…", DOCK-2). */
+    readonly activityText?: string;
 }
 
 export function connectionNode(
@@ -91,17 +93,19 @@ export function connectionNode(
     // K6: database/auth already live in the v1-recipe label — description
     // carries connection STATE only.
     const description =
-        facts.state === "connecting"
-            ? facts.connectingForMs !== undefined && facts.connectingForMs >= 5000
-                ? ObjectExplorerV2.connectingFor(Math.round(facts.connectingForMs / 1000))
-                : ObjectExplorerV2.connecting
-            : facts.state === "disconnecting"
-              ? ObjectExplorerV2.disconnecting
-              : facts.state === "lost"
-                ? ObjectExplorerV2.connectionLostDescription
-                : facts.state === "failed"
-                  ? ObjectExplorerV2.failed(facts.failureReason ?? ObjectExplorerV2.connectError)
-                  : undefined;
+        facts.activityText !== undefined
+            ? facts.activityText
+            : facts.state === "connecting"
+              ? facts.connectingForMs !== undefined && facts.connectingForMs >= 5000
+                  ? ObjectExplorerV2.connectingFor(Math.round(facts.connectingForMs / 1000))
+                  : ObjectExplorerV2.connecting
+              : facts.state === "disconnecting"
+                ? ObjectExplorerV2.disconnecting
+                : facts.state === "lost"
+                  ? ObjectExplorerV2.connectionLostDescription
+                  : facts.state === "failed"
+                    ? ObjectExplorerV2.failed(facts.failureReason ?? ObjectExplorerV2.connectError)
+                    : undefined;
     const lines = connectionTooltipLines(profile.stored);
     if (facts.serverVersion) {
         // Additive over v1 (journaled): live server version when connected.
@@ -111,8 +115,7 @@ export function connectionNode(
     if (differs.length > 0) {
         lines.push(ObjectExplorerV2.sameNameDifferences, ...differs);
     }
-    // Saved container connections keep their existing display identity. The
-    // core preview intentionally does not provide container lifecycle controls.
+    // Container profiles keep the same labels and icons as classic OE.
     const containerName = profile.stored.containerName;
     return {
         id: encodePath(path),
@@ -212,6 +215,7 @@ export function nodeContextValue(node: OeV2Node): string {
             kind: node.kind,
             ...(node.database !== undefined ? { database: node.database } : {}),
             ...(node.path.kind === "object" ? { objectKind: node.path.objectKind } : {}),
+            ...(node.containerName !== undefined ? { isContainer: true } : {}),
         }),
     );
 }

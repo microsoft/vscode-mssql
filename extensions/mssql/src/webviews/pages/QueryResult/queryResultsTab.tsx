@@ -5,13 +5,15 @@
 
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { makeStyles, Spinner } from "@fluentui/react-components";
-import { type ComponentType, lazy, Suspense, useContext, useEffect } from "react";
+import { lazy, Suspense, useContext, useEffect } from "react";
+import { QueryResultFluentResultGridView } from "./queryResultFluentResultGrid";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
+import { useIsActiveResultPaneRef } from "./queryResultPaneScope";
 
 const useStyles = makeStyles({
     loadingContainer: {
@@ -46,11 +48,7 @@ const QueryResultsTextView = lazy(async () => {
     return { default: module.QueryResultsTextView };
 });
 
-interface QueryResultsTabProps {
-    GridView: ComponentType;
-}
-
-export const QueryResultsTab = ({ GridView }: QueryResultsTabProps) => {
+export const QueryResultsTab = () => {
     const context = useContext(QueryResultCommandsContext);
     if (!context) {
         return;
@@ -61,8 +59,12 @@ export const QueryResultsTab = ({ GridView }: QueryResultsTabProps) => {
         qr.QueryResultViewMode.Grid;
 
     const tabStates = useQueryResultSelector((state) => state.tabStates);
+    const isActivePaneRef = useIsActiveResultPaneRef();
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
+            if (!isActivePaneRef.current) {
+                return;
+            }
             const isResultsTab = tabStates?.resultPaneTab === qr.QueryResultPaneTabs.Results;
             let handled = false;
             if (
@@ -98,5 +100,5 @@ export const QueryResultsTab = ({ GridView }: QueryResultsTabProps) => {
             </Suspense>
         );
     }
-    return <GridView />;
+    return <QueryResultFluentResultGridView />;
 };

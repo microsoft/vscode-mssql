@@ -1984,6 +1984,7 @@ export class LocConstants {
             loadingFabricAccounts: l10n.t("Loading Fabric Accounts"),
             fabricAccount: l10n.t("Fabric Account"),
             selectAnAccount: l10n.t("Select an account"),
+            addAccount: l10n.t("Add account"),
             account: l10n.t("Account"),
             tenantId: l10n.t("Tenant ID"),
             fabricDatabases: l10n.t("Fabric Databases"),
@@ -2473,27 +2474,11 @@ export class LocConstants {
                 }
                 return l10n.t("Results");
             },
-            resultBetaTabTooltip: (shortcut?: string) => {
-                if (shortcut) {
-                    return l10n.t({
-                        message: "Results Preview ({0})",
-                        args: [shortcut],
-                        comment: ["{0} is the keyboard shortcut for the preview results tab"],
-                    });
-                }
-                return l10n.t("Results Preview");
-            },
             results: (count: number) =>
                 l10n.t({
                     message: "Results ({0})",
                     args: [count],
                     comment: ["{0} is the number of results"],
-                }),
-            resultsBeta: (count: number) =>
-                l10n.t({
-                    message: "Results Preview ({0})",
-                    args: [count],
-                    comment: ["{0} is the number of preview results"],
                 }),
             messagesTabTooltip: (shortcut?: string) => {
                 if (shortcut) {
@@ -2510,25 +2495,9 @@ export class LocConstants {
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             resultsToolbar: l10n.t("Results toolbar"),
-            moreActions: l10n.t("More Actions"),
-            previewGrid: l10n.t("Preview Grid"),
-            previewGridSwitchTooltip: l10n.t(
-                "Switch between the classic and the preview results grid",
-            ),
             showplanXML: l10n.t("Showplan XML"),
-            showMenu: (shortcut: string) => {
-                if (shortcut) {
-                    return l10n.t({
-                        message: "Show Menu ({0})",
-                        args: [shortcut],
-                        comment: ["{0} is the keyboard shortcut for showing the menu"],
-                    });
-                }
-                return l10n.t("Show Menu");
-            },
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
-            toggleSort: l10n.t("Toggle Sort"),
             clearSort: l10n.t("Clear Sort"),
             saveAsCsv: (shortcut: string) => {
                 if (shortcut) {
@@ -2803,6 +2772,48 @@ export class LocConstants {
                     comment: ["{0} is the minimum column width in pixels"],
                 });
             },
+        };
+    }
+
+    public get multiResults() {
+        return {
+            resultsList: l10n.t("Query results"),
+            resultSetCount: (count: number) =>
+                l10n.t({
+                    message: "Result sets: {0}",
+                    args: [count],
+                    comment: ["{0} is the number of result sets the query returned"],
+                }),
+            running: l10n.t("Running"),
+            hasErrors: l10n.t("Completed with errors"),
+            closedEditorTitle: (title: string) =>
+                l10n.t({
+                    message: "{0} (closed)",
+                    args: [title],
+                    comment: ["{0} is the name of a query file whose editor has been closed"],
+                }),
+            closedEditorTooltip: l10n.t(
+                "The editor for these results is closed. The results stay until you close them.",
+            ),
+            closeResults: l10n.t("Close Results"),
+            moveToNewGroup: l10n.t("Move to New Group"),
+            joinGroup: l10n.t("Join Group"),
+            resultActions: (title: string) =>
+                l10n.t({
+                    message: "Actions for {0}",
+                    args: [title],
+                    comment: ["{0} is the name of a query file"],
+                }),
+            resultsFor: (title: string) =>
+                l10n.t({
+                    message: "Results for {0}",
+                    args: [title],
+                    comment: ["{0} is the name of a query file"],
+                }),
+            noResultsHeader: l10n.t("No query results"),
+            noResultsMessage: l10n.t(
+                "Run a query to see its results here. Drag results onto each other to view them side by side.",
+            ),
         };
     }
 
@@ -4210,15 +4221,20 @@ export class LocConstants {
             loadingDeploymentPage: l10n.t("Loading deployment"),
             deploymentHeader: l10n.t("New SQL database"),
             deploymentDescription: l10n.t("Choose an option to provision a database"),
+            localProvisioning: l10n.t("Run locally"),
+            remoteProvisioning: l10n.t("Run in the cloud"),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
             dockerSqlServerHeader: l10n.t("Create a Local Docker SQL Server"),
+            dockerSqlServerCardHeader: l10n.t("SQL Server container"),
             dockerSqlServerDescription: l10n.t(
-                "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
+                "Runs SQL Server in Docker, set up in a few clicks. Best for apps on SQL Server or Azure SQL Managed Instance.",
             ),
             fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric"),
+            fabricProvisioningCardHeader: l10n.t("SQL database in Fabric"),
             fabricProvisioningDescription: l10n.t(
-                "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
+                "A fully managed database that auto-scales, auto-tunes, and copies your data to OneLake automatically. Best for apps whose data also powers analytics and reporting in Microsoft Fabric.",
             ),
+            azureSqlDatabaseCardHeader: l10n.t("Azure SQL Database"),
         };
     }
 
@@ -4319,11 +4335,28 @@ export class LocConstants {
 
     public get azureSqlContainer() {
         return {
+            applicationClientId: l10n.t("Application (client) ID"),
+            enterApplicationClientId: l10n.t("Enter the application client ID"),
+            servicePrincipalAdministratorDescription: l10n.t(
+                "The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.",
+            ),
+            pfxFilePath: l10n.t("PFX file path"),
+            selectPfxFile: l10n.t("Select a PFX file"),
+            browsePfxFile: l10n.t("Browse for a PFX file"),
             sqlLogin: l10n.t("SQL Login"),
             entraMfa: l10n.t("Microsoft Entra ID - Universal with MFA support"),
             entraDefault: l10n.t("Microsoft Entra ID - Default"),
             entraServicePrincipal: l10n.t("Microsoft Entra ID - Service Principal"),
-            authenticationTooltip: l10n.t("The developer container uses SQL Login authentication."),
+            servicePrincipalClientSecret: l10n.t("Client secret"),
+            servicePrincipalClientSecretPlaceholder: l10n.t("Enter the client secret"),
+            servicePrincipalClientSecretTooltip: l10n.t(
+                "Client secret for the selected app registration. This is separate from the SQL administrator password.",
+            ),
+            sqlAdministratorUserName: l10n.t("SQL administrator user name"),
+            sqlAdministratorPassword: l10n.t("SQL administrator password"),
+            authenticationTooltip: l10n.t(
+                "Choose SQL Login or Microsoft Entra ID authentication for the developer container.",
+            ),
             userNameTooltip: l10n.t(
                 "The built-in administrator login for the developer container.",
             ),
@@ -4383,16 +4416,11 @@ export class LocConstants {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
             azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database"),
             azureSqlDatabaseDescription: l10n.t(
-                "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.",
+                "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
             ),
-            chooseDeploymentOption: l10n.t("Choose how to run Azure SQL Database"),
-            localContainer: l10n.t("Local container (Preview)"),
+            developerContainerPreview: l10n.t("Azure SQL Database container (Preview)"),
             localContainerDescription: l10n.t(
-                "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.",
-            ),
-            free: l10n.t("Free"),
-            freeDescription: l10n.t(
-                "Try Azure SQL Database at no cost with the free tier — a fully managed cloud database, ready for your app, ORM, or migration tools.",
+                "Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.",
             ),
             localContainerTbd: l10n.t("TBD"),
             localContainerWizardTitle: l10n.t("(Preview) New Azure SQL Database - Container"),
@@ -5442,6 +5470,33 @@ export class LocConstants {
             baselineSameLength: l10n.t("Same length before"),
             baseline7Days: l10n.t("7 days before"),
             baseline30Days: l10n.t("30 days before"),
+            regressed: l10n.t({
+                message: "Regressed",
+                comment: ["A category of the Queries page: the queries that got worse"],
+            }),
+            regressedQueries: l10n.t("Regressed queries"),
+            addedMetric: (metric: string) =>
+                l10n.t({
+                    message: "Added {0}",
+                    args: [metric],
+                    comment: [
+                        "{0} is a measure, for example duration. What a query's slowdown added: the increase in its average times its recent executions",
+                    ],
+                }),
+            newPlans: l10n.t({
+                message: "New plans",
+                comment: ["The plans that ran in the recent period and not in the baseline period"],
+            }),
+            noRegressedQueries: l10n.t("No query got worse between these periods."),
+            baselineOverlapsRecent: l10n.t(
+                "The baseline must end before the recent period starts. Choose another baseline.",
+            ),
+            baselineRangeLabel: (range: string) =>
+                l10n.t({
+                    message: "Baseline period: {0}",
+                    args: [range],
+                    comment: ["{0} is the selected time range, for example 7 days before"],
+                }),
             averagePerExecution: l10n.t("Average per execution"),
             totalPerDay: l10n.t("Total per day"),
             change: l10n.t({
@@ -5550,9 +5605,8 @@ export class LocConstants {
                 "Query Store does not capture wait statistics, so new waits are not recorded.",
             ),
             turnOnWaitCapture: l10n.t("Turn on wait statistics capture"),
-            summarizeInChat: l10n.t("Summarize"),
-            optimizeInChat: l10n.t("Optimize"),
-            moreChatActions: l10n.t("More chat actions"),
+            chat: l10n.t("Chat"),
+            openInChat: l10n.t("Open in GitHub Copilot Chat"),
             preview: l10n.t("Preview"),
             databaseHubEyebrow: l10n.t("Continue in Fabric Database Hub"),
             databaseHubTitle: l10n.t("Continue investigating this database"),

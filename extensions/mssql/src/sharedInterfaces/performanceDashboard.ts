@@ -23,6 +23,7 @@ import type {
     QueryStoreSettingsInfo,
     QueryStoreStatistic,
     QueryStoreWaitStats,
+    RegressedQuery,
     TopQueries,
 } from "sql-core/queryStore";
 
@@ -77,6 +78,8 @@ export interface PerformanceDashboardState {
      * saves it, so the page opens at it after a restart.
      */
     queryCategory?: QueryCategory;
+    /** Offers the regressed queries on the Queries page, which a private preview setting turns on. */
+    regressedQueriesEnabled: boolean;
     /**
      * Shows the banner that offers to continue in the Fabric Database Hub. Set when the database
      * has, or may have, a Hub row and the user hasn't dismissed the banner for the connection
@@ -86,7 +89,7 @@ export interface PerformanceDashboardState {
 }
 
 /** The categories of the Queries page. */
-export type QueryCategory = "cpu" | "duration" | "memory" | "executions" | "reads";
+export type QueryCategory = "cpu" | "duration" | "memory" | "executions" | "reads" | "regressed";
 
 export interface SetQueryCategoryParams {
     readonly category: QueryCategory;
@@ -159,6 +162,25 @@ export namespace GetTopQueriesRequest {
     export const type = new RequestType<TopQueriesParams, PerformanceRead<TopQueries>, void>(
         "performanceDashboard/getTopQueries",
     );
+}
+
+export interface RegressedQueriesParams {
+    readonly recent: TimeWindowParams;
+    /** Ends when the recent period starts, or earlier. */
+    readonly baseline: TimeWindowParams;
+    readonly metric: QueryStoreMetric;
+    readonly top: number;
+    /** The executions that a query needs in each period. */
+    readonly minExecutions: number;
+}
+
+/** Reads the queries whose average per execution of a metric went up the most. */
+export namespace GetRegressedQueriesRequest {
+    export const type = new RequestType<
+        RegressedQueriesParams,
+        PerformanceRead<readonly RegressedQuery[]>,
+        void
+    >("performanceDashboard/getRegressedQueries");
 }
 
 export interface QueryWindowParams extends TimeWindowParams {
@@ -351,11 +373,7 @@ export namespace SetFavoriteQueryRequest {
 /** The tabs of the query page. */
 export type QueryPageTab = "history" | "waits" | "plans" | "compare";
 
-/** What a chat prompt asks about a query: an analysis of its performance, or an explanation. */
-export type ChatPrompt = "summarize" | "optimize";
-
 export interface ContinueInChatParams extends TimeWindowParams {
-    readonly prompt: ChatPrompt;
     readonly queryId: string;
 }
 

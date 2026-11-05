@@ -116,6 +116,9 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
+    <trans-unit id="++CODE++8767c790a9cd83a09c0b6d8ecea2a7e4baffc961e43a8109db56af2dceeb6dcc">
+      <source xml:lang="en">&lt;exact {0} value unavailable from this provider&gt;</source>
+    </trans-unit>
     <trans-unit id="++CODE++86ba98dc27266a4fe755c61e97a52cecf7a28f2923406545699b11ec9d43b27e">
       <source xml:lang="en">&quot;{0}&quot; is not a result-row ordinal.</source>
     </trans-unit>
@@ -346,8 +349,8 @@
     <trans-unit id="++CODE++228153baa9f76de67fc4c204040b276a83c8f599e241c07f32851bf19d62a856">
       <source xml:lang="en">A folder with the name &apos;{0}&apos; already exists on disk at this location. Please choose another name.</source>
     </trans-unit>
-    <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
-      <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
+    <trans-unit id="++CODE++15f4008d1e3cd264d71001c3ca6b67b9f0209d53dc528dd977eeb1b39ea1f684">
+      <source xml:lang="en">A fully managed database that auto-scales, auto-tunes, and copies your data to OneLake automatically. Best for apps whose data also powers analytics and reporting in Microsoft Fabric.</source>
     </trans-unit>
     <trans-unit id="++CODE++9a3f4dcb8d00d77d27a03c716032f15e1dedc065981e6efc522136594f99cfa3">
       <source xml:lang="en">A longer flush interval loses more data if the server stops unexpectedly.</source>
@@ -472,6 +475,10 @@
     <trans-unit id="++CODE++5d4ec9a53f2cbe502e36ff86aaeba73faea341a9f13f9510375da085f8d6099b">
       <source xml:lang="en">Actions for query {0}</source>
       <note>{0} is the Query Store query ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++dc26d400a6689ce50ac096b9fd35dc1c1c502e9bfcf03a4c568cbbb049a48be9">
+      <source xml:lang="en">Actions for {0}</source>
+      <note>{0} is the name of a query file</note>
     </trans-unit>
     <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
       <source xml:lang="en">Active filters:</source>
@@ -639,6 +646,10 @@
     </trans-unit>
     <trans-unit id="++CODE++5d8cde3035bbe2c8bbbf5881dfc0a0a2c6439a21267726716a7d61663511e18b">
       <source xml:lang="en">Added plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++46efec0674c4aa930094f51059adc699aec7f58ebc402c1fdcc6757f679fa29b">
+      <source xml:lang="en">Added {0}</source>
+      <note>{0} is a measure, for example duration. What a query&apos;s slowdown added: the increase in its average times its recent executions</note>
     </trans-unit>
     <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
       <source xml:lang="en">Additional parameters</source>
@@ -921,6 +932,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e6e909c5bd0a3e25a1abcddd1dab13780ce9e4f673139a56842b1e3a26c981c0">
       <source xml:lang="en">Application (Client) ID is required.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++576111a7aee1dceb26cea96a10ff916ffb087796f8a5c1b6e97bcb16f47b01c3">
+      <source xml:lang="en">Application (client) ID</source>
     </trans-unit>
     <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
       <source xml:lang="en">Application Intent</source>
@@ -1257,6 +1271,9 @@
       <source xml:lang="en">Azure SQL Database container &apos;{0}&apos; was provisioned successfully.</source>
       <note>{0} is the container name</note>
     </trans-unit>
+    <trans-unit id="++CODE++e416075a91aab54519143288791421f0076f9883b5ce41d6391c89a71fc7c18f">
+      <source xml:lang="en">Azure SQL Database container (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++e449024435d9bf391c84ac2d47dc8e861cf2e81db21000998c4dd9de37c2b7e2">
       <source xml:lang="en">Azure SQL Database developer container</source>
     </trans-unit>
@@ -1389,6 +1406,10 @@
       <source xml:lang="en">Baseline</source>
       <note>The earlier period that a comparison compares with</note>
     </trans-unit>
+    <trans-unit id="++CODE++3875d5d8fa71e03517242432bb0c59b5a10b6c5598c32f4b2ebcdde28edc030f">
+      <source xml:lang="en">Baseline period: {0}</source>
+      <note>{0} is the selected time range, for example 7 days before</note>
+    </trans-unit>
     <trans-unit id="++CODE++9a6e9a2ef671fa22ce409d2e5427bed347472a277ad19af7de1b7a9879f82107">
       <source xml:lang="en">Baseline {0}</source>
       <note>{0} is a measure, for example Avg CPU</note>
@@ -1479,6 +1500,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a06957fcc715d602f999320581c943bdf57d5773107c22e71de68da88949b120">
       <source xml:lang="en">Browse folder</source>
+    </trans-unit>
+    <trans-unit id="++CODE++97e9c58e419ace8beaa3b4fd69ba7e2b589bf84e6e83835eb1f66dfde31f481d">
+      <source xml:lang="en">Browse for a PFX file</source>
     </trans-unit>
     <trans-unit id="++CODE++879c21b0945cca2c0ee41f421f5a066be758d466518552f403c029d7b6c66a77">
       <source xml:lang="en">Browse for an execution plan...</source>
@@ -1972,6 +1996,9 @@
     <trans-unit id="++CODE++a1578b6089ec41921bc4a70b05ca1b1171199d5d5fea6ac6c345cba9b29a83ef">
       <source xml:lang="en">Choose SQL Language</source>
     </trans-unit>
+    <trans-unit id="++CODE++b2c08d10dfa4a341c9d2d927fa2db03856765fe2a45a2660e3b8103e6053b4fc">
+      <source xml:lang="en">Choose SQL Login or Microsoft Entra ID authentication for the developer container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d4b455dc8237ce7460f9bde4850dc92b735297b2b498b06b350dca028b33a936">
       <source xml:lang="en">Choose SQLCMD variables to modify</source>
     </trans-unit>
@@ -2028,9 +2055,6 @@
     </trans-unit>
     <trans-unit id="++CODE++5a21391bcc74e9be551181efa01468a47123f8bd2893dd1519672fc2c03b408b">
       <source xml:lang="en">Choose column</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d0a50b3c66ed08ff5e7bb4903c4593ac6050d5493dccbfbf9442a0466bf2c2cc">
-      <source xml:lang="en">Choose how to run Azure SQL Database</source>
     </trans-unit>
     <trans-unit id="++CODE++33cae60710d18883f5948aa5911afb6dd1569629731526de9d6fbf18856274a0">
       <source xml:lang="en">Choose other folder</source>
@@ -2186,6 +2210,12 @@
     <trans-unit id="++CODE++ae21cf6d24b8ca460e91fe9dc61432a60403b1dabea53792a9c95c63a7cb0db2">
       <source xml:lang="en">Client Secret</source>
     </trans-unit>
+    <trans-unit id="++CODE++4aded5faf15623c5c91eb87d39dbe4366fc73e1affb46dfbfcc1865e7704f157">
+      <source xml:lang="en">Client secret</source>
+    </trans-unit>
+    <trans-unit id="++CODE++deda015a0a919b18de891022b10c28ce289ac326f50c23594577a26b82f9bcbc">
+      <source xml:lang="en">Client secret for the selected app registration. This is separate from the SQL administrator password.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b88d22f627afd019becae5972c1ad1c05cca30f1c24c21e6a1ebf5492207904b">
       <source xml:lang="en">Client secret is required.</source>
     </trans-unit>
@@ -2207,6 +2237,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873">
       <source xml:lang="en">Close Find</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d68b78c76d7b9cc4227369a761426fe19e9196d17e76b43f2866a06c711c4347">
+      <source xml:lang="en">Close Results</source>
     </trans-unit>
     <trans-unit id="++CODE++643a90a6bde33b562cd0de040386daa285bf033a5027344e98ad12c8d2cac56a">
       <source xml:lang="en">Close Script Pane</source>
@@ -2445,6 +2478,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ff09ed14e260f89ad6e0aed11f1a11048f6f238137e3bc68ef97c9ab279fa63e">
       <source xml:lang="en">Compile CPU</source>
+    </trans-unit>
+    <trans-unit id="++CODE++849df5c9c0457311e9e94386791938b8ba5a91a060867c6a32aaba5f32a4bd55">
+      <source xml:lang="en">Completed with errors</source>
     </trans-unit>
     <trans-unit id="++CODE++421428d865d9212a46a8ab340467e462b3c6ae40050c2c1cb90551b3bf703ab9">
       <source xml:lang="en">Completed with errors.</source>
@@ -2772,6 +2808,9 @@
     <trans-unit id="++CODE++596c52f1eb65c1c3c65404e5f75974937fee4fc77d0970abeddf580e7123ce0c">
       <source xml:lang="en">Connection failed</source>
     </trans-unit>
+    <trans-unit id="++CODE++ab32978caeaaabae412a49320a759df59b47a505e3591f34b97aa98d166a3dd1">
+      <source xml:lang="en">Connection failed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
       <source xml:lang="en">Connection failed: {0}</source>
       <note>{0} is the error message from the connection attempt</note>
@@ -2836,6 +2875,9 @@
     <trans-unit id="++CODE++fb8d3f9bd43cabe4c37397705e459f16b67ee8c01ea4c4f23371fac86d720bf7">
       <source xml:lang="en">Connection test succeeded</source>
     </trans-unit>
+    <trans-unit id="++CODE++87d75c777cece30cb89fad14e04daebba029110613e60ba55ffabb417702b26f">
+      <source xml:lang="en">Connection timed out.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
       <source xml:lang="en">Connection with ID &quot;{0}&quot; not found. Please verify the connection ID exists.</source>
       <note>{0} is the connection ID</note>
@@ -2851,6 +2893,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dc273117482b4429ada500ecd2e0c75532454194892cb901ca64cc7df369fdf6">
       <source xml:lang="en">Connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++37dfbaba6815491f37ae83a636b1c93ffbe7d56ab4a008e3eaba2d33f6ee3993">
+      <source xml:lang="en">Connections (Private Preview) could not connect to the new container.</source>
     </trans-unit>
     <trans-unit id="++CODE++667becd097c0617a1f7c02fbe6ad67c563025db76df1b78a793d4df8c322ef3f">
       <source xml:lang="en">Connections (Private Preview) could not connect.</source>
@@ -3201,6 +3246,9 @@
     <trans-unit id="++CODE++56d39ec1e8163f0966464f66392c8d028981d568f3a30e02e506d9fbc12b4f8b">
       <source xml:lang="en">Could not load the database list: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++075e35b93a826d81e3d565dae8d668dd2a64dedd0a4ed5ab17df44aab6066af2">
+      <source xml:lang="en">Could not read SQL Server session information.</source>
     </trans-unit>
     <trans-unit id="++CODE++0d4400b691051ae4194ffbcb87a0329b751d4719977ad305fab07d6abe912859">
       <source xml:lang="en">Could not read from the database: {0}</source>
@@ -4191,6 +4239,9 @@
     <trans-unit id="++CODE++a5d38a76e9010d59374fafce6a3d75189df15be61859ee1ffa33da6e9cf97b05">
       <source xml:lang="en">Docker is not installed or not in PATH. Please install Docker Desktop and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d1d2395e0811db06e65dc198b4058df434f11f068d9fc753f66f114d8feabea1">
+      <source xml:lang="en">Docker preparation failed: {0}&#10;SQL connection failed: {1}</source>
+    </trans-unit>
     <trans-unit id="++CODE++319f0296a0199ff55c80367670b4bc2dda57e9856942a4be10ca5a4b1531b6a1">
       <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
     </trans-unit>
@@ -4320,9 +4371,6 @@
     </trans-unit>
     <trans-unit id="++CODE++ec042c24dd06eb1a5b1da94da18103e498e97c0d7ba2ea69ed80122818ceac77">
       <source xml:lang="en">Earlier-format index — migration available</source>
-    </trans-unit>
-    <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
-      <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
     </trans-unit>
     <trans-unit id="++CODE++2f7514a7052124c11a8ce6b0e1142e55c5cca7611f0cf9d28bb94e5dcecbc07a">
       <source xml:lang="en">Easily start using the extension with one-click Microsoft SQL Agent skills installation, dev container templates, walkthrough, and learning resources.</source>
@@ -4572,6 +4620,9 @@
     <trans-unit id="++CODE++c6f26578480a8dbf1936018f7da44b5155d760a812768260737c913b9f12e9da">
       <source xml:lang="en">Enter a result-row ordinal, e.g. 0.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a8e4f171f5dac43721baa859301efdae50cab325345ed4b8cfa83d98fceef9c4">
+      <source xml:lang="en">Enter a valid application (client) ID.</source>
+    </trans-unit>
     <trans-unit id="++CODE++885dd0087e9192594843144ef7d051d40c814ddf786b582e0e5a9c2f6ae7fcf1">
       <source xml:lang="en">Enter a valid hostname.</source>
     </trans-unit>
@@ -4662,6 +4713,15 @@
     <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
       <source xml:lang="en">Enter the SQL Login password for user &apos;{0}&apos;.</source>
       <note>{0} is the SQL Login username</note>
+    </trans-unit>
+    <trans-unit id="++CODE++509319429f2a0965b79fc02012bf0aaf52759e7f64f89f4465e037e4d1d14635">
+      <source xml:lang="en">Enter the application client ID</source>
+    </trans-unit>
+    <trans-unit id="++CODE++886189310100f47aea0296511a3b3e2a4c30f2322c931b0550fa2a9e20e05517">
+      <source xml:lang="en">Enter the client secret</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1d2db8e24c656cf7880c0ca98a2f89b3ae6a7fccdb0d9576cecf6249b5f64455">
+      <source xml:lang="en">Enter the client secret for the selected app registration.</source>
     </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
@@ -7050,6 +7110,9 @@
     <trans-unit id="++CODE++74163645b1b5bc4c8eecb0fc8aab578ca3ecd3f9b1d92fb85206e045ffcc29a6">
       <source xml:lang="en">JSON Lines</source>
     </trans-unit>
+    <trans-unit id="++CODE++b245d5b75bbbbe3d511b0efabbf82603cdb5bd70a46a49709fa996c967d4ed28">
+      <source xml:lang="en">Join Group</source>
+    </trans-unit>
     <trans-unit id="++CODE++c8321841ecd2c0a373777e155776af9c19009b5e993d6d696ef8309af4bc1109">
       <source xml:lang="en">Join a free SQL + AI workshop</source>
     </trans-unit>
@@ -7590,9 +7653,6 @@
     <trans-unit id="++CODE++44fe2df974d8b80786309f264819c59c4f54ef54e4c1ae57b1dd7983d08b6ba5">
       <source xml:lang="en">Local clone path</source>
     </trans-unit>
-    <trans-unit id="++CODE++361bad9f7864ba91d621aa931828237741303dc125d67ac76c81ea7b3001090b">
-      <source xml:lang="en">Local container (Preview)</source>
-    </trans-unit>
     <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
       <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
     </trans-unit>
@@ -7634,6 +7694,9 @@
     </trans-unit>
     <trans-unit id="++CODE++aa4075881e71671f10ac35bb76f311e36e782fb5faa35f3dc0b36ae98940b1d5">
       <source xml:lang="en">Logical reads (KB)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++322ec274dd5769349d3fda98fbe28606e6127304287c3cfaf9c5da716ba5e1d2">
+      <source xml:lang="en">Login failed.</source>
     </trans-unit>
     <trans-unit id="++CODE++543eb6e59b2d9076bcd19e7217a2437aa8f9f26de4e313560f4ca0827225a787">
       <source xml:lang="en">Logins</source>
@@ -8153,9 +8216,6 @@
     <trans-unit id="++CODE++7b2f513a67abc570d3348717ad85ae669570734afe2bf57015c2cc9b0dce3764">
       <source xml:lang="en">Monthly limits</source>
     </trans-unit>
-    <trans-unit id="++CODE++98eea4c1c21f333640ea131c6484e3a8a861029affc6ac5438a67df28df6af68">
-      <source xml:lang="en">More Actions</source>
-    </trans-unit>
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
     </trans-unit>
@@ -8165,9 +8225,6 @@
     <trans-unit id="++CODE++0c94b5f19becc4862e3862d599e2d386c40079841aba3ab70d05241df1ff6802">
       <source xml:lang="en">More actions for {0}</source>
       <note>{0} is the name or summary of a reusable filter</note>
-    </trans-unit>
-    <trans-unit id="++CODE++8bc4950de327ce134a92b8b604d0c343a2bb8545486e8bcab129d8af8061f9c6">
-      <source xml:lang="en">More chat actions</source>
     </trans-unit>
     <trans-unit id="++CODE++a79a38420fec4111d59e6c851e1bc74fde38f27d487e7cbb59d242d17a8c77fb">
       <source xml:lang="en">More connection commands</source>
@@ -8222,6 +8279,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b76bc80b8a0e64a7d4bdcb44be4f61adea3c7657d8ab9c599ab349d1d772d7b1">
       <source xml:lang="en">Move selection to the last cell in the row</source>
+    </trans-unit>
+    <trans-unit id="++CODE++960ef6bb14d79f9da3081501845f832d315f186a724083aa6b3b818a27e4a9a2">
+      <source xml:lang="en">Move to New Group</source>
     </trans-unit>
     <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
       <source xml:lang="en">Move to Root</source>
@@ -8304,6 +8364,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a5135f7bb6d09c754daab4f864f6bcbd5980df298e33b6dd4a979c1fb9484545">
       <source xml:lang="en">Native ARM and x64 images so you get great performance on Apple silicon, Surface, and Linux ARM devices, and on traditional Intel/AMD machines alike.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a5dfbb4ac77d38611c133341f52f46ff7ea477c495ab8892bab8d0dc2710fb00">
+      <source xml:lang="en">Native TypeScript (Tedious)</source>
     </trans-unit>
     <trans-unit id="++CODE++fa0b5c9f24a385fbfa5914f392a2476c831d7baa4365e59cfca338130cd71c98">
       <source xml:lang="en">Navigate result grids</source>
@@ -8412,6 +8475,10 @@
     </trans-unit>
     <trans-unit id="++CODE++14b597fbf3bcf6c5c2d537614aacd0fc0ad22c1a5fee4bec6f2d9fedf0591d38">
       <source xml:lang="en">New media set name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++84ddaa59242721bbdb5e6a518bef14cefff9c4c285a912d7e41c259701a8b13b">
+      <source xml:lang="en">New plans</source>
+      <note>The plans that ran in the recent period and not in the baseline period</note>
     </trans-unit>
     <trans-unit id="++CODE++19266c62f80623721599e09db254321ee085c2f4f10fafd28dbd3f89863202b9">
       <source xml:lang="en">New query</source>
@@ -8756,6 +8823,12 @@
     </trans-unit>
     <trans-unit id="++CODE++cf628b1c71bbf3f33eaa125d83a2b2905071080611468992cd11298f25bbc460">
       <source xml:lang="en">No queries ran in this time range.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c3c5ace71e54b867815f1b160f4c1af0bfc68d4bcc35039b231b06f615ed70c2">
+      <source xml:lang="en">No query got worse between these periods.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5576412fee3b128cc18b6aa0d6dce99c9da0ae3e4a85180077e3e2cc38c2b89d">
+      <source xml:lang="en">No query results</source>
     </trans-unit>
     <trans-unit id="++CODE++07fa58bdd9de910a1e070b49104fd2eb37a4665f9cae70f35a28130d6fb1cf10">
       <source xml:lang="en">No query set</source>
@@ -9348,9 +9421,6 @@
     <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
       <source xml:lang="en">Operator</source>
     </trans-unit>
-    <trans-unit id="++CODE++aa5f530acb509a3547fc2a5cc3f1c92da93af2f5b466417527e59d0f50f00c7b">
-      <source xml:lang="en">Optimize</source>
-    </trans-unit>
     <trans-unit id="++CODE++e262d629c99156bd48e759790fae3387d08f1b1651ff7ec74a3ca9ad9202e0c9">
       <source xml:lang="en">Option Description</source>
     </trans-unit>
@@ -9460,6 +9530,12 @@
     </trans-unit>
     <trans-unit id="++CODE++68daa8fa35376ecc4b62d96d3ee5ac7b05299b5372a53b2cae19f44053f410ed">
       <source xml:lang="en">PCA scatter. Drag to pan, scroll to zoom, click to pick a point. Plus and minus keys zoom, 0 fits. Use the point list for keyboard navigation.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7b44936bb16e8051d2b18d6b9b7ec49247110df09cabb390ad7d6306632a071f">
+      <source xml:lang="en">PFX file path</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f64f4cfcb376e12149ac8e392aa0fcbe1fc9a09c184f0f0a4d648315535d0a14">
+      <source xml:lang="en">PFX files</source>
     </trans-unit>
     <trans-unit id="++CODE++fcab7fcc2b4cffd9bb45003bfc2e468a04ef6f77ca8200a7341f027631584d25">
       <source xml:lang="en">PK</source>
@@ -9849,9 +9925,6 @@
     </trans-unit>
     <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
       <source xml:lang="en">Preview Database Updates</source>
-    </trans-unit>
-    <trans-unit id="++CODE++cd3c37c0fff7336e44e0cf23750941ac5a52b322309637bd4733036d1b863ce8">
-      <source xml:lang="en">Preview Grid</source>
     </trans-unit>
     <trans-unit id="++CODE++69bd976ef3d282324a90ef7bd186ae542057ded57791a146024cf9a70322a3df">
       <source xml:lang="en">Preview chunks</source>
@@ -10301,6 +10374,9 @@
     <trans-unit id="++CODE++14ad88fc2a2fb0b956145de48523cd88f888a882a24322919567d744b8e74e70">
       <source xml:lang="en">Query quick actions</source>
     </trans-unit>
+    <trans-unit id="++CODE++62745e8bb9178b496d2d600dcdeeafcab45047520d527e199a23dd32b552c861">
+      <source xml:lang="en">Query result delivery failed ({0}) while processing {1}.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b55ac51f0872253bf11aebfd286d8ab4a7336ef413bc96093f0a08020e3c664f">
       <source xml:lang="en">Query results</source>
     </trans-unit>
@@ -10530,6 +10606,9 @@
     <trans-unit id="++CODE++d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef">
       <source xml:lang="en">Recommended</source>
     </trans-unit>
+    <trans-unit id="++CODE++fe619db26a91caecebe7aecd57159dea5f49c5c98543244d4d220a8ecdc5b824">
+      <source xml:lang="en">Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.</source>
+    </trans-unit>
     <trans-unit id="++CODE++deceaea7c08bcc5b6c00ed7e20b0894470bf24318b55387ca93a0d8909c77d61">
       <source xml:lang="en">Reconnect the analysis session before loading finding details.</source>
     </trans-unit>
@@ -10628,6 +10707,13 @@
     </trans-unit>
     <trans-unit id="++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083">
       <source xml:lang="en">Register</source>
+    </trans-unit>
+    <trans-unit id="++CODE++260371f27b52a501cdd634b1602f2035bac4850aad8fe99341dc5c22f1583d13">
+      <source xml:lang="en">Regressed</source>
+      <note>A category of the Queries page: the queries that got worse</note>
+    </trans-unit>
+    <trans-unit id="++CODE++698464f7c169c019d7dc98d55bad82e8435ab3d46a54e09253a926d4937efdb1">
+      <source xml:lang="en">Regressed queries</source>
     </trans-unit>
     <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
       <source xml:lang="en">Reject</source>
@@ -10959,6 +11045,10 @@
     <trans-unit id="++CODE++a5ec26b19a366ed7e7eb9b3478620802f23ace14c3e3b59763ac682b5cb94587">
       <source xml:lang="en">Result set not found.</source>
     </trans-unit>
+    <trans-unit id="++CODE++51ba29787f1a60cfe7b2cd874264359715fe5ba1caf2fc9fe9b47bcde3ac7de2">
+      <source xml:lang="en">Result sets: {0}</source>
+      <note>{0} is the number of result sets the query returned</note>
+    </trans-unit>
     <trans-unit id="++CODE++dcc91d574563dcc63805ceec887da10732b5e13eafa41dc2851fe0939816cdb4">
       <source xml:lang="en">Result-row ordinal</source>
     </trans-unit>
@@ -10985,20 +11075,13 @@
       <source xml:lang="en">Results ({0})</source>
       <note>{0} is the keyboard shortcut for the results tab</note>
     </trans-unit>
-    <trans-unit id="++CODE++2d69137f5dd060efac1008188981aff344c1d3de8f7c3bf54359e68cc4e19b5e">
-      <source xml:lang="en">Results Preview</source>
-    </trans-unit>
-    <trans-unit id="++CODE++2944b5a2b1f061b198f19a818d051f7246c0494c3a7150d757f2301e3ab9e06a">
-      <source xml:lang="en">Results Preview ({0})</source>
-      <note>{0} is the number of preview results</note>
-    </trans-unit>
-    <trans-unit id="++CODE++19845d8a46ab987a3d8bf7a121f630c6f4dd5bbf37f30e81ec6fb187bba7a8e3">
-      <source xml:lang="en">Results Preview ({0})</source>
-      <note>{0} is the keyboard shortcut for the preview results tab</note>
-    </trans-unit>
     <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
       <source xml:lang="en">Results exported successfully to {0}</source>
       <note>{0} is the file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++108f526321dc72575a3742c8b54e99148d105c8341a1876d05aaf99ca1caa85c">
+      <source xml:lang="en">Results for {0}</source>
+      <note>{0} is the name of a query file</note>
     </trans-unit>
     <trans-unit id="++CODE++307ea97b854d629bc8febac31e69d61ee13fcdeca467abf549e7a3258bce347e">
       <source xml:lang="en">Results toolbar</source>
@@ -11150,9 +11233,6 @@
     <trans-unit id="++CODE++00d60e31a4e6b8344d4201f25a6a7dee770713107f6d097abb01559d32b17f26">
       <source xml:lang="en">Run</source>
     </trans-unit>
-    <trans-unit id="++CODE++34ef2e4e57e03bb3051579a7ad4a25ac18b6a045198cb6114bcd5d49f11e7bc3">
-      <source xml:lang="en">Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.</source>
-    </trans-unit>
     <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
       <source xml:lang="en">Run Query</source>
     </trans-unit>
@@ -11164,6 +11244,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++19d6a3cab04f89b6d096a220971198afb0f221cf55f9459110c81065127ac861">
+      <source xml:lang="en">Run a query to see its results here. Drag results onto each other to view them side by side.</source>
     </trans-unit>
     <trans-unit id="++CODE++f1f7fb149510b3345e622785a8ef9a6d79fe17a9521268307fd6a9e32668494b">
       <source xml:lang="en">Run an Azure Function whenever a row in my table changes</source>
@@ -11182,6 +11265,12 @@
     </trans-unit>
     <trans-unit id="++CODE++e4a7eef54f61befcda35db794ab6b91a9c78f0dc71ed873af0e5ad085dbd90bc">
       <source xml:lang="en">Run config matrix</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1c49c6e772c68dc112a5ef60569f242be6e31d9dad5c980e4e561a72c1e11d5b">
+      <source xml:lang="en">Run in the cloud</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a28ec84e59a23904c60d0abf7bf2ebf32938819f4be027bfa7cc79eff9f7f150">
+      <source xml:lang="en">Run locally</source>
     </trans-unit>
     <trans-unit id="++CODE++2c757183a36d594602187e88cad67e8e38ab92dd5c9c01ca69eb4c67f465b8e3">
       <source xml:lang="en">Run query on connection &apos;{0}&apos; (ID: {1})?&#10;&#10;Query: {2}</source>
@@ -11239,6 +11328,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1535db1c91172380e70396d4a07899000757727b521ac651eb91dbcaee2460e4">
       <source xml:lang="en">Runs Data API builder in a container on this machine, published on a local port.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++da343d583a7a7a73b9b687d5dcc9991a9cd6454c8cbcadecd5a091bf2c91fc5e">
+      <source xml:lang="en">Runs SQL Server in Docker, set up in a few clicks. Best for apps on SQL Server or Azure SQL Managed Instance.</source>
     </trans-unit>
     <trans-unit id="++CODE++76086ca76a113f441793f5f388b976f1b83690e0fd9fa4bb54d1000b9107cb58">
       <source xml:lang="en">Runs containers through Windows Subsystem for Linux (WSL). · Windows</source>
@@ -11313,6 +11405,9 @@
     <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
       <source xml:lang="en">SQL Server admin password</source>
     </trans-unit>
+    <trans-unit id="++CODE++ec80fe299151f0b93c8d0f3ce2f2cf29b185e4c4008e70bf6f6b3765c51c25ed">
+      <source xml:lang="en">SQL Server container</source>
+    </trans-unit>
     <trans-unit id="++CODE++82a5a935a9143edc89ac046512a9ba03026e4774cde53feb82c959225904e638">
       <source xml:lang="en">SQL Server container &apos;{0}&apos; was provisioned successfully.</source>
       <note>{0} is the container name</note>
@@ -11332,6 +11427,12 @@
     </trans-unit>
     <trans-unit id="++CODE++6a6bf6063fe6e46acf60d08c0ba2dba1d05dd22efb279588eeca536a4850299b">
       <source xml:lang="en">SQL Tools (MSSQL)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++194b00f1ade2cfa7f0bd1d5faa08208c54b9b4a9be5aec86e97c59229b194105">
+      <source xml:lang="en">SQL administrator password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++018348b418e39ee569a6de6af9d230eddf43702499067bb1749c0aa0cb1f4d47">
+      <source xml:lang="en">SQL administrator user name</source>
     </trans-unit>
     <trans-unit id="++CODE++f82bf397fbecb2b80b5ae141ab451c140c4635d090b66f828705d7ac5e31f98f">
       <source xml:lang="en">SQL connection string</source>
@@ -11818,6 +11919,9 @@
     <trans-unit id="++CODE++79e5e71c56f13bb3c722fd134f6fb39e747de15dc979295882ecac8d67d45559">
       <source xml:lang="en">Select Max vCores</source>
     </trans-unit>
+    <trans-unit id="++CODE++47b397e32086b5d48f33d380a63b9e4c4167835fa11eca9d5ba4e7895a4a184b">
+      <source xml:lang="en">Select PFX file</source>
+    </trans-unit>
     <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
       <source xml:lang="en">Select Profile</source>
     </trans-unit>
@@ -11847,6 +11951,12 @@
     </trans-unit>
     <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
       <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3310905b88996cc8faca840d24fe8f84c5d229e34def2d4828732425eb1a4627">
+      <source xml:lang="en">Select a Microsoft Entra account.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c4f51bc82339f74a69dab3f8077d0ef3ac5b660897b932f862dca4bdf1a62f8c">
+      <source xml:lang="en">Select a PFX file</source>
     </trans-unit>
     <trans-unit id="++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c">
       <source xml:lang="en">Select a Workspace</source>
@@ -11929,6 +12039,9 @@
     <trans-unit id="++CODE++fac4c702f7790e41763806f2cdc67d0521f91fe1cd0cc1ac492506ea2842b5dc">
       <source xml:lang="en">Select a subscription to view servers in it.</source>
     </trans-unit>
+    <trans-unit id="++CODE++af249974055c6abde49a71dc16b1e5521a624eb0edbb1f7a89af564529be5338">
+      <source xml:lang="en">Select a supported authentication type.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba9bb750744bd9e7ebb8626d0c7104abe572221c6a4f846fe7e635076be038da">
       <source xml:lang="en">Select a target schema, then press Compare.</source>
     </trans-unit>
@@ -11983,6 +12096,9 @@
     <trans-unit id="++CODE++2feddedc429af59e438afc4eb6fbbf8d819d6570863c8cca67547390a5687a3e">
       <source xml:lang="en">Select an execution plan to replace {0}</source>
       <note>{0} is the name of the execution plan being replaced</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1fb234c93431039615e3eb3b38557f8535125d00a4659301e81e67cba9363e3d">
+      <source xml:lang="en">Select an existing, readable local PFX file.</source>
     </trans-unit>
     <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
       <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
@@ -12388,13 +12504,6 @@
     <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
       <source xml:lang="en">Show MSSQL output</source>
     </trans-unit>
-    <trans-unit id="++CODE++a16e132b133cc57c4d467bde193d78fe48f170a197d0581c2e6578162824902f">
-      <source xml:lang="en">Show Menu</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d014d52362848d2e01dc78db0a3788e52c984baecefb3c94fd4539d03e331e78">
-      <source xml:lang="en">Show Menu ({0})</source>
-      <note>{0} is the keyboard shortcut for showing the menu</note>
-    </trans-unit>
     <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
       <source xml:lang="en">Show New Password</source>
     </trans-unit>
@@ -12653,6 +12762,9 @@
     <trans-unit id="++CODE++e4bb9f1ece9af9264a3b9e3913bbdb2cf497457167b14ced5f85688bfde74644">
       <source xml:lang="en">Start</source>
     </trans-unit>
+    <trans-unit id="++CODE++dc886878e735deffe0170f33b2a7f82a5b864c6427f628721e1e16a5d2e02b6f">
+      <source xml:lang="en">Start Container</source>
+    </trans-unit>
     <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
       <source xml:lang="en">Start IP Address</source>
     </trans-unit>
@@ -12661,6 +12773,9 @@
     </trans-unit>
     <trans-unit id="++CODE++081917aac8ef49fe296c61c39645bd49befe725bd8511f72c5e02ef75226117e">
       <source xml:lang="en">Start anyway · {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3009ce75e6d4c08a042ab2d77360f5334cd765390fc51f1c2740a66b12eaed46">
+      <source xml:lang="en">Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.</source>
     </trans-unit>
     <trans-unit id="++CODE++0224c763e5d0c066c2560725e331c4e0833a545774a52355fb8b2849b473dd0d">
       <source xml:lang="en">Start matrix run · {0}</source>
@@ -12802,6 +12917,9 @@
     <trans-unit id="++CODE++2c4fb82c11a12677559564607a6a178c2ff897e0c5769b72f29ec6f55931bea7">
       <source xml:lang="en">Stored procedure REST methods</source>
     </trans-unit>
+    <trans-unit id="++CODE++c8e04db8e8952736150e32a7d7744a43eba5879708f5330ddd40643c083b3e68">
+      <source xml:lang="en">Strict encryption is not supported by the Native TypeScript preview. Use SQL Tools Service for this connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
     </trans-unit>
@@ -12853,9 +12971,6 @@
       <source xml:lang="en">Sum: {0}</source>
       <note>{0} is the sum</note>
     </trans-unit>
-    <trans-unit id="++CODE++e2683724d3eec401d6f3f88afa85812a346d838f85c2ac1406b057f0233c6c27">
-      <source xml:lang="en">Summarize</source>
-    </trans-unit>
     <trans-unit id="++CODE++8e76a94ac8320d515375e625bef1829238b097ecbd33611b59eeefd4ffefebfb">
       <source xml:lang="en">Summary</source>
     </trans-unit>
@@ -12879,9 +12994,6 @@
     </trans-unit>
     <trans-unit id="++CODE++5f9a6468c67e9a70a4b7b3b9b65d5c8d1ff0dcd29d0deeebf7232dde003c2918">
       <source xml:lang="en">Switch between result panes and tabs</source>
-    </trans-unit>
-    <trans-unit id="++CODE++6652212ed4ac6802693dae6e359f8c57272ec99f52ac06f1bc5f7d7948fb9e89">
-      <source xml:lang="en">Switch between the classic and the preview results grid</source>
     </trans-unit>
     <trans-unit id="++CODE++d797c6360240f8a9e067207c81426437b0a655a0a744840a19a889ab8de4b58e">
       <source xml:lang="en">Switch results view</source>
@@ -13224,6 +13336,18 @@
     <trans-unit id="++CODE++72ae1c7c0c97c5635f2d340850dc095c75b01b50baa4842c23665d1ee1ca33a4">
       <source xml:lang="en">The EMBEDDINGS model identity or endpoint changed after confirmation; refresh and prepare again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ecc48bf0a5cb6b4e2f115197e11af024d6affdaf6522e5c9aa977c7ed26ded61">
+      <source xml:lang="en">The Native TypeScript provider could not be loaded. Reinstall the extension or select SQL Tools Service.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bdeb799e69db54ed46889773200d11a4b5b6e62e093e2c48b794bccd12c244ae">
+      <source xml:lang="en">The Native TypeScript provider has been disposed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7f2fa1b238626d051e4f0e7599fd537821d8fe5ab391754182e90a4dca09b16e">
+      <source xml:lang="en">The Native TypeScript provider requires Node.js {0} or newer; this host uses {1}.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6245239dee38d7c6e9874112f86763d29c563167af4a36ba5c7d39553b6d3f26">
+      <source xml:lang="en">The Native TypeScript provider supports TCP connections only. Use SQL Tools Service for other protocols or LocalDB.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8922e04444a312dee1de7d3f85608927094be14320e0ca386ffbb3641f648b2f">
       <source xml:lang="en">The Pipeline result reference is invalid.</source>
     </trans-unit>
@@ -13233,6 +13357,12 @@
     <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
       <source xml:lang="en">The SQL Server extension couldn&apos;t start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++413c259568bece29e0f79a658446153a6d633f09a17fd1c6099bc9f005cdd2ce">
+      <source xml:lang="en">The SQL container could not be started. Check the Docker logs and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f53ff63c1de2d609c0234441696af6d9535e09b242909f08c06c35797e5f1b39">
+      <source xml:lang="en">The SQL container did not become ready in time. Docker may be unresponsive.</source>
     </trans-unit>
     <trans-unit id="++CODE++9f4adae54770965f9be3cbbf3f857b3a5a74f9f5adaa37feda96f1fa47887056">
       <source xml:lang="en">The SQL data plane does not support the authentication type of this connection.</source>
@@ -13282,6 +13412,9 @@
     <trans-unit id="++CODE++72ab169ee186297902137a63b8dc484df7fa2f7085723fbcfe4f0ecd21e885d3">
       <source xml:lang="en">The analysis was cancelled.</source>
     </trans-unit>
+    <trans-unit id="++CODE++da2282046faea4f8b041fcbd9df14a0a986cd8cfd5c29974e415064e706ec87e">
+      <source xml:lang="en">The baseline must end before the recent period starts. Choose another baseline.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
       <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>
@@ -13330,6 +13463,9 @@
     <trans-unit id="++CODE++a238f8494c24670d2a99bca7863c04c3b523e1ffd7502d240c9aadca7e53c9c1">
       <source xml:lang="en">The connection ID &apos;{0}&apos; set in &apos;mssql.defaultConnectionId&apos; does not match any known connection profile. New editors will fall back to transferring the active connection.</source>
       <note>{0} is the connection ID that was not found</note>
+    </trans-unit>
+    <trans-unit id="++CODE++757667508525b0a17745f4935bc686a48d56aaf88ff234d58ddec5ab3d66e3d7">
+      <source xml:lang="en">The connection finished opening after its deadline.</source>
     </trans-unit>
     <trans-unit id="++CODE++70ece7402eaedb300906107bea039eae51bf2b850127528ddb1d48e174d64515">
       <source xml:lang="en">The connection profile for this request no longer exists.</source>
@@ -13384,11 +13520,11 @@
     <trans-unit id="++CODE++4ed30ce390b4a87aa521240a8313735faff4c4cb4df0c01292ffdaf5b9a44c58">
       <source xml:lang="en">The description of the primary key.</source>
     </trans-unit>
-    <trans-unit id="++CODE++44d1028a4f9813fa5404247a36ba5c244cf826267718ec8031f44ea1744cd9f5">
-      <source xml:lang="en">The developer container uses SQL Login authentication.</source>
-    </trans-unit>
     <trans-unit id="++CODE++3fbaabbabe5379e313ce6dd855f7c152410f2ed113cb894b9f08eb879b1ef0ac">
       <source xml:lang="en">The dimensions override is {0}; the verified target declares {1}.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ee3b2c978f3d423b040d97d7b48e445431bf81ad403553962e605c08cbbee3f4">
+      <source xml:lang="en">The editor for these results is closed. The results stay until you close them.</source>
     </trans-unit>
     <trans-unit id="++CODE++7d461990f839b0bf2ac4825e909940b31fbe37f7b1da2ee5a4091bfb27cf40cb">
       <source xml:lang="en">The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.</source>
@@ -13630,6 +13766,9 @@
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
     </trans-unit>
+    <trans-unit id="++CODE++930b10cc0233d500dbf4d8b27a0903e7e7b9334b28ccc77d3fd0f53766cce2d3">
+      <source xml:lang="en">The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.</source>
+    </trans-unit>
     <trans-unit id="++CODE++dcc368e5cecae7f8a0551b1a10f920940276c11de668e2c7e38cd72bfc755563">
       <source xml:lang="en">The selected clone path &apos;{0}&apos; does not exist or is not a directory.</source>
     </trans-unit>
@@ -13827,6 +13966,9 @@
     <trans-unit id="++CODE++10dbcc17721e3abad0e3b372a444fb35e5e22c354ccda55e36c477ffbf2b8db2">
       <source xml:lang="en">This connection&apos;s server group is marked as production, and the query contains statements that can change or destroy data. This can result in data loss. Would you like to continue?</source>
     </trans-unit>
+    <trans-unit id="++CODE++613081b07643e66f1cd6f4934dc34812a75ce7b365d2124acec987c6074b7bee">
+      <source xml:lang="en">This container provisioning step is not supported.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
@@ -14008,9 +14150,6 @@
     <trans-unit id="++CODE++0888fb768c96dbbea7f193833d4dc8ec6ac4cf63d8a49991b8768eaa9dab7e6a">
       <source xml:lang="en">Toggle Similar Areas</source>
     </trans-unit>
-    <trans-unit id="++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa">
-      <source xml:lang="en">Toggle Sort</source>
-    </trans-unit>
     <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
       <source xml:lang="en">Toggle Tooltips</source>
     </trans-unit>
@@ -14147,12 +14286,6 @@
     <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
       <source xml:lang="en">Truncate the transaction log</source>
     </trans-unit>
-    <trans-unit id="++CODE++35ab6441ab2035c69e2f496ec51319ca8e0bb84ca1ef6b5c6f3c715b90200aab">
-      <source xml:lang="en">Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a6ad83aa61def89d0a2bc23f61f91102da392701c49a76fc3dae6f1199f42f89">
-      <source xml:lang="en">Try Azure SQL Database at no cost with the free tier — a fully managed cloud database, ready for your app, ORM, or migration tools.</source>
-    </trans-unit>
     <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
       <source xml:lang="en">Try adjusting your search or filters</source>
     </trans-unit>
@@ -14213,6 +14346,9 @@
     </trans-unit>
     <trans-unit id="++CODE++452ce092c6c32a7a5a0523106e688d109ba708b20410313da36387d1e6688a2b">
       <source xml:lang="en">Unable to derive a distinct vector index name for the selected metric.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a351282b73682a7c762b03903b4bd5da0c91b490c029de4f84d0a270d5396c50">
+      <source xml:lang="en">Unable to determine the selected Microsoft account&apos;s administrator identity in this tenant. Sign in to the tenant and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++45f72ef532c602c155033a6d27f0b8842d5514272f174487daece16c8ae600a1">
       <source xml:lang="en">Unable to determine the server authentication type.</source>
@@ -15866,6 +16002,13 @@
       <source xml:lang="en">{0} (Current Account)</source>
       <note>{0} is the account display name</note>
     </trans-unit>
+    <trans-unit id="++CODE++8cc823eebd9780ac5bec6b74c1aaded82648958f05dfca19f4f94ab4aef88d05">
+      <source xml:lang="en">{0} (approximate)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4c479f29948d62f58798f64fedc628f3559317a496e9dd527f7cf6437092e423">
+      <source xml:lang="en">{0} (closed)</source>
+      <note>{0} is the name of a query file whose editor has been closed</note>
+    </trans-unit>
     <trans-unit id="++CODE++0cb11cf85550f89783bd1a648a61b1a7d458088b88a50acb062d49974bfabab7">
       <source xml:lang="en">{0} (configured continuation)</source>
     </trans-unit>
@@ -16668,6 +16811,9 @@
     <trans-unit id="mssql.queryStudio.tuning.overrides">
       <source xml:lang="en">Advanced (preview): per-knob Query Studio performance parameter overrides applied above the tuning profile — e.g. `{ &quot;pageRows&quot;: 512, &quot;pageBytes&quot;: 131072 }`. Keys follow the QueryTuning parameter registry; unknown keys and out-of-range values are ignored. Intended for diagnostics and performance testing.</source>
     </trans-unit>
+    <trans-unit id="mssql.sqlDataPlane.tsNative.overrides">
+      <source xml:lang="en">Advanced preview diagnostics for the Native TypeScript provider. Disconnect all native sessions and reconnect, or reload the extension host, to apply changes. Supports lower page/cell limits, a memory budget, explicit lossy previews, capability masks, and deterministic fault injection. Unknown settings are ignored. Leave empty for normal use and performance comparisons.</source>
+    </trans-unit>
     <trans-unit id="mssql.format.options.alignSetClauseItem">
       <source xml:lang="en">Align SET clause items in UPDATE statements.</source>
     </trans-unit>
@@ -17157,9 +17303,6 @@
     <trans-unit id="mssql.preview.liveQueryStatistics.description">
       <source xml:lang="en">Enables the preview Live Query Statistics commands to watch a running query plan refresh with live row counts. When unset, follows mssql.enableExperimentalFeatures. Set to true or false to override that setting.</source>
     </trans-unit>
-    <trans-unit id="mssql.preview.betaResultsGrid.description">
-      <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
-    </trans-unit>
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
@@ -17216,6 +17359,9 @@
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.findFile">
       <source xml:lang="en">Find File...</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryResults.enableFollowActiveEditor">
+      <source xml:lang="en">Follow Active Editor in Query Results</source>
     </trans-unit>
     <trans-unit id="mssql.format.options.multilineGroupByElementsList">
       <source xml:lang="en">Format GROUP BY elements as a multiline list.</source>
@@ -17355,6 +17501,9 @@
     <trans-unit id="projects.excludedProjectsDescription">
       <source xml:lang="en">List of projects in the workspace to exclude from the projects viewlet</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.multiResults.description">
+      <source xml:lang="en">Lists the results of every query editor in the Query Results panel, and lets you drag results together to view them side by side. Not enabled by `#mssql.enableExperimentalFeatures#`.</source>
+    </trans-unit>
     <trans-unit id="mssql.Configuration">
       <source xml:lang="en">MSSQL</source>
     </trans-unit>
@@ -17456,6 +17605,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorerV2.moveToGroup">
       <source xml:lang="en">Move to Group...</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryResults.enableMultiResults">
+      <source xml:lang="en">Multi-Results Layout</source>
     </trans-unit>
     <trans-unit id="new-command">
       <source xml:lang="en">New</source>
@@ -17703,6 +17855,9 @@
     <trans-unit id="mssql.metadataCache.enabled.description">
       <source xml:lang="en">Private preview. Persist structural metadata catalog snapshots locally for metadata-backed preview features. Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Snapshots contain schemas, objects, columns, and keys, but never descriptions, default or computed SQL definitions, module definitions, query results, credentials, or other secrets. Reload the window after changing any required setting.</source>
     </trans-unit>
+    <trans-unit id="mssql.performanceMonitoring.regressedQueries.enabled.description">
+      <source xml:lang="en">Private preview. Show the Regressed category on the Queries page of the Query Performance Dashboard. Requires mssql.enableExperimentalFeatures. Reopen the dashboard after changing this setting.</source>
+    </trans-unit>
     <trans-unit id="title.projectsView">
       <source xml:lang="en">Projects</source>
     </trans-unit>
@@ -17941,7 +18096,7 @@
       <source xml:lang="en">Select Top 1000</source>
     </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.backend.description">
-      <source xml:lang="en">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</source>
+      <source xml:lang="en">Select the SQL Data Plane backend for new preview connections. SQL Tools Service remains the default. Native TypeScript (Tedious) is an optional preview with capability and data-type limitations.</source>
     </trans-unit>
     <trans-unit id="mssql.selectedAzureSubscriptions">
       <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
@@ -18087,6 +18242,9 @@
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
     </trans-unit>
+    <trans-unit id="mssql.queryResults.followActiveEditor">
+      <source xml:lang="en">Show the active editor&apos;s results when switching editors. Applies when `#mssql.preview.multiResults#` is enabled.</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
       <source xml:lang="en">Sort and Filter Query Results</source>
     </trans-unit>
@@ -18131,6 +18289,9 @@
     </trans-unit>
     <trans-unit id="mssql.startContainer">
       <source xml:lang="en">Start SQL Container</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryResults.disableFollowActiveEditor">
+      <source xml:lang="en">Stop Following Active Editor in Query Results</source>
     </trans-unit>
     <trans-unit id="mssql.stopContainer">
       <source xml:lang="en">Stop SQL Container</source>
@@ -18458,6 +18619,9 @@
     </trans-unit>
     <trans-unit id="mssql.copilot.sdkProviders.xai.timeout.description">
       <source xml:lang="en">xAI API request timeout in milliseconds.</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryResults.disableMultiResults">
+      <source xml:lang="en">✓ Multi-Results Layout</source>
     </trans-unit>
   </body></file>
 </xliff>

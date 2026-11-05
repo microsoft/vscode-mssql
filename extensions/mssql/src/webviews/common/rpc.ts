@@ -199,6 +199,18 @@ export class WebviewRpc<Reducers> {
         }).then(() => undefined);
     }
 
+    /**
+     * Returns an RPC that sends reducer actions through `dispatch` and everything else through
+     * this RPC. Lets a webview that shows several states route each one's actions to it.
+     */
+    public withActionDispatcher(
+        dispatch: (method: PropertyKey, payload: unknown) => Promise<void>,
+    ): WebviewRpc<Reducers> {
+        const rpc = Object.create(this) as WebviewRpc<Reducers>;
+        rpc.actionAndWait = (method, payload) => dispatch(method, payload);
+        return rpc;
+    }
+
     public sendActionEvent(event: WebviewTelemetryActionEvent) {
         void this.sendNotification(SendActionEventNotification.type, event);
     }

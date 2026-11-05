@@ -229,7 +229,7 @@ suite("Query execution stuck-state recovery (#22921)", () => {
 
     test("a failing status update on completion still releases the editor", async () => {
         stubExecuteAccepted();
-        statusView.setExecutionTime.throws(new Error("simulated status bar failure"));
+        statusView.executedQuery.throws(new Error("simulated status bar failure"));
         const runner = createRunner();
         let completed = false;
         runner.onComplete(() => {
