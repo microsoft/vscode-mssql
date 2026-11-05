@@ -11,8 +11,8 @@ import * as vscode from "vscode";
  * allowing per-feature overrides of the global `mssql.enableExperimentalFeatures` flag.
  */
 export enum PreviewFeature {
-    BetaResultsGrid = "betaResultsGrid",
     LiveQueryStatistics = "liveQueryStatistics",
+    MultiResults = "multiResults",
 }
 
 /**
@@ -29,6 +29,7 @@ export enum PrivatePreviewFeature {
     SessionDiagnostics = "mssql.sessionDiag.enabled",
     ObjectExplorerV2 = "mssql.objectExplorer.v2.enabled",
     QueryStudio = "mssql.queryStudio.enabled",
+    RegressedQueries = "mssql.performanceMonitoring.regressedQueries.enabled",
 }
 
 /**
@@ -94,6 +95,20 @@ export class PreviewFeaturesService {
             return subFlag;
         }
         return this.experimentalFeaturesEnabled;
+    }
+
+    /**
+     * Returns whether the multi-results layout preview is enabled. Unlike most preview features
+     * it does not follow `mssql.enableExperimentalFeatures`; it is on only when its own setting
+     * is.
+     */
+    public get multiResultsEnabled(): boolean {
+        return (
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean | null>(getPreviewConfigKey(PreviewFeature.MultiResults), false) ===
+            true
+        );
     }
 
     /**

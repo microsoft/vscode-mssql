@@ -12,45 +12,13 @@ import {
 } from "../../../sharedInterfaces/executionPlan";
 import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
-    GridContextMenuAction,
     QueryResultPaneTabs,
     QueryResultReducers,
     QueryResultViewMode,
     QueryResultWebviewState,
 } from "../../../sharedInterfaces/queryResult";
 import { WebviewRpc } from "../../common/rpc";
-import GridContextMenu from "./table/plugins/GridContextMenu";
-import HeaderContextMenu, { HeaderContextMenuAction } from "./table/plugins/HeaderContextMenu";
-import ColumnMenuPopup, {
-    ColumnMenuPopupAnchorRect,
-    FilterListItem,
-    FilterValue,
-} from "./table/plugins/ColumnMenuPopup";
-import { TableColumnResizeDialog } from "./table/TableColumnResizeDialog";
 import { ExecutionPlanRevealRequest } from "../ExecutionPlan/executionPlanPage";
-
-export interface ColumnFilterPopupOptions {
-    columnId: string;
-    anchorRect: ColumnMenuPopupAnchorRect;
-    items: FilterListItem[];
-    initialSelected: FilterValue[];
-    onApply: (selected: FilterValue[]) => Promise<void>;
-    onClear: () => Promise<void>;
-    onDismiss: () => void;
-}
-
-/**
- * Options for opening the resize column dialog
- */
-type ResizeColumnDialogState = {
-    open: boolean;
-    columnId: string;
-    columnName: string;
-    initialWidth: number;
-    gridId: string;
-    onSubmit: (width: number) => Promise<void> | void;
-    onDismiss: () => void;
-};
 
 export interface QueryResultReactProvider
     extends Omit<ExecutionPlanProvider, "getExecutionPlan">,
@@ -58,22 +26,6 @@ export interface QueryResultReactProvider
     extensionRpc: WebviewRpc<QueryResultReducers>;
     setResultTab: (tabId: QueryResultPaneTabs) => void;
     setResultViewMode: (viewMode: QueryResultViewMode) => void;
-    // Grid context menu control
-    showGridContextMenu: (
-        x: number,
-        y: number,
-        onAction: (action: GridContextMenuAction) => void | Promise<void>,
-    ) => void;
-    hideGridContextMenu: () => void;
-    showColumnFilterPopup: (options: ColumnFilterPopupOptions) => void;
-    hideColumnMenuPopup: () => void;
-    // Header context menu control
-    showHeaderContextMenu: (
-        x: number,
-        y: number,
-        onAction: (action: HeaderContextMenuAction) => void | Promise<void>,
-    ) => void;
-    hideHeaderContextMenu: () => void;
     /**
      * Gets the execution plan graph from the provider for a result set
      * @param uri the uri of the query result state this request is associated with
@@ -89,12 +41,6 @@ export interface QueryResultReactProvider
     openFileThroughLink(content: string, type: string): void;
     /** The plan the Query Plan tab should scroll to after a plan link is opened. */
     executionPlanRevealRequest?: ExecutionPlanRevealRequest;
-    /**
-     * Opens the resize column dialog
-     * @param options options for the resize dialog
-     * @returns void
-     */
-    openResizeDialog: (options: Partial<ResizeColumnDialogState>) => void;
     showCopyIndicator: () => void;
     copyIndicatorVisible: boolean;
 }
@@ -136,52 +82,6 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
         ExecutionPlanRevealRequest | undefined
     >(undefined);
     const copyIndicatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-    // Grid context menu state
-    const [menuState, setMenuState] = useState<{
-        open: boolean;
-        x: number;
-        y: number;
-        onAction?: (action: GridContextMenuAction) => void | Promise<void>;
-    }>({ open: false, x: 0, y: 0 });
-
-    const [filterPopupState, setFilterPopupState] = useState<ColumnFilterPopupOptions | undefined>(
-        undefined,
-    );
-
-    const [headerMenuState, setHeaderMenuState] = useState<{
-        open: boolean;
-        x: number;
-        y: number;
-        onAction?: (action: HeaderContextMenuAction) => void | Promise<void>;
-    }>({ open: false, x: 0, y: 0 });
-
-    const [resizeDialogState, setResizeDialogState] = useState<ResizeColumnDialogState>({
-        open: false,
-        columnId: "",
-        columnName: "",
-        initialWidth: 0,
-        gridId: "",
-        onDismiss: () => {},
-        onSubmit: () => {},
-    });
-
-    const hideFilterPopup = useCallback(() => {
-        setFilterPopupState((state) => {
-            if (state?.onDismiss) {
-                state.onDismiss();
-            }
-            return undefined;
-        });
-    }, []);
-
-    const hideContextMenu = useCallback(() => {
-        setMenuState((s) => (s.open ? { ...s, open: false } : s));
-    }, []);
-
-    const hideHeaderContextMenu = useCallback(() => {
-        setHeaderMenuState((s) => (s.open ? { ...s, open: false } : s));
-    }, []);
-
     const showCopyIndicator = useCallback(() => {
         if (copyIndicatorTimeoutRef.current) {
             clearTimeout(copyIndicatorTimeoutRef.current);
@@ -205,32 +105,6 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             },
             setResultViewMode: (viewMode: QueryResultViewMode) => {
                 extensionRpc.action("setResultViewMode", { viewMode });
-            },
-
-            // Grid context menu API
-            showGridContextMenu: (x: number, y: number, onAction) => {
-                hideFilterPopup();
-                setMenuState({ open: true, x, y, onAction });
-            },
-            hideGridContextMenu: () => {
-                setMenuState((s) => ({ ...s, open: false }));
-            },
-            showColumnFilterPopup: (options: ColumnFilterPopupOptions) => {
-                setMenuState((s) => (s.open ? { ...s, open: false } : s));
-                setFilterPopupState((state) => {
-                    state?.onDismiss?.();
-                    return { ...options };
-                });
-            },
-            hideColumnMenuPopup: hideFilterPopup,
-            // Header context menu API
-            showHeaderContextMenu: (x: number, y: number, onAction) => {
-                hideFilterPopup();
-                hideHeaderContextMenu();
-                setHeaderMenuState({ open: true, x, y, onAction });
-            },
-            hideHeaderContextMenu: () => {
-                setHeaderMenuState((s) => ({ ...s, open: false }));
             },
 
             openFileThroughLink: (content: string, type: string) => {
@@ -288,13 +162,6 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                     graphIndex,
                 });
             },
-            openResizeDialog: (options: Partial<ResizeColumnDialogState>) => {
-                setResizeDialogState((state) => ({
-                    ...state,
-                    ...options,
-                    open: true,
-                }));
-            },
         }),
         [
             extensionRpc,
@@ -302,30 +169,8 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             copyIndicatorVisible,
             executionPlanRevealRequest,
             showCopyIndicator,
-            hideFilterPopup,
-            hideHeaderContextMenu,
         ],
     );
-
-    // Close context menu when focus leaves the webview or it becomes hidden
-    useEffect(() => {
-        const closeOverlays = () => {
-            hideContextMenu();
-            hideFilterPopup();
-            hideHeaderContextMenu();
-        };
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === "hidden") {
-                closeOverlays();
-            }
-        };
-        window.addEventListener("blur", closeOverlays);
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => {
-            window.removeEventListener("blur", closeOverlays);
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
-        };
-    }, [hideFilterPopup, hideContextMenu, hideHeaderContextMenu]);
 
     useEffect(() => {
         return () => {
@@ -337,63 +182,6 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
     return (
         <QueryResultCommandsContext.Provider value={commands}>
             {children}
-            {menuState.open && (
-                <GridContextMenu
-                    x={menuState.x}
-                    y={menuState.y}
-                    open={menuState.open}
-                    onAction={async (action) => {
-                        await menuState.onAction?.(action);
-                        setMenuState((s) => ({ ...s, open: false }));
-                    }}
-                    onClose={() => setMenuState((s) => ({ ...s, open: false }))}
-                />
-            )}
-            {headerMenuState.open && (
-                <HeaderContextMenu
-                    x={headerMenuState.x}
-                    y={headerMenuState.y}
-                    open={headerMenuState.open}
-                    onAction={async (action) => {
-                        await headerMenuState.onAction?.(action);
-                        setHeaderMenuState((s) => ({ ...s, open: false }));
-                    }}
-                    onClose={() => setHeaderMenuState((s) => ({ ...s, open: false }))}
-                />
-            )}
-            {filterPopupState && (
-                <ColumnMenuPopup
-                    anchorRect={filterPopupState.anchorRect}
-                    items={filterPopupState.items}
-                    initialSelected={filterPopupState.initialSelected}
-                    onApply={async (selected) => {
-                        await filterPopupState.onApply(selected);
-                        hideFilterPopup();
-                    }}
-                    onClear={async () => {
-                        await filterPopupState.onClear();
-                        hideFilterPopup();
-                    }}
-                    onDismiss={() => {
-                        hideFilterPopup();
-                    }}
-                />
-            )}
-            {resizeDialogState.open && (
-                <TableColumnResizeDialog
-                    open={resizeDialogState.open}
-                    columnName={resizeDialogState.columnName}
-                    initialWidth={resizeDialogState.initialWidth}
-                    onSubmit={async (newWidth: number) => {
-                        await resizeDialogState.onSubmit(newWidth);
-                        setResizeDialogState((state) => ({ ...state, open: false }));
-                    }}
-                    onDismiss={() => {
-                        resizeDialogState.onDismiss();
-                        setResizeDialogState((state) => ({ ...state, open: false }));
-                    }}
-                />
-            )}
         </QueryResultCommandsContext.Provider>
     );
 };

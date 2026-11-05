@@ -133,8 +133,9 @@ export function usePerformanceRead<TParams, T>(
     type: RequestType<TParams, PerformanceRead<T>, void>,
     params: TParams,
     key?: unknown,
+    enabled: boolean = true,
 ): ExtensionRequestState<PerformanceRead<T>> {
-    return useExtensionRequest(type, params, key, true, undefined, isSuccessfulRead);
+    return useExtensionRequest(type, params, key, enabled, undefined, isSuccessfulRead);
 }
 
 function isSuccessfulRead(result: PerformanceRead<unknown>): boolean {

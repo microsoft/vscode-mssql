@@ -35,10 +35,13 @@ import {
     type WebviewKeyBindings,
 } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
-import { QueryResultsGridView } from "./queryResultsGridView";
+import {
+    QueryResultsGridView,
+    type ResultGridHandle,
+    type ResultGridProps,
+} from "./queryResultsGridView";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
-import type { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { getFluentResultGridInitialFrozenColumnIndex } from "../../common/FluentResultGrid/internal/fluentResultGridState";
 
 const DEFAULT_FONT_SIZE = 12;
@@ -910,11 +913,7 @@ export function QueryResultFluentResultGridView() {
             theme={theme}
             overlayRootProps={vscodeOverlayRootProps}
             defaultCommands={defaultCommands}>
-            <QueryResultsGridView
-                GridComponent={QueryResultFluentResultGrid}
-                deferOffscreenGridRendering
-                showExternalCommandBar={false}
-            />
+            <QueryResultsGridView GridComponent={QueryResultFluentResultGrid} />
         </FluentResultGridProvider>
     );
 }

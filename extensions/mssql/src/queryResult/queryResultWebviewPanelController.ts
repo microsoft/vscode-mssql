@@ -9,8 +9,6 @@ import { randomUUID } from "crypto";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import { registerCommonRequestHandlers } from "./utils";
-import { getQueryResultWebviewSource } from "./queryResultWebviewSource";
-import { PreviewFeature, previewService } from "../previews/previewService";
 
 export class QueryResultWebviewPanelController extends WebviewPanelController<
     qr.QueryResultWebviewState,
@@ -27,9 +25,7 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
     ) {
         super(
             context,
-            getQueryResultWebviewSource(
-                previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid),
-            ),
+            "queryResult",
             "queryResult",
             {
                 resultSetSummaries: {},
@@ -73,8 +69,6 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
             if (params.webviewPanel.viewColumn) {
                 this._viewColumn = params.webviewPanel.viewColumn;
             }
-            // Refresh the editor status bar selection summary for the newly active/inactive panel.
-            this._queryResultWebviewViewController.updateSelectionSummary();
         });
     }
 
@@ -96,10 +90,6 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
 
     public updateUri(uri: string): void {
         this._uri = uri;
-    }
-
-    public reloadForResultsGridChange(isBetaResultsGridEnabled: boolean): void {
-        this.reloadWebview(getQueryResultWebviewSource(isBetaResultsGridEnabled));
     }
 
     public getQueryResultWebviewViewController(): QueryResultWebviewController {

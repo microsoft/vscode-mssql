@@ -119,7 +119,7 @@ export async function getWebviewByTitle(
 ): Promise<FrameLocator> {
     // VS Code's webview host keeps both active-frame and pending-frame during a reload
     // (src/vs/workbench/contrib/webview/browser/pre/index.html). A title-only frame locator
-    // becomes ambiguous while the preview grid switch replaces the webview bundle.
+    // becomes ambiguous during that reload.
     const innerSelector = `#active-frame[title='${title}']`;
     const outerFrames = vsCodePage.locator(".webview");
     const outerFrameLocators = vsCodePage.frameLocator(".webview");
@@ -333,9 +333,9 @@ export async function waitForConnected(
  *
  * The status bar is only a coarse gate here, for two reasons found in `src/views/statusView.ts`:
  * `executedQuery` sets "Query executed" and then hides the item 200ms later, so polling for that
- * text is a race by construction; and with the preview grid enabled `setExecutionTime` returns
- * early because the timing moves into the webview footer instead. "Executing query..." is shown
- * for the whole run, so its disappearance is the reliable page-level signal.
+ * text is a race by construction; and the timing is only shown in the webview footer.
+ * "Executing query..." is shown for the whole run, so its disappearance is the reliable
+ * page-level signal.
  *
  * Callers that need to know the results are actually rendered should follow this with
  * {@link waitForResultGrid}, which gates on the grid's own row count.

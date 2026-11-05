@@ -3,13 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColumnFilterState, SortProperties } from "../../../../sharedInterfaces/queryResult";
-import { IDisposableDataProvider } from "./dataProvider";
-
-export interface ITableMouseEvent {
-    anchor: HTMLElement | { x: number; y: number };
-    cell?: { row: number; cell: number };
-}
+import { SortProperties } from "../../../../sharedInterfaces/queryResult";
 
 export interface ITableStyles {
     listFocusBackground: string | undefined;
@@ -34,25 +28,6 @@ export interface ITableStyles {
     nullCellForeground: string | undefined;
 }
 
-export interface ITableSorter<T extends Slick.SlickData> {
-    (args: Slick.OnSortEventArgs<T>): void;
-}
-
-export interface ITableConfiguration<T extends Slick.SlickData> {
-    dataProvider?: IDisposableDataProvider<T> | Array<T>;
-    columns?: Slick.Column<T>[];
-    sorter?: ITableSorter<T>;
-}
-
-export interface GridFilters {
-    gridId: string;
-    columnFilters: ColumnFilterState;
-}
-
-export interface GridSortState {
-    field: string;
-    sortAsc: boolean;
-}
 export interface FilterableColumn<T extends Slick.SlickData> extends Slick.Column<T> {
     filterable?: boolean;
     filterValues?: Array<string>;
@@ -62,11 +37,6 @@ export interface FilterableColumn<T extends Slick.SlickData> extends Slick.Colum
 export interface ColumnSortState<T extends Slick.SlickData> {
     column: Slick.Column<T>;
     sortDirection: SortProperties;
-}
-
-export interface ITableKeyboardEvent {
-    cell?: { row: number; cell: number };
-    event: KeyboardEvent;
 }
 
 export const defaultTableStyles: ITableStyles = {

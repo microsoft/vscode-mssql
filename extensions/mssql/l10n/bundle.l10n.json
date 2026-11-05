@@ -671,6 +671,11 @@
         "comment": ["{0} is the group name"]
     },
     "Connection string copied to clipboard": "Connection string copied to clipboard",
+    "Start Container": "Start Container",
+    "Docker preparation failed: {0}\nSQL connection failed: {1}": "Docker preparation failed: {0}\nSQL connection failed: {1}",
+    "Connections (Private Preview) could not connect to the new container.": "Connections (Private Preview) could not connect to the new container.",
+    "The SQL container did not become ready in time. Docker may be unresponsive.": "The SQL container did not become ready in time. Docker may be unresponsive.",
+    "The SQL container could not be started. Check the Docker logs and try again.": "The SQL container could not be started. Check the Docker logs and try again.",
     "Select a database object to script.": "Select a database object to script.",
     "Connect this profile in Connections (Private Preview) first.": "Connect this profile in Connections (Private Preview) first.",
     "-- Cannot script {0}.{1}: object is not present in the current metadata snapshot.": "-- Cannot script {0}.{1}: object is not present in the current metadata snapshot.",
@@ -1200,6 +1205,15 @@
         "comment": ["{0} is the error message"]
     },
     "The query results panel failed to load. Please try running the query again.": "The query results panel failed to load. Please try running the query again.",
+    "Select PFX file": "Select PFX file",
+    "PFX files": "PFX files",
+    "Select a supported authentication type.": "Select a supported authentication type.",
+    "Select a Microsoft Entra account.": "Select a Microsoft Entra account.",
+    "Enter a valid application (client) ID.": "Enter a valid application (client) ID.",
+    "Select an existing, readable local PFX file.": "Select an existing, readable local PFX file.",
+    "Unable to determine the selected Microsoft account's administrator identity in this tenant. Sign in to the tenant and try again.": "Unable to determine the selected Microsoft account's administrator identity in this tenant. Sign in to the tenant and try again.",
+    "Enter the client secret for the selected app registration.": "Enter the client secret for the selected app registration.",
+    "This container provisioning step is not supported.": "This container provisioning step is not supported.",
     "Provisioning Azure SQL Database container": "Provisioning Azure SQL Database container",
     "Enter a port number between 1 and 65535.": "Enter a port number between 1 and 65535.",
     "This port is already in use. Choose a different port.": "This port is already in use. Choose a different port.",
@@ -3277,6 +3291,20 @@
     "Connection lost.": "Connection lost.",
     "Could not reconnect to database \"{0}\".": "Could not reconnect to database \"{0}\".",
     "Could not switch to database \"{0}\" (USE failed).": "Could not switch to database \"{0}\" (USE failed).",
+    "Strict encryption is not supported by the Native TypeScript preview. Use SQL Tools Service for this connection.": "Strict encryption is not supported by the Native TypeScript preview. Use SQL Tools Service for this connection.",
+    "The Native TypeScript provider supports TCP connections only. Use SQL Tools Service for other protocols or LocalDB.": "The Native TypeScript provider supports TCP connections only. Use SQL Tools Service for other protocols or LocalDB.",
+    "The Native TypeScript provider has been disposed.": "The Native TypeScript provider has been disposed.",
+    "The connection finished opening after its deadline.": "The connection finished opening after its deadline.",
+    "Could not read SQL Server session information.": "Could not read SQL Server session information.",
+    "Login failed.": "Login failed.",
+    "Connection timed out.": "Connection timed out.",
+    "Connection failed.": "Connection failed.",
+    "<exact {0} value unavailable from this provider>": "<exact {0} value unavailable from this provider>",
+    "{0} (approximate)": "{0} (approximate)",
+    "Query result delivery failed ({0}) while processing {1}.": "Query result delivery failed ({0}) while processing {1}.",
+    "Native TypeScript (Tedious)": "Native TypeScript (Tedious)",
+    "The Native TypeScript provider requires Node.js {0} or newer; this host uses {1}.": "The Native TypeScript provider requires Node.js {0} or newer; this host uses {1}.",
+    "The Native TypeScript provider could not be loaded. Reinstall the extension or select SQL Tools Service.": "The Native TypeScript provider could not be loaded. Reinstall the extension or select SQL Tools Service.",
     "Pin this result set to a read-only tab": "Pin this result set to a read-only tab",
     "Pin result set": "Pin result set",
     "PRODUCTION connection — modifications will ask for confirmation": "PRODUCTION connection — modifications will ask for confirmation",
@@ -4470,36 +4498,18 @@
         "message": "Results ({0})",
         "comment": ["{0} is the keyboard shortcut for the results tab"]
     },
-    "Results Preview ({0})/{0} is the keyboard shortcut for the preview results tab": {
-        "message": "Results Preview ({0})",
-        "comment": ["{0} is the keyboard shortcut for the preview results tab"]
-    },
-    "Results Preview": "Results Preview",
     "Results ({0})/{0} is the number of results": {
         "message": "Results ({0})",
         "comment": ["{0} is the number of results"]
-    },
-    "Results Preview ({0})/{0} is the number of preview results": {
-        "message": "Results Preview ({0})",
-        "comment": ["{0} is the number of preview results"]
     },
     "Messages ({0})/{0} is the keyboard shortcut for the messages tab": {
         "message": "Messages ({0})",
         "comment": ["{0} is the keyboard shortcut for the messages tab"]
     },
     "Results toolbar": "Results toolbar",
-    "More Actions": "More Actions",
-    "Preview Grid": "Preview Grid",
-    "Switch between the classic and the preview results grid": "Switch between the classic and the preview results grid",
     "Showplan XML": "Showplan XML",
-    "Show Menu ({0})/{0} is the keyboard shortcut for showing the menu": {
-        "message": "Show Menu ({0})",
-        "comment": ["{0} is the keyboard shortcut for showing the menu"]
-    },
-    "Show Menu": "Show Menu",
     "Sort Ascending": "Sort Ascending",
     "Sort Descending": "Sort Descending",
-    "Toggle Sort": "Toggle Sort",
     "Clear Sort": "Clear Sort",
     "Save as CSV ({0})/{0} is the keyboard shortcut for saving as CSV": {
         "message": "Save as CSV ({0})",
@@ -4647,6 +4657,29 @@
         "message": "Column width must be at least {0} pixels.",
         "comment": ["{0} is the minimum column width in pixels"]
     },
+    "Result sets: {0}/{0} is the number of result sets the query returned": {
+        "message": "Result sets: {0}",
+        "comment": ["{0} is the number of result sets the query returned"]
+    },
+    "Completed with errors": "Completed with errors",
+    "{0} (closed)/{0} is the name of a query file whose editor has been closed": {
+        "message": "{0} (closed)",
+        "comment": ["{0} is the name of a query file whose editor has been closed"]
+    },
+    "The editor for these results is closed. The results stay until you close them.": "The editor for these results is closed. The results stay until you close them.",
+    "Close Results": "Close Results",
+    "Move to New Group": "Move to New Group",
+    "Join Group": "Join Group",
+    "Actions for {0}/{0} is the name of a query file": {
+        "message": "Actions for {0}",
+        "comment": ["{0} is the name of a query file"]
+    },
+    "Results for {0}/{0} is the name of a query file": {
+        "message": "Results for {0}",
+        "comment": ["{0} is the name of a query file"]
+    },
+    "No query results": "No query results",
+    "Run a query to see its results here. Drag results onto each other to view them side by side.": "Run a query to see its results here. Drag results onto each other to view them side by side.",
     "Add new column": "Add new column",
     "Cannot delete column because it is used by a foreign key.": "Cannot delete column because it is used by a foreign key.",
     "Cannot delete column because it is referenced by a foreign key.": "Cannot delete column because it is referenced by a foreign key.",
@@ -5470,11 +5503,15 @@
     "Loading deployment": "Loading deployment",
     "New SQL database": "New SQL database",
     "Choose an option to provision a database": "Choose an option to provision a database",
+    "Run locally": "Run locally",
+    "Run in the cloud": "Run in the cloud",
     "Local SQL Server database container": "Local SQL Server database container",
     "Create a Local Docker SQL Server": "Create a Local Docker SQL Server",
-    "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!": "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
+    "SQL Server container": "SQL Server container",
+    "Runs SQL Server in Docker, set up in a few clicks. Best for apps on SQL Server or Azure SQL Managed Instance.": "Runs SQL Server in Docker, set up in a few clicks. Best for apps on SQL Server or Azure SQL Managed Instance.",
     "Create a SQL database in Fabric": "Create a SQL database in Fabric",
-    "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services": "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
+    "SQL database in Fabric": "SQL database in Fabric",
+    "A fully managed database that auto-scales, auto-tunes, and copies your data to OneLake automatically. Best for apps whose data also powers analytics and reporting in Microsoft Fabric.": "A fully managed database that auto-scales, auto-tunes, and copies your data to OneLake automatically. Best for apps whose data also powers analytics and reporting in Microsoft Fabric.",
     "Loading local containers...": "Loading local containers...",
     "Instant Container Setup": "Instant Container Setup",
     "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.": "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.",
@@ -5501,7 +5538,6 @@
     "ARM template": "ARM template",
     "Terraform": "Terraform",
     "Loading Fabric provisioning...": "Loading Fabric provisioning...",
-    "SQL database in Fabric": "SQL database in Fabric",
     "Loading workspaces": "Loading workspaces",
     "Error loading workspaces. Please try choosing a different account or tenant.": "Error loading workspaces. Please try choosing a different account or tenant.",
     "Finished Deployment": "Finished Deployment",
@@ -5519,10 +5555,21 @@
     "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.": "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.",
     "Smart performance": "Smart performance",
     "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
+    "Application (client) ID": "Application (client) ID",
+    "Enter the application client ID": "Enter the application client ID",
+    "The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.": "The selected Microsoft account will be the container administrator. Grant the service principal access separately before connecting.",
+    "PFX file path": "PFX file path",
+    "Select a PFX file": "Select a PFX file",
+    "Browse for a PFX file": "Browse for a PFX file",
     "Microsoft Entra ID - Universal with MFA support": "Microsoft Entra ID - Universal with MFA support",
     "Microsoft Entra ID - Default": "Microsoft Entra ID - Default",
     "Microsoft Entra ID - Service Principal": "Microsoft Entra ID - Service Principal",
-    "The developer container uses SQL Login authentication.": "The developer container uses SQL Login authentication.",
+    "Client secret": "Client secret",
+    "Enter the client secret": "Enter the client secret",
+    "Client secret for the selected app registration. This is separate from the SQL administrator password.": "Client secret for the selected app registration. This is separate from the SQL administrator password.",
+    "SQL administrator user name": "SQL administrator user name",
+    "SQL administrator password": "SQL administrator password",
+    "Choose SQL Login or Microsoft Entra ID authentication for the developer container.": "Choose SQL Login or Microsoft Entra ID authentication for the developer container.",
     "The built-in administrator login for the developer container.": "The built-in administrator login for the developer container.",
     "Use 8–128 characters with characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.": "Use 8–128 characters with characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.",
     "The password must be 8–128 characters long.": "The password must be 8–128 characters long.",
@@ -5546,12 +5593,9 @@
     "Connecting to your Azure SQL Database developer container.": "Connecting to your Azure SQL Database developer container.",
     "Loading Azure SQL Database...": "Loading Azure SQL Database...",
     "Create an Azure SQL Database": "Create an Azure SQL Database",
-    "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.": "Try Azure SQL Database at no cost with our free tier! Provision a fully managed cloud database directly from VS Code.",
-    "Choose how to run Azure SQL Database": "Choose how to run Azure SQL Database",
-    "Local container (Preview)": "Local container (Preview)",
-    "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.": "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.",
-    "Free": "Free",
-    "Try Azure SQL Database at no cost with the free tier — a fully managed cloud database, ready for your app, ORM, or migration tools.": "Try Azure SQL Database at no cost with the free tier — a fully managed cloud database, ready for your app, ORM, or migration tools.",
+    "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.": "Start free with the free offer for a fully managed database in Azure. Best for apps you host in Azure.",
+    "Azure SQL Database container (Preview)": "Azure SQL Database container (Preview)",
+    "Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.": "Recommended for new apps or any app deploying to Azure SQL Database. Runs the same engine as Azure SQL Database, so moving to the cloud is usually just a connection string change.",
     "TBD": "TBD",
     "(Preview) New Azure SQL Database - Container": "(Preview) New Azure SQL Database - Container",
     "Azure SQL Database developer container": "Azure SQL Database developer container",
@@ -6225,6 +6269,27 @@
     "Same length before": "Same length before",
     "7 days before": "7 days before",
     "30 days before": "30 days before",
+    "Regressed/A category of the Queries page: the queries that got worse": {
+        "message": "Regressed",
+        "comment": ["A category of the Queries page: the queries that got worse"]
+    },
+    "Regressed queries": "Regressed queries",
+    "Added {0}/{0} is a measure, for example duration. What a query's slowdown added: the increase in its average times its recent executions": {
+        "message": "Added {0}",
+        "comment": [
+            "{0} is a measure, for example duration. What a query's slowdown added: the increase in its average times its recent executions"
+        ]
+    },
+    "New plans/The plans that ran in the recent period and not in the baseline period": {
+        "message": "New plans",
+        "comment": ["The plans that ran in the recent period and not in the baseline period"]
+    },
+    "No query got worse between these periods.": "No query got worse between these periods.",
+    "The baseline must end before the recent period starts. Choose another baseline.": "The baseline must end before the recent period starts. Choose another baseline.",
+    "Baseline period: {0}/{0} is the selected time range, for example 7 days before": {
+        "message": "Baseline period: {0}",
+        "comment": ["{0} is the selected time range, for example 7 days before"]
+    },
     "Average per execution": "Average per execution",
     "Total per day": "Total per day",
     "Change/The change from one period to another": {
@@ -6305,9 +6370,6 @@
     "No waits were recorded in this time range.": "No waits were recorded in this time range.",
     "Query Store does not capture wait statistics, so new waits are not recorded.": "Query Store does not capture wait statistics, so new waits are not recorded.",
     "Turn on wait statistics capture": "Turn on wait statistics capture",
-    "Summarize": "Summarize",
-    "Optimize": "Optimize",
-    "More chat actions": "More chat actions",
     "Preview": "Preview",
     "Continue in Fabric Database Hub": "Continue in Fabric Database Hub",
     "Continue investigating this database": "Continue investigating this database",
@@ -6686,6 +6748,7 @@
     "Add connection": "Add connection",
     "More deploy options": "More deploy options",
     "Local SQL Server container": "Local SQL Server container",
+    "Free": "Free",
     "More new options": "More new options",
     "New query": "New query",
     "New SQL Notebook": "New SQL Notebook",
