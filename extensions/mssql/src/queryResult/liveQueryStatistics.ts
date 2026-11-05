@@ -22,6 +22,8 @@ export const liveQueryStatisticsPollIntervalMs = 1000;
 export interface LiveQueryStatisticsCallbacks {
     /** Called with the parsed plans each time a read returns one. */
     onPlans: (graphs: ExecutionPlanGraph[]) => void;
+    /** Called each time a read succeeds without returning a plan. */
+    onEmptyRead: () => void;
     /** Called once when a read fails. Monitoring has stopped by then. */
     onError: (message: string) => void;
 }
@@ -157,6 +159,8 @@ export class LiveQueryStatisticsMonitor implements vscode.Disposable {
                         return annotated;
                     }),
                 );
+            } else if (!this._isDisposed) {
+                this._callbacks.onEmptyRead();
             }
         } catch (error) {
             if (!this._isDisposed) {

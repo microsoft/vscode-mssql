@@ -649,3 +649,21 @@ export function bucketizeRowCount(rowCount: number): number {
         return 10000;
     }
 }
+
+export function bucketizeQueryDuration(milliseconds: number): string {
+    if (milliseconds < 1000) {
+        return "<1s";
+    } else if (milliseconds < 5000) {
+        return "1-5s";
+    } else if (milliseconds < 30000) {
+        return "5-30s";
+    } else if (milliseconds < 60000) {
+        return "30-60s";
+    } else if (milliseconds < 300000) {
+        return "1-5m";
+    } else if (milliseconds < 1800000) {
+        return "5-30m";
+    } else {
+        return "30m+";
+    }
+}

@@ -594,9 +594,9 @@ function toWindow(window: TimeWindowParams): { start: Date; end: Date } {
 }
 
 /**
- * The chat prompt of a query, to summarize its performance and suggest how to optimize it. It
- * names the saved profile, database, and window, so the chat reads them with the Query Store tools
- * and does not need to find them.
+ * The chat prompt of a query, to assess its performance and ask what to look at next. It names the
+ * saved profile, database, and window, so the chat reads them with the Query Store tools and does
+ * not need to find them.
  */
 export function continueInChatPrompt(
     target: PerformanceDashboardTarget,
@@ -607,12 +607,11 @@ export function continueInChatPrompt(
     const database = target.databaseName || LocConstants.defaultDatabaseLabel;
     return (
         `Query Store query ${queryId} in database "${database}" on server "${target.serverName}" ` +
-        `(saved connection profileId "${target.profileId}"), from ${startUtc} to ${endUtc} UTC.\n\n` +
+        `(saved connection profileId "${target.profileId}"), from ${startUtc} to ${endUtc}.\n\n` +
         `Use #mssql_query_store_analyze_query with the specified profileId and database.\n\n` +
-        `Briefly summarize the query's performance, key trends, and any notable execution plan ` +
-        `changes. Identify potential performance bottlenecks and recommend actionable ` +
-        `optimizations based on the available data and execution plans. Then ask what I want to ` +
-        `explore further or change. Do not apply changes until I confirm.`
+        `Briefly assess the query's performance, highlighting any notable findings or potential ` +
+        `concerns. Then ask what I would like to investigate or improve next. Do not apply ` +
+        `changes without my confirmation.`
     );
 }
 
