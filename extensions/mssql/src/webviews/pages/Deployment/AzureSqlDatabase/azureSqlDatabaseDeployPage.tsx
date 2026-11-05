@@ -243,13 +243,6 @@ export const AzureSqlDatabaseDeployPage = ({
                 ref={heading}>
                 {title}
             </Text>
-            <Text className={classes.secondary}>
-                {succeeded
-                    ? withData
-                        ? strings.deploymentDataReady
-                        : strings.deploymentSchemaReady
-                    : strings.deploymentDescription}
-            </Text>
             <div className={mergeClasses(classes.card, succeeded && classes.success)}>
                 {succeeded ? (
                     <>

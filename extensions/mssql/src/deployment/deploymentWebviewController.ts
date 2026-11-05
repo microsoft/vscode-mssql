@@ -498,6 +498,9 @@ export class DeploymentWebviewController extends FormWebviewController<
     }
 
     private async handleDeploymentFormAction(state, payload) {
+        const authenticationChanged =
+            payload.event.propertyName === "authenticationType" &&
+            state.formState.authenticationType !== payload.event.value;
         if (payload.event.isAction) {
             const component = state.formComponents[payload.event.propertyName];
             if (component && component.actionButtons) {
@@ -535,6 +538,12 @@ export class DeploymentWebviewController extends FormWebviewController<
                     azureSqlState,
                     payload.event.value as string,
                 );
+            }
+            if (authenticationChanged) {
+                azureSqlDatabase.applyAuthenticationSelection(
+                    state.deploymentTypeState as AzureSqlDatabaseState,
+                );
+                await this.validateDeploymentForm();
             }
         }
 

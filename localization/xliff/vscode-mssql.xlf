@@ -14342,9 +14342,6 @@
     <trans-unit id="++CODE++68f88eedfc37704e4626ec89c48f0901a60f476c4e2b33a178c87cb09771f40b">
       <source xml:lang="en">Your database will continue running after the free tier limit and you will be charged for overages.</source>
     </trans-unit>
-    <trans-unit id="++CODE++0e486a5da13bbfcbd4b9c052c90aa4686d2f644e913207bec81efb58898eee48">
-      <source xml:lang="en">Your local database will not be modified. Deployment continues in Background Tasks if you close this wizard.</source>
-    </trans-unit>
     <trans-unit id="++CODE++20082bf42822ccf6b53770a9f51230df781d30b42a43691ef534a3ccef0cb044">
       <source xml:lang="en">Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.</source>
     </trans-unit>

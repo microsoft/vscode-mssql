@@ -12,7 +12,14 @@ import {
 } from "@azure/arm-sql";
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
-import { AzureSqlDatabase, Common, ConnectionDialog } from "../constants/locConstants";
+import {
+    authTypeAzureActiveDirectory,
+    authTypeSql,
+    AzureSqlContainer,
+    AzureSqlDatabase,
+    Common,
+    ConnectionDialog,
+} from "../constants/locConstants";
 import { ILogger } from "../sharedInterfaces/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
 import {
@@ -153,6 +160,40 @@ function detectAuthType(server: Server): {
     };
 }
 
+function setAuthenticationOptions(state: asd.AzureSqlDatabaseState, authType: string): void {
+    const types =
+        authType === AuthenticationType.AzureMFAAndUser
+            ? [AuthenticationType.SqlLogin, AuthenticationType.AzureMFA]
+            : authType === AuthenticationType.AzureMFA
+              ? [AuthenticationType.AzureMFA]
+              : authType === AuthenticationType.SqlLogin
+                ? [AuthenticationType.SqlLogin]
+                : [];
+    if (!types.length) {
+        throw new Error(AzureSqlDatabase.serverAuthTypeUnknown);
+    }
+    const component = state.formComponents.authenticationType;
+    if (component) {
+        component.options = types.map((value) => ({
+            value,
+            displayName:
+                value === AuthenticationType.SqlLogin ? authTypeSql : authTypeAzureActiveDirectory,
+        }));
+        component.hidden = types.length === 1;
+    }
+    state.formState.authenticationType = types[0];
+}
+
+export function applyAuthenticationSelection(state: asd.AzureSqlDatabaseState): void {
+    state.formState.userName =
+        state.formState.authenticationType === AuthenticationType.SqlLogin
+            ? (getCachedServer(state, state.formState.serverName)?.administratorLogin ?? "")
+            : "";
+    state.formState.password = "";
+    state.formState.savePassword = false;
+    state.serverCreatedWithAuth = false;
+}
+
 /**
  * Applies auth settings to the form state based on the selected server's properties.
  * Clears stale credentials when the server changes.
@@ -168,7 +209,7 @@ export function applyServerAuthSettings(
 
     const server = getCachedServer(azureSqlState, serverName);
     if (!server) {
-        azureSqlState.formState.authenticationType = AuthenticationType.AzureMFA;
+        setAuthenticationOptions(azureSqlState, AuthenticationType.AzureMFA);
         azureSqlState.formState.userName = "";
         azureSqlState.formState.password = "";
         azureSqlState.formState.savePassword = false;
@@ -176,7 +217,7 @@ export function applyServerAuthSettings(
     }
 
     const { authType, adminLogin } = detectAuthType(server);
-    azureSqlState.formState.authenticationType = authType;
+    setAuthenticationOptions(azureSqlState, authType);
     azureSqlState.formState.userName = adminLogin;
     azureSqlState.formState.password = "";
     azureSqlState.formState.savePassword = false;
@@ -740,7 +781,7 @@ export function registerAzureSqlDatabaseReducers(
             azureSqlState.azureComponentStatuses["serverName"] = ApiStatus.NotStarted;
 
             // Apply auth settings from the drawer to the main form
-            azureSqlState.formState.authenticationType = authenticationType as AuthenticationType;
+            setAuthenticationOptions(azureSqlState, authenticationType);
             if (
                 authenticationType === AuthenticationType.SqlLogin ||
                 authenticationType === AuthenticationType.AzureMFAAndUser
@@ -1539,6 +1580,23 @@ function setAzureSqlDatabaseFormComponents(
                 isValid: !!value,
                 validationMessage: value ? "" : AzureSqlDatabase.databaseNameIsRequired,
             }),
+        }),
+        authenticationType: createFormItem({
+            propertyName: "authenticationType",
+            type: FormItemType.Dropdown,
+            required: true,
+            label: AzureSqlDatabase.authenticationType,
+            options: [],
+            hidden: true,
+            validate: (state: asd.AzureSqlDatabaseState, value: string) => {
+                const isValid = !!state.formComponents.authenticationType?.options?.some(
+                    (option) => option.value === value,
+                );
+                return {
+                    isValid,
+                    validationMessage: isValid ? "" : AzureSqlContainer.invalidAuthenticationType,
+                };
+            },
         }),
         userName: createFormItem({
             propertyName: "userName",

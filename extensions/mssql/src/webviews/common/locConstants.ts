@@ -4062,9 +4062,6 @@ export class LocConstants {
                     args: [database],
                     comment: ["{0} is the database being deployed"],
                 }),
-            deploymentDescription: l10n.t(
-                "Your local database will not be modified. Deployment continues in Background Tasks if you close this wizard.",
-            ),
             deploymentStageLabels: {
                 authenticating: l10n.t("Authenticate to Azure"),
                 validatingSettings: l10n.t("Validate Azure resources and schema package"),

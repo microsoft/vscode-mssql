@@ -9,10 +9,15 @@ import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import * as localContainers from "../../src/deployment/localContainersHelpers";
-import { DeploymentWebviewState } from "../../src/sharedInterfaces/deployment";
+import { DeploymentType, DeploymentWebviewState } from "../../src/sharedInterfaces/deployment";
 import { LocalContainersState } from "../../src/sharedInterfaces/localContainers";
 import { AzureSqlDatabaseRequests } from "../../src/sharedInterfaces/azureSqlDatabase";
-import { stubTelemetry } from "./utils";
+import { stubLogger, stubTelemetry } from "./utils";
+import {
+    applyServerAuthSettings,
+    initializeAzureSqlDatabaseState,
+} from "../../src/deployment/azureSqlDatabaseHelpers";
+import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ConnectionStore } from "../../src/models/connectionStore";
@@ -178,6 +183,63 @@ suite("Deployment webview controller", () => {
             AzureSqlDatabaseRequests.LocalDatabaseDeploymentAction.method,
         ]);
         expect(azureSql.registerAzureSqlRpcHandlers).to.have.been.calledWith(controller);
+    });
+
+    test("clears credentials and refreshes password validation when authentication changes", async () => {
+        const state = new DeploymentWebviewState();
+        state.deploymentType = DeploymentType.AzureSqlDatabase;
+        sandbox.stub(controller, "state").get(() => state);
+        const azureState = await initializeAzureSqlDatabaseState(
+            controller,
+            [],
+            stubLogger(sandbox),
+            undefined,
+        );
+        state.formState = azureState.formState;
+        azureState.servers = [
+            {
+                name: "server",
+                location: "westus",
+                administratorLogin: "admin",
+                administrators: { azureADOnlyAuthentication: false },
+            },
+        ];
+        azureState.formState.serverName = "server";
+        applyServerAuthSettings(azureState, "server");
+        azureState.formState.password = "old-password";
+        azureState.formState.savePassword = true;
+        azureState.serverCreatedWithAuth = true;
+        azureState.formComponents.password.validation = {
+            isValid: false,
+            validationMessage: "Enter a password",
+        };
+        controller.validateDeploymentForm.callsFake((propertyName) =>
+            DeploymentWebviewController.prototype.validateDeploymentForm.call(
+                controller,
+                propertyName,
+            ),
+        );
+
+        const changeAuthentication = (value: AuthenticationType) =>
+            DeploymentWebviewController.prototype["handleDeploymentFormAction"].call(
+                controller,
+                state,
+                { event: { propertyName: "authenticationType", value, isAction: false } },
+            );
+        await changeAuthentication(AuthenticationType.SqlLogin);
+        expect(azureState.formState.password).to.equal("old-password");
+        expect(azureState.serverCreatedWithAuth).to.be.true;
+        await changeAuthentication(AuthenticationType.AzureMFA);
+        expect(azureState.formState).to.include({
+            userName: "",
+            password: "",
+            savePassword: false,
+        });
+        expect(azureState.serverCreatedWithAuth).to.be.false;
+        expect(azureState.formComponents.password.validation.isValid).to.be.true;
+        await changeAuthentication(AuthenticationType.SqlLogin);
+        expect(azureState.formState.userName).to.equal("admin");
+        expect(azureState.formComponents.password.validation.isValid).to.be.false;
     });
 
     teardown(() => {

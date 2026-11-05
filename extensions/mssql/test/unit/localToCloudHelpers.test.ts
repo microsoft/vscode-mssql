@@ -47,6 +47,10 @@ import * as cloud from "../../src/azure/providerSettings";
 import * as entra from "../../src/azure/vscodeEntraMfaUtils";
 import { DatabaseEngineEdition, ProjectType } from "../../src/databaseProjects/common/enums";
 import * as netCore from "../../src/databaseProjects/tools/netcoreTool";
+import {
+    applyServerAuthSettings,
+    initializeAzureSqlDatabaseState,
+} from "../../src/deployment/azureSqlDatabaseHelpers";
 import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
 import {
     AzureSqlDatabaseState,
@@ -1413,6 +1417,31 @@ suite("Local-to-cloud helpers", () => {
         const withData = () => {
             request.deploymentContent = "schemaAndData";
         };
+
+        test("deploys to a dual-auth server using SQL Login rather than the capability marker", async () => {
+            const initialized = await initializeAzureSqlDatabaseState(
+                controller,
+                [],
+                stubLogger(sandbox),
+                undefined,
+            );
+            state.formComponents = initialized.formComponents;
+            controller.state.deploymentTypeState = state;
+            state.servers = [
+                {
+                    name: "server",
+                    location: "westus",
+                    administratorLogin: "admin",
+                    administrators: { azureADOnlyAuthentication: false },
+                },
+            ];
+            applyServerAuthSettings(state, "server");
+            state.formState.password = "test-password";
+            expect(await deploy()).to.include({ status: "succeeded" });
+            expect(connectionUI.saveProfile).to.have.been.calledWith(
+                sinon.match({ authenticationType: AuthenticationType.SqlLogin, user: "admin" }),
+            );
+        });
 
         for (const deploymentContent of ["schemaOnly", "schemaAndData"] as const) {
             test(`continues ${deploymentContent} in Background Tasks when the wizard closes before package capture`, async () => {

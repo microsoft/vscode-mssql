@@ -24,8 +24,13 @@ import {
 import { DeploymentWebviewState } from "../../src/sharedInterfaces/deployment";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
-import { registerAzureSqlDatabaseReducers } from "../../src/deployment/azureSqlDatabaseHelpers";
-import { stubTelemetry } from "./utils";
+import {
+    applyAuthenticationSelection,
+    applyServerAuthSettings,
+    initializeAzureSqlDatabaseState,
+    registerAzureSqlDatabaseReducers,
+} from "../../src/deployment/azureSqlDatabaseHelpers";
+import { stubLogger, stubTelemetry } from "./utils";
 import MainController from "../../src/controllers/mainController";
 import {
     BackgroundTaskHandle,
@@ -157,6 +162,86 @@ suite("Azure SQL Database reducers", () => {
         expect(reducer, `${name} reducer should be registered`).to.exist;
         return reducer!;
     }
+
+    for (const [name, administrators, expectedTypes] of [
+        ["SQL-only", undefined, [AuthenticationType.SqlLogin]],
+        ["Entra-only", { azureADOnlyAuthentication: true }, [AuthenticationType.AzureMFA]],
+        [
+            "dual-auth",
+            { azureADOnlyAuthentication: false },
+            [AuthenticationType.SqlLogin, AuthenticationType.AzureMFA],
+        ],
+    ] as const) {
+        test(`uses concrete connection authentication for a ${name} server`, async () => {
+            const state = await initializeAzureSqlDatabaseState(
+                controller,
+                [],
+                stubLogger(sandbox),
+                undefined,
+            );
+            state.servers = [
+                {
+                    name: "server",
+                    location: "westus",
+                    administratorLogin: "sql-admin",
+                    administrators,
+                },
+            ];
+            state.formState.serverName = "server";
+            state.formState.password = "previous-server-password";
+            applyServerAuthSettings(state, "server");
+            expect(state.formState.authenticationType).to.equal(expectedTypes[0]);
+            expect(
+                state.formComponents.authenticationType.options.map(({ value }) => value),
+            ).to.deep.equal(expectedTypes);
+            expect(state.formComponents.authenticationType.hidden).to.equal(
+                expectedTypes.length === 1,
+            );
+            expect(state.formState.password).to.equal("");
+            expect(
+                state.formComponents.authenticationType.validate(
+                    state,
+                    AuthenticationType.AzureMFAAndUser,
+                ).isValid,
+            ).to.be.false;
+        });
+    }
+
+    test("switches authentication without carrying SQL credentials into Entra", async () => {
+        const state = await initializeAzureSqlDatabaseState(
+            controller,
+            [],
+            stubLogger(sandbox),
+            undefined,
+        );
+        state.servers = [
+            {
+                name: "server",
+                location: "westus",
+                administratorLogin: "sql-admin",
+                administrators: { azureADOnlyAuthentication: false },
+            },
+        ];
+        state.formState.serverName = "server";
+        applyServerAuthSettings(state, "server");
+        state.formState.password = "sql-password";
+        state.formState.savePassword = true;
+        state.serverCreatedWithAuth = true;
+        state.formState.authenticationType = AuthenticationType.AzureMFA;
+        applyAuthenticationSelection(state);
+        expect(state.formState).to.include({
+            authenticationType: AuthenticationType.AzureMFA,
+            userName: "",
+            password: "",
+            savePassword: false,
+        });
+        expect(state.serverCreatedWithAuth).to.be.false;
+        expect(state.formComponents.password.validate(state, "").isValid).to.be.true;
+        state.formState.authenticationType = AuthenticationType.SqlLogin;
+        applyAuthenticationSelection(state);
+        expect(state.formState.userName).to.equal("sql-admin");
+        expect(state.formComponents.password.validate(state, "").isValid).to.be.false;
+    });
 
     test("loadAzureComponent ignores components that have already started loading", async () => {
         azureSqlState.azureComponentStatuses.tenantId = ApiStatus.Loading;
@@ -475,6 +560,7 @@ suite("Azure SQL Database reducers", () => {
             }),
         );
         expect(azureSqlState.formState.serverName).to.equal("new-server");
+        expect(azureSqlState.formState.authenticationType).to.equal(AuthenticationType.SqlLogin);
         expect(azureSqlState.formState.userName).to.equal("sql-admin");
         expect(azureSqlState.formState.password).to.equal("secret");
         expect(azureSqlState.formState.savePassword).to.be.true;

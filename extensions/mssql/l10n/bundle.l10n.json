@@ -5711,7 +5711,6 @@
         "message": "Deploying {0} to Azure SQL",
         "comment": ["{0} is the database being deployed"]
     },
-    "Your local database will not be modified. Deployment continues in Background Tasks if you close this wizard.": "Your local database will not be modified. Deployment continues in Background Tasks if you close this wizard.",
     "Authenticate to Azure": "Authenticate to Azure",
     "Validate Azure resources and schema package": "Validate Azure resources and schema package",
     "Export source schema and data": "Export source schema and data",

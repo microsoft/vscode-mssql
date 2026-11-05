@@ -217,6 +217,7 @@ export const AzureSqlDatabaseSourcePage = ({ onBack }: { onBack: () => void }) =
         canContinueToAzure &&
         isAzureFormReady &&
         !!azureState.formState.accountId &&
+        !azureState.formState.dataSource &&
         azureState.formValidationLoadState !== ApiStatus.Loading &&
         isAzureSqlFormValid(
             azureState.loadState,
@@ -412,7 +413,13 @@ export const AzureSqlDatabaseSourcePage = ({ onBack }: { onBack: () => void }) =
             }
             footerStart={
                 <Button onClick={cancelOrClose} disabled={cancelling}>
-                    {cancelling ? strings.deploymentCancelling : locConstants.common.cancel}
+                    {showDeployment && deploymentResult
+                        ? deploymentResult.status === "succeeded"
+                            ? locConstants.common.finish
+                            : locConstants.common.close
+                        : cancelling
+                          ? strings.deploymentCancelling
+                          : locConstants.common.cancel}
                 </Button>
             }
             footerEnd={
@@ -520,7 +527,11 @@ export const AzureSqlDatabaseSourcePage = ({ onBack }: { onBack: () => void }) =
                         />
                     </div>
                     {showAzureForm && isAzureFormReady && (
-                        <AzureSqlDatabaseFormPage tags={tags} onTagsChange={setTags} />
+                        <AzureSqlDatabaseFormPage
+                            tags={tags}
+                            onTagsChange={setTags}
+                            isLocalToCloud
+                        />
                     )}
                     {showReview && azureState && validationResult && connectedSource && (
                         <AzureSqlDatabaseReviewPage
