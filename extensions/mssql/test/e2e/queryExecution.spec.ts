@@ -9,7 +9,9 @@ import {
     enterTextIntoQueryEditor,
     executeQuery,
     openNewQueryEditor,
+    setQueryText,
 } from "./utils/testHelpers";
+import { QuickInput, VsCodeCommand } from "./pageObjects";
 import {
     getAuthenticationType,
     getDatabaseName,
@@ -88,5 +90,41 @@ SELECT Name FROM TestTable;`;
 
         const nameQueryResult = await vsCodePage.getByText("Doe");
         await expect(nameQueryResult).toBeVisible({ timeout: 10000 });
+    });
+
+    test("Query history records the statement run at the cursor", async ({}, testInfo) => {
+        const { page: vsCodePage, electronApp } = getContext();
+        // Unique per run so a retry in the same window cannot match the previous attempt's row.
+        const runId = Date.now().toString(36);
+
+        // A new editor copies the connection the dialog made, which is done once the dialog closes.
+        await expect(vsCodePage.getByRole("tab", { name: /Connection Dialog/ })).toHaveCount(0, {
+            timeout: 60 * 1000,
+        });
+
+        const editorTabs = vsCodePage.locator(".tabs-container .tab");
+        const tabCount = await editorTabs.count();
+        await openNewQueryEditor(vsCodePage);
+        await expect(editorTabs).toHaveCount(tabCount + 1);
+
+        await setQueryText(
+            electronApp,
+            vsCodePage,
+            `SELECT 1 AS skipped_${runId};\nSELECT 2 AS statement_${runId},\n    3 AS second_column;`,
+        );
+        // Running while the editor is still connecting does nothing. This action only shows for a
+        // connected editor, and setting the text above moved past any previous editor's toolbar.
+        await expect(vsCodePage.locator('[aria-label^="Disconnect"]').first()).toBeVisible({
+            timeout: 60 * 1000,
+        });
+
+        await new QuickInput(vsCodePage).run(VsCodeCommand.mssqlRunCurrentStatement);
+
+        // A history row's aria-label is its tooltip, which holds the full query text.
+        const historyRow = vsCodePage.locator(`.monaco-list-row[aria-label*="statement_${runId}"]`);
+        await expect(historyRow).toBeVisible({ timeout: 60 * 1000 });
+        await expect(historyRow).toHaveAttribute("aria-label", /second_column/);
+        await expect(historyRow).not.toHaveAttribute("aria-label", new RegExp(`skipped_${runId}`));
+        await screenshot(vsCodePage, testInfo, "HistoryRowRecorded");
     });
 });

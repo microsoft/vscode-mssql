@@ -941,6 +941,73 @@ suite("Query Runner tests", () => {
         expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
     });
 
+    test("runStatement records the statement the service resolved at the cursor", async () => {
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1;\r\nselect 2,\r\n  3;",
+        } as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+
+        await queryRunner.runStatement(2, 0);
+        queryRunner.handleBatchStart({
+            ownerUri: standardUri,
+            batchSummary: {
+                id: 0,
+                selection: { startLine: 1, startColumn: 0, endLine: 2, endColumn: 4 },
+            } as QueryExecuteContracts.BatchSummary,
+        });
+
+        expect(queryRunner.getQueryString(standardUri)).to.equal("select 2,\r\n  3;");
+    });
+
+    test("runStatement records the document until a batch starts", async () => {
+        const text = "select 1;\nselect 2;";
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({ getText: () => text } as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+
+        await queryRunner.runStatement(1, 0);
+
+        expect(queryRunner.getQueryString(standardUri)).to.equal(text);
+    });
+
+    test("a document run after a statement run does not record its batches", async () => {
+        const text = "select 1;\nGO\nselect 2;";
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({ getText: () => text } as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+
+        await queryRunner.runStatement(0, 0);
+        await queryRunner.runQuery(undefined);
+        queryRunner.handleBatchStart({
+            ownerUri: standardUri,
+            batchSummary: {
+                id: 0,
+                selection: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 9 },
+            } as QueryExecuteContracts.BatchSummary,
+        });
+
+        expect(queryRunner.getQueryString(standardUri)).to.equal(text);
+    });
+
+    test("a run that fails before reading the document keeps no earlier text", async () => {
+        testSqlToolsServerClient.sendRequest.resolves();
+        vscodeWorkspace.openTextDocument.resolves({
+            getText: () => "select 1;",
+        } as vscode.TextDocument);
+        const queryRunner = createQueryRunner();
+        await queryRunner.runQuery(undefined);
+
+        vscodeWorkspace.openTextDocument.rejects(new Error("document unavailable"));
+        try {
+            await queryRunner.runStatement(0, 0);
+        } catch {
+            // The failure itself is covered by the submission failure tests.
+        }
+
+        expect(queryRunner.getQueryString(standardUri)).to.equal(undefined);
+    });
+
     test("runStatement submission failure closes its performance interval", async () => {
         const failure = new Error("request failed");
         testSqlToolsServerClient.sendRequest.rejects(failure);
