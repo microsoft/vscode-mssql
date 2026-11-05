@@ -91,7 +91,8 @@ suite("Query Studio panel view state", () => {
         state.messages.scrollTop = 420;
         state.results.grids.r0 = {
             selection: [{ fromRow: 2, toRow: 3, fromCell: 1, toCell: 4 }],
-            scrollPosition: { scrollTop: 8, scrollLeft: 17 },
+            rowNumberColumnWidth: 52,
+            scrollPosition: { scrollTop: 8, scrollLeft: 17, scrollTopOffset: 240 },
             filters: {
                 "1": {
                     columnDef: "1",
@@ -136,6 +137,19 @@ suite("Query Studio panel view state", () => {
         expect(normalized).to.deep.equal(state);
         expect(normalized).not.to.equal(state);
         expect(normalizeQueryStudioPanelViewState(state, "run-2")).to.equal(undefined);
+    });
+
+    test("preserves wide projection cameras without accepting invalid scales", () => {
+        const state = createQueryStudioPanelViewState("wide");
+        state.vector.projection.centerX = 1e20;
+        state.vector.projection.centerY = -1e20;
+        state.vector.projection.scale = 2.58e-10;
+        state.shell.activeTab = "vector";
+        expect(normalizeQueryStudioPanelViewState(state)).to.deep.equal(state);
+        for (const scale of [0, -1, NaN, Infinity, 10001]) {
+            state.vector.projection.scale = scale;
+            expect(normalizeQueryStudioPanelViewState(state)).to.equal(undefined);
+        }
     });
 
     test("new runs clear result-derived state and retain panel preferences", () => {

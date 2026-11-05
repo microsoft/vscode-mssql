@@ -78,6 +78,7 @@ import {
     QsGetPanelViewStateRequest,
     QsUpdatePanelViewStateNotification,
     createQueryStudioPanelViewState,
+    isVectorTabEligible,
     orderedQueryStudioTabs,
     resetQueryStudioPanelViewState,
     resolveQueryStudioVisibleTab,
@@ -126,6 +127,7 @@ import {
     LazyMessagesView,
     LazyQsResultsGridProvider,
     LazyResultGridBlock,
+    LazyVectorTab,
     prefetchGridStack,
     ResultsSurfaceLoading,
     whenGridStackLoaded,
@@ -244,6 +246,7 @@ export function QueryStudioApp() {
     // debounced (≤10/s); the max of the two keeps grids growing smoothly.
     const [liveRowCounts, setLiveRowCounts] = useState<Record<string, number>>({});
     const [activeTab, setActiveTabState] = useState<QueryStudioTab>("results");
+    const [vectorPerfAction, setVectorPerfAction] = useState<QsActivateTabParams | undefined>();
     const [mountedTabs, setMountedTabs] = useState<ReadonlySet<QueryStudioTab>>(
         () => new Set(["results"]),
     );
@@ -447,6 +450,15 @@ export function QueryStudioApp() {
         },
         [updatePanelViewState],
     );
+    const persistVectorViewState = useCallback(
+        (generation: string, vectorState: QueryStudioPanelViewState["vector"]) => {
+            updatePanelViewState((current) =>
+                current.generation === generation ? { ...current, vector: vectorState } : current,
+            );
+        },
+        [updatePanelViewState],
+    );
+
     const persistPlanViewState = useCallback(
         (generation: string, queryPlan: QueryStudioPanelViewState["queryPlan"]) => {
             updatePanelViewState((current) =>
@@ -892,10 +904,19 @@ export function QueryStudioApp() {
                 },
             ),
             rpc.onNotification(QsRunStartedNotification.type, (p: { startedEpochMs: number }) => {
+                setVectorPerfAction(undefined);
                 resetRunViewForStart(p.startedEpochMs, false);
             }),
             rpc.onNotification(QsActivateTabNotification.type, (p: QsActivateTabParams) => {
-                if (p.tab === "results" || p.tab === "messages" || p.tab === "queryPlan") {
+                // Host-driven activation (VEC-12 PERF_MODE seam). Nested
+                // actions are transient and never enter durable panel state.
+                setVectorPerfAction(p.tab === "vector" && p.vector ? p : undefined);
+                if (
+                    p.tab === "results" ||
+                    p.tab === "messages" ||
+                    p.tab === "queryPlan" ||
+                    p.tab === "vector"
+                ) {
                     activateTab(p.tab, "perf", p.requestId);
                 }
             }),
@@ -1895,6 +1916,7 @@ export function QueryStudioApp() {
                 columns: classified.totalColumns,
                 dataResultSets: classified.dataResultSets.length,
                 planResultSets: classified.planResultSets.length,
+                vectorColumns: classified.vectorColumns.length,
             });
         }
         return classified;
@@ -1941,8 +1963,27 @@ export function QueryStudioApp() {
             rows: results?.totalRows ?? 0,
         });
     }, [panelViewStateReady, results?.resultSets.length, results?.totalRows, runId, showResults]);
+    // Vector tab appliesTo sniff (VEC-5): cheap column-metadata scan in the
+    // shell — the pane chunk loads only on first activation.
+    const vectorWorkbenchEnabled = state?.capabilities.vectorWorkbench === true;
+    const vectorColumnCandidates = resultTabClassification.vectorColumns;
+    const hasVectorResults =
+        isVectorTabEligible(
+            vectorWorkbenchEnabled,
+            vectorColumnCandidates.map((column) => column.transport),
+        ) && results?.streaming !== true;
     const panelVisible = state?.capabilities.panelVisible !== false;
+    const vectorSessionEpoch = state?.vectorSessionEpoch ?? 0;
+    const vectorColumns = React.useMemo(
+        () =>
+            hasVectorResults
+                ? vectorColumnCandidates.filter((column) => column.transport === "binary-v1")
+                : [],
+        [hasVectorResults, vectorColumnCandidates],
+    );
+
     // String-typed columns per result set (Pipeline source-text picker).
+    const stringColumnsByResult = resultTabClassification.stringColumnsByResult;
     // Results is home and never auto-redirects to Messages: the terminal-state
     // handler above is the SINGLE authority that moves a completed no-data or
     // errored run to Messages (from one coherent snapshot, once per run). This
@@ -1952,6 +1993,7 @@ export function QueryStudioApp() {
     const visibleActiveTab = resolveQueryStudioVisibleTab(activeTab, {
         results: hasDataResults,
         queryPlan: hasPlanResults,
+        vector: hasVectorResults,
     });
     useEffect(() => {
         if (activeTab !== visibleActiveTab) {
@@ -1986,7 +2028,8 @@ export function QueryStudioApp() {
         (visibleActiveTab === "results" &&
             gridResultSetSummaries.length > 0 &&
             (singleGrid || maximizedGrid !== undefined)) ||
-        visibleActiveTab === "queryPlan";
+        visibleActiveTab === "queryPlan" ||
+        visibleActiveTab === "vector";
     const gridRowHeight = qsGridRowHeight(state?.gridStyle);
     const resultsLayout = React.useMemo(
         () =>
@@ -2124,6 +2167,7 @@ export function QueryStudioApp() {
             : state?.execution.elapsedMs;
     const availableTabs = orderedQueryStudioTabs({
         results: hasDataResults,
+        vector: hasVectorResults,
         queryPlan: hasPlanResults,
     });
     const panelGeneration = panelViewStateRef.current.generation;
@@ -2143,6 +2187,9 @@ export function QueryStudioApp() {
                         {errorCount > 0 ? ` (${errorCount} ⚠)` : ""}
                     </>
                 );
+            case "vector":
+                return locConstants.vectorWorkbench.vector;
+
             case "queryPlan":
                 return (
                     <>
@@ -2608,6 +2655,47 @@ export function QueryStudioApp() {
                                             </QueryStudioErrorBoundary>
                                         </div>
                                     ) : null}
+                                    {hasVectorResults && mountedTabs.has("vector") ? (
+                                        <div
+                                            id="qs-results-panel-vector"
+                                            role="tabpanel"
+                                            aria-labelledby="qs-results-tab-vector"
+                                            hidden={visibleActiveTab !== "vector"}
+                                            className="qs-tab-panel qs-tab-panel-fill">
+                                            <QueryStudioErrorBoundary
+                                                label={locConstants.vectorWorkbench.vector}
+                                                resetKey={`vector:${panelGeneration}`}
+                                                onError={reportPaneError}>
+                                                <React.Suspense
+                                                    fallback={<ResultsSurfaceLoading />}>
+                                                    <LazyVectorTab
+                                                        key={`vector:${panelGeneration}`}
+                                                        rpc={rpc}
+                                                        columns={vectorColumns}
+                                                        runKey={`${runId ?? "idle"}:${vectorSessionEpoch}`}
+                                                        stringColumnsByResult={
+                                                            stringColumnsByResult
+                                                        }
+                                                        active={
+                                                            panelVisible &&
+                                                            visibleActiveTab === "vector"
+                                                        }
+                                                        panelVisible={panelVisible}
+                                                        perfAction={vectorPerfAction}
+                                                        initialViewState={
+                                                            panelViewStateRef.current.vector
+                                                        }
+                                                        onViewStateChange={(vectorState) =>
+                                                            persistVectorViewState(
+                                                                panelGeneration,
+                                                                vectorState,
+                                                            )
+                                                        }
+                                                    />
+                                                </React.Suspense>
+                                            </QueryStudioErrorBoundary>
+                                        </div>
+                                    ) : null}
 
                                     {hasPlanResults && mountedTabs.has("queryPlan") ? (
                                         <div
@@ -2695,7 +2783,7 @@ export function QueryStudioApp() {
                 ) : null}
                 {results?.present ? (
                     <span className="qs-status-seg">
-                        {dataTotalRows.toLocaleString()} {"rows"}
+                        {dataTotalRows.toLocaleString()} {locConstants.vectorWorkbench.rows}
                     </span>
                 ) : null}
                 {elapsed !== undefined ? (

@@ -209,6 +209,8 @@ export interface QsState {
         text: string;
     };
     capabilities: Record<string, boolean>;
+    /** Invalidates renderer-held Vector handles after host-side session reset. */
+    vectorSessionEpoch?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -312,11 +314,36 @@ export namespace QsSyncEditsRequest {
     export const type = new RequestType<QsSyncEdits, QsSyncEditsResult, void>("qs/syncEdits");
 }
 
-export type QsActivatableTab = "results" | "messages" | "queryPlan";
+/**
+ * PERF_MODE-only Vector action accepted by mssql.perf.queryStudioActivateTab.
+ * The payload is deliberately composition-only: selected result-row ordinal,
+ * catalog selector, metric, K, and variant gate. SQL, pasted vectors, source
+ * text, and model input have no representation in this contract.
+ */
+export interface QsVectorPerfTargetSelector {
+    readonly schema: string;
+    readonly table: string;
+    readonly vectorColumn: string;
+}
+
+export interface QsVectorPerfSearchAction {
+    readonly source: { readonly kind: "selectedRow"; readonly ordinal: number };
+    readonly target: QsVectorPerfTargetSelector;
+    readonly metric: "cosine" | "euclidean" | "dot";
+    readonly k: number;
+    readonly includeApprox: boolean;
+}
+
+export type QsVectorPerfAction =
+    | { readonly workspace: "projection" }
+    | { readonly workspace: "search"; readonly search: QsVectorPerfSearchAction };
+
+export type QsActivatableTab = "results" | "messages" | "queryPlan" | "vector";
 
 /** Host-internal activation after PERF_MODE argument normalization. */
 export interface QsActivateTabRequest {
     readonly tab: QsActivatableTab;
+    readonly vector?: QsVectorPerfAction;
 }
 
 /** Host-to-webview envelope. requestId makes repeated identical actions observable. */

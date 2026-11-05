@@ -45,7 +45,14 @@ const GRID_HEADER_PX = 34;
 const GRID_CHROME_PX = 20;
 const GRID_CAPTION_PX = 30;
 
-type PinnedTab = "results" | "messages" | "queryPlan";
+type PinnedTab = "results" | "messages" | "vector" | "queryPlan";
+
+// VEC-11: the Vector Workbench stays a lazy chunk here too — a pinned tab
+// without vector columns never loads it.
+const LazyVectorTab = React.lazy(async () => ({
+    default: (await import("../QueryStudio/vectorTab")).VectorWorkbenchTab,
+}));
+
 // Live-QS parity: pinned plan result sets render as REAL plan graphs in a
 // Query Plan tab — never as raw-XML grids (those rendered erratically and
 // crawled on multi-MB plan cells). azdataGraph stays a lazy on-use chunk.
@@ -177,6 +184,13 @@ export function PinnedResultsApp() {
         },
         [updatePanelViewState],
     );
+    const persistVectorViewState = useCallback(
+        (vectorState: QueryStudioPanelViewState["vector"]) => {
+            updatePanelViewState((current) => ({ ...current, vector: vectorState }));
+        },
+        [updatePanelViewState],
+    );
+
     const persistPlanViewState = useCallback(
         (queryPlan: QueryStudioPanelViewState["queryPlan"]) => {
             updatePanelViewState((current) => ({ ...current, queryPlan }));
@@ -215,7 +229,9 @@ export function PinnedResultsApp() {
                 panelViewStateRef.current = saved;
                 panelViewStateReadyRef.current = true;
                 const savedTab: PinnedTab =
-                    saved.shell.activeTab === "messages" || saved.shell.activeTab === "queryPlan"
+                    saved.shell.activeTab === "messages" ||
+                    saved.shell.activeTab === "vector" ||
+                    saved.shell.activeTab === "queryPlan"
                         ? saved.shell.activeTab
                         : "results";
                 setActiveTab(savedTab);
@@ -291,6 +307,33 @@ export function PinnedResultsApp() {
         () => (state?.resultSets ?? []).filter((summary) => summary.isPlanResult === true),
         [state?.resultSets],
     );
+    // VEC-11 sniff: frozen summaries carry the same vector column facts.
+    const vectorColumns = useMemo(
+        () =>
+            (state?.vectorEnabled
+                ? gridSummaries.filter((summary) => summary.complete)
+                : []
+            ).flatMap(
+                (summary) =>
+                    summary.columns?.flatMap((column, ordinal) =>
+                        column.vector?.transport === "binary-v1"
+                            ? [
+                                  {
+                                      resultSetId: summary.resultSetId,
+                                      columnOrdinal: ordinal,
+                                      columnName: column.displayName || column.name,
+                                      ...(column.vector.dimensions !== undefined
+                                          ? { dimensions: column.vector.dimensions }
+                                          : {}),
+                                      transport: column.vector.transport,
+                                  },
+                              ]
+                            : [],
+                    ) ?? [],
+            ),
+        [gridSummaries, state?.vectorEnabled],
+    );
+
     // Plan graphs load once (the snapshot is frozen) when the tab first mounts.
     const [planTabState, setPlanTabState] = useState<ExecutionPlanState | undefined>(undefined);
     const planMounted = mountedTabs.has("queryPlan");
@@ -351,6 +394,7 @@ export function PinnedResultsApp() {
     const availableTabs = orderedQueryStudioTabs({
         results: gridSummaries.length > 0,
         messages: state?.hasLocalMessages === true || (state?.messageCount ?? 0) > 0,
+        vector: vectorColumns.length > 0,
         queryPlan: planSummaries.length > 0,
     }) as PinnedTab[];
     const visibleActiveTab = availableTabs.includes(activeTab)
@@ -436,7 +480,9 @@ export function PinnedResultsApp() {
                               ? locConstants.queryStudioCore.messagesValue(
                                     String(state.errorCount > 0 ? ` (${state.errorCount} ⚠)` : ""),
                                 )
-                              : locConstants.queryResult.queryPlan(planSummaries.length)}
+                              : tab === "vector"
+                                ? locConstants.vectorWorkbench.vector
+                                : locConstants.queryResult.queryPlan(planSummaries.length)}
                     </button>
                 ))}
             </div>
@@ -516,6 +562,34 @@ export function PinnedResultsApp() {
                                     onViewStateChange={persistMessagesViewState}
                                 />
                             )}
+                        </QueryStudioErrorBoundary>
+                    </div>
+                ) : null}
+                {vectorColumns.length > 0 && mountedTabs.has("vector") ? (
+                    <div
+                        className="qs-tab-panel qs-tab-panel-fill"
+                        hidden={visibleActiveTab !== "vector"}>
+                        <QueryStudioErrorBoundary
+                            label={locConstants.vectorWorkbench.vector}
+                            resetKey={`vector:${panelViewStateRef.current.generation}`}
+                            onError={reportPaneError}>
+                            <React.Suspense
+                                fallback={
+                                    <div className="qs-muted">
+                                        {locConstants.vectorWorkbench.loadingVectorWorkbench}
+                                    </div>
+                                }>
+                                <LazyVectorTab
+                                    rpc={rpc}
+                                    columns={vectorColumns}
+                                    runKey={`pinned:${state.createdEpochMs ?? 0}`}
+                                    live={false}
+                                    active={panelVisible && visibleActiveTab === "vector"}
+                                    panelVisible={panelVisible}
+                                    initialViewState={panelViewStateRef.current.vector}
+                                    onViewStateChange={persistVectorViewState}
+                                />
+                            </React.Suspense>
                         </QueryStudioErrorBoundary>
                     </div>
                 ) : null}

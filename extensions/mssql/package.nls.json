@@ -627,5 +627,6 @@
     "mssql.objectExplorerV2.scriptDrop": "Script as Drop",
     "mssql.objectExplorerV2.scriptExecute": "Script as Execute",
     "mssql.objectExplorerV2.generateScriptSubmenu": "Generate Script",
+    "mssql.queryStudio.vectorWorkbench.enabled": "Enable the private-preview Vector workbench in Query Studio: Profile, Compare, Projection, Search, Index, and Pipeline. Requires experimental features, SQL Data Plane, and Query Studio. Rerun queries after enabling to request typed vector results. Model calls require confirmation.",
     "mssql.sqlDataPlane.tsNative.overrides": "Advanced preview diagnostics for the Native TypeScript provider. Disconnect all native sessions and reconnect, or reload the extension host, to apply changes. Supports lower page/cell limits, a memory budget, explicit lossy previews, capability masks, and deterministic fault injection. Unknown settings are ignored. Leave empty for normal use and performance comparisons."
 }

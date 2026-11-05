@@ -110,6 +110,20 @@ suite("queryResults pinned operation lifetime", () => {
         return call!.args[1] as (params: unknown) => Promise<any>;
     }
 
+    test("retained-store access honors derived snapshot descriptors", () => {
+        expect(service.storeForSnapshot(snapshotId)).to.deep.equal({ store, derived: false });
+        const descriptor = service.describeSnapshot(snapshotId)!;
+        sandbox
+            .stub(service, "describeSnapshot")
+            .withArgs(snapshotId)
+            .returns({
+                ...descriptor,
+                derived: {} as NonNullable<typeof descriptor.derived>,
+            });
+        expect(service.storeForSnapshot(snapshotId)).to.deep.equal({ store, derived: true });
+        expect(service.storeForSnapshot("missing")).to.equal(undefined);
+    });
+
     test("closing a pin during Save As retains all rows through export, then releases them", async () => {
         const target = vscode.Uri.file(path.join(directory, "pinned.csv"));
         sandbox.stub(vscode.window, "showSaveDialog").callsFake(async () => {

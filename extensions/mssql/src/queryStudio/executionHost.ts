@@ -90,6 +90,7 @@ export class ExecutionHost {
      * user batches request typed vector cells; the backend still falls back
      * honestly when the service did not negotiate `vectorBinaryV1`.
      */
+    vectorWorkbenchGate: () => boolean = () => false;
     /** Spatial results gate; evaluated per run, applying to the next execution. */
     /**
      * SQLCMD seams the document model wires (this module stays vscode-free):
@@ -353,6 +354,7 @@ export class ExecutionHost {
                     pageBytes: tuning.params.pageBytes,
                     maxCellBytes: tuning.params.maxCellBytes,
                 },
+                ...(this.vectorWorkbenchGate() ? { vectorEncoding: "binary-v1" as const } : {}),
                 tuningDigest: tuning.digest,
                 tuningProfileId: tuning.profileId,
                 ...(this.sqlcmdEnabled

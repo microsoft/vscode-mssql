@@ -20,6 +20,7 @@ void run(
         createNodeExtensionConfig({
             entryPoints: {
                 extension: "src/extension.ts",
+                vectorAnalysisWorker: "src/queryResults/vector/vectorAnalysisWorker.ts",
                 // Loaded only when the Native TypeScript provider is selected.
                 tsNativeProvider: "src/services/tsNative/providerEntry.ts",
                 serviceInstallerUtil: "src/languageservice/serviceInstallerUtil.ts",

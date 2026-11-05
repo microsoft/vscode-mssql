@@ -29,6 +29,7 @@ export enum PrivatePreviewFeature {
     SessionDiagnostics = "mssql.sessionDiag.enabled",
     ObjectExplorerV2 = "mssql.objectExplorer.v2.enabled",
     QueryStudio = "mssql.queryStudio.enabled",
+    VectorWorkbench = "mssql.queryStudio.vectorWorkbench.enabled",
     RegressedQueries = "mssql.performanceMonitoring.regressedQueries.enabled",
 }
 

@@ -31,7 +31,10 @@ import {
 import { TextSyncEngine } from "./textSync";
 import { DocumentSessionBinding } from "./documentSessionBinding";
 import { isModifyingSql } from "../sql/sqlSafetyClassifier";
+import { vectorWorkbenchEnabled } from "../queryResults/vector/vectorFeatureGate";
 import { ExecutionHost } from "./executionHost";
+import { VectorCapabilityService } from "../queryResults/vector/vectorCapabilityService";
+import { VectorIndexService } from "../queryResults/vector/vectorIndexService";
 import {
     deleteQueryStudioHotExitBackup,
     persistQueryStudioHotExitBackup,
@@ -177,6 +180,10 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             },
             openConnectSession: (target) => binding.openSqlcmdConnectSession(target),
         };
+        // Vector Workbench gate (D-0019): evaluated per run — flipping the
+        // setting applies to the next execution without a reload.
+        this.executionHost.vectorWorkbenchGate = vectorWorkbenchEnabled;
+
         // Live result source registration (C2D-1): snapshots/pins/chat reach
         // this model's results only through the access service.
         this.liveResultSource = new QueryStudioLiveResultSource(this);
@@ -192,6 +199,29 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             this.handleHostChange(e);
         });
     }
+
+    /**
+     * Vector capability probes (VEC-7): model-owned so the per-connection
+     * cache is shared across panels and survives panel close. Probes run on
+     * a NARROW aux session — never the user or metadata session.
+     */
+    readonly vectorCapabilities = new VectorCapabilityService({
+        identity: () => {
+            const session = this.sessionBinding.activeSession;
+            return session
+                ? {
+                      connectionId: session.connectionId,
+                      ...(session.info.database ? { database: session.info.database } : {}),
+                  }
+                : undefined;
+        },
+        acquire: () => this.sessionBinding.acquireAuxiliarySession("vectorDiagnostics"),
+    });
+
+    /** Index workspace derivations (VEC-9): pure over the capability probe. */
+    readonly vectorIndexWorkspace = new VectorIndexService((refresh) =>
+        this.vectorCapabilities.capabilities(refresh ?? false),
+    );
 
     // --- host-driven results-tab activation (VEC-12 perf seam) --------------
     private readonly activateTabListeners = new Set<(request: QsActivateTabParams) => void>();
@@ -529,6 +559,9 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             return;
         }
         this.disposed = true;
+        // Doc 04 §7.3 grows here in B2/B3: cancel active query, close session,
+        // release metadata handles, tear down shadow LSP, dispose RowStore.
+        this.vectorCapabilities.dispose();
         this.liveResultSourceRegistration?.dispose();
         getQueryResultContextService().clearForSource(this.liveResultSource.sourceId);
         this.executionHost.dispose();

@@ -24,12 +24,16 @@
 
 import * as React from "react";
 import { perfMark } from "../../common/perfMarks";
-import { queryPlanResultPaneContribution } from "./resultPaneRegistry";
 import { locConstants } from "../../common/locConstants";
+import {
+    queryPlanResultPaneContribution,
+    vectorResultPaneContribution,
+} from "./resultPaneRegistry";
 
 const resultsModule = () => import("./results");
 const gridModule = () => import("./resultsGrid");
 const planModule = () => queryPlanResultPaneContribution.load();
+const vectorModule = () => vectorResultPaneContribution.load();
 
 let gridPrefetchStarted = false;
 let gridLoaded = false;
@@ -98,6 +102,15 @@ export const LazyExecutionPlanView = React.lazy(async () => {
     return {
         default: (module as typeof import("./queryPlanTab")).QueryStudioExecutionPlanView,
     };
+});
+
+export const LazyVectorTab = React.lazy(async () => {
+    // P2 on-use (VEC-5): the Vector Workbench chunk loads only on first tab
+    // activation — an unopened tab costs nothing beyond the appliesTo sniff.
+    perfMark("mssql.queryStudio.boot.vectorChunkRequested", {});
+    const module = await vectorModule();
+    perfMark("mssql.queryStudio.boot.vectorChunkLoaded", {});
+    return { default: (module as typeof import("./vectorTab")).VectorWorkbenchTab };
 });
 
 /** Suspense fallback for the few-ms window where results beat the chunk. */
