@@ -130,6 +130,7 @@ export default class QueryRunner {
     private _uriToQueryStringMap = new Map<string, string>();
     private _queryDocumentText: string | undefined;
     private _currentBatchQuery: string | undefined;
+    private _queryStringFromBatch = false;
     private _registeredNotificationUris = new Set<string>();
     private _executionSource: QueryExecutionSource = "document";
     private _serverConnectionId: string | undefined;
@@ -456,6 +457,10 @@ export default class QueryRunner {
             });
             const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
             this._queryDocumentText = doc.getText();
+            // Only the service knows which statement is at the cursor, so record the document
+            // until the batch start reports the statement's position.
+            this._uriToQueryStringMap.set(this._ownerUri, this._queryDocumentText);
+            this._queryStringFromBatch = true;
             this.markQuerySubmitted();
             await this._client.sendRequest(QueryExecuteStatementRequest.type, optionsParams);
             this._startEmitter.fire(this.uri);
@@ -622,6 +627,9 @@ export default class QueryRunner {
         this._serverConnectionId = undefined;
         this._queryDocumentText = undefined;
         this._currentBatchQuery = undefined;
+        // A reused runner must not report the previous run's text for this one.
+        this._uriToQueryStringMap.delete(this._ownerUri);
+        this._queryStringFromBatch = false;
         // Update the status view to show that we're executing
         this._statusView.executingQuery(this.uri);
 
@@ -716,6 +724,9 @@ export default class QueryRunner {
                 );
                 batchLines[0] = batchLines[0].slice(selection.startColumn);
                 this._currentBatchQuery = batchLines.join("\n");
+                if (this._queryStringFromBatch) {
+                    this._uriToQueryStringMap.set(this.uri, this._currentBatchQuery);
+                }
             }
         } else {
             this._currentBatchQuery = this.getQueryString(this.uri);
