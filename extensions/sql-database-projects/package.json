@@ -21,7 +21,6 @@
         "url": "https://github.com/Microsoft/vscode-mssql/issues"
     },
     "extensionDependencies": [
-        "ms-mssql.mssql",
         "ms-mssql.data-workspace-vscode"
     ],
     "scripts": {
