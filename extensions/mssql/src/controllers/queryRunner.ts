@@ -61,7 +61,11 @@ import { Perf } from "../perf/perfTelemetry";
 import { diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
-import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
+import {
+    bucketizeQueryDuration,
+    bucketizeRowCount,
+    getInMemoryGridDataProcessingThreshold,
+} from "../queryResult/utils";
 import { buildSelectionSummaryStatusBarStrings } from "../queryResult/selectionSummaryFormatter";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
@@ -132,6 +136,9 @@ export default class QueryRunner {
     private _executionPlanOptions: ExecutionPlanOptions | undefined;
     private _orphanedQueryRecoveryTimer: ReturnType<typeof setTimeout> | undefined;
     private static _runningQueries = [];
+
+    /** Whether the current query execution shows live query statistics. */
+    public isLiveStatisticsRun = false;
 
     private _startFailedEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
     public onStartFailed: vscode.Event<string> = this._startFailedEmitter.event;
@@ -259,6 +266,17 @@ export default class QueryRunner {
      */
     get executionPlanOptions(): ExecutionPlanOptions | undefined {
         return this._executionPlanOptions;
+    }
+
+    /**
+     * Whether the current query execution captures a plan. Editor runs always pass options, so
+     * their presence alone doesn't say that one was requested.
+     */
+    private get requestsExecutionPlan(): boolean {
+        return !!(
+            this._executionPlanOptions?.includeActualExecutionPlanXml ||
+            this._executionPlanOptions?.includeEstimatedExecutionPlanXml
+        );
     }
 
     get isSqlCmd(): boolean {
@@ -413,7 +431,7 @@ export default class QueryRunner {
             {
                 additionalProps: {
                     executionType: "statement",
-                    hasExecutionPlan: executionPlanOptions ? "true" : "false",
+                    hasExecutionPlan: this.requestsExecutionPlan ? "true" : "false",
                 },
                 includeCallStack: true,
             },
@@ -469,7 +487,7 @@ export default class QueryRunner {
             {
                 additionalProps: {
                     executionType: queryType,
-                    hasExecutionPlan: executionPlanOptions ? "true" : "false",
+                    hasExecutionPlan: this.requestsExecutionPlan ? "true" : "false",
                 },
                 includeCallStack: true,
             },
@@ -674,7 +692,14 @@ export default class QueryRunner {
                 isCanceled: this._isCanceled,
             });
         }
-        sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.QueryExecutionCompleted);
+        sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.QueryExecutionCompleted, {
+            additionalProps: {
+                liveStatistics: this.isLiveStatisticsRun ? "true" : "false",
+                isCanceled: this._isCanceled ? "true" : "false",
+                hasError: hasError ? "true" : "false",
+                durationBucket: bucketizeQueryDuration(this._totalElapsedMilliseconds),
+            },
+        });
     }
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {

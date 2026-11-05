@@ -32,6 +32,10 @@ import throttle = require("lodash/throttle");
 import store from "../queryResult/singletonStore";
 import { QueryCompletionSoundService } from "../services/queryCompletionSoundService";
 import { LiveQueryStatisticsMonitor } from "../queryResult/liveQueryStatistics";
+import {
+    LiveQueryStatisticsEndReason,
+    LiveQueryStatisticsRunTelemetry,
+} from "../queryResult/liveQueryStatisticsTelemetry";
 import { ExecutionPlanGraph } from "../sharedInterfaces/executionPlan";
 import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 // tslint:disable-next-line:no-require-imports
@@ -99,6 +103,7 @@ export class SqlOutputContentProvider {
             sessionId: number;
             hasShownPlan: boolean;
             readCount: number;
+            runTelemetry: LiveQueryStatisticsRunTelemetry;
         }
     > = new Map();
     // One execution slot per editor URI. The token identifies the run that owns the slot so a
@@ -915,9 +920,15 @@ export class SqlOutputContentProvider {
                 }
 
                 // A stopped or failed statement never gets an actual plan, so keep its last read
-                this.stopLiveQueryStatistics(queryRunner.uri, {
-                    keepLastPlan: hasError || isCanceled,
-                });
+                this.stopLiveQueryStatistics(
+                    queryRunner.uri,
+                    isCanceled
+                        ? LiveQueryStatisticsEndReason.Canceled
+                        : hasError
+                          ? LiveQueryStatisticsEndReason.QueryError
+                          : LiveQueryStatisticsEndReason.Completed,
+                    { keepLastPlan: hasError || isCanceled },
+                );
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
@@ -1200,7 +1211,7 @@ export class SqlOutputContentProvider {
             }
         }
 
-        this.stopLiveQueryStatistics(closedDocumentUri);
+        this.stopLiveQueryStatistics(closedDocumentUri, LiveQueryStatisticsEndReason.Closed);
         this._liveQueryStatisticsRuns.delete(closedDocumentUri);
         if (this._liveQueryStatisticsStatuses.includes(closedDocumentUri)) {
             this._liveQueryStatisticsStatuses = this._liveQueryStatisticsStatuses.filter(
@@ -1242,7 +1253,7 @@ export class SqlOutputContentProvider {
     }
 
     public async cleanupRunner(uri: string): Promise<void> {
-        this.stopLiveQueryStatistics(uri);
+        this.stopLiveQueryStatistics(uri, LiveQueryStatisticsEndReason.Closed);
         this._liveQueryStatisticsRuns.delete(uri);
         let queryRunnerState = this._queryResultsMap.get(uri);
         if (queryRunnerState) {
@@ -1309,7 +1320,9 @@ export class SqlOutputContentProvider {
         if (!isEnabled) {
             this._liveQueryStatisticsRuns.clear();
             for (const uri of this._liveQueryStatistics.keys()) {
-                this.stopLiveQueryStatistics(uri, { keepLastPlan: true });
+                this.stopLiveQueryStatistics(uri, LiveQueryStatisticsEndReason.PreviewDisabled, {
+                    keepLastPlan: true,
+                });
             }
         }
     }
@@ -1327,7 +1340,11 @@ export class SqlOutputContentProvider {
     }
 
     private setLiveQueryStatisticsForRun(uri: string, isEnabled: boolean): void {
-        this.stopLiveQueryStatistics(uri);
+        this.stopLiveQueryStatistics(uri, LiveQueryStatisticsEndReason.Superseded);
+        const runner = this._queryResultsMap.get(uri)?.queryRunner;
+        if (runner) {
+            runner.isLiveStatisticsRun = isEnabled;
+        }
         if (isEnabled) {
             this._liveQueryStatisticsRuns.add(uri);
         } else {
@@ -1343,7 +1360,14 @@ export class SqlOutputContentProvider {
         }
         const sessionId = Number(queryRunner.serverConnectionId);
         if (!Number.isInteger(sessionId) || sessionId <= 0) {
-            this.stopLiveQueryStatistics(uri);
+            // Without a monitor yet, stopping below has no run summary to send.
+            if (!this._liveQueryStatistics.has(uri)) {
+                new LiveQueryStatisticsRunTelemetry().send(
+                    LiveQueryStatisticsEndReason.SessionUnavailable,
+                    false,
+                );
+            }
+            this.stopLiveQueryStatistics(uri, LiveQueryStatisticsEndReason.SessionUnavailable);
             this.addLiveQueryStatisticsMessage(
                 uri,
                 LocalizedConstants.msgLiveQueryStatisticsUnavailable,
@@ -1361,7 +1385,11 @@ export class SqlOutputContentProvider {
     private createLiveQueryStatisticsMonitor(
         uri: string,
         sessionId: number,
-        previous?: { hasShownPlan: boolean; readCount: number },
+        previous?: {
+            hasShownPlan: boolean;
+            readCount: number;
+            runTelemetry: LiveQueryStatisticsRunTelemetry;
+        },
         after?: Promise<void>,
     ): void {
         const monitor = new LiveQueryStatisticsMonitor(uri, sessionId, {
@@ -1370,11 +1398,17 @@ export class SqlOutputContentProvider {
                     this.showLivePlans(uri, graphs);
                 }
             },
+            onEmptyRead: () => {
+                const live = this._liveQueryStatistics.get(uri);
+                if (live?.monitor === monitor) {
+                    live.runTelemetry.recordEmptyRead();
+                }
+            },
             onError: (message) => {
                 if (this._liveQueryStatistics.get(uri)?.monitor !== monitor) {
                     return;
                 }
-                this.stopLiveQueryStatistics(uri);
+                this.stopLiveQueryStatistics(uri, LiveQueryStatisticsEndReason.MonitorError);
                 this.addLiveQueryStatisticsMessage(
                     uri,
                     LocalizedConstants.msgLiveQueryStatisticsStopped(message),
@@ -1386,6 +1420,7 @@ export class SqlOutputContentProvider {
             sessionId,
             hasShownPlan: previous?.hasShownPlan ?? false,
             readCount: previous?.readCount ?? 0,
+            runTelemetry: previous?.runTelemetry ?? new LiveQueryStatisticsRunTelemetry(),
         });
         monitor.start(after);
     }
@@ -1400,6 +1435,7 @@ export class SqlOutputContentProvider {
             return;
         }
         live.readCount++;
+        live.runTelemetry.recordPlans(graphs);
         const batchQuery = this._queryResultsMap.get(uri)?.queryRunner.currentBatchQuery;
 
         const executionPlanGraphs = [
@@ -1436,7 +1472,11 @@ export class SqlOutputContentProvider {
      * Stops polling. The in-flight plans are removed, since the run's actual plans replace them,
      * unless keepLastPlan keeps them as the last state read.
      */
-    private stopLiveQueryStatistics(uri: string, options?: { keepLastPlan?: boolean }): void {
+    private stopLiveQueryStatistics(
+        uri: string,
+        endReason: LiveQueryStatisticsEndReason,
+        options?: { keepLastPlan?: boolean },
+    ): void {
         this._liveQueryStatisticsRuns.delete(uri);
         const live = this._liveQueryStatistics.get(uri);
         if (!live) {
@@ -1446,6 +1486,10 @@ export class SqlOutputContentProvider {
         this._liveQueryStatistics.delete(uri);
 
         const state = this._queryResultWebviewController.getQueryResultState(uri);
+        live.runTelemetry.send(
+            endReason,
+            state?.tabStates?.resultPaneTab === QueryResultPaneTabs.ExecutionPlan,
+        );
         const graphs = state?.executionPlanState?.executionPlanGraphs;
         if (graphs?.some((graph) => graph.isLive)) {
             state.executionPlanState = {
