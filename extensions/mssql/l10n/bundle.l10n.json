@@ -671,6 +671,11 @@
         "comment": ["{0} is the group name"]
     },
     "Connection string copied to clipboard": "Connection string copied to clipboard",
+    "Start Container": "Start Container",
+    "Docker preparation failed: {0}\nSQL connection failed: {1}": "Docker preparation failed: {0}\nSQL connection failed: {1}",
+    "Connections (Private Preview) could not connect to the new container.": "Connections (Private Preview) could not connect to the new container.",
+    "The SQL container did not become ready in time. Docker may be unresponsive.": "The SQL container did not become ready in time. Docker may be unresponsive.",
+    "The SQL container could not be started. Check the Docker logs and try again.": "The SQL container could not be started. Check the Docker logs and try again.",
     "Select a database object to script.": "Select a database object to script.",
     "Connect this profile in Connections (Private Preview) first.": "Connect this profile in Connections (Private Preview) first.",
     "-- Cannot script {0}.{1}: object is not present in the current metadata snapshot.": "-- Cannot script {0}.{1}: object is not present in the current metadata snapshot.",

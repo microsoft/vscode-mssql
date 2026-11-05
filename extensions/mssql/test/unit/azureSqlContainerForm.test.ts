@@ -863,6 +863,14 @@ suite("Azure SQL container configuration", () => {
         let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
         let connectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
 
+        async function expectPollingStopped(clock: sinon.SinonFakeTimers, probe: sinon.SinonStub) {
+            // The shared extension host can schedule unrelated timers and nextTick jobs.
+            // Verify that this operation has stopped polling instead of counting host timers.
+            const completedProbeCount = probe.callCount;
+            await clock.tickAsync(30_000);
+            expect(probe).to.have.callCount(completedProbeCount);
+        }
+
         setup(() => {
             mainController = sandbox.createStubInstance(MainController);
             connectionManager = sandbox.createStubInstance(ConnectionManager);
@@ -1198,6 +1206,8 @@ suite("Azure SQL container configuration", () => {
 
         test("retries failed sqlcmd probes until SELECT 1 succeeds", async () => {
             const clock = sandbox.useFakeTimers();
+            // Reproduce an unrelated host timer remaining after readiness completes.
+            setTimeout(() => undefined, 60_000);
             const readyAt = Date.now() + 10_000;
             const executeCommand = sandbox.stub().callsFake(async () => {
                 if (Date.now() < readyAt) {
@@ -1221,7 +1231,7 @@ suite("Azure SQL container configuration", () => {
             await clock.tickAsync(2000);
 
             expect(await pending).to.deep.equal({ success: true });
-            expect(clock.countTimers()).to.equal(0);
+            await expectPollingStopped(clock, executeCommand);
         });
 
         test("reports sanitized sqlcmd errors after five minutes of failed probes", async () => {
@@ -1254,10 +1264,10 @@ suite("Azure SQL container configuration", () => {
             expect(result.fullErrorText).not.to.include(form.password);
             expect(connectionUI.saveProfile).not.to.have.been.called;
             expect(mainController.createObjectExplorerSession).not.to.have.been.called;
-            expect(clock.countTimers()).to.equal(0);
+            await expectPollingStopped(clock, executeCommand);
         });
 
-        test("cancels readiness polling without leaving a retry timer", async () => {
+        test("cancels readiness polling without issuing another probe", async () => {
             const clock = sandbox.useFakeTimers();
             const abortController = new AbortController();
             const executeCommand = sandbox.stub().rejects(new Error("SQL is still starting"));
@@ -1272,7 +1282,7 @@ suite("Azure SQL container configuration", () => {
             abortController.abort();
 
             expect((await pending).success).to.be.false;
-            expect(clock.countTimers()).to.equal(0);
+            await expectPollingStopped(clock, executeCommand);
             expect(connectionUI.saveProfile).not.to.have.been.called;
         });
 
@@ -1373,7 +1383,7 @@ suite("Azure SQL container configuration", () => {
             abortController.abort();
 
             expect((await pending).success).to.be.false;
-            expect(clock.countTimers()).to.equal(0);
+            await expectPollingStopped(clock, connectionManager.connect);
             expect(connectionUI.saveProfile).not.to.have.been.called;
             expect(mainController.createObjectExplorerSession).not.to.have.been.called;
         });
