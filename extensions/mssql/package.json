@@ -1024,7 +1024,7 @@
                 },
                 {
                     "command": "mssql.performance.openDashboard",
-                    "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled && view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "when": "mssql.performanceMonitoringActive && config.mssql.performanceMonitoring.enabled && view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase|disconnectedDockerContainerDatabase)\\b/)",
                     "group": "3_MSSQL_databaseDiscover@3"
                 },
                 {
@@ -1265,12 +1265,12 @@
                 },
                 {
                     "command": "mssql.deleteContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer|DockerContainerDatabase)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer|DockerContainerDatabase|disconnectedDockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@2"
                 },
                 {
                     "command": "mssql.startContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|disconnectedDockerContainerDatabase)\\b/",
                     "group": "9_MSSQL_container@3"
                 },
                 {

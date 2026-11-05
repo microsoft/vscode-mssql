@@ -30,6 +30,7 @@ export const disconnectedServerNodeType = "disconnectedServer";
 export const disconnected = "disconnected";
 export const serverLabel = "Server";
 export const disconnectedDockerContainer = "disconnectedDockerContainer";
+export const disconnectedDockerContainerDatabase = "disconnectedDockerContainerDatabase";
 export const dockerContainer = "DockerContainer";
 export const dockerContainerDatabase = "DockerContainerDatabase";
 export const databasesSubNodeType = "Databases";
