@@ -21,13 +21,13 @@ suite("Live query statistics preview manifest", () => {
     const previewGate = "mssql.preview.liveQueryStatisticsEnabled";
     const commands = ["mssql.enableLiveQueryStatistics", "mssql.disableLiveQueryStatistics"];
 
-    test("defaults to the umbrella and permits explicit true and false overrides", () => {
+    test("defaults to enabled and permits explicit true, false, and null overrides", () => {
         const settings = collectConfigurationProperties<ConfigurationSetting>(
             contributes.configuration,
         );
         const setting = settings["mssql.preview.liveQueryStatistics"];
 
-        expect(setting.default).to.be.null;
+        expect(setting.default).to.be.true;
         expect(setting.type).to.have.members(["boolean", "null"]);
         expect(setting.scope).to.equal("application");
     });

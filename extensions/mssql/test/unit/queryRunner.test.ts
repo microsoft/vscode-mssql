@@ -14,6 +14,7 @@ import { QueryNotificationHandler } from "../../src/controllers/queryNotificatio
 import * as Utils from "../../src/models/utils";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import {
+    BatchSummary,
     QueryExecuteParams,
     QueryExecuteCompleteNotificationResult,
     QueryExecuteBatchNotificationParams,
@@ -30,8 +31,10 @@ import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose"
 import { ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
-import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
+import { stubMessageBoxes, stubTelemetry, stubVscodeWorkspace } from "./utils";
 import { Perf } from "../../src/perf/perfTelemetry";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -599,6 +602,111 @@ suite("Query Runner tests", () => {
         const latest = completed.lastCall.args[0] as QueryExecutionCompleteEvent;
         expect(latest).to.include({ hasError: false, isCanceled: false });
         expect(runner.isCanceled).to.be.false;
+    });
+
+    suite("Run telemetry", () => {
+        function completionProps(
+            sendActionEvent: sinon.SinonStub,
+        ): { [key: string]: string } | undefined {
+            return sendActionEvent
+                .getCalls()
+                .find((call) => call.args[1] === TelemetryActions.QueryExecutionCompleted)?.args[2]
+                .additionalProps;
+        }
+
+        test("reports how a live run ended", async () => {
+            const { sendActionEvent } = stubTelemetry(sandbox);
+            testSqlToolsServerClient.sendRequest.resolves({});
+            const runner = createQueryRunner();
+            runner.isLiveStatisticsRun = true;
+            runner.setupQueryExecution();
+            await runner.cancel();
+            runner.handleBatchComplete({
+                ownerUri: standardUri,
+                batchSummary: {
+                    executionElapsed: "00:00:02.000",
+                    executionEnd: new Date().toISOString(),
+                    executionStart: new Date().toISOString(),
+                    hasError: false,
+                    id: 0,
+                    selection: standardSelection,
+                    resultSetSummaries: [],
+                },
+            });
+
+            runner.handleQueryComplete({ ownerUri: standardUri, batchSummaries: [] });
+
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.QueryEditor,
+                TelemetryActions.QueryExecutionCompleted,
+            );
+            expect(completionProps(sendActionEvent)).to.deep.equal({
+                liveStatistics: "true",
+                isCanceled: "true",
+                hasError: "false",
+                durationBucket: "1-5s",
+            });
+        });
+
+        test("reports a run without live statistics", () => {
+            const { sendActionEvent } = stubTelemetry(sandbox);
+            const runner = createQueryRunner();
+            runner.setupQueryExecution();
+
+            runner.handleQueryComplete({
+                ownerUri: standardUri,
+                batchSummaries: [{ hasError: true } as BatchSummary],
+            });
+
+            expect(completionProps(sendActionEvent)).to.deep.equal({
+                liveStatistics: "false",
+                isCanceled: "false",
+                hasError: "true",
+                durationBucket: "<1s",
+            });
+        });
+
+        const planOptions: {
+            options?: QueryExecuteContracts.ExecutionPlanOptions;
+            hasExecutionPlan: string;
+        }[] = [
+            { options: undefined, hasExecutionPlan: "false" },
+            {
+                options: {
+                    includeActualExecutionPlanXml: false,
+                    includeEstimatedExecutionPlanXml: false,
+                },
+                hasExecutionPlan: "false",
+            },
+            { options: { includeActualExecutionPlanXml: true }, hasExecutionPlan: "true" },
+            { options: { includeEstimatedExecutionPlanXml: true }, hasExecutionPlan: "true" },
+        ];
+        for (const { options, hasExecutionPlan } of planOptions) {
+            test(`reports hasExecutionPlan ${hasExecutionPlan} for ${JSON.stringify(options)}`, async () => {
+                const startActivity = sandbox.stub(telemetry, "startActivity").returns({
+                    end: sandbox.stub(),
+                    endFailed: sandbox.stub(),
+                    update: sandbox.stub(),
+                } as unknown as telemetry.ActivityObject);
+                testSqlToolsServerClient.sendRequest.resolves({});
+                vscodeWorkspace.openTextDocument.resolves({
+                    getText: () => "select 1",
+                } as vscode.TextDocument);
+                const runner = createQueryRunner();
+
+                await runner.runQuery(standardSelection, options);
+                await runner.runStatement(0, 0, options);
+
+                const runProps = startActivity
+                    .getCalls()
+                    .filter((call) => call.args[1] === TelemetryActions.RunQuery)
+                    .map((call) => call.args[2].additionalProps);
+                expect(runProps).to.deep.equal([
+                    { executionType: "selection", hasExecutionPlan },
+                    { executionType: "statement", hasExecutionPlan },
+                ]);
+            });
+        }
     });
 
     test("Notification - Query complete refreshes the SPID shown in the status bar", () => {

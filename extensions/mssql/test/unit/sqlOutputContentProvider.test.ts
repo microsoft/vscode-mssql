@@ -17,6 +17,7 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import { IDbColumn, ISelectionData } from "../../src/models/interfaces";
 import {
+    BatchSummary,
     ExecutionPlanOptions,
     QueryExecuteSubsetResult,
 } from "../../src/models/contracts/queryExecute";
@@ -38,8 +39,9 @@ import {
     PreviewFeature,
     previewService,
 } from "../../src/previews/previewService";
-import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
+import { stubMessageBoxes, stubTelemetry, stubVscodeWorkspace } from "./utils";
 import { Perf } from "../../src/perf/perfTelemetry";
+import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
 
 const { expect } = chai;
 
@@ -1541,6 +1543,205 @@ suite("SqlOutputProvider Tests using mocks", () => {
                     "VIEW SERVER STATE permission was denied",
                 ),
             );
+        });
+
+        suite("Run telemetry", () => {
+            const liveGraph = {
+                query: "select 1",
+                root: { cost: 1, subTreeCost: 1 },
+                liveQueryStatistics: { estimatedProgress: 75, elapsedTimeInMs: 1000 },
+            } as ExecutionPlanGraph;
+            let sendActionEvent: sinon.SinonStub;
+
+            setup(() => {
+                sendActionEvent = stubTelemetry(sandbox).sendActionEvent;
+                sandbox.stub(LiveQueryStatisticsMonitor.prototype, "dispose");
+                const client = sandbox.createStubInstance(SqlToolsServiceClient);
+                client.sendRequest.resolves({});
+                sandbox.stub(SqlToolsServiceClient, "instance").get(() => client);
+            });
+
+            function runSummaries(): {
+                additionalProps: { [key: string]: string };
+                additionalMeasurements: { [key: string]: number };
+            }[] {
+                return sendActionEvent
+                    .getCalls()
+                    .filter((call) => call.args[1] === TelemetryActions.LiveQueryStatisticsRun)
+                    .map((call) => call.args[2]);
+            }
+
+            function completionProps(): { [key: string]: string }[] {
+                return sendActionEvent
+                    .getCalls()
+                    .filter((call) => call.args[1] === TelemetryActions.QueryExecutionCompleted)
+                    .map((call) => call.args[2].additionalProps);
+            }
+
+            test("reports a finished run once, before its results replace the plan tab", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onEmptyRead();
+                getMonitor()._callbacks.onPlans([liveGraph]);
+
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+                const summaries = runSummaries();
+                expect(summaries).to.have.length(1);
+                expect(summaries[0].additionalProps).to.include({
+                    endReason: "completed",
+                    planTabActiveAtEnd: "true",
+                });
+                expect(summaries[0].additionalMeasurements).to.include({
+                    planReadCount: 1,
+                    emptyReadCount: 1,
+                    progressAtEnd: 75,
+                });
+                expect(completionProps()[0]).to.include({ liveStatistics: "true" });
+            });
+
+            test("reports a canceled run with the progress the user last saw", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onPlans([liveGraph]);
+
+                await contentProvider.cancelQuery(uri);
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+                const [summary] = runSummaries();
+                expect(summary.additionalProps).to.include({ endReason: "canceled" });
+                expect(summary.additionalMeasurements).to.include({ progressAtEnd: 75 });
+            });
+
+            test("reports a query error and whether the user had left the plan tab", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onPlans([liveGraph]);
+                contentProvider.queryResultWebviewController.getQueryResultState(
+                    uri,
+                ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+
+                runner.handleQueryComplete({
+                    ownerUri: uri,
+                    batchSummaries: [{ hasError: true } as BatchSummary],
+                });
+
+                expect(runSummaries()[0].additionalProps).to.include({
+                    endReason: "queryError",
+                    planTabActiveAtEnd: "false",
+                });
+            });
+
+            test("reports a failed read once, without its error message", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onError("Login failed for user 'secret'");
+
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+                const summaries = runSummaries();
+                expect(summaries).to.have.length(1);
+                expect(summaries[0].additionalProps).to.include({ endReason: "monitorError" });
+                expect(JSON.stringify(summaries)).not.to.include("secret");
+            });
+
+            test("reports a run whose session can't be identified", async () => {
+                contentProvider.onToggleLiveQueryStatistics(true);
+                await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+
+                startBatch(contentProvider.getQueryRunner(uri), 0, "0");
+
+                expect(startMonitor).not.to.have.been.called;
+                const summaries = runSummaries();
+                expect(summaries).to.have.length(1);
+                expect(summaries[0].additionalProps).to.include({
+                    endReason: "sessionUnavailable",
+                });
+                expect(summaries[0].additionalMeasurements).to.include({ planReadCount: 0 });
+            });
+
+            test("reports a monitored run once when a later batch's session can't be identified", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onPlans([liveGraph]);
+
+                startBatch(runner, 1, "0");
+
+                const summaries = runSummaries();
+                expect(summaries).to.have.length(1);
+                expect(summaries[0].additionalProps).to.include({
+                    endReason: "sessionUnavailable",
+                });
+                expect(summaries[0].additionalMeasurements).to.include({ planReadCount: 1 });
+            });
+
+            test("reports one run across a changed SPID and a saved editor", async () => {
+                const runner = await startLiveRun();
+                getMonitor()._callbacks.onPlans([liveGraph]);
+                startBatch(runner, 1, "58");
+                getMonitor()._callbacks.onPlans([liveGraph]);
+                const renamed = "saved_query_uri";
+                await contentProvider.updateQueryRunnerUri(uri, renamed);
+                getMonitor()._callbacks.onPlans([liveGraph]);
+                getMonitor()._callbacks.onEmptyRead();
+                expect(runSummaries()).to.deep.equal([]);
+
+                runner.handleQueryComplete({ ownerUri: renamed, batchSummaries: [] });
+
+                const summaries = runSummaries();
+                expect(summaries).to.have.length(1);
+                expect(summaries[0].additionalMeasurements).to.include({
+                    planReadCount: 3,
+                    emptyReadCount: 1,
+                });
+            });
+
+            test("ignores an empty read from a replaced monitor", async () => {
+                const runner = await startLiveRun();
+                const original = getMonitor();
+                startBatch(runner, 1, "58");
+
+                original._callbacks.onEmptyRead();
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+                expect(runSummaries()[0].additionalMeasurements).to.include({ emptyReadCount: 0 });
+            });
+
+            test("reports a run stopped by closing its results", async () => {
+                await startLiveRun();
+
+                await contentProvider.cleanupRunner(uri);
+
+                expect(runSummaries()[0].additionalProps).to.include({ endReason: "closed" });
+            });
+
+            test("reports a run stopped by disabling the preview", async () => {
+                await startLiveRun();
+                sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+                previewEnabled = false;
+                const event = {
+                    affectsConfiguration: (key: string) =>
+                        key === getPreviewConfigKey(PreviewFeature.LiveQueryStatistics),
+                } as vscode.ConfigurationChangeEvent;
+                for (const call of workspaceEvents.onDidChangeConfiguration.getCalls()) {
+                    call.args[0](event);
+                }
+
+                expect(runSummaries()[0].additionalProps).to.include({
+                    endReason: "previewDisabled",
+                });
+            });
+
+            test("doesn't report live statistics for a later run in the same editor without them", async () => {
+                const runner = await startLiveRun();
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+                contentProvider.onToggleLiveQueryStatistics(false);
+
+                await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+                runner.handleQueryComplete({ ownerUri: uri, batchSummaries: [] });
+
+                expect(completionProps().map((props) => props.liveStatistics)).to.deep.equal([
+                    "true",
+                    "false",
+                ]);
+                expect(runSummaries()).to.have.length(1);
+            });
         });
     });
 
