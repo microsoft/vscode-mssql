@@ -75,7 +75,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private readonly _operationId: string;
 
     protected override get telemetryContext() {
-        return getConnectionTelemetryInfo(this._connectionManager, this._connectionUri);
+        return getConnectionTelemetryInfo(
+            this._connectionManager,
+            this._connectionUri,
+            this.state?.formState.databaseName ?? "",
+        );
     }
 
     constructor(
@@ -224,7 +228,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             if (result.success) {
                 sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
-                    ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                    ...getConnectionTelemetryInfo(
+                        this._connectionManager,
+                        this._connectionUri,
+                        databaseName,
+                    ),
                     additionalProps: {
                         operationId: this._operationId,
                         success: "true",
@@ -235,7 +243,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 void UserSurvey.getInstance().promptUserForNPSFeedback(SQLPROJ_PUBLISH_VIEW_ID);
             } else {
                 sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
-                    ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                    ...getConnectionTelemetryInfo(
+                        this._connectionManager,
+                        this._connectionUri,
+                        databaseName,
+                    ),
                     error: new Error(getErrorMessage(result.errorMessage)),
                     includeErrorMessage: false,
                     additionalProps: {
@@ -247,7 +259,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
             }
         } catch (error) {
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
-                ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                ...getConnectionTelemetryInfo(
+                    this._connectionManager,
+                    this._connectionUri,
+                    databaseName,
+                ),
                 error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                 includeErrorMessage: false,
                 additionalProps: {
@@ -287,7 +303,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             if (result.success) {
                 sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
-                    ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                    ...getConnectionTelemetryInfo(
+                        this._connectionManager,
+                        this._connectionUri,
+                        databaseName,
+                    ),
                     additionalProps: {
                         operationId: this._operationId,
                         success: "true",
@@ -296,7 +316,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 });
             } else {
                 sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
-                    ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                    ...getConnectionTelemetryInfo(
+                        this._connectionManager,
+                        this._connectionUri,
+                        databaseName,
+                    ),
                     error: new Error(getErrorMessage(result.errorMessage)),
                     includeErrorMessage: false,
                     additionalProps: {
@@ -308,7 +332,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
             }
         } catch (error) {
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
-                ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                ...getConnectionTelemetryInfo(
+                    this._connectionManager,
+                    this._connectionUri,
+                    databaseName,
+                ),
                 error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                 includeErrorMessage: false,
                 additionalProps: {
@@ -731,7 +759,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         } catch (error) {
             this.logger.error(`Failed to get connection string: ${getErrorMessage(error)}`);
             sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.LoadFromConnectionString, {
-                ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                ...this.telemetryContext,
                 error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                 includeErrorMessage: false,
                 additionalProps: {
@@ -985,7 +1013,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 } catch (error) {
                     this.logger.error("Failed during container publish:", error);
                     sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
-                        ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                        ...getConnectionTelemetryInfo(
+                            this._connectionManager,
+                            this._connectionUri,
+                            state.formState.databaseName,
+                        ),
                         error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                         includeErrorMessage: false,
                         additionalProps: {
@@ -1213,7 +1245,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     TelemetryViews.SqlProjects,
                     TelemetryActions.PublishServerConnected,
                     {
-                        ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                        ...this.telemetryContext,
                         additionalProps: {
                             operationId: this._operationId,
                             success: "true",
@@ -1243,7 +1275,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     TelemetryViews.SqlProjects,
                     TelemetryActions.SqlCmdVariablesModified,
                     {
-                        ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                        ...this.telemetryContext,
                         additionalProps: {
                             operationId: this._operationId,
                             action: "modified",
@@ -1260,7 +1292,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this.registerReducer("revertSqlCmdVariables", async (state: PublishDialogState) => {
             // Send telemetry for SQLCMD variables revert
             sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.SqlCmdVariablesModified, {
-                ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                ...this.telemetryContext,
                 additionalProps: {
                     operationId: this._operationId,
                     action: "reverted",
@@ -1358,6 +1390,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             ...getConnectionTelemetryInfo(
                                 this._connectionManager,
                                 this._connectionUri,
+                                databaseName,
                             ),
                             additionalProps: {
                                 operationId: this._operationId,
@@ -1381,6 +1414,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             ...getConnectionTelemetryInfo(
                                 this._connectionManager,
                                 this._connectionUri,
+                                state.formState.databaseName,
                             ),
                             error:
                                 error instanceof Error ? error : new Error(getErrorMessage(error)),
@@ -1489,7 +1523,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     TelemetryViews.SqlProjects,
                     TelemetryActions.GenerateSqlPackageCommand,
                     {
-                        ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                        ...this.telemetryContext,
                         additionalProps: {
                             operationId: this._operationId,
                             success: "true",
@@ -1505,7 +1539,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     TelemetryViews.SqlProjects,
                     TelemetryActions.GenerateSqlPackageCommand,
                     {
-                        ...getConnectionTelemetryInfo(this._connectionManager, this._connectionUri),
+                        ...this.telemetryContext,
                         error: error instanceof Error ? error : new Error(getErrorMessage(error)),
                         includeErrorMessage: false,
                         additionalProps: {

@@ -10,21 +10,37 @@ import ConnectionManager from "../controllers/connectionManager";
 /**
  * Resolves telemetry context from an explicit profile or owner URI using only cached metadata.
  * No active-editor fallback is used when the supplied connection is unavailable.
+ * A target database excludes database-scoped metadata belonging to another database.
  */
 export function getConnectionTelemetryInfo(
     connectionManager: ConnectionManager | undefined,
     connection: string | IConnectionInfo | undefined,
+    databaseName?: string,
 ): TelemetryEventOptions {
     if (typeof connection === "string") {
         const resolvedConnection = connectionManager?.getConnectionInfo(connection);
         return {
             connectionInfo: resolvedConnection?.credentials,
-            serverInfo: resolvedConnection?.serverInfo,
+            serverInfo:
+                databaseName !== undefined &&
+                (!databaseName || resolvedConnection?.credentials?.database !== databaseName) &&
+                resolvedConnection?.serverInfo
+                    ? {
+                          ...resolvedConnection.serverInfo,
+                          databaseServiceTier: undefined,
+                          databaseServiceObjective: undefined,
+                      }
+                    : resolvedConnection?.serverInfo,
         };
     }
 
     return {
         connectionInfo: connection,
-        serverInfo: connection ? connectionManager?.getServerInfo(connection) : undefined,
+        serverInfo: connection
+            ? connectionManager?.getServerInfo(
+                  connection,
+                  databaseName ?? connection.database ?? "",
+              )
+            : undefined,
     };
 }

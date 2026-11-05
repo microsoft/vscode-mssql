@@ -15,7 +15,9 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { TableDesignerService } from "../../src/services/tableDesignerService";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import { stubExtensionContext, stubUserSurvey } from "./utils";
+import { stubExtensionContext, stubUserSurvey, stubTelemetry } from "./utils";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { IServerInfo } from "vscode-mssql";
 
 chai.use(sinonChai);
 
@@ -133,6 +135,27 @@ suite("TableDesignerWebviewController tests", () => {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    test("shared and edit telemetry request cached metadata for the table's database", async () => {
+        const { sendActionEvent } = stubTelemetry(sandbox);
+        const serverInfo = { engineEditionId: 5 } as IServerInfo;
+        mockConnectionManager.getServerInfo
+            .withArgs(treeNode.connectionProfile, "master")
+            .returns(serverInfo);
+        mockTableDesignerService.processTableEdit.resolves({
+            ...mockResult,
+            isValid: true,
+        });
+
+        expect(controller["telemetryContext"].serverInfo).to.equal(serverInfo);
+        await controller["_reducerHandlers"].get("processTableEdit")(controller.state, mockPayload);
+
+        expect(sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.TableDesigner,
+            TelemetryActions.Edit,
+            sinon.match({ serverInfo }),
+        );
     });
 
     test("should initialize correctly for table edit", async () => {

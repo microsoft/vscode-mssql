@@ -1239,12 +1239,36 @@ export default class ConnectionManager {
     }
 
     /**
-     * Get the server info for a connection
-     * @param connectionCreds
+     * Gets cached server info, optionally restricting database-scoped metadata to a target database.
      */
-    public getServerInfo(connectionCredentials: IConnectionInfo): IServerInfo {
+    public getServerInfo(
+        connectionCredentials: IConnectionInfo,
+        databaseName?: string,
+    ): IServerInfo {
         if (!connectionCredentials) {
             return undefined;
+        }
+        if (databaseName !== undefined) {
+            for (const [connection, serverInfo] of this._connectionCredentialsToServerInfoMap) {
+                if (
+                    databaseName &&
+                    connection.database === databaseName &&
+                    Utils.isSameConnectionInfo(connection, {
+                        ...connectionCredentials,
+                        database: databaseName,
+                    })
+                ) {
+                    return serverInfo;
+                }
+            }
+            const serverInfo = this.getServerInfo(connectionCredentials);
+            return serverInfo
+                ? {
+                      ...serverInfo,
+                      databaseServiceTier: undefined,
+                      databaseServiceObjective: undefined,
+                  }
+                : undefined;
         }
         if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
             return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);

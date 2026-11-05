@@ -103,7 +103,11 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
     }
 
     protected override get telemetryContext() {
-        return getConnectionTelemetryInfo(this.connectionManager, this.profile);
+        return getConnectionTelemetryInfo(
+            this.connectionManager,
+            this.state?.ownerUri,
+            this.databaseName,
+        );
     }
 
     protected async initializeDialog(): Promise<void> {
@@ -122,6 +126,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             return;
         }
 
+        this.state.ownerUri = "";
         try {
             this.state.ownerUri = await this.createBackupConnectionContext(
                 this.ownerUri,
@@ -137,8 +142,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             );
             this.updateViewModel(backupModel);
             sendErrorEvent(TelemetryViews.Backup, TelemetryActions.InitializeBackup, {
-                connectionInfo: this.profile,
-                serverInfo: this.connectionManager.getServerInfo(this.profile),
+                ...this.telemetryContext,
                 error: new Error(LocConstants.BackupDatabase.couldNotConnectToDatabase("")),
                 includeErrorMessage: true,
             });
@@ -164,8 +168,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 backupConfigError || LocConstants.BackupDatabase.unableToLoadBackupConfig;
             this.updateViewModel(backupModel);
             sendErrorEvent(TelemetryViews.Backup, TelemetryActions.InitializeBackup, {
-                connectionInfo: this.profile,
-                serverInfo: this.connectionManager.getServerInfo(this.profile),
+                ...this.telemetryContext,
                 error: new Error(LocConstants.BackupDatabase.unableToLoadBackupConfig),
                 includeErrorMessage: true,
             });
@@ -243,19 +246,18 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 }
 
                 if (includesBackupLocation) {
+                    const telemetryContext = this.telemetryContext;
                     this.panel.dispose();
                     this.dispose();
                     sendActionEvent(TelemetryViews.Backup, TelemetryActions.FinishBackup, {
-                        connectionInfo: this.profile,
-                        serverInfo: this.connectionManager.getServerInfo(this.profile),
+                        ...telemetryContext,
                     });
                 }
             }
         });
 
         sendActionEvent(TelemetryViews.Backup, TelemetryActions.InitializeBackup, {
-            connectionInfo: this.profile,
-            serverInfo: this.connectionManager.getServerInfo(this.profile),
+            ...this.telemetryContext,
         });
 
         this.registerBackupRpcHandlers();
@@ -316,8 +318,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             const backupViewModel = this.backupViewModel(state);
 
             sendActionEvent(TelemetryViews.Backup, TelemetryActions.Backup, {
-                connectionInfo: this.profile,
-                serverInfo: this.connectionManager.getServerInfo(this.profile),
+                ...this.telemetryContext,
                 additionalProps: {
                     backupToUrl:
                         backupViewModel.type === DisasterRecoveryType.Url ? "true" : "false",
@@ -335,8 +336,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             void this.backupHelper(TaskExecutionMode.script, state);
 
             sendActionEvent(TelemetryViews.Backup, TelemetryActions.ScriptBackup, {
-                connectionInfo: this.profile,
-                serverInfo: this.connectionManager.getServerInfo(this.profile),
+                ...this.telemetryContext,
             });
             return state;
         });

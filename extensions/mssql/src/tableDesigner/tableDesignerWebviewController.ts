@@ -88,6 +88,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         return getConnectionTelemetryInfo(
             this._connectionManager,
             this._targetNode?.connectionProfile,
+            this._targetNode ? this.getDatabaseNameForNode(this._targetNode) || "master" : "",
         );
     }
 
@@ -107,10 +108,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         if (!this._targetNode) {
             const errorMessage = "Unable to find object explorer node";
             sendErrorEvent(TelemetryViews.TableDesigner, TelemetryActions.Initialize, {
-                connectionInfo: this._targetNode?.connectionProfile,
-                serverInfo: this._connectionManager.getServerInfo(
-                    this._targetNode?.connectionProfile,
-                ),
+                ...this.telemetryContext,
                 error: new Error(errorMessage),
                 includeErrorMessage: true,
                 errorType: "unableToFindObjectExplorerNode",
@@ -156,10 +154,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         } catch (e) {
             const error = e instanceof Error ? e : new Error(getErrorMessage(e));
             sendErrorEvent(TelemetryViews.TableDesigner, TelemetryActions.Initialize, {
-                connectionInfo: this._targetNode?.connectionProfile,
-                serverInfo: this._connectionManager.getServerInfo(
-                    this._targetNode?.connectionProfile,
-                ),
+                ...this.telemetryContext,
                 error,
                 includeErrorMessage: true,
                 errorType: "prepareConnectionInfoFailed",
@@ -192,10 +187,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             if (!connectionString || connectionString === "") {
                 const errorMessage = "Unable to find connection string for the connection";
                 sendErrorEvent(TelemetryViews.TableDesigner, TelemetryActions.Initialize, {
-                    connectionInfo: this._targetNode?.connectionProfile,
-                    serverInfo: this._connectionManager.getServerInfo(
-                        this._targetNode?.connectionProfile,
-                    ),
+                    ...this.telemetryContext,
                     error: new Error(errorMessage),
                     includeErrorMessage: true,
                     errorType: "unableToFindConnectionString",
@@ -216,10 +208,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         } catch (e) {
             const error = e instanceof Error ? e : new Error(getErrorMessage(e));
             sendErrorEvent(TelemetryViews.TableDesigner, TelemetryActions.Initialize, {
-                connectionInfo: this._targetNode?.connectionProfile,
-                serverInfo: this._connectionManager.getServerInfo(
-                    this._targetNode?.connectionProfile,
-                ),
+                ...this.telemetryContext,
                 error,
                 includeErrorMessage: false,
                 errorType: "unableToFindConnectionString",
@@ -240,10 +229,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             TelemetryViews.TableDesigner,
             TelemetryActions.Initialize,
             {
-                connectionInfo: this._targetNode?.connectionProfile,
-                serverInfo: this._connectionManager.getServerInfo(
-                    this._targetNode?.connectionProfile,
-                ),
+                ...this.telemetryContext,
                 correlationId: this._correlationId,
                 additionalProps: {
                     correlationId: this._correlationId,
@@ -342,8 +328,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         this._tableDesignerService.disposeTableDesigner(this.state.tableInfo);
         super.dispose();
         sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Close, {
-            connectionInfo: this._targetNode?.connectionProfile,
-            serverInfo: this._connectionManager.getServerInfo(this._targetNode?.connectionProfile),
+            ...this.telemetryContext,
             additionalProps: {
                 correlationId: this._correlationId,
             },
@@ -358,10 +343,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     payload.tableChangeInfo,
                 );
                 sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Edit, {
-                    connectionInfo: this._targetNode?.connectionProfile,
-                    serverInfo: this._connectionManager.getServerInfo(
-                        this._targetNode?.connectionProfile,
-                    ),
+                    ...this.telemetryContext,
                     additionalProps: {
                         type: payload.tableChangeInfo.type.toString(),
                         source: payload.tableChangeInfo.source,
@@ -396,10 +378,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 const error = e instanceof Error ? e : new Error(getErrorMessage(e));
 
                 sendErrorEvent(TelemetryViews.TableDesigner, TelemetryActions.Edit, {
-                    connectionInfo: this._targetNode?.connectionProfile,
-                    serverInfo: this._connectionManager.getServerInfo(
-                        this._targetNode?.connectionProfile,
-                    ),
+                    ...this.telemetryContext,
                     error,
                     includeErrorMessage: false,
                 });
@@ -414,10 +393,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 TelemetryViews.TableDesigner,
                 TelemetryActions.Publish,
                 {
-                    connectionInfo: this._targetNode?.connectionProfile,
-                    serverInfo: this._connectionManager.getServerInfo(
-                        this._targetNode?.connectionProfile,
-                    ),
+                    ...this.telemetryContext,
                     correlationId: this._correlationId,
                     additionalProps: {
                         correlationId: this._correlationId,
@@ -504,10 +480,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             try {
                 const script = await this._tableDesignerService.generateScript(payload.table);
                 sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
-                    connectionInfo: this._targetNode?.connectionProfile,
-                    serverInfo: this._connectionManager.getServerInfo(
-                        this._targetNode?.connectionProfile,
-                    ),
+                    ...this.telemetryContext,
                     additionalProps: {
                         correlationId: this._correlationId,
                     },
@@ -607,10 +580,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 };
             }
             sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
-                connectionInfo: this._targetNode?.connectionProfile,
-                serverInfo: this._connectionManager.getServerInfo(
-                    this._targetNode?.connectionProfile,
-                ),
+                ...this.telemetryContext,
                 additionalProps: {
                     correlationId: this._correlationId,
                 },
@@ -655,10 +625,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
 
         this.onNotification(designer.CloseDesignerNotification.type, async () => {
             sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Close, {
-                connectionInfo: this._targetNode?.connectionProfile,
-                serverInfo: this._connectionManager.getServerInfo(
-                    this._targetNode?.connectionProfile,
-                ),
+                ...this.telemetryContext,
                 additionalProps: {
                     correlationId: this._correlationId,
                 },
@@ -669,10 +636,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         this.registerReducer("continueEditing", async (state) => {
             this.state.apiState.publishState = designer.LoadState.NotStarted;
             sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.ContinueEditing, {
-                connectionInfo: this._targetNode?.connectionProfile,
-                serverInfo: this._connectionManager.getServerInfo(
-                    this._targetNode?.connectionProfile,
-                ),
+                ...this.telemetryContext,
                 additionalProps: {
                     correlationId: this._correlationId,
                 },

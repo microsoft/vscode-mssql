@@ -312,7 +312,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogDeployDacpac,
             {
-                ...getConnectionTelemetryInfo(this.connectionManager, params.ownerUri),
+                ...getConnectionTelemetryInfo(
+                    this.connectionManager,
+                    params.ownerUri,
+                    params.databaseName,
+                ),
                 additionalProps: {
                     isNewDatabase: params.isNewDatabase.toString(),
                 },
@@ -377,7 +381,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogExtractDacpac,
-            getConnectionTelemetryInfo(this.connectionManager, params.ownerUri),
+            getConnectionTelemetryInfo(
+                this.connectionManager,
+                params.ownerUri,
+                params.databaseName,
+            ),
         );
 
         try {
@@ -439,7 +447,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogImportBacpac,
-            getConnectionTelemetryInfo(this.connectionManager, params.ownerUri),
+            getConnectionTelemetryInfo(
+                this.connectionManager,
+                params.ownerUri,
+                params.databaseName,
+            ),
         );
 
         try {
@@ -499,7 +511,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogExportBacpac,
-            getConnectionTelemetryInfo(this.connectionManager, params.ownerUri),
+            getConnectionTelemetryInfo(
+                this.connectionManager,
+                params.ownerUri,
+                params.databaseName,
+            ),
         );
 
         try {

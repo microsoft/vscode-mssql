@@ -109,6 +109,49 @@ suite("Connection telemetry context", () => {
         sinon.assert.notCalled(manager.getServerInfo);
     });
 
+    for (const targetDatabase of ["database-b", ""]) {
+        test(`omits URI database metadata when target '${targetDatabase}' is not the owning database`, () => {
+            const cachedServerInfo = {
+                ...serverInfo,
+                databaseServiceTier: "GeneralPurpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            };
+            const credentials = { ...profile, database: "database-a" };
+            manager.getConnectionInfo.withArgs("query://database-a").returns(
+                Object.assign(new ConnectionInfo(), {
+                    credentials,
+                    serverInfo: cachedServerInfo,
+                }),
+            );
+
+            const context = getConnectionTelemetryInfo(
+                manager,
+                "query://database-a",
+                targetDatabase,
+            );
+
+            expect(context.connectionInfo).to.equal(credentials);
+            expect(context.serverInfo).to.include({
+                engineEditionId: 5,
+                databaseServiceTier: undefined,
+                databaseServiceObjective: undefined,
+            });
+            expect(cachedServerInfo.databaseServiceTier).to.equal("GeneralPurpose");
+            sinon.assert.notCalled(manager.getServerInfo);
+        });
+    }
+
+    test("retains URI database metadata for the matching operation target", () => {
+        const credentials = { ...profile, database: "database-a" };
+        manager.getConnectionInfo
+            .withArgs("query://database-a")
+            .returns(Object.assign(new ConnectionInfo(), { credentials, serverInfo }));
+
+        expect(
+            getConnectionTelemetryInfo(manager, "query://database-a", "database-a").serverInfo,
+        ).to.equal(serverInfo);
+    });
+
     test("does not infer a connection when no explicit context is supplied", () => {
         expect(getConnectionTelemetryInfo(manager, undefined)).to.deep.equal({
             connectionInfo: undefined,

@@ -1554,10 +1554,9 @@ suite("PublishProjectWebViewController Tests", () => {
         } as mssql.IServerInfo;
         mockConnectionManager.getConnectionInfo
             .withArgs("mssql://azure-connection")
-            .returns({ credentials: connectionInfo } as ReturnType<
+            .returns({ credentials: connectionInfo, serverInfo } as ReturnType<
                 ConnectionManager["getConnectionInfo"]
             >);
-        mockConnectionManager.getServerInfo.withArgs(connectionInfo).returns(serverInfo);
 
         // Verify PublishProject success event includes serverTypes
         await controller["publishToDatabase"](
@@ -1587,6 +1586,79 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(scriptErrorCall[2]?.additionalProps?.serverTypes).to.equal(expectedServerTypes);
         expect(scriptErrorCall[2]?.connectionInfo).to.equal(connectionInfo);
         expect(scriptErrorCall[2]?.serverInfo).to.equal(serverInfo);
+    });
+
+    for (const operation of ["publishToDatabase", "generateDeploymentScript"] as const) {
+        test(`${operation} omits another database's tier for the operation target`, async () => {
+            const sendActionEvent = sandbox.stub(telemetry, "sendActionEvent");
+            const result = { success: true, operationId: "test-operation", errorMessage: "" };
+            mockDacFxService.deployDacpac.resolves(result);
+            mockDacFxService.generateDeployScript.resolves(result);
+            const controller = createTestController();
+            await controller.initialized.promise;
+            controller["_connectionUri"] = "mssql://database-a";
+            controller.state.formState.databaseName = "database-a";
+            const connectionInfo = {
+                server: "publish-server",
+                database: "database-a",
+            } as mssql.IConnectionInfo;
+            const serverInfo = {
+                engineEditionId: 5,
+                databaseServiceTier: "GeneralPurpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            } as mssql.IServerInfo;
+            mockConnectionManager.getConnectionInfo.withArgs("mssql://database-a").returns({
+                credentials: connectionInfo,
+                serverInfo,
+            } as ReturnType<ConnectionManager["getConnectionInfo"]>);
+
+            if (operation === "publishToDatabase") {
+                await controller[operation](
+                    controller.state,
+                    "/tmp/test.dacpac",
+                    "database-b",
+                    false,
+                );
+            } else {
+                await controller[operation](controller.state, "/tmp/test.dacpac", "database-b");
+            }
+
+            const action =
+                operation === "publishToDatabase"
+                    ? TelemetryActions.PublishProject
+                    : TelemetryActions.GenerateScript;
+            const event = sendActionEvent.args.find((args) => args[1] === action);
+            expect(event, "operation telemetry should be emitted").to.exist;
+            expect(event?.[2]?.serverInfo).to.include({
+                engineEditionId: 5,
+                databaseServiceTier: undefined,
+                databaseServiceObjective: undefined,
+            });
+        });
+    }
+
+    test("shared publish telemetry follows the selected database and omits new-database metadata", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+        controller["_connectionUri"] = "mssql://database-a";
+        const serverInfo = {
+            engineEditionId: 5,
+            databaseServiceTier: "GeneralPurpose",
+            databaseServiceObjective: "GP_Gen5_2",
+        } as mssql.IServerInfo;
+        mockConnectionManager.getConnectionInfo.withArgs("mssql://database-a").returns({
+            credentials: { server: "publish-server", database: "database-a" },
+            serverInfo,
+        } as ReturnType<ConnectionManager["getConnectionInfo"]>);
+
+        controller.state.formState.databaseName = "database-a";
+        expect(controller["telemetryContext"].serverInfo).to.equal(serverInfo);
+        controller.state.formState.databaseName = "new-database";
+        expect(controller["telemetryContext"].serverInfo).to.include({
+            engineEditionId: 5,
+            databaseServiceTier: undefined,
+            databaseServiceObjective: undefined,
+        });
     });
 
     //#region SqlPackage Command Generation Tests

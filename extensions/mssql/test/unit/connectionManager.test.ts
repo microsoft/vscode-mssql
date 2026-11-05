@@ -48,6 +48,7 @@ import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { PlatformInformation } from "../../src/models/platform";
+import { getConnectionTelemetryInfo } from "../../src/utils/telemetryUtils";
 
 chai.use(sinonChai);
 
@@ -169,6 +170,65 @@ suite("ConnectionManager Tests", () => {
     suite("Functionality tests", () => {
         setup(() => {
             connectionManager = createConnectionManager();
+        });
+
+        test("profile telemetry resolves the correct database from the real same-profile cache", () => {
+            const databaseA = {
+                id: "shared-profile",
+                server: "localhost",
+                database: "database-a",
+            } as IConnectionProfile;
+            const databaseB = { ...databaseA, database: "database-b" };
+            const infoA = {
+                engineEditionId: 5,
+                databaseServiceTier: "GeneralPurpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            } as IServerInfo;
+            const infoB = {
+                ...infoA,
+                databaseServiceTier: "BusinessCritical",
+                databaseServiceObjective: "BC_Gen5_4",
+            };
+            connectionManager["_connectionCredentialsToServerInfoMap"].set(databaseA, infoA);
+            connectionManager["_connectionCredentialsToServerInfoMap"].set(databaseB, infoB);
+
+            expect(
+                getConnectionTelemetryInfo(connectionManager, { ...databaseB }).serverInfo,
+            ).to.equal(infoB);
+            expect(
+                getConnectionTelemetryInfo(connectionManager, databaseA, "database-b").serverInfo,
+            ).to.equal(infoB);
+        });
+
+        test("profile telemetry omits database fields when only another database is cached", () => {
+            const profile = {
+                id: "shared-profile",
+                server: "localhost",
+                database: "database-a",
+            } as IConnectionProfile;
+            const cachedServerInfo = {
+                engineEditionId: 5,
+                databaseServiceTier: "GeneralPurpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            } as IServerInfo;
+            connectionManager["_connectionCredentialsToServerInfoMap"].set(
+                profile,
+                cachedServerInfo,
+            );
+
+            for (const database of ["database-b", ""]) {
+                expect(
+                    getConnectionTelemetryInfo(connectionManager, {
+                        ...profile,
+                        database,
+                    }).serverInfo,
+                ).to.include({
+                    engineEditionId: 5,
+                    databaseServiceTier: undefined,
+                    databaseServiceObjective: undefined,
+                });
+            }
+            expect(cachedServerInfo.databaseServiceTier).to.equal("GeneralPurpose");
         });
 
         test("refreshes cached database tier and endpoint tags after a context change", () => {

@@ -132,10 +132,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     /** Cached metadata for the database this designer session actually targets. */
     public override get telemetryContext() {
         const manager = this.mainController?.connectionManager;
-        const connectionInfo =
-            manager?.getConnectionInfo(this.connectionUri ?? "")?.credentials ??
-            this.treeNode?.connectionProfile;
-        return getConnectionTelemetryInfo(manager, connectionInfo);
+        return getConnectionTelemetryInfo(
+            manager,
+            this.connectionUri ?? this.treeNode?.connectionProfile,
+            this.databaseName,
+        );
     }
 
     constructor(

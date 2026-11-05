@@ -22,6 +22,7 @@ import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
 import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
 import {
     configSchemaDesignerEnableDeploymentsView,
@@ -201,6 +202,47 @@ suite("SchemaDesignerWebviewController tests", () => {
             getDabStoredProcedureParameters: sandbox.stub().resolves([]),
         };
     }
+
+    test("shared designer and DAB context uses URI-owned metadata rather than a profile lookup", () => {
+        const manager = sandbox.createStubInstance(ConnectionManager);
+        mockMainController.connectionManager = manager;
+        const credentials = { server: "localhost", database: databaseName };
+        const serverInfo = {
+            engineEditionId: 5,
+            databaseServiceTier: "BusinessCritical",
+            databaseServiceObjective: "BC_Gen5_4",
+        };
+        manager.getConnectionInfo
+            .withArgs(connectionUri)
+            .returns(Object.assign(new ConnectionInfo(), { credentials, serverInfo }));
+        const ctrl = createController();
+
+        expect(ctrl.telemetryContext).to.deep.equal({ connectionInfo: credentials, serverInfo });
+        sinon.assert.notCalled(manager.getServerInfo);
+    });
+
+    test("shared designer and DAB context omits the source database's tier for another target", () => {
+        const manager = sandbox.createStubInstance(ConnectionManager);
+        mockMainController.connectionManager = manager;
+        manager.getConnectionInfo.withArgs(connectionUri).returns(
+            Object.assign(new ConnectionInfo(), {
+                credentials: { server: "localhost", database: "source-database" },
+                serverInfo: {
+                    engineEditionId: 5,
+                    databaseServiceTier: "GeneralPurpose",
+                    databaseServiceObjective: "GP_Gen5_2",
+                },
+            }),
+        );
+        const ctrl = createController();
+
+        expect(ctrl.telemetryContext.serverInfo).to.include({
+            engineEditionId: 5,
+            databaseServiceTier: undefined,
+            databaseServiceObjective: undefined,
+        });
+        sinon.assert.notCalled(manager.getServerInfo);
+    });
 
     suite("Constructor and Initialization", () => {
         test("should create controller with correct parameters", () => {

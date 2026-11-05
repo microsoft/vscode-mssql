@@ -119,8 +119,9 @@ dotnet publish sqltoolsservice/src/Microsoft.SqlTools.ServiceLayer/Microsoft.Sql
 npm --prefix vscode-mssql run build -- --target mssql
 ```
 
-Select **MSSQL: Local STS telemetry** in Run and Debug, then press F5. This configuration uses the
-local publish folder via `MSSQL_SQLTOOLSSERVICE`, without replacing the normal extension setup.
+Set `MSSQL_SQLTOOLSSERVICE` in your local launch configuration's `env` to the absolute path of the
+local publish folder, then select **Run All Extensions** in Run and Debug and press F5. Keep this
+machine-specific override local rather than committing it.
 Connect to each engine/database of interest, execute a query or use a database feature, and switch
 databases to check that database-scoped metadata is refreshed.
 
