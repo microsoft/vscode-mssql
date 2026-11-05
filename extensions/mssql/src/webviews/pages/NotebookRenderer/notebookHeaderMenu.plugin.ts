@@ -17,8 +17,8 @@ import { SortProperties } from "../../../sharedInterfaces/queryResult";
 // Sort/filter icons are provided via CSS background-image in table.css,
 // which references the shared SVG files in src/webviews/media/.
 
-/** Extra width added to each column to accommodate the sort + filter buttons. */
-export const FilterButtonWidth = 38;
+/** Extra width added to each column to accommodate the sort + filter buttons (20px sort + 20px filter). */
+export const FilterButtonWidth = 40;
 
 type FilterValue = string | undefined;
 

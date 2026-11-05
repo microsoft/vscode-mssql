@@ -7,7 +7,17 @@ import { useEffect, useRef } from "react";
 import { TableDataView, defaultFilter } from "../QueryResult/table/tableDataView";
 import { RowNumberColumn } from "../QueryResult/table/plugins/rowNumberColumn.plugin";
 import { AutoColumnSize } from "../QueryResult/table/plugins/autoColumnSize.plugin";
-import { NotebookHeaderMenu, FilterButtonWidth } from "./notebookHeaderMenu.plugin";
+import { NotebookHeaderMenu } from "./notebookHeaderMenu.plugin";
+import {
+    MIN_COLUMN_WIDTH,
+    MAX_COLUMN_WIDTH,
+    MAX_SAMPLE_ROWS,
+    HEADER_TEXT_PADDING,
+    HEADER_EXTRA_WIDTH,
+    CELL_PADDING,
+    measureTextWidth,
+    computeColumnWidths,
+} from "./notebookGridWidthUtils";
 import { CellSelectionModel } from "../QueryResult/table/plugins/cellSelectionModel.plugin";
 import { CellRangeSelector } from "../QueryResult/table/plugins/cellRangeSelector";
 import { NotebookContextMenu } from "./notebookContextMenu.plugin";
@@ -35,52 +45,22 @@ export interface NotebookResultGridProps {
     copyAsCsvOptions?: NotebookCopyAsCsvOptions;
     postMessage?: (message: unknown) => void;
 }
+export {
+    MIN_COLUMN_WIDTH,
+    MAX_COLUMN_WIDTH,
+    MAX_SAMPLE_ROWS,
+    HEADER_TEXT_PADDING,
+    HEADER_EXTRA_WIDTH,
+    CELL_PADDING,
+    measureTextWidth,
+    computeColumnWidths,
+};
 
 const ROW_HEIGHT = 24;
-const MIN_COLUMN_WIDTH = 80;
-const MAX_COLUMN_WIDTH = 400;
 const MAX_GRID_HEIGHT = 500;
 const HEADER_HEIGHT = 30;
 const HORIZONTAL_SCROLLBAR_HEIGHT = 20;
-const MAX_SAMPLE_ROWS = 50;
 const SELECTION_SUMMARY_DEBOUNCE_MS = 100;
-
-/**
- * Measure the pixel width of a string using a canvas context.
- */
-function measureTextWidth(text: string, font: string): number {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-        return text.length * 8;
-    }
-    ctx.font = font;
-    return ctx.measureText(text).width;
-}
-
-/**
- * Compute optimal column widths by sampling header + data values.
- */
-function computeColumnWidths(columns: IDbColumn[], rows: DbCellValue[][], font: string): number[] {
-    const padding = 20 + FilterButtonWidth; // cell padding + sort/filter button space
-    const sampleRows = rows.slice(0, MAX_SAMPLE_ROWS);
-
-    return columns.map((col, colIdx) => {
-        let maxWidth = measureTextWidth(col.columnName, font) + padding;
-        for (const row of sampleRows) {
-            const cell = row[colIdx];
-            if (cell) {
-                const val = cell.isNull ? "NULL" : cell.displayValue;
-                const truncated = val.length > 250 ? val.slice(0, 250) + "..." : val;
-                const w = measureTextWidth(truncated, font) + padding;
-                if (w > maxWidth) {
-                    maxWidth = w;
-                }
-            }
-        }
-        return Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, Math.ceil(maxWidth)));
-    });
-}
 
 /**
  * Get the formatter for a notebook grid column. In the notebook renderer context
