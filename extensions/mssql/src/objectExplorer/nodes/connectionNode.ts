@@ -32,7 +32,11 @@ const createDisconnectedNodeContextValue = (
     connectionProfile: ConnectionProfile,
 ): vscodeMssql.TreeNodeContextValue => {
     let nodeSubType = connectionProfile.database ? DATABASE_SUBTYPE : undefined;
-    if (connectionProfile.containerName) nodeSubType = disconnectedDockerContainer;
+    if (connectionProfile.containerName) {
+        nodeSubType = connectionProfile.database
+            ? Constants.disconnectedDockerContainerDatabase
+            : disconnectedDockerContainer;
+    }
     return {
         type: SERVER_NODE_DISCONNECTED,
         filterable: false,
@@ -46,7 +50,9 @@ const createConnectedNodeContextValue = (
 ): vscodeMssql.TreeNodeContextValue => {
     let nodeSubType = connectionProfile.database ? DATABASE_SUBTYPE : undefined;
     if (connectionProfile.containerName) {
-        nodeSubType = dockerContainer;
+        nodeSubType = connectionProfile.database
+            ? Constants.dockerContainerDatabase
+            : dockerContainer;
     }
     return {
         type: SERVER_NODE_CONNECTED,
