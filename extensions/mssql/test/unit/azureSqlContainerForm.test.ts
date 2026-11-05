@@ -991,6 +991,8 @@ suite("Azure SQL container configuration", () => {
 
         test("redacts both SQL and client secrets from service-principal connection failures", async () => {
             const clock = sandbox.useFakeTimers();
+            // Recurring extension-host timers must not prevent the retry sequence from finishing.
+            setInterval(() => undefined, 1000);
             const form: AzureSqlContainerForm = {
                 ...entraForm(),
                 authenticationType: AuthenticationType.ActiveDirectoryServicePrincipal,
@@ -1007,7 +1009,10 @@ suite("Azure SQL container configuration", () => {
                 form,
                 mainController,
             );
-            await clock.runAllAsync();
+            await clock.tickAsync(
+                containerConnectionRetryDelayMs *
+                    (Math.pow(2, containerConnectionMaxAttempts - 1) - 1),
+            );
             const result = await pending;
             expect(result.success).to.equal(false);
             expect(result.fullErrorText).to.include("Authentication failed");
@@ -1092,6 +1097,8 @@ suite("Azure SQL container configuration", () => {
 
         test("retries Entra connection failures without switching to SQL Login or saving the SA password", async () => {
             const clock = sandbox.useFakeTimers();
+            // Recurring extension-host timers must not prevent the retry sequence from finishing.
+            setInterval(() => undefined, 1000);
             const account = { id: "account-id", label: "admin@contoso.com" };
             sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccountById").resolves(account);
             connectionManager.connect.rejects(new Error("Entra authentication failed"));
@@ -1102,7 +1109,10 @@ suite("Azure SQL container configuration", () => {
                 form,
                 mainController,
             );
-            await clock.runAllAsync();
+            await clock.tickAsync(
+                containerConnectionRetryDelayMs *
+                    (Math.pow(2, containerConnectionMaxAttempts - 1) - 1),
+            );
             const result = await pending;
             expect(result.success).to.equal(false);
             expect(result.fullErrorText).to.equal("Entra authentication failed");
