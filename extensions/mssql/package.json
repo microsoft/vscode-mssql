@@ -200,7 +200,8 @@
         "yallist": "^5.0.0",
         "yauzl": "^3.3.1",
         "ol": "10.9.0",
-        "topojson-client": "3.1.0"
+        "topojson-client": "3.1.0",
+        "tedious": "20.0.0"
     },
     "capabilities": {
         "untrustedWorkspaces": {
@@ -597,6 +598,26 @@
             ],
             "view/title": [
                 {
+                    "command": "mssql.queryResults.enableFollowActiveEditor",
+                    "when": "view == queryResult && mssql.multiResults.active && !config.mssql.queryResults.followActiveEditor",
+                    "group": "navigation"
+                },
+                {
+                    "command": "mssql.queryResults.disableFollowActiveEditor",
+                    "when": "view == queryResult && mssql.multiResults.active && config.mssql.queryResults.followActiveEditor",
+                    "group": "navigation"
+                },
+                {
+                    "command": "mssql.queryResults.enableMultiResults",
+                    "when": "view == queryResult && !config.mssql.preview.multiResults",
+                    "group": "1_queryResults@2"
+                },
+                {
+                    "command": "mssql.queryResults.disableMultiResults",
+                    "when": "view == queryResult && mssql.multiResults.active",
+                    "group": "1_queryResults@2"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer",
                     "title": "%mssql.addObjectExplorer%",
@@ -646,7 +667,13 @@
                 },
                 {
                     "command": "mssql.deployNewDatabase",
-                    "when": "view == objectExplorer || view == mssql.objectExplorerV2",
+                    "when": "view == objectExplorer",
+                    "title": "%mssql.newDeployment%",
+                    "group": "navigation"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.deployNewDatabase",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2",
                     "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 },
@@ -1453,9 +1480,40 @@
                     "command": "mssql.objectExplorerV2.newQuery",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=newQuery\\b/ && mssql.privatePreview.queryStudioActive && config.mssql.queryStudio.enabled",
                     "group": "1_MSSQL_primary@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.startContainer",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=startContainer\\b/",
+                    "group": "9_MSSQL_container@1"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.stopContainer",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=stopContainer\\b/",
+                    "group": "9_MSSQL_container@2"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.deleteContainer",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:cmd=deleteContainer\\b/",
+                    "group": "9_MSSQL_container@3"
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "mssql.queryResults.enableFollowActiveEditor",
+                    "when": "mssql.multiResults.active && !config.mssql.queryResults.followActiveEditor"
+                },
+                {
+                    "command": "mssql.queryResults.disableFollowActiveEditor",
+                    "when": "mssql.multiResults.active && config.mssql.queryResults.followActiveEditor"
+                },
+                {
+                    "command": "mssql.queryResults.enableMultiResults",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.queryResults.disableMultiResults",
+                    "when": "false"
+                },
                 {
                     "command": "mssql.copilot.sdkProviders.anthropic.setApiKey",
                     "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
@@ -2149,6 +2207,22 @@
                 {
                     "command": "mssql.spatialBasemap.setCredential",
                     "when": "config.mssql.queryStudio.spatial.basemap.enabled"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.deployNewDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.startContainer",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.stopContainer",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.objectExplorerV2.deleteContainer",
+                    "when": "false"
                 }
             ],
             "webview/context": [
@@ -2594,6 +2668,28 @@
             {
                 "command": "mssql.toggleQueryResultPanel",
                 "title": "%mssql.toggleQueryResultPanel%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryResults.enableFollowActiveEditor",
+                "title": "%mssql.queryResults.enableFollowActiveEditor%",
+                "category": "MS SQL",
+                "icon": "$(pinned)"
+            },
+            {
+                "command": "mssql.queryResults.disableFollowActiveEditor",
+                "title": "%mssql.queryResults.disableFollowActiveEditor%",
+                "category": "MS SQL",
+                "icon": "$(pin)"
+            },
+            {
+                "command": "mssql.queryResults.enableMultiResults",
+                "title": "%mssql.queryResults.enableMultiResults%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryResults.disableMultiResults",
+                "title": "%mssql.queryResults.disableMultiResults%",
                 "category": "MS SQL"
             },
             {
@@ -3586,6 +3682,34 @@
                 "command": "mssql.spatialBasemap.setCredential",
                 "title": "%mssql.spatialBasemap.setCredential%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerV2.deployNewDatabase",
+                "title": "%mssql.newDeployment%",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/newContainer_dark.svg",
+                    "light": "media/newContainer_light.svg"
+                },
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.startContainer",
+                "title": "%mssql.startContainer%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.stopContainer",
+                "title": "%mssql.stopContainer%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
+            },
+            {
+                "command": "mssql.objectExplorerV2.deleteContainer",
+                "title": "%mssql.deleteContainer%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
             }
         ],
         "keybindings": [
@@ -3974,7 +4098,8 @@
                     "mssql.sqlDataPlane.backend": {
                         "type": "string",
                         "enum": [
-                            "sts2-local"
+                            "sts2-local",
+                            "ts-native"
                         ],
                         "default": "sts2-local",
                         "markdownDescription": "%mssql.sqlDataPlane.backend.description%",
@@ -4068,10 +4193,10 @@
                         "description": "%mssql.preview.liveQueryStatistics.description%",
                         "scope": "application"
                     },
-                    "mssql.preview.betaResultsGrid": {
+                    "mssql.preview.multiResults": {
                         "type": "boolean",
-                        "default": true,
-                        "description": "%mssql.preview.betaResultsGrid.description%",
+                        "default": false,
+                        "markdownDescription": "%mssql.preview.multiResults.description%",
                         "scope": "application"
                     },
                     "mssql.useMsalEntraMfaAuth": {
@@ -5494,6 +5619,12 @@
                         "description": "%mssql.autoRevealResultsPanel%",
                         "scope": "window"
                     },
+                    "mssql.queryResults.followActiveEditor": {
+                        "type": "boolean",
+                        "default": true,
+                        "markdownDescription": "%mssql.queryResults.followActiveEditor%",
+                        "scope": "window"
+                    },
                     "mssql.customEnvironment": {
                         "type": "object",
                         "description": "%mssql.customEnvironment%",
@@ -5745,6 +5876,15 @@
                         "maximum": 365,
                         "description": "%mssql.queryStudio.spatial.basemap.cache.maxAgeDays%",
                         "scope": "application"
+                    },
+                    "mssql.sqlDataPlane.tsNative.overrides": {
+                        "type": "object",
+                        "default": {},
+                        "markdownDescription": "%mssql.sqlDataPlane.tsNative.overrides%",
+                        "scope": "window",
+                        "tags": [
+                            "experimental"
+                        ]
                     }
                 }
             },
@@ -5813,6 +5953,12 @@
                         "type": "boolean",
                         "default": true,
                         "markdownDescription": "%mssql.performanceMonitoring.enabled.description%",
+                        "scope": "application"
+                    },
+                    "mssql.performanceMonitoring.regressedQueries.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "%mssql.performanceMonitoring.regressedQueries.enabled.description%",
                         "scope": "application"
                     }
                 }

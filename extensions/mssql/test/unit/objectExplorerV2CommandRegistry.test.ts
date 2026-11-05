@@ -133,7 +133,7 @@ suite("Object Explorer v2 command registry (B25)", () => {
         ]);
     });
 
-    test("container connections retain their saved-profile identity without lifecycle commands", () => {
+    test("container connections expose lifecycle commands for their current state", () => {
         const profile = {
             profileId: "c1",
             displayName: "box",
@@ -144,11 +144,15 @@ suite("Object Explorer v2 command registry (B25)", () => {
         const connected = connectionNode(profile as never, { state: "connected" });
         expect(connected.icon).to.equal("DockerContainer_green");
         expect(connected.containerName).to.equal("sqlbox");
-        expect(nodeContextValue(connected)).to.not.match(/oe2:cmd=(?:start|stop|delete)Container/);
+        expect(nodeContextValue(connected)).to.include("oe2:cmd=stopContainer");
+        expect(nodeContextValue(connected)).to.include("oe2:cmd=deleteContainer");
+        expect(nodeContextValue(connected)).not.to.include("oe2:cmd=startContainer");
 
         const stopped = connectionNode(profile as never, { state: "disconnected" });
         expect(stopped.icon).to.equal("DockerContainer_red");
-        expect(nodeContextValue(stopped)).to.not.match(/oe2:cmd=(?:start|stop|delete)Container/);
+        expect(nodeContextValue(stopped)).to.include("oe2:cmd=startContainer");
+        expect(nodeContextValue(stopped)).to.include("oe2:cmd=deleteContainer");
+        expect(nodeContextValue(stopped)).not.to.include("oe2:cmd=stopContainer");
     });
 
     test("context values carry command flags from node facts", () => {

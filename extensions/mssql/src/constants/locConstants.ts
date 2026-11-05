@@ -1130,6 +1130,18 @@ export class ObjectExplorer {
 
 /** User-visible strings for the Connections (Private Preview) surface. */
 export class ObjectExplorerV2 {
+    public static startContainer = l10n.t("Start Container");
+    public static containerAndConnectionFailed = (dockerError: string, sqlError: string) =>
+        l10n.t("Docker preparation failed: {0}\nSQL connection failed: {1}", dockerError, sqlError);
+    public static containerConnectionFailed = l10n.t(
+        "Connections (Private Preview) could not connect to the new container.",
+    );
+    public static containerStartupTimedOut = l10n.t(
+        "The SQL container did not become ready in time. Docker may be unresponsive.",
+    );
+    public static containerStartupFailed = l10n.t(
+        "The SQL container could not be started. Check the Docker logs and try again.",
+    );
     static selectObjectToScript = l10n.t("Select a database object to script.");
     static connectBeforeScripting = l10n.t(
         "Connect this profile in Connections (Private Preview) first.",
@@ -2099,6 +2111,21 @@ export class QueryResult {
 }
 
 export class AzureSqlContainer {
+    public static selectPfxFile = l10n.t("Select PFX file");
+    public static pfxFiles = l10n.t("PFX files");
+    public static invalidAuthenticationType = l10n.t("Select a supported authentication type.");
+    public static selectEntraAccount = l10n.t("Select a Microsoft Entra account.");
+    public static invalidApplicationClientId = l10n.t("Enter a valid application (client) ID.");
+    public static pfxFileRequired = l10n.t("Select an existing, readable local PFX file.");
+    public static invalidEntraAdministrator = l10n.t(
+        "Unable to determine the selected Microsoft account's administrator identity in this tenant. Sign in to the tenant and try again.",
+    );
+    public static servicePrincipalClientSecretRequired = l10n.t(
+        "Enter the client secret for the selected app registration.",
+    );
+    public static invalidProvisioningStep = l10n.t(
+        "This container provisioning step is not supported.",
+    );
     public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
     public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
     public static portInUse = l10n.t("This port is already in use. Choose a different port.");
@@ -6644,5 +6671,35 @@ export class SpatialResults {
     public static theSpatialsessionhasexpired = l10n.t("The Spatial session has expired.");
     public static staleoroutoforderSpatialchunkrequest = l10n.t(
         "Stale or out-of-order Spatial chunk request.",
+    );
+}
+
+export class NativeSqlProvider {
+    public static strictUnsupported = l10n.t(
+        "Strict encryption is not supported by the Native TypeScript preview. Use SQL Tools Service for this connection.",
+    );
+    public static tcpOnly = l10n.t(
+        "The Native TypeScript provider supports TCP connections only. Use SQL Tools Service for other protocols or LocalDB.",
+    );
+    public static backendDisposed = l10n.t("The Native TypeScript provider has been disposed.");
+    public static openAbandoned = l10n.t("The connection finished opening after its deadline.");
+    public static sessionFactsFailed = l10n.t("Could not read SQL Server session information.");
+    public static loginFailed = l10n.t("Login failed.");
+    public static connectionTimedOut = l10n.t("Connection timed out.");
+    public static connectionFailed = l10n.t("Connection failed.");
+    public static valueUnavailable = (type: string) =>
+        l10n.t("<exact {0} value unavailable from this provider>", type);
+    public static approximateValue = (value: string) => l10n.t("{0} (approximate)", value);
+    public static resultDeliveryFailed = (kind: string, callback: string) =>
+        l10n.t("Query result delivery failed ({0}) while processing {1}.", kind, callback);
+    public static name = l10n.t("Native TypeScript (Tedious)");
+    public static unsupportedRuntime = (minimum: number, actual: string) =>
+        l10n.t(
+            "The Native TypeScript provider requires Node.js {0} or newer; this host uses {1}.",
+            minimum,
+            actual,
+        );
+    public static bundleUnavailable = l10n.t(
+        "The Native TypeScript provider could not be loaded. Reinstall the extension or select SQL Tools Service.",
     );
 }

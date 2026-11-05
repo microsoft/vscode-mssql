@@ -16,7 +16,7 @@ import {
     VECTOR_COLUMN_QUERY,
 } from "./gridFixtures";
 
-test.describe("MSSQL Extension - Preview Grid Formatting", () => {
+test.describe("MSSQL Extension - Results Grid Formatting", () => {
     let grid: Locator;
 
     const getContext = useSharedVsCodeLifecycle({

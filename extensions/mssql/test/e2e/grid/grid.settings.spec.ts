@@ -19,7 +19,7 @@ import { getGridLaunchConfig } from "./gridLaunchConfig";
 import { clickMenuItem, getCell, openHeaderContextMenu, stageQuery } from "./gridActions";
 import { SELECTION_QUERY, SELECTION_ROW_COUNT } from "./gridFixtures";
 
-test.describe("MSSQL Extension - Preview Grid Settings", () => {
+test.describe("MSSQL Extension - Results Grid Settings", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
 

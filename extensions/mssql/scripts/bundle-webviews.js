@@ -111,7 +111,6 @@ function createConfigs({ isProd, isWatch }) {
             tableDesigner: "src/webviews/pages/TableDesigner/index.tsx",
             objectExplorerFilter: "src/webviews/pages/ObjectExplorerFilter/index.tsx",
             queryResult: "src/webviews/pages/QueryResult/index.tsx",
-            queryResultPreview: "src/webviews/pages/QueryResult/queryResultPreviewIndex.tsx",
             queryStudio: "src/webviews/pages/QueryStudio/index.tsx",
             queryResultsSnapshot: "src/webviews/pages/QueryResultsSnapshot/index.tsx",
             editorWorker: "monaco-editor/esm/vs/editor/editor.worker.js",

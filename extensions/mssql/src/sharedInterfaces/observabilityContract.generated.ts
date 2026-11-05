@@ -3297,6 +3297,20 @@ export const OBS_CONTRACT: Registry = {
             attrs: {},
             attrsComplete: false,
         },
+        {
+            prefix: "docker.",
+            kind: "spanFamily",
+            feature: "deployment",
+            processRoles: ["extensionHost"],
+            timingClass: "sameProcessMonotonic",
+            measurementEligible: false,
+            attrs: {
+                result: "structuralMetadata",
+                errorClass: "structuralMetadata",
+            },
+            attrsComplete: false,
+            notes: "Docker startup through the shared orchestration layer. Only bounded outcome/error classifications are recorded; no container names, endpoints, or credentials.",
+        },
     ],
     metrics: [
         {

@@ -16,6 +16,7 @@ import * as Constants from "../../../src/constants/constants";
 import * as LocConstants from "../../../src/constants/locConstants";
 import { TreeNodeInfo } from "../../../src/objectExplorer/nodes/treeNodeInfo";
 import { WebviewBaseController } from "../../../src/controllers/webviewBaseController";
+import { PrivatePreviewFeature, previewService } from "../../../src/previews/previewService";
 import {
     PerformanceDashboardTarget,
     PerformanceDashboardWebviewController,
@@ -30,6 +31,7 @@ import {
     ContinueInChatRequest,
     DismissDatabaseHubBannerRequest,
     GetFavoriteQueriesRequest,
+    GetRegressedQueriesRequest,
     GetTopQueriesRequest,
     ListDatabasesRequest,
     OpenInDatabaseHubRequest,
@@ -254,8 +256,18 @@ suite("PerformanceDashboardWebviewController", () => {
                 serverName: "contoso.database.windows.net",
                 databaseName: "Sales",
                 queryCategory: undefined,
+                regressedQueriesEnabled: false,
             });
             expect(dashboard.location).to.equal("queries/913");
+        });
+
+        test("offers the regressed queries with their private preview setting", () => {
+            sandbox
+                .stub(previewService, "isPrivatePreviewEnabled")
+                .withArgs(PrivatePreviewFeature.RegressedQueries)
+                .returns(true);
+
+            expect(createController().state.regressedQueriesEnabled).to.equal(true);
         });
 
         test("opens with the Queries category that the user chose last", () => {
@@ -292,6 +304,7 @@ suite("PerformanceDashboardWebviewController", () => {
                 serverName: "contoso.database.windows.net",
                 databaseName: "Orders",
                 queryCategory: "reads",
+                regressedQueriesEnabled: false,
             });
         });
 
@@ -366,39 +379,25 @@ suite("PerformanceDashboardWebviewController", () => {
             });
         });
 
-        test("sends Copilot Chat a prompt to summarize or optimize a query", async () => {
+        test("sends Copilot Chat a prompt to summarize and optimize a query", async () => {
             createController();
-            const window = {
+
+            await request(ContinueInChatRequest.type.method, {
+                queryId: "913",
                 startUtc: "2026-10-01T00:00:00.000Z",
                 endUtc: "2026-10-02T00:00:00.000Z",
-            };
-
-            await request(ContinueInChatRequest.type.method, {
-                prompt: "summarize",
-                queryId: "913",
-                ...window,
-            });
-            await request(ContinueInChatRequest.type.method, {
-                prompt: "optimize",
-                queryId: "913",
-                ...window,
             });
 
-            const [summarize, optimize] = host.openChat.args.map(([prompt]) => prompt as string);
-            const query =
+            expect(host.openChat).to.have.been.calledOnceWithExactly(
                 'Query Store query 913 in database "Sales" on server ' +
-                '"contoso.database.windows.net" (saved connection profileId "profile-1"), from ' +
-                "2026-10-01T00:00:00.000Z to 2026-10-02T00:00:00.000Z UTC.\n\nUse " +
-                "#mssql_query_store_analyze_query with the specified profileId and database.";
-            expect(summarize).to.equal(
-                `${query} Briefly summarize the query's performance, key trends, and any notable ` +
-                    "execution plan changes. Then ask what I want to explore further.",
-            );
-            expect(optimize).to.equal(
-                `${query}\n\nIdentify potential performance bottlenecks and briefly recommend ` +
-                    "actionable optimizations based on the available data and execution plans. " +
-                    "Then ask what I want to improve or change. Do not apply changes until I " +
-                    "confirm.",
+                    '"contoso.database.windows.net" (saved connection profileId "profile-1"), ' +
+                    "from 2026-10-01T00:00:00.000Z to 2026-10-02T00:00:00.000Z UTC.\n\nUse " +
+                    "#mssql_query_store_analyze_query with the specified profileId and " +
+                    "database.\n\nBriefly summarize the query's performance, key trends, and any " +
+                    "notable execution plan changes. Identify potential performance bottlenecks " +
+                    "and recommend actionable optimizations based on the available data and " +
+                    "execution plans. Then ask what I want to explore further or change. Do not " +
+                    "apply changes until I confirm.",
             );
         });
 
@@ -431,6 +430,36 @@ suite("PerformanceDashboardWebviewController", () => {
             expect(reads[0]).to.include({ database: "Sales", purpose: "read" });
             expect(reads[0].sql).to.match(/SELECT TOP \(25\)/);
             expect(reads[0].sql).to.include("CAST(N'2026-10-01T00:00:00.000Z' AS datetimeoffset)");
+        });
+
+        test("reads the regressed queries of the dashboard's database in both periods", async () => {
+            batches.set("Sales", [[stateSet]]);
+            createController();
+
+            const result = await request<PerformanceRead<readonly unknown[]>>(
+                GetRegressedQueriesRequest.type.method,
+                {
+                    recent: {
+                        startUtc: "2026-10-02T00:00:00.000Z",
+                        endUtc: "2026-10-03T00:00:00.000Z",
+                    },
+                    baseline: {
+                        startUtc: "2026-10-01T00:00:00.000Z",
+                        endUtc: "2026-10-02T00:00:00.000Z",
+                    },
+                    metric: "cpuTime",
+                    top: 25,
+                    minExecutions: 2,
+                },
+            );
+
+            expect(result.status).to.equal("noData");
+            expect(reads).to.have.length(1);
+            expect(reads[0]).to.include({ database: "Sales", purpose: "read" });
+            expect(reads[0].sql).to.match(/SELECT TOP \(25\)/);
+            expect(reads[0].sql).to.include("rs.avg_cpu_time");
+            expect(reads[0].sql).to.include("CAST(N'2026-10-01T00:00:00.000Z' AS datetimeoffset)");
+            expect(reads[0].sql).to.include("CAST(N'2026-10-03T00:00:00.000Z' AS datetimeoffset)");
         });
 
         test("applies a plan change on a session for changes", async () => {
