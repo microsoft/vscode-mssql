@@ -14,7 +14,7 @@ import { getDockerodeClient } from "../docker/dockerodeClient";
 import {
     dockerLogger,
     getContainerByName,
-    findAvailablePort,
+    findAvailablePortWithoutDocker,
     isHostPortAvailable,
     pullContainerImage,
     sanitizeContainerInput,
@@ -327,7 +327,9 @@ export async function validateDabContainerName(containerName: string): Promise<s
 }
 
 /**
- * Finds an available port for the DAB container
+ * Finds an available port for a DAB deployment. The CLI target runs without
+ * Docker, and the Docker target has already passed its prerequisites by the time
+ * a port is chosen, so Docker being unreachable must not make every port look taken.
  * @param preferredPort The preferred port to use if available
  * @param isPortFree Overridable so tests decide port availability instead of
  * depending on what happens to be listening on the machine running them
@@ -336,7 +338,7 @@ export async function findAvailableDabPort(
     preferredPort: number = Dab.DAB_DEFAULT_PORT,
     isPortFree: (port: number) => Promise<boolean> = isHostPortAvailable,
 ): Promise<number> {
-    return findAvailablePort(preferredPort, isPortFree);
+    return findAvailablePortWithoutDocker(preferredPort, isPortFree);
 }
 
 /**

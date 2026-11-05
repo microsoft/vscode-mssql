@@ -5292,6 +5292,15 @@
                         "description": "%mssql.schemaDesigner.enableExpandCollapseButtons%",
                         "scope": "window"
                     },
+                    "mssql.schemaDesigner.enableDeploymentsView": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%mssql.schemaDesigner.enableDeploymentsView%",
+                        "scope": "window",
+                        "tags": [
+                            "preview"
+                        ]
+                    },
                     "mssql.tracingLevel": {
                         "type": "string",
                         "description": "%mssql.tracingLevel%",

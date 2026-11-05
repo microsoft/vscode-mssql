@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Dialog, DialogBody, DialogSurface, makeStyles } from "@fluentui/react-components";
+import { Dialog, DialogBody, DialogSurface, makeStyles, tokens } from "@fluentui/react-components";
 import { useCallback, useEffect, useState } from "react";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
@@ -29,11 +29,28 @@ const useStyles = makeStyles({
         maxHeight: "100%",
         display: "flex",
         flexDirection: "column",
+        gap: "16px",
+        // Every view renders its title first. The negative margins cancel the
+        // surface padding so the separator runs the full width of the dialog.
+        "> :first-child": {
+            marginLeft: "-24px",
+            marginRight: "-24px",
+            paddingLeft: "24px",
+            paddingRight: "24px",
+            paddingBottom: "16px",
+            borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        },
         // The actions row is always last. Pinning it to the bottom keeps the
         // shorter views from leaving their buttons floating mid-dialog now
         // that the frame has a fixed height.
         "> :last-child": {
             marginTop: "auto",
+            marginLeft: "-24px",
+            marginRight: "-24px",
+            paddingLeft: "24px",
+            paddingRight: "24px",
+            paddingTop: "16px",
+            borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
         },
     },
 });

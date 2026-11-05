@@ -488,6 +488,26 @@ suite("DAB Container", () => {
         const result = await dabContainer.findAvailableDabPort(8080, allHostPortsFree);
         expect(result).to.equal(8080);
     });
+
+    test("findAvailableDabPort: should accept a free port when Docker is unreachable", async () => {
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().rejects(new Error("Docker is not running")),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dabContainer.findAvailableDabPort(5500, allHostPortsFree);
+        expect(result).to.equal(5500);
+    });
+
+    test("findAvailableDabPort: should still skip a busy port when Docker is unreachable", async () => {
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().rejects(new Error("Docker is not running")),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dabContainer.findAvailableDabPort(5500, async (port) => port !== 5500);
+        expect(result).to.equal(5501);
+    });
 });
 
 function createTempFile() {

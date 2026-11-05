@@ -10,8 +10,6 @@ import {
     Input,
     makeStyles,
     Spinner,
-    Text,
-    tokens,
 } from "@fluentui/react-components";
 import debounce from "lodash/debounce";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -33,12 +31,6 @@ const useStyles = makeStyles({
         // Roughly what the two fields occupy, so the dialog does not resize
         // under the reader when the form takes their place.
         minHeight: "160px",
-    },
-    fieldHint: {
-        fontSize: tokens.fontSizeBase200,
-        lineHeight: tokens.lineHeightBase200,
-        color: tokens.colorNeutralForeground2,
-        marginTop: "4px",
     },
 });
 
@@ -218,21 +210,22 @@ export const DabWizardSettingsForm = ({
                                     ? locConstants.schemaDesigner.deploymentName
                                     : locConstants.schemaDesigner.containerName
                             }
+                            hint={
+                                isCli
+                                    ? locConstants.schemaDesigner.deploymentNameHint
+                                    : locConstants.schemaDesigner.containerNameHint
+                            }
                             validationState={containerNameError ? "error" : undefined}
                             validationMessage={containerNameError}>
                             <Input
                                 value={containerName}
                                 onChange={(_, data) => setContainerName(data.value)}
                             />
-                            <Text className={classes.fieldHint}>
-                                {isCli
-                                    ? locConstants.schemaDesigner.deploymentNameHint
-                                    : locConstants.schemaDesigner.containerNameHint}
-                            </Text>
                         </Field>
 
                         <Field
                             label={locConstants.schemaDesigner.port}
+                            hint={locConstants.schemaDesigner.portHint}
                             validationState={portError ? "error" : undefined}
                             validationMessage={portError}>
                             <Input
@@ -240,9 +233,6 @@ export const DabWizardSettingsForm = ({
                                 value={port}
                                 onChange={(_, data) => setPort(data.value)}
                             />
-                            <Text className={classes.fieldHint}>
-                                {locConstants.schemaDesigner.portHint}
-                            </Text>
                         </Field>
                     </>
                 )}
@@ -257,10 +247,15 @@ export const DabWizardSettingsForm = ({
                 <Button
                     appearance="primary"
                     onClick={handleSubmit}
-                    disabled={isInitializing || isSubmitting}
+                    disabled={
+                        isInitializing ||
+                        isSubmitting ||
+                        Boolean(containerNameError) ||
+                        Boolean(portError)
+                    }
                     icon={isSubmitting ? <Spinner size="tiny" /> : undefined}>
                     {isCli
-                        ? locConstants.common.next
+                        ? locConstants.schemaDesigner.deploy
                         : locConstants.localContainers.createContainer}
                 </Button>
             </DialogActions>

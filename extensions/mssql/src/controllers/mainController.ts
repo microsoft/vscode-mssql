@@ -4035,6 +4035,7 @@ export default class MainController implements vscode.Disposable {
             Constants.configSovereignCloudCustomEnvironment,
             Constants.configCustomEnvironment,
             Constants.configUseMsalEntraMfaAuth,
+            Constants.configSchemaDesignerEnableDeploymentsView,
         ];
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {

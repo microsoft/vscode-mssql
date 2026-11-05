@@ -15062,6 +15062,9 @@
     </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
+    <trans-unit id="mssql.schemaDesigner.enableDeploymentsView">
+      <source xml:lang="en">(Preview) Manage Data API builder deployments from a Deployments view in Schema Designer, with support for deploying through Docker or the DAB CLI. Turn this off to use the original Docker-only Deploy dialog. Requires a reload of Visual Studio Code.</source>
+    </trans-unit>
     <trans-unit id="mssql.saveAsExcel.autoFilterHeaderRow">
       <source xml:lang="en">**Used when column headers are enabled.** When true, enable auto filtering on the header row when saving results as an Excel file</source>
     </trans-unit>
