@@ -1253,6 +1253,11 @@ export class ObjectExplorerService {
             }
         }
 
+        await this.removeConnectionNodeFromTree(node);
+        await this._connectionManager.connectionStore.removeProfile(node.connectionProfile, false);
+    }
+
+    private async removeConnectionNodeFromTree(node: ConnectionNode): Promise<void> {
         await this.disconnectNode(node);
 
         if (this._connectionNodes.has(node.connectionProfile.id)) {
@@ -1264,7 +1269,6 @@ export class ObjectExplorerService {
         }
 
         this._refreshCallback(undefined); // Refresh tree root.
-        await this._connectionManager.connectionStore.removeProfile(node.connectionProfile, false);
     }
 
     /**
@@ -1283,15 +1287,23 @@ export class ObjectExplorerService {
     /**
      * Remove multiple connection nodes from the OE tree.
      * @param connections Connection info of the nodes to remove.
+     * @param options Whether to keep saved profiles and credentials when removing stale edit nodes.
      * @returns True if ALL provided connections were removed successfully, false otherwise.
      */
-    public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<boolean> {
+    public async removeConnectionNodes(
+        connections: IConnectionInfo[],
+        options?: { preserveProfiles: boolean },
+    ): Promise<boolean> {
         const notFound: string[] = [];
 
         for (let conn of connections) {
             const node = this.getConnectionNodeFromProfile(conn as IConnectionProfile);
             if (node) {
-                await this.removeNode(node as ConnectionNode, false);
+                if (options?.preserveProfiles) {
+                    await this.removeConnectionNodeFromTree(node as ConnectionNode);
+                } else {
+                    await this.removeNode(node as ConnectionNode, false);
+                }
             } else {
                 notFound.push((conn as IConnectionProfile).id);
             }

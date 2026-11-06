@@ -491,19 +491,20 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
                 ...this._existingGroupIds.keys(),
                 ...selectedGroups.keys(),
             ]);
-
-            for (const group of selectedGroups.values()) {
-                const groupToAdd: interfaces.IConnectionGroup = {
+            const groupsToImport = [...selectedGroups.values()].map((group) => {
+                const groupToImport: interfaces.IConnectionGroup = {
                     ...group.group,
                     configSource: vscode.ConfigurationTarget.Global,
                 };
 
-                if (!validGroupIds.has(groupToAdd.parentId)) {
-                    groupToAdd.parentId = ConnectionConfig.ROOT_GROUP_ID;
+                if (!validGroupIds.has(groupToImport.parentId)) {
+                    groupToImport.parentId = ConnectionConfig.ROOT_GROUP_ID;
                 }
 
-                await this.connectionConfig.addGroup(groupToAdd);
-            }
+                return groupToImport;
+            });
+
+            await this.connectionConfig.addGroups(groupsToImport);
 
             activity.update({ additionalProps: { step: "2_importingConnections" } });
 

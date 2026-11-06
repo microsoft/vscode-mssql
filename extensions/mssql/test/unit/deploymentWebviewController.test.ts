@@ -20,6 +20,8 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { FormItemType } from "../../src/sharedInterfaces/form";
 import { TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { ConnectionStore } from "../../src/models/connectionStore";
+import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -46,7 +48,7 @@ suite("Deployment webview controller", () => {
     for (const withGroupComponent of [false, true]) {
         test(`creates and selects a group ${withGroupComponent ? "with" : "without"} initialized deployment form components`, async () => {
             const state = new DeploymentWebviewState();
-            state.dialog = connectionGroups.getDefaultConnectionGroupDialogProps();
+            state.dialog = connectionGroups.getDefaultConnectionGroupDialogProps([]);
             if (withGroupComponent) {
                 state.formComponents.groupId = {
                     type: FormItemType.SearchableDropdown,
@@ -92,9 +94,30 @@ suite("Deployment webview controller", () => {
     test("keeps the group dialog open with the save error and preserves the selected group", async () => {
         const state = new DeploymentWebviewState();
         state.formState.groupId = "existing-group";
-        const spec = { name: "New group", color: "#0078D4" };
+        const spec = { name: "New group", color: "#0078D4", parentId: "parent-group" };
         sandbox.stub(connectionGroups, "createConnectionGroup").resolves("Unable to save group");
-        controller.mainController = sandbox.createStubInstance(MainController);
+        const main = sandbox.createStubInstance(MainController);
+        const manager = sandbox.createStubInstance(ConnectionManager);
+        const store = sandbox.createStubInstance(ConnectionStore);
+        const config = sandbox.createStubInstance(ConnectionConfig);
+        const groups = [
+            {
+                id: ConnectionConfig.ROOT_GROUP_ID,
+                name: "ROOT",
+                configSource: vscode.ConfigurationTarget.Global,
+            },
+            {
+                id: "parent-group",
+                name: "Parent",
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
+                configSource: vscode.ConfigurationTarget.Global,
+            },
+        ];
+        config.getGroups.resolves(groups);
+        sandbox.stub(store, "connectionConfig").get(() => config);
+        sandbox.stub(manager, "connectionStore").get(() => store);
+        main.connectionManager = manager;
+        controller.mainController = main;
         const save = controller.registerReducer
             .getCalls()
             .find((call) => call.args[0] === "createConnectionGroup")!.args[1];
@@ -102,9 +125,10 @@ suite("Deployment webview controller", () => {
         await save(state, { connectionGroupSpec: spec });
 
         expect(state.formState.groupId).to.equal("existing-group");
+        const expectedDialog = connectionGroups.getDefaultConnectionGroupDialogProps(groups);
         expect(state.dialog).to.deep.equal({
-            type: "createConnectionGroup",
-            props: { ...spec, message: "Unable to save group" },
+            ...expectedDialog,
+            props: { ...expectedDialog.props, ...spec, message: "Unable to save group" },
         });
         expect(state.deploymentTypeState.dialog).to.deep.equal(state.dialog);
     });

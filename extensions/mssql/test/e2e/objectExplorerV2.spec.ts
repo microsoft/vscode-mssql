@@ -5,11 +5,13 @@
 
 import { test, expect } from "./baseFixtures";
 import { useSharedVsCodeLifecycle } from "./utils/testLifecycle";
+import { getWebviewByTitle } from "./utils/testHelpers";
 
 test.describe("Object Explorer v2 view parity", () => {
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: {
             initialConfig: {
+                "window.menuStyle": "custom",
                 "mssql.showChangelogOnUpdate": false,
                 "mssql.enableExperimentalFeatures": true,
                 "mssql.sqlDataPlane.enabled": true,
@@ -87,6 +89,10 @@ test.describe("Object Explorer v2 view parity", () => {
 
         await gettingStarted(preview).click();
         await expect(page.getByRole("tab", { name: /SQL Server \(mssql\)/ })).toBeVisible();
+        const overview = await getWebviewByTitle(page, "SQL Server (mssql)");
+        await expect(
+            overview.getByRole("heading", { name: "SQL Server (mssql)", exact: true }),
+        ).toBeVisible();
         await gettingStarted(preview).click({ button: "right" });
         await page.getByRole("menuitem", { name: "Hide", exact: true }).click();
         await expect(gettingStarted(preview)).toHaveCount(0);
