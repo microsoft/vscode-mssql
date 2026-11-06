@@ -147,7 +147,12 @@ export class DabService implements Dab.IDabService {
             configContent = configResponse.configContent;
         }
 
-        return this.executeDeploymentStep(step, params, configContent);
+        return this.executeDeploymentStep(
+            step,
+            params,
+            configContent,
+            Dab.getExposedDabEntityCount(config),
+        );
     }
 
     /**
@@ -368,6 +373,7 @@ export class DabService implements Dab.IDabService {
                 return runner.checkEngine(params.port, undefined, {
                     authenticationType,
                     onProgress: options.onProgress,
+                    entityCount: Dab.getExposedDabEntityCount(config),
                 });
             }
 
@@ -568,6 +574,7 @@ export class DabService implements Dab.IDabService {
         step: Dab.DabDeploymentStepOrder,
         params?: Dab.DabDeploymentParams,
         configContent?: string,
+        entityCount: number = 0,
     ): Promise<Dab.RunDeploymentStepResponse> {
         let result: Dab.RunDeploymentStepResponse;
 
@@ -643,6 +650,7 @@ export class DabService implements Dab.IDabService {
                 const checkResult = await checkIfDabContainerIsReady(
                     params.containerName,
                     params.port,
+                    Dab.getDabEngineReadyTimeoutMs(entityCount),
                 );
                 if (checkResult.success) {
                     result = {

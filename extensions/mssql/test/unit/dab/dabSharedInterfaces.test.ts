@@ -526,6 +526,44 @@ suite("DAB deployment step sequencing", () => {
     });
 });
 
+suite("DAB engine readiness wait", () => {
+    const minute = 60_000;
+
+    test("waits five minutes for an engine with no entities", () => {
+        expect(Dab.getDabEngineReadyTimeoutMs(0)).to.equal(5 * minute);
+    });
+
+    test("waits longer for each entity the engine loads", () => {
+        // 321 entities took more than 19 minutes to load against a remote
+        // database, so their wait has to be well past that.
+        expect(Dab.getDabEngineReadyTimeoutMs(321)).to.equal(5 * minute + 321 * 6_000);
+        expect(Dab.getDabEngineReadyTimeoutMs(321)).to.be.greaterThan(30 * minute);
+    });
+
+    test("stops growing at two hours", () => {
+        expect(Dab.getDabEngineReadyTimeoutMs(100_000)).to.equal(120 * minute);
+    });
+
+    test("counts only the supported entities the deployment exposes", () => {
+        const exposed = {
+            isSupported: true,
+            advancedSettings: {},
+        } as unknown as Dab.DabEntityConfig;
+        const config = {
+            apiTypes: [Dab.ApiType.Rest],
+            entities: [
+                exposed,
+                exposed,
+                { ...exposed, isSupported: false },
+                { ...exposed, advancedSettings: { restEnabled: false } },
+            ],
+        } as unknown as Dab.DabConfig;
+
+        expect(Dab.getExposedDabEntityCount(config)).to.equal(2);
+        expect(Dab.getExposedDabEntityCount(undefined)).to.equal(0);
+    });
+});
+
 suite("DAB deployment naming", () => {
     test("builds a name of the form DAB_<database>_<n>", () => {
         expect(Dab.buildDabDeploymentName("AdventureWorks2022", 1)).to.equal(

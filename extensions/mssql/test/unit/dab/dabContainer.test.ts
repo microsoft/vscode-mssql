@@ -283,6 +283,33 @@ suite("DAB Container", () => {
         global.fetch = originalFetch;
     });
 
+    test("checkIfDabContainerIsReady: should wait as long as the caller asks", async () => {
+        const clock = sandbox.useFakeTimers();
+        const originalFetch = global.fetch;
+        global.fetch = sandbox.stub().rejects(new Error("Connection refused"));
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().resolves([]),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        let settled = false;
+        const resultPromise = dabContainer
+            .checkIfDabContainerIsReady("test-dab-container", 5000, 3 * 60_000)
+            .finally(() => (settled = true));
+
+        // A large config takes longer to load than the default minute.
+        await clock.tickAsync(61_000);
+        expect(settled, "still waiting after the default minute").to.be.false;
+
+        await clock.tickAsync(2 * 60_000);
+        const result = await resultPromise;
+
+        expect(result.success).to.be.false;
+        expect(result.error).to.include("timeout period");
+
+        global.fetch = originalFetch;
+    });
+
     test("checkIfDabContainerIsReady: should return timeout with buffered logs", async () => {
         const clock = sandbox.useFakeTimers();
         const originalFetch = global.fetch;

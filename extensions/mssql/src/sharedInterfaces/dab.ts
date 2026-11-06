@@ -2175,6 +2175,38 @@ export namespace Dab {
         return isEntityEffectivelyExposed(entity);
     }
 
+    /** Entities a deployment serves, which is what the engine loads before it answers. */
+    export function getExposedDabEntityCount(config: DabConfig | null | undefined): number {
+        return (config?.entities ?? []).filter(
+            (entity) => entity.isSupported && isEntityEffectivelyExposed(entity, config?.apiTypes),
+        ).length;
+    }
+
+    /** Wait for an engine that serves no entities. */
+    const DAB_ENGINE_READY_BASE_TIMEOUT_MS = 5 * 60_000;
+    /**
+     * Extra wait for each entity. The engine reads each entity's metadata from
+     * the database, one at a time, before it answers. Against a remote database
+     * that has been seen to take more than 3 seconds an entity.
+     */
+    const DAB_ENGINE_READY_PER_ENTITY_MS = 6_000;
+    /** Longest wait, however many entities there are. */
+    const DAB_ENGINE_READY_MAX_TIMEOUT_MS = 2 * 60 * 60_000;
+
+    /**
+     * How long to wait for a newly started engine to answer. The wait grows
+     * with the number of entities the engine loads before it answers.
+     *
+     * @param entityCount Entities the deployment serves
+     */
+    export function getDabEngineReadyTimeoutMs(entityCount: number): number {
+        return Math.min(
+            DAB_ENGINE_READY_BASE_TIMEOUT_MS +
+                Math.max(entityCount, 0) * DAB_ENGINE_READY_PER_ENTITY_MS,
+            DAB_ENGINE_READY_MAX_TIMEOUT_MS,
+        );
+    }
+
     export function hasLogicalKey(entity: DabEntityConfig): boolean {
         if (entity.sourceType === EntitySourceType.StoredProcedure) {
             return true;

@@ -3104,8 +3104,8 @@ export class LocConstants {
             ),
             dabStepStartApi: l10n.t("Start API"),
             dabStepStartApiRunning: l10n.t("Launching the engine"),
-            dabStepCheckEndpoints: l10n.t("Check endpoints"),
-            dabStepCheckEndpointsRunning: l10n.t("Waiting for the API to respond"),
+            dabStepWaitForApi: l10n.t("Wait for API to start"),
+            dabStepWaitForApiRunning: l10n.t("Waiting for the API to respond"),
             dabProgressDownloading: (completedMegabytes: number, totalMegabytes: number) =>
                 l10n.t({
                     message: "Downloading Azure CLI · {0} of {1} MB",

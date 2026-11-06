@@ -1766,9 +1766,6 @@
     <trans-unit id="++CODE++ab9c8309d8c68accad01eeca5137b9224898ee13dca8aa8e31715c8db5ea6320">
       <source xml:lang="en">Check Docker</source>
     </trans-unit>
-    <trans-unit id="++CODE++c55bbeb9b288baa9f43c3ae336d84c0f37de436a53689b454ea1d932163713e9">
-      <source xml:lang="en">Check endpoints</source>
-    </trans-unit>
     <trans-unit id="++CODE++c4152381e591eb56f29211e9e1041f2db298ba2a28040a4bff7894f1602bb4ca">
       <source xml:lang="en">Check output pane for more details</source>
     </trans-unit>
@@ -13731,6 +13728,9 @@
     <trans-unit id="++CODE++5efb902f04088cb4ccff8c5577e96b6a6d2636cb8c91c95f8de68c805b06d95f">
       <source xml:lang="en">Wait category</source>
     </trans-unit>
+    <trans-unit id="++CODE++159910a0b1fd38628a450eae06a308743631e66a6d6f4c876cf44a6a5c90df36">
+      <source xml:lang="en">Wait for API to start</source>
+    </trans-unit>
     <trans-unit id="++CODE++519b61a06a129105d65818f2c3139243924b6eb8e8cd80624f55178f4560b5bb">
       <source xml:lang="en">Wait for Docker engine</source>
     </trans-unit>
@@ -13747,11 +13747,11 @@
     <trans-unit id="++CODE++acab29af840620904063580cf6b1e3b7da4834ab0f762b8cd645374a7eae23bc">
       <source xml:lang="en">Waiting for Docker to start</source>
     </trans-unit>
-    <trans-unit id="++CODE++eb4e705d02a2723effa5d2342858bb9c71bffab833e41d2950a08dd9a66e31c6">
-      <source xml:lang="en">Waiting for the API to answer</source>
-    </trans-unit>
     <trans-unit id="++CODE++d9fce120ccea574e4b9b3eccf41ad7d7df1ffc584f94a9ad6a42d0a2c2122b11">
       <source xml:lang="en">Waiting for the API to respond</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eb880f6bc78196d4218b9e604eeaf2a242212d4524e290c2a60ea95d0418c6e4">
+      <source xml:lang="en">Waiting for the API to start</source>
     </trans-unit>
     <trans-unit id="++CODE++a3ae02338154fb3e0d35409f90e1dc7d6bd4617de8f21539c07a211a0aecfbcd">
       <source xml:lang="en">Waiting for the Docker engine</source>

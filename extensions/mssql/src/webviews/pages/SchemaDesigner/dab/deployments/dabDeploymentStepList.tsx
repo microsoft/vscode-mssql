@@ -216,7 +216,7 @@ function getStepText(step: Dab.DabDeploymentStepOrder): { title: string; running
             return { title: loc.dabStepStartApi, running: loc.dabStepStartContainerRunning };
         case Dab.DabDeploymentStepOrder.checkContainer:
         case Dab.DabDeploymentStepOrder.checkCliEngine:
-            return { title: loc.dabStepCheckEndpoints, running: loc.dabStepCheckEndpointsRunning };
+            return { title: loc.dabStepWaitForApi, running: loc.dabStepWaitForApiRunning };
         case Dab.DabDeploymentStepOrder.acquireDabCli:
             return { title: loc.dabStepPrepareCli, running: loc.dabStepPrepareCliRunning };
         case Dab.DabDeploymentStepOrder.checkDotnetRuntime:
@@ -297,13 +297,6 @@ function getProgressValue(progress: Dab.DabDeploymentStepProgress): number | und
     return Math.min(progress.completed / progress.total, 1);
 }
 
-/** Entities the deployment serves, which is what the engine loads before it answers. */
-function getExposedEntityCount(config: Dab.DabConfig | null | undefined): number {
-    return (config?.entities ?? []).filter(
-        (entity) => entity.isSupported && Dab.isEntityEffectivelyExposed(entity, config?.apiTypes),
-    ).length;
-}
-
 /** Collects every step's outcome and output into one log for a new editor tab. */
 export function buildDeploymentLog(stepStatuses: Dab.DabDeploymentStepStatus[]): string {
     return stepStatuses
@@ -379,7 +372,7 @@ const DabDeploymentStepRow = ({ stepStatus }: { stepStatus: Dab.DabDeploymentSte
         }
         if (isRunning) {
             return (
-                (progress && getProgressText(progress, getExposedEntityCount(dabConfig))) ??
+                (progress && getProgressText(progress, Dab.getExposedDabEntityCount(dabConfig))) ??
                 getActionText(action) ??
                 text.running
             );

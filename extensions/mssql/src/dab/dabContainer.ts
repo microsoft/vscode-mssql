@@ -211,12 +211,14 @@ export async function startDabDockerContainer(
  * Uses setTimeout loop to avoid overlapping requests (fetch timeout is 5s, poll interval is 1s).
  * @param containerName Name of the container (for logging)
  * @param port Port the DAB API is exposed on
+ * @param timeoutMs How long to wait. The engine loads every entity before it
+ * answers, so callers that know the entity count pass a longer wait.
  */
 export async function checkIfDabContainerIsReady(
     containerName: string,
     port: number,
+    timeoutMs: number = 60_000,
 ): Promise<DockerCommandParams & { containerLogs?: string }> {
-    const timeoutMs = 60_000; // 1 minute timeout for DAB
     const intervalMs = 1000;
     const start = Date.now();
 

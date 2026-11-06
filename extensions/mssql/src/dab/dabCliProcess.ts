@@ -29,10 +29,9 @@ const MAX_ENGINE_LOG_CHARS = 256_000;
 /** How long to wait for the engine to answer before giving up. */
 const ENGINE_READY_TIMEOUT_MS = 60_000;
 /**
- * How long to wait for an engine this window launched. The engine loads the
- * metadata of every entity, one at a time, before it answers; against a remote
- * database with hundreds of entities that takes minutes. The wait ends early
- * as soon as the engine exits.
+ * How long to wait for an engine this window launched, when the number of
+ * entities it loads is not known. The wait ends early as soon as the engine
+ * exits.
  */
 const ENGINE_LAUNCH_READY_TIMEOUT_MS = 20 * 60_000;
 const ENGINE_READY_POLL_INTERVAL_MS = 1000;
@@ -164,16 +163,18 @@ export async function startDabCliEngine(
  * @param getLogs Optional accessor for engine output, included on failure
  * @param processId Process id of the engine just launched, when one is known
  * @param onProgress Optional callback with the time spent waiting so far
+ * @param launchTimeoutMs How long to wait for the launched engine, when the
+ * caller knows how many entities it loads
  */
 export async function checkDabCliEngineReady(
     port: number,
     getLogs?: () => string,
     processId?: number,
     onProgress?: (elapsedMs: number) => void,
+    launchTimeoutMs: number = ENGINE_LAUNCH_READY_TIMEOUT_MS,
 ): Promise<DabCliCommandResult> {
     const start = Date.now();
-    const timeoutMs =
-        processId !== undefined ? ENGINE_LAUNCH_READY_TIMEOUT_MS : ENGINE_READY_TIMEOUT_MS;
+    const timeoutMs = processId !== undefined ? launchTimeoutMs : ENGINE_READY_TIMEOUT_MS;
 
     while (Date.now() - start < timeoutMs) {
         if (await isDabCliEngineResponding(port, processId)) {

@@ -2453,7 +2453,7 @@ export class LocalContainers {
                 return l10n.t("Starting the API");
             case Dab.DabDeploymentStepOrder.checkContainer:
             case Dab.DabDeploymentStepOrder.checkCliEngine:
-                return l10n.t("Waiting for the API to answer");
+                return l10n.t("Waiting for the API to start");
         }
     };
     public static dabPortOwnedByDeployment = (port: number) =>

@@ -1393,7 +1393,7 @@
     "Getting Azure CLI": "Getting Azure CLI",
     "Signing in to Microsoft Entra": "Signing in to Microsoft Entra",
     "Starting the API": "Starting the API",
-    "Waiting for the API to answer": "Waiting for the API to answer",
+    "Waiting for the API to start": "Waiting for the API to start",
     "Port {0} belongs to another Data API builder deployment/{0} is the port number": {
         "message": "Port {0} belongs to another Data API builder deployment",
         "comment": ["{0} is the port number"]
@@ -5216,7 +5216,7 @@
     "Validating the configuration against the database": "Validating the configuration against the database",
     "Start API": "Start API",
     "Launching the engine": "Launching the engine",
-    "Check endpoints": "Check endpoints",
+    "Wait for API to start": "Wait for API to start",
     "Waiting for the API to respond": "Waiting for the API to respond",
     "Downloading Azure CLI · {0} of {1} MB/{0} is megabytes downloaded so far{1} is the total megabytes": {
         "message": "Downloading Azure CLI · {0} of {1} MB",

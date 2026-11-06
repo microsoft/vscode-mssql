@@ -415,6 +415,8 @@ export class DabCliRunner {
         options: {
             authenticationType?: string;
             onProgress?: (progress: Dab.DabDeploymentStepProgress) => void;
+            /** Entities the engine loads before it answers, which sets how long to wait. */
+            entityCount?: number;
         } = {},
     ): Promise<Dab.RunDeploymentStepResponse> {
         const result = await checkDabCliEngineReady(
@@ -426,6 +428,9 @@ export class DabCliRunner {
                     phase: "starting",
                     elapsedSeconds: Math.floor(elapsedMs / 1000),
                 }),
+            options.entityCount === undefined
+                ? undefined
+                : Dab.getDabEngineReadyTimeoutMs(options.entityCount),
         );
         if (result.success) {
             return { success: true, apiUrl: `http://localhost:${port}` };
