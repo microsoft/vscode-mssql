@@ -2929,10 +2929,6 @@ export class LocConstants {
             dabDeploymentNotSupportedBanner: l10n.t(
                 "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
             ),
-            unsupportedDataTypesDetected: l10n.t("Unsupported data types detected"),
-            dabUnsupportedDataTypesBanner: l10n.t(
-                "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.",
-            ),
             backToSchema: l10n.t("Back to Schema"),
             designApi: l10n.t("Design API"),
             // DAB Advanced Settings Dialog
@@ -3235,6 +3231,47 @@ export class LocConstants {
             justNow: l10n.t("just now"),
             applyDeploymentChanges: l10n.t("Apply changes"),
             restartDeployment: l10n.t("Restart"),
+            dabStatusLive: l10n.t("Live"),
+            dabStatusStopped: l10n.t("Stopped"),
+            dabStatusUnavailable: l10n.t("Unavailable"),
+            dabStatusLiveTooltip: (port: number) =>
+                l10n.t({
+                    message: "The API is live on port {0}.",
+                    args: [port],
+                    comment: ["{0} is the port number"],
+                }),
+            dabStatusNotLiveTooltip: (port: number) =>
+                l10n.t({
+                    message: "The API is not running. It is deployed on port {0}.",
+                    args: [port],
+                    comment: ["{0} is the port number"],
+                }),
+            dabDeploymentActions: l10n.t("Deployment actions"),
+            dabStatusDeploying: l10n.t("Deploying…"),
+            dabStatusUpdating: l10n.t("Updating…"),
+            dabStatusSignInNeeded: l10n.t("Sign in needed"),
+            dabStatusDeployFailed: l10n.t("Deploy failed"),
+            dabStatusChangesTooltip: l10n.t(
+                "Your configuration changed since this was deployed. Apply the changes to update the API.",
+            ),
+            copyApiUrl: l10n.t("Copy API URL"),
+            stopDeployment: l10n.t("Stop"),
+            deleteDeployment: l10n.t("Delete"),
+            deleteDeploymentConfirmTitle: l10n.t("Delete deployment?"),
+            deleteDeploymentConfirmMessage: (containerName: string) =>
+                l10n.t({
+                    message:
+                        "The container {0} will be stopped and removed, and its endpoints will stop responding.",
+                    args: [containerName],
+                    comment: ["{0} is the Docker container name"],
+                }),
+            deleteCliDeploymentConfirmMessage: (name: string) =>
+                l10n.t({
+                    message:
+                        "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.",
+                    args: [name],
+                    comment: ["{0} is the deployment name"],
+                }),
             endpointsUnavailableWhenStopped: l10n.t(
                 "Restart the deployment to use these endpoints.",
             ),

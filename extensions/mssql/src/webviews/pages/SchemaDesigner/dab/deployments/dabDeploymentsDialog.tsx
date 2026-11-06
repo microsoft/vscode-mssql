@@ -91,6 +91,8 @@ export const DabDeploymentsDialog = () => {
         dabDeployments,
         dabDeploymentsStatus,
         loadDabDeployments,
+        stopDabDeploymentContainer,
+        deleteDabDeployment,
     } = useDabContext();
 
     const { isDialogOpen } = dabDeploymentState;
@@ -172,7 +174,10 @@ export const DabDeploymentsDialog = () => {
         return (
             <DabDeploymentOverview
                 deployment={deployment}
+                initialShowChanges={dabDeploymentState.showChanges}
                 onRedeploy={() => void startDabDeployment(deployment.target, deployment.id)}
+                onStop={() => stopDabDeploymentContainer(deployment.id)}
+                onDelete={() => deleteDabDeployment(deployment.id)}
                 onClose={handleClose}
             />
         );

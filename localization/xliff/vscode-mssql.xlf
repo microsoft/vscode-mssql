@@ -2855,6 +2855,9 @@
     <trans-unit id="++CODE++494452315caa7a652419add0f9ab91ee1216f59ce7fd2df7b515e464891e7576">
       <source xml:lang="en">Copy &amp; Export</source>
     </trans-unit>
+    <trans-unit id="++CODE++23b7b2be768baae6623bb6693e8ee607e4ed03c7909d27f5d1c0d39def7139e1">
+      <source xml:lang="en">Copy API URL</source>
+    </trans-unit>
     <trans-unit id="++CODE++7a1861e47d92e338be8a74dd8c9e93ebc0002af27499b52996ca43c9a8684555">
       <source xml:lang="en">Copy All</source>
     </trans-unit>
@@ -3664,6 +3667,9 @@
     <trans-unit id="++CODE++3e12474b79fc61d3695fc46a2588df801c380eccc6edc9cb20dd223f4e9ed76e">
       <source xml:lang="en">Delete backup and restore history</source>
     </trans-unit>
+    <trans-unit id="++CODE++9c6060316cb89a17616309dfa9b9ce524f7fdd29639b433015ba722294337b51">
+      <source xml:lang="en">Delete deployment?</source>
+    </trans-unit>
     <trans-unit id="++CODE++5fc8c270921fb866e4aa1b9356162c9f6d09f36b054ef907670ae5a323a5c194">
       <source xml:lang="en">Delete filter</source>
     </trans-unit>
@@ -3723,6 +3729,9 @@
     <trans-unit id="++CODE++592bd375fa7c9d7ab616ecb3debb297c018a80c6a903167afbd6f1c4d68b0d0b">
       <source xml:lang="en">Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.</source>
     </trans-unit>
+    <trans-unit id="++CODE++4a1fec6bb23f4b53b3e6810ec85014caf866f6779f8c28a733fc034c63640a72">
+      <source xml:lang="en">Deploy failed</source>
+    </trans-unit>
     <trans-unit id="++CODE++97dc38d5949112e250523663a3556643b30754a83c8305adb6e79d88b13b200d">
       <source xml:lang="en">Deploy to Existing Database</source>
     </trans-unit>
@@ -3749,6 +3758,9 @@
     <trans-unit id="++CODE++40dd6e5b1b92e0c333ec93c1b6715531881ed7a458bf80cc787c746d4d8a6a06">
       <source xml:lang="en">Deploying Data API builder</source>
     </trans-unit>
+    <trans-unit id="++CODE++d12eeed2e4651e3bd162f1a0eb6561819b8ed2ccef51b072eb67320b42d9b84d">
+      <source xml:lang="en">Deploying…</source>
+    </trans-unit>
     <trans-unit id="++CODE++a6587d759edaef774b88015d9298a0965eeec92561af3c20bc4171eecdf27f5b">
       <source xml:lang="en">Deployment Complete</source>
     </trans-unit>
@@ -3757,6 +3769,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d88868890471c6cc2ac101b2e2d848718a71936be8158d3c57ec81840fbefa54">
       <source xml:lang="en">Deployment Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a73a99966450bf69a6318a28b7ced2f2b858eb19df247da5185fbfb1521dfa72">
+      <source xml:lang="en">Deployment actions</source>
     </trans-unit>
     <trans-unit id="++CODE++658cfc002aa81e1127e8652d0514d231cb7414501f5932b093e1939c4305781f">
       <source xml:lang="en">Deployment failed</source>
@@ -8562,9 +8577,6 @@
       <source xml:lang="en">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</source>
       <note>{0} is the comma separated list of connection display names</note>
     </trans-unit>
-    <trans-unit id="++CODE++5c96a0d717cf95bc5e8a44accd180436a5606ded18cb29001f3e9df57614ed31">
-      <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.</source>
-    </trans-unit>
     <trans-unit id="++CODE++a08a9deb134826986765a9f27352c96ca43ca8d25ab026f6b9ce08a21c7c8103">
       <source xml:lang="en">One thing needs you before the API can start.</source>
     </trans-unit>
@@ -11692,6 +11704,9 @@
     <trans-unit id="++CODE++d1d42f9f45fb411d15e6cbe63ade191eacc7b913567fcaa14b1b197afdcb9088">
       <source xml:lang="en">Sign in and retry</source>
     </trans-unit>
+    <trans-unit id="++CODE++ead5a0c8624a871dced6af60aa1e5b9582cd58bd77d27278d800ca21fddf03a2">
+      <source xml:lang="en">Sign in needed</source>
+    </trans-unit>
     <trans-unit id="++CODE++dd28ebd2b5f6bae04fb013cca277b242b4410810b14343983f041671120a6ab7">
       <source xml:lang="en">Sign in once. Data API builder keeps the session and refreshes its tokens on its own, even after you close VS Code.</source>
     </trans-unit>
@@ -12390,6 +12405,14 @@
     <trans-unit id="++CODE++ce5d55bb752536f83184e27b9bbd84d15f4fe753e2551472518d8f0e68fb80a5">
       <source xml:lang="en">The .NET runtime has not been resolved yet. Run the prerequisite checks again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0c8b4d10fddeb2cac081f808c210afc1ed2fe0b3eb4b8f96d33b24c24ef97d71">
+      <source xml:lang="en">The API is live on port {0}.</source>
+      <note>{0} is the port number</note>
+    </trans-unit>
+    <trans-unit id="++CODE++43c3c35773e1393916908b2126ff0c1b31100673569abb6af2e046aacfbb0996">
+      <source xml:lang="en">The API is not running. It is deployed on port {0}.</source>
+      <note>{0} is the port number</note>
+    </trans-unit>
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
     </trans-unit>
@@ -12527,6 +12550,10 @@
     <trans-unit id="++CODE++f24f0ea65710646b02db37e614de2d14b6869f13fca2fa875a61d673cab12499">
       <source xml:lang="en">The container started, but the extension could not create its database connection.</source>
     </trans-unit>
+    <trans-unit id="++CODE++1a187c0bb776eac7a356f6623badf4084f701ae47f405cfc74374c79fbf44ddb">
+      <source xml:lang="en">The container {0} will be stopped and removed, and its endpoints will stop responding.</source>
+      <note>{0} is the Docker container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
     </trans-unit>
@@ -12566,6 +12593,10 @@
     </trans-unit>
     <trans-unit id="++CODE++ee3b2c978f3d423b040d97d7b48e445431bf81ad403553962e605c08cbbee3f4">
       <source xml:lang="en">The editor for these results is closed. The results stay until you close them.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7d461990f839b0bf2ac4825e909940b31fbe37f7b1da2ee5a4091bfb27cf40cb">
+      <source xml:lang="en">The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.</source>
+      <note>{0} is the deployment name</note>
     </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
@@ -13401,9 +13432,6 @@
     <trans-unit id="++CODE++8e344a40ce6bcc8487a770bd157fb301e1bf5539591981c51fe39ffecedb176c">
       <source xml:lang="en">Unsupported by Data API builder.</source>
     </trans-unit>
-    <trans-unit id="++CODE++59925dabae7544939136767d732ce4bd853e6a3822324777eb3615b997680c05">
-      <source xml:lang="en">Unsupported data types detected</source>
-    </trans-unit>
     <trans-unit id="++CODE++952d5f61b3687595e26384bfb537192096b8a71ece069bd1bd78da10381e688b">
       <source xml:lang="en">Unsupported diagnostics capture mode.</source>
     </trans-unit>
@@ -13456,6 +13484,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9a6565ec4e8fda62572630799ef7a2581b04afa9e96adf8cc413237611337e62">
       <source xml:lang="en">Updating {0} from {1}...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d5045120a474c47f2f8aaabb6c66b06253ed59e1dde5c79c0e7c94be4a2457a8">
+      <source xml:lang="en">Updating…</source>
     </trans-unit>
     <trans-unit id="++CODE++c83ce937073615b8c93e7c38ed529e567ff2c01f291f92e3b4d08245018f362b">
       <source xml:lang="en">Usage limits exceeded. Try again later, or consider optimizing your requests.</source>
@@ -14009,6 +14040,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a687a5a3cf1800c09d10d73ae6c128de7b617482ef262db645470c6f4ae9d54d">
       <source xml:lang="en">Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4caf03704edcf4103fc51cda26fa6a98d6b434ade37267319ae4dbec1af12d2d">
+      <source xml:lang="en">Your configuration changed since this was deployed. Apply the changes to update the API.</source>
     </trans-unit>
     <trans-unit id="++CODE++72d3d1e6e874aa94ab02c4aac4ea2399ce299ddcad4b38a795754c92e158ac4d">
       <source xml:lang="en">Your current IP {0} will be added automatically.</source>

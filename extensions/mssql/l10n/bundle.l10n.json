@@ -5050,8 +5050,6 @@
     "Select at least one logical key column before applying or deploying this exposed table or view.": "Select at least one logical key column before applying or deploying this exposed table or view.",
     "Authentication not supported": "Authentication not supported",
     "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.": "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
-    "Unsupported data types detected": "Unsupported data types detected",
-    "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.": "One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.",
     "Back to Schema": "Back to Schema",
     "Design API": "Design API",
     "Advanced Entity Configuration": "Advanced Entity Configuration",
@@ -5263,6 +5261,31 @@
     "just now": "just now",
     "Apply changes": "Apply changes",
     "Restart": "Restart",
+    "The API is live on port {0}./{0} is the port number": {
+        "message": "The API is live on port {0}.",
+        "comment": ["{0} is the port number"]
+    },
+    "The API is not running. It is deployed on port {0}./{0} is the port number": {
+        "message": "The API is not running. It is deployed on port {0}.",
+        "comment": ["{0} is the port number"]
+    },
+    "Deployment actions": "Deployment actions",
+    "Deploying…": "Deploying…",
+    "Updating…": "Updating…",
+    "Sign in needed": "Sign in needed",
+    "Deploy failed": "Deploy failed",
+    "Your configuration changed since this was deployed. Apply the changes to update the API.": "Your configuration changed since this was deployed. Apply the changes to update the API.",
+    "Copy API URL": "Copy API URL",
+    "Stop": "Stop",
+    "Delete deployment?": "Delete deployment?",
+    "The container {0} will be stopped and removed, and its endpoints will stop responding./{0} is the Docker container name": {
+        "message": "The container {0} will be stopped and removed, and its endpoints will stop responding.",
+        "comment": ["{0} is the Docker container name"]
+    },
+    "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding./{0} is the deployment name": {
+        "message": "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.",
+        "comment": ["{0} is the deployment name"]
+    },
     "Restart the deployment to use these endpoints.": "Restart the deployment to use these endpoints.",
     "Local Docker container": "Local Docker container",
     "Runs Data API builder in a container on this machine, published on a local port.": "Runs Data API builder in a container on this machine, published on a local port.",
@@ -5338,7 +5361,6 @@
     "Include all object types": "Include all object types",
     "Allow incompatible platform during deployment": "Allow incompatible platform during deployment",
     "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.": "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.",
-    "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
     "Apply changes to {0}/{0} is the target connection name, optionally followed by a colon and the selected database name": {

@@ -1273,6 +1273,8 @@ export namespace Dab {
         target: DabDeploymentTarget;
         /** Optional steps this deployment runs. */
         stepOptions: DabDeploymentStepOptions;
+        /** Opens the deployment view on its configuration changes. */
+        showChanges?: boolean;
         /**
          * How the flow was entered, which decides where it finishes.
          */

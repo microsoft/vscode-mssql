@@ -40,12 +40,18 @@ interface DabContextProps {
     dabDeploymentState: Dab.DabDeploymentState;
     openDabDeploymentDialog: () => void;
     openDabDeploymentsDialog: () => void;
+    /** Opens the deployment view straight on its configuration changes. */
+    openDabDeploymentChanges: () => void;
     closeDabDeploymentDialog: () => void;
     setDabDeploymentDialogStep: (step: Dab.DabDeploymentDialogStep) => void;
     dabDeployments: Dab.DabDeploymentListItem[];
     dabDeploymentsStatus: ApiStatus;
     dabDeploymentsError: string | undefined;
-    loadDabDeployments: () => Promise<void>;
+    /**
+     * Reloads the deployment. A quiet reload keeps the current status while it
+     * runs, so a background refresh never swaps a view for a spinner.
+     */
+    loadDabDeployments: (options?: { quiet?: boolean }) => Promise<void>;
     deleteDabDeployment: (deploymentId: string) => Promise<Dab.DeploymentActionResponse>;
     stopDabDeploymentContainer: (deploymentId: string) => Promise<Dab.DeploymentActionResponse>;
     updateDabDeploymentParams: (params: Partial<Dab.DabDeploymentParams>) => void;
@@ -457,17 +463,32 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         });
     }, [extensionRpc]);
 
-    const openDabDeploymentsDialog = useCallback(() => {
-        extensionRpc.sendActionEvent({
-            telemetryView: TelemetryViews.SchemaDesigner,
-            telemetryAction: TelemetryActions.OpenDabDeploymentDialog,
-            additionalProps: { entryPoint: Dab.DabDeploymentEntryPoint.Deployments },
-        });
-        setDabDeploymentState({
-            ...Dab.createDefaultDeploymentState(),
-            isDialogOpen: true,
-        });
-    }, [extensionRpc]);
+    const openDeploymentsDialog = useCallback(
+        (showChanges: boolean) => {
+            extensionRpc.sendActionEvent({
+                telemetryView: TelemetryViews.SchemaDesigner,
+                telemetryAction: TelemetryActions.OpenDabDeploymentDialog,
+                additionalProps: { entryPoint: Dab.DabDeploymentEntryPoint.Deployments },
+            });
+            setDabDeploymentState({
+                ...Dab.createDefaultDeploymentState(),
+                isDialogOpen: true,
+                showChanges,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const openDabDeploymentsDialog = useCallback(
+        () => openDeploymentsDialog(false),
+        [openDeploymentsDialog],
+    );
+
+    /** Opens the deployment view straight on its configuration changes. */
+    const openDabDeploymentChanges = useCallback(
+        () => openDeploymentsDialog(true),
+        [openDeploymentsDialog],
+    );
 
     const closeDabDeploymentDialog = useCallback(() => {
         setDabDeploymentState((prev) => ({
@@ -652,6 +673,9 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 config: dabConfig,
             });
             setDabDeploymentRun(run);
+            // A dialog opened on the changes returns to the deployment itself
+            // once the run that applies them is done.
+            setDabDeploymentState((prev) => ({ ...prev, showChanges: false }));
         },
         [dabConfig, extensionRpc],
     );
@@ -798,22 +822,27 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         extensionRpc,
     ]);
 
-    const loadDabDeployments = useCallback(async () => {
-        setDabDeploymentsStatus(ApiStatus.Loading);
-        try {
-            const response = await extensionRpc.sendRequest(Dab.GetDeploymentsRequest.type, {
-                config: dabConfig ?? undefined,
-            });
-            setDabDeployments(response.deployments);
-            setDabDeploymentsError(response.error);
-            setDabDeploymentsStatus(response.error ? ApiStatus.Error : ApiStatus.Loaded);
-        } catch (error) {
-            extensionRpc.log.error("Failed to load DAB deployments", error);
-            setDabDeployments([]);
-            setDabDeploymentsError(error instanceof Error ? error.message : String(error));
-            setDabDeploymentsStatus(ApiStatus.Error);
-        }
-    }, [dabConfig, extensionRpc]);
+    const loadDabDeployments = useCallback(
+        async (options?: { quiet?: boolean }) => {
+            if (!options?.quiet) {
+                setDabDeploymentsStatus(ApiStatus.Loading);
+            }
+            try {
+                const response = await extensionRpc.sendRequest(Dab.GetDeploymentsRequest.type, {
+                    config: dabConfig ?? undefined,
+                });
+                setDabDeployments(response.deployments);
+                setDabDeploymentsError(response.error);
+                setDabDeploymentsStatus(response.error ? ApiStatus.Error : ApiStatus.Loaded);
+            } catch (error) {
+                extensionRpc.log.error("Failed to load DAB deployments", error);
+                setDabDeployments([]);
+                setDabDeploymentsError(error instanceof Error ? error.message : String(error));
+                setDabDeploymentsStatus(ApiStatus.Error);
+            }
+        },
+        [dabConfig, extensionRpc],
+    );
 
     /**
      * Runs an action against a tracked deployment and refreshes the list, so
@@ -890,6 +919,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 dabDeploymentState,
                 openDabDeploymentDialog,
                 openDabDeploymentsDialog,
+                openDabDeploymentChanges,
                 closeDabDeploymentDialog,
                 setDabDeploymentDialogStep,
                 dabDeployments,

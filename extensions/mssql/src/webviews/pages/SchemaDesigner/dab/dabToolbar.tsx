@@ -53,6 +53,7 @@ import {
     toggleDabEntityFilterValue,
 } from "./dabEntityFilters";
 import { DabCountPill } from "./dabPills";
+import { DabDeployStatusButton } from "./deployments/dabDeployStatusButton";
 
 const SCHEMA_FILTER_ROW_HEIGHT = 22;
 const SCHEMA_FILTER_VISIBLE_ROWS = 4;
@@ -324,7 +325,6 @@ export function DabToolbar({
         dabTextFilter,
         setDabTextFilter,
         openDabDeploymentDialog,
-        openDabDeploymentsDialog,
         resetDabConfig,
     } = context;
 
@@ -518,14 +518,7 @@ export function DabToolbar({
                         {locConstants.schemaDesigner.resetConfig}
                     </Button>
                     {showDeployments ? (
-                        <Button
-                            appearance="primary"
-                            icon={<PlayIcon />}
-                            size="small"
-                            title={locConstants.schemaDesigner.deploy}
-                            onClick={openDabDeploymentsDialog}>
-                            {locConstants.schemaDesigner.deploy}
-                        </Button>
+                        <DabDeployStatusButton />
                     ) : isDeployDisabled ? (
                         <Tooltip content={getDeployTooltip()} relationship="label">
                             <span>

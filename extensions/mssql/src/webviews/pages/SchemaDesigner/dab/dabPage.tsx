@@ -12,6 +12,7 @@ import { DabInfoBanner } from "./dabInfoBanner";
 import { DabDefinitionsPanel, DabDefinitionsPanelRef } from "./dabDefinitionsPanel";
 import { DabDeploymentDialog } from "./deployment/dabDeploymentDialog";
 import { DabDeploymentsDialog } from "./deployments/dabDeploymentsDialog";
+import { DabConfigChangedBanner } from "./deployments/dabConfigChangedBanner";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
@@ -85,12 +86,6 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     } = useDabContext();
     const showDeployments = useSchemaDesignerSelector((s) => s?.enableDeploymentsView) ?? false;
     const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
-    const hasUnsupportedDataTypes =
-        dabConfig?.entities.some(
-            (e) =>
-                !e.isSupported &&
-                e.unsupportedReasons?.some((r) => r.type === "unsupportedDataTypes"),
-        ) ?? false;
     // Whether this connection can be deployed at all depends on what the
     // toolbar offers. Deploy runs in a container and nothing else, so an
     // authentication the container cannot carry is a dead end. The deployments
@@ -142,13 +137,7 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
                     learnMoreUrl="https://aka.ms/dab-dep-limitation"
                 />
             )}
-            {hasUnsupportedDataTypes && (
-                <DabInfoBanner
-                    title={locConstants.schemaDesigner.unsupportedDataTypesDetected}
-                    message={locConstants.schemaDesigner.dabUnsupportedDataTypesBanner}
-                    learnMoreUrl="https://aka.ms/dab-datatype-limitation"
-                />
-            )}
+            {showDeployments && <DabConfigChangedBanner />}
             <PanelGroup direction="vertical" className={classes.panelGroup}>
                 <Panel defaultSize={100}>
                     <div className={classes.panelContent}>

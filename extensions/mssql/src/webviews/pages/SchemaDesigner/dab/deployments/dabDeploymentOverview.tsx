@@ -5,7 +5,12 @@
 
 import {
     Button,
+    Dialog,
     DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
     Link,
     makeStyles,
     mergeClasses,
@@ -17,7 +22,7 @@ import {
     tokens,
     Tooltip,
 } from "@fluentui/react-components";
-import { ArrowSync16Regular } from "@fluentui/react-icons";
+import { ArrowSync16Regular, Delete16Regular, Stop16Regular } from "@fluentui/react-icons";
 import { DiffOnMount } from "@monaco-editor/react";
 // Monaco's JSON support needs a web worker; the JavaScript tokenizer colors a
 // config file just as well and runs without one.
@@ -90,6 +95,10 @@ const useStyles = makeStyles({
     footerSpacer: {
         flex: 1,
     },
+    actionError: {
+        color: tokens.colorStatusDangerForeground1,
+        fontSize: tokens.fontSizeBase200,
+    },
     // Changes view
     fileRow: {
         display: "flex",
@@ -158,8 +167,14 @@ function formatTimeAgo(isoTimestamp: string): string {
 
 interface DabDeploymentOverviewProps {
     deployment: Dab.DabDeploymentListItem;
+    /** Opens on the configuration changes instead of the deployment itself. */
+    initialShowChanges?: boolean;
     /** Redeploys with the current config: applies changes, or restarts a stopped deployment. */
     onRedeploy: () => void;
+    /** Stops the running container or engine, leaving the deployment in place. */
+    onStop: () => Promise<Dab.DeploymentActionResponse>;
+    /** Stops the deployment and removes it. */
+    onDelete: () => Promise<Dab.DeploymentActionResponse>;
     onClose: () => void;
 }
 
@@ -171,11 +186,32 @@ interface DabDeploymentOverviewProps {
  */
 export const DabDeploymentOverview = ({
     deployment,
+    initialShowChanges = false,
     onRedeploy,
+    onStop,
+    onDelete,
     onClose,
 }: DabDeploymentOverviewProps) => {
     const classes = useStyles();
-    const [isShowingChanges, setIsShowingChanges] = useState(false);
+    const [isShowingChanges, setIsShowingChanges] = useState(
+        initialShowChanges && deployment.hasConfigSnapshot,
+    );
+    const [isBusy, setIsBusy] = useState(false);
+    const [actionError, setActionError] = useState<string | undefined>();
+    const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
+    const runAction = async (action: () => Promise<Dab.DeploymentActionResponse>) => {
+        setIsBusy(true);
+        setActionError(undefined);
+        try {
+            const result = await action();
+            if (!result.success) {
+                setActionError(result.error);
+            }
+        } finally {
+            setIsBusy(false);
+        }
+    };
 
     const isCli = deployment.target === Dab.DabDeploymentTarget.DabCli;
     const isRunning = deployment.status === Dab.DabDeploymentContainerStatus.Running;
@@ -244,7 +280,12 @@ export const DabDeploymentOverview = ({
                 header={header}
                 deploymentId={deployment.id}
                 onBack={() => setIsShowingChanges(false)}
-                onApply={onRedeploy}
+                onApply={() => {
+                    // The run takes over the dialog, and when it finishes the
+                    // deployment view should show the deployment, not the diff.
+                    setIsShowingChanges(false);
+                    onRedeploy();
+                }}
             />
         );
     }
@@ -293,8 +334,69 @@ export const DabDeploymentOverview = ({
                         isDisabled={!isRunning}
                     />
                 )}
+                {actionError && <Text className={classes.actionError}>{actionError}</Text>}
             </DabDialogContent>
+
+            <Dialog
+                open={isConfirmingDelete}
+                modalType="alert"
+                onOpenChange={(_, data) => {
+                    if (!data.open) {
+                        setIsConfirmingDelete(false);
+                    }
+                }}>
+                <DialogSurface>
+                    <DialogBody>
+                        <DialogTitle>
+                            {locConstants.schemaDesigner.deleteDeploymentConfirmTitle}
+                        </DialogTitle>
+                        <DialogContent>
+                            {isCli
+                                ? locConstants.schemaDesigner.deleteCliDeploymentConfirmMessage(
+                                      deployment.name,
+                                  )
+                                : locConstants.schemaDesigner.deleteDeploymentConfirmMessage(
+                                      deployment.name,
+                                  )}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button
+                                appearance="secondary"
+                                onClick={() => setIsConfirmingDelete(false)}>
+                                {locConstants.common.cancel}
+                            </Button>
+                            <Button
+                                appearance="primary"
+                                icon={<Delete16Regular />}
+                                onClick={() => {
+                                    setIsConfirmingDelete(false);
+                                    void runAction(onDelete);
+                                }}>
+                                {locConstants.schemaDesigner.deleteDeployment}
+                            </Button>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+
             <DialogActions fluid>
+                {isRunning && (
+                    <Button
+                        appearance="secondary"
+                        icon={<Stop16Regular />}
+                        disabled={isBusy}
+                        onClick={() => void runAction(onStop)}>
+                        {locConstants.schemaDesigner.stopDeployment}
+                    </Button>
+                )}
+                <Button
+                    appearance="secondary"
+                    icon={<Delete16Regular />}
+                    disabled={isBusy}
+                    onClick={() => setIsConfirmingDelete(true)}>
+                    {locConstants.schemaDesigner.deleteDeployment}
+                </Button>
+                {isBusy && <Spinner size="tiny" />}
                 <div className={classes.footerSpacer} />
                 <Button appearance="secondary" onClick={onClose}>
                     {locConstants.common.close}
