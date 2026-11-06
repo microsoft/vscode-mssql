@@ -92,6 +92,7 @@ export enum TelemetryActions {
     NewQuery = "NewQuery",
     RunQuery = "RunQuery",
     QueryExecutionCompleted = "QueryExecutionCompleted",
+    LiveQueryStatisticsRun = "LiveQueryStatisticsRun",
     QueryCompletionSoundPlayback = "QueryCompletionSoundPlayback",
     RunResultPaneAction = "RunResultPaneAction",
     CreateConnection = "CreateConnection",

@@ -206,8 +206,11 @@ export class DeploymentWebviewController extends FormWebviewController<
             if (typeof createConnectionGroupResult === "string") {
                 // If the result is a string, it means there was an error creating the group
                 state.formErrors.push(createConnectionGroupResult);
-                const dialog = getDefaultConnectionGroupDialogProps();
+                const dialog = getDefaultConnectionGroupDialogProps(
+                    await this.mainController.connectionManager.connectionStore.connectionConfig.getGroups(),
+                );
                 dialog.props = {
+                    ...dialog.props,
                     ...payload.connectionGroupSpec,
                     message: createConnectionGroupResult,
                 };
@@ -233,7 +236,9 @@ export class DeploymentWebviewController extends FormWebviewController<
 
         this.registerReducer("setConnectionGroupDialogState", async (state, payload) => {
             if (payload.shouldOpen) {
-                state.dialog = getDefaultConnectionGroupDialogProps();
+                state.dialog = getDefaultConnectionGroupDialogProps(
+                    await this.mainController.connectionManager.connectionStore.connectionConfig.getGroups(),
+                );
             } else {
                 state.dialog = undefined;
             }

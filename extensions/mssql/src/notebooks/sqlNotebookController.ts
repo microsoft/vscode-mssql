@@ -10,6 +10,7 @@ import type { IConnectionInfo } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import * as Utils from "../models/utils";
 import { ILogger } from "../sharedInterfaces/logger";
@@ -956,6 +957,10 @@ export class SqlNotebookController implements vscode.Disposable {
         message: NotebookSaveAsMessage,
     ): Promise<void> {
         sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.SaveResults, {
+            ...getConnectionTelemetryInfo(
+                this.connectionMgr,
+                this.connections.get(notebook.uri.toString())?.getConnectionInfo(),
+            ),
             additionalProps: {
                 format: message.format,
             },
@@ -1062,6 +1067,7 @@ export class SqlNotebookController implements vscode.Disposable {
         }
 
         const activity = startActivity(TelemetryViews.SqlNotebooks, TelemetryActions.ExecuteCell, {
+            ...getConnectionTelemetryInfo(this.connectionMgr, connMgr.getConnectionInfo()),
             additionalProps: { isMagicCommand: "false" },
         });
 
@@ -1336,6 +1342,10 @@ export class SqlNotebookController implements vscode.Disposable {
         const command = parts[0].substring(2).toLowerCase(); // strip %%
 
         sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.MagicCommand, {
+            ...getConnectionTelemetryInfo(
+                this.connectionMgr,
+                command === "connect" ? undefined : connMgr.getConnectionInfo(),
+            ),
             additionalProps: { command },
         });
 

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import * as LocConstants from "../constants/locConstants";
@@ -132,6 +133,16 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
 
+    /** Cached metadata for the database this designer session actually targets. */
+    public override get telemetryContext() {
+        const manager = this.mainController?.connectionManager;
+        return getConnectionTelemetryInfo(
+            manager,
+            this.connectionUri ?? this.treeNode?.connectionProfile,
+            this.databaseName,
+        );
+    }
+
     constructor(
         context: vscode.ExtensionContext,
         private mainController: MainController,
@@ -241,6 +252,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.GetDefinition,
                 {
+                    ...this.telemetryContext,
                     additionalProps: {
                         tableCount: payload.updatedSchema.tables.length.toString(),
                     },
@@ -264,6 +276,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.GetReport,
                 {
+                    ...this.telemetryContext,
                     additionalProps: {
                         tableCount: payload.updatedSchema.tables.length.toString(),
                     },
@@ -305,6 +318,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const publishActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.PublishSession,
+                this.telemetryContext,
             );
             try {
                 await this.schemaDesignerService.publishSession({
@@ -369,6 +383,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             }
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportToImage, {
+                ...this.telemetryContext,
                 additionalProps: {
                     format: payload?.format,
                 },
@@ -446,6 +461,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const generateScriptActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.GenerateScript,
+                this.telemetryContext,
             );
             vscode.window.withProgress(
                 {
@@ -550,7 +566,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(Dab.ResetConfigRequest.type, async () => {
-            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ResetDabConfig);
+            sendActionEvent(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.ResetDabConfig,
+                this.telemetryContext,
+            );
             await this.deleteStoredDabConfig();
         });
 
@@ -561,6 +581,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             });
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportDabConfig, {
+                ...this.telemetryContext,
                 additionalProps: {
                     language: "json",
                 },
@@ -574,6 +595,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 await this.addTextToWorkspace(payload.configContent, DAB_CONFIG_FILE_EXTENSION);
 
                 sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportDabConfig, {
+                    ...this.telemetryContext,
                     additionalProps: {
                         language: "json",
                         target: "workspace",
@@ -602,6 +624,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             }
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.OpenDabApiUrl, {
+                ...this.telemetryContext,
                 additionalProps: {
                     apiType: payload.apiType ?? "",
                 },
@@ -630,6 +653,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             }
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.CopyDabText, {
+                ...this.telemetryContext,
                 additionalProps: {
                     copyTextType: payload.copyTextType,
                 },
@@ -737,7 +761,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(Dab.AddMcpServerRequest.type, async (payload) => {
-            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.AddDabMcpServer);
+            sendActionEvent(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.AddDabMcpServer,
+                this.telemetryContext,
+            );
 
             return addMcpServerToWorkspace(payload.serverName, payload.serverUrl);
         });
@@ -1011,7 +1039,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         const schemaDesignerInitActivity = startActivity(
             TelemetryViews.SchemaDesigner,
             TelemetryActions.Initialize,
-            { includeCallStack: true },
+            { ...this.telemetryContext, includeCallStack: true },
         );
         try {
             let sessionResponse: SchemaDesigner.CreateSessionResponse;
@@ -1605,6 +1633,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         const key = this.dabStoreKey;
         if (!store || !key) {
             sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                ...this.telemetryContext,
                 additionalProps: {
                     target: "unknown",
                     outcome: "failure",
@@ -1624,6 +1653,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             );
             if (!record) {
                 sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                    ...this.telemetryContext,
                     additionalProps: { target: "unknown", outcome: "failure", reason: "notFound" },
                 });
                 return {
@@ -1635,6 +1665,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             telemetryTarget = dabTelemetryTarget(record.target);
             const result = await action(store, key, record);
             sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                ...this.telemetryContext,
                 additionalProps: {
                     target: telemetryTarget,
                     outcome: result.success ? "success" : "failure",
@@ -1644,6 +1675,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             return result;
         } catch (error) {
             sendActionEvent(TelemetryViews.SchemaDesigner, telemetryAction, {
+                ...this.telemetryContext,
                 additionalProps: {
                     target: telemetryTarget,
                     outcome: "failure",
@@ -1821,6 +1853,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             TelemetryViews.SchemaDesigner,
             TelemetryActions.RunDabDeploymentStep,
             {
+                ...this.telemetryContext,
                 additionalProps: {
                     step: Dab.DabDeploymentStepOrder[payload.step] ?? "unknown",
                     target: telemetryTarget,
@@ -1906,6 +1939,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                         TelemetryViews.SchemaDesigner,
                         TelemetryActions.FinishDabDeployment,
                         {
+                            ...this.telemetryContext,
                             additionalProps: { target: telemetryTarget, mode },
                         },
                     );

@@ -43,7 +43,11 @@ import { Deferred } from "../../src/protocol";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import type { IConnectionInfo } from "vscode-mssql";
+import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import * as notebookController from "../../src/notebooks/sqlNotebookController";
+import * as notebookCopyOutput from "../../src/notebooks/notebookCopyOutputProvider";
 
 chai.use(sinonChai);
 
@@ -60,6 +64,11 @@ type MainControllerTestAccess = {
     migrateTransferActiveEditorConnectionsSetting(): Promise<void>;
     deleteContainerForNode(node: ConnectionNode): Promise<void>;
     isContainerReadyForCommands(node: ConnectionNode): Promise<boolean>;
+    initialize(): Promise<boolean>;
+    initializeQueryHistory(): void;
+    initializeBackgroundTasks(): void;
+    initializeRecentSqlFiles(): void;
+    initializeAgentPlugins(): void;
 };
 
 function accessMainController(controller: MainController): MainControllerTestAccess {
@@ -591,6 +600,94 @@ suite("MainController Tests", function () {
             httpHelperWarnSpy.calledOnce,
             "Expected warnOnInvalidProxySettings to be called once during initialization",
         ).to.be.true;
+    });
+
+    suite("Chat with Database telemetry", () => {
+        setup(async () => {
+            const controllerAccess = accessMainController(mainController);
+            sandbox.stub(controllerAccess, "initialize").resolves(true);
+            sandbox.stub(controllerAccess, "initializeQueryHistory");
+            sandbox.stub(controllerAccess, "initializeBackgroundTasks");
+            sandbox.stub(controllerAccess, "initializeRecentSqlFiles");
+            sandbox.stub(controllerAccess, "initializeAgentPlugins");
+            sandbox.stub(controllerAccess, "registerLanguageModelTools");
+            const client = sandbox.createStubInstance(SqlToolsServiceClient);
+            sandbox.stub(SqlToolsServiceClient, "instance").get(() => client);
+            connectionManager.client = client;
+            const notebook = sandbox.createStubInstance(notebookController.SqlNotebookController);
+            sandbox.stub(notebookController, "SqlNotebookController").returns(notebook);
+            sandbox.stub(notebookCopyOutput, "registerNotebookCopyOutput");
+            const disposable = { dispose: sandbox.stub() };
+            const connectionsChanged = new vscode.EventEmitter<void>();
+            context.subscriptions.push(connectionsChanged);
+            Object.defineProperty(connectionManager, "onConnectionsChanged", {
+                value: connectionsChanged.event,
+            });
+            sandbox.stub(vscode.commands, "registerCommand").returns(disposable);
+            sandbox.stub(vscode.languages, "registerCodeLensProvider").returns(disposable);
+            sandbox.stub(vscode.window, "registerCustomEditorProvider").returns(disposable);
+            sandbox.stub(vscode.window, "registerUriHandler").returns(disposable);
+            sandbox
+                .stub(vscode.workspace, "registerTextDocumentContentProvider")
+                .returns(disposable);
+            sandbox.stub(vscode.workspace, "onDidChangeConfiguration").returns(disposable);
+            await mainController.activate();
+        });
+
+        teardown(() => {
+            for (const disposable of context.subscriptions) {
+                disposable.dispose();
+            }
+        });
+
+        for (const command of [
+            Constants.cmdChatWithDatabase,
+            Constants.cmdChatWithDatabaseInAgentMode,
+        ]) {
+            for (const database of ["database-b", LocalizedConstants.defaultDatabaseLabel]) {
+                test(`${command} scopes metadata to ${database}`, async () => {
+                    const { sendActionEvent } = stubTelemetry(sandbox);
+                    const node = sandbox.createStubInstance(TreeNodeInfo);
+                    const profile = new ConnectionProfile();
+                    profile.server = "localhost";
+                    profile.database = "database-a";
+                    profile.user = "user";
+                    sandbox.stub(node, "connectionProfile").get(() => profile);
+                    sandbox.stub(ObjectExplorerUtils, "getDatabaseName").returns(database);
+                    const targetDatabase =
+                        database === LocalizedConstants.defaultDatabaseLabel ? "" : database;
+                    const serverInfo = { engineEditionId: 5 } as IServerInfo;
+                    connectionManager.getServerInfo
+                        .withArgs(profile, targetDatabase)
+                        .returns(serverInfo);
+                    const editor = createMockTextEditor("file:///chat.sql");
+                    sandbox.stub(vscode.window, "activeTextEditor").get(() => editor);
+                    const activeConnection = new ConnectionInfo();
+                    activeConnection.credentials = { ...profile, database: targetDatabase };
+                    connectionManager.getConnectionInfo.returns(activeConnection);
+                    sandbox.stub(vscode.commands, "executeCommand").resolves();
+                    sandbox
+                        .stub(accessMainController(mainController), "findChatOpenAgentCommand")
+                        .resolves("workbench.action.chat.open");
+
+                    const [handler] = mainController["_event"].listeners(command);
+                    await handler(node);
+
+                    expect(sendActionEvent).to.have.been.calledWith(
+                        TelemetryViews.MssqlCopilot,
+                        command === Constants.cmdChatWithDatabase
+                            ? TelemetryActions.ChatWithDatabase
+                            : TelemetryActions.ChatWithDatabaseInAgentMode,
+                        { connectionInfo: profile, serverInfo },
+                    );
+                    expect(connectionManager.getServerInfo).to.have.been.calledWith(
+                        profile,
+                        targetDatabase,
+                    );
+                    expect(profile.database).to.equal("database-a");
+                });
+            }
+        }
     });
 
     suite("onNewQueryWithConnection Tests", () => {

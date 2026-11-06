@@ -40,7 +40,7 @@ import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { RefreshRequest } from "../../src/models/contracts/objectExplorer/refreshSessionRequest";
 import { ExpandErrorNode } from "../../src/objectExplorer/nodes/expandErrorNode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
-import { IConnectionInfo } from "vscode-mssql";
+import { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import * as Constants from "../../src/constants/constants";
 import { AccountStore } from "../../src/azure/accountStore";
@@ -464,6 +464,49 @@ suite("OE Service Tests", () => {
                 undefined,
                 undefined,
             );
+
+        for (const database of ["database-b", LocalizedConstants.defaultDatabaseLabel]) {
+            test(`expandNode scopes telemetry to ${database}`, async () => {
+                sandbox.stub(ObjectExplorerUtils, "iconPath").returns(undefined);
+                const node = makeExpandNode();
+                const profile = {
+                    id: "shared-profile",
+                    server: "localhost",
+                    database: "database-a",
+                } as IConnectionProfile;
+                sandbox.stub(node, "connectionProfile").get(() => profile);
+                sandbox.stub(ObjectExplorerUtils, "getDatabaseName").returns(database);
+                const targetDatabase =
+                    database === LocalizedConstants.defaultDatabaseLabel ? "" : database;
+                const serverInfo = { engineEditionId: 5 } as IServerInfo;
+                mockConnectionManager.getServerInfo
+                    .withArgs(profile, targetDatabase)
+                    .returns(serverInfo);
+                mockClient.sendRequest
+                    .withArgs(ExpandRequest.type, sinon.match.any)
+                    .callsFake(async () => {
+                        objectExplorerService.handleExpandNodeNotification({
+                            sessionId: "session123",
+                            nodePath: node.nodePath,
+                            nodes: [],
+                            errorMessage: "",
+                        });
+                        return true;
+                    });
+
+                await objectExplorerService.expandNode(node, "session123");
+
+                expect(startActivityStub).to.have.been.calledWithMatch(
+                    TelemetryViews.ObjectExplorer,
+                    TelemetryActions.ExpandNode,
+                    { connectionInfo: profile, serverInfo },
+                );
+                expect(mockConnectionManager.getServerInfo).to.have.been.calledWith(
+                    profile,
+                    targetDatabase,
+                );
+            });
+        }
 
         test("expandNode retries with a refresh and succeeds when a paused serverless database resumes", async () => {
             sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake(() => undefined);

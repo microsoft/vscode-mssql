@@ -9,6 +9,7 @@ import { Writable } from "stream";
 import * as vscode from "vscode";
 import * as path from "path";
 import ConnectionManager from "../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { SessionType, SessionState, EngineType, XelFileInfo } from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
@@ -309,6 +310,10 @@ export class ProfilerController {
     ): Promise<void> {
         this._logger.debug(`Starting profiler session: ${sessionName}`);
         const sessionId = uuid();
+        const telemetryContext = getConnectionTelemetryInfo(
+            this._connectionManager,
+            this._profilerUri,
+        );
         try {
             if (!this._profilerUri) {
                 this._logger.debug("No profiler connection available");
@@ -363,6 +368,7 @@ export class ProfilerController {
                         TelemetryViews.Profiler,
                         TelemetryActions.ProfilerBufferOverflow,
                         {
+                            ...telemetryContext,
                             additionalProps: { sessionId },
                             additionalMeasurements: {
                                 bufferCapacity: session.events.capacity,
@@ -383,6 +389,7 @@ export class ProfilerController {
                 // Telemetry: session stopped
                 const durationMs = session.startedAt > 0 ? Date.now() - session.startedAt : 0;
                 sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionStopped, {
+                    ...telemetryContext,
                     additionalProps: { sessionId, wasExported: String(session.exported) },
                     additionalMeasurements: {
                         durationMs,
@@ -401,6 +408,7 @@ export class ProfilerController {
             this._logger.error(`Error starting profiler session: ${e}`);
             const errMsg = getErrorMessage(e);
             sendErrorEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionFailed, {
+                ...telemetryContext,
                 error: e instanceof Error ? e : new Error(errMsg),
                 includeErrorMessage: false,
                 additionalProps: { sessionId, engineType: this._currentEngineType },
@@ -745,6 +753,10 @@ export class ProfilerController {
                         TelemetryViews.Profiler,
                         TelemetryActions.ProfilerSessionStopped,
                         {
+                            ...getConnectionTelemetryInfo(
+                                this._connectionManager,
+                                session.ownerUri,
+                            ),
                             additionalProps: {
                                 sessionId: session.id,
                                 wasExported: String(session.exported),
@@ -761,6 +773,10 @@ export class ProfilerController {
                         TelemetryViews.Profiler,
                         TelemetryActions.ProfilerSessionStopFailed,
                         {
+                            ...getConnectionTelemetryInfo(
+                                this._connectionManager,
+                                session.ownerUri,
+                            ),
                             error: e instanceof Error ? e : new Error(getErrorMessage(e)),
                             includeErrorMessage: false,
                             additionalProps: { sessionId: session.id },

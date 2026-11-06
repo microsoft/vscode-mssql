@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as fs from "fs";
+import * as path from "path";
 import * as sinon from "sinon";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
@@ -116,5 +118,98 @@ suite("ConnectionNode Tests", () => {
         // Tooltip should include keys that differ from defaults and should not include 'excluded' keys
         expect(node.tooltip).to.be.a("string");
         expect(node.tooltip).to.contain("Windows Authentication");
+    });
+
+    suite("SQL container nodes", () => {
+        const dashboard = "mssql.performance.openDashboard";
+        const start = "mssql.startContainer";
+        const stop = "mssql.stopContainer";
+        const remove = "mssql.deleteContainer";
+
+        const menus: { command: string; when: string }[] = JSON.parse(
+            fs.readFileSync(path.join(__dirname, "..", "..", "..", "package.json"), "utf8"),
+        ).contributes.menus["view/item/context"];
+
+        function containerProfile(database: string): any {
+            return { id: "1", server: "localhost", database, containerName: "myContainer" };
+        }
+
+        function connectedNode(profile: any): ConnectionNode {
+            const node = new ConnectionNode(profile);
+            node.updateToConnectedState({
+                nodeInfo: { nodePath: "localhost" } as any,
+                sessionId: "session",
+                parentNode: undefined,
+                connectionProfile: profile,
+            });
+            return node;
+        }
+
+        /** The dashboard and container commands whose menu patterns match the node. */
+        function menuCommands(node: ConnectionNode): string[] {
+            return menus
+                .filter(({ command }) => [dashboard, start, stop, remove].includes(command))
+                .filter(({ when }) =>
+                    [...when.matchAll(/viewItem =~ \/(.*?)\//g)].some(([, pattern]) =>
+                        new RegExp(pattern).test(node.contextValue),
+                    ),
+                )
+                .map(({ command }) => command);
+        }
+
+        test("treats a connected container with a database as a database", () => {
+            const node = connectedNode(containerProfile("myDb"));
+
+            expect(node.context.subType).to.equal("DockerContainerDatabase");
+            expect(menuCommands(node)).to.have.members([dashboard, stop, remove]);
+        });
+
+        test("treats a connected container without a database as a server", () => {
+            const node = connectedNode(containerProfile(""));
+
+            expect(node.context.subType).to.equal("DockerContainer");
+            expect(menuCommands(node)).to.have.members([stop, remove]);
+        });
+
+        test("treats a database connection found to be a container as a database", () => {
+            const profile: any = { id: "1", server: "localhost", database: "myDb" };
+            const node = connectedNode(profile);
+            expect(node.context.subType).to.equal("Database");
+
+            // checkForDockerConnection sets the name on the profile that the node holds.
+            profile.containerName = "myContainer";
+            node.updateToDockerConnection("myContainer");
+
+            expect(node.context.subType).to.equal("DockerContainerDatabase");
+            expect(menuCommands(node)).to.have.members([dashboard, stop, remove]);
+        });
+
+        test("offers the dashboard on a disconnected container with a database", () => {
+            const neverConnected = new ConnectionNode(containerProfile("myDb"));
+            const disconnected = connectedNode(containerProfile("myDb"));
+            disconnected.updateToDisconnectedState();
+
+            for (const node of [neverConnected, disconnected]) {
+                expect(node.context.subType).to.equal("disconnectedDockerContainerDatabase");
+                expect(menuCommands(node)).to.have.members([dashboard, start, remove]);
+            }
+        });
+
+        test("does not offer the dashboard on a disconnected container without a database", () => {
+            const neverConnected = new ConnectionNode(containerProfile(""));
+            const disconnected = connectedNode(containerProfile(""));
+            disconnected.updateToDisconnectedState();
+
+            for (const node of [neverConnected, disconnected]) {
+                expect(node.context.subType).to.equal("disconnectedDockerContainer");
+                expect(menuCommands(node)).to.have.members([start, remove]);
+            }
+        });
+
+        test("offers the dashboard on a disconnected database connection", () => {
+            const profile: any = { id: "1", server: "localhost", database: "myDb" };
+
+            expect(menuCommands(new ConnectionNode(profile))).to.have.members([dashboard]);
+        });
     });
 });

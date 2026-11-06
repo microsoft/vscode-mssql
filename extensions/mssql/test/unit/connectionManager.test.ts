@@ -8,7 +8,7 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
-import { IToken, IConnectionInfo } from "vscode-mssql";
+import { IToken, IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import ConnectionManager, {
@@ -48,6 +48,7 @@ import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { PlatformInformation } from "../../src/models/platform";
+import { getConnectionTelemetryInfo } from "../../src/utils/telemetryUtils";
 
 chai.use(sinonChai);
 
@@ -169,6 +170,269 @@ suite("ConnectionManager Tests", () => {
     suite("Functionality tests", () => {
         setup(() => {
             connectionManager = createConnectionManager();
+        });
+
+        test("profile telemetry resolves the correct database from the real same-profile cache", () => {
+            const databaseA = {
+                id: "shared-profile",
+                server: "localhost",
+                database: "database-a",
+            } as IConnectionProfile;
+            const databaseB = { ...databaseA, database: "database-b" };
+            const infoA = {
+                engineEditionId: 5,
+                databaseServiceTier: "GeneralPurpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            } as IServerInfo;
+            const infoB = {
+                ...infoA,
+                databaseServiceTier: "BusinessCritical",
+                databaseServiceObjective: "BC_Gen5_4",
+            };
+            connectionManager["_connectionCredentialsToServerInfoMap"].set(databaseA, infoA);
+            connectionManager["_connectionCredentialsToServerInfoMap"].set(databaseB, infoB);
+
+            expect(
+                getConnectionTelemetryInfo(connectionManager, { ...databaseB }).serverInfo,
+            ).to.equal(infoB);
+            expect(
+                getConnectionTelemetryInfo(connectionManager, databaseA, "database-b").serverInfo,
+            ).to.equal(infoB);
+        });
+
+        test("profile telemetry omits database fields when only another database is cached", () => {
+            const profile = {
+                id: "shared-profile",
+                server: "localhost",
+                database: "database-a",
+            } as IConnectionProfile;
+            const cachedServerInfo = {
+                engineEditionId: 5,
+                databaseServiceTier: "GeneralPurpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            } as IServerInfo;
+            connectionManager["_connectionCredentialsToServerInfoMap"].set(
+                profile,
+                cachedServerInfo,
+            );
+
+            for (const database of ["database-b", ""]) {
+                expect(
+                    getConnectionTelemetryInfo(connectionManager, {
+                        ...profile,
+                        database,
+                    }).serverInfo,
+                ).to.include({
+                    engineEditionId: 5,
+                    databaseServiceTier: undefined,
+                    databaseServiceObjective: undefined,
+                });
+            }
+            expect(cachedServerInfo.databaseServiceTier).to.equal("GeneralPurpose");
+        });
+
+        test("one-argument server info lookups select the requested database for copied profiles", () => {
+            const profile = {
+                id: "shared-profile",
+                server: "localhost",
+                database: "database-a",
+            } as IConnectionProfile;
+            const infoA = {
+                engineEditionId: 5,
+                databaseServiceTier: "GeneralPurpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            } as IServerInfo;
+            const infoB = {
+                ...infoA,
+                databaseServiceTier: "BusinessCritical",
+                databaseServiceObjective: "BC_Gen5_4",
+            };
+            connectionManager["_connectionCredentialsToServerInfoMap"].set(profile, infoA);
+            connectionManager["_connectionCredentialsToServerInfoMap"].set(
+                { ...profile, database: "database-b" },
+                infoB,
+            );
+
+            expect(
+                connectionManager.getServerInfo({ ...profile, database: "database-b" }),
+            ).to.equal(infoB);
+        });
+
+        test("one-argument server info lookup finds an ID-less connection resolved to its default database", () => {
+            const credentials = {
+                server: "localhost",
+                database: "",
+                authenticationType: "SqlLogin",
+                user: "sa",
+            } as IConnectionInfo;
+            const serverInfo = {
+                engineEditionId: 5,
+                databaseServiceTier: "GeneralPurpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            } as IServerInfo;
+            connectionManager["cacheServerInfo"](
+                { ...credentials, database: "login-default" },
+                serverInfo,
+            );
+
+            expect(connectionManager.getServerInfo(credentials)).to.include({
+                engineEditionId: 5,
+                databaseServiceTier: undefined,
+                databaseServiceObjective: undefined,
+            });
+            expect(
+                connectionManager.getServerInfo({ ...credentials, server: "other-server" }),
+            ).to.equal(undefined);
+        });
+
+        for (const database of ["database-b", "", undefined]) {
+            test(`one-argument server info lookup omits unmatched database fields for ${database === undefined ? "a missing database" : database === "" ? "an empty database" : database}`, () => {
+                const profile = {
+                    id: "shared-profile",
+                    server: "localhost",
+                    database: "database-a",
+                } as IConnectionProfile;
+                const serverInfo = {
+                    engineEditionId: 5,
+                    databaseServiceTier: "GeneralPurpose",
+                    databaseServiceObjective: "GP_Gen5_2",
+                } as IServerInfo;
+                connectionManager["_connectionCredentialsToServerInfoMap"].set(profile, serverInfo);
+
+                expect(connectionManager.getServerInfo({ ...profile, database })).to.include({
+                    engineEditionId: 5,
+                    databaseServiceTier: undefined,
+                    databaseServiceObjective: undefined,
+                });
+                expect(serverInfo.databaseServiceTier).to.equal("GeneralPurpose");
+            });
+        }
+
+        for (const hasRefreshedServerInfo of [true, false]) {
+            test(`database A to B to A replaces stale cache entries ${hasRefreshedServerInfo ? "with refreshed metadata" : "without retaining old database fields"}`, () => {
+                const uri = "file:///database-context.sql";
+                const profile = {
+                    id: "shared-profile",
+                    server: "localhost",
+                    database: "database-a",
+                    user: "user",
+                } as IConnectionProfile;
+                const oldServerInfo = {
+                    engineEditionId: 5,
+                    databaseServiceTier: "Standard",
+                    databaseServiceObjective: "S0",
+                } as IServerInfo;
+                const connection = new ConnectionInfo();
+                connection.credentials = { ...profile };
+                connection.connectionId = "connection-id";
+                connection.connecting = false;
+                connection.serverInfo = oldServerInfo;
+                connectionManager["_connections"][uri] = connection;
+                connectionManager["_connectionCredentialsToServerInfoMap"].set(
+                    profile,
+                    oldServerInfo,
+                );
+                const onConnectionChanged = connectionManager.handleConnectionChangedNotification();
+                onConnectionChanged({
+                    ownerUri: uri,
+                    connection: {
+                        serverName: "localhost",
+                        databaseName: "database-b",
+                        userName: "user",
+                    },
+                    serverInfo: {
+                        ...oldServerInfo,
+                        databaseServiceTier: "BusinessCritical",
+                        databaseServiceObjective: "BC_Gen5_4",
+                    },
+                });
+                onConnectionChanged({
+                    ownerUri: uri,
+                    connection: {
+                        serverName: "localhost",
+                        databaseName: "database-a",
+                        userName: "user",
+                    },
+                    serverInfo: hasRefreshedServerInfo
+                        ? {
+                              ...oldServerInfo,
+                              databaseServiceTier: "GeneralPurpose",
+                              databaseServiceObjective: "GP_Gen5_2",
+                          }
+                        : undefined,
+                });
+
+                for (const credentials of [connection.credentials, { ...profile }]) {
+                    expect(connectionManager.getServerInfo(credentials)).to.equal(
+                        connection.serverInfo,
+                    );
+                    expect(connectionManager.getServerInfo(credentials, "database-a")).to.equal(
+                        connection.serverInfo,
+                    );
+                }
+                expect(connection.serverInfo).to.include({
+                    databaseServiceTier: hasRefreshedServerInfo ? "GeneralPurpose" : undefined,
+                    databaseServiceObjective: hasRefreshedServerInfo ? "GP_Gen5_2" : undefined,
+                });
+                expect(connectionManager.getServerInfo(profile, "database-b")).to.include({
+                    databaseServiceTier: "BusinessCritical",
+                    databaseServiceObjective: "BC_Gen5_4",
+                });
+                expect(oldServerInfo.databaseServiceTier).to.equal("Standard");
+            });
+        }
+
+        test("refreshes cached database tier and endpoint tags after a context change", () => {
+            const uri = "file:///tier-test.sql";
+            const connection = new ConnectionInfo();
+            connection.credentials = { server: "localhost", database: "old" } as IConnectionInfo;
+            connection.connectionId = "connection-id";
+            connection.connecting = false;
+            connection.serverInfo = {
+                engineEditionId: 5,
+                databaseServiceTier: "Standard",
+            } as IServerInfo;
+            connectionManager["_connections"][uri] = connection;
+
+            connectionManager.handleConnectionChangedNotification()({
+                ownerUri: uri,
+                connection: { serverName: "localhost", databaseName: "new", userName: "user" },
+                serverInfo: {
+                    ...connection.serverInfo,
+                    databaseServiceTier: "General Purpose",
+                    databaseServiceObjective: "GP_Gen5_2",
+                },
+            });
+
+            expect(connectionManager.getServerInfo(connection.credentials)).to.include({
+                databaseServiceTier: "General Purpose",
+                databaseServiceObjective: "GP_Gen5_2",
+            });
+            expect(connection.serverInfo.serverTypes).to.deep.equal(["Local", "SQL"]);
+        });
+
+        test("does not attribute the previous database tier to older-service context changes", () => {
+            const uri = "file:///tier-test.sql";
+            const connection = new ConnectionInfo();
+            connection.credentials = { server: "localhost", database: "old" } as IConnectionInfo;
+            connection.connectionId = "connection-id";
+            connection.connecting = false;
+            connection.serverInfo = {
+                engineEditionId: 5,
+                databaseServiceTier: "Standard",
+                databaseServiceObjective: "S0",
+            } as IServerInfo;
+            connectionManager["_connections"][uri] = connection;
+
+            connectionManager.handleConnectionChangedNotification()({
+                ownerUri: uri,
+                connection: { serverName: "localhost", databaseName: "new", userName: "user" },
+            });
+
+            const serverInfo = connectionManager.getServerInfo(connection.credentials);
+            expect(serverInfo.engineEditionId).to.equal(5);
+            expect(serverInfo.databaseServiceTier).to.equal(undefined);
+            expect(serverInfo.databaseServiceObjective).to.equal(undefined);
         });
 
         test("strips a trailing comma from the server", () => {

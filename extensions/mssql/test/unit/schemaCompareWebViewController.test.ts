@@ -44,6 +44,8 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import * as locConstants from "../../src/constants/locConstants";
 import { ProjectProviderRegistry } from "../../src/dataWorkspace/common/projectProviderRegistry";
 import { SqlDatabaseProjectProvider } from "../../src/databaseProjects/projectProvider/projectProvider";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;
@@ -905,6 +907,85 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(compareStub).not.to.have.been.called;
         expect(result).to.equal(state);
     });
+
+    for (const operation of [
+        "generateScript",
+        "publishChanges",
+        "publishDatabaseChanges",
+    ] as const) {
+        for (const database of ["database-a", "database-b", undefined]) {
+            test(`${operation} scopes telemetry to ${database ?? "an unspecified database"}`, async () => {
+                const startActivity = sandbox.stub(telemetry, "startActivity").returns({
+                    correlationId: "activity",
+                    startTime: 0,
+                    update: sandbox.stub(),
+                    end: sandbox.stub(),
+                    endFailed: sandbox.stub(),
+                });
+                sandbox
+                    .stub(scUtils, "generateScript")
+                    .resolves({ success: true, errorMessage: "" });
+                sandbox
+                    .stub(scUtils, "publishDatabaseChanges")
+                    .resolves({ success: true, errorMessage: "" });
+                sandbox
+                    .stub(UserSurvey, "getInstance")
+                    .returns(sandbox.createStubInstance(UserSurvey));
+                seedDifferences(controller);
+                controller.state.targetEndpointInfo = {
+                    ...targetEndpointInfo,
+                    databaseName: "database-b",
+                };
+                const credentials = {
+                    server: "localhost",
+                    database: "database-a",
+                } as mssql.IConnectionInfo;
+                const serverInfo = {
+                    engineEditionId: 5,
+                    databaseServiceTier: "GeneralPurpose",
+                    databaseServiceObjective: "GP_Gen5_2",
+                } as mssql.IServerInfo;
+                connectionManagerStub.getConnectionInfo
+                    .withArgs(targetEndpointInfo.ownerUri)
+                    .returns({
+                        credentials,
+                        serverInfo,
+                    } as ConnectionInfo);
+                const payload = {
+                    comparisonId,
+                    targetServerName: "localhost",
+                    targetDatabaseName: database,
+                };
+                if (operation === "generateScript") {
+                    await requestHandlers.get(SchemaCompareGenerateScriptRequest.type.method)(
+                        payload,
+                    );
+                } else {
+                    await controller["_reducerHandlers"].get(operation)(controller.state, payload);
+                }
+
+                expect(startActivity).to.have.been.calledWithMatch(
+                    TelemetryViews.SchemaCompare,
+                    operation === "generateScript"
+                        ? TelemetryActions.GenerateScript
+                        : operation === "publishChanges"
+                          ? TelemetryActions.Publish
+                          : TelemetryActions.PublishDatabaseChanges,
+                    {
+                        connectionInfo: credentials,
+                        serverInfo: {
+                            engineEditionId: 5,
+                            databaseServiceTier:
+                                database === "database-a" ? "GeneralPurpose" : undefined,
+                            databaseServiceObjective:
+                                database === "database-a" ? "GP_Gen5_2" : undefined,
+                        },
+                    },
+                );
+                expect(serverInfo.databaseServiceTier).to.equal("GeneralPurpose");
+            });
+        }
+    }
 
     test("generateScript request - when called - returns success", async () => {
         const generateScriptStub = sandbox.stub(scUtils, "generateScript").resolves({

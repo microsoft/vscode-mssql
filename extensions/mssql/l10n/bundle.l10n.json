@@ -2072,6 +2072,49 @@
         "message": "Edit Connection Group - {0}",
         "comment": ["{0} is the connection group name"]
     },
+    "The connection or connection group with ID '{0}' no longer exists./{0} is the ID of the connection or connection group being updated": {
+        "message": "The connection or connection group with ID '{0}' no longer exists.",
+        "comment": ["{0} is the ID of the connection or connection group being updated"]
+    },
+    "Failed to write connection settings to {0}: {1}. Any copies saved before the failure have been kept. Review the saved settings before retrying./{0} is the configuration location{1} is the write error": {
+        "message": "Failed to write connection settings to {0}: {1}. Any copies saved before the failure have been kept. Review the saved settings before retrying.",
+        "comment": ["{0} is the configuration location", "{1} is the write error"]
+    },
+    "Parent connection group with ID '{0}' was not found./{0} is the missing parent connection group ID": {
+        "message": "Parent connection group with ID '{0}' was not found.",
+        "comment": ["{0} is the missing parent connection group ID"]
+    },
+    "Connection group '{0}' cannot be moved under '{1}' because that would create a cycle./{0} is the connection group being moved{1} is the selected parent connection group": {
+        "message": "Connection group '{0}' cannot be moved under '{1}' because that would create a cycle.",
+        "comment": [
+            "{0} is the connection group being moved",
+            "{1} is the selected parent connection group"
+        ]
+    },
+    "Connection groups cannot be added because their parent hierarchy contains a cycle.": "Connection groups cannot be added because their parent hierarchy contains a cycle.",
+    "'{0}' is saved to {1}, but '{2}' is saved to {3}. Would you like to update the save location for {0}?/{0} is the connection profile or group name{1} is the item's current configuration location{2} is the new parent group name{3} is the new parent group's configuration location": {
+        "message": "'{0}' is saved to {1}, but '{2}' is saved to {3}. Would you like to update the save location for {0}?",
+        "comment": [
+            "{0} is the connection profile or group name",
+            "{1} is the item's current configuration location",
+            "{2} is the new parent group name",
+            "{3} is the new parent group's configuration location"
+        ]
+    },
+    "Update to {0}/{0} is a configuration location": {
+        "message": "Update to {0}",
+        "comment": ["{0} is a configuration location"]
+    },
+    "Leave in {0}/{0} is a configuration location": {
+        "message": "Leave in {0}",
+        "comment": ["{0} is a configuration location"]
+    },
+    "global config": "global config",
+    "workspace config": "workspace config",
+    "workspace folder config ({0})/{0} is the workspace folder name": {
+        "message": "workspace folder config ({0})",
+        "comment": ["{0} is the workspace folder name"]
+    },
     "Data-tier Application": "Data-tier Application",
     "File path is required": "File path is required",
     "File not found": "File not found",
@@ -5472,6 +5515,8 @@
         "comment": ["{0} is the name of the connection group being edited"]
     },
     "Enter connection group name": "Enter connection group name",
+    "Parent group": "Parent group",
+    "Root": "Root",
     "Enter description (optional)": "Enter description (optional)",
     "Color": "Color",
     "Choose color": "Choose color",
@@ -5479,6 +5524,7 @@
     "Hue": "Hue",
     "Saturation": "Saturation",
     "Brightness": "Brightness",
+    "Connection profiles and groups can also be reorganized into different connection groups by dragging and dropping them in the Connections view.": "Connection profiles and groups can also be reorganized into different connection groups by dragging and dropping them in the Connections view.",
     "New SQL database": "New SQL database",
     "Choose an option to provision a database": "Choose an option to provision a database",
     "Run locally": "Run locally",

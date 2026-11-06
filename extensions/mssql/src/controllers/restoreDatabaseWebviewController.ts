@@ -38,6 +38,7 @@ import {
 import * as LocConstants from "../constants/locConstants";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import ConnectionManager from "./connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import {
     createSasKey,
     disasterRecoveryFormAction,
@@ -93,6 +94,10 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         this.start();
     }
 
+    protected override get telemetryContext() {
+        return getConnectionTelemetryInfo(this.connectionManager, this.profile);
+    }
+
     protected async initializeDialog(): Promise<void> {
         let restoreViewModel = new RestoreDatabaseViewModel();
         this.updateViewModel(restoreViewModel);
@@ -127,6 +132,8 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             restoreViewModel.errorMessage = getErrorMessage(error);
             this.updateViewModel(restoreViewModel);
             sendErrorEvent(TelemetryViews.Restore, TelemetryActions.InitializeRestore, {
+                connectionInfo: this.profile,
+                serverInfo: this.connectionManager.getServerInfo(this.profile),
                 error,
                 includeErrorMessage: false,
             });
@@ -203,6 +210,8 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             })
             .catch((error) => {
                 sendErrorEvent(TelemetryViews.Restore, TelemetryActions.GetRestorePlan, {
+                    connectionInfo: this.profile,
+                    serverInfo: this.connectionManager.getServerInfo(this.profile),
                     error,
                     includeErrorMessage: false,
                 });
@@ -213,7 +222,10 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
 
         this.updateState();
 
-        sendActionEvent(TelemetryViews.Restore, TelemetryActions.InitializeRestore);
+        sendActionEvent(TelemetryViews.Restore, TelemetryActions.InitializeRestore, {
+            connectionInfo: this.profile,
+            serverInfo: this.connectionManager.getServerInfo(this.profile),
+        });
     }
 
     private registerRestoreRpcHandlers() {
@@ -288,6 +300,8 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         this.registerReducer("restoreDatabase", async (state, _payload) => {
             await this.restoreHelper(TaskExecutionMode.executeAndScript);
             sendActionEvent(TelemetryViews.Restore, TelemetryActions.Restore, {
+                connectionInfo: this.profile,
+                serverInfo: this.connectionManager.getServerInfo(this.profile),
                 additionalProps: {
                     restoreType: this.restoreViewModel(state).type,
                 },
@@ -310,6 +324,8 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
 
             await this.restoreHelper(TaskExecutionMode.script);
             sendActionEvent(TelemetryViews.Restore, TelemetryActions.ScriptRestore, {
+                connectionInfo: this.profile,
+                serverInfo: this.connectionManager.getServerInfo(this.profile),
                 additionalProps: {
                     restoreType: this.restoreViewModel(state).type,
                 },
@@ -346,6 +362,7 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             this as WebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, any>,
             this.fileBrowserService,
             defaultBackupFileTypes,
+            this.connectionManager,
         );
 
         // Override default file browser submitFilePath reducer
@@ -712,6 +729,8 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
         } catch (error) {
             this.state.errorMessage = getErrorMessage(error);
             sendErrorEvent(TelemetryViews.Restore, TelemetryActions.Restore, {
+                connectionInfo: this.profile,
+                serverInfo: this.connectionManager.getServerInfo(this.profile),
                 error,
                 includeErrorMessage: false,
                 additionalProps: {
@@ -752,6 +771,8 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             restoreViewModel.errorMessage = getErrorMessage(error);
             this.updateViewModel(restoreViewModel, state);
             sendErrorEvent(TelemetryViews.Restore, TelemetryActions.GetRestorePlan, {
+                connectionInfo: this.profile,
+                serverInfo: this.connectionManager.getServerInfo(this.profile),
                 error,
                 includeErrorMessage: false,
             });
@@ -784,7 +805,10 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
             .filter((backupSet) => backupSet.isSelected)
             .map((backupSet) => backupSet.id);
 
-        sendActionEvent(TelemetryViews.Restore, TelemetryActions.GetRestorePlan);
+        sendActionEvent(TelemetryViews.Restore, TelemetryActions.GetRestorePlan, {
+            connectionInfo: this.profile,
+            serverInfo: this.connectionManager.getServerInfo(this.profile),
+        });
 
         return this.updateViewModel(restoreViewModel, state);
     }

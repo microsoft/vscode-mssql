@@ -71,6 +71,216 @@ suite("ConnectionStore Tests", () => {
         await connectionStore.initialized; // Wait for initialization to complete
     });
 
+    test("updateProfile updates the saved profile and credentials", async () => {
+        mockConnectionConfig.updateConnection.resolves(true);
+        connectionStore = new ConnectionStore(
+            mockContextService,
+            mockCredentialStore,
+            mockConnectionConfig,
+            mockLogger,
+        );
+        await connectionStore.initialized;
+        const profile = {
+            ...sqlAuthConn,
+            id: "profile-id",
+            password: "secret",
+            savePassword: true,
+            azureAccountToken: "token",
+        } as IConnectionProfile;
+
+        const updated = await connectionStore.updateProfile(profile);
+
+        expect(updated).to.be.true;
+        expect(mockConnectionConfig.updateConnection).to.have.been.calledOnce;
+        expect(mockConnectionConfig.updateConnection.firstCall.args[0]).to.include({
+            id: "profile-id",
+            password: "",
+            azureAccountToken: "token",
+        });
+        expect(mockCredentialStore.saveCredential).to.have.been.calledOnce;
+    });
+
+    test("updateProfile does not update credentials when the profile update is cancelled", async () => {
+        mockConnectionConfig.updateConnection.resolves(false);
+        connectionStore = new ConnectionStore(
+            mockContextService,
+            mockCredentialStore,
+            mockConnectionConfig,
+            mockLogger,
+        );
+        await connectionStore.initialized;
+        const profile = {
+            ...sqlAuthConn,
+            id: "profile-id",
+            password: "secret",
+            savePassword: true,
+        } as IConnectionProfile;
+
+        const updated = await connectionStore.updateProfile(profile, {
+            ...profile,
+            server: "old-server",
+        });
+
+        expect(updated).to.be.false;
+        expect(mockCredentialStore.saveCredential).to.not.have.been.called;
+        expect(mockCredentialStore.deleteCredential).to.not.have.been.called;
+    });
+
+    test("updateProfile cleans up the original profile after a successful update", async () => {
+        mockConnectionConfig.updateConnection.resolves(true);
+        connectionStore = new ConnectionStore(
+            mockContextService,
+            mockCredentialStore,
+            mockConnectionConfig,
+            mockLogger,
+        );
+        await connectionStore.initialized;
+        const originalProfile = {
+            ...sqlAuthConn,
+            id: "profile-id",
+            server: "old-server",
+            password: "old-secret",
+            savePassword: true,
+        } as IConnectionProfile;
+        const updatedProfile = {
+            ...originalProfile,
+            server: "new-server",
+            password: "new-secret",
+        };
+
+        const updated = await connectionStore.updateProfile(updatedProfile, originalProfile);
+
+        expect(updated).to.be.true;
+        expect(mockCredentialStore.deleteCredential).to.have.been.calledWith(
+            ConnectionStore.formatCredentialIdForCred(originalProfile),
+        );
+        expect(mockCredentialStore.saveCredential).to.have.been.calledOnce;
+    });
+
+    for (const intoFolder of [true, false]) {
+        test(`updateProfile synchronizes location before a subsequent save ${intoFolder ? "into" : "out of"} a folder`, async () => {
+            const folderUri = vscode.Uri.file("/workspace/folder").toString();
+            const destination = intoFolder
+                ? vscode.ConfigurationTarget.WorkspaceFolder
+                : vscode.ConfigurationTarget.Workspace;
+            mockConnectionConfig.updateConnection.callsFake(async (savedProfile) => {
+                savedProfile.configSource = destination;
+                if (intoFolder) {
+                    savedProfile.workspaceFolderUri = folderUri;
+                } else {
+                    delete savedProfile.workspaceFolderUri;
+                }
+                return true;
+            });
+            connectionStore = new ConnectionStore(
+                mockContextService,
+                mockCredentialStore,
+                mockConnectionConfig,
+                mockLogger,
+            );
+            await connectionStore.initialized;
+            const profile: IConnectionProfile = {
+                ...sqlAuthConn,
+                id: "moving-profile",
+                configSource: intoFolder
+                    ? vscode.ConfigurationTarget.Global
+                    : vscode.ConfigurationTarget.WorkspaceFolder,
+                ...(intoFolder ? {} : { workspaceFolderUri: folderUri }),
+            };
+
+            expect(await connectionStore.updateProfile(profile)).to.be.true;
+            await connectionStore.saveProfile(profile);
+
+            expect(profile.configSource).to.equal(destination);
+            expect(mockConnectionConfig.addConnection).to.have.been.calledWith(
+                sinon.match({ id: profile.id, configSource: destination }),
+            );
+            const resavedProfile = mockConnectionConfig.addConnection.firstCall.args[0];
+            if (intoFolder) {
+                expect(profile.workspaceFolderUri).to.equal(folderUri);
+                expect(resavedProfile.workspaceFolderUri).to.equal(folderUri);
+            } else {
+                expect(profile).not.to.have.property("workspaceFolderUri");
+                expect(resavedProfile).not.to.have.property("workspaceFolderUri");
+            }
+        });
+    }
+
+    for (const fails of [false, true]) {
+        test(`updateProfile keeps the caller location when the update ${fails ? "fails" : "is cancelled"}`, async () => {
+            mockConnectionConfig.updateConnection.callsFake(async (savedProfile) => {
+                savedProfile.configSource = vscode.ConfigurationTarget.Workspace;
+                savedProfile.server = "latest-server";
+                delete savedProfile.database;
+                delete savedProfile.workspaceFolderUri;
+                if (fails) {
+                    throw new Error("Write failed");
+                }
+                return false;
+            });
+            connectionStore = new ConnectionStore(
+                mockContextService,
+                mockCredentialStore,
+                mockConnectionConfig,
+                mockLogger,
+            );
+            await connectionStore.initialized;
+            const profile: IConnectionProfile = {
+                ...sqlAuthConn,
+                id: "moving-profile",
+                configSource: vscode.ConfigurationTarget.WorkspaceFolder,
+                workspaceFolderUri: vscode.Uri.file("/workspace/folder").toString(),
+            };
+            const original = { ...profile };
+            let error: Error | undefined;
+            try {
+                expect(await connectionStore.updateProfile(profile)).to.be.false;
+            } catch (caught) {
+                error = caught as Error;
+            }
+
+            expect(error?.message).to.equal(fails ? "Write failed" : undefined);
+            expect(profile).to.deep.equal(original);
+            expect(mockCredentialStore.saveCredential).not.to.have.been.called;
+        });
+    }
+
+    test("updateProfile leaves the caller unchanged if saving credentials rejects", async () => {
+        mockConnectionConfig.populateMissingConnectionMetadata.callsFake((savedProfile) => {
+            savedProfile.configSource = vscode.ConfigurationTarget.Global;
+            return true;
+        });
+        mockConnectionConfig.updateConnection.callsFake(async (savedProfile) => {
+            savedProfile.server = "latest-server";
+            delete savedProfile.database;
+            return true;
+        });
+        mockCredentialStore.saveCredential.rejects(new Error("Credential write failed"));
+        connectionStore = new ConnectionStore(
+            mockContextService,
+            mockCredentialStore,
+            mockConnectionConfig,
+            mockLogger,
+        );
+        const profile: IConnectionProfile = {
+            ...sqlAuthConn,
+            id: "editing-profile",
+            password: "session-password",
+            savePassword: true,
+        };
+        const original = { ...profile };
+        let error: Error | undefined;
+
+        try {
+            await connectionStore.updateProfile(profile);
+        } catch (caught) {
+            error = caught as Error;
+        }
+
+        expect(error?.message).to.equal("Credential write failed");
+        expect(profile).to.deep.equal(original);
+    });
+
     test("formatCredentialId", () => {
         const testServer = "localhost";
         const testDatabase = "TestDb";

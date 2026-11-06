@@ -130,6 +130,26 @@ suite("QueryResult Utils Tests", () => {
         }
     });
 
+    suite("bucketizeQueryDuration", () => {
+        const testCases: { value: number; expected: string }[] = [
+            { value: 0, expected: "<1s" },
+            { value: 999, expected: "<1s" },
+            { value: 1000, expected: "1-5s" },
+            { value: 5000, expected: "5-30s" },
+            { value: 30000, expected: "30-60s" },
+            { value: 60000, expected: "1-5m" },
+            { value: 300000, expected: "5-30m" },
+            { value: 1799999, expected: "5-30m" },
+            { value: 1800000, expected: "30m+" },
+        ];
+
+        for (const { value, expected } of testCases) {
+            test(`returns ${expected} for ${value} ms`, () => {
+                expect(queryResultUtils.bucketizeQueryDuration(value)).to.equal(expected);
+            });
+        }
+    });
+
     suite("messageToString", () => {
         test("returns message text without timestamp by default", () => {
             const message: qr.IMessage = {

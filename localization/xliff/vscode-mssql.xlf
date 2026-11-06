@@ -54,6 +54,13 @@
       <source xml:lang="en">&apos;{0}&apos; is a system database, so it isn&apos;t tracked in the Fabric Database Hub.</source>
       <note>{0} is the name of the system database, such as &apos;master&apos;</note>
     </trans-unit>
+    <trans-unit id="++CODE++bdfd593f36a0f18f0ae7950325e319779792268c31a50bbcf3d2483d2b6ace96">
+      <source xml:lang="en">&apos;{0}&apos; is saved to {1}, but &apos;{2}&apos; is saved to {3}. Would you like to update the save location for {0}?</source>
+      <note>{0} is the connection profile or group name
+{1} is the item&apos;s current configuration location
+{2} is the new parent group name
+{3} is the new parent group&apos;s configuration location</note>
+    </trans-unit>
     <trans-unit id="++CODE++adf8e04f50ceb08ed05e22cbfc53a0ac2ea0dec32ae4298d7b37a23ba00a6143">
       <source xml:lang="en">&apos;{0}&apos; isn&apos;t connected to Azure Arc, so Database Hub can&apos;t show it. Connect it to Azure Arc to review its findings in Database Hub.</source>
       <note>{0} is the name of a SQL Server machine</note>
@@ -2593,10 +2600,18 @@
       <source xml:lang="en">Connection failed: {0}</source>
       <note>{0} is the error message from the connection attempt</note>
     </trans-unit>
+    <trans-unit id="++CODE++08b87ee477e78326a6a12a27995b088e58cdb713ae40c381bde7b9a9a1864e8e">
+      <source xml:lang="en">Connection group &apos;{0}&apos; cannot be moved under &apos;{1}&apos; because that would create a cycle.</source>
+      <note>{0} is the connection group being moved
+{1} is the selected parent connection group</note>
+    </trans-unit>
     <trans-unit id="++CODE++4af9562e151d82d6647b49a0ebb192051f470999bc80f52dfe8fa8d23aa3ff95">
       <source xml:lang="en">Connection group with the same ID is already imported: {0} (ID: {1})</source>
       <note>{0} is the group name
 {1} is the group ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++343353e44c00ea7849d081f1c30bfbc2522c2acd6a4de7d93c31f878a720ccf0">
+      <source xml:lang="en">Connection groups cannot be added because their parent hierarchy contains a cycle.</source>
     </trans-unit>
     <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
       <source xml:lang="en">Connection groups to import</source>
@@ -2626,6 +2641,9 @@
     </trans-unit>
     <trans-unit id="++CODE++44b8a8a9840bc6053acbd80a7515867533fd1a1ba95d3fd45fae6a4db6a2e3ce">
       <source xml:lang="en">Connection profile preparation failed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3d6b9692961345a1c561b2459401c97e7daeaa146e91d8e823788224764e38eb">
+      <source xml:lang="en">Connection profiles and groups can also be reorganized into different connection groups by dragging and dropping them in the Connections view.</source>
     </trans-unit>
     <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
       <source xml:lang="en">Connection sharing permission denied for extension: &apos;{0}&apos;. Use the permission management commands to change this.</source>
@@ -5513,6 +5531,11 @@
     <trans-unit id="++CODE++f1b9a1054c1b8d303c21a78abec22481d5d6c9e56dc0d06d19ff3f2a70815de4">
       <source xml:lang="en">Failed to update the .sqlproj after moving the file: {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++a6179931bae0f7fcdacf1ed63ebc03d32bcb9bc9a8c546b1117fe62526552542">
+      <source xml:lang="en">Failed to write connection settings to {0}: {1}. Any copies saved before the failure have been kept. Review the saved settings before retrying.</source>
+      <note>{0} is the configuration location
+{1} is the write error</note>
+    </trans-unit>
     <trans-unit id="++CODE++3da3d1bf74778c00be7d4094e931f49f5fc1d9532d1dbc01d55a2ca34921984c">
       <source xml:lang="en">Failed to write the Data API builder configuration file.</source>
     </trans-unit>
@@ -6748,6 +6771,10 @@
     </trans-unit>
     <trans-unit id="++CODE++30fce9502ece39e0039f09e8ada05d1e1aba9016c153517af2d595e846c0f05d">
       <source xml:lang="en">Learning paths, tutorials, samples, and community.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++21e68c50434460787cb91ec1352da87bf2dfa44c2b2352f5ac154a55a71f27d0">
+      <source xml:lang="en">Leave in {0}</source>
+      <note>{0} is a configuration location</note>
     </trans-unit>
     <trans-unit id="++CODE++998276d04826bfa9ef42b723a5004ca0d28262fbf2b15899520378a43d93ecc9">
       <source xml:lang="en">Leave the source database in the restoring state</source>
@@ -8840,6 +8867,13 @@
     <trans-unit id="++CODE++57965495a046c7cf17c8fed73fd2a810cdf837b8727b5870b65a17cb4942875c">
       <source xml:lang="en">Params/routine</source>
     </trans-unit>
+    <trans-unit id="++CODE++e262868168cfbc61b5c71e9d73571ca772307af3ad606198029c7ad2a0dc5373">
+      <source xml:lang="en">Parent connection group with ID &apos;{0}&apos; was not found.</source>
+      <note>{0} is the missing parent connection group ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ffd307ce81d2fc14aa150a7cc680a982a48c9859b0e2aaa31c3d6f740bb868e5">
+      <source xml:lang="en">Parent group</source>
+    </trans-unit>
     <trans-unit id="++CODE++5cafcd08f15a2a6ce49d703f1da5861c94ec134cc92984cc6b2f67965c31b5ee">
       <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
     </trans-unit>
@@ -10251,6 +10285,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c25337055464f8d31fb1498bc94025cba5eae3b0e1cf07741f09f8b873d00103">
       <source xml:lang="en">Roles</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44cb005ee2e65d9cc817b0a083579369fb6c24a4be728cb43fd9d4c3ca7f4c2e">
+      <source xml:lang="en">Root</source>
     </trans-unit>
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
@@ -12415,6 +12452,10 @@
     <trans-unit id="++CODE++757667508525b0a17745f4935bc686a48d56aaf88ff234d58ddec5ab3d66e3d7">
       <source xml:lang="en">The connection finished opening after its deadline.</source>
     </trans-unit>
+    <trans-unit id="++CODE++37ae454a0acf9c64b44acf565a1114197e690b85ce9021c98f427b344aae246e">
+      <source xml:lang="en">The connection or connection group with ID &apos;{0}&apos; no longer exists.</source>
+      <note>{0} is the ID of the connection or connection group being updated</note>
+    </trans-unit>
     <trans-unit id="++CODE++70ece7402eaedb300906107bea039eae51bf2b850127528ddb1d48e174d64515">
       <source xml:lang="en">The connection profile for this request no longer exists.</source>
     </trans-unit>
@@ -13342,6 +13383,10 @@
     <trans-unit id="++CODE++81b0538c480bf2f63a2346db5fa0618f5aa96be47c6039c1fc7d877c1c2dd120">
       <source xml:lang="en">Update project from database</source>
     </trans-unit>
+    <trans-unit id="++CODE++5204a488029325932cd5843fe8a63aef8a9e113852ad77be943c76a4c1b86923">
+      <source xml:lang="en">Update to {0}</source>
+      <note>{0} is a configuration location</note>
+    </trans-unit>
     <trans-unit id="++CODE++8671756ce1f486e98ffd9b8be6825b3f751e4bd700c84b0585a449f494aff99f">
       <source xml:lang="en">Update {0} for cross-platform support?</source>
     </trans-unit>
@@ -14140,6 +14185,9 @@
     <trans-unit id="++CODE++b050581bda74fae55ca1f0c45ffa7bcc939d75ef1650e090e36e0e13cdd18ac4">
       <source xml:lang="en">github.copilot.enable.sql = false</source>
     </trans-unit>
+    <trans-unit id="++CODE++905954d25726f93ea0b44d700e2f03126cc767130c48ee8d4fdba94b76357ffe">
+      <source xml:lang="en">global config</source>
+    </trans-unit>
     <trans-unit id="++CODE++f792652c06ffa9d795e75118a7c8329290a516dfd060a9ee0163093db50664f1">
       <source xml:lang="en">greater than</source>
     </trans-unit>
@@ -14454,6 +14502,13 @@
     </trans-unit>
     <trans-unit id="++CODE++b6b1e036f2e55bf7904f0645a2b992b1c0266243d0227e815fa66b486af3e84e">
       <source xml:lang="en">waiting for model response</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf86b0ee83e159bc8ea10a71647fda5e6a50968cf37740870a0c144f1fa050df">
+      <source xml:lang="en">workspace config</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f953970c7aa2936f644a4573ff44f6d95d49e6a16825a3a1626c2a9d0551d942">
+      <source xml:lang="en">workspace folder config ({0})</source>
+      <note>{0} is the workspace folder name</note>
     </trans-unit>
     <trans-unit id="++CODE++2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881">
       <source xml:lang="en">x</source>
@@ -15156,11 +15211,11 @@
     <trans-unit id="mssql.copilot.inlineCompletions.trace.folder.description">
       <source xml:lang="en">Absolute or home-relative folder for completion trace files. Leave empty to use extension storage.</source>
     </trans-unit>
-    <trans-unit id="mssql.addObjectExplorer">
-      <source xml:lang="en">Add Connection</source>
-    </trans-unit>
     <trans-unit id="mssql.connectionGroups.create">
-      <source xml:lang="en">Add Connection Group</source>
+      <source xml:lang="en">Add Connection Group...</source>
+    </trans-unit>
+    <trans-unit id="mssql.addObjectExplorer">
+      <source xml:lang="en">Add Connection...</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.addDatabaseReference">
       <source xml:lang="en">Add Database Reference</source>
@@ -15601,7 +15656,7 @@
       <source xml:lang="en">Edit Connection Group</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.edit">
-      <source xml:lang="en">Edit Connection Group</source>
+      <source xml:lang="en">Edit Connection Group...</source>
     </trans-unit>
     <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
       <source xml:lang="en">Edit Connection Sharing Permissions</source>
@@ -15709,7 +15764,7 @@
       <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;. Note: May keep serverless databases active and prevent auto-pausing.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.liveQueryStatistics.description">
-      <source xml:lang="en">Enables the preview Live Query Statistics commands to watch a running query plan refresh with live row counts. When unset, follows mssql.enableExperimentalFeatures. Set to true or false to override that setting.</source>
+      <source xml:lang="en">Enables the preview Live Query Statistics commands to watch a running query plan refresh with live row counts. Enabled by default. Set to false to disable, or null to follow mssql.enableExperimentalFeatures.</source>
     </trans-unit>
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
@@ -16111,7 +16166,7 @@
       <source xml:lang="en">Open Query History in Command Palette</source>
     </trans-unit>
     <trans-unit id="mssql.performance.openDashboard">
-      <source xml:lang="en">Open Query Performance Dashboard</source>
+      <source xml:lang="en">Open Query Performance Dashboard (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.openXelFile">
       <source xml:lang="en">Open Query Profiler (Preview) XEL File</source>

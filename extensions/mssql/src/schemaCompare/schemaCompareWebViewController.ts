@@ -31,6 +31,7 @@ import {
 } from "../sharedInterfaces/schemaCompare";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { IConnectionProfile } from "../models/interfaces";
 import {
     cancel,
@@ -570,6 +571,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.ListingDatabasesForActiveServer,
                 {
+                    ...getConnectionTelemetryInfo(this.connectionMgr, databaseCacheKey),
                     correlationId: generateOperationId(),
                     additionalProps: {
                         operationId: this.operationId,
@@ -1184,6 +1186,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.GenerateScript,
                 {
+                    ...getConnectionTelemetryInfo(
+                        this.connectionMgr,
+                        state.targetEndpointInfo?.ownerUri,
+                        payload.targetDatabaseName ?? "",
+                    ),
                     correlationId: generateOperationId(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1272,6 +1279,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Publish,
                 {
+                    ...getConnectionTelemetryInfo(
+                        this.connectionMgr,
+                        state.targetEndpointInfo?.ownerUri,
+                        payload.targetDatabaseName ?? "",
+                    ),
                     correlationId: generateOperationId(),
                     additionalProps: {
                         startTime: startTime.toString(),
@@ -1470,6 +1482,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.PublishDatabaseChanges,
                 {
+                    ...getConnectionTelemetryInfo(
+                        this.connectionMgr,
+                        state.targetEndpointInfo?.ownerUri,
+                        payload.targetDatabaseName ?? "",
+                    ),
                     correlationId: generateOperationId(),
                     additionalProps: {
                         startTime: startTime.toString(),

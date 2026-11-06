@@ -121,6 +121,7 @@ export class WebviewPanelController<State, Reducers, Result = void> extends Webv
                 title: locConstants.Webview.Restore,
                 run: async () => {
                     sendActionEvent(TelemetryViews.WebviewController, TelemetryActions.Restore, {
+                        ...this.telemetryContext,
                         additionalProps: {},
                         additionalMeasurements: {},
                     });
