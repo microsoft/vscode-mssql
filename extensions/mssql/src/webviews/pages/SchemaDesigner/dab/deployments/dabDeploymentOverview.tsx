@@ -32,6 +32,7 @@ import { VscodeDiffEditor } from "../../../../common/vscodeMonaco";
 import { useVscodeWebview } from "../../../../common/vscodeWebviewProvider";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { SchemaDesigner } from "../../../../../sharedInterfaces/schemaDesigner";
+import { TelemetryActions, TelemetryViews } from "../../../../../sharedInterfaces/telemetry";
 import { useDabContext } from "../dabContext";
 import { DabDeploymentEndpoints } from "./dabDeploymentEndpoints";
 import { DabDialogContent } from "./dabDialogLayout";
@@ -425,6 +426,17 @@ const DabDeploymentChanges = ({
     const classes = useStyles();
     const { getDabDeploymentChanges } = useDabContext();
     const [changes, setChanges] = useState<Dab.GetDeploymentChangesResponse | undefined>();
+    const { themeKind, extensionRpc } = useVscodeWebview<
+        SchemaDesigner.SchemaDesignerWebviewState,
+        SchemaDesigner.SchemaDesignerReducers
+    >();
+
+    useEffect(() => {
+        extensionRpc.sendActionEvent({
+            telemetryView: TelemetryViews.SchemaDesigner,
+            telemetryAction: TelemetryActions.ViewDabConfigChanges,
+        });
+    }, [extensionRpc]);
 
     useEffect(() => {
         let isCurrent = true;
@@ -438,10 +450,6 @@ const DabDeploymentChanges = ({
         };
     }, [deploymentId, getDabDeploymentChanges]);
 
-    const { themeKind } = useVscodeWebview<
-        SchemaDesigner.SchemaDesignerWebviewState,
-        SchemaDesigner.SchemaDesignerReducers
-    >();
     const [counts, setCounts] = useState<{ additions: number; deletions: number }>();
 
     // Monaco computes the diff off the main thread; the counts follow it.

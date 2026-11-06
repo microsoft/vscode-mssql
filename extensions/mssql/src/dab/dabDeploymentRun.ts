@@ -245,7 +245,10 @@ export class DabDeploymentRun implements vscode.Disposable {
                         return;
                     }
                     if (!prepared.success || !prepared.params) {
-                        this.fail(step, { message: prepared.error });
+                        this.fail(step, {
+                            message: prepared.error,
+                            failureReason: prepared.failureReason,
+                        });
                         return;
                     }
                     this.update({ params: prepared.params });
@@ -263,6 +266,7 @@ export class DabDeploymentRun implements vscode.Disposable {
                         fullErrorText: response.fullErrorText,
                         errorLink: response.errorLink,
                         errorLinkText: response.errorLinkText,
+                        failureReason: response.failureReason,
                     });
                     return;
                 }
@@ -270,7 +274,10 @@ export class DabDeploymentRun implements vscode.Disposable {
                 this.updateStep(step, { status: ApiStatus.Loaded, detail: response.detail });
             } catch (error) {
                 if (!isStale()) {
-                    this.fail(step, { message: getErrorMessage(error) });
+                    this.fail(step, {
+                        message: getErrorMessage(error),
+                        failureReason: "exception",
+                    });
                 }
                 return;
             }

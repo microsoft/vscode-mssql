@@ -17,6 +17,7 @@ import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { Dab } from "../../src/sharedInterfaces/dab";
 import type { IDabMetadataService } from "../../src/dab/dabMetadataService";
 import { DabConfigStore } from "../../src/dab/dabConfigStore";
+import { DabDeploymentRun, DabDeploymentRunHost } from "../../src/dab/dabDeploymentRun";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
 import { ReducerRequest } from "../../src/sharedInterfaces/webview";
@@ -1800,6 +1801,122 @@ suite("SchemaDesignerWebviewController tests", () => {
                 },
             );
             expect(JSON.stringify(sendActionEventStub.lastCall.args)).to.not.contain("private-");
+        });
+
+        function createRun(entraSignIn: boolean) {
+            const host = {
+                prepare: sandbox.stub().resolves({
+                    success: true,
+                    params: { containerName: "private-container-name", port: 5000 },
+                }),
+                runStep: sandbox.stub().resolves({ success: true }),
+                cleanUp: sandbox.stub().resolves(),
+                cancelSignIn: sandbox.stub(),
+            };
+            const run = new DabDeploymentRun(host as unknown as DabDeploymentRunHost, {
+                target: Dab.DabDeploymentTarget.DabCli,
+                stepOptions: { entraSignIn },
+            });
+            return { host, run };
+        }
+
+        function waitForStatus(
+            run: DabDeploymentRun,
+            status: Dab.DabDeploymentRunStatus,
+        ): Promise<void> {
+            return new Promise((resolve) => {
+                const subscription = run.onDidChange((state) => {
+                    if (state.status === status) {
+                        subscription.dispose();
+                        resolve();
+                    }
+                });
+            });
+        }
+
+        const endRunEvents = () =>
+            sendActionEventStub
+                .getCalls()
+                .filter((call) => call.args[1] === TelemetryActions.EndDabDeploymentRun)
+                .map((call) => call.args[2]);
+
+        test("reports where a run failed, why, and the attempt that succeeded", async () => {
+            const ctrl = createController();
+            const { host, run } = createRun(false);
+            host.runStep.withArgs(Dab.DabDeploymentStepOrder.startCliEngine).resolves({
+                success: false,
+                error: "private-error-text",
+                failureReason: "engineStartFailed",
+            });
+            const properties = { target: "dabCli", mode: run.state.mode };
+            ctrl["reportDabDeploymentRun"](run, properties, { entityCount: 3 });
+
+            const failed = waitForStatus(run, Dab.DabDeploymentRunStatus.Failed);
+            run.start();
+            await failed;
+            host.runStep
+                .withArgs(Dab.DabDeploymentStepOrder.startCliEngine)
+                .resolves({ success: true });
+            const succeeded = waitForStatus(run, Dab.DabDeploymentRunStatus.Succeeded);
+            await run.retry();
+            await succeeded;
+
+            expect(sendActionEventStub).to.have.been.calledWithExactly(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.StartDabDeploymentRun,
+                {
+                    ...ctrl.telemetryContext,
+                    additionalProps: properties,
+                    additionalMeasurements: { entityCount: 3 },
+                },
+            );
+            const [failure, success] = endRunEvents();
+            expect(failure.additionalProps).to.deep.equal({
+                ...properties,
+                outcome: "failed",
+                step: "startCliEngine",
+                reason: "engineStartFailed",
+                afterFailure: "false",
+                waitingForUser: "false",
+            });
+            expect(failure.additionalMeasurements).to.include({ entityCount: 3, attempt: 1 });
+            expect(success.additionalProps).to.deep.equal({
+                ...properties,
+                outcome: "succeeded",
+                step: "",
+                reason: "",
+                afterFailure: "false",
+                waitingForUser: "false",
+            });
+            expect(success.additionalMeasurements).to.include({ entityCount: 3, attempt: 2 });
+            expect(success.additionalMeasurements.durationMs).to.be.a("number");
+            expect(JSON.stringify(sendActionEventStub.args)).to.not.contain("private-");
+        });
+
+        test("reports a run canceled while waiting for the user", async () => {
+            const ctrl = createController();
+            const { host, run } = createRun(true);
+            host.runStep.withArgs(Dab.DabDeploymentStepOrder.signInEntra).resolves({
+                success: false,
+                prompt: { kind: "entraSignIn", account: "private-account" },
+            });
+            ctrl["reportDabDeploymentRun"](run, { target: "dabCli" }, {});
+
+            const waiting = waitForStatus(run, Dab.DabDeploymentRunStatus.Waiting);
+            run.start();
+            await waiting;
+            await run.cancel();
+
+            const [cancel] = endRunEvents();
+            expect(cancel.additionalProps).to.deep.equal({
+                target: "dabCli",
+                outcome: "canceled",
+                step: "signInEntra",
+                reason: "",
+                afterFailure: "false",
+                waitingForUser: "true",
+            });
+            expect(JSON.stringify(sendActionEventStub.args)).to.not.contain("private-");
         });
     });
 

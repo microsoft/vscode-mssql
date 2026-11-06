@@ -1245,6 +1245,8 @@ export namespace Dab {
         detail?: string;
         /** Set while the step waits for the user, with what it needs from them. */
         prompt?: DabDeploymentStepPrompt;
+        /** Why the step failed, set alongside the message of a failed step. */
+        failureReason?: DabDeploymentFailureReason;
         /** The user's answer the step is working on, so the row can say what is happening. */
         action?: DabDeploymentStepAction;
         /** How far the running step has got, when it reports progress. */
@@ -1328,6 +1330,57 @@ export namespace Dab {
          * failure: it waits, and runs again with the action the user picks.
          */
         prompt?: DabDeploymentStepPrompt;
+        /** Why the step failed, when it did. */
+        failureReason?: DabDeploymentFailureReason;
+        /** How a setup step was satisfied, when it succeeded. */
+        setup?: DabDeploymentStepSetup;
+    }
+
+    /**
+     * Why a deployment step failed, as a fixed code. Unlike the message shown
+     * to the user, it never carries a path, server, account, or error text.
+     */
+    export type DabDeploymentFailureReason =
+        | "cliDownloadFailed"
+        | "cliVerificationFailed"
+        | "cliUnsupportedPlatform"
+        | "cliAcquisitionFailed"
+        | "dotnetNotFound"
+        | "azureCliDownloadFailed"
+        | "azureCliVerificationFailed"
+        | "azureCliPythonMissing"
+        | "azureCliInstallFailed"
+        | "azureCliNotReady"
+        | "signInCodeUnavailable"
+        | "signInFailed"
+        | "configGenerationFailed"
+        | "configWriteFailed"
+        | "engineStartFailed"
+        | "engineExited"
+        | "engineReadyTimeout"
+        | "databaseConnectionFailed"
+        | "dockerNotInstalled"
+        | "dockerStartFailed"
+        | "dockerEngineNotReady"
+        | "imagePullFailed"
+        | "containerStartFailed"
+        | "containerNotReady"
+        | "portInUse"
+        | "noFreePort"
+        | "teardownFailed"
+        | "targetUnsupported"
+        | "prerequisiteMissing"
+        | "exception";
+
+    /**
+     * How a setup step was satisfied, in fixed values: a copy reused from an
+     * earlier deployment or one fetched now, and how the user signed in.
+     */
+    export interface DabDeploymentStepSetup {
+        cli?: "cached" | "downloaded";
+        runtime?: "managed" | "path";
+        azureCli?: "existing" | "installed";
+        signIn?: "existing" | "browser" | "deviceCode";
     }
 
     export interface StopDeploymentResponse {
@@ -1537,6 +1590,8 @@ export namespace Dab {
     export interface PrepareDeploymentResponse extends DeploymentActionResponse {
         /** Name and port to deploy with. Present only on success. */
         params?: DabDeploymentParams;
+        /** Why no name and port could be picked, when they could not. */
+        failureReason?: DabDeploymentFailureReason;
     }
 
     // ============================================

@@ -76,6 +76,8 @@ export interface DabCliInstallation {
     runtimeConfigPath: string;
     /** Version that was acquired. */
     version: string;
+    /** Set when an earlier unpacked copy was reused instead of downloading. */
+    isCached?: boolean;
 }
 
 /**
@@ -324,7 +326,7 @@ export async function acquireDabCli(
     const existing = await resolveExistingInstallation(installPath, version, logger);
     if (existing) {
         logger.debug(`Using cached DAB CLI ${version} at ${installPath}`);
-        return existing;
+        return { ...existing, isCached: true };
     }
 
     // Start clean so a previous partial unpack cannot be mistaken for content.

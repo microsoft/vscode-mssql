@@ -54,6 +54,21 @@ const SQL_SERVER_CONNECTION_PROPERTY_PATTERN =
 const CONFIG_HASH_CONNECTION_PLACEHOLDER = "<connection-string>";
 
 /**
+ * The failure code of each Docker step. A failure with a cause of its own,
+ * such as a config that could not be generated, sets its code first.
+ */
+const dockerStepFailureReasons: Partial<
+    Record<Dab.DabDeploymentStepOrder, Dab.DabDeploymentFailureReason>
+> = {
+    [Dab.DabDeploymentStepOrder.dockerInstallation]: "dockerNotInstalled",
+    [Dab.DabDeploymentStepOrder.startDockerDesktop]: "dockerStartFailed",
+    [Dab.DabDeploymentStepOrder.checkDockerEngine]: "dockerEngineNotReady",
+    [Dab.DabDeploymentStepOrder.pullImage]: "imagePullFailed",
+    [Dab.DabDeploymentStepOrder.startContainer]: "containerStartFailed",
+    [Dab.DabDeploymentStepOrder.checkContainer]: "containerNotReady",
+};
+
+/**
  * Serializes a parsed config with object keys in a stable order. Array order is
  * preserved because it is meaningful in DAB config (permission actions, REST
  * methods, and fields are already normalized upstream).
@@ -142,6 +157,7 @@ export class DabService implements Dab.IDabService {
                 return {
                     success: false,
                     error: configResponse.error,
+                    failureReason: "configGenerationFailed",
                 };
             }
             configContent = configResponse.configContent;
@@ -344,7 +360,11 @@ export class DabService implements Dab.IDabService {
 
                 const generated = this.generateCliConfig(config);
                 if (!generated.success) {
-                    return { success: false, error: generated.error };
+                    return {
+                        success: false,
+                        error: generated.error,
+                        failureReason: "configGenerationFailed",
+                    };
                 }
 
                 const environment = await this.getCliEngineEnvironment(
@@ -354,7 +374,11 @@ export class DabService implements Dab.IDabService {
                     authenticationType,
                 );
                 if (!environment) {
-                    return { success: false, error: LocalContainers.dabAzureCliNotReady };
+                    return {
+                        success: false,
+                        error: LocalContainers.dabAzureCliNotReady,
+                        failureReason: "azureCliNotReady",
+                    };
                 }
 
                 const writeResult = await runner.writeConfig(configPath, generated.configContent);
@@ -672,6 +696,7 @@ export class DabService implements Dab.IDabService {
 
         // Add error link info for failed steps
         if (!result.success) {
+            result.failureReason ??= dockerStepFailureReasons[step];
             const linkInfo = this.getStepErrorLinkInfo(step);
             if (linkInfo.errorLink) {
                 result.errorLink = linkInfo.errorLink;

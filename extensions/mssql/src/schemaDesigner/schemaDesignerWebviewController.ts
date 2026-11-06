@@ -1710,13 +1710,21 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         // name a redeployment reuses, so the new run waits until it is done.
         await this.getCurrentDabDeploymentRun()?.whenSettled();
 
+        const { target, deploymentId, port, config } = payload;
+        // Read before the check below, so nothing waits between it and the new run.
+        const configChanged = deploymentId
+            ? await this.hasDabDeploymentConfigChanged(deploymentId, config)
+            : undefined;
+
         const existing = this.getCurrentDabDeploymentRun();
         if (existing?.isActive) {
             this.attachToDabDeploymentRun(existing);
             return existing.state;
         }
 
-        const { target, deploymentId, port, config } = payload;
+        const entraSignIn =
+            target === Dab.DabDeploymentTarget.DabCli &&
+            Dab.usesAmbientEntraCredentials(this.resolveAuthenticationType());
         const run = new DabDeploymentRun(
             {
                 prepare: () => this.prepareDabDeployment({ target, deploymentId, port }),
@@ -1735,15 +1743,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 cleanUp: (params) => this.cleanUpDabDeploymentAttempt(target, params),
                 cancelSignIn: () => this._dabService.cancelCliSignIn(),
             },
-            {
-                target,
-                deploymentId,
-                stepOptions: {
-                    entraSignIn:
-                        target === Dab.DabDeploymentTarget.DabCli &&
-                        Dab.usesAmbientEntraCredentials(this.resolveAuthenticationType()),
-                },
-            },
+            { target, deploymentId, stepOptions: { entraSignIn } },
         );
 
         const runKey = this.dabRunKey;
@@ -1751,9 +1751,122 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             setDabDeploymentRun(runKey, run);
         }
         this.showDabDeploymentRunAsBackgroundTask(run);
+        this.reportDabDeploymentRun(
+            run,
+            {
+                target: dabTelemetryTarget(target),
+                mode: run.state.mode,
+                entraSignIn: entraSignIn.toString(),
+                configChanged: configChanged === undefined ? "" : configChanged.toString(),
+                apiTypes: [...(config?.apiTypes ?? [])].sort().join(","),
+            },
+            { entityCount: Dab.getExposedDabEntityCount(config) },
+        );
         this.attachToDabDeploymentRun(run);
         run.start();
         return run.state;
+    }
+
+    /**
+     * Whether a redeployment applies config changes, rather than restarting
+     * the deployment as it was. Undefined when that cannot be told.
+     */
+    private async hasDabDeploymentConfigChanged(
+        deploymentId: string,
+        config: Dab.DabConfig | undefined,
+    ): Promise<boolean | undefined> {
+        const store = this._dabConfigStore;
+        const key = this.dabStoreKey;
+        if (!store || !key || !config) {
+            return undefined;
+        }
+
+        try {
+            const record = (await store.getDeployments(key)).find(
+                (deployment) => deployment.id === deploymentId,
+            );
+            return record
+                ? record.configHash !== this._dabService.computeConfigHash(config)
+                : undefined;
+        } catch {
+            return undefined;
+        }
+    }
+
+    /**
+     * Reports a run when it starts and each time an attempt ends: how it
+     * ended, the step it ended on, and why a failed step failed. A cancel
+     * reports whether the run was waiting for the user or had already failed,
+     * which is where people give up. The connection is read once, now, since
+     * the run can outlive this designer.
+     */
+    private reportDabDeploymentRun(
+        run: DabDeploymentRun,
+        properties: Record<string, string>,
+        measurements: Record<string, number>,
+    ): void {
+        const telemetryContext = this.telemetryContext;
+        sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.StartDabDeploymentRun, {
+            ...telemetryContext,
+            additionalProps: properties,
+            additionalMeasurements: measurements,
+        });
+
+        let attempt = 1;
+        let attemptStartedAt = Date.now();
+        let previousStatus = run.state.status;
+        run.onDidChange((state) => {
+            const endedFrom = previousStatus;
+            previousStatus = state.status;
+            if (state.status === endedFrom) {
+                return;
+            }
+
+            // A retry starts the next attempt.
+            if (
+                endedFrom === Dab.DabDeploymentRunStatus.Failed &&
+                state.status === Dab.DabDeploymentRunStatus.Running
+            ) {
+                attempt++;
+                attemptStartedAt = Date.now();
+                return;
+            }
+
+            const outcome =
+                state.status === Dab.DabDeploymentRunStatus.Succeeded
+                    ? "succeeded"
+                    : state.status === Dab.DabDeploymentRunStatus.Failed
+                      ? "failed"
+                      : state.status === Dab.DabDeploymentRunStatus.Canceled
+                        ? "canceled"
+                        : undefined;
+            if (!outcome) {
+                return;
+            }
+
+            const failedStep = state.stepStatuses.find(
+                (stepStatus) => stepStatus.status === ApiStatus.Error,
+            );
+            const endStep =
+                failedStep ??
+                state.stepStatuses.find((stepStatus) => stepStatus.status === ApiStatus.Loading);
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.EndDabDeploymentRun, {
+                ...telemetryContext,
+                additionalProps: {
+                    ...properties,
+                    outcome,
+                    step: endStep ? (Dab.DabDeploymentStepOrder[endStep.step] ?? "unknown") : "",
+                    reason: failedStep ? (failedStep.failureReason ?? "unknown") : "",
+                    afterFailure: (endedFrom === Dab.DabDeploymentRunStatus.Failed).toString(),
+                    waitingForUser: (endedFrom === Dab.DabDeploymentRunStatus.Waiting).toString(),
+                },
+                additionalMeasurements: {
+                    ...measurements,
+                    attempt,
+                    durationMs: Date.now() - attemptStartedAt,
+                },
+            });
+        });
     }
 
     /** Forwards a run's changes to this designer's webview while it is open. */
@@ -1876,10 +1989,12 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             void vscode.window.showErrorMessage(message);
             deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
                 hasContainerLogs: "false",
+                reason: "targetUnsupported",
             });
             return {
                 success: false,
                 error: message,
+                failureReason: "targetUnsupported",
             };
         }
         try {
@@ -1946,7 +2061,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                         },
                     );
                 }
-                deploymentStepActivity.end(ActivityStatus.Succeeded);
+                // How a setup step was satisfied: a reused or fresh CLI, and
+                // how the user signed in.
+                deploymentStepActivity.end(ActivityStatus.Succeeded, {
+                    additionalProps: { ...result.setup },
+                });
             } else if (result.prompt) {
                 // Waiting for the user is not a failure of the step.
                 deploymentStepActivity.end(ActivityStatus.Succeeded, {
@@ -1955,12 +2074,14 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             } else {
                 deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
                     hasContainerLogs: (!!result.containerLogs).toString(),
+                    reason: result.failureReason ?? "unknown",
                 });
             }
             return result;
         } catch (error) {
             deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
                 hasContainerLogs: "false",
+                reason: "exception",
             });
             throw error;
         }
@@ -2045,7 +2166,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     ): Promise<Dab.PrepareDeploymentResponse> {
         const portCheck = await this.checkDabDeploymentPort(requestedPort);
         if (!portCheck.isAvailable || portCheck.port === undefined) {
-            return { success: false, error: portCheck.error };
+            return {
+                success: false,
+                error: portCheck.error,
+                failureReason: requestedPort === undefined ? "noFreePort" : "portInUse",
+            };
         }
 
         return {
@@ -2071,7 +2196,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         const status = await this.getDabDeploymentStatus(record);
         const tearDownResult = await this.tearDownDabDeployment(store, key, record, status);
         if (!tearDownResult.success) {
-            return { success: false, error: tearDownResult.error };
+            return { success: false, error: tearDownResult.error, failureReason: "teardownFailed" };
         }
 
         // Searching from the deployment's own port returns that port whenever
@@ -2084,6 +2209,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             return {
                 success: false,
                 error: LocConstants.LocalContainers.dabNoAvailablePort(record.port),
+                failureReason: "noFreePort",
             };
         }
 

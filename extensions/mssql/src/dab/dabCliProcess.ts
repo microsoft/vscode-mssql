@@ -57,6 +57,8 @@ export interface DabCliCommandResult {
     engineLogs?: string;
     /** Process id of a successfully launched engine. */
     processId?: number;
+    /** Why the command failed, when it did. */
+    failureReason?: Dab.DabDeploymentFailureReason;
 }
 
 /** Environment a DAB engine process runs with. */
@@ -188,6 +190,7 @@ export async function checkDabCliEngineReady(
                 error: LocalContainers.dabCliEngineExited,
                 fullErrorText: engineLogs,
                 engineLogs,
+                failureReason: "engineExited",
             };
         }
 
@@ -201,6 +204,7 @@ export async function checkDabCliEngineReady(
         error: LocalContainers.dabCliEngineReadyTimeout,
         fullErrorText: engineLogs,
         engineLogs,
+        failureReason: "engineReadyTimeout",
     };
 }
 

@@ -57,6 +57,8 @@ export const DAB_CLI_CONFIG_FILE_NAME = "dab-config.json";
 export class DabCliRunner {
     private _installation: DabCliInstallation | undefined;
     private _dotnetPath: string | undefined;
+    /** Where the runtime came from: the extension's own acquisition or PATH. */
+    private _runtimeSource: Dab.DabDeploymentStepSetup["runtime"];
     private _getEngineLogs: (() => string) | undefined;
     /** Pid of the engine this runner launched, used to confirm what answers on the port. */
     private _launchedProcessId: number | undefined;
@@ -91,6 +93,10 @@ export class DabCliRunner {
         return {
             success: true,
             detail: LocalContainers.dabCliReady(this._installation?.version ?? Dab.DAB_CLI_VERSION),
+            setup: {
+                cli: this._installation?.isCached ? "cached" : "downloaded",
+                runtime: this._runtimeSource,
+            },
         };
     }
 
@@ -103,14 +109,18 @@ export class DabCliRunner {
     public async prepareAzureCli(
         onProgress?: (progress: Dab.DabDeploymentStepProgress) => void,
     ): Promise<Dab.RunDeploymentStepResponse> {
+        let existing: DabAzureCliResolution | undefined;
         try {
-            this._azureCliResolution = await this._azureCli.install((progress) =>
-                onProgress?.(
-                    progress.phase === "pip"
-                        ? { phase: "install", percent: progress.percent }
-                        : progress,
-                ),
-            );
+            existing = await this._azureCli.resolve();
+            this._azureCliResolution =
+                existing ??
+                (await this._azureCli.install((progress) =>
+                    onProgress?.(
+                        progress.phase === "pip"
+                            ? { phase: "install", percent: progress.percent }
+                            : progress,
+                    ),
+                ));
         } catch (error) {
             this.logger.error(`Could not set up the Azure CLI: ${getErrorMessage(error)}`);
             const needsPython =
@@ -119,6 +129,7 @@ export class DabCliRunner {
                 success: false,
                 error: getAzureCliInstallErrorMessage(error),
                 fullErrorText: getErrorMessage(error),
+                failureReason: getAzureCliInstallFailureReason(error),
                 ...(needsPython
                     ? {
                           errorLink: pythonDownloadLink,
@@ -128,7 +139,11 @@ export class DabCliRunner {
             };
         }
 
-        return { success: true, detail: LocalContainers.dabAzureCliPrivateReady };
+        return {
+            success: true,
+            detail: LocalContainers.dabAzureCliPrivateReady,
+            setup: { azureCli: existing ? "existing" : "installed" },
+        };
     }
 
     /**
@@ -148,7 +163,11 @@ export class DabCliRunner {
     ): Promise<Dab.RunDeploymentStepResponse> {
         const resolution = this._azureCliResolution ?? (await this._azureCli.resolve());
         if (!resolution) {
-            return { success: false, error: LocalContainers.dabAzureCliNotReady };
+            return {
+                success: false,
+                error: LocalContainers.dabAzureCliNotReady,
+                failureReason: "azureCliNotReady",
+            };
         }
         this._azureCliResolution = resolution;
         const signInPrompt: Dab.RunDeploymentStepResponse = {
@@ -161,7 +180,7 @@ export class DabCliRunner {
                 this.cancelSignIn();
                 const signIn = this._azureCli.signIn(resolution, { tenantId: entra.tenantId });
                 this._pendingSignIn = signIn;
-                return this.finishSignIn(signIn, resolution, entra);
+                return this.finishSignIn(signIn, resolution, entra, "browser");
             }
 
             case Dab.DabDeploymentStepAction.SignInWithCode: {
@@ -178,6 +197,7 @@ export class DabCliRunner {
                         success: false,
                         error: LocalContainers.dabEntraSignInCodeUnavailable,
                         fullErrorText: completion.error,
+                        failureReason: "signInCodeUnavailable",
                     };
                 }
 
@@ -189,7 +209,9 @@ export class DabCliRunner {
 
             case Dab.DabDeploymentStepAction.AwaitSignIn: {
                 const signIn = this._pendingSignIn;
-                return signIn ? this.finishSignIn(signIn, resolution, entra) : signInPrompt;
+                return signIn
+                    ? this.finishSignIn(signIn, resolution, entra, "deviceCode")
+                    : signInPrompt;
             }
 
             default: {
@@ -198,7 +220,11 @@ export class DabCliRunner {
                     entra.tenantId,
                 );
                 return signedIn
-                    ? { success: true, detail: getSignedInDetail(signedIn.account) }
+                    ? {
+                          success: true,
+                          detail: getSignedInDetail(signedIn.account),
+                          setup: { signIn: "existing" },
+                      }
                     : signInPrompt;
             }
         }
@@ -214,6 +240,7 @@ export class DabCliRunner {
         signIn: DabAzureCliSignIn,
         resolution: DabAzureCliResolution,
         entra: { tenantId?: string },
+        method: Dab.DabDeploymentStepSetup["signIn"],
     ): Promise<Dab.RunDeploymentStepResponse> {
         const completion = await signIn.completion;
         if (this._pendingSignIn === signIn) {
@@ -230,10 +257,15 @@ export class DabCliRunner {
                 success: false,
                 error: LocalContainers.dabEntraSignInFailed,
                 fullErrorText: completion.error,
+                failureReason: "signInFailed",
             };
         }
 
-        return { success: true, detail: getSignedInDetail(signedIn.account) };
+        return {
+            success: true,
+            detail: getSignedInDetail(signedIn.account),
+            setup: { signIn: method },
+        };
     }
 
     /**
@@ -263,6 +295,7 @@ export class DabCliRunner {
                 success: false,
                 error: this.getAcquisitionErrorMessage(error),
                 fullErrorText: getErrorMessage(error),
+                failureReason: getAcquisitionFailureReason(error),
             };
         }
     }
@@ -303,7 +336,11 @@ export class DabCliRunner {
      */
     public async resolveRuntime(): Promise<Dab.RunDeploymentStepResponse> {
         if (!this._installation) {
-            return { success: false, error: LocalContainers.dabCliNotAcquired };
+            return {
+                success: false,
+                error: LocalContainers.dabCliNotAcquired,
+                failureReason: "prerequisiteMissing",
+            };
         }
 
         try {
@@ -311,6 +348,7 @@ export class DabCliRunner {
             this._dotnetPath = await runtimeProvider.acquireDotnetRuntime(
                 this._installation.runtimeConfigPath,
             );
+            this._runtimeSource = "managed";
             return { success: true };
         } catch (error) {
             this.logger.warn(
@@ -321,6 +359,7 @@ export class DabCliRunner {
         const systemDotnetPath = await findDotnetOnPath();
         if (systemDotnetPath) {
             this._dotnetPath = systemDotnetPath;
+            this._runtimeSource = "path";
             this.logger.info(`Using the .NET runtime found on PATH: ${systemDotnetPath}`);
             return { success: true };
         }
@@ -328,6 +367,7 @@ export class DabCliRunner {
         return {
             success: false,
             error: LocalContainers.dabCliDotnetNotFound,
+            failureReason: "dotnetNotFound",
             errorLink: dotnetDownloadLink,
             errorLinkText: LocalContainers.dabCliInstallDotnet,
         };
@@ -360,6 +400,7 @@ export class DabCliRunner {
                 success: false,
                 error: LocalContainers.dabCliConfigWriteFailed,
                 fullErrorText: getErrorMessage(error),
+                failureReason: "configWriteFailed",
             };
         }
     }
@@ -391,6 +432,7 @@ export class DabCliRunner {
                 success: false,
                 error: LocalContainers.dabCliStartFailed,
                 fullErrorText: result.fullErrorText ?? result.error,
+                failureReason: "engineStartFailed",
             };
         }
 
@@ -446,6 +488,7 @@ export class DabCliRunner {
                     : LocalContainers.dabCliDatabaseConnectionFailed,
                 fullErrorText: result.fullErrorText ?? result.error,
                 containerLogs: result.engineLogs,
+                failureReason: "databaseConnectionFailed",
             };
         }
 
@@ -454,6 +497,7 @@ export class DabCliRunner {
             error: result.error ?? LocalContainers.dabCliEngineNotReady,
             fullErrorText: result.fullErrorText,
             containerLogs: result.engineLogs,
+            failureReason: result.failureReason,
         };
     }
 
@@ -465,11 +509,23 @@ export class DabCliRunner {
         | { cli: { dotnetPath: string; assemblyPath: string }; error?: never }
         | { cli?: never; error: Dab.RunDeploymentStepResponse } {
         if (!this._installation) {
-            return { error: { success: false, error: LocalContainers.dabCliNotAcquired } };
+            return {
+                error: {
+                    success: false,
+                    error: LocalContainers.dabCliNotAcquired,
+                    failureReason: "prerequisiteMissing",
+                },
+            };
         }
 
         if (!this._dotnetPath) {
-            return { error: { success: false, error: LocalContainers.dabCliDotnetNotResolved } };
+            return {
+                error: {
+                    success: false,
+                    error: LocalContainers.dabCliDotnetNotResolved,
+                    failureReason: "prerequisiteMissing",
+                },
+            };
         }
 
         return {
@@ -486,6 +542,42 @@ export const pythonDownloadLink = "https://www.python.org/downloads/";
 
 function getSignedInDetail(account: string | undefined): string {
     return account ? LocalContainers.dabEntraSignedInAs(account) : LocalContainers.dabEntraSignedIn;
+}
+
+/** The failure code for a CLI acquisition, matching the stage its message names. */
+function getAcquisitionFailureReason(error: unknown): Dab.DabDeploymentFailureReason {
+    if (!(error instanceof DabCliAcquisitionError)) {
+        return "cliAcquisitionFailed";
+    }
+
+    switch (error.stage) {
+        case "download":
+            return "cliDownloadFailed";
+        case "verify":
+            return "cliVerificationFailed";
+        case "unsupported":
+            return "cliUnsupportedPlatform";
+        default:
+            return "cliAcquisitionFailed";
+    }
+}
+
+/** The failure code for a private Azure CLI install, matching the stage its message names. */
+function getAzureCliInstallFailureReason(error: unknown): Dab.DabDeploymentFailureReason {
+    if (!(error instanceof DabAzureCliInstallError)) {
+        return "azureCliInstallFailed";
+    }
+
+    switch (error.stage) {
+        case "download":
+            return "azureCliDownloadFailed";
+        case "verify":
+            return "azureCliVerificationFailed";
+        case "python":
+            return "azureCliPythonMissing";
+        default:
+            return "azureCliInstallFailed";
+    }
 }
 
 /** The sentence to show for a private Azure CLI that could not be set up. */

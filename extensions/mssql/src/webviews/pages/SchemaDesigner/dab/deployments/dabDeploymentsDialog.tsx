@@ -17,7 +17,10 @@ import {
 } from "@fluentui/react-components";
 import { useEffect } from "react";
 import { locConstants } from "../../../../common/locConstants";
+import { useVscodeWebview } from "../../../../common/vscodeWebviewProvider";
 import { Dab } from "../../../../../sharedInterfaces/dab";
+import { SchemaDesigner } from "../../../../../sharedInterfaces/schemaDesigner";
+import { TelemetryActions, TelemetryViews } from "../../../../../sharedInterfaces/telemetry";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { DabDeploymentOverview } from "./dabDeploymentOverview";
 import { DabDeploymentProgress } from "./dabDeploymentProgress";
@@ -92,13 +95,31 @@ export const DabDeploymentsDialog = () => {
         loadDabDeployments,
         stopDabDeploymentContainer,
         deleteDabDeployment,
+        dabTargetSupport,
     } = useDabContext();
+    const { extensionRpc } = useVscodeWebview<
+        SchemaDesigner.SchemaDesignerWebviewState,
+        SchemaDesigner.SchemaDesignerReducers
+    >();
 
     const { isDialogOpen } = dabDeploymentState;
     // The store tracks at most one deployment per database.
     const deployment = dabDeployments[0];
     const runStatus = dabDeploymentRun?.status;
     const isShowingRun = !!dabDeploymentRun && runStatus !== Dab.DabDeploymentRunStatus.Succeeded;
+    const isLoadingDeployments =
+        dabDeploymentsStatus === ApiStatus.NotStarted || dabDeploymentsStatus === ApiStatus.Loading;
+    // Setup is only offered once the list has loaded empty. A list that failed
+    // to load may be hiding a deployment that already exists.
+    const view = isShowingRun
+        ? "progress"
+        : isLoadingDeployments && !deployment
+          ? "loading"
+          : dabDeploymentsStatus === ApiStatus.Error
+            ? "error"
+            : deployment
+              ? "overview"
+              : "setup";
 
     // Opening the dialog picks up a run that may have started before, and the
     // deployment as it is now.
@@ -117,8 +138,32 @@ export const DabDeploymentsDialog = () => {
         }
     }, [isDialogOpen, runStatus]);
 
-    /** Closes the dialog. A deployment in progress keeps running in the background. */
+    /**
+     * Closes the dialog. A deployment in progress keeps running in the
+     * background. The view it closes from shows where people leave, such as
+     * setup without deploying, and the targets setup could not offer.
+     */
     const handleClose = () => {
+        extensionRpc.sendActionEvent({
+            telemetryView: TelemetryViews.SchemaDesigner,
+            telemetryAction: TelemetryActions.CloseDabDeploymentDialog,
+            additionalProps: {
+                view,
+                runStatus: (view === "progress" && runStatus) || "",
+                ...(view === "setup"
+                    ? {
+                          cliSupported: String(
+                              dabTargetSupport[Dab.DabDeploymentTarget.DabCli]?.isSupported !==
+                                  false,
+                          ),
+                          dockerSupported: String(
+                              dabTargetSupport[Dab.DabDeploymentTarget.Docker]?.isSupported !==
+                                  false,
+                          ),
+                      }
+                    : {}),
+            },
+        });
         closeDabDeploymentDialog();
         resetDabDeploymentState();
     };
@@ -134,10 +179,7 @@ export const DabDeploymentsDialog = () => {
     };
 
     const renderHome = () => {
-        const isLoading =
-            dabDeploymentsStatus === ApiStatus.NotStarted ||
-            dabDeploymentsStatus === ApiStatus.Loading;
-        if (isLoading && !deployment) {
+        if (view === "loading") {
             return (
                 <>
                     <DabDialogTitle>
@@ -158,9 +200,7 @@ export const DabDeploymentsDialog = () => {
             );
         }
 
-        // Setup is only offered once the list has loaded empty. A list that
-        // failed to load may be hiding a deployment that already exists.
-        if (dabDeploymentsStatus === ApiStatus.Error) {
+        if (view === "error") {
             return (
                 <>
                     <DabDialogTitle>
