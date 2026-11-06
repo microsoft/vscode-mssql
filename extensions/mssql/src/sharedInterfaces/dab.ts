@@ -944,12 +944,12 @@ export namespace Dab {
 
     /**
      * How far a long step has got. Downloads and unpacks count up to a known
-     * total; an install with no measure of its own reports only its phase.
+     * total; an install reports the percentage it has done.
      */
     export type DabDeploymentStepProgress =
         | { phase: "download"; completed: number; total?: number }
         | { phase: "unpack"; completed: number; total: number }
-        | { phase: "install" }
+        | { phase: "install"; percent: number }
         | { phase: "starting"; elapsedSeconds: number };
 
     /** Which optional steps a deployment runs. */

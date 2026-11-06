@@ -3137,9 +3137,6 @@ export class LocConstants {
             dabStepStartApiRunning: l10n.t("Launching the engine"),
             dabStepCheckEndpoints: l10n.t("Check endpoints"),
             dabStepCheckEndpointsRunning: l10n.t("Waiting for the API to answer"),
-            privateAzureCliNote: l10n.t(
-                "This copy is private to the extension. Your PATH and any Azure CLI sign-ins you already have are not touched.",
-            ),
             dabProgressDownloading: (completedMegabytes: number, totalMegabytes: number) =>
                 l10n.t({
                     message: "Downloading Azure CLI · {0} of {1} MB",
@@ -3158,7 +3155,12 @@ export class LocConstants {
                     args: [completedFiles, totalFiles],
                     comment: ["{0} is files unpacked so far", "{1} is the total number of files"],
                 }),
-            dabProgressInstalling: l10n.t("Installing with pip. This can take a few minutes."),
+            dabProgressInstalling: (percent: number) =>
+                l10n.t({
+                    message: "Installing with pip · {0}%. This can take a few minutes.",
+                    args: [percent],
+                    comment: ["{0} is the percentage of the install done so far"],
+                }),
             dabProgressLoadingEntities: (entityCount: number, elapsed: string) =>
                 l10n.t({
                     message: "Loading {0} entities from the database · {1}",

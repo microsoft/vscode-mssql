@@ -24,6 +24,7 @@ import { createReadStream } from "fs";
 import * as fsPromises from "fs/promises";
 import * as os from "os";
 import * as path from "path";
+import { createInterface } from "readline";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { getErrorMessage } from "../utils/utils";
@@ -40,6 +41,13 @@ export const DAB_AZURE_CLI_VERSION = "2.92.0";
  */
 export const DAB_AZURE_CLI_ZIP_SHA256 =
     "2cbd2c10e4b2ec4de2ab98eaa69f51fa4c9dfc4922b5116ada88091663d92af2";
+
+/**
+ * Packages pip finds for {@link DAB_AZURE_CLI_VERSION}, counting the Azure CLI
+ * itself. pip never says how many it will find, so the install's progress
+ * measures that first pass against this.
+ */
+export const DAB_AZURE_CLI_PIP_PACKAGE_COUNT = 151;
 
 /** Resource the engine asks tokens for when it connects to Azure SQL. */
 const AZURE_SQL_RESOURCE = "https://database.windows.net/";
@@ -69,7 +77,7 @@ export interface DabAzureCliResolution {
 export type DabAzureCliInstallProgress =
     | { phase: "download"; completed: number; total?: number }
     | { phase: "unpack"; completed: number; total: number }
-    | { phase: "pip" };
+    | { phase: "pip"; percent: number };
 
 /** Why the private copy could not be installed. */
 export type DabAzureCliInstallFailure = "download" | "verify" | "unpack" | "python" | "pip";
@@ -116,10 +124,20 @@ export class DabAzureCli {
         return path.join(this.rootPath, this.version);
     }
 
+    private get pythonPath(): string {
+        return path.join(this.installPath, "bin", "python");
+    }
+
+    /**
+     * On macOS and Linux this is a launcher the extension writes, not the
+     * `bin/az` pip installs. pip gives that script the full path of the
+     * Python as its shebang, which the system cuts at the first space, and
+     * VS Code keeps its storage under "Application Support" on macOS.
+     */
     private get azPath(): string {
         return process.platform === "win32"
             ? path.join(this.installPath, "bin", "az.cmd")
-            : path.join(this.installPath, "bin", "az");
+            : path.join(this.installPath, "launcher", "az");
     }
 
     /** The private copy, or undefined when it is not installed yet. */
@@ -379,7 +397,17 @@ export class DabAzureCli {
             );
         }
 
-        onProgress?.({ phase: "pip" });
+        const progress = new PipInstallProgress();
+        let reportedPercent = -1;
+        const reportProgress = () => {
+            // pip prints hundreds of lines, so only a new percentage is passed on.
+            if (progress.percent !== reportedPercent) {
+                reportedPercent = progress.percent;
+                onProgress?.({ phase: "pip", percent: reportedPercent });
+            }
+        };
+        reportProgress();
+
         const venvResult = await runCommand(
             python,
             ["-m", "venv", this.installPath],
@@ -392,25 +420,50 @@ export class DabAzureCli {
             );
         }
 
+        // pip prints nothing while it installs, so that pass is followed by
+        // the packages appearing in site-packages.
+        const sitePackagesPath = await findSitePackages(this.installPath);
+        const packagesBefore = await countInstalledPackages(sitePackagesPath);
+        const installWatch = setInterval(() => {
+            if (!progress.isInstalling) {
+                return;
+            }
+            void countInstalledPackages(sitePackagesPath).then((count) => {
+                progress.setInstalled(count - packagesBefore);
+                reportProgress();
+            });
+        }, 1000);
+
         this.logger.info(`Installing Azure CLI ${this.version} with pip into ${this.installPath}`);
-        const pipResult = await runCommand(
-            path.join(this.installPath, "bin", "python"),
-            [
-                "-m",
-                "pip",
-                "install",
-                "--disable-pip-version-check",
-                "--no-input",
-                `azure-cli==${this.version}`,
-            ],
-            this.installPath,
-        );
+        let pipResult: CommandResult;
+        try {
+            pipResult = await runCommand(
+                this.pythonPath,
+                [
+                    "-m",
+                    "pip",
+                    "install",
+                    "--disable-pip-version-check",
+                    "--no-input",
+                    `azure-cli==${this.version}`,
+                ],
+                this.installPath,
+                (line) => {
+                    progress.onLine(line);
+                    reportProgress();
+                },
+            );
+        } finally {
+            clearInterval(installWatch);
+        }
         if (pipResult.exitCode !== 0) {
             throw new DabAzureCliInstallError(
                 "pip",
                 `Failed to install the Azure CLI with pip: ${(pipResult.stderr || pipResult.error || "").trim()}`,
             );
         }
+
+        await writeAzureCliLauncher(this.azPath, this.pythonPath);
     }
 
     private runAz(resolution: DabAzureCliResolution, args: string[]): Promise<CommandResult> {
@@ -474,6 +527,28 @@ function collectCommandResult(child: ChildProcess, resolve: (result: CommandResu
     child.on("close", (exitCode) => resolve({ exitCode, stdout, stderr }));
 }
 
+/**
+ * Writes a shell script that runs the Azure CLI with the given Python, the
+ * way the `bin/az` pip installs would if its shebang could hold a space.
+ */
+export async function writeAzureCliLauncher(
+    launcherPath: string,
+    pythonPath: string,
+): Promise<void> {
+    const quotedPythonPath = `'${pythonPath.replace(/'/g, `'\\''`)}'`;
+    await fsPromises.mkdir(path.dirname(launcherPath), { recursive: true });
+    await fsPromises.writeFile(
+        launcherPath,
+        [
+            "#!/bin/sh",
+            'export AZ_INSTALLER="${AZ_INSTALLER:-PIP}"',
+            `exec ${quotedPythonPath} -m azure.cli "$@"`,
+            "",
+        ].join("\n"),
+        { mode: 0o755 },
+    );
+}
+
 function hashFile(filePath: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const hash = createHash("sha256");
@@ -485,13 +560,86 @@ function hashFile(filePath: string): Promise<string> {
 }
 
 /**
+ * How far a pip install of the Azure CLI has got, as a percentage.
+ *
+ * pip goes over the packages three times, each taking about a third of the
+ * install: it finds them, downloads them, then installs them. Each pass is
+ * measured by the packages it has done.
+ */
+export class PipInstallProgress {
+    private _found = 0;
+    private _downloaded = 0;
+    private _installed = 0;
+    private _toInstall: number | undefined;
+    private _isDownloading = false;
+
+    /** True once pip has started installing what it downloaded. */
+    public get isInstalling(): boolean {
+        return this._toInstall !== undefined;
+    }
+
+    public get percent(): number {
+        const share = (completed: number, total: number) =>
+            total > 0 ? Math.min(completed / total, 1) : 0;
+        const finding =
+            this._isDownloading || this.isInstalling
+                ? 1
+                : share(this._found, DAB_AZURE_CLI_PIP_PACKAGE_COUNT);
+        const downloading = this.isInstalling ? 1 : share(this._downloaded, this._found);
+        const installing = share(this._installed, this._toInstall ?? 0);
+        return Math.floor(((finding + downloading + installing) / 3) * 100);
+    }
+
+    /** Takes in a line pip printed. */
+    public onLine(line: string): void {
+        // Lines for what pip reads while it finds packages are indented, and
+        // the downloads that follow are not.
+        if (line.startsWith("Collecting ")) {
+            this._found++;
+        } else if (line.startsWith("Downloading ") || line.startsWith("Using cached ")) {
+            this._isDownloading = true;
+            this._downloaded++;
+        } else if (line.startsWith("Installing collected packages: ")) {
+            this._toInstall = line.split(",").length;
+        }
+    }
+
+    /** Sets how many packages have been installed so far. */
+    public setInstalled(count: number): void {
+        this._installed = Math.max(this._installed, count);
+    }
+}
+
+/** The site-packages folder of a virtual environment. */
+async function findSitePackages(venvPath: string): Promise<string | undefined> {
+    const libPath = path.join(venvPath, "lib");
+    const pythonFolder = (await fsPromises.readdir(libPath).catch(() => [])).find((name) =>
+        name.startsWith("python"),
+    );
+    return pythonFolder ? path.join(libPath, pythonFolder, "site-packages") : undefined;
+}
+
+/** Packages installed in a site-packages folder, each with a .dist-info folder of its own. */
+async function countInstalledPackages(sitePackagesPath: string | undefined): Promise<number> {
+    if (!sitePackagesPath) {
+        return 0;
+    }
+
+    const names = await fsPromises.readdir(sitePackagesPath).catch(() => []);
+    return names.filter((name) => name.endsWith(".dist-info")).length;
+}
+
+/**
  * Runs a command to completion, from the given folder or the system temp
  * folder.
+ *
+ * @param onStdoutLine Called with each line the command writes to stdout
  */
 function runCommand(
     file: string,
     args: string[],
     cwd: string = os.tmpdir(),
+    onStdoutLine?: (line: string) => void,
 ): Promise<CommandResult> {
     return new Promise<CommandResult>((resolve) => {
         let child: ChildProcess;
@@ -502,6 +650,9 @@ function runCommand(
             return;
         }
 
+        if (onStdoutLine && child.stdout) {
+            createInterface({ input: child.stdout, crlfDelay: Infinity }).on("line", onStdoutLine);
+        }
         collectCommandResult(child, resolve);
     });
 }

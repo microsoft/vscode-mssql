@@ -5193,7 +5193,6 @@
     "Start API": "Start API",
     "Launching the engine": "Launching the engine",
     "Check endpoints": "Check endpoints",
-    "This copy is private to the extension. Your PATH and any Azure CLI sign-ins you already have are not touched.": "This copy is private to the extension. Your PATH and any Azure CLI sign-ins you already have are not touched.",
     "Downloading Azure CLI · {0} of {1} MB/{0} is megabytes downloaded so far{1} is the total megabytes": {
         "message": "Downloading Azure CLI · {0} of {1} MB",
         "comment": ["{0} is megabytes downloaded so far", "{1} is the total megabytes"]
@@ -5206,7 +5205,10 @@
         "message": "Unpacking · {0} of {1} files",
         "comment": ["{0} is files unpacked so far", "{1} is the total number of files"]
     },
-    "Installing with pip. This can take a few minutes.": "Installing with pip. This can take a few minutes.",
+    "Installing with pip · {0}%. This can take a few minutes./{0} is the percentage of the install done so far": {
+        "message": "Installing with pip · {0}%. This can take a few minutes.",
+        "comment": ["{0} is the percentage of the install done so far"]
+    },
     "Loading {0} entities from the database · {1}/{0} is the number of entities{1} is the time spent so far, such as 2:05": {
         "message": "Loading {0} entities from the database · {1}",
         "comment": ["{0} is the number of entities", "{1} is the time spent so far, such as 2:05"]

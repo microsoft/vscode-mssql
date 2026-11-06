@@ -105,7 +105,11 @@ export class DabCliRunner {
     ): Promise<Dab.RunDeploymentStepResponse> {
         try {
             this._azureCliResolution = await this._azureCli.install((progress) =>
-                onProgress?.(progress.phase === "pip" ? { phase: "install" } : progress),
+                onProgress?.(
+                    progress.phase === "pip"
+                        ? { phase: "install", percent: progress.percent }
+                        : progress,
+                ),
             );
         } catch (error) {
             this.logger.error(`Could not set up the Azure CLI: ${getErrorMessage(error)}`);

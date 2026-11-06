@@ -6557,8 +6557,9 @@
     <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
       <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>
     </trans-unit>
-    <trans-unit id="++CODE++1d11a539abbec2bd27f6da4e1030015cabecadc9cea44f9ae66d3429ab02bdb2">
-      <source xml:lang="en">Installing with pip. This can take a few minutes.</source>
+    <trans-unit id="++CODE++9cd4f0cfee827905975ca366091112d8605226baa5566a880e42c422dd01baab">
+      <source xml:lang="en">Installing with pip · {0}%. This can take a few minutes.</source>
+      <note>{0} is the percentage of the install done so far</note>
     </trans-unit>
     <trans-unit id="++CODE++07ae7fd684564e68cac0181cc95916cb616319dfe87d79129cfcef36ea83a328">
       <source xml:lang="en">Installing...</source>
@@ -12895,9 +12896,6 @@
     </trans-unit>
     <trans-unit id="++CODE++613081b07643e66f1cd6f4934dc34812a75ce7b365d2124acec987c6074b7bee">
       <source xml:lang="en">This container provisioning step is not supported.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++15be52ec5d51c03d51dd5c4cd12b5aaddcebd525181e5ad7562140e9fa1b969d">
-      <source xml:lang="en">This copy is private to the extension. Your PATH and any Azure CLI sign-ins you already have are not touched.</source>
     </trans-unit>
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>

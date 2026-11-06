@@ -56,7 +56,7 @@ suite("DabCliRunner Microsoft Entra steps", () => {
         const progress: Dab.DabDeploymentStepProgress[] = [];
         azureCli.install.callsFake(async (onProgress) => {
             onProgress?.({ phase: "download", completed: 10, total: 100 });
-            onProgress?.({ phase: "pip" });
+            onProgress?.({ phase: "pip", percent: 40 });
             return resolution;
         });
 
@@ -66,7 +66,7 @@ suite("DabCliRunner Microsoft Entra steps", () => {
         expect(result.detail).to.be.a("string").and.not.empty;
         expect(progress).to.deep.equal([
             { phase: "download", completed: 10, total: 100 },
-            { phase: "install" },
+            { phase: "install", percent: 40 },
         ]);
         expect(await runner.getAzureCliEnvironment()).to.deep.equal(resolution.environment);
     });

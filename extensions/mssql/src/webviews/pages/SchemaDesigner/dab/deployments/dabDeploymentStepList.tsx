@@ -274,7 +274,7 @@ function getProgressText(progress: Dab.DabDeploymentStepProgress, entityCount: n
         case "unpack":
             return loc.dabProgressUnpacking(progress.completed, progress.total);
         case "install":
-            return loc.dabProgressInstalling;
+            return loc.dabProgressInstalling(progress.percent);
         case "starting":
             // The engine loads every entity before it answers, so the wait
             // grows with the number of entities.
@@ -287,7 +287,10 @@ function getProgressText(progress: Dab.DabDeploymentStepProgress, entityCount: n
 
 /** How full the progress bar is, or undefined for a phase with no measure. */
 function getProgressValue(progress: Dab.DabDeploymentStepProgress): number | undefined {
-    if (progress.phase === "install" || progress.phase === "starting" || !progress.total) {
+    if (progress.phase === "install") {
+        return progress.percent / 100;
+    }
+    if (progress.phase === "starting" || !progress.total) {
         return undefined;
     }
 
@@ -402,11 +405,6 @@ const DabDeploymentStepRow = ({ stepStatus }: { stepStatus: Dab.DabDeploymentSte
                             value={getProgressValue(progress)}
                             aria-label={subtitle}
                         />
-                        {stepStatus.step === Dab.DabDeploymentStepOrder.acquireAzureCli && (
-                            <Text className={classes.panelNote}>
-                                {locConstants.schemaDesigner.privateAzureCliNote}
-                            </Text>
-                        )}
                     </div>
                 )}
                 {isRunning && action === Dab.DabDeploymentStepAction.SignIn && (
