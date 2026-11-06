@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 // MUST be first: binds the bundled Monaco before any editor mounts.
+import "../QueryStudio/spatial/spatial.css";
 import "./monacoSetup";
 import * as React from "react";
 import ReactDOM from "react-dom/client";

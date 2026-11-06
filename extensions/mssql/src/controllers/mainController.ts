@@ -29,6 +29,7 @@ import * as Utils from "../models/utils";
 import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTreeNode";
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
+import { initializeSpatialBasemapHost } from "../queryResults/spatialBasemap/spatialBasemapHost";
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
 import {
     ContainerConnectAdapter,
@@ -1945,6 +1946,8 @@ export default class MainController implements vscode.Disposable {
                 },
             });
         }
+
+        initializeSpatialBasemapHost(this._context);
 
         // Register command for table node double-click action
         let lastTableClickTime = 0;

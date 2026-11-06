@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import "../QueryStudio/spatial/spatial.css";
 import * as React from "react";
 import { locConstants } from "../../common/locConstants";
 import "../ExecutionPlan/executionPlanEagerStyles";

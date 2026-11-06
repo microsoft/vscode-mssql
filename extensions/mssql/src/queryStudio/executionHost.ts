@@ -47,6 +47,7 @@ export interface ExecutionHostEvents {
 }
 
 export class ExecutionHost {
+    spatialResultsGate: () => boolean = () => false;
     private rowStore: RowStore | undefined;
     /** Lease-owning wrapper (C2D-1): snapshots outlive the live run. */
     private retained: RetainedRowStore | undefined;
@@ -353,6 +354,7 @@ export class ExecutionHost {
                     pageBytes: tuning.params.pageBytes,
                     maxCellBytes: tuning.params.maxCellBytes,
                 },
+                ...(this.spatialResultsGate() ? { spatialEncoding: "wkb-v1" as const } : {}),
                 tuningDigest: tuning.digest,
                 tuningProfileId: tuning.profileId,
                 ...(this.sqlcmdEnabled

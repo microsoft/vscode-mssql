@@ -24,12 +24,16 @@
 
 import * as React from "react";
 import { perfMark } from "../../common/perfMarks";
-import { queryPlanResultPaneContribution } from "./resultPaneRegistry";
 import { locConstants } from "../../common/locConstants";
+import {
+    queryPlanResultPaneContribution,
+    spatialResultPaneContribution,
+} from "./resultPaneRegistry";
 
 const resultsModule = () => import("./results");
 const gridModule = () => import("./resultsGrid");
 const planModule = () => queryPlanResultPaneContribution.load();
+const spatialModule = () => spatialResultPaneContribution.load();
 
 let gridPrefetchStarted = false;
 let gridLoaded = false;
@@ -98,6 +102,13 @@ export const LazyExecutionPlanView = React.lazy(async () => {
     return {
         default: (module as typeof import("./queryPlanTab")).QueryStudioExecutionPlanView,
     };
+});
+
+export const LazySpatialTab = React.lazy(async () => {
+    perfMark("mssql.queryStudio.boot.spatialChunkRequested", {});
+    const module = await spatialModule();
+    perfMark("mssql.queryStudio.boot.spatialChunkLoaded", {});
+    return { default: (module as typeof import("./spatialTab")).SpatialResultsPane };
 });
 
 /** Suspense fallback for the few-ms window where results beat the chunk. */

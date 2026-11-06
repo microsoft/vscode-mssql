@@ -30,7 +30,12 @@ export type QueryStudioPerfInteractionNormalization =
     | { readonly value: NormalizedQueryStudioPerfInteractionArgs }
     | { readonly error: string };
 
-const ACTIVATABLE_TABS: ReadonlySet<string> = new Set(["results", "messages", "queryPlan"]);
+const ACTIVATABLE_TABS: ReadonlySet<string> = new Set([
+    "results",
+    "messages",
+    "queryPlan",
+    "spatial",
+]);
 function record(value: unknown): Record<string, unknown> | undefined {
     return typeof value === "object" && value !== null && !Array.isArray(value)
         ? (value as Record<string, unknown>)

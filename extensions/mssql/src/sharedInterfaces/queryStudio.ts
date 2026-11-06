@@ -195,6 +195,8 @@ export interface QsGridStyle {
 }
 
 export interface QsState {
+    /** Re-fetch map layer availability after settings change. */
+    spatialBasemapEpoch?: number;
     schemaVersion: number;
     connection: QsConnectionState;
     execution: QsExecutionState;
@@ -312,7 +314,7 @@ export namespace QsSyncEditsRequest {
     export const type = new RequestType<QsSyncEdits, QsSyncEditsResult, void>("qs/syncEdits");
 }
 
-export type QsActivatableTab = "results" | "messages" | "queryPlan";
+export type QsActivatableTab = "results" | "messages" | "queryPlan" | "spatial";
 
 /** Host-internal activation after PERF_MODE argument normalization. */
 export interface QsActivateTabRequest {

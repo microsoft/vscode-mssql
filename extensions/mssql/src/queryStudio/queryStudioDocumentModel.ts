@@ -16,6 +16,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { isSpatialResultsEnabled } from "../queryResults/spatial/spatialFeatureGate";
 import * as vscode from "vscode";
 import { diag } from "../diagnostics/diagnosticsCore";
 import {
@@ -177,6 +178,7 @@ export class QueryStudioDocumentModel implements vscode.Disposable {
             },
             openConnectSession: (target) => binding.openSqlcmdConnectSession(target),
         };
+        this.executionHost.spatialResultsGate = isSpatialResultsEnabled;
         // Live result source registration (C2D-1): snapshots/pins/chat reach
         // this model's results only through the access service.
         this.liveResultSource = new QueryStudioLiveResultSource(this);
