@@ -215,6 +215,58 @@ suite("DabDeploymentRun", () => {
         expect(host.runStep.withArgs(Step.startCliEngine)).to.not.have.been.called;
     });
 
+    test("removes what a step still running made once it finishes after a cancel", async () => {
+        let finishStart!: (response: Dab.RunDeploymentStepResponse) => void;
+        host.runStep
+            .withArgs(Step.startCliEngine)
+            .returns(new Promise((resolve) => (finishStart = resolve)));
+        const run = createRun();
+
+        run.start();
+        await waitFor(
+            run,
+            (s) => statusOf(s, Step.startCliEngine)?.status === ApiStatus.Loading && !!s.params,
+        );
+        const canceled = run.cancel();
+        await waitFor(run, (s) => s.status === Dab.DabDeploymentRunStatus.Canceled);
+        let isSettled = false;
+        void run.whenSettled().then(() => (isSettled = true));
+        await Promise.resolve();
+
+        expect(host.cleanUp, "What exists is removed right away").to.have.been.calledOnce;
+        expect(isSettled, "A replacement run must wait for the step").to.be.false;
+
+        finishStart({ success: true });
+        await canceled;
+
+        expect(host.cleanUp, "The engine the step started is removed too").to.have.been.calledTwice;
+        expect(isSettled).to.be.true;
+        expect(run.state.status).to.equal(Dab.DabDeploymentRunStatus.Canceled);
+        expect(host.runStep.withArgs(Step.checkCliEngine)).to.not.have.been.called;
+    });
+
+    test("keeps a run canceled when the cancel comes while a retry cleans up", async () => {
+        host.runStep.withArgs(Step.checkCliEngine).resolves({ success: false, error: "not ready" });
+        const run = createRun();
+        run.start();
+        await waitFor(run, (s) => s.status === Dab.DabDeploymentRunStatus.Failed);
+
+        let finishRetryCleanUp!: () => void;
+        host.cleanUp
+            .onFirstCall()
+            .returns(new Promise<void>((resolve) => (finishRetryCleanUp = resolve)));
+        const retried = run.retry();
+        await run.cancel();
+        finishRetryCleanUp();
+        await retried;
+
+        expect(run.state.status).to.equal(Dab.DabDeploymentRunStatus.Canceled);
+        expect(
+            host.runStep.withArgs(Step.startCliEngine),
+            "The canceled deployment must not start again",
+        ).to.have.been.calledOnce;
+    });
+
     test("fails the first deployment step when no name and port can be picked", async () => {
         host.prepare.resolves({ success: false, error: "no free port" });
         const run = createRun();

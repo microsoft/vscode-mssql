@@ -1703,9 +1703,13 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
      * progress. The run outlives this designer, so its steps capture what they
      * need from it now: the config, the target, and the deployment to replace.
      */
-    private startDabDeploymentRun(
+    private async startDabDeploymentRun(
         payload: Dab.StartDeploymentRunParams,
-    ): Dab.DabDeploymentRunState {
+    ): Promise<Dab.DabDeploymentRunState> {
+        // A canceled run can still be removing what it made, under the same
+        // name a redeployment reuses, so the new run waits until it is done.
+        await this.getCurrentDabDeploymentRun()?.whenSettled();
+
         const existing = this.getCurrentDabDeploymentRun();
         if (existing?.isActive) {
             this.attachToDabDeploymentRun(existing);

@@ -57,6 +57,10 @@ export class DabDeploymentRun implements vscode.Disposable {
     /** An answer given while a step was still running, such as switching to a code sign-in. */
     private _interruption: Dab.DabDeploymentStepAction | undefined;
     private _lastProgressAt = 0;
+    /** The host call in progress, so a cancel can wait for what it creates. */
+    private _pendingCall: Promise<unknown> | undefined;
+    /** Settles once a cancel has removed what the run left behind. */
+    private _cleanup: Promise<void> = Promise.resolve();
 
     constructor(
         private readonly host: DabDeploymentRunHost,
@@ -88,6 +92,14 @@ export class DabDeploymentRun implements vscode.Disposable {
 
     public start(): void {
         void this.runFrom(0, this._generation);
+    }
+
+    /**
+     * Resolves once nothing the run started is still running or being removed.
+     * A replacement run waits for it, since a redeployment reuses the name.
+     */
+    public whenSettled(): Promise<void> {
+        return this._cleanup;
     }
 
     /**
@@ -137,6 +149,10 @@ export class DabDeploymentRun implements vscode.Disposable {
 
         if (restartIndex > 0 && this._state.params) {
             await this.host.cleanUp(this._state.params);
+            // A cancel or a newer retry while cleaning up has taken over the run.
+            if (generation !== this._generation) {
+                return;
+            }
         }
 
         this.update({
@@ -163,17 +179,51 @@ export class DabDeploymentRun implements vscode.Disposable {
         this.host.cancelSignIn();
         this.update({ status: Dab.DabDeploymentRunStatus.Canceled });
 
-        if (this._state.params) {
-            try {
-                await this.host.cleanUp(this._state.params);
-            } catch {
-                // Cleanup is best effort; the deployment view shows what remains.
-            }
-        }
+        this._cleanup = this.cleanUpAfterCancel();
+        await this._cleanup;
     }
 
     public dispose(): void {
         this._onDidChange.dispose();
+    }
+
+    /**
+     * Removes what the run left behind. A step still running can create a
+     * container or start an engine after the first cleanup, so once it
+     * finishes, what it made is removed too. Cleaning up first still ends a
+     * readiness wait sooner, since what it waits on is gone.
+     */
+    private async cleanUpAfterCancel(): Promise<void> {
+        const pendingCall = this._pendingCall;
+        await this.cleanUpQuietly();
+        if (pendingCall) {
+            await pendingCall.catch(() => undefined);
+            await this.cleanUpQuietly();
+        }
+    }
+
+    private async cleanUpQuietly(): Promise<void> {
+        if (!this._state.params) {
+            return;
+        }
+
+        try {
+            await this.host.cleanUp(this._state.params);
+        } catch {
+            // Cleanup is best effort; the deployment view shows what remains.
+        }
+    }
+
+    /** Runs a host call, remembering it while it runs so a cancel can wait for it. */
+    private async track<T>(call: Promise<T>): Promise<T> {
+        this._pendingCall = call;
+        try {
+            return await call;
+        } finally {
+            if (this._pendingCall === call) {
+                this._pendingCall = undefined;
+            }
+        }
     }
 
     private async runFrom(startIndex: number, generation: number): Promise<void> {
@@ -190,7 +240,7 @@ export class DabDeploymentRun implements vscode.Disposable {
                 // because a Docker deployment can only see which ports
                 // containers hold once Docker is running.
                 if (step === firstDeploymentStep && !this._state.params) {
-                    const prepared = await this.host.prepare();
+                    const prepared = await this.track(this.host.prepare());
                     if (isStale()) {
                         return;
                     }
@@ -296,18 +346,20 @@ export class DabDeploymentRun implements vscode.Disposable {
         step: Dab.DabDeploymentStepOrder,
         action: Dab.DabDeploymentStepAction | undefined,
     ): Promise<Dab.RunDeploymentStepResponse> {
-        return this.host.runStep(step, this._state.params, action, (progress) => {
-            const now = Date.now();
-            if (now - this._lastProgressAt < PROGRESS_INTERVAL_MS) {
-                return;
-            }
-            this._lastProgressAt = now;
+        return this.track(
+            this.host.runStep(step, this._state.params, action, (progress) => {
+                const now = Date.now();
+                if (now - this._lastProgressAt < PROGRESS_INTERVAL_MS) {
+                    return;
+                }
+                this._lastProgressAt = now;
 
-            const stepStatus = this.getStepStatus(step);
-            if (stepStatus?.status === ApiStatus.Loading) {
-                this.updateStep(step, { ...stepStatus, progress });
-            }
-        });
+                const stepStatus = this.getStepStatus(step);
+                if (stepStatus?.status === ApiStatus.Loading) {
+                    this.updateStep(step, { ...stepStatus, progress });
+                }
+            }),
+        );
     }
 
     private fail(
