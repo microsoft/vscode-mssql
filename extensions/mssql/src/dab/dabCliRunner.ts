@@ -12,6 +12,7 @@
  */
 
 import { spawn } from "child_process";
+import * as os from "os";
 import * as fsPromises from "fs/promises";
 import * as path from "path";
 import DotnetRuntimeProvider from "../languageservice/dotnetRuntimeProvider";
@@ -277,6 +278,8 @@ export class DabCliRunner {
         switch (error.stage) {
             case "download":
                 return LocalContainers.dabCliDownloadFailed;
+            case "verify":
+                return LocalContainers.dabCliVerificationFailed;
             case "unsupported":
                 return error.runtimeIdentifier
                     ? LocalContainers.dabCliArchitectureUnsupported(error.runtimeIdentifier)
@@ -485,6 +488,8 @@ function getAzureCliInstallErrorMessage(error: unknown): string {
     switch (error.stage) {
         case "download":
             return LocalContainers.dabAzureCliDownloadFailed;
+        case "verify":
+            return LocalContainers.dabAzureCliVerificationFailed;
         case "python":
             return LocalContainers.dabAzureCliPythonMissing;
         default:
@@ -498,7 +503,7 @@ function getAzureCliInstallErrorMessage(error: unknown): string {
 async function findDotnetOnPath(): Promise<string | undefined> {
     return new Promise<string | undefined>((resolve) => {
         try {
-            const child = spawn("dotnet", ["--version"], { windowsHide: true });
+            const child = spawn("dotnet", ["--version"], { windowsHide: true, cwd: os.tmpdir() });
             child.on("error", () => resolve(undefined));
             child.on("close", (code) => resolve(code === 0 ? "dotnet" : undefined));
         } catch {

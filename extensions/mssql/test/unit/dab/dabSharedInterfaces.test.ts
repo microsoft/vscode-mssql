@@ -657,11 +657,11 @@ suite("DAB supported data types", () => {
 
     test("both deployment targets run one engine version", () => {
         expect(Dab.DAB_CLI_VERSION).to.equal(Dab.DAB_ENGINE_VERSION);
-        expect(Dab.DAB_CONTAINER_IMAGE).to.contain(`:${Dab.DAB_ENGINE_VERSION}`);
         expect(
             Dab.DAB_CONTAINER_IMAGE,
-            "A floating tag would let the container drift from the CLI",
-        ).to.not.contain(":latest");
+            "A tag can be moved to another image; only a digest names one build",
+        ).to.equal(`${Dab.DAB_CONTAINER_IMAGE_REPOSITORY}@${Dab.DAB_CONTAINER_IMAGE_DIGEST}`);
+        expect(Dab.DAB_CONTAINER_IMAGE_DIGEST).to.match(/^sha256:[0-9a-f]{64}$/);
     });
 });
 

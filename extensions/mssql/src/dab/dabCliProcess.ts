@@ -16,6 +16,8 @@
  */
 
 import { ChildProcess, spawn } from "child_process";
+import * as os from "os";
+import * as path from "path";
 import { LocalContainers } from "../constants/locConstants";
 import { Dab } from "../sharedInterfaces/dab";
 import { getErrorMessage } from "../utils/utils";
@@ -124,6 +126,7 @@ export async function startDabCliEngine(
             [assemblyPath, "start", "--config", configPath, "--no-https-redirect"],
             {
                 env: buildDabCliEnvironment(environment),
+                cwd: path.dirname(configPath),
                 detached: true,
                 windowsHide: true,
                 stdio: ["ignore", "pipe", "pipe"],
@@ -366,7 +369,13 @@ export async function getPortOwnership(port: number, processId: number): Promise
  */
 export async function getPortListenerPids(port: number): Promise<number[] | undefined> {
     if (process.platform === "win32") {
-        const output = await runCapturedCommand("netstat", ["-a", "-n", "-o", "-p", "tcp"]);
+        const output = await runCapturedCommand(getWindowsSystemTool("netstat.exe"), [
+            "-a",
+            "-n",
+            "-o",
+            "-p",
+            "tcp",
+        ]);
         return output === undefined ? undefined : parseNetstatListeners(output, port);
     }
 
@@ -445,12 +454,20 @@ export function parseSsListeners(output: string, port: number): number[] {
     return [...pids];
 }
 
-/** Runs a short-lived command and returns its stdout, or undefined when it could not run. */
+/** Full path of a Windows system tool. */
+export function getWindowsSystemTool(fileName: string): string {
+    return path.join(process.env.SystemRoot ?? "C:\\Windows", "System32", fileName);
+}
+
+/**
+ * Runs a short-lived command and returns its stdout, or undefined when it could
+ * not run.
+ */
 async function runCapturedCommand(file: string, args: string[]): Promise<string | undefined> {
     return new Promise<string | undefined>((resolve) => {
         let child: ChildProcess;
         try {
-            child = spawn(file, args, { windowsHide: true });
+            child = spawn(file, args, { windowsHide: true, cwd: os.tmpdir() });
         } catch {
             resolve(undefined);
             return;
@@ -528,9 +545,11 @@ export async function stopDabCliEngine(
     try {
         if (process.platform === "win32") {
             await new Promise<void>((resolve, reject) => {
-                const taskkill = spawn("taskkill", ["/PID", `${processId}`, "/T", "/F"], {
-                    windowsHide: true,
-                });
+                const taskkill = spawn(
+                    getWindowsSystemTool("taskkill.exe"),
+                    ["/PID", `${processId}`, "/T", "/F"],
+                    { windowsHide: true },
+                );
 
                 let output = "";
                 taskkill.stdout?.on("data", (chunk: Buffer | string) => {

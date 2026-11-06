@@ -805,7 +805,25 @@ export namespace Dab {
      * The :latest tag cannot be used for that, since it tracks the newest
      * stable and would leave the container behind the CLI.
      */
-    export const DAB_CONTAINER_IMAGE = `mcr.microsoft.com/azure-databases/data-api-builder:${DAB_ENGINE_VERSION}`;
+    export const DAB_CONTAINER_IMAGE_REPOSITORY =
+        "mcr.microsoft.com/azure-databases/data-api-builder";
+
+    /**
+     * Digest of the image index tagged {@link DAB_ENGINE_VERSION}. A tag can be
+     * moved to another image after release; a digest names exactly one, so the
+     * container always runs the build the designer was made for. Look it up
+     * with `docker buildx imagetools inspect <repository>:<version>` when the
+     * engine version changes.
+     */
+    export const DAB_CONTAINER_IMAGE_DIGEST =
+        "sha256:d07e3e1ce53bdf84d3a4a0a4ce12e44f0b902e7316c782a3d682fbe074509c0b";
+
+    /**
+     * DAB container image, pinned to the digest of the
+     * `${DAB_ENGINE_VERSION}` release. The digest alone is used, without the
+     * tag, because that is the form every Docker client resolves the same way.
+     */
+    export const DAB_CONTAINER_IMAGE = `${DAB_CONTAINER_IMAGE_REPOSITORY}@${DAB_CONTAINER_IMAGE_DIGEST}`;
 
     /**
      * Platform to use when pulling the DAB container image.

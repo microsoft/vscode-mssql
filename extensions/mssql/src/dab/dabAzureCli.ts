@@ -18,16 +18,28 @@
  *   <globalStorage>/dab-azure-cli/config/      its AZURE_CONFIG_DIR
  */
 
-import { ChildProcess, spawn } from "child_process";
+import { ChildProcess, spawn, SpawnOptions } from "child_process";
+import { createHash } from "crypto";
+import { createReadStream } from "fs";
 import * as fsPromises from "fs/promises";
+import * as os from "os";
 import * as path from "path";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { getErrorMessage } from "../utils/utils";
 import { extractZipArchive } from "./dabCliArchive";
+import { getWindowsSystemTool } from "./dabCliProcess";
 
 /** Azure CLI version the private copy installs. */
 export const DAB_AZURE_CLI_VERSION = "2.92.0";
+
+/**
+ * SHA-256 of the Windows zip for {@link DAB_AZURE_CLI_VERSION}, as published
+ * with the azure-cli-2.92.0 release on GitHub. The download is checked against
+ * it before anything is unpacked.
+ */
+export const DAB_AZURE_CLI_ZIP_SHA256 =
+    "2cbd2c10e4b2ec4de2ab98eaa69f51fa4c9dfc4922b5116ada88091663d92af2";
 
 /** Resource the engine asks tokens for when it connects to Azure SQL. */
 const AZURE_SQL_RESOURCE = "https://database.windows.net/";
@@ -60,7 +72,7 @@ export type DabAzureCliInstallProgress =
     | { phase: "pip" };
 
 /** Why the private copy could not be installed. */
-export type DabAzureCliInstallFailure = "download" | "unpack" | "python" | "pip";
+export type DabAzureCliInstallFailure = "download" | "verify" | "unpack" | "python" | "pip";
 
 export class DabAzureCliInstallError extends Error {
     constructor(
@@ -270,8 +282,7 @@ export class DabAzureCli {
                 // Skips the subscription picker newer versions show after login.
                 AZURE_CORE_LOGIN_EXPERIENCE_V2: "off",
                 // Pins the engine's DefaultAzureCredential to the Azure CLI, so it
-                // cannot pick up a different identity from Visual Studio or an
-                // environment credential and connect as someone else.
+                // uses the sign-in made in the deployment.
                 AZURE_TOKEN_CREDENTIALS: "AzureCliCredential",
             },
         };
@@ -325,6 +336,15 @@ export class DabAzureCli {
             );
         }
 
+        const actualHash = await hashFile(zipPath);
+        if (actualHash !== DAB_AZURE_CLI_ZIP_SHA256) {
+            await fsPromises.unlink(zipPath).catch(() => {});
+            throw new DabAzureCliInstallError(
+                "verify",
+                `The Azure CLI download has SHA-256 ${actualHash}, not the official ${DAB_AZURE_CLI_ZIP_SHA256}.`,
+            );
+        }
+
         try {
             await extractZipArchive(zipPath, this.installPath, undefined, (completed, total) =>
                 onProgress?.({ phase: "unpack", completed, total }),
@@ -360,7 +380,11 @@ export class DabAzureCli {
         }
 
         onProgress?.({ phase: "pip" });
-        const venvResult = await runCommand(python, ["-m", "venv", this.installPath]);
+        const venvResult = await runCommand(
+            python,
+            ["-m", "venv", this.installPath],
+            this.rootPath,
+        );
         if (venvResult.exitCode !== 0) {
             throw new DabAzureCliInstallError(
                 "python",
@@ -369,14 +393,18 @@ export class DabAzureCli {
         }
 
         this.logger.info(`Installing Azure CLI ${this.version} with pip into ${this.installPath}`);
-        const pipResult = await runCommand(path.join(this.installPath, "bin", "python"), [
-            "-m",
-            "pip",
-            "install",
-            "--disable-pip-version-check",
-            "--no-input",
-            `azure-cli==${this.version}`,
-        ]);
+        const pipResult = await runCommand(
+            path.join(this.installPath, "bin", "python"),
+            [
+                "-m",
+                "pip",
+                "install",
+                "--disable-pip-version-check",
+                "--no-input",
+                `azure-cli==${this.version}`,
+            ],
+            this.installPath,
+        );
         if (pipResult.exitCode !== 0) {
             throw new DabAzureCliInstallError(
                 "pip",
@@ -405,13 +433,17 @@ export class DabAzureCli {
      * is quoted, so nothing reaches the shell that it could reinterpret.
      */
     private spawnAz(resolution: DabAzureCliResolution, args: string[]): ChildProcess {
-        const env = { ...process.env, ...resolution.environment };
+        const options: SpawnOptions = {
+            env: { ...process.env, ...resolution.environment },
+            cwd: path.dirname(resolution.azPath),
+            windowsHide: true,
+        };
         if (process.platform === "win32") {
             const command = [`"${resolution.azPath}"`, ...args].join(" ");
-            return spawn(command, { shell: true, env, windowsHide: true });
+            return spawn(command, { ...options, shell: true });
         }
 
-        return spawn(resolution.azPath, args, { env });
+        return spawn(resolution.azPath, args, options);
     }
 }
 
@@ -422,10 +454,9 @@ export class DabAzureCli {
  */
 function killProcessTree(child: ChildProcess): void {
     if (process.platform === "win32" && child.pid) {
-        spawn("taskkill", ["/PID", `${child.pid}`, "/T", "/F"], { windowsHide: true }).on(
-            "error",
-            () => child.kill(),
-        );
+        spawn(getWindowsSystemTool("taskkill.exe"), ["/PID", `${child.pid}`, "/T", "/F"], {
+            windowsHide: true,
+        }).on("error", () => child.kill());
         return;
     }
 
@@ -443,11 +474,29 @@ function collectCommandResult(child: ChildProcess, resolve: (result: CommandResu
     child.on("close", (exitCode) => resolve({ exitCode, stdout, stderr }));
 }
 
-function runCommand(file: string, args: string[]): Promise<CommandResult> {
+function hashFile(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const hash = createHash("sha256");
+        createReadStream(filePath)
+            .on("error", reject)
+            .on("data", (chunk) => hash.update(chunk))
+            .on("end", () => resolve(hash.digest("hex")));
+    });
+}
+
+/**
+ * Runs a command to completion, from the given folder or the system temp
+ * folder.
+ */
+function runCommand(
+    file: string,
+    args: string[],
+    cwd: string = os.tmpdir(),
+): Promise<CommandResult> {
     return new Promise<CommandResult>((resolve) => {
         let child: ChildProcess;
         try {
-            child = spawn(file, args);
+            child = spawn(file, args, { cwd, windowsHide: true });
         } catch (error) {
             resolve({ exitCode: null, stdout: "", stderr: "", error: getErrorMessage(error) });
             return;

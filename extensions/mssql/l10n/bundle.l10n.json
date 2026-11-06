@@ -1406,6 +1406,7 @@
     "Deployments cannot be tracked because the extension's storage location is unavailable.": "Deployments cannot be tracked because the extension's storage location is unavailable.",
     "Failed to download the Data API builder CLI. Please check your network connection.": "Failed to download the Data API builder CLI. Please check your network connection.",
     "Failed to prepare the Data API builder CLI.": "Failed to prepare the Data API builder CLI.",
+    "The Data API builder CLI that was downloaded is not the official release, so it was not used. If you use a NuGet mirror, check that it serves the official package.": "The Data API builder CLI that was downloaded is not the official release, so it was not used. If you use a NuGet mirror, check that it serves the official package.",
     "Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead./{0} is a .NET runtime identifier, such as osx-arm64": {
         "message": "Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.",
         "comment": ["{0} is a .NET runtime identifier, such as osx-arm64"]
@@ -1425,6 +1426,7 @@
     "The Azure CLI is not set up yet. Run the deployment again from the start.": "The Azure CLI is not set up yet. Run the deployment again from the start.",
     "The Azure CLI could not be downloaded. Check your network connection, then try again.": "The Azure CLI could not be downloaded. Check your network connection, then try again.",
     "The Azure CLI could not be set up.": "The Azure CLI could not be set up.",
+    "The Azure CLI that was downloaded is not the official release, so it was not used.": "The Azure CLI that was downloaded is not the official release, so it was not used.",
     "A private Azure CLI on macOS and Linux needs Python 3.10 or later. Install Python, then try again.": "A private Azure CLI on macOS and Linux needs Python 3.10 or later. Install Python, then try again.",
     "Install Python": "Install Python",
     "Signed in as {0}/{0} is the Microsoft Entra account name": {

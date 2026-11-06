@@ -19,12 +19,15 @@
  * Feeds requiring authentication are not supported: there is no credential
  * provider here, so such a source is skipped like any other that does not
  * answer. Setting `mssql.dab.cliPackageFeedUrl` bypasses all of this.
+ *
+ * Only machine-wide and user configuration is read, and only HTTPS sources
+ * are followed. Whatever feed is used, the unpacked CLI is checked against
+ * the pinned release.
  */
 
 import * as fsPromises from "fs/promises";
 import * as os from "os";
 import * as path from "path";
-import * as vscode from "vscode";
 import { DOMParser } from "@xmldom/xmldom";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
@@ -57,9 +60,10 @@ interface NuGetConfigContents {
 
 /**
  * Config file paths from least to most specific, matching how NuGet layers
- * machine, user, and directory configuration.
+ * machine and user configuration. Directory configuration is deliberately left
+ * out; see the file comment.
  */
-export function getNuGetConfigPaths(workspacePath?: string): string[] {
+export function getNuGetConfigPaths(): string[] {
     const paths: string[] = [];
 
     if (process.platform === "win32") {
@@ -74,26 +78,6 @@ export function getNuGetConfigPaths(workspacePath?: string): string[] {
     } else {
         paths.push(path.join(os.homedir(), ".nuget", "NuGet", "NuGet.Config"));
         paths.push(path.join(os.homedir(), ".config", "NuGet", "NuGet.Config"));
-    }
-
-    // Directory configuration applies from the root down, so the closest file
-    // to the workspace is considered last and wins.
-    if (workspacePath) {
-        const directories: string[] = [];
-        let current = path.resolve(workspacePath);
-        while (true) {
-            directories.unshift(current);
-            const parent = path.dirname(current);
-            if (parent === current) {
-                break;
-            }
-            current = parent;
-        }
-
-        for (const directory of directories) {
-            paths.push(path.join(directory, "NuGet.Config"));
-            paths.push(path.join(directory, "nuget.config"));
-        }
     }
 
     return paths;
@@ -142,14 +126,11 @@ export function parseNuGetConfig(xml: string): NuGetConfigContents {
  * Merges every readable NuGet.Config into the list of enabled sources, with
  * more specific files overriding and clearing less specific ones.
  */
-export async function readEnabledNuGetSources(
-    workspacePath?: string,
-    logger?: ILogger,
-): Promise<NuGetPackageSource[]> {
+export async function readEnabledNuGetSources(logger?: ILogger): Promise<NuGetPackageSource[]> {
     const sourcesByKey = new Map<string, string>();
     const disabledKeys = new Set<string>();
 
-    for (const configPath of getNuGetConfigPaths(workspacePath)) {
+    for (const configPath of getNuGetConfigPaths()) {
         let xml: string;
         try {
             xml = await fsPromises.readFile(configPath, "utf8");
@@ -209,7 +190,8 @@ export async function resolveFlatContainerUrl(
     const resource = response.data?.resources?.find(
         (candidate) => candidate["@type"] === PACKAGE_BASE_ADDRESS_TYPE,
     );
-    return resource?.["@id"]?.replace(/\/+$/, "");
+    const flatContainerUrl = resource?.["@id"]?.replace(/\/+$/, "");
+    return flatContainerUrl && /^https:\/\//i.test(flatContainerUrl) ? flatContainerUrl : undefined;
 }
 
 /**
@@ -230,10 +212,9 @@ export async function resolveDabCliFeedUrl(
         return configuredFeedUrl.replace(/\/+$/, "");
     }
 
-    const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     let sources: NuGetPackageSource[];
     try {
-        sources = await readEnabledNuGetSources(workspacePath, logger);
+        sources = await readEnabledNuGetSources(logger);
     } catch (error) {
         logger.warn(`Could not read NuGet configuration: ${getErrorMessage(error)}`);
         sources = [];
@@ -243,7 +224,7 @@ export async function resolveDabCliFeedUrl(
     for (const source of sources) {
         // Only v3 sources expose a service index; a v2 feed or local folder has
         // no flat container to resolve.
-        if (!/^https?:/i.test(source.value) || !source.value.endsWith(".json")) {
+        if (!/^https:/i.test(source.value) || !source.value.endsWith(".json")) {
             continue;
         }
 

@@ -2480,6 +2480,9 @@ export class LocalContainers {
         "Failed to download the Data API builder CLI. Please check your network connection.",
     );
     public static dabCliPrepareFailed = l10n.t("Failed to prepare the Data API builder CLI.");
+    public static dabCliVerificationFailed = l10n.t(
+        "The Data API builder CLI that was downloaded is not the official release, so it was not used. If you use a NuGet mirror, check that it serves the official package.",
+    );
     public static dabCliArchitectureUnsupported = (runtimeIdentifier: string) =>
         l10n.t({
             message:
@@ -2520,6 +2523,9 @@ export class LocalContainers {
         "The Azure CLI could not be downloaded. Check your network connection, then try again.",
     );
     public static dabAzureCliInstallFailed = l10n.t("The Azure CLI could not be set up.");
+    public static dabAzureCliVerificationFailed = l10n.t(
+        "The Azure CLI that was downloaded is not the official release, so it was not used.",
+    );
     public static dabAzureCliPythonMissing = l10n.t(
         "A private Azure CLI on macOS and Linux needs Python 3.10 or later. Install Python, then try again.",
     );

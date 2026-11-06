@@ -12405,11 +12405,17 @@
     <trans-unit id="++CODE++c2d2ecb47e692534622150cc6d64536e5e7ec71fdaacb9052ffe8cc9c6c42ebe">
       <source xml:lang="en">The Azure CLI is not set up yet. Run the deployment again from the start.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d49eab0ef5721e6c8aa18ac4762c64e8ffbec84dfcae04167aeaded3116eb9d6">
+      <source xml:lang="en">The Azure CLI that was downloaded is not the official release, so it was not used.</source>
+    </trans-unit>
     <trans-unit id="++CODE++19f94053c824ea8918fb1bc75d32db61c103a9bda361494326fb6212602380fb">
       <source xml:lang="en">The Azure SQL Database container did not become ready for connections within five minutes.</source>
     </trans-unit>
     <trans-unit id="++CODE++61f87c003e1cd80e47b70c628e2f057439b9839b1e65f7e896ade78f455fd463">
       <source xml:lang="en">The Data API builder CLI is not available. Run the prerequisite checks again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5cc546916b804a75abf2bf859231c42807aeb3bdc62d451b14c764e90626188c">
+      <source xml:lang="en">The Data API builder CLI that was downloaded is not the official release, so it was not used. If you use a NuGet mirror, check that it serves the official package.</source>
     </trans-unit>
     <trans-unit id="++CODE++56fd12d1814f45e445ae980300dfd1116341d74906f20c1a15a33e850468adbc">
       <source xml:lang="en">The Data API builder engine did not answer in time.</source>
@@ -15240,6 +15246,9 @@
     </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
+    <trans-unit id="mssql.dab.cliPackageFeedUrl">
+      <source xml:lang="en">(Preview) HTTPS URL of the NuGet flat container (`PackageBaseAddress`) to download the Data API builder CLI from, for environments that mirror nuget.org. Leave empty to use your NuGet configuration, then nuget.org. Applies only from user settings. The downloaded CLI must match the official release, or it is not used.</source>
+    </trans-unit>
     <trans-unit id="mssql.schemaDesigner.enableDeploymentsView">
       <source xml:lang="en">(Preview) Manage Data API builder deployments from a Deployments view in Schema Designer, with support for deploying through Docker or the DAB CLI. Turn this off to use the original Docker-only Deploy dialog. Requires a reload of Visual Studio Code.</source>
     </trans-unit>
