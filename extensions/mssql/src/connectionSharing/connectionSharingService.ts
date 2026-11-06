@@ -5,6 +5,7 @@
 
 import * as mssql from "vscode-mssql";
 import ConnectionManager from "../controllers/connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
 import { IConnectionProfile } from "../models/interfaces";
@@ -342,8 +343,10 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         apiName: string,
         extensionId?: string,
         authenticationType?: string,
+        connectionProfile?: IConnectionProfile,
     ): void {
         sendActionEvent(TelemetryViews.Connection, TelemetryActions.ConnectionSharingApiCalled, {
+            ...getConnectionTelemetryInfo(this._connectionManager, connectionProfile),
             additionalProps: {
                 method: apiName,
                 authenticationType: authenticationType ?? "unknown",
@@ -375,6 +378,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             apiName,
             metadata?.extensionId,
             connectionProfile?.authenticationType?.toString() ?? metadata?.authenticationType,
+            connectionProfile,
         );
         this.showConnectionSharingDeprecationWarning(metadata?.extensionId);
     }
@@ -466,6 +470,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             "getActiveEditorConnectionId",
             extensionId,
             connectionDetails?.authenticationType?.toString(),
+            connectionDetails,
         );
         this.showConnectionSharingDeprecationWarning(extensionId);
 
@@ -504,6 +509,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             "getActiveDatabase",
             extensionId,
             connectionDetails?.authenticationType?.toString(),
+            connectionDetails,
         );
         this.showConnectionSharingDeprecationWarning(extensionId);
 
@@ -538,6 +544,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             "getDatabaseForConnectionId",
             extensionId,
             targetConnection?.authenticationType?.toString(),
+            targetConnection,
         );
         this.showConnectionSharingDeprecationWarning(extensionId);
 
@@ -561,6 +568,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             "connect",
             extensionId,
             targetConnection?.authenticationType?.toString(),
+            targetConnection,
         );
         this.showConnectionSharingDeprecationWarning(extensionId);
 
@@ -804,6 +812,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             "getConnectionString",
             extensionId,
             targetConnection?.authenticationType?.toString(),
+            targetConnection,
         );
         this.showConnectionSharingDeprecationWarning(extensionId);
 

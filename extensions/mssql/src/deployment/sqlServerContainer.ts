@@ -322,6 +322,7 @@ export async function restartSqlServerContainer(
                 return undefined;
             }
             sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+                connectionInfo: containerNode?.connectionProfile,
                 error: new Error(dockerPreparedResult.error),
                 includeErrorMessage: false,
             });
@@ -386,6 +387,7 @@ export async function restartSqlServerContainer(
 
         if (!containerReadyResult.success) {
             sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+                connectionInfo: containerNode?.connectionProfile,
                 error: new Error(containerReadyResult.error),
                 includeErrorMessage: false,
             });
@@ -394,7 +396,9 @@ export async function restartSqlServerContainer(
             });
             return false;
         }
-        sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer);
+        sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+            connectionInfo: containerNode?.connectionProfile,
+        });
         span.end("ok");
         return true;
     } catch (error) {

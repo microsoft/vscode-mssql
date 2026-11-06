@@ -9,6 +9,7 @@ import * as fs from "fs";
 import { existsSync } from "fs";
 import { homedir } from "os";
 import ConnectionManager from "./connectionManager";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { DacFxService } from "../services/dacFxService";
 import { IConnectionProfile } from "../models/interfaces";
 import * as vscodeMssql from "vscode-mssql";
@@ -47,6 +48,10 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     dacpacDialog.DacpacDialogResult
 > {
     private _ownerUri: string;
+
+    protected override get telemetryContext() {
+        return getConnectionTelemetryInfo(this.connectionManager, this._ownerUri);
+    }
 
     constructor(
         context: vscode.ExtensionContext,
@@ -307,6 +312,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogDeployDacpac,
             {
+                ...getConnectionTelemetryInfo(
+                    this.connectionManager,
+                    params.ownerUri,
+                    params.databaseName,
+                ),
                 additionalProps: {
                     isNewDatabase: params.isNewDatabase.toString(),
                 },
@@ -371,6 +381,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogExtractDacpac,
+            getConnectionTelemetryInfo(
+                this.connectionManager,
+                params.ownerUri,
+                params.databaseName,
+            ),
         );
 
         try {
@@ -432,6 +447,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogImportBacpac,
+            getConnectionTelemetryInfo(
+                this.connectionManager,
+                params.ownerUri,
+                params.databaseName,
+            ),
         );
 
         try {
@@ -491,6 +511,11 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogExportBacpac,
+            getConnectionTelemetryInfo(
+                this.connectionManager,
+                params.ownerUri,
+                params.databaseName,
+            ),
         );
 
         try {
@@ -771,6 +796,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         autoConnected: boolean;
     } {
         this.logger.debug(`Using existing connection from Object Explorer: ${ownerUri}`);
+        this._ownerUri = ownerUri;
         return {
             selectedConnection: matchingConnection,
             ownerUri,
@@ -830,6 +856,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         isFabric?: boolean;
         databaseName?: string;
     }> {
+        this._ownerUri = "";
         try {
             // Find the profile in saved connections
             const savedConnections =
@@ -856,6 +883,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             let ownerUri = this.connectionManager.getUriForConnection(profile);
             if (ownerUri && this.connectionManager.isConnected(ownerUri)) {
                 // Connection is active and valid
+                this._ownerUri = ownerUri;
                 return {
                     ownerUri,
                     isConnected: true,
@@ -872,6 +900,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             if (result) {
                 // Get the actual ownerUri that was used for the connection
                 ownerUri = this.connectionManager.getUriForConnection(profile);
+                this._ownerUri = ownerUri;
                 return {
                     ownerUri,
                     isConnected: true,

@@ -1931,10 +1931,11 @@ export class ProjectsController {
         connectionInfo?: string | mssqlVscode.IConnectionInfo,
         serverName?: string,
     ) {
+        let serverInfo: mssqlVscode.IServerInfo | undefined;
+        const connectionProfile = typeof connectionInfo === "object" ? connectionInfo : undefined;
         try {
             const newProjFolderUri = model.filePath;
             let targetPlatform: SqlTargetPlatform | undefined;
-            let serverInfo;
             if (connectionInfo) {
                 if (typeof connectionInfo === "string") {
                     throw new Error("Connection ID string is not supported in VS Code");
@@ -1971,12 +1972,17 @@ export class ProjectsController {
             await this.createProjectFromDatabaseApiCall(model); // Call ExtractAPI in DacFx Service
 
             const timeToExtract = new Date().getTime() - startTime.getTime();
-            TelemetryReporter.createActionEvent(
+            const telemetryEvent = TelemetryReporter.createActionEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.createProjectFromDatabase,
-            )
-                .withAdditionalMeasurements({ durationMs: timeToExtract })
-                .send();
+            ).withAdditionalMeasurements({ durationMs: timeToExtract });
+            if (connectionProfile) {
+                telemetryEvent.withConnectionInfo(connectionProfile);
+            }
+            if (serverInfo) {
+                telemetryEvent.withServerInfo(serverInfo);
+            }
+            telemetryEvent.send();
 
             const scriptList: vscode.Uri[] =
                 model.extractTarget === ExtractTarget.file
@@ -1997,11 +2003,18 @@ export class ProjectsController {
             await workspaceApi.addProjectsToWorkspace([vscode.Uri.file(newProjFilePath)]);
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent(
+            const telemetryEvent = TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.createProjectFromDatabase,
                 err,
             );
+            if (connectionProfile) {
+                telemetryEvent.withConnectionInfo(connectionProfile);
+            }
+            if (serverInfo) {
+                telemetryEvent.withServerInfo(serverInfo);
+            }
+            telemetryEvent.send();
         }
     }
 

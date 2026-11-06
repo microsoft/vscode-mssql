@@ -56,7 +56,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
-import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
+import { sendActionEvent, startActivity, TelemetryEventOptions } from "extension-toolkit/vscode";
 import { Perf } from "../perf/perfTelemetry";
 import { diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -194,6 +194,7 @@ export default class QueryRunner {
         private _statusView: StatusView,
         private _client?: SqlToolsServerClient,
         private _notificationHandler?: QueryNotificationHandler,
+        private _getConnectionTelemetryInfo: (uri: string) => TelemetryEventOptions = () => ({}),
     ) {
         if (!_client) {
             this._client = SqlToolsServerClient.instance;
@@ -313,7 +314,7 @@ export default class QueryRunner {
         const cancelQueryActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.CancelQuery,
-            { includeCallStack: true },
+            { ...this._getConnectionTelemetryInfo(this._ownerUri), includeCallStack: true },
         );
         const cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
         let cancelRequestCompleted = false;
@@ -430,6 +431,7 @@ export default class QueryRunner {
             TelemetryViews.QueryEditor,
             TelemetryActions.RunQuery,
             {
+                ...this._getConnectionTelemetryInfo(this._ownerUri),
                 additionalProps: {
                     executionType: "statement",
                     hasExecutionPlan: this.requestsExecutionPlan ? "true" : "false",
@@ -490,6 +492,7 @@ export default class QueryRunner {
             TelemetryViews.QueryEditor,
             TelemetryActions.RunQuery,
             {
+                ...this._getConnectionTelemetryInfo(this._ownerUri),
                 additionalProps: {
                     executionType: queryType,
                     hasExecutionPlan: this.requestsExecutionPlan ? "true" : "false",
@@ -574,6 +577,7 @@ export default class QueryRunner {
             TelemetryViews.QueryEditor,
             TelemetryActions.RunQuery,
             {
+                ...this._getConnectionTelemetryInfo(this._ownerUri),
                 additionalProps: {
                     executionType: "quickQuery",
                     hasExecutionPlan: "false",
@@ -701,6 +705,7 @@ export default class QueryRunner {
             });
         }
         sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.QueryExecutionCompleted, {
+            ...this._getConnectionTelemetryInfo(this._ownerUri),
             additionalProps: {
                 liveStatistics: this.isLiveStatisticsRun ? "true" : "false",
                 isCanceled: this._isCanceled ? "true" : "false",
@@ -900,6 +905,7 @@ export default class QueryRunner {
             TelemetryViews.QueryEditor,
             TelemetryActions.GetResultRowsSubset,
             {
+                ...this._getConnectionTelemetryInfo(this._ownerUri),
                 additionalMeasurements: {
                     rowCount: bucketizeRowCount(numberOfRows),
                 },

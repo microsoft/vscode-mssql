@@ -158,6 +158,9 @@ export class ConnectionChangedParams {
      * Summary of details containing any connection changes.
      */
     public connection: ConnectionSummary;
+
+    /** Updated server and database service metadata, when provided by STS. */
+    public serverInfo?: IServerInfo;
 }
 
 // ------------------------------- </ Connection Changed Event > ------------------------------------

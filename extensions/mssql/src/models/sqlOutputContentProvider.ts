@@ -13,7 +13,7 @@ import StatusView from "../views/statusView";
 import { ISelectionData } from "./interfaces";
 import { Deferred } from "../protocol";
 import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
-import { sendActionEvent } from "extension-toolkit/vscode";
+import { sendActionEvent, TelemetryEventOptions } from "extension-toolkit/vscode";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -90,6 +90,11 @@ function getCompletedRunTab(
 }
 
 export class SqlOutputContentProvider {
+    /** Returns cached metadata for the connection associated with a result's owner URI. */
+    public getConnectionTelemetryInfo(uri: string): TelemetryEventOptions {
+        return this._getConnectionTelemetryInfo(uri);
+    }
+
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
     private _queryResultWebviewController: QueryResultWebviewController;
     private _actualPlanStatuses: string[] = [];
@@ -118,6 +123,7 @@ export class SqlOutputContentProvider {
         private _statusView: StatusView,
         private _executionPlanService: ExecutionPlanService,
         queryCompletionSoundService?: QueryCompletionSoundService,
+        private _getConnectionTelemetryInfo: (uri: string) => TelemetryEventOptions = () => ({}),
     ) {
         this._queryCompletionSoundService =
             queryCompletionSoundService ??
@@ -742,7 +748,14 @@ export class SqlOutputContentProvider {
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
-            queryRunner = new QueryRunner(uri, title, statusView);
+            queryRunner = new QueryRunner(
+                uri,
+                title,
+                statusView,
+                undefined,
+                undefined,
+                this._getConnectionTelemetryInfo,
+            );
             let isLiveRun = false;
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
@@ -774,6 +787,7 @@ export class SqlOutputContentProvider {
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri, "throw");
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
+                    ...this.getConnectionTelemetryInfo(queryRunner.uri),
                     additionalProps: {
                         defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                     },

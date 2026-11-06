@@ -5,10 +5,15 @@
 
 import * as vscode from "vscode";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../../sharedInterfaces/telemetry";
-import { startActivity } from "extension-toolkit/vscode";
+import { startActivity, TelemetryEventOptions } from "extension-toolkit/vscode";
 
 export abstract class ToolBase<T> implements vscode.LanguageModelTool<T> {
     toolName: string;
+
+    /** Supplies cached metadata only when a concrete tool can identify its target connection. */
+    protected getTelemetryContext(_input: T): TelemetryEventOptions {
+        return {};
+    }
 
     async invoke(
         options: vscode.LanguageModelToolInvocationOptions<T>,
@@ -18,6 +23,7 @@ export abstract class ToolBase<T> implements vscode.LanguageModelTool<T> {
             TelemetryViews.MssqlCopilot,
             TelemetryActions.CopilotAgentModeToolCall,
             {
+                ...this.getTelemetryContext(options.input),
                 correlationId: `${options.toolInvocationToken}`,
                 additionalProps: {
                     toolName: this.toolName,

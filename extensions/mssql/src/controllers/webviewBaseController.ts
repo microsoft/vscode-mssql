@@ -25,7 +25,12 @@ import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../sharedInterfaces/webview";
-import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    startActivity,
+    TelemetryEventOptions,
+} from "extension-toolkit/vscode";
 
 import * as fs from "fs";
 import * as path from "path";
@@ -119,6 +124,11 @@ class WebviewControllerMessageWriter extends AbstractMessageWriter implements Me
  * @template Reducers The type of the reducers that the webview will use
  */
 export abstract class WebviewBaseController<State, Reducers> implements vscode.Disposable {
+    /** Metadata for explicitly connection-bound views; global views leave this empty. */
+    protected get telemetryContext(): TelemetryEventOptions {
+        return {};
+    }
+
     private _disposables: vscode.Disposable[] = [];
     private _isDisposed: boolean = false;
     private _onDisposed: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
@@ -369,6 +379,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             SendActionEventNotification.type,
             (message: WebviewTelemetryActionEvent) => {
                 sendActionEvent(message.telemetryView, message.telemetryAction, {
+                    ...this.telemetryContext,
                     additionalProps: message.additionalProps,
                     additionalMeasurements: message.additionalMeasurements,
                 });
@@ -379,6 +390,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             SendErrorEventNotification.type,
             (message: WebviewTelemetryErrorEvent) => {
                 sendErrorEvent(message.telemetryView, message.telemetryAction, {
+                    ...this.telemetryContext,
                     error: message.error,
                     includeErrorMessage: message.includeErrorMessage,
                     errorCode: message.errorCode,
@@ -428,6 +440,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                     `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
                 );
                 this._endLoadActivity.end(ActivityStatus.Succeeded, {
+                    ...this.telemetryContext,
                     additionalProps: {
                         type: this._sourceFile,
                     },
@@ -474,6 +487,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 TelemetryViews.WebviewController,
                 TelemetryActions.Reducer,
                 {
+                    ...this.telemetryContext,
                     additionalProps: {
                         type: action.type as string,
                         webviewId: this._sourceFile,
@@ -587,6 +601,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 TelemetryViews.WebviewController,
                 TelemetryActions.OnRequest,
                 {
+                    ...this.telemetryContext,
                     additionalProps: {
                         type: type.method,
                         webviewId: this._sourceFile,
@@ -667,6 +682,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             return Promise.resolve();
         }
         sendActionEvent(TelemetryViews.WebviewController, TelemetryActions.SendNotification, {
+            ...this.telemetryContext,
             additionalProps: {
                 type: type.method,
                 webviewId: this._sourceFile,

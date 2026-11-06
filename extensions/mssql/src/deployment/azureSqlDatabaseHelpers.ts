@@ -30,6 +30,7 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { ConnectionCredentials } from "../models/connectionCredentials";
+import { getConnectionTelemetryInfo } from "../utils/telemetryUtils";
 import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import { UserSurvey } from "../nps/userSurvey";
@@ -931,6 +932,7 @@ export async function connectToAzureSqlDatabase(
 ): Promise<void> {
     const state = deploymentController.state.deploymentTypeState as asd.AzureSqlDatabaseState;
     const startTime = Date.now();
+    let telemetryConnection: IConnectionDialogProfile | undefined;
     state.connectionLoadState = ApiStatus.Loading;
     state.canAddFirewallRule = false;
     state.firewallErrorMessage = "";
@@ -957,6 +959,7 @@ export async function connectToAzureSqlDatabase(
                 : AuthenticationType.AzureMFA;
 
         connectionProfile.accountId = state.formState.accountId;
+        telemetryConnection = connectionProfile;
         connectionProfile.tenantId = state.formState.tenantId;
 
         // Acquire an Entra SQL access token so the connection starts with a
@@ -1053,6 +1056,7 @@ export async function connectToAzureSqlDatabase(
                         TelemetryViews.AzureSqlDatabase,
                         TelemetryActions.ConnectToAzureSqlDatabase,
                         {
+                            ...getConnectionTelemetryInfo(connManager, connectionProfile),
                             error: new Error("Failed to detect client IP for firewall rule"),
                             includeErrorMessage: false,
                         },
@@ -1091,6 +1095,7 @@ export async function connectToAzureSqlDatabase(
                         TelemetryViews.AzureSqlDatabase,
                         TelemetryActions.ConnectToAzureSqlDatabase,
                         {
+                            ...getConnectionTelemetryInfo(connManager, connectionProfile),
                             error: new Error(`Firewall rule creation failed: ${errorMsg}`),
                             includeErrorMessage: false,
                         },
@@ -1132,6 +1137,7 @@ export async function connectToAzureSqlDatabase(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
             {
+                ...getConnectionTelemetryInfo(connManager, connectionProfile),
                 additionalProps: {},
                 additionalMeasurements: {
                     connectToDatabaseLoadTimeInMs: Date.now() - startTime,
@@ -1146,7 +1152,14 @@ export async function connectToAzureSqlDatabase(
         sendErrorEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
-            { error: err as Error, includeErrorMessage: false },
+            {
+                ...getConnectionTelemetryInfo(
+                    deploymentController.mainController.connectionManager,
+                    telemetryConnection,
+                ),
+                error: err as Error,
+                includeErrorMessage: false,
+            },
         );
     }
 
