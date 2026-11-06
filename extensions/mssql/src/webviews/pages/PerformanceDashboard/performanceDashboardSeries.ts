@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { locConstants as loc } from "../../common/locConstants";
 import type { ResolvedTimeRange } from "../../common/timeRange/timeRange";
+import { dateTimeFormat, timeFormat } from "./performanceDashboardFormat";
 import type { TimeSeriesPoint } from "./performanceDashboardParts";
 
 const minuteMs = 60_000;
@@ -37,4 +39,23 @@ export function filledSeriesPoints(
         points.push({ x: new Date(start), y: values.get(start) ?? 0 });
     }
     return points;
+}
+
+/**
+ * Moves the point of each bucket from its start to its middle, so that it is over the bucket in a
+ * band below the chart and not on the edge with the next one. The tooltip names the bucket.
+ */
+export function centeredSeriesPoints(
+    points: readonly TimeSeriesPoint[],
+    bucketMinutes: number,
+): TimeSeriesPoint[] {
+    const sizeMs = bucketMinutes * minuteMs;
+    return points.map(({ x, y }) => ({
+        x: new Date(x.getTime() + sizeMs / 2),
+        y,
+        xLabel: loc.performanceDashboard.timeIntervalRange(
+            dateTimeFormat.format(x),
+            timeFormat.format(new Date(x.getTime() + sizeMs)),
+        ),
+    }));
 }

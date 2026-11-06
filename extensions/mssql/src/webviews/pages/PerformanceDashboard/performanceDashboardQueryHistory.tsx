@@ -27,7 +27,7 @@ import {
     useQueryHistory,
 } from "./performanceDashboardPlanHistory";
 import { useQueryPlans } from "./performanceDashboardQueryPlans";
-import { filledSeriesPoints } from "./performanceDashboardSeries";
+import { centeredSeriesPoints, filledSeriesPoints } from "./performanceDashboardSeries";
 import { DashboardGrid, textSpan, withSwatch } from "./performanceDashboardGrid";
 import { ChartSkeleton, TableSkeleton } from "./performanceDashboardSkeletons";
 import { readStatusMessage } from "./performanceDashboardStatus";
@@ -61,16 +61,21 @@ export const PerformanceDashboardQueryHistory = ({ queryId }: { queryId: string 
     );
     const colorOf = usePlanColor(planIds);
 
+    // Each point is in the middle of its interval, over the interval's plan in the band.
     const points = useMemo(() => {
         const intervals = data ?? [];
-        return filledSeriesPoints(
-            intervals.map((interval) => ({
-                startUtc: interval.startUtc,
-                value: historyValue(interval, metric, view) ?? 0,
-            })),
-            intervalMinutesOf(intervals),
-            range,
-            availableFrom,
+        const bucketMinutes = intervalMinutesOf(intervals);
+        return centeredSeriesPoints(
+            filledSeriesPoints(
+                intervals.map((interval) => ({
+                    startUtc: interval.startUtc,
+                    value: historyValue(interval, metric, view) ?? 0,
+                })),
+                bucketMinutes,
+                range,
+                availableFrom,
+            ),
+            bucketMinutes,
         );
     }, [data, metric, view, range, availableFrom]);
     // The oldest first, for the band; the table shows the newest first.

@@ -20,6 +20,7 @@ import {
     useId,
 } from "@fluentui/react-components";
 import { AreaChart, ChartProps } from "@fluentui/react-charts";
+import { scaleTime } from "d3-scale";
 import { ReactNode, memo, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { RequestType } from "vscode-jsonrpc/browser";
 import {
@@ -468,6 +469,8 @@ export function axisDateFormat(dates: readonly Date[]): (date: Date) => string {
 export interface TimeSeriesPoint {
     readonly x: Date;
     readonly y: number;
+    /** The time in the tooltip, for example the interval of the point. Default: the time of x. */
+    readonly xLabel?: string;
 }
 
 export interface TimeSeriesChartProps {
@@ -490,7 +493,11 @@ export interface TimeSeriesChartProps {
     readonly compact?: boolean;
     /** The y-axis tick labels below the top one. Default: `format`. */
     readonly tickFormat?: (value: number) => string;
-    /** A band below the chart, on its time axis, such as the plan that ran in each interval. */
+    /**
+     * A band below the chart, on its time axis, such as the plan that ran in each interval. The
+     * points are then in the middle of their intervals, as from `centeredSeriesPoints`, so that
+     * each point is over its interval in the band.
+     */
     readonly band?: TimeBand;
 }
 
@@ -519,7 +526,7 @@ export const TimeSeriesChart = memo(function TimeSeriesChart({
             points.map((point) => ({
                 x: point.x,
                 y: point.y,
-                xAxisCalloutData: dateTimeFormat.format(point.x),
+                xAxisCalloutData: point.xLabel ?? dateTimeFormat.format(point.x),
                 yAxisCalloutData: format(point.y),
             })),
         [points, format],
@@ -591,6 +598,11 @@ export const TimeSeriesChart = memo(function TimeSeriesChart({
                                 left={left}
                                 width={width - left - chartRightMargin}
                                 domain={xDomain(points, xAxis.tickValues)}
+                                // The area ends in the middle of the first and last intervals.
+                                extent={{
+                                    start: points[0].x.getTime(),
+                                    end: points[points.length - 1].x.getTime(),
+                                }}
                             />
                         )}
                     </>
@@ -601,8 +613,8 @@ export const TimeSeriesChart = memo(function TimeSeriesChart({
 });
 
 /**
- * The time span of a chart's x-axis. The chart spans its points and its tick values, so a band
- * that spans the same lines up with it.
+ * The time span of a chart's x-axis, so that a band below lines up with it. The chart spans its
+ * points and its tick values, rounded out to round times such as whole hours with d3's nice().
  */
 function xDomain(
     points: readonly TimeSeriesPoint[],
@@ -611,7 +623,11 @@ function xDomain(
     const times = [...points.map((point) => point.x), ...(tickValues ?? [])].map((date) =>
         date.getTime(),
     );
-    return { start: Math.min(...times), end: Math.max(...times) };
+    const [start, end] = scaleTime()
+        .domain([Math.min(...times), Math.max(...times)])
+        .nice()
+        .domain();
+    return { start: start.getTime(), end: end.getTime() };
 }
 
 const useBandStyles = makeStyles({
@@ -665,22 +681,27 @@ const useBandStyles = makeStyles({
     },
 });
 
-/** The band below a time chart: its label in the y-axis margin, the segments, and the legend. */
+/**
+ * The band below a time chart: its label in the y-axis margin, the segments, and the legend. The
+ * track spans the chart's time axis, its domain; the segments are cut to the extent of the data.
+ */
 const TimeBandRow = ({
     band,
     left,
     width,
     domain,
+    extent,
 }: {
     band: TimeBand;
     left: number;
     width: number;
     domain: { readonly start: number; readonly end: number };
+    extent: { readonly start: number; readonly end: number };
 }) => {
     const classes = useBandStyles();
     const span = domain.end - domain.start;
     const position = (time: number) =>
-        span > 0 ? (Math.min(Math.max(time, domain.start), domain.end) - domain.start) / span : 0;
+        span > 0 ? (Math.min(Math.max(time, extent.start), extent.end) - domain.start) / span : 0;
     return (
         <>
             <div className={classes.row}>
