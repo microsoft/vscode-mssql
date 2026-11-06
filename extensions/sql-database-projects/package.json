@@ -20,9 +20,6 @@
     "bugs": {
         "url": "https://github.com/Microsoft/vscode-mssql/issues"
     },
-    "extensionDependencies": [
-        "ms-mssql.data-workspace-vscode"
-    ],
     "scripts": {
         "build:extension": "tsc -p tsconfig.extension.json",
         "build:extension-bundle": "node esbuild.mjs",
