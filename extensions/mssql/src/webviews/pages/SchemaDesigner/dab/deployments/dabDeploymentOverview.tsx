@@ -24,9 +24,8 @@ import {
 } from "@fluentui/react-components";
 import { ArrowSync16Regular, Delete16Regular, Stop16Regular } from "@fluentui/react-icons";
 import { DiffOnMount } from "@monaco-editor/react";
-// Monaco's JSON support needs a web worker; the JavaScript tokenizer colors a
-// config file just as well and runs without one.
-import "monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import "monaco-editor/esm/vs/language/json/monaco.contribution";
 import { ReactNode, useCallback, useEffect, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { VscodeDiffEditor } from "../../../../common/vscodeMonaco";
@@ -36,6 +35,11 @@ import { SchemaDesigner } from "../../../../../sharedInterfaces/schemaDesigner";
 import { useDabContext } from "../dabContext";
 import { DabDeploymentEndpoints } from "./dabDeploymentEndpoints";
 import { DabDialogContent } from "./dabDialogLayout";
+
+// The config diff only needs JSON coloring, which runs on the page. Every
+// other JSON feature runs in a web worker this webview does not set up, so
+// they stay off and no worker is ever started.
+monaco.languages.json.jsonDefaults.setModeConfiguration({ tokens: true });
 
 const useStyles = makeStyles({
     header: {
@@ -481,7 +485,7 @@ const DabDeploymentChanges = ({
             <div className={classes.diff}>
                 <VscodeDiffEditor
                     height="100%"
-                    language="javascript"
+                    language="json"
                     original={changes.deployedConfig}
                     modified={changes.currentConfig}
                     themeKind={themeKind}
