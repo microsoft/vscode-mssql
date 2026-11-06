@@ -32,6 +32,7 @@ const featureImages: Partial<Record<string, string>> = {
     editData: require("../../../../images/walkthroughs/features/edit-data.gif"),
     importFlatFile: require("../../../../images/walkthroughs/features/import-data.gif"),
     queryEditor: require("../../../../images/walkthroughs/features/query-editor.gif"),
+    queryPerformanceDashboard: require("../../../../images/walkthroughs/features/query-performance-dashboard.gif"),
     queryPlans: require("../../../../images/walkthroughs/features/query-plan.gif"),
     queryProfiler: require("../../../../images/walkthroughs/features/query-profiler.gif"),
     notebooks: require("../../../../images/walkthroughs/features/notebook.gif"),
@@ -66,6 +67,7 @@ const featureDocumentationUrls: Record<string, string> = {
     editData: `${mssqlOverviewDocs}#view-and-edit-data`,
     importFlatFile: "https://aka.ms/vscode-mssql-import-flat-file",
     queryEditor: "https://aka.ms/vscode-mssql-query-editor",
+    queryPerformanceDashboard: "https://aka.ms/vscode-mssql-querystore-docs",
     queryPlans: "https://aka.ms/vscode-mssql-query-plans",
     queryProfiler: "https://aka.ms/vscode-mssql-query-profiler-docs",
     notebooks: "https://aka.ms/vscode-mssql-notebooks",
@@ -97,6 +99,10 @@ export interface WalkthroughStepAction {
 export interface WalkthroughStep {
     id: string;
     title: string;
+    /**
+     * Shown above the description in place of the title, which stays short for the nav.
+     */
+    heading?: string;
     description: string;
     action?: WalkthroughStepAction;
     image?: string;
@@ -117,7 +123,10 @@ export interface Walkthrough {
 
 function getFeatureGallery(): WalkthroughStep[] {
     const loc = locConstants.overview;
-    const groups: { category: string; items: [string, string, string][] }[] = [
+    const groups: {
+        category: string;
+        items: [id: string, title: string, description: string, heading?: string][];
+    }[] = [
         {
             category: loc.featureGroupDesignSchema,
             items: [
@@ -148,6 +157,12 @@ function getFeatureGallery(): WalkthroughStep[] {
             category: loc.featureGroupQueryAnalyze,
             items: [
                 ["queryEditor", loc.featureQueryEditorTitle, loc.featureQueryEditorDescription],
+                [
+                    "queryPerformanceDashboard",
+                    loc.featureQueryPerformanceDashboardTitle,
+                    loc.featureQueryPerformanceDashboardDescription,
+                    loc.featureQueryPerformanceDashboardHeading,
+                ],
                 ["queryPlans", loc.featureQueryPlansTitle, loc.featureQueryPlansDescription],
                 [
                     "queryProfiler",
@@ -187,9 +202,10 @@ function getFeatureGallery(): WalkthroughStep[] {
     ];
 
     return groups.flatMap((group) =>
-        group.items.map(([id, title, description]) => ({
+        group.items.map(([id, title, description, heading]) => ({
             id,
             title,
+            heading,
             description,
             category: group.category,
             image: featureImages[id],
