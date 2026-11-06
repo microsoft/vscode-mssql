@@ -7,8 +7,8 @@
  * File-backed store for the Data API builder designer.
  *
  * Every unique server/database pair gets its own directory under the extension's
- * global storage, holding the designer configuration and the DAB containers that
- * have been deployed from it:
+ * global storage, holding the designer configuration and the deployment made
+ * from it:
  *
  *   <globalStorage>/dab/<key>/config.json
  *   <globalStorage>/dab/<key>/deployments.json
@@ -103,6 +103,31 @@ function normalizeDeploymentRecord(
         name,
         target: stored.target ?? Dab.DabDeploymentTarget.Docker,
     };
+}
+
+/**
+ * The deployment a deployments file tracks, in a list that is empty when there
+ * is none. A database has one deployment. Earlier versions could record
+ * several; only the most recently deployed is kept, and the next write drops
+ * the rest from the file. What they run is left alone, just no longer tracked.
+ */
+function readTrackedDeployments(
+    contents: DabDeploymentsFileContents | undefined,
+): Dab.DabDeploymentRecord[] {
+    if (contents?.version !== DAB_STORE_FORMAT_VERSION || !Array.isArray(contents.deployments)) {
+        return [];
+    }
+
+    let latest: Dab.DabDeploymentRecord | undefined;
+    for (const stored of contents.deployments) {
+        const record = normalizeDeploymentRecord(stored);
+        // Records were appended, so on a tie the later one is the newer.
+        if (record && (!latest || record.deployedUtc >= latest.deployedUtc)) {
+            latest = record;
+        }
+    }
+
+    return latest ? [latest] : [];
 }
 
 /** Identifies the database a saved configuration belongs to. */
@@ -202,28 +227,16 @@ export class DabConfigStore {
         }
     }
 
-    /** Returns the deployments tracked for this database, oldest first. */
+    /** Returns this database's deployment, in a list that is empty when there is none. */
     public async getDeployments(key: DabStoreKey): Promise<Dab.DabDeploymentRecord[]> {
-        const contents = await this.readJson<DabDeploymentsFileContents>(this.deploymentsPath(key));
-        if (
-            contents?.version !== DAB_STORE_FORMAT_VERSION ||
-            !Array.isArray(contents.deployments)
-        ) {
-            return [];
-        }
-
-        return contents.deployments
-            .map(normalizeDeploymentRecord)
-            .filter((record): record is Dab.DabDeploymentRecord => record !== undefined);
+        return readTrackedDeployments(
+            await this.readJson<DabDeploymentsFileContents>(this.deploymentsPath(key)),
+        );
     }
 
     /**
-     * Records a newly deployed container or engine. A record with the same name
-     * on the same target is replaced rather than duplicated, which is what
-     * happens when a user removes a container outside VS Code and deploys the
-     * same name again. The target is part of that identity: a container and an
-     * engine are different things, and dropping one because the other took its
-     * name would leave it running with nothing tracking it.
+     * Records a newly deployed container or engine as this database's
+     * deployment, replacing the one tracked before.
      */
     public async addDeployment(
         key: DabStoreKey,
@@ -237,10 +250,11 @@ export class DabConfigStore {
             deployedUtc: now,
         };
 
-        const deployments = (await this.getDeployments(key)).filter(
-            (existing) => existing.name !== record.name || existing.target !== record.target,
-        );
-        await this.writeDeployments(key, [...deployments, record]);
+        const replaced = await this.getDeployments(key);
+        await this.writeDeployments(key, [record]);
+        for (const previous of replaced) {
+            await this.fs.unlink(this.deployedConfigPath(key, previous.id)).catch(() => {});
+        }
         return record;
     }
 
@@ -286,14 +300,7 @@ export class DabConfigStore {
                     DEPLOYMENTS_FILE_NAME,
                 ),
             );
-            if (
-                contents?.version !== DAB_STORE_FORMAT_VERSION ||
-                !Array.isArray(contents.deployments)
-            ) {
-                continue;
-            }
-
-            for (const deployment of contents.deployments) {
+            for (const deployment of readTrackedDeployments(contents)) {
                 if (deployment.id !== excludeDeploymentId && Number.isInteger(deployment.port)) {
                     ports.add(deployment.port);
                 }

@@ -96,8 +96,7 @@ export const DabDeploymentsDialog = () => {
     } = useDabContext();
 
     const { isDialogOpen } = dabDeploymentState;
-    // Records are newest first. A database has one deployment; an older record
-    // left from before that rule still holds its port but is not shown.
+    // The store tracks at most one deployment per database.
     const deployment = dabDeployments[0];
     const runStatus = dabDeploymentRun?.status;
     const isShowingRun = !!dabDeploymentRun && runStatus !== Dab.DabDeploymentRunStatus.Succeeded;

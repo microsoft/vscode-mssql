@@ -1607,8 +1607,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 })),
             );
 
-            // Newest first: the deployment a user just made is the one they act on.
-            deployments.sort((left, right) => right.deployedUtc.localeCompare(left.deployedUtc));
             return { deployments };
         } catch (error) {
             this.logger.error(`Failed to list DAB deployments: ${getErrorMessage(error)}`);

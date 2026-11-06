@@ -295,74 +295,28 @@ suite("DabConfigStore Tests", () => {
             expect(await store.getDeployments(testKey)).to.deep.equal([record]);
         });
 
-        test("addDeployment replaces an existing record for the same container name", async () => {
-            await store.addDeployment(testKey, {
+        test("addDeployment replaces the deployment tracked before", async () => {
+            const previous = await store.addDeployment(testKey, {
                 target: Dab.DabDeploymentTarget.Docker,
                 name: "dab-container",
                 port: 5000,
                 apiTypes: [Dab.ApiType.Rest],
                 configHash: "hash-1",
             });
+            await store.saveDeployedConfig(testKey, previous.id, "{}");
             const replacement = await store.addDeployment(testKey, {
-                target: Dab.DabDeploymentTarget.Docker,
-                name: "dab-container",
-                port: 5000,
+                target: Dab.DabDeploymentTarget.DabCli,
+                name: "DAB_Db_1",
+                port: 5001,
                 apiTypes: [Dab.ApiType.Mcp],
                 configHash: "hash-2",
             });
 
-            const deployments = await store.getDeployments(testKey);
-            expect(deployments, "The same deployment must not be tracked twice").to.have.lengthOf(
-                1,
-            );
-            expect(deployments[0].id).to.equal(replacement.id);
-            expect(deployments[0].configHash).to.equal("hash-2");
-        });
-
-        test("addDeployment keeps a record whose name a different target reuses", async () => {
-            // A container and an engine are different things. Replacing one
-            // because the other took its name would leave it running with
-            // nothing in the list to stop it by.
-            const container = await store.addDeployment(testKey, {
-                target: Dab.DabDeploymentTarget.Docker,
-                name: "DAB_Db_1",
-                port: 5000,
-                apiTypes: [Dab.ApiType.Rest],
-                configHash: "hash-1",
-            });
-            const engine = await store.addDeployment(testKey, {
-                target: Dab.DabDeploymentTarget.DabCli,
-                name: "DAB_Db_1",
-                port: 5001,
-                apiTypes: [Dab.ApiType.Rest],
-                configHash: "hash-2",
-            });
-
-            const deployments = await store.getDeployments(testKey);
-            expect(deployments).to.have.lengthOf(2);
-            expect(deployments.map((deployment) => deployment.id)).to.have.members([
-                container.id,
-                engine.id,
-            ]);
-        });
-
-        test("addDeployment keeps records for other containers", async () => {
-            await store.addDeployment(testKey, {
-                target: Dab.DabDeploymentTarget.Docker,
-                name: "dab-container-1",
-                port: 5000,
-                apiTypes: [Dab.ApiType.Rest],
-                configHash: "hash-1",
-            });
-            await store.addDeployment(testKey, {
-                target: Dab.DabDeploymentTarget.Docker,
-                name: "dab-container-2",
-                port: 5001,
-                apiTypes: [Dab.ApiType.Rest],
-                configHash: "hash-1",
-            });
-
-            expect(await store.getDeployments(testKey)).to.have.lengthOf(2);
+            expect(
+                await store.getDeployments(testKey),
+                "A database has one deployment",
+            ).to.deep.equal([replacement]);
+            expect(await store.getDeployedConfig(testKey, previous.id)).to.be.undefined;
         });
 
         test("updateDeployment applies a partial update", async () => {
@@ -392,27 +346,18 @@ suite("DabConfigStore Tests", () => {
                 .undefined;
         });
 
-        test("removeDeployment stops tracking one deployment", async () => {
-            const first = await store.addDeployment(testKey, {
+        test("removeDeployment stops tracking the deployment", async () => {
+            const record = await store.addDeployment(testKey, {
                 target: Dab.DabDeploymentTarget.Docker,
-                name: "dab-container-1",
+                name: "dab-container",
                 port: 5000,
                 apiTypes: [Dab.ApiType.Rest],
                 configHash: "hash-1",
             });
-            await store.addDeployment(testKey, {
-                target: Dab.DabDeploymentTarget.Docker,
-                name: "dab-container-2",
-                port: 5001,
-                apiTypes: [Dab.ApiType.Rest],
-                configHash: "hash-1",
-            });
 
-            await store.removeDeployment(testKey, first.id);
+            await store.removeDeployment(testKey, record.id);
 
-            const deployments = await store.getDeployments(testKey);
-            expect(deployments).to.have.lengthOf(1);
-            expect(deployments[0].name).to.equal("dab-container-2");
+            expect(await store.getDeployments(testKey)).to.deep.equal([]);
         });
 
         test("removeDeployment succeeds for an unknown deployment", async () => {
@@ -509,6 +454,60 @@ suite("DabConfigStore Tests", () => {
             );
 
             expect(await store.getDeployments(testKey)).to.deep.equal([]);
+        });
+
+        suite("several deployments recorded by an earlier version", () => {
+            const deploymentsPath = path.join(
+                rootPath,
+                "dab",
+                computeDabStoreKey(testKey),
+                "deployments.json",
+            );
+            const createRecord = (id: string, port: number, deployedUtc: string) => ({
+                id,
+                name: `dab-${id}`,
+                target: Dab.DabDeploymentTarget.Docker,
+                port,
+                apiTypes: [Dab.ApiType.Rest],
+                configHash: "hash-1",
+                createdUtc: "2026-09-01T00:00:00.000Z",
+                deployedUtc,
+            });
+
+            setup(() => {
+                // A redeploy refreshes deployedUtc in place, so the newest record
+                // need not be the last one in the file.
+                fs.files.set(
+                    deploymentsPath,
+                    JSON.stringify({
+                        version: 1,
+                        deployments: [
+                            createRecord("older", 5000, "2026-09-02T00:00:00.000Z"),
+                            createRecord("newest", 5001, "2026-09-04T00:00:00.000Z"),
+                            createRecord("middle", 5002, "2026-09-03T00:00:00.000Z"),
+                        ],
+                    }),
+                );
+            });
+
+            test("tracks only the most recently deployed", async () => {
+                const deployments = await store.getDeployments(testKey);
+
+                expect(deployments.map((deployment) => deployment.id)).to.deep.equal(["newest"]);
+            });
+
+            test("reserves only the tracked deployment's port", async () => {
+                expect(await store.getReservedPorts()).to.deep.equal(new Set([5001]));
+            });
+
+            test("drops the untracked records from the file on the next write", async () => {
+                await store.updateDeployment(testKey, "newest", { configHash: "hash-2" });
+
+                const written = JSON.parse(fs.files.get(deploymentsPath)!);
+                expect(
+                    written.deployments.map((deployment: { id: string }) => deployment.id),
+                ).to.deep.equal(["newest"]);
+            });
         });
 
         test("reports a malformed deployments file as nothing tracked", async () => {
