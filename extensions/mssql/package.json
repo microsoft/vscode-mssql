@@ -667,7 +667,7 @@
                     "command": "mssql.deployNewDatabase",
                     "when": "view == objectExplorer",
                     "title": "%mssql.newDeployment%",
-                    "group": "navigation"
+                    "group": "navigation@3"
                 },
                 {
                     "command": "mssql.objectExplorerV2.deployNewDatabase",

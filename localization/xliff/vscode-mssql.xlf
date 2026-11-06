@@ -652,9 +652,6 @@
     <trans-unit id="++CODE++3103e52eb1cd4493724fc1943e3393990216fd4e6a6acb67f2934322b70fa5a6">
       <source xml:lang="en">Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.</source>
     </trans-unit>
-    <trans-unit id="++CODE++f09bb63d5fa0008059d5d8caadbffdf76d4b1f70698c862f2d055b06abee9e34">
-      <source xml:lang="en">Agent skills, SQL formatter, and landing page</source>
-    </trans-unit>
     <trans-unit id="++CODE++b19e02e9502bbe5ac59dff4b2d4160768a4a7b8feff5693e5769613562290a45">
       <source xml:lang="en">Alias</source>
     </trans-unit>
@@ -4916,8 +4913,8 @@
     <trans-unit id="++CODE++a0c63383db5f8661b595463ea3a315d20546235fa0124096696606ebccb73c0c">
       <source xml:lang="en">Explore tutorials, docs, and what&apos;s coming next.</source>
     </trans-unit>
-    <trans-unit id="++CODE++e69531e4427bebd58fb6509ad9a9ce3867369f93b7277c74443deacb24633467">
-      <source xml:lang="en">Explore what&apos;s new in the MSSQL extension</source>
+    <trans-unit id="++CODE++b8fd3004836a749c40bbd1bd5c531e162a9f56c7f234c24ab5d0981e14742d92">
+      <source xml:lang="en">Explore what&apos;s new in the MSSQL extension (v1.48)</source>
     </trans-unit>
     <trans-unit id="++CODE++1bffe5429645cccdfb734b329417be110bd34942cd3678842c6841f67589c416">
       <source xml:lang="en">Explore your databases, tables, views, and stored procedures in the Object Explorer.</source>
@@ -7097,6 +7094,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8c31e6e7223097e2e4847773c47a4efab6aaf79deeecc92a7759891c74976dde">
       <source xml:lang="en">Local</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c8047e1144b0b498bd5fb4155a1f0e28ad14ed8f63892e2d20bf1fce56f921a">
+      <source xml:lang="en">Local Azure SQL Database container, query performance dashboard, and more</source>
     </trans-unit>
     <trans-unit id="++CODE++67b84cd4159ae33eb03a5cc9398bc77383d9ab5e73a5faf7189b775384dc09a1">
       <source xml:lang="en">Local Container Deployment</source>
@@ -9417,6 +9417,12 @@
     </trans-unit>
     <trans-unit id="++CODE++07e73f3636fc8f275412a00382135b751e78dd28bebbb60b20d8f1482aaf75d4">
       <source xml:lang="en">Query ID</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aee19d80c47ff13ea33397a4c3f05dcc19de6f466cd02c6b37d4ea88b02e0fc4">
+      <source xml:lang="en">Query Performance Dashboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++60c996cb9e5ef618ffbb36871a01ddbb55f1e23287fd075fb8f1706aa5b56338">
+      <source xml:lang="en">Query Performance Dashboard (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
       <source xml:lang="en">Query Plan</source>
@@ -13407,6 +13413,9 @@
     </trans-unit>
     <trans-unit id="++CODE++50564b2fb586a6f8ee172cd303c720768a52904367132b2cafb6d7a4eb9de5dd">
       <source xml:lang="en">Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++373ac9c93803e8d281200596f6576fb1fc60193d5ea97706ab186a0435d99784">
+      <source xml:lang="en">Use the Query Performance Dashboard to find query store insights, analyze performance trends, investigate execution plans, and optimize queries with GitHub Copilot.</source>
     </trans-unit>
     <trans-unit id="++CODE++db9ddb2e90023ccca44562f0c53ed14a531b423deddf3a03c9e6679f62ef9d70">
       <source xml:lang="en">Use the Schema Designer to model tables and relationships for your app.</source>
