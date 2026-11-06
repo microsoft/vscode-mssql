@@ -188,6 +188,168 @@ suite("DAB shared interface helpers", () => {
         ]);
     });
 
+    test("createDefaultConfigFromSources enables views without a key by falling back to the first usable column", () => {
+        const viewColumn = (name: string, dataType: string): Dab.DabColumnConfig => ({
+            id: `view:dbo.Totals:${name}`,
+            name,
+            dataType,
+            isPrimaryKey: false,
+            isSupported: Dab.isDataTypeSupportedForDab(dataType),
+            isExposed: true,
+        });
+        const config = Dab.createDefaultConfigFromSources([
+            createSourceObject({
+                id: "view:dbo.Totals",
+                sourceType: Dab.EntitySourceType.View,
+                sourceName: "Totals",
+                columns: [
+                    viewColumn("Notes", "ntext"),
+                    viewColumn("IsActive", "bit"),
+                    viewColumn("Region", "nvarchar"),
+                    viewColumn("Total", "money"),
+                ],
+                fields: undefined,
+            }),
+        ]);
+
+        const entity = config.entities[0];
+        expect(entity).to.include({ isEnabled: true, isSupported: true });
+        expect(entity.unsupportedReasons).to.equal(undefined);
+        expect(entity.fields?.filter((field) => field.isPrimaryKey)).to.deep.equal([
+            { name: "Region", isPrimaryKey: true },
+        ]);
+        expect(Dab.isEntityRestEnabled(entity)).to.equal(true);
+    });
+
+    test("createDefaultConfigFromSources keeps a view without key candidates disabled", () => {
+        const config = Dab.createDefaultConfigFromSources([
+            createSourceObject({
+                id: "view:dbo.Blobs",
+                sourceType: Dab.EntitySourceType.View,
+                sourceName: "Blobs",
+                columns: [
+                    {
+                        id: "view:dbo.Blobs:Content",
+                        name: "Content",
+                        dataType: "varbinary",
+                        isPrimaryKey: false,
+                        isSupported: true,
+                        isExposed: true,
+                    },
+                ],
+                fields: undefined,
+            }),
+        ]);
+
+        expect(config.entities[0]).to.include({ isEnabled: false, isSupported: true });
+        expect(config.entities[0].unsupportedReasons).to.deep.equal([{ type: "noPrimaryKey" }]);
+    });
+
+    test("createDefaultConfigFromSources blocks stored procedures that would stop DAB at startup", () => {
+        const procedure = (
+            name: string,
+            overrides: Partial<Dab.DabSourceObject>,
+        ): Dab.DabSourceObject =>
+            createSourceObject({
+                id: `stored-procedure:dbo.${name}`,
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                sourceName: name,
+                columns: [],
+                ...overrides,
+            });
+        const config = Dab.createDefaultConfigFromSources([
+            procedure("GetTotals", {
+                resultColumns: [
+                    { name: "Region", dataType: "nvarchar", ordinal: 1 },
+                    { dataType: "int", ordinal: 2 },
+                ],
+            }),
+            procedure("GetShapes", {
+                resultColumns: [{ name: "Shape", dataType: "geography", ordinal: 1 }],
+            }),
+            procedure("SaveLines", {
+                parameters: [{ name: "lines", dataType: "table type" }],
+            }),
+            procedure("RunReport", {
+                resultColumns: [{ name: "Total", dataType: "int", ordinal: 1 }],
+            }),
+            procedure("ArchiveOrders", { resultColumns: [] }),
+        ]);
+
+        const byName = new Map(config.entities.map((entity) => [entity.sourceName, entity]));
+        expect(byName.get("GetTotals")).to.include({ isEnabled: false, isSupported: false });
+        expect(byName.get("GetTotals")?.unsupportedReasons).to.deep.equal([
+            { type: "unnamedResultColumns" },
+        ]);
+        expect(byName.get("GetShapes")?.unsupportedReasons).to.deep.equal([
+            { type: "unsupportedDataTypes", columns: "Shape (geography)" },
+        ]);
+        expect(byName.get("SaveLines")?.unsupportedReasons).to.deep.equal([
+            { type: "unsupportedDataTypes", columns: "lines (table type)" },
+        ]);
+        expect(byName.get("RunReport")).to.include({ isEnabled: true, isSupported: true });
+        expect(byName.get("ArchiveOrders")).to.include({ isEnabled: true, isSupported: true });
+        expect(Dab.hasBlockingUnsupportedReason(byName.get("GetTotals")!)).to.equal(true);
+    });
+
+    test("syncConfigWithSources enables a saved view once its missing key resolves", () => {
+        const keylessView = createSourceObject({
+            id: "view:dbo.Report",
+            sourceType: Dab.EntitySourceType.View,
+            sourceName: "Report",
+            columns: [
+                {
+                    id: "view:dbo.Report:Content",
+                    name: "Content",
+                    dataType: "varbinary",
+                    isPrimaryKey: false,
+                    isSupported: true,
+                    isExposed: true,
+                },
+            ],
+            fields: undefined,
+        });
+        const savedConfig = Dab.createDefaultConfigFromSources([keylessView]);
+        expect(savedConfig.entities[0].isEnabled).to.equal(false);
+
+        const keyedView = createSourceObject({
+            ...keylessView,
+            columns: [
+                {
+                    id: "view:dbo.Report:ReportKey",
+                    name: "ReportKey",
+                    dataType: "int",
+                    isPrimaryKey: true,
+                    isSupported: true,
+                    isExposed: true,
+                },
+                ...keylessView.columns,
+            ],
+        });
+        const { config, changed } = Dab.syncConfigWithSources(savedConfig, [keyedView]);
+
+        expect(changed).to.equal(true);
+        expect(config.entities[0]).to.include({ isEnabled: true, isSupported: true });
+        expect(config.entities[0].unsupportedReasons).to.equal(undefined);
+        expect(Dab.isEntityRestEnabled(config.entities[0])).to.equal(true);
+        expect(Dab.isEntityGraphQLEnabled(config.entities[0])).to.equal(true);
+        expect(Dab.isEntityMcpEnabled(config.entities[0])).to.equal(true);
+    });
+
+    test("syncConfigWithSources keeps a saved view disabled when the user turned it off", () => {
+        const view = createSourceObject({
+            id: "view:dbo.ActiveUsers",
+            sourceType: Dab.EntitySourceType.View,
+            sourceName: "ActiveUsers",
+        });
+        const savedConfig = Dab.createDefaultConfigFromSources([view]);
+        savedConfig.entities[0].isEnabled = false;
+
+        const { config } = Dab.syncConfigWithSources(savedConfig, [view]);
+
+        expect(config.entities[0].isEnabled).to.equal(false);
+    });
+
     test("getEntityExposedApiTypes intersects global and entity API settings", () => {
         const entity = Dab.createDefaultConfigFromSources([createSourceObject()]).entities[0];
         entity.advancedSettings = {

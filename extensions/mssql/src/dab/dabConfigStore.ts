@@ -36,6 +36,8 @@ import { getErrorMessage, uuid } from "../utils/utils";
 const DAB_STORE_DIR_NAME = "dab";
 const CONFIG_FILE_NAME = "config.json";
 const DEPLOYMENTS_FILE_NAME = "deployments.json";
+/** Directory holding the config each deployment was made with. */
+const DEPLOYED_CONFIGS_DIR_NAME = "deployed-configs";
 
 /**
  * Length-prefixing the server before the database name keeps the hash input
@@ -128,6 +130,8 @@ export interface DabStoreFs {
     rename(fromPath: string, toPath: string): Promise<void>;
     unlink(filePath: string): Promise<void>;
     mkdirp(dirPath: string): Promise<void>;
+    /** Names of the entries in a directory, or an empty list when it does not exist. */
+    readdir(dirPath: string): Promise<string[]>;
 }
 
 export const nodeDabStoreFs: DabStoreFs = {
@@ -139,6 +143,16 @@ export const nodeDabStoreFs: DabStoreFs = {
     unlink: (filePath) => fsPromises.unlink(filePath),
     mkdirp: async (dirPath) => {
         await fsPromises.mkdir(dirPath, { recursive: true });
+    },
+    readdir: async (dirPath) => {
+        try {
+            return await fsPromises.readdir(dirPath);
+        } catch (error) {
+            if (isMissingFileError(error)) {
+                return [];
+            }
+            throw error;
+        }
     },
 };
 
@@ -251,6 +265,69 @@ export class DabConfigStore {
         return updated;
     }
 
+    /**
+     * Ports held by the deployments of every database, so a new deployment
+     * never takes a port a stopped one expects to get back when it restarts.
+     *
+     * @param excludeDeploymentId Deployment whose own port is left out, so it
+     * can keep its port when it is deployed again
+     */
+    public async getReservedPorts(excludeDeploymentId?: string): Promise<Set<number>> {
+        const ports = new Set<number>();
+        const keyDirectoryNames = await this.fs.readdir(
+            path.join(this.rootPath, DAB_STORE_DIR_NAME),
+        );
+        for (const keyDirectoryName of keyDirectoryNames) {
+            const contents = await this.readJson<DabDeploymentsFileContents>(
+                path.join(
+                    this.rootPath,
+                    DAB_STORE_DIR_NAME,
+                    keyDirectoryName,
+                    DEPLOYMENTS_FILE_NAME,
+                ),
+            );
+            if (
+                contents?.version !== DAB_STORE_FORMAT_VERSION ||
+                !Array.isArray(contents.deployments)
+            ) {
+                continue;
+            }
+
+            for (const deployment of contents.deployments) {
+                if (deployment.id !== excludeDeploymentId && Number.isInteger(deployment.port)) {
+                    ports.add(deployment.port);
+                }
+            }
+        }
+
+        return ports;
+    }
+
+    /**
+     * Keeps the config a deployment was made with, so it can be compared with
+     * the current one. The connection string is not part of it.
+     */
+    public async saveDeployedConfig(
+        key: DabStoreKey,
+        deploymentId: string,
+        configContent: string,
+    ): Promise<void> {
+        await this.fs.mkdirp(path.dirname(this.deployedConfigPath(key, deploymentId)));
+        await this.fs.writeFile(this.deployedConfigPath(key, deploymentId), configContent);
+    }
+
+    /** The config a deployment was made with, or undefined when none was kept. */
+    public async getDeployedConfig(
+        key: DabStoreKey,
+        deploymentId: string,
+    ): Promise<string | undefined> {
+        try {
+            return await this.fs.readFile(this.deployedConfigPath(key, deploymentId));
+        } catch {
+            return undefined;
+        }
+    }
+
     /** Stops tracking a deployment. Removing the container itself is the caller's job. */
     public async removeDeployment(key: DabStoreKey, deploymentId: string): Promise<void> {
         const deployments = await this.getDeployments(key);
@@ -260,6 +337,7 @@ export class DabConfigStore {
         }
 
         await this.writeDeployments(key, remaining);
+        await this.fs.unlink(this.deployedConfigPath(key, deploymentId)).catch(() => {});
     }
 
     /**
@@ -293,6 +371,14 @@ export class DabConfigStore {
 
     private configPath(key: DabStoreKey): string {
         return path.join(this.keyDirectory(key), CONFIG_FILE_NAME);
+    }
+
+    private deployedConfigPath(key: DabStoreKey, deploymentId: string): string {
+        return path.join(
+            this.keyDirectory(key),
+            DEPLOYED_CONFIGS_DIR_NAME,
+            `${sanitizePathSegment(deploymentId)}.json`,
+        );
     }
 
     private deploymentsPath(key: DabStoreKey): string {

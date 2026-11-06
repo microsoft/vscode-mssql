@@ -489,6 +489,20 @@ suite("DAB Container", () => {
         expect(result).to.equal(8080);
     });
 
+    test("findAvailableDabPort: should skip ports other deployments own even while free", async () => {
+        const dockerClientMock = createDockerClientMock({
+            listContainers: sandbox.stub().rejects(new Error("Docker is not running")),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dabContainer.findAvailableDabPort(
+            5000,
+            allHostPortsFree,
+            new Set([5000, 5001]),
+        );
+        expect(result).to.equal(5002);
+    });
+
     test("findAvailableDabPort: should accept a free port when Docker is unreachable", async () => {
         const dockerClientMock = createDockerClientMock({
             listContainers: sandbox.stub().rejects(new Error("Docker is not running")),

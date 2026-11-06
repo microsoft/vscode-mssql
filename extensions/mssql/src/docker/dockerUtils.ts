@@ -991,12 +991,21 @@ export async function findAvailablePortWithoutDocker(
     startPort: number,
     /** Overridable so tests can drive port availability without real sockets. */
     isPortFree: (port: number) => Promise<boolean> = isHostPortAvailable,
+    /**
+     * Ports to skip even when nothing holds them right now, such as a port a
+     * stopped deployment expects to get back when it starts again.
+     */
+    reservedPorts: Iterable<number> = [],
 ): Promise<number> {
     let usedPorts = new Set<number>();
     try {
         usedPorts = await getPortsHeldByContainers();
     } catch {
         // Docker is not running or not installed
+    }
+
+    for (const port of reservedPorts) {
+        usedPorts.add(port);
     }
 
     return scanForAvailablePort(startPort, usedPorts, isPortFree);

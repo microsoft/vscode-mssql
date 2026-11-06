@@ -60,6 +60,17 @@ class InMemoryStoreFs implements DabStoreFs {
         this.directories.add(dirPath);
     }
 
+    async readdir(dirPath: string): Promise<string[]> {
+        const prefix = `${dirPath}${path.sep}`;
+        const names = new Set<string>();
+        for (const filePath of this.files.keys()) {
+            if (filePath.startsWith(prefix)) {
+                names.add(filePath.slice(prefix.length).split(path.sep)[0]);
+            }
+        }
+        return [...names];
+    }
+
     /** Paths of the files that survived, i.e. excluding write temp files. */
     get persistedPaths(): string[] {
         return [...this.files.keys()].filter((filePath) => !filePath.endsWith(".tmp"));
@@ -239,6 +250,35 @@ suite("DabConfigStore Tests", () => {
     suite("deployments", () => {
         test("returns an empty list when nothing is tracked", async () => {
             expect(await store.getDeployments(testKey)).to.deep.equal([]);
+        });
+
+        test("getReservedPorts collects the ports of every database's deployments", async () => {
+            expect(await store.getReservedPorts()).to.deep.equal(new Set());
+
+            const own = await store.addDeployment(testKey, {
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "dab-container",
+                port: 5000,
+                apiTypes: [Dab.ApiType.Rest],
+                configHash: "hash-1",
+            });
+            await store.addDeployment(
+                { server: "otherserver", database: "Sales" },
+                {
+                    target: Dab.DabDeploymentTarget.DabCli,
+                    name: "DAB_Sales_1",
+                    port: 5001,
+                    apiTypes: [Dab.ApiType.Rest],
+                    configHash: "hash-2",
+                },
+            );
+            await store.saveConfig(testKey, createTestConfig());
+
+            expect(await store.getReservedPorts()).to.deep.equal(new Set([5000, 5001]));
+            expect(
+                await store.getReservedPorts(own.id),
+                "A deployment being redeployed keeps the option of its own port",
+            ).to.deep.equal(new Set([5001]));
         });
 
         test("addDeployment stamps an id and timestamps", async () => {

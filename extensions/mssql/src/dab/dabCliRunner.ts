@@ -21,33 +21,19 @@ import { Dab } from "../sharedInterfaces/dab";
 import { getErrorMessage } from "../utils/utils";
 import { acquireDabCli, DabCliAcquisitionError, DabCliInstallation } from "./dabCliTool";
 import {
+    DabAzureCli,
+    DabAzureCliInstallError,
+    DabAzureCliResolution,
+    DabAzureCliSignIn,
+} from "./dabAzureCli";
+import {
     checkDabCliEngineReady,
     DabCliProcessEnvironment,
-    runDabCliCommand,
     startDabCliEngine,
 } from "./dabCliProcess";
 
 /** Where to send a user who has no usable .NET runtime. */
 export const dotnetDownloadLink = "https://dotnet.microsoft.com/download";
-
-/**
- * Azure CLI install instructions for this machine.
- *
- * The pages differ per platform — winget on Windows, Homebrew on macOS, a
- * package manager on Linux — so one shared link would leave most readers
- * translating steps for an operating system they are not on. The locale
- * segment is left out so the page opens in the reader's own language.
- */
-export function getAzureCliInstallLink(): string {
-    const base = "https://learn.microsoft.com/cli/azure";
-    if (process.platform === "win32") {
-        return `${base}/install-azure-cli-windows?view=azure-cli-latest&pivots=winget`;
-    }
-
-    return process.platform === "darwin"
-        ? `${base}/install-azure-cli-macos?view=azure-cli-latest`
-        : `${base}/install-azure-cli-linux?view=azure-cli-latest`;
-}
 
 /**
  * The engine reports every failure to open a database connection with this
@@ -73,11 +59,186 @@ export class DabCliRunner {
     private _getEngineLogs: (() => string) | undefined;
     /** Pid of the engine this runner launched, used to confirm what answers on the port. */
     private _launchedProcessId: number | undefined;
+    private readonly _azureCli: DabAzureCli;
+    private _azureCliResolution: DabAzureCliResolution | undefined;
+    /** A sign-in waiting for the user to finish it in a browser. */
+    private _pendingSignIn: DabAzureCliSignIn | undefined;
 
     constructor(
         private readonly storagePath: string,
         private readonly logger: ILogger,
-    ) {}
+        azureCli?: DabAzureCli,
+    ) {
+        this._azureCli = azureCli ?? new DabAzureCli(storagePath, logger);
+    }
+
+    /**
+     * Gets the CLI and the .NET runtime to run it with, as one step: the
+     * package names the runtime it needs, so the two always go together.
+     */
+    public async prepareCli(): Promise<Dab.RunDeploymentStepResponse> {
+        const acquireResult = await this.acquireCli();
+        if (!acquireResult.success) {
+            return acquireResult;
+        }
+
+        const runtimeResult = await this.resolveRuntime();
+        if (!runtimeResult.success) {
+            return runtimeResult;
+        }
+
+        return {
+            success: true,
+            detail: LocalContainers.dabCliReady(this._installation?.version ?? Dab.DAB_CLI_VERSION),
+        };
+    }
+
+    /**
+     * Gets the private Azure CLI the engine signs in to Microsoft Entra with,
+     * installing it the first time.
+     *
+     * @param onProgress Called as the download, unpack, or install moves on
+     */
+    public async prepareAzureCli(
+        onProgress?: (progress: Dab.DabDeploymentStepProgress) => void,
+    ): Promise<Dab.RunDeploymentStepResponse> {
+        try {
+            this._azureCliResolution = await this._azureCli.install((progress) =>
+                onProgress?.(progress.phase === "pip" ? { phase: "install" } : progress),
+            );
+        } catch (error) {
+            this.logger.error(`Could not set up the Azure CLI: ${getErrorMessage(error)}`);
+            const needsPython =
+                error instanceof DabAzureCliInstallError && error.stage === "python";
+            return {
+                success: false,
+                error: getAzureCliInstallErrorMessage(error),
+                fullErrorText: getErrorMessage(error),
+                ...(needsPython
+                    ? {
+                          errorLink: pythonDownloadLink,
+                          errorLinkText: LocalContainers.dabAzureCliInstallPython,
+                      }
+                    : {}),
+            };
+        }
+
+        return { success: true, detail: LocalContainers.dabAzureCliPrivateReady };
+    }
+
+    /**
+     * Signs the Azure CLI in to Microsoft Entra.
+     *
+     * Without an action, a sign-in the Azure CLI already holds is reused, and
+     * otherwise the step waits for the user. A browser sign-in finishes in one
+     * request. A device code sign-in takes two: the first reports the code, and
+     * the second waits for the user to enter it.
+     *
+     * @param action What the user chose, if anything yet
+     * @param entra Tenant and account the connection signs in with
+     */
+    public async signInEntra(
+        action: Dab.DabDeploymentStepAction | undefined,
+        entra: { tenantId?: string; account?: string },
+    ): Promise<Dab.RunDeploymentStepResponse> {
+        const resolution = this._azureCliResolution ?? (await this._azureCli.resolve());
+        if (!resolution) {
+            return { success: false, error: LocalContainers.dabAzureCliNotReady };
+        }
+        this._azureCliResolution = resolution;
+        const signInPrompt: Dab.RunDeploymentStepResponse = {
+            success: false,
+            prompt: { kind: "entraSignIn", account: entra.account },
+        };
+
+        switch (action) {
+            case Dab.DabDeploymentStepAction.SignIn: {
+                this.cancelSignIn();
+                const signIn = this._azureCli.signIn(resolution, { tenantId: entra.tenantId });
+                this._pendingSignIn = signIn;
+                return this.finishSignIn(signIn, resolution, entra);
+            }
+
+            case Dab.DabDeploymentStepAction.SignInWithCode: {
+                this.cancelSignIn();
+                const signIn = this._azureCli.signIn(resolution, {
+                    tenantId: entra.tenantId,
+                    useDeviceCode: true,
+                });
+                this._pendingSignIn = signIn;
+                const deviceCode = await signIn.deviceCode;
+                if (!deviceCode) {
+                    const completion = await signIn.completion;
+                    return {
+                        success: false,
+                        error: LocalContainers.dabEntraSignInCodeUnavailable,
+                        fullErrorText: completion.error,
+                    };
+                }
+
+                return {
+                    success: false,
+                    prompt: { kind: "entraDeviceCode", account: entra.account, ...deviceCode },
+                };
+            }
+
+            case Dab.DabDeploymentStepAction.AwaitSignIn: {
+                const signIn = this._pendingSignIn;
+                return signIn ? this.finishSignIn(signIn, resolution, entra) : signInPrompt;
+            }
+
+            default: {
+                const signedIn = await this._azureCli.getSignedInAccount(
+                    resolution,
+                    entra.tenantId,
+                );
+                return signedIn
+                    ? { success: true, detail: getSignedInDetail(signedIn.account) }
+                    : signInPrompt;
+            }
+        }
+    }
+
+    /** Stops a sign-in the user walked away from. */
+    public cancelSignIn(): void {
+        this._pendingSignIn?.cancel();
+        this._pendingSignIn = undefined;
+    }
+
+    private async finishSignIn(
+        signIn: DabAzureCliSignIn,
+        resolution: DabAzureCliResolution,
+        entra: { tenantId?: string },
+    ): Promise<Dab.RunDeploymentStepResponse> {
+        const completion = await signIn.completion;
+        if (this._pendingSignIn === signIn) {
+            this._pendingSignIn = undefined;
+        }
+
+        // A clean exit from the login is not the test: the engine needs a
+        // database token for this tenant, so that is what is checked.
+        const signedIn = completion.success
+            ? await this._azureCli.getSignedInAccount(resolution, entra.tenantId)
+            : undefined;
+        if (!signedIn) {
+            return {
+                success: false,
+                error: LocalContainers.dabEntraSignInFailed,
+                fullErrorText: completion.error,
+            };
+        }
+
+        return { success: true, detail: getSignedInDetail(signedIn.account) };
+    }
+
+    /**
+     * Variables the engine needs to sign in through the Azure CLI, resolving
+     * the Azure CLI first when this session has not set it up yet.
+     */
+    public async getAzureCliEnvironment(): Promise<NodeJS.ProcessEnv | undefined> {
+        this._azureCliResolution ??= await this._azureCli.resolve();
+        return this._azureCliResolution?.environment;
+    }
 
     /**
      * Downloads and unpacks the pinned DAB CLI, or reuses an unpacked copy.
@@ -166,32 +327,27 @@ export class DabCliRunner {
     }
 
     /**
-     * Writes the generated config and asks the CLI to validate it, so a bad
-     * config is reported before an engine is launched against it.
+     * Writes the generated config for the engine to start from.
+     *
+     * The config is not run through `dab validate` first: validation loads
+     * the metadata of every entity from the database, one entity at a time,
+     * and starting the engine loads it all again. On a large database that
+     * doubles a wait of several minutes, and starting reports the same errors.
      *
      * @param configPath Where to write the config file
      * @param configContent Generated DAB config, with the connection string as an @env reference
-     * @param environment Port and connection string for the CLI process
-     * @param authenticationType Authentication type of the connection, used to
-     * explain a failure to connect in terms the user can act on
      */
-    public async validateConfig(
+    public async writeConfig(
         configPath: string,
         configContent: string,
-        environment: DabCliProcessEnvironment,
-        authenticationType?: string,
     ): Promise<Dab.RunDeploymentStepResponse> {
-        const readiness = this.getRunnableCli();
-        if (!readiness.cli) {
-            return readiness.error;
-        }
-
         try {
             await fsPromises.mkdir(path.dirname(configPath), { recursive: true });
             await fsPromises.writeFile(configPath, configContent, {
                 encoding: "utf8",
                 mode: 0o600,
             });
+            return { success: true };
         } catch (error) {
             return {
                 success: false,
@@ -199,45 +355,6 @@ export class DabCliRunner {
                 fullErrorText: getErrorMessage(error),
             };
         }
-
-        const result = await runDabCliCommand(
-            readiness.cli.dotnetPath,
-            readiness.cli.assemblyPath,
-            ["validate", "--config", configPath],
-            environment,
-        );
-
-        if (result.success) {
-            return { success: true };
-        }
-
-        // A configuration the engine cannot validate and a database it cannot
-        // reach are different problems: one needs the config changed, the other
-        // needs the connection fixed and the step run again.
-        if (isDatabaseConnectionFailure(result.engineLogs)) {
-            const isEntra = Dab.isEntraAuthentication(authenticationType);
-            return {
-                success: false,
-                error: isEntra
-                    ? LocalContainers.dabCliEntraConnectionFailed
-                    : LocalContainers.dabCliDatabaseConnectionFailed,
-                ...(isEntra
-                    ? {
-                          errorLink: getAzureCliInstallLink(),
-                          errorLinkText: LocalContainers.dabCliInstallAzureCli,
-                      }
-                    : {}),
-                fullErrorText: result.fullErrorText ?? result.error,
-                containerLogs: result.engineLogs,
-            };
-        }
-
-        return {
-            success: false,
-            error: LocalContainers.dabCliConfigInvalid,
-            fullErrorText: result.fullErrorText ?? result.error,
-            containerLogs: result.engineLogs,
-        };
     }
 
     /**
@@ -288,19 +405,41 @@ export class DabCliRunner {
     public async checkEngine(
         port: number,
         processId?: number,
+        options: {
+            authenticationType?: string;
+            onProgress?: (progress: Dab.DabDeploymentStepProgress) => void;
+        } = {},
     ): Promise<Dab.RunDeploymentStepResponse> {
         const result = await checkDabCliEngineReady(
             port,
             this._getEngineLogs,
             processId ?? this._launchedProcessId,
+            (elapsedMs) =>
+                options.onProgress?.({
+                    phase: "starting",
+                    elapsedSeconds: Math.floor(elapsedMs / 1000),
+                }),
         );
         if (result.success) {
             return { success: true, apiUrl: `http://localhost:${port}` };
         }
 
+        // An engine that cannot reach the database needs the connection fixed,
+        // not the configuration, so that failure gets a message of its own.
+        if (isDatabaseConnectionFailure(result.engineLogs)) {
+            return {
+                success: false,
+                error: Dab.isEntraAuthentication(options.authenticationType)
+                    ? LocalContainers.dabCliEntraConnectionFailed
+                    : LocalContainers.dabCliDatabaseConnectionFailed,
+                fullErrorText: result.fullErrorText ?? result.error,
+                containerLogs: result.engineLogs,
+            };
+        }
+
         return {
             success: false,
-            error: LocalContainers.dabCliEngineNotReady,
+            error: result.error ?? LocalContainers.dabCliEngineNotReady,
             fullErrorText: result.fullErrorText,
             containerLogs: result.engineLogs,
         };
@@ -327,6 +466,29 @@ export class DabCliRunner {
                 assemblyPath: this._installation.assemblyPath,
             },
         };
+    }
+}
+
+/** Where to send a user who needs Python for the private Azure CLI on macOS or Linux. */
+export const pythonDownloadLink = "https://www.python.org/downloads/";
+
+function getSignedInDetail(account: string | undefined): string {
+    return account ? LocalContainers.dabEntraSignedInAs(account) : LocalContainers.dabEntraSignedIn;
+}
+
+/** The sentence to show for a private Azure CLI that could not be set up. */
+function getAzureCliInstallErrorMessage(error: unknown): string {
+    if (!(error instanceof DabAzureCliInstallError)) {
+        return LocalContainers.dabAzureCliInstallFailed;
+    }
+
+    switch (error.stage) {
+        case "download":
+            return LocalContainers.dabAzureCliDownloadFailed;
+        case "python":
+            return LocalContainers.dabAzureCliPythonMissing;
+        default:
+            return LocalContainers.dabAzureCliInstallFailed;
     }
 }
 

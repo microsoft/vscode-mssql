@@ -198,6 +198,8 @@ suite("SchemaDesignerWebviewController tests", () => {
             getDabViewColumns: sandbox.stub().resolves([]),
             getDabStoredProcedureParametersByProcedure: sandbox.stub().resolves(new Map()),
             getDabStoredProcedureParameters: sandbox.stub().resolves([]),
+            getDabViewSourceKeysByView: sandbox.stub().resolves(new Map()),
+            getDabStoredProcedureResultColumnsByProcedure: sandbox.stub().resolves(new Map()),
         };
     }
 
@@ -1704,6 +1706,125 @@ suite("SchemaDesignerWebviewController tests", () => {
         });
     });
 
+    suite("Deployment preparation", () => {
+        const trackedRecord: Dab.DabDeploymentRecord = {
+            id: "deployment-1",
+            target: Dab.DabDeploymentTarget.Docker,
+            name: "DAB_testdb_1",
+            port: 5005,
+            apiTypes: [Dab.ApiType.Rest],
+            configHash: "hash",
+            createdUtc: "2026-01-01T00:00:00Z",
+            deployedUtc: "2026-01-01T00:00:00Z",
+        };
+
+        function setUpController() {
+            const ctrl = createController();
+            ctrl["_serverName"] = "localhost";
+            const store = sandbox.createStubInstance(DabConfigStore);
+            store.getDeployments.resolves([trackedRecord]);
+            store.getReservedPorts.resolves(new Set([5000, 5005]));
+            ctrl["_dabConfigStore"] = store as unknown as DabConfigStore;
+            const findAvailablePort = sandbox.stub(ctrl["_dabService"], "findAvailablePort");
+            const handler = (payload: Dab.PrepareDeploymentParams) =>
+                ctrl["prepareDabDeployment"](payload);
+            return { ctrl, store, findAvailablePort, handler };
+        }
+
+        test("gives a first deployment a generated name and the first port no deployment owns", async () => {
+            const { ctrl, store, findAvailablePort, handler } = setUpController();
+            sandbox.stub(ctrl as any, "generateDabDeploymentName").resolves("DAB_testdb_2");
+            findAvailablePort.resolves(5001);
+
+            const result = (await handler({
+                target: Dab.DabDeploymentTarget.DabCli,
+            })) as Dab.PrepareDeploymentResponse;
+
+            expect(result).to.deep.equal({
+                success: true,
+                params: { containerName: "DAB_testdb_2", port: 5001 },
+            });
+            expect(store.getReservedPorts).to.have.been.calledWith(undefined);
+            expect(findAvailablePort).to.have.been.calledWith(
+                Dab.DAB_DEFAULT_PORT,
+                new Set([5000, 5005]),
+            );
+        });
+
+        test("redeploys under the same name after removing the old deployment", async () => {
+            const { ctrl, store, findAvailablePort, handler } = setUpController();
+            sandbox
+                .stub(ctrl as any, "getDabDeploymentStatus")
+                .resolves(Dab.DabDeploymentContainerStatus.Stopped);
+            const tearDown = sandbox
+                .stub(ctrl as any, "tearDownDabDeployment")
+                .resolves({ success: true });
+            // Another process took the old port, so the next free one is used.
+            findAvailablePort.resolves(5006);
+
+            const result = (await handler({
+                target: Dab.DabDeploymentTarget.DabCli,
+                deploymentId: trackedRecord.id,
+            })) as Dab.PrepareDeploymentResponse;
+
+            expect(result).to.deep.equal({
+                success: true,
+                params: { containerName: trackedRecord.name, port: 5006 },
+            });
+            expect(tearDown).to.have.been.calledOnce;
+            expect(store.getReservedPorts).to.have.been.calledWith(trackedRecord.id);
+            expect(findAvailablePort).to.have.been.calledWith(
+                trackedRecord.port,
+                new Set([5000, 5005]),
+            );
+        });
+
+        test("fails rather than moving a first deployment off the port the user chose", async () => {
+            const { ctrl, findAvailablePort, handler } = setUpController();
+            sandbox.stub(ctrl as any, "generateDabDeploymentName").resolves("DAB_testdb_2");
+            findAvailablePort.resolves(5003);
+
+            const result = (await handler({
+                target: Dab.DabDeploymentTarget.DabCli,
+                port: 5002,
+            })) as Dab.PrepareDeploymentResponse;
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.include("5002");
+            expect(findAvailablePort).to.have.been.calledWith(5002, new Set([5000, 5005]));
+        });
+
+        test("CheckDeploymentPortRequest treats a port another deployment owns as taken", async () => {
+            const { findAvailablePort } = setUpController();
+            const checkHandler = requestHandlers.get(Dab.CheckDeploymentPortRequest.type.method);
+            findAvailablePort.callsFake(async (port: number) => port);
+
+            const owned = (await checkHandler({ port: 5005 })) as Dab.CheckDeploymentPortResponse;
+            const free = (await checkHandler({ port: 5010 })) as Dab.CheckDeploymentPortResponse;
+            findAvailablePort.resolves(5001);
+            const suggested = (await checkHandler({})) as Dab.CheckDeploymentPortResponse;
+
+            expect(owned.isAvailable).to.be.false;
+            expect(owned.error).to.include("5005");
+            expect(free).to.deep.equal({ port: 5010, isAvailable: true });
+            expect(suggested).to.deep.equal({ port: 5001, isAvailable: true });
+        });
+
+        test("fails when no port is free", async () => {
+            const { ctrl, findAvailablePort, handler } = setUpController();
+            sandbox.stub(ctrl as any, "generateDabDeploymentName").resolves("DAB_testdb_2");
+            findAvailablePort.resolves(undefined);
+
+            const result = (await handler({
+                target: Dab.DabDeploymentTarget.Docker,
+            })) as Dab.PrepareDeploymentResponse;
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.be.a("string").and.not.empty;
+            expect(result.params).to.equal(undefined);
+        });
+    });
+
     suite("DAB deployment telemetry", () => {
         test("reports a successful tracked action using only bounded properties", async () => {
             const ctrl = createController();
@@ -1831,6 +1952,80 @@ suite("SchemaDesignerWebviewController tests", () => {
                     sinon.match({ useNoLock: false }),
                 );
             }
+        });
+
+        test("should key views by traced base table keys and pass procedure result sets", async () => {
+            const metadataService = createDabMetadataServiceStub();
+            (mockMainController.connectionManager as any).getServerInfo = sandbox
+                .stub()
+                .returns(undefined);
+            metadataService.getDabViewColumnsByView.resolves(
+                new Map([
+                    [
+                        "view:dbo.ActiveUsers",
+                        [
+                            {
+                                id: "view:dbo.ActiveUsers:UserKey",
+                                name: "UserKey",
+                                dataType: "int",
+                                ordinal: 1,
+                                isPrimaryKey: false,
+                            },
+                            {
+                                id: "view:dbo.ActiveUsers:DisplayName",
+                                name: "DisplayName",
+                                dataType: "nvarchar",
+                                ordinal: 2,
+                                isPrimaryKey: false,
+                            },
+                        ],
+                    ],
+                ]),
+            );
+            metadataService.getDabViewSourceKeysByView.resolves(
+                new Map([["view:dbo.ActiveUsers", ["userkey"]]]),
+            );
+            const resultColumns = [{ dataType: "int", ordinal: 1 }];
+            metadataService.getDabStoredProcedureResultColumnsByProcedure.resolves(
+                new Map([["stored-procedure:dbo.GetUsers", resultColumns]]),
+            );
+
+            createController(metadataService);
+            const handler = requestHandlers.get(Dab.GetDatabaseObjectsRequest.type.method);
+            const result = ((await handler(undefined)) as Dab.GetDatabaseObjectsResponse)
+                .sourceObjects;
+
+            const view = result.find((source) => source.id === "view:dbo.ActiveUsers");
+            expect(view?.columns.map((column) => column.isPrimaryKey)).to.deep.equal([true, false]);
+            expect(view?.fields).to.deep.equal([
+                { name: "UserKey", isPrimaryKey: true },
+                { name: "DisplayName" },
+            ]);
+            const procedure = result.find(
+                (source) => source.id === "stored-procedure:dbo.GetUsers",
+            );
+            expect(procedure?.resultColumns).to.deep.equal(resultColumns);
+        });
+
+        test("should keep loading DAB objects when key tracing and result set checks fail", async () => {
+            const metadataService = createDabMetadataServiceStub();
+            (mockMainController.connectionManager as any).getServerInfo = sandbox
+                .stub()
+                .returns(undefined);
+            metadataService.getDabViewSourceKeysByView.rejects(new Error("describe failed"));
+            metadataService.getDabStoredProcedureResultColumnsByProcedure.rejects(
+                new Error("describe failed"),
+            );
+
+            createController(metadataService);
+            const handler = requestHandlers.get(Dab.GetDatabaseObjectsRequest.type.method);
+            const result = ((await handler(undefined)) as Dab.GetDatabaseObjectsResponse)
+                .sourceObjects;
+
+            expect(result.map((source) => source.id)).to.deep.equal([
+                "view:dbo.ActiveUsers",
+                "stored-procedure:dbo.GetUsers",
+            ]);
         });
 
         test("should skip NOLOCK hints when server engine information is unavailable", async () => {

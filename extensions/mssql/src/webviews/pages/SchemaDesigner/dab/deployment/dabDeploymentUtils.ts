@@ -59,6 +59,14 @@ export function getDabStepLabels(): Record<
             header: locConstants.schemaDesigner.checkingEngineReadiness,
             body: locConstants.schemaDesigner.verifyingApiReady,
         },
+        [Dab.DabDeploymentStepOrder.acquireAzureCli]: {
+            header: locConstants.schemaDesigner.dabStepGetAzureCli,
+            body: locConstants.schemaDesigner.dabStepGetAzureCliRunning,
+        },
+        [Dab.DabDeploymentStepOrder.signInEntra]: {
+            header: locConstants.schemaDesigner.dabStepSignInEntra,
+            body: locConstants.schemaDesigner.dabStepSignInEntraRunning,
+        },
     };
 }
 

@@ -26,6 +26,13 @@ const MAX_ENGINE_LOG_CHARS = 256_000;
 
 /** How long to wait for the engine to answer before giving up. */
 const ENGINE_READY_TIMEOUT_MS = 60_000;
+/**
+ * How long to wait for an engine this window launched. The engine loads the
+ * metadata of every entity, one at a time, before it answers; against a remote
+ * database with hundreds of entities that takes minutes. The wait ends early
+ * as soon as the engine exits.
+ */
+const ENGINE_LAUNCH_READY_TIMEOUT_MS = 20 * 60_000;
 const ENGINE_READY_POLL_INTERVAL_MS = 1000;
 
 /** How long a single readiness or status probe may take. */
@@ -57,6 +64,11 @@ export interface DabCliProcessEnvironment {
     port: number;
     /** Connection string, resolved by the config's @env reference. */
     connectionString: string;
+    /**
+     * More variables for the engine, such as the Azure CLI it signs in to
+     * Microsoft Entra with.
+     */
+    extraEnvironment?: NodeJS.ProcessEnv;
 }
 
 /**
@@ -66,6 +78,7 @@ export interface DabCliProcessEnvironment {
 export function buildDabCliEnvironment(environment: DabCliProcessEnvironment): NodeJS.ProcessEnv {
     return {
         ...process.env,
+        ...environment.extraEnvironment,
         ASPNETCORE_URLS: `http://localhost:${environment.port}`,
         [Dab.DAB_CLI_CONNECTION_STRING_ENV_VAR]: environment.connectionString,
     };
@@ -84,55 +97,6 @@ function collectProcessOutput(child: ChildProcess): () => string {
     child.stdout?.on("data", append);
     child.stderr?.on("data", append);
     return () => output;
-}
-
-/**
- * Runs a DAB CLI command to completion and returns its output.
- * Used for short-lived commands such as `validate`, never for `start`.
- *
- * @param dotnetPath Path of the dotnet executable to run the CLI assembly with
- * @param assemblyPath Path of the CLI assembly
- * @param args Arguments to pass to the CLI
- * @param environment Port and connection string for the process
- */
-export async function runDabCliCommand(
-    dotnetPath: string,
-    assemblyPath: string,
-    args: string[],
-    environment: DabCliProcessEnvironment,
-): Promise<DabCliCommandResult> {
-    return new Promise<DabCliCommandResult>((resolve) => {
-        let child: ChildProcess;
-        try {
-            child = spawn(dotnetPath, [assemblyPath, ...args], {
-                env: buildDabCliEnvironment(environment),
-                windowsHide: true,
-            });
-        } catch (error) {
-            resolve({ success: false, error: getErrorMessage(error) });
-            return;
-        }
-
-        const getOutput = collectProcessOutput(child);
-
-        child.on("error", (error) => {
-            resolve({ success: false, error: getErrorMessage(error), engineLogs: getOutput() });
-        });
-
-        child.on("close", (code) => {
-            const engineLogs = getOutput().trim() || undefined;
-            resolve(
-                code === 0
-                    ? { success: true, engineLogs }
-                    : {
-                          success: false,
-                          error: LocalContainers.dabCliExitedWithCode(code),
-                          fullErrorText: engineLogs,
-                          engineLogs,
-                      },
-            );
-        });
-    });
 }
 
 /**
@@ -189,22 +153,41 @@ export async function startDabCliEngine(
 /**
  * Polls the engine's port until it answers.
  *
+ * An engine whose process id is known is waited for as long as it lives, up
+ * to a generous limit, because a large database takes minutes to load. One
+ * that exits fails the check straight away with its output.
+ *
  * @param port Port the engine publishes on
  * @param getLogs Optional accessor for engine output, included on failure
  * @param processId Process id of the engine just launched, when one is known
+ * @param onProgress Optional callback with the time spent waiting so far
  */
 export async function checkDabCliEngineReady(
     port: number,
     getLogs?: () => string,
     processId?: number,
+    onProgress?: (elapsedMs: number) => void,
 ): Promise<DabCliCommandResult> {
     const start = Date.now();
+    const timeoutMs =
+        processId !== undefined ? ENGINE_LAUNCH_READY_TIMEOUT_MS : ENGINE_READY_TIMEOUT_MS;
 
-    while (Date.now() - start < ENGINE_READY_TIMEOUT_MS) {
+    while (Date.now() - start < timeoutMs) {
         if (await isDabCliEngineResponding(port, processId)) {
             return { success: true };
         }
 
+        if (processId !== undefined && !isProcessAlive(processId)) {
+            const engineLogs = getLogs?.().trim() || undefined;
+            return {
+                success: false,
+                error: LocalContainers.dabCliEngineExited,
+                fullErrorText: engineLogs,
+                engineLogs,
+            };
+        }
+
+        onProgress?.(Date.now() - start);
         await new Promise((resolve) => setTimeout(resolve, ENGINE_READY_POLL_INTERVAL_MS));
     }
 

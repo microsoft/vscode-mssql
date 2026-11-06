@@ -28,7 +28,6 @@ import {
 import {
     ArrowCounterclockwise16Regular as ResetIcon,
     ArrowLeft16Regular as ArrowLeftIcon,
-    Box16Regular as DeploymentsIcon,
     Dismiss12Regular,
     Dismiss16Regular,
     Eye16Regular as EyeIcon,
@@ -521,11 +520,11 @@ export function DabToolbar({
                     {showDeployments ? (
                         <Button
                             appearance="primary"
-                            icon={<DeploymentsIcon />}
+                            icon={<PlayIcon />}
                             size="small"
-                            title={locConstants.schemaDesigner.deployments}
+                            title={locConstants.schemaDesigner.deploy}
                             onClick={openDabDeploymentsDialog}>
-                            {locConstants.schemaDesigner.deployments}
+                            {locConstants.schemaDesigner.deploy}
                         </Button>
                     ) : isDeployDisabled ? (
                         <Tooltip content={getDeployTooltip()} relationship="label">

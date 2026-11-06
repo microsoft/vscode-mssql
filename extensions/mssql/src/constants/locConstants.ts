@@ -6,6 +6,7 @@
 import { l10n } from "vscode";
 import * as os from "os";
 import { getErrorMessage } from "../utils/utils";
+import { Dab } from "../sharedInterfaces/dab";
 
 // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
 export class Common {
@@ -2419,14 +2420,57 @@ export class LocalContainers {
     public static dabStartExistingContainerError = l10n.t("Failed to start the DAB container.");
     public static dabStopExistingContainerError = l10n.t("Failed to stop the DAB container.");
     public static dabDeploymentNotFound = l10n.t(
-        "This deployment is no longer tracked. Refresh the deployments list and try again.",
+        "This deployment is no longer tracked. Close the dialog and open it again.",
     );
-    public static dabRedeployPortUnavailable = (port: number, containerName: string) =>
+    public static dabDeployTaskTitle = l10n.t("Deploy Data API builder");
+    public static dabDeployTaskStarting = l10n.t("Starting");
+    public static dabDeployTaskWaiting = l10n.t(
+        "Waiting for you to sign in. Open Data API builder in the schema designer to continue.",
+    );
+    public static dabDeployTaskSucceeded = (url: string) =>
+        l10n.t({
+            message: "Running at {0}",
+            args: [url],
+            comment: ["{0} is the URL the API is published on"],
+        });
+    public static dabDeployTaskStep = (step: Dab.DabDeploymentStepOrder): string => {
+        switch (step) {
+            case Dab.DabDeploymentStepOrder.dockerInstallation:
+                return l10n.t("Checking Docker");
+            case Dab.DabDeploymentStepOrder.startDockerDesktop:
+                return l10n.t("Starting Docker");
+            case Dab.DabDeploymentStepOrder.checkDockerEngine:
+                return l10n.t("Waiting for the Docker engine");
+            case Dab.DabDeploymentStepOrder.pullImage:
+                return l10n.t("Getting the Data API builder image");
+            case Dab.DabDeploymentStepOrder.acquireDabCli:
+            case Dab.DabDeploymentStepOrder.checkDotnetRuntime:
+                return l10n.t("Preparing Data API builder");
+            case Dab.DabDeploymentStepOrder.acquireAzureCli:
+                return l10n.t("Getting Azure CLI");
+            case Dab.DabDeploymentStepOrder.signInEntra:
+                return l10n.t("Signing in to Microsoft Entra");
+            case Dab.DabDeploymentStepOrder.startContainer:
+            case Dab.DabDeploymentStepOrder.startCliEngine:
+            case Dab.DabDeploymentStepOrder.validateCliConfig:
+                return l10n.t("Starting the API");
+            case Dab.DabDeploymentStepOrder.checkContainer:
+            case Dab.DabDeploymentStepOrder.checkCliEngine:
+                return l10n.t("Waiting for the API to answer");
+        }
+    };
+    public static dabPortOwnedByDeployment = (port: number) =>
+        l10n.t({
+            message: "Port {0} belongs to another Data API builder deployment",
+            args: [port],
+            comment: ["{0} is the port number"],
+        });
+    public static dabNoAvailablePort = (startPort: number) =>
         l10n.t({
             message:
-                "Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.",
-            args: [port, containerName],
-            comment: ["{0} is the port number", "{1} is the Docker container name"],
+                "No free port was found from port {0}. Free a port for Data API builder and try again.",
+            args: [startPort],
+            comment: ["{0} is the port number the search started from"],
         });
     public static dabDeploymentStoreUnavailable = l10n.t(
         "Deployments cannot be tracked because the extension's storage location is unavailable.",
@@ -2456,14 +2500,41 @@ export class LocalContainers {
     public static dabCliConfigWriteFailed = l10n.t(
         "Failed to write the Data API builder configuration file.",
     );
-    public static dabCliConfigInvalid = l10n.t("The Data API builder configuration is not valid.");
     public static dabCliDatabaseConnectionFailed = l10n.t(
         "Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.",
     );
     public static dabCliEntraConnectionFailed = l10n.t(
-        "Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run 'az login', then run this step again.",
+        "Data API builder signed in with Microsoft Entra but could not connect to the database. Check that the signed-in account can access this database, then try again.",
     );
-    public static dabCliInstallAzureCli = l10n.t("Install the Azure CLI");
+    public static dabCliReady = (version: string) =>
+        l10n.t({
+            message: "Data API builder {0} ready",
+            args: [version],
+            comment: ["{0} is the Data API builder version"],
+        });
+    public static dabAzureCliPrivateReady = l10n.t("Azure CLI ready · private to this extension");
+    public static dabAzureCliNotReady = l10n.t(
+        "The Azure CLI is not set up yet. Run the deployment again from the start.",
+    );
+    public static dabAzureCliDownloadFailed = l10n.t(
+        "The Azure CLI could not be downloaded. Check your network connection, then try again.",
+    );
+    public static dabAzureCliInstallFailed = l10n.t("The Azure CLI could not be set up.");
+    public static dabAzureCliPythonMissing = l10n.t(
+        "A private Azure CLI on macOS and Linux needs Python 3.10 or later. Install Python, then try again.",
+    );
+    public static dabAzureCliInstallPython = l10n.t("Install Python");
+    public static dabEntraSignedInAs = (account: string) =>
+        l10n.t({
+            message: "Signed in as {0}",
+            args: [account],
+            comment: ["{0} is the Microsoft Entra account name"],
+        });
+    public static dabEntraSignedIn = l10n.t("Signed in");
+    public static dabEntraSignInFailed = l10n.t("Sign-in did not finish. Try again.");
+    public static dabEntraSignInCodeUnavailable = l10n.t(
+        "The Azure CLI did not provide a sign-in code. Sign in with the browser instead.",
+    );
     public static dabCliStartFailed = l10n.t("Failed to start the Data API builder engine.");
     public static dabCliEngineNotReady = l10n.t(
         "The Data API builder engine did not become ready within the timeout period.",
@@ -2472,15 +2543,12 @@ export class LocalContainers {
         "Deployment name, port, and configuration are required to start the engine.",
     );
     public static dabCliEngineDidNotStart = l10n.t("The Data API builder engine did not start.");
+    public static dabCliEngineExited = l10n.t(
+        "Data API builder stopped while it was starting. The engine logs show why.",
+    );
     public static dabCliEngineReadyTimeout = l10n.t(
         "The Data API builder engine did not answer in time.",
     );
-    public static dabCliExitedWithCode = (code: number | null) =>
-        l10n.t({
-            message: "The Data API builder CLI exited with code {0}.",
-            args: [code ?? -1],
-            comment: ["{0} is the process exit code"],
-        });
     public static dabDockerWindowsAuthNotSupported = l10n.t(
         "A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.",
     );
