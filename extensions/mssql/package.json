@@ -5301,16 +5301,6 @@
                             "preview"
                         ]
                     },
-                    "mssql.dab.cliPackageFeedUrl": {
-                        "type": "string",
-                        "default": "",
-                        "markdownDescription": "%mssql.dab.cliPackageFeedUrl%",
-                        "scope": "machine",
-                        "pattern": "^(https://.*)?$",
-                        "tags": [
-                            "preview"
-                        ]
-                    },
                     "mssql.tracingLevel": {
                         "type": "string",
                         "description": "%mssql.tracingLevel%",

@@ -384,7 +384,6 @@ export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoM
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 export const configStatusBarShowQueryExecutionStatus = "statusBar.showQueryExecutionStatus";
 export const configStatusBarShowServerProcessId = "statusBar.showServerProcessId";
-export const configDabCliPackageFeedUrl = "mssql.dab.cliPackageFeedUrl";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
 export const configSchemaDesignerEnableDeploymentsView =

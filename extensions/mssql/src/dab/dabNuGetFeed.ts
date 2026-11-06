@@ -18,7 +18,7 @@
  *
  * Feeds requiring authentication are not supported: there is no credential
  * provider here, so such a source is skipped like any other that does not
- * answer. Setting `mssql.dab.cliPackageFeedUrl` bypasses all of this.
+ * answer.
  *
  * Only machine-wide and user configuration is read, and only HTTPS sources
  * are followed. Whatever feed is used, the unpacked CLI is checked against
@@ -197,21 +197,13 @@ export async function resolveFlatContainerUrl(
 /**
  * Determines the flat container to download the CLI package from.
  *
- * An explicitly configured URL wins. Otherwise the enabled NuGet sources are
- * tried in order, so an environment that redirects nuget.org to a mirror is
- * followed automatically. nuget.org is the last resort.
+ * The enabled NuGet sources are tried in order, so an environment that
+ * redirects nuget.org to a mirror is followed automatically. nuget.org is the
+ * last resort.
  *
- * @param configuredFeedUrl Value of the feed setting, when the user set one
  * @param logger Logger for discovery diagnostics
  */
-export async function resolveDabCliFeedUrl(
-    configuredFeedUrl: string | undefined,
-    logger: ILogger,
-): Promise<string> {
-    if (configuredFeedUrl) {
-        return configuredFeedUrl.replace(/\/+$/, "");
-    }
-
+export async function resolveDabCliFeedUrl(logger: ILogger): Promise<string> {
     let sources: NuGetPackageSource[];
     try {
         sources = await readEnabledNuGetSources(logger);

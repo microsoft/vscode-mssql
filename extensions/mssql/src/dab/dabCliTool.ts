@@ -19,13 +19,11 @@
  * extension manages rather than whatever happens to be on PATH.
  */
 
-import * as vscode from "vscode";
 import * as fsPromises from "fs/promises";
 import * as path from "path";
 import { DOMParser } from "@xmldom/xmldom";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
-import { configDabCliPackageFeedUrl } from "../constants/constants";
 import { Dab } from "../sharedInterfaces/dab";
 import { resolveDabCliFeedUrl } from "./dabNuGetFeed";
 import { getErrorMessage } from "../utils/utils";
@@ -99,34 +97,6 @@ export function getDabCliPackageUrl(
     const packageVersion = version.toLowerCase();
     const base = feedUrl.replace(/\/+$/, "");
     return `${base}/${packageId}/${packageVersion}/${packageId}.${packageVersion}.nupkg`;
-}
-
-/**
- * Reads the feed setting, or undefined when the user has not set one and the
- * feed should be discovered from NuGet configuration instead.
- *
- * The setting is machine-scoped, and only its user-level value is read. The
- * URL must use HTTPS.
- *
- * @param logger Logger for a value that is ignored
- */
-export function getConfiguredDabCliFeedUrl(logger?: ILogger): string | undefined {
-    const value = vscode.workspace
-        .getConfiguration()
-        .inspect<string>(configDabCliPackageFeedUrl)
-        ?.globalValue?.trim();
-    if (!value) {
-        return undefined;
-    }
-
-    if (!/^https:\/\//i.test(value)) {
-        logger?.warn(
-            `Ignoring ${configDabCliPackageFeedUrl}: the feed must use HTTPS. Using NuGet configuration instead.`,
-        );
-        return undefined;
-    }
-
-    return value;
 }
 
 /** Directory a given CLI version is unpacked into. */
@@ -361,7 +331,7 @@ export async function acquireDabCli(
     await fsPromises.rm(installPath, { recursive: true, force: true });
     await fsPromises.mkdir(installPath, { recursive: true });
 
-    const feedUrl = await resolveDabCliFeedUrl(getConfiguredDabCliFeedUrl(logger), logger);
+    const feedUrl = await resolveDabCliFeedUrl(logger);
     await downloadAndUnpack(Dab.DAB_CLI_PACKAGE_ID, version, feedUrl, installPath, logger);
 
     const settingsPath = await findFile(installPath, DOTNET_TOOL_SETTINGS_NAME);

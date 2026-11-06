@@ -889,8 +889,8 @@ export namespace Dab {
 
     /**
      * Default flat container the CLI package is downloaded from. Environments
-     * that disable nuget.org in favor of a mirror override this through the
-     * `mssql.dab.cliPackageFeedUrl` setting.
+     * that disable nuget.org in favor of a mirror override this through their
+     * NuGet configuration.
      */
     export const DAB_CLI_DEFAULT_PACKAGE_FEED_URL = "https://api.nuget.org/v3-flatcontainer";
 

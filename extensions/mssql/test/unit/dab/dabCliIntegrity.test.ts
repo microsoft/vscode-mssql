@@ -7,15 +7,12 @@ import { expect } from "chai";
 import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
-import * as sinon from "sinon";
-import * as vscode from "vscode";
 import {
     computeDabCliTreeDigest,
     DAB_CLI_TREE_DIGESTS,
     getPinnedDabCliTreeDigest,
     isOfficialDabCliInstallation,
 } from "../../../src/dab/dabCliIntegrity";
-import { getConfiguredDabCliFeedUrl } from "../../../src/dab/dabCliTool";
 import { DAB_AZURE_CLI_ZIP_SHA256 } from "../../../src/dab/dabAzureCli";
 import { Dab } from "../../../src/sharedInterfaces/dab";
 
@@ -96,67 +93,5 @@ suite("DAB CLI integrity", () => {
 
     test("pins the Azure CLI download by its SHA-256", () => {
         expect(DAB_AZURE_CLI_ZIP_SHA256).to.match(/^[0-9a-f]{64}$/);
-    });
-});
-
-suite("DAB CLI feed setting", () => {
-    let sandbox: sinon.SinonSandbox;
-
-    function stubSetting(values: {
-        globalValue?: string;
-        workspaceValue?: string;
-        workspaceFolderValue?: string;
-    }): void {
-        sandbox.stub(vscode.workspace, "getConfiguration").returns({
-            inspect: () => ({ key: "mssql.dab.cliPackageFeedUrl", ...values }),
-            get: () => values.workspaceFolderValue ?? values.workspaceValue ?? values.globalValue,
-        } as unknown as vscode.WorkspaceConfiguration);
-    }
-
-    setup(() => {
-        sandbox = sinon.createSandbox();
-    });
-
-    teardown(() => {
-        sandbox.restore();
-    });
-
-    test("ignores a feed set in workspace or folder settings", () => {
-        stubSetting({
-            workspaceValue: "https://other.example/flat",
-            workspaceFolderValue: "https://other.example/flat",
-        });
-
-        expect(getConfiguredDabCliFeedUrl()).to.equal(undefined);
-    });
-
-    test("uses a feed the user set in their own settings", () => {
-        stubSetting({
-            globalValue: " https://mirror.contoso.example/v3-flatcontainer ",
-            workspaceValue: "https://other.example/flat",
-        });
-
-        expect(getConfiguredDabCliFeedUrl()).to.equal(
-            "https://mirror.contoso.example/v3-flatcontainer",
-        );
-    });
-
-    test("ignores a feed that does not use HTTPS", () => {
-        stubSetting({ globalValue: "http://mirror.contoso.example/v3-flatcontainer" });
-
-        expect(getConfiguredDabCliFeedUrl()).to.equal(undefined);
-    });
-
-    test("is declared machine-scoped, so VS Code keeps it out of workspace settings", async () => {
-        const manifest = JSON.parse(
-            await fs.readFile(path.join(__dirname, "..", "..", "..", "..", "package.json"), "utf8"),
-        ) as {
-            contributes: { configuration: { properties?: Record<string, { scope?: string }> }[] };
-        };
-        const declaration = manifest.contributes.configuration
-            .map((section) => section.properties?.["mssql.dab.cliPackageFeedUrl"])
-            .find((property) => property !== undefined);
-
-        expect(declaration?.scope).to.equal("machine");
     });
 });
