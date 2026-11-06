@@ -272,6 +272,7 @@ export interface QueryResultAccessStatus {
 // --- typed errors -----------------------------------------------------------------
 
 export type QueryResultAccessErrorCode =
+    | "invalidTransformSpec"
     | "sourceNotFound"
     | "storeUnavailable"
     | "snapshotNotFound"

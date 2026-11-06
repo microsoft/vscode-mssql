@@ -15,6 +15,7 @@ import {
     QueryResultResolvedContext,
     getQueryResultContextService,
 } from "./queryResultContextService";
+import { GateOutcomeRecord, recentGateOutcomes } from "./resultAccessGate";
 import { resolveQueryResultsParams } from "./queryResultsParams";
 import { QueryResultAccessStatus } from "./queryResultTypes";
 
@@ -31,6 +32,7 @@ export interface QueryResultsStatusInputs {
     context: QueryResultResolvedContext | undefined;
     paramsDigest: string;
     overriddenKeys: readonly string[];
+    gateOutcomes?: readonly GateOutcomeRecord[];
 }
 
 export function renderQueryResultsStatus(inputs: QueryResultsStatusInputs): string {
@@ -66,6 +68,12 @@ export function renderQueryResultsStatus(inputs: QueryResultsStatusInputs): stri
                 digest: inputs.paramsDigest,
                 overriddenKeys: inputs.overriddenKeys,
             },
+            // Class + outcome only — grant ids and payloads never surface.
+            recentGrantActivity: (inputs.gateOutcomes ?? []).map((record) => ({
+                ageSeconds: Math.round((Date.now() - record.atEpochMs) / 1000),
+                operationClass: record.operationClass,
+                outcome: record.outcome,
+            })),
         },
         undefined,
         2,
@@ -88,5 +96,6 @@ export function buildQueryResultsStatusDocument(): string {
         context: getQueryResultContextService().current(),
         paramsDigest: resolved.digest,
         overriddenKeys: resolved.overriddenKeys,
+        gateOutcomes: recentGateOutcomes(),
     });
 }

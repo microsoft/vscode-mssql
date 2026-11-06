@@ -511,7 +511,7 @@ interface TypedScalarCellEncoding {
 }
 
 /** Lossless/ambiguous scalar wrapper emitted by STS2 WireValueEncoder. */
-function isTypedScalarCellEncoding(raw: unknown): raw is TypedScalarCellEncoding {
+export function isTypedScalarCellEncoding(raw: unknown): raw is TypedScalarCellEncoding {
     if (raw === null || typeof raw !== "object") {
         return false;
     }

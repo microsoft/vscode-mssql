@@ -14,7 +14,11 @@
 import { getQueryResultAccessService } from "./queryResultAccessService";
 import { resolveQueryResultsParams } from "./queryResultsParams";
 import { openPinnedResultsDocument } from "./pinnedResultsDocumentProvider";
-import { QueryStudioCore as QueryStudioCoreLoc } from "../constants/locConstants";
+import {
+    QueryStudioCore as QueryStudioCoreLoc,
+    QueryResultsAnalysis as AnalysisLoc,
+} from "../constants/locConstants";
+import { QueryResultAccessError } from "./queryResultTypes";
 
 export interface PinOutcome {
     opened: boolean;
@@ -59,4 +63,26 @@ export async function pinSourceResults(
             error: error instanceof Error ? error.message : String(error),
         };
     }
+}
+
+/**
+ * Open an EXISTING snapshot (e.g. an AI-derived filtered view) as a pinned
+ * document. The document's own lease keeps it alive from then on — an
+ * aiTool-purpose snapshot graduates out of TTL reach while pinned.
+ */
+export async function pinExistingSnapshot(snapshotId: string): Promise<PinOutcome> {
+    if (!resolveQueryResultsParams().params.pinnedDocumentsEnabled) {
+        return {
+            opened: false,
+            error: QueryStudioCoreLoc.pinnedResultDocumentsAreDisabledMssqlQueryResultsPinnedDocuments,
+        };
+    }
+    const service = getQueryResultAccessService();
+    if (!service.describeSnapshot(snapshotId)) {
+        throw new QueryResultAccessError("snapshotNotFound", AnalysisLoc.snapshotNotFoundOrExpired);
+    }
+    const opened = await openPinnedResultsDocument(snapshotId);
+    return opened
+        ? { opened, snapshotId }
+        : { opened, error: QueryStudioCoreLoc.thePinnedResultsTabCouldNotBeOpened };
 }

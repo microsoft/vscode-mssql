@@ -25,7 +25,10 @@ import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneServic
 import { registerDefinitionContentProvider } from "./definitionContentProvider";
 import { QueryStudioController } from "./queryStudioController";
 import { QueryStudioDocumentModel } from "./queryStudioDocumentModel";
-import { disposeQueryResultAccessService } from "../queryResults/queryResultAccessService";
+import {
+    disposeQueryResultAccessService,
+    getQueryResultAccessService,
+} from "../queryResults/queryResultAccessService";
 import { pinSourceResults } from "../queryResults/pinCommands";
 import {
     bindQueryResultContextKeys,
@@ -265,6 +268,38 @@ function registerQueryStudioPerfProbe(context: vscode.ExtensionContext): void {
         return;
     }
     context.subscriptions.push(
+        // Harness probe (C2D-8, hidden): run one representative groupBy
+        // transform against the NEWEST snapshot so perftest scenarios can
+        // measure engine throughput via the registered markers.
+        vscode.commands.registerCommand("mssql.queryResults.benchmarkTransform", async () => {
+            const service = getQueryResultAccessService();
+            const newest = [...service.listSnapshots()].sort(
+                (a, b) => b.createdEpochMs - a.createdEpochMs,
+            )[0];
+            if (!newest) {
+                return { evaluated: false, error: "No snapshots exist." };
+            }
+            const description = service.describeSnapshot(newest.snapshotId);
+            const target = description?.resultSets.reduce(
+                (best, set) => (set.rowCount > (best?.rowCount ?? -1) ? set : best),
+                description.resultSets[0],
+            );
+            if (!description || !target) {
+                return { evaluated: false, error: "Snapshot has no result sets." };
+            }
+            const result = await service.evaluateSnapshotTransform({
+                v: 1,
+                source: { snapshotId: newest.snapshotId, resultSetId: target.resultSetId },
+                terminal: { kind: "groupBy", keys: [0], aggs: [{ fn: "count" }] },
+            });
+            return {
+                evaluated: true,
+                rowsScanned: result.stats.rowsScanned,
+                groups: result.rows.length,
+                elapsedMs: result.stats.elapsedMs,
+                partial: result.stats.partial,
+            };
+        }),
         vscode.commands.registerCommand("mssql.perf.queryStudioConnect", async (uri?: string) => {
             const model = uri ? liveModels.get(uri) : liveModels.values().next().value;
             if (!model) {
