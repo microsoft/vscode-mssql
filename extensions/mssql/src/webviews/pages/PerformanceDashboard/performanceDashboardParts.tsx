@@ -41,6 +41,7 @@ import {
     withSettings,
 } from "./performanceDashboardRoutes";
 import { ChartSkeleton, ValueSkeleton, useFadeInClass } from "./performanceDashboardSkeletons";
+import type { TimeSeriesPoint } from "./performanceDashboardSeries";
 import { StatusMessage } from "./performanceDashboardStatus";
 import type { TimeBand } from "./performanceDashboardTimeBand";
 
@@ -464,13 +465,6 @@ export function axisDateFormat(dates: readonly Date[]): (date: Date) => string {
               ? axisDayHourFormat
               : axisDayFormat;
     return (date) => format.format(date);
-}
-
-export interface TimeSeriesPoint {
-    readonly x: Date;
-    readonly y: number;
-    /** The time in the tooltip, for example the interval of the point. Default: the time of x. */
-    readonly xLabel?: string;
 }
 
 export interface TimeSeriesChartProps {

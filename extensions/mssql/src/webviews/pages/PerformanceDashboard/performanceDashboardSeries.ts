@@ -6,7 +6,13 @@
 import { locConstants as loc } from "../../common/locConstants";
 import type { ResolvedTimeRange } from "../../common/timeRange/timeRange";
 import { dateTimeFormat, timeFormat } from "./performanceDashboardFormat";
-import type { TimeSeriesPoint } from "./performanceDashboardParts";
+
+export interface TimeSeriesPoint {
+    readonly x: Date;
+    readonly y: number;
+    /** The time in the tooltip, for example the interval of the point. Default: the time of x. */
+    readonly xLabel?: string;
+}
 
 const minuteMs = 60_000;
 /** A guard against a bucket size that would give too many points. */
